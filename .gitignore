@@ -1,1 +1,43 @@
-# kuch na kaho; kuch bhi na kaho
+# --- secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# --- node / frontend ---
+node_modules/
+dist/
+build/
+.next/
+.cache/
+
+# --- logs / data / local artifacts ---
+logs/
+*.log
+*.sqlite
+*.db
+data/local/
+coverage/
+
+# --- os / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- demo/recording scratch ---
+recordings/
+*.mp4
+*.wav
+*.mp3
