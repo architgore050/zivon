@@ -81,3 +81,5 @@ The final name will be the one that best balances:
 
 ## Next Step
 Check live domain availability and pricing for the shortlisted names, starting with **Zivon**.
+
+> **Deadline: this decision must close by Day 1 (Fri 30 Oct)** — static pages go live on the chosen domain by Day 4, and social handles are needed from Day 0. See `05-timeline.md`.

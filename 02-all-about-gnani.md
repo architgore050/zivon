@@ -53,6 +53,8 @@ You must use **at least one** of Gnani’s models. Pure competing models or comp
 
 **Important note on Evon:** It is open-weight. You download and run it yourself (or use a compatible inference setup). Prisma and Timbre run through the Gnani API dashboard (app.gnani.ai) and consume the 5,000 programme credits.
 
+**Fallback policy (our decision, not the challenge's):** Evon v3.3 is the intended brain and our default. If it fails the Day-1 quality gate (see `05-timeline.md`, Gate A — Physics reasoning eval), the runtime LLM may be swapped (e.g. Gemma 4 or latest). The challenge only requires **at least one** Gnani model, and Prisma + Timbre already satisfy that — but our goal and our story remain the full three-model sovereign loop.
+
 Together these three form a complete voice agent pipeline: listen → reason → speak.
 
 ---
@@ -128,11 +130,33 @@ A voice-first AI tutor that Indian students can actually talk to — in Hindi, E
 - Real-time voice conversation
 - Designed so new subjects can be added later
 
-**Name:** Zivon (blank-slate, no inherited meaning). Domain decision still open based on availability and pricing.
+Execution plan: `05-timeline.md` (Day-by-day, with decision gates and a scope ladder).
+
+**Name:** Zivon (blank-slate, no inherited meaning). Domain decision closes by Day 1 — see `03-naming-methodology.md` and `05-timeline.md`.
 
 ---
 
-## 8. Strategy to Impress Them
+## 8. What They Need vs. What Zivon Delivers
+
+The challenge sets a floor. We intend to clear it by a wide margin — and be explicit about the gap so the ambition is documented, not implied.
+
+| The challenge's bar | The Zivon bar |
+|---|---|
+| Use **at least one** Gnani model | Full sovereign loop: **Prisma + Evon + Timbre** end-to-end, with a documented quality gate on Evon rather than blind faith |
+| A working demo | A **kid-validated** learning product: content proven to teach real children (including topics a class above their level) before any agent touches a student |
+| Some app or page | A **multi-agent content factory** that generates interactive animations, simulations, and diagrams at scale, with fact-checking and performance review built into the pipeline |
+| Handles code-mixed speech | Code-mixed Hinglish as the **primary interface**, plus a deliberately noisy take filmed in the demo |
+| 60-second demo video | Commercial-grade demo film + presentation deck, rehearsed end-to-end |
+| GitHub repo + live link | Production-style repo: protected `main`, separate `prod`, PRs with CI + agentic code review, security checks on every promotion, maintained docs |
+| Post on X/LinkedIn with hashtags | Daily build-in-public pipeline across the whole build window, both hashtags, nominated, professional growth tactics |
+| Basic robustness | Telemetry, per-stage latency logging, error tracking, admin dashboard, analytics for product decisions |
+| "Good enough" frontend | Deliberate UI/UX engineering pass: design system, low-end-Android-first performance, accessibility, telemetry-driven iteration |
+
+**Honesty clause:** Netflix/Google-grade security and frontend perfection are the standard we *aim at*, time-boxed within 12 days. Where we don't reach it, the gap is documented and carried forward as a roadmap — not hidden. The demo's reliability always outranks polish.
+
+---
+
+## 9. Strategy to Impress Them
 
 1. **Make the voice loop rock-solid first**  
    Prisma transcription quality + Timbre naturalness + Evon explanations that feel like a good tutor.
@@ -154,7 +178,7 @@ A voice-first AI tutor that Indian students can actually talk to — in Hindi, E
 
 ---
 
-## 9. Key Dates
+## 10. Key Dates
 
 | Milestone | Date |
 |-----------|------|
@@ -167,7 +191,7 @@ As of late October 2026 we have roughly two weeks of focused build time left. Pr
 
 ---
 
-## 10. Official Links
+## 11. Official Links
 
 - Challenge page: https://www.gnani.ai/internship
 - Blog overview: https://www.gnani.ai/resources/blogs/great-indian-ai-internship-challenge-2026
