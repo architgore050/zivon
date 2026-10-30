@@ -100,12 +100,9 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 
 ## Content creation skills
 
-`skills/content-creation/` holds two agent skills used for the build-in-public posts:
+`skills/content-creation/` holds the agent skills for the build-in-public posts (LinkedIn and X writers, shared post theme rules, asset/edit briefs, and the Kinocut lessons store). Read [`skills/content-creation/README.md`](skills/content-creation/README.md) before any post work — it is the source of truth for the folder's layout and rules; this file does not list individual files.
 
-- **`linkedin-post-interviewer`** — interview-first LinkedIn post writer: one strong post plus variants, a strategic hashtag set per post, an asset capture list, and a Kinocut MCP edit brief.
-- **`x-post-interviewer`** — interview-first X (Twitter) post writer: three post formats (single post, thread, short variant), a strategic hashtag set per post, an asset capture list, and a Kinocut MCP edit brief.
-
-Both interview before drafting (Depth Gate), never fabricate facts, and never post on the user's behalf without explicit approval. **Kinocut MCP is the decided editing tool** for post assets; do not evaluate or propose other editing tools. The shared `skills/content-creation/tools.md` is a lessons store for using Kinocut: consult it before writing edit steps and append what you learn after each edit run.
+Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP is the decided editing tool** — do not evaluate or propose other editing tools.
 
 ---
 

@@ -67,7 +67,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 | [`docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md`](docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
-| [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts: `linkedin-post-interviewer` and `x-post-interviewer` (interview-first drafting, hashtag strategy, asset capture lists, Kinocut MCP edit briefs) |
+| [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 
 ## Engineering Process
 
@@ -75,7 +75,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 - Every PR: CI + agentic code review before merge; `main` → `prod` promotion includes security checks
 - Kanban (GitHub Projects) maintained daily
 - Public build-in-public posts on X / LinkedIn throughout the build
-- For those posts, use the content-creation skills in [`skills/content-creation/`](skills/content-creation/): `linkedin-post-interviewer` and `x-post-interviewer`. They interview before drafting, output a strategic hashtag set per post, plan asset capture, and produce edit briefs for **Kinocut MCP** (the decided editing tool; the shared `skills/content-creation/tools.md` is a lessons store for using it)
+- For those posts, use the skills in [`skills/content-creation/`](skills/content-creation/); **Kinocut MCP** is the decided editing tool. The folder README holds the layout and rules
 
 ## Built on Gnani's Models
 
