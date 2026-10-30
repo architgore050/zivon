@@ -4,7 +4,7 @@
 
 | Item | Value |
 |---|---|
-| Today | Thu 29 Oct 2026 (Day 0) |
+| Start | Thu 29 Oct 2026 (Day 0) |
 | Hard deadline | **Tue 10 Nov 2026, 11:59 PM IST** — no extensions |
 | Build time | ~12.5 days |
 | Internal submission target | Everything public by **10 Nov, 12:00 PM IST** (12h safety buffer) |
@@ -52,7 +52,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 ## Day-by-Day Plan
 
-### Day 0 — Thu 29 Oct — Foundations (today)
+### Day 0 — Thu 29 Oct — Foundations
 
 - **Kanban**: GitHub Projects board — Backlog / Doing / Review / Done / Blocked, swim lanes per phase. Groomed every morning (15 min).
 - **Repo process**: real `.gitignore`, branch model (`main` protected, `prod` for production, `feature/*` branches), PR template, CI skeleton (lint / typecheck / build / test on every PR), agentic code-review workflow set up.
