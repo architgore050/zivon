@@ -75,7 +75,7 @@ EXPORT: [resolution], [aspect ratio], H.264 MP4, under [size] MB; also export a 
 
 Kinocut MCP is the decided editing tool. Express the edit as an ordered list of atomic operations, one Kinocut
 tool call each: `1 trim clip -> 2 crop/scale -> 3 concat -> 4 burn subtitles from .srt -> 5 normalise audio ->
-6 export -> 7 extract poster frame`. Read references/tools.md first and reuse the recorded Kinocut lessons;
+6 export -> 7 extract poster frame`. Read tools.md in this folder first and reuse the recorded Kinocut lessons;
 after the run, append what you learned there.
 Also output the .srt text (timed captions) so the user does not depend on auto-transcription.
 Give absolute-path placeholders only for folders the user must fill in (e.g. the media/output folder).

@@ -105,7 +105,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 - **`linkedin-post-interviewer`** — interview-first LinkedIn post writer: one strong post plus variants, a strategic hashtag set per post, an asset capture list, and a Kinocut MCP edit brief.
 - **`x-post-interviewer`** — interview-first X (Twitter) post writer: three post formats (single post, thread, short variant), a strategic hashtag set per post, an asset capture list, and a Kinocut MCP edit brief.
 
-Both interview before drafting (Depth Gate), never fabricate facts, and never post on the user's behalf without explicit approval. **Kinocut MCP is the decided editing tool** for post assets; do not evaluate or propose other editing tools. Each skill's `references/tools.md` is a lessons store for using Kinocut: consult it before writing edit steps and append what you learn after each edit run.
+Both interview before drafting (Depth Gate), never fabricate facts, and never post on the user's behalf without explicit approval. **Kinocut MCP is the decided editing tool** for post assets; do not evaluate or propose other editing tools. The shared `skills/content-creation/tools.md` is a lessons store for using Kinocut: consult it before writing edit steps and append what you learn after each edit run.
 
 ---
 

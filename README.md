@@ -75,7 +75,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 - Every PR: CI + agentic code review before merge; `main` → `prod` promotion includes security checks
 - Kanban (GitHub Projects) maintained daily
 - Public build-in-public posts on X / LinkedIn throughout the build
-- For those posts, use the content-creation skills in [`skills/content-creation/`](skills/content-creation/): `linkedin-post-interviewer` and `x-post-interviewer`. They interview before drafting, output a strategic hashtag set per post, plan asset capture, and produce edit briefs for **Kinocut MCP** (the decided editing tool; each skill's `references/tools.md` is a lessons store for using it)
+- For those posts, use the content-creation skills in [`skills/content-creation/`](skills/content-creation/): `linkedin-post-interviewer` and `x-post-interviewer`. They interview before drafting, output a strategic hashtag set per post, plan asset capture, and produce edit briefs for **Kinocut MCP** (the decided editing tool; the shared `skills/content-creation/tools.md` is a lessons store for using it)
 
 ## Built on Gnani's Models
 
