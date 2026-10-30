@@ -71,17 +71,20 @@ EXPORT: [resolution], [aspect ratio], H.264 MP4, under [size] MB; also export a 
         1280x720 thumbnail/poster frame from [timestamp]
 ```
 
-### 2b. Same plan as MCP tool steps (for FFmpeg-style local MCP servers)
+### 2b. Same plan as Kinocut MCP tool steps
 
-Express the edit as an ordered list of atomic operations, one tool call each, so a small local model can follow it:
-`1 trim clip -> 2 crop/scale -> 3 concat -> 4 burn subtitles from .srt -> 5 normalise audio -> 6 export -> 7 extract poster frame`.
+Kinocut MCP is the decided editing tool. Express the edit as an ordered list of atomic operations, one Kinocut
+tool call each: `1 trim clip -> 2 crop/scale -> 3 concat -> 4 burn subtitles from .srt -> 5 normalise audio ->
+6 export -> 7 extract poster frame`. Read references/tools.md first and reuse the recorded Kinocut lessons;
+after the run, append what you learned there.
 Also output the .srt text (timed captions) so the user does not depend on auto-transcription.
-Give absolute-path placeholders only for folders the user must fill in (e.g. FREE_VIDEO_EDIT_ROOT).
+Give absolute-path placeholders only for folders the user must fill in (e.g. the media/output folder).
 
 ## Step 3: Verify before posting
 Checklist the user must tick: readable on a phone at arm's length; no secrets visible on any frame (scrub the
 timeline frame by frame at key moments); captions match speech; first 2 s makes sense with sound off; file plays
 in the platform's composer before scheduling.
 
-## Editing tool notes (verify current status before installing; third-party, unaudited)
-Read tools.md in this folder for the options and honest tradeoffs.
+## Editing tool: Kinocut MCP (decided)
+Read tools.md in this folder: it is the lessons store for using Kinocut. Consult it before writing the MCP
+step list, and append new lessons after each edit run.

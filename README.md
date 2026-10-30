@@ -67,6 +67,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 | [`03-naming-methodology.md`](03-naming-methodology.md) | Brand naming process → **Zivon** |
 | [`04-all-about-gnani.md`](04-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
 | [`05-timeline.md`](05-timeline.md) | Day-by-day build timeline, gates, risks, scope ladder |
+| [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts: `linkedin-post-interviewer` and `x-post-interviewer` (interview-first drafting, hashtag strategy, asset capture lists, Kinocut MCP edit briefs) |
 
 ## Engineering Process
 
@@ -74,6 +75,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 - Every PR: CI + agentic code review before merge; `main` → `prod` promotion includes security checks
 - Kanban (GitHub Projects) maintained daily
 - Public build-in-public posts on X / LinkedIn throughout the build
+- For those posts, use the content-creation skills in [`skills/content-creation/`](skills/content-creation/): `linkedin-post-interviewer` and `x-post-interviewer`. They interview before drafting, output a strategic hashtag set per post, plan asset capture, and produce edit briefs for **Kinocut MCP** (the decided editing tool; each skill's `references/tools.md` is a lessons store for using it)
 
 ## Built on Gnani's Models
 

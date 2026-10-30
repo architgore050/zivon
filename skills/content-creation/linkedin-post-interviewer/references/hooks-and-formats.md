@@ -25,12 +25,33 @@ ONE claim per post. If there are two ideas, save one for another post.
 - Target 900-1,300 characters (sergebulaev), up to about 1,500 for a story (post-writer). Stories up to 400 words
   only if every line earns its place.
 - No external link in the body; put it in the first comment (post-writer, and widely repeated advice).
-- 0-3 hashtags, at the end, specific only. Never #motivation #growth #leadership.
+- Hashtags: 3-5, at the end, chosen per the Hashtag strategy below. Never #motivation #growth #leadership.
 - No em dashes. No emojis unless the user's voice uses them.
 - Banned: leverage, unlock, delve, harness, streamline, foster, fundamentally, game-changer, disrupt,
   revolutionize, synergy, "in today's fast-paced world". Rule-of-three lists are an AI tell: vary list lengths.
 - Capitalise names and products. Digits for numbers. Specific numbers beat adjectives.
 - Contractions yes. Active voice. Short sentences; break anything over 20 words.
+
+## Hashtag strategy (maximize views)
+Hashtags are a discovery lever on LinkedIn: posts get indexed in each tag's feed, and the tags help the
+algorithm classify the post to the right audience. Output a hashtag set with every draft: 3-5 tags, CamelCase,
+1-3 words each, placed at the end of the post, never mid-sentence.
+
+Tier mix (this is what maximizes views):
+- 1 broad category tag (high volume, e.g. #AI, #EdTech, #FutureOfLearning): you will not rank here, but it
+  sharpens how the classifier distributes the post.
+- 2-3 mid-size niche tags (roughly 5k-200k followers, e.g. #BuildInPublic, #VoiceAI, #STEMEducation,
+  #PhysicsLearning): where a small account can actually appear in the tag feed and hold attention. This tier
+  does most of the reach work.
+- 1 community/branded tag (low competition, e.g. #GnaniAI, #GreatIndianAIInternshipChallenge): you can rank
+  near the top of its recent feed, and for this project the organisers and judges follow these tags.
+
+Before using a tag, open its page and check follower count and posts added in the last day. A tag with 1M+
+followers and thousands of daily posts buries you instantly; swap in a niche variant. Never use generic
+motivation tags (#motivation #growth #leadership #success) or tags unrelated to the post: hashtag spam dilutes
+classification and draws bot engagement. Never exceed 5.
+Present the set as: tag, tier, one-line reason, plus 1-2 alternates. Treat reach effects as hypotheses; never
+promise views.
 
 ## Reach claims (treat as hypotheses)
 Third-party sources say comments carry about 2x the weight of likes and that the first hours matter. These come

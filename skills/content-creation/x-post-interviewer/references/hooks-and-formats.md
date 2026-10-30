@@ -29,13 +29,32 @@ Plus: Day-N Thread (hook tweet with media, 3-6 proof tweets, one honest "not don
 - Single post max 280 characters unless the user confirms their account supports longer posts. Otherwise thread,
   each tweet under 280.
 - First line is the hook and the strongest line. Pass the first-3-words test ("I tested 47" passes, "Here's what I" fails).
-- No hashtags. No links in the body of the hook tweet (put links in a reply). No "like if you agree".
+- Hashtags: 0-2 max, chosen per the Hashtag strategy below; never mid-sentence, never in the hook tweet's
+  first line. No links in the body of the hook tweet (put links in a reply). No "like if you agree".
 - Specific numbers beat adjectives. State opinions as facts (no "I think").
 - No em dashes. No: leverage, unlock, delve, harness, streamline, game-changer, revolutionize, "in today's world".
 - Contractions yes. Digits for numbers. Active voice. Cut every word that carries nothing.
 - Emojis: none by default, max 1-2 only if the user's voice uses them.
 - Screenshot Test: would someone screenshot this and send it to a friend? If not, rewrite.
 - Write the hook 3-5 ways before touching the body.
+
+## Hashtag strategy (maximize views)
+On X, hashtags are a weak lever next to reply velocity and dwell time; treat them as a classification and
+search aid, not a viral engine. Output a hashtag set with every draft: 0-2 tags, CamelCase, only at the end of
+a single post or the final tweet of a thread, never mid-sentence and never in the hook tweet's first line.
+
+Tier mix when used:
+- 1 niche/community tag the target audience actually follows and searches (e.g. #BuildInPublic, #VoiceAI,
+  #PhysicsLearning, #STEMEducation): modest but real discovery from tag-feed and search readers.
+- 1 branded/programme tag when relevant (e.g. #GnaniAI, #GreatIndianAIInternshipChallenge): low competition,
+  and for this project the organisers and judges monitor these tags.
+
+Before using a tag, search it: if it is dominated by spam, giveaways, or breaking-news hijacking, skip it.
+Never trend-jack unrelated trending tags: irrelevant impressions tank dwell time and the algorithm downranks
+the post. Stacking more than 2 tags reads as spam and suppresses reach. Zero hashtags is a legitimate, often
+better, choice; say so when it is.
+Present the set as: tag, tier, one-line reason, plus one alternate. Treat reach effects as hypotheses; never
+promise views.
 
 ## Reply-driving without bait
 Third-party sources claim replies are weighted far above likes on X (one cites 75x). Treat that as an unverified
