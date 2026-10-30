@@ -71,12 +71,14 @@ EXPORT: [resolution], [aspect ratio], H.264 MP4, under [size] MB; also export a 
         1280x720 thumbnail/poster frame from [timestamp]
 ```
 
-### 2b. Same plan as Kinocut MCP tool steps
+### 2b. Same plan as MCP tool steps (Kinocut for video, GIMP for images)
 
-Kinocut MCP is the decided editing tool. Express the edit as an ordered list of atomic operations, one Kinocut
-tool call each: `1 trim clip -> 2 crop/scale -> 3 concat -> 4 burn subtitles from .srt -> 5 normalise audio ->
-6 export -> 7 extract poster frame`. Read tools.md in this folder first and reuse the recorded Kinocut lessons;
-after the run, append what you learned there.
+The decided editing tools are Kinocut MCP for video and GIMP MCP for image stills. Express the edit as an
+ordered list of atomic operations, one tool call each — video via Kinocut: `1 trim clip -> 2 crop/scale ->
+3 concat -> 4 burn subtitles from .srt -> 5 normalise audio -> 6 export -> 7 extract poster frame`; stills
+(cards, posters, annotated screenshots) via GIMP: `1 open_image/new_canvas -> 2 layers and fills -> 3 add_text
+-> 4 scale/export`. Read tools.md in this folder first and reuse the recorded lessons; after the run, append
+what you learned there.
 Also output the .srt text (timed captions) so the user does not depend on auto-transcription.
 Give absolute-path placeholders only for folders the user must fill in (e.g. the media/output folder).
 
@@ -85,6 +87,6 @@ Checklist the user must tick: readable on a phone at arm's length; no secrets vi
 timeline frame by frame at key moments); captions match speech; first 2 s makes sense with sound off; file plays
 in the platform's composer before scheduling.
 
-## Editing tool: Kinocut MCP (decided)
-Read tools.md in this folder: it is the lessons store for using Kinocut. Consult it before writing the MCP
+## Editing tools: Kinocut MCP (video) + GIMP MCP (images) — decided
+Read tools.md in this folder: it is the lessons store for using both. Consult it before writing the MCP
 step list, and append new lessons after each edit run.

@@ -11,13 +11,15 @@ root `README.md` and `AGENTS.md` point here and stay abstract.
 - `theme.md` — the rules every Zivon post follows (identity, visual system, voice, cadence, safety). Read it
   before any post, video, or photo work; it overrides a skill's built-in defaults.
 - `asset-and-edit-brief.md` — shared asset-capture and Kinocut MCP edit-brief methodology used by every skill.
-- `tools.md` — the Kinocut lessons store: consult before writing MCP edit steps, append what you learn after
-  each edit run.
+- `tools.md` — the editing lessons store for Kinocut and GIMP: consult before writing MCP edit steps, append
+  what you learn after each edit run.
 
 ## Invariants
 
 - Interview before drafting (Depth Gate); never fabricate facts; never post on the founder's behalf without
   explicit approval of the exact text.
-- **Kinocut MCP is the decided editing tool** — do not evaluate or propose alternatives.
+- **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or
+  propose alternatives. GIMP MCP requires GIMP 3.2 running with its MCP plugin started (Tools > Start MCP
+  Server); check_server confirms reachability.
 
 When you add or rename a file here, update this README only; the root docs do not list individual files.

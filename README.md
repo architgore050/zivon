@@ -75,7 +75,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 - Every PR: CI + agentic code review before merge; `main` → `prod` promotion includes security checks
 - Kanban (GitHub Projects) maintained daily
 - Public build-in-public posts on X / LinkedIn throughout the build
-- For those posts, use the skills in [`skills/content-creation/`](skills/content-creation/); **Kinocut MCP** is the decided editing tool. The folder README holds the layout and rules
+- For those posts, use the skills in [`skills/content-creation/`](skills/content-creation/); **Kinocut MCP** (video) and **GIMP MCP** (images) are the decided editing tools. The folder README holds the layout and rules
 
 ## Built on Gnani's Models
 

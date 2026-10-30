@@ -100,9 +100,9 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 
 ## Content creation skills
 
-`skills/content-creation/` holds the agent skills for the build-in-public posts (LinkedIn and X writers, shared post theme rules, asset/edit briefs, and the Kinocut lessons store). Read [`skills/content-creation/README.md`](skills/content-creation/README.md) before any post work — it is the source of truth for the folder's layout and rules; this file does not list individual files.
+`skills/content-creation/` holds the agent skills for the build-in-public posts (LinkedIn and X writers, shared post theme rules, asset/edit briefs, and the Kinocut + GIMP editing lessons store). Read [`skills/content-creation/README.md`](skills/content-creation/README.md) before any post work — it is the source of truth for the folder's layout and rules; this file does not list individual files.
 
-Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP is the decided editing tool** — do not evaluate or propose other editing tools.
+Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or propose other editing tools.
 
 ---
 
