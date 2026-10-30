@@ -15,7 +15,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 🚧 **In active build.** Deadline: **10 November 2026, 11:59 PM IST**.
 
 - Live demo: *coming soon* (link will be pinned here)
-- Day-by-day build plan: [`05-timeline.md`](05-timeline.md)
+- Day-by-day build plan: [`TIMELINE.md`](TIMELINE.md)
 
 ---
 
@@ -62,11 +62,11 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 | Doc | Contents |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Instructions for coding agents working on this repo |
-| [`01-gnani-challenge-brief.md`](01-gnani-challenge-brief.md) | Challenge brief |
-| [`02-project-idea-physics-voice-tutor.md`](02-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
-| [`03-naming-methodology.md`](03-naming-methodology.md) | Brand naming process → **Zivon** |
-| [`04-all-about-gnani.md`](04-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
-| [`05-timeline.md`](05-timeline.md) | Day-by-day build timeline, gates, risks, scope ladder |
+| [`TIMELINE.md`](TIMELINE.md) | Day-by-day build timeline, gates, risks, scope ladder |
+| [`docs/DECISIONS-and-RESEARCH/01-gnani-challenge-brief.md`](docs/DECISIONS-and-RESEARCH/01-gnani-challenge-brief.md) | Challenge brief |
+| [`docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md`](docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
+| [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
+| [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts: `linkedin-post-interviewer` and `x-post-interviewer` (interview-first drafting, hashtag strategy, asset capture lists, Kinocut MCP edit briefs) |
 
 ## Engineering Process

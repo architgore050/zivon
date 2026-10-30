@@ -6,7 +6,9 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 
 **Subject scope (confirmed): academic Physics, Class 9–12.** Not Python, not general chat.
 
-**Execution plan: `05-timeline.md`.** Deadline 10 Nov 2026, 11:59 PM IST — hard. Respect the decision gates (A–D) and the P0/P1/P2 scope ladder defined there.
+**Execution plan: `TIMELINE.md` (repo root).** Deadline 10 Nov 2026, 11:59 PM IST — hard. Respect the decision gates (A–D) and the P0/P1/P2 scope ladder defined there.
+
+**Decision & research docs:** `docs/DECISIONS-and-RESEARCH/` — challenge brief (01), Gnani research (02), product idea (03), naming methodology (04). Read them before making product or positioning decisions.
 
 ---
 
@@ -28,14 +30,14 @@ The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voic
 ## Non-negotiable constraints
 
 - **Prisma v2.5** (STT) and **Timbre v2.5** (TTS) are non-negotiable for the product's voice loop. No OpenAI/Deepgram/ElevenLabs replacements for these.
-- **Evon v3.3** is the intended reasoning brain and the default. A fallback LLM (e.g. Gemma 4 or latest) is permitted **only** via Gate A in `05-timeline.md` (a written Physics-reasoning eval decision), because the challenge requires at least one Gnani model and Prisma + Timbre already satisfy that. The goal and the public story remain the full three-model loop.
+- **Evon v3.3** is the intended reasoning brain and the default. A fallback LLM (e.g. Gemma 4 or latest) is permitted **only** via Gate A in `TIMELINE.md` (a written Physics-reasoning eval decision), because the challenge requires at least one Gnani model and Prisma + Timbre already satisfy that. The goal and the public story remain the full three-model loop.
 - The demo must work end-to-end with real voice input and output.
 - Prefer simplicity and reliability over feature count. A solid 60-second demo beats a half-broken multi-feature app.
 - Content sourcing: **NCERT (officially free) and public-domain sources only**, with citations in the source packs. No scraping copyrighted textbooks.
 
 ---
 
-## Build order (mirrors `05-timeline.md`)
+## Build order (mirrors `TIMELINE.md`)
 
 1. **Phase 1 — Content factory + validation** (Days 1–4, iterating to Day 7)
    Get the fundamentals of teaching right before any agent touches a student. Validate with 2–3 real kid testers; measure pipeline reliability by human edit rate per generated topic. Static pages go live on the chosen domain.
