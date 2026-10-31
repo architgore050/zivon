@@ -114,3 +114,25 @@ store: it records what we have learned about using these tools so every later ed
   (card): hide the old flattened layer (stays as XCF backup), build new bg/shadow/text/marks layers unrotated,
   then rotate every new layer by the same angle around the same pivot with `transform_matrix`; nudge rotated
   content afterwards with `set_offsets`.
+- 2026-10-31 (Day 1 asset run): `call_api` protocol is `api_path="exec"`, `args=["pyGObject-console", [code]]`
+  (one multi-line block per array item). `Gimp` is pre-imported in the console; import `math` and
+  `from gi.repository import Gegl` yourself. Colors: `Gegl.Color.new('#rrggbb')`.
+- 2026-10-31: `Image.set_active_item` does not exist in this build — don't hunt for it. `edit_paste`,
+  `edit_fill`, and `fill` all take explicit drawables, so active-layer juggling is unnecessary.
+  `floating_sel_to_layer` inserts the new layer **directly above the parent drawable**: paste onto the layer
+  you want the capture above (paste onto `rules` → capture lands above the ruled lines), and find the new
+  layer at `get_layers()[index(parent) - 1]`, never at index 0.
+- 2026-10-31: `Gimp.edit_clear` does not exist. Clear a selection on a layer with
+  `Gimp.Drawable.fill(layer, Gimp.FillType.TRANSPARENT)`.
+- 2026-10-31: MCP `add_text` accepts the doctrine font names directly ("Bricolage Grotesque Display
+  ExtraBold", "Courier Prime Bold", "Courier Prime Regular", "Caveat Bold") and returns `text_width` /
+  `text_height` — measure text first, then compute underline spans, right-alignment (`x = 1020 - width`), and
+  arrow tip targets from the returned geometry.
+- 2026-10-31: when several unsaved same-size canvases are open (multiple 1080x1350 "Untitled"), identify the
+  target by `im.get_id()` — a dimensions+name lookup silently grabbed the wrong canvas and nearly corrupted a
+  finished asset. Track IDs from `new_canvas` responses.
+- 2026-10-31: verify a screenshot crop's bottom edge with a zoomed `get_state_snapshot(region=...)` before
+  finalizing: rendered line boxes extend past glyph bottoms (the theme.md crop needed y 936, not 965, to
+  exclude the next bullet — here, a line that must not appear in Day 1 visuals).
+- 2026-10-31: MCP `reorder_layer(new_position, layer_name, image_index)` works for stack fixes (0 = topmost);
+  use it after pastes land in the wrong slot.
