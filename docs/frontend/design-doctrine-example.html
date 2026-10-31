@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zivon: Field Notes example</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Tokens from design-systems/field-notes.md */
+:root {
+  --paper: #EFE6B8;
+  --paper-light: #F6F0CF;
+  --ink: #1C1B18;
+  --graphite: #5A5748;
+  --pen-blue: #1F3A9E;
+  --pencil-red: #B3261E;
+  --tick-green: #2F6B2F;
+  --display: "Bricolage Grotesque", Arial, sans-serif;
+  --notes: "Courier Prime", "Courier New", monospace;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
+html { height: 100%; }
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+}
+.page {
+  display: flex;
+  gap: 64px;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 40px;
+  box-sizing: border-box;
+}
+.left { flex: 1; max-width: 620px; }
+.day { font-family: var(--notes); font-weight: 700; font-size: 15px; }
+h1 {
+  font-size: clamp(48px, 7vw, 92px);
+  line-height: 1.05;
+  font-weight: 800;
+  margin: 20px 0;
+}
+/* One pen annotation per page: the blue underline */
+.pen { border-bottom: 5px solid var(--pen-blue); }
+.sub {
+  font-size: 20px;
+  line-height: 1.45;
+  color: var(--graphite);
+  max-width: 520px;
+  margin: 0 0 28px;
+}
+.btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  padding: 14px 22px;
+  font: 600 16px var(--display);
+  cursor: pointer;
+}
+.btn:focus-visible { outline: 3px solid var(--pen-blue); outline-offset: 3px; }
+.log { margin-top: 36px; padding: 0; list-style: none; }
+.log li {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 12px 0;
+  font-size: 17px;
+  border-top: 1px dashed var(--graphite);
+}
+.tag { font-family: var(--notes); font-weight: 700; font-size: 14px; width: 76px; flex: none; }
+.done { color: var(--tick-green); }
+.stamp {
+  color: var(--pencil-red);
+  border: 2px solid var(--pencil-red);
+  padding: 1px 6px;
+  width: auto;
+  margin-right: 18px;
+  transform: rotate(-2deg);
+}
+.ask { font-size: 17px; line-height: 1.45; color: var(--graphite); margin-top: 24px; }
+.card {
+  width: 360px;
+  min-height: 450px;
+  flex: none;
+  box-sizing: border-box;
+  padding: 32px;
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  transform: rotate(1.2deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+}
+.card .hook { font-size: 44px; line-height: 1.08; font-weight: 800; }
+.card .gap {
+  font-family: var(--notes);
+  font-weight: 700;
+  color: var(--pencil-red);
+  border: 2px solid var(--pencil-red);
+  display: inline-block;
+  padding: 6px 12px;
+  transform: rotate(-2deg);
+}
+@media (max-width: 860px) {
+  .page { flex-direction: column; gap: 48px; padding: 48px 24px; }
+  .card { width: 100%; max-width: 360px; align-self: center; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="left">
+    <div class="day">Day 01</div>
+    <h1>1 tester. <span class="pen">0 domains.</span> No CI/CD yet.</h1>
+    <p class="sub">I’m building Zivon’s content factory in public. Each day: one result, one gap, one promise for tomorrow.</p>
+    <button class="btn" type="button">Follow the build</button>
+    <ul class="log">
+      <li><span class="tag done">done</span><span>Test participant secured</span></li>
+      <li><span class="tag done">done</span><span>Repo and project docs written</span></li>
+      <li><span class="tag stamp">not yet</span><span>Domain and hosting wait for a v1 worth hosting</span></li>
+      <li><span class="tag stamp">not yet</span><span>CI/CD pipeline: not started</span></li>
+    </ul>
+    <p class="ask">Domain now or after v1? I’m leaning after. What would you do?</p>
+  </section>
+  <aside class="card" aria-label="Sample post card">
+    <div class="day">Day 01</div>
+    <div class="hook">1 tester.<br>0 domains.</div>
+    <div><span class="gap">not yet: CI/CD</span></div>
+  </aside>
+</main>
+</body>
+</html>
