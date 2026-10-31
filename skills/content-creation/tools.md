@@ -136,3 +136,34 @@ store: it records what we have learned about using these tools so every later ed
   exclude the next bullet — here, a line that must not appear in Day 1 visuals).
 - 2026-10-31: MCP `reorder_layer(new_position, layer_name, image_index)` works for stack fixes (0 = topmost);
   use it after pastes land in the wrong slot.
+- 2026-10-31 (Day 1 rebuild run): **`Gimp.Drawable.fill` and `Layer.fill` fill the ENTIRE drawable and ignore
+  any active selection** in GIMP 3.2 — the root cause of "opaque veil" layers (rules/shadow/tape flooding the
+  whole layer). Selection-restricted fills must use **`layer.edit_fill(Gimp.FillType.FOREGROUND)`**. Isolate
+  one behavior per test canvas and verify with exported PNG + PIL before building anything on top of it.
+- 2026-10-31: **`Layer.delete()` silently fails** (ghost layers survive as `name #1`, `name #2` — three
+  stacked "rules" layers faked every later test). Remove layers with **`Image.remove_layer(layer)`**.
+  `Image.delete()` does work for whole images.
+- 2026-10-31: `Layer.scale(new_width:int, new_height:int, local_origin:bool)` takes **absolute target sizes**,
+  not factors — factors return `False` and leave the layer untouched.
+- 2026-10-31: `TextLayer.new(image, text, font, size, unit)` — `font` must be a `Gimp.Font` object
+  (`Gimp.Font.get_by_name('Courier Prime Bold')`), and `unit` is required; `Gimp.Unit.PIXELS` does not exist —
+  borrow the unit from any existing project text layer: `layer.get_font_size()[1]`.
+- 2026-10-31: **`TextLayer.set_color` silently fails** — text renders in the context foreground color at
+  creation time. Set `Gimp.context_set_foreground(Gegl.Color.new(...))` immediately before each `TextLayer.new`.
+- 2026-10-31: no `Gimp.Matrix3D` / `Gegl.Matrix3D` class; `transform_matrix` takes **9 raw coefficients**.
+  Rotation by θ around a pivot (cx,cy) bakes the translation in: `c02 = cx - cx*cos + cy*sin`,
+  `c12 = cy - cx*sin - cy*cos`. Day 0's approved card device: rotate only card-bg + card-shadow layers;
+  keep text and separators straight on top.
+- 2026-10-31: `Image.select_polygon(operation, [x1,y1,x2,y2,...])` is the clean way to draw rotated strips
+  (tape corners): compute the rotated rectangle's 4 corners, select, `edit_fill` — no transforms needed.
+- 2026-10-31: `Gimp.Display.new(image)` opens a visible GUI window for plugin-created images — do it so the
+  founder can watch the build live.
+- 2026-10-31: no XCF-save proc in this pyGObject build (`Image.export_drawing_xcf` and `GLib.File` don't
+  exist) — save layered files with the MCP `save_xcf` tool.
+- 2026-10-31: a console script aborts at the first error and **loses all its prints**; split risky calls into
+  separate `call_api` items. `get_pixel` returns a `Gegl.Color` (read `.get_rgba()`, not `.red`/indexing) and
+  returns `None` outside the layer's bounds. `get_state_snapshot` can return null/stale after scripted edits —
+  ground truth is `export_image` + PIL pixel checks.
+- 2026-10-31: reusing the annotation kit: **crop** `pen-underline.png` to the needed length (native stroke
+  quality preserved) instead of compressing it — horizontal compression tightens the pen wave and looks wrong.
+  Paste kit shapes with NOHALO interpolation at native size; scale only when unavoidable, with CUBIC.
