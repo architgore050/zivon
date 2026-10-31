@@ -1,6 +1,8 @@
 # Design system: Field Notes
 
-Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic honesty. Status: v0.1, proposal.
+Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic honesty. Status: v1.0, **confirmed**
+(founder decision 31 Oct 2026): the single visual source of truth for all post visuals and the product UI.
+Applied to the Day 0 post kit, the Day 1 post kit, and everything after.
 Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
 and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
 the look.

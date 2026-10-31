@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.5 (Day 3). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.6 (31 Oct). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -25,7 +25,7 @@ else is a default. Change a value here and every skill that reads this file foll
 
 This file does not define a visual design. All design rules — palette, fonts, sizes, layout, card types, day
 counter styling, annotation and colour rules — live in **`docs/frontend/design-doctrine.md`** ("Field Notes",
-v0.1). Read that file before producing any image, carousel, or video frame.
+v1.0, confirmed 31 Oct). Read that file before producing any image, carousel, or video frame.
 
 - Reference implementation: **`docs/frontend/design-doctrine-example.html`** — a working page rendering the whole
   system: the CSS-variable tokens, the single pen-blue underline, pencil-red `not yet` stamps, tick-green done
@@ -240,8 +240,8 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
 
 ## 11. Open decisions (answer once; then delete this section)
 1. One-line description of Zivon and its target reader.
-2. Confirm the design doctrine (`docs/frontend/design-doctrine.md`, v0.1 proposal) as the single source of truth
-   for all post visuals.
+2. Design doctrine: answered 31 Oct (founder decision, final). `docs/frontend/design-doctrine.md` (Field
+   Notes, now v1.0) is the single source of truth for all post visuals and the product UI.
 3. The 3-5 scoreboard metrics to track daily.
 4. The founder's voice samples (3 real posts or messages) and words to never use.
 5. AI disclosure policy.
@@ -264,3 +264,7 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   X post, inside a hard 280-char cap (sections 4, 5.1, 7, 7.1, 10); the writer adds them automatically after
   the first Day 0 X attempt missed them and the post had to be redone. (2) LinkedIn links move from the first
   comment to the post body (sections 1, 5.2, 7, 10); X links stay in the first reply.
+- v0.6 (31 Oct): design doctrine confirmed as final (founder decision): Field Notes v1.0 is the single visual
+  source of truth for post visuals and the product UI (section 2, open-decisions item 2). Day-lag convention
+  from the Day 1 post work: when a post covers an earlier build day, the lag is disclosed in the first
+  comment/reply, not in the post text (see posts/2026-10-30-day-1.md).
