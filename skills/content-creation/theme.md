@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.1 (Day 1). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.2 (Day 2). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -15,7 +15,8 @@ else is a default. Change a value here and every skill that reads this file foll
 - Who it is for (role, stage): `[CONFIRM]`
 - The founder's voice in three words (examples: plain, specific, candid): `[CONFIRM]`
 - Words the founder never uses: `[CONFIRM]`
-- Handles and links: X `[CONFIRM]`, LinkedIn `[CONFIRM]`, repo `architgore050/zivon`
+- Handles and links: X `[CONFIRM]`, LinkedIn `[CONFIRM]`, repo `https://github.com/architgore050/zivon` (public)
+- Every post carries the repo link. Placement follows section 7: X first reply, LinkedIn first comment.
 - AI disclosure policy (posts or visuals made with AI help): `[CONFIRM: always say / say when asked / say on visuals only]`
 
 ## 2. Visual system
@@ -113,6 +114,16 @@ Not every post carries all six; at minimum: proof + gap + commitment.
 - **The fork:** two options, what each costs, which I chose, ask the audience which they would pick.
 - **The failure post:** what broke, the first wrong assumption, the fix, what it cost in hours.
 - **Show the work:** one screen recording of the thing doing its job once, start to finish.
+
+### 3.5 Day-count convention (decided 31 Oct)
+- In post text the day count is always `Day N of 12` and is always tied to the programme name in the same
+  sentence: **Gnani AI's Great Indian AI Internship Challenge**. Never a bare "Day N", never "12-day build".
+  A reader with zero context must get what the count refers to in the first line.
+- Approved shapes:
+  - X: `Day N of 12 building Zivon for Gnani AI's Great Indian AI Internship Challenge: <product one-liner>.`
+  - LinkedIn: `Day N of 12 in the Great Indian AI Internship Challenge, <hook claim>.`
+- The visual day counter stays `DAY NN` (mono, top-left) per section 2.5; the challenge name lives in the post
+  text, not in the counter.
 
 ## 4. Voice and writing
 - First person singular. Plain words. Contractions. Short sentences; break any sentence over 20 words.
@@ -234,7 +245,7 @@ Same story, two different posts: never paste the same text on both.
 - [ ] Exactly one ask, genuine and specific
 - [ ] Visuals: one focal point, one accent, minimum 32 px text, day counter present, readable at 300 px wide
 - [ ] Secrets sweep done on the exported files; minors and consent checked
-- [ ] Link placement correct for the platform; no hashtags on X
+- [ ] Repo link present in every post (X: first reply; LinkedIn: first comment); no hashtags on X
 - [ ] A reply plan exists for the first hour
 
 ## 11. Open decisions (answer once; then delete this section)
@@ -248,3 +259,5 @@ Same story, two different posts: never paste the same text on both.
 
 ## 12. Changelog
 - v0.1 (Day 1): first version; palette and fonts are proposals.
+- v0.2 (Day 2): repo link made a required element of every post (section 1); day-count convention added
+  (section 3.5), both from the Day 0 post work.

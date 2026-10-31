@@ -73,7 +73,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 
 - `main` protected; `prod` branch for production; all changes via PR
 - Every PR: CI + agentic code review before merge; `main` → `prod` promotion includes security checks
-- Kanban (GitHub Projects) maintained daily
+- Kanban maintained daily: public board at <https://trello.com/b/6ae259654bfcaa47ee720df7/zivon>
 - Public build-in-public posts on X / LinkedIn throughout the build
 - For those posts, use the skills in [`skills/content-creation/`](skills/content-creation/); **Kinocut MCP** (video) and **GIMP MCP** (images) are the decided editing tools. The folder README holds the layout and rules
 
