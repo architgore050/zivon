@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.6 (31 Oct). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.7 (31 Oct). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -44,9 +44,12 @@ Posting-side rules that stay in this file:
 - Formats: 4:5 or 1:1 for images (default 1080x1350), 16:9 for link-style previews, 9:16 for vertical video.
 - Keep faces, text, and logos in the central safe area; platform UI covers the top and bottom edges (verify in
   the current composer before export).
-- **Scoreboard strip** (optional, bottom): 3-5 tracked numbers, same order every day. Metrics are `[CONFIRM]`.
-  Example slots: tests passed, active testers, pieces produced, days to v1. Numbers need a denominator or a
-  comparison ("12 of 30"), never a bare brag. Styling follows the design doctrine.
+- **Scoreboard strip** (optional, bottom): 3-5 tracked numbers, same order every day. First metric confirmed
+  (founder decision 31 Oct): **commit count** — that day's git commits on the repo, always stated with its
+  day ("Day 1: 12 commits"). It is a work log, not a brag, so it is exempt from the denominator rule.
+  Remaining 2-4 slots `[CONFIRM]`. Example slots: tests passed, active testers, pieces produced, days to v1.
+  Numbers need a denominator or a comparison ("12 of 30"), never a bare brag. Styling follows the design
+  doctrine.
 - No logo on every slide. The day counter is the brand.
 
 ## 3. Series structure (what makes the days connect)
@@ -56,7 +59,8 @@ Every post is one episode of a continuing story. Viewers return for the next epi
 ### 3.1 The daily spine
 1. **Recap hook (1 line, optional on X, recommended on LinkedIn):** what yesterday ended on, plus the open
    question it left. Pay off the previous day's commitment first ("Yesterday I said I'd X. Here's what happened.").
-2. **Today's proof:** the single most concrete result, with a real number or visible output.
+2. **Today's proof:** the single most concrete result, with a real number or visible output. The day's commit
+   count is a standard proof number (founder decision 31 Oct).
 3. **The decision:** one real tradeoff made today and what it cost.
 4. **The honest gap:** one thing not done and why that was a choice or a failure.
 5. **Tomorrow's commitment:** one specific, checkable promise (a thing, not a feeling). Tomorrow's recap must
@@ -268,3 +272,6 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   source of truth for post visuals and the product UI (section 2, open-decisions item 2). Day-lag convention
   from the Day 1 post work: when a post covers an earlier build day, the lag is disclosed in the first
   comment/reply, not in the post text (see posts/2026-10-30-day-1.md).
+- v0.7 (31 Oct): commit count added as a confirmed post metric (sections 2, 3.1; founder decision). Also
+  clarified: the Field Notes doctrine was finalized the morning of Day 2, so Day 1 post text must not claim
+  it; the doctrine governs visuals built from Day 2 onward.

@@ -43,7 +43,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 | Gate | When | Question | Pass bar | If it fails |
 |---|---|---|---|---|
-| **A — Evon quality** | Day 1 EOD | Is Evon v3.3 strong enough as the tutor brain? | 10 Physics explanations + 5 Hinglish prompts scored on: factual correctness, step decomposition, misconception detection, code-mix naturalness | Switch runtime LLM to Gemma 4 (or latest). Prisma + Timbre stay regardless — challenge only requires ≥1 Gnani model, and we already use two. Goal remains all three. |
+| **A — Evon quality** | Day 1 EOD → ran Day 2 (slipped; method corrected 31 Oct, see `posts/2026-10-30-day-1.md`) | Is Evon v3.3 strong enough as the tutor brain? | Compare **published benchmark data** for Evon vs Gemma 4. Public data proves Evon's competence → Evon is the brain. Public data not enough to prove competence → adopt Gemma 4 as the runtime LLM without spending time or credits testing Evon. | Switch runtime LLM to Gemma 4 (or latest). Prisma + Timbre stay regardless — challenge only requires ≥1 Gnani model, and we already use two. Goal remains all three. |
 | **B — Kid comprehension** | Day 4 EOD | Do kids actually learn from generated pages? | ≥2 of 3 kids restate the concept in their own words + answer 2 follow-ups; at least one handles a topic one class above their level | Do NOT proceed to voice-on-content integration. Fix the content skill first; voice loop core can still proceed in parallel. |
 | **C — Voice latency** | Day 6 EOD | Is the voice loop fast enough to feel human? | < ~4s from end-of-speech to first spoken audio, streaming end-to-end | Reduce tutor reply length, pre-warm models, tighten streaming; if still failing, demo uses the hybrid mode (static content + on-demand tutor) with shorter replies. |
 | **D — Feature freeze** | Day 8 EOD | What ships? | Explicit P0/P1/P2 list signed off | Anything not on the list is cut, documented, and moved to post-challenge roadmap. |
@@ -67,7 +67,8 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 ### Day 1 — Fri 30 Oct — Gate A + content factory design
 
-- **Gate A (Evon)**: run the eval rubric above. Record the decision in writing.
+- **Gate A (Evon)**: compare published benchmark data for Evon vs Gemma 4 (method corrected 31 Oct — see the
+  Gate A row above). Record the decision in writing.
 - **Content factory design**: freeze the agent roles and handoff contract:
   1. **Curator** — pulls official NCERT text + public-domain references; outputs a cited source pack. *(Licensing rule: NCERT and public-domain only; no scraping copyrighted textbooks.)*
   2. **Synthesizer** — turns the source pack into learner-facing content with structured JSON blocks declaring what visuals the next agent must build:
