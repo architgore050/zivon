@@ -1,6 +1,9 @@
 # Design system: Field Notes
 
 Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic honesty. Status: v0.1, proposal.
+Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
+and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
+the look.
 
 ## 1. Intent
 - Style: handwritten-lab-notebook, deliberately unproduced. Tone: candid, a little wry. Differentiator: it looks
@@ -20,6 +23,7 @@ Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic hon
 | Token | Hex | Contrast on paper | Job | Frequency cap |
 |---|---|---|---|---|
 | paper | `#EFE6B8` | n/a | background (about 70%) | all pages |
+| paper-light | `#F6F0CF` | n/a | card / taped surface background (ink on it: 15.0:1) | cards only |
 | ink | `#1C1B18` | 13.7:1 | text, outlines | always |
 | graphite | `#5A5748` | 5.8:1 | labels, sources | small text only |
 | pen-blue | `#1F3A9E` | 7.7:1 | annotation: ONE underline/circle per post | once per post/image |
@@ -40,27 +44,9 @@ Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic hon
 - Notes and data: **Courier Prime** (400, 700), used as typed-note text for numbers, timestamps, and stamps.
   Fallback: Courier New, monospace.
 - Why: Bricolage is a characterful grotesque (distinct from Inter); Courier Prime reads like typed lab notes.
-  Handwriting is excluded from all content because it cuts reading speed; it is allowed only for annotations (boundary below). [MODERATE]
+  Handwriting fonts are excluded because they cut reading speed. [MODERATE]
 - Scale on 1080 px: hook 120/1.05 800; headline 76/1.1 700; body 46/1.35 500; notes 36/1.3 mono; minimum 32.
 - Slight rotation (max 1.5 degrees) allowed on one card element per image, never on text paragraphs.
-
-### Handwriting boundary (exact)
-Font: **Caveat** 700, 28-34 px on a 1080 px canvas (never below 26 px), color pen-blue `#1F3A9E` (7.7:1 on paper).
-- **Handwritten = annotation only.** An annotation is a note of 6 words or fewer, attached to a drawn mark (arrow,
-  underline, or circle) that points AT typed content. It comments on the content; it is never the content.
-- **Allowed uses:** a pointer note on the one number or phrase to remember ("the one to remember"); a note on a
-  gap or decision that explains intent ("left on purpose"); a note beside a proof screenshot.
-- **Never handwritten:** headlines, body text, list rows, status tags and stamps (`done`, `not yet` stay in Courier
-  Prime), numbers, the day counter, buttons, captions, the ask/question, and anything inside a sentence.
-- **Limits:** at most 2 annotations per image or page; the same drawn arrow style each time; slight rotation
-  (-3 to -1 degrees); no mixing handwriting and typed text within one line.
-- The one pen-blue annotation rule from section 4 now counts per annotation pair: underline plus its note is ONE
-  annotation, so a post can carry two such pairs at most.
-- **Annotations are overlays.** They are absolutely positioned on top of the design and occupy no space: they never
-  push, resize, or re-space any typed element. Delete every annotation and the layout must be pixel-identical.
-  The layout reserves at least 56 px of empty space directly below any element that may be annotated; the note sits in that reserved space, anchored to the element it points at. If no space is reserved, drop the note.
-- Annotations are decorative to screen readers (`aria-hidden`); anything important must also appear in typed text.
-- Example: field-notes-handwritten-example.html.
 
 ## 6. Layout and components
 - 60 px margins, left aligned, generous empty space. Day counter written as `Day 01` in Courier Prime, top-left.

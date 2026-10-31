@@ -6,6 +6,9 @@ root `README.md` and `AGENTS.md` point here and stay abstract.
 
 ## Layout
 
+- **All post work goes in `posts/` at the repo root** — drafts, captions, assets, and edited outputs (e.g.
+  `posts/2026-10-29-day-0.md`, `posts/assets/day-0/`). This skills folder holds only the skills and rules,
+  never the posts themselves.
 - `linkedin-post-interviewer/`, `x-post-interviewer/` — post writers: one folder per skill; `SKILL.md` is the
   entry point, each with its own hooks-and-formats reference.
 - `photo-edit-director/`, `video-edit-director/` — craft-first edit directors for stills, carousels, and short

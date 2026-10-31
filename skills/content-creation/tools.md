@@ -38,8 +38,7 @@ store: it records what we have learned about using these tools so every later ed
 ## Lessons learned — GIMP
 - 2026-10-31 (Day 0 post kit): `new_canvas(name=...)` does not stick — GIMP reports the image as
   `[Untitled]` via `get_name()`. Identify images in `call_api` by dimensions + `get_file()` (None for
-  unsaved), not by name.
-- 2026-10-31: in 3.2 PyGObject there is no `Gimp.Image.select_all` / `image.select_all` / `Image.set_name` /
+  unsaved), not by name.- 2026-10-31: in 3.2 PyGObject there is no `Gimp.Image.select_all` / `image.select_all` / `Image.set_name` /
   `Layer.crop`. Use `image.select_rectangle(Gimp.ChannelOps.REPLACE, 0, 0, w, h)`; skip image renames; to trim
   a layer, paint the unwanted strip with the background color via `fill_rectangle(layer_name=...)`.
 - 2026-10-31: cross-image composite recipe that worked: select_rectangle on source → `Gimp.edit_copy([layer])` →
@@ -54,3 +53,63 @@ store: it records what we have learned about using these tools so every later ed
 - 2026-10-31: verify crop boundaries with `get_state_snapshot(region=...)` before cropping; QC with a
   `max_size=300` snapshot for phone readability; `save_xcf` to /tmp/opencode keeps re-editable layers out of
   the repo.
+- 2026-10-31 (Field Notes rebuild): fonts installed mid-session are invisible to GIMP's cached font list until
+  `Gimp.fonts_refresh()` (call_api) is run; then `Gimp.fonts_get_list('Caveat')` returns `Gimp.Font` objects and
+  `TextLayer.set_font(font_obj)` works (it needs a `Gimp.Font`, not a string). MCP `add_text` validates against
+  the cached list and silently substitutes unknown fonts (a `Sans-serif` fallback shows up in `edit_text`'s
+  returned `font`). Always verify the rendered face with a snapshot.
+- 2026-10-31: doctrine fonts live in `~/.local/share/fonts/fieldnotes/`: Bricolage Grotesque Medium/Bold/ExtraBold
+  (opsz 36 cut) + "Bricolage Grotesque Display" Bold/ExtraBold (opsz 72 cut, for 96-120 px headlines), Courier
+  Prime Regular/Bold, Caveat Bold — static instances made from google/fonts variable TTFs with
+  `fontTools.varLib.instancer` plus a name-table rewrite (family/style per cut). Keep exactly one family+style
+  set active; duplicate installs make fontconfig matching nondeterministic.
+- 2026-10-31: `image.select_polygon(ops, pts)` takes a flat float list `[x1,y1,x2,y2,...]`, not Vector2 objects.
+  Hand-drawn marks (uneven underline ribbons, curved arrows with barbs, 45-degree tape strips) all work as
+  polygon selections + `edit_fill` on a dedicated layer.
+- 2026-10-31: `Image.crop()` returned True but left dimensions unchanged in this build — crop via
+  select_rectangle → `Gimp.edit_copy` → new canvas → `edit_paste` → `floating_sel_to_layer` → `set_offsets`.
+  `Image.scale(w, h)` works in place; set `Gimp.context_set_interpolation(Gimp.InterpolationType.NOHALO)` first.
+- 2026-10-31: rotate a layer around an image-space pivot with `lay.transform_matrix(c,-s, cx*(1-c)+cy*s, s,c,
+  -cx*s+cy*(1-c), 0,0,1)` (radians). `layer.get_offsets()` returns a named tuple — use `.offset_x/.offset_y`.
+  `transform_rotate_simple` takes `(RotationType, auto_center, center_x, center_y)`, not an angle.
+- 2026-10-31: `im.delete()` silently no-ops on images held by the plugin; the MCP `close_image` tool closes them
+  reliably. `sample_color` gives the exact fill color for solid redaction (Trello header `#00204e`).
+- 2026-10-31: pen-blue annotations must sit on paper, not on dark screenshots (contrast fails the doctrine
+  table); the underline + Caveat-note pair from `design-doctrine-example.html` is the reusable pattern. One
+  rotated element per image (card 1.2 deg or note -2 deg, not both).
+- 2026-10-31: `layer.delete()` also silently no-ops when the persistent plugin console holds a reference to the
+  layer (same failure mode as `im.delete()`). To retire a layer, `set_visible(False)` instead — hidden layers are
+  excluded from flattened exports and only clutter the /tmp XCF. When replacing a text layer, MCP `add_text`
+  names the new one `"text #1"` because the old one still exists; grab the new layer by the exact name
+  `add_text` returns, never by the bare name.
+- 2026-10-31 (founder-approved Field Notes corrections): annotation arrows point at the **word**, not at the
+  underline. Natural layout: Caveat note in the margin beside/above the headline (if it crowds the title, move
+  it to the page corner, aligned with the Day-counter line); the arrow **starts at the middle of the note text**
+  (or ~1/3 from the near end), not at the note's edge. Tip lands at mid-right of the word (near-horizontal
+  arrows) or top-right of the word (descending arrows) — never bottom-right. Curve stays clear of the underline.
+  Long swoops that start under a note and cross near the underline read as weird squiggles; don't do them.
+  Caveat notes render at 40 px. Ruled lines: 2 px at 18% opacity — 1 px at 15% is invisible at 1080 px width.
+- 2026-10-31: a handwritten note must add value to the viewer (explain, invite, or reframe) — "the receipts" got
+  cut for adding nothing; "the why, in writing" replaced it on the repo-tree asset. If there is nothing useful
+  to say, drop the note entirely rather than decorating.
+- 2026-10-31 (founder copy review, applies to all card/note assets): card text is product reasoning, not
+  decoration — settle the logic before designing anything. On the decision card: Tradeoff = why the bigger
+  audience was chosen ("reach over niche"), Why = the reasoning stated explicitly, never as a slogan. The
+  stamp slot became a handwritten closing tagline in pen-blue Caveat ("dil khol ke padhega india") — plain
+  statement, no "not yet:" prefix; Hindi/Hinglish taglines fit the brand voice. Zivon never positions itself
+  as exam-focused, even where exam relevance explains demand.
+- 2026-10-31: arrowhead barbs must open **backwards** from the tip: reverse vector = -(tip - control_point),
+  rotate ±30°, length ~15 px. A sign slip on the reverse vector puts the barbs past the tip and the arrow reads
+  as a pitchfork. Verify arrowheads with a zoomed `get_state_snapshot(region=...)`, not just the full frame.
+- 2026-10-31: layer stacking fixes — GIMP 3.2 pyGObject has no `Layer.set_below`/`set_above`, no
+  `Image.reorder_layer`, and no `gimp_item_set_below` PDB proc. Use the MCP `reorder_layer` tool
+  (`new_position` 0 = topmost). Ruled-paper lines belong **below** taped/tilted card layers so the card reads as
+  clean paper on a ruled page.
+- 2026-10-31: a text-glyph arrow ("→") inside a headline dies when the headline wraps — it ends pointing into
+  empty margin. For a pivot headline the strongest Field Notes treatment is a **text correction**: keep the
+  original line in the title font, hand-draw a pen-blue strike through the old word (extend slightly past its
+  ends), and squeeze the handwritten replacement (Caveat, lowercase) centered above it. Skip the insertion
+  caret: it floats awkwardly between the line and whatever sits below. Rebuilding a flattened composite
+  (card): hide the old flattened layer (stays as XCF backup), build new bg/shadow/text/marks layers unrotated,
+  then rotate every new layer by the same angle around the same pivot with `transform_matrix`; nudge rotated
+  content afterwards with `set_offsets`.
