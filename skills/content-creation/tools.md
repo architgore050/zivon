@@ -35,4 +35,21 @@ store: it records what we have learned about using these tools so every later ed
 (append below; none recorded yet)
 
 ## Lessons learned — GIMP
-(append below; none recorded yet)
+- 2026-10-31 (Day 0 post kit): `new_canvas(name=...)` does not stick — GIMP reports the image as
+  `[Untitled]` via `get_name()`. Identify images in `call_api` by dimensions + `get_file()` (None for
+  unsaved), not by name.
+- 2026-10-31: in 3.2 PyGObject there is no `Gimp.Image.select_all` / `image.select_all` / `Image.set_name` /
+  `Layer.crop`. Use `image.select_rectangle(Gimp.ChannelOps.REPLACE, 0, 0, w, h)`; skip image renames; to trim
+  a layer, paint the unwanted strip with the background color via `fill_rectangle(layer_name=...)`.
+- 2026-10-31: cross-image composite recipe that worked: select_rectangle on source → `Gimp.edit_copy([layer])` →
+  `Gimp.Selection.none(src)` → `floating = Gimp.edit_paste(bottom_layer_of_dst, True)[0]` →
+  `Gimp.floating_sel_to_layer(floating)` (returns a **bool**, not the layer) → find the new layer by iterating
+  `dst.get_layers()` (paste lands centered, name "Background copy") → `set_offsets(x, y)` → `displays_flush()`.
+- 2026-10-31: `add_text` returns `text_width` — use it for right-alignment (`x = 1020 - width`) and inline
+  two-color captions; reposition layers with `layer.set_offsets` via `call_api` (MCP has no move-layer tool).
+- 2026-10-31: fonts installed to `~/.local/share/fonts` from rsms/inter v4.1 and JetBrains/JetBrainsMono
+  **v2.304** (the v2.305 asset URL 404s; check `api.github.com/repos/.../releases/latest` for the real asset
+  name). GIMP sees "Inter Bold", "Inter Medium", "JetBrains Mono", "JetBrains Mono Bold" after `fc-cache`.
+- 2026-10-31: verify crop boundaries with `get_state_snapshot(region=...)` before cropping; QC with a
+  `max_size=300` snapshot for phone readability; `save_xcf` to /tmp/opencode keeps re-editable layers out of
+  the repo.
