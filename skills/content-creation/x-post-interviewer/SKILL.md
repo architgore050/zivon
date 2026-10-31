@@ -58,6 +58,11 @@ ONE clearly labelled "thin draft", list what is missing, and keep asking.
 7. Attach a hashtag set (0-2 tags) per the Hashtag strategy in the reference: for each tag give tier and a
    one-line reason, plus one alternate. Zero hashtags is a valid recommendation when it is the better choice.
    This is a required output of every draft.
+8. Deliver the recommended post as paste-ready blocks per ../theme.md §7.1: an "EXACT POST TEXT (X)" block and
+   an "EXACT FIRST REPLY" block, each a fenced plain-text block containing only the literal characters the
+   founder will paste. No Markdown syntax inside (no #, **, >, backticks, ~~), no commentary, no placeholders.
+   Format notes, hashtag rationale, and alternates live outside the blocks. The founder approves the block, not
+   the prose around it.
 
 ## Phase 3: Assets and edit brief
 After the user picks a post, follow ../asset-and-edit-brief.md exactly: asset list with literal capture
@@ -78,7 +83,10 @@ Give: best-guess posting time options (ask the user's audience timezone), what t
 - [ ] Honest about what is not done (credibility is the growth engine for day-N posts)
 - [ ] No minors, secrets, or private data exposed in text or assets
 - [ ] Sounds like the user's samples, not like an AI summary
+- [ ] The recommended post and its first reply exist as paste-ready plain-text blocks (theme.md §7.1): the
+      founder can copy each block straight into the composer with nothing to strip or reconstruct
 
 ## Never
 Never fabricate stats, testimonials, or metrics. Never promise virality. Never post or schedule anything for the
-user. Never draft before the Depth Gate passes. Never ask more than 4 questions at once.
+user. Never draft before the Depth Gate passes. Never ask more than 4 questions at once. Never deliver the final
+post as Markdown prose, headings, or block quotes instead of a paste-ready plain-text block.

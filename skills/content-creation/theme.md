@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.3 (Day 3). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.4 (Day 3). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -190,6 +190,17 @@ Test: if the post still reads fine with the product name replaced by `[Product]`
 | Hashtags | none | 0-3, specific, at the end |
 Same story, two different posts: never paste the same text on both.
 
+### 7.1 Exact post text (required output format)
+Every draft ends with paste-ready plain-text blocks, one per thing the founder will copy into a composer:
+- "EXACT POST TEXT" (one per platform), plus "EXACT FIRST COMMENT" (LinkedIn) or "EXACT FIRST REPLY" (X).
+- Inside a block: only the literal characters to paste, line breaks as they should appear in the post. No
+  Markdown syntax (`#`, `**`, `>`, backticks, `~~`), no commentary, no placeholders, no character-count notes.
+  Platform composers do not render Markdown; the block is what gets pasted.
+- Outside the blocks: hooks, hashtag rationale, variants, audit notes, plans. The founder approves the block,
+  not the prose around it.
+- In post files under `posts/`, the blocks sit near the top of the file and are the source of truth for what is
+  or will be published. Once posted, mark the block "POSTED <date>" and keep the text exactly as published.
+
 ## 8. Cadence [CONFIRM]
 - Post time: `[CONFIRM: audience time zone and slot]`; keep it consistent.
 - One main post per day during the build. If nothing real happened, post a short honest note, not filler.
@@ -216,6 +227,8 @@ Same story, two different posts: never paste the same text on both.
       32 px text, readable at 300 px wide
 - [ ] Secrets sweep done on the exported files; minors and consent checked
 - [ ] Repo link present in every post (X: first reply; LinkedIn: first comment); no hashtags on X
+- [ ] Each platform's post and its first comment/reply exist as EXACT POST TEXT blocks: plain text,
+      paste-ready, no Markdown syntax (section 7.1)
 - [ ] A reply plan exists for the first hour
 
 ## 11. Open decisions (answer once; then delete this section)
@@ -236,3 +249,6 @@ Same story, two different posts: never paste the same text on both.
   `docs/frontend/design-doctrine.md` (Field Notes). Day counter, checklist, and open-decisions wording aligned
   with it. Reference implementation `docs/frontend/design-doctrine-example.html` named as the concrete bar for
   post visuals.
+- v0.4 (Day 3): section 7.1 added (exact post text blocks). Cause: the Day 0 post had to be assembled from
+  Markdown fragments because no skill required a paste-ready plain-text block; both interviewer skills and the
+  pre-post checklist now enforce 7.1.

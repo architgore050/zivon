@@ -56,6 +56,11 @@ is missing, and keep asking.
 6. Build the hashtag set (3-5 tags) per the Hashtag strategy in the reference: for each tag give tier and a
    one-line reason, plus 1-2 alternates. This is a required output of every draft.
 7. Run Post Audit and Humanizer passes below. Fix and show what you changed.
+8. Deliver the final text as paste-ready blocks per ../theme.md §7.1: an "EXACT POST TEXT (LinkedIn)" block and
+   an "EXACT FIRST COMMENT" block, each a fenced plain-text block containing only the literal characters the
+   founder will paste. No Markdown syntax inside (no #, **, >, backticks, ~~), no commentary, no placeholders.
+   Hooks, hashtag rationale, variants, and audit notes live outside the blocks. The founder approves the block,
+   not the prose around it.
 
 ## Post Audit (run on every draft)
 - [ ] Hook is a claim, number, or scene, not "Ever wonder..." and not a question opener
@@ -68,6 +73,8 @@ is missing, and keep asking.
 - [ ] No minors, secrets, or private data in text or planned assets
 - [ ] Reads like the user's samples, not a generic AI paraphrase
 - [ ] The turn line is screenshot-worthy
+- [ ] The post and first comment exist as paste-ready plain-text blocks (theme.md §7.1): the founder can copy
+      each block straight into the composer with nothing to strip or reconstruct
 
 ## Phase 3: Assets and edit brief
 Follow ../asset-and-edit-brief.md exactly. For LinkedIn: propose ONE primary asset and at most two
@@ -83,5 +90,6 @@ Reach cannot be promised.
 
 ## Never
 Never fabricate stats, testimonials, or outcomes. Never promise virality. Never post, comment, or connect on the
-user's behalf without explicit approval of the exact text. Never draft before the Depth Gate passes. Never ask
-more than 4 questions at once.
+user's behalf without explicit approval of the exact text (the EXACT POST TEXT block). Never draft before the
+Depth Gate passes. Never ask more than 4 questions at once. Never deliver the final post as Markdown prose,
+headings, or block quotes instead of a paste-ready plain-text block.

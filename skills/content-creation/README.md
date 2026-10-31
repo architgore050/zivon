@@ -26,7 +26,8 @@ root `README.md` and `AGENTS.md` point here and stay abstract.
 ## Invariants
 
 - Interview before drafting (Depth Gate); never fabricate facts; never post on the founder's behalf without
-  explicit approval of the exact text.
+  explicit approval of the exact text — the paste-ready EXACT POST TEXT blocks defined in `theme.md` §7.1 (plain
+  text, no Markdown syntax, one per platform plus the first comment/reply).
 - **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or
   propose alternatives. GIMP MCP requires GIMP 3.2 running with its MCP plugin started (Tools > Start MCP
   Server); check_server confirms reachability.
