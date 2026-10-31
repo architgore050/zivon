@@ -52,15 +52,16 @@ is missing, and keep asking.
 3. Write 5 hooks, pick the best. It must work at the first ~140 characters with no context.
 4. Draft 900-1,300 characters: scene, tension, decision, honest gap, turn line, genuine closing question.
 5. Produce 1 recommended post, plus 2 alternative hooks, plus 1 shorter variant (about 500 characters) for
-   people who will not click "see more". Put any link in a first-comment draft, not the body.
-6. Build the hashtag set (3-5 tags) per the Hashtag strategy in the reference: for each tag give tier and a
-   one-line reason, plus 1-2 alternates. This is a required output of every draft.
+   people who will not click "see more". Links go in the post body (theme.md §7, founder decision 31 Oct): the
+   repo link plus any others, placed after the story and before the closing ask, never in the hook lines.
+6. Build the hashtag set (0-3 tags, theme.md cap) per the Hashtag strategy in the reference: for each tag give
+   tier and a one-line reason, plus 1-2 alternates. This is a required output of every draft.
 7. Run Post Audit and Humanizer passes below. Fix and show what you changed.
 8. Deliver the final text as paste-ready blocks per ../theme.md §7.1: an "EXACT POST TEXT (LinkedIn)" block and
-   an "EXACT FIRST COMMENT" block, each a fenced plain-text block containing only the literal characters the
-   founder will paste. No Markdown syntax inside (no #, **, >, backticks, ~~), no commentary, no placeholders.
-   Hooks, hashtag rationale, variants, and audit notes live outside the blocks. The founder approves the block,
-   not the prose around it.
+   an "EXACT FIRST COMMENT" block (optional: identity blurb or extra context only; links live in the post body),
+   each a fenced plain-text block containing only the literal characters the founder will paste. No Markdown
+   syntax inside (no #, **, >, backticks, ~~), no commentary, no placeholders. Hooks, hashtag rationale,
+   variants, and audit notes live outside the blocks. The founder approves the block, not the prose around it.
 
 ## Post Audit (run on every draft)
 - [ ] Hook is a claim, number, or scene, not "Ever wonder..." and not a question opener
@@ -68,7 +69,8 @@ is missing, and keep asking.
 - [ ] Every fact traces to the interview or context files
 - [ ] No em dashes, banned words, rule-of-three lists, or "In conclusion" endings
 - [ ] No canned CTA ("Thoughts?", "Agree?"); closing question is specific to a real decision
-- [ ] Hashtags follow the hashtag strategy: 3-5, tiered mix, at the end, none mid-sentence; link only in the comment
+- [ ] Hashtags follow the hashtag strategy: 0-3 (theme.md cap), tiered mix, at the end, none mid-sentence;
+      links in the post body, out of the hook lines
 - [ ] Honest about what is not done
 - [ ] No minors, secrets, or private data in text or planned assets
 - [ ] Reads like the user's samples, not a generic AI paraphrase

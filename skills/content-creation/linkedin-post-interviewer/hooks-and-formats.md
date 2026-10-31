@@ -24,8 +24,10 @@ ONE claim per post. If there are two ideas, save one for another post.
 ## Length and format
 - Target 900-1,300 characters (sergebulaev), up to about 1,500 for a story (post-writer). Stories up to 400 words
   only if every line earns its place.
-- No external link in the body; put it in the first comment (post-writer, and widely repeated advice).
-- Hashtags: 3-5, at the end, chosen per the Hashtag strategy below. Never #motivation #growth #leadership.
+- Links go in the post body (founder decision 31 Oct overrides the old first-comment advice from post-writer):
+  after the story, before the closing ask, never in the hook lines.
+- Hashtags: 0-3 (theme.md cap), at the end, chosen per the Hashtag strategy below. Never #motivation
+  #growth #leadership.
 - No em dashes. No emojis unless the user's voice uses them.
 - Banned: leverage, unlock, delve, harness, streamline, foster, fundamentally, game-changer, disrupt,
   revolutionize, synergy, "in today's fast-paced world". Rule-of-three lists are an AI tell: vary list lengths.
@@ -34,10 +36,11 @@ ONE claim per post. If there are two ideas, save one for another post.
 
 ## Hashtag strategy (maximize views)
 Hashtags are a discovery lever on LinkedIn: posts get indexed in each tag's feed, and the tags help the
-algorithm classify the post to the right audience. Output a hashtag set with every draft: 3-5 tags, CamelCase,
-1-3 words each, placed at the end of the post, never mid-sentence.
+algorithm classify the post to the right audience. Output a hashtag set with every draft: 0-3 tags (theme.md
+cap), CamelCase, 1-3 words each, placed at the end of the post, never mid-sentence.
 
-Tier mix (this is what maximizes views):
+Tier mix (this is what maximizes views; within the 0-3 cap prioritize 1 mid-size niche tag + 1
+community/branded tag, the third slot is optional):
 - 1 broad category tag (high volume, e.g. #AI, #EdTech, #FutureOfLearning): you will not rank here, but it
   sharpens how the classifier distributes the post.
 - 2-3 mid-size niche tags (roughly 5k-200k followers, e.g. #BuildInPublic, #VoiceAI, #STEMEducation,
@@ -49,7 +52,7 @@ Tier mix (this is what maximizes views):
 Before using a tag, open its page and check follower count and posts added in the last day. A tag with 1M+
 followers and thousands of daily posts buries you instantly; swap in a niche variant. Never use generic
 motivation tags (#motivation #growth #leadership #success) or tags unrelated to the post: hashtag spam dilutes
-classification and draws bot engagement. Never exceed 5.
+classification and draws bot engagement. Never exceed 3 (theme.md cap).
 Present the set as: tag, tier, one-line reason, plus 1-2 alternates. Treat reach effects as hypotheses; never
 promise views.
 

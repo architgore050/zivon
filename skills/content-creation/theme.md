@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.4 (Day 3). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.5 (Day 3). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -18,7 +18,7 @@ else is a default. Change a value here and every skill that reads this file foll
 - The founder's voice in three words (examples: plain, specific, candid): `[CONFIRM]`
 - Words the founder never uses: `[CONFIRM]`
 - Handles and links: X `[CONFIRM]`, LinkedIn `[CONFIRM]`, repo `https://github.com/architgore050/zivon` (public)
-- Every post carries the repo link. Placement follows section 7: X first reply, LinkedIn first comment.
+- Every post carries the repo link. Placement follows section 7: X first reply, LinkedIn in the post body.
 - AI disclosure policy (posts or visuals made with AI help): `[CONFIRM: always say / say when asked / say on visuals only]`
 
 ## 2. Visual system (delegated: the design doctrine)
@@ -98,7 +98,10 @@ Not every post carries all six; at minimum: proof + gap + commitment.
 - First person singular. Plain words. Contractions. Short sentences; break any sentence over 20 words.
 - Specific over adjectival: numbers, file names, dates, named tools, real quotes.
 - State opinions as facts when they are earned by something you did; say "I'm not sure" when you are not.
-- No em dashes. No hashtags on X; 0-3 specific hashtags on LinkedIn, at the end.
+- No em dashes. X: every post ends with the two mandatory programme tags `#GreatIndianAIInternshipChallenge`
+  and `#GnaniAI` (founder decision 31 Oct; the writer adds them automatically, the founder never has to
+  remember). No other tags unless the founder asks. They count inside the hard 280-character cap: the tags plus
+  their line breaks cost 44 characters, so the body must fit in 236. LinkedIn: 0-3 specific hashtags, at the end.
 - Banned words: leverage, unlock, delve, harness, streamline, game-changer, revolutionize, supercharge, seamless,
   cutting-edge, "in today's fast-paced world", "excited to announce", "thrilled", "journey" (unless literal).
 - Emojis: none by default. `[CONFIRM]` if the founder's own voice uses them.
@@ -110,8 +113,8 @@ Not every post carries all six; at minimum: proof + gap + commitment.
 - One idea per post. If there are two, save one for tomorrow.
 - Cut the first sentence and see if the post still works; usually it does. Then cut 20% of what remains.
 - Every sentence must add a fact, a feeling, or a turn. Throat-clearing, restatements, and summaries get cut.
-- If a post needs more than about 1,300 characters on LinkedIn or one 280-character post on X, it needs either a
-  thread/carousel or a smaller idea.
+- If a post needs more than about 1,300 characters on LinkedIn or one 280-character post on X (mandatory tags
+  included), it needs either a thread/carousel or a smaller idea.
 
 ### 5.2 Avoid the "this is an ad" feeling
 Readers detect promotion in under a second. The tells, and what to do instead:
@@ -120,7 +123,7 @@ Readers detect promotion in under a second. The tells, and what to do instead:
 | Opens with the product name or "Introducing" | Open with a result, a number, or a scene |
 | Feature lists, benefit lists | One concrete moment where the thing did something |
 | Superlatives (best, fastest, revolutionary) | A measured fact with its limit |
-| CTA in the first line; "link in bio" energy | Put any link in a reply or first comment |
+| CTA in the first line; "link in bio" energy | Keep links out of the hook line; place them after the story (LinkedIn body, X first reply) |
 | Polished stock imagery, glossy mockups | Real screenshots, real desk, real mess |
 | Logo-heavy visuals | Day counter only |
 | Testimonials without names or specifics | Nothing, or a real quote with permission |
@@ -181,13 +184,13 @@ Test: if the post still reads fine with the product name replaced by `[Product]`
 ## 7. Platform differences
 | | X | LinkedIn |
 |---|---|---|
-| Length | 280 chars per post unless the account allows longer; threads for more | about 900-1,300 characters |
+| Length | 280 chars hard cap including the mandatory tags (this account has no long-post access); threads for more | about 900-1,300 characters |
 | Hook | strongest line first, passes the first-three-words test | first ~140 characters carry the post |
-| Links | in a reply | in the first comment |
+| Links | in the first reply | in the post body, after the story |
 | Tone | compressed, wry, direct | warmer, story-led, one idea explained |
 | Media | proof screenshot or short clip in the hook tweet | one image, short captioned video, or carousel |
 | Ask | a reply question | a comment question or a specific network ask |
-| Hashtags | none | 0-3, specific, at the end |
+| Hashtags | exactly the 2 mandatory tags, at the end | 0-3, specific, at the end |
 Same story, two different posts: never paste the same text on both.
 
 ### 7.1 Exact post text (required output format)
@@ -198,6 +201,9 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   Platform composers do not render Markdown; the block is what gets pasted.
 - Outside the blocks: hooks, hashtag rationale, variants, audit notes, plans. The founder approves the block,
   not the prose around it.
+- The X EXACT POST TEXT block includes the two mandatory tags and totals 280 characters or fewer; count it
+  before presenting and state the count outside the block. Never drop or swap the tags to fit; compress the
+  body instead.
 - In post files under `posts/`, the blocks sit near the top of the file and are the source of truth for what is
   or will be published. Once posted, mark the block "POSTED <date>" and keep the text exactly as published.
 
@@ -226,7 +232,8 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
 - [ ] Visuals follow `docs/frontend/design-doctrine.md`: one pen annotation, day counter present, minimum
       32 px text, readable at 300 px wide
 - [ ] Secrets sweep done on the exported files; minors and consent checked
-- [ ] Repo link present in every post (X: first reply; LinkedIn: first comment); no hashtags on X
+- [ ] Repo link present in every post (X: first reply; LinkedIn: post body); X posts carry exactly the two
+      mandatory tags and fit 280 characters including them (count stated)
 - [ ] Each platform's post and its first comment/reply exist as EXACT POST TEXT blocks: plain text,
       paste-ready, no Markdown syntax (section 7.1)
 - [ ] A reply plan exists for the first hour
@@ -238,7 +245,8 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
 3. The 3-5 scoreboard metrics to track daily.
 4. The founder's voice samples (3 real posts or messages) and words to never use.
 5. AI disclosure policy.
-6. Posting time zone, slot, and whether X supports longer posts on the account.
+6. Posting time zone and slot. (Answered 31 Oct: X has no long-post access; 280-char hard cap including the
+   mandatory tags.)
 7. Who is the Day 1 test participant, and do they appear in any asset (consent status)?
 
 ## 12. Changelog
@@ -252,3 +260,7 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
 - v0.4 (Day 3): section 7.1 added (exact post text blocks). Cause: the Day 0 post had to be assembled from
   Markdown fragments because no skill required a paste-ready plain-text block; both interviewer skills and the
   pre-post checklist now enforce 7.1.
+- v0.5 (Day 3): founder decisions from the Day 0 X post. (1) The two programme hashtags are mandatory on every
+  X post, inside a hard 280-char cap (sections 4, 5.1, 7, 7.1, 10); the writer adds them automatically after
+  the first Day 0 X attempt missed them and the post had to be redone. (2) LinkedIn links move from the first
+  comment to the post body (sections 1, 5.2, 7, 10); X links stay in the first reply.
