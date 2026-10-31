@@ -65,7 +65,9 @@ CAPTIONS: burned-in, [font style], high contrast, max 6 words per line, matching
 PACING: cut every 1.5-3 s; trim silence; keep the key result on screen at least 1.5 s
 ZOOM/CROP: punch in on [region] at [time] so text is readable on a phone
 AUDIO: [keep original | add subtle background music, low | none]; normalise loudness
-STYLE: [dark/clean/minimal]; one accent colour [hex]; no stock footage; no emojis; no logos except [x]
+STYLE: per docs/frontend/design-doctrine.md (Field Notes: paper + ink, ONE pen-blue annotation, pencil-red only
+for gap marks; exact look in docs/frontend/design-doctrine-example.html); no stock footage; no emojis; no logos
+except [x]
 DO NOT: add effects not listed, change my words, show any content outside the crop, speed up screen text
 EXPORT: [resolution], [aspect ratio], H.264 MP4, under [size] MB; also export a [1:1 or 16:9] version and a
         1280x720 thumbnail/poster frame from [timestamp]

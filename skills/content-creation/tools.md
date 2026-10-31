@@ -28,7 +28,8 @@ store: it records what we have learned about using these tools so every later ed
   text layers, colour adjustments, filters, and export (PNG/JPEG/WEBP, social-media kits, icon sizes).
 - Requires GIMP 3.2 running with its MCP plugin started (Tools > Start MCP Server); check_server tells you
   whether it is reachable.
-- Colours are hex (#rrggbb) or the 16 basic names; theme.md's palette values pass directly.
+- Colours are hex (#rrggbb) or the 16 basic names; the design doctrine's palette values
+  (docs/frontend/design-doctrine.md) pass directly.
 - Verify results with get_state_snapshot between edit batches instead of guessing.
 
 ## Lessons learned — Kinocut

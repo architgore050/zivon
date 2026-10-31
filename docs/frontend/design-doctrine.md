@@ -1,6 +1,9 @@
 # Design system: Field Notes
 
 Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic honesty. Status: v0.1, proposal.
+Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
+and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
+the look.
 
 ## 1. Intent
 - Style: handwritten-lab-notebook, deliberately unproduced. Tone: candid, a little wry. Differentiator: it looks
@@ -20,6 +23,7 @@ Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic hon
 | Token | Hex | Contrast on paper | Job | Frequency cap |
 |---|---|---|---|---|
 | paper | `#EFE6B8` | n/a | background (about 70%) | all pages |
+| paper-light | `#F6F0CF` | n/a | card / taped surface background (ink on it: 15.0:1) | cards only |
 | ink | `#1C1B18` | 13.7:1 | text, outlines | always |
 | graphite | `#5A5748` | 5.8:1 | labels, sources | small text only |
 | pen-blue | `#1F3A9E` | 7.7:1 | annotation: ONE underline/circle per post | once per post/image |

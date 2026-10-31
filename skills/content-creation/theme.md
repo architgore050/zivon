@@ -1,11 +1,13 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.2 (Day 2). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.3 (Day 3). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
 - All post, video, and photo skills (x-post-interviewer, linkedin-post-interviewer, video-edit-director,
   photo-edit-director) read this file first.
+- For anything visual, also read `docs/frontend/design-doctrine.md` (see section 2): this file no longer defines
+  a visual design of its own.
 - Precedence: the founder's instruction for a specific post > this file > a skill's built-in defaults.
 - If a skill's advice conflicts with this file, follow this file and say so in one line.
 - Never invent facts to satisfy a template. A missing number is a question to the founder, not a blank to fill.
@@ -19,65 +21,32 @@ else is a default. Change a value here and every skill that reads this file foll
 - Every post carries the repo link. Placement follows section 7: X first reply, LinkedIn first comment.
 - AI disclosure policy (posts or visuals made with AI help): `[CONFIRM: always say / say when asked / say on visuals only]`
 
-## 2. Visual system
+## 2. Visual system (delegated: the design doctrine)
 
-### 2.1 Palette (proposed; swap the hex values if a brand already exists) [CONFIRM]
-Dark theme is the default; every contrast ratio below was calculated against WCAG's formula.
+This file does not define a visual design. All design rules — palette, fonts, sizes, layout, card types, day
+counter styling, annotation and colour rules — live in **`docs/frontend/design-doctrine.md`** ("Field Notes",
+v0.1). Read that file before producing any image, carousel, or video frame.
 
-| Role | Hex | Use | Contrast on #0E1116 |
-|---|---|---|---|
-| Background | `#0E1116` | canvas | n/a |
-| Surface | `#171B22` | cards, code boxes, panels | n/a |
-| Text | `#F3F4F6` | headlines, body | 17.2:1 |
-| Muted | `#9AA4B2` | labels, sources, secondary text | 7.5:1 |
-| Accent | `#5EEAD4` | ONE highlight per image: a number, a keyword, an arrow | 12.8:1 |
-| Gap (not done / failed) | `#FF8A7A` | honest-gap items only | 8.3:1 |
-| Done | `#86EFAC` | completed items on checklists | 13.5:1 |
+- Reference implementation: **`docs/frontend/design-doctrine-example.html`** — a working page rendering the whole
+  system: the CSS-variable tokens, the single pen-blue underline, pencil-red `not yet` stamps, tick-green done
+  tags, the taped rotated card, and the `Day 01` counter. Open it before generating post visuals or cards and
+  match its patterns; it is the concrete bar for every future generation.
 
-Light variant (only when the platform or context needs it): background `#F7F7F5`, ink `#111418` (17.2:1), muted
-`#5B6472` (5.6:1), accent `#0F766E` (5.1:1), gap `#B42318` (6.1:1).
+- One doctrine, one look: post visuals and the product UI follow the same design system, so the post series and
+  the product feel like the same notebook.
+- Precedence for visuals: the founder's instruction for a specific post > the design doctrine > a skill's
+  built-in defaults.
+- The doctrine invariants the rest of this file refers back to: paper background with ink text; ONE pen-blue
+  annotation per image; pencil-red reserved for honest gaps; the `Day NN` day counter top-left in Courier
+  Prime; minimum 32 px text at 1080 px width.
 
-Colour rules:
-- One accent per image. If two things are highlighted, nothing is.
-- The gap colour is reserved for honesty (what is not done). Never use it decoratively.
-- Text on accent uses background colour `#0E1116` (12.8:1).
-- No gradients, drop shadows, glows, or stock backgrounds. Flat and calm reads as real; polished reads as ad.
-
-### 2.2 Fonts (free, no licence trouble) [CONFIRM]
-- Primary (headlines, body, captions): **Inter**, weights 500, 600, 700. Fallback: system-ui, Arial.
-- Mono (numbers, file names, code, day counter): **JetBrains Mono**, weights 400, 700. Fallback: Menlo, Consolas.
-- Never more than 2 families. No script, no display fonts, no emoji as design elements.
-
-### 2.3 Sizes (on a 1080 px wide canvas; scale proportionally for other sizes)
-| Element | Size | Weight | Notes |
-|---|---|---|---|
-| Hook / big number | 96-140 px | 700 | max 7 words; one idea |
-| Headline | 64-80 px | 700 | max 12 words |
-| Body | 44-52 px | 500 | max 3 short lines on a card |
-| Video caption | 56-72 px | 700 | 3-6 words per line, 2 lines max |
-| Label / source / day counter | 32-36 px | mono 400/700 | never below 32 px |
-- Minimum text size anywhere: 32 px at 1080 px width. If it will not fit, cut words, not size.
-- Line height 1.15-1.3. Sentence case, not ALL CAPS (caps only for the day counter and tiny labels).
-
-### 2.4 Layout
-- Margins: 60 px sides, 150 px top, 170 px bottom on vertical canvases; the same 60 px on square and 4:5.
-- Keep faces, text, and logos in the central safe area; platform UI covers the top and bottom edges (verify in the
-  current composer before export).
-- Left-aligned text, 1 column, generous empty space. One focal point per image.
+Posting-side rules that stay in this file:
 - Formats: 4:5 or 1:1 for images (default 1080x1350), 16:9 for link-style previews, 9:16 for vertical video.
-
-### 2.5 Recurring visual elements
-- **Day counter** in the top-left of every image and video: `DAY 01` in mono, accent colour. Same position every day.
-- **Scoreboard strip** (optional, bottom): 3-5 tracked numbers in mono, same order every day. Metrics are `[CONFIRM]`.
+- Keep faces, text, and logos in the central safe area; platform UI covers the top and bottom edges (verify in
+  the current composer before export).
+- **Scoreboard strip** (optional, bottom): 3-5 tracked numbers, same order every day. Metrics are `[CONFIRM]`.
   Example slots: tests passed, active testers, pieces produced, days to v1. Numbers need a denominator or a
-  comparison ("12 of 30"), never a bare brag.
-- **Card types** (each is one idea, one focal point):
-  1. Number card: one big number, one line of context.
-  2. Decision card: `Decision / Tradeoff / Why` in three lines.
-  3. Proof card: a cropped screenshot with at most one annotation.
-  4. Gap card: what is not done, in the gap colour, with the reason.
-  5. Recap card: yesterday in one line, today in one line, tomorrow in one line.
-  6. Ask card: the one question or request, nothing else.
+  comparison ("12 of 30"), never a bare brag. Styling follows the design doctrine.
 - No logo on every slide. The day counter is the brand.
 
 ## 3. Series structure (what makes the days connect)
@@ -122,8 +91,8 @@ Not every post carries all six; at minimum: proof + gap + commitment.
 - Approved shapes:
   - X: `Day N of 12 building Zivon for Gnani AI's Great Indian AI Internship Challenge: <product one-liner>.`
   - LinkedIn: `Day N of 12 in the Great Indian AI Internship Challenge, <hook claim>.`
-- The visual day counter stays `DAY NN` (mono, top-left) per section 2.5; the challenge name lives in the post
-  text, not in the counter.
+- The visual day counter follows the design doctrine (`Day NN`, Courier Prime, top-left; see section 2); the
+  challenge name lives in the post text, not in the counter.
 
 ## 4. Voice and writing
 - First person singular. Plain words. Contractions. Short sentences; break any sentence over 20 words.
@@ -243,14 +212,16 @@ Same story, two different posts: never paste the same text on both.
 - [ ] Not an ad: passes the product-name swap test; no banned words; no superlatives
 - [ ] Passes the swap test and the screenshot test
 - [ ] Exactly one ask, genuine and specific
-- [ ] Visuals: one focal point, one accent, minimum 32 px text, day counter present, readable at 300 px wide
+- [ ] Visuals follow `docs/frontend/design-doctrine.md`: one pen annotation, day counter present, minimum
+      32 px text, readable at 300 px wide
 - [ ] Secrets sweep done on the exported files; minors and consent checked
 - [ ] Repo link present in every post (X: first reply; LinkedIn: first comment); no hashtags on X
 - [ ] A reply plan exists for the first hour
 
 ## 11. Open decisions (answer once; then delete this section)
 1. One-line description of Zivon and its target reader.
-2. Existing brand colours or fonts? (If none, keep section 2 as written.)
+2. Confirm the design doctrine (`docs/frontend/design-doctrine.md`, v0.1 proposal) as the single source of truth
+   for all post visuals.
 3. The 3-5 scoreboard metrics to track daily.
 4. The founder's voice samples (3 real posts or messages) and words to never use.
 5. AI disclosure policy.
@@ -261,3 +232,7 @@ Same story, two different posts: never paste the same text on both.
 - v0.1 (Day 1): first version; palette and fonts are proposals.
 - v0.2 (Day 2): repo link made a required element of every post (section 1); day-count convention added
   (section 3.5), both from the Day 0 post work.
+- v0.3 (Day 3): section 2 no longer defines its own visual system; visual design defers to
+  `docs/frontend/design-doctrine.md` (Field Notes). Day counter, checklist, and open-decisions wording aligned
+  with it. Reference implementation `docs/frontend/design-doctrine-example.html` named as the concrete bar for
+  post visuals.
