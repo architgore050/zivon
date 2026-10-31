@@ -52,7 +52,8 @@ store: it records what we have learned about using these tools so every later ed
   name). GIMP sees "Inter Bold", "Inter Medium", "JetBrains Mono", "JetBrains Mono Bold" after `fc-cache`.
 - 2026-10-31: verify crop boundaries with `get_state_snapshot(region=...)` before cropping; QC with a
   `max_size=300` snapshot for phone readability; `save_xcf` to /tmp/opencode keeps re-editable layers out of
-  the repo.
+  the repo. Correction (31 Oct, founder decision): working XCFs now live in the repo next to their exports
+  (`posts/assets/day-0/A{1,2,3}.xcf`); save them there.
 - 2026-10-31 (Field Notes rebuild): fonts installed mid-session are invisible to GIMP's cached font list until
   `Gimp.fonts_refresh()` (call_api) is run; then `Gimp.fonts_get_list('Caveat')` returns `Gimp.Font` objects and
   `TextLayer.set_font(font_obj)` works (it needs a `Gimp.Font`, not a string). MCP `add_text` validates against
