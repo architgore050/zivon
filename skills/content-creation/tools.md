@@ -97,7 +97,7 @@ store: it records what we have learned about using these tools so every later ed
   decoration — settle the logic before designing anything. On the decision card: Tradeoff = why the bigger
   audience was chosen ("reach over niche"), Why = the reasoning stated explicitly, never as a slogan. The
   stamp slot became a handwritten closing tagline in pen-blue Caveat ("dil khol ke padhega india") — plain
-  statement, no "not yet:" prefix; Hindi/Hinglish taglines fit the brand voice. Zivon never positions itself
+  statement; Hindi/Hinglish taglines fit the brand voice. Zivon never positions itself
   as exam-focused, even where exam relevance explains demand.
 - 2026-10-31: arrowhead barbs must open **backwards** from the tip: reverse vector = -(tip - control_point),
   rotate ±30°, length ~15 px. A sign slip on the reverse vector puts the barbs past the tip and the arrow reads
@@ -153,7 +153,8 @@ store: it records what we have learned about using these tools so every later ed
 - 2026-10-31: no `Gimp.Matrix3D` / `Gegl.Matrix3D` class; `transform_matrix` takes **9 raw coefficients**.
   Rotation by θ around a pivot (cx,cy) bakes the translation in: `c02 = cx - cx*cos + cy*sin`,
   `c12 = cy - cx*sin - cy*cos`. Day 0's approved card device: rotate only card-bg + card-shadow layers;
-  keep text and separators straight on top.
+  keep text and separators straight on top. **SUPERSEDED 2026-11-01 by the group-tilt rule below** — Day 1's
+  founder review required every page element to tilt with the page.
 - 2026-10-31: `Image.select_polygon(operation, [x1,y1,x2,y2,...])` is the clean way to draw rotated strips
   (tape corners): compute the rotated rectangle's 4 corners, select, `edit_fill` — no transforms needed.
 - 2026-10-31: `Gimp.Display.new(image)` opens a visible GUI window for plugin-created images — do it so the
@@ -167,3 +168,40 @@ store: it records what we have learned about using these tools so every later ed
 - 2026-10-31: reusing the annotation kit: **crop** `pen-underline.png` to the needed length (native stroke
   quality preserved) instead of compressing it — horizontal compression tightens the pen wave and looks wrong.
   Paste kit shapes with NOHALO interpolation at native size; scale only when unavoidable, with CUBIC.
+  **SUPERSEDED 2026-11-01: kit pasting is banned** (founder: pasted marks showed white backgrounds — "don't
+  go for cheap tricks, learn to draw this stuff"). Draw pen marks natively; the kit is look reference only.
+- 2026-11-01: **Native pen strokes** (the reusable renderer): build the stroke as a parametric outline —
+  sample the path into control points (every ~40px; sine wave amp ~1.5-1.8px + seeded jitter ±0.6), compute
+  per-point normals from averaged adjacent tangents, offset left/right by half the local width (linear taper
+  w0→w1, e.g. 6→3), emit one closed polygon (left side forward + right side reversed), then
+  `select_polygon(REPLACE, poly)` + `layer.edit_fill(FOREGROUND)`. For anti-aliased edges: draw at 2x on a
+  temporary image, `layer.scale(W, H, False)` down to 1x, copy-paste onto the target. Arrow = quadratic-bezier
+  shaft (~13 points) + two barbs from the tip opening **backwards** (reverse tip tangent, rotate ±30°, ~15px).
+- 2026-11-01: **polygon point limit**: a ~178-point `select_polygon` splits into chunks and renders a
+  duplicated shifted stroke. Keep polygons under ~50 points (coarse control-point sampling is plenty for a
+  gentle wave); verify every stroke with an export + PIL stray-pixel scan.
+- 2026-11-01: `Image.select_rectangle(operation, x, y, width, height)` takes **width/height, not x2/y2** —
+  passing corner coords fills a giant block (this wrecked a card build; check the docstring when a fill
+  covers the wrong area).
+- 2026-11-01: `layer.scale(w, h, local_origin)` — `True` anchors at the **image center** (layer offset jumps
+  and content compresses toward the center); use `False` for origin-anchored downscaling.
+- 2026-11-01: `edit_paste(parent, True)` pastes at the **parent's** origin and clips to the parent's bounds —
+  pasting full-canvas pen strokes onto a small text layer yields an empty layer. Paste onto `base` with
+  `False`, then move the converted layer up the stack.
+- 2026-11-01: `floating_sel_to_layer` returns a **bool**, not the layer; grab it as
+  `get_layers()[index(parent) - 1]`. `insert_layer` cannot move an existing layer — `layer.copy()`,
+  `remove_layer(original)`, `insert_layer(copy, None, 0)` (position 0 = top; `get_layers()` lists top→bottom).
+- 2026-11-01: `Gimp.TransformResize` values are ADJUST / CLIP / CROP / CROP_WITH_ASPECT — **ADJUST** grows the
+  layer to fit the transformed result (set via `context_set_transform_resize` before `transform_matrix`).
+- 2026-11-01 (founder rule, supersedes the 2026-10-31 "rotate only card-bg + card-shadow" device): **group
+  tilt** — every element of a tilted page (bg, shadow, separators, all text, stamp, pen marks) rotates by the
+  same matrix around the same pivot. Page shadow = card silhouette offset +10/+10, graphite at 22% opacity —
+  attached to the edge, corner included, ~10px thick (Day 0 A2 ground truth).
+- 2026-11-01: **stamps carry a single judgment word** (DELAYED / POSTPONED / BLOCKED / PENDING) in uppercase
+  Courier Prime Bold inside a 2px pencil-red border. The "not yet:" phrase is purged from the doctrine and
+  skills — never revive it; the reason belongs beside the stamp in ink.
+- 2026-11-01: **text on ruled lines**: pick the rule pitch to match the text line pitch (36px rules for 26px
+  Courier log lines), then place every baseline exactly on a rule. Measure baseline-from-offset empirically
+  per font/size (export + PIL ink-bottom of a descender-free probe): Courier Prime 26 → +20, Bricolage
+  Grotesque ExtraBold 88 → +82, Caveat Bold 96 → +92. No dashed separators between log entries — the hash
+  column is the index.

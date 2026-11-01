@@ -36,7 +36,10 @@ the look.
 
 ## 4. Usage rules
 - Only ONE pen annotation per image or post; hand-drawn feel via slightly uneven SVG strokes, 3-4 px.
-- A gap is stamped in pencil-red as `not yet` or `blocked`, with the reason beside it in ink.
+- A gap is stamped in pencil-red as a single judgment word in uppercase Courier Prime Bold — `DELAYED`,
+  `POSTPONED`, `BLOCKED`, `PENDING` — inside a 2px pencil-red border, rotated -2 deg. The judgment lands on
+  the work like a verdict. Never use a `not yet:` prefix or a phrase inside the stamp; the reason belongs
+  beside the stamp in ink, not inside it.
 - Paper texture: flat color only, optional faint ruled lines (graphite at 15% opacity), no grain overlays that
   reduce contrast.
 - Proportions: 70% paper, 25% ink/graphite, 5% pen and pencil marks.

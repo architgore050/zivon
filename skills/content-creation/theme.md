@@ -28,7 +28,8 @@ counter styling, annotation and colour rules — live in **`docs/frontend/design
 v1.0, confirmed 31 Oct). Read that file before producing any image, carousel, or video frame.
 
 - Reference implementation: **`docs/frontend/design-doctrine-example.html`** — a working page rendering the whole
-  system: the CSS-variable tokens, the single pen-blue underline, pencil-red `not yet` stamps, tick-green done
+  system: the CSS-variable tokens, the single pen-blue underline, pencil-red single-word judgment stamps
+  (DELAYED / POSTPONED / PENDING — never a "not yet:" phrase), tick-green done
   tags, the taped rotated card, and the `Day 01` counter. Open it before generating post visuals or cards and
   match its patterns; it is the concrete bar for every future generation.
 
