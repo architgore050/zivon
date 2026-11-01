@@ -35,6 +35,13 @@ def _harness():
 
 
 def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[str, Any]:
+    """Gate the staged topic page and the landing page on the perf profile.
+
+    A topic-page miss is raised as a FIXABLE BudgetError: the orchestrator
+    routes it to stage 09-fixloop, which repairs page.js/page.css and retests.
+    A landing-page miss is NOT fixable (the shared layer is hand-maintained)
+    and stops the run immediately with instructions.
+    """
     run_profile = _harness()
     profile_path = cfg.repo_path(cfg.perf["profile"])
     site = Path(render_out["site_dir"])
@@ -45,21 +52,34 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
         "profile": str(profile_path),
         "pages": {},
     }
-    failures = []
     for label, url in (("topic_page", topic_url), ("landing_page", landing_url)):
         report = run_profile(url, profile_path)
         results["pages"][label] = report
-        if not report["pass"]:
-            failures.append(f"{label}: " + "; ".join(report["failures"]))
         run_ctx.write_json(run_ctx.stage_dir(STAGE_ID) / f"{label}.perf.json", report)
 
-    results["pass"] = not failures
+    topic_report = results["pages"]["topic_page"]
+    landing_report = results["pages"]["landing_page"]
+    results["pass"] = topic_report["pass"] and landing_report["pass"]
     run_ctx.save_stage_output(STAGE_ID, results)
-    if failures:
+
+    if not landing_report["pass"]:
         raise BudgetError(
             STAGE_ID,
-            "performance budgets missed: "
-            + " | ".join(failures)
-            + " - stage 09-fixloop will attempt repairs (see its artifacts).",
+            "landing page budgets missed: "
+            + "; ".join(landing_report["failures"])
+            + " - the landing page and shared assets are hand-maintained; fix "
+            "frontend/ directly. The topic fix loop cannot repair them.",
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+            fixable=False,
+        )
+    if not topic_report["pass"]:
+        raise BudgetError(
+            STAGE_ID,
+            "topic page budgets missed: "
+            + "; ".join(topic_report["failures"])
+            + " - stage 09-fixloop repairs topic-local files (include it in --stages).",
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+            fixable=True,
+            report=topic_report,
         )
     return results

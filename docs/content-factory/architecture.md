@@ -28,8 +28,8 @@ index.
 | 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop |
 | 06 | interactive | factory/interactive.py | model, 1 req per simulation | page.js / page.css fragments (linted) |
 | 07 | render | factory/render.py | code | staging site + manifest + courses.js |
-| 08 | perf | factory/perf.py + testing/perf/harness.py | code (Chromium) | budget report; miss = stop (09 fixes) |
-| 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds | fixed topic files + history |
+| 08 | perf | factory/perf.py + testing/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 09; landing-page miss = stop (hand-maintained, human fixes) |
+| 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds | fixed topic files + history; rounds=0 (no model call) when 08 passed |
 | 10 | review | factory/review.py | model + code | final verdict; fatal = stop |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
@@ -48,12 +48,16 @@ disk, with the validator feedback that was sent back to the model.
 ## Failure semantics (no silent fallbacks)
 
 - Any stage failure marks the run failed and raises; downstream stages never run.
+- One sanctioned routing: a topic-page perf miss from 08 is raised as a
+  *fixable* BudgetError and handed (with the report) to 09-fixloop for model
+  repairs. An unfixable miss (the landing page / shared assets) stops the run
+  immediately with instructions — the fix loop only touches topic-local files.
 - Model output must parse as JSON and validate against factory/schemas.py.
   Validation failures are retried with the error report fed back; after
-  `server.max_attempts` the stage fails with SchemaError.
+  `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError.
 - Network errors / 429 / 5xx retry with backoff; any other HTTP error fails
   immediately with the server's body (a 400 about response_format tells you to
-  set `server.json_mode=false`).
+  set `ZIVON_JSON_MODE=false`).
 - Unknown config keys, missing class-evidence strings, wrong PDFs, ambiguous
   chapter names, answer-key mismatches, invented numbers, external URLs,
   inline scripts: all hard errors.

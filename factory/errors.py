@@ -46,4 +46,23 @@ class LintError(StageError):
 
 
 class BudgetError(StageError):
-    """A page missed its performance budget after all fix rounds."""
+    """A page missed its performance budget.
+
+    fixable=True: the failing page is topic-local (page.js / page.css), so
+    stage 09-fixloop can attempt model repairs. fixable=False: nothing
+    downstream can fix it (e.g. the hand-maintained landing page) - a human
+    must. report carries the harness measurements for the orchestrator.
+    """
+
+    def __init__(
+        self,
+        stage_id: str,
+        message: str,
+        artifacts_dir: str | None = None,
+        *,
+        fixable: bool = True,
+        report: dict | None = None,
+    ):
+        super().__init__(stage_id, message, artifacts_dir)
+        self.fixable = fixable
+        self.report = report

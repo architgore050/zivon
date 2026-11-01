@@ -1,14 +1,19 @@
 """Stage 09-fixloop: the Performance Engineer agent, back-and-forth.
 
-Loop: re-run the perf harness, hand the report + current topic files to the
-model, apply its replacement contents (topic-local files ONLY: page.js,
-page.css, index.html body edits are rejected), re-lint, re-render, re-test.
-After perf.fix_rounds rounds without a pass, the stage fails with the full
-history so a human can look.
+Stage 08 hands the failing perf report here (the orchestrator routes a
+fixable BudgetError instead of dying). Loop: hand the report + current topic
+files to the model, apply its replacement contents (topic-local files ONLY:
+page.js, page.css; index.html is renderer-owned), re-lint, re-render the
+HTML shell, re-test. After perf.fix_rounds rounds without a pass, the stage
+fails with the full history so a human can look.
+
+When stage 08 already passed, this stage verifies nothing new is broken and
+returns immediately (rounds=0, no model call, no extra Chromium launch).
 """
 
 from __future__ import annotations
 
+import html as html_mod
 import json
 import shutil
 from pathlib import Path
@@ -28,8 +33,14 @@ FIXABLE = {"page.js", "page.css"}  # topic-local only; index.html is renderer-ow
 
 
 def run(
-    cfg: Config, run_ctx: RunContext, llm: LLMClient, render_out: dict[str, Any]
+    cfg: Config,
+    run_ctx: RunContext,
+    llm: LLMClient,
+    render_out: dict[str, Any],
+    initial_perf: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """initial_perf: stage 08's topic-page report (or None when 09 is run
+    standalone - then we measure once ourselves)."""
     run_profile = _harness()
     profile_path = cfg.repo_path(cfg.perf["profile"])
     topic_dir = Path(render_out["topic_dir"])
@@ -37,15 +48,21 @@ def run(
     topic_url = (topic_dir / "index.html").as_uri()
 
     history: list[dict[str, Any]] = []
+    if initial_perf is not None and initial_perf.get("pass"):
+        # Stage 08 just measured this exact page and it passed: nothing to fix.
+        history = [{"round": 0, "perf": initial_perf}]
+        _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
+        return {"rounds": 0, "history": history, "pass": True}
+
+    report = (
+        initial_perf
+        if initial_perf is not None
+        else run_profile(topic_url, profile_path)
+    )
+    history = [{"round": 0, "perf": report}]
     rounds = cfg.perf["fix_rounds"]
 
     for round_no in range(1, rounds + 1):
-        report = run_profile(topic_url, profile_path)
-        history.append({"round": round_no, "perf": report})
-        if report["pass"]:
-            _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
-            return {"rounds": round_no, "history": history, "pass": True}
-
         current_files = {
             name: (topic_dir / name).read_text(encoding="utf-8")
             for name in sorted(FIXABLE)
@@ -92,17 +109,21 @@ def run(
                 artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
             )
 
-    final_report = run_profile(topic_url, profile_path)
-    history.append({"round": rounds + 1, "perf": final_report})
+        report = run_profile(topic_url, profile_path)
+        history.append({"round": round_no, "perf": report})
+        if report["pass"]:
+            _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
+            return {"rounds": round_no, "history": history, "pass": True}
+
     _finish(cfg, run_ctx, history, topic_dir, site, ok=False)
-    if not final_report["pass"]:
-        raise BudgetError(
-            STAGE_ID,
-            f"performance budgets still missed after {rounds} fix rounds: "
-            + "; ".join(final_report["failures"])
-            + " - human review required (full history in the stage artifacts).",
-        )
-    return {"rounds": rounds, "history": history, "pass": True}
+    raise BudgetError(
+        STAGE_ID,
+        f"performance budgets still missed after {rounds} fix rounds: "
+        + "; ".join(report["failures"])
+        + " - human review required (full history in the stage artifacts).",
+        artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        fixable=False,
+    )
 
 
 def _apply_plan(topic_dir: Path, plan: dict[str, Any]) -> None:
@@ -164,6 +185,13 @@ def _rebuild_html_if_needed(
                 shutil.copy2(src, site_topic / name)
 
 
+def _strip_tags(text: str) -> str:
+    """Drop markup and decode entities, so re-rendering escapes exactly once."""
+    import re
+
+    return html_mod.unescape(re.sub(r"<[^>]+>", "", text)).strip()
+
+
 def _extract_objectives(html_text: str) -> list[str]:
     import re
 
@@ -171,7 +199,7 @@ def _extract_objectives(html_text: str) -> list[str]:
     if not block:
         return ["(objectives unavailable)"]
     return [
-        re.sub(r"<[^>]+>", "", li).strip()
+        _strip_tags(li)
         for li in re.findall(r"<li>(.*?)</li>", block.group(1), re.DOTALL)
     ]
 
@@ -187,13 +215,7 @@ def _extract_glossary(html_text: str) -> list[dict[str, str]]:
     pairs = re.findall(r"<dt>(.*?)</dt><dd>(.*?)</dd>", block.group(1), re.DOTALL)
     if not pairs:
         return [{"term": "n/a", "definition": "n/a"}]
-    return [
-        {
-            "term": re.sub(r"<[^>]+>", "", t).strip(),
-            "definition": re.sub(r"<[^>]+>", "", d).strip(),
-        }
-        for t, d in pairs
-    ]
+    return [{"term": _strip_tags(t), "definition": _strip_tags(d)} for t, d in pairs]
 
 
 def _system() -> str:
@@ -239,12 +261,9 @@ def _finish(
     run_ctx.write_json(run_ctx.stage_dir(STAGE_ID) / "history.json", history)
     if ok:
         # sync final files into the staging site copy
-        course_id = json.loads(
-            (topic_dir / "manifest.json").read_text(encoding="utf-8")
-        )["course_id"]
-        slug = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))[
-            "topic_slug"
-        ]
+        manifest = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))
+        course_id = manifest["course_id"]
+        slug = manifest["topic_slug"]
         site_topic = site / "courses" / course_id / slug
         if site_topic != topic_dir:
             for name in ("index.html", "page.js", "page.css", "manifest.json"):

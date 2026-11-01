@@ -27,7 +27,7 @@ from . import (
 )
 from .artifacts import RunContext, slugify
 from .config import Config
-from .errors import FactoryError, StageError
+from .errors import BudgetError, FactoryError, StageError
 from .llm import LLMClient
 
 STAGE_ORDER = [
@@ -212,18 +212,29 @@ def run_pipeline(
             run_ctx.save_stage_output("07-render", render_out)
             run_ctx.mark_stage("07-render", "ok", detail=render_out["topic_dir"])
 
+        perf_report: dict[str, Any] | None = None
         if wanted("08-perf"):
             if render_out is None:
                 render_out = run_ctx.load_stage_output("07-render")
             run_ctx.mark_stage("08-perf", "running")
-            perf.run(cfg, run_ctx, render_out)
-            run_ctx.mark_stage("08-perf", "ok")
+            try:
+                perf_out = perf.run(cfg, run_ctx, render_out)
+                perf_report = perf_out["pages"]["topic_page"]
+                run_ctx.mark_stage("08-perf", "ok")
+            except BudgetError as exc:
+                # A topic-page miss is ROUTED to 09-fixloop (the Performance
+                # Engineer's repair loop) instead of killing the run.
+                # Unfixable misses (e.g. the landing page) stop immediately.
+                perf_report = exc.report
+                run_ctx.mark_stage("08-perf", "failed", detail=str(exc))
+                if not (exc.fixable and wanted("09-fixloop")):
+                    raise
 
         if wanted("09-fixloop"):
             if render_out is None:
                 render_out = run_ctx.load_stage_output("07-render")
             run_ctx.mark_stage("09-fixloop", "running")
-            fix_out = fixloop.run(cfg, run_ctx, llm, render_out)
+            fix_out = fixloop.run(cfg, run_ctx, llm, render_out, perf_report)
             run_ctx.save_stage_output("09-fixloop", fix_out)
             run_ctx.mark_stage("09-fixloop", "ok", detail=f"rounds={fix_out['rounds']}")
 
