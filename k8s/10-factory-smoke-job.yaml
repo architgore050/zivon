@@ -1,5 +1,5 @@
 # Content factory smoke test as a K8s Job: run to completion, done.
-# This is the K8s twin of: docker run --rm zivon-factory:0.1.0
+# This is the K8s twin of: docker run --rm zivon-factory:0.2.0
 #
 #   kubectl apply -f k8s/
 #   kubectl get jobs,pods -n zivon
@@ -19,15 +19,16 @@ spec:
         app: zivon-factory
     spec:
       restartPolicy: Never # a Job tracks failures via pods it recreates, not restarts
+      automountServiceAccountToken: false # the factory needs no K8s API access
       securityContext:
         runAsNonRoot: true # refuse to run the pod unless the image is non-root
         runAsUser: 1000    # numeric uid of "app"; kubelet cannot verify a username-based USER
       containers:
         - name: factory
-          image: zivon-factory:0.1.0
+          image: zivon-factory:0.2.0
           imagePullPolicy: IfNotPresent # local image loaded via `minikube image load`
           # No `command:` here on purpose: the pod inherits the image's CMD
-          # (the smoke test). Pipeline runs will override it later.
+          # (the smoke test). Real pipeline runs override it — see 20-factory-run-job.yaml.
           resources:
             requests:            # scheduler needs this much room to place the pod
               cpu: 500m          # 0.5 core

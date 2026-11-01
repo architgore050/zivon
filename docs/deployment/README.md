@@ -12,12 +12,12 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 
 | Piece | State |
 |---|---|
-| Content factory image (`Dockerfile`, smoke test, compose) | ✅ built, run, validated locally |
-| K8s manifests (`k8s/`) — namespace + factory smoke Job | ✅ running on local minikube cluster |
-| CI merge gate + CodeQL + Dependabot (`.github/workflows/`, `.github/dependabot.yml`) | ✅ written; first live run will be the feature-branch PR |
+| Content factory image (`Dockerfile`, smoke test, compose) | ✅ v0.2.0 covers the full factory (19 modules + `pipeline.py`); rebuild + reload after the patch drop |
+| K8s manifests (`k8s/`) — namespace, smoke Job, pipeline run Job template | ✅ smoke Job verified on local minikube; run Job needs a configured model server + Secret to run |
+| CI merge gate (incl. 118-test suite job) + CodeQL + Dependabot | ✅ written; first live run will be the feature-branch PR |
 | Branch protection on `main` (required checks) | ⬜ to configure in GitHub UI before the PR |
 | Publish pipeline (merge → build → push to `ghcr.io`) | ⬜ next piece of CD |
-| Deploy pipeline + cluster hosting decision | ⬜ deferred: needs a real cluster (local minikube is dev-only) |
+| Deploy pipeline + cluster hosting decision (incl. PVC for persistent output) | ⬜ deferred: needs a real cluster (local minikube is dev-only) |
 | Voice backend image (FastAPI/WebSockets) + Deployment + Service | ⬜ comes with the voice loop (Phase 2) |
 
 ## Decisions locked here

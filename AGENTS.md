@@ -109,6 +109,7 @@ Consult `docs/deployment/` and touch infra when you:
 - add a new service or image — follow the existing Dockerfile pattern (slim base, deps-before-code, non-root user), then add its CI job and K8s objects
 - edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI
 - edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
+- handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose and ephemeral (`emptyDir`) in Jobs; never bake generated pages into an image; persistent cluster output needs the PVC/hosting decision
 
 Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
 

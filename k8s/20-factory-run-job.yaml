@@ -1,0 +1,63 @@
+# A REAL pipeline run as a K8s Job — the pattern every future topic run follows.
+#
+# Prerequisites (this Job will fail without them):
+#   1. config.json server.model set to a reachable OpenAI-format server
+#      (the CHANGE-ME sentinel is a hard config error by design).
+#   2. The API key as a Secret, created imperatively — never in a manifest:
+#        kubectl create secret generic zivon-factory-env -n zivon \
+#          --from-literal=ZIVON_API_KEY=<key>
+#
+# Output: runs/ is an emptyDir = EPHEMERAL (gone when the pod ends). For dev,
+# fetch results with:  kubectl cp zivon/<pod-name> runs -c factory
+# Persistent output (frontend/ pages, caches) needs a PVC — part of the cluster
+# hosting decision. See docs/deployment/kubernetes.md.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: factory-run-motion        # one Job per topic run; name it descriptively
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 3600     # a pipeline run must not hang forever: hard 1 h cap
+  template:
+    metadata:
+      labels:
+        app: zivon-factory
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false   # the factory needs no K8s API access
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: factory
+          image: zivon-factory:0.2.0
+          imagePullPolicy: IfNotPresent
+          # Command override: the image's CMD (smoke test) is replaced by the
+          # real entry point. This is the Job-vs-smoke difference.
+          command: ["python", "pipeline.py", "Motion", "--class", "9"]
+          env:
+            - name: ZIVON_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-factory-env
+                  key: ZIVON_API_KEY
+          volumeMounts:
+            - name: runs
+              mountPath: /app/runs
+            - name: hf-cache
+              mountPath: /app/.cache/huggingface
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi         # full pipeline: torch + Chromium + model I/O
+      volumes:
+        - name: runs
+          emptyDir: {}
+        - name: hf-cache
+          emptyDir: {}

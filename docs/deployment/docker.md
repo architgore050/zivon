@@ -12,7 +12,7 @@ The factory depends on heavy, fragile things: `sentence-transformers` (torch), `
 - **Playwright:** `playwright install --with-deps chromium` bakes Chromium + its OS libraries into the image; browsers live at `/opt/playwright` (fixed path readable by the non-root user).
 - **Non-root:** build runs as root, but `useradd app` + `USER app` makes the container run unprivileged.
 - **`ENV PYTHONPATH=/app`:** Python sets `sys.path[0]` to the *script's* directory, so scripts outside the repo root (e.g. `docker/smoke_test.py`) can't see `factory/` without this. Placed after the pip layer so changing it doesn't invalidate the dependency cache.
-- **Default CMD:** `python docker/smoke_test.py` — imports every factory module + heavy dep. A broken image fails in seconds, locally and in CI.
+- **Default CMD:** `python docker/smoke_test.py` — imports all 19 factory modules, the `pipeline.py` entry point, and the heavy deps. A broken image fails in seconds, locally and in CI.
 
 Image size: ~3.8 GB uncompressed; the pip layer is ~2.7 GB of it. Slimming (e.g. splitting the Playwright perf gate into a separate image) is a known future optimization, not a blocker.
 
@@ -23,14 +23,14 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.1.0 .
-docker run --rm zivon-factory:0.1.0                          # smoke test
-docker run --rm -it zivon-factory:0.1.0 bash                 # explore inside
-docker history zivon-factory:0.1.0                           # per-layer sizes
+docker build -t zivon-factory:0.2.0 .
+docker run --rm zivon-factory:0.2.0                          # smoke test
+docker run --rm -it zivon-factory:0.2.0 bash                 # explore inside
+docker history zivon-factory:0.2.0                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
-`docker-compose.yml` is the local runner: builds the image, passes `ZIVON_API_KEY` from the shell, mounts `runs/`, PDF/text caches, and the HuggingFace cache as volumes so containers stay disposable while caches survive.
+`docker-compose.yml` is the local runner: builds the image, passes `ZIVON_API_KEY` from the shell, mounts pipeline **output** (`runs/`, generated pages in `frontend/`) plus download caches (PDFs, text, HuggingFace) as volumes — containers stay disposable while output and caches survive.
 
 ## Rules
 

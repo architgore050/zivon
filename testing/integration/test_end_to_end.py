@@ -38,7 +38,7 @@ def chromium_available() -> bool:
 
 
 class TestEndToEnd(unittest.TestCase):
-    tmp: Path = None
+    tmp: Path  # set in setUpClass
     server = None
 
     @classmethod

@@ -73,8 +73,8 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.1.0 .
-docker run --rm zivon-factory:0.1.0                          # environment smoke test
+docker build -t zivon-factory:0.2.0 .
+docker run --rm zivon-factory:0.2.0                          # environment smoke test
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
@@ -88,7 +88,7 @@ Manifests live in `k8s/` (numeric prefix = apply order). Local cluster is miniku
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.1.0   # minikube has its own container store
+minikube image load zivon-factory:0.2.0   # minikube has its own container store
 kubectl apply -f k8s/                     # namespace + factory smoke Job
 kubectl get jobs,pods -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed

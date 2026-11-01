@@ -35,7 +35,7 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: Mypy type check
-        run: mypy --ignore-missing-imports factory/ docker/
+        run: mypy --ignore-missing-imports factory/ docker/ pipeline.py testing/
 
   # ---- 2. the image: lint, build, prove it works, scan it ------------------
   docker:
@@ -61,6 +61,8 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Smoke test (the image's own CMD)
         run: docker run --rm zivon-factory:${{ github.sha }}
+      - name: Pipeline CLI works inside the image
+        run: docker run --rm zivon-factory:${{ github.sha }} python pipeline.py --help
       - name: Image vulnerability scan (trivy)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
@@ -121,7 +123,7 @@ jobs:
       - name: kube-linter — security linting
         run: |
           curl -sL https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz | tar xz
-          ./kube-linter lint k8s/
+          ./kube-linter lint --config .kube-linter.yaml k8s/
 
   # ---- 6. the actual test suite (unit + end-to-end) -------------------------
   tests:

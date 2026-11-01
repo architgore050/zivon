@@ -31,7 +31,7 @@ class MockState:
 
 
 class _Handler(BaseHTTPRequestHandler):
-    state: MockState = None  # injected
+    state: MockState  # injected by start_mock() before the server thread starts
 
     def log_message(self, fmt, *args):  # silence request logging
         pass
