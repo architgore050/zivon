@@ -74,31 +74,55 @@ def rule_answer_keys(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def rule_citations(
-    blocks: list[dict[str, Any]], ground_truth: dict[str, Any]
+    blocks: list[dict[str, Any]],
+    ground_truth: dict[str, Any],
+    source_pack: dict[str, Any],
 ) -> list[dict[str, Any]]:
+    """Citations must point at real claims and real sources, and every factual
+    block (text / worked_example / check / reveal - the draft prompt's list)
+    must carry at least one claim citation.
+
+    Allowed source ids are DERIVED from the actual source pack (primary book +
+    supplement chunk ids), not a hardcoded prefix list: a citation to a source
+    that was never fetched is exactly the fabrication this rule must catch.
+    """
     valid_claims = {c["id"] for c in ground_truth["claims"]}
-    valid_terms = {t["term"] for t in ground_truth["key_terms"]}
+    allowed_sources = {"ncert"}
+    chapter = source_pack.get("chapter") or {}
+    if chapter.get("book_id"):
+        allowed_sources.add(chapter["book_id"])
+    for s in source_pack.get("supplements", []):
+        allowed_sources.add(s.get("source_id"))
+        allowed_sources.add(s.get("book_id"))
+    allowed_sources.discard(None)
+
     issues: list[dict[str, Any]] = []
     for b in blocks:
-        for cit in b.get("citations", []):
+        citations = b.get("citations", [])
+        if b["type"] in ("text", "worked_example", "check", "reveal") and not citations:
+            issues.append(
+                _issue(
+                    b,
+                    "fatal",
+                    f"{b['type']} block carries no citations - every factual block "
+                    "must cite at least one ground-truth claim",
+                )
+            )
+        for cit in citations:
             claim_id = cit.get("claim_id")
             if claim_id and claim_id not in valid_claims:
                 issues.append(_issue(b, "fatal", f"cites unknown claim '{claim_id}'"))
             source_id = cit.get("source_id")
-            if (
-                source_id
-                and source_id != "ncert"
-                and not source_id.startswith(("ncert", "openstax", "siyavula"))
-            ):
+            if source_id and source_id not in allowed_sources:
                 # unknown provenance is suspicious but not necessarily wrong; major
                 issues.append(
                     _issue(
                         b,
                         "major",
-                        f"cites source_id '{source_id}' that is not in the source pack naming scheme",
+                        f"cites source_id '{source_id}' that is not in the source pack "
+                        f"(allowed: {sorted(allowed_sources)})",
                     )
                 )
-            _ = valid_terms  # term-level citations allowed but not required
     return issues
 
 
@@ -145,6 +169,21 @@ def rule_self_containment(
     return issues
 
 
+def _number_in_corpus(num: str, corpus: str) -> bool:
+    """Boundary-aware numeral match.
+
+    Plain substring matching is wrong: '5' would 'appear' in '15' or '1.5'.
+    A match requires the numeral not to be glued to another digit on either
+    side, and not to be the tail of a decimal on its left. '5' matches '5',
+    '5.0' and '(5 m/s)' but never '15', '50' or '1.5'.
+    """
+    variants = {num, num.lstrip("0") or "0"}
+    for variant in variants:
+        if re.search(rf"(?<![\d.]){re.escape(variant)}(?!\d)", corpus):
+            return True
+    return False
+
+
 def rule_numbers(
     blocks: list[dict[str, Any]],
     ground_truth: dict[str, Any],
@@ -152,7 +191,12 @@ def rule_numbers(
 ) -> list[dict[str, Any]]:
     """Every number used in a worked_example answer or a check answer must be
     traceable to the ground truth or the primary source text (string match on
-    the numeral, ignoring formatting). Guards against invented answers."""
+    the numeral, ignoring formatting). Guards against invented answers.
+
+    Note: this checks VERBATIM presence, not derivability - a number the
+    model computed (even correctly) is flagged, on purpose. The draft prompt
+    tells the model the same thing: use figures that appear in the sources,
+    do not compute new ones."""
     corpus = " ".join(
         [c["statement"] for c in ground_truth["claims"]]
         + [e["expression"] for e in ground_truth["equations"]]
@@ -163,15 +207,20 @@ def rule_numbers(
         if b["type"] not in ("worked_example", "check"):
             continue
         spec = b["spec"]
-        candidates = []
-        if b["type"] == "worked_example":
-            candidates.append(str(spec.get("answer", "")))
-        else:
-            candidates.append(str(spec.get("answer", "")))
+        candidates = [str(spec.get("answer", ""))]
+        if b["type"] == "check" and spec.get("format") == "mcq":
+            # the correct option text carries the figures too
+            idx = spec.get("answer_index")
+            options = spec.get("options")
+            if (
+                isinstance(idx, int)
+                and isinstance(options, list)
+                and 0 <= idx < len(options)
+            ):
+                candidates.append(str(options[idx]))
         for text in candidates:
             for num in re.findall(r"\d+(?:\.\d+)?", text or ""):
-                bare = num.lstrip("0") or "0"
-                if bare not in corpus and num not in corpus:
+                if not _number_in_corpus(num, corpus):
                     issues.append(
                         _issue(
                             b,
@@ -213,7 +262,7 @@ def run_all_rules(
 ) -> dict[str, Any]:
     issues = (
         rule_answer_keys(blocks)
-        + rule_citations(blocks, ground_truth)
+        + rule_citations(blocks, ground_truth, source_pack)
         + rule_self_containment(blocks, lesson)
         + rule_numbers(blocks, ground_truth, source_pack)
         + rule_diagram_svg(blocks)
