@@ -14,7 +14,7 @@ Common block fields:
 | `id` | `b-01`, `b-02`, ... (`^b-[0-9]{2}$`) |
 | `type` | `text` \| `worked_example` \| `check` \| `reveal` \| `diagram` \| `simulation` |
 | `spec` | object, shape per type below |
-| `citations` | `[{"claim_id": "claim-01"}]` - must reference ground-truth claim ids; required on all factual blocks |
+| `citations` | `[{"claim_id": "claim-01"}]` - must reference ground-truth claim ids; required on all factual blocks (a text/worked_example/check/reveal block without citations is a fatal rule failure) |
 
 ## text
 
@@ -23,8 +23,10 @@ Common block fields:
 ## worked_example
 
     {"problem": "...", "steps": [{"title": "...", "detail": "..."}], "answer": "..."}
-Every number in `answer` must be traceable to the ground truth or the primary
-source (enforced by `factory/checks.py::rule_numbers`).
+Every number in `answer` must appear **verbatim** in the ground truth or the
+primary source text - do not compute new figures (enforced by
+`factory/checks.py::rule_numbers` with a whole-numeral match: `5` matches `5`
+and `5.0`, never `15`).
 
 ## check
 
@@ -32,8 +34,10 @@ source (enforced by `factory/checks.py::rule_numbers`).
      "answer_index": 1, "answer": "B's text", "explanation": "...",
      "expected_understanding": "..."}
 or `"format": "numeric"` with `"answer": "5"` (a number) and no options.
-`answer` must equal `options[answer_index]` for mcq (hard rule). One option
-should address a listed misconception where possible.
+`answer` must equal `options[answer_index]` for mcq (hard rule). Numbers in
+the correct option and in a numeric `answer` are held to the same verbatim
+rule as worked examples. One option should address a listed misconception
+where possible.
 
 ## reveal
 

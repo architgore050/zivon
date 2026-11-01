@@ -30,10 +30,10 @@ docker history zivon-factory:0.2.0                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
-`docker-compose.yml` is the local runner: builds the image, passes `ZIVON_API_KEY` from the shell, mounts pipeline **output** (`runs/`, generated pages in `frontend/`) plus download caches (PDFs, text, HuggingFace) as volumes — containers stay disposable while output and caches survive.
+`docker-compose.yml` is the local runner: builds the image, passes the server env (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY`) from the shell, mounts pipeline **output** (`runs/`, generated pages in `frontend/`) plus download caches (PDFs, text, HuggingFace) as volumes — containers stay disposable while output and caches survive.
 
 ## Rules
 
-- API keys enter only via environment at runtime (`ZIVON_API_KEY`), never via image or `COPY`.
+- API keys and all server wiring enter only via environment at runtime (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY` — see `.env.example`), never via image or `COPY`.
 - Version tags: `name:semver` locally; CI will add commit-SHA tags in the registry.
 - Any new runtime dependency goes into `requirements.txt` (CI's pip-audit and trivy watch it).

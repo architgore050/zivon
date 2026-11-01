@@ -2,7 +2,8 @@
 checks:
   exclude:
     # kube-linter's "unsecrets" check wants secrets mounted as files, not env
-    # vars. The factory reads its API key from the env var NAMED by config.json
-    # (server.api_key_env), so env injection via Secret is the intended pattern.
+    # vars. The factory reads its API key directly from the ZIVON_API_KEY env
+    # var (all server settings are env-only by design), so env injection via
+    # Secret is the intended pattern.
     # Documented exemption — see docs/deployment/kubernetes.md.
     - unsecrets

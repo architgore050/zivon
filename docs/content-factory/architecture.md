@@ -24,7 +24,7 @@ index.
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
 | 02 | synth | factory/agents.py | model | ground_truth (claims, equations, misconceptions, uncertain) |
 | 03 | explain | factory/agents.py | model | lesson (self-contained prose) |
-| 04 | draft | factory/agents.py | model | blocks (text / worked_example / check / reveal / diagram / simulation) |
+| 04 | draft | factory/agents.py | model + code (rule feedback in the retry loop) | blocks (text / worked_example / check / reveal / diagram / simulation) |
 | 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop |
 | 06 | interactive | factory/interactive.py | model, 1 req per simulation | page.js / page.css fragments (linted) |
 | 07 | render | factory/render.py | code | staging site + manifest + courses.js |
@@ -58,6 +58,11 @@ model.
 - Model output must parse as JSON and validate against factory/schemas.py.
   Validation failures are retried with the error report fed back; after
   `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError.
+- 04-draft additionally runs the code-side rule checks (factory/checks.py)
+  inside the model retry loop: the model sees its own fatal/major rule
+  violations (invented number, uncited factual block, broken answer key) and
+  fixes them instead of the run dying at 05-check. 05-check re-runs the same
+  rules independently as a second gate.
 - Network errors / 429 / 5xx retry with backoff; any other HTTP error fails
   immediately with the server's body (a 400 about response_format tells you to
   set `ZIVON_JSON_MODE=false`).
@@ -73,10 +78,12 @@ model.
 
 - The synthesizer only sees the source pack (stage 01 output). It cannot cite
   anything that is not in it.
-- Every factual block cites ground-truth claim ids; 05-check enforces this in
-  code (`factory/checks.py`), independent of the model reviewer.
-- Numbers in worked-example/check answers must appear in the ground truth or
-  the primary source text (invented-figure guard).
+- Every factual block cites ground-truth claim ids; 04-draft and 05-check
+  enforce this in code (`factory/checks.py`), independent of the model
+  reviewer. Citation source ids must come from the actual source pack.
+- Numbers in worked-example/check answers must appear verbatim in the ground
+  truth or the primary source text - whole-numeral match, no substring
+  smuggling (invented-figure guard). The draft prompt promises the same.
 - The ground truth has a mandatory `uncertain` field - what the sources did
   not answer. It is carried into prompts so later stages do not resolve it by
   inventing.
