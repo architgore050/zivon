@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.11 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.12 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -333,3 +333,7 @@ replaces the post's ask.
 - v0.11 (1 Nov): teammate's X handle recorded in §1 (`@TathaCoder`) and the canonical X teammate-mention reply
   text set in §7.1 (`My teammate: @TathaCoder`); Day 1 and Day 2 X teammate replies finalized with it. Day 2
   posts marked POSTED 1 Nov — all three days now live on both platforms.
+- v0.12 (1 Nov): founder rule — retrofit and bridge text lives inside the day's canonical EXACT POST TEXT
+  blocks, never in separate edit-note sections (§7.2). Day 0 and Day 1 post files restructured to match:
+  LinkedIn blocks show the post-edit state (bridge line inline); X bridge and teammate replies are labeled
+  blocks in the canonical reply flow.
