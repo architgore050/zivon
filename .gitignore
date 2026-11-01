@@ -23,7 +23,8 @@ build/
 .cache/
 
 # --- logs / data / local artifacts ---
-logs/
+# anchored to the repo root so docs/logs/ (session logs) stays trackable
+/logs/
 *.log
 *.sqlite
 *.db
