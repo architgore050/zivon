@@ -12,16 +12,20 @@ Layout (gitignored under runs/):
       ...
 
 Nothing downstream ever runs on a failed stage, and every model call's exact
-request and response are on disk for diagnosis.
+request and response are on disk for diagnosis. Partial re-runs read upstream
+stage outputs from the latest previous run (see load_stage_output).
 """
 
 from __future__ import annotations
 
 import json
 import re
+import shutil
 import time
 from pathlib import Path
 from typing import Any
+
+from .errors import MissingArtifactError
 
 
 def slugify(text: str, max_len: int = 40) -> str:
@@ -64,10 +68,51 @@ class RunContext:
         self.write_json(self.stage_dir(stage_id) / "output.json", output)
 
     def load_stage_output(self, stage_id: str) -> Any:
+        """Read a stage's output.json for this run.
+
+        Partial re-runs (--stages 05-check,07-render) need upstream artifacts
+        this run did not produce. Fallback, as promised by the runbook: take
+        the artifact from the LATEST previous run that has it, copy it into
+        this run's stage dir (so every run stays self-contained and
+        inspectable), and print loudly where it came from. Use --run-id to
+        pin which run you mean. If no run has it, fail with instructions.
+        """
         path = self.stage_dir(stage_id) / "output.json"
-        if not path.exists():
-            raise FileNotFoundError(f"missing artifact for stage {stage_id}: {path}")
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+
+        source = self._latest_previous_run_output(stage_id)
+        if source is None:
+            raise MissingArtifactError(
+                f"stage {stage_id} needs the output of stage {stage_id}, but "
+                f"neither this run nor any previous run under {self.runs_dir} "
+                "has it. Run the earlier stages first, e.g. "
+                f"python pipeline.py <topic> --stages 00-ingest,...,{stage_id} "
+                "(see docs/content-factory/runbook.md)."
+            )
+        shutil.copy2(source, path)
+        print(
+            f"[artifacts] stage {stage_id}: no output in run '{self.run_id}'; "
+            f"using run '{source.parent.parent.name}' ({source}) - copied to {path}"
+        )
         return json.loads(path.read_text(encoding="utf-8"))
+
+    def _latest_previous_run_output(self, stage_id: str) -> Path | None:
+        """Newest output.json for stage_id among sibling run dirs."""
+        if not self.runs_dir.exists():
+            return None
+        candidates: list[tuple[float, str, Path]] = []
+        for run_dir in self.runs_dir.iterdir():
+            if not run_dir.is_dir() or run_dir.name == self.run_id:
+                continue
+            candidate = run_dir / stage_id / "output.json"
+            if candidate.exists():
+                candidates.append((candidate.stat().st_mtime, run_dir.name, candidate))
+        if not candidates:
+            return None
+        # newest first; run name breaks ties (run ids are time-ordered)
+        candidates.sort()
+        return candidates[-1][2]
 
     # -- status ---------------------------------------------------------------
     def mark_stage(self, stage_id: str, state: str, detail: str = "") -> None:

@@ -51,7 +51,10 @@ is correct end to end and the only remaining variable is your real model.
   for every model call including retries; `status.json` and
   `run_report.json` at the run root.
 - Re-run only some stages: `python pipeline.py "Motion" --stages 05-check,07-render`
-  (upstream artifacts are read from the latest run dir - use `--run-id` to pin).
+  (upstream artifacts are read from the latest previous run that has them,
+  copied into the new run, and the source run is printed - use `--run-id` to
+  pin. Starting a subset too late - no run has the upstream output - fails
+  with instructions).
 - A failure prints the stage, the reason and the evidence directory. Start
   with `runs/<id>/<stage>/attempts/*/response.json` for model misbehaviour.
 

@@ -41,6 +41,15 @@ class SourceError(StageError):
     """A source PDF could not be fetched, parsed, or did not match the catalog."""
 
 
+class MissingArtifactError(FactoryError):
+    """A stage needs an upstream stage output that no run has.
+
+    Raised by RunContext.load_stage_output when neither the current run nor
+    any previous run under runs/ holds the artifact - i.e. the requested
+    --stages subset starts too late. The message says which stages to run.
+    """
+
+
 class LintError(StageError):
     """Generated code violated a hard lint rule."""
 

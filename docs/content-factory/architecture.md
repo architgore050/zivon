@@ -41,9 +41,12 @@ Reviewer; 10 = Code Reviewer.
 
 Everything is files. Each stage writes `output.json` into its run directory and
 the orchestrator also passes the objects in memory. A re-run of a later stage
-alone reads the earlier stages' artifacts. Model-call evidence lives in
-`<stage>/attempts/attempt-NN/{request,response,meta}.json` - every retry is on
-disk, with the validator feedback that was sent back to the model.
+alone reads the earlier stages' artifacts: if this run lacks one, it is taken
+from the latest previous run that has it, copied into this run's stage dir,
+and the source run is printed (`--run-id` pins a specific run). Model-call
+evidence lives in `<stage>/attempts/attempt-NN/{request,response,meta}.json` -
+every retry is on disk, with the validator feedback that was sent back to the
+model.
 
 ## Failure semantics (no silent fallbacks)
 
