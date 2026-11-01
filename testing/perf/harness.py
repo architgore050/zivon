@@ -134,9 +134,13 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
     }
 
     with sync_playwright() as p:
+        # Snapshot chrome/chromium processes BEFORE the launch: the harness
+        # must measure the browser IT spawned, never a browser that happens
+        # to be open on the machine (e.g. the developer's own Chrome).
+        existing = _chromium_pids()
         browser = p.chromium.launch(headless=True)
         try:
-            browser_pid = browser.browser_type.name and _browser_pid(browser)
+            browser_pid = _browser_pid(existing)
             rss = _TreeRSS(browser_pid) if browser_pid else None
             if rss:
                 rss.start()
@@ -220,22 +224,49 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
     return report
 
 
-def _browser_pid(browser: Any) -> int | None:
-    """Playwright does not expose the browser pid directly; read it from the
-    chromium process spawned under the driver. Returns None if not found."""
+def _chromium_pids() -> set[int] | None:
+    """All chrome/chromium pids currently on the machine (None: no psutil)."""
     try:
         import psutil
-
-        for proc in psutil.process_iter(["name", "cmdline"]):
-            try:
-                name = (proc.info["name"] or "").lower()
-                if name.startswith(("chrome", "chromium")):
-                    return proc.pid
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                continue
     except ImportError:
         return None
-    return None
+    pids: set[int] = set()
+    for proc in psutil.process_iter(["name"]):
+        try:
+            name = (proc.info["name"] or "").lower()
+            if name.startswith(("chrome", "chromium")):
+                pids.add(proc.pid)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return pids
+
+
+def _browser_pid(existing: set[int] | None) -> int | None:
+    """Identify the main chromium process spawned by THIS launch.
+
+    Candidates are the chrome/chromium pids that appeared after the launch
+    snapshot. The main browser process is the one whose cmdline has no
+    --type= flag (renderers, gpu and zygote children all have one) and that
+    carries --headless (we always launch headless). Fallback: the lowest new
+    pid. Returns None when nothing new appeared or psutil is unavailable."""
+    if existing is None:
+        return None
+    try:
+        import psutil
+    except ImportError:
+        return None
+    fallback: int | None = None
+    new_pids = (_chromium_pids() or set()) - existing
+    for pid in new_pids:
+        try:
+            cmdline = " ".join(psutil.Process(pid).cmdline())
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        if "--type=" not in cmdline and "--headless" in cmdline:
+            return pid
+        if fallback is None or pid < fallback:
+            fallback = pid
+    return fallback
 
 
 def _sample_fps(page: Any, profile: dict[str, Any]) -> float | None:
