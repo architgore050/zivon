@@ -115,12 +115,12 @@
     g.fillStyle = "#B3261E";
     g.font = "bold 14px monospace";
     g.fillText("simulation error:", 12, 24);
-    wrapText(g, message, 12, 44, w - 24, 16);
+    wrapText(g, message, 12, 44, w - 24, 16, h);
     g.restore();
     if (window.console && console.error) console.error("ZivonSim:", message);
   }
 
-  function wrapText(g, text, x, y, maxW, lh) {
+  function wrapText(g, text, x, y, maxW, lh, h) {
     var words = String(text).split(" ");
     var line = "";
     for (var i = 0; i < words.length; i++) {
