@@ -55,7 +55,21 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 | TTS | Gnani **Timbre v2.5** (streaming, expressive tags) |
 | Backend | Python — FastAPI + WebSockets |
 | Frontend | Web UI with mic; static interactive pages (canvas/SVG) |
-| Infra | Static hosting + backend host, HTTPS/WSS, CI/CD, staging → prod |
+| Infra | Docker containers, Kubernetes, CI/CD, staging → prod |
+
+## Running with Docker
+
+The content factory ships as a container image (`Dockerfile` at the repo root):
+
+```bash
+docker build -t zivon-factory:0.1.0 .
+docker run --rm zivon-factory:0.1.0                          # environment smoke test
+docker compose run --rm factory python pipeline.py "Motion" --class 9   # once pipeline.py exists
+```
+
+- API keys are passed via environment variables (`ZIVON_API_KEY`) — never baked into the image.
+- `runs/`, PDF/text caches, and the HuggingFace model cache are mounted as volumes, so containers stay disposable and caches survive between runs.
+- `docker-compose.yml` is the local dev runner; Kubernetes manifests come with the deployment setup.
 
 ## Repo Map
 
