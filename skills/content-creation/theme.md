@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.9 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.10 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -17,7 +17,9 @@ else is a default. Change a value here and every skill that reads this file foll
 - Who it is for (role, stage): `[CONFIRM]`
 - The founder's voice in three words (examples: plain, specific, candid): `[CONFIRM]`
 - Words the founder never uses: `[CONFIRM]`
-- Handles and links: X `[CONFIRM]`, LinkedIn `[CONFIRM]`, repo `https://github.com/architgore050/zivon` (public)
+- Handles and links: founder X `@Archit0ji`, founder LinkedIn `https://www.linkedin.com/in/architgore/`,
+  teammate LinkedIn `https://www.linkedin.com/in/tathagato-chatterjee/` (Tathagato Chatterjee), teammate X
+  `[CONFIRM]`, repo `https://github.com/architgore050/zivon` (public)
 - Every post carries the repo link. Placement follows section 7: X first reply, LinkedIn in the post body.
 - AI disclosure policy (posts or visuals made with AI help): `[CONFIRM: always say / say when asked / say on visuals only]`
 
@@ -210,6 +212,9 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   `My teammate:` after the hashtags; the founder completes the @mention in the composer from the dropdown (the
   colon line is the only permitted placeholder in a block). On X, the teammate mention goes in its own
   standalone reply, never in the post body or the first reply.
+- Cross-platform bridge line (founder rule, 1 Nov): every LinkedIn EXACT POST TEXT block carries the §7.2
+  bridge line after the hashtags, before the `My teammate:` line; every X post gets its own §7.2 bridge reply
+  block.
 - Inside a block: only the literal characters to paste, line breaks as they should appear in the post. No
   Markdown syntax (`#`, `**`, `>`, backticks, `~~`), no commentary, no placeholders, no character-count notes.
   Platform composers do not render Markdown; the block is what gets pasted.
@@ -220,6 +225,27 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   body instead.
 - In post files under `posts/`, the blocks sit near the top of the file and are the source of truth for what is
   or will be published. Once posted, mark the block "POSTED <date>" and keep the text exactly as published.
+
+### 7.2 Cross-platform bridge (standing rule, founder decision 1 Nov)
+
+Every post bridges the two audiences. The bridge carries no question — it is not "the one ask" (§6.1) and never
+replaces the post's ask.
+
+- **X posts:** a dedicated bridge reply asking X viewers to follow on LinkedIn. Its own reply — never in the
+  post body (the 280-char budget is already full) and never merged into the first reply. Post it after the
+  first reply and its early comment replies. Canonical text (URL from §1; X replies cap at 256 characters,
+  URLs count as 23 — this one counts 108):
+
+  `Follow me on LinkedIn for the longer write-up of each day — same build, more detail: https://www.linkedin.com/in/architgore/`
+
+- **LinkedIn posts:** a bridge line asking LinkedIn readers to follow on X, placed after the hashtags and
+  before the final `My teammate:` line. Canonical text (handle from §1):
+
+  `I post the same build day by day on X too: @Archit0ji — shorter and faster.`
+
+- Published posts get the bridge retroactively: LinkedIn posts are edited to insert the bridge line (the
+  founder applies the edit in the LinkedIn UI); X posts get the bridge reply added. The exact text appended
+  is recorded in the day's post file.
 
 ## 8. Cadence [CONFIRM]
 - Post time: `[CONFIRM: audience time zone and slot]`; keep it consistent.
@@ -249,6 +275,8 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
 - [ ] Secrets sweep done on the exported files; minors and consent checked
 - [ ] Repo link present in every post (X: first reply; LinkedIn: post body); X posts carry exactly the two
       mandatory tags and fit 280 characters including them (count stated)
+- [ ] Cross-platform bridge present (§7.2): the LinkedIn block carries the bridge line; the X bridge reply
+      block exists
 - [ ] Each platform's post and its first comment/reply exist as EXACT POST TEXT blocks: plain text,
       paste-ready, no Markdown syntax (section 7.1)
 - [ ] A reply plan exists for the first hour
@@ -296,3 +324,9 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   day). Day 2 post assets briefly kept straight-line underlines as the "Day 2 doctrine state"; the founder
   revoked that exception the same day — §4.1 applies to every asset, and the doctrine position row moved to
   baseline + 0.3em so underlines read as attached to their text.
+- v0.10 (1 Nov): founder decision — **cross-platform bridge** added as §7.2 and enforced in §7.1 and the
+  pre-post checklist: every X post gets a dedicated follow-on-LinkedIn reply; every LinkedIn post carries a
+  follow-on-X line after the hashtags, before the teammate line. Day 0 and Day 1 published posts retrofitted
+  (exact text recorded in their post files; founder applies the LinkedIn edits). Founder handles recorded in
+  §1 (X `@Archit0ji`, LinkedIn `/in/architgore/`); teammate's LinkedIn recorded, teammate's X handle still
+  `[CONFIRM]`.
