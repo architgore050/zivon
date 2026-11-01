@@ -6,9 +6,10 @@ Failure semantics (no silent fallbacks, ever):
 - Any other HTTP error fails the stage immediately, with the server's body in
   the message (e.g. a 400 about response_format means: set ZIVON_JSON_MODE=false).
 - Output must be a single JSON object. In json_mode the server enforces it;
-  either way the text is parsed and validated against a JSON Schema. Validation
-  failures are retried with the validator's error report fed back to the model,
-  up to max_attempts, then the stage fails with SchemaError.
+  either way the text is parsed and validated against a JSON Schema (plus an
+  optional extra_validator, e.g. a stage's rule checks). Validation failures
+  are retried with the validator's error report fed back to the model, up to
+  max_attempts, then the stage fails with SchemaError.
 
 Server settings (base url, model, key, sampling) come from the environment -
 see factory/config.py. The API key value is never written to any artifact:
@@ -19,6 +20,7 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from typing import Any
 
 import jsonschema
@@ -75,8 +77,14 @@ class LLMClient:
         schema_name: str,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        extra_validator: Callable[[dict[str, Any]], list[str]] | None = None,
     ) -> dict[str, Any]:
-        """One logged, validated model call. Returns the parsed JSON object."""
+        """One logged, validated model call. Returns the parsed JSON object.
+
+        extra_validator: optional code-side check on the PARSED object (e.g.
+        the stage's rule checks). Returning a non-empty list of problem
+        strings is treated exactly like a schema failure: the problems are
+        fed back to the model and the attempt is retried, same budget."""
         override = self.cfg.stage_override(stage_id)
         temperature = override.get(
             "temperature",
@@ -139,6 +147,17 @@ class LLMClient:
                     transcript, raw_text, f"Schema validation failed: {last_error}"
                 )
                 continue
+
+            if extra_validator is not None:
+                problems = extra_validator(parsed)
+                if problems:
+                    last_error = "; ".join(problems[:12])
+                    self._feedback(
+                        transcript,
+                        raw_text,
+                        f"Rule checks failed: {last_error}",
+                    )
+                    continue
 
             return parsed
 

@@ -179,6 +179,65 @@ class TestLLMClient(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_extra_validator_retries_with_problems_fed_back(self):
+        # Schema-valid output that violates the code-side rules: the problems
+        # must enter the retry transcript like schema errors do.
+        server, url, _ = self._serve(GOOD, scripted_first={"topic": "bad-rule"})
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+
+            def validator(parsed):
+                if parsed["topic"] == "bad-rule":
+                    return ["[auto] block b-1: number 99 is an invented figure"]
+                return []
+
+            out = client.call(
+                "02-synth",
+                [
+                    {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
+                    {"role": "user", "content": "go"},
+                ],
+                SIMPLE_SCHEMA,
+                "test",
+                extra_validator=validator,
+            )
+            self.assertEqual(out["topic"], "x")
+            req2 = json.loads(
+                (
+                    run.stage_dir("02-synth")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )
+            self.assertIn("Rule checks failed", req2["messages"][-1]["content"])
+            self.assertIn("number 99", req2["messages"][-1]["content"])
+        finally:
+            server.shutdown()
+
+    def test_extra_validator_exhaustion_raises_schema_error(self):
+        server, url, _ = self._serve(GOOD)
+        try:
+            cfg = make_cfg(self.tmp, url, attempts=2)
+            client = LLMClient(cfg, self._run(cfg))
+            with self.assertRaises(SchemaError) as ctx:
+                client.call(
+                    "02-synth",
+                    [
+                        {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
+                        {"role": "user", "content": "go"},
+                    ],
+                    SIMPLE_SCHEMA,
+                    "test",
+                    extra_validator=lambda parsed: ["always wrong"],
+                )
+            self.assertIn("all 2 attempts", str(ctx.exception))
+            self.assertIn("always wrong", str(ctx.exception))
+        finally:
+            server.shutdown()
+
 
 if __name__ == "__main__":
     unittest.main()

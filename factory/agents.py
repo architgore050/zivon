@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import checks
 from .artifacts import RunContext
 from .config import Config
 from .llm import LLMClient
@@ -173,6 +174,7 @@ def run_draft(
     llm: LLMClient,
     lesson: dict[str, Any],
     ground_truth: dict[str, Any],
+    source_pack: dict[str, Any],
 ) -> dict[str, Any]:
     claim_ids = ", ".join(c["id"] for c in ground_truth["claims"])
     user = (
@@ -186,7 +188,8 @@ def run_draft(
         '- text: {"paragraphs": ["..."]} - carry the lesson prose in reading order\n'
         '- worked_example: {"problem": "...", "steps": [{"title", "detail"}], "answer": "..."} '
         "- only if the ground truth has equations or a numeric relation; every number in the "
-        "answer must be derivable from the ground truth\n"
+        "answer must appear VERBATIM in the ground truth or the source text - do not "
+        "compute new figures\n"
         '- check: {"question", "format": "mcq"|"numeric", "options": ["A","B","C","D"], '
         '"answer_index": 0-3 (mcq), "answer": "text" (numeric), "explanation", '
         '"expected_understanding"} - include at least 3 checks spread through the page; '
@@ -201,10 +204,25 @@ def run_draft(
         "an animation\n"
         "Order: text sections interleaved with checks and visuals the way a good teacher would "
         "pace the lesson. First block must be text; last block must be a check.\n"
-        "Cite claims in every text, worked_example, check and reveal block: "
+        "Cite claims in every text, worked_example, check and reveal block (a factual block "
+        "without citations is rejected): "
         '"citations": [{"claim_id": "claim-01"}].\n'
         'Return {"blocks": [...]}.'
     )
+
+    def rule_feedback(parsed: dict[str, Any]) -> list[str]:
+        """Code-side rule checks AT DRAFT TIME: the model sees its own fatal or
+        major rule violations in the retry transcript and fixes them, instead
+        of the run dying at 05-check."""
+        report = checks.run_all_rules(
+            parsed.get("blocks", []), lesson, ground_truth, source_pack
+        )
+        return [
+            f"[{i['rule']}] block {i['block_id']}: {i['message']}"
+            for i in report["rule_issues"]
+            if i["severity"] in ("fatal", "major")
+        ]
+
     return llm.call(
         "04-draft",
         [
@@ -218,6 +236,7 @@ def run_draft(
         ],
         BLOCKS,
         "blocks",
+        extra_validator=rule_feedback,
     )
 
 

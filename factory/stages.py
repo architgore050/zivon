@@ -121,12 +121,15 @@ def run_pipeline(
                 "03-explain", "ok", detail=f"sections={len(lesson['sections'])}"
             )
         if wanted("04-draft"):
+            assert source_pack is not None, "04-draft requires stage 01-locate output"
             if lesson is None:
                 lesson = run_ctx.load_stage_output("03-explain")
             if ground_truth is None:
                 ground_truth = run_ctx.load_stage_output("02-synth")
             run_ctx.mark_stage("04-draft", "running")
-            blocks = agents.run_draft(cfg, run_ctx, llm, lesson, ground_truth)
+            blocks = agents.run_draft(
+                cfg, run_ctx, llm, lesson, ground_truth, source_pack
+            )
             run_ctx.save_stage_output("04-draft", blocks)
             run_ctx.mark_stage(
                 "04-draft", "ok", detail=f"blocks={len(blocks['blocks'])}"
