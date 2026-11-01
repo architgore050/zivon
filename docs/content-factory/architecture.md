@@ -74,6 +74,24 @@ model.
   last good file, prints it, and records `truncated_at` in the output. This
   exists because NCERT books simply end; it is loud, never silent.
 
+## Source extraction (stage 00)
+
+Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
+
+- `use_text_flow=True` follows the content-stream order, which for
+  born-digital textbooks (every catalog entry) IS the reading order: raised
+  superscripts join their base line ("m s -2") instead of being smeared
+  mid-word, and column furniture stays put.
+- Ruled tables are detected (`find_tables`), cut out of the flow text
+  (`outside_bbox`), and re-appended as explicit `[table]` blocks with
+  `cell | cell` rows, so the Synthesizer sees cell structure instead of a
+  flattened jumble. Candidates with fewer than two non-empty rows are
+  rejected as false positives (figure rules are not tables).
+- Known boundary: extraction is text-layer only. Content that exists only
+  inside figures (what a graph actually shows) and borderless tables are out
+  of scope for v1; the mandatory `uncertain` field is the designated carrier
+  for facts the sources did not answer in text.
+
 ## Traceability and accuracy rules
 
 - The synthesizer only sees the source pack (stage 01 output). It cannot cite

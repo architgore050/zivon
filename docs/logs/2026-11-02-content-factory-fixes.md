@@ -3,7 +3,7 @@
 Workstream: full review of the `feature/content-factory-pipeline` branch
 (infra was reviewed separately by the founder), then fixing what the review
 found - config placement first, then the architectural gaps. Granular
-commits, CI-green at every step (unit suite 96 → 153 tests, ruff + mypy
+commits, CI-green at every step (unit suite 96 → 154 tests, ruff + mypy
 clean throughout).
 
 ## Done
@@ -51,6 +51,18 @@ clean throughout).
   original error. Verified fixed in node with a fake 2d context.
 - **render cleanup (c52d9fb)**: dropped the unused `ground_truth` parameter
   from `render.run`.
+- **PDF parser replaced (5026c62 + aab52c4)**: pypdf → pdfplumber (MIT;
+  PyMuPDF rejected as AGPL in an unlicensed repo). `use_text_flow=True`
+  follows content-stream order, which for born-digital textbooks IS reading
+  order - superscripts stay inline ("9.8 m s -2") instead of being smeared
+  mid-word. Ruled tables are detected, cut out of the flow text and
+  re-appended as explicit `[table]` rows, so the Synthesizer sees cell
+  structure instead of a flattened jumble; thin candidates (figure rules)
+  are rejected. The old failure mode was demonstrated on a synthetic
+  textbook page before the swap; the new behaviour is unit-tested (table +
+  graph + superscript on one page). Known boundary recorded in
+  architecture.md: text-layer extraction only - figure-borne content and
+  borderless tables are out of scope for v1; `uncertain` carries the gaps.
 - Docs updated in the same commits they describe: config-reference,
   runbook, architecture (stage table, failure semantics, artifact
   fallback), blocks-schema (citation + verbatim-number rules), deployment
