@@ -17,6 +17,8 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 - `docs/DECISIONS-and-RESEARCH/` — consult before making product, positioning, or Gnani-related decisions.
 - `docs/frontend/` — consult before any frontend or design work.
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
+- `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook).
+- `docs/logs/` — dated session logs (done / not done / next) for the build-in-public record.
 
 Rules:
 - **Check before working:** before working on anything, scan `docs/` for docs relevant to that area and read them. Do not re-decide or contradict what the docs already establish.
@@ -85,6 +87,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 
 ### Content factory (build-time)
 
+- **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/`.
 - Agents communicate via structured **JSON block specs**, not ad-hoc markup tags:
   `{ "type": "animation" | "simulation" | "diagram" | "text" | "check", "spec": {...} }`
 - Generated visuals are self-contained HTML/JS (canvas/SVG), no heavy frameworks, and must pass a performance budget for low-end Android (page load < 2s, ~60fps animations).

@@ -44,7 +44,18 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 ```
 
 - **Product runtime** runs on the Gnani stack (Prisma + Timbre; Evon as the intended reasoning brain).
-- **Content factory** is build-time tooling that generates the static interactive pages.
+- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model through `config.json` — build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
+
+## Run the content factory
+
+```bash
+pip install -r requirements.txt
+python -m playwright install chromium      # once, for the perf gate
+# set server.base_url + server.model in config.json, then:
+python pipeline.py "Motion" --class 9
+```
+
+Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`.
 
 ## Tech Stack
 
@@ -103,6 +114,10 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
 | [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status |
+| [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook |
+| [`docs/source-catalog.md`](docs/source-catalog.md) | Public PDF sources for classes 6-12 (research + licensing + verification status) |
+| [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
+| [`testing/`](testing/README.md) | Test sets: unit, end-to-end vs mock inference server, weak-hardware perf harness |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 
 ## Engineering Process
