@@ -244,8 +244,9 @@ replaces the post's ask.
   `I post the same build day by day on X too: @Archit0ji — shorter and faster.`
 
 - Published posts get the bridge retroactively: LinkedIn posts are edited to insert the bridge line (the
-  founder applies the edit in the LinkedIn UI); X posts get the bridge reply added. The exact text appended
-  is recorded in the day's post file.
+  founder applies the edit in the LinkedIn UI); X posts get the bridge reply added. The exact text lives
+  inside the day's canonical EXACT POST TEXT blocks — never in separate edit-note sections (founder rule,
+  1 Nov).
 
 ## 8. Cadence [CONFIRM]
 - Post time: `[CONFIRM: audience time zone and slot]`; keep it consistent.
