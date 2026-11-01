@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.10 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.11 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -19,7 +19,7 @@ else is a default. Change a value here and every skill that reads this file foll
 - Words the founder never uses: `[CONFIRM]`
 - Handles and links: founder X `@Archit0ji`, founder LinkedIn `https://www.linkedin.com/in/architgore/`,
   teammate LinkedIn `https://www.linkedin.com/in/tathagato-chatterjee/` (Tathagato Chatterjee), teammate X
-  `[CONFIRM]`, repo `https://github.com/architgore050/zivon` (public)
+  `@TathaCoder`, repo `https://github.com/architgore050/zivon` (public)
 - Every post carries the repo link. Placement follows section 7: X first reply, LinkedIn in the post body.
 - AI disclosure policy (posts or visuals made with AI help): `[CONFIRM: always say / say when asked / say on visuals only]`
 
@@ -211,7 +211,7 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
 - Teammate mention line (founder rule, 1 Nov): every LinkedIn EXACT POST TEXT block ends with a final line
   `My teammate:` after the hashtags; the founder completes the @mention in the composer from the dropdown (the
   colon line is the only permitted placeholder in a block). On X, the teammate mention goes in its own
-  standalone reply, never in the post body or the first reply.
+  standalone reply, never in the post body or the first reply; canonical text `My teammate: @TathaCoder`.
 - Cross-platform bridge line (founder rule, 1 Nov): every LinkedIn EXACT POST TEXT block carries the §7.2
   bridge line after the hashtags, before the `My teammate:` line; every X post gets its own §7.2 bridge reply
   block.
@@ -328,5 +328,7 @@ replaces the post's ask.
   pre-post checklist: every X post gets a dedicated follow-on-LinkedIn reply; every LinkedIn post carries a
   follow-on-X line after the hashtags, before the teammate line. Day 0 and Day 1 published posts retrofitted
   (exact text recorded in their post files; founder applies the LinkedIn edits). Founder handles recorded in
-  §1 (X `@Archit0ji`, LinkedIn `/in/architgore/`); teammate's LinkedIn recorded, teammate's X handle still
-  `[CONFIRM]`.
+  §1 (X `@Archit0ji`, LinkedIn `/in/architgore/`); teammate's LinkedIn recorded.
+- v0.11 (1 Nov): teammate's X handle recorded in §1 (`@TathaCoder`) and the canonical X teammate-mention reply
+  text set in §7.1 (`My teammate: @TathaCoder`); Day 1 and Day 2 X teammate replies finalized with it. Day 2
+  posts marked POSTED 1 Nov — all three days now live on both platforms.
