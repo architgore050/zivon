@@ -18,6 +18,7 @@ from factory.errors import SourceError
 from factory.ingest import run as ingest_run
 from factory.locate import run as locate_run
 from factory.retrieval import FixtureEmbedder
+from testing.unit._server_env import install_server_env, release_server_env
 
 PDFS = REPO_ROOT / "testing" / "mocks" / "fixtures" / "pdfs"
 
@@ -36,7 +37,6 @@ def stage_book_pdfs(tmp: Path, book_id: str, files: list[str]) -> dict[str, str]
 
 def make_cfg(tmp: Path, extra_books=None) -> object:
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
-    base["server"]["model"] = "test-model"
     base["paths"]["pdf_cache"] = str(tmp / "pdfs")
     base["paths"]["text_cache"] = str(tmp / "cache")
     base["paths"]["runs"] = str(tmp / "runs")
@@ -85,7 +85,11 @@ def make_cfg(tmp: Path, extra_books=None) -> object:
     (tmp / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
     base["paths"]["catalog"] = str(tmp / "catalog.json")
     (tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
-    return load_config(tmp / "config.json")
+    saved = install_server_env()  # server settings are env-only now
+    try:
+        return load_config(tmp / "config.json")
+    finally:
+        release_server_env(saved)
 
 
 def file_url(name: str) -> str:

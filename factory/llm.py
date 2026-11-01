@@ -1,18 +1,18 @@
 """OpenAI-format chat-completions client with full artifact logging.
 
 Failure semantics (no silent fallbacks, ever):
-- Network errors, timeouts, 429 and 5xx are retried up to server.max_attempts
+- Network errors, timeouts, 429 and 5xx are retried up to ZIVON_MAX_ATTEMPTS
   with exponential backoff; each attempt's raw request/response is on disk.
 - Any other HTTP error fails the stage immediately, with the server's body in
-  the message (e.g. a 400 about response_format means: set server.json_mode=false).
+  the message (e.g. a 400 about response_format means: set ZIVON_JSON_MODE=false).
 - Output must be a single JSON object. In json_mode the server enforces it;
   either way the text is parsed and validated against a JSON Schema. Validation
   failures are retried with the validator's error report fed back to the model,
   up to max_attempts, then the stage fails with SchemaError.
 
-The API key is read from the environment variable NAMED by
-server.api_key_env; the key value is never written to any artifact - the
-Authorization header is stripped before persisting requests.
+Server settings (base url, model, key, sampling) come from the environment -
+see factory/config.py. The API key value is never written to any artifact:
+the Authorization header is a header, and only the request body is persisted.
 """
 
 from __future__ import annotations
@@ -172,7 +172,7 @@ class LLMClient:
                         stage_id,
                         f"could not reach inference server at {self.url} after "
                         f"{try_no} tries: {exc}. Is the server running and is "
-                        "server.base_url correct in config.json?",
+                        "ZIVON_BASE_URL set correctly?",
                     ) from exc
                 time.sleep(backoff)
                 backoff *= 2
@@ -195,7 +195,7 @@ class LLMClient:
                 if resp.status_code == 400 and "response_format" in resp.text.lower():
                     hint = (
                         " Your server appears not to support response_format json_object;"
-                        " set server.json_mode=false in config.json and re-run."
+                        " set ZIVON_JSON_MODE=false in the environment and re-run."
                     )
                 raise ModelCallError(
                     stage_id,

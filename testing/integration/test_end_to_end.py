@@ -112,8 +112,6 @@ class TestEndToEnd(unittest.TestCase):
         (cls.tmp / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
 
         base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
-        base["server"]["model"] = "mock-model"
-        base["server"]["base_url"] = cls.base_url
         base["paths"].update(
             {
                 "catalog": str(cls.tmp / "catalog.json"),
@@ -139,6 +137,9 @@ class TestEndToEnd(unittest.TestCase):
     def _pipeline_env(self):
         env = dict(os.environ)
         env["ZIVON_CONFIG"] = str(self.config_path)
+        # server settings are env-only now
+        env["ZIVON_BASE_URL"] = self.base_url
+        env["ZIVON_MODEL"] = "mock-model"
         env["ZIVON_API_KEY"] = "test-key"
         return env
 
@@ -220,12 +221,8 @@ class TestEndToEnd(unittest.TestCase):
 
     def test_pipeline_fails_loudly_without_server(self):
         env = self._pipeline_env()
-        # break ONLY the server url in a copy of the config
-        broken = json.loads(self.config_path.read_text(encoding="utf-8"))
-        broken["server"]["base_url"] = "http://127.0.0.1:9/v1"
-        broken_cfg = self.tmp / "config-broken.json"
-        broken_cfg.write_text(json.dumps(broken), encoding="utf-8")
-        env["ZIVON_CONFIG"] = str(broken_cfg)
+        # break ONLY the server url (env is the single source for server settings)
+        env["ZIVON_BASE_URL"] = "http://127.0.0.1:9/v1"
         result = subprocess.run(
             [
                 sys.executable,

@@ -11,15 +11,19 @@ first use of stage 08 launches Chromium. Everything after that is local.
 
 ## Configure
 
-1. Edit `config.json`: set `server.base_url` and `server.model` to your
-   OpenAI-format inference server (the `CHANGE-ME` tripwire blocks startup
-   otherwise). If your server needs a key: `server.api_key_env` names the env
-   variable, then `export ZIVON_API_KEY=<key>` - the key value never goes into
-   any file.
+Server settings live in the **environment**, never in files (AGENTS.md rule;
+see `docs/content-factory/config-reference.md` and `.env.example`):
+
+1. `export ZIVON_BASE_URL=http://127.0.0.1:8000/v1` and
+   `export ZIVON_MODEL=<name as GET /v1/models reports it>` - missing either
+   one is the tripwire that blocks startup. If your server needs a key:
+   `export ZIVON_API_KEY=<key>` - the key value never goes into any file.
 2. If the server rejects `response_format` with a 400, set
-   `server.json_mode = false` (the pipeline tells you exactly this; it never
+   `ZIVON_JSON_MODE=false` (the pipeline tells you exactly this; it never
    downgrades on its own).
-3. Optional: per-stage `temperature` / `max_tokens` under `stage_overrides`.
+3. Optional: per-stage `temperature` / `max_tokens` under `stage_overrides`
+   in `config.json` (the behaviour file: learner, retrieval, limits, paths,
+   perf live there).
 
 ## Verify the wiring before burning model time
 

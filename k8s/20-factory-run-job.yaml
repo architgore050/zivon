@@ -1,8 +1,8 @@
 # A REAL pipeline run as a K8s Job — the pattern every future topic run follows.
 #
 # Prerequisites (this Job will fail without them):
-#   1. config.json server.model set to a reachable OpenAI-format server
-#      (the CHANGE-ME sentinel is a hard config error by design).
+#   1. ZIVON_BASE_URL + ZIVON_MODEL env below set to a reachable OpenAI-format
+#      server (missing server env is a hard config error by design).
 #   2. The API key as a Secret, created imperatively — never in a manifest:
 #        kubectl create secret generic zivon-factory-env -n zivon \
 #          --from-literal=ZIVON_API_KEY=<key>
@@ -39,6 +39,10 @@ spec:
           # real entry point. This is the Job-vs-smoke difference.
           command: ["python", "pipeline.py", "Motion", "--class", "9"]
           env:
+            - name: ZIVON_BASE_URL
+              value: "http://127.0.0.1:8000/v1"   # EDIT ME: your inference server (in-cluster: the service DNS)
+            - name: ZIVON_MODEL
+              value: "CHANGE-ME"                  # EDIT ME: exactly as GET /v1/models reports it; the placeholder is a hard config error by design
             - name: ZIVON_API_KEY
               valueFrom:
                 secretKeyRef:

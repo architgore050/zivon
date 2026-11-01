@@ -44,14 +44,16 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 ```
 
 - **Product runtime** runs on the Gnani stack (Prisma + Timbre; Evon as the intended reasoning brain).
-- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model through `config.json` — build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
+- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model — server wiring via environment variables, pipeline behaviour via `config.json` (see `.env.example`). Build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
 
 ## Run the content factory
 
 ```bash
 pip install -r requirements.txt
 python -m playwright install chromium      # once, for the perf gate
-# set server.base_url + server.model in config.json, then:
+# server settings come from the environment (never from files):
+export ZIVON_BASE_URL=http://127.0.0.1:8000/v1
+export ZIVON_MODEL=<your-model>
 python pipeline.py "Motion" --class 9
 ```
 

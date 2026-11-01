@@ -24,15 +24,19 @@ from factory.retrieval import (
     embed_chunks_cached,
     top_k_chunks,
 )
+from testing.unit._server_env import install_server_env, release_server_env
 
 
 def make_cfg(tmp: Path):
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
-    base["server"]["model"] = "test-model"
     base["paths"]["text_cache"] = str(tmp / "cache")
     path = tmp / "config.json"
     path.write_text(json.dumps(base), encoding="utf-8")
-    return load_config(path)
+    saved = install_server_env()  # server settings are env-only now
+    try:
+        return load_config(path)
+    finally:
+        release_server_env(saved)
 
 
 PAGES = [

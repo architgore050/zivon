@@ -28,12 +28,13 @@ SIMPLE_SCHEMA = {
 
 def make_cfg(tmp: Path, base_url: str, attempts: int = 3):
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
-    base["server"]["model"] = "mock-model"
-    base["server"]["base_url"] = base_url
-    base["server"]["max_attempts"] = attempts
     base["paths"]["runs"] = str(tmp / "runs")
     path = tmp / "config.json"
     path.write_text(json.dumps(base), encoding="utf-8")
+    # server settings are env-only now
+    os.environ["ZIVON_BASE_URL"] = base_url
+    os.environ["ZIVON_MODEL"] = "mock-model"
+    os.environ["ZIVON_MAX_ATTEMPTS"] = str(attempts)
     return load_config(path)
 
 
@@ -61,7 +62,13 @@ class TestLLMClient(unittest.TestCase):
         os.environ["ZIVON_API_KEY"] = "test-key"
 
     def tearDown(self):
-        os.environ.pop("ZIVON_API_KEY", None)
+        for key in (
+            "ZIVON_API_KEY",
+            "ZIVON_BASE_URL",
+            "ZIVON_MODEL",
+            "ZIVON_MAX_ATTEMPTS",
+        ):
+            os.environ.pop(key, None)
 
     def _serve(self, canonical: dict, scripted_first=None):
         (self.fixtures / "02-synth.json").write_text(json.dumps(canonical))

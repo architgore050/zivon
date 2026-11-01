@@ -11,6 +11,10 @@ services:
     build: .
     image: zivon-factory:0.2.0
     environment:
+      # Server settings are env-only (docs/content-factory/config-reference.md).
+      # Export them in your shell (see .env.example) before `compose run`.
+      - ZIVON_BASE_URL=${ZIVON_BASE_URL:-}
+      - ZIVON_MODEL=${ZIVON_MODEL:-}
       - ZIVON_API_KEY=${ZIVON_API_KEY:-}
     volumes:
       - ./runs:/app/runs

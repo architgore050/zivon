@@ -15,13 +15,13 @@ from factory.config import load_config
 from factory.errors import LintError
 from factory.render import run as render_run
 from factory.render import write_courses_js
+from testing.unit._server_env import install_server_env, release_server_env
 
 FIXTURES = REPO_ROOT / "testing" / "mocks" / "fixtures"
 
 
 def make_cfg(tmp: Path):
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
-    base["server"]["model"] = "test-model"
     base["paths"]["runs"] = str(tmp / "runs")
     frontend = tmp / "frontend"
     frontend.mkdir()
@@ -30,7 +30,12 @@ def make_cfg(tmp: Path):
     base["paths"]["frontend"] = str(frontend)
     path = tmp / "config.json"
     path.write_text(json.dumps(base), encoding="utf-8")
-    return load_config(path), frontend
+    saved = install_server_env()  # server settings are env-only now
+    try:
+        cfg = load_config(path)
+    finally:
+        release_server_env(saved)
+    return cfg, frontend
 
 
 def minimal_inputs():

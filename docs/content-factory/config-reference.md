@@ -1,23 +1,35 @@
-# config.json reference
+# Configuration reference
 
-`config.json` at the repo root is the single source of truth. Validation is
-strict: unknown keys are errors. The committed file ships with
-`server.model = "CHANGE-ME"` as a deliberate tripwire - the pipeline refuses to
-start until you set it. Tests can point at another file with the `ZIVON_CONFIG`
-environment variable; production always uses the repo root file.
+Configuration has two layers, deliberately separate:
 
-## server
+1. **`config.json` at the repo root** — the pipeline's *behaviour*: learner,
+   retrieval, limits, paths, perf, stage_overrides. Committed, reviewable,
+   identical on every machine. Validation is strict: unknown keys and wrong
+   types are hard errors.
+2. **Environment variables** — everything about *which inference server to
+   talk to*. Per AGENTS.md ("configuration lives in environment variables")
+   and the deployment rule (secrets enter runtime only), these never appear
+   in any file, image, manifest, or run artifact. Missing required variables
+   is the tripwire: the pipeline refuses to start without them.
 
-| Key | Type | Meaning |
-|---|---|---|
-| `base_url` | str | OpenAI-format base, e.g. `http://127.0.0.1:8000/v1`. `/chat/completions` is appended. |
-| `api_key_env` | str \| null | NAME of the environment variable holding the key. The key value never enters any file or artifact. `null` = no Authorization header. |
-| `model` | str | Model name exactly as your server reports it. `"CHANGE-ME"` blocks startup. |
-| `json_mode` | bool | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false - the pipeline never downgrades silently. |
-| `temperature` | float | Default sampling temperature (per-stage override below). |
-| `max_tokens` | int | Default completion cap (per-stage override below). |
-| `timeout_s` | number | Per-request timeout. Local models can be slow; 600 s default. |
-| `max_attempts` | int | Retries for network/429/5xx AND for schema-validation feedback loops. |
+Tests can point at another behaviour file with the `ZIVON_CONFIG` environment
+variable; production always uses the repo root `config.json`.
+
+## Server (environment variables)
+
+| Variable | Required | Default | Meaning |
+|---|---|---|---|
+| `ZIVON_BASE_URL` | yes | — | OpenAI-format base, e.g. `http://127.0.0.1:8000/v1`. `/chat/completions` is appended. |
+| `ZIVON_MODEL` | yes | — | Model name exactly as your server reports it (e.g. via `GET /v1/models`). |
+| `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. |
+| `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. |
+| `ZIVON_TEMPERATURE` | no | `0.2` | Default sampling temperature (per-stage override below). |
+| `ZIVON_MAX_TOKENS` | no | `4096` | Default completion cap (per-stage override below). |
+| `ZIVON_TIMEOUT_S` | no | `600` | Per-request timeout. Local models can be slow. |
+| `ZIVON_MAX_ATTEMPTS` | no | `3` | Retries for network/429/5xx AND for schema-validation feedback loops. |
+
+`.env.example` at the repo root documents the full set. A `server` section in
+`config.json` is now a hard error with a migration hint — delete it.
 
 ## learner
 
