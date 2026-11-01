@@ -23,7 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 def _harness():
     sys.path.insert(0, str(REPO_ROOT))
     try:
-        from testing.perf.harness import run_profile  # noqa: PLC0415
+        from testing.perf.harness import run_profile
     except ImportError as exc:
         raise FactoryError(
             STAGE_ID,
@@ -41,7 +41,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     topic_url = (Path(render_out["topic_dir"]) / "index.html").as_uri()
     landing_url = (site / "index.html").as_uri()
 
-    results = {
+    results: dict[str, Any] = {
         "profile": str(profile_path),
         "pages": {},
     }
@@ -58,7 +58,8 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     if failures:
         raise BudgetError(
             STAGE_ID,
-            "performance budgets missed: " + " | ".join(failures) +
-            " - stage 09-fixloop will attempt repairs (see its artifacts).",
+            "performance budgets missed: "
+            + " | ".join(failures)
+            + " - stage 09-fixloop will attempt repairs (see its artifacts).",
         )
     return results

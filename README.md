@@ -75,7 +75,7 @@ The content factory ships as a container image (`Dockerfile` at the repo root):
 ```bash
 docker build -t zivon-factory:0.1.0 .
 docker run --rm zivon-factory:0.1.0                          # environment smoke test
-docker compose run --rm factory python pipeline.py "Motion" --class 9   # once pipeline.py exists
+docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
 - API keys are passed via environment variables (`ZIVON_API_KEY`) — never baked into the image.

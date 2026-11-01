@@ -23,7 +23,10 @@ class StageError(FactoryError):
     def __init__(self, stage_id: str, message: str, artifacts_dir: str | None = None):
         self.stage_id = stage_id
         self.artifacts_dir = artifacts_dir
-        super().__init__(f"[stage {stage_id}] {message}" + (f" (evidence: {artifacts_dir})" if artifacts_dir else ""))
+        super().__init__(
+            f"[stage {stage_id}] {message}"
+            + (f" (evidence: {artifacts_dir})" if artifacts_dir else "")
+        )
 
 
 class ModelCallError(StageError):

@@ -122,3 +122,26 @@ jobs:
         run: |
           curl -sL https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz | tar xz
           ./kube-linter lint k8s/
+
+  # ---- 6. the actual test suite (unit + end-to-end) -------------------------
+  tests:
+    name: Unit + integration tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies (torch CPU-only first, then the rest)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Unit tests (fast, no network, no browser; embedder is a fixture)
+        run: python -m unittest discover -s testing/unit -t . -v
+      - name: Integration test (real orchestrator vs mock inference server + real headless Chromium)
+        # first run downloads the all-MiniLM-L6-v2 embedder (~90 MB) from HuggingFace
+        run: python -m unittest testing.integration.test_end_to_end -v

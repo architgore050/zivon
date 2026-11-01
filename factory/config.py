@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -18,16 +18,30 @@ from .errors import ConfigError
 REPO_ROOT = Path(__file__).resolve().parent.parent
 # ZIVON_CONFIG lets tests and multi-repo setups point at another config file;
 # production always uses config.json at the repo root.
-CONFIG_PATH = Path(os.environ["ZIVON_CONFIG"]) if os.environ.get("ZIVON_CONFIG") else REPO_ROOT / "config.json"
+CONFIG_PATH = (
+    Path(os.environ["ZIVON_CONFIG"])
+    if os.environ.get("ZIVON_CONFIG")
+    else REPO_ROOT / "config.json"
+)
 
 _SENTINEL_MODEL = "CHANGE-ME"
 
 _STAGE_IDS = [
-    "00-ingest", "01-locate", "02-synth", "03-explain", "04-draft", "05-check",
-    "06-interactive", "07-render", "08-perf", "09-fixloop", "10-review", "11-link",
+    "00-ingest",
+    "01-locate",
+    "02-synth",
+    "03-explain",
+    "04-draft",
+    "05-check",
+    "06-interactive",
+    "07-render",
+    "08-perf",
+    "09-fixloop",
+    "10-review",
+    "11-link",
 ]
 
-_SPEC: dict[str, dict[str, Any]] = {
+_SPEC: dict[str, Any] = {
     "server": {
         "base_url": str,
         "api_key_env": (str, type(None)),
@@ -157,14 +171,18 @@ def load_config(path: Path | None = None) -> Config:
     if data["server"]["max_attempts"] < 1:
         raise ConfigError("server.max_attempts must be >= 1")
     if data["learner"]["class_level"] not in range(6, 13):
-        raise ConfigError("learner.class_level must be 6..12 (the catalog covers classes 6-12)")
+        raise ConfigError(
+            "learner.class_level must be 6..12 (the catalog covers classes 6-12)"
+        )
     if data["learner"]["language"] != "en":
         raise ConfigError(
             "learner.language: only 'en' is supported in v1 (English-only material, "
             "founder decision 2026-11-01). Extend factory/agents.py deliberately to add more."
         )
     if data["retrieval"]["chunk_overlap"] >= data["retrieval"]["chunk_chars"]:
-        raise ConfigError("retrieval.chunk_overlap must be smaller than retrieval.chunk_chars")
+        raise ConfigError(
+            "retrieval.chunk_overlap must be smaller than retrieval.chunk_chars"
+        )
     if data["perf"]["fix_rounds"] < 1:
         raise ConfigError("perf.fix_rounds must be >= 1")
     for stage_id in data["stage_overrides"]:
@@ -172,7 +190,10 @@ def load_config(path: Path | None = None) -> Config:
             raise ConfigError(
                 f"stage_overrides has unknown stage id '{stage_id}'. Valid ids: {_STAGE_IDS}"
             )
-    return Config(data=data, root=cfg_path.parent.resolve() if cfg_path != CONFIG_PATH else REPO_ROOT)
+    return Config(
+        data=data,
+        root=cfg_path.parent.resolve() if cfg_path != CONFIG_PATH else REPO_ROOT,
+    )
 
 
 def _validate(data: dict, spec: dict, cfg_path: Path) -> None:

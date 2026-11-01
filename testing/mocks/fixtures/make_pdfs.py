@@ -66,29 +66,52 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
 
     # NCERT-fixture book: prelims carries the class evidence; two chapters.
-    make_pdf(OUT / "prelims.pdf", [
-        ["Textbook of Science for Class 9", "Fixture Edition", "FOREWORD", "This is a tiny fixture book."],
-        ["CONTENTS", "Chapter 7 Motion", "Chapter 11 Sound"],
-    ])
-    make_pdf(OUT / "ch01.pdf", [
-        ["CHAPTER 7", "Motion", "We describe motion by distance and displacement."],
-        ["Speed is distance divided by time. Velocity is speed with direction."],
-        ["Acceleration is the rate of change of velocity. Its SI unit is m/s2."],
-        ["If a body starts from rest and gains a speed of 10 m/s in 5 s, its acceleration is 2 m/s2."],
-        ["Average speed is total distance divided by total time."],
-    ])
-    make_pdf(OUT / "ch02.pdf", [
-        ["CHAPTER 11", "Sound", "Sound is produced by vibrations and needs a medium."],
-    ])
+    make_pdf(
+        OUT / "prelims.pdf",
+        [
+            [
+                "Textbook of Science for Class 9",
+                "Fixture Edition",
+                "FOREWORD",
+                "This is a tiny fixture book.",
+            ],
+            ["CONTENTS", "Chapter 7 Motion", "Chapter 11 Sound"],
+        ],
+    )
+    make_pdf(
+        OUT / "ch01.pdf",
+        [
+            ["CHAPTER 7", "Motion", "We describe motion by distance and displacement."],
+            ["Speed is distance divided by time. Velocity is speed with direction."],
+            ["Acceleration is the rate of change of velocity. Its SI unit is m/s2."],
+            [
+                "If a body starts from rest and gains a speed of 10 m/s in 5 s, its acceleration is 2 m/s2."
+            ],
+            ["Average speed is total distance divided by total time."],
+        ],
+    )
+    make_pdf(
+        OUT / "ch02.pdf",
+        [
+            [
+                "CHAPTER 11",
+                "Sound",
+                "Sound is produced by vibrations and needs a medium.",
+            ],
+        ],
+    )
 
     # Alternate open book (vector-search supplement): its own motion chapter.
-    make_pdf(OUT / "alt-open-physics.pdf", [
-        ["Open Physics Notes (fixture)", "Licensed CC-BY for testing only.", ""],
-        ["Chapter on Motion", "Motion can be uniform or accelerated."],
-        ["A distance-time graph for uniform motion is a straight line."],
-        ["The slope of a distance-time graph gives the speed."],
-        ["Velocity-time graphs show acceleration as the slope."],
-    ])
+    make_pdf(
+        OUT / "alt-open-physics.pdf",
+        [
+            ["Open Physics Notes (fixture)", "Licensed CC-BY for testing only.", ""],
+            ["Chapter on Motion", "Motion can be uniform or accelerated."],
+            ["A distance-time graph for uniform motion is a straight line."],
+            ["The slope of a distance-time graph gives the speed."],
+            ["Velocity-time graphs show acceleration as the slope."],
+        ],
+    )
 
     print(f"fixture PDFs written to {OUT}")
 

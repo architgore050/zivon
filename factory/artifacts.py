@@ -52,7 +52,9 @@ class RunContext:
     # -- writers -------------------------------------------------------------
     def write_json(self, path: Path, payload: Any) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
     def write_text(self, path: Path, text: str) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -69,7 +71,11 @@ class RunContext:
 
     # -- status ---------------------------------------------------------------
     def mark_stage(self, stage_id: str, state: str, detail: str = "") -> None:
-        status: dict[str, Any] = {"run_id": self.run_id, "started_at": self._t0, "stages": {}}
+        status: dict[str, Any] = {
+            "run_id": self.run_id,
+            "started_at": self._t0,
+            "stages": {},
+        }
         if self._status_path.exists():
             status = json.loads(self._status_path.read_text(encoding="utf-8"))
         status.setdefault("stages", {})[stage_id] = {

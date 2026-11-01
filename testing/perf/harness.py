@@ -31,12 +31,19 @@ import time
 from pathlib import Path
 from typing import Any
 
-REQUIRED_PROFILE_KEYS = {
-    "viewport_width": int, "viewport_height": int, "device_scale_factor": (int, float),
-    "cpu_throttle_rate": (int, float), "ram_budget_mb": (int, float),
-    "load_budget_s": (int, float), "fcp_budget_s": (int, float),
-    "fps_min": (int, float), "sim_seconds": (int, float),
-    "pin_cores": (int, type(None)), "scroll": bool, "click_checks": bool,
+REQUIRED_PROFILE_KEYS: dict[str, Any] = {
+    "viewport_width": int,
+    "viewport_height": int,
+    "device_scale_factor": (int, float),
+    "cpu_throttle_rate": (int, float),
+    "ram_budget_mb": (int, float),
+    "load_budget_s": (int, float),
+    "fcp_budget_s": (int, float),
+    "fps_min": (int, float),
+    "sim_seconds": (int, float),
+    "pin_cores": (int, type(None)),
+    "scroll": bool,
+    "click_checks": bool,
 }
 
 
@@ -45,9 +52,12 @@ def load_profile(path: str | Path) -> dict[str, Any]:
     for key, types in REQUIRED_PROFILE_KEYS.items():
         if key not in profile:
             raise ValueError(f"profile {path}: missing key '{key}'")
-        if not isinstance(profile[key], types) or isinstance(profile[key], bool) and types is not bool:
-            if not isinstance(profile[key], types):
-                raise ValueError(f"profile {path}: '{key}' has wrong type, expected {types}")
+        if not isinstance(profile[key], types) or (
+            isinstance(profile[key], bool) and types is not bool
+        ):
+            raise ValueError(
+                f"profile {path}: '{key}' has wrong type, expected {types}"
+            )
     return profile
 
 
@@ -132,18 +142,28 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 rss.start()
 
             context = browser.new_context(
-                viewport={"width": profile["viewport_width"], "height": profile["viewport_height"]},
+                viewport={
+                    "width": profile["viewport_width"],
+                    "height": profile["viewport_height"],
+                },
                 device_scale_factor=profile["device_scale_factor"],
                 is_mobile=True,
             )
             page = context.new_page()
-            page.on("console", lambda msg: report["console_errors"].append(msg.text)
-                    if msg.type == "error" else None)
+            page.on(
+                "console",
+                lambda msg: (
+                    report["console_errors"].append(msg.text)
+                    if msg.type == "error"
+                    else None
+                ),
+            )
             page.on("pageerror", lambda err: report["page_errors"].append(str(err)))
 
             cdp = context.new_cdp_session(page)
-            cdp.send("Emulation.setCPUThrottlingRate",
-                     {"rate": profile["cpu_throttle_rate"]})
+            cdp.send(
+                "Emulation.setCPUThrottlingRate", {"rate": profile["cpu_throttle_rate"]}
+            )
 
             if profile["pin_cores"]:
                 import psutil
@@ -209,7 +229,7 @@ def _browser_pid(browser: Any) -> int | None:
         for proc in psutil.process_iter(["name", "cmdline"]):
             try:
                 name = (proc.info["name"] or "").lower()
-                if name.startswith("chrome") or name.startswith("chromium"):
+                if name.startswith(("chrome", "chromium")):
                     return proc.pid
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
@@ -263,7 +283,9 @@ def _judge(report: dict[str, Any]) -> None:
     if m["fcp_s"] and m["fcp_s"] > budgets["fcp_s"]:
         failures.append(f"FCP {m['fcp_s']}s > budget {budgets['fcp_s']}s")
     if m["peak_browser_rss_mb"] > budgets["ram_mb"]:
-        failures.append(f"browser RSS {m['peak_browser_rss_mb']}MB > budget {budgets['ram_mb']}MB")
+        failures.append(
+            f"browser RSS {m['peak_browser_rss_mb']}MB > budget {budgets['ram_mb']}MB"
+        )
     if m["fps_median"] is not None and m["fps_median"] < budgets["fps_min"]:
         failures.append(f"FPS {m['fps_median']} < minimum {budgets['fps_min']}")
     if report["page_errors"]:

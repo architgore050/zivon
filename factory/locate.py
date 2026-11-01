@@ -20,16 +20,18 @@ import re
 from pathlib import Path
 from typing import Any
 
+from . import retrieval as _retrieval  # module access so tests can swap the embedder
 from .artifacts import RunContext
 from .config import Config
 from .errors import SourceError
-from . import retrieval as _retrieval  # module access so tests can swap the embedder
 from .textops import normalize_title, titles_equivalent
 
 STAGE_ID = "01-locate"
 
 
-def run(cfg: Config, run_ctx: RunContext, chapter: str, class_filter: int | None) -> dict[str, Any]:
+def run(
+    cfg: Config, run_ctx: RunContext, chapter: str, class_filter: int | None
+) -> dict[str, Any]:
     books: list[dict[str, Any]] = run_ctx.load_stage_output("00-ingest")["books"]
     if class_filter is not None:
         books = [b for b in books if b["class"] == class_filter]
@@ -46,7 +48,9 @@ def run(cfg: Config, run_ctx: RunContext, chapter: str, class_filter: int | None
 
     pages = _load_pages(cfg, match)
     if not pages:
-        raise SourceError(STAGE_ID, f"page cache missing for {match['file']}; re-run stage 00")
+        raise SourceError(
+            STAGE_ID, f"page cache missing for {match['file']}; re-run stage 00"
+        )
     ncert_text = "\n\n".join(f"[page {p['page']}]\n{p['text']}" for p in pages)
     cap = cfg.limits["max_chars_ncert_to_model"]
     truncated = False
@@ -68,11 +72,15 @@ def run(cfg: Config, run_ctx: RunContext, chapter: str, class_filter: int | None
             matrix = _retrieval.embed_chunks_cached(cfg, book["id"], chunks)
             query = f"{match['title']}\n{ncert_text[:800]}"
             supplements.extend(
-                _retrieval.top_k_chunks(embedder, query, chunks, matrix, cfg.retrieval["top_k"])
+                _retrieval.top_k_chunks(
+                    embedder, query, chunks, matrix, cfg.retrieval["top_k"]
+                )
             )
 
     # Rank across books; alternates win near-ties; cap per book and total.
-    supplements.sort(key=lambda h: (h["score"], not h["book_id"].startswith("ncert")), reverse=True)
+    supplements.sort(
+        key=lambda h: (h["score"], not h["book_id"].startswith("ncert")), reverse=True
+    )
     per_book_cap = max(2, cfg.retrieval["top_k"] // 2)
     capped: list[dict[str, Any]] = []
     per_book: dict[str, int] = {}
@@ -85,15 +93,17 @@ def run(cfg: Config, run_ctx: RunContext, chapter: str, class_filter: int | None
             break
         per_book[hit["book_id"]] = per_book.get(hit["book_id"], 0) + 1
         total += len(text)
-        capped.append({
-            "source_id": hit["chunk_id"],
-            "book_id": hit["book_id"],
-            "book_title": _title_of(hit["book_id"], books),
-            "page_from": hit.get("page_from"),
-            "page_to": hit.get("page_to"),
-            "score": hit["score"],
-            "text": text,
-        })
+        capped.append(
+            {
+                "source_id": hit["chunk_id"],
+                "book_id": hit["book_id"],
+                "book_title": _title_of(hit["book_id"], books),
+                "page_from": hit.get("page_from"),
+                "page_to": hit.get("page_to"),
+                "score": hit["score"],
+                "text": text,
+            }
+        )
 
     return {
         "query": chapter,
@@ -116,7 +126,11 @@ def run(cfg: Config, run_ctx: RunContext, chapter: str, class_filter: int | None
 # ------------------------------------------------------------------ matching
 def _pages_cache_path(cfg: Config, ch: dict[str, Any]) -> Path:
     pdf = Path(ch.get("pdf") or ch["file"])
-    return cfg.repo_path(cfg.paths["text_cache"]) / pdf.parent.name / f"{pdf.stem}.pages.json"
+    return (
+        cfg.repo_path(cfg.paths["text_cache"])
+        / pdf.parent.name
+        / f"{pdf.stem}.pages.json"
+    )
 
 
 def _load_pages(cfg: Config, ch: dict[str, Any]) -> list[dict[str, Any]]:
@@ -138,7 +152,9 @@ def _opening_lines(pages: list[dict[str, Any]]) -> list[str]:
     return joined
 
 
-def _match_ncert_chapter(cfg: Config, query: str, ncert_books: list[dict[str, Any]]) -> dict[str, Any]:
+def _match_ncert_chapter(
+    cfg: Config, query: str, ncert_books: list[dict[str, Any]]
+) -> dict[str, Any]:
     exact: list[dict[str, Any]] = []
     partial: list[dict[str, Any]] = []
     for book in ncert_books:
@@ -175,7 +191,9 @@ def _match_ncert_chapter(cfg: Config, query: str, ncert_books: list[dict[str, An
         raise SourceError(
             STAGE_ID,
             f"'{query}' exactly matches several NCERT chapters: "
-            + ", ".join(f"{h['title']} ({h['book_title']}, class {h['class']})" for h in exact)
+            + ", ".join(
+                f"{h['title']} ({h['book_title']}, class {h['class']})" for h in exact
+            )
             + ". Re-run with --class <n> to disambiguate.",
         )
     if len(partial) == 1:
@@ -184,7 +202,9 @@ def _match_ncert_chapter(cfg: Config, query: str, ncert_books: list[dict[str, An
         raise SourceError(
             STAGE_ID,
             f"'{query}' matches several chapters: "
-            + "; ".join(f"{h['title']} ({h['book_title']}, class {h['class']})" for h in partial)
+            + "; ".join(
+                f"{h['title']} ({h['book_title']}, class {h['class']})" for h in partial
+            )
             + ". Use a more exact chapter name or re-run with --class <n>.",
         )
     raise SourceError(
@@ -193,7 +213,8 @@ def _match_ncert_chapter(cfg: Config, query: str, ncert_books: list[dict[str, An
         "or extend sources/catalog.json. Cached chapter titles: "
         + ", ".join(
             ch.get("title_detected") or f"ch{ch['n']:02d}"
-            for b in ncert_books for ch in b["chapters"]
+            for b in ncert_books
+            for ch in b["chapters"]
         ),
     )
 

@@ -16,9 +16,14 @@ import numpy as np
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.config import load_config  # noqa: E402
-from factory.retrieval import FixtureEmbedder, chunks_for_book, embed_chunks_cached, top_k_chunks  # noqa: E402
-import factory.retrieval as retrieval  # noqa: E402
+from factory import retrieval
+from factory.config import load_config
+from factory.retrieval import (
+    FixtureEmbedder,
+    chunks_for_book,
+    embed_chunks_cached,
+    top_k_chunks,
+)
 
 
 def make_cfg(tmp: Path):
@@ -51,7 +56,9 @@ class TestChunks(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         cfg = make_cfg(tmp)
         chunks = chunks_for_book(cfg, "b1", PAGES)
-        with mock.patch.object(retrieval, "get_embedder", lambda cfg: FixtureEmbedder()):
+        with mock.patch.object(
+            retrieval, "get_embedder", lambda cfg: FixtureEmbedder()
+        ):
             matrix = embed_chunks_cached(cfg, "b1", chunks)
             again = embed_chunks_cached(cfg, "b1", chunks)
         np.testing.assert_array_equal(matrix, again)
@@ -61,7 +68,9 @@ class TestChunks(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         cfg = make_cfg(tmp)
         chunks = chunks_for_book(cfg, "b1", PAGES)
-        with mock.patch.object(retrieval, "get_embedder", lambda cfg: FixtureEmbedder()):
+        with mock.patch.object(
+            retrieval, "get_embedder", lambda cfg: FixtureEmbedder()
+        ):
             m1 = embed_chunks_cached(cfg, "b1", chunks)
             chunks[0]["text"] += " changed"
             m2 = embed_chunks_cached(cfg, "b1", chunks)
@@ -72,7 +81,10 @@ class TestTopK(unittest.TestCase):
     def test_relevant_chunk_ranks_first(self):
         emb = FixtureEmbedder(dim=64)
         docs = [
-            {"chunk_id": "d1", "text": "the slope of a distance-time graph gives the speed"},
+            {
+                "chunk_id": "d1",
+                "text": "the slope of a distance-time graph gives the speed",
+            },
             {"chunk_id": "d2", "text": "sound needs a medium to travel"},
             {"chunk_id": "d3", "text": "distance time graph slope speed of the object"},
         ]
@@ -84,7 +96,9 @@ class TestTopK(unittest.TestCase):
 
     def test_empty_chunks(self):
         emb = FixtureEmbedder(dim=8)
-        self.assertEqual(top_k_chunks(emb, "q", [], np.zeros((0, 8), dtype=np.float32), 3), [])
+        self.assertEqual(
+            top_k_chunks(emb, "q", [], np.zeros((0, 8), dtype=np.float32), 3), []
+        )
 
 
 if __name__ == "__main__":

@@ -34,8 +34,12 @@ _HTML_ALLOWED_URL_RE = re.compile(
     (?:^|\s)(?:src|href)\s*=\s*["'](https?://[^"']*)["']
     """
 )
-_HTML_NS_ALLOWLIST = ("http://www.w3.org/2000/svg", "http://www.w3.org/1999/xhtml",
-                      "http://www.w3.org/2000/xmlns/", "http://www.w3.org/1999/xlink")
+_HTML_NS_ALLOWLIST = (
+    "http://www.w3.org/2000/svg",
+    "http://www.w3.org/1999/xhtml",
+    "http://www.w3.org/2000/xmlns/",
+    "http://www.w3.org/1999/xlink",
+)
 
 
 def lint_js(filename: str, code: str) -> list[str]:
@@ -70,12 +74,18 @@ def lint_html(filename: str, code: str) -> list[str]:
             if value.startswith(("http://", "https://", "//")):
                 hits.append(f"{filename}:{line}: external <script src>: {value}")
         else:
-            hits.append(f"{filename}:{line}: <script> without src (inline JS is forbidden; JS lives in .js files)")
-    for m in re.finditer(r"<\s*script\b[^>]*>(.*?)</\s*script\s*>", code, re.IGNORECASE | re.DOTALL):
+            hits.append(
+                f"{filename}:{line}: <script> without src (inline JS is forbidden; JS lives in .js files)"
+            )
+    for m in re.finditer(
+        r"<\s*script\b[^>]*>(.*?)</\s*script\s*>", code, re.IGNORECASE | re.DOTALL
+    ):
         body = m.group(1)
         if body.strip():
             line = code[: m.start()].count("\n") + 1
-            hits.append(f"{filename}:{line}: inline script body is forbidden (JS lives in .js files)")
+            hits.append(
+                f"{filename}:{line}: inline script body is forbidden (JS lives in .js files)"
+            )
     for m in _HTML_ALLOWED_URL_RE.finditer(code):
         url = m.group(1)
         if url not in _HTML_NS_ALLOWLIST:
@@ -102,4 +112,8 @@ def lint_file(path: Path) -> list[str]:
 
 def lint_generated(pages_js: str, pages_css: str, html: str) -> list[str]:
     """Lint the three generated artifact strings for one topic page."""
-    return lint_js("page.js", pages_js) + lint_css("page.css", pages_css) + lint_html("index.html", html)
+    return (
+        lint_js("page.js", pages_js)
+        + lint_css("page.css", pages_css)
+        + lint_html("index.html", html)
+    )

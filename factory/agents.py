@@ -36,8 +36,10 @@ def _system(stage_id: str, role: str) -> str:
 def _pack_text(cfg: Config, source_pack: dict[str, Any]) -> str:
     ch = source_pack["chapter"]
     parts = [
-        f"PRIMARY SOURCE: {ch['book_title']} (NCERT, class {ch['class']}), "
-        f"chapter '{ch['title']}', pages {ch['pages'][0]}-{ch['pages'][1]}. Text follows:",
+        (
+            f"PRIMARY SOURCE: {ch['book_title']} (NCERT, class {ch['class']}), "
+            f"chapter '{ch['title']}', pages {ch['pages'][0]}-{ch['pages'][1]}. Text follows:"
+        ),
         source_pack["ncert_text"],
     ]
     budget = cfg.limits["max_chars_supplement_total"]
@@ -54,12 +56,15 @@ def _pack_text(cfg: Config, source_pack: dict[str, Any]) -> str:
 
 
 # ------------------------------------------------------------- 02-synth
-def run_synth(cfg: Config, run_ctx: RunContext, llm: LLMClient, source_pack: dict[str, Any]) -> dict[str, Any]:
+def run_synth(
+    cfg: Config, run_ctx: RunContext, llm: LLMClient, source_pack: dict[str, Any]
+) -> dict[str, Any]:
     ch = source_pack["chapter"]
     user = (
         f"TOPIC: chapter '{ch['title']}' from {ch['book_title']} (class {ch['class']}).\n\n"
-        "SOURCE MATERIAL:\n\n" + _pack_text(cfg, source_pack) +
-        "\n\nTASK: Synthesize ONE ground truth for this chapter from the sources above.\n"
+        "SOURCE MATERIAL:\n\n"
+        + _pack_text(cfg, source_pack)
+        + "\n\nTASK: Synthesize ONE ground truth for this chapter from the sources above.\n"
         "Return a JSON object with exactly these keys:\n"
         '- "topic": short topic name\n'
         '- "summary": 3-6 sentence overview\n'
@@ -73,20 +78,33 @@ def run_synth(cfg: Config, run_ctx: RunContext, llm: LLMClient, source_pack: dic
         "(empty array if none)\n"
         '- "uncertain": list of questions the sources do NOT answer clearly. Never leave this '
         "out; use [] only if you are certain everything needed is covered.\n"
-        "Use source_id \"ncert\" for the primary NCERT chapter text."
+        'Use source_id "ncert" for the primary NCERT chapter text.'
     )
-    return llm.call("02-synth", [
-        {"role": "system", "content": _system("02-synth", "Ground-Truth Synthesizer (Curator + Synthesizer agents)")},
-        {"role": "user", "content": user},
-    ], GROUND_TRUTH, "ground_truth")
+    return llm.call(
+        "02-synth",
+        [
+            {
+                "role": "system",
+                "content": _system(
+                    "02-synth",
+                    "Ground-Truth Synthesizer (Curator + Synthesizer agents)",
+                ),
+            },
+            {"role": "user", "content": user},
+        ],
+        GROUND_TRUTH,
+        "ground_truth",
+    )
 
 
 # ------------------------------------------------------------ 03-explain
-def run_explain(cfg: Config, run_ctx: RunContext, llm: LLMClient, ground_truth: dict[str, Any]) -> dict[str, Any]:
+def run_explain(
+    cfg: Config, run_ctx: RunContext, llm: LLMClient, ground_truth: dict[str, Any]
+) -> dict[str, Any]:
     user = (
-        "GROUND TRUTH (verified facts with citations):\n\n" +
-        _gt_text(ground_truth) +
-        "\n\nTASK: Edit this into a SELF-CONTAINED lesson that explains everything slowly and "
+        "GROUND TRUTH (verified facts with citations):\n\n"
+        + _gt_text(ground_truth)
+        + "\n\nTASK: Edit this into a SELF-CONTAINED lesson that explains everything slowly and "
         "properly for a first-time learner in class "
         f"{cfg.learner['class_level']}.\n"
         "Hard requirements:\n"
@@ -98,14 +116,22 @@ def run_explain(cfg: Config, run_ctx: RunContext, llm: LLMClient, ground_truth: 
         "- Do not add facts that are not in the ground truth.\n"
         "Return a JSON object with exactly these keys:\n"
         '- "title": lesson title\n'
-        '- "objectives": 2-4 sentences, each \"After this lesson you can ...\"\n'
+        '- "objectives": 2-4 sentences, each "After this lesson you can ..."\n'
         '- "sections": 3-6 of {"id": "sec-01", "title", "paragraphs": ["...", ...]} in teaching order\n'
         '- "glossary": [{"term", "definition"}] - at least 3, plain-English definitions\n'
     )
-    return llm.call("03-explain", [
-        {"role": "system", "content": _system("03-explain", "Lesson Editor (Synthesizer agent)")},
-        {"role": "user", "content": user},
-    ], LESSON, "lesson")
+    return llm.call(
+        "03-explain",
+        [
+            {
+                "role": "system",
+                "content": _system("03-explain", "Lesson Editor (Synthesizer agent)"),
+            },
+            {"role": "user", "content": user},
+        ],
+        LESSON,
+        "lesson",
+    )
 
 
 def _gt_text(gt: dict[str, Any]) -> str:
@@ -113,27 +139,48 @@ def _gt_text(gt: dict[str, Any]) -> str:
     for c in gt["claims"]:
         loc = ", ".join(f"{x['source_id']} {x['locator']}" for x in c["citations"])
         lines.append(f"- {c['id']}: {c['statement']} [{loc}]")
-    lines.append("KEY TERMS: " + "; ".join(f"{t['term']}: {t['definition']}" for t in gt["key_terms"]))
+    lines.append(
+        "KEY TERMS: "
+        + "; ".join(f"{t['term']}: {t['definition']}" for t in gt["key_terms"])
+    )
     if gt["equations"]:
-        lines.append("EQUATIONS: " + "; ".join(f"{e['id']}: {e['expression']} ({e['description']})" for e in gt["equations"]))
+        lines.append(
+            "EQUATIONS: "
+            + "; ".join(
+                f"{e['id']}: {e['expression']} ({e['description']})"
+                for e in gt["equations"]
+            )
+        )
     if gt["misconceptions"]:
-        lines.append("MISCONCEPTIONS: " + "; ".join(
-            f"{m['id']}: WRONG '{m['wrong_belief']}' CORRECT '{m['correction']}'" for m in gt["misconceptions"]))
+        lines.append(
+            "MISCONCEPTIONS: "
+            + "; ".join(
+                f"{m['id']}: WRONG '{m['wrong_belief']}' CORRECT '{m['correction']}'"
+                for m in gt["misconceptions"]
+            )
+        )
     if gt["uncertain"]:
-        lines.append("UNCERTAIN (do not resolve by inventing): " + "; ".join(gt["uncertain"]))
+        lines.append(
+            "UNCERTAIN (do not resolve by inventing): " + "; ".join(gt["uncertain"])
+        )
     return "\n".join(lines)
 
 
 # -------------------------------------------------------------- 04-draft
-def run_draft(cfg: Config, run_ctx: RunContext, llm: LLMClient,
-              lesson: dict[str, Any], ground_truth: dict[str, Any]) -> dict[str, Any]:
+def run_draft(
+    cfg: Config,
+    run_ctx: RunContext,
+    llm: LLMClient,
+    lesson: dict[str, Any],
+    ground_truth: dict[str, Any],
+) -> dict[str, Any]:
     claim_ids = ", ".join(c["id"] for c in ground_truth["claims"])
     user = (
-        "LESSON (approved prose):\n\n" +
-        _lesson_text(lesson) +
-        "\n\nGROUND TRUTH (facts, equations, misconceptions):\n\n" +
-        _gt_text(ground_truth) +
-        f"\n\nTASK: Lay this out as an ordered block sequence for the study page. "
+        "LESSON (approved prose):\n\n"
+        + _lesson_text(lesson)
+        + "\n\nGROUND TRUTH (facts, equations, misconceptions):\n\n"
+        + _gt_text(ground_truth)
+        + f"\n\nTASK: Lay this out as an ordered block sequence for the study page. "
         f"Valid claim ids for citations: {claim_ids}.\n"
         "Block types and spec shapes:\n"
         '- text: {"paragraphs": ["..."]} - carry the lesson prose in reading order\n'
@@ -156,12 +203,22 @@ def run_draft(cfg: Config, run_ctx: RunContext, llm: LLMClient,
         "pace the lesson. First block must be text; last block must be a check.\n"
         "Cite claims in every text, worked_example, check and reveal block: "
         '"citations": [{"claim_id": "claim-01"}].\n'
-        "Return {\"blocks\": [...]}."
+        'Return {"blocks": [...]}.'
     )
-    return llm.call("04-draft", [
-        {"role": "system", "content": _system("04-draft", "Instructional Designer (Synthesizer agent)")},
-        {"role": "user", "content": user},
-    ], BLOCKS, "blocks")
+    return llm.call(
+        "04-draft",
+        [
+            {
+                "role": "system",
+                "content": _system(
+                    "04-draft", "Instructional Designer (Synthesizer agent)"
+                ),
+            },
+            {"role": "user", "content": user},
+        ],
+        BLOCKS,
+        "blocks",
+    )
 
 
 def _lesson_text(lesson: dict[str, Any]) -> str:
@@ -170,35 +227,54 @@ def _lesson_text(lesson: dict[str, Any]) -> str:
     for s in lesson["sections"]:
         lines.append(f"SECTION {s['id']}: {s['title']}")
         lines += [p for p in s["paragraphs"]]
-    lines.append("GLOSSARY: " + "; ".join(f"{g['term']}: {g['definition']}" for g in lesson["glossary"]))
+    lines.append(
+        "GLOSSARY: "
+        + "; ".join(f"{g['term']}: {g['definition']}" for g in lesson["glossary"])
+    )
     return "\n".join(lines)
 
 
 # --------------------------------------------------------------- 05-check
-def run_check(cfg: Config, run_ctx: RunContext, llm: LLMClient,
-              source_pack: dict[str, Any], ground_truth: dict[str, Any],
-              blocks: dict[str, Any]) -> dict[str, Any]:
+def run_check(
+    cfg: Config,
+    run_ctx: RunContext,
+    llm: LLMClient,
+    source_pack: dict[str, Any],
+    ground_truth: dict[str, Any],
+    blocks: dict[str, Any],
+) -> dict[str, Any]:
     user = (
-        "SOURCE MATERIAL (the only allowed facts):\n\n" + _pack_text(cfg, source_pack) +
-        "\n\nGROUND TRUTH:\n\n" + _gt_text(ground_truth) +
-        "\n\nDRAFT BLOCKS TO REVIEW:\n\n" +
-        _blocks_text(blocks) +
-        "\n\nTASK: You are the Comprehension & Fact Reviewer. Review every block:\n"
+        "SOURCE MATERIAL (the only allowed facts):\n\n"
+        + _pack_text(cfg, source_pack)
+        + "\n\nGROUND TRUTH:\n\n"
+        + _gt_text(ground_truth)
+        + "\n\nDRAFT BLOCKS TO REVIEW:\n\n"
+        + _blocks_text(blocks)
+        + "\n\nTASK: You are the Comprehension & Fact Reviewer. Review every block:\n"
         "1. Is each factual statement correct per the source material? Quote the source in your issue.\n"
         "2. Is every check's correct answer actually correct?\n"
         "3. Is the language and depth right for a class "
         f"{cfg.learner['class_level']} first-time learner (not above, not below)?\n"
         "4. Does anything read as if it depends on material outside this page?\n"
-        "Return a JSON object: {\"verdict\": \"pass\"|\"fail\", \"issues\": "
-        "[{\"block_id\": \"b-01\" or omit, \"severity\": \"fatal\"|\"major\"|\"minor\", "
-        "\"message\": \"...\"}]}. verdict=fail if any fatal issue. An empty issues array means pass."
+        'Return a JSON object: {"verdict": "pass"|"fail", "issues": '
+        '[{"block_id": "b-01" or omit, "severity": "fatal"|"major"|"minor", '
+        '"message": "..."}]}. verdict=fail if any fatal issue. An empty issues array means pass.'
     )
-    return llm.call("05-check", [
-        {"role": "system", "content": _system("05-check", "Comprehension & Fact Reviewer agent")},
-        {"role": "user", "content": user},
-    ], CHECK_REPORT, "check_report")
+    return llm.call(
+        "05-check",
+        [
+            {
+                "role": "system",
+                "content": _system("05-check", "Comprehension & Fact Reviewer agent"),
+            },
+            {"role": "user", "content": user},
+        ],
+        CHECK_REPORT,
+        "check_report",
+    )
 
 
 def _blocks_text(blocks: dict[str, Any]) -> str:
     import json as _json
+
     return _json.dumps(blocks["blocks"], indent=1, ensure_ascii=False)

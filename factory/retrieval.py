@@ -21,7 +21,7 @@ from .textops import chunk_text
 
 
 class Embedder(Protocol):
-    def encode(self, texts: list[str]) -> "np.ndarray": ...
+    def encode(self, texts: list[str]) -> np.ndarray: ...
 
 
 _real_embedder: Any | None = None
@@ -47,7 +47,7 @@ class FixtureEmbedder:
     def __init__(self, dim: int = 64):
         self.dim = dim
 
-    def encode(self, texts: list[str]) -> "np.ndarray":
+    def encode(self, texts: list[str]) -> np.ndarray:
         out = np.zeros((len(texts), self.dim), dtype=np.float32)
         for i, t in enumerate(texts):
             for token in t.lower().split():
@@ -58,7 +58,9 @@ class FixtureEmbedder:
         return out / norm
 
 
-def chunks_for_book(cfg: Config, book_id: str, pages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def chunks_for_book(
+    cfg: Config, book_id: str, pages: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """Chunk a book's pages (each {page:int, text:str}) into overlapping chunks.
     Chunking is per page, so every chunk carries an exact page citation."""
     chunk_chars = cfg.retrieval["chunk_chars"]
@@ -66,13 +68,15 @@ def chunks_for_book(cfg: Config, book_id: str, pages: list[dict[str, Any]]) -> l
     chunks: list[dict[str, Any]] = []
     for p in pages:
         for i, text in enumerate(chunk_text(p["text"], chunk_chars, overlap)):
-            chunks.append({
-                "chunk_id": f"{book_id}#p{p['page']:04d}c{i:03d}",
-                "book_id": book_id,
-                "page_from": p["page"],
-                "page_to": p["page"],
-                "text": text,
-            })
+            chunks.append(
+                {
+                    "chunk_id": f"{book_id}#p{p['page']:04d}c{i:03d}",
+                    "book_id": book_id,
+                    "page_from": p["page"],
+                    "page_to": p["page"],
+                    "text": text,
+                }
+            )
     return chunks
 
 
@@ -81,7 +85,9 @@ def _cache_paths(cfg: Config, book_id: str) -> tuple[Path, Path]:
     return emb_dir / f"{book_id}.npy", emb_dir / f"{book_id}.meta.json"
 
 
-def embed_chunks_cached(cfg: Config, book_id: str, chunks: list[dict[str, Any]]) -> "np.ndarray":
+def embed_chunks_cached(
+    cfg: Config, book_id: str, chunks: list[dict[str, Any]]
+) -> np.ndarray:
     """Embeddings for a book's chunks, cached under sources/cache/embeddings/."""
     emb_path, meta_path = _cache_paths(cfg, book_id)
     texts_hash = hashlib.sha256(
@@ -103,8 +109,13 @@ def embed_chunks_cached(cfg: Config, book_id: str, chunks: list[dict[str, Any]])
     return matrix
 
 
-def top_k_chunks(embedder: Embedder, query: str, chunks: list[dict[str, Any]],
-                 matrix: "np.ndarray", k: int) -> list[dict[str, Any]]:
+def top_k_chunks(
+    embedder: Embedder,
+    query: str,
+    chunks: list[dict[str, Any]],
+    matrix: np.ndarray,
+    k: int,
+) -> list[dict[str, Any]]:
     """Cosine similarity search (vectors are L2-normalised, so dot == cosine)."""
     if not chunks:
         return []

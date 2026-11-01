@@ -41,17 +41,30 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
         if not target.exists():
             missing.append(e["href"])
     if missing:
-        raise StageError(STAGE_ID, f"courses.js references missing files: {missing}",
-                         artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)))
+        raise StageError(
+            STAGE_ID,
+            f"courses.js references missing files: {missing}",
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        )
 
     # Landing page must reference the shared assets that exist.
     index_html = (frontend / "index.html").read_text(encoding="utf-8")
     for ref in ("assets/zivon.css", "assets/zivon.js", "courses.js"):
         if ref not in index_html:
-            raise StageError(STAGE_ID, f"frontend/index.html does not reference {ref}",
-                             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)))
+            raise StageError(
+                STAGE_ID,
+                f"frontend/index.html does not reference {ref}",
+                artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+            )
         if not (frontend / ref).exists():
-            raise StageError(STAGE_ID, f"frontend/{ref} does not exist",
-                             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)))
+            raise StageError(
+                STAGE_ID,
+                f"frontend/{ref} does not exist",
+                artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+            )
 
-    return {"published_to": str(topic_dst), "courses": entries, "course_count": len(entries)}
+    return {
+        "published_to": str(topic_dst),
+        "courses": entries,
+        "course_count": len(entries),
+    }

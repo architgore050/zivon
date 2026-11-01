@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 from typing import Any
 
 import jsonschema
@@ -52,9 +51,11 @@ def parse_json_object(text: str) -> dict[str, Any]:
     try:
         parsed = json.loads(cleaned)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"output is not valid JSON: {exc}; first 200 chars: {cleaned[:200]!r}") from exc
+        raise ValueError(
+            f"output is not valid JSON: {exc}; first 200 chars: {cleaned[:200]!r}"
+        ) from exc
     if not isinstance(parsed, dict):
-        raise ValueError(f"expected a JSON object, got {type(parsed).__name__}")
+        raise ValueError(f"expected a JSON object, got {type(parsed).__name__}")  # noqa: TRY004 — ValueError is the contract callers catch
     return parsed
 
 
@@ -66,14 +67,25 @@ class LLMClient:
         self._api_key = cfg.api_key()
 
     # ------------------------------------------------------------------ call
-    def call(self, stage_id: str, messages: list[dict[str, str]], schema: dict, schema_name: str,
-             temperature: float | None = None, max_tokens: int | None = None) -> dict[str, Any]:
+    def call(
+        self,
+        stage_id: str,
+        messages: list[dict[str, str]],
+        schema: dict,
+        schema_name: str,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+    ) -> dict[str, Any]:
         """One logged, validated model call. Returns the parsed JSON object."""
         override = self.cfg.stage_override(stage_id)
-        temperature = override.get("temperature", temperature if temperature is not None
-                                   else self.cfg.server["temperature"])
-        max_tokens = override.get("max_tokens", max_tokens if max_tokens is not None
-                                  else self.cfg.server["max_tokens"])
+        temperature = override.get(
+            "temperature",
+            temperature if temperature is not None else self.cfg.server["temperature"],
+        )
+        max_tokens = override.get(
+            "max_tokens",
+            max_tokens if max_tokens is not None else self.cfg.server["max_tokens"],
+        )
 
         base_request = {
             "model": self.cfg.server["model"],
@@ -102,8 +114,14 @@ class LLMClient:
             self.run.write_text(attempt_dir / "response.json", raw_text)
             self.run.write_json(
                 attempt_dir / "meta.json",
-                {"stage": stage_id, "attempt": attempt, "http_status": status,
-                 "latency_s": latency, "usage": usage, "model": self.cfg.server["model"]},
+                {
+                    "stage": stage_id,
+                    "attempt": attempt,
+                    "http_status": status,
+                    "latency_s": latency,
+                    "usage": usage,
+                    "model": self.cfg.server["model"],
+                },
             )
 
             try:
@@ -117,7 +135,9 @@ class LLMClient:
                 jsonschema.validate(instance=parsed, schema=schema)
             except jsonschema.ValidationError as exc:
                 last_error = self._format_validation_error(exc)
-                self._feedback(transcript, raw_text, f"Schema validation failed: {last_error}")
+                self._feedback(
+                    transcript, raw_text, f"Schema validation failed: {last_error}"
+                )
                 continue
 
             return parsed
@@ -130,7 +150,9 @@ class LLMClient:
         )
 
     # ------------------------------------------------------------- internals
-    def _post(self, request: dict, stage_id: str, attempt: int) -> tuple[int, str, dict]:
+    def _post(
+        self, request: dict, stage_id: str, attempt: int
+    ) -> tuple[int, str, dict]:
         headers = {"Content-Type": "application/json"}
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
@@ -138,8 +160,12 @@ class LLMClient:
         backoff = 2.0
         for try_no in range(1, self.cfg.server["max_attempts"] + 1):
             try:
-                resp = requests.post(self.url, headers=headers, json=request,
-                                     timeout=self.cfg.server["timeout_s"])
+                resp = requests.post(
+                    self.url,
+                    headers=headers,
+                    json=request,
+                    timeout=self.cfg.server["timeout_s"],
+                )
             except (requests.ConnectionError, requests.Timeout) as exc:
                 if try_no == self.cfg.server["max_attempts"]:
                     raise ModelCallError(
@@ -167,8 +193,10 @@ class LLMClient:
                 # Non-retryable client error: crash now with the server's words.
                 hint = ""
                 if resp.status_code == 400 and "response_format" in resp.text.lower():
-                    hint = (" Your server appears not to support response_format json_object;"
-                            " set server.json_mode=false in config.json and re-run.")
+                    hint = (
+                        " Your server appears not to support response_format json_object;"
+                        " set server.json_mode=false in config.json and re-run."
+                    )
                 raise ModelCallError(
                     stage_id,
                     f"server rejected the call with HTTP {resp.status_code}: {resp.text[:500]}.{hint}",
@@ -186,18 +214,24 @@ class LLMClient:
                 ) from exc
             return resp.status_code, content, usage
 
-        raise ModelCallError(stage_id, "unreachable retry loop exit")  # pragma: no cover
+        raise ModelCallError(
+            stage_id, "unreachable retry loop exit"
+        )  # pragma: no cover
 
     @staticmethod
-    def _feedback(transcript: list[dict[str, str]], bad_output: str, error: str) -> None:
+    def _feedback(
+        transcript: list[dict[str, str]], bad_output: str, error: str
+    ) -> None:
         transcript.append({"role": "assistant", "content": bad_output})
-        transcript.append({
-            "role": "user",
-            "content": (
-                f"{error}\n\nReturn the corrected COMPLETE JSON object only. "
-                "No prose, no markdown fences."
-            ),
-        })
+        transcript.append(
+            {
+                "role": "user",
+                "content": (
+                    f"{error}\n\nReturn the corrected COMPLETE JSON object only. "
+                    "No prose, no markdown fences."
+                ),
+            }
+        )
 
     @staticmethod
     def _format_validation_error(exc: jsonschema.ValidationError) -> str:
@@ -208,4 +242,6 @@ class LLMClient:
     def _redact(request: dict) -> dict:
         """Copy of the request safe to persist (no secrets can be in it, but keep
         the guarantee explicit and future-proof)."""
-        return json.loads(json.dumps(request))  # deep copy; messages contain no auth material
+        return json.loads(
+            json.dumps(request)
+        )  # deep copy; messages contain no auth material

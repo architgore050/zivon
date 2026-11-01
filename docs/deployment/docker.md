@@ -27,7 +27,7 @@ docker build -t zivon-factory:0.1.0 .
 docker run --rm zivon-factory:0.1.0                          # smoke test
 docker run --rm -it zivon-factory:0.1.0 bash                 # explore inside
 docker history zivon-factory:0.1.0                           # per-layer sizes
-docker compose run --rm factory python pipeline.py "Motion" --class 9   # once pipeline.py exists
+docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
 `docker-compose.yml` is the local runner: builds the image, passes `ZIVON_API_KEY` from the shell, mounts `runs/`, PDF/text caches, and the HuggingFace cache as volumes so containers stay disposable while caches survive.

@@ -28,13 +28,22 @@ CITATION = {
 GROUND_TRUTH = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "required": ["topic", "summary", "claims", "key_terms", "equations", "misconceptions", "uncertain"],
+    "required": [
+        "topic",
+        "summary",
+        "claims",
+        "key_terms",
+        "equations",
+        "misconceptions",
+        "uncertain",
+    ],
     "additionalProperties": False,
     "properties": {
         "topic": {"type": "string", "minLength": 2},
         "summary": {"type": "string", "minLength": 40},
         "claims": {
-            "type": "array", "minItems": 4,
+            "type": "array",
+            "minItems": 4,
             "items": {
                 "type": "object",
                 "required": ["id", "statement", "citations"],
@@ -42,61 +51,97 @@ GROUND_TRUTH = {
                 "properties": {
                     "id": {"type": "string", "pattern": "^claim-[0-9]{2,3}$"},
                     "statement": {"type": "string", "minLength": 15},
-                    "citations": {"type": "array", "minItems": 1, "items": {
-                        "type": "object", "required": ["source_id", "locator"],
-                        "additionalProperties": False,
-                        "properties": {"source_id": {"type": "string"}, "locator": {"type": "string"}},
-                    }},
+                    "citations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["source_id", "locator"],
+                            "additionalProperties": False,
+                            "properties": {
+                                "source_id": {"type": "string"},
+                                "locator": {"type": "string"},
+                            },
+                        },
+                    },
                 },
             },
         },
         "key_terms": {
-            "type": "array", "minItems": 2,
+            "type": "array",
+            "minItems": 2,
             "items": {
-                "type": "object", "required": ["term", "definition", "citations"],
+                "type": "object",
+                "required": ["term", "definition", "citations"],
                 "additionalProperties": False,
                 "properties": {
                     "term": {"type": "string"},
                     "definition": {"type": "string", "minLength": 10},
-                    "citations": {"type": "array", "minItems": 1, "items": {
-                        "type": "object", "required": ["source_id", "locator"],
-                        "additionalProperties": False,
-                        "properties": {"source_id": {"type": "string"}, "locator": {"type": "string"}},
-                    }},
+                    "citations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["source_id", "locator"],
+                            "additionalProperties": False,
+                            "properties": {
+                                "source_id": {"type": "string"},
+                                "locator": {"type": "string"},
+                            },
+                        },
+                    },
                 },
             },
         },
         "equations": {
             "type": "array",
             "items": {
-                "type": "object", "required": ["id", "expression", "description", "citations"],
+                "type": "object",
+                "required": ["id", "expression", "description", "citations"],
                 "additionalProperties": False,
                 "properties": {
                     "id": {"type": "string", "pattern": "^eq-[0-9]{2,3}$"},
                     "expression": {"type": "string", "minLength": 2},
                     "description": {"type": "string", "minLength": 10},
-                    "citations": {"type": "array", "minItems": 1, "items": {
-                        "type": "object", "required": ["source_id", "locator"],
-                        "additionalProperties": False,
-                        "properties": {"source_id": {"type": "string"}, "locator": {"type": "string"}},
-                    }},
+                    "citations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["source_id", "locator"],
+                            "additionalProperties": False,
+                            "properties": {
+                                "source_id": {"type": "string"},
+                                "locator": {"type": "string"},
+                            },
+                        },
+                    },
                 },
             },
         },
         "misconceptions": {
             "type": "array",
             "items": {
-                "type": "object", "required": ["id", "wrong_belief", "correction", "citations"],
+                "type": "object",
+                "required": ["id", "wrong_belief", "correction", "citations"],
                 "additionalProperties": False,
                 "properties": {
                     "id": {"type": "string", "pattern": "^mis-[0-9]{2,3}$"},
                     "wrong_belief": {"type": "string", "minLength": 10},
                     "correction": {"type": "string", "minLength": 10},
-                    "citations": {"type": "array", "minItems": 1, "items": {
-                        "type": "object", "required": ["source_id", "locator"],
-                        "additionalProperties": False,
-                        "properties": {"source_id": {"type": "string"}, "locator": {"type": "string"}},
-                    }},
+                    "citations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["source_id", "locator"],
+                            "additionalProperties": False,
+                            "properties": {
+                                "source_id": {"type": "string"},
+                                "locator": {"type": "string"},
+                            },
+                        },
+                    },
                 },
             },
         },
@@ -115,25 +160,40 @@ LESSON = {
     "additionalProperties": False,
     "properties": {
         "title": {"type": "string", "minLength": 3},
-        "objectives": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 15}},
+        "objectives": {
+            "type": "array",
+            "minItems": 2,
+            "items": {"type": "string", "minLength": 15},
+        },
         "sections": {
-            "type": "array", "minItems": 2,
+            "type": "array",
+            "minItems": 2,
             "items": {
-                "type": "object", "required": ["id", "title", "paragraphs"],
+                "type": "object",
+                "required": ["id", "title", "paragraphs"],
                 "additionalProperties": False,
                 "properties": {
                     "id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
                     "title": {"type": "string", "minLength": 3},
-                    "paragraphs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 40}},
+                    "paragraphs": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {"type": "string", "minLength": 40},
+                    },
                 },
             },
         },
         "glossary": {
-            "type": "array", "minItems": 2,
+            "type": "array",
+            "minItems": 2,
             "items": {
-                "type": "object", "required": ["term", "definition"],
+                "type": "object",
+                "required": ["term", "definition"],
                 "additionalProperties": False,
-                "properties": {"term": {"type": "string"}, "definition": {"type": "string", "minLength": 10}},
+                "properties": {
+                    "term": {"type": "string"},
+                    "definition": {"type": "string", "minLength": 10},
+                },
             },
         },
     },
@@ -148,7 +208,9 @@ BLOCKS = {
     "additionalProperties": False,
     "properties": {
         "blocks": {
-            "type": "array", "minItems": 4, "maxItems": 18,
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 18,
             "items": {
                 "type": "object",
                 "required": ["id", "type", "spec", "citations"],
@@ -174,7 +236,8 @@ CHECK_REPORT = {
         "issues": {
             "type": "array",
             "items": {
-                "type": "object", "required": ["severity", "message"],
+                "type": "object",
+                "required": ["severity", "message"],
                 "additionalProperties": False,
                 "properties": {
                     "block_id": {"type": "string"},
@@ -194,7 +257,9 @@ INTERACTIVE = {
     "properties": {
         "id": {"type": "string"},
         "files": {
-            "type": "object", "required": [], "additionalProperties": {"type": "string"},
+            "type": "object",
+            "required": [],
+            "additionalProperties": {"type": "string"},
             "description": "Map of filename (page.js / page.css fragment names) to full file content.",
         },
     },
@@ -208,7 +273,8 @@ FIX_PLAN = {
     "properties": {
         "analysis": {"type": "string", "minLength": 20},
         "files": {
-            "type": "object", "additionalProperties": {"type": "string"},
+            "type": "object",
+            "additionalProperties": {"type": "string"},
             "description": "Full replacement content for the topic-local files being fixed.",
         },
     },

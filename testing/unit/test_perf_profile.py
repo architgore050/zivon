@@ -8,7 +8,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from testing.perf.harness import _judge, load_profile  # noqa: E402
+from testing.perf.harness import _judge, load_profile
 
 PROFILES = REPO_ROOT / "testing" / "perf" / "profiles"
 
@@ -51,8 +51,13 @@ class TestJudge(unittest.TestCase):
     def base_report(self):
         return {
             "budgets": {"load_s": 2.0, "fcp_s": 1.2, "ram_mb": 750, "fps_min": 24},
-            "measured": {"load_s": 0.5, "fcp_s": 0.4, "fps_median": 55,
-                         "peak_browser_rss_mb": 300, "js_heap_mb": 5},
+            "measured": {
+                "load_s": 0.5,
+                "fcp_s": 0.4,
+                "fps_median": 55,
+                "peak_browser_rss_mb": 300,
+                "js_heap_mb": 5,
+            },
             "console_errors": [],
             "page_errors": [],
             "failures": [],

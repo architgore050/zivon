@@ -15,9 +15,15 @@ sys.path.insert(0, str(REPO_ROOT))
 
 class TestCatalogSync(unittest.TestCase):
     def setUp(self):
-        self.catalog = json.loads((REPO_ROOT / "sources" / "catalog.json").read_text(encoding="utf-8"))
+        self.catalog = json.loads(
+            (REPO_ROOT / "sources" / "catalog.json").read_text(encoding="utf-8")
+        )
         # strip markdown emphasis so table titles match literal JSON titles
-        self.doc = (REPO_ROOT / "docs" / "source-catalog.md").read_text(encoding="utf-8").replace("*", "")
+        self.doc = (
+            (REPO_ROOT / "docs" / "source-catalog.md")
+            .read_text(encoding="utf-8")
+            .replace("*", "")
+        )
 
     def test_every_book_documented(self):
         for book in self.catalog["books"]:
@@ -28,8 +34,11 @@ class TestCatalogSync(unittest.TestCase):
                     title in self.doc or base_title in self.doc,
                     f"book '{title}' ({book['id']}) not found in docs/source-catalog.md",
                 )
-                link = (book.get("prelims_url") or book.get("manual_url")
-                        or book.get("manual_filename"))
+                link = (
+                    book.get("prelims_url")
+                    or book.get("manual_url")
+                    or book.get("manual_filename")
+                )
                 self.assertTrue(
                     link and link in self.doc,
                     f"book '{book['id']}' link/filename '{link}' not found in docs/source-catalog.md",
@@ -44,8 +53,13 @@ class TestCatalogSync(unittest.TestCase):
         for book in self.catalog["books"]:
             if book.get("download") != "auto":
                 continue
-            for key in ("prelims_url", "chapter_url_template", "chapter_numbers",
-                        "chapters_verified", "class_evidence"):
+            for key in (
+                "prelims_url",
+                "chapter_url_template",
+                "chapter_numbers",
+                "chapters_verified",
+                "class_evidence",
+            ):
                 self.assertIn(key, book, f"{book['id']} missing {key}")
             self.assertIn("{nn}", book["chapter_url_template"])
 

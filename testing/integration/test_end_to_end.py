@@ -33,7 +33,7 @@ def chromium_available() -> bool:
             b = p.chromium.launch(headless=True)
             b.close()
         return True
-    except Exception:
+    except Exception:  # noqa: BLE001 — probe: any failure just means "not available"
         return False
 
 
@@ -70,21 +70,39 @@ class TestEndToEnd(unittest.TestCase):
             "version": 1,
             "books": [
                 {
-                    "id": "fixture-ncert-9", "class": 9, "subject": "science",
-                    "title": "Fixture Science Class 9", "publisher": "fixture",
-                    "license": "test", "is_ncert": True, "download": "auto",
-                    "prelims_url": (cls.tmp / "pdfs" / "fixture-ncert-9" / "prelims.pdf").as_uri(),
-                    "chapter_url_template": (cls.tmp / "pdfs" / "fixture-ncert-9" / "ch{nn}.pdf").as_uri(),
+                    "id": "fixture-ncert-9",
+                    "class": 9,
+                    "subject": "science",
+                    "title": "Fixture Science Class 9",
+                    "publisher": "fixture",
+                    "license": "test",
+                    "is_ncert": True,
+                    "download": "auto",
+                    "prelims_url": (
+                        cls.tmp / "pdfs" / "fixture-ncert-9" / "prelims.pdf"
+                    ).as_uri(),
+                    "chapter_url_template": (
+                        cls.tmp / "pdfs" / "fixture-ncert-9" / "ch{nn}.pdf"
+                    ).as_uri(),
                     "chapter_numbers": [1, 2],
                     "chapters_verified": True,
                     "class_evidence": ["class 9"],
                 },
                 {
-                    "id": "alt-open-physics", "class": 9, "subject": "physics",
-                    "title": "Open Physics Notes (fixture)", "publisher": "fixture",
-                    "license": "CC-BY (fixture)", "is_ncert": False, "download": "auto",
-                    "prelims_url": (cls.tmp / "pdfs" / "alt-open-physics" / "alt-open-physics.pdf").as_uri(),
-                    "chapter_url_template": (cls.tmp / "pdfs" / "alt-open-physics" / "alt-open-physics.pdf").as_uri(),
+                    "id": "alt-open-physics",
+                    "class": 9,
+                    "subject": "physics",
+                    "title": "Open Physics Notes (fixture)",
+                    "publisher": "fixture",
+                    "license": "CC-BY (fixture)",
+                    "is_ncert": False,
+                    "download": "auto",
+                    "prelims_url": (
+                        cls.tmp / "pdfs" / "alt-open-physics" / "alt-open-physics.pdf"
+                    ).as_uri(),
+                    "chapter_url_template": (
+                        cls.tmp / "pdfs" / "alt-open-physics" / "alt-open-physics.pdf"
+                    ).as_uri(),
                     "chapter_numbers": [1],
                     "chapters_verified": True,
                     "class_evidence": [],
@@ -96,14 +114,18 @@ class TestEndToEnd(unittest.TestCase):
         base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
         base["server"]["model"] = "mock-model"
         base["server"]["base_url"] = cls.base_url
-        base["paths"].update({
-            "catalog": str(cls.tmp / "catalog.json"),
-            "pdf_cache": str(cls.tmp / "pdfs"),
-            "text_cache": str(cls.tmp / "cache"),
-            "runs": str(cls.tmp / "runs"),
-            "frontend": str(frontend),
-        })
-        base["perf"]["profile"] = str(REPO_ROOT / "testing" / "perf" / "profiles" / "mid-laptop.json")
+        base["paths"].update(
+            {
+                "catalog": str(cls.tmp / "catalog.json"),
+                "pdf_cache": str(cls.tmp / "pdfs"),
+                "text_cache": str(cls.tmp / "cache"),
+                "runs": str(cls.tmp / "runs"),
+                "frontend": str(frontend),
+            }
+        )
+        base["perf"]["profile"] = str(
+            REPO_ROOT / "testing" / "perf" / "profiles" / "mid-laptop.json"
+        )
         cls.config_path = cls.tmp / "config.json"
         cls.config_path.write_text(json.dumps(base), encoding="utf-8")
         cls.frontend = frontend
@@ -124,17 +146,35 @@ class TestEndToEnd(unittest.TestCase):
     def test_full_run_motion(self):
         result = subprocess.run(
             [sys.executable, "pipeline.py", "Motion", "--run-id", "e2e-motion"],
-            cwd=REPO_ROOT, env=self._pipeline_env(),
-            capture_output=True, text=True, timeout=300,
+            cwd=REPO_ROOT,
+            env=self._pipeline_env(),
+            capture_output=True,
+            text=True,
+            timeout=300,
+            check=False,
         )
-        self.assertEqual(result.returncode, 0,
-                         f"pipeline failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}")
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"pipeline failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}",
+        )
 
         runs = self.tmp / "runs" / "e2e-motion"
         # every stage produced artifacts and was marked ok
         status = json.loads((runs / "status.json").read_text(encoding="utf-8"))
-        for stage in ["00-ingest", "01-locate", "02-synth", "03-explain", "04-draft",
-                      "05-check", "06-interactive", "07-render", "08-perf", "10-review", "11-link"]:
+        for stage in [
+            "00-ingest",
+            "01-locate",
+            "02-synth",
+            "03-explain",
+            "04-draft",
+            "05-check",
+            "06-interactive",
+            "07-render",
+            "08-perf",
+            "10-review",
+            "11-link",
+        ]:
             self.assertEqual(status["stages"][stage]["state"], "ok", stage)
         # 09-fixloop only runs if 08 missed; in this fixture it should not be present or is ok
         if "09-fixloop" in status["stages"]:
@@ -153,7 +193,9 @@ class TestEndToEnd(unittest.TestCase):
         self.assertIn("Content-Security-Policy", html)
         self.assertIn('data-sim-id="b-06"', html)
         self.assertIn("<svg", html)
-        manifest = json.loads((page.parent / "manifest.json").read_text(encoding="utf-8"))
+        manifest = json.loads(
+            (page.parent / "manifest.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(manifest["chapter"]["title"], "Motion")
         self.assertEqual(manifest["sources"][0]["title"], "Fixture Science Class 9")
 
@@ -167,8 +209,11 @@ class TestEndToEnd(unittest.TestCase):
 
         # the model stages received exactly one scripted retry on 02-synth
         stages_used = [s["stage"] for s in self.state.served]
-        self.assertEqual(stages_used.count("02-synth"), 2,
-                         "expected one schema retry on 02-synth (attempt-1 fixture is invalid)")
+        self.assertEqual(
+            stages_used.count("02-synth"),
+            2,
+            "expected one schema retry on 02-synth (attempt-1 fixture is invalid)",
+        )
 
         report = json.loads((runs / "run_report.json").read_text(encoding="utf-8"))
         self.assertTrue(report["ok"])
@@ -182,9 +227,21 @@ class TestEndToEnd(unittest.TestCase):
         broken_cfg.write_text(json.dumps(broken), encoding="utf-8")
         env["ZIVON_CONFIG"] = str(broken_cfg)
         result = subprocess.run(
-            [sys.executable, "pipeline.py", "Motion", "--run-id", "e2e-broken",
-             "--stages", "00-ingest,01-locate,02-synth"],
-            cwd=REPO_ROOT, env=env, capture_output=True, text=True, timeout=120,
+            [
+                sys.executable,
+                "pipeline.py",
+                "Motion",
+                "--run-id",
+                "e2e-broken",
+                "--stages",
+                "00-ingest,01-locate,02-synth",
+            ],
+            cwd=REPO_ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
         )
         self.assertEqual(result.returncode, 1)
         self.assertIn("PIPELINE FAILED", result.stderr)

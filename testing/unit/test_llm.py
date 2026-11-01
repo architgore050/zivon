@@ -10,16 +10,20 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.artifacts import RunContext  # noqa: E402
-from factory.config import load_config  # noqa: E402
-from factory.errors import ModelCallError, SchemaError  # noqa: E402
-from factory.llm import LLMClient, parse_json_object  # noqa: E402
-from testing.mocks.openai_mock import start_mock  # noqa: E402
+from factory.artifacts import RunContext
+from factory.config import load_config
+from factory.errors import ModelCallError, SchemaError
+from factory.llm import LLMClient, parse_json_object
+from testing.mocks.openai_mock import start_mock
 
 GOOD = {"topic": "x", "claims": []}
 BAD = {"topic": 42}  # right key, wrong type -> schema failure
 
-SIMPLE_SCHEMA = {"type": "object", "required": ["topic"], "properties": {"topic": {"type": "string"}}}
+SIMPLE_SCHEMA = {
+    "type": "object",
+    "required": ["topic"],
+    "properties": {"topic": {"type": "string"}},
+}
 
 
 def make_cfg(tmp: Path, base_url: str, attempts: int = 3):
@@ -42,7 +46,7 @@ class TestParseJsonObject(unittest.TestCase):
 
     def test_prose_is_rejected(self):
         with self.assertRaises(ValueError):
-            parse_json_object("Here is your JSON: {\"a\": 1} hope that helps!")
+            parse_json_object('Here is your JSON: {"a": 1} hope that helps!')
 
     def test_non_object_rejected(self):
         with self.assertRaises(ValueError):
@@ -63,17 +67,25 @@ class TestLLMClient(unittest.TestCase):
         (self.fixtures / "02-synth.json").write_text(json.dumps(canonical))
         if scripted_first is not None:
             (self.fixtures / "02-synth__attempt1.json").write_text(
-                scripted_first if isinstance(scripted_first, str) else json.dumps(scripted_first))
+                scripted_first
+                if isinstance(scripted_first, str)
+                else json.dumps(scripted_first)
+            )
         return start_mock(self.fixtures)
 
     def _run(self, cfg):
         return RunContext(cfg.repo_path(cfg.paths["runs"]), "t-llm")
 
     def _call(self, client):
-        return client.call("02-synth", [
-            {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
-            {"role": "user", "content": "go"},
-        ], SIMPLE_SCHEMA, "test")
+        return client.call(
+            "02-synth",
+            [
+                {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
+                {"role": "user", "content": "go"},
+            ],
+            SIMPLE_SCHEMA,
+            "test",
+        )
 
     def test_happy_path_with_artifacts(self):
         server, url, state = self._serve(GOOD)
@@ -84,9 +96,15 @@ class TestLLMClient(unittest.TestCase):
             out = self._call(client)
             self.assertEqual(out["topic"], "x")
             stage_dir = run.stage_dir("02-synth")
-            self.assertTrue((stage_dir / "attempts" / "attempt-01" / "request.json").exists())
-            self.assertTrue((stage_dir / "attempts" / "attempt-01" / "response.json").exists())
-            meta = json.loads((stage_dir / "attempts" / "attempt-01" / "meta.json").read_text())
+            self.assertTrue(
+                (stage_dir / "attempts" / "attempt-01" / "request.json").exists()
+            )
+            self.assertTrue(
+                (stage_dir / "attempts" / "attempt-01" / "response.json").exists()
+            )
+            meta = json.loads(
+                (stage_dir / "attempts" / "attempt-01" / "meta.json").read_text()
+            )
             self.assertEqual(meta["http_status"], 200)
             self.assertEqual(state.served[0]["stage"], "02-synth")
         finally:
@@ -100,9 +118,18 @@ class TestLLMClient(unittest.TestCase):
             client = LLMClient(cfg, run)
             out = self._call(client)
             self.assertEqual(out["topic"], "x")
-            attempts = sorted(p.name for p in (run.stage_dir("02-synth") / "attempts").iterdir())
+            attempts = sorted(
+                p.name for p in (run.stage_dir("02-synth") / "attempts").iterdir()
+            )
             self.assertEqual(attempts, ["attempt-01", "attempt-02"])
-            req2 = json.loads((run.stage_dir("02-synth") / "attempts" / "attempt-02" / "request.json").read_text())
+            req2 = json.loads(
+                (
+                    run.stage_dir("02-synth")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )
             roles = [m["role"] for m in req2["messages"]]
             self.assertIn("assistant", roles)
             self.assertIn("Schema validation failed", req2["messages"][-1]["content"])
@@ -115,7 +142,14 @@ class TestLLMClient(unittest.TestCase):
             cfg = make_cfg(self.tmp, url)
             out = self._call(LLMClient(cfg, self._run(cfg)))
             self.assertEqual(out["topic"], "x")
-            req2 = json.loads((self._run(cfg).stage_dir("02-synth") / "attempts" / "attempt-02" / "request.json").read_text())
+            req2 = json.loads(
+                (
+                    self._run(cfg).stage_dir("02-synth")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )
             self.assertIn("JSON parse failure", req2["messages"][-1]["content"])
         finally:
             server.shutdown()

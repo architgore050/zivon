@@ -2,13 +2,14 @@
 
 import sys
 import unittest
+from itertools import pairwise
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.lint import lint_css, lint_html, lint_js  # noqa: E402
-from factory.textops import chunk_text, normalize_title, titles_equivalent  # noqa: E402
+from factory.lint import lint_css, lint_html, lint_js
+from factory.textops import chunk_text, normalize_title, titles_equivalent
 
 
 class TestJsLints(unittest.TestCase):
@@ -43,7 +44,9 @@ class TestCssLints(unittest.TestCase):
         self.assertTrue(lint_css("a.css", "@import url('x.css');"))
 
     def test_external_url_caught(self):
-        self.assertTrue(lint_css("a.css", ".a { background: url(https://x.example/i.png); }"))
+        self.assertTrue(
+            lint_css("a.css", ".a { background: url(https://x.example/i.png); }")
+        )
 
 
 class TestHtmlLints(unittest.TestCase):
@@ -65,7 +68,9 @@ class TestHtmlLints(unittest.TestCase):
 class TestTextOps(unittest.TestCase):
     def test_normalize(self):
         self.assertEqual(normalize_title("Motion!"), "motion")
-        self.assertEqual(normalize_title("  Force &  Laws of Motion "), "forcelawsofmotion")
+        self.assertEqual(
+            normalize_title("  Force &  Laws of Motion "), "forcelawsofmotion"
+        )
 
     def test_equivalence(self):
         self.assertTrue(titles_equivalent("Motion", "Motion"))
@@ -79,7 +84,7 @@ class TestTextOps(unittest.TestCase):
         chunks = chunk_text(text, chunk_chars=100, overlap=20)
         self.assertTrue(all(len(c) <= 100 for c in chunks))
         # continuity: each chunk (except the first) shares `overlap` chars with the end of the previous
-        for prev, nxt in zip(chunks, chunks[1:]):
+        for prev, nxt in pairwise(chunks):
             self.assertEqual(prev[-20:], nxt[:20])
         # full coverage: the first chunk starts the text, the last chunk ends it
         self.assertEqual(chunks[0][:80], text[:80])

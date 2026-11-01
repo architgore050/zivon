@@ -41,6 +41,6 @@ USER app
 ENV PYTHONPATH=/app
 
 # Default command: import-everything smoke test (CI will reuse this).
-# Override at runtime once pipeline.py exists, e.g.:
+# Override at runtime for a real pipeline run, e.g.:
 #   docker run --rm -e ZIVON_API_KEY zivon-factory:0.1.0 python pipeline.py "Motion" --class 9
 CMD ["python", "docker/smoke_test.py"]

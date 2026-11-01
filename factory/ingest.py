@@ -67,13 +67,15 @@ def _fetch(url: str, dest: Path) -> Path:
         return dest
     dest.parent.mkdir(parents=True, exist_ok=True)
     if url.startswith("file://"):
-        src = Path(url[len("file://"):])
+        src = Path(url[len("file://") :])
         if not src.exists():
             raise _NotFound(url)
         dest.write_bytes(src.read_bytes())
     else:
         try:
-            resp = requests.get(url, timeout=120, headers={"User-Agent": "zivon-content-factory/0.1"})
+            resp = requests.get(
+                url, timeout=120, headers={"User-Agent": "zivon-content-factory/0.1"}
+            )
         except requests.RequestException as exc:
             raise SourceError(STAGE_ID, f"could not fetch {url}: {exc}") from exc
         if resp.status_code == 404:
@@ -101,7 +103,9 @@ def _validate_pdf(path: Path, origin: str) -> None:
         )
 
 
-def _extract_pages(pdf_path: Path, max_pages: int | None = None) -> list[dict[str, Any]]:
+def _extract_pages(
+    pdf_path: Path, max_pages: int | None = None
+) -> list[dict[str, Any]]:
     try:
         reader = PdfReader(str(pdf_path))
         pages = reader.pages
@@ -110,9 +114,11 @@ def _extract_pages(pdf_path: Path, max_pages: int | None = None) -> list[dict[st
         for i in range(n):
             try:
                 text = clean_pdf_text(pages[i].extract_text() or "")
-            except Exception as exc:  # pypdf can raise on weird pages
+            except Exception as exc:  # noqa: BLE001 — pypdf can raise on weird pages; warning is loud, not silent
                 text = ""
-                print(f"    [warn] page {i + 1} of {pdf_path.name}: text extraction failed ({exc})")
+                print(
+                    f"    [warn] page {i + 1} of {pdf_path.name}: text extraction failed ({exc})"
+                )
             out.append({"page": i + 1, "text": text})
         return out
     except SourceError:
@@ -121,7 +127,9 @@ def _extract_pages(pdf_path: Path, max_pages: int | None = None) -> list[dict[st
         raise SourceError(STAGE_ID, f"could not parse {pdf_path}: {exc}") from exc
 
 
-def _save_pages(cfg: Config, book_id: str, stem: str, pages: list[dict[str, Any]]) -> Path:
+def _save_pages(
+    cfg: Config, book_id: str, stem: str, pages: list[dict[str, Any]]
+) -> Path:
     out = _cache_dir(cfg, book_id) / f"{stem}.pages.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(pages, ensure_ascii=False), encoding="utf-8")
@@ -129,7 +137,9 @@ def _save_pages(cfg: Config, book_id: str, stem: str, pages: list[dict[str, Any]
 
 
 # ------------------------------------------------------------------ auto books
-def _index_auto_book(cfg: Config, run_ctx: RunContext, book: dict[str, Any]) -> dict[str, Any]:
+def _index_auto_book(
+    cfg: Config, run_ctx: RunContext, book: dict[str, Any]
+) -> dict[str, Any]:
     book_id = book["id"]
     print(f"[{STAGE_ID}] book {book_id}: {book['title']}")
     prelims_pdf = _fetch(book["prelims_url"], _book_dir(cfg, book_id) / "prelims.pdf")
@@ -162,8 +172,11 @@ def _index_auto_book(cfg: Config, run_ctx: RunContext, book: dict[str, Any]) -> 
                     f"book's chapter list as unverified, so the list ends at chapter {n - 1}. "
                     "Recorded in the run output. If that is wrong, fix sources/catalog.json."
                 )
-                run_ctx.mark_stage(STAGE_ID, "running",
-                                   detail=f"{book_id}: chapter list truncated at {n - 1}")
+                run_ctx.mark_stage(
+                    STAGE_ID,
+                    "running",
+                    detail=f"{book_id}: chapter list truncated at {n - 1}",
+                )
                 break
             raise SourceError(
                 STAGE_ID,
@@ -172,18 +185,25 @@ def _index_auto_book(cfg: Config, run_ctx: RunContext, book: dict[str, Any]) -> 
             ) from exc
         pages = _extract_pages(dest)
         _save_pages(cfg, book_id, f"ch{n:02d}", pages)
-        chapters.append({
-            "n": n,
-            "pdf": str(dest),
-            "pages_count": len(pages),
-            "title_detected": _detect_title(pages),
-        })
+        chapters.append(
+            {
+                "n": n,
+                "pdf": str(dest),
+                "pages_count": len(pages),
+                "title_detected": _detect_title(pages),
+            }
+        )
 
     return {
-        "id": book_id, "class": book["class"], "subject": book["subject"],
-        "title": book["title"], "is_ncert": book["is_ncert"],
-        "license": book["license"], "prelims_pdf": str(prelims_pdf),
-        "chapters": chapters, "truncated_at": truncated_at,
+        "id": book_id,
+        "class": book["class"],
+        "subject": book["subject"],
+        "title": book["title"],
+        "is_ncert": book["is_ncert"],
+        "license": book["license"],
+        "prelims_pdf": str(prelims_pdf),
+        "chapters": chapters,
+        "truncated_at": truncated_at,
     }
 
 
@@ -218,13 +238,21 @@ def _index_manual_book(cfg: Config, book: dict[str, Any]) -> dict[str, Any]:
     pages = _extract_pages(dest)
     _save_pages(cfg, book_id, dest.stem, pages)
     return {
-        "id": book_id, "class": book["class"], "subject": book["subject"],
-        "title": book["title"], "is_ncert": book["is_ncert"],
-        "license": book["license"], "prelims_pdf": None,
-        "chapters": [{
-            "n": 1, "pdf": str(dest), "pages_count": len(pages),
-            "title_detected": None,
-        }],
+        "id": book_id,
+        "class": book["class"],
+        "subject": book["subject"],
+        "title": book["title"],
+        "is_ncert": book["is_ncert"],
+        "license": book["license"],
+        "prelims_pdf": None,
+        "chapters": [
+            {
+                "n": 1,
+                "pdf": str(dest),
+                "pages_count": len(pages),
+                "title_detected": None,
+            }
+        ],
         "single_file": True,
         "truncated_at": None,
     }

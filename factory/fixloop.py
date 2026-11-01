@@ -19,7 +19,7 @@ from .config import Config
 from .errors import BudgetError, LintError
 from .lint import lint_generated
 from .llm import LLMClient
-from .perf import REPO_ROOT, _harness
+from .perf import _harness
 from .schemas import FIX_PLAN
 
 STAGE_ID = "09-fixloop"
@@ -27,7 +27,9 @@ STAGE_ID = "09-fixloop"
 FIXABLE = {"page.js", "page.css"}  # topic-local only; index.html is renderer-owned
 
 
-def run(cfg: Config, run_ctx: RunContext, llm: LLMClient, render_out: dict[str, Any]) -> dict[str, Any]:
+def run(
+    cfg: Config, run_ctx: RunContext, llm: LLMClient, render_out: dict[str, Any]
+) -> dict[str, Any]:
     run_profile = _harness()
     profile_path = cfg.repo_path(cfg.perf["profile"])
     topic_dir = Path(render_out["topic_dir"])
@@ -49,26 +51,46 @@ def run(cfg: Config, run_ctx: RunContext, llm: LLMClient, render_out: dict[str, 
             for name in sorted(FIXABLE)
             if (topic_dir / name).exists()
         }
-        plan = llm.call(STAGE_ID, [
-            {"role": "system", "content": _system()},
-            {"role": "user", "content": _user_msg(report, current_files, round_no, rounds)},
-        ], FIX_PLAN, "fix_plan")
+        plan = llm.call(
+            STAGE_ID,
+            [
+                {"role": "system", "content": _system()},
+                {
+                    "role": "user",
+                    "content": _user_msg(report, current_files, round_no, rounds),
+                },
+            ],
+            FIX_PLAN,
+            "fix_plan",
+        )
 
         run_ctx.write_json(
-            run_ctx.stage_dir(STAGE_ID) / f"round-{round_no:02d}-plan.json", plan)
+            run_ctx.stage_dir(STAGE_ID) / f"round-{round_no:02d}-plan.json", plan
+        )
 
         _apply_plan(topic_dir, plan)
         _rebuild_html_if_needed(cfg, render_out, topic_dir)
 
         # Re-lint everything that changed, plus the html that embeds them.
         html_text = (topic_dir / "index.html").read_text(encoding="utf-8")
-        js = (topic_dir / "page.js").read_text(encoding="utf-8") if (topic_dir / "page.js").exists() else ""
-        css = (topic_dir / "page.css").read_text(encoding="utf-8") if (topic_dir / "page.css").exists() else ""
+        js = (
+            (topic_dir / "page.js").read_text(encoding="utf-8")
+            if (topic_dir / "page.js").exists()
+            else ""
+        )
+        css = (
+            (topic_dir / "page.css").read_text(encoding="utf-8")
+            if (topic_dir / "page.css").exists()
+            else ""
+        )
         hits = lint_generated(js, css, html_text)
         if hits:
-            raise LintError(STAGE_ID,
-                            f"round {round_no}: fixed code violates hard lints:\n" + "\n".join(hits),
-                            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)))
+            raise LintError(
+                STAGE_ID,
+                f"round {round_no}: fixed code violates hard lints:\n"
+                + "\n".join(hits),
+                artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+            )
 
     final_report = run_profile(topic_url, profile_path)
     history.append({"round": rounds + 1, "perf": final_report})
@@ -87,14 +109,18 @@ def _apply_plan(topic_dir: Path, plan: dict[str, Any]) -> None:
     files = plan.get("files", {})
     illegal = set(files) - FIXABLE
     if illegal:
-        raise LintError(STAGE_ID,
-                        f"fix plan tries to modify non-topic files: {sorted(illegal)}. "
-                        f"Only {sorted(FIXABLE)} may change.")
+        raise LintError(
+            STAGE_ID,
+            f"fix plan tries to modify non-topic files: {sorted(illegal)}. "
+            f"Only {sorted(FIXABLE)} may change.",
+        )
     for name, content in files.items():
         (topic_dir / name).write_text(content, encoding="utf-8")
 
 
-def _rebuild_html_if_needed(cfg: Config, render_out: dict[str, Any], topic_dir: Path) -> None:
+def _rebuild_html_if_needed(
+    cfg: Config, render_out: dict[str, Any], topic_dir: Path
+) -> None:
     """index.html is renderer-owned; after a fix round, re-emit it so the
     page.js/page.css script/link tags match the files that actually exist."""
     from .render import _page_html  # renderer owns this template
@@ -109,13 +135,27 @@ def _rebuild_html_if_needed(cfg: Config, render_out: dict[str, Any], topic_dir: 
     body = old[start:end]
     has_js = (topic_dir / "page.js").exists()
     has_css = (topic_dir / "page.css").exists()
-    new_html = _page_html(cfg, {"title": title, "objectives": _extract_objectives(old),
-                                "glossary": _extract_glossary(old)},
-                          body, render_out["manifest"]["topic_slug"], course_id,
-                          has_page_js=has_js, has_page_css=has_css)
+    new_html = _page_html(
+        cfg,
+        {
+            "title": title,
+            "objectives": _extract_objectives(old),
+            "glossary": _extract_glossary(old),
+        },
+        body,
+        render_out["manifest"]["topic_slug"],
+        course_id,
+        has_page_js=has_js,
+        has_page_css=has_css,
+    )
     html_path.write_text(new_html, encoding="utf-8")
     # copy into the staging landing tree as well
-    site_topic = Path(render_out["site_dir"]) / "courses" / course_id / render_out["manifest"]["topic_slug"]
+    site_topic = (
+        Path(render_out["site_dir"])
+        / "courses"
+        / course_id
+        / render_out["manifest"]["topic_slug"]
+    )
     if site_topic != topic_dir:
         shutil.copy2(html_path, site_topic / "index.html")
         for name in ("page.js", "page.css"):
@@ -126,22 +166,34 @@ def _rebuild_html_if_needed(cfg: Config, render_out: dict[str, Any], topic_dir: 
 
 def _extract_objectives(html_text: str) -> list[str]:
     import re
+
     block = re.search(r'<ul class="zn-objectives">(.*?)</ul>', html_text, re.DOTALL)
     if not block:
         return ["(objectives unavailable)"]
-    return [re.sub(r"<[^>]+>", "", li).strip() for li in re.findall(r"<li>(.*?)</li>", block.group(1), re.DOTALL)]
+    return [
+        re.sub(r"<[^>]+>", "", li).strip()
+        for li in re.findall(r"<li>(.*?)</li>", block.group(1), re.DOTALL)
+    ]
 
 
 def _extract_glossary(html_text: str) -> list[dict[str, str]]:
     import re
-    block = re.search(r'<section class="zn-glossary">(.*?)</section>', html_text, re.DOTALL)
+
+    block = re.search(
+        r'<section class="zn-glossary">(.*?)</section>', html_text, re.DOTALL
+    )
     if not block:
         return [{"term": "n/a", "definition": "n/a"}]
     pairs = re.findall(r"<dt>(.*?)</dt><dd>(.*?)</dd>", block.group(1), re.DOTALL)
     if not pairs:
         return [{"term": "n/a", "definition": "n/a"}]
-    return [{"term": re.sub(r"<[^>]+>", "", t).strip(), "definition": re.sub(r"<[^>]+>", "", d).strip()}
-            for t, d in pairs]
+    return [
+        {
+            "term": re.sub(r"<[^>]+>", "", t).strip(),
+            "definition": re.sub(r"<[^>]+>", "", d).strip(),
+        }
+        for t, d in pairs
+    ]
 
 
 def _system() -> str:
@@ -156,27 +208,43 @@ def _system() -> str:
     )
 
 
-def _user_msg(report: dict[str, Any], files: dict[str, str], round_no: int, rounds: int) -> str:
+def _user_msg(
+    report: dict[str, Any], files: dict[str, str], round_no: int, rounds: int
+) -> str:
     measurements = json.dumps(
-        {"failures": report["failures"], "measured": report["measured"]}, indent=1)
-    files_text = "\n\n".join(
-        f"=== {name} ===\n{content}" for name, content in files.items()) or "(no topic files yet)"
+        {"failures": report["failures"], "measured": report["measured"]}, indent=1
+    )
+    files_text = (
+        "\n\n".join(f"=== {name} ===\n{content}" for name, content in files.items())
+        or "(no topic files yet)"
+    )
     return (
         f"ROUND {round_no} of {rounds}.\n\n"
         f"PERF REPORT (budgets vs measured):\n{measurements}\n\n"
         f"CURRENT TOPIC FILES:\n{files_text}\n\n"
-        "Return {\"analysis\": \"what is slow and why\", \"files\": {\"page.js\": \"<full new "
-        "content>\", \"page.css\": \"<full new content or omit>\"}}. Omit files you do not change. "
+        'Return {"analysis": "what is slow and why", "files": {"page.js": "<full new '
+        'content>", "page.css": "<full new content or omit>"}}. Omit files you do not change. '
         "File contents must be complete replacements."
     )
 
 
-def _finish(cfg: Config, run_ctx: RunContext, history: list, topic_dir: Path, site: Path, ok: bool) -> None:
+def _finish(
+    cfg: Config,
+    run_ctx: RunContext,
+    history: list,
+    topic_dir: Path,
+    site: Path,
+    ok: bool,
+) -> None:
     run_ctx.write_json(run_ctx.stage_dir(STAGE_ID) / "history.json", history)
     if ok:
         # sync final files into the staging site copy
-        course_id = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))["course_id"]
-        slug = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))["topic_slug"]
+        course_id = json.loads(
+            (topic_dir / "manifest.json").read_text(encoding="utf-8")
+        )["course_id"]
+        slug = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))[
+            "topic_slug"
+        ]
         site_topic = site / "courses" / course_id / slug
         if site_topic != topic_dir:
             for name in ("index.html", "page.js", "page.css", "manifest.json"):

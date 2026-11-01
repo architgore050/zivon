@@ -20,7 +20,10 @@ SELF_CONTAINMENT_PATTERNS = [
     (r"(?i)\bthe ncert\b", "references 'the NCERT' (book), not this page"),
     (r"(?i)\byour teacher\b", "defers to an external person"),
     (r"(?i)\bexercise \d+", "references an external exercise number"),
-    (r"(?i)\bas we (saw|learned|discussed)\b", "references prior context the reader may not have"),
+    (
+        r"(?i)\bas we (saw|learned|discussed)\b",
+        "references prior context the reader may not have",
+    ),
     (r"(?i)\bfig(ure)?\.?\s*\d+\.\d+", "references an external figure number"),
     (r"https?://", "contains a URL (pages must be self-contained)"),
 ]
@@ -40,26 +43,39 @@ def rule_answer_keys(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 issues.append(_issue(b, "fatal", f"mcq has {options!r} options"))
                 continue
             if not isinstance(idx, int) or not (0 <= idx < len(options)):
-                issues.append(_issue(b, "fatal", f"answer_index {idx!r} out of range for {len(options)} options"))
+                issues.append(
+                    _issue(
+                        b,
+                        "fatal",
+                        f"answer_index {idx!r} out of range for {len(options)} options",
+                    )
+                )
                 continue
             answer = str(spec.get("answer", "")).strip()
             if answer and answer.strip() != str(options[idx]).strip():
-                issues.append(_issue(
-                    b, "fatal",
-                    f"answer key mismatch: answer='{answer}' but options[{idx}]='{options[idx]}'",
-                ))
+                issues.append(
+                    _issue(
+                        b,
+                        "fatal",
+                        f"answer key mismatch: answer='{answer}' but options[{idx}]='{options[idx]}'",
+                    )
+                )
         elif fmt == "numeric":
             answer = spec.get("answer")
             try:
                 float(str(answer).strip())
             except (TypeError, ValueError):
-                issues.append(_issue(b, "fatal", f"numeric answer {answer!r} is not a number"))
+                issues.append(
+                    _issue(b, "fatal", f"numeric answer {answer!r} is not a number")
+                )
         else:
             issues.append(_issue(b, "fatal", f"unknown check format {fmt!r}"))
     return issues
 
 
-def rule_citations(blocks: list[dict[str, Any]], ground_truth: dict[str, Any]) -> list[dict[str, Any]]:
+def rule_citations(
+    blocks: list[dict[str, Any]], ground_truth: dict[str, Any]
+) -> list[dict[str, Any]]:
     valid_claims = {c["id"] for c in ground_truth["claims"]}
     valid_terms = {t["term"] for t in ground_truth["key_terms"]}
     issues: list[dict[str, Any]] = []
@@ -69,19 +85,41 @@ def rule_citations(blocks: list[dict[str, Any]], ground_truth: dict[str, Any]) -
             if claim_id and claim_id not in valid_claims:
                 issues.append(_issue(b, "fatal", f"cites unknown claim '{claim_id}'"))
             source_id = cit.get("source_id")
-            if source_id and source_id != "ncert" and not source_id.startswith(("ncert", "openstax", "siyavula")):
+            if (
+                source_id
+                and source_id != "ncert"
+                and not source_id.startswith(("ncert", "openstax", "siyavula"))
+            ):
                 # unknown provenance is suspicious but not necessarily wrong; major
-                issues.append(_issue(b, "major", f"cites source_id '{source_id}' that is not in the source pack naming scheme"))
+                issues.append(
+                    _issue(
+                        b,
+                        "major",
+                        f"cites source_id '{source_id}' that is not in the source pack naming scheme",
+                    )
+                )
             _ = valid_terms  # term-level citations allowed but not required
     return issues
 
 
-def rule_self_containment(blocks: list[dict[str, Any]], lesson: dict[str, Any]) -> list[dict[str, Any]]:
+def rule_self_containment(
+    blocks: list[dict[str, Any]], lesson: dict[str, Any]
+) -> list[dict[str, Any]]:
     texts = [p for s in lesson["sections"] for p in s["paragraphs"]]
     texts += [g["definition"] for g in lesson["glossary"]]
     for b in blocks:
         spec = b["spec"]
-        for key in ("question", "explanation", "problem", "answer", "caption", "description", "title", "learning_goal", "default_behaviour"):
+        for key in (
+            "question",
+            "explanation",
+            "problem",
+            "answer",
+            "caption",
+            "description",
+            "title",
+            "learning_goal",
+            "default_behaviour",
+        ):
             v = spec.get(key)
             if isinstance(v, str):
                 texts.append(v)
@@ -96,14 +134,22 @@ def rule_self_containment(blocks: list[dict[str, Any]], lesson: dict[str, Any]) 
         for pattern, why in SELF_CONTAINMENT_PATTERNS:
             m = re.search(pattern, text or "")
             if m:
-                issues.append({
-                    "block_id": None, "severity": "major", "rule": "self_containment",
-                    "message": f"{why}: ...{m.group(0)}... in: {text[:120]!r}",
-                })
+                issues.append(
+                    {
+                        "block_id": None,
+                        "severity": "major",
+                        "rule": "self_containment",
+                        "message": f"{why}: ...{m.group(0)}... in: {text[:120]!r}",
+                    }
+                )
     return issues
 
 
-def rule_numbers(blocks: list[dict[str, Any]], ground_truth: dict[str, Any], source_pack: dict[str, Any]) -> list[dict[str, Any]]:
+def rule_numbers(
+    blocks: list[dict[str, Any]],
+    ground_truth: dict[str, Any],
+    source_pack: dict[str, Any],
+) -> list[dict[str, Any]]:
     """Every number used in a worked_example answer or a check answer must be
     traceable to the ground truth or the primary source text (string match on
     the numeral, ignoring formatting). Guards against invented answers."""
@@ -126,11 +172,14 @@ def rule_numbers(blocks: list[dict[str, Any]], ground_truth: dict[str, Any], sou
             for num in re.findall(r"\d+(?:\.\d+)?", text or ""):
                 bare = num.lstrip("0") or "0"
                 if bare not in corpus and num not in corpus:
-                    issues.append(_issue(
-                        b, "fatal",
-                        f"number {num} appears in the answer but nowhere in the ground truth "
-                        "or the primary source - possible invented figure",
-                    ))
+                    issues.append(
+                        _issue(
+                            b,
+                            "fatal",
+                            f"number {num} appears in the answer but nowhere in the ground truth "
+                            "or the primary source - possible invented figure",
+                        )
+                    )
     return issues
 
 
@@ -156,8 +205,12 @@ def rule_diagram_svg(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return issues
 
 
-def run_all_rules(blocks: list[dict[str, Any]], lesson: dict[str, Any],
-                  ground_truth: dict[str, Any], source_pack: dict[str, Any]) -> dict[str, Any]:
+def run_all_rules(
+    blocks: list[dict[str, Any]],
+    lesson: dict[str, Any],
+    ground_truth: dict[str, Any],
+    source_pack: dict[str, Any],
+) -> dict[str, Any]:
     issues = (
         rule_answer_keys(blocks)
         + rule_citations(blocks, ground_truth)
@@ -174,4 +227,9 @@ def run_all_rules(blocks: list[dict[str, Any]], lesson: dict[str, Any],
 
 
 def _issue(block: dict[str, Any], severity: str, message: str) -> dict[str, Any]:
-    return {"block_id": block.get("id"), "severity": severity, "rule": "auto", "message": message}
+    return {
+        "block_id": block.get("id"),
+        "severity": severity,
+        "rule": "auto",
+        "message": message,
+    }

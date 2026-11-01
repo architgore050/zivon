@@ -10,7 +10,7 @@ import jsonschema
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.schemas import BLOCKS, CHECK_REPORT, GROUND_TRUTH, LESSON  # noqa: E402
+from factory.schemas import BLOCKS, CHECK_REPORT, GROUND_TRUTH, LESSON
 
 FIXTURES = Path(REPO_ROOT) / "testing" / "mocks" / "fixtures"
 
@@ -29,8 +29,15 @@ class TestSchemas(unittest.TestCase):
         jsonschema.validate(blocks, BLOCKS)
 
     def test_ground_truth_requires_citations(self):
-        bad = {"topic": "T", "summary": "s" * 50, "claims": [{"id": "claim-01", "statement": "x" * 20, "citations": []}],
-               "key_terms": [], "equations": [], "misconceptions": [], "uncertain": []}
+        bad = {
+            "topic": "T",
+            "summary": "s" * 50,
+            "claims": [{"id": "claim-01", "statement": "x" * 20, "citations": []}],
+            "key_terms": [],
+            "equations": [],
+            "misconceptions": [],
+            "uncertain": [],
+        }
         with self.assertRaises(jsonschema.ValidationError):
             jsonschema.validate(bad, GROUND_TRUTH)
 

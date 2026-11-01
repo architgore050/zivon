@@ -16,7 +16,7 @@ from typing import Any
 from .artifacts import RunContext
 from .config import Config
 from .errors import LintError
-from .lint import lint_js, lint_css
+from .lint import lint_css, lint_js
 from .llm import LLMClient
 from .schemas import INTERACTIVE
 
@@ -37,7 +37,9 @@ ZivonSim.register("<BLOCK_ID>", {
 """
 
 
-def run(cfg: Config, run_ctx: RunContext, llm: LLMClient, blocks: dict[str, Any]) -> dict[str, Any]:
+def run(
+    cfg: Config, run_ctx: RunContext, llm: LLMClient, blocks: dict[str, Any]
+) -> dict[str, Any]:
     sims = [b for b in blocks["blocks"] if b["type"] == "simulation"]
     results: dict[str, Any] = {}
     for b in sims:
@@ -45,14 +47,19 @@ def run(cfg: Config, run_ctx: RunContext, llm: LLMClient, blocks: dict[str, Any]
     return results
 
 
-def _build_simulation(cfg: Config, run_ctx: RunContext, llm: LLMClient, block: dict[str, Any]) -> dict[str, Any]:
+def _build_simulation(
+    cfg: Config, run_ctx: RunContext, llm: LLMClient, block: dict[str, Any]
+) -> dict[str, Any]:
     spec = block["spec"]
     controls = spec.get("controls", [])
-    control_lines = "\n".join(
-        f'  - id "{c.get("id")}", label "{c.get("label")}", range {c.get("min")}..{c.get("max")}, '
-        f'step {c.get("step")}, initial {c.get("initial")}'
-        for c in controls
-    ) or "  - (no controls: this is an animation)"
+    control_lines = (
+        "\n".join(
+            f'  - id "{c.get("id")}", label "{c.get("label")}", range {c.get("min")}..{c.get("max")}, '
+            f"step {c.get('step')}, initial {c.get('initial')}"
+            for c in controls
+        )
+        or "  - (no controls: this is an animation)"
+    )
     doctrine_path = cfg.repo_path(cfg.paths["doctrine"])
 
     user = (
@@ -74,24 +81,35 @@ def _build_simulation(cfg: Config, run_ctx: RunContext, llm: LLMClient, block: d
         "(var(--ink), var(--paper), var(--graphite), var(--pen-blue)) from zivon.css. "
         f"Reference: {doctrine_path}. Do not invent new colours beyond the doctrine tokens.\n"
         "- The runtime wires the range inputs to ctx.values[controlId] automatically.\n"
-        "Return a JSON object: {\"id\": \"" + block["id"] + "\", \"files\": "
-        "{\"page.js\": \"<full file content>\", \"page.css\": \"<full file content or empty string>\"}}."
+        'Return a JSON object: {"id": "' + block["id"] + '", "files": '
+        '{"page.js": "<full file content>", "page.css": "<full file content or empty string>"}}.'
     )
-    out = llm.call("06-interactive", [
-        {"role": "system", "content": _system_msg()},
-        {"role": "user", "content": user},
-    ], INTERACTIVE, "interactive output")
+    out = llm.call(
+        "06-interactive",
+        [
+            {"role": "system", "content": _system_msg()},
+            {"role": "user", "content": user},
+        ],
+        INTERACTIVE,
+        "interactive output",
+    )
 
     js = out["files"].get("page.js", "")
     css = out["files"].get("page.css", "")
     if not js.strip():
-        raise LintError(STAGE_ID, f"block {block['id']}: model returned an empty page.js",
-                        artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)))
-    hits = lint_js(f"{block['id']}/page.js", js) + lint_css(f"{block['id']}/page.css", css)
+        raise LintError(
+            STAGE_ID,
+            f"block {block['id']}: model returned an empty page.js",
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        )
+    hits = lint_js(f"{block['id']}/page.js", js) + lint_css(
+        f"{block['id']}/page.css", css
+    )
     if hits:
         raise LintError(
             STAGE_ID,
-            f"block {block['id']} generated code violates hard lints:\n" + "\n".join(hits),
+            f"block {block['id']} generated code violates hard lints:\n"
+            + "\n".join(hits),
             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
         )
     return out

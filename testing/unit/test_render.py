@@ -10,10 +10,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.artifacts import RunContext  # noqa: E402
-from factory.config import load_config  # noqa: E402
-from factory.errors import LintError  # noqa: E402
-from factory.render import run as render_run, write_courses_js  # noqa: E402
+from factory.artifacts import RunContext
+from factory.config import load_config
+from factory.errors import LintError
+from factory.render import run as render_run
+from factory.render import write_courses_js
 
 FIXTURES = REPO_ROOT / "testing" / "mocks" / "fixtures"
 
@@ -37,12 +38,27 @@ def minimal_inputs():
     blocks = json.loads((FIXTURES / "04-draft.json").read_text())
     interactive = {"b-06": json.loads((FIXTURES / "06-interactive.json").read_text())}
     source_pack = {
-        "chapter": {"title": "Motion", "book_id": "fixture-ncert-9", "book_title": "Fixture Science Class 9",
-                    "class": 9, "file": "ch01.pdf", "pages": [1, 5], "matched_line": "Motion"},
+        "chapter": {
+            "title": "Motion",
+            "book_id": "fixture-ncert-9",
+            "book_title": "Fixture Science Class 9",
+            "class": 9,
+            "file": "ch01.pdf",
+            "pages": [1, 5],
+            "matched_line": "Motion",
+        },
         "ncert_text": "Motion text",
-        "supplements": [{"source_id": "alt#c0000", "book_id": "alt-open-physics",
-                         "book_title": "Open Physics Notes", "page_from": 1, "page_to": 2,
-                         "score": 0.5, "text": "graph text"}],
+        "supplements": [
+            {
+                "source_id": "alt#c0000",
+                "book_id": "alt-open-physics",
+                "book_title": "Open Physics Notes",
+                "page_from": 1,
+                "page_to": 2,
+                "score": 0.5,
+                "text": "graph text",
+            }
+        ],
     }
     return source_pack, lesson, blocks, interactive
 
@@ -51,11 +67,22 @@ class TestRender(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.cfg, self.frontend = make_cfg(self.tmp)
-        self.run_ctx = RunContext(self.cfg.repo_path(self.cfg.paths["runs"]), "t-render")
+        self.run_ctx = RunContext(
+            self.cfg.repo_path(self.cfg.paths["runs"]), "t-render"
+        )
 
     def test_render_produces_clean_page(self):
         source_pack, lesson, blocks, interactive = minimal_inputs()
-        out = render_run(self.cfg, self.run_ctx, "Motion", source_pack, {}, lesson, blocks, interactive)
+        out = render_run(
+            self.cfg,
+            self.run_ctx,
+            "Motion",
+            source_pack,
+            {},
+            lesson,
+            blocks,
+            interactive,
+        )
         topic = Path(out["topic_dir"])
         html = (topic / "index.html").read_text(encoding="utf-8")
         self.assertIn("Content-Security-Policy", html)
@@ -79,12 +106,23 @@ class TestRender(unittest.TestCase):
         source_pack, lesson, blocks, interactive = minimal_inputs()
         interactive["b-06"]["files"]["page.js"] = "eval('1')"
         with self.assertRaises(LintError):
-            render_run(self.cfg, self.run_ctx, "Motion", source_pack, {}, lesson, blocks, interactive)
+            render_run(
+                self.cfg,
+                self.run_ctx,
+                "Motion",
+                source_pack,
+                {},
+                lesson,
+                blocks,
+                interactive,
+            )
 
     def test_no_page_js_when_no_interactive(self):
         source_pack, lesson, blocks, _ = minimal_inputs()
         blocks = {"blocks": [b for b in blocks["blocks"] if b["type"] != "simulation"]}
-        out = render_run(self.cfg, self.run_ctx, "Motion", source_pack, {}, lesson, blocks, {})
+        out = render_run(
+            self.cfg, self.run_ctx, "Motion", source_pack, {}, lesson, blocks, {}
+        )
         html = (Path(out["topic_dir"]) / "index.html").read_text(encoding="utf-8")
         self.assertNotIn('src="page.js"', html)
         self.assertFalse((Path(out["topic_dir"]) / "page.js").exists())

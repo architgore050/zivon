@@ -25,27 +25,54 @@ from .lint import lint_generated
 
 STAGE_ID = "07-render"
 
-CSP = ("default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; "
-       "font-src 'self'; connect-src 'none'; base-uri 'none'")
+CSP = (
+    "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; "
+    "font-src 'self'; connect-src 'none'; base-uri 'none'"
+)
 
 
-def run(cfg: Config, run_ctx: RunContext, chapter_query: str,
-        source_pack: dict[str, Any], ground_truth: dict[str, Any], lesson: dict[str, Any],
-        blocks: dict[str, Any], interactive: dict[str, Any]) -> dict[str, Any]:
+def run(
+    cfg: Config,
+    run_ctx: RunContext,
+    chapter_query: str,
+    source_pack: dict[str, Any],
+    ground_truth: dict[str, Any],
+    lesson: dict[str, Any],
+    blocks: dict[str, Any],
+    interactive: dict[str, Any],
+) -> dict[str, Any]:
     slug = slugify(lesson["title"])
     course_id = f"class-{cfg.learner['class_level']}-physics"
 
-    page_js = "\n\n".join(out["files"].get("page.js", "") for out in interactive.values() if out["files"].get("page.js"))
-    page_css = "\n\n".join(out["files"].get("page.css", "") for out in interactive.values() if out["files"].get("page.css"))
+    page_js = "\n\n".join(
+        out["files"].get("page.js", "")
+        for out in interactive.values()
+        if out["files"].get("page.js")
+    )
+    page_css = "\n\n".join(
+        out["files"].get("page.css", "")
+        for out in interactive.values()
+        if out["files"].get("page.css")
+    )
 
     body = "\n".join(_render_block(b) for b in blocks["blocks"])
-    html_text = _page_html(cfg, lesson, body, slug, course_id, has_page_js=bool(page_js.strip()),
-                           has_page_css=bool(page_css.strip()))
+    html_text = _page_html(
+        cfg,
+        lesson,
+        body,
+        slug,
+        course_id,
+        has_page_js=bool(page_js.strip()),
+        has_page_css=bool(page_css.strip()),
+    )
 
     hits = lint_generated(page_js, page_css, html_text)
     if hits:
-        raise LintError(STAGE_ID, "rendered page violates hard lints:\n" + "\n".join(hits),
-                        artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)))
+        raise LintError(
+            STAGE_ID,
+            "rendered page violates hard lints:\n" + "\n".join(hits),
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        )
 
     # ---- staging site ------------------------------------------------------
     site = run_ctx.stage_dir(STAGE_ID) / "site"
@@ -56,7 +83,10 @@ def run(cfg: Config, run_ctx: RunContext, chapter_query: str,
     if assets_src.exists():
         shutil.copytree(assets_src, assets_dst, dirs_exist_ok=True)
     if not (assets_dst / "zivon.css").exists():
-        raise LintError(STAGE_ID, "frontend/assets/zivon.css is missing; the shared style layer must exist")
+        raise LintError(
+            STAGE_ID,
+            "frontend/assets/zivon.css is missing; the shared style layer must exist",
+        )
 
     (topic_dir / "index.html").write_text(html_text, encoding="utf-8")
     if page_js:
@@ -80,10 +110,14 @@ def run(cfg: Config, run_ctx: RunContext, chapter_query: str,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "block_counts": _block_counts(blocks),
     }
-    (topic_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    (topic_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     # Landing page + courses.js inside staging so perf can test the real thing.
-    shutil.copy2(cfg.repo_path(cfg.paths["frontend"]) / "index.html", site / "index.html")
+    shutil.copy2(
+        cfg.repo_path(cfg.paths["frontend"]) / "index.html", site / "index.html"
+    )
     _write_courses_js(site)
 
     return {
@@ -106,7 +140,7 @@ def _render_block(b: dict[str, Any]) -> str:
         return f'  <section class="zn-text">\n{paras}\n  </section>'
     if t == "worked_example":
         steps = "\n".join(
-            f'      <li><strong>{_esc(s.get("title", ""))}</strong> {_esc(s.get("detail", ""))}</li>'
+            f"      <li><strong>{_esc(s.get('title', ''))}</strong> {_esc(s.get('detail', ''))}</li>"
             for s in spec.get("steps", [])
         )
         return (
@@ -175,7 +209,7 @@ def _render_simulation(b: dict[str, Any]) -> str:
         f'      <label class="zn-sim-control"><span>{_esc(c.get("label", c.get("id")))}</span>'
         f'<input type="range" data-control="{_esc(c.get("id"))}" min="{_esc(c.get("min", 0))}" '
         f'max="{_esc(c.get("max", 100))}" step="{_esc(c.get("step", 1))}" value="{_esc(c.get("initial", 0))}">'
-        f'<output>{_esc(c.get("initial", 0))}</output></label>'
+        f"<output>{_esc(c.get('initial', 0))}</output></label>"
         for c in spec.get("controls", [])
     )
     return (
@@ -190,11 +224,18 @@ def _render_simulation(b: dict[str, Any]) -> str:
 
 
 # -------------------------------------------------------------------- page
-def _page_html(cfg: Config, lesson: dict[str, Any], body: str, slug: str, course_id: str,
-               has_page_js: bool, has_page_css: bool = False) -> str:
+def _page_html(
+    cfg: Config,
+    lesson: dict[str, Any],
+    body: str,
+    slug: str,
+    course_id: str,
+    has_page_js: bool,
+    has_page_css: bool = False,
+) -> str:
     objectives = "\n".join(f"      <li>{_esc(o)}</li>" for o in lesson["objectives"])
     glossary = "\n".join(
-        f'      <dt>{_esc(g["term"])}</dt><dd>{_esc(g["definition"])}</dd>'
+        f"      <dt>{_esc(g['term'])}</dt><dd>{_esc(g['definition'])}</dd>"
         for g in lesson["glossary"]
     )
     page_js_tag = '<script src="page.js"></script>' if has_page_js else ""
@@ -239,12 +280,24 @@ def _page_html(cfg: Config, lesson: dict[str, Any], body: str, slug: str, course
 
 def _sources_list(source_pack: dict[str, Any]) -> list[dict[str, str]]:
     ch = source_pack["chapter"]
-    out = [{"id": ch["book_id"], "title": ch["book_title"], "license": "NCERT (free educational use)"}]
+    out = [
+        {
+            "id": ch["book_id"],
+            "title": ch["book_title"],
+            "license": "NCERT (free educational use)",
+        }
+    ]
     seen = {ch["book_id"]}
     for s in source_pack["supplements"]:
         if s["book_id"] not in seen:
             seen.add(s["book_id"])
-            out.append({"id": s["book_id"], "title": s["book_title"], "license": "see sources catalog"})
+            out.append(
+                {
+                    "id": s["book_id"],
+                    "title": s["book_title"],
+                    "license": "see sources catalog",
+                }
+            )
     return out
 
 
@@ -265,14 +318,16 @@ def write_courses_js(frontend_dir: Path) -> list[dict[str, Any]]:
             data = json.loads(mf.read_text(encoding="utf-8"))
             # rel already starts with "courses/" (manifests only exist under courses/)
             rel = mf.parent.relative_to(frontend_dir).as_posix()
-            entries.append({
-                "href": f"{rel}/index.html",
-                "course_id": data["course_id"],
-                "class": data["class"],
-                "title": data["title"],
-                "chapter": data["chapter"]["title"],
-                "generated_at": data["generated_at"],
-            })
+            entries.append(
+                {
+                    "href": f"{rel}/index.html",
+                    "course_id": data["course_id"],
+                    "class": data["class"],
+                    "title": data["title"],
+                    "chapter": data["chapter"]["title"],
+                    "generated_at": data["generated_at"],
+                }
+            )
     entries.sort(key=lambda e: (e["class"], e["title"]))
     payload = json.dumps(entries, indent=2, ensure_ascii=False)
     (frontend_dir / "courses.js").write_text(

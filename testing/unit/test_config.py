@@ -1,7 +1,6 @@
 """Unit tests for config loading and validation."""
 
 import json
-import os
 import sys
 import tempfile
 import unittest
@@ -10,7 +9,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.config import ConfigError, load_config  # noqa: E402
+from factory.config import ConfigError, load_config
 
 BASE_CONFIG = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
 
@@ -50,6 +49,7 @@ class TestConfig(unittest.TestCase):
     def test_unknown_section_rejected(self):
         def mutate(d):
             d["servers"] = d.pop("server")
+
         with self.assertRaises(ConfigError) as ctx:
             load_config(write_config(self.tmp, mutate))
         self.assertIn("unknown top-level", str(ctx.exception))
@@ -57,6 +57,7 @@ class TestConfig(unittest.TestCase):
     def test_unknown_key_rejected(self):
         def mutate(d):
             d["retrieval"]["topkk"] = 3
+
         with self.assertRaises(ConfigError) as ctx:
             load_config(write_config(self.tmp, mutate))
         self.assertIn("topkk", str(ctx.exception))
@@ -64,36 +65,42 @@ class TestConfig(unittest.TestCase):
     def test_wrong_type_rejected(self):
         def mutate(d):
             d["server"]["max_attempts"] = "3"
+
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp, mutate))
 
     def test_bool_not_accepted_for_int(self):
         def mutate(d):
             d["server"]["max_attempts"] = True
+
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp, mutate))
 
     def test_class_level_range(self):
         def mutate(d):
             d["learner"]["class_level"] = 5
+
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp, mutate))
 
     def test_unknown_stage_override_rejected(self):
         def mutate(d):
             d["stage_overrides"] = {"99-nope": {"max_tokens": 10}}
+
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp, mutate))
 
     def test_stage_override_ok(self):
         def mutate(d):
             d["stage_overrides"] = {"02-synth": {"max_tokens": 8192}}
+
         cfg = load_config(write_config(self.tmp, mutate))
         self.assertEqual(cfg.stage_override("02-synth"), {"max_tokens": 8192})
 
     def test_api_key_env_missing_raises(self):
         def mutate(d):
             d["server"]["api_key_env"] = "ZIVON_DEFINITELY_NOT_SET_9182"
+
         cfg = load_config(write_config(self.tmp, mutate))
         with self.assertRaises(ConfigError):
             cfg.api_key()
@@ -101,6 +108,7 @@ class TestConfig(unittest.TestCase):
     def test_api_key_env_null_means_no_auth(self):
         def mutate(d):
             d["server"]["api_key_env"] = None
+
         cfg = load_config(write_config(self.tmp, mutate))
         self.assertIsNone(cfg.api_key())
 
