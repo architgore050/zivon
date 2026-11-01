@@ -1,0 +1,21 @@
+# Dependabot: always-on dependency monitoring.
+# Opens update PRs automatically; GitHub flags known CVEs in alerts (Security → Dependabot).
+# "github-actions" also keeps our pinned action SHAs current — the pinning stays,
+# Dependabot rotates the pins when new versions ship.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: "/"          # watches base image in Dockerfile
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
