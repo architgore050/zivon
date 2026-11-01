@@ -8,7 +8,7 @@
 | Hard deadline | **Tue 10 Nov 2026, 11:59 PM IST** — no extensions |
 | Build time | ~12.5 days |
 | Internal submission target | Everything public by **10 Nov, 12:00 PM IST** (12h safety buffer) |
-| Working assumption | Solo builder + agent workforce, full-time crunch, weekends included |
+| Working assumption | Team of 2 (founder + teammate) + agent workforce, full-time crunch, weekends included |
 
 This is an ambitious plan compressed into 12 days. The timeline is built so that **the demo is never at risk**: every phase has a gate, every "Netflix-level" ambition is time-boxed to a minimum credible version, and there is an explicit scope ladder (P0 / P1 / P2) so cuts happen deliberately, not by panic on Day 11.
 
@@ -43,7 +43,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 | Gate | When | Question | Pass bar | If it fails |
 |---|---|---|---|---|
-| **A — Evon quality** | Day 1 EOD → ran Day 2 (slipped; method corrected 31 Oct, see `posts/2026-10-30-day-1.md`) | Is Evon v3.3 strong enough as the tutor brain? | Compare **published benchmark data** for Evon vs Gemma 4. Public data proves Evon's competence → Evon is the brain. Public data not enough to prove competence → adopt Gemma 4 as the runtime LLM without spending time or credits testing Evon. | Switch runtime LLM to Gemma 4 (or latest). Prisma + Timbre stay regardless — challenge only requires ≥1 Gnani model, and we already use two. Goal remains all three. |
+| **A — Evon quality** | Day 1 EOD → slipped to Day 2 → **rescheduled 1 Nov (founder decision): runs when voice agent work starts (Day 5), not before** — an eval before the brain is needed is a wasted eval; method corrected 31 Oct, see `posts/2026-10-30-day-1.md` | Is Evon v3.3 strong enough as the tutor brain? | Compare **published benchmark data** for Evon vs Gemma 4. Public data proves Evon's competence → Evon is the brain. Public data not enough to prove competence → adopt Gemma 4 as the runtime LLM without spending time or credits testing Evon. | Switch runtime LLM to Gemma 4 (or latest). Prisma + Timbre stay regardless — challenge only requires ≥1 Gnani model, and we already use two. Goal remains all three. |
 | **B — Kid comprehension** | Day 4 EOD | Do kids actually learn from generated pages? | ≥2 of 3 kids restate the concept in their own words + answer 2 follow-ups; at least one handles a topic one class above their level | Do NOT proceed to voice-on-content integration. Fix the content skill first; voice loop core can still proceed in parallel. |
 | **C — Voice latency** | Day 6 EOD | Is the voice loop fast enough to feel human? | < ~4s from end-of-speech to first spoken audio, streaming end-to-end | Reduce tutor reply length, pre-warm models, tighten streaming; if still failing, demo uses the hybrid mode (static content + on-demand tutor) with shorter replies. |
 | **D — Feature freeze** | Day 8 EOD | What ships? | Explicit P0/P1/P2 list signed off | Anything not on the list is cut, documented, and moved to post-challenge roadmap. |
@@ -117,6 +117,8 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 ### Day 5 — Tue 3 Nov — Voice loop core + Phase 2 architecture decision
 
+- **Gate A runs first** (rescheduled 1 Nov): compare published benchmark data for Evon vs Gemma 4 and record the
+  brain decision before building the loop.
 - **Voice loop core (CLI first)**: mic → Prisma (streaming STT) → Evon (or Gate A fallback) → Timbre (streaming TTS) → speaker. Log latency per stage from the first run.
 - **Phase 2 decision** (record the choice):
   - *Option A — full agent teaches everything*, screen shows only visuals. Maximum personalization, impressive — but token-expensive per learner, latency risk, harder to guarantee pedagogical quality, demo-fragile.
