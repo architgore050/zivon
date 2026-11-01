@@ -1,0 +1,7 @@
+{
+  "id": "b-06",
+  "files": {
+    "page.js": "ZivonSim.register(\"b-06\", {\n  init: function (ctx) {\n    ctx.g.fillStyle = \"#EFE6B8\";\n  },\n  draw: function (ctx) {\n    var g = ctx.g;\n    g.fillStyle = \"#EFE6B8\";\n    g.fillRect(0, 0, ctx.width, ctx.height);\n    var a = ctx.values.a || 0;\n    var travel = 0.5 * a * ctx.t * ctx.t * 12;\n    var x = 30 + Math.abs(travel) % (ctx.width - 60);\n    g.fillStyle = \"#1C1B18\";\n    g.beginPath();\n    g.arc(x, ctx.height / 2, 10, 0, Math.PI * 2);\n    g.fill();\n    g.fillStyle = \"#5A5748\";\n    g.font = \"12px monospace\";\n    g.fillText(\"a = \" + a + \" m/s2\", 12, 18);\n  }\n});\n",
+    "page.css": ".zn-sim-b-06 .zn-sim-canvas { border-width: 2px; }\n"
+  }
+}

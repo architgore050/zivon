@@ -1,0 +1,51 @@
+{
+  "title": "Motion: describing how things move",
+  "objectives": [
+    "After this lesson you can explain what motion, distance and displacement mean.",
+    "After this lesson you can calculate speed, velocity and acceleration using simple formulas.",
+    "After this lesson you can read a distance-time graph and say how fast something moves."
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "What motion means",
+      "paragraphs": [
+        "You are in motion when your position changes with time. A bus moving down a road is in motion, and so is a fan blade going around. To say that something moved, we compare its position now with its position a moment ago.",
+        "To describe motion clearly we use a few measured quantities. Each one answers a different question: how far, how fast, and speeding up or slowing down. You will meet them one at a time."
+      ]
+    },
+    {
+      "id": "sec-02",
+      "title": "Distance and displacement",
+      "paragraphs": [
+        "Distance is the total length of the path you travelled. Walk 3 metres forward and then 4 metres back, and your distance is 7 metres. Distance only has a size, so it is called a scalar.",
+        "Displacement is the shortest straight line from your starting point to your ending point, with its direction. In the same walk you end up 1 metre behind where you began, so your displacement is 1 metre backwards. Because it carries a direction, displacement is a vector.",
+        "Distance and displacement are equal only when the whole path is one straight line with no turning back. The moment you turn, they separate."
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "Speed, velocity and acceleration",
+      "paragraphs": [
+        "Speed tells you how much distance is covered in each second. It is distance divided by time. Cover 100 metres in 20 seconds and your average speed is 5 m/s.",
+        "Velocity is speed with a direction attached. A car moving north at 20 m/s and a car moving south at 20 m/s have the same speed but different velocities.",
+        "Acceleration is how quickly velocity changes. If a body at rest reaches a speed of 10 m/s in 5 seconds, its velocity changed by 10 m/s in 5 s, so its acceleration is 2 m/s2. A common formula is v = u + a*t, where u is the starting velocity."
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Reading motion from graphs",
+      "paragraphs": [
+        "A distance-time graph plots distance on the vertical axis and time on the horizontal axis. The slope of the line tells you the speed: a steep slope means fast motion and a flat line means the object is at rest.",
+        "For steady motion the graph is a straight line. When the line curves, the speed is changing, which means the motion is accelerated."
+      ]
+    }
+  ],
+  "glossary": [
+    {"term": "displacement", "definition": "the shortest straight-line distance from start to end, with its direction"},
+    {"term": "velocity", "definition": "speed in a particular direction; the rate of change of displacement"},
+    {"term": "acceleration", "definition": "the rate of change of velocity with time"},
+    {"term": "scalar", "definition": "a quantity that has only a size, such as distance or speed"},
+    {"term": "vector", "definition": "a quantity that has both size and direction, such as displacement or velocity"}
+  ]
+}

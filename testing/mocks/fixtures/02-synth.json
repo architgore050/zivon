@@ -1,0 +1,27 @@
+{
+  "topic": "Motion",
+  "summary": "Motion means an object changes its position over time. We describe motion using distance, displacement, speed, velocity and acceleration. Distance and speed are scalars; displacement, velocity and acceleration are vectors, which means they carry direction. Motion can be uniform or accelerated, and graphs of distance against time make these quantities easy to read. This page builds each idea slowly with small examples.",
+  "claims": [
+    {"id": "claim-01", "statement": "Motion is the change in position of an object with time.", "citations": [{"source_id": "ncert", "locator": "page 97"}]},
+    {"id": "claim-02", "statement": "Distance is the total path length and is a scalar; displacement is the shortest straight-line change from start to end and is a vector.", "citations": [{"source_id": "ncert", "locator": "page 98"}]},
+    {"id": "claim-03", "statement": "Acceleration is the rate of change of velocity and its SI unit is m/s2.", "citations": [{"source_id": "ncert", "locator": "page 100"}]},
+    {"id": "claim-04", "statement": "If a body starts from rest and gains a speed of 10 m/s in 5 s, its acceleration is 2 m/s2.", "citations": [{"source_id": "ncert", "locator": "page 100"}]},
+    {"id": "claim-05", "statement": "Average speed is total distance divided by total time; for example 100 m covered in 20 s gives an average speed of 5 m/s.", "citations": [{"source_id": "ncert", "locator": "page 99"}]},
+    {"id": "claim-06", "statement": "The slope of a distance-time graph gives the speed of the object.", "citations": [{"source_id": "alt-open-physics#c0001", "locator": "pages 2-3"}]},
+    {"id": "claim-07", "statement": "Displacement and velocity are vector quantities because they carry direction.", "citations": [{"source_id": "ncert", "locator": "page 98"}]}
+  ],
+  "key_terms": [
+    {"term": "displacement", "definition": "the shortest straight-line distance from the starting point to the final point, together with its direction", "citations": [{"source_id": "ncert", "locator": "page 98"}]},
+    {"term": "velocity", "definition": "speed in a particular direction; the rate of change of displacement", "citations": [{"source_id": "ncert", "locator": "page 99"}]},
+    {"term": "acceleration", "definition": "the rate of change of velocity with time", "citations": [{"source_id": "ncert", "locator": "page 100"}]},
+    {"term": "uniform motion", "definition": "motion in which the object covers equal distances in equal intervals of time", "citations": [{"source_id": "ncert", "locator": "page 97"}]}
+  ],
+  "equations": [
+    {"id": "eq-01", "expression": "v = u + a*t", "description": "final velocity from initial velocity u, acceleration a and time t", "citations": [{"source_id": "ncert", "locator": "page 100"}]},
+    {"id": "eq-02", "expression": "s = u*t + (1/2)*a*t^2", "description": "distance covered under constant acceleration", "citations": [{"source_id": "ncert", "locator": "page 101"}]}
+  ],
+  "misconceptions": [
+    {"id": "mis-01", "wrong_belief": "distance and displacement are always equal", "correction": "they are equal only when the path is a straight line with no turning back", "citations": [{"source_id": "ncert", "locator": "page 98"}]}
+  ],
+  "uncertain": []
+}

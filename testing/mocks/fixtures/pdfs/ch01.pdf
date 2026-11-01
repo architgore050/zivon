@@ -1,0 +1,103 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R] /Count 5 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 121 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(CHAPTER 7) Tj T*
+(Motion) Tj T*
+(We describe motion by distance and displacement.) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 108 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(Speed is distance divided by time. Velocity is speed with direction.) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+8 0 obj
+<< /Length 108 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(Acceleration is the rate of change of velocity. Its SI unit is m/s2.) Tj T*
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 8 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+10 0 obj
+<< /Length 130 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(If a body starts from rest and gains a speed of 10 m/s in 5 s, its acceleration is 2 m/s2.) Tj T*
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 10 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+12 0 obj
+<< /Length 94 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(Average speed is total distance divided by total time.) Tj T*
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 12 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000141 00000 n 
+0000000211 00000 n 
+0000000383 00000 n 
+0000000509 00000 n 
+0000000668 00000 n 
+0000000794 00000 n 
+0000000953 00000 n 
+0000001079 00000 n 
+0000001261 00000 n 
+0000001389 00000 n 
+0000001534 00000 n 
+trailer
+<< /Size 14 /Root 1 0 R >>
+startxref
+1662
+%%EOF
