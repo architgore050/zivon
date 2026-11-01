@@ -15,6 +15,7 @@ from factory import retrieval
 from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.errors import SourceError
+from factory.ingest import _extract_pages
 from factory.ingest import run as ingest_run
 from factory.locate import run as locate_run
 from factory.retrieval import FixtureEmbedder
@@ -340,6 +341,114 @@ class LocateTestCase(unittest.TestCase):
         book_ids = {s["book_id"] for s in pack["supplements"]}
         self.assertNotIn("fixture-ncert-9", book_ids)
         self.assertIn("alt-open-physics", book_ids)
+
+
+def _make_table_page_pdf(path: Path) -> None:
+    """Write a one-page PDF built from the primitives a real textbook page
+    uses: a ruled 3x3 table (rules are vector lines, cells positioned by
+    coordinates, one cell spans two lines), a labelled graph (vector axes +
+    plotted line + floating labels), and prose with a raised superscript."""
+
+    def esc(t: str) -> str:
+        return t.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
+
+    def txt(x: float, y: float, s: str, font: str = "/F1", size: int = 11) -> str:
+        return f"BT {font} {size} Tf {x} {y} Td ({esc(s)}) Tj ET"
+
+    def line(x1: float, y1: float, x2: float, y2: float) -> str:
+        return f"{x1} {y1} m {x2} {y2} l S"
+
+    ops = [
+        "0.8 w",
+        # ruled table: horizontal rules at 720/698/666/648 (row 2 is tall to
+        # hold a two-line cell, exactly like real tables)
+        line(72, 720, 540, 720),
+        line(72, 698, 540, 698),
+        line(72, 666, 540, 666),
+        line(72, 648, 540, 648),
+        line(72, 720, 72, 648),
+        line(250, 720, 250, 648),
+        line(400, 720, 400, 648),
+        line(540, 720, 540, 648),
+        txt(76, 706, "Quantity"),
+        txt(254, 706, "Symbol"),
+        txt(404, 706, "Unit"),
+        txt(76, 686, "Average velocity"),
+        txt(76, 674, "(total distance / total time)"),
+        txt(254, 686, "v"),
+        txt(404, 686, "m s"),
+        txt(418, 690, "-1", "/F2", 7),  # superscript: smaller font, raised baseline
+        txt(76, 652, "Acceleration"),
+        txt(254, 652, "a"),
+        txt(404, 652, "m s"),
+        txt(418, 656, "-2", "/F2", 7),
+        # a figure: vector axes + plotted line + floating labels
+        line(90, 560, 90, 470),
+        line(90, 470, 300, 470),
+        line(90, 560, 280, 500),
+        txt(70, 566, "Distance"),
+        txt(240, 456, "Time"),
+        txt(95, 545, "A"),
+        txt(180, 512, "B"),
+        txt(70, 440, "Fig 1.1  distance-time graph for uniform motion"),
+        # prose referencing the figure, with a raised superscript
+        txt(72, 410, "In Fig. 1.1 the slope of line AB gives the speed of the object."),
+        txt(72, 394, "The acceleration due to gravity on the earth is 9.8 m s"),
+        txt(283, 398, "-2", "/F2", 7),
+        txt(72, 378, "for all falling bodies near the surface."),
+    ]
+    stream = "\n".join(ops).encode("latin-1")
+    objects: dict[int, bytes] = {
+        1: b"<< /Type /Catalog /Pages 2 0 R >>",
+        2: b"<< /Type /Pages /Kids [5 0 R] /Count 1 >>",
+        3: b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        4: b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        5: (
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R "
+            b"/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>"
+        ),
+        6: f"<< /Length {len(stream)} >>\nstream\n".encode() + stream + b"\nendstream",
+    }
+    out = bytearray(b"%PDF-1.4\n")
+    offsets: dict[int, int] = {}
+    for num in sorted(objects):
+        offsets[num] = len(out)
+        out += f"{num} 0 obj\n".encode() + objects[num] + b"\nendobj\n"
+    xref_pos = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n".encode()
+    out += b"0000000000 65535 f \n"
+    for num in sorted(objects):
+        out += f"{offsets[num]:010d} 00000 n \n".encode()
+    out += f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_pos}\n%%EOF\n".encode()
+    path.write_bytes(out)
+
+
+class TableReconstructionTestCase(unittest.TestCase):
+    """Stage 00 must reconstruct ruled tables as explicit rows while leaving
+    figure labels and prose alone."""
+
+    def test_ruled_table_becomes_explicit_rows(self):
+        with tempfile.TemporaryDirectory() as d:
+            pdf = Path(d) / "table-page.pdf"
+            _make_table_page_pdf(pdf)
+            pages = _extract_pages(pdf)
+        text = pages[0]["text"]
+
+        # exactly one table block (the graph axes are not mistaken for one)
+        self.assertEqual(text.count("[table]"), 1)
+        # cell structure survives, including the two-line cell and superscripts
+        self.assertIn("Quantity | Symbol | Unit", text)
+        self.assertIn(
+            "Average velocity (total distance / total time) | v | m s-1", text
+        )
+        self.assertIn("Acceleration | a | m s-2", text)
+        # table text is not duplicated in the flow text
+        self.assertEqual(text.count("Quantity"), 1)
+        # figure labels and caption survive in the flow text
+        self.assertIn("Fig 1.1 distance-time graph for uniform motion", text)
+        self.assertIn("In Fig. 1.1 the slope of line AB", text)
+        # prose superscript stays inline
+        self.assertIn("9.8 m s -2", text)
 
 
 if __name__ == "__main__":

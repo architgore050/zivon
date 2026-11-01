@@ -105,6 +105,26 @@ def _validate_pdf(path: Path, origin: str) -> None:
         )
 
 
+def _render_table(table: Any) -> str | None:
+    """Render a detected ruled table as explicit rows:
+
+        [table]
+        Quantity | Symbol | Unit
+        Speed | v | m s-1
+
+    Returns None for candidates too thin to be a real table (a single-row
+    candidate is almost always a false positive from figure rules), in which
+    case the region stays part of the flow text."""
+    lines: list[str] = []
+    for row in table.extract():
+        cells = [(c or "").replace("\n", " ").strip() for c in row]
+        if any(cells):
+            lines.append(" | ".join(cells))
+    if len(lines) < 2:
+        return None
+    return "[table]\n" + "\n".join(lines)
+
+
 def _extract_pages(
     pdf_path: Path, max_pages: int | None = None
 ) -> list[dict[str, Any]]:
@@ -113,15 +133,31 @@ def _extract_pages(
     use_text_flow=True follows the content-stream order, which for born-digital
     textbooks (all catalog entries) IS the reading order: raised superscripts
     join their base line ("m s -2") instead of being smeared mid-word, and
-    column furniture stays put. Scanned/image-only pages yield empty text and
-    warn loudly per page."""
+    column furniture stays put. Ruled tables are detected, removed from the
+    flow text (outside_bbox), and re-appended as explicit "[table]" row blocks
+    so the Synthesizer sees cell structure, not a flattened jumble.
+    Scanned/image-only pages yield empty text and warn loudly per page."""
     try:
         pages_out: list[dict[str, Any]] = []
         with pdfplumber.open(str(pdf_path)) as pdf:
             page_list = pdf.pages if max_pages is None else pdf.pages[:max_pages]
             for i, page in enumerate(page_list):
                 try:
-                    text = clean_pdf_text(page.extract_text(use_text_flow=True) or "")
+                    text_page = page
+                    table_blocks: list[str] = []
+                    for candidate in page.find_tables():
+                        block = _render_table(candidate)
+                        if block is None:
+                            continue  # false positive: keep its region in the flow text
+                        table_blocks.append(block)
+                        text_page = text_page.outside_bbox(candidate.bbox)
+                    text = clean_pdf_text(
+                        text_page.extract_text(use_text_flow=True) or ""
+                    )
+                    if table_blocks:
+                        text = (text + "\n\n" if text else "") + "\n\n".join(
+                            table_blocks
+                        )
                 except Exception as exc:  # noqa: BLE001 — pdfminer can raise on weird pages; warning is loud, not silent
                     text = ""
                     print(
