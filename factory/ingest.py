@@ -1,7 +1,9 @@
 """Stage 00-ingest: fetch and index every book in sources/catalog.json.
 
 Guarantees:
-- Every downloaded file starts with the %PDF magic bytes and parses with pypdf.
+- Every downloaded file starts with the %PDF magic bytes and parses with
+  pdfplumber (pdfminer engine, use_text_flow reading order - handles
+  superscripts and layout far better than raw pypdf).
 - The prelims of every auto-download book contains the catalog's class-evidence
   string; otherwise the stage fails loudly with the offending text quoted.
 - Chapter PDFs are stored one file per chapter; text is cached per page.
@@ -18,8 +20,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pdfplumber
 import requests
-from pypdf import PdfReader
 
 from .artifacts import RunContext
 from .config import Config
@@ -106,21 +108,27 @@ def _validate_pdf(path: Path, origin: str) -> None:
 def _extract_pages(
     pdf_path: Path, max_pages: int | None = None
 ) -> list[dict[str, Any]]:
+    """Extract page text with pdfplumber.
+
+    use_text_flow=True follows the content-stream order, which for born-digital
+    textbooks (all catalog entries) IS the reading order: raised superscripts
+    join their base line ("m s -2") instead of being smeared mid-word, and
+    column furniture stays put. Scanned/image-only pages yield empty text and
+    warn loudly per page."""
     try:
-        reader = PdfReader(str(pdf_path))
-        pages = reader.pages
-        n = len(pages) if max_pages is None else min(max_pages, len(pages))
-        out = []
-        for i in range(n):
-            try:
-                text = clean_pdf_text(pages[i].extract_text() or "")
-            except Exception as exc:  # noqa: BLE001 — pypdf can raise on weird pages; warning is loud, not silent
-                text = ""
-                print(
-                    f"    [warn] page {i + 1} of {pdf_path.name}: text extraction failed ({exc})"
-                )
-            out.append({"page": i + 1, "text": text})
-        return out
+        pages_out: list[dict[str, Any]] = []
+        with pdfplumber.open(str(pdf_path)) as pdf:
+            page_list = pdf.pages if max_pages is None else pdf.pages[:max_pages]
+            for i, page in enumerate(page_list):
+                try:
+                    text = clean_pdf_text(page.extract_text(use_text_flow=True) or "")
+                except Exception as exc:  # noqa: BLE001 — pdfminer can raise on weird pages; warning is loud, not silent
+                    text = ""
+                    print(
+                        f"    [warn] page {i + 1} of {pdf_path.name}: text extraction failed ({exc})"
+                    )
+                pages_out.append({"page": i + 1, "text": text})
+        return pages_out
     except SourceError:
         raise
     except Exception as exc:

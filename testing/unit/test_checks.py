@@ -215,10 +215,10 @@ class TestDiagramSvg(unittest.TestCase):
 
 
 def load_source_text() -> str:
-    from pypdf import PdfReader
+    import pdfplumber
 
-    reader = PdfReader(FIXTURES / "pdfs" / "ch01.pdf")
-    return "\n".join(p.extract_text() for p in reader.pages)
+    with pdfplumber.open(FIXTURES / "pdfs" / "ch01.pdf") as pdf:
+        return "\n".join((p.extract_text(use_text_flow=True) or "") for p in pdf.pages)
 
 
 def make_pack() -> dict:

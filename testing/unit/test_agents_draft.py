@@ -28,11 +28,12 @@ def load(name: str) -> dict[str, Any]:
 
 
 def make_pack() -> dict[str, Any]:
-    from pypdf import PdfReader
+    import pdfplumber
 
-    reader = PdfReader(FIXTURES / "pdfs" / "ch01.pdf")
+    with pdfplumber.open(FIXTURES / "pdfs" / "ch01.pdf") as pdf:
+        ncert = "\n".join((p.extract_text(use_text_flow=True) or "") for p in pdf.pages)
     return {
-        "ncert_text": "\n".join(p.extract_text() for p in reader.pages),
+        "ncert_text": ncert,
         "chapter": {"book_id": "ncert-fixture-ch01"},
         "supplements": [
             {"source_id": "alt-open-physics#c0001", "book_id": "alt-open-physics"}

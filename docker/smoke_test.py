@@ -42,7 +42,7 @@ ENTRYPOINT = "pipeline"
 THIRD_PARTY = [
     "requests",
     "jsonschema",
-    "pypdf",
+    "pdfplumber",
     "psutil",
     "playwright",
     "sentence_transformers",

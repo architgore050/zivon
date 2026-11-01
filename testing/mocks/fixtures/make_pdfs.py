@@ -4,7 +4,7 @@ end-to-end integration test. Run once from the repo root:
     python testing/mocks/fixtures/make_pdfs.py
 
 Hand-rolled minimal PDF (no third-party writer needed): one text column per
-page, Helvetica, simple Tj operators that pypdf extracts cleanly.
+page, Helvetica, simple Tj operators that pdfplumber extracts cleanly.
 
 Object layout is fixed and correct:
     1 Catalog, 2 Pages, 3 Font, then per page: (4+2i) content, (5+2i) page.
