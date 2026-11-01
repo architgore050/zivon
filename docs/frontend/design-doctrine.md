@@ -35,7 +35,8 @@ the look.
   honesty (gaps, mistakes). Never both blue and red annotating the same thing.
 
 ## 4. Usage rules
-- Only ONE pen annotation per image or post; hand-drawn feel via slightly uneven SVG strokes, 3-4 px.
+- Only ONE pen annotation per image or post. Underlines are never CSS text-underlines or border-bottoms —
+  they are generated with the **pen underline algorithm** (§4.1).
 - A gap is stamped in pencil-red as a single judgment word in uppercase Courier Prime Bold — `DELAYED`,
   `POSTPONED`, `BLOCKED`, `PENDING` — inside a 2px pencil-red border, rotated -2 deg. The judgment lands on
   the work like a verdict. Never use a `not yet:` prefix or a phrase inside the stamp; the reason belongs
@@ -43,6 +44,37 @@ the look.
 - Paper texture: flat color only, optional faint ruled lines (graphite at 15% opacity), no grain overlays that
   reduce contrast.
 - Proportions: 70% paper, 25% ink/graphite, 5% pen and pencil marks.
+
+### 4.1 Pen underline algorithm (canonical — every underline in the brand comes from this)
+
+One parametric generator produces every pen underline (and its strikethrough variant) so all underlines share
+the same character while each instance varies naturally. All parameters are in **em of the underlined text's
+font size**, so the look is identical at any scale (1080 px post asset or 88 px web headline).
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| span | text ink width + 0.09em left + 0.18em right | overshoot; the right tail is the taper run-out |
+| control spacing | 0.45em | path sampled every 0.45em |
+| wave | sine, amplitude 0.02em, period 4em, phase 0.7 rad | the visible hand wobble |
+| jitter | uniform ±0.007em per control point, **seeded from the underlined string** | instance variation; same string always redraws the same underline |
+| stroke width | linear taper 0.067em → 0.033em along the path | heavy start, light tail |
+| position | stroke centerline = baseline + 0.5em below the text | sits under the descender line |
+| color | pen-blue `#1F3A9E` | one annotation per image/post |
+
+Construction: sample the path into control points (x fixed grid, y = baseline offset + wave + jitter); compute
+per-point normals; offset left/right by half the local width; emit one closed outline polygon (left side
+forward + right side reversed); fill it. Render anti-aliased: raster tools draw at 2x supersampling then scale
+down; the web renders the same outline as a single filled SVG path. Reference implementations:
+`design-doctrine-example.html` (JS generator, live) and `skills/content-creation/tools.md` (GIMP Python,
+post assets).
+
+Variants:
+- **Strikethrough**: same generator; span = word width + 0.09em each side; width taper 0.056em → 0.033em;
+  centerline through the x-height middle (baseline − 0.26em).
+- **Connector arrow**: same stroke generator on a quadratic-bezier shaft (constant 0.045em width); barbs open
+  backwards from the tip (reverse tip tangent rotated ±30°, length 0.17em).
+- QC rule: a pen mark must have zero near-white pixels in a band around it — a white background means it was
+  pasted, not generated.
 
 ## 5. Typography
 - Display and body: **Bricolage Grotesque** (500, 700, 800). Fallback: Arial, sans-serif.

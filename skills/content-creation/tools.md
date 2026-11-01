@@ -170,7 +170,13 @@ store: it records what we have learned about using these tools so every later ed
   Paste kit shapes with NOHALO interpolation at native size; scale only when unavoidable, with CUBIC.
   **SUPERSEDED 2026-11-01: kit pasting is banned** (founder: pasted marks showed white backgrounds — "don't
   go for cheap tricks, learn to draw this stuff"). Draw pen marks natively; the kit is look reference only.
-- 2026-11-01: **Native pen strokes** (the reusable renderer): build the stroke as a parametric outline —
+- 2026-11-01: **Native pen strokes** (the reusable renderer): **canonical parameters live in
+  `docs/frontend/design-doctrine.md` §4.1** (all in em of the underlined font: span ink + 0.09em left +
+  0.18em right, control spacing 0.45em, sine amp 0.02em / period 4em / phase 0.7, jitter ±0.007em seeded
+  from the underlined string, width taper 0.067em→0.033em, centerline baseline + 0.5em; strikethrough
+  variant: +0.09em each side, 0.056em→0.033em, centerline baseline − 0.26em). The seed must match the web
+  implementation bit-for-bit: FNV-1a string hash → mulberry32 (`t = imul(a^a>>>15, a|1); t = (t +
+  imul(t^t>>>7, t|61)) ^ t; return (t^t>>>14)/2^32`). Build the stroke as a parametric outline —
   sample the path into control points (every ~40px; sine wave amp ~1.5-1.8px + seeded jitter ±0.6), compute
   per-point normals from averaged adjacent tangents, offset left/right by half the local width (linear taper
   w0→w1, e.g. 6→3), emit one closed polygon (left side forward + right side reversed), then
