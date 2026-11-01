@@ -8,7 +8,19 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 
 **Execution plan: `TIMELINE.md` (repo root).** Deadline 10 Nov 2026, 11:59 PM IST — hard. Respect the decision gates (A–D) and the P0/P1/P2 scope ladder defined there.
 
-**Decision & research docs:** `docs/DECISIONS-and-RESEARCH/` — challenge brief (01), Gnani research (02), product idea (03), naming methodology (04). Read them before making product or positioning decisions.
+---
+
+## Documentation
+
+`docs/` is the home for all project documentation. This section is the map to it — it lists the top-level layout and when to consult each area; it deliberately does not describe what individual docs contain. Read the relevant docs themselves.
+
+- `docs/DECISIONS-and-RESEARCH/` — consult before making product, positioning, or Gnani-related decisions.
+- `docs/frontend/` — consult before any frontend or design work.
+
+Rules:
+- **Check before working:** before working on anything, scan `docs/` for docs relevant to that area and read them. Do not re-decide or contradict what the docs already establish.
+- **Keep docs current:** if your change affects what a doc describes (a decision, research finding, design rule), update that doc in the same PR.
+- **Keep this map current:** if you add, rename, or remove any folder or top-level file under `docs/`, update the layout above in the same PR.
 
 ---
 
@@ -93,7 +105,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 - Every change goes through a PR → CI (lint / typecheck / build / test) → agentic code review → merge to `main`.
 - `main` → `prod` only via the promotion pipeline, which includes security checks.
 - Kanban (GitHub Projects) is groomed daily; nothing gets worked on that isn't on the board.
-- Docs (README, architecture notes) are updated in the same PR as the code they describe.
+- Docs (README, `docs/`) are updated in the same PR as the code or decisions they describe — see the Documentation section.
 - Never commit secrets. Configuration lives in environment variables.
 
 ---
