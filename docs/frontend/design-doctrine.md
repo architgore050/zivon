@@ -41,8 +41,9 @@ the look.
   `POSTPONED`, `BLOCKED`, `PENDING` — inside a 2px pencil-red border, rotated -2 deg. The judgment lands on
   the work like a verdict. Never use a `not yet:` prefix or a phrase inside the stamp; the reason belongs
   beside the stamp in ink, not inside it.
-- Paper texture: flat color only, optional faint ruled lines (graphite at 15% opacity), no grain overlays that
-  reduce contrast.
+- Paper texture: flat color only; ruled lines are graphite `#5A5748` at **40% opacity, 2px thick** at the
+  1080px design width (raised 1 Nov: 1px lines at 15-18% were hard to notice — target ~40 luminance contrast
+  against the paper). No grain overlays that reduce contrast.
 - Proportions: 70% paper, 25% ink/graphite, 5% pen and pencil marks.
 
 ### 4.1 Pen underline algorithm (canonical — every underline in the brand comes from this)

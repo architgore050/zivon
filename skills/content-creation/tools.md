@@ -211,3 +211,6 @@ store: it records what we have learned about using these tools so every later ed
   per font/size (export + PIL ink-bottom of a descender-free probe): Courier Prime 26 → +20, Bricolage
   Grotesque ExtraBold 88 → +82, Caveat Bold 96 → +92. No dashed separators between log entries — the hash
   column is the index.
+- 2026-11-01 (founder): ruled lines at 1px / 18% opacity were "hard to notice". Standard is now **2px
+  graphite at 40% opacity** (doctrine §4): verify with export + PIL — rule luminance should sit ~40 below
+  the paper (e.g. paper 239 → rule 197).
