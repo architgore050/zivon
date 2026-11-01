@@ -1,0 +1,28 @@
+# Deployment docs
+
+Everything about how Zivon is packaged, run, and shipped: containers, orchestration, and the CI/CD pipelines that gate every merge into `main`.
+
+| Doc | Covers |
+|---|---|
+| [`docker.md`](docker.md) | Containerizing the content factory: image design, build/run workflow, decisions and gotchas |
+| [`kubernetes.md`](kubernetes.md) | Running containers on a cluster: object model, our manifests, local minikube workflow |
+| [`cicd.md`](cicd.md) | GitHub Actions pipelines: the merge gate, security scans, Dependabot, hardening rules, pending setup steps |
+
+## Status snapshot (2026-11-01)
+
+| Piece | State |
+|---|---|
+| Content factory image (`Dockerfile`, smoke test, compose) | ✅ built, run, validated locally |
+| K8s manifests (`k8s/`) — namespace + factory smoke Job | ✅ running on local minikube cluster |
+| CI merge gate + CodeQL + Dependabot (`.github/workflows/`, `.github/dependabot.yml`) | ✅ written; first live run will be the feature-branch PR |
+| Branch protection on `main` (required checks) | ⬜ to configure in GitHub UI before the PR |
+| Publish pipeline (merge → build → push to `ghcr.io`) | ⬜ next piece of CD |
+| Deploy pipeline + cluster hosting decision | ⬜ deferred: needs a real cluster (local minikube is dev-only) |
+| Voice backend image (FastAPI/WebSockets) + Deployment + Service | ⬜ comes with the voice loop (Phase 2) |
+
+## Decisions locked here
+
+- **Docker + Kubernetes + GitHub Actions + GHCR** are the decided infra stack. No alternative tools to evaluate.
+- The content factory is a **batch workload → K8s Job**. Long-running services (voice backend) will be **Deployment + Service**.
+- CI must never need `ZIVON_API_KEY`: the pipeline validates code, images, and manifests key-free. Secrets live only at runtime (env vars / K8s Secrets).
+- All third-party GitHub Actions are pinned to commit SHAs; `GITHUB_TOKEN` permissions are least-privilege per job.

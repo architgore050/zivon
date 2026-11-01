@@ -16,6 +16,7 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 
 - `docs/DECISIONS-and-RESEARCH/` — consult before making product, positioning, or Gnani-related decisions.
 - `docs/frontend/` — consult before any frontend or design work.
+- `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
 
 Rules:
 - **Check before working:** before working on anything, scan `docs/` for docs relevant to that area and read them. Do not re-decide or contradict what the docs already establish.
@@ -89,6 +90,25 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 - Generated visuals are self-contained HTML/JS (canvas/SVG), no heavy frameworks, and must pass a performance budget for low-end Android (page load < 2s, ~60fps animations).
 - Every generated page passes the Comprehension & Fact Reviewer (against the cited source pack) and the Code Reviewer (no `eval`, no external calls, accessible) before it can go live.
 
+### Infrastructure (Docker / Kubernetes / CI-CD)
+
+Decided stack: **Docker + Kubernetes + GitHub Actions + GHCR** — do not evaluate alternatives. Source of truth: `docs/deployment/` (decisions, gotchas, pending setup); consult it before changing infra and update it in the same PR.
+
+Where the code lives:
+
+- `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
+- `k8s/` — cluster manifests (numeric prefix = apply order); factory is a **Job**; any long-running service (voice backend) is **Deployment + Service**
+- `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
+
+Consult `docs/deployment/` and touch infra when you:
+
+- change `requirements.txt` or runtime imports — the image build and the smoke test (used by docker, CI, and the K8s Job) must stay green; keep torch CPU-only
+- add a new service or image — follow the existing Dockerfile pattern (slim base, deps-before-code, non-root user), then add its CI job and K8s objects
+- edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI
+- edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
+
+Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
+
 ### Key design principles
 
 - Low latency matters. Stream everywhere. Target < ~4s end-of-speech → first spoken audio (Gate C).
@@ -102,7 +122,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 ## Repo process (applies to every change, no exceptions)
 
 - Branch model: protected `main`, `prod` for production, `feature/*` for work.
-- Every change goes through a PR → CI (lint / typecheck / build / test) → agentic code review → merge to `main`.
+- Every change goes through a PR → CI (lint / typecheck / build / test — GitHub Actions pipelines, see `docs/deployment/cicd.md`) → agentic code review → merge to `main`.
 - `main` → `prod` only via the promotion pipeline, which includes security checks.
 - Kanban (GitHub Projects) is groomed daily; nothing gets worked on that isn't on the board.
 - Docs (README, `docs/`) are updated in the same PR as the code or decisions they describe — see the Documentation section.

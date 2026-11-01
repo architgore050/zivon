@@ -86,6 +86,12 @@ kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
 - The content factory runs as a **Job** (batch, runs to completion). The voice backend will run as a **Deployment + Service** when it exists.
 - API keys reach pods via Secrets/env at runtime — never written in manifests.
 
+## CI/CD (GitHub Actions)
+
+Merge gate (`.github/workflows/ci.yml`, required on every PR to `main`): ruff lint/format, mypy, Dockerfile lint (hadolint), image build + smoke test, image CVE scan (trivy), SBOM artifact, secret-leak scan (gitleaks), dependency audit (pip-audit), manifest checks (kubeconform + kube-linter). Code scanning (`.github/workflows/codeql.yml`) analyzes our Python code weekly and on every PR. Dependabot watches pip/docker/actions dependencies. All third-party actions are pinned to commit SHAs; `GITHUB_TOKEN` permissions are least-privilege.
+
+Branch protection on `main` (Settings → Branches): require PR + these checks green before merge — configured once in the repo UI.
+
 ## Repo Map
 
 | Doc | Contents |
@@ -96,6 +102,7 @@ kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
 | [`docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md`](docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
+| [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 
 ## Engineering Process
