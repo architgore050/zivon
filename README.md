@@ -71,6 +71,21 @@ docker compose run --rm factory python pipeline.py "Motion" --class 9   # once p
 - `runs/`, PDF/text caches, and the HuggingFace model cache are mounted as volumes, so containers stay disposable and caches survive between runs.
 - `docker-compose.yml` is the local dev runner; Kubernetes manifests come with the deployment setup.
 
+## Kubernetes (local cluster)
+
+Manifests live in `k8s/` (numeric prefix = apply order). Local cluster is minikube with the docker driver:
+
+```bash
+minikube start --driver=docker
+minikube image load zivon-factory:0.1.0   # minikube has its own container store
+kubectl apply -f k8s/                     # namespace + factory smoke Job
+kubectl get jobs,pods -n zivon
+kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
+```
+
+- The content factory runs as a **Job** (batch, runs to completion). The voice backend will run as a **Deployment + Service** when it exists.
+- API keys reach pods via Secrets/env at runtime — never written in manifests.
+
 ## Repo Map
 
 | Doc | Contents |

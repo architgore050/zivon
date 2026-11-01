@@ -46,3 +46,7 @@ recordings/
 runs/
 sources/pdfs/
 sources/cache/
+
+# --- local tool binaries (installed via curl; real copies live in /usr/local/bin) ---
+kubectl
+minikube-linux-amd64
