@@ -256,9 +256,10 @@ store: it records what we have learned about using these tools so every later ed
   symmetrically above and below the shaft. Verify with a zoomed crop of the EXPORT (PIL crop + NEAREST resize),
   not just the full frame.
 - 2026-11-01 (Day 2 git-log fit, final): 17 commits / 30 wrapped lines fit at **Courier Prime 25 px, 31 px rule
-  pitch, 56-char wrap** (Day 1: 26 px / 36 px / 54). Rule phase `y = 103 + 31k` (k=0..38) so counter (103), note
-  (134, top-right), hook (227), header (320), log baselines (351+31k) and caption (1281) all sit on rules. Pitch
-  dropped from 32 to 31 px to make room for the underline + header stack under the hook.
+  pitch, 56-char wrap** (Day 1: 26 px / 36 px / 54). Rule phase `y = 103 + 31k` (k=0..39) so counter (103), note
+  (134, top-right), hook (227), header (320), log baselines (351+31k) and caption (1312) all sit on rules. Pitch
+  dropped from 32 to 31 px to make room for the underline + header stack under the hook. Caption sits one blank
+  rule below the last log line (founder fix 1 Nov: a caption directly under dense log text reads as cluttered).
 - 2026-11-01 (text baselines): baseline = layer offset_y + font ascent; measured ascents: Courier Prime Bold 25
   → +19, 28 → +21, 32 → +25, 38 → +29; Bricolage Grotesque ExtraBold 90 → +84; Caveat Bold 40 → +38. Compute
   positions from baselines, not offsets.
