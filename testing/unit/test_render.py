@@ -83,7 +83,6 @@ class TestRender(unittest.TestCase):
             self.run_ctx,
             "Motion",
             source_pack,
-            {},
             lesson,
             blocks,
             interactive,
@@ -116,7 +115,6 @@ class TestRender(unittest.TestCase):
                 self.run_ctx,
                 "Motion",
                 source_pack,
-                {},
                 lesson,
                 blocks,
                 interactive,
@@ -126,7 +124,7 @@ class TestRender(unittest.TestCase):
         source_pack, lesson, blocks, _ = minimal_inputs()
         blocks = {"blocks": [b for b in blocks["blocks"] if b["type"] != "simulation"]}
         out = render_run(
-            self.cfg, self.run_ctx, "Motion", source_pack, {}, lesson, blocks, {}
+            self.cfg, self.run_ctx, "Motion", source_pack, lesson, blocks, {}
         )
         html = (Path(out["topic_dir"]) / "index.html").read_text(encoding="utf-8")
         self.assertNotIn('src="page.js"', html)

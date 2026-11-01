@@ -207,7 +207,6 @@ def run_pipeline(
                 run_ctx,
                 chapter,
                 source_pack,
-                ground_truth or {},
                 lesson,
                 blocks,
                 interactive_out,

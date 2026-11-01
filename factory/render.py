@@ -36,7 +36,6 @@ def run(
     run_ctx: RunContext,
     chapter_query: str,
     source_pack: dict[str, Any],
-    ground_truth: dict[str, Any],
     lesson: dict[str, Any],
     blocks: dict[str, Any],
     interactive: dict[str, Any],
