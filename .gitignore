@@ -41,3 +41,8 @@ recordings/
 *.mp4
 *.wav
 *.mp3
+
+# --- content factory local artifacts (never commit) ---
+runs/
+sources/pdfs/
+sources/cache/
