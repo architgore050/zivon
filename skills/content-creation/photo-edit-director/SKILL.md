@@ -40,11 +40,24 @@ tone: [corrective fixes only / grade name] | text: [exact overlay words, or none
 ```
 Rules: one idea per image; one focal point; at most one annotation (arrow, box, or highlight) on a proof image;
 text on an image under 7 words; consistent device, theme, and padding across a set.
+**Annotations live in whitespace** (founder rule, Day 2): place notes, arrows, and other pen marks in areas with
+plenty of empty space, with comfortable clearance (~20 px at 1080 px width) between every mark and any text. Never
+run an arrow through or beside a dense text block; point it at a title, label, or hook word (tip at its top-right
+or mid-right), not into the middle of a block. Crowding an annotation onto a headline line reads as weird even when
+the targeting is technically correct.
+**Connector arrows are a swooping descent** (founder rule + sketch, Day 2): a shaft that runs near-parallel to
+text baselines or ruled lines reads as just another ruled line, not an annotation. The shape the founder wants:
+note at top; a **steep diagonal** leaves the note down toward the target's line; the path curves into a **short
+horizontal run** whose arrowhead points into the title (`title <──╱` under `note`). The angle lives in the
+descent — the horizontal part is only the final arrow run into the target. Never let the shaft rise away from
+the target on its way out.
 
 ## Phase 3: Execute
 Atomic steps, one per tool call: crop > straighten > exposure/white balance > grade (if any) > annotate/overlay >
 resize/export. Work on copies. Export sRGB for screens. Version names: dayNN_A1_v1.png. If no tool exists,
-output the plan and manual steps.
+output the plan and manual steps. When executing via GIMP MCP, work only in images with a visible display window
+(`Gimp.Display.new(image)` right after open/new) so the founder watches the build live (asset-and-edit-brief.md,
+Step 2b).
 
 ## Phase 4: Review (mandatory; see grading-sequencing-ethics.md)
 Run: thumbnail test (view at about 300 px wide), squint test, grayscale test, phone-size test, secrets sweep,

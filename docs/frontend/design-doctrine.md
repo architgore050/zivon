@@ -59,7 +59,7 @@ font size**, so the look is identical at any scale (1080 px post asset or 88 px 
 | wave | sine, amplitude 0.02em, period 4em, phase 0.7 rad | the visible hand wobble |
 | jitter | uniform ±0.007em per control point, **seeded from the underlined string** | instance variation; same string always redraws the same underline |
 | stroke width | linear taper 0.067em → 0.033em along the path | heavy start, light tail |
-| position | stroke centerline = baseline + 0.5em below the text | sits under the descender line |
+| position | stroke centerline = baseline + 0.3em below the text | attaches to the underlined text, clears the descender line (revised 1 Nov from 0.5em by founder: at 0.5em the underline read as detached — closer to the next block than to its own text) |
 | color | pen-blue `#1F3A9E` | one annotation per image/post |
 
 Construction: sample the path into control points (x fixed grid, y = baseline offset + wave + jitter); compute
@@ -72,8 +72,10 @@ post assets).
 Variants:
 - **Strikethrough**: same generator; span = word width + 0.09em each side; width taper 0.056em → 0.033em;
   centerline through the x-height middle (baseline − 0.26em).
-- **Connector arrow**: same stroke generator on a quadratic-bezier shaft (constant 0.045em width); barbs open
-  backwards from the tip (reverse tip tangent rotated ±30°, length 0.17em).
+- **Connector arrow**: same stroke generator on a **cubic-bezier** shaft (constant 0.045em width). Shape (founder
+  sketch, 1 Nov): a steep descent leaving the note down toward the target's line, curving into a short horizontal
+  run whose head points into the title — the angle lives in the descent; the shaft must not run near-parallel to
+  text across its length. Barbs open backwards from the tip (reverse tip tangent rotated ±30°, length 0.17em).
 - QC rule: a pen mark must have zero near-white pixels in a band around it — a white background means it was
   pasted, not generated.
 

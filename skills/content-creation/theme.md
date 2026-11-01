@@ -1,6 +1,6 @@
 # theme.md: the rules every Zivon post follows
 
-Status: v0.8 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
+Status: v0.9 (1 Nov). Items marked **[CONFIRM]** are proposals or blanks only the founder can settle. Everything
 else is a default. Change a value here and every skill that reads this file follows it.
 
 ## 0. How this file is used
@@ -206,6 +206,10 @@ Same story, two different posts: never paste the same text on both.
 ### 7.1 Exact post text (required output format)
 Every draft ends with paste-ready plain-text blocks, one per thing the founder will copy into a composer:
 - "EXACT POST TEXT" (one per platform), plus "EXACT FIRST COMMENT" (LinkedIn) or "EXACT FIRST REPLY" (X).
+- Teammate mention line (founder rule, 1 Nov): every LinkedIn EXACT POST TEXT block ends with a final line
+  `My teammate:` after the hashtags; the founder completes the @mention in the composer from the dropdown (the
+  colon line is the only permitted placeholder in a block). On X, the teammate mention goes in its own
+  standalone reply, never in the post body or the first reply.
 - Inside a block: only the literal characters to paste, line breaks as they should appear in the post. No
   Markdown syntax (`#`, `**`, `>`, backticks, `~~`), no commentary, no placeholders, no character-count notes.
   Platform composers do not render Markdown; the block is what gets pasted.
@@ -286,3 +290,9 @@ Every draft ends with paste-ready plain-text blocks, one per thing the founder w
   ruled-line standard** (2px graphite at 40% opacity, raised from 18% after the founder found the Day 1
   rules hard to notice) are named as theme invariants and checklist items (sections 2, 10). Parameters stay
   defined in the doctrine; theme.md makes following them mandatory for every post visual.
+- v0.9 (1 Nov): founder decision — teammate mention format added to section 7.1 (LinkedIn: final "My teammate:"
+  line completed in the composer; X: standalone mention reply). Cause: the founder added that line when posting
+  the Day 1 LinkedIn post. Team reality corrected: 2 people, not a solo builder (TIMELINE.md updated the same
+  day). Day 2 post assets briefly kept straight-line underlines as the "Day 2 doctrine state"; the founder
+  revoked that exception the same day — §4.1 applies to every asset, and the doctrine position row moved to
+  baseline + 0.3em so underlines read as attached to their text.

@@ -81,6 +81,11 @@ ordered list of atomic operations, one tool call each — video via Kinocut: `1 
 (cards, posters, annotated screenshots) via GIMP: `1 open_image/new_canvas -> 2 layers and fills -> 3 add_text
 -> 4 scale/export`. Read tools.md in this folder first and reuse the recorded lessons; after the run, append
 what you learned there.
+
+**Visible-window rule (founder rule, 1 Nov):** every GIMP MCP build must happen in an image that has a visible
+display window — call `Gimp.Display.new(image)` immediately after `new_canvas`/`open_image` and keep it open for
+the whole build. The founder watches every edit live in the GIMP GUI; never script into an image without a
+display.
 Also output the .srt text (timed captions) so the user does not depend on auto-transcription.
 Give absolute-path placeholders only for folders the user must fill in (e.g. the media/output folder).
 

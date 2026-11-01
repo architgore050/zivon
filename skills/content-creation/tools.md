@@ -31,6 +31,9 @@ store: it records what we have learned about using these tools so every later ed
 - Colours are hex (#rrggbb) or the 16 basic names; the design doctrine's palette values
   (docs/frontend/design-doctrine.md) pass directly.
 - Verify results with get_state_snapshot between edit batches instead of guessing.
+- **Visible-window rule (founder rule, 1 Nov):** every scripted build must run in an image that has a display
+  window — `Gimp.Display.new(image)` immediately after `new_canvas`/`open_image`, kept open for the whole build.
+  The founder watches every edit live; never build into an image without a display.
 
 ## Lessons learned — Kinocut
 (append below; none recorded yet)
@@ -173,7 +176,7 @@ store: it records what we have learned about using these tools so every later ed
 - 2026-11-01: **Native pen strokes** (the reusable renderer): **canonical parameters live in
   `docs/frontend/design-doctrine.md` §4.1** (all in em of the underlined font: span ink + 0.09em left +
   0.18em right, control spacing 0.45em, sine amp 0.02em / period 4em / phase 0.7, jitter ±0.007em seeded
-  from the underlined string, width taper 0.067em→0.033em, centerline baseline + 0.5em; strikethrough
+  from the underlined string, width taper 0.067em→0.033em, centerline baseline + 0.3em (revised 1 Nov from 0.5em — 0.5em read as detached from its own text); strikethrough
   variant: +0.09em each side, 0.056em→0.033em, centerline baseline − 0.26em). The seed must match the web
   implementation bit-for-bit: FNV-1a string hash → mulberry32 (`t = imul(a^a>>>15, a|1); t = (t +
   imul(t^t>>>7, t|61)) ^ t; return (t^t>>>14)/2^32`). Build the stroke as a parametric outline —
@@ -181,7 +184,7 @@ store: it records what we have learned about using these tools so every later ed
   per-point normals from averaged adjacent tangents, offset left/right by half the local width (linear taper
   w0→w1, e.g. 6→3), emit one closed polygon (left side forward + right side reversed), then
   `select_polygon(REPLACE, poly)` + `layer.edit_fill(FOREGROUND)`. For anti-aliased edges: draw at 2x on a
-  temporary image, `layer.scale(W, H, False)` down to 1x, copy-paste onto the target. Arrow = quadratic-bezier
+  temporary image, `layer.scale(W, H, False)` down to 1x, copy-paste onto the target. Arrow = cubic-bezier
   shaft (~13 points) + two barbs from the tip opening **backwards** (reverse tip tangent, rotate ±30°, ~15px).
 - 2026-11-01: **polygon point limit**: a ~178-point `select_polygon` splits into chunks and renders a
   duplicated shifted stroke. Keep polygons under ~50 points (coarse control-point sampling is plenty for a
@@ -214,3 +217,57 @@ store: it records what we have learned about using these tools so every later ed
 - 2026-11-01 (founder): ruled lines at 1px / 18% opacity were "hard to notice". Standard is now **2px
   graphite at 40% opacity** (doctrine §4): verify with export + PIL — rule luminance should sit ~40 below
   the paper (e.g. paper 239 → rule 197).
+- 2026-11-01 (Day 2 asset run): in this pyGObject build `Gimp.GetImages()`, `Gimp.image_list()`,
+  `Image.new_layer()`, `Image.get_displays()` and `Display.get_list()` do **not** exist. Enumerate images with
+  **`Gimp.get_images()`** (lowercase) filtered by `get_id()`; create/fill layers with the MCP tools
+  `create_layer` / `fill_layer` (position 0 = topmost). `new_canvas` opens its own display (`display_opened:
+  true`), so the visible-window rule is satisfied from creation.
+- 2026-11-01: `layer.get_offsets()` returns a named tuple whose **index access is broken** (`[0]` returns
+  `True`) — always read `.offset_x` / `.offset_y`.
+- 2026-11-01: **2x supersampling without a temp image or paste**: create the 2x-sized layer directly in the
+  target image (`create_layer`, set offset 0,0 first), draw the polygon selections in 2x image coordinates,
+  `edit_fill`, then `layer.scale(w/2, h/2, False)` + `set_offsets(x, y)`. Arrow built this way (26-point
+  shaft + 2 barb triangles): PIL scan 800 pen-blue px, 0 pure-white px in the bbox.
+- 2026-11-01 (straight underline — **REVOKED 2026-11-01 by founder**): the Day 2 asset was briefly built with a
+  plain 5 px `select_rectangle` underline as the "Day 2 doctrine state". That exception is dead: §4.1's pen
+  algorithm applies to **every** underline, Day 2 assets included. Never draw a straight underline.
+- 2026-11-01: `call_api` `args[1]` must be a **list of code strings**, never a bare string. The plugin runs
+  `for c in a[1]` (gimp-mcp-plugin.py), so a bare string execs **each character** as its own statement; the
+  persistent context makes this sneakily confusing — characters that happen to name leaked variables (`i`, `m`
+  from earlier loops) execute fine and the NameError lands on the first undefined one (e.g. `name 'p' is not
+  defined` for code starting `import...`). Always wrap: `args: ["pyGObject-console", [code]]`.
+- 2026-11-01 (founder, Day 2, revised four times): an arrow aimed at a **block of text** must target the block's
+  **title/label/hook word**, not a line inside the block — a tip landing mid-block reads as ambiguous ("pointing
+  at the wrong thing"). The first fix (note on the title line, arrow skimming beside the headline) was itself
+  rejected as "weird": annotations must sit in **whitespace with comfortable empty space around them** (see
+  photo-edit-director SKILL.md Phase 2). Working layout: Caveat note in a corner whitespace area
+  (top-right, on a rule), arrow running through open space from the note to the hook word, tip at the word's
+  **right edge**. Third + fourth revisions converge on the founder's ASCII sketch: note on top, a **steep
+  diagonal** leaving the note down toward the target's line, curving into a **short horizontal run** whose head
+  points left into the title (`title <──╱` under `note`) — the angle lives in the descent; the shaft must not
+  run near-parallel to text across its length. Working params at 1080x1350: cubic P0 (902,146) C1 (790,180)
+  C2 (640,196) P3 (547,196) — start tangent ~17° downward, tip tangent exactly horizontal, descent concentrated
+  in the right two-thirds, ~90px horizontal run into the word (tip mid-right). Barbs ±32°/20px. Verify every
+  clearance (mark-to-text, mark-to-mark) with a PIL scan on the export before showing the founder.
+- 2026-11-01: arrowhead barbs must be **visible on both sides of the shaft**. With a steep tip tangent,
+  ±30°/15px barbs fuse with the shaft and the head reads as a thorn (founder: "pointing the wrong way").
+  Fix that worked (for a steep down-pointing arrow): tip tangent within ~12° of vertical, barbs ±32°, length
+  20px, width 6px. For the current swooping-descent shape (horizontal tip tangent), ±32°/20px barbs open
+  symmetrically above and below the shaft. Verify with a zoomed crop of the EXPORT (PIL crop + NEAREST resize),
+  not just the full frame.
+- 2026-11-01 (Day 2 git-log fit, final): 17 commits / 30 wrapped lines fit at **Courier Prime 25 px, 31 px rule
+  pitch, 56-char wrap** (Day 1: 26 px / 36 px / 54). Rule phase `y = 103 + 31k` (k=0..38) so counter (103), note
+  (134, top-right), hook (227), header (320), log baselines (351+31k) and caption (1281) all sit on rules. Pitch
+  dropped from 32 to 31 px to make room for the underline + header stack under the hook.
+- 2026-11-01 (text baselines): baseline = layer offset_y + font ascent; measured ascents: Courier Prime Bold 25
+  → +19, 28 → +21, 32 → +25, 38 → +29; Bricolage Grotesque ExtraBold 90 → +84; Caveat Bold 40 → +38. Compute
+  positions from baselines, not offsets.
+- 2026-11-01 (failed calls leave side effects): a Code Mode `execute` block that throws at runtime may already
+  have run earlier tool calls — a duplicate `Day 02` counter layer survived from a batch that died on a later
+  line. MCP `add_text` dedupes names with a `#1` suffix, so **a `#N` layer name is the clue that an earlier call
+  with the same text already succeeded**. After any failed build call, dump layer names/offsets before
+  continuing.
+- 2026-11-01 (PIL QC thresholds): graphite `#5A5748` has max channel 90 — an `ink()` test of `max(c) < 90`
+  silently misses every graphite element (header, hashes, rules). Use `max(c) < 130 and blue-red < 40` for
+  graphite-or-ink scans; keep `max(c) < 90` only for ink-only checks. A "missing text" QC result is usually the
+  threshold, not the asset.
