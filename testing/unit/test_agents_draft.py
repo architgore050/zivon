@@ -165,6 +165,28 @@ class TestPromptPromises(unittest.TestCase):
         self.assertIn("Assume the draft contains at least one error", user)
         self.assertIn("Severity: fatal =", user)
 
+    def test_prompts_carry_labelled_shape_examples(self):
+        # A small local model complies far better when shown one compact example;
+        # every example must be labelled so its content cannot bleed into output.
+        synth = self._user_prompt(agents.run_synth, make_pack())
+        self.assertIn("Example of the required SHAPE", synth)
+        draft = self._user_prompt(
+            agents.run_draft,
+            load("03-explain.json"),
+            load("02-synth.json"),
+            make_pack(),
+        )
+        self.assertIn("Example of the required SHAPE", draft)
+        check = self._user_prompt(
+            agents.run_check,
+            make_pack(),
+            load("02-synth.json"),
+            load("04-draft.json"),
+        )
+        self.assertIn("Example issue (SHAPE only", check)
+        for prompt in (synth, draft, check):
+            self.assertIn("never reuse", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()

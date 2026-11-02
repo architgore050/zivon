@@ -85,7 +85,10 @@ def run_synth(
         "wanted to state has no clear passage behind it, record that question here instead of "
         "stating the fact. Never leave this out; use [] only if you are certain everything "
         "needed is covered.\n"
-        'Use source_id "ncert" for the primary NCERT chapter text.'
+        'Use source_id "ncert" for the primary NCERT chapter text.\n\n'
+        "Example of the required SHAPE (content is from an unrelated chapter - never reuse "
+        'it):\n{"id": "claim-07", "statement": "The SI unit of mass is the kilogram.", '
+        '"citations": [{"source_id": "ncert", "locator": "page 12"}]}'
     )
     return llm.call(
         "02-synth",
@@ -218,7 +221,18 @@ def run_draft(
         "Cite claims in every text, worked_example, check and reveal block (a factual block "
         "without citations is rejected): "
         '"citations": [{"claim_id": "claim-01"}].\n'
-        'Return {"blocks": [...]}.'
+        'Return {"blocks": [...]}.\n\n'
+        "Example of the required SHAPE (content from an unrelated chapter - never reuse "
+        'it):\n{"blocks": [{"id": "b-01", "type": "text", "spec": {"paragraphs": ["..."]}, '
+        '"citations": [{"claim_id": "claim-01"}]}, '
+        '{"id": "b-02", "type": "check", "spec": {"question": "...", "format": "mcq", '
+        '"options": ["2 m/s", "4 m/s", "6 m/s", "8 m/s"], "answer_index": 1, '
+        '"explanation": "...", "expected_understanding": "..."}, '
+        '"citations": [{"claim_id": "claim-02"}]}, '
+        '{"id": "b-03", "type": "simulation", "spec": {"title": "...", "description": "...", '
+        '"learning_goal": "...", "controls": [{"id": "speed", "label": "Speed (m/s)", '
+        '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
+        '"citations": [{"claim_id": "claim-03"}]}]}'
     )
 
     def rule_feedback(parsed: dict[str, Any]) -> list[str]:
@@ -292,7 +306,10 @@ def run_check(
         '[{"block_id": "b-01" or omit, "severity": "fatal"|"major"|"minor", '
         '"message": "..."}]}. Severity: fatal = a statement contradicts the sources or an '
         "answer key is wrong; major = a learner would be misled or confused; minor = style or "
-        "wording. verdict=fail if any fatal issue. An empty issues array means pass."
+        "wording. verdict=fail if any fatal issue. An empty issues array means pass.\n\n"
+        'Example issue (SHAPE only - never reuse it): {"block_id": "b-05", "severity": "fatal", "message": '
+        '"The block states the SI unit of speed is km/h; the source states the SI unit of '
+        'speed is m/s [ncert page 12]."}'
     )
     return llm.call(
         "05-check",
