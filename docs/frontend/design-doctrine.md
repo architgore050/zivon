@@ -4,9 +4,32 @@ Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic hon
 (founder decision 31 Oct 2026): the single visual source of truth for all post visuals and the product UI.
 Applied to the Day 0 post kit, the Day 1 post kit, and everything after.
 v1.1 (1 Nov 2026) extends the system to the lesson page of the product (§10); §1–§9 are unchanged.
+v1.2 (2 Nov 2026) adds §0: the scope split between the base system and the lesson extension is now explicit.
+No visual rule changed.
 Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
 and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
 the look. Second reference implementation, for lesson pages: `design-doctrine-lesson-example.html` (same folder; §10).
+
+## 0. Scope — which part of this doctrine applies where
+
+**"Field Notes" is the name of the whole design system, not of a lesson-page style.** §1–§9 are the base system
+that the entire product and every post follows. §10 is an extension that ONLY lesson pages add on top.
+
+| Surface | Rules that apply | Reference implementation |
+|---|---|---|
+| Build-in-public post visuals (LinkedIn/X) | §1–§9 | `design-doctrine-example.html` |
+| Site shell — landing page, course hub, navigation, any product page that is not a lesson | §1–§9 | `design-doctrine-example.html` |
+| Lesson pages — generated course material (a topic with its diagram, simulation, question) | §1–§9 **plus §10**; where §10.9 lists a departure, §10 wins for that rule | `design-doctrine-lesson-example.html` |
+
+Two scope errors to watch for, in both directions:
+
+- A shell or post page that borrows the lesson page's distinctive devices — the 36 px ruled-line grid,
+  handwritten Caveat/Kalam body text, taped paper cards, the fixed language bar — is a scope error. Those
+  devices belong to lesson pages only.
+- A lesson page that follows §1–§9 but ignores §10 is the other scope error: lessons are §1–§9 **and** §10.
+
+Everything in §1–§9 (palette, fonts, pen underline algorithm, usage rules, layout, psychology) applies to every
+surface, lessons included, except where §10.9 explicitly overrides it.
 
 ## 1. Intent
 - Style: handwritten-lab-notebook, deliberately unproduced. Tone: candid, a little wry. Differentiator: it looks
@@ -112,8 +135,10 @@ Yellow can read as sticky-note kitsch if overdone; keep texture flat. Test legib
 
 ## 10. Lesson page (extension, v1.1)
 
-Scope: the study-material page a learner opens in the product (a topic, its diagram, one simulation, one question).
-§1–§9 stay in force. §10 adds rules for this page type and lists, in §10.9, every place where it departs from them.
+Scope: **lesson pages only** — the study-material page a learner opens in the product (a topic, its diagram, one
+simulation, one question). §1–§9 stay in force for this page and unchanged for every other surface; §10 adds
+rules for this page type and lists, in §10.9, every place where it departs from them. Nothing in §10 (ruled
+grid, handwritten body, taped cards, language bar) may leak into the site shell or post visuals — see §0.
 Reference implementation: `design-doctrine-lesson-example.html` (a working page that applies every rule below).
 
 ### 10.1 Intent
