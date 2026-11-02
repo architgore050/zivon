@@ -79,6 +79,49 @@ jobs:
           name: factory-sbom-${{ github.sha }}
           path: sbom.json
 
+  # ---- 2b. the frontend image: lint, build, prove it serves ---------------
+  frontend-image:
+    name: Frontend image build + smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Dockerfile lint (hadolint)
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
+        with:
+          dockerfile: Dockerfile.frontend
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+      - name: Build frontend image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.frontend
+          load: true                       # load into the runner's docker for the steps below
+          tags: zivon-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test (site served, headers set, probe answers)
+        run: |
+          docker run -d --name zivon-web -p 8080:8080 zivon-frontend:${{ github.sha }}
+          for i in $(seq 1 15); do curl -sf http://127.0.0.1:8080/healthz >/dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:8080/healthz
+          curl -sf http://127.0.0.1:8080/ | grep -q "Zivon"
+          curl -sf http://127.0.0.1:8080/assets/zivon.css > /dev/null
+          curl -sf http://127.0.0.1:8080/assets/zivon.js > /dev/null
+          curl -sfI http://127.0.0.1:8080/ | grep -qi "content-security-policy"
+          curl -sfI http://127.0.0.1:8080/ | grep -qi "x-content-type-options: nosniff"
+          curl -sfI http://127.0.0.1:8080/ | grep -qi "cache-control: no-store"
+          docker rm -f zivon-web
+      - name: Image vulnerability scan (trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-frontend:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
+          ignore-unfixed: true
+
   # ---- 3. secrets: nothing sensitive may ever enter git history ------------
   secrets:
     name: Secret leak scan (gitleaks)
