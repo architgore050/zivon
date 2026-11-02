@@ -8,13 +8,16 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 | [`kubernetes.md`](kubernetes.md) | Running containers on a cluster: object model, our manifests, local minikube workflow |
 | [`cicd.md`](cicd.md) | GitHub Actions pipelines: the merge gate, security scans, Dependabot, hardening rules, pending setup steps |
 
-## Status snapshot (2026-11-01)
+Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task list**. No separate TODO files in this folder.
+
+## Status snapshot (2026-11-02)
 
 | Piece | State |
 |---|---|
-| Content factory image (`Dockerfile`, smoke test, compose) | ✅ v0.2.1 covers the full factory (incl. pdfplumber fix) (19 modules + `pipeline.py`); rebuild + reload after the patch drop |
-| Frontend image (`Dockerfile.frontend`, nginx site config, compose `web` service) | ✅ v0.1.0 serves the static site on :8080 (LAN-reachable for kid testing); CI builds + serves + scans it |
-| K8s manifests (`k8s/`) — namespace, smoke Job, run Job, frontend PVC + Deployment + Service | ✅ smoke Job verified on local minikube; kubeconform + kube-linter green on all six manifests (verified with the CI-pinned tool versions); run Job needs a configured model server + Secret to run |
+| Content factory image (`Dockerfile`, smoke test, compose) | ✅ v0.2.2 covers the full factory + fixed test sets (0.2.1: pdfplumber era; 0.2.2: read-only-safe tests) (19 modules + `pipeline.py`); rebuild + reload after the patch drop |
+| Frontend image (`Dockerfile.frontend`, nginx site config, compose `web` service) | ✅ v0.1.0 serves the static site on host :8081 via compose (host :8080 stays free for the dev inference server; LAN-reachable for kid testing); CI builds + serves + scans it |
+| K8s manifests (`k8s/`) — namespace, smoke Job, hf-cache PVC, frontend PVC + Deployment + Service, test CronJob, run Job | ✅ smoke Job + frontend hosting verified on local minikube: site live at **http://192.168.49.2:30080** (NodePort 30080, no manual command); test CronJob `*/30` + manual trigger live; run Job configured (dev router URL + model ID, optional Secret) — first generation running |
+| Dev inference router (`docker/inference-router.Dockerfile` + compose `inference-router`) | ✅ live: bridges the host's loopback-only inference server to containers/cluster pods (`192.168.49.1:18080`); verified from host + from inside a cluster pod |
 | CI merge gate (incl. test-suite job: content factory unit + e2e + frontend shell) + CodeQL + Dependabot | ✅ written; first live run will be the feature-branch PR |
 | Branch protection on `main` (required checks) | ⬜ to configure in GitHub UI before the PR |
 | Publish pipeline (merge → build → push to `ghcr.io`) | ⬜ next piece of CD |

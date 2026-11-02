@@ -23,10 +23,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.2.1 .
-docker run --rm zivon-factory:0.2.1                          # smoke test
-docker run --rm -it zivon-factory:0.2.1 bash                 # explore inside
-docker history zivon-factory:0.2.1                           # per-layer sizes
+docker build -t zivon-factory:0.2.2 .
+docker run --rm zivon-factory:0.2.2                          # smoke test
+docker run --rm -it zivon-factory:0.2.2 bash                 # explore inside
+docker history zivon-factory:0.2.2                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
@@ -38,8 +38,8 @@ The static site ships as its own small nginx image — hosting the frontend is s
 
 ```bash
 docker build -f Dockerfile.frontend -t zivon-frontend:0.1.0 .
-docker compose up web                                       # serve ./frontend on http://localhost:8080
-docker run --rm -p 8080:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.0
+docker compose up web                                       # serve ./frontend on http://localhost:8081
+docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.0
 ```
 
 - **Base:** `nginxinc/nginx-unprivileged:1.27-alpine` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule.
@@ -50,5 +50,6 @@ docker run --rm -p 8080:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-fron
 ## Rules
 
 - API keys and all server wiring enter only via environment at runtime (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY` — see `.env.example`), never via image or `COPY`.
+- Dev-only exception to "no extra images": the **inference router** (`docker/inference-router.Dockerfile`, alpine+socat, `network_mode: host`) bridges the host's loopback-only inference server to containers and cluster pods (`192.168.49.1:18080 → 127.0.0.1:8080`). It is a dev tool: not a product image, not in CI, never deployed to real clusters.
 - Version tags: `name:semver` locally; CI will add commit-SHA tags in the registry.
 - Any new runtime dependency goes into `requirements.txt` (CI's pip-audit and trivy watch it).

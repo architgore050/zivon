@@ -52,10 +52,12 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 pip install -r requirements.txt
 python -m playwright install chromium      # once, for the perf gate
 # server settings come from the environment (never from files):
-export ZIVON_BASE_URL=http://127.0.0.1:8000/v1
-export ZIVON_MODEL=<your-model>
+export ZIVON_BASE_URL=http://127.0.0.1:8080/v1     # your inference server (host loopback is fine HERE)
+export ZIVON_MODEL=qwen3.8-flash-next-iq3_xxs      # exactly as GET /v1/models reports
 python pipeline.py "Motion" --class 9
 ```
+
+Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) and use `ZIVON_BASE_URL=http://192.168.49.1:18080/v1` (see [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md)).
 
 Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`.
 
@@ -75,10 +77,10 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.2.1 .
-docker run --rm zivon-factory:0.2.1                          # environment smoke test
+docker build -t zivon-factory:0.2.2 .
+docker run --rm zivon-factory:0.2.2                          # environment smoke test
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
-docker compose up web                                        # serve frontend/ on http://localhost:8080
+docker compose up web                                        # serve frontend/ on http://localhost:8081
 ```
 
 - API keys are passed via environment variables (`ZIVON_API_KEY`) — never baked into the image.
@@ -91,7 +93,7 @@ Manifests live in `k8s/` (numeric prefix = apply order). Local cluster is miniku
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.2.1   # minikube has its own container store
+minikube image load zivon-factory:0.2.2   # minikube has its own container store
 kubectl apply -f k8s/                     # namespace + factory smoke Job
 kubectl get jobs,pods -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
