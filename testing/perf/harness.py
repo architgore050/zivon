@@ -4,7 +4,11 @@ Simulates a low-end Android phone on a real Chromium instance:
 - CPU throttling via CDP (Emulation.setCPUThrottlingRate) - each JS op costs N x
 - optional CPU affinity restriction (pin the browser to N cores; Linux)
 - RAM measured as the peak RSS of the whole Chromium process tree (psutil)
-- load budget from Navigation Timing, FCP/LCP from PerformanceObserver
+- load budget from wall-clock time around page.goto(wait_until="load"); the
+  browser is launched and throttled BEFORE the timer starts, so browser
+  startup is never counted - but each page gets a fresh browser with a cold
+  cache (first-visit reality, no warm-up)
+- FCP/LCP from PerformanceObserver (init script, buffered entries)
 - FPS sampled from requestAnimationFrame deltas during scripted interactions
   (scroll, click the first check button, run any canvas simulation)
 - console errors and page errors fail the run outright
