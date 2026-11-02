@@ -2,6 +2,7 @@
 
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -27,24 +28,22 @@ class TestProfiles(unittest.TestCase):
     def test_missing_key_rejected(self):
         bad = json.loads((PROFILES / "weak-android.json").read_text())
         del bad["fps_min"]
-        tmp = PROFILES.parent / "tmp-bad.json"
-        tmp.write_text(json.dumps(bad))
-        try:
+        # Write scratch files to a temp dir, never into the source tree:
+        # cluster pods run with a read-only root filesystem and must pass too.
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td) / "tmp-bad.json"
+            tmp.write_text(json.dumps(bad))
             with self.assertRaises(ValueError):
                 load_profile(tmp)
-        finally:
-            tmp.unlink()
 
     def test_wrong_type_rejected(self):
         bad = json.loads((PROFILES / "weak-android.json").read_text())
         bad["fps_min"] = "24"
-        tmp = PROFILES.parent / "tmp-bad.json"
-        tmp.write_text(json.dumps(bad))
-        try:
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td) / "tmp-bad.json"
+            tmp.write_text(json.dumps(bad))
             with self.assertRaises(ValueError):
                 load_profile(tmp)
-        finally:
-            tmp.unlink()
 
 
 class TestJudge(unittest.TestCase):
