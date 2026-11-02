@@ -6,9 +6,10 @@ result is linted before anything proceeds. Diagrams are NOT model calls here -
 their SVG comes from the draft stage and is rendered (and linted) as-is.
 
 The prompt pins the shared contract (zivon.css / zivon.js class names), hands
-the model the ground-truth facts its simulation must obey, and points at the
-design doctrine; the model never writes global styles. Lint runs INSIDE the
-retry loop, so the model sees and fixes its own violations.
+the model the ground-truth facts its simulation must obey, and injects the
+LIVE design doctrine, its example pages and the parsed palette (factory/
+design.py); the model never writes global styles. Lint runs INSIDE the retry
+loop, so the model sees and fixes its own violations.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from typing import Any
 
 from .artifacts import RunContext
 from .config import Config
+from .design import design_context, palette_text
 from .errors import LintError
 from .lint import lint_css, lint_js
 from .llm import LLMClient
@@ -90,7 +92,6 @@ def _build_simulation(
         )
         or "  - (no controls: this is an animation)"
     )
-    doctrine_path = cfg.repo_path(cfg.paths["doctrine"])
     facts = _facts_text(block, ground_truth)
 
     user = (
@@ -102,6 +103,20 @@ def _build_simulation(
         f"CONTROLS:\n{control_lines}\n\n"
         "FACTS THE SIMULATION MUST OBEY (ground truth - the drawn behaviour "
         f"must be physically correct per these):\n{facts}\n\n"
+        "DESIGN DOCTRINE + EXAMPLES (the visual language of the page this sim "
+        "lives on):\n"
+        + design_context(cfg, with_examples=True)
+        + "\n\nPALETTE (exact values from the page stylesheet; use these, "
+        "invent nothing):\n"
+        + palette_text(cfg)
+        + "\nBRIDGE (medium translation, not doctrine): the doctrine and "
+        "examples describe the whole page; the shell (grid, cards, tape, "
+        "controls) is built for you by the renderer. You fill ONE canvas "
+        "simulation inside a paper card: apply the doctrine's visual language "
+        "in canvas 2D. In page.css use the palette variables by name; on "
+        "canvas use the PALETTE hex values. The examples are single-file "
+        "shell demos - read them for the visual language, never copy their "
+        "structure.\n\n"
         "CONTRACT (hard):\n"
         "- PHYSICS CONTRACT: the behaviour you draw must follow the FACTS above. "
         "When a control changes a value, the on-screen relationship must match "
@@ -115,9 +130,8 @@ def _build_simulation(
         "no document.write, no inline <script>.\n"
         "- Use only CSS classes scoped under .zn-sim-" + block["id"] + " in page.css; "
         "never define global styles, never touch elements outside the simulation container.\n"
-        f"- Visual style: use the shared Field Notes tokens via CSS variables "
-        "(var(--ink), var(--paper), var(--graphite), var(--pen-blue)) from zivon.css. "
-        f"Reference: {doctrine_path}. Do not invent new colours beyond the doctrine tokens.\n"
+        "- Colours: use only PALETTE values (hex on canvas, variables by name "
+        "in page.css). Invent no colours.\n"
         "- The runtime wires the range inputs to ctx.values[controlId] automatically.\n"
         "- Design for a small phone canvas (typically 300-600 CSS px wide): drawn "
         "text at 12 px or larger, few on-screen labels, nothing essential smaller "
