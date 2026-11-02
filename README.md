@@ -77,8 +77,8 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.2.4 .
-docker run --rm zivon-factory:0.2.4                          # environment smoke test
+docker build -t zivon-factory:0.2.8 .
+docker run --rm zivon-factory:0.2.8                          # environment smoke test
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8081
 ```
@@ -89,17 +89,21 @@ docker compose up web                                        # serve frontend/ o
 
 ## Kubernetes (local cluster)
 
-Manifests live in `k8s/` (numeric prefix = apply order). Local cluster is minikube with the docker driver:
+Manifests live in `k8s/` (numeric prefix = apply order); `k8s/infra.env` is the single source of truth for cluster config values (test cadence, inference server URL, model). Local cluster is minikube with the docker driver:
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.2.4   # minikube has its own container store
-kubectl apply -f k8s/                     # namespace + factory smoke Job
-kubectl get jobs,pods -n zivon
+minikube image load zivon-factory:0.2.8   # minikube has its own container store
+scripts/apply-k8s.sh                      # ConfigMap + all manifests + rendered CronJob + startup test run
+kubectl get jobs,pods,deploy,svc,cronjob,pvc -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
+# the site, live with no extra command: http://192.168.49.2:30080
+scripts/trigger-tests.sh                  # manual full test run (the "button")
+scripts/trigger-factory-run.sh "Motion" 9 # one generation run (chapter + class)
 ```
 
-- The content factory runs as a **Job** (batch, runs to completion). The voice backend will run as a **Deployment + Service** when it exists.
+- The content factory runs as a **Job** (batch, runs to completion) and is **manual-trigger only** — generation never runs on a schedule. Only the test suite is scheduled (cadence from `TEST_CRON_SCHEDULE` in `k8s/infra.env`). The voice backend will run as a **Deployment + Service** when it exists.
+- `k8s/20-factory-run-job.yaml` is a topic-agnostic TEMPLATE (placeholders for name + chapter); `scripts/trigger-factory-run.sh` is the only sanctioned way to start a run.
 - API keys reach pods via Secrets/env at runtime — never written in manifests.
 
 ## CI/CD (GitHub Actions)

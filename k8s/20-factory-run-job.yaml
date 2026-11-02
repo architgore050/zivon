@@ -1,14 +1,24 @@
-# A REAL pipeline run as a K8s Job — the pattern every future topic run follows.
+# Content factory run Job TEMPLATE — a manual admin tool, never automatic.
 #
-# Prerequisites (this Job will fail without them):
-#   1. ZIVON_BASE_URL + ZIVON_MODEL env below set to a reachable OpenAI-format
-#      server (missing server env is a hard config error by design).
-#      Dev setup: the inference router (docker compose up -d inference-router)
-#      forwards 192.168.49.1:18080 -> the host's loopback-only server on :8080.
-#   2. If your server needs an API key, create the Secret (never in a manifest):
-#        kubectl create secret generic zivon-factory-env -n zivon \
-#          --from-literal=ZIVON_API_KEY=<key>
-#      Keyless local servers: the Secret is optional (see secretKeyRef below).
+# This file is a TEMPLATE: it carries placeholders and is NOT meant to be
+# `kubectl apply`-ed directly. The only sanctioned way to start a generation
+# run (the admin "button", stand-in for the Day-8 dashboard) is:
+#
+#     scripts/trigger-factory-run.sh "Motion" 9      # chapter + class (optional)
+#
+# The script rewrites factory-run-template -> factory-run-<chapter>-<timestamp>
+# and injects the chapter (+ optional --class) into the pipeline command.
+# Generation is manual-trigger by design: the factory NEVER runs on a schedule.
+# (Only the TEST suite is scheduled — k8s/50, cadence from k8s/infra.env.)
+#
+# Runtime config (server URL + model) comes from the zivon-factory-config
+# ConfigMap — values live in k8s/infra.env, applied by scripts/apply-k8s.sh.
+# Nothing topic-, server- or model-specific is hardcoded in this file.
+#
+# API key (only if your server needs auth) — Secret only, never in a manifest:
+#   kubectl create secret generic zivon-factory-env -n zivon \
+#     --from-literal=ZIVON_API_KEY=<key>
+# Keyless local servers: the Secret is optional (secretKeyRef optional: true).
 #
 # Output: runs/ is an emptyDir = EPHEMERAL evidence (gone when the pod ends;
 # for dev fetch it with:  kubectl cp zivon/<pod-name> runs -c factory).
@@ -16,12 +26,10 @@
 # straight onto the site the frontend Deployment serves (k8s/30, k8s/40).
 # sources/ (PDF + text cache) lives on the zivon-sources PVC (k8s/13): fetched
 # textbooks survive across runs, so NCERT is downloaded once, not every run.
-# Apply order: 00 -> 10 -> 12 -> 13 -> 15 -> 20 -> 30 -> 40 (the PVCs from
-# 12/13/15 must exist before this Job).
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: factory-run-motion        # one Job per topic run; name it descriptively
+  name: factory-run-template      # trigger script rewrites this per run
   namespace: zivon
   labels:
     app: zivon-factory
@@ -41,18 +49,19 @@ spec:
         runAsUser: 1000
       containers:
         - name: factory
-          image: zivon-factory:0.2.4
+          image: zivon-factory:0.2.8
           imagePullPolicy: IfNotPresent
           # Command override: the image's CMD (smoke test) is replaced by the
-          # real entry point. This is the Job-vs-smoke difference.
-          command: ["python", "pipeline.py", "Motion", "--class", "9"]
+          # real entry point. "__CHAPTER__" is replaced by the trigger script
+          # with the requested chapter (+ optional --class). Topic-agnostic:
+          # the Job is just a factory run; the topic is a runtime input.
+          command: ["python", "pipeline.py", "__CHAPTER__"]
           securityContext:
             readOnlyRootFilesystem: true   # kube-linter gate; all writes hit the mounts below
+          envFrom:
+            - configMapRef:
+                name: zivon-factory-config   # ZIVON_BASE_URL + ZIVON_MODEL (from k8s/infra.env)
           env:
-            - name: ZIVON_BASE_URL
-              value: "http://192.168.49.1:18080/v1"   # dev router -> host inference server; EDIT ME for another server
-            - name: ZIVON_MODEL
-              value: "qwen3.8-flash-next-iq3_xxs"     # exactly as GET /v1/models reports; EDIT ME for another model
             - name: ZIVON_API_KEY
               valueFrom:
                 secretKeyRef:
