@@ -69,16 +69,22 @@ def run_synth(
         "Return a JSON object with exactly these keys:\n"
         '- "topic": short topic name\n'
         '- "summary": 3-6 sentence overview\n'
-        '- "claims": 8-20 atomic factual claims; each {"id": "claim-01", "statement": "...", '
+        '- "claims": 8-20 factual claims; each {"id": "claim-01", "statement": "...", '
         '"citations": [{"source_id": "<id from the [SOURCE ...] headers, or "ncert" for the primary source>", '
-        '"locator": "page 123" or "section name"}]}\n'
+        '"locator": "page 123" or "section name"}]}. One testable fact per claim, quotable from '
+        "a single passage. Prioritise what a student needs to solve the chapter's problems: "
+        "definitions, laws, standard values, units. Copy numbers, units and their forms exactly "
+        "as written in the sources - do not convert units or compute new values.\n"
         '- "key_terms": [{"term", "definition", "citations"}] - at least 4\n'
         '- "equations": [{"id": "eq-01", "expression": "plain text like v = u + a*t", "description", "citations"}] '
         "(empty array if none)\n"
-        '- "misconceptions": [{"id": "mis-01", "wrong_belief", "correction", "citations"}] '
-        "(empty array if none)\n"
-        '- "uncertain": list of questions the sources do NOT answer clearly. Never leave this '
-        "out; use [] only if you are certain everything needed is covered.\n"
+        '- "misconceptions": [{"id": "mis-01", "wrong_belief", "correction", "citations"}] - '
+        "Physics chapters almost always contain misconceptions the source addresses or "
+        "corrects; search for them before returning an empty array\n"
+        '- "uncertain": list of questions the sources do NOT answer clearly. If a fact you '
+        "wanted to state has no clear passage behind it, record that question here instead of "
+        "stating the fact. Never leave this out; use [] only if you are certain everything "
+        "needed is covered.\n"
         'Use source_id "ncert" for the primary NCERT chapter text.'
     )
     return llm.call(
@@ -108,13 +114,18 @@ def run_explain(
         + "\n\nTASK: Edit this into a SELF-CONTAINED lesson that explains everything slowly and "
         "properly for a first-time learner in class "
         f"{cfg.learner['class_level']}.\n"
+        "Write as a patient tutor speaking directly to the student ('you'): clear, "
+        "encouraging, step by step.\n"
         "Hard requirements:\n"
+        "- TEACHING ORDER: start from an everyday observation the student recognises, then "
+        "define, then formalise with symbols and equations.\n"
         "- INDEPENDENT OF OUTSIDE SOURCES: the reader has only this page. Remove every "
         "context-specific reference: 'previous chapter', 'the textbook', 'Figure 7.3', "
         "'as we saw', exercise numbers, page numbers. Do not refer to any external material.\n"
         "- Define every technical term the first time it appears.\n"
         "- One idea per paragraph; 3-5 sentences per paragraph; short sentences.\n"
-        "- Do not add facts that are not in the ground truth.\n"
+        "- Do not add facts that are not in the ground truth; keep numbers and units exactly "
+        "as they appear in it.\n"
         "Return a JSON object with exactly these keys:\n"
         '- "title": lesson title\n'
         '- "objectives": 2-4 sentences, each "After this lesson you can ..."\n'
@@ -269,7 +280,9 @@ def run_check(
         + _gt_text(ground_truth)
         + "\n\nDRAFT BLOCKS TO REVIEW:\n\n"
         + _blocks_text(blocks)
-        + "\n\nTASK: You are the Comprehension & Fact Reviewer. Review every block:\n"
+        + "\n\nTASK: You are the Comprehension & Fact Reviewer. Assume the draft contains at "
+        "least one error: hunt for invented numbers, unit mismatches, and answers that do not "
+        "match the question. Review every block:\n"
         "1. Is each factual statement correct per the source material? Quote the source in your issue.\n"
         "2. Is every check's correct answer actually correct?\n"
         "3. Is the language and depth right for a class "
@@ -277,7 +290,9 @@ def run_check(
         "4. Does anything read as if it depends on material outside this page?\n"
         'Return a JSON object: {"verdict": "pass"|"fail", "issues": '
         '[{"block_id": "b-01" or omit, "severity": "fatal"|"major"|"minor", '
-        '"message": "..."}]}. verdict=fail if any fatal issue. An empty issues array means pass.'
+        '"message": "..."}]}. Severity: fatal = a statement contradicts the sources or an '
+        "answer key is wrong; major = a learner would be misled or confused; minor = style or "
+        "wording. verdict=fail if any fatal issue. An empty issues array means pass."
     )
     return llm.call(
         "05-check",

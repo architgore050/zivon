@@ -34,9 +34,22 @@ def make_pack() -> dict[str, Any]:
         ncert = "\n".join((p.extract_text(use_text_flow=True) or "") for p in pdf.pages)
     return {
         "ncert_text": ncert,
-        "chapter": {"book_id": "ncert-fixture-ch01"},
+        "chapter": {
+            "book_id": "ncert-fixture-ch01",
+            "title": "Motion",
+            "book_title": "Fixture Science Class 9",
+            "class": 9,
+            "pages": [97, 112],
+        },
         "supplements": [
-            {"source_id": "alt-open-physics#c0001", "book_id": "alt-open-physics"}
+            {
+                "source_id": "alt-open-physics#c0001",
+                "book_id": "alt-open-physics",
+                "book_title": "Alternative Open Physics",
+                "page_from": 4,
+                "page_to": 6,
+                "text": "Speed is distance divided by time.",
+            }
         ],
     }
 
@@ -104,6 +117,53 @@ class TestDraftRuleWiring(unittest.TestCase):
         problems = validator(bad)
         self.assertTrue(any("73" in p for p in problems), problems)
         self.assertTrue(any("no citations" in p for p in problems), problems)
+
+
+class TestPromptPromises(unittest.TestCase):
+    """Prompt promises must match what the code enforces later; these lines
+    are load-bearing contracts, not decoration."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
+        base["paths"]["runs"] = str(self.tmp / "runs")
+        (self.tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
+        saved = install_server_env()
+        try:
+            self.cfg = load_config(self.tmp / "config.json")
+        finally:
+            release_server_env(saved)
+        self.run_ctx = RunContext(
+            self.cfg.repo_path(self.cfg.paths["runs"]), "t-promises"
+        )
+
+    def _user_prompt(self, fn, *args) -> str:
+        stub = StubLLM()
+        fn(self.cfg, self.run_ctx, cast(LLMClient, stub), *args)
+        return next(m["content"] for m in stub.messages if m["role"] == "user")
+
+    def test_synth_prompt_blocks_number_laundering(self):
+        # rule_numbers checks verbatim presence in GT/source; a claim that already
+        # converted or computed a number would PASS that check - so 02-synth must
+        # forbid creating such numbers in the first place.
+        user = self._user_prompt(agents.run_synth, make_pack())
+        self.assertIn("do not convert units or compute new values", user)
+
+    def test_explain_prompt_carries_persona_and_teaching_order(self):
+        user = self._user_prompt(agents.run_explain, load("02-synth.json"))
+        self.assertIn("patient tutor", user)
+        self.assertIn("TEACHING ORDER", user)
+        self.assertIn("keep numbers and units exactly", user)
+
+    def test_fact_reviewer_prompt_calibrates_severity(self):
+        user = self._user_prompt(
+            agents.run_check,
+            make_pack(),
+            load("02-synth.json"),
+            load("04-draft.json"),
+        )
+        self.assertIn("Assume the draft contains at least one error", user)
+        self.assertIn("Severity: fatal =", user)
 
 
 if __name__ == "__main__":

@@ -68,7 +68,9 @@ def run(
                     + manifest_text
                     + "\n\nFINAL PAGE FILES:\n"
                     + files_text
-                    + "\n\nTASK: Review this generated page before it is linked into the site.\n"
+                    + "\n\nTASK: Review this generated page before it is linked into the "
+                    "site. Assume the page contains at least one defect; your job is to find "
+                    "it.\n"
                     "Checklist:\n"
                     "1. Every block spec is implemented correctly in the HTML/JS (quiz options match, "
                     "answer indices match, simulation controls match, diagram present).\n"
@@ -78,7 +80,10 @@ def run(
                     "batched, no synchronous layout reads in the draw loop.\n"
                     "4. Code quality: clear names, no dead code, no console.log left in.\n"
                     'Return {"verdict": "pass"|"fail", "issues": [{"block_id" optional, '
-                    '"severity": "fatal"|"major"|"minor", "message"}]}.'
+                    '"severity": "fatal"|"major"|"minor", "message"}]}. Severity: fatal = a '
+                    "block spec is implemented wrongly or an answer key is broken; major = a "
+                    "learner would be misled or an interactive element is unusable; minor = "
+                    "style."
                 ),
             },
         ],
