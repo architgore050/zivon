@@ -1,11 +1,13 @@
 """Stage 09-fixloop: the Performance Engineer agent, back-and-forth.
 
 Stage 08 hands the failing perf report here (the orchestrator routes a
-fixable BudgetError instead of dying). Loop: hand the report + current topic
-files to the model, apply its replacement contents (topic-local files ONLY:
-page.js, page.css; index.html is renderer-owned), re-lint, re-render the
-HTML shell, re-test. After perf.fix_rounds rounds without a pass, the stage
-fails with the full history so a human can look.
+fixable BudgetError instead of dying). Loop: hand the report + page specs +
+previous attempts + current topic files to the model, apply its replacement
+contents (topic-local files ONLY: page.js, page.css; index.html is
+renderer-owned), re-lint, re-render the HTML shell, re-test. After
+perf.fix_rounds rounds without a pass, the stage fails with the full history
+so a human can look. The prompt guards the pedagogy: a perf fix may not
+delete or neuter what the page teaches.
 
 When stage 08 already passed, this stage verifies nothing new is broken and
 returns immediately (rounds=0, no model call, no extra Chromium launch).
@@ -38,9 +40,11 @@ def run(
     llm: LLMClient,
     render_out: dict[str, Any],
     initial_perf: dict[str, Any] | None = None,
+    blocks: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """initial_perf: stage 08's topic-page report (or None when 09 is run
-    standalone - then we measure once ourselves)."""
+    standalone - then we measure once ourselves).
+    blocks: the 04-draft output - the page specs the fix loop must preserve."""
     run_profile = _harness()
     profile_path = cfg.repo_path(cfg.perf["profile"])
     topic_dir = Path(render_out["topic_dir"])
@@ -61,6 +65,8 @@ def run(
     )
     history = [{"round": 0, "perf": report}]
     rounds = cfg.perf["fix_rounds"]
+    specs = _specs_text(blocks)
+    attempts: list[str] = []
 
     for round_no in range(1, rounds + 1):
         current_files = {
@@ -74,7 +80,9 @@ def run(
                 {"role": "system", "content": _system()},
                 {
                     "role": "user",
-                    "content": _user_msg(report, current_files, round_no, rounds),
+                    "content": _user_msg(
+                        report, current_files, round_no, rounds, specs, attempts
+                    ),
                 },
             ],
             FIX_PLAN,
@@ -111,6 +119,10 @@ def run(
 
         report = run_profile(topic_url, profile_path)
         history.append({"round": round_no, "perf": report})
+        attempts.append(
+            f"round {round_no}: {plan['analysis'][:240]} -> "
+            + ("pass" if report["pass"] else "; ".join(report["failures"])[:240])
+        )
         if report["pass"]:
             _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
             return {"rounds": round_no, "history": history, "pass": True}
@@ -218,31 +230,71 @@ def _extract_glossary(html_text: str) -> list[dict[str, str]]:
     return [{"term": _strip_tags(t), "definition": _strip_tags(d)} for t, d in pairs]
 
 
+def _specs_text(blocks: dict[str, Any] | None) -> str:
+    """What the page must STILL do after a perf fix: the simulation specs."""
+    if not blocks:
+        return "(specs unavailable: preserve the page's teaching behaviour)"
+    lines = []
+    for b in blocks.get("blocks", []):
+        if b["type"] == "simulation":
+            s = b["spec"]
+            controls = (
+                ", ".join(
+                    f"{c.get('id')} ({c.get('min')}..{c.get('max')})"
+                    for c in s.get("controls", [])
+                )
+                or "none (animation)"
+            )
+            lines.append(
+                f'- {b["id"]} "{s.get("title")}": goal: {s.get("learning_goal")}; '
+                f"shows: {s.get('default_behaviour')}; controls: {controls}"
+            )
+    return "\n".join(lines) or "(no simulations on this page)"
+
+
 def _system() -> str:
     return (
         "[ZIVON STAGE: 09-fixloop] You are the Performance Engineer agent. A generated study "
-        "page missed its performance budget on weak-hardware simulation.\n"
+        "page missed its performance budget on weak-hardware simulation (Chromium under CPU "
+        "throttling and core pinning, simulating a low-end Android phone).\n"
         "RULES:\n- Return exactly ONE JSON object.\n"
         "- You may only replace page.js and page.css contents; never reference external "
         "resources; never use eval/Function/fetch/import.\n"
+        "- The page must still TEACH after your fix: every simulation keeps its spec's "
+        "learning_goal, default_behaviour and controls. Do not delete or neuter required "
+        "behaviour to gain speed; if the only way to meet the budget is to remove required "
+        "behaviour, say so in analysis instead of doing it.\n"
         "- Prefer fixing JS hot paths: avoid per-frame allocations, avoid layout thrash, "
         "cache 2d context state, reduce draw complexity.\n"
     )
 
 
 def _user_msg(
-    report: dict[str, Any], files: dict[str, str], round_no: int, rounds: int
+    report: dict[str, Any],
+    files: dict[str, str],
+    round_no: int,
+    rounds: int,
+    specs: str,
+    attempts: list[str],
 ) -> str:
     measurements = json.dumps(
-        {"failures": report["failures"], "measured": report["measured"]}, indent=1
+        {
+            "budgets": report.get("budgets", {}),
+            "failures": report["failures"],
+            "measured": report["measured"],
+        },
+        indent=1,
     )
     files_text = (
         "\n\n".join(f"=== {name} ===\n{content}" for name, content in files.items())
         or "(no topic files yet)"
     )
+    attempts_text = "\n".join(f"- {a}" for a in attempts) or "- (none yet)"
     return (
         f"ROUND {round_no} of {rounds}.\n\n"
         f"PERF REPORT (budgets vs measured):\n{measurements}\n\n"
+        f"PAGE SPECS (what the page must still do after your fix):\n{specs}\n\n"
+        f"PREVIOUS ATTEMPTS (do not repeat a failed fix unchanged):\n{attempts_text}\n\n"
         f"CURRENT TOPIC FILES:\n{files_text}\n\n"
         'Return {"analysis": "what is slow and why", "files": {"page.js": "<full new '
         'content>", "page.css": "<full new content or omit>"}}. Omit files you do not change. '

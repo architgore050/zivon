@@ -237,8 +237,10 @@ def run_pipeline(
         if wanted("09-fixloop"):
             if render_out is None:
                 render_out = run_ctx.load_stage_output("07-render")
+            if blocks is None:
+                blocks = run_ctx.load_stage_output("04-draft")
             run_ctx.mark_stage("09-fixloop", "running")
-            fix_out = fixloop.run(cfg, run_ctx, llm, render_out, perf_report)
+            fix_out = fixloop.run(cfg, run_ctx, llm, render_out, perf_report, blocks)
             run_ctx.save_stage_output("09-fixloop", fix_out)
             run_ctx.mark_stage("09-fixloop", "ok", detail=f"rounds={fix_out['rounds']}")
 
