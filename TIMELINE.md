@@ -202,7 +202,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 Open — work top-down:
 
-- 🔄 **FIRST GENERATION (most important)** — unblocked 2026-11-02: NCERT's broken TLS chain (leaf without the LE intermediate + flaky resets) fixed with a pinned bundle (`sources/certs/ncert.nic.in.pem`) + polite retried fetches in `factory/ingest.py` (image 0.2.3); `factory-run-motion` running in-cluster with the `zivon-sources` PVC caching downloads across runs. Success = a generated Physics page appears on http://192.168.49.2:30080.
+- 🔄 **FIRST GENERATION (most important)** — unblocked 2026-11-02: NCERT's broken TLS chain (leaf without the LE intermediate + flaky resets) fixed with a pinned bundle (`sources/certs/ncert.nic.in.pem`) + polite retried fetches (0.2.3); first cluster run then OOMKilled at 4 Gi during extraction → 8 Gi + reusable text cache (0.2.4). `factory-run-motion` re-running, resuming from the `zivon-sources` PVC (5 of 11 books already cached). Success = a generated Physics page appears on http://192.168.49.2:30080.
 - ⬜ Commit the uncommitted infra/test work (test restructure + frontend suite + image bumps) — user's timing.
 - ⬜ Branch protection on `main` + required checks (checklist in `docs/deployment/cicd.md`: quality, docker, frontend-image, secrets, deps, manifests, tests, CodeQL).
 - ⬜ Publish pipeline: merge → build → push images to `ghcr.io/architgore050/zivon-*`.

@@ -20,7 +20,7 @@ index.
 
 | # | Stage | Module | Model? | Output (runs/<run_id>/<stage>/output.json) |
 |---|---|---|---|---|
-| 00 | ingest | factory/ingest.py | code | per-book chapter index + page text cache |
+| 00 | ingest | factory/ingest.py | code | per-book chapter index + page text cache (reused across runs — a dead run resumes) |
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
 | 02 | synth | factory/agents.py | model | ground_truth (claims, equations, misconceptions, uncertain) |
 | 03 | explain | factory/agents.py | model | lesson (self-contained prose) |

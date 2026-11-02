@@ -62,7 +62,7 @@ sudo install kubectl /usr/local/bin/kubectl
 minikube start --driver=docker
 minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
 minikube addons enable metrics-server # makes kubectl top nodes/pods work
-minikube image load zivon-factory:0.2.3   # see gotcha 2
+minikube image load zivon-factory:0.2.4   # see gotcha 2
 minikube image load zivon-frontend:0.1.0  # frontend hosting (see gotcha 2)
 kubectl apply -f k8s/00-namespace.yaml -f k8s/10-factory-smoke-job.yaml
 # Frontend hosting (site volume + nginx + NodePort service):
@@ -91,6 +91,7 @@ kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the
 8. **A host's `127.0.0.1` is invisible to every container.** Containers reach the host only through bridge gateway IPs (`172.17.0.1`, `192.168.49.1`), never loopback — so a server bound to `127.0.0.1` is unreachable from Docker and cluster pods. Fix without touching the server: the inference router (section above) or rebind the server to `0.0.0.0`. Also: pointing containers at the host's LAN IP fails too when the listen socket is loopback-only.
 9. **Cluster runs run IMAGES, not your working tree.** A test fix in the repo does nothing in-cluster until a new tag is built + `minikube image load`ed + manifests bumped (0.2.1 → 0.2.2 for the read-only-safe test fix). The CronJob failing twice on the stale `tmp-bad.json` test, then going green on 0.2.2, is this loop in action.
 10. **`ncert.nic.in` has a broken published TLS chain AND flaky connections.** It serves its Let's Encrypt leaf (issuer `CN = YE1`) WITHOUT the intermediate → stock verifiers fail with `unable to get local issuer certificate`; connections also get randomly reset mid-handshake, especially after a burst of requests (our first run hammered it for 58 min and got throttled). Fixed in `factory/ingest.py` (image 0.2.3): (a) pinned chain bundles per host at `sources/certs/<host>.pem` — `ncert.nic.in.pem` carries YE1 + Root YE + ISRG Root X1/X2 (regeneration notes inside the file; `Root YE` is cross-signed by Root X2, so the bundle needs X2 too); (b) fetches are polite (≥1.5 s apart) and retried 3× with backoff. Two lessons: name the bundle exactly `<host>.pem` (the code's lookup convention — `ncert-chain.pem` silently fell back to the system store), and treat textbook-site flakiness as normal.
+11. **pdfplumber peaks hard on real textbooks.** The run Job was OOMKilled twice at the 4 Gi container limit during 00-ingest on full NCERT PDFs (the node has 32 Gi — the limit, not the cluster, was the wall). Fixed in 0.2.4: limit raised to 8 Gi, and the extracted-text cache is now actually read back (`_cached_pages`) — before this, `pages.json` was written but never reused, so every retry re-extracted the whole catalog and died at the same book. A durable cache only pays off if both halves (PDFs AND text) are reused.
 
 ## Hosting decision (partially closed)
 
