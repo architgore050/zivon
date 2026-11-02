@@ -3,16 +3,19 @@
 # Prerequisites (this Job will fail without them):
 #   1. ZIVON_BASE_URL + ZIVON_MODEL env below set to a reachable OpenAI-format
 #      server (missing server env is a hard config error by design).
-#   2. The API key as a Secret, created imperatively — never in a manifest:
+#      Dev setup: the inference router (docker compose up -d inference-router)
+#      forwards 192.168.49.1:18080 -> the host's loopback-only server on :8080.
+#   2. If your server needs an API key, create the Secret (never in a manifest):
 #        kubectl create secret generic zivon-factory-env -n zivon \
 #          --from-literal=ZIVON_API_KEY=<key>
+#      Keyless local servers: the Secret is optional (see secretKeyRef below).
 #
 # Output: runs/ is an emptyDir = EPHEMERAL evidence (gone when the pod ends;
 # for dev fetch it with:  kubectl cp zivon/<pod-name> runs -c factory).
 # frontend/ is the zivon-frontend PVC: stage 11-link publishes generated pages
 # straight onto the site the frontend Deployment serves (k8s/30, k8s/40).
-# Apply order: 00 -> 10 -> 15 -> 20 -> 30 -> 40 (the PVC from 15 must exist
-# before this Job).
+# Apply order: 00 -> 10 -> 12 -> 15 -> 20 -> 30 -> 40 (the PVCs from 12/15 must
+# exist before this Job).
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -36,7 +39,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: factory
-          image: zivon-factory:0.2.1
+          image: zivon-factory:0.2.2
           imagePullPolicy: IfNotPresent
           # Command override: the image's CMD (smoke test) is replaced by the
           # real entry point. This is the Job-vs-smoke difference.
@@ -45,14 +48,15 @@ spec:
             readOnlyRootFilesystem: true   # kube-linter gate; all writes hit the mounts below
           env:
             - name: ZIVON_BASE_URL
-              value: "http://127.0.0.1:8000/v1"   # EDIT ME: your inference server (in-cluster: the service DNS)
+              value: "http://192.168.49.1:18080/v1"   # dev router -> host inference server; EDIT ME for another server
             - name: ZIVON_MODEL
-              value: "CHANGE-ME"                  # EDIT ME: exactly as GET /v1/models reports it; the placeholder is a hard config error by design
+              value: "qwen3.8-flash-next-iq3_xxs"     # exactly as GET /v1/models reports; EDIT ME for another model
             - name: ZIVON_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: zivon-factory-env
                   key: ZIVON_API_KEY
+                  optional: true   # keyless local servers need no Secret; hosted servers: create it
           volumeMounts:
             - name: runs
               mountPath: /app/runs
@@ -84,6 +88,7 @@ spec:
         - name: text-cache
           emptyDir: {}
         - name: hf-cache
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: zivon-hf-cache   # embedder downloads once, not per run
         - name: tmp
           emptyDir: {}

@@ -1,0 +1,84 @@
+# Scheduled full test suite (content factory unit + frontend + integration).
+#
+# THE CONFIG VALUE IS THE schedule LINE BELOW. K8s CronJob granularity is
+# MINUTES (cron syntax: min hour day month weekday) - "every x seconds" is not
+# expressible; every-N-minutes is the smallest unit. */30 = every 30 minutes.
+# Examples: "*/5 * * * *" = every 5 min | "0 * * * *" = hourly |
+#           "0 */6 * * *" = every 6 h | "30 21 * * *" = daily 21:30.
+#
+# Image: the factory image already CONTAINS the test sets (the perf harness is a
+# runtime import of stage 08), so no separate test image is needed - the command
+# override below replaces the smoke-test CMD with the full suite.
+#
+# Manual trigger (the "button"):
+#   kubectl create job --from=cronjob/test-suite test-manual-1 -n zivon
+# or in the Kubernetes Dashboard (minikube dashboard): Jobs -> test-suite ->
+# Recreate. Grafana-integrated triggering arrives with the Day-8 dashboard.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: test-suite
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  schedule: "*/30 * * * *"   # <-- THE CONFIG VALUE (minutes; see examples above)
+  concurrencyPolicy: Forbid  # never overlap test runs
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0            # a failing test run is a signal, not something to retry
+      activeDeadlineSeconds: 1800  # 30 min cap: a hung suite must die
+      ttlSecondsAfterFinished: 86400  # kube-linter gate: auto-clean finished Jobs
+      template:
+        metadata:
+          labels:
+            app: zivon-factory
+            task: test-suite
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          containers:
+            - name: tests
+              image: zivon-factory:0.2.2
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - >-
+                  python -m unittest discover -s testing/content_factory/unit -t . &&
+                  python -m unittest discover -s testing/frontend -t . &&
+                  python -m unittest testing.content_factory.integration.test_end_to_end
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true   # writes go only to the mounts below
+              volumeMounts:
+                - name: runs
+                  mountPath: /app/runs
+                - name: hf-cache
+                  mountPath: /app/.cache/huggingface
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+          volumes:
+            - name: runs
+              emptyDir: {}
+            - name: hf-cache
+              persistentVolumeClaim:
+                claimName: zivon-hf-cache
+            - name: tmp
+              emptyDir: {}
