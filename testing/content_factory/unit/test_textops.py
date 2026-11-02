@@ -77,6 +77,18 @@ class TestCleanPdfText(unittest.TestCase):
     def test_outer_whitespace_stripped(self):
         self.assertEqual(clean_pdf_text("  \n text \n "), "text")
 
+    def test_symbol_font_private_use_runs_decode_to_ascii(self):
+        # NCERT physics-11 prelims arrive as U+F0XX runs (XX = ASCII code)
+        garbled = (
+            "\uf050\uf041\uf052\uf054 \uf049\n"
+            "\uf054\uf045\uf058\uf054\uf042\uf04f\uf04f\uf04b \uf046\uf04f\uf052\n"
+            "\uf020 \uf043\uf04c\uf041\uf053\uf053 \uf020 \uf058\uf049"
+        )
+        self.assertEqual(clean_pdf_text(garbled), "PART I\nTEXTBOOK FOR\n CLASS XI")
+
+    def test_non_printable_private_use_glyphs_are_dropped(self):
+        self.assertEqual(clean_pdf_text("\uf001ab\uf0ffcd"), "abcd")
+
 
 class TestChunkText(unittest.TestCase):
     def test_empty_text_gives_no_chunks(self):

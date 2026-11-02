@@ -278,7 +278,9 @@ def _index_auto_book(
                 STAGE_ID,
                 f"book {book_id}: none of the class_evidence strings {evidence} appear in the "
                 f"prelims text. First page says: {prelims_pages[0]['text'][:300]!r}. "
-                "Fix the catalog entry or the class_evidence list.",
+                "If the quoted text looks garbled (symbol-font glyphs), the cached prelims text is "
+                f"stale: delete {_cache_dir(cfg, book_id) / 'prelims.pages.json'} and re-run. "
+                "Otherwise fix the catalog entry or the class_evidence list.",
             )
 
     chapters: list[dict[str, Any]] = []

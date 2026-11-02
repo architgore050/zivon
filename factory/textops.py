@@ -22,7 +22,17 @@ def titles_equivalent(a: str, b: str) -> bool:
 
 
 def clean_pdf_text(text: str) -> str:
-    """Normalise whitespace and drop page furniture that breaks matching."""
+    """Normalise whitespace, decode symbol-font runs, and drop page furniture
+    that breaks matching.
+
+    Symbol fonts: NCERT cover/section pages use custom-encoded fonts whose glyphs
+    arrive as private-use codepoints U+F0XX where XX is the ASCII code
+    (e.g. \\uf050\\uf041\\uf052\\uf054 = "PART"; caught live on the physics-11
+    prelims, 2026-11-02). Printable-range runs are decoded back to ASCII so
+    matching and class-evidence checks see real text; remaining private-use
+    glyphs (non-ASCII dingbats) are dropped as noise."""
+    text = re.sub("[\uf020-\uf07e]", lambda m: chr(ord(m.group()) - 0xF000), text)
+    text = re.sub("[\uf000-\uf01f\uf07f-\uf0ff]", "", text)
     text = text.replace("\u00a0", " ")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
