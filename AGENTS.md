@@ -100,7 +100,8 @@ Decided stack: **Docker + Kubernetes + GitHub Actions + GHCR** — do not evalua
 Where the code lives:
 
 - `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
-- `k8s/` — cluster manifests (numeric prefix = apply order); factory is a **Job**; any long-running service (voice backend) is **Deployment + Service**
+- `Dockerfile.frontend`, `docker/nginx.conf` — the frontend nginx image (static-site hosting; bakes only the hand-maintained shell, never generated pages)
+- `k8s/` — cluster manifests (numeric prefix = apply order); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
 - `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
 
 Consult `docs/deployment/` and touch infra when you:
@@ -109,7 +110,7 @@ Consult `docs/deployment/` and touch infra when you:
 - add a new service or image — follow the existing Dockerfile pattern (slim base, deps-before-code, non-root user), then add its CI job and K8s objects
 - edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI
 - edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
-- handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose and ephemeral (`emptyDir`) in Jobs; never bake generated pages into an image; persistent cluster output needs the PVC/hosting decision
+- handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose; in cluster Jobs `runs/` is ephemeral (`emptyDir`) while `frontend/` lands on the `zivon-frontend` PVC that the frontend Deployment serves; never bake generated pages into an image
 
 Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
 

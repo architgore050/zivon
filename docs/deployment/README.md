@@ -13,11 +13,12 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 | Piece | State |
 |---|---|
 | Content factory image (`Dockerfile`, smoke test, compose) | ✅ v0.2.0 covers the full factory (19 modules + `pipeline.py`); rebuild + reload after the patch drop |
-| K8s manifests (`k8s/`) — namespace, smoke Job, pipeline run Job template | ✅ smoke Job verified on local minikube; run Job needs a configured model server + Secret to run |
+| Frontend image (`Dockerfile.frontend`, nginx site config, compose `web` service) | ✅ v0.1.0 serves the static site on :8080 (LAN-reachable for kid testing); CI builds + serves + scans it |
+| K8s manifests (`k8s/`) — namespace, smoke Job, run Job, frontend PVC + Deployment + Service | ✅ smoke Job verified on local minikube; kubeconform + kube-linter green on all six manifests (verified with the CI-pinned tool versions); run Job needs a configured model server + Secret to run |
 | CI merge gate (incl. 118-test suite job) + CodeQL + Dependabot | ✅ written; first live run will be the feature-branch PR |
 | Branch protection on `main` (required checks) | ⬜ to configure in GitHub UI before the PR |
 | Publish pipeline (merge → build → push to `ghcr.io`) | ⬜ next piece of CD |
-| Deploy pipeline + cluster hosting decision (incl. PVC for persistent output) | ⬜ deferred: needs a real cluster (local minikube is dev-only) |
+| Deploy pipeline + cluster hosting decision | ⬜ partially closed: frontend hosting pattern decided (PVC + nginx Deployment); real-cluster choice + public domain/TLS still open |
 | Voice backend image (FastAPI/WebSockets) + Deployment + Service | ⬜ comes with the voice loop (Phase 2) |
 
 ## Decisions locked here

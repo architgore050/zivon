@@ -32,6 +32,21 @@ docker compose run --rm factory python pipeline.py "Motion" --class 9   # full p
 
 `docker-compose.yml` is the local runner: builds the image, passes the server env (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY`) from the shell, mounts pipeline **output** (`runs/`, generated pages in `frontend/`) plus download caches (PDFs, text, HuggingFace) as volumes — containers stay disposable while output and caches survive.
 
+## Frontend image (`Dockerfile.frontend`)
+
+The static site ships as its own small nginx image — hosting the frontend is separate from the factory that generates it.
+
+```bash
+docker build -f Dockerfile.frontend -t zivon-frontend:0.1.0 .
+docker compose up web                                       # serve ./frontend on http://localhost:8080
+docker run --rm -p 8080:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.0
+```
+
+- **Base:** `nginxinc/nginx-unprivileged:1.27-alpine` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule.
+- **Baked:** only the hand-maintained shell — `index.html`, `assets/` (shared CSS/JS, local fonts) and `docker/nginx.conf`. Generated pipeline output (`courses/`, `courses.js`) is **never baked into an image** (repo rule): it arrives at runtime on a mounted volume (compose) or PVC (cluster) at the same html root. The shell is staged at `/opt/zivon-shell` so the served root can be a volume without losing it.
+- **Site config:** CSP + `nosniff` + `no-referrer` headers site-wide (topic pages keep their own stricter meta CSP); `no-store` for HTML and `courses.js` (demo-day freshness), 5-min revalidation otherwise; gzip; `/healthz` probe; autoindex off.
+- CI builds it, serves it, curls it, and trivy-scans it (`frontend-image` job in `cicd.md`).
+
 ## Rules
 
 - API keys and all server wiring enter only via environment at runtime (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY` — see `.env.example`), never via image or `COPY`.

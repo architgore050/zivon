@@ -6,7 +6,7 @@
 |---|---|---|
 | Pod | Smallest unit: 1+ containers sharing network/volumes | any running container |
 | **Job** | Run a pod **to completion**, retry per `backoffLimit`, then done | **content factory** (batch pipeline) ✅ |
-| **Deployment + Service** | Keep N replicas running forever; stable internal address | voice backend, nginx frontend (Phase 2+) |
+| **Deployment + Service** | Keep N replicas running forever; stable internal address | **frontend (nginx)** ✅, voice backend (Phase 2) |
 | Namespace | Name isolation | `zivon` |
 | Secret / ConfigMap | Runtime config & credentials | `ZIVON_API_KEY` at runtime — never in manifests |
 
@@ -22,6 +22,9 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
   - `resources.requests` (scheduler placement) / `limits` (hard ceiling; torch import alone needs several hundred MB → 2 Gi limit). QoS class is `Burstable`, which decides eviction priority under node pressure.
   - `automountServiceAccountToken: false` — the factory needs no K8s API access; pods get no cluster credentials.
 - `20-factory-run-job.yaml` — a REAL pipeline run (template): see next section.
+- `15-frontend-pvc.yaml` — the `zivon-frontend` PVC: the shared site volume. The run Job writes generated pages onto it (11-link publishes into `/app/frontend`); the frontend Deployment serves it. Apply order note: the PVC (15) must exist before the Job (20) that mounts it.
+- `30-frontend-deployment.yaml` — nginx Deployment serving the site. A no-clobber `initContainer` (`cp -rn`) seeds the hand-maintained shell (landing page + assets, baked at `/opt/zivon-shell` in the image) into an empty PVC, so the landing page exists before the first pipeline run and generated content is never overwritten. Non-root (UID 101), capabilities dropped, read-only root fs with writable mounts for nginx's pid/cache/log dirs, probes, resource ceilings.
+- `40-frontend-service.yaml` — ClusterIP `80 → 8080`. Local access: `minikube service frontend -n zivon` or `kubectl port-forward -n zivon svc/frontend 8080:80`.
 
 ## Pipeline Run Job pattern (`20-factory-run-job.yaml`)
 
@@ -30,7 +33,7 @@ The pattern every future topic run follows:
 - **`command:` override** — replaces the image's CMD with `python pipeline.py "Motion" --class 9`. Same image, different job: smoke vs. work.
 - **Secret for the key** — `ZIVON_API_KEY` via `secretKeyRef`, created imperatively (`kubectl create secret generic zivon-factory-env -n zivon --from-literal=...`). Never in a manifest, never in git. kube-linter's `unsecrets` check is exempted in `.kube-linter.yaml` with a documented reason: the manifest only *references* the Secret; the factory reads the key directly from the `ZIVON_API_KEY` env var (all server settings are env-only — see `docs/content-factory/config-reference.md`).
 - **`activeDeadlineSeconds: 3600`** — a hung pipeline run dies; Jobs must not run forever.
-- **Output is ephemeral** — `runs/` on an `emptyDir` vanishes with the pod. Dev retrieval: `kubectl cp zivon/<pod> runs -c factory`. Persistent output (generated pages, caches) needs a PVC — part of the hosting decision below.
+- **Output split** — `runs/` is an `emptyDir` = EPHEMERAL evidence (dev retrieval: `kubectl cp zivon/<pod> runs -c factory`). `frontend/` is the `zivon-frontend` PVC: published pages land on the site the frontend Deployment serves, surviving the Job. Download caches (PDFs, text) are per-Job `emptyDir`s (re-fetched each run; NCERT downloads are small).
 - **Prereq:** the Job's `ZIVON_BASE_URL` + `ZIVON_MODEL` env must point at a reachable server — missing server env (or the `CHANGE-ME` placeholder) is a hard config error by design, so this Job fails loudly until configured.
 
 ## Local cluster: minikube (docker driver)
@@ -45,10 +48,14 @@ sudo install kubectl /usr/local/bin/kubectl
 
 minikube start --driver=docker
 minikube image load zivon-factory:0.2.0   # see gotcha 2
+minikube image load zivon-frontend:0.1.0  # frontend hosting (see gotcha 2)
 kubectl apply -f k8s/00-namespace.yaml -f k8s/10-factory-smoke-job.yaml
+# Frontend hosting (site volume + nginx + service):
+kubectl apply -f k8s/15-frontend-pvc.yaml -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
+kubectl port-forward -n zivon svc/frontend 8080:80   # then http://localhost:8080
 # 20-factory-run-job.yaml is a template: apply it only once its env points at a
 # reachable model server AND the zivon-factory-env Secret exists — otherwise it fails loudly.
-kubectl get jobs,pods -n zivon
+kubectl get jobs,pods,deploy,svc -n zivon
 kubectl logs job/factory-smoke -n zivon
 kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the debugging gold
 ```
@@ -61,6 +68,8 @@ kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the
 4. **Group permissions after `usermod -aG docker`** only apply to new login sessions; GNOME terminals inherit the stale systemd user manager until reboot.
 5. **Reused tags mean stale images.** The cluster keeps whatever bytes were loaded under a tag. New code → new tag (`0.1.0` → `0.2.0`) → `minikube image load` again → delete + re-apply the Job. Never re-tag different content the same version.
 
-## Hosting decision (open)
+## Hosting decision (partially closed)
 
-Local minikube is dev-only. A real cluster (managed Kubernetes or a small VM host running k3s) is a Phase-3 decision; the deploy pipeline waits on it.
+Closed by the frontend objects (15/30/40): generated pages persist on a PVC, nginx serves them as a Deployment + Service, and locally `docker compose up web` serves the same site on :8080 (LAN-reachable for kid testing).
+
+Still open (Phase-3): **which real cluster** runs this (managed Kubernetes vs a small VM host running k3s), and the **public domain** piece (NodePort vs ingress vs load balancer, TLS, DNS). The deploy pipeline waits on those.
