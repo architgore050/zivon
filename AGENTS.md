@@ -102,17 +102,19 @@ Where the code lives:
 - `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
 - `Dockerfile.frontend`, `docker/nginx.conf` — the frontend nginx image (static-site hosting; bakes only the hand-maintained shell, never generated pages)
 - `docker/inference-router.Dockerfile` — dev-only router (compose service `inference-router`): bridges the host's loopback-only OpenAI-format inference server to containers/cluster pods; not a product image, not in CI
-- `k8s/` — cluster manifests (numeric prefix = apply order); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
+- `k8s/` — cluster manifests (numeric prefix = apply order) + `k8s/infra.env` (single source of truth for cluster config values: `TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S`, `ZIVON_MAX_TOKENS` — no secrets, no image tags); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
+- `scripts/apply-k8s.sh` (apply the whole stack from `infra.env` + startup test run), `scripts/trigger-tests.sh` and `scripts/trigger-factory-run.sh` (the two admin "buttons", Day-8 dashboard stand-ins — see TIMELINE.md)
 - `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
 
 Consult `docs/deployment/` and touch infra when you:
 
 - change `requirements.txt` or runtime imports — the image build and the smoke test (used by docker, CI, and the K8s Job) must stay green; keep torch CPU-only
 - add a new service or image — follow the existing Dockerfile pattern (slim base, deps-before-code, non-root user), then add its CI job and K8s objects
-- edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI
+- edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI (note: kube-linter *requires* `ttlSecondsAfterFinished` on standalone Jobs but *forbids* it inside a CronJob `jobTemplate` — history limits are the CronJob cleanup; see gotcha 12)
 - edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
 - handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose; in cluster Jobs `runs/` is ephemeral (`emptyDir`) while `frontend/` lands on the `zivon-frontend` PVC that the frontend Deployment serves; never bake generated pages into an image
-- run or trigger tests in-cluster — the `test-suite` CronJob (`k8s/50-test-cronjob.yaml`) runs the full suite on a schedule; the on-demand trigger (the standing "button" until the Day-8 dashboard) is `kubectl create job --from=cronjob/test-suite <name> -n zivon`
+- run or trigger tests in-cluster — the `test-suite` CronJob (`k8s/50-test-cronjob.yaml`) runs the full suite on the cadence from `TEST_CRON_SCHEDULE` (`k8s/infra.env`, rendered by `scripts/apply-k8s.sh`, which also triggers one suite run on startup); the on-demand trigger (the standing "button" until the Day-8 dashboard) is `scripts/trigger-tests.sh`
+- start a content generation run — **manual only, never scheduled**: `scripts/trigger-factory-run.sh "<chapter>" [class 6-12]` renders the topic-agnostic `k8s/20` Job template (name + chapter placeholders) and applies it; the factory Job must never run on its own
 
 Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
 

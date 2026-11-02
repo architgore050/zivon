@@ -15,20 +15,26 @@ Triggers: PR → `main`, push → `main`, manual dispatch. Six parallel jobs on 
 | `deps` | pip-audit on the resolved `requirements.txt` tree (known CVEs) |
 | `manifests` | kubeconform (schema validity, strict) + kube-linter (security linting of `k8s/`) |
 
-## In-cluster test runs (scheduled + the "button" stand-in)
+## In-cluster test runs (scheduled + startup + the "button" stand-in)
 
 CI gates every merge; the cluster ALSO runs the full suite continuously via the
-`test-suite` CronJob (`k8s/50-test-cronjob.yaml`, schedule `*/30 * * * *` = the config value).
+`test-suite` CronJob (`k8s/50-test-cronjob.yaml`). The cadence is the config value
+`TEST_CRON_SCHEDULE` in `k8s/infra.env` (rendered into the CronJob by
+`scripts/apply-k8s.sh` — the manifest carries only the placeholder), and
+`scripts/apply-k8s.sh` additionally triggers one full suite run immediately on
+startup, because the CronJob's first tick can be up to a full interval away.
 To trigger it on demand — the standing substitute for an admin-dashboard button until the
-Day-8 Grafana dashboard exists — developers use:
+Day-8 dashboard exists (documented in `TIMELINE.md`) — developers use:
 
 ```bash
-kubectl create job --from=cronjob/test-suite test-manual-<n> -n zivon   # the "button"
-kubectl logs job/test-manual-<n> -n zivon                               # watch it
+scripts/trigger-tests.sh                    # the "button" -> job test-manual-<HHMMSS>
+kubectl logs -f job/test-manual-<HHMMSS> -n zivon   # watch it
 ```
 
-or the Kubernetes Dashboard (`minikube dashboard`) → Jobs → the CronJob's Recreate action.
-This is the pattern to keep using (and to wire into Grafana later); do not hand-roll a new
+(the script wraps `kubectl create job --from=cronjob/test-suite <name> -n zivon`; the
+Kubernetes Dashboard's Recreate action works too). Content generation is NOT scheduled —
+generation runs are triggered with `scripts/trigger-factory-run.sh "<chapter>" [class]`.
+This is the pattern to keep using (and to wire into the dashboard later); do not hand-roll a new
 test runner for it.
 
 ## Code scanning — `codeql.yml`

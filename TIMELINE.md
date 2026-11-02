@@ -149,7 +149,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 - Structured logging (transcripts, per-stage latency, errors), telemetry events, error tracking.
 - Security hardening pass: rate limiting, input validation, headers/CSP, secrets audit, dependency scan. Time-boxed red-team mini pass against an OWASP Top-10 checklist.
-- **Admin dashboard v0**: sessions, usage, credit consumption, topic engagement.
+- **Admin dashboard v0**: sessions, usage, credit consumption, topic engagement. Wire in the two admin trigger buttons per the "Admin trigger commands" table in the Infra & Deployment TODO (tests-now + generate-topic; the scripts stay as the implementation behind the buttons).
 - **Cluster monitoring dashboard**: Prometheus + Grafana (`kube-prometheus-stack` Helm chart) — CPU/RAM per pod/node, which workloads/images are running, load; Grafana's own auth is the admin gate. Interim tools in use until then: `kubectl top` (metrics-server) + `docker stats`. Decision locked in `docs/deployment/README.md`; do not build before Day 8.
 - main → prod promotion pipeline with automated security checks.
 - **Gate D**: sign the ship list (P0/P1/P2 below). Code features stop here.
@@ -202,7 +202,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 
 Open — work top-down:
 
-- 🔄 **FIRST GENERATION (most important)** — unblocked 2026-11-02: NCERT's broken TLS chain (leaf without the LE intermediate + flaky resets) fixed with a pinned bundle (`sources/certs/ncert.nic.in.pem`) + polite retried fetches (0.2.3); first cluster run then OOMKilled at 4 Gi during extraction → 8 Gi + reusable text cache (0.2.4). `factory-run-motion` re-running, resuming from the `zivon-sources` PVC (5 of 11 books already cached). Success = a generated Physics page appears on http://192.168.49.2:30080.
+- 🔄 **FIRST GENERATION (most important)** — progress 2026-11-02, blocker by blocker: NCERT broken TLS chain fixed (pinned bundle `sources/certs/ncert.nic.in.pem` + polite retried fetches, 0.2.3); OOM at 4 Gi → 8 Gi + reusable text cache (0.2.4); NCERT symbol-font prelims (`U+F0XX` private-use glyphs) decoded in `clean_pdf_text` + stale cached text purged (0.2.5); the two manual-download supplements seeded onto the `zivon-sources` PVC via a helper pod (OpenStax HS Physics 57 MB, Siyavula Gr-10 9.5 MB — both CC BY); 02-synth truncation + read timeouts fixed (0.2.8: model-call limits made effectively non-binding — `ZIVON_MAX_TOKENS=65536` + `ZIVON_TIMEOUT_S=3600` in `k8s/infra.env`, per-stage caps removed; qwen's 5–10k thinking tokens count against `max_tokens`, single-slot local server at worst-case ~20 tok/s; the server clamps completion to remaining context and the Job's 2 h deadline is the backstop). All 11 catalog books ingested and cached; next: re-trigger via `scripts/trigger-factory-run.sh "Motion" 9`. Success = a generated Physics page appears on http://192.168.49.2:30080.
 - ⬜ Commit the uncommitted infra/test work (test restructure + frontend suite + image bumps) — user's timing.
 - ⬜ Branch protection on `main` + required checks (checklist in `docs/deployment/cicd.md`: quality, docker, frontend-image, secrets, deps, manifests, tests, CodeQL).
 - ⬜ Publish pipeline: merge → build → push images to `ghcr.io/architgore050/zivon-*`.
@@ -214,8 +214,18 @@ Open — work top-down:
 Done (2026-11-02):
 
 - ✅ Frontend live at **http://192.168.49.2:30080** (NodePort 30080, no manual command; caught + fixed a busybox `cp` seeding bug).
-- ✅ Test CronJob (`*/30`, schedule = the config value) + manual trigger (`kubectl create job --from=cronjob/test-suite`); it caught a read-only-filesystem test bug → fixed → image 0.2.2.
+- ✅ Test CronJob (cadence rendered from `TEST_CRON_SCHEDULE` in `k8s/infra.env` — the config value) + manual trigger + startup run on every `scripts/apply-k8s.sh`; it caught a read-only-filesystem test bug → fixed → image 0.2.2.
 - ✅ Real pipeline Job pattern live: `k8s/20-factory-run-job.yaml` + dev inference router (`docker/inference-router.Dockerfile`) bridging the host's loopback-only model server to containers/cluster.
+- ✅ Factory runs are now a **topic-agnostic Job template + script trigger** (nothing topic/server/model-specific hardcoded in manifests); cluster config consolidated into `k8s/infra.env` + `zivon-factory-config` ConfigMap; generation is manual-only, never scheduled.
+
+### Admin trigger commands (button stand-ins — wire THESE into the Day-8 dashboard)
+
+Until the Day-8 admin dashboard exists, these are the sanctioned admin controls. When the dashboard is built, its buttons must perform exactly these semantics (keep the scripts as the implementation behind the buttons):
+
+| Dashboard button (Day 8) | Command today (the stand-in) | What it does |
+|---|---|---|
+| **Run tests now** | `scripts/trigger-tests.sh` | `kubectl create job test-manual-<HHMMSS> --from=cronjob/test-suite -n zivon` — clones the CronJob's jobTemplate. The suite also runs on the `TEST_CRON_SCHEDULE` cadence AND once on every `scripts/apply-k8s.sh` (startup coverage; keep this behavior on dashboard deploys). |
+| **Generate a topic** | `scripts/trigger-factory-run.sh "<chapter>" [class 6-12]` | Renders the `k8s/20` Job template (name → `factory-run-<slug>-<HHMMSS>`, injects chapter + optional `--class`) and applies it. Generation is **manual-only by design** — the factory Job must never be scheduled; only tests are. |
 
 Constraints carried forward: cron granularity is minutes (sub-minute loops = runner Deployment + sleep, P2); test suites never ship in production images (the factory image carries them only because the perf harness is a runtime tool import); secrets runtime-only, never in manifests or CI.
 
