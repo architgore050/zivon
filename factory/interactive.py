@@ -5,12 +5,15 @@ controls). The model writes topic-local JS/CSS under a strict skeleton; the
 result is linted before anything proceeds. Diagrams are NOT model calls here -
 their SVG comes from the draft stage and is rendered (and linted) as-is.
 
-The prompt pins the shared contract (zivon.css / zivon.js class names) and
-points at the design doctrine; the model never writes global styles.
+The prompt pins the shared contract (zivon.css / zivon.js class names), hands
+the model the ground-truth facts its simulation must obey, and points at the
+design doctrine; the model never writes global styles. Lint runs INSIDE the
+retry loop, so the model sees and fixes its own violations.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from .artifacts import RunContext
@@ -38,17 +41,44 @@ ZivonSim.register("<BLOCK_ID>", {
 
 
 def run(
-    cfg: Config, run_ctx: RunContext, llm: LLMClient, blocks: dict[str, Any]
+    cfg: Config,
+    run_ctx: RunContext,
+    llm: LLMClient,
+    blocks: dict[str, Any],
+    ground_truth: dict[str, Any],
 ) -> dict[str, Any]:
     sims = [b for b in blocks["blocks"] if b["type"] == "simulation"]
     results: dict[str, Any] = {}
     for b in sims:
-        results[b["id"]] = _build_simulation(cfg, run_ctx, llm, b)
+        results[b["id"]] = _build_simulation(cfg, run_ctx, llm, b, ground_truth)
     return results
 
 
+def _facts_text(block: dict[str, Any], ground_truth: dict[str, Any]) -> str:
+    """The claims this block cites, plus every equation: the physics the
+    draw loop must obey. Equations are few and central, so all are included."""
+    cited = {c.get("claim_id") for c in block.get("citations", [])}
+    lines = [
+        f"- {c['id']}: {c['statement']} ["
+        + ", ".join(f"{x['source_id']} {x['locator']}" for x in c["citations"])
+        + "]"
+        for c in ground_truth["claims"]
+        if c["id"] in cited
+    ]
+    for e in ground_truth.get("equations", []):
+        lines.append(f"- {e['id']}: {e['expression']} ({e['description']})")
+    return (
+        "\n".join(lines)
+        or "- (no cited claims: obey DESCRIPTION and DEFAULT BEHAVIOUR exactly)"
+    )
+
+
 def _build_simulation(
-    cfg: Config, run_ctx: RunContext, llm: LLMClient, block: dict[str, Any]
+    cfg: Config,
+    run_ctx: RunContext,
+    llm: LLMClient,
+    block: dict[str, Any],
+    ground_truth: dict[str, Any],
 ) -> dict[str, Any]:
     spec = block["spec"]
     controls = spec.get("controls", [])
@@ -61,6 +91,7 @@ def _build_simulation(
         or "  - (no controls: this is an animation)"
     )
     doctrine_path = cfg.repo_path(cfg.paths["doctrine"])
+    facts = _facts_text(block, ground_truth)
 
     user = (
         f"Build ONE self-contained canvas simulation for block {block['id']}.\n"
@@ -69,7 +100,14 @@ def _build_simulation(
         f"LEARNING GOAL: {spec.get('learning_goal')}\n"
         f"DEFAULT BEHAVIOUR: {spec.get('default_behaviour')}\n"
         f"CONTROLS:\n{control_lines}\n\n"
+        "FACTS THE SIMULATION MUST OBEY (ground truth - the drawn behaviour "
+        f"must be physically correct per these):\n{facts}\n\n"
         "CONTRACT (hard):\n"
+        "- PHYSICS CONTRACT: the behaviour you draw must follow the FACTS above. "
+        "When a control changes a value, the on-screen relationship must match "
+        "the stated equations and DEFAULT BEHAVIOUR. Never invent physics "
+        "beyond these facts; where the facts do not pin a detail, draw exactly "
+        "what DESCRIPTION and DEFAULT BEHAVIOUR state.\n"
         "- page.js MUST define exactly one registration using this skeleton:\n"
         f"{_skeleton_for(block['id'])}\n"
         "- Plain canvas 2D and requestAnimationFrame only. ctx.g is the 2d context.\n"
@@ -81,6 +119,9 @@ def _build_simulation(
         "(var(--ink), var(--paper), var(--graphite), var(--pen-blue)) from zivon.css. "
         f"Reference: {doctrine_path}. Do not invent new colours beyond the doctrine tokens.\n"
         "- The runtime wires the range inputs to ctx.values[controlId] automatically.\n"
+        "- Design for a small phone canvas (typically 300-600 CSS px wide): drawn "
+        "text at 12 px or larger, few on-screen labels, nothing essential smaller "
+        "than that.\n"
         'Return a JSON object: {"id": "' + block["id"] + '", "files": '
         '{"page.js": "<full file content>", "page.css": "<full file content or empty string>"}}.'
     )
@@ -92,8 +133,11 @@ def _build_simulation(
         ],
         INTERACTIVE,
         "interactive output",
+        extra_validator=_lint_feedback(block["id"]),
     )
 
+    # Backstop only: _lint_feedback already fed any violation back into the
+    # retry transcript, so reaching here means the stage output is lint-clean.
     js = out["files"].get("page.js", "")
     css = out["files"].get("page.css", "")
     if not js.strip():
@@ -115,11 +159,30 @@ def _build_simulation(
     return out
 
 
+def _lint_feedback(block_id: str) -> Callable[[dict[str, Any]], list[str]]:
+    """Lint INSIDE the retry loop (same machinery as 04-draft's rule feedback):
+    the model sees its own lint violations in the transcript and fixes them,
+    instead of the run dying on a post-call LintError."""
+
+    def check(parsed: dict[str, Any]) -> list[str]:
+        js = parsed.get("files", {}).get("page.js", "")
+        css = parsed.get("files", {}).get("page.css", "")
+        if not js.strip():
+            return [f"block {block_id}: page.js must be a non-empty file"]
+        return lint_js(f"{block_id}/page.js", js) + lint_css(
+            f"{block_id}/page.css", css
+        )
+
+    return check
+
+
 def _system_msg() -> str:
     return (
         "[ZIVON STAGE: 06-interactive] You are the Visual Builder agent in the Zivon content "
         "factory. You write canvas simulations for study pages.\n"
         "RULES:\n- Plain JavaScript, canvas 2D only, no libraries, no network, no eval.\n"
+        "- Never invent physics facts: the behaviour you draw must follow the "
+        "FACTS in the user message.\n"
         "- Output exactly ONE JSON object. No markdown, no commentary.\n"
     )
 

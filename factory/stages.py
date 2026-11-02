@@ -181,8 +181,10 @@ def run_pipeline(
         if wanted("06-interactive"):
             if blocks is None:
                 blocks = run_ctx.load_stage_output("04-draft")
+            if ground_truth is None:
+                ground_truth = run_ctx.load_stage_output("02-synth")
             run_ctx.mark_stage("06-interactive", "running")
-            interactive_out = interactive.run(cfg, run_ctx, llm, blocks)
+            interactive_out = interactive.run(cfg, run_ctx, llm, blocks, ground_truth)
             run_ctx.save_stage_output("06-interactive", interactive_out)
             run_ctx.mark_stage(
                 "06-interactive", "ok", detail=f"built={len(interactive_out)}"

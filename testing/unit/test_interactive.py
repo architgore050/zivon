@@ -1,0 +1,114 @@
+"""Unit tests for 06-interactive: the Visual Builder must receive the
+ground-truth facts its simulation must obey, and lint violations must enter
+the retry transcript instead of killing the run after the model call.
+"""
+
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from typing import Any, cast
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT))
+
+from factory import interactive
+from factory.artifacts import RunContext
+from factory.config import load_config
+from factory.llm import LLMClient
+from testing.unit._server_env import install_server_env, release_server_env
+
+FIXTURES = REPO_ROOT / "testing" / "mocks" / "fixtures"
+
+
+def load(name: str) -> dict[str, Any]:
+    return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+
+
+class StubLLM:
+    """Captures what interactive hands to llm.call; returns the fixture sim."""
+
+    def __init__(self) -> None:
+        self.messages: list[dict[str, str]] = []
+        self.kwargs: dict[str, Any] = {}
+
+    def call(self, stage_id, messages, schema, schema_name, **kw):
+        self.messages = messages
+        self.kwargs = kw
+        return load("06-interactive.json")
+
+
+class TestInteractiveFacts(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
+        base["paths"]["runs"] = str(self.tmp / "runs")
+        (self.tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
+        saved = install_server_env()
+        try:
+            self.cfg = load_config(self.tmp / "config.json")
+        finally:
+            release_server_env(saved)
+        self.run_ctx = RunContext(
+            self.cfg.repo_path(self.cfg.paths["runs"]), "t-interactive"
+        )
+
+    def _run(self, stub: StubLLM) -> dict[str, Any]:
+        return interactive.run(
+            self.cfg,
+            self.run_ctx,
+            cast(LLMClient, stub),
+            load("04-draft.json"),
+            load("02-synth.json"),
+        )
+
+    def _messages(self, stub: StubLLM) -> tuple[str, str]:
+        self._run(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        system = next(m["content"] for m in stub.messages if m["role"] == "system")
+        return user, system
+
+    def test_sim_prompt_carries_cited_claims_and_equations(self):
+        # The fixture sim block b-06 cites claim-03 and claim-04: their exact
+        # statements must be in the prompt; uncited claims must not flood it.
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        gt = load("02-synth.json")
+        cited = [c for c in gt["claims"] if c["id"] in ("claim-03", "claim-04")]
+        uncited = next(c for c in gt["claims"] if c["id"] == "claim-01")
+        self.assertTrue(cited)
+        for c in cited:
+            self.assertIn(c["statement"], user)
+        self.assertNotIn(uncited["statement"], user)
+        for e in gt["equations"]:
+            self.assertIn(e["expression"], user)
+
+    def test_prompt_pins_physics_and_legibility_contract(self):
+        stub = StubLLM()
+        user, system = self._messages(stub)
+        self.assertIn("FACTS THE SIMULATION MUST OBEY", user)
+        self.assertIn("PHYSICS CONTRACT", user)
+        self.assertIn("Never invent physics", user)
+        self.assertIn("small phone canvas", user)
+        self.assertIn("Never invent physics facts", system)
+
+    def test_lint_violations_feed_the_retry_loop(self):
+        stub = StubLLM()
+        out = self._run(stub)  # {block_id: model output} - the sim is under "b-06"
+        self.assertIn("extra_validator", stub.kwargs)
+        validator = stub.kwargs["extra_validator"]
+        # the fixture sim is lint-clean: no feedback needed
+        self.assertEqual(validator(out["b-06"]), [])
+        bad = json.loads(json.dumps(out["b-06"]))
+        bad["files"]["page.js"] = (
+            'ZivonSim.register("b-06", { init: function (ctx) { eval("1+1"); } });'
+        )
+        hits = validator(bad)
+        self.assertTrue(any("eval" in h for h in hits), hits)
+        empty = {"id": "b-06", "files": {"page.js": "   "}}
+        self.assertTrue(any("non-empty" in h for h in validator(empty)))
+
+
+if __name__ == "__main__":
+    unittest.main()
