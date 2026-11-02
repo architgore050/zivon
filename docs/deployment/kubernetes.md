@@ -59,6 +59,8 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 sudo install kubectl /usr/local/bin/kubectl
 
 minikube start --driver=docker
+minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
+minikube addons enable metrics-server # makes kubectl top nodes/pods work
 minikube image load zivon-factory:0.2.2   # see gotcha 2
 minikube image load zivon-frontend:0.1.0  # frontend hosting (see gotcha 2)
 kubectl apply -f k8s/00-namespace.yaml -f k8s/10-factory-smoke-job.yaml
