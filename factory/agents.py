@@ -302,6 +302,10 @@ def run_check(
         "3. Is the language and depth right for a class "
         f"{cfg.learner['class_level']} first-time learner (not above, not below)?\n"
         "4. Does anything read as if it depends on material outside this page?\n"
+        "5. For every check block: does the page teach the expected_understanding before "
+        "asking for it? A check that asks something the page never taught is major.\n"
+        "If you suspect a problem but cannot verify it against the source material, report "
+        "it as minor with the message starting 'unverified:' - never as fatal or major.\n"
         'Return a JSON object: {"verdict": "pass"|"fail", "issues": '
         '[{"block_id": "b-01" or omit, "severity": "fatal"|"major"|"minor", '
         '"message": "..."}]}. Severity: fatal = a statement contradicts the sources or an '

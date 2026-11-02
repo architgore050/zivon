@@ -165,6 +165,19 @@ class TestPromptPromises(unittest.TestCase):
         self.assertIn("Assume the draft contains at least one error", user)
         self.assertIn("Severity: fatal =", user)
 
+    def test_fact_reviewer_teaches_and_hedges(self):
+        # The stage is named Comprehension & Fact Reviewer: the prompt must
+        # actually probe comprehension, and give uncertainty an outlet that
+        # CHECK_REPORT's schema can express (minor + 'unverified:' prefix).
+        user = self._user_prompt(
+            agents.run_check,
+            make_pack(),
+            load("02-synth.json"),
+            load("04-draft.json"),
+        )
+        self.assertIn("teach the expected_understanding before", user)
+        self.assertIn("starting 'unverified:'", user)
+
     def test_prompts_carry_labelled_shape_examples(self):
         # A small local model complies far better when shown one compact example;
         # every example must be labelled so its content cannot bleed into output.
