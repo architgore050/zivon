@@ -112,6 +112,7 @@ Consult `docs/deployment/` and touch infra when you:
 - edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI
 - edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
 - handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose; in cluster Jobs `runs/` is ephemeral (`emptyDir`) while `frontend/` lands on the `zivon-frontend` PVC that the frontend Deployment serves; never bake generated pages into an image
+- run or trigger tests in-cluster — the `test-suite` CronJob (`k8s/50-test-cronjob.yaml`) runs the full suite on a schedule; the on-demand trigger (the standing "button" until the Day-8 dashboard) is `kubectl create job --from=cronjob/test-suite <name> -n zivon`
 
 Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
 

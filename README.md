@@ -59,7 +59,7 @@ python pipeline.py "Motion" --class 9
 
 Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) and use `ZIVON_BASE_URL=http://192.168.49.1:18080/v1` (see [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md)).
 
-Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`.
+Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`. The cluster also runs the full suite on a schedule (CronJob `test-suite`); trigger it on demand with `kubectl create job --from=cronjob/test-suite <name> -n zivon` — the standing "button" until the admin dashboard exists (see `docs/deployment/cicd.md`).
 
 ## Tech Stack
 

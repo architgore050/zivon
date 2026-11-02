@@ -15,6 +15,22 @@ Triggers: PR → `main`, push → `main`, manual dispatch. Six parallel jobs on 
 | `deps` | pip-audit on the resolved `requirements.txt` tree (known CVEs) |
 | `manifests` | kubeconform (schema validity, strict) + kube-linter (security linting of `k8s/`) |
 
+## In-cluster test runs (scheduled + the "button" stand-in)
+
+CI gates every merge; the cluster ALSO runs the full suite continuously via the
+`test-suite` CronJob (`k8s/50-test-cronjob.yaml`, schedule `*/30 * * * *` = the config value).
+To trigger it on demand — the standing substitute for an admin-dashboard button until the
+Day-8 Grafana dashboard exists — developers use:
+
+```bash
+kubectl create job --from=cronjob/test-suite test-manual-<n> -n zivon   # the "button"
+kubectl logs job/test-manual-<n> -n zivon                               # watch it
+```
+
+or the Kubernetes Dashboard (`minikube dashboard`) → Jobs → the CronJob's Recreate action.
+This is the pattern to keep using (and to wire into Grafana later); do not hand-roll a new
+test runner for it.
+
 ## Code scanning — `codeql.yml`
 
 CodeQL analyzes **our own Python code** (injection, path traversal, unsafe deserialization patterns) on every PR, on merge, and weekly (cron). Free on public repos; alerts appear inline on PRs and under Security → Code scanning.
