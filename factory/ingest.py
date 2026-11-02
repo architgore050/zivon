@@ -16,6 +16,9 @@ Guarantees:
   the Let's Encrypt intermediate) are verified against pinned chain bundles in
   sources/certs/<host>.pem; fetches are polite (spaced) and retried with backoff
   because textbook sites throttle bursty clients.
+- Extracted page text is cached per PDF and reused across runs (on the cluster the
+  sources PVC makes the cache durable), so a run that dies partway resumes instead
+  of re-extracting finished books.
 """
 
 from __future__ import annotations
@@ -230,6 +233,29 @@ def _save_pages(
     return out
 
 
+def _cached_pages(cfg: Config, book_id: str, stem: str) -> list[dict[str, Any]] | None:
+    """Return previously extracted page text for this PDF, or None if absent/unusable.
+
+    This is what makes a run resumable: on the cluster the text cache lives on the
+    sources PVC, so a run that dies partway (deadline, OOM) does not re-extract
+    books it already finished."""
+    path = _cache_dir(cfg, book_id) / f"{stem}.pages.json"
+    if not path.exists():
+        return None
+    try:
+        pages = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        print(f"    [warn] text cache {path} unreadable ({exc}); re-extracting")
+        return None
+    if not isinstance(pages, list) or not all(
+        isinstance(p, dict) and "page" in p and "text" in p for p in pages
+    ):
+        print(f"    [warn] text cache {path} malformed; re-extracting")
+        return None
+    print(f"    [cache] {book_id}/{stem}: reusing {len(pages)} extracted pages")
+    return pages
+
+
 # ------------------------------------------------------------------ auto books
 def _index_auto_book(
     cfg: Config, run_ctx: RunContext, book: dict[str, Any]
@@ -239,8 +265,10 @@ def _index_auto_book(
     prelims_pdf = _fetch(
         cfg, book["prelims_url"], _book_dir(cfg, book_id) / "prelims.pdf"
     )
-    prelims_pages = _extract_pages(prelims_pdf, max_pages=6)
-    _save_pages(cfg, book_id, "prelims", prelims_pages)
+    prelims_pages = _cached_pages(cfg, book_id, "prelims")
+    if prelims_pages is None:
+        prelims_pages = _extract_pages(prelims_pdf, max_pages=6)
+        _save_pages(cfg, book_id, "prelims", prelims_pages)
 
     evidence = [e for e in book.get("class_evidence", []) if e]
     if evidence:
@@ -279,8 +307,10 @@ def _index_auto_book(
                 f"book {book_id}: chapter {n} returned 404 at {url}, but the catalog marks this "
                 "book chapters_verified=true. Fix sources/catalog.json.",
             ) from exc
-        pages = _extract_pages(dest)
-        _save_pages(cfg, book_id, f"ch{n:02d}", pages)
+        pages = _cached_pages(cfg, book_id, f"ch{n:02d}")
+        if pages is None:
+            pages = _extract_pages(dest)
+            _save_pages(cfg, book_id, f"ch{n:02d}", pages)
         chapters.append(
             {
                 "n": n,
@@ -331,8 +361,10 @@ def _index_manual_book(cfg: Config, book: dict[str, Any]) -> dict[str, Any]:
             f"Download it from {book.get('manual_url')} and place it at: {dest}",
         )
     print(f"[{STAGE_ID}] book {book_id}: using manually placed {dest.name}")
-    pages = _extract_pages(dest)
-    _save_pages(cfg, book_id, dest.stem, pages)
+    pages = _cached_pages(cfg, book_id, dest.stem)
+    if pages is None:
+        pages = _extract_pages(dest)
+        _save_pages(cfg, book_id, dest.stem, pages)
     return {
         "id": book_id,
         "class": book["class"],
