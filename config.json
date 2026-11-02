@@ -13,7 +13,8 @@
   "limits": {
     "max_chars_ncert_to_model": 60000,
     "max_chars_supplement_each": 4000,
-    "max_chars_supplement_total": 16000
+    "max_chars_supplement_total": 16000,
+    "max_chars_design_context": 48000
   },
   "paths": {
     "catalog": "sources/catalog.json",
@@ -22,7 +23,7 @@
     "runs": "runs",
     "frontend": "frontend",
     "doctrine": "docs/frontend/design-doctrine.md",
-    "doctrine_example": "docs/frontend/design-doctrine-example.html"
+    "doctrine_examples": "docs/frontend/design-doctrine*.html"
   },
   "perf": {
     "profile": "testing/perf/profiles/weak-android.json",

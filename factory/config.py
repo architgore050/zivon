@@ -71,6 +71,7 @@ _SPEC: dict[str, Any] = {
         "max_chars_ncert_to_model": int,
         "max_chars_supplement_each": int,
         "max_chars_supplement_total": int,
+        "max_chars_design_context": int,
     },
     "paths": {
         "catalog": str,
@@ -79,7 +80,7 @@ _SPEC: dict[str, Any] = {
         "runs": str,
         "frontend": str,
         "doctrine": str,
-        "doctrine_example": str,
+        "doctrine_examples": str,
     },
     "perf": {"profile": str, "fix_rounds": int},
     "stage_overrides": dict,
