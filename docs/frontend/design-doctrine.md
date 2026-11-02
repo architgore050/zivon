@@ -3,9 +3,10 @@
 Anchor: Lo-fi paper (Ilm-Alan "Lo-Fi": paper-yellow, not cream) with Organic honesty. Status: v1.0, **confirmed**
 (founder decision 31 Oct 2026): the single visual source of truth for all post visuals and the product UI.
 Applied to the Day 0 post kit, the Day 1 post kit, and everything after.
+v1.1 (1 Nov 2026) extends the system to the lesson page of the product (§10); §1–§9 are unchanged.
 Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
 and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
-the look.
+the look. Second reference implementation, for lesson pages: `design-doctrine-lesson-example.html` (same folder; §10).
 
 ## 1. Intent
 - Style: handwritten-lab-notebook, deliberately unproduced. Tone: candid, a little wry. Differentiator: it looks
@@ -108,3 +109,117 @@ All text pairs >= 5.1:1. Fonts have fallbacks. Status uses shape plus color (sta
 
 ## 9. Risks and open decisions
 Yellow can read as sticky-note kitsch if overdone; keep texture flat. Test legibility on phones in sunlight.
+
+## 10. Lesson page (extension, v1.1)
+
+Scope: the study-material page a learner opens in the product (a topic, its diagram, one simulation, one question).
+§1–§9 stay in force. §10 adds rules for this page type and lists, in §10.9, every place where it departs from them.
+Reference implementation: `design-doctrine-lesson-example.html` (a working page that applies every rule below).
+
+### 10.1 Intent
+- Metaphor: a ruled notebook page. Text is **written** on the lines, diagrams are **sketched** on the paper, and anything
+  the learner operates (simulation, question) is a **paper card taped** onto the page.
+- Feeling at 1 second: "someone wrote this out for me by hand, and I can touch the parts that move."
+- Anti-patterns: glass, blur, translucency, gradients, shadows under taped cards, tilted cards, grain (all tried in
+  review on 1 Nov and rejected; flat paper-light read as the most honest).
+
+### 10.2 Page grid (36 px rhythm)
+- The ruled lines are the page grid. Pitch **36 px**; the lines keep the §4 spec (graphite 40%, 2 px). Every text block
+  on the page is a multiple of 36 px tall, and one blank ruled row separates paragraphs.
+- Alignment is measured, not assumed: on load (and after fonts load or the window resizes) the page measures where the
+  handwriting baseline sits inside a 36 px line and shifts the background so each rule lies directly **under the
+  baseline** of the text. The title is measured the same way and nudged (at most 18 px) so its baseline also lands
+  on a rule. Different fonts (Caveat, Kalam, fallbacks) therefore align without per-font constants.
+- Page: max width 1100 px, 24 px side padding, two columns (text and diagram left; cards right) with 36 px row gap and
+  48 px column gap; single column below 820 px. Top padding = language-bar height rounded up to whole rows.
+
+### 10.3 Typography on the lesson page
+| Role | Font | Size / line | Notes |
+|---|---|---|---|
+| Title | **Caveat** 700 | clamp(46px, 7vw, 76px) / 72 | two rows tall, baseline on a rule |
+| Body | **Caveat** 500 | 30 / 36 | max 46 characters per line |
+| Highlighted statement | Caveat 700 | 30 / 36 | §10.4 |
+| Meta line (`Day 03 · Class 10 · Physics`) | Courier Prime 700 | 15 / 36 | top-left, as §6 |
+| Caption, readout, labels | Courier Prime 400 / 700 | 14 / 36, 16, 14 | graphite for captions |
+| Controls, questions, feedback | Bricolage Grotesque 500 | 15–17 | typed: the thing to operate stays legible |
+- Devanagari: Caveat has no Devanagari glyphs, so the stack is `Caveat, Kalam, "Segoe Print", "Bradley Hand", cursive`.
+  Kalam (400, 700) is the handwriting face for Hindi; the browser falls back per glyph. Set `lang="hi"` on the page
+  when Hindi is active.
+
+### 10.4 Highlighted statement
+- The one sentence the learner must keep is its own paragraph in Caveat 700, followed by a blank ruled row.
+- Its underline is the **pen underline of §4.1 with unchanged parameters** (centerline = baseline + 0.3em, seeded from
+  the sentence, pen-blue). For a statement that wraps, the underline sits under the **last line** and spans that
+  line's ink width. The generator measures the baseline of the last line instead of assuming it.
+- At most **one** highlighted statement per screen.
+
+### 10.5 Language (page-level setting)
+- Languages in v1: English, हिन्दी, Hinglish (Hindi in Latin script). Language belongs to the page, never to a widget:
+  one control switches every string: title, body, diagram labels, simulation labels, questions, feedback.
+- The control is a bar **fixed to the top edge**: full width, paper-light, 1 px ink bottom border, no shadow, safe-area
+  top padding on phones. One label in Courier Prime 14, then one chip per language.
+- Chip: Bricolage Grotesque 500 / 15, min height 40 px, 2 px corners, 1 px ink border, transparent fill, ink text.
+  Selected: ink fill, paper-light text (15.0:1). Selection is shown by fill, never by colour alone.
+
+### 10.6 Paper cards (things the learner operates)
+- Surface: paper-light `#F6F0CF`, 1 px ink border, 2 px corners, padding 24 / 18 / 20, 48 px below. **Flat**: no shadow
+  (§6 allows a hard offset only under taped *screenshots*; these are not screenshots), no tilt, no grain, no blur.
+- Tape: one strip per card, centred on the top edge, 13 px above it. About 92 × 27 px (second card 84 px), fill
+  `rgba(196,174,104,0.5)` (translucent masking tape: the card border shows faintly through), jagged torn ends (4%
+  teeth, CSS `clip-path`), rotated -3° on the first card and +2° on the second. Rotation belongs to the tape only.
+- Inside a card: ink for structure, graphite for guides, pen-blue for the thing that moves or is selected.
+- **Simulation**: a labelled range slider (`accent-color` pen-blue, height 32 px) above an SVG with 1.5-3 px strokes:
+  mirror ink 3, normal graphite 1.5 dashed 4/6, incident ray pen-blue 3 solid with arrowhead, reflected ray pen-blue
+  3 **dashed 9/6** with arrowhead. Rays differ by dash, not colour. Readout in Courier Prime 700 / 16 with `aria-live`.
+- **Question**: stem in Bricolage 500 / 17 / 1.4, options as chips (§10.5 style), one selected at a time. Feedback is
+  a ✓ or ✗ plus one sentence in ink (Bricolage 500 / 15). Pencil-red and tick-green stay reserved (§3): correctness
+  uses shape and words, not hue.
+
+### 10.7 Diagrams (sketched, not carded)
+- Drawn straight onto the paper, no card, in a fixed-height box (288 px = 8 rows) so the grid is not disturbed.
+- Strokes come from the **hand-stroke generator**: a polyline is sampled every ~28 px, each point jittered
+  (+/-0.4 to +/-1.2 px depending on stroke type, **seeded** so a redraw is identical), then smoothed with quadratic curves; round
+  caps and joins. Widths: ground/mirror 3.8, rays 3.2, arrowheads 3 (16 px barbs), construction line graphite 2.6
+  dashed 7/8, hatching 2.2 (diagonals every 22 px), angle arcs pen-blue 2.2.
+- Labels: Caveat 700 / 22 ink; the quantity the lesson is about (angles `i`, `r`) in pen-blue Caveat 700 / 28.
+  Labels are page-language strings. No fills, no gradients, no icons.
+- The diagram carries an `aria-label` that lists its labels.
+
+### 10.8 Validation
+- Contrast (computed): ink on paper-light 15.0:1, pen-blue on paper-light 8.5:1, graphite on paper-light 6.3:1, ink on
+  paper 13.7:1, pen-blue on paper 7.7:1, graphite on paper 5.8:1; paper-light on ink (selected chip) 15.0:1.
+- Keyboard: every control is a native `button` or `input`; language chips form a `radiogroup`; focus ring 3 px
+  pen-blue, 3 px offset; touch targets >= 40 px; no animation, so reduced-motion needs no variant.
+- Works without a server: one HTML file, inline CSS and JS, SVG drawn in the browser.
+- Rejected after review (do not retry without new evidence): dark or light translucent glass, plastic bevel cards,
+  tilted cards, drop shadows under taped cards, floating (non-fixed) language control, scratch-work scenery.
+
+### 10.9 Departures from §1–§9 (lesson page only)
+| Earlier rule | Lesson page | Why |
+|---|---|---|
+| §5: handwriting fonts excluded (reading speed) | Caveat/Kalam for title, body, statements, diagram labels; typed fonts for meta, controls, feedback | the notebook metaphor is the product's look; reading speed is the cost (see §10.10) |
+| §3/§4: one pen annotation per post | one highlighted statement per screen, plus the diagram's annotated angles and the simulation's active ray | a lesson has several things to *do*, not one thing to *notice*; each blue mark is either an annotation or the live state |
+| §5: rotation max 1.5° on one card, never on text | no card rotation; tape only, -3° / +2° | tilted simulation cards looked wrong in review |
+| §6: 60 px margins on a 1080 px canvas | 24 px page padding, 36 px rhythm | a responsive page, not a fixed-size post |
+| §4: ruled lines 2 px at the 1080 px design width | same 2 px lines, 36 px pitch | the pitch follows the handwriting size |
+Unchanged: palette, pen underline algorithm, no gradients/shadows/grain, red and green reserved, ink/paper proportions.
+
+### 10.10 Psychology reasoning
+| Decision | Mechanism | Evidence |
+|---|---|---|
+| Handwritten body | "a person wrote this" warmth, lowers authority distance for a young learner | WEAK / heuristic; test |
+| Text on the rule, not near it | an aligned grid reads as intentional and calm; misalignment reads as a bug | MODERATE (visual alignment) |
+| One underlined statement per screen | isolation effect marks the sentence to remember | STRONG |
+| Global language bar fixed on top | the setting is always findable and never confused with a lesson control | MODERATE |
+| Flat taped cards | clear "this part is interactive" affordance with no UI chrome | MODERATE |
+| Dash, not hue, separates rays; ✓/✗ plus words | meaning survives colour-blindness and sunlight glare | STRONG |
+
+### 10.11 Risks and open decisions
+- Handwriting slows reading, most for Devanagari and for long passages. Keep lessons short; measure comprehension and
+  reading time with the test learner before widening handwritten text.
+- Fonts load from Google Fonts in the example. The build-time pipeline must vendor Caveat, Kalam, Bricolage Grotesque
+  and Courier Prime into the page folder before offline use or any "no external calls" requirement.
+- Hindi and Hinglish strings in the example were drafted by the model and are not reviewed by a native reader.
+- Baseline alignment is measured in the browser; it has not been checked on every phone browser, in Hindi, or with
+  fallback fonts. Check it on a real low-end Android before declaring it done.
+- Several highlighted statements per screen and multi-line statements are untested.
