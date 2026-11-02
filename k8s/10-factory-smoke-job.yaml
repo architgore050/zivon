@@ -13,6 +13,7 @@ metadata:
     app: zivon-factory
 spec:
   backoffLimit: 2          # retry the whole pod up to 2 times before declaring failure
+  ttlSecondsAfterFinished: 86400   # kube-linter gate: auto-clean the finished Job after 1 day
   template:                # the pod the Job creates
     metadata:
       labels:
@@ -29,6 +30,11 @@ spec:
           imagePullPolicy: IfNotPresent # local image loaded via `minikube image load`
           # No `command:` here on purpose: the pod inherits the image's CMD
           # (the smoke test). Real pipeline runs override it — see 20-factory-run-job.yaml.
+          securityContext:
+            readOnlyRootFilesystem: true   # kube-linter gate; writes go to the mounts below
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:            # scheduler needs this much room to place the pod
               cpu: 500m          # 0.5 core
@@ -36,3 +42,6 @@ spec:
             limits:              # hard ceiling; exceeding memory kills the pod
               cpu: 2
               memory: 2Gi        # torch import alone eats several hundred MB
+      volumes:
+        - name: tmp
+          emptyDir: {}

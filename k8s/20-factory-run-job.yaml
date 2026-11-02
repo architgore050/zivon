@@ -7,10 +7,12 @@
 #        kubectl create secret generic zivon-factory-env -n zivon \
 #          --from-literal=ZIVON_API_KEY=<key>
 #
-# Output: runs/ is an emptyDir = EPHEMERAL (gone when the pod ends). For dev,
-# fetch results with:  kubectl cp zivon/<pod-name> runs -c factory
-# Persistent output (frontend/ pages, caches) needs a PVC — part of the cluster
-# hosting decision. See docs/deployment/kubernetes.md.
+# Output: runs/ is an emptyDir = EPHEMERAL evidence (gone when the pod ends;
+# for dev fetch it with:  kubectl cp zivon/<pod-name> runs -c factory).
+# frontend/ is the zivon-frontend PVC: stage 11-link publishes generated pages
+# straight onto the site the frontend Deployment serves (k8s/30, k8s/40).
+# Apply order: 00 -> 10 -> 15 -> 20 -> 30 -> 40 (the PVC from 15 must exist
+# before this Job).
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -21,6 +23,7 @@ metadata:
 spec:
   backoffLimit: 1
   activeDeadlineSeconds: 3600     # a pipeline run must not hang forever: hard 1 h cap
+  ttlSecondsAfterFinished: 86400  # kube-linter gate: auto-clean the finished Job after 1 day
   template:
     metadata:
       labels:
@@ -38,6 +41,8 @@ spec:
           # Command override: the image's CMD (smoke test) is replaced by the
           # real entry point. This is the Job-vs-smoke difference.
           command: ["python", "pipeline.py", "Motion", "--class", "9"]
+          securityContext:
+            readOnlyRootFilesystem: true   # kube-linter gate; all writes hit the mounts below
           env:
             - name: ZIVON_BASE_URL
               value: "http://127.0.0.1:8000/v1"   # EDIT ME: your inference server (in-cluster: the service DNS)
@@ -51,8 +56,16 @@ spec:
           volumeMounts:
             - name: runs
               mountPath: /app/runs
+            - name: site
+              mountPath: /app/frontend
+            - name: pdf-cache
+              mountPath: /app/sources/pdfs
+            - name: text-cache
+              mountPath: /app/sources/cache
             - name: hf-cache
               mountPath: /app/.cache/huggingface
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: "1"
@@ -63,5 +76,14 @@ spec:
       volumes:
         - name: runs
           emptyDir: {}
+        - name: site
+          persistentVolumeClaim:
+            claimName: zivon-frontend
+        - name: pdf-cache
+          emptyDir: {}
+        - name: text-cache
+          emptyDir: {}
         - name: hf-cache
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}

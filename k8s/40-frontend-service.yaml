@@ -1,0 +1,19 @@
+# Cluster-internal address for the frontend: http://frontend.zivon.svc/ (port 80
+# -> container 8080). For local minikube access:  minikube service frontend -n zivon
+# or  kubectl port-forward -n zivon svc/frontend 8080:80  (then http://localhost:8080).
+# NodePort/ingress/TLS are part of the public-domain decision, not decided here.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: zivon
+  labels:
+    app: zivon-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: zivon-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

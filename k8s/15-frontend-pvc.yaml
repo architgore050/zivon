@@ -1,0 +1,19 @@
+# Persistent site volume - the shared surface between the two workloads:
+#   - the pipeline run Job writes generated pages into it (mounted at
+#     /app/frontend, stage 11-link publishes there)
+#   - the frontend Deployment serves it as the site root
+# This is the cluster-side answer to "pipeline output is ephemeral".
+# See docs/deployment/kubernetes.md.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zivon-frontend
+  namespace: zivon
+  labels:
+    app: zivon-frontend
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
