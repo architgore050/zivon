@@ -41,7 +41,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: factory
-          image: zivon-factory:0.2.3
+          image: zivon-factory:0.2.4
           imagePullPolicy: IfNotPresent
           # Command override: the image's CMD (smoke test) is replaced by the
           # real entry point. This is the Job-vs-smoke difference.
@@ -77,10 +77,10 @@ spec:
           resources:
             requests:
               cpu: "1"
-              memory: 2Gi
+              memory: 4Gi
             limits:
               cpu: "4"
-              memory: 4Gi         # full pipeline: torch + Chromium + model I/O
+              memory: 8Gi         # full pipeline: torch + Chromium + model I/O. 4 Gi OOMKilled during ingest (2026-11-02): pdfplumber peaks hard on image-heavy NCERT pages; node has 32 Gi.
       volumes:
         - name: runs
           emptyDir: {}
