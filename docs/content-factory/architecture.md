@@ -25,12 +25,12 @@ index.
 | 02 | synth | factory/agents.py | model | ground_truth (claims, equations, misconceptions, uncertain) |
 | 03 | explain | factory/agents.py | model | lesson (self-contained prose) |
 | 04 | draft | factory/agents.py | model + code (rule feedback in the retry loop) | blocks (text / worked_example / check / reveal / diagram / simulation) |
-| 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop |
-| 06 | interactive | factory/interactive.py | model, 1 req per simulation | page.js / page.css fragments (linted) |
+| 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop (fact hunt vs sources + comprehension probe) |
+| 06 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 07 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 08 | perf | factory/perf.py + testing/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 09; landing-page miss = stop (hand-maintained, human fixes) |
-| 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds | fixed topic files + history; rounds=0 (no model call) when 08 passed |
-| 10 | review | factory/review.py | model + code | final verdict; fatal = stop |
+| 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts; must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 08 passed |
+| 10 | review | factory/review.py | model + code; reviews the FINAL code against block specs AND cited facts | final verdict; fatal = stop |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
 Mapping to the six agents in AGENTS.md: 00+01 = Curator; 02+03+04 = Synthesizer;
@@ -62,7 +62,9 @@ model.
   inside the model retry loop: the model sees its own fatal/major rule
   violations (invented number, uncited factual block, broken answer key) and
   fixes them instead of the run dying at 05-check. 05-check re-runs the same
-  rules independently as a second gate.
+  rules independently as a second gate. 06-interactive uses the same loop for
+  its hard lints: a generated sim that breaks the JS/CSS contract is fed back
+  to the model for repair, not raised straight away.
 - Network errors / 429 / 5xx retry with backoff; any other HTTP error fails
   immediately with the server's body (a 400 about response_format tells you to
   set `ZIVON_JSON_MODE=false`).
@@ -102,6 +104,11 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
 - Numbers in worked-example/check answers must appear verbatim in the ground
   truth or the primary source text - whole-numeral match, no substring
   smuggling (invented-figure guard). The draft prompt promises the same.
+- Simulations are physics, so the facts travel with them: 06 receives the
+  block's cited claims plus every ground-truth equation ("FACTS THE
+  SIMULATION MUST OBEY"), and 10-review re-checks the FINAL draw loop
+  against the same facts after any 09-fixloop rewrite (05 only ever saw the
+  draft). A simulation that draws physically wrong behaviour is fatal at 10.
 - The ground truth has a mandatory `uncertain` field - what the sources did
   not answer. It is carried into prompts so later stages do not resolve it by
   inventing.
