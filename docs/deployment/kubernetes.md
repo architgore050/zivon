@@ -21,8 +21,9 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
   - `securityContext: runAsNonRoot: true` + `runAsUser: 1000` — see gotcha below.
   - `resources.requests` (scheduler placement) / `limits` (hard ceiling; torch import alone needs several hundred MB → 2 Gi limit). QoS class is `Burstable`, which decides eviction priority under node pressure.
   - `automountServiceAccountToken: false` — the factory needs no K8s API access; pods get no cluster credentials.
-- `20-factory-run-job.yaml` — a REAL pipeline run, configured for the dev inference router (see the router section): `ZIVON_BASE_URL=http://192.168.49.1:18080/v1`, `ZIVON_MODEL=qwen3.8-flash-next-iq3_xxs`. The `secretKeyRef` for the API key is `optional: true` — keyless local servers need no Secret; hosted servers: create it.
+- `20-factory-run-job.yaml` — a REAL pipeline run, configured for the dev inference router (see the router section): `ZIVON_BASE_URL=http://192.168.49.1:18080/v1`, `ZIVON_MODEL=qwen3.8-flash-next-iq3_xxs`. The `secretKeyRef` for the API key is `optional: true` — keyless local servers need no Secret; hosted servers: create it. Mounts: `runs/` (ephemeral evidence), `frontend/` + `sources/` on PVCs (15/13). Hard cap 2 h — a cold-cache first run politely fetches + extracts the whole catalog, and the sources PVC makes that progress resumable.
 - `12-hf-cache-pvc.yaml` — the `zivon-hf-cache` PVC: the HuggingFace embedder cache (~90 MB) shared by the run Job and the test CronJob, so the model downloads once per cluster, not once per run (`HF_HOME` is baked into the factory image).
+- `13-sources-pvc.yaml` — the `zivon-sources` PVC: the textbook PDF + extracted-text cache (`sources/pdfs`, `sources/cache`) shared across pipeline runs. The first run downloads the catalog once; later runs reuse it (ingest never re-fetches a valid cached PDF). A cold run that dies partway is resumable.
 - `15-frontend-pvc.yaml` — the `zivon-frontend` PVC: the shared site volume. The run Job writes generated pages onto it (11-link publishes into `/app/frontend`); the frontend Deployment serves it. Apply order note: the PVC (15) must exist before the Job (20) that mounts it.
 - `30-frontend-deployment.yaml` — nginx Deployment serving the site. A no-clobber `initContainer` (`cp -rn /opt/zivon-shell/* ...` — glob form; see gotcha 6) seeds the hand-maintained shell (landing page + assets, baked at `/opt/zivon-shell` in the image) into an empty PVC, so the landing page exists before the first pipeline run and generated content is never overwritten. Non-root (UID 101), capabilities dropped, read-only root fs with writable mounts for nginx's pid/cache/log dirs, probes, resource ceilings.
 - `40-frontend-service.yaml` — NodePort `80 → 8080`, fixed `nodePort: 30080`. Stable host URL with no manual command: **http://192.168.49.2:30080** (minikube's fixed node IP). `minikube service frontend -n zivon` is the convenience opener. On a real cluster only the Service `type` changes (ingress/LB decision, TIMELINE.md infra TODO).
@@ -61,11 +62,11 @@ sudo install kubectl /usr/local/bin/kubectl
 minikube start --driver=docker
 minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
 minikube addons enable metrics-server # makes kubectl top nodes/pods work
-minikube image load zivon-factory:0.2.2   # see gotcha 2
+minikube image load zivon-factory:0.2.3   # see gotcha 2
 minikube image load zivon-frontend:0.1.0  # frontend hosting (see gotcha 2)
 kubectl apply -f k8s/00-namespace.yaml -f k8s/10-factory-smoke-job.yaml
 # Frontend hosting (site volume + nginx + NodePort service):
-kubectl apply -f k8s/12-hf-cache-pvc.yaml -f k8s/15-frontend-pvc.yaml -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
+kubectl apply -f k8s/12-hf-cache-pvc.yaml -f k8s/13-sources-pvc.yaml -f k8s/15-frontend-pvc.yaml -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
 # → open http://192.168.49.2:30080 (no extra command needed)
 # Scheduled full test suite + manual trigger:
 kubectl apply -f k8s/50-test-cronjob.yaml
@@ -89,6 +90,7 @@ kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the
 7. **Cron granularity is minutes, not seconds.** K8s CronJob `schedule:` is cron syntax (min hour day month weekday); "every x seconds" is not expressible. The schedule line in `50-test-cronjob.yaml` is the config value; smallest sane unit is every few minutes. If sub-minute test loops are ever needed, the pattern is a runner Deployment with a sleep loop — deliberately not built (P2).
 8. **A host's `127.0.0.1` is invisible to every container.** Containers reach the host only through bridge gateway IPs (`172.17.0.1`, `192.168.49.1`), never loopback — so a server bound to `127.0.0.1` is unreachable from Docker and cluster pods. Fix without touching the server: the inference router (section above) or rebind the server to `0.0.0.0`. Also: pointing containers at the host's LAN IP fails too when the listen socket is loopback-only.
 9. **Cluster runs run IMAGES, not your working tree.** A test fix in the repo does nothing in-cluster until a new tag is built + `minikube image load`ed + manifests bumped (0.2.1 → 0.2.2 for the read-only-safe test fix). The CronJob failing twice on the stale `tmp-bad.json` test, then going green on 0.2.2, is this loop in action.
+10. **`ncert.nic.in` has a broken published TLS chain AND flaky connections.** It serves its Let's Encrypt leaf (issuer `CN = YE1`) WITHOUT the intermediate → stock verifiers fail with `unable to get local issuer certificate`; connections also get randomly reset mid-handshake, especially after a burst of requests (our first run hammered it for 58 min and got throttled). Fixed in `factory/ingest.py` (image 0.2.3): (a) pinned chain bundles per host at `sources/certs/<host>.pem` — `ncert.nic.in.pem` carries YE1 + Root YE + ISRG Root X1/X2 (regeneration notes inside the file; `Root YE` is cross-signed by Root X2, so the bundle needs X2 too); (b) fetches are polite (≥1.5 s apart) and retried 3× with backoff. Two lessons: name the bundle exactly `<host>.pem` (the code's lookup convention — `ncert-chain.pem` silently fell back to the system store), and treat textbook-site flakiness as normal.
 
 ## Hosting decision (partially closed)
 
