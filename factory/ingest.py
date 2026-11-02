@@ -12,13 +12,19 @@ Guarantees:
   loudly). A 404 on a chapters_verified=true book is fatal - fix the catalog.
 - Manual-download books must already exist at sources/pdfs/<id>/<filename>;
   otherwise the stage fails with exact placement instructions.
+- Hosts whose published TLS chain is broken (ncert.nic.in serves its leaf without
+  the Let's Encrypt intermediate) are verified against pinned chain bundles in
+  sources/certs/<host>.pem; fetches are polite (spaced) and retried with backoff
+  because textbook sites throttle bursty clients.
 """
 
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import pdfplumber
 import requests
@@ -62,7 +68,56 @@ def _cache_dir(cfg: Config, book_id: str) -> Path:
     return cfg.repo_path(cfg.paths["text_cache"]) / book_id
 
 
-def _fetch(url: str, dest: Path) -> Path:
+_FETCH_ATTEMPTS = 3
+_MIN_FETCH_GAP_S = (
+    1.5  # politeness: bursty clients get throttled/reset (seen 2026-11-02)
+)
+_last_fetch_at = 0.0
+
+
+def _cert_bundle_for(cfg: Config, url: str) -> str | bool:
+    """Pinned chain bundle for hosts with a broken published chain.
+
+    ncert.nic.in serves its Let's Encrypt leaf without the YE1 intermediate, so
+    stock verifiers fail. sources/certs/ncert.nic.in.pem carries the missing
+    intermediates/roots (regeneration notes inside the file). Hosts without a
+    bundle keep the system CA store (True)."""
+    host = urlparse(url).hostname or ""
+    certs_dir = Path(cfg.paths["catalog"]).parent / "certs"
+    bundle = cfg.repo_path(str(certs_dir / f"{host}.pem"))
+    return str(bundle) if bundle.exists() else True
+
+
+def _get(url: str, cfg: Config) -> requests.Response:
+    """One polite, retried GET. Raises SourceError after _FETCH_ATTEMPTS failures."""
+    global _last_fetch_at
+    verify = _cert_bundle_for(cfg, url)
+    last_exc: Exception | None = None
+    for attempt in range(1, _FETCH_ATTEMPTS + 1):
+        gap = _MIN_FETCH_GAP_S - (time.monotonic() - _last_fetch_at)
+        if gap > 0:
+            time.sleep(gap)
+        _last_fetch_at = time.monotonic()
+        try:
+            return requests.get(
+                url,
+                timeout=120,
+                headers={"User-Agent": "zivon-content-factory/0.1"},
+                verify=verify,
+            )
+        except requests.RequestException as exc:
+            last_exc = exc
+            print(
+                f"    [warn] fetch attempt {attempt}/{_FETCH_ATTEMPTS} failed for {url}: {exc}"
+            )
+            if attempt < _FETCH_ATTEMPTS:
+                time.sleep(5 * attempt)  # backoff: 5s, 10s
+    raise SourceError(
+        STAGE_ID, f"could not fetch {url} after {_FETCH_ATTEMPTS} attempts: {last_exc}"
+    ) from last_exc
+
+
+def _fetch(cfg: Config, url: str, dest: Path) -> Path:
     """Download (or reuse cache) one PDF and validate it is really a PDF."""
     if dest.exists() and dest.stat().st_size > 0:
         _validate_pdf(dest, f"{dest} (cached)")
@@ -74,12 +129,7 @@ def _fetch(url: str, dest: Path) -> Path:
             raise _NotFound(url)
         dest.write_bytes(src.read_bytes())
     else:
-        try:
-            resp = requests.get(
-                url, timeout=120, headers={"User-Agent": "zivon-content-factory/0.1"}
-            )
-        except requests.RequestException as exc:
-            raise SourceError(STAGE_ID, f"could not fetch {url}: {exc}") from exc
+        resp = _get(url, cfg)
         if resp.status_code == 404:
             raise _NotFound(url)
         if resp.status_code != 200:
@@ -186,7 +236,9 @@ def _index_auto_book(
 ) -> dict[str, Any]:
     book_id = book["id"]
     print(f"[{STAGE_ID}] book {book_id}: {book['title']}")
-    prelims_pdf = _fetch(book["prelims_url"], _book_dir(cfg, book_id) / "prelims.pdf")
+    prelims_pdf = _fetch(
+        cfg, book["prelims_url"], _book_dir(cfg, book_id) / "prelims.pdf"
+    )
     prelims_pages = _extract_pages(prelims_pdf, max_pages=6)
     _save_pages(cfg, book_id, "prelims", prelims_pages)
 
@@ -207,7 +259,7 @@ def _index_auto_book(
         url = book["chapter_url_template"].format(nn=f"{n:02d}")
         dest = _book_dir(cfg, book_id) / f"ch{n:02d}.pdf"
         try:
-            _fetch(url, dest)
+            _fetch(cfg, url, dest)
         except _NotFound as exc:
             if book.get("chapters_verified") is False:
                 truncated_at = n

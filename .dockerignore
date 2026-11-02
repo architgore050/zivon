@@ -5,6 +5,8 @@
 .env
 .env.*
 *.pem
+# exception: public pinned CA chains must enter the image (factory/ingest.py verifies against them)
+!sources/certs/*.pem
 *.key
 
 # Python local junk
