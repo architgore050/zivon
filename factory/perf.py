@@ -1,6 +1,6 @@
 """Stage 08-perf: the Performance Engineer gate.
 
-Runs the weak-hardware harness (testing/perf/harness.py) against the staged
+Runs the weak-hardware harness (testing/content_factory/perf/harness.py) against the staged
 topic page and the landing page. Budgets come from the profile JSON named in
 config.perf.profile. A miss is fatal for the stage; stage 09 owns fixing.
 """
@@ -23,7 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 def _harness():
     sys.path.insert(0, str(REPO_ROOT))
     try:
-        from testing.perf.harness import run_profile
+        from testing.content_factory.perf.harness import run_profile
     except ImportError as exc:
         raise FactoryError(
             STAGE_ID,

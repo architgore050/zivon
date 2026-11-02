@@ -87,7 +87,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 
 ### Content factory (build-time)
 
-- **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/`.
+- **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/content_factory/` (pipeline) and `testing/frontend/` (site shell).
 - Agents communicate via structured **JSON block specs**, not ad-hoc markup tags:
   `{ "type": "animation" | "simulation" | "diagram" | "text" | "check", "spec": {...} }`
 - Generated visuals are self-contained HTML/JS (canvas/SVG), no heavy frameworks, and must pass a performance budget for low-end Android (page load < 2s, ~60fps animations).

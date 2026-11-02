@@ -13,7 +13,7 @@ from unittest import mock
 
 import numpy as np
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import retrieval
@@ -24,7 +24,10 @@ from factory.retrieval import (
     embed_chunks_cached,
     top_k_chunks,
 )
-from testing.unit._server_env import install_server_env, release_server_env
+from testing.content_factory.unit._server_env import (
+    install_server_env,
+    release_server_env,
+)
 
 
 def make_cfg(tmp: Path):

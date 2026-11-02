@@ -13,16 +13,16 @@ import unittest
 from pathlib import Path
 from typing import Any, cast
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import review
 from factory.artifacts import RunContext
 from factory.llm import LLMClient
 from factory.render import run as render_run
-from testing.unit.test_render import make_cfg, minimal_inputs
+from testing.content_factory.unit.test_render import make_cfg, minimal_inputs
 
-FIXTURES = REPO_ROOT / "testing" / "mocks" / "fixtures"
+FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 def load(name: str) -> dict[str, Any]:

@@ -1,7 +1,7 @@
 """Generate the tiny fixture PDFs used by the ingest unit test and the
 end-to-end integration test. Run once from the repo root:
 
-    python testing/mocks/fixtures/make_pdfs.py
+    python testing/content_factory/mocks/fixtures/make_pdfs.py
 
 Hand-rolled minimal PDF (no third-party writer needed): one text column per
 page, Helvetica, simple Tj operators that pdfplumber extracts cleanly.

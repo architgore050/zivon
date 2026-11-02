@@ -28,7 +28,7 @@ index.
 | 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop (fact hunt vs sources + comprehension probe) |
 | 06 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 07 | render | factory/render.py | code | staging site + manifest + courses.js |
-| 08 | perf | factory/perf.py + testing/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 09; landing-page miss = stop (hand-maintained, human fixes) |
+| 08 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 09; landing-page miss = stop (hand-maintained, human fixes) |
 | 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts; must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 08 passed |
 | 10 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine | final verdict; fatal = stop |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
@@ -174,7 +174,7 @@ Phase 4 (Day 9) frontend work, not pipeline work.
 
 ## Performance budgets
 
-`testing/perf/profiles/*.json` are the tuning knobs (viewport, CPU throttle
+`testing/content_factory/perf/profiles/*.json` are the tuning knobs (viewport, CPU throttle
 rate, RAM ceiling, load/FCP budgets, FPS floor, core pinning). The default
 shipping gate is `weak-android.json` (750 MB browser-tree RSS per the
 founder's spec, 4x CPU throttling, 2 cores, load < 2 s). The harness measures

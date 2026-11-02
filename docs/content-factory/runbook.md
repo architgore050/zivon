@@ -27,8 +27,8 @@ see `docs/content-factory/config-reference.md` and `.env.example`):
 
 ## Verify the wiring before burning model time
 
-    python -m unittest discover -s testing/unit -t .        # fast
-    python -m unittest testing.integration.test_end_to_end  # full pipeline vs the mock server + real Chromium
+    python -m unittest discover -s testing/content_factory/unit -t .        # fast
+    python -m unittest testing.content_factory.integration.test_end_to_end  # full pipeline vs the mock server + real Chromium
 
 The integration test runs the entire pipeline against a mock OpenAI-format
 server with fixture PDFs and a fixture catalog. If that passes, your install
@@ -65,14 +65,14 @@ is correct end to end and the only remaining variable is your real model.
 - PDFs cache under `sources/pdfs/` (gitignored). Manual-download books (OpenStax,
   Siyavula) must be placed by hand; the pipeline prints the exact path when missing.
 - Add a source: catalog entry + doc row + `python -m unittest
-  testing.unit.test_catalog_sync`.
+  testing.content_factory.unit.test_catalog_sync`.
 
 ## Test harshness
 
-Perf profiles are data: `testing/perf/profiles/weak-android.json` (shipping
+Perf profiles are data: `testing/content_factory/perf/profiles/weak-android.json` (shipping
 gate: 750 MB RAM, 4x CPU throttle, 2 cores, load < 2 s) and
 `mid-laptop.json` (mild). Tune or add profiles freely; point `perf.profile`
 in config.json at the gate you want. Standalone use:
 
-    python -m testing.perf.harness --url file:///path/to/page.html \
-        --profile testing/perf/profiles/weak-android.json
+    python -m testing.content_factory.perf.harness --url file:///path/to/page.html \
+        --profile testing/content_factory/perf/profiles/weak-android.json

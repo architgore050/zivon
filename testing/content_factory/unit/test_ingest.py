@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import retrieval
@@ -19,9 +19,12 @@ from factory.ingest import _extract_pages
 from factory.ingest import run as ingest_run
 from factory.locate import run as locate_run
 from factory.retrieval import FixtureEmbedder
-from testing.unit._server_env import install_server_env, release_server_env
+from testing.content_factory.unit._server_env import (
+    install_server_env,
+    release_server_env,
+)
 
-PDFS = REPO_ROOT / "testing" / "mocks" / "fixtures" / "pdfs"
+PDFS = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures" / "pdfs"
 
 
 def stage_book_pdfs(tmp: Path, book_id: str, files: list[str]) -> dict[str, str]:

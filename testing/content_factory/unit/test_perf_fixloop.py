@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, cast
 from unittest import mock
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import fixloop as fixloop_mod
@@ -23,9 +23,12 @@ from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.errors import BudgetError, LintError
 from factory.llm import LLMClient
-from testing.unit._server_env import install_server_env, release_server_env
+from testing.content_factory.unit._server_env import (
+    install_server_env,
+    release_server_env,
+)
 
-FIXTURES = REPO_ROOT / "testing" / "mocks" / "fixtures"
+FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 def load(name: str) -> dict[str, Any]:

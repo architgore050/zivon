@@ -6,7 +6,7 @@ production code path) and a real Chromium for the performance gate:
     fixture PDFs (file://) -> ingest -> locate -> [mock model stages]
     -> render -> perf (real headless Chromium) -> review -> link
 
-Run:  python -m unittest testing.integration.test_end_to_end
+Run:  python -m unittest testing.content_factory.integration.test_end_to_end
 Needs: playwright chromium installed (`python -m playwright install chromium`).
 """
 
@@ -19,10 +19,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-PDFS = REPO_ROOT / "testing" / "mocks" / "fixtures" / "pdfs"
+PDFS = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures" / "pdfs"
 
 
 def chromium_available() -> bool:
@@ -44,7 +44,7 @@ class TestEndToEnd(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp(prefix="zivon-e2e-"))
-        from testing.mocks.openai_mock import start_mock
+        from testing.content_factory.mocks.openai_mock import start_mock
 
         cls.server, cls.base_url, cls.state = start_mock()
 
@@ -128,7 +128,12 @@ class TestEndToEnd(unittest.TestCase):
             }
         )
         base["perf"]["profile"] = str(
-            REPO_ROOT / "testing" / "perf" / "profiles" / "mid-laptop.json"
+            REPO_ROOT
+            / "testing"
+            / "content_factory"
+            / "perf"
+            / "profiles"
+            / "mid-laptop.json"
         )
         cls.config_path = cls.tmp / "config.json"
         cls.config_path.write_text(json.dumps(base), encoding="utf-8")

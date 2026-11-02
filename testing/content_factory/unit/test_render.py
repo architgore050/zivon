@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory.artifacts import RunContext
@@ -15,9 +15,12 @@ from factory.config import load_config
 from factory.errors import LintError
 from factory.render import run as render_run
 from factory.render import write_courses_js
-from testing.unit._server_env import install_server_env, release_server_env
+from testing.content_factory.unit._server_env import (
+    install_server_env,
+    release_server_env,
+)
 
-FIXTURES = REPO_ROOT / "testing" / "mocks" / "fixtures"
+FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 def make_cfg(tmp: Path):

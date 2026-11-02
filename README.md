@@ -57,7 +57,7 @@ export ZIVON_MODEL=<your-model>
 python pipeline.py "Motion" --class 9
 ```
 
-Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`.
+Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`.
 
 ## Tech Stack
 
@@ -75,8 +75,8 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.2.0 .
-docker run --rm zivon-factory:0.2.0                          # environment smoke test
+docker build -t zivon-factory:0.2.1 .
+docker run --rm zivon-factory:0.2.1                          # environment smoke test
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8080
 ```
@@ -91,7 +91,7 @@ Manifests live in `k8s/` (numeric prefix = apply order). Local cluster is miniku
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.2.0   # minikube has its own container store
+minikube image load zivon-factory:0.2.1   # minikube has its own container store
 kubectl apply -f k8s/                     # namespace + factory smoke Job
 kubectl get jobs,pods -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
@@ -120,7 +120,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook |
 | [`docs/source-catalog.md`](docs/source-catalog.md) | Public PDF sources for classes 6-12 (research + licensing + verification status) |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
-| [`testing/`](testing/README.md) | Test sets: unit, end-to-end vs mock inference server, weak-hardware perf harness |
+| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool) and `frontend/` (site shell + behaviour in Chromium) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 
 ## Engineering Process

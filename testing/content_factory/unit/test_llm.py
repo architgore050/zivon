@@ -7,14 +7,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.errors import ModelCallError, SchemaError
 from factory.llm import LLMClient, parse_json_object
-from testing.mocks.openai_mock import start_mock
+from testing.content_factory.mocks.openai_mock import start_mock
 
 GOOD = {"topic": "x", "claims": []}
 BAD = {"topic": 42}  # right key, wrong type -> schema failure

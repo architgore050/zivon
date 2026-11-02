@@ -14,14 +14,14 @@ Simulates a low-end Android phone on a real Chromium instance:
 - console errors and page errors fail the run outright
 
 Usage:
-    python -m testing.perf.harness --url <file:// or https://> --profile testing/perf/profiles/weak-android.json
+    python -m testing.content_factory.perf.harness --url <file:// or https://> --profile testing/content_factory/perf/profiles/weak-android.json
 
 Or programmatically:
-    from testing.perf.harness import run_profile
+    from testing.content_factory.perf.harness import run_profile
     report = run_profile(url, profile_path)
 
 The profile JSON is the tuning knob for how harshly we test. See
-testing/perf/profiles/weak-android.json for the default.
+testing/content_factory/perf/profiles/weak-android.json for the default.
 """
 
 from __future__ import annotations

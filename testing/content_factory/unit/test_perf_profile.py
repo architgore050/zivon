@@ -5,12 +5,12 @@ import sys
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from testing.perf.harness import _judge, load_profile
+from testing.content_factory.perf.harness import _judge, load_profile
 
-PROFILES = REPO_ROOT / "testing" / "perf" / "profiles"
+PROFILES = REPO_ROOT / "testing" / "content_factory" / "perf" / "profiles"
 
 
 class TestProfiles(unittest.TestCase):

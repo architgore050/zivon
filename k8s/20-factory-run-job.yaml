@@ -36,7 +36,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: factory
-          image: zivon-factory:0.2.0
+          image: zivon-factory:0.2.1
           imagePullPolicy: IfNotPresent
           # Command override: the image's CMD (smoke test) is replaced by the
           # real entry point. This is the Job-vs-smoke difference.

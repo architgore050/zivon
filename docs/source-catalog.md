@@ -2,7 +2,7 @@
 
 Companion of `sources/catalog.json` (machine-readable, the file the pipeline
 actually reads). This document is the human-readable research record. A unit
-test (`testing/unit/test_catalog_sync.py`) fails if the two drift apart.
+test (`testing/content_factory/unit/test_catalog_sync.py`) fails if the two drift apart.
 
 **Licensing rule (AGENTS.md):** NCERT (officially free) and public-domain /
 openly-licensed sources only. No scraping copyrighted textbooks. The pipeline
@@ -88,4 +88,4 @@ study material with citations - never long extracts.
 
 1. Add an entry to `sources/catalog.json` (see `how_this_file_works` there).
 2. Mirror the entry in the tables above.
-3. Run `python -m unittest testing.unit.test_catalog_sync` to confirm sync.
+3. Run `python -m unittest testing.content_factory.unit.test_catalog_sync` to confirm sync.

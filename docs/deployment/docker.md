@@ -23,10 +23,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.2.0 .
-docker run --rm zivon-factory:0.2.0                          # smoke test
-docker run --rm -it zivon-factory:0.2.0 bash                 # explore inside
-docker history zivon-factory:0.2.0                           # per-layer sizes
+docker build -t zivon-factory:0.2.1 .
+docker run --rm zivon-factory:0.2.1                          # smoke test
+docker run --rm -it zivon-factory:0.2.1 bash                 # explore inside
+docker history zivon-factory:0.2.1                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 

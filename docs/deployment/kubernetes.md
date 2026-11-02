@@ -15,7 +15,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 ## Our manifests (`k8s/`, numeric prefix = apply order)
 
 - `00-namespace.yaml` — the `zivon` namespace.
-- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.2.0`:
+- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.2.1`:
   - `Job` + `restartPolicy: Never` + `backoffLimit: 2` = batch semantics (fresh pod per retry; a failing Job ends `Failed` — CI-detectable).
   - No `command:` — the pod inherits the image's CMD (smoke test). Pipeline runs override it (see next file).
   - `securityContext: runAsNonRoot: true` + `runAsUser: 1000` — see gotcha below.
@@ -47,7 +47,7 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 sudo install kubectl /usr/local/bin/kubectl
 
 minikube start --driver=docker
-minikube image load zivon-factory:0.2.0   # see gotcha 2
+minikube image load zivon-factory:0.2.1   # see gotcha 2
 minikube image load zivon-frontend:0.1.0  # frontend hosting (see gotcha 2)
 kubectl apply -f k8s/00-namespace.yaml -f k8s/10-factory-smoke-job.yaml
 # Frontend hosting (site volume + nginx + service):
@@ -66,7 +66,7 @@ kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the
 2. **minikube has its own image store.** Local images must be injected with `minikube image load` or pods sit in `ImagePullBackOff`. Once CI publishes to `ghcr.io`, clusters pull from the registry and this disappears.
 3. **Jobs are immutable.** Editing a Job manifest requires `kubectl delete job ... && kubectl apply` — never apply-over.
 4. **Group permissions after `usermod -aG docker`** only apply to new login sessions; GNOME terminals inherit the stale systemd user manager until reboot.
-5. **Reused tags mean stale images.** The cluster keeps whatever bytes were loaded under a tag. New code → new tag (`0.1.0` → `0.2.0`) → `minikube image load` again → delete + re-apply the Job. Never re-tag different content the same version.
+5. **Reused tags mean stale images.** The cluster keeps whatever bytes were loaded under a tag. New code → new tag (`0.2.0` → `0.2.1` after the pdfplumber fix) → `minikube image load` again → delete + re-apply the Job. Never re-tag different content the same version.
 
 ## Hosting decision (partially closed)
 

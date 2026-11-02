@@ -11,10 +11,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from testing.perf import harness
+from testing.content_factory.perf import harness
 
 
 class FakeProc:

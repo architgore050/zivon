@@ -5,7 +5,7 @@ import unittest
 from itertools import pairwise
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory.lint import lint_css, lint_html, lint_js

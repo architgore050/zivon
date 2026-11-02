@@ -13,12 +13,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import design
 from factory.config import ConfigError, load_config
-from testing.unit._server_env import install_server_env, release_server_env
+from testing.content_factory.unit._server_env import (
+    install_server_env,
+    release_server_env,
+)
 
 BASE_CONFIG = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
 

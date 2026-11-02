@@ -7,12 +7,12 @@ from pathlib import Path
 
 import jsonschema
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory.schemas import BLOCKS, CHECK_REPORT, GROUND_TRUTH, LESSON
 
-FIXTURES = Path(REPO_ROOT) / "testing" / "mocks" / "fixtures"
+FIXTURES = Path(REPO_ROOT) / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 class TestSchemas(unittest.TestCase):

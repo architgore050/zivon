@@ -6,12 +6,12 @@ import unittest
 from pathlib import Path
 from typing import ClassVar
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import checks
 
-FIXTURES = Path(REPO_ROOT) / "testing" / "mocks" / "fixtures"
+FIXTURES = Path(REPO_ROOT) / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 def load(name):

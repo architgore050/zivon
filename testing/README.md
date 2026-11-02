@@ -1,42 +1,20 @@
-# testing/ — test sets for everything the factory ships
+# testing/ - the repo's test sets
 
-Run from the repo root:
+| Folder | What it covers | Run from repo root |
+|---|---|---|
+| [`content_factory/`](content_factory/README.md) | the whole build-time pipeline: unit sets, end-to-end vs the mock inference server, and `perf/` - the weak-hardware harness (a TOOL imported by stage 08, not a test) | `python -m unittest discover -s testing/content_factory/unit -t .` |
+| `frontend/` | the hand-maintained site shell: load contract, self-containment, course-list rendering, quiz + ZivonSim behaviour in real Chromium | `python -m unittest discover -s testing/frontend -t .` |
 
-    # fast unit sets (no network, no browser; the embedder is a fixture)
-    python -m unittest discover -s testing/unit -t .
+Folder names use underscores (`content_factory`) because Python package names cannot contain hyphens; docs call it the content-factory test set.
 
-    # full pipeline against the mock inference server + real headless Chromium
-    # (needs: pip install -r requirements.txt && python -m playwright install chromium)
-    python -m unittest testing.integration.test_end_to_end
+All sets run in CI (`.github/workflows/ci.yml`, `tests` job) and need **no API keys**. The frontend and integration sets need a browser: `python -m playwright install chromium`.
 
-    # the weak-hardware perf harness on any page
-    python -m testing.perf.harness --url file://$PWD/frontend/index.html \
-        --profile testing/perf/profiles/weak-android.json
+## How the static frontend is tested (verdict + method)
 
-## Layout
+A static site is testable at three levels, and this repo uses all three:
 
-| Path | What it covers |
-|---|---|
-| `unit/test_config.py` | config validation: unknown keys, wrong types, sentinel model, env var resolution |
-| `unit/test_schemas.py` | stage handoff schemas + the committed fixtures validate against them |
-| `unit/test_checks.py` | rule checker: answer keys, citations, self-containment, invented numbers, SVG safety |
-| `unit/test_lint.py` | hard lints: eval/Function/fetch/URL strings, external CSS/HTML refs, inline scripts |
-| `unit/test_textops.py` | title normalisation/exact matching, chunking with overlap |
-| `unit/test_retrieval.py` | per-page chunking, embedding cache invalidation, cosine top-k (FixtureEmbedder) |
-| `unit/test_ingest.py` | ingest over file:// PDFs: class evidence, 404 policies, manual books; locate: exact match, ambiguity, class filter, supplements |
-| `unit/test_render.py` | page HTML, CSP, manifest, staging layout, lint-gated render, courses.js |
-| `unit/test_llm.py` | LLM client vs mock: artifacts on disk, retry feedback loops, error paths |
-| `unit/test_perf_profile.py` | profile validation and budget verdict logic |
-| `unit/test_catalog_sync.py` | catalog.json ↔ docs/source-catalog.md sync; class coverage 6-12 |
-| `integration/test_end_to_end.py` | the REAL orchestrator as a subprocess: fixture PDFs → every stage → linked page; plus loud-failure test with a dead server |
-| `mocks/openai_mock.py` | OpenAI-format mock keyed on the `[ZIVON STAGE: ...]` marker; supports scripted first-attempt failures |
-| `mocks/fixtures/` | stage outputs + `make_pdfs.py` (hand-rolled minimal PDFs, reproducible) |
-| `perf/harness.py` | the Performance Engineer's instrument (CPU throttle, RSS sampling, FPS, budgets) |
-| `perf/profiles/*.json` | harshness tuning: `weak-android.json` (shipping gate), `mid-laptop.json` |
+1. **Contract tests** (`test_shell.py`, no browser): self-containment (no network refs), internal references resolve to real files, font licensing present.
+2. **Browser behaviour tests** (`test_shell.py`, `test_behaviour_layer.py`, headless Chromium): clean load with zero console errors, the empty-catalogue contract, catalogue rendering from injected `ZIVON_COURSES` data, quiz correct/incorrect flows, loud failure of broken simulations.
+3. **Performance budgets**: `testing/content_factory/perf/harness.py` gates the landing page on the weak-android profile (run by stage 08 and manually).
 
-## What is NOT tested here
-
-The quality of your real model's outputs. The mock proves the wiring, schemas,
-rules, rendering, perf gate and linking; it cannot prove Qwen writes good
-Physics. That is what stage 05-check, stage 10-review and the human edit rate
-are for.
+What we deliberately do NOT do: pixel/CSS visual tests, framework-style component tests. The shell is small and hand-maintained; contract + behaviour coverage is the right weight.

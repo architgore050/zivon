@@ -26,7 +26,7 @@
     "doctrine_examples": "docs/frontend/design-doctrine*.html"
   },
   "perf": {
-    "profile": "testing/perf/profiles/weak-android.json",
+    "profile": "testing/content_factory/perf/profiles/weak-android.json",
     "fix_rounds": 3
   },
   "stage_overrides": {}

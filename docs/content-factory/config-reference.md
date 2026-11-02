@@ -75,7 +75,7 @@ no pipeline change (see architecture.md, "Design doctrine flow").
 
 | Key | Type | Meaning |
 |---|---|---|
-| `profile` | str | Path to the perf profile JSON used by stages 08/09 (see `testing/perf/profiles/`). |
+| `profile` | str | Path to the perf profile JSON used by stages 08/09 (see `testing/content_factory/perf/profiles/`). |
 | `fix_rounds` | int | Max model fix-and-retest rounds before the perf gate fails the run. |
 
 ## stage_overrides
