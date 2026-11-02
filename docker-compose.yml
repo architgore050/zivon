@@ -2,6 +2,7 @@
 #
 #   docker compose run --rm factory                                  # smoke test (default CMD)
 #   docker compose run --rm factory python pipeline.py "Motion" --class 9
+#   docker compose up web                                            # serve frontend/ on :8080
 #
 # Volumes keep pipeline OUTPUT (runs/, generated pages in frontend/) on the
 # host, and download caches (PDFs, text, HF models) warm between runs.
@@ -22,3 +23,17 @@ services:
       - ./sources/pdfs:/app/sources/pdfs
       - ./sources/cache:/app/sources/cache
       - ./hf-cache:/app/.cache/huggingface
+
+  # Static frontend hosting: nginx serving ./frontend (hand-maintained shell
+  # + generated pages the factory writes into the same volume). Reachable
+  # from a phone on the same network (http://<host-ip>:8080) - that is how
+  # kid testers get the pages during validation.
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: zivon-frontend:0.1.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
