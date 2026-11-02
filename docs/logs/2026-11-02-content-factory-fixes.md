@@ -3,7 +3,7 @@
 Workstream: full review of the `feature/content-factory-pipeline` branch
 (infra was reviewed separately by the founder), then fixing what the review
 found - config placement first, then the architectural gaps. Granular
-commits, CI-green at every step (unit suite 96 → 154 tests, ruff + mypy
+commits, CI-green at every step (unit suite 96 → 158 tests, ruff + mypy
 clean throughout).
 
 ## Done
@@ -63,6 +63,19 @@ clean throughout).
   graph + superscript on one page). Known boundary recorded in
   architecture.md: text-layer extraction only - figure-borne content and
   borderless tables are out of scope for v1; `uncertain` carries the gaps.
+- **Prompt review + improvements (9c29daa + 2b4b3ca)**: judged the 02-05
+  prompting (contracts strong, craft average). Fixed: 02-synth now bans
+  unit conversions / computed values in claims (closes the number-
+  laundering hole where `rule_numbers` would bless a converted figure);
+  claim quality defined; misconception search and the `uncertain`
+  decision rule added; 03-explain got the tutor persona + TEACHING ORDER
+  (observation -> define -> formalise) and must keep numbers verbatim;
+  05-check and 10-review got adversarial framing ("assume there is at
+  least one defect") and explicit severity calibration (fatal stops the
+  run - the model must not invent its own scale). Each of 02/04/05 now
+  shows one compact example labelled "SHAPE only - never reuse". New
+  TestPromptPromises locks the load-bearing prompt lines with substring
+  assertions (158 tests).
 - Docs updated in the same commits they describe: config-reference,
   runbook, architecture (stage table, failure semantics, artifact
   fallback), blocks-schema (citation + verbatim-number rules), deployment
@@ -75,6 +88,10 @@ clean throughout).
   `ZIVON_MODEL` at the chosen Evon host and do the first real topic run.
 - Draft-time rule feedback is proven with unit tests + fixture data; its
   behaviour with a real model (how often it needs a retry) is unmeasured.
+- The prompt fixes (number-laundering ban, severity calibration, persona,
+  shape examples) are locked by substring tests but their effect on a real
+  Evon run - retry rates, claim quality, reviewer hit rate - is unmeasured;
+  measure from `runs/<run_id>/<stage>/attempts/` on the first real runs.
 - The perf harness pid logic is unit-tested against a fake psutil; the real
   launch diff runs in CI's integration job.
 
