@@ -247,10 +247,12 @@ def run_pipeline(
         if wanted("10-review"):
             if blocks is None:
                 blocks = run_ctx.load_stage_output("04-draft")
+            if ground_truth is None:
+                ground_truth = run_ctx.load_stage_output("02-synth")
             if render_out is None:
                 render_out = run_ctx.load_stage_output("07-render")
             run_ctx.mark_stage("10-review", "running")
-            review.run(cfg, run_ctx, llm, blocks, render_out)
+            review.run(cfg, run_ctx, llm, blocks, render_out, ground_truth)
             run_ctx.mark_stage("10-review", "ok")
 
         if wanted("11-link"):

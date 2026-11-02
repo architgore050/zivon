@@ -1,10 +1,12 @@
 """Stage 10-review: the Code Reviewer agent, plus a final static pass.
 
 The model reviews the final page (HTML + JS + CSS + manifest) against the repo
-checklist: correctness against the block specs, safety (no eval, no external
-calls - also enforced mechanically by lint), accessibility, and performance
-hygiene. Fatal model findings or fatal lints stop the run here; nothing is
-linked into frontend/ until this stage passes.
+checklist: correctness against the block specs AND against the cited ground
+truth (the sim's drawn behaviour included - 09-fixloop may have rewritten the
+code after 05-check saw the draft), safety (no eval, no external calls - also
+enforced mechanically by lint), accessibility, and performance hygiene. Fatal
+model findings or fatal lints stop the run here; nothing is linked into
+frontend/ until this stage passes.
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ def run(
     llm: LLMClient,
     blocks: dict[str, Any],
     render_out: dict[str, Any],
+    ground_truth: dict[str, Any],
 ) -> dict[str, Any]:
     topic_dir = Path(render_out["topic_dir"])
 
@@ -54,6 +57,7 @@ def run(
     )
     spec_text = json.dumps(blocks["blocks"], indent=1, ensure_ascii=False)
     manifest_text = json.dumps(render_out["manifest"], indent=2, ensure_ascii=False)
+    facts_text = _facts_text(ground_truth)
 
     report = llm.call(
         STAGE_ID,
@@ -64,6 +68,9 @@ def run(
                 "content": (
                     "BLOCK SPECS (what the page must implement):\n"
                     + spec_text
+                    + "\n\nCITED FACTS (the ground truth this page must not "
+                    "contradict):\n"
+                    + facts_text
                     + "\n\nMANIFEST:\n"
                     + manifest_text
                     + "\n\nFINAL PAGE FILES:\n"
@@ -72,8 +79,11 @@ def run(
                     "site. Assume the page contains at least one defect; your job is to find "
                     "it.\n"
                     "Checklist:\n"
-                    "1. Every block spec is implemented correctly in the HTML/JS (quiz options match, "
-                    "answer indices match, simulation controls match, diagram present).\n"
+                    "1. Every block spec is implemented correctly in the HTML/JS (quiz options "
+                    "match, answer indices match, simulation controls match, diagram present). "
+                    "The simulation's DRAWN behaviour (the draw loop) must be consistent with "
+                    "its spec's description/default_behaviour and the CITED FACTS: a simulation "
+                    "that draws physically wrong behaviour is a fatal issue.\n"
                     "2. Accessibility: interactive elements are keyboard reachable, have visible focus "
                     "and accessible names; feedback regions are aria-live.\n"
                     "3. Performance hygiene: no per-frame allocations beyond necessity, canvas ops are "
@@ -81,9 +91,11 @@ def run(
                     "4. Code quality: clear names, no dead code, no console.log left in.\n"
                     'Return {"verdict": "pass"|"fail", "issues": [{"block_id" optional, '
                     '"severity": "fatal"|"major"|"minor", "message"}]}. Severity: fatal = a '
-                    "block spec is implemented wrongly or an answer key is broken; major = a "
-                    "learner would be misled or an interactive element is unusable; minor = "
-                    "style."
+                    "block spec is implemented wrongly, an answer key is broken, or drawn "
+                    "behaviour contradicts the CITED FACTS; major = a learner would be misled "
+                    "or an interactive element is unusable; minor = style. verdict=fail only "
+                    "if you report at least one fatal issue; major and minor issues alone do "
+                    "not fail the page."
                 ),
             },
         ],
@@ -111,6 +123,21 @@ def run(
             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
         )
     return report
+
+
+def _facts_text(ground_truth: dict[str, Any]) -> str:
+    """All claims + equations: the final page must not contradict any of them.
+    05 checked the DRAFT against sources; 10 must be able to check the FINAL
+    code (after 09-fixloop rewrote it) against the same facts."""
+    lines = [
+        f"- {c['id']}: {c['statement']} ["
+        + ", ".join(f"{x['source_id']} {x['locator']}" for x in c["citations"])
+        + "]"
+        for c in ground_truth["claims"]
+    ]
+    for e in ground_truth.get("equations", []):
+        lines.append(f"- {e['id']}: {e['expression']} ({e['description']})")
+    return "\n".join(lines)
 
 
 def _static_review_findings(topic_dir: Path) -> list[str]:
