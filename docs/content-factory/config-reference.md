@@ -24,8 +24,8 @@ variable; production always uses the repo root `config.json`.
 | `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. |
 | `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. |
 | `ZIVON_TEMPERATURE` | no | `0.2` | Default sampling temperature (per-stage override below). |
-| `ZIVON_MAX_TOKENS` | no | `4096` | Default completion cap (per-stage override below). |
-| `ZIVON_TIMEOUT_S` | no | `600` | Per-request timeout. Local models can be slow. |
+| `ZIVON_MAX_TOKENS` | no | `65536` | Default completion cap (per-stage override below). Huge on purpose: the server clamps it to remaining context. |
+| `ZIVON_TIMEOUT_S` | no | `3600` | Per-request timeout. Huge on purpose: local single-slot models are slow; the Job deadline is the real backstop. |
 | `ZIVON_MAX_ATTEMPTS` | no | `3` | Retries for network/429/5xx AND for schema-validation feedback loops. |
 
 `.env.example` at the repo root documents the full set. A `server` section in
@@ -86,3 +86,14 @@ Object keyed by stage id, values `{temperature?, max_tokens?}`, e.g.:
 
 Valid stage ids: 00-ingest, 01-locate, 02-synth, 03-explain, 04-draft,
 05-check, 06-interactive, 07-render, 08-perf, 09-fixloop, 10-review, 11-link.
+
+Current committed value: `{}` — no per-stage caps. History: the first cluster
+runs died at 02-synth — first `structured output was incomplete
+(finish_reason=length)` (4096 too small: a whole-chapter ground truth plus
+qwen's 5–10k THINKING tokens, which count against `max_tokens`), then read
+timeouts once budgets grew. The fix (0.2.8) is to make the global knobs
+effectively non-binding (`ZIVON_MAX_TOKENS=65536`, `ZIVON_TIMEOUT_S=3600`):
+the server clamps completion to its remaining context (256k dev server), and
+the run Job's `activeDeadlineSeconds` (2 h) is the real backstop. Per-stage
+overrides remain the tool for the day a stage needs a *tighter* or *different*
+budget (e.g. a future faster server, or a runaway stage) — not needed now.

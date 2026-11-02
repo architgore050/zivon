@@ -89,8 +89,13 @@ _SPEC: dict[str, Any] = {
 _SERVER_DEFAULTS: dict[str, Any] = {
     "json_mode": True,
     "temperature": 0.2,
-    "max_tokens": 4096,
-    "timeout_s": 600.0,
+    # max_tokens / timeout_s are deliberately huge: local single-slot models
+    # run ~20 tok/s worst case and qwen thinks for 5-10k tokens before real
+    # output, so any tight cap becomes the failure point. The server clamps
+    # max_tokens to its remaining context; the Job's activeDeadlineSeconds is
+    # the real backstop. Tighten only when a faster server arrives.
+    "max_tokens": 65536,
+    "timeout_s": 3600.0,
     "max_attempts": 3,
 }
 
@@ -223,13 +228,13 @@ def _load_server_from_env() -> dict[str, Any]:
     max_attempts = _env_number("ZIVON_MAX_ATTEMPTS", 3, integer=True)
     if max_attempts < 1:
         raise ConfigError("ZIVON_MAX_ATTEMPTS must be >= 1")
-    max_tokens = _env_number("ZIVON_MAX_TOKENS", 4096, integer=True)
+    max_tokens = _env_number("ZIVON_MAX_TOKENS", 65536, integer=True)
     if max_tokens < 64:
         raise ConfigError("ZIVON_MAX_TOKENS must be >= 64")
     temperature = _env_number("ZIVON_TEMPERATURE", 0.2, integer=False)
     if not 0.0 <= temperature <= 2.0:
         raise ConfigError("ZIVON_TEMPERATURE must be between 0.0 and 2.0")
-    timeout_s = _env_number("ZIVON_TIMEOUT_S", 600.0, integer=False)
+    timeout_s = _env_number("ZIVON_TIMEOUT_S", 3600.0, integer=False)
     if timeout_s < 5:
         raise ConfigError("ZIVON_TIMEOUT_S must be >= 5 seconds")
     return {
