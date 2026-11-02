@@ -24,13 +24,13 @@ index.
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
 | 02 | synth | factory/agents.py | model | ground_truth (claims, equations, misconceptions, uncertain) |
 | 03 | explain | factory/agents.py | model | lesson (self-contained prose) |
-| 04 | draft | factory/agents.py | model + code (rule feedback in the retry loop) | blocks (text / worked_example / check / reveal / diagram / simulation) |
+| 04 | draft | factory/agents.py | model + code (rule feedback in the retry loop); gets the live design doctrine + palette | blocks (text / worked_example / check / reveal / diagram / simulation) |
 | 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop (fact hunt vs sources + comprehension probe) |
-| 06 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey; lint runs inside the retry loop | page.js / page.css fragments (linted) |
+| 06 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 07 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 08 | perf | factory/perf.py + testing/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 09; landing-page miss = stop (hand-maintained, human fixes) |
 | 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts; must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 08 passed |
-| 10 | review | factory/review.py | model + code; reviews the FINAL code against block specs AND cited facts | final verdict; fatal = stop |
+| 10 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine | final verdict; fatal = stop |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
 Mapping to the six agents in AGENTS.md: 00+01 = Curator; 02+03+04 = Synthesizer;
@@ -134,6 +134,43 @@ contain source text, prompts and model output only.
   calls. The linter enforces this mechanically.
 - Simulations are model-written but constrained: one `ZivonSim.register(...)`
   skeleton per block, canvas 2D only, CSS scoped under the block's own class.
+
+## Design doctrine flow (open-ended)
+
+Visual style lives in exactly one place: `docs/frontend/design-doctrine.md`
+and its example pages (`docs/frontend/design-doctrine*.html`). The factory
+holds no design information in prompts or code - `factory/design.py` is the
+single point where it touches design, and it hands the LIVE documents to the
+model stages at build time:
+
+- **04-draft** gets the doctrine document (its diagram rules govern the SVGs
+  the draft specs) plus the parsed palette; diagrams no longer invent colours.
+  The mechanical SVG element contract stays pinned; the doctrine's hand-drawn
+  language is expressed with the allowed elements only.
+- **06-interactive** gets the doctrine document, EVERY example page the glob
+  finds, the palette, and a medium-translation bridge line: the shell (grid,
+  cards, tape, controls) is renderer-built; the model fills one canvas
+  simulation inside a paper card, reads the examples for the visual language
+  and never copies their structure.
+- **10-review** gets the doctrine document and a checklist item: a clear
+  doctrine violation is major; one that misleads the learner about what moves
+  or what is correct is fatal.
+
+Open-ended by construction: a doctrine edit flows into every future run with
+zero pipeline changes, and a new example file matching the glob joins 06's
+context automatically. The palette is parsed verbatim from
+`frontend/assets/zivon.css` (canvas code needs concrete hex values; page.css
+uses the variables by name), so generated colours match the shell that
+renders around them.
+
+Budget: the composed block must fit `limits.max_chars_design_context`. If the
+doctrine outgrows the model's context the pipeline fails loudly with the
+numbers - it never silently truncates.
+
+The shell itself (`render.py`, `zivon.css`) is the human-maintained
+implementation of the doctrine, validated against the example pages; adopting
+the doctrine's §10 lesson shell (ruled grid, taped cards, language bar) is
+Phase 4 (Day 9) frontend work, not pipeline work.
 
 ## Performance budgets
 

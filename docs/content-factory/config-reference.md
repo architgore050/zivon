@@ -61,12 +61,15 @@ invalidated automatically when chunks or the model change.
 | `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the synthesizer (64k-context models can raise this). |
 | `max_chars_supplement_each` | int | Cap per supplement chunk. |
 | `max_chars_supplement_total` | int | Cap on all supplements combined. |
+| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected into 04/06/10 by `factory/design.py`. Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + examples ≈ 41k chars. |
 
 ## paths
 
 All relative paths resolve against the repo root; absolute paths are allowed
 (tests use them). `catalog`, `pdf_cache`, `text_cache`, `runs`, `frontend`,
-`doctrine`, `doctrine_example`.
+`doctrine`, `doctrine_examples`. `doctrine_examples` is a glob: every file it
+matches is injected into 06-interactive, so adding a new example page needs
+no pipeline change (see architecture.md, "Design doctrine flow").
 
 ## perf
 
