@@ -3,10 +3,11 @@
 The model reviews the final page (HTML + JS + CSS + manifest) against the repo
 checklist: correctness against the block specs AND against the cited ground
 truth (the sim's drawn behaviour included - 09-fixloop may have rewritten the
-code after 05-check saw the draft), safety (no eval, no external calls - also
-enforced mechanically by lint), accessibility, and performance hygiene. Fatal
-model findings or fatal lints stop the run here; nothing is linked into
-frontend/ until this stage passes.
+code after 05-check saw the draft), the LIVE design doctrine (injected via
+factory/design.py), safety (no eval, no external calls - also enforced
+mechanically by lint), accessibility, and performance hygiene. Fatal model
+findings or fatal lints stop the run here; nothing is linked into frontend/
+until this stage passes.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from typing import Any
 
 from .artifacts import RunContext
 from .config import Config
+from .design import design_context
 from .errors import LintError
 from .lint import lint_file
 from .llm import LLMClient
@@ -75,6 +77,9 @@ def run(
                     + manifest_text
                     + "\n\nFINAL PAGE FILES:\n"
                     + files_text
+                    + "\n\nDESIGN DOCTRINE (the visual language this page must "
+                    "follow):\n"
+                    + design_context(cfg, with_examples=False)
                     + "\n\nTASK: Review this generated page before it is linked into the "
                     "site. Assume the page contains at least one defect; your job is to find "
                     "it.\n"
@@ -89,6 +94,10 @@ def run(
                     "3. Performance hygiene: no per-frame allocations beyond necessity, canvas ops are "
                     "batched, no synchronous layout reads in the draw loop.\n"
                     "4. Code quality: clear names, no dead code, no console.log left in.\n"
+                    "5. Visual language: the page follows the DESIGN DOCTRINE above "
+                    "(colour roles, diagram and simulation stroke rules). A clear "
+                    "doctrine violation is a major issue; a violation that misleads "
+                    "the learner about what moves or what is correct is fatal.\n"
                     'Return {"verdict": "pass"|"fail", "issues": [{"block_id" optional, '
                     '"severity": "fatal"|"major"|"minor", "message"}]}. Severity: fatal = a '
                     "block spec is implemented wrongly, an answer key is broken, or drawn "

@@ -17,6 +17,7 @@ from typing import Any
 from . import checks
 from .artifacts import RunContext
 from .config import Config
+from .design import design_context, palette_text
 from .llm import LLMClient
 from .schemas import BLOCKS, CHECK_REPORT, GROUND_TRUTH, LESSON
 
@@ -196,6 +197,12 @@ def run_draft(
         + _lesson_text(lesson)
         + "\n\nGROUND TRUTH (facts, equations, misconceptions):\n\n"
         + _gt_text(ground_truth)
+        + "\n\nDESIGN DOCTRINE (the visual rules this page must follow; the "
+        "diagrams you spec must obey its diagram rules):\n"
+        + design_context(cfg, with_examples=False)
+        + "\n\nPALETTE (exact values from the page stylesheet; use these for "
+        "diagram fill/stroke, invent nothing):\n"
+        + palette_text(cfg)
         + f"\n\nTASK: Lay this out as an ordered block sequence for the study page. "
         f"Valid claim ids for citations: {claim_ids}.\n"
         "Block types and spec shapes:\n"
@@ -211,7 +218,9 @@ def run_draft(
         '- reveal: {"title", "steps": [{"title", "detail"}]} - a step-by-step derivation or method\n'
         '- diagram: {"svg": "<svg ...>...</svg> string using only viewBox, rect, circle, line, '
         'path, text, polygon with fill/stroke presentation attributes", "caption"} - label '
-        "everything in ink; no <style>, no <script>, no external refs\n"
+        "everything in ink; use PALETTE values for fill/stroke; express the doctrine's "
+        "diagram language with these elements only (hand-drawn strokes as wobbly <path> "
+        "strokes); no <style>, no <script>, no external refs\n"
         '- simulation: {"title", "description", "learning_goal", "controls": [{"id", "label", '
         '"min", "max", "step", "initial"}], "default_behaviour": "what it shows before any input"} '
         "- only if the topic clearly benefits; 1-3 controls; a simulation with zero controls is "

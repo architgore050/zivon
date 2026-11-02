@@ -4,6 +4,7 @@ The model must see its own rule violations (invented numbers, missing
 citations) in the retry transcript instead of the run dying at 05-check.
 """
 
+import dataclasses
 import json
 import sys
 import tempfile
@@ -75,7 +76,11 @@ class TestDraftRuleWiring(unittest.TestCase):
         (self.tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
         saved = install_server_env()
         try:
-            self.cfg = load_config(self.tmp / "config.json")
+            # root must be the real repo: run_draft injects the shipped
+            # doctrine and stylesheet.
+            self.cfg = dataclasses.replace(
+                load_config(self.tmp / "config.json"), root=REPO_ROOT
+            )
         finally:
             release_server_env(saved)
         self.run_ctx = RunContext(self.cfg.repo_path(self.cfg.paths["runs"]), "t-draft")
@@ -130,7 +135,11 @@ class TestPromptPromises(unittest.TestCase):
         (self.tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
         saved = install_server_env()
         try:
-            self.cfg = load_config(self.tmp / "config.json")
+            # root must be the real repo: run_draft injects the shipped
+            # doctrine and stylesheet.
+            self.cfg = dataclasses.replace(
+                load_config(self.tmp / "config.json"), root=REPO_ROOT
+            )
         finally:
             release_server_env(saved)
         self.run_ctx = RunContext(
@@ -199,6 +208,27 @@ class TestPromptPromises(unittest.TestCase):
         self.assertIn("Example issue (SHAPE only", check)
         for prompt in (synth, draft, check):
             self.assertIn("never reuse", prompt)
+
+    def test_draft_prompt_carries_live_doctrine_and_palette(self):
+        # 04-draft specs the diagrams, so it must see the live doctrine (its
+        # diagram rules) and the exact palette - not a held-over excerpt.
+        draft = self._user_prompt(
+            agents.run_draft,
+            load("03-explain.json"),
+            load("02-synth.json"),
+            make_pack(),
+        )
+        self.assertIn("DESIGN DOCTRINE", draft)
+        doctrine = (REPO_ROOT / "docs" / "frontend" / "design-doctrine.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(doctrine[:400], draft)  # the live document, verbatim
+        self.assertIn("#1F3A9E", draft)  # palette parsed from zivon.css
+        self.assertIn("PALETTE values for fill/stroke", draft)
+        # draft specs blocks, it does not build the shell: no example pages here
+        # (the doctrine document itself names the examples; the loader's
+        # example-section marker must be absent).
+        self.assertNotIn("=== design-doctrine-example.html ===", draft)
 
 
 if __name__ == "__main__":

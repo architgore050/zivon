@@ -111,7 +111,9 @@ class TestInteractiveFacts(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(doctrine[:400], user)  # the live document, not an excerpt
-        self.assertIn("design-doctrine-lesson-example.html", user)  # glob pickup
+        self.assertIn(
+            "=== design-doctrine-lesson-example.html ===", user
+        )  # example content injected, not just named
         self.assertIn("#1F3A9E", user)  # pen-blue, parsed from the stylesheet
         self.assertIn("never copy their", user)  # the medium bridge
         self.assertNotIn("var(--ink), var(--paper), var(--graphite)", user)

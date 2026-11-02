@@ -111,6 +111,12 @@ class TestEndToEnd(unittest.TestCase):
         }
         (cls.tmp / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
 
+        # --- design doctrine copy (04/06/10 inject it live at build time) ---
+        doctrine_dir = cls.tmp / "docs" / "frontend"
+        doctrine_dir.mkdir(parents=True)
+        for p in (REPO_ROOT / "docs" / "frontend").glob("design-doctrine*"):
+            shutil.copy2(p, doctrine_dir / p.name)
+
         base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
         base["paths"].update(
             {

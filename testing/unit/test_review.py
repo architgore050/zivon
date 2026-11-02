@@ -1,8 +1,11 @@
 """Unit tests for 10-review: the Code Reviewer must see the cited ground truth
 (the final code was rewritten by 09-fixloop AFTER 05-check reviewed the
-draft), must be told to check the simulation's DRAWN behaviour, and must know
-the verdict rule the code enforces."""
+draft), must be told to check the simulation's DRAWN behaviour, must know the
+verdict rule the code enforces, and must be handed the LIVE design doctrine to
+police the page's visual language against.
+"""
 
+import dataclasses
 import json
 import sys
 import tempfile
@@ -41,6 +44,9 @@ class TestReviewPrompt(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.cfg, _ = make_cfg(self.tmp)
+        # doctrine/paths.frontend: frontend is configured absolute; doctrine is
+        # repo-relative, so root must be the real repo for the injected block.
+        self.cfg = dataclasses.replace(self.cfg, root=REPO_ROOT)
         self.run_ctx = RunContext(
             self.cfg.repo_path(self.cfg.paths["runs"]), "t-review"
         )
@@ -86,6 +92,22 @@ class TestReviewPrompt(unittest.TestCase):
         self.assertIn("DRAWN behaviour", user)
         self.assertIn("physically wrong behaviour is a fatal issue", user)
         self.assertIn("verdict=fail only if you report at least one fatal", user)
+
+    def test_review_prompt_carries_live_doctrine_and_checklist_item(self):
+        # Style policing against a held-over excerpt drifts when the doctrine
+        # changes; the reviewer must get the live document plus the checklist
+        # item that makes violations reportable.
+        stub = StubLLM()
+        self._review(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn("DESIGN DOCTRINE", user)
+        doctrine = (REPO_ROOT / "docs" / "frontend" / "design-doctrine.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(doctrine[:400], user)  # the live document, verbatim
+        self.assertIn("Visual language: the page follows the DESIGN DOCTRINE", user)
+        # the reviewer polices rules, not shell demos: no example pages injected
+        self.assertNotIn("=== design-doctrine-example.html ===", user)
 
     def test_clean_page_passes_and_report_is_saved(self):
         stub = StubLLM()
