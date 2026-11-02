@@ -6,7 +6,7 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 
 **Subject scope (confirmed): academic Physics, Class 9–12.** Not Python, not general chat.
 
-**Execution plan: `TIMELINE.md` (repo root).** Deadline 10 Nov 2026, 11:59 PM IST — hard. Respect the decision gates (A–D) and the P0/P1/P2 scope ladder defined there.
+**Execution plan: `TIMELINE.md` (repo root) — the centralized task list, infra TODO included. No separate TODO files anywhere; pending work gets merged into `TIMELINE.md`.** Deadline 10 Nov 2026, 11:59 PM IST — hard. Respect the decision gates (A–D) and the P0/P1/P2 scope ladder defined there.
 
 ---
 
@@ -101,6 +101,7 @@ Where the code lives:
 
 - `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
 - `Dockerfile.frontend`, `docker/nginx.conf` — the frontend nginx image (static-site hosting; bakes only the hand-maintained shell, never generated pages)
+- `docker/inference-router.Dockerfile` — dev-only router (compose service `inference-router`): bridges the host's loopback-only OpenAI-format inference server to containers/cluster pods; not a product image, not in CI
 - `k8s/` — cluster manifests (numeric prefix = apply order); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
 - `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
 

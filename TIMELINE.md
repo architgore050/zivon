@@ -150,10 +150,11 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 - Structured logging (transcripts, per-stage latency, errors), telemetry events, error tracking.
 - Security hardening pass: rate limiting, input validation, headers/CSP, secrets audit, dependency scan. Time-boxed red-team mini pass against an OWASP Top-10 checklist.
 - **Admin dashboard v0**: sessions, usage, credit consumption, topic engagement.
+- **Cluster monitoring dashboard**: Prometheus + Grafana (`kube-prometheus-stack` Helm chart) — CPU/RAM per pod/node, which workloads/images are running, load; Grafana's own auth is the admin gate. Interim tools in use until then: `kubectl top` (metrics-server) + `docker stats`. Decision locked in `docs/deployment/README.md`; do not build before Day 8.
 - main → prod promotion pipeline with automated security checks.
 - **Gate D**: sign the ship list (P0/P1/P2 below). Code features stop here.
 
-**Done when**: dashboard shows real session data; security checklist complete; CI/CD green; ship list signed.
+**Done when**: dashboard shows real session data; cluster monitoring live in Grafana (pods/nodes/resources); security checklist complete; CI/CD green; ship list signed.
 
 ### Day 9 — Sat 7 Nov — Phase 4 frontend perfection pass
 
@@ -194,6 +195,29 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 - **Code flow**: every change via PR → CI → agentic code review → `main`; `main` → `prod` only through the promotion pipeline with security checks.
 - **Docs**: README + architecture notes updated in the same PR as the code they describe.
 - **Credits**: usage logged daily against the budget.
+
+---
+
+## Infra & Deployment TODO (centralized — the only task list; no separate TODO files live in `docs/`)
+
+Open — work top-down:
+
+- 🔄 **FIRST GENERATION (most important)** — `factory-run-motion` blocked at stage 00-ingest: `ncert.nic.in` sends a broken TLS chain (Let's Encrypt cert, intermediate missing) so PDF fetches fail. Unblock: seed `sources/pdfs/` manually, or teach `factory/ingest.py` to trust a pinned chain bundle. Success = a generated Physics page appears on http://192.168.49.2:30080.
+- ⬜ Commit the uncommitted infra/test work (test restructure + frontend suite + image bumps) — user's timing.
+- ⬜ Branch protection on `main` + required checks (checklist in `docs/deployment/cicd.md`: quality, docker, frontend-image, secrets, deps, manifests, tests, CodeQL).
+- ⬜ Publish pipeline: merge → build → push images to `ghcr.io/architgore050/zivon-*`.
+- ⬜ Deploy pipeline + hosting decision: real cluster choice, public domain, TLS.
+- ⬜ Voice backend image (FastAPI/WebSockets) + Deployment + Service — Days 5–7 (Phase 2).
+- ⬜ Cluster monitoring dashboard (Prometheus + Grafana, admin-authed) — Day 8, per the Day-8 plan and P1 above.
+- ⬜ Cleanup stale images: `docker rmi zivon-factory:0.2.0 zivon-factory:0.2.1` + `minikube image rm` the same.
+
+Done (2026-11-02):
+
+- ✅ Frontend live at **http://192.168.49.2:30080** (NodePort 30080, no manual command; caught + fixed a busybox `cp` seeding bug).
+- ✅ Test CronJob (`*/30`, schedule = the config value) + manual trigger (`kubectl create job --from=cronjob/test-suite`); it caught a read-only-filesystem test bug → fixed → image 0.2.2.
+- ✅ Real pipeline Job pattern live: `k8s/20-factory-run-job.yaml` + dev inference router (`docker/inference-router.Dockerfile`) bridging the host's loopback-only model server to containers/cluster.
+
+Constraints carried forward: cron granularity is minutes (sub-minute loops = runner Deployment + sleep, P2); test suites never ship in production images (the factory image carries them only because the perf harness is a runtime tool import); secrets runtime-only, never in manifests or CI.
 
 ---
 
@@ -240,6 +264,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 - Expressive Timbre tags via prompting
 - Kid-test evidence shown in the demo
 - Admin dashboard v0 + telemetry
+- Cluster monitoring dashboard (Prometheus + Grafana, admin-authed)
 - Full CI/CD + branch protection + agentic review
 - 10+ topics
 
