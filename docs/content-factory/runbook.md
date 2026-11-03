@@ -7,7 +7,7 @@
     python -m playwright install chromium     # perf gate needs Chromium once
 
 First run of stage 01 downloads the sentence-transformers model (~90 MB) and
-first use of stage 08 launches Chromium. Everything after that is local.
+first use of stage 07 launches Chromium. Everything after that is local.
 
 ## Configure
 
@@ -23,7 +23,7 @@ see `docs/content-factory/config-reference.md` and `.env.example`):
    downgrades on its own).
 3. Optional: per-stage `temperature` / `max_tokens` under `stage_overrides`
    in `config.json` (the behaviour file: learner, retrieval, limits, paths,
-   perf live there).
+   perf, repair live there).
 
 ## Verify the wiring before burning model time
 
@@ -43,20 +43,40 @@ is correct end to end and the only remaining variable is your real model.
 - The page is written to `frontend/courses/class-9-physics/<slug>/` and listed
   on `frontend/index.html` automatically (stage 11).
 - Open `frontend/index.html` in a browser (or `python3 -m http.server -d frontend`).
+- Run ids are deterministic per (chapter, class) - `motion-c9`. Re-triggering
+  the same topic RESUMES the previous attempt (completed stages reused, zero
+  model re-calls). Pass `--fresh` to wipe the previous attempt and generate the
+  page from scratch (the "regenerate with new prompts" button).
+- On a local ~20 tok/s model a full happy-path run costs roughly 3 big model
+  calls (generate / check / review) plus one per simulation - budget tens of
+  minutes. Catchers (04, 08, 10) only add time when a gate finds something.
 
-## Re-runs and debugging
+## Re-runs, failures and debugging
 
+- Gate failures are REPAIRED, not fatal: 03→04-repair, 07→08-fixloop and
+  09→10-reviewfix each burn a bounded number of rounds (`repair.*_rounds`,
+  `perf.fix_rounds`) inside the same run. A run only dies when a catcher runs
+  out of rounds, an unfixable error appears, or a config/fingerprint guard
+  fires. Upstream stages are never re-derived on a downstream failure.
+- If a run dies, re-run the same command: completed stages are reused and the
+  failed stage runs again. The fingerprint guard refuses to resume a run dir
+  created under a different pipeline shape - it tells you to pass `--fresh`.
 - Every run keeps full evidence in `runs/<run_id>/<stage>/`:
   `output.json` per stage; `attempts/attempt-NN/{request,response,meta}.json`
-  for every model call including retries; `status.json` and
+  for every model call including retries; stages that re-ran per repair round
+  keep rounds separated (`attempts/round-01/attempt-NN/`, plus
+  `03-check/combined-<round>.json` and `04-repair`/`10-reviewfix`
+  `history.json`); `status.json` (per-stage state + fingerprint) and
   `run_report.json` at the run root.
-- Re-run only some stages: `python pipeline.py "Motion" --stages 05-check,07-render`
+- Re-run only some stages: `python pipeline.py "Motion" --stages 03-check,06-render`
   (upstream artifacts are read from the latest previous run that has them,
   copied into the new run, and the source run is printed - use `--run-id` to
   pin. Starting a subset too late - no run has the upstream output - fails
   with instructions).
 - A failure prints the stage, the reason and the evidence directory. Start
-  with `runs/<id>/<stage>/attempts/*/response.json` for model misbehaviour.
+  with `runs/<id>/<stage>/attempts/*/response.json` for model misbehaviour;
+  for gate loops read the stage's `history.json` / `combined-*.json` to see
+  exactly what the reviewer flagged and what the catcher changed.
 
 ## Source library
 

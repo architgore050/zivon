@@ -57,6 +57,8 @@ export ZIVON_MODEL=qwen3.8-flash-next-iq3_xxs      # exactly as GET /v1/models r
 python pipeline.py "Motion" --class 9
 ```
 
+Run ids are deterministic per (chapter, class): re-running the same command **resumes** the previous attempt — completed stages load from `runs/` instead of re-calling the model; pass `--fresh` to wipe the attempt and generate clean.
+
 Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) and use `ZIVON_BASE_URL=http://192.168.49.1:18080/v1` (see [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md)).
 
 Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`. The cluster also runs the full suite on a schedule (CronJob `test-suite`); trigger it on demand with `kubectl create job --from=cronjob/test-suite <name> -n zivon` — the standing "button" until the admin dashboard exists (see `docs/deployment/cicd.md`).
@@ -77,8 +79,8 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.2.9 .
-docker run --rm zivon-factory:0.2.9                          # environment smoke test
+docker build -t zivon-factory:0.3.0 .
+docker run --rm zivon-factory:0.3.0                          # environment smoke test
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8081
 ```
@@ -93,18 +95,18 @@ Manifests live in `k8s/` (numeric prefix = apply order); `k8s/infra.env` is the 
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.2.9   # minikube has its own container store
+minikube image load zivon-factory:0.3.0   # minikube has its own container store
 scripts/apply-k8s.sh                      # ConfigMap + all manifests + rendered CronJob + startup test run
 kubectl get jobs,pods,deploy,svc,cronjob,pvc -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
 # the site, live with no extra command: http://192.168.49.2:30080
 scripts/trigger-tests.sh                  # manual full test run (the "button")
-scripts/trigger-factory-run.sh "Motion" 9 # one generation run (chapter + class)
+scripts/trigger-factory-run.sh "Motion" 9 # one generation run (same topic+class RESUMES; add --fresh to force clean generation)
 scripts/logs-factory-run.sh               # follow the latest run's logs (no job name needed)
 ```
 
 - The content factory runs as a **Job** (batch, runs to completion) and is **manual-trigger only** — generation never runs on a schedule. Only the test suite is scheduled (cadence from `TEST_CRON_SCHEDULE` in `k8s/infra.env`). The voice backend will run as a **Deployment + Service** when it exists.
-- `k8s/20-factory-run-job.yaml` is a topic-agnostic TEMPLATE (placeholders for name + chapter); `scripts/trigger-factory-run.sh` is the only sanctioned way to start a run.
+- `k8s/20-factory-run-job.yaml` is a topic-agnostic TEMPLATE (placeholders for name + chapter); `scripts/trigger-factory-run.sh` is the only sanctioned way to start a run. Re-triggering the same topic+class RESUMES the previous attempt — the Job's `backoffLimit: 0` means a whole-pipeline re-run is never sanctioned.
 - API keys reach pods via Secrets/env at runtime — never written in manifests.
 
 ## CI/CD (GitHub Actions)

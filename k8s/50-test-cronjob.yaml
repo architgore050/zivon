@@ -10,7 +10,7 @@
 # is not expressible. infra.env currently sets every-30-minutes cadence.
 #
 # Image: the factory image already CONTAINS the test sets (the perf harness is a
-# runtime import of stage 08), so no separate test image is needed - the command
+# runtime import of stage 07), so no separate test image is needed - the command
 # override below replaces the smoke-test CMD with the full suite.
 #
 # Manual trigger (the "button", stand-in for the Day-8 dashboard):
@@ -51,7 +51,7 @@ spec:
             runAsUser: 1000
           containers:
             - name: tests
-              image: zivon-factory:0.2.9
+              image: zivon-factory:0.3.0
               imagePullPolicy: IfNotPresent
               command:
                 - sh

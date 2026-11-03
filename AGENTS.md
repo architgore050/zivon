@@ -31,7 +31,7 @@ Rules:
 
 Two coupled systems:
 
-1. **Content factory (build-time):** multi-agent pipeline — Curator → Synthesizer (JSON visual specs) → Visual Builder → Performance Engineer → Comprehension & Fact Reviewer → Code Reviewer — that turns NCERT / public-domain Physics material into interactive learning pages (text + animations + interactive simulations + diagrams) that kids demonstrably learn from.
+1. **Content factory (build-time):** multi-agent pipeline — Curator → Synthesizer (JSON visual specs) → Visual Builder → Performance Engineer → Comprehension & Fact Reviewer → Code Reviewer — that turns NCERT / public-domain Physics material into interactive learning pages (text + animations + interactive simulations + diagrams) that kids demonstrably learn from. Graph v2 (2026-11-03) mapping: the reasoning layer is ONE giant generation call; every reviewer gate is a separate model call and routes its verdict to a bounded repair catcher — a failure never re-runs the whole pipeline (founder rule); runs are resumable (`docs/content-factory/architecture.md`).
 2. **Voice tutor (product runtime):** the conversation loop —
    1. Student speaks (Hindi / English / code-mixed)
    2. **Gnani Prisma** transcribes the speech
@@ -112,9 +112,9 @@ Consult `docs/deployment/` and touch infra when you:
 - add a new service or image — follow the existing Dockerfile pattern (slim base, deps-before-code, non-root user), then add its CI job and K8s objects
 - edit `k8s/` manifests — Jobs are immutable (delete, then re-apply); kube-linter gates manifest changes in CI (note: kube-linter *requires* `ttlSecondsAfterFinished` on standalone Jobs but *forbids* it inside a CronJob `jobTemplate` — history limits are the CronJob cleanup; see gotcha 12)
 - edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
-- handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose; in cluster Jobs `runs/` is ephemeral (`emptyDir`) while `frontend/` lands on the `zivon-frontend` PVC that the frontend Deployment serves; never bake generated pages into an image
+- handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose; in cluster Jobs `runs/` lives on the `zivon-sources` PVC (subPath `runs`) so stage artifacts and evidence survive pod death and a re-triggered run RESUMES from completed stages, while `frontend/` lands on the `zivon-frontend` PVC that the frontend Deployment serves; never bake generated pages into an image
 - run or trigger tests in-cluster — the `test-suite` CronJob (`k8s/50-test-cronjob.yaml`) runs the full suite on the cadence from `TEST_CRON_SCHEDULE` (`k8s/infra.env`, rendered by `scripts/apply-k8s.sh`, which also triggers one suite run on startup); the on-demand trigger (the standing "button" until the Day-8 dashboard) is `scripts/trigger-tests.sh`
-- start a content generation run — **manual only, never scheduled**: `scripts/trigger-factory-run.sh "<chapter>" [class 6-12]` renders the topic-agnostic `k8s/20` Job template (name + chapter placeholders) and applies it; the factory Job must never run on its own
+- start a content generation run — **manual only, never scheduled**: `scripts/trigger-factory-run.sh "<chapter>" [class 6-12] [--fresh]` renders the topic-agnostic `k8s/20` Job template (name + chapter placeholders) and applies it; re-triggering the same chapter+class RESUMES the previous attempt (the Job's `backoffLimit: 0` — a whole-pipeline re-run is never sanctioned), `--fresh` forces clean generation; the factory Job must never run on its own
 
 Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
 

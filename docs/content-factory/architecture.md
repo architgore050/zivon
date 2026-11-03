@@ -1,70 +1,118 @@
-# Content factory architecture (v1)
+# Content factory architecture (v2)
 
-Status: implemented on 2026-11-01, branch `feature/content-factory-pipeline`.
+Status: v1 implemented 2026-11-01; **graph v2 decided and implemented
+2026-11-03** after the first measured runs (founder decisions: consolidate the
+reasoning layer into one giant call; whatever agent catches an issue is the
+one that fixes it; runs must be resumable). Branch `feature/content-factory-pipeline`.
 Owner workstream: the build-time content factory. Voice runtime is out of scope here.
 
 ## What one command does
 
-    python pipeline.py "Motion" [--class 9]
+    python pipeline.py "Motion" [--class 9] [--fresh]
 
 Given a chapter name, the factory: caches the public PDF library, finds the
 chapter EXACTLY in the NCERT books, vector-searches every other book's index
-for supplements, synthesizes a cited ground truth, edits it into a
-self-contained lesson, lays it out as JSON blocks, reviews it (model + rules),
-builds interactive elements, renders a static page, gates it on a
-weak-hardware performance budget, fixes and re-tests in a loop, runs the code
-reviewer, and only then links it into `frontend/` and regenerates the course
-index.
+for supplements, generates the whole page (ground truth + lesson + blocks) in
+ONE model call, reviews it against the sources (model + rules), builds
+interactive elements, renders a static page, gates it on a weak-hardware
+performance budget, runs the code reviewer, and only then links it into
+`frontend/` and regenerates the course index. Every gate failure is repaired
+by its paired catcher inside the same run — never by re-running the pipeline.
+
+Run ids are deterministic per (chapter, class): re-triggering the same topic
+RESUMES the previous attempt (completed stages are loaded from disk, not
+re-derived). `--fresh` wipes the previous attempt and generates clean.
 
 ## Stages
 
 | # | Stage | Module | Model? | Output (runs/<run_id>/<stage>/output.json) |
 |---|---|---|---|---|
-| 00 | ingest | factory/ingest.py | code | per-book chapter index + page text cache (reused across runs — a dead run resumes) |
+| 00 | ingest | factory/ingest.py | code | per-book chapter index + page text cache (reused across runs) |
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
-| 02 | synth | factory/agents.py | model | ground_truth (claims, equations, misconceptions, uncertain) |
-| 03 | explain | factory/agents.py | model | lesson (self-contained prose) |
-| 04 | draft | factory/agents.py | model + code (rule feedback in the retry loop); gets the live design doctrine + palette | blocks (text / worked_example / check / reveal / diagram / simulation) |
-| 05 | check | factory/agents.py + factory/checks.py | model + code | combined verdict; fatal = stop (fact hunt vs sources + comprehension probe) |
-| 06 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
-| 07 | render | factory/render.py | code | staging site + manifest + courses.js |
-| 08 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 09; landing-page miss = stop (hand-maintained, human fixes) |
-| 09 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts; must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 08 passed |
-| 10 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine | final verdict; fatal = stop |
+| 02 | generate | factory/agents.py | **ONE giant model call** (Curator+Synthesizer+Designer in one); rule checks run inside the retry loop; gets the live design doctrine + palette | {ground_truth, lesson, blocks} in one JSON object (schema `GENERATED`) |
+| 03 | check | factory/agents.py + factory/checks.py | model + code | combined verdict + issues with a fixed severity ladder; blocking (fatal/major) routes to 04 |
+| 04 | repair | factory/agents.py (catcher) | model, ≤ repair.content_rounds | replacement blocks for the flagged issues only (merged by id); recheck per round |
+| 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
+| 06 | render | factory/render.py | code | staging site + manifest + courses.js |
+| 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
+| 08 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts; must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
+| 09 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine | final verdict report (a fail verdict routes to 10, it does not raise) |
+| 10 | reviewfix | factory/reviewfix.py (catcher) | model, ≤ repair.code_rounds | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
-Mapping to the six agents in AGENTS.md: 00+01 = Curator; 02+03+04 = Synthesizer;
-06 = Visual Builder; 08+09 = Performance Engineer; 05 = Comprehension & Fact
-Reviewer; 10 = Code Reviewer.
+Happy path costs 3 model calls + one per simulation (generate, check, review).
+Catcher calls happen only when a gate finds something.
+
+Mapping to the six agents in AGENTS.md: 00+01 = Curator; 02-generate =
+Synthesizer (+ instructional design in the same call); 03 = Comprehension &
+Fact Reviewer; 04-repair = the Synthesizer's fixers; 05 = Visual Builder;
+07+08 = Performance Engineer; 09 = Code Reviewer; 10-reviewfix = the Code
+Reviewer's fixers.
+
+**Why the reviewers stay separate calls:** a reviewer that is also the author
+rubbers-stamps its own work. 03 and 09 are independent model calls; only the
+reasoning layer was consolidated. **Why sim code stays a separate per-sim
+call (05):** its lint feedback loop is per-simulation — folding sim code into
+the giant call would make every lint violation re-generate the whole page.
 
 ## Interface between stages
 
 Everything is files. Each stage writes `output.json` into its run directory and
-the orchestrator also passes the objects in memory. A re-run of a later stage
-alone reads the earlier stages' artifacts: if this run lacks one, it is taken
-from the latest previous run that has it, copied into this run's stage dir,
-and the source run is printed (`--run-id` pins a specific run). Model-call
-evidence lives in `<stage>/attempts/attempt-NN/{request,response,meta}.json` -
-every retry is on disk, with the validator feedback that was sent back to the
-model.
+the orchestrator also passes the objects in memory. Resume: at each stage the
+orchestrator checks `status.json` — a stage marked ok whose output.json exists
+is loaded, not re-run. A re-run of a later stage alone reads the earlier
+stages' artifacts: if this run lacks one, it is taken from the latest previous
+run that has it, copied into this run's stage dir, and the source run is
+printed (`--run-id` pins a specific run). Model-call evidence lives in
+`<stage>/attempts/attempt-NN/{request,response,meta}.json` — every retry is on
+disk, with the validator feedback that was sent back to the model. Catcher
+loops re-run a stage within one run; those rounds are separated: a stage that
+runs more than once writes its later rounds under
+`attempts/<round-tag>/attempt-NN/` (e.g. `03-check/attempts/round-01/`) so no
+round overwrites another's evidence, and each check round also lands as
+`03-check/combined-<round>.json`.
 
-## Failure semantics (no silent fallbacks)
+**Fingerprint guard:** `status.json` carries a fingerprint of the run's inputs
+(pipeline version, chapter, class, model, limits/retrieval/repair/learner
+config). Reopening a run whose fingerprint differs raises a ConfigError telling
+the operator to pass `--fresh` (or pick another `--run-id`) — stage artifacts
+of two different pipeline shapes are never mixed silently.
 
-- Any stage failure marks the run failed and raises; downstream stages never run.
-- One sanctioned routing: a topic-page perf miss from 08 is raised as a
-  *fixable* BudgetError and handed (with the report) to 09-fixloop for model
-  repairs. An unfixable miss (the landing page / shared assets) stops the run
-  immediately with instructions — the fix loop only touches topic-local files.
+## Failure semantics (no silent fallbacks, no whole-pipeline re-runs)
+
+- A gate failure routes to ITS catcher, bounded, inside the same run:
+  03-check blocking issues (any fatal/major from model or rules) → 04-repair
+  regenerates ONLY the flagged blocks → 03-check re-runs in full; after
+  `repair.content_rounds` rounds without convergence the run fails with the
+  verdict history. 09-review fail → 10-reviewfix replaces topic files → 09
+  re-reviews; after `repair.code_rounds` rounds it fails. A topic-page perf
+  miss from 07 is raised as a *fixable* BudgetError and handed to 08-fixloop
+  (this routing predates v2 and is its template). An unfixable perf miss (the
+  landing page / shared assets) stops the run immediately — the fix loops only
+  touch topic-local files.
+- Upstream stages never re-run when a downstream gate complains: 02-generate's
+  output is reused across check/repair rounds; a run that dies at 03 keeps its
+  00-02 artifacts on disk and a re-trigger resumes from them. The factory Job
+  has `backoffLimit: 0` — a Job-level whole-pod retry is never sanctioned;
+  recovery is re-running the trigger script, which resumes.
 - Model output must parse as JSON and validate against factory/schemas.py.
   Validation failures are retried with the error report fed back; after
   `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError.
-- 04-draft additionally runs the code-side rule checks (factory/checks.py)
-  inside the model retry loop: the model sees its own fatal/major rule
-  violations (invented number, uncited factual block, broken answer key) and
-  fixes them instead of the run dying at 05-check. 05-check re-runs the same
-  rules independently as a second gate. 06-interactive uses the same loop for
-  its hard lints: a generated sim that breaks the JS/CSS contract is fed back
-  to the model for repair, not raised straight away.
+- 02-generate runs the code-side rule checks (factory/checks.py) inside the
+  model retry loop: the model sees its own fatal/major rule violations
+  (invented number, uncited factual block, broken answer key) and fixes them.
+  03-check re-runs the same rules independently as a second gate, and 04-repair
+  runs them on the MERGED page before anything proceeds. 05-interactive uses
+  the same loop for its hard lints: a generated sim that breaks the JS/CSS
+  contract is fed back to the model for repair, not raised straight away.
+- 03-check severity ladder (calibrated 2026-11-03 after the first real run
+  over-flagged trivia): fatal = contradicts the source or a wrong answer key,
+  must quote the source passage; major = a Physics concept smuggled in from
+  outside the chapter's source material, or the learner is misled; minor =
+  everything else, including common-knowledge definitions the source does not
+  spell out — advisory, never blocks. `unverified:` suspicions can never be
+  filed as fatal/major. The reviewer is told to hunt REAL errors and pass a
+  faithful draft — the v1 "assume there is at least one error" framing is gone.
 - Network errors / 429 / 5xx retry with backoff; any other HTTP error fails
   immediately with the server's body (a 400 about response_format tells you to
   set `ZIVON_JSON_MODE=false`).
@@ -86,34 +134,55 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   mid-word, and column furniture stays put.
 - Ruled tables are detected (`find_tables`), cut out of the flow text
   (`outside_bbox`), and re-appended as explicit `[table]` blocks with
-  `cell | cell` rows, so the Synthesizer sees cell structure instead of a
+  `cell | cell` rows, so the generation call sees cell structure instead of a
   flattened jumble. Candidates with fewer than two non-empty rows are
   rejected as false positives (figure rules are not tables).
 - Known boundary: extraction is text-layer only. Content that exists only
   inside figures (what a graph actually shows) and borderless tables are out
   of scope for v1; the mandatory `uncertain` field is the designated carrier
   for facts the sources did not answer in text.
+- The pinned TLS chain for NCERT (`sources/certs/ncert.nic.in.pem`) holds only
+  PUBLIC certificates — no private keys; safe for a public repo by design.
+  Operational note: when NCERT renews its leaf certificate, refresh the bundle
+  (fetch chain → replace file) or the polite retry path keeps failing.
 
 ## Traceability and accuracy rules
 
-- The synthesizer only sees the source pack (stage 01 output). It cannot cite
-  anything that is not in it.
-- Every factual block cites ground-truth claim ids; 04-draft and 05-check
+- The generation call only sees the source pack (stage 01 output). It cannot
+  cite anything that is not in it. Its prompt carries the grounding law: the
+  model's own Physics knowledge "does NOT count" — a concept the chapter does
+  not explain must not be taught, tested, or mentioned, "even if it is standard
+  Physics"; the source material is the whole universe of the page. (This is the
+  fix for the 2026-11-02 failure class: a Motion page built around mass/force,
+  concepts of the NEXT chapter.)
+- Every factual block cites ground-truth claim ids; 02-generate and 03-check
   enforce this in code (`factory/checks.py`), independent of the model
   reviewer. Citation source ids must come from the actual source pack.
 - Numbers in worked-example/check answers must appear verbatim in the ground
   truth or the primary source text - whole-numeral match, no substring
-  smuggling (invented-figure guard). The draft prompt promises the same.
-- Simulations are physics, so the facts travel with them: 06 receives the
+  smuggling (invented-figure guard). The generation prompt promises the same.
+- Simulations are physics, so the facts travel with them: 05 receives the
   block's cited claims plus every ground-truth equation ("FACTS THE
-  SIMULATION MUST OBEY"), and 10-review re-checks the FINAL draw loop
-  against the same facts after any 09-fixloop rewrite (05 only ever saw the
-  draft). A simulation that draws physically wrong behaviour is fatal at 10.
+  SIMULATION MUST OBEY"), and 09-review re-checks the FINAL draw loop against
+  the same facts after any 08-fixloop rewrite (03 only ever saw the draft
+  blocks). A simulation that draws physically wrong behaviour is fatal at 09.
 - The ground truth has a mandatory `uncertain` field - what the sources did
   not answer. It is carried into prompts so later stages do not resolve it by
   inventing.
 - Block payloads live under `spec` everywhere (AGENTS.md format), which
   resolves the AGENTS.md-vs-TIMELINE.md schema contradiction.
+
+## Resume and freshness
+
+- `python pipeline.py "Motion" --class 9` on a run that already exists (same
+  chapter+class+fingerprint) resumes it: stages marked ok are skipped and their
+  outputs reused; pending stages run. This is the sanctioned recovery for an
+  infra kill (node reboot, OOM, manual `minikube stop`).
+- `--fresh` wipes the previous run dir first — the operator's "regenerate this
+  page from scratch" button (e.g. after prompt improvements).
+- `--run-id` keeps parallel attempts of the same topic (each its own dir).
+- In the cluster, `runs/` lives on the `zivon-sources` PVC (subPath `runs`), so
+  stage artifacts — and every attempt's evidence — survive pod death.
 
 ## Privacy
 
@@ -143,21 +212,21 @@ holds no design information in prompts or code - `factory/design.py` is the
 single point where it touches design, and it hands the LIVE documents to the
 model stages at build time:
 
-- **04-draft** gets the doctrine document (its diagram rules govern the SVGs
-  the draft specs) plus the parsed palette; diagrams no longer invent colours.
-  The mechanical SVG element contract stays pinned; the doctrine's hand-drawn
-  language is expressed with the allowed elements only.
-- **06-interactive** gets the doctrine document, EVERY example page the glob
+- **02-generate** gets the doctrine document (its diagram rules govern the SVGs
+  the generation specs) plus the parsed palette; diagrams no longer invent
+  colours. The mechanical SVG element contract stays pinned; the doctrine's
+  hand-drawn language is expressed with the allowed elements only.
+- **05-interactive** gets the doctrine document, EVERY example page the glob
   finds, the palette, and a medium-translation bridge line: the shell (grid,
   cards, tape, controls) is renderer-built; the model fills one canvas
   simulation inside a paper card, reads the examples for the visual language
   and never copies their structure.
-- **10-review** gets the doctrine document and a checklist item: a clear
+- **09-review** gets the doctrine document and a checklist item: a clear
   doctrine violation is major; one that misleads the learner about what moves
   or what is correct is fatal.
 
 Open-ended by construction: a doctrine edit flows into every future run with
-zero pipeline changes, and a new example file matching the glob joins 06's
+zero pipeline changes, and a new example file matching the glob joins 05's
 context automatically. The palette is parsed verbatim from
 `frontend/assets/zivon.css` (canvas code needs concrete hex values; page.css
 uses the variables by name), so generated colours match the shell that

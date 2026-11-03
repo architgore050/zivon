@@ -3,9 +3,9 @@
 Configuration has two layers, deliberately separate:
 
 1. **`config.json` at the repo root** — the pipeline's *behaviour*: learner,
-   retrieval, limits, paths, perf, stage_overrides. Committed, reviewable,
-   identical on every machine. Validation is strict: unknown keys and wrong
-   types are hard errors.
+   retrieval, limits, paths, perf, repair, stage_overrides. Committed,
+   reviewable, identical on every machine. Validation is strict: unknown keys
+   and wrong types are hard errors.
 2. **Environment variables** — everything about *which inference server to
    talk to*. Per AGENTS.md ("configuration lives in environment variables")
    and the deployment rule (secrets enter runtime only), these never appear
@@ -61,39 +61,60 @@ invalidated automatically when chunks or the model change.
 | `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the model (120k chars — measured class-9 chapters run 19k–62k, so no chapter is truncated; the 256k-context server handles it. Raise further for long class 11–12 chapters if ever needed). |
 | `max_chars_supplement_each` | int | Cap per supplement chunk. |
 | `max_chars_supplement_total` | int | Cap on all supplements combined. |
-| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected into 04/06/10 by `factory/design.py`. Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + examples ≈ 41k chars. |
+| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected into 02/05/09 by `factory/design.py`. Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + examples ≈ 41k chars. |
 
 ## paths
 
 All relative paths resolve against the repo root; absolute paths are allowed
 (tests use them). `catalog`, `pdf_cache`, `text_cache`, `runs`, `frontend`,
 `doctrine`, `doctrine_examples`. `doctrine_examples` is a glob: every file it
-matches is injected into 06-interactive, so adding a new example page needs
+matches is injected into 05-interactive, so adding a new example page needs
 no pipeline change (see architecture.md, "Design doctrine flow").
 
 ## perf
 
 | Key | Type | Meaning |
 |---|---|---|
-| `profile` | str | Path to the perf profile JSON used by stages 08/09 (see `testing/content_factory/perf/profiles/`). |
+| `profile` | str | Path to the perf profile JSON used by stages 07, 08 and 10 (see `testing/content_factory/perf/profiles/`; 10 re-measures it after each code fix). |
 | `fix_rounds` | int | Max model fix-and-retest rounds before the perf gate fails the run. |
+
+## repair
+
+Catcher budgets (graph v2, 2026-11-03). Gate failures route to their catcher;
+these knobs bound how many times a catcher may try before the run fails loudly.
+
+| Key | Type | Meaning |
+|---|---|---|
+| `content_rounds` | int | Max regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
+| `code_rounds` | int | Max replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
+
+## Resume and fingerprint (no config key — behaviour to know)
+
+Run ids are deterministic per (chapter, class). `status.json` stores a
+fingerprint of `pipeline_version + chapter + class + model + learner +
+retrieval + limits + repair`: editing any of those behaviour sections
+invalidates existing run dirs on purpose — the pipeline refuses to resume a
+mismatched dir and tells you to pass `--fresh` (or pick a new `--run-id`).
+`--fresh` wipes the previous attempt for that topic before running.
 
 ## stage_overrides
 
 Object keyed by stage id, values `{temperature?, max_tokens?}`, e.g.:
 
-    "stage_overrides": {"02-synth": {"max_tokens": 8192}}
+    "stage_overrides": {"02-generate": {"max_tokens": 8192}}
 
-Valid stage ids: 00-ingest, 01-locate, 02-synth, 03-explain, 04-draft,
-05-check, 06-interactive, 07-render, 08-perf, 09-fixloop, 10-review, 11-link.
+Valid stage ids: 00-ingest, 01-locate, 02-generate, 03-check, 04-repair,
+05-interactive, 06-render, 07-perf, 08-fixloop, 09-review, 10-reviewfix,
+11-link.
 
 Current committed value: `{}` — no per-stage caps. History: the first cluster
-runs died at 02-synth — first `structured output was incomplete
-(finish_reason=length)` (4096 too small: a whole-chapter ground truth plus
-qwen's 5–10k THINKING tokens, which count against `max_tokens`), then read
-timeouts once budgets grew. The fix (0.2.8) is to make the global knobs
-effectively non-binding (`ZIVON_MAX_TOKENS=65536`, `ZIVON_TIMEOUT_S=3600`):
-the server clamps completion to its remaining context (256k dev server), and
-the run Job's `activeDeadlineSeconds` (2 h) is the real backstop. Per-stage
-overrides remain the tool for the day a stage needs a *tighter* or *different*
-budget (e.g. a future faster server, or a runaway stage) — not needed now.
+runs (graph v1 stage ids) died at 02-synth — first `structured output was
+incomplete (finish_reason=length)` (4096 too small: a whole-chapter ground
+truth plus qwen's 5–10k THINKING tokens, which count against `max_tokens`),
+then read timeouts once budgets grew. The fix (0.2.8) is to make the global
+knobs effectively non-binding (`ZIVON_MAX_TOKENS=65536`,
+`ZIVON_TIMEOUT_S=3600`): the server clamps completion to its remaining
+context (256k dev server), and the run Job's `activeDeadlineSeconds` (2 h) is
+the real backstop. Per-stage overrides remain the tool for the day a stage
+needs a *tighter* or *different* budget (e.g. a future faster server, or a
+runaway stage) — not needed now.
