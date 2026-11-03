@@ -88,6 +88,10 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 ### Content factory (build-time)
 
 - **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/content_factory/` (pipeline) and `testing/frontend/` (site shell).
+- **Prompt writing follows `skills/prompting-and-agent-design/`**: read it before
+  writing, reviewing, or refactoring any stage prompt or agent-graph decision
+  (goal-first prompts, contracts over coercion, reviewers with calibrated rubrics,
+  guarantees in the harness not in prose).
 - Agents communicate via structured **JSON block specs**, not ad-hoc markup tags:
   `{ "type": "animation" | "simulation" | "diagram" | "text" | "check", "spec": {...} }`
 - Generated visuals are self-contained HTML/JS (canvas/SVG), no heavy frameworks, and must pass a performance budget for low-end Android (page load < 2s, ~60fps animations).
@@ -142,6 +146,8 @@ Non-negotiable: secrets never enter images, manifests, or workflows — runtime 
 ## Content creation skills
 
 `skills/content-creation/` holds the agent skills for the build-in-public posts (LinkedIn and X writers, shared post theme rules, asset/edit briefs, and the Kinocut + GIMP editing lessons store). Read [`skills/content-creation/README.md`](skills/content-creation/README.md) before any post work — it is the source of truth for the folder's layout and rules; this file does not list individual files.
+
+`skills/prompting-and-agent-design/` is the sibling skill for the engineering side: the current-era rules for prompting the factory's stage agents and the voice tutor, and for deciding what belongs in a prompt vs the harness. Read its `SKILL.md` before any agent-prompt or agent-graph work; its references file carries the dated evidence. Again: each folder's README is that folder's layout source of truth.
 
 Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or propose other editing tools.
 
