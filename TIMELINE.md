@@ -218,6 +218,7 @@ Done (2026-11-04):
 - ✅ **Prompts reworked per that skill**: `02-generate` goal-first with motivation + de-duped contracts + end-positioned reread; `03-check` gains the LESSON in its context (verifiable "taught before tested"); `09-review` framing honest + `unverified:` way-out; retry-feedback turns say fix precisely the reported problem and keep valid parts unchanged.
 - ✅ **Perf budgets loosened** (founder): `weak-android` load 2.0→6.0 s, FCP 1.2→3.5 s, until first real generated pages are measured; RAM 750 MB / 24 fps / 4x throttle / 2 cores stay founder spec; re-tighten at Phase 4 (architecture.md § Performance budgets).
 - ✅ **`HF_HUB_OFFLINE=1`** on the factory Job + test CronJob (embedder on `zivon-hf-cache` PVC). Image 0.3.1 built + cluster re-applied: factory-smoke Complete, in-cluster startup suite green (203 unit + 9 frontend + 7 integration), kubeconform + kube-linter clean, site 200.
+- ✅ **Model-call caps removed entirely** (founder decision, 2026-11-04, image 0.3.2): no `max_tokens` is sent on any request; `ZIVON_MAX_TOKENS` retired from config defaults, `infra.env`, the ConfigMap and the docs; the 0.2.8 "huge but non-binding cap" story is superseded - Qwen thinks a lot and then gets things right (measured: 49,750 completion tokens, mostly thinking, on one review call). Backstops now: the server's own context, `ZIVON_TIMEOUT_S`, and the Job's `activeDeadlineSeconds`.
 
 Done (2026-11-02):
 

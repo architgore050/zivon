@@ -15,7 +15,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 ## Our manifests (`k8s/`, numeric prefix = apply order)
 
 - `00-namespace.yaml` — the `zivon` namespace.
-- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.1`:
+- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.2`:
   - `Job` + `restartPolicy: Never` + `backoffLimit: 2` = batch semantics (fresh pod per retry; a failing Job ends `Failed` — CI-detectable).
   - No `command:` — the pod inherits the image's CMD (smoke test). Pipeline runs override it (see next file).
   - `securityContext: runAsNonRoot: true` + `runAsUser: 1000` — see gotcha below.
@@ -28,7 +28,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 - `30-frontend-deployment.yaml` — nginx Deployment serving the site. A no-clobber `initContainer` (`cp -rn /opt/zivon-shell/* ...` — glob form; see gotcha 6) seeds the hand-maintained shell (landing page + assets, baked at `/opt/zivon-shell` in the image) into an empty PVC, so the landing page exists before the first pipeline run and generated content is never overwritten. Non-root (UID 101), capabilities dropped, read-only root fs with writable mounts for nginx's pid/cache/log dirs, probes, resource ceilings.
 - `40-frontend-service.yaml` — NodePort `80 → 8080`, fixed `nodePort: 30080`. Stable host URL with no manual command: **http://192.168.49.2:30080** (minikube's fixed node IP). `minikube service frontend -n zivon` is the convenience opener. On a real cluster only the Service `type` changes (ingress/LB decision, TIMELINE.md infra TODO). The nodePort stays a concrete integer in the manifest: kubeconform strict needs an int, so it cannot be a `${...}` placeholder.
 - `50-test-cronjob.yaml` — the scheduled full test suite (unit + frontend + integration) using the factory image with a command override. THE ONLY AUTOMATIC workload in the stack. Its `schedule:` is a `${TEST_CRON_SCHEDULE}` placeholder rendered from `k8s/infra.env` by `scripts/apply-k8s.sh` — do not apply this file raw, and do not hardcode a cadence anywhere else (gotcha 7). Manual trigger: `scripts/trigger-tests.sh`.
-- `infra.env` — NOT a manifest: the single source of truth for cluster config values (`TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S`, `ZIVON_MAX_TOKENS` — the last two deliberately huge, see `docs/content-factory/config-reference.md`), consumed by `scripts/apply-k8s.sh` (rendered into the CronJob + the `zivon-factory-config` ConfigMap). Secrets never belong here — API keys exist only as the runtime K8s Secret `zivon-factory-env`. Image tags deliberately stay pinned in the manifests (they are code versions, bumped with the code — gotcha 9).
+- `infra.env` — NOT a manifest: the single source of truth for cluster config values (`TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S` — the timeout deliberately huge; NO completion caps are sent at all as of 2026-11-04, see `docs/content-factory/config-reference.md`), consumed by `scripts/apply-k8s.sh` (rendered into the CronJob + the `zivon-factory-config` ConfigMap). Secrets never belong here — API keys exist only as the runtime K8s Secret `zivon-factory-env`. Image tags deliberately stay pinned in the manifests (they are code versions, bumped with the code — gotcha 9).
 
 ## Cluster scripts (`scripts/`) — the apply flow and the admin "buttons"
 
@@ -72,7 +72,7 @@ sudo install kubectl /usr/local/bin/kubectl
 minikube start --driver=docker
 minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
 minikube addons enable metrics-server # makes kubectl top nodes/pods work
-minikube image load zivon-factory:0.3.1   # see gotcha 2
+minikube image load zivon-factory:0.3.2   # see gotcha 2
 minikube image load zivon-frontend:0.1.0  # frontend hosting (see gotcha 2)
 # Apply the whole stack from k8s/infra.env (ConfigMap + manifests + rendered
 # CronJob schedule) and run the full test suite once on startup:
