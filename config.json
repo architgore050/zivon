@@ -11,7 +11,7 @@
     "chunk_overlap": 120
   },
   "limits": {
-    "max_chars_ncert_to_model": 60000,
+    "max_chars_ncert_to_model": 120000,
     "max_chars_supplement_each": 4000,
     "max_chars_supplement_total": 16000,
     "max_chars_design_context": 48000

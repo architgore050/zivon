@@ -58,7 +58,7 @@ invalidated automatically when chunks or the model change.
 
 | Key | Type | Meaning |
 |---|---|---|
-| `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the synthesizer (64k-context models can raise this). |
+| `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the model (120k chars — measured class-9 chapters run 19k–62k, so no chapter is truncated; the 256k-context server handles it. Raise further for long class 11–12 chapters if ever needed). |
 | `max_chars_supplement_each` | int | Cap per supplement chunk. |
 | `max_chars_supplement_total` | int | Cap on all supplements combined. |
 | `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected into 04/06/10 by `factory/design.py`. Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + examples ≈ 41k chars. |
