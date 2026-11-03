@@ -55,7 +55,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: factory
-          image: zivon-factory:0.3.0
+          image: zivon-factory:0.3.1
           imagePullPolicy: IfNotPresent
           # Command override: the image's CMD (smoke test) is replaced by the
           # real entry point. "__CHAPTER__" is replaced by the trigger script
@@ -74,6 +74,11 @@ spec:
                   name: zivon-factory-env
                   key: ZIVON_API_KEY
                   optional: true   # keyless local servers need no Secret; hosted servers: create it
+            - name: HF_HUB_OFFLINE
+              value: "1"           # embedder already cached on zivon-hf-cache PVC: skip the
+                                   # per-run HF Hub check (source of the "unauthenticated requests
+                                   # to HF Hub" warning + a slow network round-trip at startup).
+                                   # Drop this only if the hf-cache PVC is ever wiped.
           volumeMounts:
             - name: runs
               mountPath: /app/runs

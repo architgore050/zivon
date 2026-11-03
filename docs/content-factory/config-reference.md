@@ -78,6 +78,12 @@ no pipeline change (see architecture.md, "Design doctrine flow").
 | `profile` | str | Path to the perf profile JSON used by stages 07, 08 and 10 (see `testing/content_factory/perf/profiles/`; 10 re-measures it after each code fix). |
 | `fix_rounds` | int | Max model fix-and-retest rounds before the perf gate fails the run. |
 
+The default shipping profile (`weak-android.json`) has its load/FCP budgets
+LOOSENED as of 2026-11-04 (6.0 s / 3.5 s) while first-generation diagnostics
+are collected; RAM/FPS/throttle stay at founder spec. Rationale and the
+re-tightening plan: `docs/content-factory/architecture.md` § Performance
+budgets.
+
 ## repair
 
 Catcher budgets (graph v2, 2026-11-03). Gate failures route to their catcher;

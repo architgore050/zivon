@@ -63,11 +63,20 @@ is correct end to end and the only remaining variable is your real model.
   created under a different pipeline shape - it tells you to pass `--fresh`.
 - Every run keeps full evidence in `runs/<run_id>/<stage>/`:
   `output.json` per stage; `attempts/attempt-NN/{request,response,meta}.json`
-  for every model call including retries; stages that re-ran per repair round
+  for every model call including retries (`meta.json` carries latency, token
+  usage, sampling and payload sizes); stages that re-ran per repair round
   keep rounds separated (`attempts/round-01/attempt-NN/`, plus
   `03-check/combined-<round>.json` and `04-repair`/`10-reviewfix`
-  `history.json`); `status.json` (per-stage state + fingerprint) and
-  `run_report.json` at the run root.
+  `history.json`); `status.json` (per-stage state + fingerprint + `elapsed_s`)
+  and `run_report.json` (aggregated `stage_durations_s`, `started_at`,
+  `completed_at`) at the run root.
+- Reading the LIVE log (added 2026-11-04 after a run looked frozen while the
+  giant 02-generate call was actually running): every stage prints
+  `[NN-stage] starting` / `[NN-stage] ok in Xs (detail)`; every model call is
+  bracketed by `model call started` / `finished in Xs (tokens...)`, and while
+  a call blocks a heartbeat prints every 60 s. A live heartbeat means the
+  model is thinking/generating - wait; no stage line and no heartbeat means
+  something else is wrong. `scripts/logs-factory-run.sh` tails the Job log.
 - Re-run only some stages: `python pipeline.py "Motion" --stages 03-check,06-render`
   (upstream artifacts are read from the latest previous run that has them,
   copied into the new run, and the source run is printed - use `--run-id` to
@@ -86,11 +95,17 @@ is correct end to end and the only remaining variable is your real model.
   Siyavula) must be placed by hand; the pipeline prints the exact path when missing.
 - Add a source: catalog entry + doc row + `python -m unittest
   testing.content_factory.unit.test_catalog_sync`.
+- The cluster Jobs (k8s/20, k8s/50) set `HF_HUB_OFFLINE=1`: the embedder lives
+  on the `zivon-hf-cache` PVC, so runs never round-trip to the HF Hub at
+  startup (no more "unauthenticated requests to HF Hub" warnings, faster boot).
+  If that PVC is ever wiped, drop the env or the model cannot re-download.
 
 ## Test harshness
 
 Perf profiles are data: `testing/content_factory/perf/profiles/weak-android.json` (shipping
-gate: 750 MB RAM, 4x CPU throttle, 2 cores, load < 2 s) and
+gate: 750 MB RAM, 4x CPU throttle, 2 cores; load/FCP budgets LOOSENED
+2026-11-04 pending first real-generation measurements - see
+`docs/content-factory/architecture.md` § Performance budgets) and
 `mid-laptop.json` (mild). Tune or add profiles freely; point `perf.profile`
 in config.json at the gate you want. Standalone use:
 

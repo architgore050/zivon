@@ -171,6 +171,33 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   inventing.
 - Block payloads live under `spec` everywhere (AGENTS.md format), which
   resolves the AGENTS.md-vs-TIMELINE.md schema contradiction.
+- Prompt WRITING follows `skills/prompting-and-agent-design/` (2026-11-04):
+  generation prompts are goal + deliverable contract, not execution plans;
+  reviewers get honest framing, an exact severity ladder and a way out
+  (`unverified:` minor) instead of "assume there is a defect"; every guarantee
+  code can enforce lives in code, and stage prompts carry only what each stage
+  needs to judge - including the lesson text at 03-check, so "taught before
+  tested" is verifiable.
+
+## Observability (2026-11-04)
+
+The 2026-11-04 stall diagnosis - a legitimate giant 02-generate call ran while
+the log stayed silent for its whole duration - added a heartbeat layer. The
+next slow run is diagnosable from the log alone:
+
+- Every stage transition prints a live line: `[02-generate] starting` /
+  `[02-generate] ok in 84.2s (claims=12 blocks=15)`.
+- Every model call is bracketed: `model call started (attempt 1/3...)`, then
+  while it is in flight a heartbeat every 60 s (`still waiting on the model
+  (60s on this attempt...)`), then `model call finished in Xs
+  (prompt_tokens=..., completion_tokens=...)`. A thinking model legitimately
+  grinding for ten minutes now looks like work, not like a hang.
+- Rejected attempts print too (`attempt 2 rejected: ... -> retrying with the
+  error fed back to the model`), so gate retries are visible.
+- `status.json` stage entries carry `elapsed_s`; `run_report.json` aggregates
+  `stage_durations_s` per stage (multi-round stages accumulate across rounds,
+  resumed stages inherit their previous attempt's measurement) plus
+  `started_at` / `completed_at`.
 
 ## Resume and freshness
 
@@ -246,6 +273,15 @@ Phase 4 (Day 9) frontend work, not pipeline work.
 `testing/content_factory/perf/profiles/*.json` are the tuning knobs (viewport, CPU throttle
 rate, RAM ceiling, load/FCP budgets, FPS floor, core pinning). The default
 shipping gate is `weak-android.json` (750 MB browser-tree RSS per the
-founder's spec, 4x CPU throttling, 2 cores, load < 2 s). The harness measures
+founder's spec, 4x CPU throttling, 2 cores). The harness measures
 Navigation Timing, FCP/LCP, peak Chromium-tree RSS via psutil, and rAF FPS,
 and fails on any console/page error.
+
+**Loosened 2026-11-04 (founder decision):** the gate's load/FCP budgets are
+raised (load 2.0 → 6.0 s, FCP 1.2 → 3.5 s) while the pipeline's first real
+generation runs are being diagnosed - no generated page has yet been measured
+against the tight numbers, and a strict-but-unmeasured gate would only add
+repair rounds to the timing story. The 750 MB RAM ceiling, 24 fps floor under
+4x throttle, and 2-core pinning stay at founder spec. Tighten load back
+toward < 2 s at the Phase 4 frontend pass using measured numbers from 07-perf
+reports.

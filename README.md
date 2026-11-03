@@ -79,8 +79,8 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.3.0 .
-docker run --rm zivon-factory:0.3.0                          # environment smoke test
+docker build -t zivon-factory:0.3.1 .
+docker run --rm zivon-factory:0.3.1                          # environment smoke test
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8081
 ```
@@ -95,7 +95,7 @@ Manifests live in `k8s/` (numeric prefix = apply order); `k8s/infra.env` is the 
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.3.0   # minikube has its own container store
+minikube image load zivon-factory:0.3.1   # minikube has its own container store
 scripts/apply-k8s.sh                      # ConfigMap + all manifests + rendered CronJob + startup test run
 kubectl get jobs,pods,deploy,svc,cronjob,pvc -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
@@ -131,6 +131,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
 | [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool) and `frontend/` (site shell + behaviour in Chromium) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
+| [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
 
 ## Engineering Process
 
