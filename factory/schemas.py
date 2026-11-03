@@ -1,15 +1,21 @@
 """JSON Schemas for every stage handoff.
 
-These are the frozen contracts between stages (v1, 2026-11-01). Design notes:
+These are the frozen contracts between stages (v2, 2026-11-03 - consolidated
+generation graph). Design notes:
 - Block payloads always live under "spec" (AGENTS.md format), which resolves
   the AGENTS.md-vs-TIMELINE.md contradiction in favour of AGENTS.md.
 - Every factual block carries citations that must reference ground-truth claim
-  ids; the 05-check stage enforces this in code, not vibes.
+  ids; the 03-check stage enforces this in code, not vibes.
 - Schemas are deliberately loose about prose (strings) and strict about
   structure, ids and enums, so a small local model can satisfy them reliably.
+- GENERATED is the one-giant-call contract (02-generate): ground truth, lesson
+  and blocks in a single JSON object, so the reasoning layer pays ONE thinking
+  cycle instead of three.
 """
 
 from __future__ import annotations
+
+from typing import Any
 
 CITATION = {
     "type": "object",
@@ -201,7 +207,7 @@ LESSON = {
 
 BLOCK_TYPES = ["text", "worked_example", "check", "reveal", "diagram", "simulation"]
 
-BLOCKS = {
+BLOCKS: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "required": ["blocks"],
@@ -282,11 +288,52 @@ FIX_PLAN = {
 
 REVIEW_REPORT = CHECK_REPORT  # same shape: verdict + issues
 
+
+# ---- 02-generate: the one giant generation call (Curator + Synthesizer +
+# Instructional Designer in a single model call). Sub-schemas are reused
+# verbatim (minus their $schema markers) so the contracts stay identical.
+def _sub(schema: dict) -> dict:
+    s = {k: v for k, v in schema.items() if k != "$schema"}
+    return s
+
+
+GENERATED = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["ground_truth", "lesson", "blocks"],
+    "additionalProperties": False,
+    "properties": {
+        "ground_truth": _sub(GROUND_TRUTH),
+        "lesson": _sub(LESSON),
+        "blocks": _sub(BLOCKS),
+    },
+}
+
+# ---- 04-repair: the content catcher. Replacement blocks use the SAME block
+# item schema as BLOCKS; the orchestrator merges them into the current draft
+# by id (a flagged block with no replacement is removed).
+REPAIR = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["analysis", "blocks"],
+    "additionalProperties": False,
+    "properties": {
+        "analysis": {"type": "string", "minLength": 20},
+        "blocks": {
+            "type": "array",
+            "minItems": 1,
+            "items": BLOCKS["properties"]["blocks"]["items"],
+        },
+    },
+}
+
 SCHEMAS = {
+    "generated": GENERATED,
     "ground_truth": GROUND_TRUTH,
     "lesson": LESSON,
     "blocks": BLOCKS,
     "check_report": CHECK_REPORT,
+    "repair": REPAIR,
     "interactive": INTERACTIVE,
     "fix_plan": FIX_PLAN,
     "review_report": REVIEW_REPORT,

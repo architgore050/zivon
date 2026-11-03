@@ -46,15 +46,15 @@ CONFIG_PATH = (
 _STAGE_IDS = [
     "00-ingest",
     "01-locate",
-    "02-synth",
-    "03-explain",
-    "04-draft",
-    "05-check",
-    "06-interactive",
-    "07-render",
-    "08-perf",
-    "09-fixloop",
-    "10-review",
+    "02-generate",
+    "03-check",
+    "04-repair",
+    "05-interactive",
+    "06-render",
+    "07-perf",
+    "08-fixloop",
+    "09-review",
+    "10-reviewfix",
     "11-link",
 ]
 
@@ -83,6 +83,7 @@ _SPEC: dict[str, Any] = {
         "doctrine_examples": str,
     },
     "perf": {"profile": str, "fix_rounds": int},
+    "repair": {"content_rounds": int, "code_rounds": int},
     "stage_overrides": dict,
 }
 
@@ -128,6 +129,10 @@ class Config:
     @property
     def perf(self) -> dict[str, Any]:
         return self.data["perf"]
+
+    @property
+    def repair(self) -> dict[str, Any]:
+        return self.data["repair"]
 
     # -- derived ------------------------------------------------------------
     def repo_path(self, configured: str) -> Path:
@@ -290,6 +295,10 @@ def load_config(path: Path | None = None) -> Config:
         )
     if data["perf"]["fix_rounds"] < 1:
         raise ConfigError("perf.fix_rounds must be >= 1")
+    if data["repair"]["content_rounds"] < 1:
+        raise ConfigError("repair.content_rounds must be >= 1")
+    if data["repair"]["code_rounds"] < 1:
+        raise ConfigError("repair.code_rounds must be >= 1")
     for stage_id in data["stage_overrides"]:
         if stage_id not in _STAGE_IDS:
             raise ConfigError(

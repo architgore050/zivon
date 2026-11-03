@@ -1,4 +1,4 @@
-"""Rule-based checks (stage 05, code side). Independent of the model reviewer.
+"""Rule-based checks (stage 03-check, code side). Independent of the model reviewer.
 
 These catch mechanically detectable failures: answer keys that do not match
 their options, citations to claims that do not exist, phrases that break

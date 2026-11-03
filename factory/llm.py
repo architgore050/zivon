@@ -78,13 +78,19 @@ class LLMClient:
         temperature: float | None = None,
         max_tokens: int | None = None,
         extra_validator: Callable[[dict[str, Any]], list[str]] | None = None,
+        round_tag: str | None = None,
     ) -> dict[str, Any]:
         """One logged, validated model call. Returns the parsed JSON object.
 
         extra_validator: optional code-side check on the PARSED object (e.g.
         the stage's rule checks). Returning a non-empty list of problem
         strings is treated exactly like a schema failure: the problems are
-        fed back to the model and the attempt is retried, same budget."""
+        fed back to the model and the attempt is retried, same budget.
+
+        round_tag: set by repair loops when a stage runs more than once per
+        run (e.g. 03-check re-runs after 04-repair). Attempt artifacts then
+        land under attempts/<round_tag>/attempt-NN/ so no round overwrites
+        another round's evidence."""
         override = self.cfg.stage_override(stage_id)
         temperature = override.get(
             "temperature",
@@ -109,6 +115,8 @@ class LLMClient:
         last_error = ""
         stage_dir = self.run.stage_dir(stage_id)
         attempts_dir = stage_dir / "attempts"
+        if round_tag:
+            attempts_dir = attempts_dir / round_tag
 
         for attempt in range(1, self.cfg.server["max_attempts"] + 1):
             request = dict(base_request)

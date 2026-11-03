@@ -1,13 +1,18 @@
-"""Stage 10-review: the Code Reviewer agent, plus a final static pass.
+"""Stage 09-review: the Code Reviewer agent, plus a final static pass.
 
 The model reviews the final page (HTML + JS + CSS + manifest) against the repo
 checklist: correctness against the block specs AND against the cited ground
-truth (the sim's drawn behaviour included - 09-fixloop may have rewritten the
-code after 05-check saw the draft), the LIVE design doctrine (injected via
+truth (the sim's drawn behaviour included - 08-fixloop may have rewritten the
+code after 03-check saw the draft), the LIVE design doctrine (injected via
 factory/design.py), safety (no eval, no external calls - also enforced
 mechanically by lint), accessibility, and performance hygiene. Fatal model
 findings or fatal lints stop the run here; nothing is linked into frontend/
 until this stage passes.
+
+Graph v2: a fail verdict is ROUTED to 10-reviewfix (the paired catcher) by the
+orchestrator - this stage returns the report instead of raising, so the
+reviewer's findings reach the fixer instead of killing the run. Mechanical
+lint hits still raise immediately (the shipped files themselves are broken).
 """
 
 from __future__ import annotations
@@ -24,7 +29,7 @@ from .lint import lint_file
 from .llm import LLMClient
 from .schemas import REVIEW_REPORT
 
-STAGE_ID = "10-review"
+STAGE_ID = "09-review"
 
 REVIEWABLE = ("index.html", "page.js", "page.css")
 
@@ -36,6 +41,7 @@ def run(
     blocks: dict[str, Any],
     render_out: dict[str, Any],
     ground_truth: dict[str, Any],
+    round_tag: str | None = None,
 ) -> dict[str, Any]:
     topic_dir = Path(render_out["topic_dir"])
 
@@ -110,6 +116,7 @@ def run(
         ],
         REVIEW_REPORT,
         "review_report",
+        round_tag=round_tag,
     )
 
     rule_issues = [
@@ -122,22 +129,19 @@ def run(
         report["verdict"] = "fail"
         report["issues"] = rule_issues + report["issues"]
     run_ctx.save_stage_output(STAGE_ID, report)
-    if report["verdict"] == "fail":
-        from .errors import StageError
-
-        raise StageError(
-            STAGE_ID,
-            "code review failed: "
-            + "; ".join(i["message"][:160] for i in report["issues"]),
-            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+    if round_tag:
+        run_ctx.write_json(
+            run_ctx.stage_dir(STAGE_ID) / f"report-{round_tag}.json", report
         )
+    # Graph v2: a fail verdict is ROUTED to 10-reviewfix by the orchestrator
+    # (the catcher paired with this gate); the report is the handoff.
     return report
 
 
 def _facts_text(ground_truth: dict[str, Any]) -> str:
     """All claims + equations: the final page must not contradict any of them.
-    05 checked the DRAFT against sources; 10 must be able to check the FINAL
-    code (after 09-fixloop rewrote it) against the same facts."""
+    03 checked the DRAFT against sources; 09 must be able to check the FINAL
+    code (after 08-fixloop rewrote it) against the same facts."""
     lines = [
         f"- {c['id']}: {c['statement']} ["
         + ", ".join(f"{x['source_id']} {x['locator']}" for x in c["citations"])
@@ -168,7 +172,7 @@ def _static_review_findings(topic_dir: Path) -> list[str]:
 
 def _system() -> str:
     return (
-        "[ZIVON STAGE: 10-review] You are the Code Reviewer agent for the Zivon content "
+        "[ZIVON STAGE: 09-review] You are the Code Reviewer agent for the Zivon content "
         "factory. You are the last gate before a generated page is linked into the site.\n"
         "RULES:\n- Be strict about correctness and accessibility; be honest about uncertainty.\n"
         "- Output exactly ONE JSON object.\n"

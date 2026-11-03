@@ -1,6 +1,6 @@
-"""Stage 09-fixloop: the Performance Engineer agent, back-and-forth.
+"""Stage 08-fixloop: the Performance Engineer agent, back-and-forth.
 
-Stage 08 hands the failing perf report here (the orchestrator routes a
+Stage 07 hands the failing perf report here (the orchestrator routes a
 fixable BudgetError instead of dying). Loop: hand the report + page specs +
 previous attempts + current topic files to the model, apply its replacement
 contents (topic-local files ONLY: page.js, page.css; index.html is
@@ -9,7 +9,7 @@ perf.fix_rounds rounds without a pass, the stage fails with the full history
 so a human can look. The prompt guards the pedagogy: a perf fix may not
 delete or neuter what the page teaches.
 
-When stage 08 already passed, this stage verifies nothing new is broken and
+When stage 07 already passed, this stage verifies nothing new is broken and
 returns immediately (rounds=0, no model call, no extra Chromium launch).
 """
 
@@ -29,7 +29,7 @@ from .llm import LLMClient
 from .perf import _harness
 from .schemas import FIX_PLAN
 
-STAGE_ID = "09-fixloop"
+STAGE_ID = "08-fixloop"
 
 FIXABLE = {"page.js", "page.css"}  # topic-local only; index.html is renderer-owned
 
@@ -42,7 +42,7 @@ def run(
     initial_perf: dict[str, Any] | None = None,
     blocks: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """initial_perf: stage 08's topic-page report (or None when 09 is run
+    """initial_perf: stage 07's topic-page report (or None when 08 is run
     standalone - then we measure once ourselves).
     blocks: the 04-draft output - the page specs the fix loop must preserve."""
     run_profile = _harness()
@@ -53,7 +53,7 @@ def run(
 
     history: list[dict[str, Any]] = []
     if initial_perf is not None and initial_perf.get("pass"):
-        # Stage 08 just measured this exact page and it passed: nothing to fix.
+        # Stage 07 just measured this exact page and it passed: nothing to fix.
         history = [{"round": 0, "perf": initial_perf}]
         _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
         return {"rounds": 0, "history": history, "pass": True}
@@ -254,7 +254,7 @@ def _specs_text(blocks: dict[str, Any] | None) -> str:
 
 def _system() -> str:
     return (
-        "[ZIVON STAGE: 09-fixloop] You are the Performance Engineer agent. A generated study "
+        "[ZIVON STAGE: 08-fixloop] You are the Performance Engineer agent. A generated study "
         "page missed its performance budget on weak-hardware simulation (Chromium under CPU "
         "throttling and core pinning, simulating a low-end Android phone).\n"
         "RULES:\n- Return exactly ONE JSON object.\n"

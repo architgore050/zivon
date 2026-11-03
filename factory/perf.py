@@ -1,8 +1,8 @@
-"""Stage 08-perf: the Performance Engineer gate.
+"""Stage 07-perf: the Performance Engineer gate.
 
 Runs the weak-hardware harness (testing/content_factory/perf/harness.py) against the staged
 topic page and the landing page. Budgets come from the profile JSON named in
-config.perf.profile. A miss is fatal for the stage; stage 09 owns fixing.
+config.perf.profile. A miss is fatal for the stage; stage 08 owns fixing.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from .artifacts import RunContext
 from .config import Config
 from .errors import BudgetError, FactoryError
 
-STAGE_ID = "08-perf"
+STAGE_ID = "07-perf"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -38,7 +38,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     """Gate the staged topic page and the landing page on the perf profile.
 
     A topic-page miss is raised as a FIXABLE BudgetError: the orchestrator
-    routes it to stage 09-fixloop, which repairs page.js/page.css and retests.
+    routes it to stage 08-fixloop, which repairs page.js/page.css and retests.
     A landing-page miss is NOT fixable (the shared layer is hand-maintained)
     and stops the run immediately with instructions.
     """
@@ -77,7 +77,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
             STAGE_ID,
             "topic page budgets missed: "
             + "; ".join(topic_report["failures"])
-            + " - stage 09-fixloop repairs topic-local files (include it in --stages).",
+            + " - stage 08-fixloop repairs topic-local files (include it in --stages).",
             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
             fixable=True,
             report=topic_report,

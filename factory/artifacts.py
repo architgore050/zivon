@@ -14,6 +14,13 @@ Layout (gitignored under runs/):
 Nothing downstream ever runs on a failed stage, and every model call's exact
 request and response are on disk for diagnosis. Partial re-runs read upstream
 stage outputs from the latest previous run (see load_stage_output).
+
+Resume (graph v2): a run id is deterministic per (chapter, class), so a
+re-triggered run reuses the stage outputs of the previous attempt instead of
+re-deriving them - a late-stage failure never re-runs the whole pipeline.
+status.json carries a fingerprint of the run's inputs (pipeline version,
+chapter, class, model, config); a mismatch refuses resume and tells the
+operator to pass --fresh.
 """
 
 from __future__ import annotations
@@ -31,6 +38,15 @@ from .errors import MissingArtifactError
 def slugify(text: str, max_len: int = 40) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
     return slug[:max_len].rstrip("-") or "topic"
+
+
+def wipe_run(runs_dir: Path, run_id: str) -> bool:
+    """Delete a previous run dir (--fresh). Returns whether something was removed."""
+    target = runs_dir / run_id
+    if target.exists():
+        shutil.rmtree(target)
+        return True
+    return False
 
 
 class RunContext:
@@ -139,4 +155,42 @@ class RunContext:
                 "detail": detail,
                 "duration_s": round(time.time() - self._t0, 1),
             },
+        )
+
+    # -- resume support -------------------------------------------------------
+    def status_exists(self) -> bool:
+        return self._status_path.exists()
+
+    def get_fingerprint(self) -> str | None:
+        if not self._status_path.exists():
+            return None
+        try:
+            return json.loads(self._status_path.read_text(encoding="utf-8")).get(
+                "fingerprint"
+            )
+        except json.JSONDecodeError:
+            return None
+
+    def set_fingerprint(self, fingerprint: str) -> None:
+        status: dict[str, Any] = {"run_id": self.run_id, "stages": {}}
+        if self._status_path.exists():
+            try:
+                status = json.loads(self._status_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                pass  # corrupt status file: rebuild it, the outputs are what matter
+        status["fingerprint"] = fingerprint
+        self.write_json(self._status_path, status)
+
+    def stage_ok(self, stage_id: str) -> bool:
+        """Resumable: the stage finished ok AND its output artifact is on disk."""
+        if not self._status_path.exists():
+            return False
+        try:
+            status = json.loads(self._status_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return False
+        entry = status.get("stages", {}).get(stage_id, {})
+        return (
+            entry.get("state") == "ok"
+            and (self.dir / stage_id / "output.json").exists()
         )

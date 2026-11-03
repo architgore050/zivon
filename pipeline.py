@@ -2,16 +2,23 @@
 """Zivon content factory - single entry point.
 
 Usage:
-    python pipeline.py "Motion" [--class 9] [--run-id ID] [--stages 00-ingest,01-locate]
+    python pipeline.py "Motion" [--class 9] [--run-id ID] [--fresh]
+                                [--stages 00-ingest,01-locate]
 
 Examples:
     python pipeline.py "Motion" --class 9
     python pipeline.py "Light - Reflection and Refraction"
+    python pipeline.py "Motion" --class 9 --fresh        # force clean generation
     python pipeline.py "Motion" --stages 00-ingest,01-locate   # re-run source stages only
 
 The chapter name is searched EXACTLY in the cached NCERT books (by title);
 other catalog PDFs are searched by vector similarity. Ambiguity is an error
 that lists the candidates - pass --class to disambiguate.
+
+Run ids are deterministic per (chapter+class): re-running the same topic
+RESUMES the previous attempt (completed stages are reused, a late failure
+never re-derives early ones). --fresh wipes the previous attempt and
+generates the page from scratch.
 """
 
 from __future__ import annotations
@@ -44,6 +51,12 @@ def main() -> int:
     )
     parser.add_argument("--run-id", default=None, help="override the generated run id")
     parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="wipe any previous run for this topic and generate clean "
+        "(default: a re-trigger RESUMES the previous attempt's completed stages)",
+    )
+    parser.add_argument(
         "--stages",
         default=None,
         help=f"comma-separated subset of stages to run from {STAGE_ORDER}",
@@ -62,7 +75,9 @@ def main() -> int:
 
     try:
         cfg = load_config()
-        result = run_pipeline(cfg, args.chapter, args.class_, args.run_id, only)
+        result = run_pipeline(
+            cfg, args.chapter, args.class_, args.run_id, only, fresh=args.fresh
+        )
     except FactoryError as exc:
         print(f"\nPIPELINE FAILED: {exc}", file=sys.stderr)
         print(

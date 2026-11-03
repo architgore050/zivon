@@ -29,5 +29,9 @@
     "profile": "testing/content_factory/perf/profiles/weak-android.json",
     "fix_rounds": 3
   },
+  "repair": {
+    "content_rounds": 2,
+    "code_rounds": 2
+  },
   "stage_overrides": {}
 }

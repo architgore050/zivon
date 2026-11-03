@@ -1,9 +1,9 @@
-"""Stage 06-interactive: the Visual Builder agent.
+"""Stage 05-interactive: the Visual Builder agent.
 
 One model request per simulation block ("animation" is a simulation with zero
 controls). The model writes topic-local JS/CSS under a strict skeleton; the
 result is linted before anything proceeds. Diagrams are NOT model calls here -
-their SVG comes from the draft stage and is rendered (and linted) as-is.
+their SVG comes from 02-generate and is rendered (and linted) as-is.
 
 The prompt pins the shared contract (zivon.css / zivon.js class names), hands
 the model the ground-truth facts its simulation must obey, and injects the
@@ -25,7 +25,7 @@ from .lint import lint_css, lint_js
 from .llm import LLMClient
 from .schemas import INTERACTIVE
 
-STAGE_ID = "06-interactive"
+STAGE_ID = "05-interactive"
 
 SIM_SKELETON = """
 // Required skeleton for every simulation (the agent fills the marked parts):
@@ -140,7 +140,7 @@ def _build_simulation(
         '{"page.js": "<full file content>", "page.css": "<full file content or empty string>"}}.'
     )
     out = llm.call(
-        "06-interactive",
+        "05-interactive",
         [
             {"role": "system", "content": _system_msg()},
             {"role": "user", "content": user},
@@ -192,7 +192,7 @@ def _lint_feedback(block_id: str) -> Callable[[dict[str, Any]], list[str]]:
 
 def _system_msg() -> str:
     return (
-        "[ZIVON STAGE: 06-interactive] You are the Visual Builder agent in the Zivon content "
+        "[ZIVON STAGE: 05-interactive] You are the Visual Builder agent in the Zivon content "
         "factory. You write canvas simulations for study pages.\n"
         "RULES:\n- Plain JavaScript, canvas 2D only, no libraries, no network, no eval.\n"
         "- Never invent physics facts: the behaviour you draw must follow the "

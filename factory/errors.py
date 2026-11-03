@@ -58,7 +58,7 @@ class BudgetError(StageError):
     """A page missed its performance budget.
 
     fixable=True: the failing page is topic-local (page.js / page.css), so
-    stage 09-fixloop can attempt model repairs. fixable=False: nothing
+    stage 08-fixloop can attempt model repairs. fixable=False: nothing
     downstream can fix it (e.g. the hand-maintained landing page) - a human
     must. report carries the harness measurements for the orchestrator.
     """

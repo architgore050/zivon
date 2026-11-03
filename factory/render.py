@@ -1,4 +1,4 @@
-"""Stage 07-render: assemble the topic page and the staging site.
+"""Stage 06-render: assemble the topic page and the staging site.
 
 Renders the ordered blocks into a static, serverless, offline HTML page wired
 to the shared zivon.css/zivon.js layer, writes a manifest, regenerates
@@ -23,7 +23,7 @@ from .config import Config
 from .errors import LintError
 from .lint import lint_generated
 
-STAGE_ID = "07-render"
+STAGE_ID = "06-render"
 
 CSP = (
     "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; "
