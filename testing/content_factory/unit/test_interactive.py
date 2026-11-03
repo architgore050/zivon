@@ -1,4 +1,4 @@
-"""Unit tests for 06-interactive: the Visual Builder must receive the
+"""Unit tests for 05-interactive: the Visual Builder must receive the
 ground-truth facts its simulation must obey, the LIVE design doctrine +
 examples + parsed palette, and lint violations must enter the retry
 transcript instead of killing the run after the model call.
@@ -41,7 +41,7 @@ class StubLLM:
     def call(self, stage_id, messages, schema, schema_name, **kw):
         self.messages = messages
         self.kwargs = kw
-        return load("06-interactive.json")
+        return load("05-interactive.json")
 
 
 class TestInteractiveFacts(unittest.TestCase):
@@ -68,8 +68,8 @@ class TestInteractiveFacts(unittest.TestCase):
             self.cfg,
             self.run_ctx,
             cast(LLMClient, stub),
-            load("04-draft.json"),
-            load("02-synth.json"),
+            load("blocks.json"),
+            load("gt.json"),
         )
 
     def _messages(self, stub: StubLLM) -> tuple[str, str]:
@@ -83,7 +83,7 @@ class TestInteractiveFacts(unittest.TestCase):
         # statements must be in the prompt; uncited claims must not flood it.
         stub = StubLLM()
         user, _ = self._messages(stub)
-        gt = load("02-synth.json")
+        gt = load("gt.json")
         cited = [c for c in gt["claims"] if c["id"] in ("claim-03", "claim-04")]
         uncited = next(c for c in gt["claims"] if c["id"] == "claim-01")
         self.assertTrue(cited)

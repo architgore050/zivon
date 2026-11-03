@@ -1,0 +1,21 @@
+{
+  "analysis": "b-04 tested force and mass, concepts this chapter never defines; rewrote it as an average-speed check grounded in claim-05 (100 m covered in 20 s gives 5 m/s). Every number is copied verbatim from the source material.",
+  "blocks": [
+    {
+      "id": "b-04",
+      "type": "check",
+      "spec": {
+        "question": "A runner covers 100 m in 20 s. What is her average speed (in m/s)?",
+        "format": "numeric",
+        "answer": "5",
+        "explanation": "Average speed is total distance divided by total time: 100 m covered in 20 s gives 5 m/s.",
+        "expected_understanding": "The learner can compute average speed from total distance and total time."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        }
+      ]
+    }
+  ]
+}

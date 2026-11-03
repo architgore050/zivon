@@ -1,5 +1,5 @@
-"""Unit tests for 10-review: the Code Reviewer must see the cited ground truth
-(the final code was rewritten by 09-fixloop AFTER 05-check reviewed the
+"""Unit tests for 09-review: the Code Reviewer must see the cited ground truth
+(the final code was rewritten by 08-fixloop AFTER 03-check reviewed the
 draft), must be told to check the simulation's DRAWN behaviour, must know the
 verdict rule the code enforces, and must be handed the LIVE design doctrine to
 police the page's visual language against.
@@ -69,16 +69,16 @@ class TestReviewPrompt(unittest.TestCase):
             cast(LLMClient, stub),
             self.blocks,
             self.render_out,
-            load("02-synth.json"),
+            load("gt.json"),
         )
 
     def test_review_prompt_carries_cited_facts(self):
-        # 05 checked the DRAFT against sources; 10 must be able to check the
+        # 03 checks the DRAFT against sources; 09 must be able to check the
         # FINAL code against the same facts, so every claim + equation lands.
         stub = StubLLM()
         self._review(stub)
         user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        gt = load("02-synth.json")
+        gt = load("gt.json")
         self.assertIn("CITED FACTS", user)
         for c in gt["claims"]:
             self.assertIn(c["statement"], user)
@@ -113,7 +113,34 @@ class TestReviewPrompt(unittest.TestCase):
         stub = StubLLM()
         report = self._review(stub)
         self.assertEqual(report["verdict"], "pass")
-        self.assertTrue((self.run_ctx.stage_dir("10-review") / "output.json").exists())
+        self.assertTrue((self.run_ctx.stage_dir("09-review") / "output.json").exists())
+
+    def test_fail_verdict_is_returned_not_raised(self):
+        # Graph v2 contract: a fail verdict is the HANDOFF to 10-reviewfix.
+        # review.run must return the report; the orchestrator routes it to the
+        # catcher. Raising here would kill the run (the behaviour v1 had).
+        class FailingStub:
+            def call(self, stage_id, messages, schema, schema_name, **kw):
+                return {
+                    "verdict": "fail",
+                    "issues": [
+                        {
+                            "severity": "fatal",
+                            "block_id": "b-06",
+                            "message": "the simulation draws an impossible curve",
+                        }
+                    ],
+                }
+
+        report = self._review(cast(LLMClient, FailingStub()))
+        self.assertEqual(report["verdict"], "fail")
+        saved = json.loads(
+            (self.run_ctx.stage_dir("09-review") / "output.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(saved["verdict"], "fail")
+        self.assertTrue(any(i["severity"] == "fatal" for i in saved["issues"]))
 
 
 if __name__ == "__main__":

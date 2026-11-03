@@ -1,4 +1,4 @@
-"""Unit tests for stage 08-perf routing and stage 09-fixloop behaviour.
+"""Unit tests for stage 07-perf routing and stage 08-fixloop behaviour.
 
 The perf harness is faked (no Chromium here); the integration test exercises
 the real one. What we prove: a topic-page miss is routed to the fix loop,
@@ -76,7 +76,7 @@ def make_cfg(tmp: Path, fix_rounds: int = 2):
 
 
 def make_page(tmp: Path) -> tuple[Path, Path, dict[str, Any]]:
-    """A staged topic page + site, shaped like stage 07-render's output."""
+    """A staged topic page + site, shaped like stage 06-render's output."""
     site = tmp / "site"
     topic = site / "courses" / "class-9-physics" / "motion"
     topic.mkdir(parents=True)
@@ -137,7 +137,7 @@ class TestPerfStage(unittest.TestCase):
         out = self._run(True, True)
         self.assertTrue(out["pass"])
         self.assertTrue(
-            (self.run_ctx.stage_dir("08-perf") / "topic_page.perf.json").exists()
+            (self.run_ctx.stage_dir("07-perf") / "topic_page.perf.json").exists()
         )
 
     def test_topic_miss_is_fixable_and_carries_report(self):
@@ -145,7 +145,7 @@ class TestPerfStage(unittest.TestCase):
             self._run(False, True)
         self.assertTrue(ctx.exception.fixable)
         self.assertIsNotNone(ctx.exception.report)
-        self.assertIn("09-fixloop", str(ctx.exception))
+        self.assertIn("08-fixloop", str(ctx.exception))
 
     def test_landing_miss_is_not_fixable(self):
         with self.assertRaises(BudgetError) as ctx:
@@ -179,7 +179,7 @@ class TestFixloopStage(unittest.TestCase):
                 cast(LLMClient, llm),
                 self.render_out,
                 perf_report,
-                load("04-draft.json"),
+                load("blocks.json"),
             )
 
     def test_passed_perf_skips_model_and_harness(self):
@@ -206,7 +206,7 @@ class TestFixloopStage(unittest.TestCase):
         history = json.loads(
             (
                 RunContext(cfg.repo_path(cfg.paths["runs"]), "t-fix").stage_dir(
-                    "09-fixloop"
+                    "08-fixloop"
                 )
                 / "history.json"
             ).read_text()

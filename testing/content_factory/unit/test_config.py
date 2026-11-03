@@ -1,6 +1,6 @@
 """Unit tests for config loading and validation.
 
-Two layers: file sections (learner/retrieval/limits/paths/perf/
+Two layers: file sections (learner/retrieval/limits/paths/perf/repair/
 stage_overrides) and server settings from the environment. Missing server
 env is the tripwire - the pipeline refuses to start without it.
 """
@@ -192,10 +192,26 @@ class TestConfig(unittest.TestCase):
 
     def test_stage_override_ok(self):
         def mutate(d):
-            d["stage_overrides"] = {"02-synth": {"max_tokens": 8192}}
+            d["stage_overrides"] = {"02-generate": {"max_tokens": 8192}}
 
         cfg = load_config(write_config(self.tmp, mutate))
-        self.assertEqual(cfg.stage_override("02-synth"), {"max_tokens": 8192})
+        self.assertEqual(cfg.stage_override("02-generate"), {"max_tokens": 8192})
+
+    def test_missing_repair_section_rejected(self):
+        def mutate(d):
+            del d["repair"]
+
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp, mutate))
+        self.assertIn("repair", str(ctx.exception))
+
+    def test_repair_rounds_below_one_rejected(self):
+        def mutate(d):
+            d["repair"]["content_rounds"] = 0
+
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp, mutate))
+        self.assertIn("content_rounds", str(ctx.exception))
 
     def test_real_repo_config_loads(self):
         # The committed config.json must stay structurally valid; with server
@@ -203,6 +219,8 @@ class TestConfig(unittest.TestCase):
         cfg = load_config(REPO_ROOT / "config.json")
         self.assertEqual(cfg.learner["class_level"], 9)
         self.assertNotIn("server", cfg.data)
+        self.assertEqual(cfg.repair["content_rounds"], 2)
+        self.assertEqual(cfg.repair["code_rounds"], 2)
 
 
 if __name__ == "__main__":

@@ -20,23 +20,23 @@ def load(name):
 
 class TestAnswerKeys(unittest.TestCase):
     def test_mcq_ok(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         self.assertEqual(checks.rule_answer_keys(blocks), [])
 
     def test_mcq_index_out_of_range(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         blocks[3]["spec"]["answer_index"] = 9
         issues = checks.rule_answer_keys(blocks)
         self.assertTrue(any(i["severity"] == "fatal" for i in issues))
 
     def test_mcq_answer_mismatch(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         blocks[3]["spec"]["answer"] = "Speed"  # answer_index points at Acceleration
         issues = checks.rule_answer_keys(blocks)
         self.assertTrue(any("mismatch" in i["message"] for i in issues))
 
     def test_numeric_answer_not_a_number(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         blocks[6]["spec"]["answer"] = "fast"
         issues = checks.rule_answer_keys(blocks)
         self.assertTrue(any("not a number" in i["message"] for i in issues))
@@ -44,13 +44,13 @@ class TestAnswerKeys(unittest.TestCase):
 
 class TestCitations(unittest.TestCase):
     def test_known_claims_pass(self):
-        blocks = load("04-draft.json")["blocks"]
-        gt = load("02-synth.json")
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
         self.assertEqual(checks.rule_citations(blocks, gt, make_pack()), [])
 
     def test_unknown_claim_fails(self):
-        blocks = load("04-draft.json")["blocks"]
-        gt = load("02-synth.json")
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
         blocks[0]["citations"].append({"claim_id": "claim-99"})
         issues = checks.rule_citations(blocks, gt, make_pack())
         self.assertTrue(
@@ -58,8 +58,8 @@ class TestCitations(unittest.TestCase):
         )
 
     def test_factual_block_without_citation_is_fatal(self):
-        blocks = load("04-draft.json")["blocks"]
-        gt = load("02-synth.json")
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
         blocks[0]["citations"] = []  # a text block citing nothing
         issues = checks.rule_citations(blocks, gt, make_pack())
         self.assertTrue(
@@ -70,8 +70,8 @@ class TestCitations(unittest.TestCase):
         )
 
     def test_source_ids_are_derived_from_the_pack(self):
-        blocks = load("04-draft.json")["blocks"]
-        gt = load("02-synth.json")
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
         # a supplement id from the pack is fine...
         blocks[0]["citations"].append({"source_id": "alt-open-physics#c0001"})
         self.assertEqual(checks.rule_citations(blocks, gt, make_pack()), [])
@@ -88,13 +88,13 @@ class TestCitations(unittest.TestCase):
 
 class TestSelfContainment(unittest.TestCase):
     def test_clean_lesson_passes(self):
-        blocks = load("04-draft.json")["blocks"]
-        lesson = load("03-explain.json")
+        blocks = load("blocks.json")["blocks"]
+        lesson = load("lesson.json")
         issues = checks.rule_self_containment(blocks, lesson)
         self.assertEqual([i for i in issues if i["severity"] == "fatal"], [])
 
     def test_external_reference_caught(self):
-        lesson = load("03-explain.json")
+        lesson = load("lesson.json")
         lesson["sections"][0]["paragraphs"][0] += (
             " We studied this in the previous chapter."
         )
@@ -102,8 +102,8 @@ class TestSelfContainment(unittest.TestCase):
         self.assertTrue(any("previous chapter" in i["message"] for i in issues))
 
     def test_url_caught(self):
-        blocks = load("04-draft.json")["blocks"]
-        lesson = load("03-explain.json")
+        blocks = load("blocks.json")["blocks"]
+        lesson = load("lesson.json")
         blocks[0]["spec"]["paragraphs"][0] += " See https://example.com for more."
         issues = checks.rule_self_containment(blocks, lesson)
         self.assertTrue(any("URL" in i["message"] for i in issues))
@@ -111,14 +111,14 @@ class TestSelfContainment(unittest.TestCase):
 
 class TestNumbers(unittest.TestCase):
     def test_traceable_numbers_pass(self):
-        blocks = load("04-draft.json")["blocks"]
-        gt = load("02-synth.json")
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
         pack = {"ncert_text": load_source_text()}
         self.assertEqual(checks.rule_numbers(blocks, gt, pack), [])
 
     def test_invented_number_fails(self):
-        blocks = load("04-draft.json")["blocks"]
-        gt = load("02-synth.json")
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
         pack = {"ncert_text": load_source_text()}
         blocks[2]["spec"]["answer"] = "73 m/s2"  # 73 appears nowhere
         issues = checks.rule_numbers(blocks, gt, pack)
@@ -194,11 +194,11 @@ class TestNumbersBoundary(unittest.TestCase):
 
 class TestDiagramSvg(unittest.TestCase):
     def test_clean_svg_passes(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         self.assertEqual(checks.rule_diagram_svg(blocks), [])
 
     def test_script_in_svg_fails(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         blocks[4]["spec"]["svg"] = (
             "<svg viewBox='0 0 1 1'><script>alert(1)</script></svg>"
         )
@@ -206,7 +206,7 @@ class TestDiagramSvg(unittest.TestCase):
         self.assertTrue(any("script" in i["message"] for i in issues))
 
     def test_url_in_svg_fails_but_xmlns_ok(self):
-        blocks = load("04-draft.json")["blocks"]
+        blocks = load("blocks.json")["blocks"]
         blocks[4]["spec"]["svg"] = blocks[4]["spec"]["svg"].replace(
             "</svg>", '<a href="https://evil.example">x</a></svg>'
         )

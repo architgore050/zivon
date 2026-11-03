@@ -1,8 +1,12 @@
 """Unit tests for RunContext artifact loading and the previous-run fallback.
 
-Partial re-runs (--stages 05-check,07-render) must find upstream outputs in
+Partial re-runs (--stages 03-check,06-render) must find upstream outputs in
 the latest previous run, copy them in, and say so loudly. If nothing has
 them, the failure must be a typed MissingArtifactError with instructions.
+
+Resume support (graph v2): reopening a run dir must preserve status.json,
+stage_ok() decides what may be skipped, the fingerprint guards against
+mixing run shapes, and wipe_run() implements --fresh.
 """
 
 import io
@@ -17,7 +21,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.artifacts import RunContext
+from factory.artifacts import RunContext, wipe_run
 from factory.errors import MissingArtifactError
 
 
@@ -43,42 +47,88 @@ class TestLoadStageOutput(unittest.TestCase):
         self.assertEqual(out["marker"], "current")
 
     def test_falls_back_to_previous_run_and_copies(self):
-        seed_output(self.runs, "old-run", "02-synth", {"marker": "old"})
+        seed_output(self.runs, "old-run", "02-generate", {"marker": "old"})
         ctx = RunContext(self.runs, "cur")
         buf = io.StringIO()
         with redirect_stdout(buf):
-            out = ctx.load_stage_output("02-synth")
+            out = ctx.load_stage_output("02-generate")
         self.assertEqual(out["marker"], "old")
         printed = buf.getvalue()
         self.assertIn("old-run", printed)  # says where it came from
         # copied into the current run: the run is self-contained afterwards
-        copied = ctx.stage_dir("02-synth") / "output.json"
+        copied = ctx.stage_dir("02-generate") / "output.json"
         self.assertTrue(copied.exists())
         self.assertEqual(json.loads(copied.read_text())["marker"], "old")
 
     def test_latest_run_with_the_artifact_wins(self):
-        seed_output(self.runs, "run-a", "02-synth", {"marker": "a", "_stamp": 100})
+        seed_output(self.runs, "run-a", "02-generate", {"marker": "a", "_stamp": 100})
         seed_output(self.runs, "run-b", "01-locate", {"marker": "b-locate"})
-        seed_output(self.runs, "run-b", "02-synth", {"marker": "b", "_stamp": 200})
+        seed_output(self.runs, "run-b", "02-generate", {"marker": "b", "_stamp": 200})
         ctx = RunContext(self.runs, "cur")
         buf = io.StringIO()
         with redirect_stdout(buf):
-            out = ctx.load_stage_output("02-synth")
+            out = ctx.load_stage_output("02-generate")
         self.assertEqual(out["marker"], "b")  # newer mtime beats run-a
         self.assertIn("run-b", buf.getvalue())
 
     def test_missing_everywhere_is_typed_and_actionable(self):
         ctx = RunContext(self.runs, "cur")
         with self.assertRaises(MissingArtifactError) as ctx_err:
-            ctx.load_stage_output("07-render")
+            ctx.load_stage_output("06-render")
         msg = str(ctx_err.exception)
-        self.assertIn("07-render", msg)
+        self.assertIn("06-render", msg)
         self.assertIn("--stages", msg)
 
     def test_missing_runs_dir_does_not_crash(self):
         ctx = RunContext(self.runs / "does-not-exist", "cur")
         with self.assertRaises(MissingArtifactError):
             ctx.load_stage_output("00-ingest")
+
+
+class TestResumeSupport(unittest.TestCase):
+    def setUp(self):
+        self.runs = Path(tempfile.mkdtemp()) / "runs"
+
+    def test_stage_ok_needs_both_status_and_output(self):
+        ctx = RunContext(self.runs, "r1")
+        self.assertFalse(ctx.status_exists())
+        self.assertFalse(ctx.stage_ok("02-generate"))
+
+        ctx.mark_stage("02-generate", "ok")  # status says ok, no artifact yet
+        self.assertFalse(ctx.stage_ok("02-generate"))
+
+        ctx.save_stage_output(
+            "02-generate", {"ground_truth": {}, "lesson": {}, "blocks": {}}
+        )
+        self.assertTrue(ctx.stage_ok("02-generate"))
+
+        # a FAILED stage is never resumable, even with an artifact on disk
+        ctx.save_stage_output("03-check", {"verdict": "fail"})
+        ctx.mark_stage("03-check", "failed")
+        self.assertFalse(ctx.stage_ok("03-check"))
+
+    def test_reopening_a_run_does_not_clobber_status(self):
+        ctx = RunContext(self.runs, "r1")
+        ctx.set_fingerprint("fp-123")
+        ctx.save_stage_output("01-locate", {"chapter": {"title": "Motion"}})
+        ctx.mark_stage("01-locate", "ok", detail="chapter=Motion")
+        again = RunContext(self.runs, "r1")  # the resume path reopens the dir
+        self.assertTrue(again.status_exists())
+        self.assertEqual(again.get_fingerprint(), "fp-123")
+        self.assertTrue(again.stage_ok("01-locate"))
+
+    def test_fingerprint_roundtrip_and_absence(self):
+        ctx = RunContext(self.runs, "r1")
+        self.assertIsNone(ctx.get_fingerprint())  # old-shape run: no fingerprint
+        ctx.set_fingerprint("fp-abc")
+        self.assertEqual(RunContext(self.runs, "r1").get_fingerprint(), "fp-abc")
+
+    def test_wipe_run_removes_dir_and_reports(self):
+        ctx = RunContext(self.runs, "motion-c9")
+        ctx.save_stage_output("02-generate", {"x": 1})
+        self.assertTrue(wipe_run(self.runs, "motion-c9"))
+        self.assertFalse((self.runs / "motion-c9").exists())
+        self.assertFalse(wipe_run(self.runs, "never-ran"))  # idempotent
 
 
 if __name__ == "__main__":

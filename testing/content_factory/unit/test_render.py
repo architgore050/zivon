@@ -1,4 +1,4 @@
-"""Unit tests for stage 07-render and courses.js generation."""
+"""Unit tests for stage 06-render and courses.js generation."""
 
 import json
 import shutil
@@ -42,9 +42,9 @@ def make_cfg(tmp: Path):
 
 
 def minimal_inputs():
-    lesson = json.loads((FIXTURES / "03-explain.json").read_text())
-    blocks = json.loads((FIXTURES / "04-draft.json").read_text())
-    interactive = {"b-06": json.loads((FIXTURES / "06-interactive.json").read_text())}
+    lesson = json.loads((FIXTURES / "lesson.json").read_text())
+    blocks = json.loads((FIXTURES / "blocks.json").read_text())
+    interactive = {"b-06": json.loads((FIXTURES / "05-interactive.json").read_text())}
     source_pack = {
         "chapter": {
             "title": "Motion",

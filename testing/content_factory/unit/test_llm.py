@@ -71,9 +71,9 @@ class TestLLMClient(unittest.TestCase):
             os.environ.pop(key, None)
 
     def _serve(self, canonical: dict, scripted_first=None):
-        (self.fixtures / "02-synth.json").write_text(json.dumps(canonical))
+        (self.fixtures / "02-generate.json").write_text(json.dumps(canonical))
         if scripted_first is not None:
-            (self.fixtures / "02-synth__attempt1.json").write_text(
+            (self.fixtures / "02-generate__attempt1.json").write_text(
                 scripted_first
                 if isinstance(scripted_first, str)
                 else json.dumps(scripted_first)
@@ -85,9 +85,9 @@ class TestLLMClient(unittest.TestCase):
 
     def _call(self, client):
         return client.call(
-            "02-synth",
+            "02-generate",
             [
-                {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
+                {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
                 {"role": "user", "content": "go"},
             ],
             SIMPLE_SCHEMA,
@@ -102,7 +102,7 @@ class TestLLMClient(unittest.TestCase):
             client = LLMClient(cfg, run)
             out = self._call(client)
             self.assertEqual(out["topic"], "x")
-            stage_dir = run.stage_dir("02-synth")
+            stage_dir = run.stage_dir("02-generate")
             self.assertTrue(
                 (stage_dir / "attempts" / "attempt-01" / "request.json").exists()
             )
@@ -113,7 +113,35 @@ class TestLLMClient(unittest.TestCase):
                 (stage_dir / "attempts" / "attempt-01" / "meta.json").read_text()
             )
             self.assertEqual(meta["http_status"], 200)
-            self.assertEqual(state.served[0]["stage"], "02-synth")
+            self.assertEqual(state.served[0]["stage"], "02-generate")
+        finally:
+            server.shutdown()
+
+    def test_round_tag_separates_attempt_artifacts_per_round(self):
+        # Repair loops re-run a stage inside ONE run (03-check rechecks after
+        # 04-repair). Attempts from different rounds must never overwrite
+        # each other's evidence.
+        server, url, _ = self._serve(GOOD)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            self._call(client)  # untagged round: attempt-01 as before
+            for tag in ("round-01", "round-02"):
+                client.call(
+                    "02-generate",
+                    [
+                        {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
+                        {"role": "user", "content": "go"},
+                    ],
+                    SIMPLE_SCHEMA,
+                    "test",
+                    round_tag=tag,
+                )
+            attempts = run.stage_dir("02-generate") / "attempts"
+            self.assertTrue((attempts / "attempt-01" / "request.json").exists())
+            self.assertTrue((attempts / "round-01" / "attempt-01").exists())
+            self.assertTrue((attempts / "round-02" / "attempt-01").exists())
         finally:
             server.shutdown()
 
@@ -126,12 +154,12 @@ class TestLLMClient(unittest.TestCase):
             out = self._call(client)
             self.assertEqual(out["topic"], "x")
             attempts = sorted(
-                p.name for p in (run.stage_dir("02-synth") / "attempts").iterdir()
+                p.name for p in (run.stage_dir("02-generate") / "attempts").iterdir()
             )
             self.assertEqual(attempts, ["attempt-01", "attempt-02"])
             req2 = json.loads(
                 (
-                    run.stage_dir("02-synth")
+                    run.stage_dir("02-generate")
                     / "attempts"
                     / "attempt-02"
                     / "request.json"
@@ -151,7 +179,7 @@ class TestLLMClient(unittest.TestCase):
             self.assertEqual(out["topic"], "x")
             req2 = json.loads(
                 (
-                    self._run(cfg).stage_dir("02-synth")
+                    self._run(cfg).stage_dir("02-generate")
                     / "attempts"
                     / "attempt-02"
                     / "request.json"
@@ -194,9 +222,9 @@ class TestLLMClient(unittest.TestCase):
                 return []
 
             out = client.call(
-                "02-synth",
+                "02-generate",
                 [
-                    {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
+                    {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
                     {"role": "user", "content": "go"},
                 ],
                 SIMPLE_SCHEMA,
@@ -206,7 +234,7 @@ class TestLLMClient(unittest.TestCase):
             self.assertEqual(out["topic"], "x")
             req2 = json.loads(
                 (
-                    run.stage_dir("02-synth")
+                    run.stage_dir("02-generate")
                     / "attempts"
                     / "attempt-02"
                     / "request.json"
@@ -224,9 +252,9 @@ class TestLLMClient(unittest.TestCase):
             client = LLMClient(cfg, self._run(cfg))
             with self.assertRaises(SchemaError) as ctx:
                 client.call(
-                    "02-synth",
+                    "02-generate",
                     [
-                        {"role": "system", "content": "[ZIVON STAGE: 02-synth] x"},
+                        {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
                         {"role": "user", "content": "go"},
                     ],
                     SIMPLE_SCHEMA,
