@@ -1,10 +1,12 @@
 """Unit tests for the LLM client against the mock OpenAI-format server."""
 
+import io
 import json
 import os
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -100,8 +102,14 @@ class TestLLMClient(unittest.TestCase):
             cfg = make_cfg(self.tmp, url)
             run = self._run(cfg)
             client = LLMClient(cfg, run)
-            out = self._call(client)
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                out = self._call(client)
             self.assertEqual(out["topic"], "x")
+            # observability: the log shows the call bracket (start/finish)
+            printed = buf.getvalue()
+            self.assertIn("[02-generate] model call started", printed)
+            self.assertIn("model call finished in", printed)
             stage_dir = run.stage_dir("02-generate")
             self.assertTrue(
                 (stage_dir / "attempts" / "attempt-01" / "request.json").exists()
@@ -113,6 +121,16 @@ class TestLLMClient(unittest.TestCase):
                 (stage_dir / "attempts" / "attempt-01" / "meta.json").read_text()
             )
             self.assertEqual(meta["http_status"], 200)
+            # timing + payload evidence for latency diagnosis (2026-11-04)
+            for key in (
+                "started_at",
+                "latency_s",
+                "temperature",
+                "max_tokens",
+                "prompt_chars",
+                "response_chars",
+            ):
+                self.assertIn(key, meta)
             self.assertEqual(state.served[0]["stage"], "02-generate")
         finally:
             server.shutdown()

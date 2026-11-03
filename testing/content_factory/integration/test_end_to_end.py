@@ -211,6 +211,17 @@ class TestEndToEnd(unittest.TestCase):
         for stage, entry in status["stages"].items():
             self.assertEqual(entry["state"], "ok", stage)
 
+        # observability (2026-11-04): the log must show the stage heartbeats and
+        # every stage's measured duration; the run report must aggregate them.
+        self.assertIn("[02-generate] starting", result.stdout)
+        self.assertIn("model call started", result.stdout)
+        self.assertIn("model call finished in", result.stdout)
+        for stage, entry in status["stages"].items():
+            self.assertIn("elapsed_s", entry, stage)
+        report = json.loads((runs / "run_report.json").read_text(encoding="utf-8"))
+        self.assertIn("02-generate", report["stage_durations_s"])
+        self.assertIsNotNone(report.get("started_at"))
+
         # the page was linked into the frontend and listed in courses.js
         courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
         self.assertIn("courses/class-9-physics/", courses_text)

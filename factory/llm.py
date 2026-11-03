@@ -14,6 +14,13 @@ Failure semantics (no silent fallbacks, ever):
 Server settings (base url, model, key, sampling) come from the environment -
 see factory/config.py. The API key value is never written to any artifact:
 the Authorization header is a header, and only the request body is persisted.
+
+Observability (2026-11-04): every attempt prints its start, an in-flight
+heartbeat every HEARTBEAT_S seconds, and its end with latency + token usage.
+A single giant generation call to a thinking model can legitimately run for
+many minutes; without in-flight logging a healthy run looks identical to a
+hang (diagnosis lesson of the 2026-11-04 stalled run). meta.json additionally
+records sampling settings and payload sizes.
 """
 
 from __future__ import annotations
@@ -21,6 +28,9 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
+from datetime import UTC, datetime
 from typing import Any
 
 import jsonschema
@@ -31,6 +41,10 @@ from .config import Config
 from .errors import ModelCallError, SchemaError
 
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
+# How often a blocked model call prints "still working". 60s: frequent enough
+# to prove a run is alive, sparse enough not to pollute a 2-hour Job log.
+HEARTBEAT_S = 60
 
 
 def _strip_code_fences(text: str) -> str:
@@ -125,18 +139,36 @@ class LLMClient:
             self.run.write_json(attempt_dir / "request.json", self._redact(request))
 
             t0 = time.time()
-            status, raw_text, usage = self._post(request, stage_id, attempt)
+            round_note = f" [{round_tag}]" if round_tag else ""
+            print(
+                f"[{stage_id}] model call started{round_note} (attempt "
+                f"{attempt}/{self.cfg.server['max_attempts']}; a thinking model "
+                "can take many minutes - heartbeats will show it is alive)"
+            )
+            status, raw_text, usage = self._post_with_heartbeat(
+                request, stage_id, attempt
+            )
             latency = round(time.time() - t0, 2)
+            print(
+                f"[{stage_id}] model call finished in {latency}s{self._usage_note(usage)}"
+            )
             self.run.write_text(attempt_dir / "response.json", raw_text)
             self.run.write_json(
                 attempt_dir / "meta.json",
                 {
                     "stage": stage_id,
                     "attempt": attempt,
+                    "started_at": datetime.fromtimestamp(t0, UTC).isoformat(
+                        timespec="seconds"
+                    ),
                     "http_status": status,
                     "latency_s": latency,
                     "usage": usage,
                     "model": self.cfg.server["model"],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "prompt_chars": sum(len(m["content"]) for m in request["messages"]),
+                    "response_chars": len(raw_text),
                 },
             )
 
@@ -144,6 +176,7 @@ class LLMClient:
                 parsed = parse_json_object(raw_text)
             except ValueError as exc:
                 last_error = f"JSON parse failure: {exc}"
+                self._reject(stage_id, attempt, last_error)
                 self._feedback(transcript, raw_text, last_error)
                 continue
 
@@ -151,6 +184,9 @@ class LLMClient:
                 jsonschema.validate(instance=parsed, schema=schema)
             except jsonschema.ValidationError as exc:
                 last_error = self._format_validation_error(exc)
+                self._reject(
+                    stage_id, attempt, f"Schema validation failed: {last_error}"
+                )
                 self._feedback(
                     transcript, raw_text, f"Schema validation failed: {last_error}"
                 )
@@ -160,6 +196,7 @@ class LLMClient:
                 problems = extra_validator(parsed)
                 if problems:
                     last_error = "; ".join(problems[:12])
+                    self._reject(stage_id, attempt, f"Rule checks failed: {last_error}")
                     self._feedback(
                         transcript,
                         raw_text,
@@ -177,6 +214,46 @@ class LLMClient:
         )
 
     # ------------------------------------------------------------- internals
+    def _post_with_heartbeat(
+        self, request: dict, stage_id: str, attempt: int
+    ) -> tuple[int, str, dict]:
+        """Run the blocking HTTP call on a worker thread and print a heartbeat
+        while it waits, so a long thinking/generation call is visibly alive.
+
+        Transport retries and error semantics are unchanged - they live inside
+        _post; this wrapper only observes."""
+        t0 = time.monotonic()
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self._post, request, stage_id, attempt)
+            while True:
+                try:
+                    return future.result(timeout=HEARTBEAT_S)
+                except FuturesTimeout:
+                    print(
+                        f"[{stage_id}] still waiting on the model "
+                        f"({int(time.monotonic() - t0)}s on this attempt...)"
+                    )
+
+    @staticmethod
+    def _reject(stage_id: str, attempt: int, error: str) -> None:
+        """Log a rejected attempt: the model gets the exact violation fed back
+        (errors-as-context), and the log shows why a retry is happening."""
+        print(
+            f"[{stage_id}] attempt {attempt} rejected: {error[:180]} "
+            "-> retrying with the error fed back to the model"
+        )
+
+    @staticmethod
+    def _usage_note(usage: dict) -> str:
+        if not usage:
+            return ""
+        parts = [
+            f"{key}={usage[key]}"
+            for key in ("prompt_tokens", "completion_tokens")
+            if key in usage
+        ]
+        return f" ({', '.join(parts)})" if parts else ""
+
     def _post(
         self, request: dict, stage_id: str, attempt: int
     ) -> tuple[int, str, dict]:
@@ -249,13 +326,17 @@ class LLMClient:
     def _feedback(
         transcript: list[dict[str, str]], bad_output: str, error: str
     ) -> None:
+        """Errors-as-context (skills/prompting-and-agent-design): the exact
+        violation is the instruction; tell the model to fix precisely that and
+        preserve what was already valid."""
         transcript.append({"role": "assistant", "content": bad_output})
         transcript.append(
             {
                 "role": "user",
                 "content": (
-                    f"{error}\n\nReturn the corrected COMPLETE JSON object only. "
-                    "No prose, no markdown fences."
+                    f"{error}\n\nFix the reported problem(s) and return the "
+                    "corrected COMPLETE JSON object only. Keep every part that "
+                    "was already valid unchanged. No prose, no markdown fences."
                 ),
             }
         )

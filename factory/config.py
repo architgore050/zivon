@@ -19,8 +19,9 @@ Optional environment variables (defaults in parentheses):
     ZIVON_API_KEY    (unset = no Authorization header)
     ZIVON_JSON_MODE  (true)  response_format json_object
     ZIVON_TEMPERATURE(0.2)
-    ZIVON_MAX_TOKENS (4096)
-    ZIVON_TIMEOUT_S  (600)
+    ZIVON_MAX_TOKENS (65536)  deliberately generous: thinking models spend
+                              thousands of tokens reasoning before real output
+    ZIVON_TIMEOUT_S  (3600)   likewise: a giant generation call is legitimate
     ZIVON_MAX_ATTEMPTS(3)
 """
 

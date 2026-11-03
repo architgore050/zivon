@@ -131,5 +131,51 @@ class TestResumeSupport(unittest.TestCase):
         self.assertFalse(wipe_run(self.runs, "never-ran"))  # idempotent
 
 
+class TestStageTimingLogging(unittest.TestCase):
+    """2026-11-04 observability: per-stage progress lines on stdout, measured
+    per-stage wall-time in status.json, and stage_durations_s in run_report."""
+
+    def setUp(self):
+        self.runs = Path(tempfile.mkdtemp()) / "runs"
+
+    def test_stage_transitions_print_and_measure(self):
+        ctx = RunContext(self.runs, "r1")
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ctx.mark_stage("02-generate", "running")
+            ctx.mark_stage("02-generate", "ok", detail="claims=9 blocks=12")
+        printed = buf.getvalue()
+        self.assertIn("[02-generate] starting", printed)
+        self.assertIn("[02-generate] ok in", printed)
+        self.assertIn("claims=9 blocks=12", printed)
+        status = json.loads((self.runs / "r1" / "status.json").read_text())
+        self.assertIsNotNone(status.get("started_at"))
+        entry = status["stages"]["02-generate"]
+        self.assertIn("elapsed_s", entry)
+
+    def test_multi_round_stages_accumulate_across_rounds(self):
+        ctx = RunContext(self.runs, "r1")
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ctx.mark_stage("03-check", "running")
+            ctx.mark_stage("03-check", "failed", detail="blocking=2")
+            ctx.mark_stage("03-check", "running")
+            ctx.mark_stage("03-check", "ok", detail="blocking=0")
+            ctx.finish(ok=True)
+        report = json.loads((self.runs / "r1" / "run_report.json").read_text())
+        self.assertIn("03-check", report["stage_durations_s"])
+        self.assertIn("started_at", report)
+        self.assertIn("completed_at", report)
+
+    def test_started_at_survives_fingerprint_and_resume(self):
+        ctx = RunContext(self.runs, "r1")
+        ctx.set_fingerprint("fp-123")
+        again = RunContext(self.runs, "r1")
+        again.mark_stage("01-locate", "ok", detail="resumed from previous attempt")
+        status = json.loads((self.runs / "r1" / "status.json").read_text())
+        self.assertIsNotNone(status.get("started_at"))
+        self.assertLess(abs(status["started_at"] - ctx._t0), 2.0)
+
+
 if __name__ == "__main__":
     unittest.main()
