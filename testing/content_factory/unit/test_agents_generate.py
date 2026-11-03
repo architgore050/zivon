@@ -189,6 +189,7 @@ class TestCheckPromptCalibration(unittest.TestCase):
             cast(LLMClient, stub),
             make_pack(),
             load("gt.json"),
+            load("lesson.json"),
             load("blocks.json"),
         )
         return next(m["content"] for m in stub.messages if m["role"] == "user")
@@ -213,6 +214,14 @@ class TestCheckPromptCalibration(unittest.TestCase):
         self.assertIn("starting 'unverified:'", user)
         self.assertIn("Example issue (SHAPE only", user)
         self.assertIn("never reuse", user)
+
+    def test_reviewer_sees_the_lesson_it_must_verify_against(self):
+        # Checklist item 5 asks whether the page teaches an expected_understanding
+        # BEFORE testing it - the reviewer cannot judge that without the lesson
+        # prose in its context (context-completeness rule, prompting skill).
+        user = self._check_prompt()
+        self.assertIn("THE LESSON THE PAGE TEACHES", user)
+        self.assertIn(load("lesson.json")["title"], user)
 
 
 class TestRepairCatcher(unittest.TestCase):

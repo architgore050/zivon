@@ -208,6 +208,7 @@ def run_pipeline(
                 llm,
                 source_pack,
                 ground_truth,
+                lesson,
                 blocks,
                 round_tag=round_tag,
             )

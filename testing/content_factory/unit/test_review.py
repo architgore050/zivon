@@ -93,6 +93,17 @@ class TestReviewPrompt(unittest.TestCase):
         self.assertIn("physically wrong behaviour is a fatal issue", user)
         self.assertIn("verdict=fail only if you report at least one fatal", user)
 
+    def test_reviewer_framing_is_honest_not_adversarial(self):
+        # "Assume the page contains at least one defect" manufactured
+        # trivia-failures (same lesson graph v2 learned for 03-check). The judge
+        # also gets a way out: unverifiable suspicions are 'unverified:' minor.
+        stub = StubLLM()
+        self._review(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertNotIn("Assume the page contains at least one defect", user)
+        self.assertIn("do not invent problems", user)
+        self.assertIn("starting 'unverified:'", user)
+
     def test_review_prompt_carries_live_doctrine_and_checklist_item(self):
         # Style policing against a held-over excerpt drifts when the doctrine
         # changes; the reviewer must get the live document plus the checklist

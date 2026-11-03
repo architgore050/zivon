@@ -75,7 +75,13 @@ def run_generate(
     so the reasoning layer pays ONE thinking cycle, not three."""
     ch = source_pack["chapter"]
     user = (
-        f"TOPIC: chapter '{ch['title']}' from {ch['book_title']} (class {ch['class']}).\n\n"
+        f"GOAL: build the COMPLETE study page for chapter '{ch['title']}' from "
+        f"{ch['book_title']} (class {ch['class']}). Your entire universe of facts "
+        "is the SOURCE MATERIAL below. Success means: a student of this class "
+        "who has never seen the topic can learn it from this page alone - "
+        "correctly, patiently, and well enough to face the chapter's textbook "
+        "problems. A wrong or invented fact here becomes an exam answer, so "
+        "every factual statement must be traceable to the sources.\n\n"
         "SOURCE MATERIAL:\n\n"
         + _pack_text(cfg, source_pack)
         + "\n\nDESIGN DOCTRINE (the visual rules this page must follow; the "
@@ -84,9 +90,10 @@ def run_generate(
         + "\n\nPALETTE (exact values from the page stylesheet; use these for "
         "diagram fill/stroke, invent nothing):\n"
         + palette_text(cfg)
-        + "\n\nTASK: Build this page in three layers and return them as ONE JSON "
-        'object with exactly these keys: "ground_truth", "lesson", "blocks".\n\n'
-        "LAYER 1 - ground_truth: synthesize the facts from the sources above.\n"
+        + "\n\nDELIVERABLE: ONE JSON object with exactly three layers - "
+        '"ground_truth", "lesson", "blocks".\n\n'
+        'LAYER 1 "ground_truth" - the page\'s fact base, synthesized from the '
+        "sources above.\n"
         '- "topic": short topic name\n'
         '- "summary": 3-6 sentence overview\n'
         '- "claims": 8-20 factual claims; each {"id": "claim-01", "statement": "...", '
@@ -103,19 +110,18 @@ def run_generate(
         "corrects; search for them before returning an empty array\n"
         '- "uncertain": list of questions the sources do NOT answer clearly. If a fact you '
         "wanted to state has no clear passage behind it, record that question here instead of "
-        "stating the fact. Never leave this out; use [] only if you are certain everything "
+        "stating the fact. Use [] only if you are certain everything "
         "needed is covered.\n"
         'Use source_id "ncert" for the primary NCERT chapter text.\n\n'
         "LAYER 2 - lesson: edit the ground truth into a SELF-CONTAINED lesson that explains "
         f"everything slowly and properly for a first-time learner in class {cfg.learner['class_level']}.\n"
         "Write as a patient tutor speaking directly to the student ('you'): clear, "
-        "encouraging, step by step.\n"
-        "Hard requirements:\n"
+        "encouraging, step by step. Quality bar:\n"
         "- TEACHING ORDER: start from an everyday observation the student recognises, then "
         "define, then formalise with symbols and equations.\n"
-        "- INDEPENDENT OF OUTSIDE SOURCES: the reader has only this page. Remove every "
-        "context-specific reference: 'previous chapter', 'the textbook', 'Figure 7.3', "
-        "'as we saw', exercise numbers, page numbers. Do not refer to any external material.\n"
+        "- INDEPENDENT OF OUTSIDE SOURCES: the reader has only this page - remove every "
+        "context-specific reference ('previous chapter', 'the textbook', 'Figure 7.3', "
+        "'as we saw', exercise numbers, page numbers).\n"
         "- Define every technical term the first time it appears.\n"
         "- One idea per paragraph; 3-5 sentences per paragraph; short sentences.\n"
         "- Do not add facts that are not in the ground truth; keep numbers and units exactly "
@@ -173,6 +179,9 @@ def run_generate(
         '"learning_goal": "...", "controls": [{"id": "speed", "label": "Speed (m/s)", '
         '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
         '"citations": [{"claim_id": "claim-03"}]}]}'
+        "\n\nBefore you answer: reread the SOURCE MATERIAL against your draft - "
+        "every number, unit and concept in the page must survive that reread. "
+        "Return only the JSON object."
     )
 
     def rule_feedback(parsed: dict[str, Any]) -> list[str]:
@@ -267,6 +276,7 @@ def run_check(
     llm: LLMClient,
     source_pack: dict[str, Any],
     ground_truth: dict[str, Any],
+    lesson: dict[str, Any],
     blocks: dict[str, Any],
     round_tag: str | None = None,
 ) -> dict[str, Any]:
@@ -275,6 +285,9 @@ def run_check(
         + _pack_text(cfg, source_pack)
         + "\n\nGROUND TRUTH:\n\n"
         + _gt_text(ground_truth)
+        + "\n\nTHE LESSON THE PAGE TEACHES (what the student has already been "
+        "taught by the time they reach each check):\n\n"
+        + _lesson_text(lesson)
         + "\n\nDRAFT BLOCKS TO REVIEW:\n\n"
         + _blocks_text(blocks)
         + "\n\nTASK: You are the Comprehension & Fact Reviewer. Hunt for REAL "
