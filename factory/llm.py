@@ -15,6 +15,11 @@ Server settings (base url, model, key, sampling) come from the environment -
 see factory/config.py. The API key value is never written to any artifact:
 the Authorization header is a header, and only the request body is persisted.
 
+No completion cap is ever sent (2026-11-04 founder decision): the factory
+sends no max_tokens at all - the server decides how long its answer, thinking
+included, may be within its own context; timeout_s and the Job's
+activeDeadlineSeconds are the backstops.
+
 Observability (2026-11-04): every attempt prints its start, an in-flight
 heartbeat every HEARTBEAT_S seconds, and its end with latency + token usage.
 A single giant generation call to a thinking model can legitimately run for
@@ -90,7 +95,6 @@ class LLMClient:
         schema: dict,
         schema_name: str,
         temperature: float | None = None,
-        max_tokens: int | None = None,
         extra_validator: Callable[[dict[str, Any]], list[str]] | None = None,
         round_tag: str | None = None,
     ) -> dict[str, Any]:
@@ -110,16 +114,10 @@ class LLMClient:
             "temperature",
             temperature if temperature is not None else self.cfg.server["temperature"],
         )
-        max_tokens = override.get(
-            "max_tokens",
-            max_tokens if max_tokens is not None else self.cfg.server["max_tokens"],
-        )
-
         base_request = {
             "model": self.cfg.server["model"],
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": max_tokens,
         }
         if self.cfg.server["json_mode"]:
             base_request["response_format"] = {"type": "json_object"}
@@ -166,7 +164,6 @@ class LLMClient:
                     "usage": usage,
                     "model": self.cfg.server["model"],
                     "temperature": temperature,
-                    "max_tokens": max_tokens,
                     "prompt_chars": sum(len(m["content"]) for m in request["messages"]),
                     "response_chars": len(raw_text),
                 },

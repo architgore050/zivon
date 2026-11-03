@@ -19,9 +19,7 @@ Optional environment variables (defaults in parentheses):
     ZIVON_API_KEY    (unset = no Authorization header)
     ZIVON_JSON_MODE  (true)  response_format json_object
     ZIVON_TEMPERATURE(0.2)
-    ZIVON_MAX_TOKENS (65536)  deliberately generous: thinking models spend
-                              thousands of tokens reasoning before real output
-    ZIVON_TIMEOUT_S  (3600)   likewise: a giant generation call is legitimate
+    ZIVON_TIMEOUT_S  (3600)   a giant generation call is legitimate
     ZIVON_MAX_ATTEMPTS(3)
 """
 
@@ -91,12 +89,11 @@ _SPEC: dict[str, Any] = {
 _SERVER_DEFAULTS: dict[str, Any] = {
     "json_mode": True,
     "temperature": 0.2,
-    # max_tokens / timeout_s are deliberately huge: local single-slot models
-    # run ~20 tok/s worst case and qwen thinks for 5-10k tokens before real
-    # output, so any tight cap becomes the failure point. The server clamps
-    # max_tokens to its remaining context; the Job's activeDeadlineSeconds is
-    # the real backstop. Tighten only when a faster server arrives.
-    "max_tokens": 65536,
+    # No completion cap is sent at all (2026-11-04 founder decision, removing
+    # the 0.2.8 huge-max_tokens workaround): qwen thinks a lot and then gets
+    # things right - one review call measured 49,750 completion tokens, mostly
+    # thinking - so the server's own context decides answer length. timeout_s
+    # stays huge; the Job's activeDeadlineSeconds is the backstop.
     "timeout_s": 3600.0,
     "max_attempts": 3,
 }
@@ -144,10 +141,10 @@ class Config:
         ov = self.data["stage_overrides"].get(stage_id)
         if ov is None:
             return {}
-        if not isinstance(ov, dict) or not set(ov) <= {"temperature", "max_tokens"}:
+        if not isinstance(ov, dict) or not set(ov) <= {"temperature"}:
             raise ConfigError(
                 f"stage_overrides['{stage_id}'] must be an object with only "
-                "'temperature' and/or 'max_tokens' keys"
+                "a 'temperature' key"
             )
         return ov
 
@@ -234,9 +231,6 @@ def _load_server_from_env() -> dict[str, Any]:
     max_attempts = _env_number("ZIVON_MAX_ATTEMPTS", 3, integer=True)
     if max_attempts < 1:
         raise ConfigError("ZIVON_MAX_ATTEMPTS must be >= 1")
-    max_tokens = _env_number("ZIVON_MAX_TOKENS", 65536, integer=True)
-    if max_tokens < 64:
-        raise ConfigError("ZIVON_MAX_TOKENS must be >= 64")
     temperature = _env_number("ZIVON_TEMPERATURE", 0.2, integer=False)
     if not 0.0 <= temperature <= 2.0:
         raise ConfigError("ZIVON_TEMPERATURE must be between 0.0 and 2.0")
@@ -249,7 +243,6 @@ def _load_server_from_env() -> dict[str, Any]:
         "model": model,
         "json_mode": _env_bool("ZIVON_JSON_MODE", True),
         "temperature": temperature,
-        "max_tokens": max_tokens,
         "timeout_s": timeout_s,
         "max_attempts": max_attempts,
     }

@@ -21,7 +21,7 @@ see `docs/content-factory/config-reference.md` and `.env.example`):
 2. If the server rejects `response_format` with a 400, set
    `ZIVON_JSON_MODE=false` (the pipeline tells you exactly this; it never
    downgrades on its own).
-3. Optional: per-stage `temperature` / `max_tokens` under `stage_overrides`
+3. Optional: per-stage `temperature` under `stage_overrides`
    in `config.json` (the behaviour file: learner, retrieval, limits, paths,
    perf, repair live there).
 

@@ -84,10 +84,14 @@ shape), state the exact contract and say it must be matched.
    keep prose instructions about format SHORT because schemas carry the load.
 9. **Thinking models: do not script, cap, or disable thinking.** No
    "think step by step", no `<thinking>` mimicry, no token budgets aimed at
-   the reasoning itself; give generous `max_tokens` and let adaptive thinking
-   size itself `[S2][S4]`. Repo law: never `enable_thinking=false`. If runaway
-   thinking is measurable, fix it with scope-setting ("choose an approach and
-   commit to it"), not a switch.
+   the reasoning itself; send no completion caps at all - no `max_tokens`, no
+   thinking budgets - and let adaptive thinking size itself within the
+   server's own context `[S2][S4]`. Repo law (2026-11-04): never
+   `enable_thinking=false`, and factory requests carry no `max_tokens` (a
+   measured review call spent ~50k completion tokens thinking, then produced a
+   correct verdict - thinking-heavy calls make any cap a truncation risk). If
+   runaway thinking is measurable, fix it with scope-setting ("choose an
+   approach and commit to it"), not a switch.
 10. **Self-check sparingly.** "Before you finish, verify against [criteria]"
     catches real errors on some models; strong current models often verify
     unprompted, and bolted-on verification language causes over-verification
@@ -192,8 +196,9 @@ certainty `[S3][S7]`:
   "taught before tested" without the lesson text).
 - Stale docstring/config defaults that contradict `_SERVER_DEFAULTS` — docs
   that lie are worse than none.
-- Tiny `max_tokens` for a thinking model (the cap becomes the failure point);
-  or disabling thinking.
+- `max_tokens` aimed at a thinking model (even a huge cap counts against
+  thinking tokens and becomes the failure point - removed from this factory
+  entirely 2026-11-04); or disabling thinking.
 - Prompt prose enforcing guarantees code should enforce (citation presence,
   no-`eval`, palette-only colors are RULE CHECKS, not prayers).
 - Silent long-running calls with no heartbeat or timing logs.

@@ -126,7 +126,6 @@ class TestLLMClient(unittest.TestCase):
                 "started_at",
                 "latency_s",
                 "temperature",
-                "max_tokens",
                 "prompt_chars",
                 "response_chars",
             ):

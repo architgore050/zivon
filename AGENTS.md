@@ -106,7 +106,7 @@ Where the code lives:
 - `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
 - `Dockerfile.frontend`, `docker/nginx.conf` — the frontend nginx image (static-site hosting; bakes only the hand-maintained shell, never generated pages)
 - `docker/inference-router.Dockerfile` — dev-only router (compose service `inference-router`): bridges the host's loopback-only OpenAI-format inference server to containers/cluster pods; not a product image, not in CI
-- `k8s/` — cluster manifests (numeric prefix = apply order) + `k8s/infra.env` (single source of truth for cluster config values: `TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S`, `ZIVON_MAX_TOKENS` — no secrets, no image tags); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
+- `k8s/` — cluster manifests (numeric prefix = apply order) + `k8s/infra.env` (single source of truth for cluster config values: `TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S` — no secrets, no image tags); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
 - `scripts/apply-k8s.sh` (apply the whole stack from `infra.env` + startup test run), `scripts/trigger-tests.sh` and `scripts/trigger-factory-run.sh` (the two admin "buttons", Day-8 dashboard stand-ins — see TIMELINE.md)
 - `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
 

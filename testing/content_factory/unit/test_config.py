@@ -25,7 +25,6 @@ _SERVER_VARS = (
     "ZIVON_API_KEY",
     "ZIVON_JSON_MODE",
     "ZIVON_TEMPERATURE",
-    "ZIVON_MAX_TOKENS",
     "ZIVON_TIMEOUT_S",
     "ZIVON_MAX_ATTEMPTS",
 )
@@ -95,10 +94,10 @@ class TestConfig(unittest.TestCase):
         self.assertIn("http://", str(ctx.exception))
 
     def test_non_numeric_env_rejected(self):
-        os.environ["ZIVON_MAX_TOKENS"] = "huge"
+        os.environ["ZIVON_TIMEOUT_S"] = "huge"
         with self.assertRaises(ConfigError) as ctx:
             load_config(write_config(self.tmp))
-        self.assertIn("ZIVON_MAX_TOKENS", str(ctx.exception))
+        self.assertIn("ZIVON_TIMEOUT_S", str(ctx.exception))
 
     def test_non_integer_env_rejected(self):
         os.environ["ZIVON_MAX_ATTEMPTS"] = "2.5"
@@ -184,7 +183,7 @@ class TestConfig(unittest.TestCase):
 
     def test_unknown_stage_override_rejected(self):
         def mutate(d):
-            d["stage_overrides"] = {"99-nope": {"max_tokens": 10}}
+            d["stage_overrides"] = {"99-nope": {"temperature": 0.4}}
 
         with self.assertRaises(ConfigError) as ctx:
             load_config(write_config(self.tmp, mutate))
@@ -192,10 +191,10 @@ class TestConfig(unittest.TestCase):
 
     def test_stage_override_ok(self):
         def mutate(d):
-            d["stage_overrides"] = {"02-generate": {"max_tokens": 8192}}
+            d["stage_overrides"] = {"02-generate": {"temperature": 0.4}}
 
         cfg = load_config(write_config(self.tmp, mutate))
-        self.assertEqual(cfg.stage_override("02-generate"), {"max_tokens": 8192})
+        self.assertEqual(cfg.stage_override("02-generate"), {"temperature": 0.4})
 
     def test_missing_repair_section_rejected(self):
         def mutate(d):
