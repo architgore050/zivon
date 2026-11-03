@@ -226,6 +226,7 @@ Until the Day-8 admin dashboard exists, these are the sanctioned admin controls.
 |---|---|---|
 | **Run tests now** | `scripts/trigger-tests.sh` | `kubectl create job test-manual-<HHMMSS> --from=cronjob/test-suite -n zivon` — clones the CronJob's jobTemplate. The suite also runs on the `TEST_CRON_SCHEDULE` cadence AND once on every `scripts/apply-k8s.sh` (startup coverage; keep this behavior on dashboard deploys). |
 | **Generate a topic** | `scripts/trigger-factory-run.sh "<chapter>" [class 6-12]` | Renders the `k8s/20` Job template (name → `factory-run-<slug>-<HHMMSS>`, injects chapter + optional `--class`) and applies it. Generation is **manual-only by design** — the factory Job must never be scheduled; only tests are. |
+| **Watch the latest run** | `scripts/logs-factory-run.sh` | Resolves the newest factory run by the `task=factory-run` label (no generated job name/timestamp needed) and follows its logs; `--status` / `--list` for quick checks. The dashboard's run-log viewer must use the same label-based lookup. |
 
 Constraints carried forward: cron granularity is minutes (sub-minute loops = runner Deployment + sleep, P2); test suites never ship in production images (the factory image carries them only because the perf harness is a runtime tool import); secrets runtime-only, never in manifests or CI.
 

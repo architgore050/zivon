@@ -100,6 +100,7 @@ kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
 # the site, live with no extra command: http://192.168.49.2:30080
 scripts/trigger-tests.sh                  # manual full test run (the "button")
 scripts/trigger-factory-run.sh "Motion" 9 # one generation run (chapter + class)
+scripts/logs-factory-run.sh               # follow the latest run's logs (no job name needed)
 ```
 
 - The content factory runs as a **Job** (batch, runs to completion) and is **manual-trigger only** — generation never runs on a schedule. Only the test suite is scheduled (cadence from `TEST_CRON_SCHEDULE` in `k8s/infra.env`). The voice backend will run as a **Deployment + Service** when it exists.

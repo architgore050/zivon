@@ -35,6 +35,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 - `scripts/apply-k8s.sh` — applies the whole stack from `k8s/infra.env`: namespace → `zivon-factory-config` ConfigMap (server URL + model) → manifests in dependency order (smoke Job deleted + re-applied so it re-runs as a post-apply health check; **20 deliberately NOT applied**) → the test CronJob rendered with `TEST_CRON_SCHEDULE` → **one immediate full test run** (`scripts/trigger-tests.sh startup`; the CronJob's first tick can be up to a full interval away, so startup coverage is explicit).
 - `scripts/trigger-tests.sh [suffix]` — the test-suite "button": `kubectl create job test-<suffix>-<HHMMSS> --from=cronjob/test-suite -n zivon`.
 - `scripts/trigger-factory-run.sh "<chapter>" [class 6-12]` — the content factory "button": renders the 20 template (name + chapter + optional `--class`) and applies it. Generation is manual-trigger only, by design: the factory NEVER runs on a schedule.
+- `scripts/logs-factory-run.sh [--status|--list]` — watches the **latest** generation run without knowing its generated name: every run Job carries label `task=factory-run` (20 template), so the script resolves the newest one by label and follows its logs. Output visibility never depends on a timestamp.
 - Both trigger scripts are the documented stand-ins for the Day-8 admin dashboard buttons (see `TIMELINE.md`).
 
 ## Pipeline Run Job pattern (`20-factory-run-job.yaml` + trigger script)

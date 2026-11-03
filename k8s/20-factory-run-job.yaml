@@ -33,6 +33,7 @@ metadata:
   namespace: zivon
   labels:
     app: zivon-factory
+    task: factory-run             # stable handle: scripts/logs-factory-run.sh finds the latest run by this label
 spec:
   backoffLimit: 1
   activeDeadlineSeconds: 7200     # a pipeline run must not hang forever: hard cap. 2 h because a cold-cache first run politely fetches + extracts the whole catalog; the sources PVC makes progress resumable, so a re-run continues where this one stopped.
@@ -41,6 +42,7 @@ spec:
     metadata:
       labels:
         app: zivon-factory
+        task: factory-run
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false   # the factory needs no K8s API access

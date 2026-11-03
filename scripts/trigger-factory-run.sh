@@ -39,5 +39,5 @@ sed -e "s|factory-run-template|${name}|" \
     k8s/20-factory-run-job.yaml | kubectl apply -f -
 
 echo "generation run started: job/$name (chapter: ${chapter}${class:+, class: $class})"
-echo "watch it: kubectl logs -f job/$name -n zivon"
+echo "watch it: scripts/logs-factory-run.sh        # follows the latest run, no name needed"
 echo "status:   kubectl get job $name -n zivon"
