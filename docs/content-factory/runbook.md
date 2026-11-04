@@ -43,6 +43,11 @@ is correct end to end and the only remaining variable is your real model.
 - The page is written to `frontend/courses/class-9-physics/<slug>/` and listed
   on `frontend/index.html` automatically (stage 11).
 - Open `frontend/index.html` in a browser (or `python3 -m http.server -d frontend`).
+- Cluster runs: stage 11 lands the site on the `zivon-frontend` PVC (served live at
+  the NodePort). After a run whose pages you want to keep, `scripts/publish-frontend.sh`
+  mirrors the generated output (`courses/`, `courses.js`) back into the repo's
+  `frontend/` - the versioned, standalone-deployable snapshot (git history holds
+  the previous versions).
 - Run ids are deterministic per (chapter, class) - `motion-c9`. Re-triggering
   the same topic RESUMES the previous attempt (completed stages reused, zero
   model re-calls). Pass `--fresh` to wipe the previous attempt and generate the

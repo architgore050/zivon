@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'">
+<title>How Forces Affect Motion - Zivon</title>
+<link rel="stylesheet" href="../../../assets/zivon.css">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+<main class="zn-page">
+  <header class="zn-header">
+    <p class="zn-kicker">class-9-physics</p>
+    <h1 class="zn-title">How Forces Affect Motion</h1>
+    <p class="zn-objectives-label">After this lesson you can:</p>
+    <ul class="zn-objectives">
+      <li>After this lesson you can explain what a force does and why direction matters.</li>
+      <li>After this lesson you can find net force for balanced and unbalanced forces.</li>
+      <li>After this lesson you can use Newton&#x27;s first and second laws to predict motion.</li>
+      <li>After this lesson you can explain action-reaction force pairs and why they do not cancel.</li>
+    </ul>
+  </header>
+  <section class="zn-text">
+    <p>You push a box, kick a ball, or squeeze a lemon. In each case, something changes. A force can make an object move from rest. It can change the speed or direction of a moving object. It can even change the shape of an object.</p>
+    <p>A force is not just a number. You must say how strong it is and which way it acts. The SI unit of force is the newton. Its symbol is N.</p>
+  </section>
+  <section class="zn-text">
+    <p>In real life, more than one force often acts on an object. When you push a box, friction acts between the box and the floor in the opposite direction. The box starts moving only when your applied force is larger than the friction force.</p>
+    <p>If two teams pull a rope with equal forces in opposite directions, the forces are balanced. The rope does not move. If one team pulls harder, the forces are unbalanced and the rope moves in the direction of the larger force.</p>
+    <p>For forces in the same direction, add their magnitudes. For opposite unequal forces, subtract the smaller from the larger. The net force points along the larger force.</p>
+  </section>
+  <figure class="zn-diagram" id="b-03">
+    <div class="zn-diagram-svg"><svg viewBox='0 0 360 288' aria-label='A block with a 10 N force to the right, a 6 N force to the left, and a net force of 4 N to the right.'><rect x='120' y='120' width='120' height='60' fill='none' stroke='#1C1B18' stroke-width='3.8'/><path d='M 60 150 Q 80 147 100 150 Q 110 152 120 150' fill='none' stroke='#1C1B18' stroke-width='3.2'/><polygon points='120,144 132,150 120,156' fill='#1C1B18'/><text x='70' y='135' fill='#1C1B18' font-family='Caveat' font-size='22' font-weight='700'>10 N</text><path d='M 300 150 Q 280 153 260 150 Q 250 148 240 150' fill='none' stroke='#1C1B18' stroke-width='3.2'/><polygon points='240,144 228,150 240,156' fill='#1C1B18'/><text x='270' y='135' fill='#1C1B18' font-family='Caveat' font-size='22' font-weight='700'>6 N</text><path d='M 180 210 Q 195 207 210 210 Q 220 212 230 210' fill='none' stroke='#1F3A9E' stroke-width='3.2'/><polygon points='230,204 242,210 230,216' fill='#1F3A9E'/><text x='170' y='235' fill='#1F3A9E' font-family='Caveat' font-size='28' font-weight='700'>Net force 4 N</text></svg></div>
+    <figcaption>A 10 N force to the right and a 6 N force to the left give a net force of 4 N to the right.</figcaption>
+  </figure>
+  <fieldset class="zn-check" id="b-04" data-format="mcq" data-answer-index="1">
+    <legend>A block has a 10 N force acting to the right and a 6 N force acting to the left. What is the net force?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="0"> <span>16 N towards the right</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="1"> <span>4 N towards the right</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="2"> <span>4 N towards the left</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="3"> <span>0 N</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Opposite unequal forces subtract. 10 N - 6 N = 4 N, and the direction is along the larger 10 N force.</p></details>
+  </fieldset>
+  <section class="zn-text">
+    <p>If you stop pushing a moving box, friction keeps acting against its motion. The box slows down and comes to rest. On a surface with smaller friction, the object travels farther before stopping.</p>
+    <p>When you walk, your foot pushes the ground backwards. The ground applies a forward force of friction on your foot. This forward friction helps you move.</p>
+  </section>
+  <section class="zn-sim zn-sim-b-06" id="b-06" data-sim-id="b-06" aria-label="Net force on a block">
+    <h3>Net force on a block</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span>Force to the right (N)</span><input type="range" data-control="right_force" min="0" max="20" step="1" value="10"><output>10</output></label>
+      <label class="zn-sim-control"><span>Force to the left (N)</span><input type="range" data-control="left_force" min="0" max="20" step="1" value="6"><output>6</output></label>
+    </div>
+    <canvas class="zn-sim-canvas" width="480" height="320" tabindex="0"></canvas>
+    <p class="zn-sim-desc">Adjust two horizontal forces on a block and see how the net force changes.</p>
+  </section>
+  <section class="zn-text">
+    <p>If the force of friction is zero, a moving object does not need a further force to keep moving with constant velocity. It keeps moving because no net force changes its velocity. This is Newton&#x27;s first law.</p>
+    <p>Newton&#x27;s first law says an object at rest remains at rest, and an object in motion continues with constant velocity, unless a net force acts upon it. Constant velocity means no change in the magnitude or direction of velocity.</p>
+    <p>If the net force is zero, the object cannot start moving or change velocity. Its acceleration is zero. A moving object with zero net force keeps its velocity unchanged.</p>
+  </section>
+  <fieldset class="zn-check" id="b-08" data-format="mcq" data-answer-index="0">
+    <legend>An object is moving with constant velocity. What can you say about the net force acting on it?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="0"> <span>The net force is zero.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="1"> <span>A force is needed to keep it moving.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="2"> <span>The net force is in the direction of motion.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="3"> <span>The net force must be increasing.</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Newton&#x27;s first law says an object continues with constant velocity unless a net force acts. Constant velocity means no net force.</p></details>
+  </fieldset>
+  <section class="zn-text">
+    <p>A net force produces acceleration. A gentle push gives a small acceleration. A strong push gives a larger acceleration.</p>
+    <p>For the same force, a lighter object accelerates more than a heavier object. The acceleration is proportional to the net force and inversely proportional to the mass. This idea is Newton&#x27;s second law.</p>
+    <p>Newton&#x27;s second law is written as F = ma. Here F is net force, m is mass, and a is acceleration. The acceleration has the same direction as the net force.</p>
+    <p>One newton is the force that produces an acceleration of 1 m s–2 on an object of mass 1 kg. The gravitational force on mass m is F = mg, where g = 9.8 m s–2. For quick estimations, g can be taken as 10 m s–2.</p>
+  </section>
+  <section class="zn-reveal" id="b-10">
+    <h3>Finding acceleration from force</h3>
+      <details class="zn-reveal-step"><summary>Find the net force</summary><p>Add forces acting in the same direction. Subtract opposite unequal forces and take the direction of the larger force.</p></details>
+      <details class="zn-reveal-step"><summary>Use Newton&#x27;s second law</summary><p>Use a = F/m. The acceleration is in the direction of the net force.</p></details>
+      <details class="zn-reveal-step"><summary>If the force is weight</summary><p>Use F = mg, where g = 9.8 m s–2.</p></details>
+  </section>
+  <section class="zn-example" id="b-11">
+    <h3>Worked example</h3>
+    <p class="zn-example-problem">A stationary block of 25 kg is on a horizontal floor. The maximum force of friction opposing motion is 50 N. If a student pushes it with a constant force of 55 N in the forward direction, what is the displacement in 2 seconds?</p>
+    <ol>
+      <li><strong>Find the net force</strong> The applied force is 55 N and the maximum friction is 50 N. The net force is 55 N - 50 N = 5 N.</li>
+      <li><strong>Find the acceleration</strong> Using F = ma, the acceleration is 5 N / 25 kg = 0.2 m s–2.</li>
+      <li><strong>Find the displacement</strong> The displacement in 2 seconds is 0.4 m.</li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> 0.4 m in the forward direction.</p>
+  </section>
+  <section class="zn-text">
+    <p>A force needs at least two objects to interact. When you push a table, the table pushes you back in the opposite direction. This pair of forces acts on different objects.</p>
+    <p>Newton&#x27;s third law says whenever one object exerts a force on a second object, the second object simultaneously exerts an equal and opposite force on the first object. These forces do not cancel each other because they act on different objects. Equal forces do not always give equal accelerations, because the masses may be different.</p>
+  </section>
+  <figure class="zn-diagram" id="b-13">
+    <div class="zn-diagram-svg"><svg viewBox='0 0 360 288' aria-label='A foot on the ground pushes the ground backwards, and friction pushes the foot forward.'><path d='M 40 210 Q 100 207 160 210 Q 220 213 280 210 Q 310 208 320 210' fill='none' stroke='#1C1B18' stroke-width='3.8'/><rect x='150' y='150' width='60' height='40' fill='none' stroke='#1C1B18' stroke-width='3.2'/><path d='M 150 170 Q 120 167 90 170 Q 75 172 60 170' fill='none' stroke='#1C1B18' stroke-width='3.2'/><polygon points='60,164 48,170 60,176' fill='#1C1B18'/><text x='60' y='130' fill='#1C1B18' font-family='Caveat' font-size='22' font-weight='700'>Foot pushes</text><text x='60' y='152' fill='#1C1B18' font-family='Caveat' font-size='22' font-weight='700'>ground backwards</text><path d='M 210 170 Q 240 167 270 170 Q 285 172 300 170' fill='none' stroke='#1F3A9E' stroke-width='3.2'/><polygon points='300,164 312,170 300,176' fill='#1F3A9E'/><text x='210' y='235' fill='#1F3A9E' font-family='Caveat' font-size='28' font-weight='700'>Friction pushes</text><text x='210' y='257' fill='#1F3A9E' font-family='Caveat' font-size='28' font-weight='700'>forward</text></svg></div>
+    <figcaption>When walking, the foot pushes the ground backwards, and friction from the ground pushes the foot forward.</figcaption>
+  </figure>
+  <fieldset class="zn-check" id="b-14" data-format="mcq" data-answer-index="2">
+    <legend>A bullet and a gun exert equal forces on each other. Why does the bullet have a much larger acceleration?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-14" value="0"> <span>The bullet force is larger.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-14" value="1"> <span>The gun force is smaller.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-14" value="2"> <span>The bullet mass is smaller.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-14" value="3"> <span>The gun has no force.</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>The forces are equal in magnitude, but acceleration depends on mass. The bullet has much smaller mass, so its acceleration is larger.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-15" data-format="mcq" data-answer-index="0">
+    <legend>Which statement correctly describes Newton&#x27;s second law?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="0"> <span>Acceleration is in the direction of the net force and proportional to the net force.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="1"> <span>Acceleration is opposite the net force and proportional to mass.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="2"> <span>Acceleration is independent of the net force.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="3"> <span>Acceleration is only in the direction of velocity.</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Newton&#x27;s second law says acceleration is in the direction of the net force, proportional to net force, and inversely proportional to mass.</p></details>
+  </fieldset>
+  <section class="zn-glossary">
+    <h2>Glossary</h2>
+    <dl>
+      <dt>force</dt><dd>A push or pull that can change an object&#x27;s motion or shape. It has magnitude and direction.</dd>
+      <dt>net force</dt><dd>The single force that results from all forces acting on an object.</dd>
+      <dt>balanced forces</dt><dd>Forces equal in magnitude and opposite in direction that give zero net force.</dd>
+      <dt>friction</dt><dd>A force between surfaces in contact. It can oppose an applied force or a slipping tendency.</dd>
+      <dt>inertia</dt><dd>The tendency of objects to resist change in their state of rest or uniform motion.</dd>
+      <dt>constant velocity</dt><dd>Velocity whose magnitude and direction do not change.</dd>
+    </dl>
+  </section>
+  <footer class="zn-footer">
+    <p class="zn-sources">Generated by the Zivon content factory. Sources are listed in the course index.</p>
+  </footer>
+</main>
+<script src="../../../assets/zivon.js"></script>
+<script src="page.js"></script>
+</body>
+</html>
