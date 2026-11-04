@@ -99,7 +99,8 @@ class TestInteractiveFacts(unittest.TestCase):
         self.assertIn("FACTS THE SIMULATION MUST OBEY", user)
         self.assertIn("PHYSICS CONTRACT", user)
         self.assertIn("Never invent physics", user)
-        self.assertIn("small phone canvas", user)
+        self.assertIn("canvas buffer is fixed 480x320", user)
+        self.assertIn("Clean geometry on canvas too", user)
         self.assertIn("Never invent physics facts", system)
 
     def test_prompt_carries_live_doctrine_examples_and_palette(self):

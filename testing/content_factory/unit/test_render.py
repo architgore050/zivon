@@ -13,8 +13,8 @@ sys.path.insert(0, str(REPO_ROOT))
 from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.errors import LintError
-from factory.render import handify_svg, write_courses_js
 from factory.render import run as render_run
+from factory.render import write_courses_js
 from testing.content_factory.unit._server_env import (
     install_server_env,
     release_server_env,
@@ -140,47 +140,26 @@ class TestRender(unittest.TestCase):
         self.assertIn("window.ZIVON_COURSES = []", text)
 
 
-class TestHandifySvg(unittest.TestCase):
-    """Doctrine §10.7 as a HARNESS guarantee (2026-11-04): straight primitives
-    in model-authored diagram SVG become seeded hand strokes in the renderer."""
+class TestDiagramAsAuthored(unittest.TestCase):
+    """Doctrine v1.3 (founder ruling 2026-11-04): the handify_svg jitter pass is
+    retired - diagram geometry renders exactly as the model authored it."""
 
     SVG = (
         '<svg viewBox="0 0 420 270">'
-        '<line x1="30" y1="190" x2="390" y2="190" stroke="#1C1B18" stroke-width="3.8"/>'
-        '<polyline points="10,10 40,40 70,10" fill="none" stroke="#5A5748"/>'
-        '<path d="M 100 100 L 150 100 L 150 60" fill="none" stroke="#1F3A9E"/>'
+        '<line x1="30" y1="190" x2="390" y2="190" stroke="#1C1B18" stroke-width="3"/>'
         '<path d="M10 10 A5 5 0 0 1 20 20" fill="none"/>'
-        '<path d="m10 10 l20 20" fill="none"/>'
         '<circle cx="5" cy="5" r="2"/><text x="10" y="20">label</text></svg>'
     )
 
-    def test_sharp_primitives_become_seeded_hand_strokes(self):
-        out = handify_svg(self.SVG, "b-07")
-        self.assertNotIn("<line", out)
-        self.assertNotIn("<polyline", out)
-        self.assertIn(" Q", out)  # quadratic smoothing of the hand generator
-        # seeded: same block id -> byte-identical re-render...
-        self.assertEqual(out, handify_svg(self.SVG, "b-07"))
-        # ...and a different block gets its own jitter
-        self.assertNotEqual(out, handify_svg(self.SVG, "b-08"))
-        # already-handified markup is left alone (fix-loop body reuse)
-        self.assertEqual(out, handify_svg(out, "b-07"))
+    def test_diagram_svg_is_inserted_verbatim(self):
+        from factory.render import _render_block
 
-    def test_non_stroke_elements_stay_exactly_as_authored(self):
-        out = handify_svg(self.SVG, "b-07")
-        self.assertIn('<circle cx="5" cy="5" r="2"/>', out)
-        self.assertIn('<text x="10" y="20">label</text>', out)
-        self.assertIn('<path d="M10 10 A5 5 0 0 1 20 20" fill="none"/>', out)  # arc
-        self.assertIn('<path d="m10 10 l20 20" fill="none"/>', out)  # relative commands
-
-    def test_empty_svg_and_stroke_attrs_survive(self):
-        self.assertEqual(handify_svg("", "b-07"), "")
-        out = handify_svg(
-            '<line x1="0" y1="0" x2="10" y2="10" stroke="#1C1B18" stroke-dasharray="7 8"/>',
-            "b-07",
+        html = _render_block(
+            {"id": "b-07", "type": "diagram", "spec": {"svg": self.SVG, "caption": "c"}}
         )
-        self.assertIn('fill="none"', out)  # §10.7: no fills
-        self.assertIn('stroke-dasharray="7 8"', out)  # authored attrs preserved
+        self.assertIn('<line x1="30" y1="190" x2="390" y2="190"', html)
+        self.assertIn('<path d="M10 10 A5 5 0 0 1 20 20"', html)
+        self.assertNotIn(" Q", html)  # no hand-generator smoothing anywhere
 
 
 if __name__ == "__main__":

@@ -133,9 +133,13 @@ def _build_simulation(
         "- Colours: use only PALETTE values (hex on canvas, variables by name "
         "in page.css). Invent no colours.\n"
         "- The runtime wires the range inputs to ctx.values[controlId] automatically.\n"
-        "- Design for a small phone canvas (typically 300-600 CSS px wide): drawn "
-        "text at 12 px or larger, few on-screen labels, nothing essential smaller "
-        "than that.\n"
+        "- The canvas buffer is fixed 480x320 and the shell scales it to fit any frame "
+        "(phone ~360 px to laptop) without distortion: draw in that coordinate space, "
+        "keep drawn text 14 px or larger in it, few on-screen labels, nothing essential "
+        "smaller than that.\n"
+        "- Clean geometry on canvas too (doctrine v1.3): straight lines, true arcs and "
+        "circles, one consistent corner style; no hand wobble - annotation arrows are "
+        "the only hand-drawn element.\n"
         'Return a JSON object: {"id": "' + block["id"] + '", "files": '
         '{"page.js": "<full file content>", "page.css": "<full file content or empty string>"}}.'
     )

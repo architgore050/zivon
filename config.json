@@ -14,7 +14,7 @@
     "max_chars_ncert_to_model": 120000,
     "max_chars_supplement_each": 4000,
     "max_chars_supplement_total": 16000,
-    "max_chars_design_context": 64000
+    "max_chars_design_context": 68000
   },
   "paths": {
     "catalog": "sources/catalog.json",

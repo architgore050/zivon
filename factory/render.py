@@ -8,15 +8,15 @@ Nothing here calls the model. Nothing touches frontend/ - that is stage 11.
 Every page carries a strict CSP; all JS is external ('self'), so generated
 pages physically cannot make external calls.
 
-Model-authored diagram SVG goes through the doctrine §10.7 hand-stroke pass
-(handify_svg, below): the guarantee lives in the harness, not in prompt prose.
+Model-authored diagram SVG is rendered exactly as authored: the doctrine §10.7
+hand-stroke pass (handify_svg) was retired 2026-11-04 by founder ruling -
+diagram geometry is clean; only annotation arrows may carry hand strokes.
 """
 
 from __future__ import annotations
 
 import html as html_mod
 import json
-import re
 import shutil
 import time
 from pathlib import Path
@@ -168,8 +168,7 @@ def _render_block(b: dict[str, Any]) -> str:
     if t == "diagram":
         return (
             f'  <figure class="zn-diagram" id="{_esc(b["id"])}">\n'
-            f'    <div class="zn-diagram-svg">'
-            f"{handify_svg(str(spec.get('svg', '')), str(b['id']))}</div>\n"
+            f'    <div class="zn-diagram-svg">{spec.get("svg", "")!s}</div>\n'
             f"    <figcaption>{_esc(spec.get('caption', ''))}</figcaption>\n  </figure>"
         )
     if t == "simulation":
@@ -221,168 +220,11 @@ def _render_simulation(b: dict[str, Any]) -> str:
         f'aria-label="{_esc(spec.get("title", ""))}">\n'
         f"    <h3>{_esc(spec.get('title', ''))}</h3>\n"
         f'    <div class="zn-sim-controls">\n{controls}\n    </div>\n'
-        f'    <canvas class="zn-sim-canvas" width="480" height="320" tabindex="0"></canvas>\n'
+        f'    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" '
+        f'height="320" tabindex="0" aria-label="{_esc(spec.get("title", ""))} drawing"></canvas></div>\n'
         f'    <p class="zn-sim-desc">{_esc(spec.get("description", ""))}</p>\n'
         "  </section>"
     )
-
-
-# ---------------------------------------------------------------- hand strokes
-# Doctrine §10.7 as a HARNESS guarantee (2026-11-04): the model's diagram SVG
-# (spec["svg"], authored in 02-generate) arrives with straight primitives, so
-# the renderer rewrites them through the lesson example's hand-stroke generator
-# (port of hand() in docs/frontend/design-doctrine-lesson-example.html): a
-# polyline is resampled every ~28 px, each point jittered, then smoothed with
-# quadratic curves. Only self-closing <line>, <polyline> and plain absolute
-# M/L <path> primitives are rewritten; text, circles, rects, curves and arcs
-# are left exactly as authored (hand-drawing them risks breaking them).
-# Seeded by block id + primitive index, so a re-render is byte-identical.
-
-_U32 = 0xFFFFFFFF
-_NUM_RE = re.compile(r"[-+]?(?:\d+\.\d*|\.\d+|\d+)(?:[eE][-+]?\d+)?")
-
-
-def _u32_mul(a: int, b: int) -> int:
-    return (a * b) & _U32
-
-
-def _fnv1a(text: str) -> int:
-    h = 2166136261
-    for ch in text:
-        h ^= ord(ch)
-        h = _u32_mul(h, 16777619)
-    return h & _U32
-
-
-def _mulberry32(seed: int):
-    """Port of the example page's rng (mulberry32): same 32-bit pipeline."""
-
-    state = seed & _U32
-
-    def rnd() -> float:
-        nonlocal state
-        state = (state + 0x6D2B79F5) & _U32
-        t = _u32_mul(state ^ (state >> 15), state | 1)
-        t = (t + _u32_mul(t ^ (t >> 7), t | 61) ^ t) & _U32
-        return ((t ^ (t >> 14)) & _U32) / 4294967296.0
-
-    return rnd
-
-
-def _hand_d(pts: list[tuple[float, float]], rnd, jitter: float, step: float) -> str:
-    """The hand-stroke generator: jittered sampling + quadratic smoothing."""
-    seq: list[list[float]] = []
-    for i in range(len(pts) - 1):
-        (ax, ay), (bx, by) = pts[i], pts[i + 1]
-        n = max(2, round(((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5 / step))
-        for k in range(n):
-            t = k / n
-            seq.append(
-                [
-                    ax + (bx - ax) * t + (rnd() - 0.5) * jitter,
-                    ay + (by - ay) * t + (rnd() - 0.5) * jitter,
-                ]
-            )
-    seq.append(
-        [
-            pts[-1][0] + (rnd() - 0.5) * jitter * 0.5,
-            pts[-1][1] + (rnd() - 0.5) * jitter * 0.5,
-        ]
-    )
-    d = f"M{seq[0][0]:.1f} {seq[0][1]:.1f}"
-    for i in range(1, len(seq) - 1):
-        mx = (seq[i][0] + seq[i + 1][0]) / 2
-        my = (seq[i][1] + seq[i + 1][1]) / 2
-        d += f" Q{seq[i][0]:.1f} {seq[i][1]:.1f} {mx:.1f} {my:.1f}"
-    return d + f" L{seq[-1][0]:.1f} {seq[-1][1]:.1f}"
-
-
-def _attr_of(attrs: str, name: str) -> str | None:
-    m = re.search(rf'{name}\s*=\s*"([^"]*)"', attrs)
-    return m.group(1) if m else None
-
-
-def _strip_attrs(attrs: str, names: tuple[str, ...]) -> str:
-    for name in names:
-        attrs = re.sub(rf'\s*{name}\s*=\s*"[^"]*"', "", attrs)
-    return attrs.strip()
-
-
-def handify_svg(svg: str, block_id: str) -> str:
-    """Rewrite sharp stroke primitives in a diagram's SVG as hand strokes."""
-    if not svg.strip():
-        return svg
-    scale = 1.0  # generator parameters are calibrated for a ~420-unit diagram
-    vb = re.search(r'viewBox\s*=\s*"([^"]+)"', svg)
-    if vb:
-        parts = vb.group(1).replace(",", " ").split()
-        if len(parts) >= 3:
-            try:
-                w = float(parts[2])
-                if w > 0:
-                    scale = max(0.35, min(1.6, w / 420.0))
-            except ValueError:
-                pass
-    jitter = max(0.5, 2.2 * scale)
-    step = 28.0 * scale
-    prim_index = 0
-
-    def jittered(pts: list[tuple[float, float]]) -> str:
-        nonlocal prim_index
-        rnd = _mulberry32(_fnv1a(f"{block_id}:{prim_index}"))
-        prim_index += 1
-        return _hand_d(pts, rnd, jitter, step)
-
-    def to_path(
-        pts: list[tuple[float, float]], attrs: str, drop: tuple[str, ...]
-    ) -> str:
-        rest = _strip_attrs(attrs, drop)
-        fill = "" if _attr_of(attrs, "fill") else ' fill="none"'  # §10.7: no fills
-        return f'<path d="{jittered(pts)}"{fill} {rest}/>'
-
-    def repl_line(m: re.Match) -> str:
-        attrs = m.group(1)
-        x1 = _attr_of(attrs, "x1")
-        y1 = _attr_of(attrs, "y1")
-        x2 = _attr_of(attrs, "x2")
-        y2 = _attr_of(attrs, "y2")
-        if x1 is None or y1 is None or x2 is None or y2 is None:
-            return m.group(0)
-        try:
-            pts = [(float(x1), float(y1)), (float(x2), float(y2))]
-        except ValueError:
-            return m.group(0)
-        return to_path(pts, attrs, ("x1", "y1", "x2", "y2"))
-
-    def repl_polyline(m: re.Match) -> str:
-        attrs = m.group(1)
-        raw = _attr_of(attrs, "points")
-        if not raw:
-            return m.group(0)
-        nums = _NUM_RE.findall(raw)
-        if len(nums) < 4 or len(nums) % 2:
-            return m.group(0)
-        pts = [(float(nums[i]), float(nums[i + 1])) for i in range(0, len(nums), 2)]
-        return to_path(pts, attrs, ("points",))
-
-    def repl_path(m: re.Match) -> str:
-        attrs = m.group(1)
-        d = _attr_of(attrs, "d")
-        if d is None:
-            return m.group(0)
-        # Only plain absolute M/L (with optional Z) polylines; curves, arcs and
-        # relative commands stay exactly as the model authored them.
-        if re.search(r"[^MLZ\d\s,\.\-\+eE]", d) or not d.strip().startswith("M"):
-            return m.group(0)
-        nums = [float(x) for x in _NUM_RE.findall(d)]
-        if len(nums) < 6 or len(nums) % 2:
-            return m.group(0)
-        pts = [(nums[i], nums[i + 1]) for i in range(0, len(nums), 2)]
-        return to_path(pts, attrs, ("d",))
-
-    svg = re.sub(r"<line\b([^>]*?)/>", repl_line, svg)
-    svg = re.sub(r"<polyline\b([^>]*?)/>", repl_polyline, svg)
-    return re.sub(r"<path\b([^>]*?)/>", repl_path, svg)
 
 
 # -------------------------------------------------------------------- page

@@ -110,6 +110,11 @@ def run(
                     "(colour roles, diagram and simulation stroke rules). A clear "
                     "doctrine violation is a major issue; a violation that misleads "
                     "the learner about what moves or what is correct is fatal.\n"
+                    "6. Frame adaptation (doctrine §10.2): the page must fit without horizontal "
+                    "overflow and hold its 36 px ruled rhythm at ~360 px, ~768 px and ~1280 px "
+                    "widths: diagrams scale through viewBox (no fixed width/height attributes), "
+                    "text reflows, nothing depends on a laptop-only layout. A layout that "
+                    "overflows or breaks on a phone frame is a major issue.\n"
                     'Return {"verdict": "pass"|"fail", "issues": [{"block_id" optional, '
                     '"severity": "fatal"|"major"|"minor", "message"}]}. Severity: fatal = a '
                     "block spec is implemented wrongly, an answer key is broken, or drawn "

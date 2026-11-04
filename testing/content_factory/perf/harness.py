@@ -124,6 +124,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
     report: dict[str, Any] = {
         "url": url,
         "profile": str(profile_path),
+        "viewport_width": profile["viewport_width"],
         "budgets": {
             "load_s": profile["load_budget_s"],
             "fcp_s": profile["fcp_budget_s"],
@@ -200,6 +201,12 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
             page.goto(url, wait_until="load", timeout=60000)
             load_s = time.time() - t0
 
+            # Frame adaptation gate (doctrine §10.8): nothing may overflow the
+            # viewport horizontally at this profile's width.
+            overflow_px = page.evaluate(
+                "Math.max(0, document.documentElement.scrollWidth - window.innerWidth)"
+            )
+
             # FPS sampling: scroll, click checks, then sample rAF deltas.
             fps = _sample_fps(page, profile)
 
@@ -219,6 +226,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 "fps_median": round(fps, 1) if fps else None,
                 "peak_browser_rss_mb": round(peak_rss, 1),
                 "js_heap_mb": round(js_heap_mb, 2),
+                "overflow_px": int(overflow_px),
                 "cpu_throttle_rate": profile["cpu_throttle_rate"],
             }
         finally:
@@ -323,6 +331,11 @@ def _judge(report: dict[str, Any]) -> None:
         )
     if m["fps_median"] is not None and m["fps_median"] < budgets["fps_min"]:
         failures.append(f"FPS {m['fps_median']} < minimum {budgets['fps_min']}")
+    if m.get("overflow_px", 0) > 2:
+        failures.append(
+            f"horizontal overflow {m['overflow_px']}px at {report['viewport_width']}px "
+            "viewport (doctrine §10.8 frame check)"
+        )
     if report["page_errors"]:
         failures.append(f"page errors: {report['page_errors']}")
     if report["console_errors"]:

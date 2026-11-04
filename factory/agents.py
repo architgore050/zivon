@@ -163,15 +163,23 @@ def run_generate(
         '- reveal: {"title", "steps": [{"title", "detail"}]} - a step-by-step derivation or method\n'
         '- diagram: {"svg": "<svg ...>...</svg> string using only viewBox, rect, circle, line, '
         'path, text, polygon with fill/stroke presentation attributes", "caption"} - label '
-        "everything in ink; use PALETTE values for fill/stroke; express the doctrine's "
-        "diagram language with these elements only (hand-drawn strokes as wobbly <path> "
-        "strokes); no <style>, no <script>, no external refs\n"
+        "everything in ink; use PALETTE values for fill/stroke; doctrine v1.3 diagram "
+        "language: geometry is CLEAN - straight lines, true circles and arcs, every "
+        "rectangle with one consistent corner style (three round corners and one right "
+        "angle on the same box is a defect); NO wobble on shapes; the only hand-drawn "
+        "element allowed is an annotation arrow pointing at a part (a slightly wobbly "
+        "<path>); no <style>, no <script>, no external refs; use viewBox and NO fixed "
+        "width/height attributes so the shell scales the diagram at any screen width\n"
         '- simulation: {"title", "description", "learning_goal", "controls": [{"id", "label", '
         '"min", "max", "step", "initial"}], "default_behaviour": "what it shows before any input"} '
         "- only if the topic clearly benefits; 1-3 controls; a simulation with zero controls is "
         "an animation\n"
         "Order: text sections interleaved with checks and visuals the way a good teacher would "
         "pace the lesson. First block must be text; last block must be a check.\n"
+        "Frame law (doctrine §10.2): the page is read on phones (~360 px), tablets and laptops. "
+        "Write for reflow: keep sentences and list items short enough to wrap cleanly, keep "
+        "diagram viewBoxes wide-friendly, and never assume a fixed pixel layout - the shell "
+        "owns layout and keeps every block on the 36 px ruled grid at every width.\n"
         "Cite claims in every text, worked_example, check and reveal block (a factual block "
         "without citations is rejected): "
         '"citations": [{"claim_id": "claim-01"}].\n'

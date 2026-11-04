@@ -232,10 +232,11 @@
   /* -------- §10.2 ruled-line baseline alignment (lesson pages only) --------
      Ported from the doctrine's lesson example (fit() in
      docs/frontend/design-doctrine-lesson-example.html): every text block is a
-     multiple of 36 px tall, so ONE measurement of the handwriting baseline
-     puts every ruled line directly under a baseline. The title is nudged by
-     at most 18 px so its baseline lands on a rule too. The landing shell has
-     no .zn-text blocks and never aligns (§10 scope guard). */
+     multiple of 36 px tall, so ONE measurement of the text baseline puts every
+     ruled line directly under a baseline; the page re-fits on resize (frame
+     adaptation). The title is nudged by at most 18 px so its baseline lands on
+     a rule too. The landing shell has no .zn-text blocks and never aligns
+     (§10 scope guard). */
   function baselineProbe(el) {
     var probe = document.createElement("span");
     probe.style.cssText = "display:inline-block;width:0;height:0";
