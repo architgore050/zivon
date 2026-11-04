@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ZIVON_JS_URI = (REPO_ROOT / "frontend" / "assets" / "zivon.js").resolve().as_uri()
 
 MCQ_PAGE = (
-    "<!doctype html><html lang='en'><body>"
+    "<!doctype html><html lang='en'><head><meta charset='utf-8'></head><body>"
     "<fieldset class='zn-check' data-format='mcq' data-answer-index='1'>"
     "<input type='radio' name='q' value='0'><label>2 m/s^2</label>"
     "<input type='radio' name='q' value='1'><label>9.8 m/s^2</label>"
@@ -32,7 +32,7 @@ MCQ_PAGE = (
 )
 
 NUMERIC_PAGE = (
-    "<!doctype html><html lang='en'><body>"
+    "<!doctype html><html lang='en'><head><meta charset='utf-8'></head><body>"
     "<fieldset class='zn-check' data-format='numeric' data-answer='9.8'>"
     "<input class='zn-numeric-input' value='9.81'>"
     "<button class='zn-check-btn'>Check</button>"
@@ -42,7 +42,7 @@ NUMERIC_PAGE = (
 )
 
 SIM_ERROR_PAGE = (
-    "<!doctype html><html lang='en'><body>"
+    "<!doctype html><html lang='en'><head><meta charset='utf-8'></head><body>"
     "<div data-sim-id='s1'><canvas width='300' height='200'></canvas></div>"
     "<script src='" + ZIVON_JS_URI + "'></script>"
     "<script>window.ZivonSim.register('s1', { init: function () { throw new Error('boom'); },"
@@ -86,13 +86,13 @@ class TestBehaviourLayer(unittest.TestCase):
             page.click(".zn-check-btn")
             fb = page.query_selector(".zn-check-feedback")
             assert fb is not None
-            self.assertEqual(fb.inner_text(), "Correct.")
+            self.assertEqual(fb.inner_text(), "✓ Correct.")
             self.assertIn("correct", fb.get_attribute("class") or "")
 
             # retry is allowed: wrong answer after a right one must say "try again"
             page.click("input[value='0']")
             page.click(".zn-check-btn")
-            self.assertEqual(fb.inner_text(), "Not yet - try again.")
+            self.assertEqual(fb.inner_text(), "✗ Not yet - try again.")
             self.assertIn("wrong", fb.get_attribute("class") or "")
             self.assertEqual(errors, [], f"console/page errors: {errors}")
         finally:
@@ -105,7 +105,7 @@ class TestBehaviourLayer(unittest.TestCase):
             page.click(".zn-check-btn")
             fb = page.query_selector(".zn-check-feedback")
             assert fb is not None
-            self.assertEqual(fb.inner_text(), "Correct.")
+            self.assertEqual(fb.inner_text(), "✓ Correct.")
             self.assertEqual(errors, [], f"console/page errors: {errors}")
         finally:
             page.close()

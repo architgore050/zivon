@@ -1,11 +1,15 @@
 /* ==========================================================================
    Zivon shared behaviour layer (no framework, no network, no eval).
    --------------------------------------------------------------------------
-   Owns three things and nothing else:
+   Owns four things and nothing else:
    1. quiz wiring for .zn-check blocks (keyboard-native inputs, aria-live
-      feedback, retry allowed - this is learning, not testing)
+       feedback, retry allowed - this is learning, not testing); feedback
+       marks are ✓/✗ plus words (doctrine §10.6: shape and words, not hue)
    2. the ZivonSim runtime that model-built simulations register into
    3. the landing-page course list renderer (reads window.ZIVON_COURSES)
+   4. §10.2 ruled-line baseline alignment on lesson pages (ported from the
+       doctrine's lesson example fit(): measure where the handwriting baseline
+       sits and shift the ruled background under it)
    Plus: the doctrine pen-underline on the page title (one pen mark per page,
    generated, never a CSS text-underline - design-doctrine.md section 4.1).
    ========================================================================== */
@@ -41,7 +45,8 @@
         correct = expectedNum !== null && got !== null &&
           Math.abs(got - expectedNum) <= Math.max(0.01, Math.abs(expectedNum) * 0.01);
       }
-      feedback.textContent = correct ? "Correct." : "Not yet - try again.";
+      // \u-escaped: charset-proof no matter how the embedding page loads this file
+      feedback.textContent = correct ? "\u2713 Correct." : "\u2717 Not yet - try again.";
       feedback.className = correct ? "zn-check-feedback correct" : "zn-check-feedback wrong";
     });
   }
@@ -224,11 +229,50 @@
     el.appendChild(svg);
   }
 
+  /* -------- §10.2 ruled-line baseline alignment (lesson pages only) --------
+     Ported from the doctrine's lesson example (fit() in
+     docs/frontend/design-doctrine-lesson-example.html): every text block is a
+     multiple of 36 px tall, so ONE measurement of the handwriting baseline
+     puts every ruled line directly under a baseline. The title is nudged by
+     at most 18 px so its baseline lands on a rule too. The landing shell has
+     no .zn-text blocks and never aligns (§10 scope guard). */
+  function baselineProbe(el) {
+    var probe = document.createElement("span");
+    probe.style.cssText = "display:inline-block;width:0;height:0";
+    el.prepend(probe);
+    var bottom = probe.getBoundingClientRect().bottom - el.getBoundingClientRect().top;
+    probe.remove();
+    return bottom;
+  }
+  function alignToRuledLines() {
+    var page = document.querySelector(".zn-page:not(.zn-home)");
+    var firstBody = page ? page.querySelector(".zn-text p") : null;
+    if (!page || !firstBody) return;
+    var bodyBaseline = baselineProbe(firstBody);
+    var bodyY = firstBody.getBoundingClientRect().top + window.scrollY;
+    var offset = (((bodyY + bodyBaseline - 34) % 36) + 36) % 36;
+    document.body.style.backgroundPosition = "0 " + offset + "px";
+    var title = page.querySelector("h1.zn-title");
+    if (title) {
+      var titleBaseline = baselineProbe(title);
+      var titleY = title.getBoundingClientRect().top + window.scrollY;
+      var d = ((((bodyY + bodyBaseline) - (titleY + titleBaseline)) % 36) + 36) % 36;
+      if (d > 18) d -= 36;
+      title.style.top = d + "px";
+    }
+  }
+
   /* ------------------------------- boot ---------------------------------- */
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".zn-check").forEach(wireCheck);
     renderCourses();
     var title = document.querySelector("h1.zn-title");
     if (title) penUnderline(title);
+    alignToRuledLines();
+    if (document.fonts) {
+      // local fonts load with swap: re-measure once the real faces are in
+      document.fonts.ready.then(alignToRuledLines);
+    }
+    window.addEventListener("resize", alignToRuledLines);
   });
 })();
