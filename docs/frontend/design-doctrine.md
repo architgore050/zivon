@@ -135,11 +135,15 @@ Yellow can read as sticky-note kitsch if overdone; keep texture flat. Test legib
 
 ## 10. Lesson page (extension, v1.1)
 
-Scope: **lesson pages only** — the study-material page a learner opens in the product (a topic, its diagram, one
-simulation, one question). §1–§9 stay in force for this page and unchanged for every other surface; §10 adds
-rules for this page type and lists, in §10.9, every place where it departs from them. Nothing in §10 (ruled
-grid, handwritten body, taped cards, language bar) may leak into the site shell or post visuals — see §0.
+Scope: **lesson pages only** — the study-material page a learner opens in the product: a chapter taught in full
+(its sections, diagrams, simulations, worked examples and practice questions). §1–§9 stay in force for this page and
+unchanged for every other surface; §10 adds rules for this page type and lists, in §10.9, every place where it
+departs from them. Nothing in §10 (ruled grid, handwritten body, taped cards, language bar) may leak into the site
+shell or post visuals — see §0.
 Reference implementation: `design-doctrine-lesson-example.html` (a working page that applies every rule below).
+The example is a **styling and completeness reference**: it shows what a finished lesson page looks like and how
+thoroughly a chapter is taught. Its topic and content belong to the example alone — they are not a template for
+what a generated page teaches; content coverage is dictated by the source material.
 
 ### 10.1 Intent
 - Metaphor: a ruled notebook page. Text is **written** on the lines, diagrams are **sketched** on the paper, and anything

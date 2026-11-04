@@ -66,7 +66,7 @@ invalidated automatically when chunks or the model change.
 | `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the model (120k chars — measured class-9 chapters run 19k–62k, so no chapter is truncated; the 256k-context server handles it. Raise further for long class 11–12 chapters if ever needed). |
 | `max_chars_supplement_each` | int | Cap per supplement chunk. |
 | `max_chars_supplement_total` | int | Cap on all supplements combined. |
-| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected by `factory/design.py`: doctrine text flows into 02/04; doctrine + lesson-page example flow into every stage that writes, reviews or fixes page code — 05/08/09/10 (founder rule, 2026-11-04). Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + lesson example ≈ 34k chars. |
+| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected by `factory/design.py`: doctrine text flows into 02/04; doctrine + lesson-page example flow into every stage that writes, reviews or fixes page code — 05/08/09/10 (founder rule, 2026-11-04). Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + lesson example ≈ 34k chars; raised 48000 → 64000 on 2026-11-04 so the richer candidate lesson example 2 (full-chapter coverage, ≈ 43k chars; composed context ≈ 63k) fits when the founder approves it. |
 
 ## paths
 

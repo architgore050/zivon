@@ -158,9 +158,24 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
 - Every factual block cites ground-truth claim ids; 02-generate and 03-check
   enforce this in code (`factory/checks.py`), independent of the model
   reviewer. Citation source ids must come from the actual source pack.
-- Numbers in worked-example/check answers must appear verbatim in the ground
-  truth or the primary source text - whole-numeral match, no substring
-  smuggling (invented-figure guard). The generation prompt promises the same.
+- Numbers in worked-example PROBLEMS and check QUESTIONS must appear verbatim
+  in the ground truth or the primary source text - whole-numeral match, no
+  substring smuggling (invented-problem guard). Answers and options are
+  deliberately NOT code-checked: textbook exercises are meant to be computed,
+  and derivability cannot be verified by string match (the old verbatim-answer
+  rule made every NCERT numerical impossible, which is why the 2026-11-04
+  Motion page skipped all of them). The 03-check reviewer RECOMPUTES every
+  worked_example and numeric check instead - a wrong computed answer is fatal
+  there and routes to 04-repair.
+- Coverage is a gate, not a hope (founder diagnosis 2026-11-04: the Motion
+  page taught only the basics and skipped momentum, exercises and practice
+  problems, although ingestion had delivered the whole chapter): 02-generate's
+  prompt carries a COVERAGE CONTRACT (inventory the chapter's titled sections,
+  in-text questions, worked examples and end-of-chapter exercises; map every
+  item to a lesson section / check / worked_example / reveal - nothing may be
+  dropped), 03-check reports omissions as fatal, and 04-repair fixes them by
+  ADDING blocks (new ids appended at the end, teach-then-test, last added
+  block a check) - never by re-running 02.
 - Simulations are physics, so the facts travel with them: 05 receives the
   block's cited claims plus every ground-truth equation ("FACTS THE
   SIMULATION MUST OBEY"), and 09-review re-checks the FINAL draw loop against
@@ -240,7 +255,17 @@ single point where it touches design, and it hands the LIVE documents to the
 model stages at build time. Founder rule (2026-11-04): anybody who reviews,
 writes or edits page code gets the doctrine AND the lesson-page example; the
 main (post/brand) example is out of factory context so its single-file demo
-style cannot bleed into generated pages.
+style cannot bleed into generated pages. The example block is labelled
+"VISUAL STYLING REFERENCE ONLY" before the example bodies: the examples show
+how a finished page LOOKS and how COMPLETE it is - their topic, facts and
+questions belong to an unrelated chapter and must never be reused or imitated,
+and content coverage is dictated by the source material, never by the
+examples (founder diagnosis 2026-11-04: the old example's plain-simple
+content was bleeding into generated pages). A richer candidate - "example
+lesson page 2", `docs/frontend/candidates/design-doctrine-lesson-example-2.html`,
+full coverage of NCERT ch. 6 - deliberately lives OUTSIDE the glob until the
+founder approves it; approving means moving it into `docs/frontend/`, which
+the glob picks up with zero pipeline changes.
 
 - **02-generate** gets the doctrine document (its diagram rules govern the SVGs
   the generation specs) plus the parsed palette; diagrams no longer invent

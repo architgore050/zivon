@@ -15,7 +15,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 ## Our manifests (`k8s/`, numeric prefix = apply order)
 
 - `00-namespace.yaml` — the `zivon` namespace.
-- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.3`:
+- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.4`:
   - `Job` + `restartPolicy: Never` + `backoffLimit: 2` = batch semantics (fresh pod per retry; a failing Job ends `Failed` — CI-detectable).
   - No `command:` — the pod inherits the image's CMD (smoke test). Pipeline runs override it (see next file).
   - `securityContext: runAsNonRoot: true` + `runAsUser: 1000` — see gotcha below.
@@ -74,7 +74,7 @@ sudo install kubectl /usr/local/bin/kubectl
 minikube start --driver=docker
 minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
 minikube addons enable metrics-server # makes kubectl top nodes/pods work
-minikube image load zivon-factory:0.3.3   # see gotcha 2
+minikube image load zivon-factory:0.3.4   # see gotcha 2
 minikube image load zivon-frontend:0.1.1  # frontend hosting (see gotcha 2)
 # Apply the whole stack from k8s/infra.env (ConfigMap + manifests + rendered
 # CronJob schedule) and run the full test suite once on startup:
