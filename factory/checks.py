@@ -189,14 +189,19 @@ def rule_numbers(
     ground_truth: dict[str, Any],
     source_pack: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    """Every number used in a worked_example answer or a check answer must be
-    traceable to the ground truth or the primary source text (string match on
-    the numeral, ignoring formatting). Guards against invented answers.
+    """Problem data is the harness guarantee; computed answers are the reviewer's.
 
-    Note: this checks VERBATIM presence, not derivability - a number the
-    model computed (even correctly) is flagged, on purpose. The draft prompt
-    tells the model the same thing: use figures that appear in the sources,
-    do not compute new ones."""
+    Every number in a worked_example PROBLEM or a check QUESTION must be traceable
+    to the ground truth or the primary source text (string match on the numeral,
+    ignoring formatting). This catches invented problem data - the page must teach
+    and test the chapter's own problems, not invented lookalikes.
+
+    Numbers in ANSWERS and options are deliberately NOT code-checked: textbook
+    exercises are meant to be computed, and derivability cannot be verified by
+    string match. The 03-check reviewer recomputes every worked_example and
+    numeric check instead (a wrong computed answer is fatal there), and its
+    verdict routes to the 04-repair catcher.
+    """
     corpus = " ".join(
         [c["statement"] for c in ground_truth["claims"]]
         + [e["expression"] for e in ground_truth["equations"]]
@@ -207,28 +212,22 @@ def rule_numbers(
         if b["type"] not in ("worked_example", "check"):
             continue
         spec = b["spec"]
-        candidates = [str(spec.get("answer", ""))]
-        if b["type"] == "check" and spec.get("format") == "mcq":
-            # the correct option text carries the figures too
-            idx = spec.get("answer_index")
-            options = spec.get("options")
-            if (
-                isinstance(idx, int)
-                and isinstance(options, list)
-                and 0 <= idx < len(options)
-            ):
-                candidates.append(str(options[idx]))
-        for text in candidates:
-            for num in re.findall(r"\d+(?:\.\d+)?", text or ""):
-                if not _number_in_corpus(num, corpus):
-                    issues.append(
-                        _issue(
-                            b,
-                            "fatal",
-                            f"number {num} appears in the answer but nowhere in the ground truth "
-                            "or the primary source - possible invented figure",
-                        )
+        problem = (
+            spec.get("problem")
+            if b["type"] == "worked_example"
+            else spec.get("question")
+        )
+        for num in re.findall(r"\d+(?:\.\d+)?", str(problem or "")):
+            if not _number_in_corpus(num, corpus):
+                issues.append(
+                    _issue(
+                        b,
+                        "fatal",
+                        f"number {num} appears in the problem statement but nowhere in "
+                        "the ground truth or the primary source - problem data must "
+                        "come from the sources",
                     )
+                )
     return issues
 
 

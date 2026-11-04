@@ -116,15 +116,30 @@ class TestGenerateRuleWiring(unittest.TestCase):
         # the clean fixture page passes the rules - no feedback loop needed
         self.assertEqual(validator(out), [])
 
-    def test_prompt_promises_verbatim_numbers(self):
-        # The rule checks verbatim presence; the prompt must promise the same,
-        # or correct-but-computed answers die at 03-check for no good reason.
+    def test_prompt_promises_verbatim_problem_data_and_computed_answers(self):
+        # The harness checks PROBLEM data verbatim; answers are computed from
+        # the source's own equations and recomputed by 03-check. (2026-11-04:
+        # the old verbatim-answers rule made every NCERT numerical impossible,
+        # which is why the Motion page skipped all of them.)
         stub = StubLLM()
         self._run_generate(stub)
         user = next(m["content"] for m in stub.messages if m["role"] == "user")
         self.assertIn("VERBATIM", user)
-        self.assertIn("do not compute new figures", user)
+        self.assertIn("COMPUTED from those numbers", user)
         self.assertIn("do not convert units or compute new values", user)
+
+    def test_prompt_carries_the_coverage_contract(self):
+        # 2026-11-04 (founder): the Motion run taught only the basics and
+        # skipped momentum, conservation ideas, exercises and practice problems.
+        # The chapter is the unit of teaching - the prompt must say so in
+        # harness-verifiable words.
+        stub = StubLLM()
+        self._run_generate(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn("COVERAGE CONTRACT", user)
+        self.assertIn("end-of-chapter exercises", user)
+        self.assertIn("every titled section of the chapter", user)
+        self.assertIn("every item of your chapter inventory must appear", user)
 
     def test_prompt_carries_the_grounding_law(self):
         # The founder calibration: model priors must not smuggle in concepts the
@@ -142,7 +157,9 @@ class TestGenerateRuleWiring(unittest.TestCase):
         self._run_generate(stub)
         validator = stub.kwargs["extra_validator"]
         bad = load("02-generate.json")
-        bad["blocks"]["blocks"][2]["spec"]["answer"] = "73 m/s2"  # invented figure
+        bad["blocks"]["blocks"][2]["spec"]["problem"] = (
+            "A body gains a speed of 73 m/s in 5 s. What is its acceleration?"  # 73 appears nowhere in the sources - invented problem data
+        )
         bad["blocks"]["blocks"][0]["citations"] = []  # uncited text block
         problems = validator(bad)
         self.assertTrue(any("73" in p for p in problems), problems)
@@ -215,6 +232,16 @@ class TestCheckPromptCalibration(unittest.TestCase):
         self.assertIn("Example issue (SHAPE only", user)
         self.assertIn("never reuse", user)
 
+    def test_reviewer_gates_coverage_and_arithmetic(self):
+        # 2026-11-04 (founder): a faithful-but-thin page must FAIL the gate.
+        # Coverage omissions are fatal, and every computed answer is recomputed
+        # from the problem data - never trusted.
+        user = self._check_prompt()
+        self.assertIn("RECOMPUTE every worked_example", user)
+        self.assertIn("COVERAGE", user)
+        self.assertIn("end-of-chapter exercises", user)
+        self.assertIn("omits a chapter section", user)
+
     def test_reviewer_sees_the_lesson_it_must_verify_against(self):
         # Checklist item 5 asks whether the page teaches an expected_understanding
         # BEFORE testing it - the reviewer cannot judge that without the lesson
@@ -256,6 +283,9 @@ class TestRepairCatcher(unittest.TestCase):
         self.assertIn("mass/force", user)  # the reviewer's verdict is the input
         self.assertIn("OMIT it", user)
         self.assertIn("Fix ONLY the flagged blocks", user)
+        # coverage omissions are fixed by ADDING blocks, not re-running 02
+        self.assertIn("coverage-omission fix", user)
+        self.assertIn("LAST added block a check", user)
         self.assertIn("Example of the required SHAPE", user)
         self.assertIn("never reuse", user)
         self.assertEqual(stub.kwargs.get("round_tag"), "round-01")
@@ -280,10 +310,12 @@ class TestRepairCatcher(unittest.TestCase):
             round_tag="round-01",
         )
         validator = stub.kwargs["extra_validator"]
-        # a replacement that invents a number must be caught even though the
-        # rest of the page is untouched
+        # a replacement that invents problem data must be caught even though
+        # the rest of the page is untouched
         bad_plan = load("repair_plan.json")
-        bad_plan["blocks"][0]["spec"]["answer"] = "73 m/s2"
+        bad_plan["blocks"][0]["spec"]["question"] = (
+            "A runner covers 73 m in 20 s. What is her average speed (in m/s)?"
+        )
         problems = validator(bad_plan)
         self.assertTrue(any("73" in p for p in problems), problems)
 

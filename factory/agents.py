@@ -78,10 +78,23 @@ def run_generate(
         f"GOAL: build the COMPLETE study page for chapter '{ch['title']}' from "
         f"{ch['book_title']} (class {ch['class']}). Your entire universe of facts "
         "is the SOURCE MATERIAL below. Success means: a student of this class "
-        "who has never seen the topic can learn it from this page alone - "
-        "correctly, patiently, and well enough to face the chapter's textbook "
-        "problems. A wrong or invented fact here becomes an exam answer, so "
+        "who has never seen the topic can learn the WHOLE chapter from this page "
+        "alone - correctly, patiently, and well enough to face every problem the "
+        "chapter sets. A wrong or invented fact here becomes an exam answer, so "
         "every factual statement must be traceable to the sources.\n\n"
+        "COVERAGE CONTRACT (the page fails without it): the chapter is the unit "
+        "of teaching - a page that teaches only part of the chapter is a FAILED "
+        "page even if everything it does teach is correct. Before drafting, take "
+        "an inventory of the chapter: its titled sections, its in-text questions "
+        "(Pause and Ponder, Think as a Scientist), its worked examples, and its "
+        "end-of-chapter exercises. Then map every item: chapter section -> a "
+        "lesson section; in-text question or conceptual exercise -> a check "
+        "block; worked example or multi-step numerical problem -> a "
+        "worked_example block; a derivation or method the source walks through "
+        "-> a reveal block. Nothing from the inventory may be dropped. If a "
+        "problem is unreadable in the source text (garbled figure data), replace "
+        "it with an equivalent problem that the source's own method solves - "
+        "never silently skip it.\n\n"
         "SOURCE MATERIAL:\n\n"
         + _pack_text(cfg, source_pack)
         + "\n\nDESIGN DOCTRINE (the visual rules this page must follow; the "
@@ -96,7 +109,7 @@ def run_generate(
         "sources above.\n"
         '- "topic": short topic name\n'
         '- "summary": 3-6 sentence overview\n'
-        '- "claims": 8-20 factual claims; each {"id": "claim-01", "statement": "...", '
+        '- "claims": 12-40 factual claims; each {"id": "claim-01", "statement": "...", '
         '"citations": [{"source_id": "<id from the [SOURCE ...] headers, or \\"ncert\\" for the primary source>", '
         '"locator": "page 123" or "section name"}]}. One testable fact per claim, quotable from '
         "a single passage. Prioritise what a student needs to solve the chapter's problems: "
@@ -128,19 +141,24 @@ def run_generate(
         "as they appear in it.\n"
         '- "title": lesson title\n'
         '- "objectives": 2-4 sentences, each "After this lesson you can ..."\n'
-        '- "sections": 3-6 of {"id": "sec-01", "title", "paragraphs": ["...", ...]} in teaching order\n'
+        '- "sections": one per chapter topic - every titled section of the chapter '
+        'gets its own lesson section (typically 5-10) - of {"id": "sec-01", "title", "paragraphs": ["...", ...]} in teaching order\n'
         '- "glossary": [{"term", "definition"}] - at least 3, plain-English definitions\n\n'
         "LAYER 3 - blocks: lay the lesson out as an ordered block sequence for the study "
         "page. Valid claim ids for citations come from layer 1.\n"
         "Block types and spec shapes:\n"
         '- text: {"paragraphs": ["..."]} - carry the lesson prose in reading order\n'
         '- worked_example: {"problem": "...", "steps": [{"title", "detail"}], "answer": "..."} '
-        "- only if the ground truth has equations or a numeric relation; every number in the "
-        "answer must appear VERBATIM in the ground truth or the source text - do not "
-        "compute new figures\n"
+        "- every worked example and every multi-step numerical problem in the source "
+        "becomes one. The numbers in the PROBLEM must appear VERBATIM in the source; "
+        "the answer is then COMPUTED from those numbers using only equations and "
+        "methods the source itself states, with every step shown. Never put a figure "
+        "into the problem that the source does not give.\n"
         '- check: {"question", "format": "mcq"|"numeric", "options": ["A","B","C","D"], '
         '"answer_index": 0-3 (mcq), "answer": "text" (numeric), "explanation", '
-        '"expected_understanding"} - include at least 3 checks spread through the page; '
+        '"expected_understanding"} - every in-text question and conceptual exercise from '
+        "your inventory becomes a check, and every lesson section gets at least one; "
+        "single-step numerical exercises may become numeric checks. "
         "answer_index must point at the correct option; one option may address a listed misconception\n"
         '- reveal: {"title", "steps": [{"title", "detail"}]} - a step-by-step derivation or method\n'
         '- diagram: {"svg": "<svg ...>...</svg> string using only viewBox, rect, circle, line, '
@@ -180,7 +198,8 @@ def run_generate(
         '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
         '"citations": [{"claim_id": "claim-03"}]}]}'
         "\n\nBefore you answer: reread the SOURCE MATERIAL against your draft - "
-        "every number, unit and concept in the page must survive that reread. "
+        "every number, unit and concept in the page must survive that reread, and "
+        "every item of your chapter inventory must appear in the page. "
         "Return only the JSON object."
     )
 
@@ -292,8 +311,9 @@ def run_check(
         + _blocks_text(blocks)
         + "\n\nTASK: You are the Comprehension & Fact Reviewer. Hunt for REAL "
         "errors: invented numbers, unit mismatches, answers that do not match the "
-        "question, concepts smuggled in from outside the chapter. Do not invent "
-        "problems to justify your role - if the draft is faithful to the sources, "
+        "question, concepts smuggled in from outside the chapter, and whole-chapter "
+        "gaps. Do not invent problems to justify your role - if the draft is "
+        "faithful to the sources AND covers the chapter, "
         "return verdict=pass with an empty issues array. Review every block:\n"
         "1. Is each factual statement correct per the source material? Quote the source in your issue.\n"
         "2. Is every check's correct answer actually correct?\n"
@@ -302,9 +322,18 @@ def run_check(
         "4. Does anything read as if it depends on material outside this page?\n"
         "5. For every check block: does the page teach the expected_understanding before "
         "asking for it? A check that asks something the page never taught is major.\n"
+        "6. RECOMPUTE every worked_example and numeric check yourself from its "
+        "problem data, using only the equations and methods the source itself "
+        "states. A wrong computed answer or wrong arithmetic step is fatal.\n"
+        "7. COVERAGE: compare the page against the chapter's own structure - its "
+        "titled sections, in-text questions, worked examples and end-of-chapter "
+        "exercises. Every one of them must appear on the page - taught, tested or "
+        "worked. Report every omission, quoting the chapter item that is missing.\n"
         "Severity ladder (apply it exactly):\n"
-        "- fatal: a statement CONTRADICTS the source material, or a check's answer key is "
-        "wrong. You must quote the source passage that proves it.\n"
+        "- fatal: a statement CONTRADICTS the source material, a check's answer key "
+        "or a worked_example's computed answer is wrong, or the page omits a chapter "
+        "section, worked example or exercise that the SOURCE MATERIAL itself teaches. "
+        "You must quote the source passage (or the omitted chapter item) that proves it.\n"
         "- major: a block teaches, tests, or relies on a Physics concept that the SOURCE "
         "MATERIAL never explains (a smuggled-in concept), or a learner would otherwise be "
         "misled about what moves or what is correct.\n"
@@ -375,8 +404,14 @@ def run_repair(
         "- A 'smuggled concept' fix: rewrite the block so it teaches/tests ONLY what "
         "the SOURCE MATERIAL covers. If the block cannot be fixed that way, OMIT it "
         "from your output entirely (it will be removed from the page).\n"
-        "- A wrong-number or wrong-answer fix: use values that appear VERBATIM in the "
-        "source material or ground truth.\n"
+        "- A wrong-number or wrong-answer fix: problem data must use values that "
+        "appear VERBATIM in the source material or ground truth; a computed answer "
+        "must be recomputed from those values using only the source's own equations.\n"
+        "- A coverage-omission fix: ADD the missing teaching or testing as NEW "
+        "blocks with new ids continuing the sequence (e.g. b-16, b-17...). New "
+        "blocks are appended at the end of the page: order them teach-then-test "
+        "and make your LAST added block a check. Ground every new fact in the "
+        "SOURCE MATERIAL and cite claim ids.\n"
         "- Keep the page coherent: the first block stays text and the last stays a check.\n"
         "- Every replacement block that states facts must cite claim ids.\n"
         'Return {"analysis": "what you changed and why each fix is grounded", '

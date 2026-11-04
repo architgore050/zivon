@@ -61,6 +61,20 @@ class TestDesignLoader(unittest.TestCase):
         self.assertIn("design-doctrine-lesson-example.html", text)
         self.assertNotIn("=== design-doctrine-example.html ===", text)
 
+    def test_examples_are_framed_as_styling_only(self):
+        # 2026-11-04 (founder): the example's plain-simple CONTENT was bleeding
+        # into generated pages. Every stage that receives the examples must be
+        # told, in the same breath, that they are a styling reference only.
+        block = design.design_context(self.cfg, with_examples=True)
+        self.assertIn("VISUAL STYLING REFERENCE ONLY", block)
+        self.assertIn("never reuse or imitate their content", block)
+        self.assertIn("dictated by the SOURCE MATERIAL", block)
+        # the framing must come BEFORE the example bodies, never after them
+        self.assertLess(
+            block.index("VISUAL STYLING REFERENCE ONLY"),
+            block.index("=== design-doctrine-lesson-example.html ==="),
+        )
+
     def test_new_documents_flow_without_any_pipeline_change(self):
         # Open-endedness proof: a fake repo tree with its own doctrine, two
         # examples and stylesheet - the loader picks all of it up unchanged.

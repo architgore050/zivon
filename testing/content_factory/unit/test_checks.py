@@ -116,15 +116,28 @@ class TestNumbers(unittest.TestCase):
         pack = {"ncert_text": load_source_text()}
         self.assertEqual(checks.rule_numbers(blocks, gt, pack), [])
 
-    def test_invented_number_fails(self):
+    def test_invented_problem_number_fails(self):
         blocks = load("blocks.json")["blocks"]
         gt = load("gt.json")
         pack = {"ncert_text": load_source_text()}
-        blocks[2]["spec"]["answer"] = "73 m/s2"  # 73 appears nowhere
+        blocks[2]["spec"]["problem"] = (
+            "A body gains a speed of 73 m/s in 5 s. What is its acceleration?"  # 73 appears nowhere
+        )
         issues = checks.rule_numbers(blocks, gt, pack)
         self.assertTrue(
             any("73" in i["message"] and i["severity"] == "fatal" for i in issues)
         )
+
+    def test_computed_answer_is_the_reviewers_gate_not_the_rules(self):
+        # NCERT exercises are meant to be computed; answers are verified by
+        # 03-check recomputation. This rule guards PROBLEM data only.
+        blocks = load("blocks.json")["blocks"]
+        gt = load("gt.json")
+        pack = {"ncert_text": load_source_text()}
+        blocks[2]["spec"]["answer"] = (
+            "5.5 m/s"  # wrong on purpose - not this rule's job
+        )
+        self.assertEqual(checks.rule_numbers(blocks, gt, pack), [])
 
 
 class TestNumbersBoundary(unittest.TestCase):
@@ -145,42 +158,51 @@ class TestNumbersBoundary(unittest.TestCase):
     }
     PACK: ClassVar[dict] = {"ncert_text": "The distance is 10 m."}
 
-    def _issues(self, answer: str) -> list[dict]:
+    def _problems(self, problem: str) -> list[dict]:
         blocks = [
             {
                 "id": "b-x",
                 "type": "worked_example",
-                "spec": {"problem": "p", "steps": [], "answer": answer},
+                # the answer is deliberately untraceable ('73'): answers are
+                # 03-check's job, this rule guards problem data
+                "spec": {"problem": problem, "steps": [], "answer": "73 m/s2"},
                 "citations": [],
             }
         ]
         return checks.rule_numbers(blocks, self.GT, self.PACK)
 
     def test_whole_numerals_traceable(self):
-        self.assertEqual(self._issues("15 m/s"), [])
-        self.assertEqual(self._issues("5 m/s"), [])  # matches '5.0' in the claim
-        self.assertEqual(self._issues("10 m"), [])
+        self.assertEqual(self._problems("A car reaches 15 m/s in 10 s"), [])
+        self.assertEqual(
+            self._problems("another car reaches 5.0 m/s"), []
+        )  # matches '5.0'
+        self.assertEqual(self._problems("The distance is 10 m"), [])
 
     def test_substring_smuggling_rejected(self):
-        self.assertTrue(any("number 1 " in i["message"] for i in self._issues("1 m/s")))
         self.assertTrue(
-            any("number 50 " in i["message"] for i in self._issues("50 m/s"))
+            any("number 1 " in i["message"] for i in self._problems("1 m/s"))
         )
         self.assertTrue(
-            any("number 1.5 " in i["message"] for i in self._issues("1.5 m/s"))
+            any("number 50 " in i["message"] for i in self._problems("50 m/s"))
+        )
+        self.assertTrue(
+            any("number 1.5 " in i["message"] for i in self._problems("1.5 m/s"))
         )
 
-    def test_mcq_correct_option_numbers_are_checked(self):
-        def mcq(idx: int) -> list[dict]:
+    def test_computed_answer_figures_are_not_code_checked(self):
+        self.assertEqual(self._problems("A car reaches 15 m/s"), [])
+
+    def test_check_question_numbers_are_checked(self):
+        def mcq(question: str) -> list[dict]:
             blocks = [
                 {
                     "id": "b-m",
                     "type": "check",
                     "spec": {
-                        "question": "q",
+                        "question": question,
                         "format": "mcq",
                         "options": ["15 m/s", "99 m/s"],
-                        "answer_index": idx,
+                        "answer_index": 1,
                         "explanation": "e",
                     },
                     "citations": [],
@@ -188,8 +210,14 @@ class TestNumbersBoundary(unittest.TestCase):
             ]
             return checks.rule_numbers(blocks, self.GT, self.PACK)
 
-        self.assertEqual(mcq(0), [])  # correct option cites a real figure
-        self.assertTrue(any("99" in i["message"] for i in mcq(1)))
+        # traceable question data -> clean, even with an untraceable option
+        self.assertEqual(
+            mcq("A car reaches 15 m/s. After 10 s, what is its speed?"), []
+        )
+        # invented question data -> fatal
+        self.assertTrue(
+            any("99" in i["message"] for i in mcq("A car reaches 99 m/s. Why?"))
+        )
 
 
 class TestDiagramSvg(unittest.TestCase):
