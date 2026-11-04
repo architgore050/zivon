@@ -23,10 +23,11 @@ Common block fields:
 ## worked_example
 
     {"problem": "...", "steps": [{"title": "...", "detail": "..."}], "answer": "..."}
-Every number in `answer` must appear **verbatim** in the ground truth or the
-primary source text - do not compute new figures (enforced by
-`factory/checks.py::rule_numbers` with a whole-numeral match: `5` matches `5`
-and `5.0`, never `15`).
+Every number in `problem` must appear **verbatim** in the ground truth or the primary
+source text (checked by `factory/checks.py::rule_numbers` with a whole-numeral match:
+`5` matches `5` and `5.0`, never `15`). The `answer` is then **computed** from those
+numbers using only equations and methods the source states - answer numerals are not
+source-matched; they are `03-check`'s recompute territory (coverage contract, 0.3.4).
 
 ## check
 

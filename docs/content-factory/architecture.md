@@ -296,13 +296,18 @@ numbers - it never silently truncates.
 
 The shell itself (`render.py`, `zivon.css`) is the human-maintained
 implementation of the doctrine. On 2026-11-04 the §10 lesson shell was pulled
-forward from Phase 4 and ported: `zivon.css` now implements §10 for topic
-pages (taped paper cards, Caveat handwritten body, 36 px ruled rhythm,
-uncarded diagrams), scoped so nothing leaks into the landing shell (§10
-scope guard), and `render.py` runs model diagram SVG through the §10.7
-hand-stroke pass (`handify_svg`) so straight authored primitives become
-seeded hand strokes deterministically. Remaining §10 items stay Day-9 work:
-the two-column page grid and the language bar.
+forward from Phase 4 and ported; the founder's design batch the same day
+retyped it per doctrine v1.3: `zivon.css` implements §10 for topic pages
+(taped paper cards, typed Courier Prime body on a strict 36 px ruled rhythm,
+Caveat only on titles/headings/annotation labels, clean diagram geometry,
+fixed-height visual boxes), scoped so nothing leaks into the landing shell (§10
+scope guard). The `handify_svg` hand-stroke pass in `render.py` was retired -
+model diagram SVG renders exactly as authored; only annotation arrows may
+carry hand strokes (now a prompt-side instruction in 02-generate). Frame
+adaptation is a harness guarantee: the perf gate measures horizontal overflow
+at each profile's viewport (360 px weak-android, 1280 px mid-laptop).
+Remaining §10 items stay Day-9 work: the two-column page grid and the language
+bar.
 
 ## Performance budgets
 
