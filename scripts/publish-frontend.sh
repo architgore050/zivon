@@ -16,7 +16,7 @@
 #
 # Standalone deploy once published:
 #   docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" \
-#       zivon-frontend:0.1.1        # no factory, no cluster involved
+#       zivon-frontend:0.1.2        # no factory, no cluster involved
 #
 # Usage: scripts/publish-frontend.sh
 set -euo pipefail
