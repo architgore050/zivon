@@ -1,0 +1,47 @@
+# Content factory smoke test as a K8s Job: run to completion, done.
+# This is the K8s twin of: docker run --rm zivon-factory:0.3.7
+#
+#   kubectl apply -f k8s/
+#   kubectl get jobs,pods -n zivon
+#   kubectl logs job/factory-smoke -n zivon
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: factory-smoke
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  backoffLimit: 2          # retry the whole pod up to 2 times before declaring failure
+  ttlSecondsAfterFinished: 86400   # kube-linter gate: auto-clean the finished Job after 1 day
+  template:                # the pod the Job creates
+    metadata:
+      labels:
+        app: zivon-factory
+    spec:
+      restartPolicy: Never # a Job tracks failures via pods it recreates, not restarts
+      automountServiceAccountToken: false # the factory needs no K8s API access
+      securityContext:
+        runAsNonRoot: true # refuse to run the pod unless the image is non-root
+        runAsUser: 1000    # numeric uid of "app"; kubelet cannot verify a username-based USER
+      containers:
+        - name: factory
+          image: zivon-factory:0.3.7
+          imagePullPolicy: IfNotPresent # local image loaded via `minikube image load`
+          # No `command:` here on purpose: the pod inherits the image's CMD
+          # (the smoke test). Real pipeline runs override it — see 20-factory-run-job.yaml.
+          securityContext:
+            readOnlyRootFilesystem: true   # kube-linter gate; writes go to the mounts below
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:            # scheduler needs this much room to place the pod
+              cpu: 500m          # 0.5 core
+              memory: 1Gi
+            limits:              # hard ceiling; exceeding memory kills the pod
+              cpu: 2
+              memory: 2Gi        # torch import alone eats several hundred MB
+      volumes:
+        - name: tmp
+          emptyDir: {}

@@ -1,0 +1,104 @@
+{
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "You are in motion when your position changes with time. A bus moving down a road is in motion, and so is a fan blade going around. To say that something moved, we compare its position now with its position a moment ago.",
+          "To describe motion clearly we use a few measured quantities. Each one answers a different question: how far, how fast, and speeding up or slowing down."
+        ]
+      },
+      "citations": [{"claim_id": "claim-01"}]
+    },
+    {
+      "id": "b-02",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Distance is the total length of the path travelled, and it has only a size. Displacement is the shortest straight line from the starting point to the ending point, with its direction. They are equal only when the path is one straight line with no turning back.",
+          "Speed is distance divided by time, and velocity is speed with a direction. Acceleration is the rate of change of velocity, and its SI unit is m/s2."
+        ]
+      },
+      "citations": [{"claim_id": "claim-02"}, {"claim_id": "claim-03"}, {"claim_id": "claim-07"}]
+    },
+    {
+      "id": "b-03",
+      "type": "worked_example",
+      "spec": {
+        "problem": "A body starts from rest and accelerates steadily. It gains a speed of 10 m/s in 5 s. What is its acceleration?",
+        "steps": [
+          {"title": "Write what you know", "detail": "Starting velocity u = 0 because the body starts from rest, final velocity v = 10 m/s, time t = 5 s."},
+          {"title": "Choose the relation", "detail": "Use v = u + a*t, which connects velocity change to acceleration and time."},
+          {"title": "Rearrange for acceleration", "detail": "a = (v - u) / t."},
+          {"title": "Put in the numbers", "detail": "a = (10 - 0) / 5."}
+        ],
+        "answer": "2 m/s2"
+      },
+      "citations": [{"claim_id": "claim-04"}, {"claim_id": "claim-03"}]
+    },
+    {
+      "id": "b-04",
+      "type": "check",
+      "spec": {
+        "question": "Which quantity is defined as the rate of change of velocity?",
+        "format": "mcq",
+        "options": ["Speed", "Acceleration", "Distance", "Force"],
+        "answer_index": 1,
+        "answer": "Acceleration",
+        "explanation": "Acceleration is the rate of change of velocity with time; its SI unit is m/s2.",
+        "expected_understanding": "The learner can name acceleration as the quantity that measures changing velocity."
+      },
+      "citations": [{"claim_id": "claim-03"}]
+    },
+    {
+      "id": "b-05",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 320 220\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"0\" y=\"0\" width=\"320\" height=\"220\" fill=\"#EFE6B8\"/><line x1=\"40\" y1=\"180\" x2=\"300\" y2=\"180\" stroke=\"#1C1B18\" stroke-width=\"2\"/><line x1=\"40\" y1=\"180\" x2=\"40\" y2=\"20\" stroke=\"#1C1B18\" stroke-width=\"2\"/><line x1=\"40\" y1=\"180\" x2=\"280\" y2=\"50\" stroke=\"#1F3A9E\" stroke-width=\"2\"/><text x=\"150\" y=\"205\" fill=\"#1C1B18\" font-size=\"12\">time</text><text x=\"8\" y=\"110\" fill=\"#1C1B18\" font-size=\"12\" transform=\"rotate(-90 20 110)\">distance</text><text x=\"150\" y=\"70\" fill=\"#1F3A9E\" font-size=\"12\">steady speed: straight line</text></svg>",
+        "caption": "A distance-time graph for steady motion is a straight line; its slope is the speed."
+      },
+      "citations": [{"claim_id": "claim-06"}]
+    },
+    {
+      "id": "b-06",
+      "type": "simulation",
+      "spec": {
+        "title": "Motion with steady acceleration",
+        "description": "A dot starts at rest and speeds up. Increase or decrease the acceleration and watch how the dot covers distance.",
+        "learning_goal": "Connect the size of acceleration to how quickly the dot crosses the canvas.",
+        "controls": [
+          {"id": "a", "label": "acceleration m/s2", "min": -5, "max": 5, "step": 0.5, "initial": 2}
+        ],
+        "default_behaviour": "The dot starts from rest and drifts faster to the right while the acceleration is positive."
+      },
+      "citations": [{"claim_id": "claim-03"}, {"claim_id": "claim-04"}]
+    },
+    {
+      "id": "b-07",
+      "type": "check",
+      "spec": {
+        "question": "A cycle covers 100 m in 20 s. What is its average speed in m/s?",
+        "format": "numeric",
+        "answer": "5",
+        "explanation": "Average speed is total distance divided by total time: 100 / 20.",
+        "expected_understanding": "The learner can compute average speed from distance and time."
+      },
+      "citations": [{"claim_id": "claim-05"}]
+    },
+    {
+      "id": "b-08",
+      "type": "check",
+      "spec": {
+        "question": "Which of these is a vector quantity?",
+        "format": "mcq",
+        "options": ["Distance", "Displacement", "Mass", "Time"],
+        "answer_index": 1,
+        "answer": "Displacement",
+        "explanation": "Displacement carries a direction from start to end, so it is a vector; distance, mass and time have only size.",
+        "expected_understanding": "The learner can tell scalars and vectors apart for the quantities on this page."
+      },
+      "citations": [{"claim_id": "claim-02"}, {"claim_id": "claim-07"}]
+    }
+  ]
+}

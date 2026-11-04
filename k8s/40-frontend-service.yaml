@@ -1,0 +1,24 @@
+# Cluster-internal address: http://frontend.zivon.svc/ (port 80 -> container 8080).
+#
+# type NodePort + fixed nodePort 30080 = a STABLE host URL with no extra command:
+#   http://192.168.49.2:30080   (minikube's fixed node IP on the docker driver)
+# The Deployment keeps nginx running automatically; nothing to launch by hand.
+# Convenience alternative:  minikube service frontend -n zivon  (opens the browser).
+# On a real cluster this NodePort is replaced by the ingress/TLS/domain decision
+# (see the TIMELINE.md infra TODO) - the Service itself only changes its type.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: zivon
+  labels:
+    app: zivon-frontend
+spec:
+  type: NodePort
+  selector:
+    app: zivon-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30080

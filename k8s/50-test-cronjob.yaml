@@ -1,0 +1,95 @@
+# Scheduled full test suite (content factory unit + frontend + integration).
+# THE ONLY AUTOMATIC workload in this stack. Content generation (k8s/20) is
+# manual-trigger only; this CronJob is the scheduled one.
+#
+# THE SCHEDULE IS A CONFIG VALUE: the ${TEST_CRON_SCHEDULE} placeholder below
+# is rendered from k8s/infra.env by scripts/apply-k8s.sh. Do not apply this
+# file raw (the raw placeholder is not a valid cron expression) and do not
+# hardcode a cadence anywhere else — infra.env is the single source of truth.
+# Cron granularity is MINUTES (min hour day month weekday); "every x seconds"
+# is not expressible. infra.env currently sets every-30-minutes cadence.
+#
+# Image: the factory image already CONTAINS the test sets (the perf harness is a
+# runtime import of stage 07), so no separate test image is needed - the command
+# override below replaces the smoke-test CMD with the full suite.
+#
+# Manual trigger (the "button", stand-in for the Day-8 dashboard):
+#   scripts/trigger-tests.sh          (or raw: kubectl create job
+#   --from=cronjob/test-suite <name> -n zivon)
+# Startup run: scripts/apply-k8s.sh triggers one suite run immediately after
+# applying (the CronJob's first tick can be up to a full interval away).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: test-suite
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  schedule: "${TEST_CRON_SCHEDULE}"   # rendered from k8s/infra.env — see header
+  concurrencyPolicy: Forbid  # never overlap test runs
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0            # a failing test run is a signal, not something to retry
+      activeDeadlineSeconds: 1800  # hard cap: a hung suite must die (safety cap, independent of the cadence)
+      # No ttlSecondsAfterFinished HERE on purpose: for CronJob-managed Jobs
+      # kube-linter flags ttl + history limits as a conflict (lint error). The
+      # successfulJobsHistoryLimit/failedJobsHistoryLimit above ARE the cleanup
+      # mechanism for scheduled runs. Standalone Jobs (k8s/10, k8s/20) keep ttl.
+      template:
+        metadata:
+          labels:
+            app: zivon-factory
+            task: test-suite
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          containers:
+            - name: tests
+              image: zivon-factory:0.3.7
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - >-
+                  python -m unittest discover -s testing/content_factory/unit -t . &&
+                  python -m unittest discover -s testing/frontend -t . &&
+                  python -m unittest testing.content_factory.integration.test_end_to_end
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true   # writes go only to the mounts below
+              env:
+                - name: HF_HUB_OFFLINE
+                  value: "1"           # embedder already cached on zivon-hf-cache PVC
+                                       # (same reasoning as the factory Job, k8s/20)
+              volumeMounts:
+                - name: runs
+                  mountPath: /app/runs
+                - name: hf-cache
+                  mountPath: /app/.cache/huggingface
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+          volumes:
+            - name: runs
+              emptyDir: {}
+            - name: hf-cache
+              persistentVolumeClaim:
+                claimName: zivon-hf-cache
+            - name: tmp
+              emptyDir: {}

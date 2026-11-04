@@ -1,0 +1,37 @@
+{
+  "learner": {
+    "class_level": 9,
+    "language": "en"
+  },
+  "retrieval": {
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "device": "cpu",
+    "top_k": 6,
+    "chunk_chars": 1200,
+    "chunk_overlap": 120
+  },
+  "limits": {
+    "max_chars_ncert_to_model": 120000,
+    "max_chars_supplement_each": 4000,
+    "max_chars_supplement_total": 16000,
+    "max_chars_design_context": 68000
+  },
+  "paths": {
+    "catalog": "sources/catalog.json",
+    "pdf_cache": "sources/pdfs",
+    "text_cache": "sources/cache",
+    "runs": "runs",
+    "frontend": "frontend",
+    "doctrine": "docs/frontend/design-doctrine.md",
+    "doctrine_examples": "docs/frontend/design-doctrine-lesson*.html"
+  },
+  "perf": {
+    "profile": "testing/content_factory/perf/profiles/weak-android.json",
+    "fix_rounds": 3
+  },
+  "repair": {
+    "content_rounds": 2,
+    "code_rounds": 2
+  },
+  "stage_overrides": {}
+}

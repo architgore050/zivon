@@ -1,0 +1,9 @@
+# kube-linter config used by CI (.github/workflows/ci.yml, manifests job).
+checks:
+  exclude:
+    # kube-linter's "unsecrets" check wants secrets mounted as files, not env
+    # vars. The factory reads its API key directly from the ZIVON_API_KEY env
+    # var (all server settings are env-only by design), so env injection via
+    # Secret is the intended pattern.
+    # Documented exemption — see docs/deployment/kubernetes.md.
+    - unsecrets

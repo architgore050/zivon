@@ -1,0 +1,102 @@
+# Frontend hosting: nginx serving the static site (Deployment + Service in
+# the next file). The image bakes only the hand-maintained shell; generated
+# pages arrive on the PVC written by the pipeline run Job.
+#
+# The initContainer seeds the shell (index.html + assets/) into an empty PVC
+# with a NO-CLOBBER copy (cp -rn): the landing page exists before the first
+# pipeline run, and generated content is never overwritten.
+#
+# Image: EDIT ME to the pushed GHCR tag once the publish pipeline exists
+# (same convention as the factory Job).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: zivon
+  labels:
+    app: zivon-frontend
+spec:
+  replicas: 1                    # RWO PVC: one writer/serving node at a time (minikube fine)
+  selector:
+    matchLabels:
+      app: zivon-frontend
+  template:
+    metadata:
+      labels:
+        app: zivon-frontend
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101           # nginx-unprivileged's UID
+        fsGroup: 101             # makes the PVC writable by the shell-seeding copy
+      initContainers:
+        - name: seed-shell
+          image: zivon-frontend:0.1.3
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "cp -rn /opt/zivon-shell/* /usr/share/nginx/html/"]
+          # busybox cp (Alpine) silently no-ops on a "/." source and exits 0;
+          # the glob form is the safe one (the shell has no hidden files).
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 101
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true   # writes go only to the PVC mount below
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: site
+              mountPath: /usr/share/nginx/html
+      containers:
+        - name: nginx
+          image: zivon-frontend:0.1.3
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 101
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true   # kube-linter gate; nginx writes go to the mounts below
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          volumeMounts:
+            - name: site
+              mountPath: /usr/share/nginx/html
+            - name: nginx-tmp
+              mountPath: /tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-logs
+              mountPath: /var/log/nginx
+      volumes:
+        - name: site
+          persistentVolumeClaim:
+            claimName: zivon-frontend
+        - name: nginx-tmp
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-logs
+          emptyDir: {}

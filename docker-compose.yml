@@ -1,0 +1,59 @@
+# Local dev runner for the content factory container.
+#
+#   docker compose run --rm factory                                  # smoke test (default CMD)
+#   docker compose run --rm factory python pipeline.py "Motion" --class 9
+#   docker compose up web                                            # serve frontend/ on :8081
+#
+# Host port 8081 (not 8080): the dev machine's OpenAI-format inference server
+# commonly lives on :8080 - the site must not fight it for the port.
+# Volumes keep pipeline OUTPUT (runs/, generated pages in frontend/) on the
+# host, and download caches (PDFs, text, HF models) warm between runs.
+# frontend/ is mounted so generated pages survive the container's death.
+services:
+  factory:
+    build: .
+    image: zivon-factory:0.3.7
+    environment:
+      # Server settings are env-only (docs/content-factory/config-reference.md).
+      # Export them in your shell (see .env.example) before `compose run`.
+      - ZIVON_BASE_URL=${ZIVON_BASE_URL:-}
+      - ZIVON_MODEL=${ZIVON_MODEL:-}
+      - ZIVON_API_KEY=${ZIVON_API_KEY:-}
+    extra_hosts:
+      # Lets the container reach an OpenAI-format server running on the host
+      # (bind the host server to 0.0.0.0, then use http://host.docker.internal:PORT/v1).
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./runs:/app/runs
+      - ./frontend:/app/frontend
+      - ./sources/pdfs:/app/sources/pdfs
+      - ./sources/cache:/app/sources/cache
+      - ./hf-cache:/app/.cache/huggingface
+
+  # Dev-only inference router (docker/inference-router.Dockerfile): makes the
+  # host's loopback-only OpenAI-format server reachable from containers and
+  # minikube pods WITHOUT touching it. network_mode: host means its 127.0.0.1
+  # IS the host loopback. Listens only on minikube's bridge IP (not the LAN).
+  # Start: docker compose up -d inference-router
+  # Then every path uses: ZIVON_BASE_URL=http://192.168.49.1:18080/v1
+  inference-router:
+    build:
+      context: .
+      dockerfile: docker/inference-router.Dockerfile
+    image: zivon-inference-router:0.1.0
+    network_mode: host
+    restart: unless-stopped
+
+  # Static frontend hosting: nginx serving ./frontend (hand-maintained shell
+  # + generated pages the factory writes into the same volume). Reachable
+  # from a phone on the same network (http://<host-ip>:8081) - that is how
+  # kid testers get the pages during validation.
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: zivon-frontend:0.1.3
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./frontend:/usr/share/nginx/html

@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 *.pem
+# exception: public pinned CA chains (e.g. ncert.nic.in) are not secrets and must ship
+!sources/certs/*.pem
 *.key
 
 # --- python ---
@@ -23,7 +25,8 @@ build/
 .cache/
 
 # --- logs / data / local artifacts ---
-logs/
+# anchored to the repo root so docs/logs/ (session logs) stays trackable
+/logs/
 *.log
 *.sqlite
 *.db
@@ -41,3 +44,12 @@ recordings/
 *.mp4
 *.wav
 *.mp3
+
+# --- content factory local artifacts (never commit) ---
+runs/
+sources/pdfs/
+sources/cache/
+
+# --- local tool binaries (installed via curl; real copies live in /usr/local/bin) ---
+kubectl
+minikube-linux-amd64

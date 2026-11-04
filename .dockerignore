@@ -1,0 +1,41 @@
+# Version control — not needed inside the image
+.git
+
+# Secrets — must NEVER enter an image or the build context
+.env
+.env.*
+*.pem
+# exception: public pinned CA chains must enter the image (factory/ingest.py verifies against them)
+!sources/certs/*.pem
+*.key
+
+# Python local junk
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+
+# Content-factory local artifacts — mounted as volumes at runtime instead
+runs
+sources/pdfs
+sources/cache
+
+# Posts, skills, media assets — repo material, not needed at runtime
+posts
+skills
+*.xcf
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.wav
+*.mp3
+
+# Node (future frontend work)
+node_modules
+dist
+build

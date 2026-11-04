@@ -1,0 +1,119 @@
+# Content factory run Job TEMPLATE — a manual admin tool, never automatic.
+#
+# This file is a TEMPLATE: it carries placeholders and is NOT meant to be
+# `kubectl apply`-ed directly. The only sanctioned way to start a generation
+# run (the admin "button", stand-in for the Day-8 dashboard) is:
+#
+#     scripts/trigger-factory-run.sh "Motion" 9      # chapter + class (optional)
+#
+# The script rewrites factory-run-template -> factory-run-<chapter>-<timestamp>
+# and injects the chapter (+ optional --class) into the pipeline command.
+# Generation is manual-trigger by design: the factory NEVER runs on a schedule.
+# (Only the TEST suite is scheduled — k8s/50, cadence from k8s/infra.env.)
+#
+# Runtime config (server URL + model) comes from the zivon-factory-config
+# ConfigMap — values live in k8s/infra.env, applied by scripts/apply-k8s.sh.
+# Nothing topic-, server- or model-specific is hardcoded in this file.
+#
+# API key (only if your server needs auth) — Secret only, never in a manifest:
+#   kubectl create secret generic zivon-factory-env -n zivon \
+#     --from-literal=ZIVON_API_KEY=<key>
+# Keyless local servers: the Secret is optional (secretKeyRef optional: true).
+#
+# Output: runs/ lives on the zivon-sources PVC (subPath runs) = PERSISTENT
+# evidence + resumable stage artifacts: a re-triggered run reuses completed
+# stages instead of re-deriving them (fetch with kubectl cp zivon/<pod> runs -c factory).
+# frontend/ is the zivon-frontend PVC: stage 11-link publishes generated pages
+# straight onto the site the frontend Deployment serves (k8s/30, k8s/40).
+# sources/ (PDF + text cache) lives on the zivon-sources PVC (k8s/13): fetched
+# textbooks survive across runs, so NCERT is downloaded once, not every run.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: factory-run-template      # trigger script rewrites this per run
+  namespace: zivon
+  labels:
+    app: zivon-factory
+    task: factory-run             # stable handle: scripts/logs-factory-run.sh finds the latest run by this label
+spec:
+  backoffLimit: 0               # NO Job-level retry by design (founder rule 2026-11-03): a
+                                # gate failure is fixed IN-run by its catcher (04/08/10), and an
+                                # infra kill is recovered by re-running the trigger script, which
+                                # RESUMES from completed stages. A whole-pipeline re-run is never sanctioned.
+  activeDeadlineSeconds: 7200     # a pipeline run must not hang forever: hard cap. 2 h because a cold-cache first run politely fetches + extracts the whole catalog; the sources PVC makes progress resumable, so a re-run continues where this one stopped.
+  ttlSecondsAfterFinished: 86400  # kube-linter gate: auto-clean the finished Job after 1 day
+  template:
+    metadata:
+      labels:
+        app: zivon-factory
+        task: factory-run
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false   # the factory needs no K8s API access
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: factory
+          image: zivon-factory:0.3.7
+          imagePullPolicy: IfNotPresent
+          # Command override: the image's CMD (smoke test) is replaced by the
+          # real entry point. "__CHAPTER__" is replaced by the trigger script
+          # with the requested chapter (+ optional --class). Topic-agnostic:
+          # the Job is just a factory run; the topic is a runtime input.
+          command: ["python", "pipeline.py", "__CHAPTER__"]
+          securityContext:
+            readOnlyRootFilesystem: true   # kube-linter gate; all writes hit the mounts below
+          envFrom:
+            - configMapRef:
+                name: zivon-factory-config   # ZIVON_BASE_URL + ZIVON_MODEL (from k8s/infra.env)
+          env:
+            - name: ZIVON_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-factory-env
+                  key: ZIVON_API_KEY
+                  optional: true   # keyless local servers need no Secret; hosted servers: create it
+            - name: HF_HUB_OFFLINE
+              value: "1"           # embedder already cached on zivon-hf-cache PVC: skip the
+                                   # per-run HF Hub check (source of the "unauthenticated requests
+                                   # to HF Hub" warning + a slow network round-trip at startup).
+                                   # Drop this only if the hf-cache PVC is ever wiped.
+          volumeMounts:
+            - name: runs
+              mountPath: /app/runs
+              subPath: runs
+            - name: site
+              mountPath: /app/frontend
+            - name: sources
+              mountPath: /app/sources/pdfs
+              subPath: pdfs
+            - name: sources
+              mountPath: /app/sources/cache
+              subPath: cache
+            - name: hf-cache
+              mountPath: /app/.cache/huggingface
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "1"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi         # full pipeline: torch + Chromium + model I/O. 4 Gi OOMKilled during ingest (2026-11-02): pdfplumber peaks hard on image-heavy NCERT pages; node has 32 Gi.
+      volumes:
+        - name: runs
+          persistentVolumeClaim:
+            claimName: zivon-sources   # subPath runs: evidence persists + resume survives pod death
+        - name: site
+          persistentVolumeClaim:
+            claimName: zivon-frontend
+        - name: sources
+          persistentVolumeClaim:
+            claimName: zivon-sources   # PDF + text cache persist across runs (k8s/13)
+        - name: hf-cache
+          persistentVolumeClaim:
+            claimName: zivon-hf-cache   # embedder downloads once, not per run
+        - name: tmp
+          emptyDir: {}

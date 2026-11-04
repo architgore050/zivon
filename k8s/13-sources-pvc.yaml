@@ -1,0 +1,17 @@
+# Persistent source cache: the NCERT PDFs (sources/pdfs) and extracted page text
+# (sources/cache) survive across pipeline runs. In the run Job this PVC is mounted
+# with subPath at both cache dirs, so the first run downloads once and later runs
+# reuse the cache (ingest._fetch reuses any valid cached PDF without fetching).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zivon-sources
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

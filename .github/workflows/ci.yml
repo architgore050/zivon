@@ -1,0 +1,205 @@
+# CI merge gate: every PR into main must pass ALL of these before it can merge
+# (branch protection will require them by name). Runs again on merge to main.
+#
+# Hardening conventions used throughout:
+#   - every third-party action pinned to a full commit SHA (tags can be retagged)
+#   - top-level `permissions: {}` = GITHUB_TOKEN starts with ZERO powers;
+#     each job grants only what it needs (least privilege)
+name: CI merge gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}   # manual runs from the Actions tab
+
+permissions: {}
+
+jobs:
+  # ---- 1. code quality -----------------------------------------------------
+  quality:
+    name: Lint + type check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install lint tools
+        run: pip install ruff mypy
+      - name: Ruff lint
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+      - name: Mypy type check
+        run: mypy --ignore-missing-imports factory/ docker/ pipeline.py testing/
+
+  # ---- 2. the image: lint, build, prove it works, scan it ------------------
+  docker:
+    name: Build image + smoke test + scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write      # only for uploading the SBOM artifact
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Dockerfile lint (hadolint)
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
+        with:
+          dockerfile: Dockerfile
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+      - name: Build image (GitHub Actions layer cache)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          load: true                       # load into the runner's docker for the steps below
+          tags: zivon-factory:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test (the image's own CMD)
+        run: docker run --rm zivon-factory:${{ github.sha }}
+      - name: Pipeline CLI works inside the image
+        run: docker run --rm zivon-factory:${{ github.sha }} python pipeline.py --help
+      - name: Image vulnerability scan (trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-factory:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
+          ignore-unfixed: true
+      - name: Generate SBOM (what is inside this image)
+        run: trivy image --format cyclonedx --output sbom.json zivon-factory:${{ github.sha }}
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: factory-sbom-${{ github.sha }}
+          path: sbom.json
+
+  # ---- 2b. the frontend image: lint, build, prove it serves ---------------
+  frontend-image:
+    name: Frontend image build + smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Dockerfile lint (hadolint)
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
+        with:
+          dockerfile: Dockerfile.frontend
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+      - name: Build frontend image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.frontend
+          load: true                       # load into the runner's docker for the steps below
+          tags: zivon-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test (site served, headers set, probe answers)
+        run: |
+          # The image stages the shell at /opt/zivon-shell; the served html root is a
+          # volume/PVC in production (compose mount / seed-shell initContainer). Stand
+          # in for the cluster path: writable root (tmpfs, uid 101 = the fsGroup stand-in)
+          # seeded with the same no-clobber glob copy the initContainer uses (gotcha 6).
+          # Without this the bare image serves nginx's default page and the shell checks
+          # can never pass.
+          docker run -d --name zivon-web -p 8080:8080 \
+            --tmpfs /usr/share/nginx/html:rw,exec,uid=101,gid=101 \
+            zivon-frontend:${{ github.sha }}
+          for i in $(seq 1 15); do curl -sf http://127.0.0.1:8080/healthz >/dev/null && break; sleep 1; done
+          docker exec zivon-web sh -c "cp -rn /opt/zivon-shell/* /usr/share/nginx/html/"
+          curl -sf http://127.0.0.1:8080/healthz
+          curl -sf http://127.0.0.1:8080/ | grep -q "Zivon"
+          curl -sf http://127.0.0.1:8080/assets/zivon.css > /dev/null
+          curl -sf http://127.0.0.1:8080/assets/zivon.js > /dev/null
+          curl -sfI http://127.0.0.1:8080/ | grep -qi "content-security-policy"
+          curl -sfI http://127.0.0.1:8080/ | grep -qi "x-content-type-options: nosniff"
+          curl -sfI http://127.0.0.1:8080/ | grep -qi "cache-control: no-store"
+          docker rm -f zivon-web
+      - name: Image vulnerability scan (trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-frontend:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
+          ignore-unfixed: true
+
+  # ---- 3. secrets: nothing sensitive may ever enter git history ------------
+  secrets:
+    name: Secret leak scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0                  # full history — gitleaks scans all commits
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---- 4. dependencies: known CVEs in the Python dependency tree -----------
+  deps:
+    name: Dependency audit (pip-audit)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+      - uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266  # v1.1.0
+        with:
+          req-file: requirements.txt
+
+  # ---- 5. k8s manifests: valid schema + safe settings ----------------------
+  manifests:
+    name: Manifest validation (kubeconform + kube-linter)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: kubeconform — schema validity
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz | tar xz
+          ./kubeconform -summary -strict -kubernetes-version 1.33.0 k8s/
+      - name: kube-linter — security linting
+        run: |
+          curl -sL https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz | tar xz
+          ./kube-linter lint --config .kube-linter.yaml k8s/
+
+  # ---- 6. the actual test suites (content factory + frontend) ---------------
+  tests:
+    name: Tests (content factory + frontend)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies (torch CPU-only first, then the rest)
+        # torch pinned to the same wheel the factory image installs (determinism
+        # across CI tests and the shipped image)
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Content factory unit tests (fast, no network, no browser; embedder is a fixture)
+        run: python -m unittest discover -s testing/content_factory/unit -t . -v
+      - name: Content factory integration test (real orchestrator vs mock inference server + real headless Chromium)
+        # first run downloads the all-MiniLM-L6-v2 embedder (~90 MB) from HuggingFace
+        run: python -m unittest testing.content_factory.integration.test_end_to_end -v
+      - name: Frontend shell + behaviour tests (headless Chromium)
+        run: python -m unittest discover -s testing/frontend -t . -v

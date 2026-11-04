@@ -1,0 +1,16 @@
+# HuggingFace model cache (the all-MiniLM-L6-v2 embedder, ~90 MB) shared across
+# pipeline runs and test runs so it downloads once, not every run.
+# HF_HOME=/app/.cache/huggingface is baked into the factory image (Dockerfile).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zivon-hf-cache
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
