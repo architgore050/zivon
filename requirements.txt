@@ -4,7 +4,7 @@
 # Browser for the performance gate (one-time):
 #   python -m playwright install chromium
 
-requests>=2.31
+requests>=2.34.2
 pdfplumber>=0.11
 jsonschema>=4.21
 sentence-transformers>=3.0
