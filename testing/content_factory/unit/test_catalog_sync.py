@@ -1,4 +1,4 @@
-"""Keeps sources/catalog.json and docs/source-catalog.md in sync.
+"""Keeps sources/catalog.json and docs/content-factory/source-catalog.md in sync.
 
 Every catalog book must be represented in the human-readable research doc:
 its title and at least one of its URLs/filenames must appear there.
@@ -20,7 +20,7 @@ class TestCatalogSync(unittest.TestCase):
         )
         # strip markdown emphasis so table titles match literal JSON titles
         self.doc = (
-            (REPO_ROOT / "docs" / "source-catalog.md")
+            (REPO_ROOT / "docs" / "content-factory" / "source-catalog.md")
             .read_text(encoding="utf-8")
             .replace("*", "")
         )
@@ -32,7 +32,7 @@ class TestCatalogSync(unittest.TestCase):
                 base_title = title.split(" (")[0].split(" - ")[0]
                 self.assertTrue(
                     title in self.doc or base_title in self.doc,
-                    f"book '{title}' ({book['id']}) not found in docs/source-catalog.md",
+                    f"book '{title}' ({book['id']}) not found in docs/content-factory/source-catalog.md",
                 )
                 link = (
                     book.get("prelims_url")
@@ -41,7 +41,7 @@ class TestCatalogSync(unittest.TestCase):
                 )
                 self.assertTrue(
                     link and link in self.doc,
-                    f"book '{book['id']}' link/filename '{link}' not found in docs/source-catalog.md",
+                    f"book '{book['id']}' link/filename '{link}' not found in docs/content-factory/source-catalog.md",
                 )
 
     def test_catalog_has_classes_6_to_12(self):

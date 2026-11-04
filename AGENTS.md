@@ -17,7 +17,7 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 - `docs/DECISIONS-and-RESEARCH/` — consult before making product, positioning, or Gnani-related decisions.
 - `docs/frontend/` — consult before any frontend or design work.
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
-- `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook).
+- `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog).
 - `docs/logs/` — dated session logs (done / not done / next) for the build-in-public record.
 
 Rules:

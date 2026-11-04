@@ -33,7 +33,7 @@ Run from the repo root:
 | `unit/test_perf_profile.py` | profile validation and budget verdict logic |
 | `unit/test_perf_fixloop.py` | 07-perf → 08-fixloop routing: fixable vs unfixable BudgetError, bounded rounds, pedagogy guard |
 | `unit/test_review.py` | Code Reviewer prompt (cited facts, drawn behaviour, live doctrine, honest framing + `unverified:` way-out) + the v2 contract: a fail verdict is RETURNED as the report (routing to 10-reviewfix), not raised |
-| `unit/test_catalog_sync.py` | catalog.json ↔ docs/source-catalog.md sync; class coverage 6-12 |
+| `unit/test_catalog_sync.py` | catalog.json ↔ docs/content-factory/source-catalog.md sync; class coverage 6-12 |
 | `integration/test_end_to_end.py` | the REAL orchestrator as a subprocess: fixture PDFs → every stage → linked page; resume (re-trigger reuses completed stages), fingerprint guard, catcher routing (03→04, 09→10, bounded), observability asserts (stage lines, call brackets, per-stage `elapsed_s`), loud-failure test with a dead server |
 | `mocks/openai_mock.py` | OpenAI-format mock keyed on the `[ZIVON STAGE: ...]` marker; supports scripted first-attempt failures per stage (per-test fixture dirs) |
 | `mocks/fixtures/` | component fixtures (`gt/lesson/blocks.json`), the combined `02-generate.json`, gate reports, `repair_plan.json`, fix plans + `make_pdfs.py` (hand-rolled minimal PDFs, reproducible) |

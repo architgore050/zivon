@@ -94,7 +94,7 @@ is correct end to end and the only remaining variable is your real model.
 
 ## Source library
 
-- `sources/catalog.json` lists the books; `docs/source-catalog.md` is the
+- `sources/catalog.json` lists the books; `docs/content-factory/source-catalog.md` is the
   human-readable mirror (a unit test keeps them in sync).
 - PDFs cache under `sources/pdfs/` (gitignored). Manual-download books (OpenStax,
   Siyavula) must be placed by hand; the pipeline prints the exact path when missing.

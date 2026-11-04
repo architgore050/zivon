@@ -2,7 +2,7 @@
   "version": 1,
   "updated": "2026-11-01",
   "how_this_file_works": [
-    "This catalog is the ONLY place the pipeline learns about source books. docs/source-catalog.md mirrors it for humans and a unit test keeps them in sync.",
+    "This catalog is the ONLY place the pipeline learns about source books. docs/content-factory/source-catalog.md mirrors it for humans and a unit test keeps them in sync.",
     "chapter_url_template uses {nn} = zero-padded 2-digit chapter number, and {code} = the book code's {ps} placeholder for prelims.",
     "ingest downloads the prelims PDF first, extracts the class-evidence string and the table of contents, then downloads the listed chapter numbers.",
     "A 404 on a chapter of a books entry with chapters_verified=true is a FATAL error (fix the catalog).",
