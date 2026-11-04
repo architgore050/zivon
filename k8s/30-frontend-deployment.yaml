@@ -32,7 +32,7 @@ spec:
         fsGroup: 101             # makes the PVC writable by the shell-seeding copy
       initContainers:
         - name: seed-shell
-          image: zivon-frontend:0.1.0
+          image: zivon-frontend:0.1.1
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "cp -rn /opt/zivon-shell/* /usr/share/nginx/html/"]
           # busybox cp (Alpine) silently no-ops on a "/." source and exits 0;
@@ -54,7 +54,7 @@ spec:
               mountPath: /usr/share/nginx/html
       containers:
         - name: nginx
-          image: zivon-frontend:0.1.0
+          image: zivon-frontend:0.1.1
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true

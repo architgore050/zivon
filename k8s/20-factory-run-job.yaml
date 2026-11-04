@@ -55,7 +55,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: factory
-          image: zivon-factory:0.3.2
+          image: zivon-factory:0.3.3
           imagePullPolicy: IfNotPresent
           # Command override: the image's CMD (smoke test) is replaced by the
           # real entry point. "__CHAPTER__" is replaced by the trigger script

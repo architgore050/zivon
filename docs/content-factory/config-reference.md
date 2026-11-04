@@ -66,15 +66,19 @@ invalidated automatically when chunks or the model change.
 | `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the model (120k chars — measured class-9 chapters run 19k–62k, so no chapter is truncated; the 256k-context server handles it. Raise further for long class 11–12 chapters if ever needed). |
 | `max_chars_supplement_each` | int | Cap per supplement chunk. |
 | `max_chars_supplement_total` | int | Cap on all supplements combined. |
-| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected into 02/05/09 by `factory/design.py`. Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + examples ≈ 41k chars. |
+| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected by `factory/design.py`: doctrine text flows into 02/04; doctrine + lesson-page example flow into every stage that writes, reviews or fixes page code — 05/08/09/10 (founder rule, 2026-11-04). Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + lesson example ≈ 34k chars. |
 
 ## paths
 
 All relative paths resolve against the repo root; absolute paths are allowed
 (tests use them). `catalog`, `pdf_cache`, `text_cache`, `runs`, `frontend`,
-`doctrine`, `doctrine_examples`. `doctrine_examples` is a glob: every file it
-matches is injected into 05-interactive, so adding a new example page needs
-no pipeline change (see architecture.md, "Design doctrine flow").
+`doctrine`, `doctrine_examples`. `doctrine_examples` is a glob — narrowed on
+2026-11-04 to lesson-page examples only (`docs/frontend/design-doctrine-lesson*.html`):
+every match is injected into the stages that handle page code (05/08/09/10),
+so adding a new lesson example needs no pipeline change. The main
+(post/brand) example stays a docs asset and is deliberately out of factory
+context (founder decision: its single-file demo style was bleeding into
+generated pages). See architecture.md, "Design doctrine flow".
 
 ## perf
 

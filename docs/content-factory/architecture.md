@@ -35,9 +35,9 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 06 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
-| 08 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts; must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
-| 09 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine | final verdict report (a fail verdict routes to 10, it does not raise) |
-| 10 | reviewfix | factory/reviewfix.py (catcher) | model, ≤ repair.code_rounds | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round |
+| 08 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
+| 09 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine + lesson-page example | final verdict report (a fail verdict routes to 10, it does not raise) |
+| 10 | reviewfix | factory/reviewfix.py (catcher) | model, ≤ repair.code_rounds; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
 Happy path costs 3 model calls + one per simulation (generate, check, review).
@@ -234,10 +234,13 @@ contain source text, prompts and model output only.
 ## Design doctrine flow (open-ended)
 
 Visual style lives in exactly one place: `docs/frontend/design-doctrine.md`
-and its example pages (`docs/frontend/design-doctrine*.html`). The factory
-holds no design information in prompts or code - `factory/design.py` is the
+and its lesson-page examples (`docs/frontend/design-doctrine-lesson*.html`).
+The factory holds no design information in prompts or code - `factory/design.py` is the
 single point where it touches design, and it hands the LIVE documents to the
-model stages at build time:
+model stages at build time. Founder rule (2026-11-04): anybody who reviews,
+writes or edits page code gets the doctrine AND the lesson-page example; the
+main (post/brand) example is out of factory context so its single-file demo
+style cannot bleed into generated pages.
 
 - **02-generate** gets the doctrine document (its diagram rules govern the SVGs
   the generation specs) plus the parsed palette; diagrams no longer invent
@@ -248,13 +251,16 @@ model stages at build time:
   cards, tape, controls) is renderer-built; the model fills one canvas
   simulation inside a paper card, reads the examples for the visual language
   and never copies their structure.
-- **09-review** gets the doctrine document and a checklist item: a clear
-  doctrine violation is major; one that misleads the learner about what moves
-  or what is correct is fatal.
+- **09-review** gets the doctrine document AND the lesson-page example, plus a
+  checklist item: a clear doctrine violation is major; one that misleads the
+  learner about what moves or what is correct is fatal.
+- **08-fixloop** and **10-reviewfix** (2026-11-04) get doctrine + example +
+  palette too: they rewrite page code, so they must fix toward the reference
+  language, not drift from it while repairing.
 
 Open-ended by construction: a doctrine edit flows into every future run with
-zero pipeline changes, and a new example file matching the glob joins 05's
-context automatically. The palette is parsed verbatim from
+zero pipeline changes, and a new lesson example file matching the glob joins
+every code stage's context automatically. The palette is parsed verbatim from
 `frontend/assets/zivon.css` (canvas code needs concrete hex values; page.css
 uses the variables by name), so generated colours match the shell that
 renders around them.
@@ -264,9 +270,14 @@ doctrine outgrows the model's context the pipeline fails loudly with the
 numbers - it never silently truncates.
 
 The shell itself (`render.py`, `zivon.css`) is the human-maintained
-implementation of the doctrine, validated against the example pages; adopting
-the doctrine's §10 lesson shell (ruled grid, taped cards, language bar) is
-Phase 4 (Day 9) frontend work, not pipeline work.
+implementation of the doctrine. On 2026-11-04 the §10 lesson shell was pulled
+forward from Phase 4 and ported: `zivon.css` now implements §10 for topic
+pages (taped paper cards, Caveat handwritten body, 36 px ruled rhythm,
+uncarded diagrams), scoped so nothing leaks into the landing shell (§10
+scope guard), and `render.py` runs model diagram SVG through the §10.7
+hand-stroke pass (`handify_svg`) so straight authored primitives become
+seeded hand strokes deterministically. Remaining §10 items stay Day-9 work:
+the two-column page grid and the language bar.
 
 ## Performance budgets
 

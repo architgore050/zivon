@@ -12,7 +12,7 @@
 services:
   factory:
     build: .
-    image: zivon-factory:0.3.2
+    image: zivon-factory:0.3.3
     environment:
       # Server settings are env-only (docs/content-factory/config-reference.md).
       # Export them in your shell (see .env.example) before `compose run`.
@@ -52,7 +52,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    image: zivon-frontend:0.1.0
+    image: zivon-frontend:0.1.1
     ports:
       - "8081:8080"
     volumes:

@@ -23,10 +23,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.2.2 .
-docker run --rm zivon-factory:0.2.2                          # smoke test
-docker run --rm -it zivon-factory:0.2.2 bash                 # explore inside
-docker history zivon-factory:0.2.2                           # per-layer sizes
+docker build -t zivon-factory:0.3.3 .
+docker run --rm zivon-factory:0.3.3                          # smoke test
+docker run --rm -it zivon-factory:0.3.3 bash                 # explore inside
+docker history zivon-factory:0.3.3                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
@@ -37,9 +37,9 @@ docker compose run --rm factory python pipeline.py "Motion" --class 9   # full p
 The static site ships as its own small nginx image — hosting the frontend is separate from the factory that generates it.
 
 ```bash
-docker build -f Dockerfile.frontend -t zivon-frontend:0.1.0 .
+docker build -f Dockerfile.frontend -t zivon-frontend:0.1.1 .
 docker compose up web                                       # serve ./frontend on http://localhost:8081
-docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.0
+docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.1
 ```
 
 - **Base:** `nginxinc/nginx-unprivileged:1.27-alpine` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule.
