@@ -10,7 +10,7 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 
 Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task list**. No separate TODO files in this folder.
 
-## Status snapshot (2026-11-02)
+## Status snapshot (2026-11-04)
 
 | Piece | State |
 |---|---|
@@ -22,7 +22,7 @@ Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task
 | CI merge gate (incl. test-suite job: content factory unit + e2e + frontend shell) + CodeQL + Dependabot | ✅ written; first live run will be the feature-branch PR |
 | Branch protection on `main` (required checks) | ⬜ to configure in GitHub UI before the PR |
 | Publish pipeline (merge → build → push to `ghcr.io`) | ⬜ next piece of CD |
-| Deploy pipeline + cluster hosting decision | ⬜ partially closed: frontend hosting pattern decided (PVC + nginx Deployment); real-cluster choice + public domain/TLS still open |
+| Deploy pipeline + cluster hosting decision | ⬜ partially closed: frontend hosting pattern decided (PVC + nginx Deployment); real-cluster choice + public domain still open; HTTPS posture LOCKED 2026-11-04 (edge TLS only — see Decisions locked) |
 | Voice backend image (FastAPI/WebSockets) + Deployment + Service | ⬜ comes with the voice loop (Phase 2) |
 
 ## Decisions locked here
@@ -33,3 +33,4 @@ Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task
 - All third-party GitHub Actions are pinned to commit SHAs; `GITHUB_TOKEN` permissions are least-privilege per job.
 - **Test containerization policy:** production images ship runtime only — no test suites (attack surface + bloat). The image's smoke test is a health check, not a test suite. The perf harness (`testing/content_factory/perf/harness.py`) is a TOOL imported at runtime by stage 08, so it ships in the factory image. Tests run in CI against the repo; when a future service needs e2e in its exact production environment, use a multi-stage Dockerfile with a dedicated `test` target (FROM the runtime image + copy tests) rather than polluting the runtime image.
 - **Monitoring (decided, build at Phase 3 / Day 8 — not before):** Prometheus + Grafana via `kube-prometheus-stack` (pods/nodes/resources, "what is running", load); Grafana's own auth is the admin gate. Loki for centralized logs is P2. Interim tools: `minikube addons enable metrics-server` → `kubectl top pods,nodes`; `docker stats`. Factory per-stage latency telemetry rides on structured logs into the same dashboards.
+- **HTTPS posture (locked 2026-11-04; the hosting choice itself stays open until the hosting stage):** TLS terminates at the edge — wherever the site is hosted (platform TLS, a Cloudflare-fronted domain, or a VM with Caddy), the app and cluster serve plain HTTP behind it and never implement TLS themselves. The site is HTTPS-ready by construction: `factory/lint.py` hard-lints absolute AND protocol-relative URL refs in every generated-code path (enforced inside the 05/06/08/09/10 loops), every generated page carries the CSP `default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'`, and the frontend test set re-verifies both on published snapshots in CI. One hard constraint shapes the future hosting choice: browsers grant microphone access only in a **secure context** (HTTPS or localhost) — the Phase-2 voice demo on real devices REQUIRES an HTTPS origin.

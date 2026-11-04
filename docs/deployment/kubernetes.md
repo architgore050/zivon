@@ -108,4 +108,6 @@ kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the
 
 Closed by the frontend objects (15/30/40): generated pages persist on a PVC, nginx serves them as a Deployment + Service, and locally the NodePort gives a stable URL (http://192.168.49.2:30080) with `docker compose up web` serving the same site on :8080 (LAN-reachable for kid testing).
 
-Still open (Phase-3): **which real cluster** runs this (managed Kubernetes vs a small VM host running k3s), and the **public domain** piece (ingress vs load balancer, TLS, DNS — the local NodePort is a dev convenience, not the public answer). The deploy pipeline waits on those.
+Still open (hosting stage): **which real cluster** runs this (managed Kubernetes vs a small VM host running k3s), and the **public domain** piece (ingress vs load balancer, TLS, DNS — the local NodePort is a dev convenience, not the public answer). The deploy pipeline waits on those.
+
+What is NOT open (HTTPS posture, locked 2026-11-04): TLS terminates at the **edge** — the app and cluster serve plain HTTP behind it and never implement TLS themselves. Generated pages are already host-agnostic: the relative-URL guarantee lives in the harness (factory lint + page CSP, re-checked on published snapshots in CI) — see `docs/deployment/README.md`, Decisions locked. The NodePort site stays dev-only.
