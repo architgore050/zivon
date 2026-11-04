@@ -11,6 +11,7 @@ The repo rule is "no eval, no external calls". These rules make it mechanical:
 from __future__ import annotations
 
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 _JS_PATTERNS: list[tuple[str, str]] = [
@@ -62,6 +63,35 @@ def lint_css(filename: str, code: str) -> list[str]:
     return hits
 
 
+class _InlineScriptBodyParser(HTMLParser):
+    """Parser-based inline-script-body detection. A regex over raw HTML can be
+    evaded by markup a browser parses differently (CodeQL py/bad-tag-filter);
+    the parser sees the document the way a browser does. Catches any <script>
+    element carrying non-whitespace text, including unclosed ones a regex miss."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._in_script = False
+        self.body_lines: list[int] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "script":
+            self._in_script = True
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        # HTML does not self-close <script/>: browsers treat it as an open tag.
+        if tag == "script":
+            self._in_script = True
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "script":
+            self._in_script = False
+
+    def handle_data(self, data: str) -> None:
+        if self._in_script and data.strip():
+            self.body_lines.append(self.getpos()[0])
+
+
 def lint_html(filename: str, code: str) -> list[str]:
     hits = []
     # <script> tags: allowed ONLY with a self-relative src and no inline body.
@@ -77,15 +107,13 @@ def lint_html(filename: str, code: str) -> list[str]:
             hits.append(
                 f"{filename}:{line}: <script> without src (inline JS is forbidden; JS lives in .js files)"
             )
-    for m in re.finditer(
-        r"<\s*script\b[^>]*>(.*?)</\s*script\s*>", code, re.IGNORECASE | re.DOTALL
-    ):
-        body = m.group(1)
-        if body.strip():
-            line = code[: m.start()].count("\n") + 1
-            hits.append(
-                f"{filename}:{line}: inline script body is forbidden (JS lives in .js files)"
-            )
+    parser = _InlineScriptBodyParser()
+    parser.feed(code)
+    parser.close()
+    for line in parser.body_lines:
+        hits.append(
+            f"{filename}:{line}: inline script body is forbidden (JS lives in .js files)"
+        )
     for m in _HTML_ALLOWED_URL_RE.finditer(code):
         url = m.group(1)
         if url not in _HTML_NS_ALLOWLIST:

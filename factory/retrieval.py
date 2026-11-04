@@ -51,7 +51,7 @@ class FixtureEmbedder:
         out = np.zeros((len(texts), self.dim), dtype=np.float32)
         for i, t in enumerate(texts):
             for token in t.lower().split():
-                h = int(hashlib.md5(token.encode()).hexdigest(), 16)
+                h = int(hashlib.sha256(token.encode()).hexdigest(), 16)
                 out[i, h % self.dim] += 1.0
         norm = np.linalg.norm(out, axis=1, keepdims=True)
         norm[norm == 0] = 1.0

@@ -24,6 +24,13 @@ FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 _STAGE_RE = re.compile(r"\[ZIVON STAGE: ([0-9]{2}-[a-z]+)\]")
 
 
+def _fixture_index(fixtures_dir: Path) -> dict[str, Path]:
+    # Whitelisted fixture files, snapshotted when the server starts: request-
+    # derived text is only ever used as a dict key, never as a path component
+    # (CodeQL py/path-injection).
+    return {p.name: p for p in sorted(fixtures_dir.iterdir()) if p.suffix == ".json"}
+
+
 class MockState:
     def __init__(self) -> None:
         self.served: list[dict] = []
@@ -32,6 +39,7 @@ class MockState:
 
 class _Handler(BaseHTTPRequestHandler):
     state: MockState  # injected by start_mock() before the server thread starts
+    fixture_index: dict[str, Path]  # injected by start_mock(): whitelisted files
 
     def log_message(self, fmt, *args):  # silence request logging
         pass
@@ -53,20 +61,20 @@ class _Handler(BaseHTTPRequestHandler):
         stage = match.group(1)
         self.state.served.append({"stage": stage, "messages": messages})
 
-        fixture_path = FIXTURES_DIR / f"{stage}.json"
-        if not fixture_path.exists():
+        fixture = self.fixture_index.get(f"{stage}.json")
+        if fixture is None:
             self._json_response(500, {"error": f"no fixture for stage {stage}"})
             return
         # scripted retry: <stage>__attempt1.json served once before the canonical fixture
-        scripted = FIXTURES_DIR / f"{stage}__attempt1.json"
+        scripted = self.fixture_index.get(f"{stage}__attempt1.json")
         content = None
-        if scripted.exists():
+        if scripted is not None:
             count = self.state._attempt_counters.get(stage, 0)
             self.state._attempt_counters[stage] = count + 1
             if count == 0:
                 content = scripted.read_text(encoding="utf-8")
         if content is None:
-            content = fixture_path.read_text(encoding="utf-8")
+            content = fixture.read_text(encoding="utf-8")
 
         self._json_response(
             200,
@@ -105,7 +113,11 @@ def start_mock(
         global FIXTURES_DIR
         FIXTURES_DIR = fixtures_dir  # pragma: no cover
     state = MockState()
-    handler = type("BoundHandler", (_Handler,), {"state": state})
+    handler = type(
+        "BoundHandler",
+        (_Handler,),
+        {"state": state, "fixture_index": _fixture_index(FIXTURES_DIR)},
+    )
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
