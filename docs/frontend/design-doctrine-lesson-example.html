@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zivon: Field Notes lesson page</title>
+<!-- Doctrine v1.3: typed page (Courier Prime body on the ruled lines), handwritten accents
+only (Caveat title/diagram labels, pen underlines, annotation arrows); clean geometry;
+strict 36 px rhythm; frame-tested 360-1280 px. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Courier+Prime:wght@400;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&display=swap">
 <style>
 :root{--paper:#EFE6B8;--paper-light:#F6F0CF;--ink:#1C1B18;--graphite:#5A5748;--pen-blue:#1F3A9E;
@@ -22,7 +25,11 @@ body{margin:0;min-height:100%;background-color:var(--paper);background-image:rep
 h1.t{font:700 clamp(46px,7vw,76px)/72px var(--hand);margin:0 0 36px;position:relative}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:36px 48px;align-items:start}
 @media(max-width:820px){.grid{grid-template-columns:1fr}}
-.body{font:500 30px/36px var(--hand);max-width:46ch}
+/* doctrine v1.3 (4 Nov 2026): typed page, handwritten accents - body text is
+   typed Courier Prime ON the ruled lines; Caveat survives on titles and diagram
+   labels; every block is a multiple of 36 px so the rules stay under the text at
+   every frame (360 px phone -> laptop). */
+.body{font:400 17px/36px var(--notes);max-width:46ch}
 .body p{margin:0 0 36px}
 .key{position:relative;display:block;width:fit-content;font-weight:700}
 .uline{position:absolute;top:100%;pointer-events:none}
@@ -31,14 +38,16 @@ figcaption{font:400 14px/36px var(--notes);color:var(--graphite)}
 .dia{display:block;width:100%;height:288px}
 .dia text{font-family:var(--hand);font-weight:700;fill:var(--ink)}.dia .pb{fill:var(--pen-blue)}
 /* paper card: taped on, flat, no shadow, no tilt */
-.card{position:relative;background:var(--paper-light);border:1px solid var(--ink);border-radius:2px;padding:24px 18px 20px;margin:12px 0 48px}
+.card{position:relative;background:var(--paper-light);border:1px solid var(--ink);border-radius:2px;padding:17px 18px;margin:36px 0}
 .card::before{content:"";position:absolute;top:-13px;left:calc(50% - 46px);width:92px;height:27px;background:rgba(196,174,104,.5);transform:rotate(-3deg);clip-path:polygon(0 0,100% 0,96% 12%,100% 25%,96% 37%,100% 50%,96% 62%,100% 75%,96% 87%,100% 100%,0 100%,4% 87%,0 75%,4% 62%,0 50%,4% 37%,0 25%,4% 12%)}
 .card:nth-of-type(2)::before{left:calc(50% - 38px);width:84px;transform:rotate(2deg)}
-input[type=range]{width:100%;accent-color:var(--pen-blue);height:32px}
-.sim{width:100%;height:auto;display:block}.sim text{font:500 12px var(--display)}
-.read{font:700 16px var(--notes)}
-.q{font:500 17px/1.4 var(--display);margin:0 0 12px}
-.fb{font:500 15px/1.35 var(--display);min-height:22px;margin-top:12px}
+input[type=range]{width:100%;accent-color:var(--pen-blue);height:32px;margin:2px 0}
+.card .lab{line-height:36px}.card .chip{min-height:36px}
+/* sim box: fixed 180 px (5 ruled rows) so card height never depends on width */
+.sim{width:100%;max-width:340px;height:180px;display:block}.sim text{font:500 12px var(--display)}
+.read{font:700 16px/36px var(--notes)}
+.q{font:500 17px/36px var(--display);margin:0 0 36px;max-width:60ch}
+.fb{font:500 15px/36px var(--display);min-height:36px;margin-top:36px}
 </style>
 </head>
 <body>
@@ -54,9 +63,9 @@ input[type=range]{width:100%;accent-color:var(--pen-blue);height:32px}
     <div>
       <section class="card"><label class="lab" for="ang" id="sl"></label>
         <input type="range" id="ang" min="0" max="80" value="40">
-        <svg class="sim" id="sim" viewBox="0 0 320 190" role="img"></svg>
+        <svg class="sim" id="sim" viewBox="0 0 320 180" role="img"></svg>
         <div class="read" id="read" aria-live="polite"></div></section>
-      <section class="card"><div class="q" id="q"></div><div class="row" id="opts"></div><div class="fb" id="fb" aria-live="polite"></div></section>
+      <section class="card"><div class="q" id="q"></div><div class="row" id="opts" role="radiogroup" aria-label="Answer options"></div><div class="fb" id="fb" aria-live="polite"></div></section>
     </div>
   </div>
 </main>
@@ -65,17 +74,17 @@ const NS='http://www.w3.org/2000/svg',$=id=>document.getElementById(id);
 const T={
 en:{n:'English',ll:'Language',day:'Day 03 · Class 10 · Physics',title:'Reflection of light',
  p:['When light hits a smooth surface like a mirror, it bounces back. This is reflection.','Draw a line at right angles to the mirror. It is called the normal.','Measure both angles from the normal, never from the mirror.'],
- stmt:'The angle of incidence always equals the angle of reflection.',cap:'Hand-drawn: diagrams look like notebook sketches.',
+ stmt:'The angle of incidence always equals the angle of reflection.',cap:'Clean geometry on the paper; labels handwritten.',
  dl:['normal','incident ray','reflected ray','mirror'],sl:'Angle of incidence',rd:['Incidence','Reflection'],
  q:'A ray hits the mirror at 30° to the normal. What is the angle of reflection?',ok:'Correct. Reflection angle = incidence angle = 30°.',no:'Not quite. The two angles are equal, so it is 30°.'},
 hi:{n:'हिन्दी',ll:'भाषा',day:'दिन 03 · कक्षा 10 · भौतिकी',title:'प्रकाश का परावर्तन',
  p:['जब प्रकाश दर्पण जैसी चिकनी सतह पर पड़ता है, तो वह लौट जाता है। इसे परावर्तन कहते हैं।','दर्पण पर लंबवत एक रेखा खींचिए। इसे अभिलंब कहते हैं।','दोनों कोण अभिलंब से नापिए, दर्पण से कभी नहीं।'],
- stmt:'आपतन कोण हमेशा परावर्तन कोण के बराबर होता है।',cap:'हाथ से बना: चित्र नोटबुक के रेखाचित्र जैसे दिखते हैं।',
+ stmt:'आपतन कोण हमेशा परावर्तन कोण के बराबर होता है।',cap:'साफ़ ज्यामिति; लेबल हाथ से लिखे गए।',
  dl:['अभिलंब','आपतित किरण','परावर्तित किरण','दर्पण'],sl:'आपतन कोण',rd:['आपतन','परावर्तन'],
  q:'एक किरण दर्पण पर अभिलंब से 30° पर गिरती है। परावर्तन कोण कितना है?',ok:'सही। परावर्तन कोण = आपतन कोण = 30°।',no:'अभी नहीं। दोनों कोण बराबर होते हैं, इसलिए 30°।'},
 hx:{n:'Hinglish',ll:'Language',day:'Day 03 · Class 10 · Physics',title:'Light ka reflection',
  p:['Jab light mirror jaisi smooth surface par girti hai, toh wo wapas laut jaati hai. Ise reflection kehte hain.','Mirror par 90° ki ek line kheechiye. Ise normal kehte hain.','Dono angle normal se naapiye, mirror se kabhi nahi.'],
- stmt:'Angle of incidence hamesha angle of reflection ke barabar hota hai.',cap:'Hand-drawn: diagrams notebook sketch jaise dikhte hain.',
+ stmt:'Angle of incidence hamesha angle of reflection ke barabar hota hai.',cap:'Clean geometry paper par; labels handwritten.',
  dl:['normal','incident ray','reflected ray','mirror'],sl:'Angle of incidence',rd:['Incidence','Reflection'],
  q:'Ek ray mirror par normal se 30° par girti hai. Angle of reflection kitna hoga?',ok:'Sahi. Reflection angle = incidence angle = 30°.',no:'Abhi nahi. Dono angle barabar hote hain, toh 30°.'}};
 let lang='en';
@@ -92,22 +101,18 @@ function pen(el){
  const d=a.concat(b.reverse()).map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+'Z';
  const s=document.createElementNS(NS,'svg');s.setAttribute('class','uline');s.setAttribute('aria-hidden','true');s.setAttribute('width',Math.ceil(w));s.setAttribute('height',Math.ceil(fs));s.setAttribute('overflow','visible');s.style.left=left+'px';
  s.innerHTML=`<path d="${d}" fill="#1F3A9E"/>`;el.appendChild(s)}
-function hand(pts,seed,j){const R=rng(seed),P=[];
- for(let i=0;i<pts.length-1;i++){const[a,b]=[pts[i],pts[i+1]],n=Math.max(2,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/28));
-  for(let k=0;k<n;k++){const t=k/n;P.push([a[0]+(b[0]-a[0])*t+(R()-.5)*j,a[1]+(b[1]-a[1])*t+(R()-.5)*j])}}
- P.push(pts[pts.length-1].map(v=>v+(R()-.5)*j*.5));
- let d='M'+P[0][0].toFixed(1)+' '+P[0][1].toFixed(1);
- for(let i=1;i<P.length-1;i++){d+=' Q'+P[i][0].toFixed(1)+' '+P[i][1].toFixed(1)+' '+((P[i][0]+P[i+1][0])/2).toFixed(1)+' '+((P[i][1]+P[i+1][1])/2).toFixed(1)}
- return d+' L'+P[P.length-1][0].toFixed(1)+' '+P[P.length-1][1].toFixed(1)}
+/* doctrine v1.3: geometry renders exactly as authored - clean straight polylines */
+const cl=(p)=>'M'+p.map((q)=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join('L');
 const st=(d,w,c,da)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${da?` stroke-dasharray="${da}"`:''}/>`;
 function drawDia(){
  const P=[210,190],a=40*Math.PI/180,Lr=165,I=[P[0]-Lr*Math.sin(a),P[1]-Lr*Math.cos(a)],Rf=[P[0]+Lr*Math.sin(a),P[1]-Lr*Math.cos(a)],t=T[lang].dl;
  const hd=(tip,f)=>{const an=Math.atan2(tip[1]-f[1],tip[0]-f[0]),h=16;return[[tip[0]-h*Math.cos(an-.45),tip[1]-h*Math.sin(an-.45)],tip,[tip[0]-h*Math.cos(an+.45),tip[1]-h*Math.sin(an+.45)]]};
  const m1=[(I[0]+P[0])/2,(I[1]+P[1])/2],m2=[(Rf[0]+P[0])/2,(Rf[1]+P[1])/2];
- let s=st(hand([[30,190],[390,190]],3,2.2),3.8,'#1C1B18');
- for(let x=44;x<390;x+=22)s+=st(hand([[x,194],[x-12,208]],x,1.5),2.2,'#1C1B18');
- s+=st(hand([P,[210,38]],5,2),2.6,'#5A5748','7 8')+st(hand([I,m1,P],7,2.4),3.2,'#1C1B18')+st(hand(hd(m1,I),8,.8),3,'#1C1B18')+st(hand([P,m2,Rf],9,2.4),3.2,'#1C1B18')+st(hand(hd(Rf,m2),10,.8),3,'#1C1B18');
- s+=st(hand([[210,134],[196,136],[183,143],[176,152]],11,1),2.2,'#1F3A9E')+st(hand([[210,134],[224,136],[237,143],[244,152]],12,1),2.2,'#1F3A9E');
+ let s=st(cl([[30,190],[390,190]],3,2.2),3.8,'#1C1B18');
+ for(let x=44;x<390;x+=22)s+=st(cl([[x,194],[x-12,208]],x,1.5),2.2,'#1C1B18');
+ s+=st(cl([P,[210,38]],5,2),2.6,'#5A5748','7 8')+st(cl([I,m1,P],7,2.4),3.2,'#1C1B18')+st(cl(hd(m1,I),8,.8),3,'#1C1B18')+st(cl([P,m2,Rf],9,2.4),3.2,'#1C1B18')+st(cl(hd(Rf,m2),10,.8),3,'#1C1B18');
+ const arc=(sgn)=>{const x=P[0]+sgn*56*Math.sin(a),y=P[1]-56*Math.cos(a);return `M210 134A56 56 0 0 ${sgn<0?0:1} ${x.toFixed(1)} ${y.toFixed(1)}`};
+ s+=st(arc(-1),2.2,'#1F3A9E')+st(arc(1),2.2,'#1F3A9E');
  s+=`<text class="pb" x="176" y="124" font-size="28">i</text><text class="pb" x="226" y="124" font-size="28">r</text><text x="220" y="92" font-size="22">${t[0]}</text><text x="14" y="30" font-size="22">${t[1]}</text><text x="406" y="30" font-size="22" text-anchor="end">${t[2]}</text><text x="30" y="240" font-size="22">${t[3]}</text>`;
  $('dia').innerHTML=s;$('dia').setAttribute('aria-label',t.join(', '))}
 function drawSim(){
@@ -117,7 +122,7 @@ function drawSim(){
  $('sim').innerHTML=ln(30,150,290,150,f,3)+ln(160,150,160,22,'#5A5748',1.5,'4 6')+ln(I[0],I[1],P[0],P[1],c,3)+`<path d="${ar(m1,I)}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`+
  ln(P[0],P[1],R[0],R[1],c,3,'9 6')+`<path d="${ar(R,m2)}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/><text x="30" y="172" fill="${f}">${t.dl[3]}</text>`;
  $('read').textContent=`${t.rd[0]}: ${th}°   ${t.rd[1]}: ${th}°`}
-/* every text block is a multiple of 36px tall, so one measurement of the handwriting baseline puts the ruled lines under every line of text */
+/* every text block is a multiple of 36px tall, so one measurement of the text baseline puts the ruled lines under every line of text; fit() re-runs on resize (frame adaptation) */
 function fit(){
  const bar=document.querySelector('.bar'),pg=document.querySelector('.page');pg.style.paddingTop=Math.ceil((bar.offsetHeight+12)/36)*36+'px';
  const p=document.querySelector('.body p'),pr=document.createElement('span');pr.style.cssText='display:inline-block;width:0;height:0';p.prepend(pr);
@@ -126,13 +131,13 @@ function fit(){
  const h=document.querySelector('h1.t'),hs=document.createElement('span');h.style.top='0px';hs.style.cssText='display:inline-block;width:0;height:0';h.prepend(hs);
  const bt=hs.getBoundingClientRect().bottom-h.getBoundingClientRect().top,hy=h.getBoundingClientRect().top+scrollY;hs.remove();
  let d=(((y+b)-(hy+bt))%36+36)%36;if(d>18)d-=36;h.style.top=d+'px'}
-function after(){fit();document.querySelectorAll('.key').forEach(pen)}
+function after(){fit();document.querySelectorAll('.key,h1.t').forEach(pen)}
 function render(){
  const t=T[lang];document.documentElement.lang=lang==='hi'?'hi':'en';
  $('langlab').textContent=t.ll;$('day').textContent=t.day;$('title').textContent=t.title;$('cap').textContent=t.cap;$('sl').textContent=t.sl;$('q').textContent=t.q;$('fb').textContent='';
  $('body').innerHTML=`<p>${t.p[0]}</p><p>${t.p[1]}</p><p class="key">${t.stmt}</p><p>${t.p[2]}</p>`;
  document.querySelectorAll('#langs .chip').forEach(b=>b.setAttribute('aria-checked',b.dataset.k===lang));
- $('opts').innerHTML=['30°','60°','90°'].map(o=>`<button class="chip" data-o="${o}" aria-checked="false">${o}</button>`).join('');
+ $('opts').innerHTML=['30°','60°','90°'].map(o=>`<button class="chip" role="radio" data-o="${o}" aria-checked="false">${o}</button>`).join('');
  $('opts').querySelectorAll('button').forEach(b=>b.onclick=()=>{const ok=b.dataset.o==='30°';$('opts').querySelectorAll('button').forEach(x=>x.setAttribute('aria-checked',x===b));$('fb').textContent=(ok?'✓ ':'✗ ')+t[ok?'ok':'no']});
  drawDia();drawSim();after();(document.fonts?document.fonts.ready:Promise.resolve()).then(after)}
 $('langs').innerHTML=Object.keys(T).map(k=>`<button class="chip" role="radio" data-k="${k}" aria-checked="false">${T[k].n}</button>`).join('');

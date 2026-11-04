@@ -33,12 +33,16 @@ body{margin:0;min-height:100%;background-color:var(--paper);background-image:rep
 .page{max-width:1100px;margin:0 auto;padding:108px 24px 72px;box-sizing:border-box}
 .day{font:700 15px/36px var(--notes)}
 h1.t{font:700 clamp(46px,7vw,76px)/72px var(--hand);margin:0 0 36px;position:relative}
-.lede{font:500 26px/36px var(--hand);max-width:46ch;color:var(--graphite);margin:0 0 36px}
-h2{font:700 40px/72px var(--hand);margin:0 0 12px}
+/* doctrine v1.3 (4 Nov 2026): typed page, handwritten accents - body text is
+   typed Courier Prime ON the ruled lines; Caveat survives on titles, section
+   headings and diagram labels; every block is a multiple of 36 px tall so the
+   rules stay under the text at every frame (360 px phone -> laptop). */
+.lede{font:400 17px/36px var(--notes);max-width:46ch;color:var(--graphite);margin:0 0 36px}
+h2{font:700 34px/72px var(--hand);margin:36px 0}
 h2 .no{display:block;font:700 15px/36px var(--notes);color:var(--graphite)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:36px 48px;align-items:start}
 @media(max-width:820px){.grid{grid-template-columns:1fr}}
-.body{font:500 30px/36px var(--hand);max-width:46ch}
+.body{font:400 17px/36px var(--notes);max-width:46ch}
 .body p{margin:0 0 36px}
 .key{position:relative;display:block;width:fit-content;font-weight:700}
 .uline{position:absolute;top:100%;pointer-events:none}
@@ -46,37 +50,45 @@ figure{margin:0 0 36px}
 figcaption{font:400 14px/36px var(--notes);color:var(--graphite)}
 .dia{display:block;width:100%;height:288px}
 .dia text{font-family:var(--hand);font-weight:700;fill:var(--ink)}.dia .pb{fill:var(--pen-blue)}
-/* paper card: taped on, flat, no shadow, no tilt - only for operated things */
-.card{position:relative;background:var(--paper-light);border:1px solid var(--ink);border-radius:2px;padding:24px 18px 20px;margin:12px 0 48px}
+/* paper card: taped on, flat, no shadow, no tilt - only for operated things.
+   17+17 padding + 1+1 border = one ruled row: card height stays a multiple of 36 */
+.card{position:relative;background:var(--paper-light);border:1px solid var(--ink);border-radius:2px;padding:17px 18px;margin:36px 0}
 .card::before{content:"";position:absolute;top:-13px;left:calc(50% - 46px);width:92px;height:27px;background:rgba(196,174,104,.5);transform:rotate(-3deg);clip-path:polygon(0 0,100% 0,96% 12%,100% 25%,96% 37%,100% 50%,96% 62%,100% 75%,96% 87%,100% 100%,0 100%,4% 87%,0 75%,4% 62%,0 50%,4% 37%,0 25%,4% 12%)}
 .card:nth-of-type(2)::before{left:calc(50% - 38px);width:84px;transform:rotate(2deg)}
-input[type=range]{width:100%;accent-color:var(--pen-blue);height:32px}
+input[type=range]{width:100%;accent-color:var(--pen-blue);height:32px;margin:2px 0}
 .srow{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
-.srow label{display:block}
-.sim{width:100%;height:auto;display:block}.sim text{font:500 12px var(--display)}
-.read{font:700 16px var(--notes)}
-.q{font:500 17px/1.4 var(--display);margin:0 0 12px}
-.fb{font:500 15px/1.35 var(--display);min-height:22px;margin-top:12px}
-/* worked examples: written on paper, not carded */
+.srow label{display:block;font:700 15px/36px var(--notes)}
+.card .chip{min-height:36px}
+.card .lab{line-height:36px}
+/* sim box: fixed 180 px (5 ruled rows) so card height never depends on width */
+.sim{width:100%;max-width:340px;height:180px;display:block}.sim text{font:500 12px var(--display)}
+.read{font:700 16px/36px var(--notes)}
+.q{font:500 17px/36px var(--display);margin:0 0 36px;max-width:60ch}
+.fb{font:500 15px/36px var(--display);min-height:36px;margin-top:36px}
+/* worked examples: typed on paper, not carded; every margin a whole ruled row */
 .we{margin:0 0 36px}
-.we .pr{font:500 24px/36px var(--hand);max-width:46ch;margin:0 0 12px}
+.we .pr{font:400 17px/36px var(--notes);max-width:46ch;margin:0 0 36px}
 .we ol{margin:0;padding:0;list-style:none;counter-reset:st}
 .we li{position:relative;font:400 15px/36px var(--notes);max-width:56ch;padding-left:34px;counter-increment:st}
 .we li::before{content:counter(st);position:absolute;left:0;font:700 15px/36px var(--notes);color:var(--pen-blue)}
-.we .ans{font:700 16px/36px var(--notes);color:var(--pen-blue)}
-details.card summary{font:700 17px/1.4 var(--display);cursor:pointer}
-details.card li{font:400 15px/30px var(--notes);margin:0 0 6px;max-width:56ch}
+.we .ans{font:700 16px/36px var(--notes);color:var(--pen-blue);margin-top:36px}
+.card details summary{font:700 17px/36px var(--display);cursor:pointer;min-height:36px}
+.card details ol{margin:36px 0 0;padding:0;list-style:none}
+.card details li{font:400 15px/36px var(--notes);margin:0;max-width:56ch}
 .mis{margin:0;padding:0;list-style:none}
-.mis li{font:400 15px/30px var(--notes);margin:0 0 12px;max-width:56ch}
+.mis li{font:400 15px/36px var(--notes);margin:0;max-width:56ch}
 .mis b{font-family:var(--display)}
 .gloss{margin:0}
-.gloss dt{font:700 16px/36px var(--notes)}
-.gloss dd{font:500 24px/36px var(--hand);margin:0 0 18px;max-width:46ch}
+.gloss dt{font:700 15px/36px var(--notes);margin-top:36px}
+.gloss dd{font:400 15px/36px var(--notes);margin:0;color:var(--graphite)}
 .glance{margin:0;padding:0 0 0 22px;list-style:square}
-.glance li{font:500 26px/36px var(--hand);max-width:46ch;margin:0 0 18px}
+.glance li{font:400 15px/36px var(--notes);max-width:46ch;margin:0 0 36px}
 </style>
 </head>
 <body>
+<!-- Doctrine v1.3 candidate: typed page (Courier Prime body on the ruled lines), handwritten
+accents only (Caveat titles/headings/diagram labels, pen underlines, annotation arrows);
+clean geometry; strict 36 px rhythm; frame-tested 360-1280 px.
 <!-- language bar: the doctrine-required markup. Switching behaviour is shell-owned
      (zivon.js, Day-9); this candidate demonstrates the bar itself with English content. -->
 <header class="bar"><div class="in"><span class="lab">Language</span><div class="row" role="radiogroup" aria-label="Language">
@@ -106,11 +118,11 @@ details.card li{font:400 15px/30px var(--notes);margin:0 0 6px;max-width:56ch}
         <div><label class="lab" for="n1">force F₁ (N)</label><input type="range" id="n1" min="0" max="20" value="10"></div>
         <div><label class="lab" for="n2">force F₂ (N)</label><input type="range" id="n2" min="0" max="20" value="6"></div>
       </div>
-      <div class="row" role="radiogroup" aria-label="Directions of the two forces" style="margin:12px 0">
+      <div class="row" role="radiogroup" aria-label="Directions of the two forces" style="margin:36px 0">
         <button class="chip" data-dir="opp" aria-checked="true">opposite directions</button>
         <button class="chip" data-dir="same" aria-checked="false">same direction</button>
       </div>
-      <svg class="sim" viewBox="0 0 320 170" role="img" aria-label="Net force on a block"></svg>
+      <svg class="sim" viewBox="0 0 320 180" role="img" aria-label="Net force on a block"></svg>
       <div class="read" aria-live="polite"></div>
     </section>
   </div>
@@ -125,8 +137,8 @@ details.card li{font:400 15px/30px var(--notes);margin:0 0 6px;max-width:56ch}
   <section class="card" data-sim="fric">
     <label class="lab" for="fr">surface friction (0 = ideal, frictionless)</label>
     <input type="range" id="fr" min="0" max="10" value="6">
-    <div class="row" style="margin:12px 0"><button class="chip" id="push">give the puck a push</button></div>
-    <svg class="sim" viewBox="0 0 320 170" role="img" aria-label="A puck sliding on a surface with adjustable friction"></svg>
+    <div class="row" style="margin:36px 0"><button class="chip" id="push">give the puck a push</button></div>
+    <svg class="sim" viewBox="0 0 320 180" role="img" aria-label="A puck sliding on a surface with adjustable friction"></svg>
     <div class="read" aria-live="polite"></div>
   </section>
   <div class="slot" data-ck="2"></div>
@@ -175,7 +187,7 @@ details.card li{font:400 15px/30px var(--notes);margin:0 0 6px;max-width:56ch}
         <div><label class="lab" for="rg">gun mass (kg)</label><input type="range" id="rg" min="1" max="10" value="5"></div>
         <div><label class="lab" for="rb">bullet mass (kg)</label><input type="range" id="rb" min="0.05" max="1" step="0.05" value="0.1"></div>
       </div>
-      <svg class="sim" viewBox="0 0 320 170" role="img" aria-label="A gun and bullet pushing on each other with equal forces"></svg>
+      <svg class="sim" viewBox="0 0 320 180" role="img" aria-label="A gun and bullet pushing on each other with equal forces"></svg>
       <div class="read" aria-live="polite"></div>
     </section>
     <figure><svg class="dia" data-dia="walk" viewBox="0 0 420 270" role="img"></svg><figcaption>Walking: the two forces of the pair act on different objects — the ground and you.</figcaption></figure>
@@ -257,16 +269,11 @@ function pen(el){
  const d=a.concat(b.reverse()).map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+'Z';
  const s=document.createElementNS(NS,'svg');s.setAttribute('class','uline');s.setAttribute('aria-hidden','true');s.setAttribute('width',Math.ceil(w));s.setAttribute('height',Math.ceil(fs));s.setAttribute('overflow','visible');s.style.left=left+'px';
  s.innerHTML=`<path d="${d}" fill="#1F3A9E"/>`;el.appendChild(s)}
-function hand(pts,seed,j){const R=rng(seed),P=[];
- for(let i=0;i<pts.length-1;i++){const[a,b]=[pts[i],pts[i+1]],n=Math.max(2,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])/28));
-  for(let k=0;k<n;k++){const t=k/n;P.push([a[0]+(b[0]-a[0])*t+(R()-.5)*j,a[1]+(b[1]-a[1])*t+(R()-.5)*j])}}
- P.push(pts[pts.length-1].map(v=>v+(R()-.5)*j*.5));
- let d='M'+P[0][0].toFixed(1)+' '+P[0][1].toFixed(1);
- for(let i=1;i<P.length-1;i++){d+=' Q'+P[i][0].toFixed(1)+' '+P[i][1].toFixed(1)+' '+((P[i][0]+P[i+1][0])/2).toFixed(1)+' '+((P[i][1]+P[i+1][1])/2).toFixed(1)}
- return d+' L'+P[P.length-1][0].toFixed(1)+' '+P[P.length-1][1].toFixed(1)}
 const st=(d,w,c,da)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${da?` stroke-dasharray="${da}"`:''}/>`;
+/* doctrine v1.3: geometry renders exactly as authored - clean straight polylines */
+const cl=(p)=>'M'+p.map((q)=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join('L')
 const hd=(tip,from)=>{const an=Math.atan2(tip[1]-from[1],tip[0]-from[0]),h=15;return[[tip[0]-h*Math.cos(an-.45),tip[1]-h*Math.sin(an-.45)],tip,[tip[0]-h*Math.cos(an+.45),tip[1]-h*Math.sin(an+.45)]]};
-/* every text block is a multiple of 36px tall, so one measurement of the handwriting baseline puts the ruled lines under every line of text */
+/* every text block is a multiple of 36px tall, so one measurement of the text baseline puts the ruled lines under every line of text; fit() re-runs on resize (frame adaptation) */
 function fit(){
  const bar=document.querySelector('.bar'),pg=document.querySelector('.page');pg.style.paddingTop=Math.ceil((bar.offsetHeight+12)/36)*36+'px';
  const p=document.querySelector('.body p'),pr=document.createElement('span');pr.style.cssText='display:inline-block;width:0;height:0';p.prepend(pr);
@@ -275,7 +282,7 @@ function fit(){
  const h=document.querySelector('h1.t'),hs=document.createElement('span');h.style.top='0px';hs.style.cssText='display:inline-block;width:0;height:0';h.prepend(hs);
  const bt=hs.getBoundingClientRect().bottom-h.getBoundingClientRect().top,hy=h.getBoundingClientRect().top+scrollY;hs.remove();
  let d=(((y+b)-(hy+bt))%36+36)%36;if(d>18)d-=36;h.style.top=d+'px'}
-function after(){fit();qa('.key').forEach(pen)}
+function after(){fit();qa('.key,h1.t').forEach(pen)}
 /* ---- content data: checks and worked examples, all traceable to the chapter ---- */
 const CK=[
 {q:"You squeeze a lemon and it changes shape. This shows that a force can —",o:["only start or stop motion","also change the shape of an object","only change the direction of motion","do none of these"],a:1,ok:"Correct. A force can start motion, change speed or direction, and change shape.",no:"Look at the lemon: its shape changed. A force can change the shape of an object too."},
@@ -302,34 +309,34 @@ const WE=[
 {p:"A 2 kg object coasts at 10 m s⁻¹ onto a rough patch where friction is 7 N, while an additional constant 3 N also opposes the motion. How far does it travel before coming to rest?",s:[["Retarding force","7 N + 3 N = 10 N"],["Deceleration","a = 10 N ÷ 2 kg = 5 m s⁻², opposite the motion"],["Stopping distance","v² = u² − 2as → 0 = 10² − 2×5×s → s = 100 ÷ 10 = 10 m"]],a:"10 m"},
 {p:"Using a horizontal force F, a table is moved across the floor at a constant velocity. How much is the frictional force exerted by the floor on the table?",s:[["Constant velocity","the net force must be zero (first law)"],["Balance","friction equals the push F, opposite its direction"]],a:"Friction = F"}];
 qa('.slot[data-ck]').forEach(el=>{const c=CK[+el.dataset.ck];el.className='card';
- el.innerHTML=`<div class="q">${c.q}</div><div class="row">`+c.o.map(o=>`<button class="chip" aria-checked="false">${o}</button>`).join('')+`</div><div class="fb" aria-live="polite"></div>`;
+ el.innerHTML=`<div class="q">${c.q}</div><div class="row" role="radiogroup" aria-label="Answer options">`+c.o.map(o=>`<button class="chip" role="radio" aria-checked="false">${o}</button>`).join('')+`</div><div class="fb" aria-live="polite"></div>`;
  qa('button',el).forEach((b,i)=>b.onclick=()=>{const ok=i===c.a;qa('button',el).forEach(x=>x.setAttribute('aria-checked',x===b));el.querySelector('.fb').textContent=(ok?'✓ ':'✗ ')+(ok?c.ok:c.no)})});
 qa('.slot[data-we]').forEach(el=>{const w=WE[+el.dataset.we];el.className='we';
  el.innerHTML=`<div class="pr">${w.p}</div><ol>`+w.s.map(s=>`<li><b>${s[0]}.</b> ${s[1]}</li>`).join('')+`</ol><div class="ans">Answer: ${w.a}</div>`});
-/* ---- hand-drawn diagrams: arrow lengths are to scale wherever magnitudes are labelled ---- */
+/* ---- diagrams (doctrine v1.3): clean geometry, arrow lengths to scale wherever magnitudes are labelled ---- */
 const DIA={
-net(el){let s=st(hand([[40,170],[380,170]],1,2),3,'#1C1B18');
- s+=st(hand([[170,110],[250,110],[250,170],[170,170],[170,110]],2,1.6),2.6,'#1C1B18');const y=140;
- s+=st(hand([[250,y],[350,y]],3,1.2),3,'#1F3A9E')+st(hand(hd([350,y],[250,y]),4,.8),3,'#1F3A9E');
- s+=st(hand([[170,y],[110,y]],5,1.2),3,'#1F3A9E')+st(hand(hd([110,y],[170,y]),6,.8),3,'#1F3A9E');
+net(el){let s=st(cl([[40,170],[380,170]],1,2),3,'#1C1B18');
+ s+=st(cl([[170,110],[250,110],[250,170],[170,170],[170,110]],2,1.6),2.6,'#1C1B18');const y=140;
+ s+=st(cl([[250,y],[350,y]],3,1.2),3,'#1F3A9E')+st(cl(hd([350,y],[250,y]),4,.8),3,'#1F3A9E');
+ s+=st(cl([[170,y],[110,y]],5,1.2),3,'#1F3A9E')+st(cl(hd([110,y],[170,y]),6,.8),3,'#1F3A9E');
  s+=`<text class="pb" x="288" y="${y-12}" font-size="24">10 N</text><text class="pb" x="112" y="${y-12}" font-size="24">6 N</text>`;
  el.innerHTML=s;el.setAttribute('aria-label','A block with a 10 N force towards the right and a 6 N force towards the left; arrow lengths are to scale')},
-vt(el){let s='';const ax=x0=>{s+=st(hand([[x0,220],[x0+150,220]],7,1.2),2.4,'#1C1B18')+st(hand([[x0,220],[x0,80]],8,1.2),2.4,'#1C1B18')};
+vt(el){let s='';const ax=x0=>{s+=st(cl([[x0,220],[x0+150,220]],7,1.2),2.4,'#1C1B18')+st(cl([[x0,220],[x0,80]],8,1.2),2.4,'#1C1B18')};
  ax(40);ax(240);
- s+=st(hand([[40,216],[190,216]],9,1),2.8,'#1F3A9E')+st(hand([[240,140],[390,140]],10,1),2.8,'#1F3A9E');
+ s+=st(cl([[40,216],[190,216]],9,1),2.8,'#1F3A9E')+st(cl([[240,140],[390,140]],10,1),2.8,'#1F3A9E');
  s+=`<text x="52" y="252" font-size="20">at rest (v = 0)</text><text x="252" y="128" font-size="20" class="pb">constant velocity</text><text x="150" y="252" font-size="18">time</text><text x="350" y="252" font-size="18">time</text>`;
  el.innerHTML=s;el.setAttribute('aria-label','Velocity-time graphs when no net force acts: a horizontal line at zero for an object at rest, a horizontal line above zero for constant velocity')},
-walk(el){let s=st(hand([[40,180],[380,180]],11,2),3,'#1C1B18');
- s+=st(hand([[195,180],[205,150],[235,146],[252,158],[250,180]],12,1.4),2.6,'#1C1B18');
- s+=st(hand([[200,200],[120,200]],13,1.2),3,'#1C1B18')+st(hand(hd([120,200],[200,200]),14,.8),3,'#1C1B18');
- s+=st(hand([[255,164],[335,164]],15,1.2),3,'#1F3A9E')+st(hand(hd([335,164],[255,164]),16,.8),3,'#1F3A9E');
+walk(el){let s=st(cl([[40,180],[380,180]],11,2),3,'#1C1B18');
+ s+=st(cl([[195,180],[205,150],[235,146],[252,158],[250,180]],12,1.4),2.6,'#1C1B18');
+ s+=st(cl([[200,200],[120,200]],13,1.2),3,'#1C1B18')+st(cl(hd([120,200],[200,200]),14,.8),3,'#1C1B18');
+ s+=st(cl([[255,164],[335,164]],15,1.2),3,'#1F3A9E')+st(cl(hd([335,164],[255,164]),16,.8),3,'#1F3A9E');
  s+=`<text x="42" y="238" font-size="20">you push the ground backwards</text><text x="252" y="150" font-size="20" class="pb">friction pushes you forwards</text>`;
  el.innerHTML=s;el.setAttribute('aria-label',"A foot pushes the ground backwards; the ground's friction pushes the foot forwards")},
-sys(el){let s=st(hand([[40,180],[380,180]],17,2),3,'#1C1B18');
- s+=st(hand([[120,110],[200,110],[200,180],[120,180],[120,110]],18,1.4),2.6,'#1C1B18');
- s+=st(hand([[215,110],[295,110],[295,180],[215,180],[215,110]],19,1.4),2.6,'#1C1B18');
- s+=st(hand([[200,145],[215,145]],20,.6),2,'#5A5748','5 5');
- s+=st(hand([[295,145],[375,145]],21,1.2),3,'#1F3A9E')+st(hand(hd([375,145],[295,145]),22,.8),3,'#1F3A9E');
+sys(el){let s=st(cl([[40,180],[380,180]],17,2),3,'#1C1B18');
+ s+=st(cl([[120,110],[200,110],[200,180],[120,180],[120,110]],18,1.4),2.6,'#1C1B18');
+ s+=st(cl([[215,110],[295,110],[295,180],[215,180],[215,110]],19,1.4),2.6,'#1C1B18');
+ s+=st(cl([[200,145],[215,145]],20,.6),2,'#5A5748','5 5');
+ s+=st(cl([[295,145],[375,145]],21,1.2),3,'#1F3A9E')+st(cl(hd([375,145],[295,145]),22,.8),3,'#1F3A9E');
  s+=`<text x="148" y="152" font-size="22">m₁</text><text x="243" y="152" font-size="22">m₂</text><text x="330" y="132" font-size="22" class="pb">F</text>`;
  el.innerHTML=s;el.setAttribute('aria-label','Two boxes joined by a string, pulled by an external force F')}
 };
