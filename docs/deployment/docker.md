@@ -8,9 +8,9 @@ The factory depends on heavy, fragile things: `sentence-transformers` (torch), `
 
 - **Base:** `python:3.12-slim` — matches the dev Python version; slim Debian userspace.
 - **Layer order:** `requirements.txt` installed *before* code is copied, so code edits reuse the cached dependency layer (rebuilds take seconds).
-- **CPU-only torch:** installed from `download.pytorch.org/whl/cpu` first. The default PyPI torch wheel bundles ~2 GB of CUDA libraries the pipeline never uses (`retrieval.device: "cpu"`).
+- **CPU-only torch:** installed from `download.pytorch.org/whl/cpu` first, pinned to the exact wheel (`torch==2.15.0+cpu`) so image rebuilds are reproducible (hadolint DL3013). The default PyPI torch wheel bundles ~2 GB of CUDA libraries the pipeline never uses (`retrieval.device: "cpu"`).
 - **Playwright:** `playwright install --with-deps chromium` bakes Chromium + its OS libraries into the image; browsers live at `/opt/playwright` (fixed path readable by the non-root user).
-- **Non-root:** build runs as root, but `useradd app` + `USER app` makes the container run unprivileged.
+- **Non-root:** build runs as root, but `useradd --uid 1000 app` + numeric `USER 1000` makes the container run unprivileged. The numeric form is deliberate: kubelets cannot verify non-root for a named user (gotcha 1 in `kubernetes.md`) and hadolint flags it too (DL3066).
 - **`ENV PYTHONPATH=/app`:** Python sets `sys.path[0]` to the *script's* directory, so scripts outside the repo root (e.g. `docker/smoke_test.py`) can't see `factory/` without this. Placed after the pip layer so changing it doesn't invalidate the dependency cache.
 - **Default CMD:** `python docker/smoke_test.py` — imports all 19 factory modules, the `pipeline.py` entry point, and the heavy deps. A broken image fails in seconds, locally and in CI.
 
@@ -23,10 +23,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.3.5 .
-docker run --rm zivon-factory:0.3.5                          # smoke test
-docker run --rm -it zivon-factory:0.3.5 bash                 # explore inside
-docker history zivon-factory:0.3.5                           # per-layer sizes
+docker build -t zivon-factory:0.3.6 .
+docker run --rm zivon-factory:0.3.6                          # smoke test
+docker run --rm -it zivon-factory:0.3.6 bash                 # explore inside
+docker history zivon-factory:0.3.6                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
@@ -45,7 +45,7 @@ docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-fron
 - **Base:** `nginxinc/nginx-unprivileged:1.27-alpine` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule.
 - **Baked:** only the hand-maintained shell — `index.html`, `assets/` (shared CSS/JS, local fonts) and `docker/nginx.conf`. Generated pipeline output (`courses/`, `courses.js`) is **never baked into an image** (repo rule): it arrives at runtime on a mounted volume (compose) or PVC (cluster) at the same html root. The shell is staged at `/opt/zivon-shell` so the served root can be a volume without losing it.
 - **Site config:** CSP + `nosniff` + `no-referrer` headers site-wide (topic pages keep their own stricter meta CSP); `no-store` for HTML and `courses.js` (demo-day freshness), 5-min revalidation otherwise; gzip; `/healthz` probe; autoindex off.
-- CI builds it, serves it, curls it, and trivy-scans it (`frontend-image` job in `cicd.md`).
+- CI builds it, serves it, curls it, and trivy-scans it (`frontend-image` job in `cicd.md`). The CI smoke reproduces the cluster serving path: the html root is a writable tmpfs (the PVC + fsGroup stand-in) seeded from `/opt/zivon-shell` with the same `cp -rn` glob copy the initContainer uses. A bare `docker run` of this image serves nginx's default page — the shell only appears in the root via mount or seed, so a smoke that curls the unseeded image can never see the site.
 
 ## Rules
 

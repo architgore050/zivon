@@ -15,7 +15,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 ## Our manifests (`k8s/`, numeric prefix = apply order)
 
 - `00-namespace.yaml` — the `zivon` namespace.
-- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.5`:
+- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.6`:
   - `Job` + `restartPolicy: Never` + `backoffLimit: 2` = batch semantics (fresh pod per retry; a failing Job ends `Failed` — CI-detectable).
   - No `command:` — the pod inherits the image's CMD (smoke test). Pipeline runs override it (see next file).
   - `securityContext: runAsNonRoot: true` + `runAsUser: 1000` — see gotcha below.
@@ -74,7 +74,7 @@ sudo install kubectl /usr/local/bin/kubectl
 minikube start --driver=docker
 minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
 minikube addons enable metrics-server # makes kubectl top nodes/pods work
-minikube image load zivon-factory:0.3.5   # see gotcha 2
+minikube image load zivon-factory:0.3.6   # see gotcha 2
 minikube image load zivon-frontend:0.1.2  # frontend hosting (see gotcha 2)
 # Apply the whole stack from k8s/infra.env (ConfigMap + manifests + rendered
 # CronJob schedule) and run the full test suite once on startup:
@@ -91,7 +91,7 @@ kubectl describe pod -n zivon -l app=zivon-factory   # the Events section is the
 
 ## Gotchas already paid for (learn from them)
 
-1. **`runAsNonRoot` needs a numeric UID.** With only `USER app` in the image, kubelets refuse: *"image has non-numeric user (app), cannot verify user is non-root"* → `CreateContainerConfigError`. Fix: `runAsUser: 1000` in the manifest (or numeric `USER` in the image). kube-linter in CI now catches this class of mistake pre-cluster.
+1. **`runAsNonRoot` needs a numeric UID.** With only `USER app` in the image, kubelets refuse: *"image has non-numeric user (app), cannot verify user is non-root"* → `CreateContainerConfigError`. Fix: `runAsUser: 1000` in the manifest (or numeric `USER` in the image). kube-linter in CI now catches this class of mistake pre-cluster. Since factory image 0.3.6 the image itself carries `useradd --uid 1000` + `USER 1000`, so the fix lives in the image.
 2. **minikube has its own image store.** Local images must be injected with `minikube image load` or pods sit in `ImagePullBackOff`. Once CI publishes to `ghcr.io`, clusters pull from the registry and this disappears.
 3. **Jobs are immutable.** Editing a Job manifest requires `kubectl delete job ... && kubectl apply` — never apply-over.
 4. **Group permissions after `usermod -aG docker`** only apply to new login sessions; GNOME terminals inherit the stale systemd user manager until reboot.

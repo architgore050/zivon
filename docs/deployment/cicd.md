@@ -4,16 +4,17 @@ Repo is public on GitHub → GitHub Actions is the decided CI/CD system. Workflo
 
 ## The merge gate — `ci.yml`
 
-Triggers: PR → `main`, push → `main`, manual dispatch. Six parallel jobs on fresh `ubuntu-latest` VMs:
+Triggers: PR → `main`, push → `main`, manual dispatch. Seven parallel jobs on fresh `ubuntu-latest` VMs:
 
 | Job | Checks |
 |---|---|
 | `quality` | `ruff check`, `ruff format --check`, `mypy --ignore-missing-imports` |
 | `docker` | hadolint (Dockerfile lint) → build with GHA layer cache (`type=gha`) → **smoke test** (`docker run --rm`) → trivy image scan (fails on CRITICAL/HIGH with fix available) → SBOM (CycloneDX) uploaded as build artifact |
-| `frontend-image` | hadolint (`Dockerfile.frontend`) → build → **serve smoke test** (container up on :8080: `/healthz` answers, landing page renders, shared assets resolve, CSP/nosniff/no-store headers present) → trivy scan |
+| `frontend-image` | hadolint (`Dockerfile.frontend`) → build → **serve smoke test** (container up on :8080 with the html root seeded from the baked `/opt/zivon-shell` staging path — the cluster serving path, see `docker.md`; `/healthz` answers, landing page renders, shared assets resolve, CSP/nosniff/no-store headers present) → trivy scan |
 | `secrets` | gitleaks over full git history (`fetch-depth: 0`) |
 | `deps` | pip-audit on the resolved `requirements.txt` tree (known CVEs) |
 | `manifests` | kubeconform (schema validity, strict) + kube-linter (security linting of `k8s/`) |
+| `tests` | content-factory unit tests (no network, no browser) + integration test (real orchestrator vs mock inference server + headless Chromium) + frontend shell behaviour tests; torch CPU-only, pinned to the same wheel the factory image installs |
 
 ## In-cluster test runs (scheduled + startup + the "button" stand-in)
 

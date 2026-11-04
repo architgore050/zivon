@@ -1,5 +1,5 @@
 # Content factory smoke test as a K8s Job: run to completion, done.
-# This is the K8s twin of: docker run --rm zivon-factory:0.3.5
+# This is the K8s twin of: docker run --rm zivon-factory:0.3.6
 #
 #   kubectl apply -f k8s/
 #   kubectl get jobs,pods -n zivon
@@ -26,7 +26,7 @@ spec:
         runAsUser: 1000    # numeric uid of "app"; kubelet cannot verify a username-based USER
       containers:
         - name: factory
-          image: zivon-factory:0.3.5
+          image: zivon-factory:0.3.6
           imagePullPolicy: IfNotPresent # local image loaded via `minikube image load`
           # No `command:` here on purpose: the pod inherits the image's CMD
           # (the smoke test). Real pipeline runs override it — see 20-factory-run-job.yaml.
