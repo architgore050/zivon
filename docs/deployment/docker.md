@@ -9,6 +9,7 @@ The factory depends on heavy, fragile things: `sentence-transformers` (torch), `
 - **Base:** `python:3.12-slim` — matches the dev Python version; slim Debian userspace.
 - **Layer order:** `requirements.txt` installed *before* code is copied, so code edits reuse the cached dependency layer (rebuilds take seconds).
 - **CPU-only torch:** installed from `download.pytorch.org/whl/cpu` first, pinned to the exact wheel (`torch==2.15.0+cpu`) so image rebuilds are reproducible (hadolint DL3013). The default PyPI torch wheel bundles ~2 GB of CUDA libraries the pipeline never uses (`retrieval.device: "cpu"`).
+- **trivy-pinned Python packages:** `setuptools==84.2.1 wheel==0.46.2 jaraco.context==6.1.0` after the requirements install. torch pins `setuptools==78.1.0` exactly, and 78.1.0 + its vendored `jaraco.context`/`wheel` copies carry HIGH CVEs; 84.2.1 is clean and vendors the fixed copies. The torch pin conflict is a pip warning only (setuptools is a build-time dep for torch).
 - **Playwright:** `playwright install --with-deps chromium` bakes Chromium + its OS libraries into the image; browsers live at `/opt/playwright` (fixed path readable by the non-root user).
 - **Non-root:** build runs as root, but `useradd --uid 1000 app` + numeric `USER 1000` makes the container run unprivileged. The numeric form is deliberate: kubelets cannot verify non-root for a named user (gotcha 1 in `kubernetes.md`) and hadolint flags it too (DL3066).
 - **`ENV PYTHONPATH=/app`:** Python sets `sys.path[0]` to the *script's* directory, so scripts outside the repo root (e.g. `docker/smoke_test.py`) can't see `factory/` without this. Placed after the pip layer so changing it doesn't invalidate the dependency cache.
@@ -23,10 +24,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.3.6 .
-docker run --rm zivon-factory:0.3.6                          # smoke test
-docker run --rm -it zivon-factory:0.3.6 bash                 # explore inside
-docker history zivon-factory:0.3.6                           # per-layer sizes
+docker build -t zivon-factory:0.3.7 .
+docker run --rm zivon-factory:0.3.7                          # smoke test
+docker run --rm -it zivon-factory:0.3.7 bash                 # explore inside
+docker history zivon-factory:0.3.7                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
@@ -37,12 +38,12 @@ docker compose run --rm factory python pipeline.py "Motion" --class 9   # full p
 The static site ships as its own small nginx image — hosting the frontend is separate from the factory that generates it.
 
 ```bash
-docker build -f Dockerfile.frontend -t zivon-frontend:0.1.2 .
+docker build -f Dockerfile.frontend -t zivon-frontend:0.1.3 .
 docker compose up web                                       # serve ./frontend on http://localhost:8081
-docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.2
+docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.3
 ```
 
-- **Base:** `nginxinc/nginx-unprivileged:1.27-alpine` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule.
+- **Base:** `nginxinc/nginx-unprivileged:1.31.7-alpine3.24` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule. A targeted `apk update && apk upgrade` (as a `USER 0`/`USER 101` sandwich — apk needs root; the final user stays non-root) freshens brotli/curl/libcurl/libexpat to trivy-fixed versions: the base ships a frozen package index from its build date, and the fixes landed after it. nginx itself is not upgraded.
 - **Baked:** only the hand-maintained shell — `index.html`, `assets/` (shared CSS/JS, local fonts) and `docker/nginx.conf`. Generated pipeline output (`courses/`, `courses.js`) is **never baked into an image** (repo rule): it arrives at runtime on a mounted volume (compose) or PVC (cluster) at the same html root. The shell is staged at `/opt/zivon-shell` so the served root can be a volume without losing it.
 - **Site config:** CSP + `nosniff` + `no-referrer` headers site-wide (topic pages keep their own stricter meta CSP); `no-store` for HTML and `courses.js` (demo-day freshness), 5-min revalidation otherwise; gzip; `/healthz` probe; autoindex off.
 - CI builds it, serves it, curls it, and trivy-scans it (`frontend-image` job in `cicd.md`). The CI smoke reproduces the cluster serving path: the html root is a writable tmpfs (the PVC + fsGroup stand-in) seeded from `/opt/zivon-shell` with the same `cp -rn` glob copy the initContainer uses. A bare `docker run` of this image serves nginx's default page — the shell only appears in the root via mount or seed, so a smoke that curls the unseeded image can never see the site.

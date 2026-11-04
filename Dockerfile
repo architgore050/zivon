@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Zivon content factory image.
-#   Build:  docker build -t zivon-factory:0.3.6 .
-#   Smoke:  docker run --rm zivon-factory:0.3.6
+#   Build:  docker build -t zivon-factory:0.3.7 .
+#   Smoke:  docker run --rm zivon-factory:0.3.7
 
 FROM python:3.12-slim
 
@@ -21,8 +21,15 @@ WORKDIR /app
 COPY requirements.txt .
 # CPU-only torch first: the default PyPI torch wheel bundles CUDA libraries this
 # pipeline never uses (config: retrieval.device=cpu). Saves ~2 GB in the image.
+# The third pip line is the trivy HIGH gate: torch pins setuptools==78.1.0
+# exactly, but 78.1.0 and its VENDORED jaraco.context/wheel copies carry HIGH
+# CVEs. setuptools 84.2.1 is clean and vendors the fixed jaraco.context 6.1.0 +
+# wheel 0.46.3; the top-level pins cover base-image drift too. The torch pin
+# conflict is a pip warning only - torch uses setuptools at build time, not at
+# runtime.
 RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu \
     && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir setuptools==84.2.1 wheel==0.46.2 jaraco.context==6.1.0 \
     && playwright install --with-deps chromium \
     && chmod -R a+rX /opt/playwright
 
