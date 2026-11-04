@@ -6,6 +6,7 @@ an unfixable miss stops the run, and the fix loop repairs, re-lints, retests
 and gives up loudly.
 """
 
+import dataclasses
 import json
 import sys
 import tempfile
@@ -72,7 +73,9 @@ def make_cfg(tmp: Path, fix_rounds: int = 2):
         cfg = load_config(path)
     finally:
         release_server_env(saved)
-    return cfg
+    # 08-fixloop hands the LIVE doctrine + lesson example + palette to the
+    # model (2026-11-04): root must be the real repo so those load.
+    return dataclasses.replace(cfg, root=REPO_ROOT)
 
 
 def make_page(tmp: Path) -> tuple[Path, Path, dict[str, Any]]:
@@ -258,6 +261,13 @@ class TestFixloopStage(unittest.TestCase):
         self.assertIn("PAGE SPECS", user)
         self.assertIn("Connect the size of acceleration", user)  # the sim's goal
         self.assertIn("budgets", user)
+        # 2026-11-04: a perf fixer edits page code, so it must see the design
+        # language it is preserving - doctrine + the lesson-page example + palette.
+        self.assertIn("DESIGN DOCTRINE + LESSON-PAGE EXAMPLE", user)
+        self.assertIn("design-doctrine-lesson-example.html", user)
+        self.assertNotIn("=== design-doctrine-example.html ===", user)
+        self.assertIn("PALETTE", user)
+        self.assertIn("--ink:", user)
 
     def test_second_round_sees_previous_attempts(self):
         # Without the attempt history the model repeats a failed fix unchanged.

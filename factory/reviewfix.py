@@ -4,7 +4,9 @@ Graph v2 routing: when 09-review fails, the run does NOT die and the
 pipeline is NOT re-run - the reviewer's fatal/major findings come here (the
 fixer paired with that gate). The model returns complete replacement
 contents for topic-local files ONLY (page.js, page.css; index.html is
-renderer-owned - same rule as 08-fixloop). After each round the stage
+renderer-owned - same rule as 08-fixloop), and it receives the LIVE design
+doctrine + lesson-page example + palette so its fixes land on the page's
+visual language. After each round the stage
 re-lints everything, re-emits the index.html tags, re-measures perf (a code
 fix must not break the perf budget), and 09-review re-reviews. After
 repair.code_rounds rounds without a pass, the run fails with the full
@@ -19,6 +21,7 @@ from typing import Any
 
 from .artifacts import RunContext
 from .config import Config
+from .design import design_context, palette_text
 from .errors import BudgetError, LintError
 from .fixloop import FIXABLE, _rebuild_html_if_needed, _specs_text
 from .lint import lint_generated
@@ -60,7 +63,12 @@ def run(
             {
                 "role": "user",
                 "content": _user_msg(
-                    review_report, current_files, render_out, ground_truth, blocks
+                    review_report,
+                    current_files,
+                    render_out,
+                    ground_truth,
+                    blocks,
+                    cfg,
                 ),
             },
         ],
@@ -166,6 +174,7 @@ def _user_msg(
     render_out: dict[str, Any],
     ground_truth: dict[str, Any],
     blocks: dict[str, Any],
+    cfg: Config,
 ) -> str:
     from .review import _facts_text  # same facts view the reviewer used
 
@@ -193,6 +202,14 @@ def _user_msg(
         + json.dumps(render_out["manifest"], indent=2, ensure_ascii=False)
         + "\n\nCURRENT TOPIC FILES:\n"
         + files_text
+        + "\n\nDESIGN DOCTRINE + LESSON-PAGE EXAMPLE (the visual language of "
+        "this page - fix the flagged issues TOWARD this reference; never "
+        "restyle what was not flagged, and a style fix must land on this "
+        "language):\n"
+        + design_context(cfg, with_examples=True)
+        + "\n\nPALETTE (exact values from the page stylesheet; use these, "
+        "invent nothing):\n"
+        + palette_text(cfg)
         + '\n\nReturn {"analysis": "what each flagged issue was and how your fix '
         'resolves it", "files": {"page.js": "<full new content>", "page.css": '
         '"<full new content>"}}. Omit files you do not change; contents must be '

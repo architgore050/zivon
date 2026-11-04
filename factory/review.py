@@ -3,9 +3,10 @@
 The model reviews the final page (HTML + JS + CSS + manifest) against the repo
 checklist: correctness against the block specs AND against the cited ground
 truth (the sim's drawn behaviour included - 08-fixloop may have rewritten the
-code after 03-check saw the draft), the LIVE design doctrine (injected via
-factory/design.py), safety (no eval, no external calls - also enforced
-mechanically by lint), accessibility, and performance hygiene. Fatal model
+code after 03-check saw the draft), the LIVE design doctrine and its reference
+lesson-page example (injected via factory/design.py), safety (no eval, no
+external calls - also enforced mechanically by lint), accessibility, and
+performance hygiene. Fatal model
 findings or fatal lints stop the run here; nothing is linked into frontend/
 until this stage passes.
 
@@ -83,9 +84,9 @@ def run(
                     + manifest_text
                     + "\n\nFINAL PAGE FILES:\n"
                     + files_text
-                    + "\n\nDESIGN DOCTRINE (the visual language this page must "
-                    "follow):\n"
-                    + design_context(cfg, with_examples=False)
+                    + "\n\nDESIGN DOCTRINE + LESSON-PAGE EXAMPLE (the visual "
+                    "language this page must follow):\n"
+                    + design_context(cfg, with_examples=True)
                     + "\n\nTASK: Hunt for REAL defects in this generated page before it "
                     "is linked into the site: implementations that contradict the block "
                     "specs or the cited facts, broken answer keys, unusable interactive "

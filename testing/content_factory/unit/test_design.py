@@ -53,10 +53,13 @@ class TestDesignLoader(unittest.TestCase):
         self.assertIn("Field Notes", text)
         self.assertIn("Lesson page", text)  # the v1.1 extension flows through
 
-    def test_examples_glob_picks_up_every_example(self):
+    def test_examples_glob_is_lesson_page_only(self):
+        # 2026-11-04 (founder decision): factory context carries ONLY the
+        # lesson-page examples. The main (post/brand) example stays a docs
+        # asset - it must not bleed into generated pages.
         text = design.examples_text(self.cfg)
-        self.assertIn("design-doctrine-example.html", text)
         self.assertIn("design-doctrine-lesson-example.html", text)
+        self.assertNotIn("=== design-doctrine-example.html ===", text)
 
     def test_new_documents_flow_without_any_pipeline_change(self):
         # Open-endedness proof: a fake repo tree with its own doctrine, two
@@ -66,10 +69,10 @@ class TestDesignLoader(unittest.TestCase):
         (fake / "docs" / "frontend" / "design-doctrine.md").write_text(
             "# Doctrine\nrules here\n", encoding="utf-8"
         )
-        (fake / "docs" / "frontend" / "design-doctrine-alpha-example.html").write_text(
+        (fake / "docs" / "frontend" / "design-doctrine-lesson-alpha.html").write_text(
             "<html>alpha demo</html>", encoding="utf-8"
         )
-        (fake / "docs" / "frontend" / "design-doctrine-zeta-example.html").write_text(
+        (fake / "docs" / "frontend" / "design-doctrine-lesson-zeta.html").write_text(
             "<html>zeta demo</html>", encoding="utf-8"
         )
         (fake / "frontend" / "assets").mkdir(parents=True)

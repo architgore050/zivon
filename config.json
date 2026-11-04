@@ -23,7 +23,7 @@
     "runs": "runs",
     "frontend": "frontend",
     "doctrine": "docs/frontend/design-doctrine.md",
-    "doctrine_examples": "docs/frontend/design-doctrine*.html"
+    "doctrine_examples": "docs/frontend/design-doctrine-lesson*.html"
   },
   "perf": {
     "profile": "testing/content_factory/perf/profiles/weak-android.json",

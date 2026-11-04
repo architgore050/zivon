@@ -107,7 +107,10 @@ class TestReviewPrompt(unittest.TestCase):
     def test_review_prompt_carries_live_doctrine_and_checklist_item(self):
         # Style policing against a held-over excerpt drifts when the doctrine
         # changes; the reviewer must get the live document plus the checklist
-        # item that makes violations reportable.
+        # item that makes violations reportable. 2026-11-04 (founder rule):
+        # anybody who reviews, writes or edits page code also gets the lesson-
+        # page example - the canonical reference the visual language is judged
+        # against. The main (post/brand) example stays out of factory context.
         stub = StubLLM()
         self._review(stub)
         user = next(m["content"] for m in stub.messages if m["role"] == "user")
@@ -117,7 +120,7 @@ class TestReviewPrompt(unittest.TestCase):
         )
         self.assertIn(doctrine[:400], user)  # the live document, verbatim
         self.assertIn("Visual language: the page follows the DESIGN DOCTRINE", user)
-        # the reviewer polices rules, not shell demos: no example pages injected
+        self.assertIn("=== design-doctrine-lesson-example.html ===", user)
         self.assertNotIn("=== design-doctrine-example.html ===", user)
 
     def test_clean_page_passes_and_report_is_saved(self):

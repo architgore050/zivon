@@ -144,6 +144,13 @@ Reference implementation: `design-doctrine-lesson-example.html` (a working page 
 ### 10.1 Intent
 - Metaphor: a ruled notebook page. Text is **written** on the lines, diagrams are **sketched** on the paper, and anything
   the learner operates (simulation, question) is a **paper card taped** onto the page.
+- **Hand-drawn by default** (added 2026-11-04, founder ruling): every visual element on this page belongs to the
+  notebook world. Strokes, rules, borders, arrows, underlines, tape, check marks, dividers — anything drawn follows
+  the hand-drawn language (§4.1 pen algorithm for pen marks, §10.7 hand-stroke generator for diagram strokes, ink
+  palette and flat tape for structure). Sharp browser-default UI chrome is a defect, not a neutral look. Two
+  deliberate exceptions: the typed layer (controls, questions, feedback stay typed per §10.3) and native form
+  controls styled only with palette tokens (e.g. the slider `accent-color`). Arrows and underlines are examples of
+  this rule, not its limit.
 - Feeling at 1 second: "someone wrote this out for me by hand, and I can touch the parts that move."
 - Anti-patterns: glass, blur, translucency, gradients, shadows under taped cards, tilted cards, grain (all tried in
   review on 1 Nov and rejected; flat paper-light read as the most honest).

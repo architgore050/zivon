@@ -2,7 +2,8 @@
 
 Stage 07 hands the failing perf report here (the orchestrator routes a
 fixable BudgetError instead of dying). Loop: hand the report + page specs +
-previous attempts + current topic files to the model, apply its replacement
+previous attempts + current topic files + the LIVE design doctrine and its
+lesson-page example (+ palette) to the model, apply its replacement
 contents (topic-local files ONLY: page.js, page.css; index.html is
 renderer-owned), re-lint, re-render the HTML shell, re-test. After
 perf.fix_rounds rounds without a pass, the stage fails with the full history
@@ -23,6 +24,7 @@ from typing import Any
 
 from .artifacts import RunContext
 from .config import Config
+from .design import design_context, palette_text
 from .errors import BudgetError, LintError
 from .lint import lint_generated
 from .llm import LLMClient
@@ -81,7 +83,13 @@ def run(
                 {
                     "role": "user",
                     "content": _user_msg(
-                        report, current_files, round_no, rounds, specs, attempts
+                        cfg,
+                        report,
+                        current_files,
+                        round_no,
+                        rounds,
+                        specs,
+                        attempts,
                     ),
                 },
             ],
@@ -270,6 +278,7 @@ def _system() -> str:
 
 
 def _user_msg(
+    cfg: Config,
     report: dict[str, Any],
     files: dict[str, str],
     round_no: int,
@@ -296,9 +305,16 @@ def _user_msg(
         f"PAGE SPECS (what the page must still do after your fix):\n{specs}\n\n"
         f"PREVIOUS ATTEMPTS (do not repeat a failed fix unchanged):\n{attempts_text}\n\n"
         f"CURRENT TOPIC FILES:\n{files_text}\n\n"
-        'Return {"analysis": "what is slow and why", "files": {"page.js": "<full new '
-        'content>", "page.css": "<full new content or omit>"}}. Omit files you do not change. '
-        "File contents must be complete replacements."
+        "DESIGN DOCTRINE + LESSON-PAGE EXAMPLE (the visual language of this "
+        "page - this is a PERFORMANCE fix: keep the look exactly, optimize the "
+        "code, do not redesign or restyle):\n"
+        + design_context(cfg, with_examples=True)
+        + "\n\nPALETTE (exact values from the page stylesheet; use these, "
+        "invent nothing):\n"
+        + palette_text(cfg)
+        + '\n\nReturn {"analysis": "what is slow and why", "files": {"page.js": '
+        '"<full new content>", "page.css": "<full new content or omit>"}}. Omit files '
+        "you do not change. File contents must be complete replacements."
     )
 
 
