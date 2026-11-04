@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Zivon content factory image.
-#   Build:  docker build -t zivon-factory:0.2.1 .
-#   Smoke:  docker run --rm zivon-factory:0.2.1
+#   Build:  docker build -t zivon-factory:0.3.6 .
+#   Smoke:  docker run --rm zivon-factory:0.3.6
 
 FROM python:3.12-slim
 
@@ -21,7 +21,7 @@ WORKDIR /app
 COPY requirements.txt .
 # CPU-only torch first: the default PyPI torch wheel bundles CUDA libraries this
 # pipeline never uses (config: retrieval.device=cpu). Saves ~2 GB in the image.
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch \
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu \
     && pip install --no-cache-dir -r requirements.txt \
     && playwright install --with-deps chromium \
     && chmod -R a+rX /opt/playwright
@@ -30,10 +30,12 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 COPY . .
 
 # Never run as root: create a plain user and hand it the app directory.
-RUN useradd --create-home app \
+# Fixed UID + numeric USER: a named USER cannot be verified non-root by kubelets
+# (deployment gotcha 1) and is flagged by hadolint (DL3066).
+RUN useradd --create-home --uid 1000 app \
     && mkdir -p /app/runs /app/sources/pdfs /app/sources/cache /app/.cache/huggingface \
     && chown -R app:app /app
-USER app
+USER 1000
 
 # Python sets sys.path[0] to the *script's* directory, so a script in docker/
 # cannot see the factory/ package at /app without this. Placed here (after the

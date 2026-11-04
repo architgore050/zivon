@@ -103,8 +103,17 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Smoke test (site served, headers set, probe answers)
         run: |
-          docker run -d --name zivon-web -p 8080:8080 zivon-frontend:${{ github.sha }}
+          # The image stages the shell at /opt/zivon-shell; the served html root is a
+          # volume/PVC in production (compose mount / seed-shell initContainer). Stand
+          # in for the cluster path: writable root (tmpfs, uid 101 = the fsGroup stand-in)
+          # seeded with the same no-clobber glob copy the initContainer uses (gotcha 6).
+          # Without this the bare image serves nginx's default page and the shell checks
+          # can never pass.
+          docker run -d --name zivon-web -p 8080:8080 \
+            --tmpfs /usr/share/nginx/html:rw,exec,uid=101,gid=101 \
+            zivon-frontend:${{ github.sha }}
           for i in $(seq 1 15); do curl -sf http://127.0.0.1:8080/healthz >/dev/null && break; sleep 1; done
+          docker exec zivon-web sh -c "cp -rn /opt/zivon-shell/* /usr/share/nginx/html/"
           curl -sf http://127.0.0.1:8080/healthz
           curl -sf http://127.0.0.1:8080/ | grep -q "Zivon"
           curl -sf http://127.0.0.1:8080/assets/zivon.css > /dev/null
@@ -181,8 +190,10 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install dependencies (torch CPU-only first, then the rest)
+        # torch pinned to the same wheel the factory image installs (determinism
+        # across CI tests and the shipped image)
         run: |
-          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu
           pip install -r requirements.txt
           python -m playwright install --with-deps chromium
       - name: Content factory unit tests (fast, no network, no browser; embedder is a fixture)
