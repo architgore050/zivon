@@ -1,24 +1,28 @@
 /* ==========================================================================
    Zivon shared style layer - Field Notes (docs/frontend/design-doctrine.md)
    --------------------------------------------------------------------------
-   STATUS 2026-11-04: the lesson-page look is live. This file implements the
-   doctrine's §10 (lesson page); docs/frontend/design-doctrine-lesson-example.html
-   is the canonical reference implementation and this stylesheet follows it.
+   STATUS 2026-11-05: doctrine v1.4. The lesson page follows the founder's
+   rebuilt example (docs/frontend/design-doctrine-lesson-example.html): ONE
+   rhythm token --row (rem), opaque full-bleed paper, and the ruled lines are
+   NOT CSS - zivon.js (LessonKit) measures where each line of text landed and
+   draws the rules as SVG under the measured baselines. This stylesheet only
+   provides the kit's contract: --row, --rule, an opaque paper element, and
+   whole-row heights/margins so gaps stay whole rows.
 
    Doctrine guard (§10 scope): nothing in §10 (typed body on ruled lines,
-   handwritten accents, taped cards, 36 px rhythm) leaks into the site shell.
-   §10 rules below attach to
-   topic-page classes only; where a class is shared with the landing page
-   (main.zn-page.zn-home), the §10 rule is scoped with :not(.zn-home) and the
-   shell keeps its own look.
+   handwritten accents, taped cards, row rhythm) leaks into the site shell.
+   §10 rules below attach to topic-page classes only; where a class is shared
+   with the landing page (main.zn-page.zn-home), the §10 rule is scoped with
+   :not(.zn-home) and the shell keeps its own look (including its CSS ruled
+   background - the kit only ever runs on lesson pages).
 
    Revisions: replace wholesale following the doctrine; keep the class names,
    the CSS custom properties, and the local @font-face declarations (generated
    pages must make zero external calls). Fonts are bundled locally (see
-   assets/FONTS-LICENSE.md). Doctrine v1.3 (4 Nov 2026): typed page, handwritten
-   accents — Courier Prime carries lesson body text on topic pages (§10.3);
-   Caveat survives only on titles, section headings and diagram annotation
-   labels; typed faces stay on controls, questions and feedback.
+   assets/FONTS-LICENSE.md). Doctrine v1.3 (4 Nov 2026): typed page,
+   handwritten accents - Courier Prime carries lesson body text on topic pages
+   (§10.3); Caveat survives only on titles, section headings and diagram
+   annotation labels; typed faces stay on controls, questions and feedback.
    ========================================================================== */
 
 /* ---- fonts (local, offline) ---- */
@@ -47,7 +51,7 @@
   font-display: swap;
 }
 
-/* ---- tokens (doctrine section 3) ---- */
+/* ---- tokens (doctrine section 3 + the kit's §10.2 contract) ---- */
 :root {
   --paper: #EFE6B8;
   --paper-light: #F6F0CF;
@@ -59,7 +63,10 @@
   --display: "Bricolage Grotesque", Arial, sans-serif;
   --notes: "Courier Prime", "Courier New", monospace;
   --hand: Caveat, "Segoe Print", "Bradley Hand", cursive;
-  --rule-line: rgba(90, 87, 72, 0.4); /* doctrine: graphite at 40%, 2 px, 36 px pitch */
+  --rule: rgba(90, 87, 72, 0.4); /* doctrine: graphite at 40%, 2 px (kit fill + landing gradient) */
+  --row: 2.25rem;                /* one ruled line (36 px at default size); rem so user font size scales the grid */
+  --gutter: 1.5rem;
+  --page-w: 47.5rem;             /* single column until the Day-9 grid; doctrine target 65.75rem */
 }
 
 /* ---- base ---- */
@@ -68,28 +75,39 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--paper);
-  /* §10.2 page grid: the ruled lines ARE the grid - 36 px pitch (2 px rule). */
+  /* landing shell only: the site shell keeps its CSS ruled background (§10
+     scope guard). Lesson pages cover it with the opaque .zn-page paper and
+     get their rules drawn by the kit instead - never set background-position
+     here; the kit never uses it. */
   background-image: repeating-linear-gradient(
-    to bottom, transparent 0, transparent 34px, var(--rule-line) 34px, var(--rule-line) 36px);
+    to bottom, transparent 0, transparent 34px, var(--rule) 34px, var(--rule) 36px);
   color: var(--ink);
   font-family: var(--display);
   font-weight: 500;
   line-height: 1.5;
-  overflow-x: hidden;
 }
-/* zivon.js measures the handwriting baseline and shifts background-position so
-   each rule lies directly under it (§10.2) - never set background-position here. */
 .zn-page {
   max-width: 760px;
   margin: 0 auto;
   padding: 48px 24px 96px;
   box-sizing: border-box;
 }
-/* Topic pages sit the header on a whole ruled row (§10.2). */
-.zn-page:not(.zn-home) { padding-top: 72px; }
+/* §10.2 lesson paper: full-bleed opaque paper, centred column WITHOUT a
+   wrapper div (side padding grows past --page-w), so the kit's rules span
+   the whole screen and nothing can drift. */
+.zn-page:not(.zn-home) {
+  max-width: none;
+  background: var(--paper);
+  padding: calc(var(--row) / 2)
+    max(var(--gutter), env(safe-area-inset-right, 0px), calc((100% - var(--page-w)) / 2))
+    calc(var(--row) * 2)
+    max(var(--gutter), env(safe-area-inset-left, 0px), calc((100% - var(--page-w)) / 2));
+}
 h1, h2, h3 { line-height: 1.15; }
 a { color: var(--pen-blue); }
 :focus-visible { outline: 3px solid var(--pen-blue); outline-offset: 3px; }
+/* kit-generated pen underline (zivon.js draws it; never a CSS text-underline) */
+.uline { position: absolute; top: 100%; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
@@ -103,7 +121,7 @@ a { color: var(--pen-blue); }
   color: var(--graphite);
   margin: 0 0 8px;
 }
-.zn-page:not(.zn-home) .zn-kicker { font-size: 15px; line-height: 36px; margin: 0; } /* §10.3 meta line */
+.zn-page:not(.zn-home) .zn-kicker { font-size: 0.9375rem; line-height: var(--row); margin: 0; } /* §10.3 meta line */
 .zn-title {
   font-size: clamp(34px, 7vw, 56px);
   font-weight: 800;
@@ -114,9 +132,9 @@ a { color: var(--pen-blue); }
 .zn-page:not(.zn-home) .zn-title {
   font-family: var(--hand);
   font-weight: 700;
-  font-size: clamp(46px, 7vw, 76px);
-  line-height: 72px;
-  margin: 0 0 36px;
+  font-size: clamp(2.875rem, 7vw, 4.75rem);
+  line-height: calc(var(--row) * 2);
+  margin: 0 0 var(--row);
 }
 .zn-sub {
   color: var(--graphite);
@@ -126,66 +144,67 @@ a { color: var(--pen-blue); }
 .zn-objectives-label {
   font-family: var(--notes);
   font-weight: 700;
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   color: var(--graphite);
-  margin: 36px 0 0;
+  margin: var(--row) 0 0;
 }
-.zn-objectives { margin: 0 0 36px; padding-left: 22px; }
-.zn-objectives li { font-family: var(--notes); font-size: 15px; line-height: 36px; margin: 0; }
+.zn-objectives { margin: 0 0 var(--row); padding-left: 1.375rem; }
+.zn-objectives li { font-family: var(--notes); font-size: 0.9375rem; line-height: var(--row); margin: 0; }
 
 /* ==========================================================================
    §10 lesson-page blocks (topic pages only - these classes never appear on
-   the landing shell)
+   the landing shell). Sizes in rem; line-heights and vertical rhythm are
+   whole var(--row) multiples; px only for hairlines and card chrome.
    ========================================================================== */
 
-/* ---- §10.3 typed body (doctrine v1.3): Courier Prime 17/36, text ON the
-   rules, one blank ruled row between paragraphs ---- */
-.zn-text { margin: 0 0 36px; }
+/* ---- §10.3 typed body (doctrine v1.3): Courier Prime on one ruled row per
+    line, text ON the rules, one blank ruled row between paragraphs ---- */
+.zn-text { margin: 0 0 var(--row); }
 .zn-text p {
   font-family: var(--notes);
   font-weight: 400;
-  font-size: 17px;
-  line-height: 36px;
+  font-size: 1.0625rem;
+  line-height: var(--row);
   max-width: 46ch;
-  margin: 0 0 36px;
+  margin: 0 0 var(--row);
 }
 
 /* ---- worked examples: typed content on the paper, NOT a card (only
    operated things get taped cards, §10.6); the h3 keeps the handwritten
    accent. Every margin is a whole ruled row so baselines never drift ---- */
-.zn-example { margin: 0 0 36px; }
+.zn-example { margin: 0 0 var(--row); }
 .zn-example h3 {
   font-family: var(--hand);
   font-weight: 700;
-  font-size: 28px;
-  line-height: 36px;
+  font-size: 1.75rem;
+  line-height: var(--row);
   margin: 0;
 }
 .zn-example-problem {
   font-family: var(--notes);
   font-weight: 400;
-  font-size: 17px;
-  line-height: 36px;
+  font-size: 1.0625rem;
+  line-height: var(--row);
   max-width: 46ch;
-  margin: 0 0 36px;
+  margin: 0 0 var(--row);
 }
-.zn-example ol { margin: 0; padding-left: 34px; }
+.zn-example ol { margin: 0; padding-left: 2.125rem; }
 .zn-example li {
   font-family: var(--notes);
   font-weight: 400;
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   margin: 0;
 }
 /* answers stay Courier Prime 700 (§10.3); one blank ruled row above */
 .zn-answer {
   font-family: var(--notes);
   font-weight: 700;
-  font-size: 16px;
-  line-height: 36px;
+  font-size: 1rem;
+  line-height: var(--row);
   border-top: 1px dashed var(--graphite);
-  margin: 36px 0 0;
+  margin: var(--row) 0 0;
 }
 .zn-answer-label {
   font-weight: 700;
@@ -194,70 +213,70 @@ a { color: var(--pen-blue); }
 }
 
 /* ---- §10.6 paper cards: the things the learner operates (reveal, sim,
-   quiz), taped on, flat: no shadow, no tilt, no grain ---- */
+   quiz), taped on, flat: no shadow, no tilt, no grain. Padding + border =
+   exactly one row, so a card's height stays a whole number of rows as long
+   as its content is. ---- */
 .zn-reveal, .zn-sim, .zn-check {
   position: relative;
   background: var(--paper-light);
   border: 1px solid var(--ink);
   border-radius: 2px;
-  padding: 17px 18px 17px; /* 17+17 padding + 1+1 border = exactly one ruled
-                               row: a card's height stays a multiple of 36 px
-                               as long as its content is (§10.2 rhythm) */
-  margin: 36px 0;
+  padding: calc(var(--row) / 2 - 1px) 1.125rem;
+  margin: var(--row) 0;
   box-sizing: border-box;
 }
 /* Tape: one strip per card, centred 13 px above the top edge, translucent
    masking-tape fill, jagged torn ends, rotated. Rotation belongs to the tape
    only - the card never tilts. The quiz card carries the example's second
-   card's tape (84 px, +2 deg) for variety. */
+   card's tape (5.25rem, +2 deg) for variety. */
 .zn-reveal::before, .zn-sim::before, .zn-check::before {
   content: "";
   position: absolute;
-  top: -13px;
-  left: calc(50% - 46px);
-  width: 92px;
-  height: 27px;
+  top: -0.8125rem;
+  left: calc(50% - 2.875rem);
+  width: 5.75rem;
+  height: 1.6875rem;
   background: rgba(196, 174, 104, 0.5);
   transform: rotate(-3deg);
   clip-path: polygon(
     0 0, 100% 0, 96% 12%, 100% 25%, 96% 37%, 100% 50%, 96% 62%, 100% 75%, 96% 87%, 100% 100%,
     0 100%, 4% 87%, 0 75%, 4% 62%, 0 50%, 4% 37%, 0 25%, 4% 12%);
 }
-.zn-check::before { left: calc(50% - 38px); width: 84px; transform: rotate(2deg); }
+.zn-check::before { left: calc(50% - 2.375rem); width: 5.25rem; transform: rotate(2deg); }
 .zn-reveal h3, .zn-sim h3 {
   font-family: var(--hand);
   font-weight: 700;
-  font-size: 28px;
-  line-height: 36px;
+  font-size: 1.75rem;
+  line-height: var(--row);
   margin: 0;
 }
 
 /* ---- reveal (step-by-step): typed steps, typed click-targets; each step
-   occupies exactly two ruled rows (72 px) inside the card ---- */
-.zn-reveal-step { margin-top: 36px; }
+    occupies whole ruled rows inside the card ---- */
+.zn-reveal-step { margin-top: var(--row); }
 .zn-reveal-step summary {
   cursor: pointer;
   font-family: var(--display);
   font-weight: 500;
-  font-size: 17px;
-  line-height: 36px;
-  min-height: 36px; /* §10.8: rows inside cards stay on the 36 px rhythm */
+  font-size: 1.0625rem;
+  line-height: var(--row);
+  min-height: var(--row); /* §10.8: rows inside cards stay on the row rhythm */
 }
 .zn-reveal-step p {
   font-family: var(--notes);
   font-weight: 400;
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   margin: 0;
 }
 
 /* ---- §10.6 question card: typed layer (stem, options, feedback); every
-   row is one ruled row (36 px) so the card height stays a multiple of 36 ---- */
+    row is one ruled row so the card height stays a whole number of rows ---- */
 .zn-check legend {
   font-family: var(--display);
   font-weight: 500;
-  font-size: 17px;
-  line-height: 36px;
+  font-size: 1.0625rem;
+  line-height: var(--row);
   padding: 0 6px;
   max-width: 60ch;
 }
@@ -265,21 +284,21 @@ a { color: var(--pen-blue); }
   display: flex;
   gap: 10px;
   align-items: center;
-  min-height: 36px; /* §10.8: in-card rows stay on the 36 px rhythm */
+  min-height: var(--row); /* §10.8: in-card rows stay on the row rhythm */
   padding: 0 4px;
   cursor: pointer;
   font-family: var(--display);
   font-weight: 500;
-  font-size: 16px;
-  line-height: 36px;
+  font-size: 1rem;
+  line-height: var(--row);
 }
 .zn-opt input { flex: none; width: 20px; height: 20px; accent-color: var(--pen-blue); }
 .zn-numeric-input {
   font-family: var(--display);
-  font-size: 17px;
+  font-size: 1.0625rem;
   padding: 0 10px;
-  min-height: 36px;
-  line-height: 36px;
+  min-height: var(--row);
+  line-height: var(--row);
   border: 1px solid var(--ink);
   border-radius: 2px;
   background: var(--paper);
@@ -291,56 +310,56 @@ a { color: var(--pen-blue); }
   border: 0;
   border-radius: 2px;
   padding: 0 18px;
-  min-height: 36px;
-  line-height: 36px;
-  font: 700 15px var(--display);
+  min-height: var(--row);
+  line-height: var(--row);
+  font: 700 0.9375rem var(--display);
   cursor: pointer;
-  margin-top: 36px;
+  margin-top: var(--row);
 }
 /* §10.6: correctness is carried by a ✓/✗ mark plus words (zivon.js writes
    them), never by hue - pencil-red and tick-green stay reserved (§3). */
 .zn-check-feedback {
   font-family: var(--display);
   font-weight: 500;
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   color: var(--ink);
-  min-height: 36px;
-  margin: 36px 0 0;
+  min-height: var(--row);
+  margin: var(--row) 0 0;
 }
 .zn-check-feedback.correct { color: var(--ink); }
 .zn-check-feedback.wrong { color: var(--ink); }
-.zn-check-why { margin-top: 36px; }
+.zn-check-why { margin-top: var(--row); }
 .zn-check-why summary {
   cursor: pointer;
   color: var(--graphite);
   font-family: var(--display);
   font-weight: 500;
-  font-size: 15px;
-  line-height: 36px;
-  min-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
+  min-height: var(--row);
 }
 .zn-check-why p {
   font-family: var(--notes);
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   margin: 0;
 }
 
 /* ---- §10.6 simulation: typed controls + the drawn canvas. The canvas box
-   is a fixed 144 px (4 ruled rows, border included) so sim height never
-   depends on viewport width — the grid survives resize ---- */
+    is a fixed 8 rows (border included) so sim height never depends on
+    viewport width - the grid survives resize ---- */
 .zn-sim-canvas-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: 434px;
-  height: 288px; /* 8 ruled rows, border included: a fixed box, so the sim
-                    never changes height on resize and the grid survives */
+  max-width: 27.125rem;
+  height: calc(var(--row) * 8); /* 8 ruled rows, border included: a fixed box, so the sim
+                                   never changes height on resize and the grid survives */
   box-sizing: border-box;
   background: var(--paper);
   border: 1px solid var(--ink);
-  margin: 36px auto;
+  margin: var(--row) auto;
 }
 .zn-sim-canvas {
   max-width: 100%;
@@ -349,70 +368,79 @@ a { color: var(--pen-blue); }
 }
 .zn-sim-desc {
   font-family: var(--notes);
-  font-size: 14px;
-  line-height: 36px;
+  font-size: 0.875rem;
+  line-height: var(--row);
   color: var(--graphite);
   margin: 0;
 }
-.zn-sim-controls { display: flex; flex-direction: column; gap: 36px; }
+.zn-sim-controls { display: flex; flex-direction: column; gap: var(--row); }
 .zn-sim-control {
   display: grid;
-  grid-template-columns: 130px 1fr 52px;
+  grid-template-columns: 8.125rem minmax(0, 1fr) 3.25rem;
   gap: 10px;
   align-items: center;
   font-family: var(--notes);
-  font-size: 14px;
-  line-height: 36px;
+  font-size: 0.875rem;
+  line-height: var(--row);
 }
-.zn-sim-control input[type="range"] { width: 100%; height: 32px; accent-color: var(--pen-blue); }
+.zn-sim-control input[type="range"] { width: 100%; height: var(--row); accent-color: var(--pen-blue); }
 .zn-sim-control output { text-align: right; font-weight: 700; }
 
-/* ---- §10.7 diagrams (doctrine v1.3): drawn clean straight onto the paper -
-   no card, fixed 288 px box (8 ruled rows) so the grid is not disturbed;
-   geometry is exactly as authored - the handify_svg jitter pass was retired
-   2026-11-04, only annotation arrows may carry hand-drawn strokes ---- */
-.zn-diagram { margin: 0 0 36px; }
-.zn-diagram-svg { display: flex; align-items: center; justify-content: center; height: 288px; }
-.zn-diagram-svg svg { max-width: 100%; max-height: 288px; height: auto; }
+/* ---- §10.7 diagrams (doctrine v1.4): drawn clean straight onto the paper -
+    no card; box at most 8 rows tall, shrinking to the drawing's own aspect
+    (zivon.js reads the model viewBox into --dia-ar) rounded UP to whole
+    rows on narrow screens (container query; the fixed 8-row height above is
+    the fallback where round()/cqw are unsupported); geometry is exactly as
+    authored - the handify_svg jitter pass was retired 2026-11-04, only
+    annotation arrows may carry hand-drawn strokes ---- */
+.zn-diagram { margin: 0 0 var(--row); container-type: inline-size; }
+.zn-diagram-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--row) * 8);
+  height: min(calc(var(--row) * 8), round(up, calc(100cqw * var(--dia-ar, 0.6429)), var(--row)));
+}
+.zn-diagram-svg svg { max-width: 100%; max-height: 100%; height: auto; }
 /* diagram labels are handwritten Caveat 700 (§10.7); colours stay as authored */
 .zn-diagram-svg text { font-family: var(--hand); font-weight: 700; }
 .zn-diagram figcaption {
   font-family: var(--notes);
-  font-size: 14px;
-  line-height: 36px;
+  font-size: 0.875rem;
+  line-height: var(--row);
   color: var(--graphite);
   margin: 0;
 }
 
-/* ---- glossary + footer (typed meta layer, on the 36 px rhythm) ---- */
-.zn-glossary { margin: 36px 0 0; }
+/* ---- glossary + footer (typed meta layer, on the row rhythm) ---- */
+.zn-glossary { margin: var(--row) 0 0; }
 .zn-glossary dl { margin: 0; }
 .zn-glossary h2 {
   font-family: var(--notes);
   font-weight: 700;
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   color: var(--graphite);
   margin: 0;
 }
 .zn-glossary dt {
   font-family: var(--notes);
   font-weight: 700;
-  font-size: 15px;
-  line-height: 36px;
-  margin-top: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
+  margin-top: var(--row);
 }
 .zn-glossary dd {
   font-family: var(--notes);
-  font-size: 15px;
-  line-height: 36px;
+  font-size: 0.9375rem;
+  line-height: var(--row);
   margin: 0;
   color: var(--graphite);
 }
 .zn-footer { margin-top: 48px; border-top: 2px solid var(--ink); padding-top: 12px; }
-/* lesson footer chrome: 2 px border + 34 px padding = one ruled row */
-.zn-page:not(.zn-home) .zn-footer { margin-top: 72px; border-top: 2px solid var(--ink); padding-top: 34px; }
-.zn-sources { font-family: var(--notes); font-size: 13px; line-height: 36px; color: var(--graphite); }
+/* lesson footer chrome: 2 px border + the rest of one row padding = one ruled row */
+.zn-page:not(.zn-home) .zn-footer { margin-top: calc(var(--row) * 2); border-top: 2px solid var(--ink); padding-top: calc(var(--row) - 2px); }
+.zn-sources { font-family: var(--notes); font-size: 0.8125rem; line-height: var(--row); color: var(--graphite); }
 
 /* ==========================================================================
    landing page (site shell) - pre-§10 look, unchanged by the §10 port

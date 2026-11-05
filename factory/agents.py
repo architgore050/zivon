@@ -179,7 +179,8 @@ def run_generate(
         "Frame law (doctrine §10.2): the page is read on phones (~360 px), tablets and laptops. "
         "Write for reflow: keep sentences and list items short enough to wrap cleanly, keep "
         "diagram viewBoxes wide-friendly, and never assume a fixed pixel layout - the shell "
-        "owns layout and keeps every block on the 36 px ruled grid at every width.\n"
+        "owns layout and the ruled-line alignment kit (LessonKit), keeping every "
+        "block a whole number of rows (--row) at every width.\n"
         "Cite claims in every text, worked_example, check and reveal block (a factual block "
         "without citations is rejected): "
         '"citations": [{"claim_id": "claim-01"}].\n'

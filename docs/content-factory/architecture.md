@@ -261,11 +261,16 @@ how a finished page LOOKS and how COMPLETE it is - their topic, facts and
 questions belong to an unrelated chapter and must never be reused or imitated,
 and content coverage is dictated by the source material, never by the
 examples (founder diagnosis 2026-11-04: the old example's plain-simple
-content was bleeding into generated pages). A richer candidate - "example
-lesson page 2", `docs/frontend/candidates/design-doctrine-lesson-example-2.html`,
-full coverage of NCERT ch. 6 - deliberately lives OUTSIDE the glob until the
-founder approves it; approving means moving it into `docs/frontend/`, which
-the glob picks up with zero pipeline changes.
+content was bleeding into generated pages). The candidate "example lesson
+page 2" (full coverage of NCERT ch. 6) was superseded on 2026-11-05: the
+founder had a stronger model rebuild it with sound layout code plus the
+**LessonKit** alignment kit, and that file replaced the live example
+(`docs/frontend/design-doctrine-lesson-example.html`); the candidates folder
+was deleted. The kit is shell-owned: `frontend/assets/zivon.js` carries the
+same LessonKit code, every generated page gets ruled-line alignment, baseline
+normalisation and the title pen underline from the shell, and the loader
+header tells the model the kit is shell-owned and must never be copied into
+a page (doctrine v1.4, §10.2).
 
 - **02-generate** gets the doctrine document (its diagram rules govern the SVGs
   the generation specs) plus the parsed palette; diagrams no longer invent

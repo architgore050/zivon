@@ -71,7 +71,10 @@ def design_context(cfg: Config, *, with_examples: bool) -> str:
             "topic, facts, numbers, questions and examples belong to an unrelated "
             "chapter: never reuse or imitate their content, and never let their "
             "scope decide what your chapter should or should not cover - content "
-            "coverage is dictated by the SOURCE MATERIAL, never by these pages."
+            "coverage is dictated by the SOURCE MATERIAL, never by these pages. "
+            "The LessonKit alignment/pen tools the example inlines are shell-owned: "
+            "the shell hands every generated page the same kit through zivon.js - "
+            "never copy or re-implement them in a page."
         )
         parts.append(examples_text(cfg))
     block = "\n\n".join(parts)
