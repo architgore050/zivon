@@ -13,6 +13,10 @@ v1.4 (5 Nov 2026): the lesson example was rebuilt with sound layout code and the
 (`LessonKit`) became shell-owned (`frontend/assets/zivon.js`): ruled lines are drawn from measured
 text baselines, never computed; one row token `--row` (rem) replaces fixed 36 px values. §10.2/§10.3/
 §10.5–§10.7 updated to match; §1–§9 unchanged.
+v1.5 (5 Nov 2026): founder's second pass on the rebuilt example - **one content-width token**
+`--page-w` (47rem) and **no per-block max-widths** (every block fills its column); the kit is
+externalised as `lesson-kit.js` beside the example (guard-thrown if missing); diagram labels and the
+recoil drawing fixed. §10.2/§10.3/§10.8 updated; §1–§9 unchanged.
 Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
 and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
 the look. Second reference implementation, for lesson pages: `design-doctrine-lesson-example.html` (same folder; §10).
@@ -182,22 +186,26 @@ alone - coverage is dictated by the source material.
   Layout is CSS; JS only measures. Generated pages use the kit - never re-implement or copy it.
 - **Frame adaptation (added 2026-11-04, founder ruling):** the page must be consciously designed for phones
   (~360 px), tablets and laptops. No fixed pixel widths: visuals scale through `viewBox` or fixed-height
-  boxes (width 100%, fixed aspect), text capped in `ch`, chips wrap, touch targets >= 40 px (>= one row for
+  boxes (width 100%, fixed aspect), no per-block max-widths (line length comes from the column, §10.2),
+  chips wrap, touch targets >= 40 px (>= one row for
   rows inside cards), no horizontal overflow at any width. No breakpoints where intrinsic sizing works
   (grid `auto-fit`, `clamp()`, `min()`); grid tracks use `minmax(0,1fr)` so they can shrink below content
   size; never hide overflow bugs with `overflow-x:hidden` - fix the cause. Ruled alignment must survive
   every resize - a rule sliding under text after a window change is a defect (founder-caught drift in the
   example; the row-token grid is the structural fix, the measured kit the local one).
-- Page: content width 65.75rem; side padding `max(1.5rem, safe-area, (100% - content width)/2)` - a centred
-  column without a wrapper div, so the paper stays full-bleed. Two columns only while each can be >= 22rem
-  (grid `auto-fit minmax(min(100%,22rem),1fr)` - no breakpoint), row gap one row, column gap 3rem.
+- Page: ONE content-width token `--page-w` (47rem = 752 px; change this one token to resize the page); side
+  padding `max(1.5rem, safe-area, (100% - --page-w)/2)` - a centred column without a wrapper div, so the
+  paper stays full-bleed. Two columns only while each can be >= 22rem (22 + 22 + 3rem gap = 47rem exactly;
+  grid `auto-fit minmax(min(100%,22rem),1fr)` - no breakpoint), row gap one row, column gap 3rem.
+  **No block sets its own max-width** (v1.5 ruling, 5 Nov): every block fills its column, so text, cards
+  and diagrams share `--page-w` - line length is controlled by the column, never by a per-block `ch` cap.
 
 ### 10.3 Typography on the lesson page
 | Role | Font | Size / line | Notes |
 |---|---|---|---|
 | Title | **Caveat** 700 | clamp(2.875rem, 7vw, 4.75rem) / 2 rows | |
 | Section heading | **Caveat** 700 | 2.125rem / 2 rows | |
-| Body | **Courier Prime** 400 | 1.0625rem / 1 row | max 46 ch; monospace keeps every baseline exactly on its rule |
+| Body | **Courier Prime** 400 | 1.0625rem / 1 row | fills its column (§10.2); monospace keeps every baseline exactly on its rule |
 | Highlighted statement | Courier Prime 700 | 1.0625rem / 1 row | §10.4 |
 | Meta line (`Day 03 · Class 10 · Physics`) | Courier Prime 700 | .9375rem / 1 row | top-left, as §6 |
 | Caption, readout, labels | Courier Prime 400 / 700 | .875rem / 1 row, 1rem | graphite for captions |
@@ -267,7 +275,8 @@ alone - coverage is dictated by the source material.
   variant.
 - Frames: checked at ~360, ~768 and ~1280 px - no horizontal overflow, chips wrap, visuals scale, ruled
   alignment holds after every resize (rules stay under text baselines).
-- Works without a server: one HTML file, inline CSS and JS, SVG drawn in the browser.
+- Works without a server: one HTML file plus the shared `lesson-kit.js` beside it (the example guards:
+  no kit loaded, no page), inline CSS and JS, SVG drawn in the browser.
 - Rejected after review (do not retry without new evidence): translucent glass, plastic bevel cards, tilted
   cards, drop shadows under taped cards, floating language control, scratch-work scenery, hand-wobble on
   geometry and handwritten body text (both retired by founder ruling 2026-11-04).
@@ -299,6 +308,9 @@ ratios.
   360-1280 px resizes. The row-token grid + kit are unverified on real low-end Android WebView
   (MutationObserver/ResizeObserver, CSS `round()`/container queries, Hindi fallback fonts, user font-size
   zoom) - check on a real device before calling it done.
+- The example depends on its sibling `docs/frontend/lesson-kit.js` (the canonical kit source; the shell
+  copy lives in `frontend/assets/zivon.js`) - keep the two files together; the loader glob is HTML-only on
+  purpose, so the kit implementation never enters model context.
 - Fonts load from Google Fonts in the example; the pipeline must vendor Caveat, Kalam, Bricolage Grotesque
   and Courier Prime into the page folder (no external calls).
 - Hindi/Hinglish strings in the example were model-drafted, not reviewed by a native reader. Several

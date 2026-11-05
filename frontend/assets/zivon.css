@@ -1,13 +1,15 @@
 /* ==========================================================================
    Zivon shared style layer - Field Notes (docs/frontend/design-doctrine.md)
    --------------------------------------------------------------------------
-   STATUS 2026-11-05: doctrine v1.4. The lesson page follows the founder's
+   STATUS 2026-11-05: doctrine v1.5. The lesson page follows the founder's
    rebuilt example (docs/frontend/design-doctrine-lesson-example.html): ONE
    rhythm token --row (rem), opaque full-bleed paper, and the ruled lines are
    NOT CSS - zivon.js (LessonKit) measures where each line of text landed and
    draws the rules as SVG under the measured baselines. This stylesheet only
    provides the kit's contract: --row, --rule, an opaque paper element, and
-   whole-row heights/margins so gaps stay whole rows.
+   whole-row heights/margins so gaps stay whole rows. One content-width token
+   --page-w (47rem, v1.5): no block sets its own max-width - line length comes
+   from the column.
 
    Doctrine guard (§10 scope): nothing in §10 (typed body on ruled lines,
    handwritten accents, taped cards, row rhythm) leaks into the site shell.
@@ -66,7 +68,7 @@
   --rule: rgba(90, 87, 72, 0.4); /* doctrine: graphite at 40%, 2 px (kit fill + landing gradient) */
   --row: 2.25rem;                /* one ruled line (36 px at default size); rem so user font size scales the grid */
   --gutter: 1.5rem;
-  --page-w: 47.5rem;             /* single column until the Day-9 grid; doctrine target 65.75rem */
+  --page-w: 47rem;               /* THE content width token (doctrine v1.5): header, text, cards and diagrams all stop here; wider screens get equal side margins. Single column until the Day-9 grid pairs blocks into 22rem columns */
 }
 
 /* ---- base ---- */
@@ -166,7 +168,7 @@ a { color: var(--pen-blue); }
   font-weight: 400;
   font-size: 1.0625rem;
   line-height: var(--row);
-  max-width: 46ch;
+  max-width: none; /* v1.5: blocks fill the column - line length is governed by --page-w, never per-block caps */
   margin: 0 0 var(--row);
 }
 
@@ -186,7 +188,7 @@ a { color: var(--pen-blue); }
   font-weight: 400;
   font-size: 1.0625rem;
   line-height: var(--row);
-  max-width: 46ch;
+  max-width: none; /* v1.5: blocks fill the column - line length is governed by --page-w, never per-block caps */
   margin: 0 0 var(--row);
 }
 .zn-example ol { margin: 0; padding-left: 2.125rem; }
@@ -278,7 +280,6 @@ a { color: var(--pen-blue); }
   font-size: 1.0625rem;
   line-height: var(--row);
   padding: 0 6px;
-  max-width: 60ch;
 }
 .zn-opt {
   display: flex;

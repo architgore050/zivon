@@ -270,7 +270,12 @@ was deleted. The kit is shell-owned: `frontend/assets/zivon.js` carries the
 same LessonKit code, every generated page gets ruled-line alignment, baseline
 normalisation and the title pen underline from the shell, and the loader
 header tells the model the kit is shell-owned and must never be copied into
-a page (doctrine v1.4, §10.2).
+a page (doctrine v1.4, §10.2). The founder's same-day second pass (doctrine
+v1.5) externalised the kit as `docs/frontend/lesson-kit.js` beside the example
+(the example guards: no kit loaded, no page; the examples glob is HTML-only on
+purpose, so the kit implementation never enters model context), ruled ONE
+content-width token `--page-w` (47rem) with no per-block max-widths, and fixed
+the vt-diagram labels and the recoil drawing.
 
 - **02-generate** gets the doctrine document (its diagram rules govern the SVGs
   the generation specs) plus the parsed palette; diagrams no longer invent
