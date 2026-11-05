@@ -15,7 +15,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 ## Our manifests (`k8s/`, numeric prefix = apply order)
 
 - `00-namespace.yaml` — the `zivon` namespace.
-- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.8`:
+- `10-factory-smoke-job.yaml` — the K8s twin of `docker run --rm zivon-factory:0.3.9`:
   - `Job` + `restartPolicy: Never` + `backoffLimit: 2` = batch semantics (fresh pod per retry; a failing Job ends `Failed` — CI-detectable).
   - No `command:` — the pod inherits the image's CMD (smoke test). Pipeline runs override it (see next file).
   - `securityContext: runAsNonRoot: true` + `runAsUser: 1000` — see gotcha below.
@@ -36,7 +36,7 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 - `scripts/trigger-tests.sh [suffix]` — the test-suite "button": `kubectl create job test-<suffix>-<HHMMSS> --from=cronjob/test-suite -n zivon`.
 - `scripts/trigger-factory-run.sh "<chapter>" [class 6-12] [--fresh]` — the content factory "button": renders the 20 template (name + chapter + optional `--class` / `--fresh`) and applies it. Generation is manual-trigger only, by design: the factory NEVER runs on a schedule. A re-trigger of the same topic+class RESUMES the previous attempt; `--fresh` forces clean generation.
 - `scripts/logs-factory-run.sh [--status|--list]` — watches the **latest** generation run without knowing its generated name: every run Job carries label `task=factory-run` (20 template), so the script resolves the newest one by label and follows its logs. Output visibility never depends on a timestamp.
-- `scripts/publish-frontend.sh` — the publish bridge PVC → repo (founder-run; manual discipline like the factory trigger): pulls `courses/` + `courses.js` from the site root on the `zivon-frontend` PVC and replaces them wholesale under the repo's `frontend/`; the hand-maintained shell (`index.html`, `assets/`) is never overwritten from the cluster. Commit after publishing — git history IS the version rotation (the next publish replaces a topic's previous version, which survives in history). Standalone deploy after publishing: `docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.4` — no factory, no cluster.
+- `scripts/publish-frontend.sh` — the publish bridge PVC → repo (founder-run; manual discipline like the factory trigger): pulls `courses/` + `courses.js` from the site root on the `zivon-frontend` PVC and replaces them wholesale under the repo's `frontend/`; the hand-maintained shell (`index.html`, `assets/`) is never overwritten from the cluster. Commit after publishing — git history IS the version rotation (the next publish replaces a topic's previous version, which survives in history). Standalone deploy after publishing: `docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.5` — no factory, no cluster.
 - `scripts/publish-artifacts.sh` — the evidence bridge PVC → host (read-only, one-way): spins up a one-shot busybox pod mounting `zivon-sources`, tars its `runs/` and extracts into the repo's gitignored `runs/` (same-named run dirs are replaced with the cluster's authoritative copies; local-only dirs survive). Lets a human inspect a cluster run's stage artifacts, model payloads and reports without kubectl spelunking. Evidence never enters git.
 - Both trigger scripts are the documented stand-ins for the Day-8 admin dashboard buttons (see `TIMELINE.md`).
 
@@ -74,8 +74,8 @@ sudo install kubectl /usr/local/bin/kubectl
 minikube start --driver=docker
 minikube addons enable dashboard      # cluster UI (the CronJob/Job "Recreate" action)
 minikube addons enable metrics-server # makes kubectl top nodes/pods work
-minikube image load zivon-factory:0.3.8   # see gotcha 2
-minikube image load zivon-frontend:0.1.4  # frontend hosting (see gotcha 2)
+minikube image load zivon-factory:0.3.9   # see gotcha 2
+minikube image load zivon-frontend:0.1.5  # frontend hosting (see gotcha 2)
 # Apply the whole stack from k8s/infra.env (ConfigMap + manifests + rendered
 # CronJob schedule) and run the full test suite once on startup:
 scripts/apply-k8s.sh

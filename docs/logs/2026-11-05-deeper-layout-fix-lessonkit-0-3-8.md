@@ -106,6 +106,46 @@ writes are CSSOM.
   `zivon.js` carries the kit, `factory-smoke` Complete, startup suite
   `test-startup-121752` green in-cluster (209+10+7).
 
+## Second pass (same day): the founder's v2
+
+The founder came back the same day: "I forgot to handle some of the issues. I
+just worked with that smarter model and made a second version." Files with
+` (1)` suffixes in Downloads. Diffed against v1 before integrating:
+
+- **Kit: byte-identical.** No shell change needed - the merged `zivon.js` kit
+  already matches.
+- **Example: three real changes.** (1) The kit is no longer inlined - the page
+  loads `<script src="lesson-kit.js">` from its sibling and *throws* if
+  `LessonKit` is undefined ("keep it next to this page"). The canonical kit file
+  now lives at `docs/frontend/lesson-kit.js`; the examples glob is HTML-only on
+  purpose, so the kit implementation stays out of model context while the
+  example still shows how the kit is used. (2) `--page-w` 47rem becomes THE
+  content-width token and every per-block `max-width` (46/56/60 ch) is deleted -
+  "no text block sets its own max-width - every block fills the column, so
+  text, cards and diagrams share --page-w". (3) Content fixes: the vt-diagram's
+  axis labels move above the plot with `text-anchor:middle` (they had collided
+  with the axis), and the recoil gun is redrawn as proper stroked shapes
+  (`stroke-linejoin/linecap:round`).
+- **Doctrine v1.5** flows it: §10.2 page bullet (47rem, the 22+22+3rem exact
+  two-column fit, the no-max-width ruling), frame adaptation (ch caps removed
+  from the rules), §10.3 body row, §10.8 ("one HTML file plus the shared
+  lesson-kit.js beside it"), §10.11 (keep the example and its kit file together;
+  the kit never enters model context).
+- **Shell follows**: `zivon.css` `--page-w` 47rem, the three `ch` caps deleted;
+  still single column until the Day-9 grid pairs blocks into 22rem columns.
+- **Budget**: composed design context drops 78.4k → ≈ 68.7k (the kit code left
+  the example); cap 80000 stays as Day-9 headroom, rationale updated.
+
+Verification: 209+7+10 green, kubeconform + kube-linter clean, factory 0.3.9 +
+frontend 0.1.5 built + smoke-tested (baked example carries 47rem; baked shell
+carries the kit), cluster re-seeded - this time deleting the `Released` PV
+actually wiped the hostpath dir (gotcha 14 step 3 is what does the wipe; the
+manual `rm` is only needed when it doesn't), shell byte-identical, pages
+restored, site 200, factory-smoke Complete, startup suite `test-startup-131120`
+green. A headless check of the LIVE published page (generated with the old
+markup, now served with the new CSS + kit): rules drawn (4.3k-char path `d`),
+title pen drawn, no horizontal overflow, zero console errors.
+
 ## Not done / open
 
 - Founder has not yet viewed the new example live on the site — his call.
