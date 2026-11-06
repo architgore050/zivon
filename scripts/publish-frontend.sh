@@ -46,6 +46,21 @@ if [[ ! -d "$tmp/courses" || ! -f "$tmp/courses.js" ]]; then
   exit 1
 fi
 
+# Staleness guard (2026-11-06): the PVC mirrors whatever the LAST SUCCESSFUL
+# run published, not whatever the last TRIGGERED run attempted. If the PVC
+# site is byte-identical to the repo snapshot, the recent run never reached
+# stage 11-link (check it: scripts/logs-factory-run.sh) and this script would
+# silently "republish" an older topic. Say so loudly instead.
+if [[ -d frontend/courses ]] \
+   && diff -rq frontend/courses "$tmp/courses" >/dev/null 2>&1 \
+   && cmp -s frontend/courses.js "$tmp/courses.js"; then
+  echo "NOTHING NEW on the PVC: the site is identical to the repo snapshot." >&2
+  echo "The last factory run did not publish a page (it failed before stage" >&2
+  echo "11-link). Check it: scripts/logs-factory-run.sh  /  kubectl get jobs -n $ns" >&2
+  echo "Repo frontend/ left untouched." >&2
+  exit 2
+fi
+
 rm -rf frontend/courses
 cp -a "$tmp/courses" frontend/courses
 cp -a "$tmp/courses.js" frontend/courses.js

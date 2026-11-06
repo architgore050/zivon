@@ -268,6 +268,45 @@ class TestEndToEnd(unittest.TestCase):
         self.assertTrue(report["ok"])
 
     @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
+    def test_learner_class_follows_the_chapter_not_the_config(self):
+        """Founder bug 2026-11-06: config.json's learner.class_level is only a
+        DEFAULT. The run's class follows the chapter actually located (and the
+        --class flag): a class-9 chapter found under a class-11 config must
+        still build a class-9 page - never the config's folder."""
+        cfg11 = json.loads(self.config_path.read_text(encoding="utf-8"))
+        cfg11["learner"]["class_level"] = 11
+        cfg11_path = self.tmp / "config-class11.json"
+        cfg11_path.write_text(json.dumps(cfg11), encoding="utf-8")
+
+        result = self._run(
+            "Motion",
+            "--run-id",
+            "e2e-learner-follows",
+            env=self._pipeline_env(ZIVON_CONFIG=str(cfg11_path)),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "[learner] class follows the located chapter: class 9", result.stdout
+        )
+        courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
+        self.assertIn("courses/class-9-physics/", courses_text)
+        self.assertNotIn("class-11-physics", courses_text)
+
+        # --class overrides the config default the same way (flag 9, config 11)
+        flagged = self._run(
+            "Motion",
+            "--class",
+            "9",
+            "--run-id",
+            "e2e-learner-flag",
+            env=self._pipeline_env(ZIVON_CONFIG=str(cfg11_path)),
+        )
+        self.assertEqual(flagged.returncode, 0, flagged.stderr)
+        courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
+        self.assertIn("courses/class-9-physics/", courses_text)
+        self.assertNotIn("class-11-physics", courses_text)
+
+    @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
     def test_resume_reuses_completed_stages(self):
         """Re-triggering the same run id must NOT re-derive completed stages."""
         first = self._run("Motion", "--run-id", "e2e-resume")

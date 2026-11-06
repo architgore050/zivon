@@ -104,6 +104,23 @@ def _blocking_issues(combined: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def _sync_learner_to_chapter(cfg: Config, source_pack: dict[str, Any]) -> Config:
+    """Guarantee (2026-11-06, founder bug report): the learner class follows
+    the chapter ACTUALLY located, not config.json's default. Prompts, the
+    course folder, and the manifest must all match the class the chapter
+    belongs to - the old behaviour built 'Motion in a Straight Line' (class
+    11) with class-9 prompts and would have published it under
+    class-9-physics. Loud by design: the operator sees the override."""
+    chapter_class = source_pack["chapter"]["class"]
+    if chapter_class != cfg.learner["class_level"]:
+        print(
+            f"[learner] class follows the located chapter: class {chapter_class} "
+            f"(config default {cfg.learner['class_level']} overridden)"
+        )
+        return cfg.with_class_level(chapter_class)
+    return cfg
+
+
 def run_pipeline(
     cfg: Config,
     chapter: str,
@@ -112,6 +129,11 @@ def run_pipeline(
     only_stages: list[str] | None = None,
     fresh: bool = False,
 ) -> dict[str, Any]:
+    # --class is the run's learner class, not just a locate filter: prompts,
+    # course folder, and manifest all follow it (config.json's class_level is
+    # the default used only when --class is omitted).
+    if class_filter is not None:
+        cfg = cfg.with_class_level(class_filter)
     runs_dir = cfg.repo_path(cfg.paths["runs"])
     run_id = run_id or make_run_id(chapter, class_filter)
     if fresh and wipe_run(runs_dir, run_id):
@@ -160,6 +182,7 @@ def run_pipeline(
         if wanted("01-locate") and not resumed("01-locate"):
             run_ctx.mark_stage("01-locate", "running")
             source_pack = locate.run(cfg, run_ctx, chapter, class_filter)
+            cfg = _sync_learner_to_chapter(cfg, source_pack)
             run_ctx.save_stage_output("01-locate", source_pack)
             run_ctx.mark_stage(
                 "01-locate",
@@ -174,6 +197,7 @@ def run_pipeline(
             or wanted("09-review")
         ) and source_pack is None:
             source_pack = run_ctx.load_stage_output("01-locate")
+            cfg = _sync_learner_to_chapter(cfg, source_pack)
 
         if wanted("02-generate"):
             assert source_pack is not None, (
@@ -351,6 +375,7 @@ def run_pipeline(
                 lesson = run_ctx.load_stage_output("02-generate")["lesson"]
             if source_pack is None:
                 source_pack = run_ctx.load_stage_output("01-locate")
+                cfg = _sync_learner_to_chapter(cfg, source_pack)
             interactive_out = (
                 run_ctx.load_stage_output("05-interactive")
                 if wanted("05-interactive")

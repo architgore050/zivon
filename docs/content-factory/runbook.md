@@ -40,6 +40,10 @@ is correct end to end and the only remaining variable is your real model.
 
 - The chapter name is searched by title inside every cached NCERT chapter PDF.
   Ambiguity is an error listing the candidates - pass `--class` to resolve.
+- `--class` is also the run's learner class; when omitted, the learner class
+  follows the class of the chapter actually located. The page always lands in
+  the course folder of the class its chapter belongs to - a class-11 chapter
+  builds under `class-11-physics/` even if `config.json` defaults to 9.
 - The page is written to `frontend/courses/class-9-physics/<slug>/` and listed
   on `frontend/index.html` automatically (stage 11).
 - Open `frontend/index.html` in a browser (or `python3 -m http.server -d frontend`).
@@ -47,7 +51,9 @@ is correct end to end and the only remaining variable is your real model.
   the NodePort). After a run whose pages you want to keep, `scripts/publish-frontend.sh`
   mirrors the generated output (`courses/`, `courses.js`) back into the repo's
   `frontend/` - the versioned, standalone-deployable snapshot (git history holds
-  the previous versions).
+  the previous versions). If the PVC site is identical to the repo snapshot (the
+  last run never reached stage 11-link), the script exits loudly with code 2
+  instead of silently republishing an older topic.
 - Run ids are deterministic per (chapter, class) - `motion-c9`. Re-triggering
   the same topic RESUMES the previous attempt (completed stages reused, zero
   model re-calls). Pass `--fresh` to wipe the previous attempt and generate the

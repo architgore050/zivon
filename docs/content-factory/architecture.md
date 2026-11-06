@@ -282,11 +282,19 @@ next slow run is diagnosable from the log alone:
   and says to pass `--fresh`. It is 4 since 2026-11-05 (locate matching +
   generate blocks contract rewritten); version-3 run dirs, including the
   contaminated class-11 one, are refused by design.
+- The learner class is derived per run (2026-11-06, founder bug report):
+  `--class` overrides `config.json`'s `learner.class_level` before the
+  fingerprint is computed, and after 01-locate the class follows the class of
+  the chapter actually found (loudly printed). Consequence: the killed
+  class-11 run dir (`motion-in-a-straight-line-c11`, built while the config
+  default 9 leaked into its prompts and fingerprint) is refused on resume —
+  re-trigger that chapter with `--fresh`.
 
 ## Privacy
 
 The pipeline takes no learner data as input. The only learner-related setting
-is `learner.class_level` (a number) and `learner.language`. Run artifacts
+is `learner.class_level` (a number, and only a default - the run's real class
+follows `--class` / the located chapter) and `learner.language`. Run artifacts
 contain source text, prompts and model output only.
 
 ## Rendering and frontend layering

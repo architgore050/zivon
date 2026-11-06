@@ -40,7 +40,7 @@ delete it.
 
 | Key | Type | Meaning |
 |---|---|---|
-| `class_level` | int | 6-12. Drives prompts and the course folder (`class-9-physics`). |
+| `class_level` | int | 6-12. The DEFAULT learner class only. A run's real class is the `--class` flag, or - when it is omitted - the class of the chapter actually located (2026-11-06): prompts and the course folder (`class-N-physics`) always follow the real class, never this default. |
 | `language` | str | Only `"en"` in v1 (founder decision 2026-11-01). |
 
 No other learner data may be configured - the pipeline must not learn anything

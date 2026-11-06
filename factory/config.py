@@ -155,6 +155,26 @@ class Config:
         """
         return self.server["api_key"]
 
+    def with_class_level(self, class_level: int) -> "Config":
+        """Derived view with learner.class_level replaced by the run's real
+        class (the --class flag or the class of the chapter actually located).
+
+        config.json's learner.class_level is only the DEFAULT: a run must be
+        built for the class its chapter actually belongs to, or a class-11
+        chapter would render under class-9-physics (founder bug report
+        2026-11-06). The original config is never mutated."""
+        if not isinstance(class_level, int) or isinstance(class_level, bool):
+            raise ConfigError(
+                f"learner.class_level override must be an int (got {class_level!r})"
+            )
+        if class_level not in range(6, 13):
+            raise ConfigError(
+                f"learner.class_level override must be 6..12 (got {class_level})"
+            )
+        data = dict(self.data)
+        data["learner"] = {**data["learner"], "class_level": class_level}
+        return Config(data=data, server=self.server, root=self.root)
+
 
 # --------------------------------------------------------------- server from env
 def _env_raw(name: str) -> str | None:

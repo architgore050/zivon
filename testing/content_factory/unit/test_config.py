@@ -221,6 +221,24 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(cfg.repair["content_rounds"], 2)
         self.assertEqual(cfg.repair["code_rounds"], 2)
 
+    def test_with_class_level_derives_without_mutating(self):
+        # The run's real class (--class / the located chapter's class) is a
+        # derived view; config.json's learner.class_level is only the default.
+        cfg = load_config(write_config(self.tmp))
+        derived = cfg.with_class_level(11)
+        self.assertEqual(derived.learner["class_level"], 11)
+        self.assertEqual(derived.learner["language"], cfg.learner["language"])
+        self.assertEqual(cfg.learner["class_level"], 9)  # original untouched
+        self.assertEqual(derived.server, cfg.server)
+        self.assertEqual(derived.retrieval, cfg.retrieval)
+        self.assertEqual(derived.paths, cfg.paths)
+
+    def test_with_class_level_rejects_bad_values(self):
+        cfg = load_config(write_config(self.tmp))
+        for bad in (5, 13, 0, "11", True, None):
+            with self.assertRaises(ConfigError):
+                cfg.with_class_level(bad)
+
 
 if __name__ == "__main__":
     unittest.main()
