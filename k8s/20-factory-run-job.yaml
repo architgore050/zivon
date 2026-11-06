@@ -40,7 +40,14 @@ spec:
                                 # gate failure is fixed IN-run by its catcher (04/08/10), and an
                                 # infra kill is recovered by re-running the trigger script, which
                                 # RESUMES from completed stages. A whole-pipeline re-run is never sanctioned.
-  activeDeadlineSeconds: 7200     # a pipeline run must not hang forever: hard cap. 2 h because a cold-cache first run politely fetches + extracts the whole catalog; the sources PVC makes progress resumable, so a re-run continues where this one stopped.
+  # NO wall-clock cap on a generation run (founder decision 2026-11-06, after
+  # the class-11 run was killed mid-10-reviewfix while every stage was healthy
+  # and progressing): a blind timer that cannot see run state must not execute
+  # a run that is doing real work. The real backstops are state-aware: the
+  # per-request ZIVON_TIMEOUT_S kills a genuinely hung model call on its own,
+  # heartbeats + status.json show which stage is alive, and resume means a
+  # stuck run is recovered by re-triggering, not by a timer. If the operator
+  # decides a run is stuck: delete the Job, re-trigger the script (RESUMES).
   ttlSecondsAfterFinished: 86400  # kube-linter gate: auto-clean the finished Job after 1 day
   template:
     metadata:

@@ -132,7 +132,7 @@ def run_generate(
         "needed is covered.\n"
         'Use source_id "ncert" for the primary NCERT chapter text.\n\n'
         "LAYER 2 - lesson: edit the ground truth into a SELF-CONTAINED lesson that explains "
-        f"everything slowly and properly for a first-time learner in class {cfg.learner['class_level']}.\n"
+        f"everything slowly and properly for a first-time learner in class {cfg.learner_class()}.\n"
         "Write as a patient tutor speaking directly to the student ('you'): clear, "
         "encouraging, step by step. Quality bar:\n"
         "- TEACHING ORDER: start from an everyday observation the student recognises, then "
@@ -334,7 +334,7 @@ def run_check(
         "1. Is each factual statement correct per the source material? Quote the source in your issue.\n"
         "2. Is every check's correct answer actually correct?\n"
         "3. Is the language and depth right for a class "
-        f"{cfg.learner['class_level']} first-time learner (not above, not below)?\n"
+        f"{cfg.learner_class()} first-time learner (not above, not below)?\n"
         "4. Does anything read as if it depends on material outside this page?\n"
         "5. For every check block: does the page teach the expected_understanding before "
         "asking for it? A check that asks something the page never taught is major.\n"

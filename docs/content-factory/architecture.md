@@ -282,20 +282,20 @@ next slow run is diagnosable from the log alone:
   and says to pass `--fresh`. It is 4 since 2026-11-05 (locate matching +
   generate blocks contract rewritten); version-3 run dirs, including the
   contaminated class-11 one, are refused by design.
-- The learner class is derived per run (2026-11-06, founder bug report):
-  `--class` overrides `config.json`'s `learner.class_level` before the
-  fingerprint is computed, and after 01-locate the class follows the class of
-  the chapter actually found (loudly printed). Consequence: the killed
-  class-11 run dir (`motion-in-a-straight-line-c11`, built while the config
-  default 9 leaked into its prompts and fingerprint) is refused on resume —
-  re-trigger that chapter with `--fresh`.
+- The learner class is per-run input, never config (founder decision
+  2026-11-06): `config.json` carries no `learner.class_level` at all - a
+  config default for a per-run value is a hardcode. `--class` pre-sets the
+  class before the fingerprint; without it, `01-locate`'s chapter supplies it
+  (loud print). Consequence: every version-4 run dir - built while a config
+  default class leaked into its prompts and fingerprint - is refused on
+  resume; re-trigger those chapters with `--fresh`.
 
 ## Privacy
 
-The pipeline takes no learner data as input. The only learner-related setting
-is `learner.class_level` (a number, and only a default - the run's real class
-follows `--class` / the located chapter) and `learner.language`. Run artifacts
-contain source text, prompts and model output only.
+The pipeline takes no learner data as input. The only learner-related config
+left is `learner.language`; the learner CLASS is per-run input (`--class` or
+the located chapter), never a stored value. Run artifacts contain source text,
+prompts and model output only.
 
 ## Rendering and frontend layering
 

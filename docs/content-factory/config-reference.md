@@ -24,24 +24,31 @@ variable; production always uses the repo root `config.json`.
 | `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. |
 | `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. |
 | `ZIVON_TEMPERATURE` | no | `0.2` | Default sampling temperature (per-stage override below). |
-| `ZIVON_TIMEOUT_S` | no | `3600` | Per-request timeout. Huge on purpose: local single-slot models are slow; the Job deadline is the real backstop. |
+| `ZIVON_TIMEOUT_S` | no | `3600` | Per-request timeout. Huge on purpose: local single-slot models are slow. It is the run's backstop - a hung call dies on its own; there is no wall-clock cap on the run itself (2026-11-06). |
 | `ZIVON_MAX_ATTEMPTS` | no | `3` | Retries for network/429/5xx AND for schema-validation feedback loops. |
 
 **No completion cap (2026-11-04 founder decision):** the factory sends no
 `max_tokens` at all. A measured `09-review` call spent 49,750 completion
 tokens (mostly thinking) and then answered correctly - Qwen thinks a lot and
 then gets things right, so any cap is a truncation risk. The server's own
-context budget bounds answer length; `ZIVON_TIMEOUT_S` and the Job deadline
-are the backstops. `.env.example` at the repo root documents the full set. A
-`server` section in `config.json` is now a hard error with a migration hint -
-delete it.
+context budget bounds answer length; `ZIVON_TIMEOUT_S` is the backstop - a
+hung call dies on its own, and there is no wall-clock cap on the run itself
+(2026-11-06 founder decision). `.env.example` at the repo root documents the
+full set. A `server` section in `config.json` is now a hard error with a
+migration hint - delete it.
 
 ## learner
 
 | Key | Type | Meaning |
 |---|---|---|
-| `class_level` | int | 6-12. The DEFAULT learner class only. A run's real class is the `--class` flag, or - when it is omitted - the class of the chapter actually located (2026-11-06): prompts and the course folder (`class-N-physics`) always follow the real class, never this default. |
 | `language` | str | Only `"en"` in v1 (founder decision 2026-11-01). |
+
+`learner.class_level` was **retired from config** (founder decision
+2026-11-06): a config default for a per-run value is just a hardcode with
+extra steps. The run's class comes from the `--class` flag, or - when it is
+omitted - from the class of the chapter actually located by `01-locate`.
+Prompts and the course folder (`class-N-physics`) follow that real class.
+Putting `class_level` back into `config.json` is a hard error with a hint.
 
 No other learner data may be configured - the pipeline must not learn anything
 about the test participant.
@@ -130,6 +137,7 @@ then read timeouts once budgets grew. The fix (0.2.8) made the global knobs
 effectively non-binding (`ZIVON_MAX_TOKENS=65536`). The 2026-11-04 founder
 decision goes further: **caps removed entirely** — no `max_tokens` is sent at
 all (`ZIVON_MAX_TOKENS` retired from code and `infra.env` too). The server's
-own context budget (256k dev server), `ZIVON_TIMEOUT_S` and the run Job's
-`activeDeadlineSeconds` (2 h) bound the run. Per-stage `temperature` overrides
+own context budget (256k dev server) and `ZIVON_TIMEOUT_S` bound the model
+calls; the run itself carries no wall-clock cap (2026-11-06 founder decision:
+a blind timer must not kill a progressing run). Per-stage `temperature` overrides
 remain for the day a stage needs different sampling.

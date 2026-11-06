@@ -45,7 +45,9 @@ def run(
     interactive: dict[str, Any],
 ) -> dict[str, Any]:
     slug = slugify(lesson["title"])
-    course_id = f"class-{cfg.learner['class_level']}-physics"
+    # The course folder follows the class of the chapter actually located -
+    # the topic decides where it lives, never a config value (2026-11-06).
+    course_id = f"class-{source_pack['chapter']['class']}-physics"
 
     page_js = "\n\n".join(
         out["files"].get("page.js", "")
@@ -99,7 +101,7 @@ def run(
 
     manifest = {
         "course_id": course_id,
-        "class": cfg.learner["class_level"],
+        "class": source_pack["chapter"]["class"],
         "topic_slug": slug,
         "title": lesson["title"],
         "chapter": {

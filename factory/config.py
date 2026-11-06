@@ -58,7 +58,7 @@ _STAGE_IDS = [
 ]
 
 _SPEC: dict[str, Any] = {
-    "learner": {"class_level": int, "language": str},
+    "learner": {"language": str},
     "retrieval": {
         "embedding_model": str,
         "device": str,
@@ -93,7 +93,8 @@ _SERVER_DEFAULTS: dict[str, Any] = {
     # the 0.2.8 huge-max_tokens workaround): qwen thinks a lot and then gets
     # things right - one review call measured 49,750 completion tokens, mostly
     # thinking - so the server's own context decides answer length. timeout_s
-    # stays huge; the Job's activeDeadlineSeconds is the backstop.
+    # stays huge: it kills a genuinely hung call on its own; there is no
+    # wall-clock cap on the run itself (founder decision 2026-11-06).
     "timeout_s": 3600.0,
     "max_attempts": 3,
 }
@@ -156,24 +157,36 @@ class Config:
         return self.server["api_key"]
 
     def with_class_level(self, class_level: int) -> "Config":
-        """Derived view with learner.class_level replaced by the run's real
-        class (the --class flag or the class of the chapter actually located).
+        """Derived view carrying the run's learner class.
 
-        config.json's learner.class_level is only the DEFAULT: a run must be
-        built for the class its chapter actually belongs to, or a class-11
-        chapter would render under class-9-physics (founder bug report
-        2026-11-06). The original config is never mutated."""
+        config.json holds NO class (founder decision 2026-11-06: a config
+        default for a per-run value is just a hardcode with extra steps). The
+        class enters a run exactly one way per source: the --class CLI flag
+        (run_pipeline) or the class of the chapter actually located
+        (01-locate handoff). The original config is never mutated."""
         if not isinstance(class_level, int) or isinstance(class_level, bool):
             raise ConfigError(
-                f"learner.class_level override must be an int (got {class_level!r})"
+                f"learner.class_level must be an int (got {class_level!r})"
             )
         if class_level not in range(6, 13):
             raise ConfigError(
-                f"learner.class_level override must be 6..12 (got {class_level})"
+                f"learner.class_level must be 6..12 (got {class_level})"
             )
         data = dict(self.data)
         data["learner"] = {**data["learner"], "class_level": class_level}
         return Config(data=data, server=self.server, root=self.root)
+
+    def learner_class(self) -> int:
+        """The run's learner class. Set by --class or by 01-locate's chapter;
+        a stage asking for it before either is a wiring bug - fail loudly,
+        never guess."""
+        value = self.data["learner"].get("class_level")
+        if value is None:
+            raise ConfigError(
+                "this run has no learner class yet: it comes from --class or "
+                "from the chapter located by 01-locate - a stage used it too early"
+            )
+        return value
 
 
 # --------------------------------------------------------------- server from env
@@ -292,12 +305,15 @@ def load_config(path: Path | None = None) -> Config:
             "(see docs/content-factory/config-reference.md)."
         )
 
+    if "class_level" in data.get("learner", {}):
+        raise ConfigError(
+            f"{cfg_path}: learner.class_level is no longer a config value "
+            "(founder decision 2026-11-06). The run's class comes from the "
+            "--class flag or from the chapter actually located. Delete the key."
+        )
+
     _validate(data, _SPEC, cfg_path)
 
-    if data["learner"]["class_level"] not in range(6, 13):
-        raise ConfigError(
-            "learner.class_level must be 6..12 (the catalog covers classes 6-12)"
-        )
     if data["learner"]["language"] != "en":
         raise ConfigError(
             "learner.language: only 'en' is supported in v1 (English-only material, "

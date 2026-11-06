@@ -237,7 +237,7 @@ def _cached_pages(cfg: Config, book_id: str, stem: str) -> list[dict[str, Any]] 
     """Return previously extracted page text for this PDF, or None if absent/unusable.
 
     This is what makes a run resumable: on the cluster the text cache lives on the
-    sources PVC, so a run that dies partway (deadline, OOM) does not re-extract
+    sources PVC, so a run that dies partway (killed, OOM) does not re-extract
     books it already finished."""
     path = _cache_dir(cfg, book_id) / f"{stem}.pages.json"
     if not path.exists():

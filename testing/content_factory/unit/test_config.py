@@ -57,7 +57,8 @@ class TestConfig(unittest.TestCase):
         cfg = load_config(write_config(self.tmp))
         self.assertEqual(cfg.server["model"], "test-model")
         self.assertEqual(cfg.server["base_url"], "http://127.0.0.1:8000/v1")
-        self.assertEqual(cfg.learner["class_level"], 9)
+        # The config carries NO learner class (2026-11-06): it is per-run input.
+        self.assertNotIn("class_level", cfg.learner)
 
     def test_missing_file(self):
         with self.assertRaises(ConfigError):
@@ -174,12 +175,15 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp, mutate))
 
-    def test_class_level_range(self):
+    def test_class_level_key_in_config_is_rejected(self):
+        # learner.class_level was retired from config (2026-11-06): a config
+        # default for a per-run value is a hardcode; the error names the key.
         def mutate(d):
-            d["learner"]["class_level"] = 5
+            d["learner"]["class_level"] = 9
 
-        with self.assertRaises(ConfigError):
+        with self.assertRaises(ConfigError) as ctx:
             load_config(write_config(self.tmp, mutate))
+        self.assertIn("class_level", str(ctx.exception))
 
     def test_unknown_stage_override_rejected(self):
         def mutate(d):
@@ -216,19 +220,19 @@ class TestConfig(unittest.TestCase):
         # The committed config.json must stay structurally valid; with server
         # env present it loads cleanly (no server section lives in the file).
         cfg = load_config(REPO_ROOT / "config.json")
-        self.assertEqual(cfg.learner["class_level"], 9)
+        self.assertNotIn("class_level", cfg.learner)  # retired 2026-11-06
         self.assertNotIn("server", cfg.data)
         self.assertEqual(cfg.repair["content_rounds"], 2)
         self.assertEqual(cfg.repair["code_rounds"], 2)
 
     def test_with_class_level_derives_without_mutating(self):
-        # The run's real class (--class / the located chapter's class) is a
-        # derived view; config.json's learner.class_level is only the default.
+        # The run's class (--class / the located chapter's class) is a derived
+        # view; config.json carries no class at all.
         cfg = load_config(write_config(self.tmp))
         derived = cfg.with_class_level(11)
         self.assertEqual(derived.learner["class_level"], 11)
         self.assertEqual(derived.learner["language"], cfg.learner["language"])
-        self.assertEqual(cfg.learner["class_level"], 9)  # original untouched
+        self.assertNotIn("class_level", cfg.learner)  # original untouched
         self.assertEqual(derived.server, cfg.server)
         self.assertEqual(derived.retrieval, cfg.retrieval)
         self.assertEqual(derived.paths, cfg.paths)
@@ -238,6 +242,15 @@ class TestConfig(unittest.TestCase):
         for bad in (5, 13, 0, "11", True, None):
             with self.assertRaises(ConfigError):
                 cfg.with_class_level(bad)
+
+    def test_learner_class_accessor_loud_before_assignment(self):
+        # A stage asking for the class before --class / 01-locate supplied it
+        # is a wiring bug: the accessor refuses instead of guessing.
+        cfg = load_config(write_config(self.tmp))
+        with self.assertRaises(ConfigError) as ctx:
+            cfg.learner_class()
+        self.assertIn("no learner class yet", str(ctx.exception))
+        self.assertEqual(cfg.with_class_level(11).learner_class(), 11)
 
 
 if __name__ == "__main__":

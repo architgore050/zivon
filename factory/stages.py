@@ -47,7 +47,11 @@ from .llm import LLMClient
 # 4 (2026-11-05): 01-locate matching contract rewritten (title candidates only)
 # and 02-generate blocks contract fixed (wrapper + 4-45 budget) - version-3 run
 # dirs may carry a contaminated source pack, so resume must refuse them.
-PIPELINE_VERSION = "4"
+# 5 (2026-11-06): learner class is per-run - config.json no longer carries
+# learner.class_level; the class comes from --class or the located chapter.
+# Version-4 run dirs baked a config default class into their prompts, so
+# resume refuses them all (re-trigger with --fresh).
+PIPELINE_VERSION = "5"
 
 STAGE_ORDER = [
     "00-ingest",
@@ -105,17 +109,25 @@ def _blocking_issues(combined: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _sync_learner_to_chapter(cfg: Config, source_pack: dict[str, Any]) -> Config:
-    """Guarantee (2026-11-06, founder bug report): the learner class follows
-    the chapter ACTUALLY located, not config.json's default. Prompts, the
-    course folder, and the manifest must all match the class the chapter
-    belongs to - the old behaviour built 'Motion in a Straight Line' (class
-    11) with class-9 prompts and would have published it under
-    class-9-physics. Loud by design: the operator sees the override."""
+    """Guarantee (2026-11-06, founder bug report): the learner class is the
+    class of the chapter ACTUALLY located - config.json carries no class at
+    all. --class pre-sets it (and filtered the search to that class, so the
+    chapter agrees); without --class this is where the run gets its class.
+    Loud by design: the operator sees exactly which class the run became."""
     chapter_class = source_pack["chapter"]["class"]
-    if chapter_class != cfg.learner["class_level"]:
+    current = cfg.learner.get("class_level")
+    if current is None:
+        print(
+            f"[learner] class {chapter_class}: taken from the located chapter "
+            f"'{source_pack['chapter']['title']}' ({source_pack['chapter']['book_title']})"
+        )
+        return cfg.with_class_level(chapter_class)
+    if chapter_class != current:
+        # Unreachable while --class filters locate; kept as the harness guard:
+        # the chapter is the ground truth, never the flag that disagreed with it.
         print(
             f"[learner] class follows the located chapter: class {chapter_class} "
-            f"(config default {cfg.learner['class_level']} overridden)"
+            f"(--class {current} disagreed)"
         )
         return cfg.with_class_level(chapter_class)
     return cfg
@@ -129,9 +141,9 @@ def run_pipeline(
     only_stages: list[str] | None = None,
     fresh: bool = False,
 ) -> dict[str, Any]:
-    # --class is the run's learner class, not just a locate filter: prompts,
-    # course folder, and manifest all follow it (config.json's class_level is
-    # the default used only when --class is omitted).
+    # The learner class is per-run input, never config (2026-11-06): --class
+    # pre-sets it before the fingerprint; without it, 01-locate's chapter
+    # supplies it below. Prompts, course folder and manifest all follow it.
     if class_filter is not None:
         cfg = cfg.with_class_level(class_filter)
     runs_dir = cfg.repo_path(cfg.paths["runs"])

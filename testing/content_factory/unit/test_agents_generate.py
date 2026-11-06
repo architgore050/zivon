@@ -84,8 +84,11 @@ def _cfg(tmp: Path):
     saved = install_server_env()
     try:
         # root must be the real repo: the agents inject the shipped doctrine
-        # and stylesheet.
-        return dataclasses.replace(load_config(tmp / "config.json"), root=REPO_ROOT)
+        # and stylesheet. with_class_level(9) simulates the post-01-locate
+        # state: in a real run the class arrives from --class / the located
+        # chapter (the fixture chapter is class 9) before any prompt stage.
+        cfg = dataclasses.replace(load_config(tmp / "config.json"), root=REPO_ROOT)
+        return cfg.with_class_level(9)
     finally:
         release_server_env(saved)
 

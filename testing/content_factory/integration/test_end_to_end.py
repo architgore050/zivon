@@ -268,43 +268,30 @@ class TestEndToEnd(unittest.TestCase):
         self.assertTrue(report["ok"])
 
     @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
-    def test_learner_class_follows_the_chapter_not_the_config(self):
-        """Founder bug 2026-11-06: config.json's learner.class_level is only a
-        DEFAULT. The run's class follows the chapter actually located (and the
-        --class flag): a class-9 chapter found under a class-11 config must
-        still build a class-9 page - never the config's folder."""
-        cfg11 = json.loads(self.config_path.read_text(encoding="utf-8"))
-        cfg11["learner"]["class_level"] = 11
-        cfg11_path = self.tmp / "config-class11.json"
-        cfg11_path.write_text(json.dumps(cfg11), encoding="utf-8")
-
-        result = self._run(
-            "Motion",
-            "--run-id",
-            "e2e-learner-follows",
-            env=self._pipeline_env(ZIVON_CONFIG=str(cfg11_path)),
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(
-            "[learner] class follows the located chapter: class 9", result.stdout
-        )
+    def test_learner_class_follows_the_flag_and_the_chapter(self):
+        """Founder decision 2026-11-06: config.json carries NO learner class.
+        Without --class the run's class is the located chapter's class (loud
+        print); --class pre-sets it and filters locate; a --class with no
+        matching book fails loudly instead of falling back to any default."""
+        derived = self._run("Motion", "--run-id", "e2e-learner-derived")
+        self.assertEqual(derived.returncode, 0, derived.stderr)
+        self.assertIn("[learner] class 9: taken from the located chapter", derived.stdout)
         courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
         self.assertIn("courses/class-9-physics/", courses_text)
         self.assertNotIn("class-11-physics", courses_text)
 
-        # --class overrides the config default the same way (flag 9, config 11)
         flagged = self._run(
-            "Motion",
-            "--class",
-            "9",
-            "--run-id",
-            "e2e-learner-flag",
-            env=self._pipeline_env(ZIVON_CONFIG=str(cfg11_path)),
+            "Motion", "--class", "9", "--run-id", "e2e-learner-flag"
         )
         self.assertEqual(flagged.returncode, 0, flagged.stderr)
         courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
         self.assertIn("courses/class-9-physics/", courses_text)
-        self.assertNotIn("class-11-physics", courses_text)
+
+        wrong = self._run(
+            "Motion", "--class", "11", "--run-id", "e2e-learner-wrong-class"
+        )
+        self.assertEqual(wrong.returncode, 1)
+        self.assertIn("no catalog books for class 11", wrong.stderr)
 
     @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
     def test_resume_reuses_completed_stages(self):

@@ -17,8 +17,9 @@ the Authorization header is a header, and only the request body is persisted.
 
 No completion cap is ever sent (2026-11-04 founder decision): the factory
 sends no max_tokens at all - the server decides how long its answer, thinking
-included, may be within its own context; timeout_s and the Job's
-activeDeadlineSeconds are the backstops.
+included, may be within its own context; timeout_s is the backstop - a hung
+call dies on its own, and there is no wall-clock cap on the run itself
+(founder decision 2026-11-06).
 
 Observability (2026-11-04): every attempt prints its start, an in-flight
 heartbeat every HEARTBEAT_S seconds, and its end with latency + token usage.
