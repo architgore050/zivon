@@ -34,7 +34,7 @@ class ModelCallError(StageError):
 
 
 class SchemaError(StageError):
-    """Model output failed schema validation after all attempts."""
+    """Model output failed validation after all validation rounds."""
 
 
 class SourceError(StageError):

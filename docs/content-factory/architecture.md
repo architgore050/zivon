@@ -31,13 +31,13 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
 | 02 | generate | factory/agents.py | **ONE giant model call** (Curator+Synthesizer+Designer in one); rule checks run inside the retry loop; gets the live design doctrine + palette | {ground_truth, lesson, blocks} in one JSON object (schema `GENERATED`) |
 | 03 | check | factory/agents.py + factory/checks.py | model + code | combined verdict + issues with a fixed severity ladder; blocking (fatal/major) routes to 04 |
-| 04 | repair | factory/agents.py (catcher) | model, ≤ repair.content_rounds | replacement blocks for the flagged issues only (merged by id); recheck per round |
+| 04 | repair | factory/agents.py (catcher) | model, progress-aware loop: keeps going while the blocking score improves, stops at `repair.stall_rounds` no-progress rechecks or the `repair.content_rounds` cap | replacement blocks for the flagged issues only (merged by id); recheck per round |
 | 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 06 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
-| 08 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
+| 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
 | 09 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine + lesson-page example | final verdict report (a fail verdict routes to 10, it does not raise) |
-| 10 | reviewfix | factory/reviewfix.py (catcher) | model, ≤ repair.code_rounds; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round |
+| 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
 Happy path costs 3 model calls + one per simulation (generate, check, review).
@@ -73,38 +73,56 @@ round overwrites another's evidence, and each check round also lands as
 `03-check/combined-<round>.json`.
 
 **Fingerprint guard:** `status.json` carries a fingerprint of the run's inputs
-(pipeline version, chapter, class, model, limits/retrieval/repair/learner
-config). Reopening a run whose fingerprint differs raises a ConfigError telling
-the operator to pass `--fresh` (or pick another `--run-id`) — stage artifacts
-of two different pipeline shapes are never mixed silently.
+(pipeline version, chapter, class, model, limits/retrieval/learner config).
+Repair round caps are deliberately NOT in the payload (2026-11-06): they are
+runtime policy, not artifact semantics — a draft repaired in 2 rounds is just
+as valid under a more generous catcher, so tuning the caps must not invalidate
+good generated work. Reopening a run whose fingerprint differs raises a
+ConfigError telling the operator to pass `--fresh` (or pick another `--run-id`)
+— stage artifacts of two different pipeline shapes are never mixed silently.
 
 ## Failure semantics (no silent fallbacks, no whole-pipeline re-runs)
 
-- A gate failure routes to ITS catcher, bounded, inside the same run:
-  03-check blocking issues (any fatal/major from model or rules) → 04-repair
-  regenerates ONLY the flagged blocks → 03-check re-runs in full; after
-  `repair.content_rounds` rounds without convergence the run fails with the
-  verdict history. 09-review fail → 10-reviewfix replaces topic files → 09
-  re-reviews; after `repair.code_rounds` rounds it fails. A topic-page perf
-  miss from 07 is raised as a *fixable* BudgetError and handed to 08-fixloop
-  (this routing predates v2 and is its template). An unfixable perf miss (the
-  landing page / shared assets) stops the run immediately — the fix loops only
-  touch topic-local files.
+- A gate failure routes to ITS catcher, inside the same run. Catchers are
+  **progress-aware loops** (founder decision 2026-11-06 — the pipeline is
+  continuous improvement, not a one-shot exam): they keep repairing while the
+  severity-weighted blocking score (fatal=2, major=1) improves, and stop at a
+  genuine plateau (`repair.stall_rounds` consecutive no-improvement rechecks)
+  or a generous safety cap (`repair.content_rounds` / `repair.code_rounds` /
+  `perf.fix_rounds`) — never at a blind small count. 03-check blocking issues
+  (any fatal/major from model or rules) → 04-repair regenerates ONLY the
+  flagged blocks → 03-check re-runs in full. 09-review fail → 10-reviewfix
+  replaces topic files → 09 re-reviews. A topic-page perf miss from 07 is
+  raised as a *fixable* BudgetError and handed to 08-fixloop (this routing
+  predates v2 and is its template). An unfixable perf miss (the landing page /
+  shared assets) stops the run immediately — the fix loops only touch
+  topic-local files. A fix that itself breaks a hard lint, touches a
+  renderer-owned file, or regresses the perf budget costs a ROUND, not the
+  run: the exact failure is fed into the next round's prompt so the fixer
+  repairs its own fix. When a catcher does stop (plateau or cap), it fails
+  loudly with the round history, the reason, and the resume hint — re-trigger
+  the same chapter+class and the catcher runs again with a fresh budget
+  against the kept repaired draft.
 - Upstream stages never re-run when a downstream gate complains: 02-generate's
   output is reused across check/repair rounds; a run that dies at 03 keeps its
   00-02 artifacts on disk and a re-trigger resumes from them. The factory Job
   has `backoffLimit: 0` — a Job-level whole-pod retry is never sanctioned;
   recovery is re-running the trigger script, which resumes.
 - Model output must parse as JSON and validate against factory/schemas.py.
-  Validation failures are retried with the error report fed back; after
-  `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError. The feedback turn is
-  compact by contract (2026-11-05): each violation is reported as
+  Validation failures are retried with the error report fed back, each failure
+  getting its own **validation round** (`ZIVON_VALIDATION_ROUNDS`, default 5) —
+  a budget separate from the transport retries (`ZIVON_MAX_ATTEMPTS`, 2026-11-06
+  founder decision: a thinking model is not expected to one-shot a giant JSON).
+  After all validation rounds the stage fails with SchemaError. The feedback
+  turn is compact by contract (2026-11-05): each violation is reported as
   `at '<path>': expected <what>, got <what arrived>` — never jsonschema's
   default message, which embeds the whole rejected instance (once a 55k-char
   repr of 70 blocks; the retry transcript ballooned 110k → 243k characters).
   The best-match violation plus up to 3 more are reported in ONE turn, so the
   model fixes every shape problem per retry instead of burning a 50-minute
-  attempt per error.
+  attempt per error. Only the LATEST rejected output is kept in full in the
+  transcript; older ones are trimmed to a stub, so a chain of validation
+  rounds cannot eat the server's context.
 - 02-generate runs the code-side rule checks (factory/checks.py) inside the
   model retry loop: the model sees its own fatal/major rule violations
   (invented number, uncited factual block, broken answer key) and fixes them.

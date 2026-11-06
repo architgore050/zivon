@@ -16,14 +16,16 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from testing.content_factory.unit._server_env import install_server_env, release_server_env
-
 from factory.config import load_config
 from factory.stages import (
     PIPELINE_VERSION,
     _sync_learner_to_chapter,
     make_run_id,
     run_fingerprint,
+)
+from testing.content_factory.unit._server_env import (
+    install_server_env,
+    release_server_env,
 )
 
 
@@ -70,8 +72,9 @@ class TestLearnerClassDerivation(unittest.TestCase):
 
     def test_fingerprint_refuses_version4_run_dirs(self):
         # Version-4 dirs baked a config-default class into their fingerprint;
-        # the class contract changed, so resume must refuse them (--fresh).
-        self.assertEqual(PIPELINE_VERSION, "5")
+        # version-5 dirs were built under the blind catcher caps. Both changed
+        # contracts, so resume must refuse them (--fresh).
+        self.assertEqual(PIPELINE_VERSION, "6")
         chapter = "Motion in a Straight Line"
         self.assertNotEqual(
             run_fingerprint(self.cfg, chapter, 11),

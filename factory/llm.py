@@ -1,15 +1,21 @@
 """OpenAI-format chat-completions client with full artifact logging.
 
 Failure semantics (no silent fallbacks, ever):
-- Network errors, timeouts, 429 and 5xx are retried up to ZIVON_MAX_ATTEMPTS
-  with exponential backoff; each attempt's raw request/response is on disk.
+- Network errors, timeouts, 429 and 5xx are retried inside ONE model call up
+  to ZIVON_MAX_ATTEMPTS with exponential backoff; each attempt's raw
+  request/response is on disk.
 - Any other HTTP error fails the stage immediately, with the server's body in
   the message (e.g. a 400 about response_format means: set ZIVON_JSON_MODE=false).
 - Output must be a single JSON object. In json_mode the server enforces it;
   either way the text is parsed and validated against a JSON Schema (plus an
   optional extra_validator, e.g. a stage's rule checks). Validation failures
-  are retried with the validator's error report fed back to the model, up to
-  max_attempts, then the stage fails with SchemaError.
+  are NOT shared with the transport budget (founder decision 2026-11-06):
+  each failure gets its own validation round - the validator's exact error
+  report is fed back to the model and it fixes its own output, up to
+  ZIVON_VALIDATION_ROUNDS rounds - then the stage fails with SchemaError.
+  A thinking model is not expected to one-shot a giant JSON; the pipeline is
+  continuous improvement, and the older rejected outputs are trimmed from the
+  transcript so retries cannot eat the server's context.
 
 Server settings (base url, model, key, sampling) come from the environment -
 see factory/config.py. The API key value is never written to any artifact:
@@ -104,7 +110,8 @@ class LLMClient:
         extra_validator: optional code-side check on the PARSED object (e.g.
         the stage's rule checks). Returning a non-empty list of problem
         strings is treated exactly like a schema failure: the problems are
-        fed back to the model and the attempt is retried, same budget.
+        fed back to the model and the output is re-attempted, same
+        validation-round budget.
 
         round_tag: set by repair loops when a stage runs more than once per
         run (e.g. 03-check re-runs after 04-repair). Attempt artifacts then
@@ -123,15 +130,16 @@ class LLMClient:
         if self.cfg.server["json_mode"]:
             base_request["response_format"] = {"type": "json_object"}
 
-        # Transcript accumulates validator feedback across attempts.
+        # Transcript accumulates validator feedback across rounds.
         transcript = [dict(m) for m in messages]
         last_error = ""
         stage_dir = self.run.stage_dir(stage_id)
         attempts_dir = stage_dir / "attempts"
         if round_tag:
             attempts_dir = attempts_dir / round_tag
+        validation_rounds = self.cfg.server["validation_rounds"]
 
-        for attempt in range(1, self.cfg.server["max_attempts"] + 1):
+        for attempt in range(1, validation_rounds + 1):
             request = dict(base_request)
             request["messages"] = [dict(m) for m in transcript]
             attempt_dir = attempts_dir / f"attempt-{attempt:02d}"
@@ -140,9 +148,10 @@ class LLMClient:
             t0 = time.time()
             round_note = f" [{round_tag}]" if round_tag else ""
             print(
-                f"[{stage_id}] model call started{round_note} (attempt "
-                f"{attempt}/{self.cfg.server['max_attempts']}; a thinking model "
-                "can take many minutes - heartbeats will show it is alive)"
+                f"[{stage_id}] model call started{round_note} (validation round "
+                f"{attempt}/{validation_rounds}; transport errors retry inside the "
+                "call; a thinking model can take many minutes - heartbeats will "
+                "show it is alive)"
             )
             status, raw_text, usage, finish_reason = self._post_with_heartbeat(
                 request, stage_id, attempt
@@ -230,7 +239,10 @@ class LLMClient:
         raise SchemaError(
             stage_id,
             f"{schema_name}: output failed validation on all "
-            f"{self.cfg.server['max_attempts']} attempts. Last error: {last_error}",
+            f"{validation_rounds} validation rounds (each with up to "
+            f"{self.cfg.server['max_attempts']} transport retries). Last error: "
+            f"{last_error}. Re-trigger the run to RESUME: completed stages are "
+            "kept and this stage re-runs with a fresh validation budget.",
             artifacts_dir=str(stage_dir),
         )
 
@@ -350,7 +362,18 @@ class LLMClient:
     ) -> None:
         """Errors-as-context (skills/prompting-and-agent-design): the exact
         violation is the instruction; tell the model to fix precisely that and
-        preserve what was already valid."""
+        preserve what was already valid.
+
+        Context guard (2026-11-06): only the LATEST rejected output is kept in
+        full - that is what the model must fix. Older rejected outputs are
+        trimmed to a stub, so a validation-round chain of giant thinking-model
+        answers cannot stack up and eat the server's context window."""
+        for msg in transcript:
+            if msg["role"] == "assistant" and len(msg["content"]) > 1200:
+                msg["content"] = (
+                    msg["content"][:1200]
+                    + "\n…[earlier rejected output trimmed - fix the LATEST one]"
+                )
         transcript.append({"role": "assistant", "content": bad_output})
         transcript.append(
             {

@@ -25,7 +25,8 @@ variable; production always uses the repo root `config.json`.
 | `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. |
 | `ZIVON_TEMPERATURE` | no | `0.2` | Default sampling temperature (per-stage override below). |
 | `ZIVON_TIMEOUT_S` | no | `3600` | Per-request timeout. Huge on purpose: local single-slot models are slow. It is the run's backstop - a hung call dies on its own; there is no wall-clock cap on the run itself (2026-11-06). |
-| `ZIVON_MAX_ATTEMPTS` | no | `3` | Retries for network/429/5xx AND for schema-validation feedback loops. |
+| `ZIVON_MAX_ATTEMPTS` | no | `3` | TRANSPORT retries only (2026-11-06): network/timeout/429/5xx retried inside ONE model call. |
+| `ZIVON_VALIDATION_ROUNDS` | no | `5` | The model's own repair budget per stage call: each JSON/schema/rule-validation failure gets the exact violation fed back and a fresh round to fix it. Separate from (and wider than) transport retries — the pipeline is continuous improvement, not a one-shot exam. Older rejected outputs are trimmed from the retry transcript. |
 
 **No completion cap (2026-11-04 founder decision):** the factory sends no
 `max_tokens` at all. A measured `09-review` call spent 49,750 completion
@@ -92,7 +93,7 @@ generated pages). See architecture.md, "Design doctrine flow".
 | Key | Type | Meaning |
 |---|---|---|
 | `profile` | str | Path to the perf profile JSON used by stages 07, 08 and 10 (see `testing/content_factory/perf/profiles/`; 10 re-measures it after each code fix). |
-| `fix_rounds` | int | Max model fix-and-retest rounds before the perf gate fails the run. |
+| `fix_rounds` | int | Safety cap on model fix-and-retest rounds for 08-fixloop (default 6). The loop is progress-aware: it stops earlier at a genuine plateau (`repair.stall_rounds` no-improvement retests). A fix that breaks lint or touches renderer-owned files consumes a round and is fed back as the next round's assignment. |
 
 The default shipping profile (`weak-android.json`) has its load/FCP budgets
 LOOSENED as of 2026-11-04 (6.0 s / 3.5 s) while first-generation diagnostics
@@ -102,21 +103,30 @@ budgets.
 
 ## repair
 
-Catcher budgets (graph v2, 2026-11-03). Gate failures route to their catcher;
-these knobs bound how many times a catcher may try before the run fails loudly.
+Catcher budgets (progress-aware redesign, founder decision 2026-11-06: the
+pipeline is continuous improvement — a generous cap is a safety valve, the
+real stopper is a state-aware plateau). Catchers keep repairing while the
+severity-weighted blocking score (fatal=2, major=1) improves; they stop at
+`stall_rounds` consecutive no-improvement rechecks (a genuine plateau — more
+of the same repair won't help) or at the generous cap. A fix that itself
+breaks a hard lint, touches a renderer-owned file, or regresses the perf
+budget consumes a round and is fed back as the next round's assignment.
 
 | Key | Type | Meaning |
 |---|---|---|
-| `content_rounds` | int | Max regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
-| `code_rounds` | int | Max replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
+| `content_rounds` | int (1..20) | Safety cap on regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
+| `code_rounds` | int (1..20) | Safety cap on replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
+| `stall_rounds` | int (1..10) | Consecutive no-improvement rechecks/re-reviews/retests that declare a plateau and stop the catcher (with the full history + resume hint). Applies to 04-repair, 08-fixloop and 10-reviewfix. |
 
 ## Resume and fingerprint (no config key — behaviour to know)
 
 Run ids are deterministic per (chapter, class). `status.json` stores a
 fingerprint of `pipeline_version + chapter + class + model + learner +
-retrieval + limits + repair`: editing any of those behaviour sections
-invalidates existing run dirs on purpose — the pipeline refuses to resume a
-mismatched dir and tells you to pass `--fresh` (or pick a new `--run-id`).
+retrieval + limits`: editing any of those behaviour sections invalidates
+existing run dirs on purpose — the pipeline refuses to resume a mismatched
+dir and tells you to pass `--fresh` (or pick a new `--run-id`). Repair round
+caps are NOT in the fingerprint (2026-11-06): they are runtime policy, not
+artifact semantics, so tuning them never invalidates good generated work.
 `--fresh` wipes the previous attempt for that topic before running.
 
 ## stage_overrides

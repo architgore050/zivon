@@ -71,7 +71,8 @@ def _cache_dir(cfg: Config, book_id: str) -> Path:
     return cfg.repo_path(cfg.paths["text_cache"]) / book_id
 
 
-_FETCH_ATTEMPTS = 3
+_FETCH_ATTEMPTS = 5  # polite network fetches: NCERT's flaky chain (2026-11-03)
+# earned a wider retry budget - a fetch retry is cheap, a dead run is not.
 _MIN_FETCH_GAP_S = (
     1.5  # politeness: bursty clients get throttled/reset (seen 2026-11-02)
 )

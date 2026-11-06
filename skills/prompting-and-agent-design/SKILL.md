@@ -120,10 +120,14 @@ shape), state the exact contract and say it must be matched.
    `[S2][S7]`. This repo already fixed 03-check this way in v2; 09-review must
    keep the same posture.
 4. **Catcher pattern (fail → bounded repair, never re-run upstream).** Every
-   gate's verdict is a structured handoff to its paired fixer. Repair rounds
-   are bounded; the caught issue flows downstream with its evidence, not a
-   pipeline restart. This is the pipeline analogue of "give the agent
-   verification tools and let it iterate on findings" `[S4][S6]`.
+   gate's verdict is a structured handoff to its paired fixer. Repair loops
+   are progress-aware (founder decision 2026-11-06): they keep going while the
+   severity-weighted issue score improves and stop at a genuine plateau or a
+   generous safety cap — bounded, but never a blind small count; and a fix
+   that itself fails a check (lint, ownership, perf) costs a round, not the
+   run. The caught issue flows downstream with its evidence, not a pipeline
+   restart. This is the pipeline analogue of "give the agent verification
+   tools and let it iterate on findings" `[S4][S6]`.
 5. **Errors are context.** Validation/lint failures fed back into the retry
    transcript ("here is the exact violation; fix it, keep everything valid
    unchanged") are the single highest-value prompt content a generation stage

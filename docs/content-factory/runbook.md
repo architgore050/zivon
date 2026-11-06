@@ -67,13 +67,25 @@ is correct end to end and the only remaining variable is your real model.
 ## Re-runs, failures and debugging
 
 - Gate failures are REPAIRED, not fatal: 03→04-repair, 07→08-fixloop and
-  09→10-reviewfix each burn a bounded number of rounds (`repair.*_rounds`,
-  `perf.fix_rounds`) inside the same run. A run only dies when a catcher runs
-  out of rounds, an unfixable error appears, or a config/fingerprint guard
-  fires. Upstream stages are never re-derived on a downstream failure.
+  09→10-reviewfix each run a progress-aware catcher loop inside the same run
+  (2026-11-06 founder decision): it keeps repairing while the severity-
+  weighted issue score improves and stops at a genuine plateau
+  (`repair.stall_rounds` no-improvement rounds in a row) or a generous safety
+  cap (`repair.*_rounds`, `perf.fix_rounds`) — never at a blind small count.
+  A fix that itself breaks a lint, touches a renderer-owned file, or regresses
+  perf costs a round, not the run: the fixer repairs its own fix. A run only
+  dies when a catcher plateaus or hits its cap (the failure names the reason,
+  the round history and the remaining issues), an unfixable error appears, or
+  a config/fingerprint guard fires. Upstream stages are never re-derived on a
+  downstream failure.
 - If a run dies, re-run the same command: completed stages are reused and the
-  failed stage runs again. The fingerprint guard refuses to resume a run dir
-  created under a different pipeline shape - it tells you to pass `--fresh`.
+  failed stage runs again — a catcher that plateaued re-runs with a FRESH
+  round budget against the kept repaired draft. The fingerprint guard refuses
+  to resume a run dir created under a different pipeline shape - it tells you
+  to pass `--fresh`. (Pipeline version 6, 2026-11-06: all version-5 dirs are
+  refused once because the catcher semantics changed; from now on, tuning the
+  repair caps will NOT invalidate run dirs — caps are no longer in the
+  fingerprint.)
 - Every run keeps full evidence in `runs/<run_id>/<stage>/`:
   `output.json` per stage; `attempts/attempt-NN/{request,response,meta}.json`
   for every model call including retries (`meta.json` carries latency, token

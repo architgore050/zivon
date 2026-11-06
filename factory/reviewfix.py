@@ -6,11 +6,16 @@ fixer paired with that gate). The model returns complete replacement
 contents for topic-local files ONLY (page.js, page.css; index.html is
 renderer-owned - same rule as 08-fixloop), and it receives the LIVE design
 doctrine + lesson-page example + palette so its fixes land on the page's
-visual language. After each round the stage
-re-lints everything, re-emits the index.html tags, re-measures perf (a code
-fix must not break the perf budget), and 09-review re-reviews. After
-repair.code_rounds rounds without a pass, the run fails with the full
-history so a human can look.
+visual language. After each round the stage re-lints everything, re-emits
+the index.html tags and re-measures perf (a code fix must not break the
+perf budget), and 09-review re-reviews.
+
+Continuous improvement (founder decision 2026-11-06): a fix that violates a
+hard lint, touches a renderer-owned file, or regresses the perf budget does
+NOT kill the run - it is recorded and returned, and the NEXT fix round
+receives that exact failure as its assignment (repair its own fix). The
+orchestrator's progress-aware loop (repair.code_rounds cap + stall detection)
+decides when a human is really needed.
 """
 
 from __future__ import annotations
@@ -22,7 +27,6 @@ from typing import Any
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
-from .errors import BudgetError, LintError
 from .fixloop import FIXABLE, _rebuild_html_if_needed, _specs_text
 from .lint import lint_generated
 from .llm import LLMClient
@@ -41,7 +45,10 @@ def run(
     ground_truth: dict[str, Any],
     blocks: dict[str, Any],
     round_tag: str,
+    extra_feedback: list[str] | None = None,
 ) -> dict[str, Any]:
+    """extra_feedback: a previous round's own failure (lint hits / perf
+    regression) that this round must repair FIRST (errors-as-context)."""
     topic_dir = Path(render_out["topic_dir"])
     site = Path(render_out["site_dir"])
     history_path = run_ctx.stage_dir(STAGE_ID) / "history.json"
@@ -69,6 +76,7 @@ def run(
                     ground_truth,
                     blocks,
                     cfg,
+                    extra_feedback=extra_feedback,
                 ),
             },
         ],
@@ -77,15 +85,20 @@ def run(
         round_tag=round_tag,
     )
 
-    files = plan.get("files", {})
-    illegal = set(files) - FIXABLE
-    if illegal:
-        raise LintError(
-            STAGE_ID,
-            f"{round_tag}: fix tries to modify non-topic files: {sorted(illegal)}. "
-            f"Only {sorted(FIXABLE)} may change.",
-            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
-        )
+    files = dict(plan.get("files", {}))
+    rejected = sorted(set(files) - FIXABLE)
+    for name in rejected:
+        files.pop(name)  # renderer-owned files are untouchable, always
+    lint_hits = (
+        [
+            (
+                f"your fix tried to modify renderer-owned file(s): {', '.join(rejected)} "
+                "- only page.js and page.css may change"
+            )
+        ]
+        if rejected
+        else []
+    )
     for name, content in files.items():
         (topic_dir / name).write_text(content, encoding="utf-8")
     _rebuild_html_if_needed(cfg, render_out, topic_dir)
@@ -102,55 +115,58 @@ def run(
         if (topic_dir / "page.css").exists()
         else ""
     )
-    hits = lint_generated(js, css, html_text)
-    if hits:
-        raise LintError(
-            STAGE_ID,
-            f"{round_tag}: fixed code violates hard lints:\n" + "\n".join(hits),
-            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
-        )
+    lint_hits.extend(lint_generated(js, css, html_text))
 
-    # A code fix must not break the perf budget the page already passed.
-    run_profile = _harness()
-    profile_path = cfg.repo_path(cfg.perf["profile"])
-    topic_url = (topic_dir / "index.html").as_uri()
-    perf_report = run_profile(topic_url, profile_path)
+    # A code fix must not break the perf budget the page already passed - but
+    # a lint-violating round re-measures nothing: its own failure is already
+    # the next round's assignment (2026-11-06: failures feed back, they do not
+    # kill the run).
+    if lint_hits:
+        perf_after = {
+            "pass": False,
+            "failures": [
+                "perf re-measure skipped: this round's fix violated hard lints"
+            ],
+        }
+    else:
+        run_profile = _harness()
+        profile_path = cfg.repo_path(cfg.perf["profile"])
+        topic_url = (topic_dir / "index.html").as_uri()
+        perf_report = run_profile(topic_url, profile_path)
+        perf_after = {"pass": perf_report["pass"], "failures": perf_report["failures"]}
 
     history.append(
         {
             "round": round_tag,
             "analysis": plan["analysis"],
             "files_changed": sorted(files),
-            "perf_after_fix": {
-                "pass": perf_report["pass"],
-                "failures": perf_report["failures"],
-            },
+            "lint_hits": lint_hits,
+            "perf_after_fix": perf_after,
         }
     )
     run_ctx.write_json(history_path, history)
 
-    # sync fixed files into the staging site copy (same dirs as 08-fixloop)
-    manifest = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))
-    site_topic = site / "courses" / manifest["course_id"] / manifest["topic_slug"]
-    if site_topic != topic_dir:
-        for name in ("index.html", "page.js", "page.css", "manifest.json"):
-            src = topic_dir / name
-            if src.exists():
-                (site_topic / name).write_text(
-                    src.read_text(encoding="utf-8"), encoding="utf-8"
-                )
+    # Sync only CLEAN fixes into the staging site copy (same dirs as
+    # 08-fixloop): an intermediate that violates lint or perf never creeps
+    # toward the served site.
+    if not lint_hits and perf_after["pass"]:
+        manifest = json.loads((topic_dir / "manifest.json").read_text(encoding="utf-8"))
+        site_topic = site / "courses" / manifest["course_id"] / manifest["topic_slug"]
+        if site_topic != topic_dir:
+            for name in ("index.html", "page.js", "page.css", "manifest.json"):
+                src = topic_dir / name
+                if src.exists():
+                    (site_topic / name).write_text(
+                        src.read_text(encoding="utf-8"), encoding="utf-8"
+                    )
 
-    if not perf_report["pass"]:
-        raise BudgetError(
-            STAGE_ID,
-            f"{round_tag}: review fix broke the perf budget: "
-            + "; ".join(perf_report["failures"])
-            + " - human review required (08-fixloop already ran).",
-            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
-            fixable=False,
-        )
-
-    return {"rounds": len(history), "history": history, "analysis": plan["analysis"]}
+    return {
+        "rounds": len(history),
+        "history": history,
+        "analysis": plan["analysis"],
+        "lint_hits": lint_hits,
+        "perf_after_fix": perf_after,
+    }
 
 
 def _system() -> str:
@@ -175,9 +191,21 @@ def _user_msg(
     ground_truth: dict[str, Any],
     blocks: dict[str, Any],
     cfg: Config,
+    extra_feedback: list[str] | None = None,
 ) -> str:
     from .review import _facts_text  # same facts view the reviewer used
 
+    # Continuous improvement (2026-11-06): if a previous round's own fix broke
+    # a lint or the perf budget, repairing that regression is THIS round's
+    # first assignment - the fixer repairs its own fix.
+    feedback_block = (
+        "REPAIR YOUR OWN LAST FIX FIRST (it failed these checks; undo/fix that "
+        "before the reviewer findings):\n"
+        + "\n".join(f"- {f}" for f in extra_feedback)
+        + "\n\n"
+        if extra_feedback
+        else ""
+    )
     issues = [
         i for i in report.get("issues", []) if i["severity"] in ("fatal", "major")
     ]
@@ -190,7 +218,8 @@ def _user_msg(
         or "(no topic files yet)"
     )
     return (
-        "REVIEWER FINDINGS TO FIX:\n"
+        feedback_block
+        + "REVIEWER FINDINGS TO FIX:\n"
         + issue_lines
         + "\n\nBLOCK SPECS (what the page must implement):\n"
         + _specs_text(blocks)

@@ -2,8 +2,9 @@
 
 The perf harness is faked (no Chromium here); the integration test exercises
 the real one. What we prove: a topic-page miss is routed to the fix loop,
-an unfixable miss stops the run, and the fix loop repairs, re-lints, retests
-and gives up loudly.
+an unfixable miss stops the run, and the fix loop repairs, re-lints, retests,
+feeds a failed fix back into the next round, and stops progress-aware (a
+plateau or the generous cap) - loudly, with the full history.
 """
 
 import dataclasses
@@ -22,7 +23,7 @@ from factory import fixloop as fixloop_mod
 from factory import perf as perf_mod
 from factory.artifacts import RunContext
 from factory.config import load_config
-from factory.errors import BudgetError, LintError
+from factory.errors import BudgetError
 from factory.llm import LLMClient
 from testing.content_factory.unit._server_env import (
     install_server_env,
@@ -62,10 +63,12 @@ def fake_report(ok: bool, failures: list[str] | None = None) -> dict[str, Any]:
     }
 
 
-def make_cfg(tmp: Path, fix_rounds: int = 2):
+def make_cfg(tmp: Path, fix_rounds: int = 2, stall_rounds: int | None = None):
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
     base["paths"]["runs"] = str(tmp / "runs")
     base["perf"]["fix_rounds"] = fix_rounds
+    if stall_rounds is not None:
+        base["repair"]["stall_rounds"] = stall_rounds
     path = tmp / "config.json"
     path.write_text(json.dumps(base), encoding="utf-8")
     saved = install_server_env()
@@ -103,20 +106,27 @@ def make_page(tmp: Path) -> tuple[Path, Path, dict[str, Any]]:
 
 class StubLLM:
     """Stands in for LLMClient; records every call's messages, returns a
-    canned fix plan."""
+    canned fix plan. Pass `plans` (a list) to script a different plan per
+    round - the last one repeats if the loop runs longer."""
 
-    def __init__(self, plan: dict[str, Any] | None = None):
-        self.plan = plan or {
+    def __init__(
+        self,
+        plan: dict[str, Any] | None = None,
+        plans: list[dict[str, Any]] | None = None,
+    ):
+        default = {
             "analysis": "draw loop allocates per frame; simplify it.",
             "files": {"page.js": 'ZivonSim.register("b-06", {}); // fixed'},
         }
+        self.plans = plans if plans is not None else [plan or default]
         self.calls = 0
         self.messages: list[list[dict[str, str]]] = []
 
     def call(self, stage_id, messages, schema, schema_name, **kw):
         self.calls += 1
         self.messages.append(messages)
-        return json.loads(json.dumps(self.plan))
+        plan = self.plans[min(self.calls - 1, len(self.plans) - 1)]
+        return json.loads(json.dumps(plan))
 
 
 class TestPerfStage(unittest.TestCase):
@@ -229,18 +239,81 @@ class TestFixloopStage(unittest.TestCase):
         self.assertFalse(ctx.exception.fixable)
         self.assertIn("after 1 fix rounds", str(ctx.exception))
 
-    def test_fix_plan_touching_renderer_files_is_rejected(self):
-        cfg = make_cfg(self.tmp, fix_rounds=1)
+    def test_fix_plan_touching_renderer_files_costs_a_round_not_the_run(self):
+        # 2026-11-06 founder decision: renderer-owned files are skipped and
+        # the violation is fed back - the model gets a round to repair its own
+        # fix instead of the run dying on a LintError.
+        cfg = make_cfg(self.tmp, fix_rounds=2)
         llm = StubLLM(
             plan={"analysis": "x" * 30, "files": {"index.html": "<html></html>"}}
         )
-        with self.assertRaises(LintError):
+        with self.assertRaises(BudgetError):
             self._run(
                 cfg,
                 fake_report(False, ["load 3.0s > 2.0s"]),
-                [fake_report(False, ["load 3.0s > 2.0s"])],
+                [
+                    fake_report(False, ["load 3.0s > 2.0s"]),
+                    fake_report(False, ["load 3.0s > 2.0s"]),
+                ],
                 llm,
             )
+        self.assertEqual(llm.calls, 2, "the rejected fix consumed rounds, not the run")
+        html = (self.topic / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn("<html></html>", html, "the model's html was never applied")
+        self.assertIn("zn-objectives", html, "the page still teaches")
+        round2 = next(m["content"] for m in llm.messages[1] if m["role"] == "user")
+        self.assertIn("renderer-owned", round2)  # its own failure is the assignment
+        self.assertIn("index.html", round2)
+
+    def test_lint_violating_fix_is_repaired_by_the_next_round(self):
+        # A fix that violates a hard lint consumes a ROUND: the violation
+        # becomes the next round's assignment, and the loop continues with a
+        # clean fix (2026-11-06: failures feed back, they do not kill the run).
+        cfg = make_cfg(self.tmp, fix_rounds=3)
+        llm = StubLLM(
+            plans=[
+                {
+                    "analysis": "cache the loop bounds",
+                    "files": {"page.js": "eval('speed');"},
+                },
+                {
+                    "analysis": "drop the eval, use plain math",
+                    "files": {"page.js": 'ZivonSim.register("b-06", {}); // clean'},
+                },
+            ]
+        )
+        out = self._run(
+            cfg,
+            fake_report(False, ["FPS 12 < 24"]),
+            [fake_report(True)],  # only the clean round re-measures
+            llm,
+        )
+        self.assertTrue(out["pass"])
+        self.assertEqual(out["rounds"], 2)
+        self.assertEqual(llm.calls, 2)
+        round2 = next(m["content"] for m in llm.messages[1] if m["role"] == "user")
+        self.assertIn("violated hard lints", round2)
+        self.assertIn("eval", round2)
+        self.assertIn("// clean", (self.topic / "page.js").read_text())
+
+    def test_plateau_stops_the_loop_before_the_cap(self):
+        # Progress-aware (2026-11-06): consecutive no-improvement retests are
+        # a genuine plateau - the loop stops there instead of burning the
+        # whole generous cap, and says so.
+        cfg = make_cfg(self.tmp, fix_rounds=6, stall_rounds=2)
+        llm = StubLLM()
+        with self.assertRaises(BudgetError) as ctx:
+            self._run(
+                cfg,
+                fake_report(False, ["FPS 12 < 24"]),
+                [
+                    fake_report(False, ["FPS 14 < 24"]),
+                    fake_report(False, ["FPS 13 < 24"]),
+                ],
+                llm,
+            )
+        self.assertEqual(llm.calls, 2, "stopped at the plateau, not at the cap")
+        self.assertIn("progress plateaued", str(ctx.exception))
 
     def test_fix_prompt_carries_specs_and_teaching_guard(self):
         # A perf fix must not be allowed to gut the page: the model sees the

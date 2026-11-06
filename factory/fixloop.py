@@ -5,10 +5,17 @@ fixable BudgetError instead of dying). Loop: hand the report + page specs +
 previous attempts + current topic files + the LIVE design doctrine and its
 lesson-page example (+ palette) to the model, apply its replacement
 contents (topic-local files ONLY: page.js, page.css; index.html is
-renderer-owned), re-lint, re-render the HTML shell, re-test. After
-perf.fix_rounds rounds without a pass, the stage fails with the full history
-so a human can look. The prompt guards the pedagogy: a perf fix may not
-delete or neuter what the page teaches.
+renderer-owned), re-lint, re-render the HTML shell, re-test.
+
+Continuous improvement (founder decision 2026-11-06): the loop is
+progress-aware. It keeps fixing while the failure count drops and stops at a
+genuine plateau (repair.stall_rounds no-improvement rounds in a row) or the
+generous perf.fix_rounds safety cap - never at a blind small count. A fix
+that violates a hard lint or touches a renderer-owned file costs a ROUND: the
+violation is fed into the next round's prompt so the fixer repairs its own
+fix. Only a plateau/cap ends the stage, with the full history so a human can
+look. The prompt guards the pedagogy: a perf fix may not delete or neuter
+what the page teaches.
 
 When stage 07 already passed, this stage verifies nothing new is broken and
 returns immediately (rounds=0, no model call, no extra Chromium launch).
@@ -25,7 +32,7 @@ from typing import Any
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
-from .errors import BudgetError, LintError
+from .errors import BudgetError
 from .lint import lint_generated
 from .llm import LLMClient
 from .perf import _harness
@@ -53,24 +60,28 @@ def run(
     site = Path(render_out["site_dir"])
     topic_url = (topic_dir / "index.html").as_uri()
 
-    history: list[dict[str, Any]] = []
-    if initial_perf is not None and initial_perf.get("pass"):
-        # Stage 07 just measured this exact page and it passed: nothing to fix.
-        history = [{"round": 0, "perf": initial_perf}]
-        _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
-        return {"rounds": 0, "history": history, "pass": True}
-
     report = (
         initial_perf
         if initial_perf is not None
         else run_profile(topic_url, profile_path)
     )
     history = [{"round": 0, "perf": report}]
-    rounds = cfg.perf["fix_rounds"]
+    if report["pass"]:
+        # Stage 07 just measured this exact page and it passed (or our own
+        # standalone measurement passed): nothing to fix.
+        _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
+        return {"rounds": 0, "history": history, "pass": True}
+
+    cap = cfg.perf["fix_rounds"]
+    stall_limit = cfg.repair["stall_rounds"]
+    best = len(report["failures"])
+    stalls = 0
     specs = _specs_text(blocks)
     attempts: list[str] = []
+    round_no = 0
 
-    for round_no in range(1, rounds + 1):
+    while best > 0 and round_no < cap and stalls < stall_limit:
+        round_no += 1
         current_files = {
             name: (topic_dir / name).read_text(encoding="utf-8")
             for name in sorted(FIXABLE)
@@ -87,7 +98,7 @@ def run(
                         report,
                         current_files,
                         round_no,
-                        rounds,
+                        cap,
                         specs,
                         attempts,
                     ),
@@ -101,7 +112,7 @@ def run(
             run_ctx.stage_dir(STAGE_ID) / f"round-{round_no:02d}-plan.json", plan
         )
 
-        _apply_plan(topic_dir, plan)
+        rejected = _apply_plan(topic_dir, plan)
         _rebuild_html_if_needed(cfg, render_out, topic_dir)
 
         # Re-lint everything that changed, plus the html that embeds them.
@@ -117,46 +128,79 @@ def run(
             else ""
         )
         hits = lint_generated(js, css, html_text)
-        if hits:
-            raise LintError(
-                STAGE_ID,
-                f"round {round_no}: fixed code violates hard lints:\n"
-                + "\n".join(hits),
-                artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        if rejected or hits:
+            # The fix itself failed a hard check (2026-11-06): this consumes a
+            # ROUND, not the run - the violation is fed into the next round's
+            # prompt so the fixer repairs its own fix.
+            if rejected:
+                attempts.append(
+                    f"round {round_no}: REJECTED - the fix tried to modify "
+                    f"renderer-owned file(s) {', '.join(rejected)}; only "
+                    "page.js and page.css may change"
+                )
+            if hits:
+                attempts.append(
+                    f"round {round_no}: your fix violated hard lints: "
+                    + "; ".join(hits)[:240]
+                    + " - repair your own fix first"
+                )
+            history.append(
+                {"round": round_no, "lint_hits": hits, "rejected_files": rejected}
             )
+            print(
+                f"[08-fixloop] round {round_no}/{cap}: the fix failed hard "
+                "checks -> the next round repairs its own fix"
+            )
+            continue
 
+        prev = best
         report = run_profile(topic_url, profile_path)
         history.append({"round": round_no, "perf": report})
+        now = len(report["failures"])
+        if now < best:
+            best, stalls = now, 0
+        else:
+            stalls += 1
         attempts.append(
             f"round {round_no}: {plan['analysis'][:240]} -> "
             + ("pass" if report["pass"] else "; ".join(report["failures"])[:240])
+        )
+        print(
+            f"[08-fixloop] round {round_no}/{cap}: failures {prev} -> {now} "
+            f"(best {best}; no-progress streak {stalls}/{stall_limit})"
         )
         if report["pass"]:
             _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
             return {"rounds": round_no, "history": history, "pass": True}
 
     _finish(cfg, run_ctx, history, topic_dir, site, ok=False)
+    reason = (
+        f"progress plateaued: {stalls} consecutive retest(s) with no improvement "
+        f"(best {best} failure(s) standing)"
+        if stalls >= stall_limit
+        else f"fix-round cap {cap} reached"
+    )
     raise BudgetError(
         STAGE_ID,
-        f"performance budgets still missed after {rounds} fix rounds: "
+        f"performance budgets still missed after {round_no} fix rounds ({reason}): "
         + "; ".join(report["failures"])
-        + " - human review required (full history in the stage artifacts).",
+        + " - human review required (full history in the stage artifacts); "
+        "re-trigger the same chapter+class to RESUME with a fresh fix budget.",
         artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
         fixable=False,
     )
 
 
-def _apply_plan(topic_dir: Path, plan: dict[str, Any]) -> None:
-    files = plan.get("files", {})
-    illegal = set(files) - FIXABLE
-    if illegal:
-        raise LintError(
-            STAGE_ID,
-            f"fix plan tries to modify non-topic files: {sorted(illegal)}. "
-            f"Only {sorted(FIXABLE)} may change.",
-        )
+def _apply_plan(topic_dir: Path, plan: dict[str, Any]) -> list[str]:
+    """Apply the plan's topic-local files; renderer-owned files are skipped
+    and reported back (the model is told next round, not killed now)."""
+    files = dict(plan.get("files", {}))
+    rejected = sorted(set(files) - FIXABLE)
+    for name in rejected:
+        files.pop(name)
     for name, content in files.items():
         (topic_dir / name).write_text(content, encoding="utf-8")
+    return rejected
 
 
 def _rebuild_html_if_needed(

@@ -26,11 +26,12 @@
   },
   "perf": {
     "profile": "testing/content_factory/perf/profiles/weak-android.json",
-    "fix_rounds": 3
+    "fix_rounds": 6
   },
   "repair": {
-    "content_rounds": 2,
-    "code_rounds": 2
+    "content_rounds": 8,
+    "code_rounds": 6,
+    "stall_rounds": 3
   },
   "stage_overrides": {}
 }

@@ -9,9 +9,15 @@ Graph v2 (2026-11-03), founder decision after the first measured runs:
 - The review gates (03-check, 09-review) stay SEPARATE model calls: a
   reviewer must never be the author.
 - Gate failures route to catchers (04-repair, 08-fixloop, 10-reviewfix): the
-  agent that caught an issue hands its verdict to the agent that fixes it,
-  bounded by repair.*_rounds. A downstream failure NEVER re-runs upstream
-  stages, and the run process never dies just because a gate complained.
+  agent that caught an issue hands its verdict to the agent that fixes it.
+  Catchers are progress-aware loops (founder decision 2026-11-06): they keep
+  repairing while the severity-weighted issue score improves and stop at a
+  genuine plateau (repair.stall_rounds no-improvement rounds in a row) or a
+  generous safety cap (repair.*_rounds) - never at a blind small count. A fix
+  that itself breaks lint or perf costs a round, not the run: the fixer gets
+  its own failure fed back and repairs its own fix. A downstream failure NEVER
+  re-runs upstream stages, and the run process never dies just because a gate
+  complained.
 - Resume: run ids are deterministic per (chapter, class). A re-triggered run
   (after an infra kill) skips every stage already marked ok and loads its
   output from disk; a fingerprint guard refuses to mix old-graph artifacts.
@@ -51,7 +57,11 @@ from .llm import LLMClient
 # learner.class_level; the class comes from --class or the located chapter.
 # Version-4 run dirs baked a config default class into their prompts, so
 # resume refuses them all (re-trigger with --fresh).
-PIPELINE_VERSION = "5"
+# 6 (2026-11-06): catchers are progress-aware (generous caps + stall
+# detection, founder decision: the pipeline is continuous improvement, not a
+# one-shot exam) and a fix that breaks lint/perf now costs a round instead of
+# the run. Version-5 dirs are refused; re-trigger with --fresh.
+PIPELINE_VERSION = "6"
 
 STAGE_ORDER = [
     "00-ingest",
@@ -81,7 +91,12 @@ def make_run_id(chapter: str, class_filter: int | None) -> str:
 
 def run_fingerprint(cfg: Config, chapter: str, class_filter: int | None) -> str:
     """What a run dir's artifacts are valid FOR. Any change here invalidates
-    resume (by design: the operator must decide via --fresh)."""
+    resume (by design: the operator must decide via --fresh).
+
+    Repair round caps are deliberately NOT in the payload (2026-11-06): they
+    are runtime policy, not artifact semantics - a draft repaired in 2 rounds
+    is just as valid under a more generous catcher. Tuning the caps must not
+    invalidate good generated work."""
     payload = {
         "pipeline_version": PIPELINE_VERSION,
         "chapter": chapter,
@@ -89,7 +104,6 @@ def run_fingerprint(cfg: Config, chapter: str, class_filter: int | None) -> str:
         "model": cfg.server["model"],
         "limits": cfg.limits,
         "retrieval": cfg.retrieval,
-        "repair": cfg.repair,
         "learner": cfg.learner,
     }
     return hashlib.sha256(
@@ -106,6 +120,13 @@ def _blocking_issues(combined: dict[str, Any]) -> list[dict[str, Any]]:
         for i in combined["model_issues"] + combined["rule_issues"]
         if i["severity"] in ("fatal", "major")
     ]
+
+
+def _severity_score(issues: list[dict[str, Any]]) -> int:
+    """Progress metric for the catcher loops (founder decision 2026-11-06):
+    severity-weighted blocking count - fatal=2, major=1. Downgrading a fatal
+    to a major is real progress even when the raw issue count stands still."""
+    return sum(2 if i["severity"] == "fatal" else 1 for i in issues)
 
 
 def _sync_learner_to_chapter(cfg: Config, source_pack: dict[str, Any]) -> Config:
@@ -297,13 +318,18 @@ def run_pipeline(
                 combined = run_check_once(None)
                 rounds = 0
                 max_rounds = cfg.repair["content_rounds"]
+                stall_limit = cfg.repair["stall_rounds"]
+                best = _severity_score(_blocking_issues(combined))
+                stalls = 0
                 history: list[dict[str, Any]] = []
                 while (
                     _blocking_issues(combined)
                     and rounds < max_rounds
+                    and stalls < stall_limit
                     and wanted("04-repair")
                 ):
                     issues = _blocking_issues(combined)
+                    prev = _severity_score(issues)
                     rounds += 1
                     tag = f"round-{rounds:02d}"
                     assert (
@@ -343,11 +369,27 @@ def run_pipeline(
                     )
                     run_ctx.mark_stage("04-repair", "ok", detail=f"rounds={rounds}")
                     combined = run_check_once(tag)
+                    now = _severity_score(_blocking_issues(combined))
+                    if now < best:
+                        best, stalls = now, 0
+                    else:
+                        stalls += 1
+                    print(
+                        f"[04-repair] round {rounds}/{max_rounds}: blocking score "
+                        f"{prev} -> {now} (best {best}; no-progress streak "
+                        f"{stalls}/{stall_limit})"
+                    )
                 if _blocking_issues(combined):
+                    reason = (
+                        f"progress plateaued: {stalls} consecutive recheck(s) with "
+                        f"no improvement (best blocking score {best})"
+                        if stalls >= stall_limit
+                        else f"repair-round cap {max_rounds} reached"
+                    )
                     raise StageError(
                         "03-check",
                         f"review still failing after {rounds} repair round(s) - "
-                        "model: "
+                        f"{reason}. model: "
                         + "; ".join(
                             i["message"][:200]
                             for i in combined["model_issues"]
@@ -358,7 +400,10 @@ def run_pipeline(
                             i["message"][:200]
                             for i in combined["rule_issues"]
                             if i["severity"] in ("fatal", "major")
-                        ),
+                        )
+                        + " - the repaired draft is kept: re-trigger the same "
+                        "chapter+class to RESUME with a fresh repair budget, or "
+                        "--fresh for clean generation",
                         artifacts_dir=str(run_ctx.stage_dir("03-check")),
                     )
 
@@ -472,27 +517,96 @@ def run_pipeline(
             report = run_review_once(None)
             rounds = 0
             max_rounds = cfg.repair["code_rounds"]
+            stall_limit = cfg.repair["stall_rounds"]
+            best = _severity_score(
+                [i for i in report["issues"] if i["severity"] in ("fatal", "major")]
+            )
+            stalls = 0
+            fix_feedback: list[str] = []
             while (
-                report["verdict"] == "fail"
+                (report["verdict"] == "fail" or fix_feedback)
                 and rounds < max_rounds
+                and stalls < stall_limit
                 and wanted("10-reviewfix")
             ):
                 rounds += 1
                 tag = f"round-{rounds:02d}"
                 run_ctx.mark_stage("10-reviewfix", "running")
                 fix_out = reviewfix.run(
-                    cfg, run_ctx, llm, render_out, report, ground_truth, blocks, tag
+                    cfg,
+                    run_ctx,
+                    llm,
+                    render_out,
+                    report,
+                    ground_truth,
+                    blocks,
+                    tag,
+                    extra_feedback=fix_feedback,
                 )
+                fix_feedback = []
                 run_ctx.save_stage_output("10-reviewfix", fix_out)
                 run_ctx.mark_stage(
                     "10-reviewfix", "ok", detail=f"rounds={fix_out['rounds']}"
                 )
+                if fix_out["lint_hits"]:
+                    # The fix itself broke a hard lint: the NEXT round repairs
+                    # its own fix (errors-as-context). Re-reviewing lint-broken
+                    # code would waste a model call, so no re-review this round.
+                    fix_feedback = [
+                        "your previous fix violated hard lints: "
+                        + "; ".join(fix_out["lint_hits"])
+                    ]
+                    print(
+                        f"[10-reviewfix] {tag}: the fix violated hard lints -> "
+                        "the next round repairs its own fix"
+                    )
+                    continue
+                if not fix_out["perf_after_fix"]["pass"]:
+                    # A review fix that regressed the perf budget gets the
+                    # regression fed back as the next round's assignment
+                    # (2026-11-06) instead of killing the run.
+                    fix_feedback = [
+                        "your previous fix broke the perf budget: "
+                        + "; ".join(fix_out["perf_after_fix"]["failures"])
+                    ]
+                    print(
+                        f"[10-reviewfix] {tag}: the fix broke the perf budget -> "
+                        "the next round repairs the regression"
+                    )
+                    continue
+                prev = best
                 report = run_review_once(tag)
-            if report["verdict"] == "fail":
+                now = _severity_score(
+                    [i for i in report["issues"] if i["severity"] in ("fatal", "major")]
+                )
+                if now < best:
+                    best, stalls = now, 0
+                else:
+                    stalls += 1
+                print(
+                    f"[10-reviewfix] round {rounds}/{max_rounds}: review issue "
+                    f"score {prev} -> {now} (best {best}; no-progress streak "
+                    f"{stalls}/{stall_limit})"
+                )
+            if report["verdict"] == "fail" or fix_feedback:
+                reason = (
+                    f"progress plateaued: {stalls} consecutive re-review(s) with "
+                    f"no improvement (best issue score {best})"
+                    if stalls >= stall_limit
+                    else f"fix-round cap {max_rounds} reached"
+                )
                 raise StageError(
                     "09-review",
-                    f"code review still failing after {rounds} fix round(s): "
-                    + "; ".join(i["message"][:160] for i in report["issues"]),
+                    f"code review still failing after {rounds} fix round(s) - "
+                    f"{reason}: "
+                    + "; ".join(i["message"][:160] for i in report["issues"])
+                    + (
+                        " | last fix unresolved: " + "; ".join(fix_feedback)
+                        if fix_feedback
+                        else ""
+                    )
+                    + " - the fixed page files are kept: re-trigger the same "
+                    "chapter+class to RESUME with a fresh fix budget",
                     artifacts_dir=str(run_ctx.stage_dir("09-review")),
                 )
 

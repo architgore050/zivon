@@ -20,7 +20,8 @@ Optional environment variables (defaults in parentheses):
     ZIVON_JSON_MODE  (true)  response_format json_object
     ZIVON_TEMPERATURE(0.2)
     ZIVON_TIMEOUT_S  (3600)   a giant generation call is legitimate
-    ZIVON_MAX_ATTEMPTS(3)
+    ZIVON_MAX_ATTEMPTS(3)     transport retries inside one model call
+    ZIVON_VALIDATION_ROUNDS(5) the model's own repair budget per stage call
 """
 
 from __future__ import annotations
@@ -82,7 +83,7 @@ _SPEC: dict[str, Any] = {
         "doctrine_examples": str,
     },
     "perf": {"profile": str, "fix_rounds": int},
-    "repair": {"content_rounds": int, "code_rounds": int},
+    "repair": {"content_rounds": int, "code_rounds": int, "stall_rounds": int},
     "stage_overrides": dict,
 }
 
@@ -96,7 +97,16 @@ _SERVER_DEFAULTS: dict[str, Any] = {
     # stays huge: it kills a genuinely hung call on its own; there is no
     # wall-clock cap on the run itself (founder decision 2026-11-06).
     "timeout_s": 3600.0,
+    # max_attempts is the TRANSPORT budget only (2026-11-06 founder decision):
+    # connection errors / timeouts / 429 / 5xx retried inside one model call.
     "max_attempts": 3,
+    # validation_rounds is the model's own repair budget: how many times a
+    # stage call may produce output that fails JSON/schema/rule validation
+    # and get the exact violation fed back to fix it (errors-as-context).
+    # Sharing one tiny budget with transport retries made every stage depend
+    # on the model one-shotting its output - founder decision 2026-11-06 to
+    # separate and widen it: the pipeline is continuous improvement.
+    "validation_rounds": 5,
 }
 
 
@@ -156,7 +166,7 @@ class Config:
         """
         return self.server["api_key"]
 
-    def with_class_level(self, class_level: int) -> "Config":
+    def with_class_level(self, class_level: int) -> Config:
         """Derived view carrying the run's learner class.
 
         config.json holds NO class (founder decision 2026-11-06: a config
@@ -169,9 +179,7 @@ class Config:
                 f"learner.class_level must be an int (got {class_level!r})"
             )
         if class_level not in range(6, 13):
-            raise ConfigError(
-                f"learner.class_level must be 6..12 (got {class_level})"
-            )
+            raise ConfigError(f"learner.class_level must be 6..12 (got {class_level})")
         data = dict(self.data)
         data["learner"] = {**data["learner"], "class_level": class_level}
         return Config(data=data, server=self.server, root=self.root)
@@ -264,6 +272,9 @@ def _load_server_from_env() -> dict[str, Any]:
     max_attempts = _env_number("ZIVON_MAX_ATTEMPTS", 3, integer=True)
     if max_attempts < 1:
         raise ConfigError("ZIVON_MAX_ATTEMPTS must be >= 1")
+    validation_rounds = _env_number("ZIVON_VALIDATION_ROUNDS", 5, integer=True)
+    if validation_rounds < 1:
+        raise ConfigError("ZIVON_VALIDATION_ROUNDS must be >= 1")
     temperature = _env_number("ZIVON_TEMPERATURE", 0.2, integer=False)
     if not 0.0 <= temperature <= 2.0:
         raise ConfigError("ZIVON_TEMPERATURE must be between 0.0 and 2.0")
@@ -278,6 +289,7 @@ def _load_server_from_env() -> dict[str, Any]:
         "temperature": temperature,
         "timeout_s": timeout_s,
         "max_attempts": max_attempts,
+        "validation_rounds": validation_rounds,
     }
 
 
@@ -323,12 +335,14 @@ def load_config(path: Path | None = None) -> Config:
         raise ConfigError(
             "retrieval.chunk_overlap must be smaller than retrieval.chunk_chars"
         )
-    if data["perf"]["fix_rounds"] < 1:
-        raise ConfigError("perf.fix_rounds must be >= 1")
-    if data["repair"]["content_rounds"] < 1:
-        raise ConfigError("repair.content_rounds must be >= 1")
-    if data["repair"]["code_rounds"] < 1:
-        raise ConfigError("repair.code_rounds must be >= 1")
+    if data["perf"]["fix_rounds"] < 1 or data["perf"]["fix_rounds"] > 20:
+        raise ConfigError("perf.fix_rounds must be 1..20")
+    if data["repair"]["content_rounds"] < 1 or data["repair"]["content_rounds"] > 20:
+        raise ConfigError("repair.content_rounds must be 1..20")
+    if data["repair"]["code_rounds"] < 1 or data["repair"]["code_rounds"] > 20:
+        raise ConfigError("repair.code_rounds must be 1..20")
+    if data["repair"]["stall_rounds"] < 1 or data["repair"]["stall_rounds"] > 10:
+        raise ConfigError("repair.stall_rounds must be 1..10")
     for stage_id in data["stage_overrides"]:
         if stage_id not in _STAGE_IDS:
             raise ConfigError(

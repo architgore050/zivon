@@ -27,6 +27,7 @@ _SERVER_VARS = (
     "ZIVON_TEMPERATURE",
     "ZIVON_TIMEOUT_S",
     "ZIVON_MAX_ATTEMPTS",
+    "ZIVON_VALIDATION_ROUNDS",
 )
 
 
@@ -117,22 +118,32 @@ class TestConfig(unittest.TestCase):
         self.assertIs(cfg.server["json_mode"], True)
         self.assertEqual(cfg.server["temperature"], 0.2)
         self.assertEqual(cfg.server["max_attempts"], 3)
+        # 2026-11-06: validation rounds are the model's own repair budget,
+        # separate from (and wider than) transport retries.
+        self.assertEqual(cfg.server["validation_rounds"], 5)
         self.assertIsNone(cfg.server["api_key"])
 
         os.environ["ZIVON_JSON_MODE"] = "false"
         os.environ["ZIVON_TEMPERATURE"] = "0.7"
         os.environ["ZIVON_MAX_ATTEMPTS"] = "5"
+        os.environ["ZIVON_VALIDATION_ROUNDS"] = "8"
         os.environ["ZIVON_API_KEY"] = "sekret"
         cfg = load_config(write_config(self.tmp))
         self.assertIs(cfg.server["json_mode"], False)
         self.assertEqual(cfg.server["temperature"], 0.7)
         self.assertEqual(cfg.server["max_attempts"], 5)
+        self.assertEqual(cfg.server["validation_rounds"], 8)
         self.assertEqual(cfg.api_key(), "sekret")
 
     def test_out_of_range_env_rejected(self):
         os.environ["ZIVON_MAX_ATTEMPTS"] = "0"
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp))
+        os.environ["ZIVON_MAX_ATTEMPTS"] = "3"
+        os.environ["ZIVON_VALIDATION_ROUNDS"] = "0"
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp))
+        self.assertIn("ZIVON_VALIDATION_ROUNDS", str(ctx.exception))
         os.environ["ZIVON_TEMPERATURE"] = "9"
         with self.assertRaises(ConfigError):
             load_config(write_config(self.tmp))
@@ -216,14 +227,36 @@ class TestConfig(unittest.TestCase):
             load_config(write_config(self.tmp, mutate))
         self.assertIn("content_rounds", str(ctx.exception))
 
+    def test_stall_rounds_out_of_range_rejected(self):
+        for bad in (0, 11):
+
+            def mutate(d, bad=bad):
+                d["repair"]["stall_rounds"] = bad
+
+            with self.assertRaises(ConfigError) as ctx:
+                load_config(write_config(self.tmp, mutate))
+            self.assertIn("stall_rounds", str(ctx.exception))
+
+    def test_repair_rounds_above_cap_rejected(self):
+        # Sanity ceiling: a typo like 80 must not burn a day of model time.
+        def mutate(d):
+            d["repair"]["code_rounds"] = 21
+
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp, mutate))
+        self.assertIn("code_rounds", str(ctx.exception))
+
     def test_real_repo_config_loads(self):
         # The committed config.json must stay structurally valid; with server
         # env present it loads cleanly (no server section lives in the file).
         cfg = load_config(REPO_ROOT / "config.json")
         self.assertNotIn("class_level", cfg.learner)  # retired 2026-11-06
         self.assertNotIn("server", cfg.data)
-        self.assertEqual(cfg.repair["content_rounds"], 2)
-        self.assertEqual(cfg.repair["code_rounds"], 2)
+        # Progress-aware catcher budgets (founder decision 2026-11-06).
+        self.assertEqual(cfg.repair["content_rounds"], 8)
+        self.assertEqual(cfg.repair["code_rounds"], 6)
+        self.assertEqual(cfg.repair["stall_rounds"], 3)
+        self.assertEqual(cfg.perf["fix_rounds"], 6)
 
     def test_with_class_level_derives_without_mutating(self):
         # The run's class (--class / the located chapter's class) is a derived

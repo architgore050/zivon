@@ -29,7 +29,7 @@ SIMPLE_SCHEMA = {
 }
 
 
-def make_cfg(tmp: Path, base_url: str, attempts: int = 3):
+def make_cfg(tmp: Path, base_url: str, attempts: int = 3, validation_rounds=None):
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
     base["paths"]["runs"] = str(tmp / "runs")
     path = tmp / "config.json"
@@ -38,6 +38,8 @@ def make_cfg(tmp: Path, base_url: str, attempts: int = 3):
     os.environ["ZIVON_BASE_URL"] = base_url
     os.environ["ZIVON_MODEL"] = "mock-model"
     os.environ["ZIVON_MAX_ATTEMPTS"] = str(attempts)
+    if validation_rounds is not None:
+        os.environ["ZIVON_VALIDATION_ROUNDS"] = str(validation_rounds)
     return load_config(path)
 
 
@@ -70,6 +72,7 @@ class TestLLMClient(unittest.TestCase):
             "ZIVON_BASE_URL",
             "ZIVON_MODEL",
             "ZIVON_MAX_ATTEMPTS",
+            "ZIVON_VALIDATION_ROUNDS",
         ):
             os.environ.pop(key, None)
 
@@ -218,11 +221,26 @@ class TestLLMClient(unittest.TestCase):
     def test_schema_failures_exhaust_to_schema_error(self):
         server, url, _ = self._serve(BAD)  # canonical is itself schema-invalid
         try:
-            cfg = make_cfg(self.tmp, url, attempts=2)
+            cfg = make_cfg(self.tmp, url, validation_rounds=2)
             client = LLMClient(cfg, self._run(cfg))
             with self.assertRaises(SchemaError) as ctx:
                 self._call(client)
-            self.assertIn("all 2 attempts", str(ctx.exception))
+            self.assertIn("all 2 validation rounds", str(ctx.exception))
+        finally:
+            server.shutdown()
+
+    def test_validation_rounds_are_the_model_repair_budget(self):
+        # 2026-11-06 founder decision: a schema-invalid output gets the FULL
+        # validation-round budget of feedback-driven retries - independent of
+        # the (small) transport attempt count. The model is never expected to
+        # one-shot its output.
+        server, url, state = self._serve(BAD)
+        try:
+            cfg = make_cfg(self.tmp, url, attempts=1, validation_rounds=4)
+            client = LLMClient(cfg, self._run(cfg))
+            with self.assertRaises(SchemaError):
+                self._call(client)
+            self.assertEqual(len(state.served), 4, "one call per validation round")
         finally:
             server.shutdown()
 
@@ -267,7 +285,7 @@ class TestLLMClient(unittest.TestCase):
     def test_extra_validator_exhaustion_raises_schema_error(self):
         server, url, _ = self._serve(GOOD)
         try:
-            cfg = make_cfg(self.tmp, url, attempts=2)
+            cfg = make_cfg(self.tmp, url, validation_rounds=2)
             client = LLMClient(cfg, self._run(cfg))
             with self.assertRaises(SchemaError) as ctx:
                 client.call(
@@ -280,10 +298,26 @@ class TestLLMClient(unittest.TestCase):
                     "test",
                     extra_validator=lambda parsed: ["always wrong"],
                 )
-            self.assertIn("all 2 attempts", str(ctx.exception))
+            self.assertIn("all 2 validation rounds", str(ctx.exception))
             self.assertIn("always wrong", str(ctx.exception))
         finally:
             server.shutdown()
+
+    def test_feedback_trims_older_rejected_outputs(self):
+        # Context guard (2026-11-06): only the LATEST rejected output is kept
+        # in full; older giant outputs are trimmed so a chain of validation
+        # rounds cannot stack up and eat the server's context window.
+        transcript = [
+            {"role": "system", "content": "sys"},
+            {"role": "user", "content": "go"},
+        ]
+        LLMClient._feedback(transcript, "x" * 5000, "first violation")
+        LLMClient._feedback(transcript, "y" * 100, "second violation")
+        assistants = [m for m in transcript if m["role"] == "assistant"]
+        self.assertEqual(len(assistants), 2)
+        self.assertLess(len(assistants[0]["content"]), 2000)
+        self.assertIn("trimmed", assistants[0]["content"])
+        self.assertEqual(assistants[1]["content"], "y" * 100)
 
     def test_validation_error_is_compact_and_names_types(self):
         # Founder run 2026-11-05: jsonschema embedded the whole rejected 70-block
