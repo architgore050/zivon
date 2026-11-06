@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Zivon content factory image.
-#   Build:  docker build -t zivon-factory:0.3.9 .
-#   Smoke:  docker run --rm zivon-factory:0.3.9
+#   Build:  docker build -t zivon-factory:0.3.10 .
+#   Smoke:  docker run --rm zivon-factory:0.3.10
 
 FROM python:3.12-slim
 
