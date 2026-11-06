@@ -1,10 +1,12 @@
 """Unit tests for stage 00-ingest and stage 01-locate using file:// fixture PDFs."""
 
+import io
 import json
 import shutil
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -344,6 +346,84 @@ class LocateTestCase(unittest.TestCase):
         book_ids = {s["book_id"] for s in pack["supplements"]}
         self.assertNotIn("fixture-ncert-9", book_ids)
         self.assertIn("alt-open-physics", book_ids)
+
+    def _kinem_cfg(self, tmp: Path):
+        """Second NCERT class-9 book built from the kinem fixtures: ch02 is
+        'MOTION IN A STRAIGHT LINE' (clean opener title with a trailing book-page
+        number, like a real NCERT opener); ch04 is 'LAWS OF MOTION' whose BODY
+        sentence carries the query phrase - the 2026-11-05 contamination pair."""
+        dest = tmp / "pdfs" / "fixture-kinem-9"
+        dest.mkdir(parents=True, exist_ok=True)
+        urls = {}
+        for src, dst in [
+            ("prelims.pdf", "prelims.pdf"),
+            ("kinem-ch02.pdf", "ch02.pdf"),
+            ("kinem-ch04.pdf", "ch04.pdf"),
+        ]:
+            shutil.copy(PDFS / src, dest / dst)
+            urls[dst] = (dest / dst).as_uri()
+        book = {
+            "id": "fixture-kinem-9",
+            "class": 9,
+            "subject": "science",
+            "title": "Fixture Kinematics Class 9",
+            "publisher": "fixture",
+            "license": "test",
+            "is_ncert": True,
+            "download": "auto",
+            "prelims_url": urls["prelims.pdf"],
+            "chapter_url_template": urls["ch02.pdf"].replace("ch02.pdf", "ch{nn}.pdf"),
+            "chapter_numbers": [2, 4],
+            "chapters_verified": True,
+            "class_evidence": ["class 9"],
+        }
+        return make_cfg(tmp, extra_books=[book])
+
+    def test_locate_title_match_beats_body_phrase_lookalike(self):
+        # Founder contamination regression (2026-11-05): the class-11 run asked
+        # for 'MOTION IN A STRAIGHT LINE'; a Newton's-first-law sentence in the
+        # LAWS OF MOTION chapter fabricated an exact hit (found = query) and beat
+        # the real title match, silently building the wrong chapter's page.
+        # Exactness now belongs to title candidates only.
+        tmp2 = Path(tempfile.mkdtemp())
+        cfg2 = self._kinem_cfg(tmp2)
+        run2 = RunContext(cfg2.repo_path(cfg2.paths["runs"]), "t-kinem")
+        run2.save_stage_output("00-ingest", ingest_run(cfg2, run2))
+        pack = locate_run(cfg2, run2, "MOTION IN A STRAIGHT LINE", 9)
+        self.assertEqual(pack["chapter"]["book_id"], "fixture-kinem-9")
+        self.assertTrue(pack["chapter"]["file"].endswith("ch02.pdf"))
+        self.assertEqual(pack["chapter"]["matched_via"], "title_line")
+        self.assertEqual(
+            pack["chapter"]["title"], "MOTION IN A STRAIGHT LINE"
+        )  # trailing page number stripped
+        self.assertIn("uniform acceleration", pack["ncert_text"])
+        self.assertNotIn("Aristotle", pack["ncert_text"])  # the trap chapter stayed out
+
+    def test_locate_body_phrase_is_demoted_and_loud(self):
+        # A phrase that only lives in body prose can win only as a demoted
+        # partial - and it must announce itself so the operator confirms the pick.
+        tmp2 = Path(tempfile.mkdtemp())
+        cfg2 = self._kinem_cfg(tmp2)
+        run2 = RunContext(cfg2.repo_path(cfg2.paths["runs"]), "t-body")
+        run2.save_stage_output("00-ingest", ingest_run(cfg2, run2))
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            pack = locate_run(cfg2, run2, "law of inertia", 9)
+        self.assertEqual(pack["chapter"]["matched_via"], "body_phrase")
+        self.assertTrue(pack["chapter"]["file"].endswith("ch04.pdf"))
+        self.assertIn("[loud]", buf.getvalue())
+        self.assertIn("BODY", buf.getvalue())
+
+    def test_locate_loose_title_query_lists_exact_candidates(self):
+        # 'motion' is title-equivalent (containment) to BOTH kinem chapters and
+        # to the plain fixture chapter - a hard ambiguity error, never a silent pick.
+        tmp2 = Path(tempfile.mkdtemp())
+        cfg2 = self._kinem_cfg(tmp2)
+        run2 = RunContext(cfg2.repo_path(cfg2.paths["runs"]), "t-amb2")
+        run2.save_stage_output("00-ingest", ingest_run(cfg2, run2))
+        with self.assertRaises(SourceError) as ctx:
+            locate_run(cfg2, run2, "motion", 9)
+        self.assertIn("several", str(ctx.exception))
 
 
 def _make_table_page_pdf(path: Path) -> None:

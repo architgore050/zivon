@@ -143,7 +143,7 @@ class LLMClient:
                 f"{attempt}/{self.cfg.server['max_attempts']}; a thinking model "
                 "can take many minutes - heartbeats will show it is alive)"
             )
-            status, raw_text, usage = self._post_with_heartbeat(
+            status, raw_text, usage, finish_reason = self._post_with_heartbeat(
                 request, stage_id, attempt
             )
             latency = round(time.time() - t0, 2)
@@ -166,8 +166,23 @@ class LLMClient:
                     "temperature": temperature,
                     "prompt_chars": sum(len(m["content"]) for m in request["messages"]),
                     "response_chars": len(raw_text),
+                    "finish_reason": finish_reason,
                 },
             )
+
+            if finish_reason == "length":
+                # The server cut the output off at its context limit - the JSON is
+                # almost certainly truncated; say so plainly instead of letting the
+                # model chase a parse error (observability gap found 2026-11-05:
+                # meta.json used to discard finish_reason entirely).
+                last_error = (
+                    "the server cut the output off at its context limit "
+                    "(finish_reason=length) - make the page more compact: shorter "
+                    "paragraphs, fewer blocks"
+                )
+                self._reject(stage_id, attempt, last_error)
+                self._feedback(transcript, raw_text, last_error)
+                continue
 
             try:
                 parsed = parse_json_object(raw_text)
@@ -177,10 +192,18 @@ class LLMClient:
                 self._feedback(transcript, raw_text, last_error)
                 continue
 
-            try:
-                jsonschema.validate(instance=parsed, schema=schema)
-            except jsonschema.ValidationError as exc:
-                last_error = self._format_validation_error(exc)
+            errors = list(jsonschema.Draft7Validator(schema).iter_errors(parsed))
+            if errors:
+                # Report the most relevant violation first, plus up to 3 more so
+                # the model can fix every shape problem in ONE retry turn (the
+                # 2026-11-05 run burned one 50-minute attempt per error).
+                best = jsonschema.exceptions.best_match(errors)
+                others = [e for e in errors if e is not best][:3]
+                last_error = " | ".join(
+                    self._format_validation_error(e) for e in [best, *others]
+                )
+                if len(last_error) > 1200:
+                    last_error = last_error[:1200] + "..."
                 self._reject(
                     stage_id, attempt, f"Schema validation failed: {last_error}"
                 )
@@ -213,7 +236,7 @@ class LLMClient:
     # ------------------------------------------------------------- internals
     def _post_with_heartbeat(
         self, request: dict, stage_id: str, attempt: int
-    ) -> tuple[int, str, dict]:
+    ) -> tuple[int, str, dict, str | None]:
         """Run the blocking HTTP call on a worker thread and print a heartbeat
         while it waits, so a long thinking/generation call is visibly alive.
 
@@ -253,7 +276,7 @@ class LLMClient:
 
     def _post(
         self, request: dict, stage_id: str, attempt: int
-    ) -> tuple[int, str, dict]:
+    ) -> tuple[int, str, dict, str | None]:
         headers = {"Content-Type": "application/json"}
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
@@ -307,13 +330,14 @@ class LLMClient:
                 payload = resp.json()
                 content = payload["choices"][0]["message"]["content"]
                 usage = payload.get("usage", {})
+                finish_reason = payload["choices"][0].get("finish_reason")
             except (KeyError, IndexError, ValueError) as exc:
                 raise ModelCallError(
                     stage_id,
                     f"response did not match the OpenAI chat-completions shape ({exc}). "
                     f"Raw body starts with: {resp.text[:300]}",
                 ) from exc
-            return resp.status_code, content, usage
+            return resp.status_code, content, usage, finish_reason
 
         raise ModelCallError(
             stage_id, "unreachable retry loop exit"
@@ -340,8 +364,46 @@ class LLMClient:
 
     @staticmethod
     def _format_validation_error(exc: jsonschema.ValidationError) -> str:
+        """Compact, model-readable error (2026-11-05): path + what was expected +
+        what arrived. jsonschema's default message embeds the whole rejected
+        instance - once that was a 55k-character repr of 70 blocks, which bloated
+        the retry transcript and drowned the actual lesson in the error."""
         path = "/".join(str(p) for p in exc.absolute_path) or "(root)"
-        return f"at '{path}': {exc.message}"
+        kw = exc.validator
+        if kw == "type":
+            want = exc.validator_value
+            want = "/".join(want) if isinstance(want, list) else want
+            size = (
+                f" of {len(exc.instance)} items"
+                if isinstance(exc.instance, (list, dict, str))
+                else ""
+            )
+            return (
+                f"at '{path}': expected {want} here, "
+                f"got {LLMClient._json_name(exc.instance)}{size}"
+            )
+        if kw in ("maxItems", "minItems") and isinstance(exc.instance, list):
+            word = "at most" if kw == "maxItems" else "at least"
+            return f"at '{path}': expected {word} {exc.validator_value} items, got {len(exc.instance)}"
+        if kw in ("maxLength", "minLength") and isinstance(exc.instance, str):
+            word = "at most" if kw == "maxLength" else "at least"
+            return f"at '{path}': expected {word} {exc.validator_value} characters, got {len(exc.instance)}"
+        msg = exc.message if len(exc.message) <= 240 else exc.message[:240] + "..."
+        return f"at '{path}': {msg}"
+
+    @staticmethod
+    def _json_name(value: Any) -> str:
+        if value is None:
+            return "null"
+        if isinstance(value, bool):
+            return "boolean"
+        if isinstance(value, list):
+            return "array"
+        if isinstance(value, dict):
+            return "object"
+        if isinstance(value, str):
+            return "string"
+        return "number"
 
     @staticmethod
     def _redact(request: dict) -> dict:

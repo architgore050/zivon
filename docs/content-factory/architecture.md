@@ -97,7 +97,14 @@ of two different pipeline shapes are never mixed silently.
   recovery is re-running the trigger script, which resumes.
 - Model output must parse as JSON and validate against factory/schemas.py.
   Validation failures are retried with the error report fed back; after
-  `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError.
+  `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError. The feedback turn is
+  compact by contract (2026-11-05): each violation is reported as
+  `at '<path>': expected <what>, got <what arrived>` — never jsonschema's
+  default message, which embeds the whole rejected instance (once a 55k-char
+  repr of 70 blocks; the retry transcript ballooned 110k → 243k characters).
+  The best-match violation plus up to 3 more are reported in ONE turn, so the
+  model fixes every shape problem per retry instead of burning a 50-minute
+  attempt per error.
 - 02-generate runs the code-side rule checks (factory/checks.py) inside the
   model retry loop: the model sees its own fatal/major rule violations
   (invented number, uncited factual block, broken answer key) and fixes them.
@@ -146,6 +153,29 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   Operational note: when NCERT renews its leaf certificate, refresh the bundle
   (fetch chain → replace file) or the polite retry path keeps failing.
 
+## Chapter matching (stage 01)
+
+The matching contract was rewritten 2026-11-05 after the founder's killed
+class-11 run: the query "Motion in a Straight Line" silently built a LAWS OF
+MOTION page. Two harness bugs caused it, not the model:
+
+- EXACT means a TITLE CANDIDATE matches. Candidates are title-shaped lines
+  from the chapter opener (the line after a `CHAPTER <number-or-word>` line,
+  an inline `CHAPTER N Title`, or a standalone display-caps line like the
+  real NCERT opener's `MOTION IN A STRAIGHT LINE 15` - trailing book-page
+  numbers are stripped). Body prose can never claim an exact hit: the old
+  code's blob fallback matched a Newton's-first-law sentence in the LAWS OF
+  MOTION chapter, set `found = query` (which made it always "exact"), and
+  that fake hit beat the real chapter's title match (whose trailing page
+  number had broken its `==` comparison).
+- A phrase that only appears in a chapter's BODY is a demoted PARTIAL: it can
+  win only when no title matches anywhere, and it prints a loud warning
+  naming the chapter and demanding the operator verify the pick. The source
+  pack records `matched_via` (`title_line` / `body_phrase`) so the evidence
+  says how the chapter was chosen.
+- Ambiguity stays a hard error listing the candidates; the no-match error
+  lists the library's chapter titles.
+
 ## Traceability and accuracy rules
 
 - The generation call only sees the source pack (stage 01 output). It cannot
@@ -176,6 +206,14 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   dropped), 03-check reports omissions as fatal, and 04-repair fixes them by
   ADDING blocks (new ids appended at the end, teach-then-test, last added
   block a check) - never by re-running 02.
+- The coverage budget, reconciled 2026-11-05: the block sequence holds 4-45
+  blocks and the prompt states exactly that (schema `maxItems` and the prompt
+  may never contradict each other - the original 18-block cap clashed with the
+  coverage contract and a model squeezed between them wrote 70 blocks). When a
+  chapter's inventory is larger than the budget, same-type repetitive drills
+  fold into their most instructive instance: every concept and every exercise
+  TYPE must appear; identical repetitions may share one block. 03-check's
+  coverage gate uses the same type-level law.
 - Simulations are physics, so the facts travel with them: 05 receives the
   block's cited claims plus every ground-truth equation ("FACTS THE
   SIMULATION MUST OBEY"), and 09-review re-checks the FINAL draw loop against
@@ -186,6 +224,14 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   inventing.
 - Block payloads live under `spec` everywhere (AGENTS.md format), which
   resolves the AGENTS.md-vs-TIMELINE.md schema contradiction.
+- The 02-generate SHAPE example IS the contract (fixed 2026-11-05): it must
+  show exactly what the GENERATED schema requires - `blocks` is an object
+  whose single key `blocks` holds the ordered array (the wrapper is the
+  canonical artifact shape across render/interactive/review). In the killed
+  class-11 run the example showed a flat array while the schema required the
+  wrapper; the model obeyed the example and died on validation twice. A unit
+  test now pins the example's wrapper form and the prompt-stated budget to
+  the schema's `maxItems`.
 - Prompt WRITING follows `skills/prompting-and-agent-design/` (2026-11-04):
   generation prompts are goal + deliverable contract, not execution plans;
   reviewers get honest framing, an exact severity ladder and a way out
@@ -209,6 +255,11 @@ next slow run is diagnosable from the log alone:
   grinding for ten minutes now looks like work, not like a hang.
 - Rejected attempts print too (`attempt 2 rejected: ... -> retrying with the
   error fed back to the model`), so gate retries are visible.
+- `meta.json` records `finish_reason` per attempt (2026-11-05; it used to be
+  discarded, so a server-side context-limit truncation looked like a
+  mysterious parse failure). A `length` cut is rejected with plain advice
+  ("make the page more compact") instead of letting the model chase a broken
+  JSON error.
 - `status.json` stage entries carry `elapsed_s`; `run_report.json` aggregates
   `stage_durations_s` per stage (multi-round stages accumulate across rounds,
   resumed stages inherit their previous attempt's measurement) plus
@@ -225,6 +276,12 @@ next slow run is diagnosable from the log alone:
 - `--run-id` keeps parallel attempts of the same topic (each its own dir).
 - In the cluster, `runs/` lives on the `zivon-sources` PVC (subPath `runs`), so
   stage artifacts — and every attempt's evidence — survive pod death.
+- `PIPELINE_VERSION` (factory/stages.py) is part of the fingerprint. It is
+  bumped whenever stage contracts change, so a run dir built under the old
+  contract can never be resumed silently into new code — the guard refuses it
+  and says to pass `--fresh`. It is 4 since 2026-11-05 (locate matching +
+  generate blocks contract rewritten); version-3 run dirs, including the
+  contaminated class-11 one, are refused by design.
 
 ## Privacy
 

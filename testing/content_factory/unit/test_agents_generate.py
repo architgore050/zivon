@@ -21,7 +21,7 @@ from factory import agents
 from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.llm import LLMClient
-from factory.schemas import GENERATED, REPAIR
+from factory.schemas import BLOCKS, GENERATED, REPAIR
 from testing.content_factory.unit._server_env import (
     install_server_env,
     release_server_env,
@@ -139,7 +139,25 @@ class TestGenerateRuleWiring(unittest.TestCase):
         self.assertIn("COVERAGE CONTRACT", user)
         self.assertIn("end-of-chapter exercises", user)
         self.assertIn("every titled section of the chapter", user)
-        self.assertIn("every item of your chapter inventory must appear", user)
+        self.assertIn(
+            "every concept and every exercise type from your chapter inventory must",
+            user,
+        )
+
+    def test_generate_contract_shape_example_and_budget(self):
+        # Contract bug of 2026-11-05: the shape example showed "blocks" as a flat
+        # array while the GENERATED schema requires the {"blocks": [...]} wrapper -
+        # the model obeyed the example and died on validation twice. The example IS
+        # the contract: it must show the wrapper. And the budget the prompt states
+        # must equal the budget the schema enforces - prompt and schema may never
+        # contradict each other (the 70-block blowout was exactly that clash).
+        stub = StubLLM()
+        self._run_generate(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn('"blocks": {"blocks": [{"id": "b-01"', user)
+        self.assertIn('whose single key "blocks" holds the ordered block array', user)
+        self.assertIn("4-45 blocks", user)
+        self.assertEqual(BLOCKS["properties"]["blocks"]["maxItems"], 45)
 
     def test_prompt_carries_the_grounding_law(self):
         # The founder calibration: model priors must not smuggle in concepts the

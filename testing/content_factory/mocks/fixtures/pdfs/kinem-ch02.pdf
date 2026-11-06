@@ -1,0 +1,59 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 317 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(MOTION IN A STRAIGHT LINE 15) Tj T*
+(2.1 Introduction 15) Tj T*
+(An object moving along a straight line has position x at time t.) Tj T*
+(Displacement is the change in position. Velocity is the rate of) Tj T*
+(change of position. Acceleration is the rate of change of velocity.) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 224 >>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+14 TL
+(For uniform acceleration the equations are v = u + a*t and) Tj T*
+(s = u*t + \(1/2\)*a*t*t. A car starting from rest gains speed) Tj T*
+(uniformly; its average velocity is \(u + v\)/2.) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000559 00000 n 
+0000000685 00000 n 
+0000000960 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+1086
+%%EOF

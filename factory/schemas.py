@@ -216,7 +216,12 @@ BLOCKS: dict[str, Any] = {
         "blocks": {
             "type": "array",
             "minItems": 4,
-            "maxItems": 18,
+            # 45, not 18 (2026-11-05): the founder's coverage contract (the chapter
+            # is the unit of teaching - every section, in-text question and exercise)
+            # needs more blocks than the original 18; the founder's own rebuilt
+            # example carries ~28 content blocks for one chapter. The prompt states
+            # the same budget - prompt and schema must never contradict each other.
+            "maxItems": 45,
             "items": {
                 "type": "object",
                 "required": ["id", "type", "spec", "citations"],

@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
@@ -128,6 +129,7 @@ class TestLLMClient(unittest.TestCase):
                 "temperature",
                 "prompt_chars",
                 "response_chars",
+                "finish_reason",
             ):
                 self.assertIn(key, meta)
             self.assertEqual(state.served[0]["stage"], "02-generate")
@@ -280,6 +282,136 @@ class TestLLMClient(unittest.TestCase):
                 )
             self.assertIn("all 2 attempts", str(ctx.exception))
             self.assertIn("always wrong", str(ctx.exception))
+        finally:
+            server.shutdown()
+
+    def test_validation_error_is_compact_and_names_types(self):
+        # Founder run 2026-11-05: jsonschema embedded the whole rejected 70-block
+        # list (55k characters) in the error message and the retry transcript
+        # ballooned 110k -> 243k characters. Errors must show path + expected +
+        # arrived type only - never an instance dump.
+        flat_blocks = {"blocks": [{"id": f"b-{i:02d}"} for i in range(70)]}
+        wrapper_schema = {
+            "type": "object",
+            "required": ["blocks"],
+            "properties": {
+                "blocks": {
+                    "type": "object",
+                    "required": ["blocks"],
+                    "properties": {"blocks": {"type": "array"}},
+                }
+            },
+        }
+        server, url, _ = self._serve(
+            {"blocks": {"blocks": [1, 2, 3, 4]}}, scripted_first=flat_blocks
+        )
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                out = client.call(
+                    "02-generate",
+                    [
+                        {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
+                        {"role": "user", "content": "go"},
+                    ],
+                    wrapper_schema,
+                    "test",
+                )
+            self.assertEqual(out["blocks"]["blocks"], [1, 2, 3, 4])
+            feedback = json.loads(
+                (
+                    run.stage_dir("02-generate")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )["messages"][-1]["content"]
+            self.assertIn("expected object here, got array of 70 items", feedback)
+            self.assertLess(len(feedback), 1200)
+            self.assertNotIn("b-01", feedback)  # no instance repr in the transcript
+        finally:
+            server.shutdown()
+
+    def test_multiple_violations_reported_in_one_retry_turn(self):
+        # The 2026-11-05 run burned one 50-minute attempt per error. The feedback
+        # turn now carries the best match plus up to 3 more violations at once.
+        bad = {"topic": 42, "surprise": "x"}
+        schema = {
+            "type": "object",
+            "required": ["topic"],
+            "additionalProperties": False,
+            "properties": {"topic": {"type": "string"}},
+        }
+        server, url, _ = self._serve({"topic": "fixed"}, scripted_first=bad)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                out = client.call(
+                    "02-generate",
+                    [
+                        {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
+                        {"role": "user", "content": "go"},
+                    ],
+                    schema,
+                    "test",
+                )
+            self.assertEqual(out, {"topic": "fixed"})
+            feedback = json.loads(
+                (
+                    run.stage_dir("02-generate")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )["messages"][-1]["content"]
+            self.assertIn("at 'topic': expected string here, got number", feedback)
+            self.assertIn("surprise", feedback)  # second violation, same turn
+        finally:
+            server.shutdown()
+
+    def test_finish_reason_is_recorded_and_length_cut_rejected(self):
+        # Observability gap found 2026-11-05: meta.json discarded finish_reason, so
+        # a context-limit truncation looked like a mysterious parse failure. Now it
+        # is recorded per attempt and a 'length' cut is rejected with plain advice.
+        server, url, _ = self._serve(GOOD)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            with mock.patch.object(
+                LLMClient,
+                "_post_with_heartbeat",
+                side_effect=[
+                    (
+                        200,
+                        '{"topic": "trunc',
+                        {"prompt_tokens": 5, "completion_tokens": 5},
+                        "length",
+                    ),
+                    (
+                        200,
+                        json.dumps(GOOD),
+                        {"prompt_tokens": 5, "completion_tokens": 5},
+                        "stop",
+                    ),
+                ],
+            ):
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    out = self._call(client)
+            self.assertEqual(out, GOOD)
+            stage = run.stage_dir("02-generate") / "attempts"
+            meta1 = json.loads((stage / "attempt-01" / "meta.json").read_text())
+            meta2 = json.loads((stage / "attempt-02" / "meta.json").read_text())
+            self.assertEqual(meta1["finish_reason"], "length")
+            self.assertEqual(meta2["finish_reason"], "stop")
+            self.assertIn("finish_reason=length", buf.getvalue())
         finally:
             server.shutdown()
 

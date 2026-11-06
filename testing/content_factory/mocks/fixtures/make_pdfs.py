@@ -113,6 +113,47 @@ def main() -> None:
         ],
     )
 
+    # NCERT-style kinematics pair (2026-11-05 contamination regression):
+    # kinem-ch02 is the chapter the query names (clean display-caps title line
+    # with a trailing book-page number, like a real NCERT opener); kinem-ch04
+    # is the trap chapter whose BODY sentence contains the query phrase
+    # ("continues in uniform motion in a straight line") - it must never win
+    # an exact match.
+    make_pdf(
+        OUT / "kinem-ch02.pdf",
+        [
+            [
+                "MOTION IN A STRAIGHT LINE 15",
+                "2.1 Introduction 15",
+                "An object moving along a straight line has position x at time t.",
+                "Displacement is the change in position. Velocity is the rate of",
+                "change of position. Acceleration is the rate of change of velocity.",
+            ],
+            [
+                "For uniform acceleration the equations are v = u + a*t and",
+                "s = u*t + (1/2)*a*t*t. A car starting from rest gains speed",
+                "uniformly; its average velocity is (u + v)/2.",
+            ],
+        ],
+    )
+    make_pdf(
+        OUT / "kinem-ch04.pdf",
+        [
+            [
+                "LAWS OF MOTION 51",
+                "4.1 Introduction 51",
+                "Aristotle inferred that a force is needed to keep a body moving.",
+                "Galileo studied a ball rolling on a double inclined plane.",
+            ],
+            [
+                "On a frictionless plane a ball continues in uniform motion in a",
+                "straight line unless compelled to change its state by an external",
+                "force. This is the law of inertia. Momentum is the product of mass",
+                "and velocity, and its SI unit is kg m/s.",
+            ],
+        ],
+    )
+
     print(f"fixture PDFs written to {OUT}")
 
 

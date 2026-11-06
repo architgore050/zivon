@@ -91,7 +91,11 @@ def run_generate(
         "lesson section; in-text question or conceptual exercise -> a check "
         "block; worked example or multi-step numerical problem -> a "
         "worked_example block; a derivation or method the source walks through "
-        "-> a reveal block. Nothing from the inventory may be dropped. If a "
+        "-> a reveal block. Nothing from the inventory may be dropped. The block "
+        "sequence holds 4-45 blocks (the harness enforces this limit): if the "
+        "inventory is larger than the budget, fold same-type repetitive drills "
+        "into their most instructive instance - every concept and every "
+        "exercise TYPE must still appear. If a "
         "problem is unreadable in the source text (garbled figure data), replace "
         "it with an equivalent problem that the source's own method solves - "
         "never silently skip it.\n\n"
@@ -104,7 +108,8 @@ def run_generate(
         "diagram fill/stroke, invent nothing):\n"
         + palette_text(cfg)
         + "\n\nDELIVERABLE: ONE JSON object with exactly three layers - "
-        '"ground_truth", "lesson", "blocks".\n\n'
+        '"ground_truth", "lesson", "blocks" - the "blocks" layer is an object '
+        'whose single key "blocks" holds the ordered block array.\n\n'
         'LAYER 1 "ground_truth" - the page\'s fact base, synthesized from the '
         "sources above.\n"
         '- "topic": short topic name\n'
@@ -144,7 +149,8 @@ def run_generate(
         '- "sections": one per chapter topic - every titled section of the chapter '
         'gets its own lesson section (typically 5-10) - of {"id": "sec-01", "title", "paragraphs": ["...", ...]} in teaching order\n'
         '- "glossary": [{"term", "definition"}] - at least 3, plain-English definitions\n\n'
-        "LAYER 3 - blocks: lay the lesson out as an ordered block sequence for the study "
+        'LAYER 3 - blocks: an object {"blocks": [ ... ]} - the lesson laid out '
+        "as an ordered block sequence for the study "
         "page. Valid claim ids for citations come from layer 1.\n"
         "Block types and spec shapes:\n"
         '- text: {"paragraphs": ["..."]} - carry the lesson prose in reading order\n'
@@ -196,7 +202,7 @@ def run_generate(
         '"lesson": {"title": "...", "objectives": ["After this lesson you can ..."], '
         '"sections": [{"id": "sec-01", "title": "...", "paragraphs": ["..."]}], '
         '"glossary": [{"term": "...", "definition": "..."}]}, '
-        '"blocks": [{"id": "b-01", "type": "text", "spec": {"paragraphs": ["..."]}, '
+        '"blocks": {"blocks": [{"id": "b-01", "type": "text", "spec": {"paragraphs": ["..."]}, '
         '"citations": [{"claim_id": "claim-01"}]}, '
         '{"id": "b-02", "type": "check", "spec": {"question": "...", "format": "mcq", '
         '"options": ["2 m/s", "4 m/s", "6 m/s", "8 m/s"], "answer_index": 1, '
@@ -205,10 +211,11 @@ def run_generate(
         '{"id": "b-03", "type": "simulation", "spec": {"title": "...", "description": "...", '
         '"learning_goal": "...", "controls": [{"id": "speed", "label": "Speed (m/s)", '
         '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
-        '"citations": [{"claim_id": "claim-03"}]}]}'
+        '"citations": [{"claim_id": "claim-03"}]}]}}'
         "\n\nBefore you answer: reread the SOURCE MATERIAL against your draft - "
         "every number, unit and concept in the page must survive that reread, and "
-        "every item of your chapter inventory must appear in the page. "
+        "every concept and every exercise type from your chapter inventory must "
+        "appear in the page. "
         "Return only the JSON object."
     )
 
@@ -336,12 +343,15 @@ def run_check(
         "states. A wrong computed answer or wrong arithmetic step is fatal.\n"
         "7. COVERAGE: compare the page against the chapter's own structure - its "
         "titled sections, in-text questions, worked examples and end-of-chapter "
-        "exercises. Every one of them must appear on the page - taught, tested or "
-        "worked. Report every omission, quoting the chapter item that is missing.\n"
+        "exercises. Every chapter section and every distinct exercise TYPE must "
+        "appear on the page - taught, tested or worked; same-type repetitive "
+        "drills may share one representative block. Report every omitted "
+        "section or exercise type, quoting the chapter item that proves it is "
+        "missing.\n"
         "Severity ladder (apply it exactly):\n"
         "- fatal: a statement CONTRADICTS the source material, a check's answer key "
         "or a worked_example's computed answer is wrong, or the page omits a chapter "
-        "section, worked example or exercise that the SOURCE MATERIAL itself teaches. "
+        "section or an exercise TYPE that the SOURCE MATERIAL itself teaches. "
         "You must quote the source passage (or the omitted chapter item) that proves it.\n"
         "- major: a block teaches, tests, or relies on a Physics concept that the SOURCE "
         "MATERIAL never explains (a smuggled-in concept), or a learner would otherwise be "

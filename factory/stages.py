@@ -44,7 +44,10 @@ from .llm import LLMClient
 
 # Bump when the stage graph or stage contracts change: old run dirs then
 # refuse resume instead than mixing artifacts from two pipeline shapes.
-PIPELINE_VERSION = "3"
+# 4 (2026-11-05): 01-locate matching contract rewritten (title candidates only)
+# and 02-generate blocks contract fixed (wrapper + 4-45 budget) - version-3 run
+# dirs may carry a contaminated source pack, so resume must refuse them.
+PIPELINE_VERSION = "4"
 
 STAGE_ORDER = [
     "00-ingest",
