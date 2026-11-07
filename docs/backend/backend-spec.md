@@ -210,3 +210,43 @@ flowchart LR
 Layer independence is enforced at deployment level (nginx Core survives everything) and at
 the module level (voice failure never imports into content serving; guard/telemetry failures
 are fire-and-forget with local queues).
+
+---
+
+## 5. NFR table (every row measurable, tagged, and traced)
+
+Fixed-by-Stage-1 numbers are inherited, not re-derived. `[ASSUMPTION]` until measured;
+`[FIXED]` = set by Stage 1 / founder decision.
+
+| ID | Category | Requirement | Target | Status | Measure | Driven by | Owner |
+|---|---|---|---|---|---|---|---|
+| NFR-01 | Voice latency (Gate C) | end-of-speech (`ptt.stop`/endpoint) → first spoken audio byte at the client | **p50 ≤ 3.0 s, p90 ≤ 4.0 s** | `[ASSUMPTION]`; Gate-C gate is `< ~4 s` `[FIXED]` | EVT-006 per-stage histograms, server + client clocks | F-ADD-VOI-01, M2 | voice backend |
+| NFR-02 | Voice stage | STT final after end-of-speech | ≤ 1.5 s | `[FIXED]` NEED-006 | per-stage timer | F-ADD-VOI-01 | voice backend |
+| NFR-03 | Voice stage | LLM first token after STT final | < 1.2 s | `[FIXED]` NEED-007 | per-stage timer | F-ADD-VOI-04 | GPU host (A-09) |
+| NFR-04 | Voice stage | TTS first audio byte after text-stream start for that utterance | < 800 ms | `[FIXED]` NEED-008 | per-stage timer | F-ADD-VOI-01 | voice backend |
+| NFR-05 | Voice control | barge-in: `interrupt` received → TTS output stopped + `turn.cancelled` | ≤ 300 ms | `[FIXED]` handoff §3 | WS timers | F-ADD-VOI-01 AC-3 | voice backend |
+| NFR-06 | UX status | "thinking" cue after end-of-speech | ≤ 300 ms | `[FIXED]` P6 | client timer | F-ADD-VOI-01 | frontend |
+| NFR-07 | Content latency | lesson page interactive on low-end Android | product target **< 2 s** `[FIXED]`; current factory perf gate **6.0 s load / 3.5 s FCP** (founder loosening until measured) — both numbers always cited together | `[ASSUMPTION]` pending first measurements | perf harness (`weak-android` profile) + RUM | NEED-001, F-COR-LES-01 | factory/frontend |
+| NFR-08 | Read-aloud latency | first audio byte of a pre-generated narration asset | < 1.5 s p90 (static delivery — no runtime TTS call) | `[FIXED]` AC-1 F-WRP-TTS-01 (re-scoped by founder correction 2) | RUM | F-WRP-TTS-01 | nginx/static |
+| NFR-09 | API latency | session bootstrap / coverage PUT / consent PUT | < 300 ms p95 each | `[FIXED]` NEED-003/011/012 | endpoint histograms | F-ADD-VOI-01, F-ADD-MEM-01, F-XCT-CON-01 | voice backend |
+| NFR-10 | API latency | events ingestion added to interaction path / report submit / language-bundle fetch after switch | < 50 ms async / < 1 s / < 200 ms | `[FIXED]` NEED-010/014/016 | endpoint + client timers | F-OPS-TEL-01, F-COR-PROV-01, F-WRP-LAN-01 | voice backend/static |
+| NFR-11 | Voice availability | voice session establishment success (WSS connect + first turn) | ≥ 99 % monthly | `[ASSUMPTION]` | success ratio probe | F-ADD-VOI-01 | voice backend |
+| NFR-12 | Content availability | lesson bundles served (Core path) | ≥ 99.9 % monthly; independent of voice stack (probe both separately) | `[ASSUMPTION]` | synthetic uptime probe on `/courses/...` and `/v1/voice` separately | layer-independence rule | frontend/ops |
+| NFR-13 | Concurrency / scale | simultaneous live voice sessions; daily volume | 10 concurrent `[FIXED]` A-07; 500 sessions/day `[FIXED]` A-07; sizing: voice pod 1 CPU / 512 Mi limit, 1 replica `[ASSUMPTION]` | load test at 2× envelope (20 concurrent) | voice backend |
+| NFR-14 | Guard | credit counting overhead per call; guard-state push to open sessions | < 5 ms `[FIXED]` NEED-009; ≤ 5 s `[FIXED]` NEED-009 | per-call timers; EVT-008 lag | F-OPS-MET-01 | voice backend |
+| NFR-15 | Telemetry | client batching; local queue | ≤ 20 events / ≤ 5 s batch; queue ≤ 200, drop-oldest | `[FIXED]` NEED-010 | client tests | F-OPS-TEL-01 | frontend |
+| NFR-16 | Durability | lesson bundles, consent ledger, DB backups | ≥ 2 independent copies in ≥ 2 failure domains | `[FIXED]` method rule | restore drill evidence | storage-tiering §5 | ops |
+| NFR-17 | RPO | hot Postgres (U2) | ≤ 5 min (WAL `archive_timeout = 60 s` + archive lag metric) | `[ASSUMPTION]` | archive lag metric | db-spec §7 | ops |
+| NFR-18 | RPO | immutable published artifacts (bundles, narration) | 0 once published — the publish flip waits for a cold-verified copy | `[FIXED]` method rule (P0: synchronous publish-time verify) | catalogue state | storage-tiering SYNC-01 | factory/publish flow |
+| NFR-19 | RTO | full service restore from cold (DB PITR + PVC mirrors re-seeded) | ≤ 4 h | `[ASSUMPTION]` | monthly drill timing | storage-tiering §6 | ops |
+| NFR-20 | Integrity | cold copies checksum-verified on write; periodic scrub | 100 % verified on write; scrub 1–5 %/day sample | `[ASSUMPTION]` | scrub job report | storage-tiering §4 | sync worker |
+| NFR-21 | Capacity | SSD/PVC headroom watermarks | alert > 70 %, evict-eligible cache > 75 %, page > 90 % | `[ASSUMPTION]` | volume metrics | storage-tiering §4 | ops |
+| NFR-22 | Privacy | raw child audio stored | **none, ever** (transient buffer only, T11) | `[FIXED]` | storage audit (zero audio objects in U1–U4) | T11, F-XCT-CON-01 | voice backend |
+| NFR-23 | Privacy retention clocks | transcripts 7 d hard delete; coverage 24 h idle TTL; telemetry 90 d; credit ledger 90 d; session rows 30 d; IP-hash abuse buckets ≤ 72 h; reports until resolved + 90 d | as listed | `[FIXED]` handoff §6 (+ A-12) | retention-job audit | handoff §6 | voice backend/ops |
+| NFR-24 | Deletion SLA | guardian "clear my data" (NEED-013) | online wipe best-effort immediate (< 60 s p95 `[ASSUMPTION]`); full pipeline incl. cold/backup ageing ≤ 7 d target, DPDP 90-day posture post-challenge | `[ASSUMPTION]` | deletion-request completion timestamps | F-XCT-CON-01, NEED-013 | voice backend |
+| NFR-25 | Ledger accuracy | local credit ledger vs Gnani dashboard | drift ≤ 2 % | `[FIXED]` AC-2 F-OPS-MET-01 | daily reconciliation job | F-OPS-MET-01 | voice backend |
+| NFR-26 | Ops freshness | admin panels; run status | panels ≤ 5 min lag `[FIXED]`; run status ≤ 1 min `[FIXED]` INF-100 | panel timestamps | F-OPS-ADM-01 | voice backend |
+| NFR-27 | Maintainability | deploy rollback | ≤ 10 min (K8s rollout undo + image tag rotation per gotcha 9) | `[ASSUMPTION]` | drill | repo conventions | ops |
+| NFR-28 | Security | secrets in images/manifests/workflows; CI keys | zero (repo rule); CI key-free | `[FIXED]` | gitleaks + kube-linter in CI (exists) | AGENTS.md | ops |
+| NFR-29 | Observability | trace id spans client → WS → STT → LLM → TTS → client playback | 100 % of voice sessions carry a `trace_id`; EVT-006 covers every completed turn | `[ASSUMPTION]` | trace sampling audit | F-OPS-TEL-01 | voice backend |
+| NFR-30 | Ops access | admin views display only aggregated, non-identifying data; transcripts never shown on panels | by design (AC-4 F-OPS-ADM-01) | `[FIXED]` | panel audit | F-OPS-ADM-01 | voice backend |
