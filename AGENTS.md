@@ -88,6 +88,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 ### Content factory (build-time)
 
 - **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/content_factory/` (pipeline) and `testing/frontend/` (site shell).
+- **All model calls go through `llm_manager/`** — the shared, standalone model-call module (streaming transport, inactivity timeout, per-call wall-clock deadline, transport retries, validation rounds). `factory/llm.py` is a thin adapter over it; NO other module may hand-roll HTTP calls to an inference server. The same package also runs as the isolated llm-manager node (`llm_manager/service/`, own image, k8s/16) that the factory and every future consumer (translator) talk to; the voice agent is out of scope there (voice streaming is a different domain). See `llm_manager/README.md`.
 - **Prompt writing follows `skills/prompting-and-agent-design/`**: read it before
   writing, reviewing, or refactoring any stage prompt or agent-graph decision
   (goal-first prompts, contracts over coercion, reviewers with calibrated rubrics,
@@ -104,9 +105,10 @@ Decided stack: **Docker + Kubernetes + GitHub Actions + GHCR** — do not evalua
 Where the code lives:
 
 - `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
+- `Dockerfile.llm-manager` — the llm-manager NODE image (slim: `llm_manager/` + fastapi only, no torch/pdfplumber/playwright); the isolated model-access node every consumer talks to
 - `Dockerfile.frontend`, `docker/nginx.conf` — the frontend nginx image (static-site hosting; bakes only the hand-maintained shell, never generated pages)
-- `docker/inference-router.Dockerfile` — dev-only router (compose service `inference-router`): bridges the host's loopback-only OpenAI-format inference server to containers/cluster pods; not a product image, not in CI
-- `k8s/` — cluster manifests (numeric prefix = apply order) + `k8s/infra.env` (single source of truth for cluster config values: `TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S` — no secrets, no image tags); factory is a **Job**; frontend and any long-running service (voice backend) is **Deployment + Service**
+- `docker/inference-router.Dockerfile` — dev-only router (compose service `inference-router`): bridges the host's loopback-only OpenAI-format inference server to containers/cluster pods; the llm-manager node is its only client; not a product image, not in CI
+- `k8s/` — cluster manifests (numeric prefix = apply order) + `k8s/infra.env` (single source of truth for cluster config values: `TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL` (the router, the node's upstream), `ZIVON_LLM_MANAGER_URL` (the node's Service, the factory's upstream), `ZIVON_MODEL`, `ZIVON_TIMEOUT_S`, `ZIVON_CALL_DEADLINE_S` — no secrets, no image tags); `k8s/16-llm-manager.yaml` = the llm-manager Deployment + ClusterIP Service; factory is a **Job**; llm-manager and any long-running service (frontend, voice backend) is **Deployment + Service**
 - `scripts/apply-k8s.sh` (apply the whole stack from `infra.env` + startup test run), `scripts/trigger-tests.sh` and `scripts/trigger-factory-run.sh` (the two admin "buttons", Day-8 dashboard stand-ins — see TIMELINE.md), `scripts/publish-frontend.sh` (founder-run bridge: mirrors the cluster-built generated site into the repo's `frontend/` folder — the versioned, standalone-deployable snapshot, git history as the version rotation), `scripts/publish-artifacts.sh` (read-only evidence bridge: mirrors `runs/` from the `zivon-sources` PVC into the host's gitignored `runs/` for human inspection)
 - `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
 

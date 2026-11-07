@@ -5,9 +5,14 @@
 #
 # Order:
 #   1. namespace
-#   2. zivon-factory-config ConfigMap <- ZIVON_BASE_URL / ZIVON_MODEL (infra.env)
-#   3. manifests in dependency order. k8s/20 is deliberately NOT applied:
-#      factory generation is manual-only (scripts/trigger-factory-run.sh).
+#   2. zivon-llm-manager-config ConfigMap <- the llm-manager NODE's upstream
+#      (ZIVON_BASE_URL = the inference router, model, streaming/deadline knobs)
+#      and zivon-factory-config ConfigMap <- the FACTORY's view (its
+#      ZIVON_BASE_URL = the llm-manager Service, ZIVON_LLM_MANAGER_URL below)
+#   3. manifests in dependency order (16 = the llm-manager Deployment+Service,
+#      applied before anything that talks to it). k8s/20 is deliberately NOT
+#      applied: factory generation is manual-only
+#      (scripts/trigger-factory-run.sh).
 #   4. the test CronJob rendered with TEST_CRON_SCHEDULE from infra.env
 #   5. one immediate full test run (scripts/trigger-tests.sh startup)
 #
@@ -19,19 +24,39 @@ cd "$(dirname "$0")/.."
 source k8s/infra.env
 # export so envsubst (a child process) can see the values — sourced vars are
 # shell-local by default.
-export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S
+export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
+  ZIVON_CALL_DEADLINE_S ZIVON_STREAM ZIVON_STREAM_USAGE ZIVON_MAX_ATTEMPTS \
+  ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL
 
 kubectl apply -f k8s/00-namespace.yaml
 
-kubectl create configmap zivon-factory-config -n zivon \
+# The llm-manager NODE's config: its upstream is the router (ZIVON_BASE_URL),
+# and it owns the transport-retry budget for the model call.
+kubectl create configmap zivon-llm-manager-config -n zivon \
   --from-literal=ZIVON_BASE_URL="$ZIVON_BASE_URL" \
   --from-literal=ZIVON_MODEL="$ZIVON_MODEL" \
   --from-literal=ZIVON_TIMEOUT_S="$ZIVON_TIMEOUT_S" \
+  --from-literal=ZIVON_CALL_DEADLINE_S="$ZIVON_CALL_DEADLINE_S" \
+  --from-literal=ZIVON_STREAM="$ZIVON_STREAM" \
+  --from-literal=ZIVON_STREAM_USAGE="$ZIVON_STREAM_USAGE" \
+  --from-literal=ZIVON_MAX_ATTEMPTS="$ZIVON_MAX_ATTEMPTS" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# The FACTORY's config: it talks OpenAI chat-completions to the llm-manager
+# Service (ZIVON_LLM_MANAGER_URL rendered as its ZIVON_BASE_URL) and does NOT
+# retry transport itself (the node already retried the upstream leg).
+kubectl create configmap zivon-factory-config -n zivon \
+  --from-literal=ZIVON_BASE_URL="$ZIVON_LLM_MANAGER_URL" \
+  --from-literal=ZIVON_MODEL="$ZIVON_MODEL" \
+  --from-literal=ZIVON_TIMEOUT_S="$ZIVON_TIMEOUT_S" \
+  --from-literal=ZIVON_CALL_DEADLINE_S="$ZIVON_CALL_DEADLINE_S" \
+  --from-literal=ZIVON_MAX_ATTEMPTS="$ZIVON_FACTORY_MAX_ATTEMPTS" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl delete job factory-smoke -n zivon --ignore-not-found
 kubectl apply -f k8s/10-factory-smoke-job.yaml
 kubectl apply -f k8s/12-hf-cache-pvc.yaml -f k8s/13-sources-pvc.yaml -f k8s/15-frontend-pvc.yaml
+kubectl apply -f k8s/16-llm-manager.yaml
 kubectl apply -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -

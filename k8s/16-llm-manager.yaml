@@ -1,0 +1,116 @@
+# The llm-manager NODE: the shared model-call service (llm_manager/) as an
+# isolated Deployment + Service. It is the model-access point of the whole
+# system: the factory Job (k8s/20), the test suite, and every future consumer
+# (translator) point their ZIVON_BASE_URL at this Service and speak plain
+# OpenAI chat-completions; THIS pod is the only caller of the inference
+# server (via the dev inference router - see docs/deployment/kubernetes.md).
+#
+#     factory Job -> llm-manager Service (this file) -> inference-router -> server
+#
+# Long-running => Deployment + Service (the voice backend will follow the
+# same pattern). replicas=1 on purpose: the upstream inference server is
+# single-slot - extra replicas would only multiply queued connections.
+#
+# Image: zivon-llm-manager:0.1.0 (Dockerfile.llm-manager) - slim, no torch.
+# `minikube image load zivon-llm-manager:0.1.0` after building locally
+# (gotcha 2: minikube has its own image store).
+#
+# Config via envFrom (values live in k8s/infra.env, rendered by
+# scripts/apply-k8s.sh into the zivon-llm-manager-config ConfigMap):
+# its ZIVON_BASE_URL is the ROUTER address (the node's upstream), while the
+# FACTORY's ZIVON_BASE_URL points back at this Service. The API key comes
+# from the same runtime Secret the factory uses - never in a manifest.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-manager
+  namespace: zivon
+  labels:
+    app: zivon-llm-manager
+spec:
+  replicas: 1                    # the upstream server is single-slot; queueing happens there
+  selector:
+    matchLabels:
+      app: zivon-llm-manager
+  template:
+    metadata:
+      labels:
+        app: zivon-llm-manager
+    spec:
+      automountServiceAccountToken: false   # a model proxy needs no K8s API access
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000          # numeric UID of the image's "app" user (gotcha 1)
+      containers:
+        - name: llm-manager
+          image: zivon-llm-manager:0.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true   # kube-linter gate; the node writes nothing but its /tmp
+          ports:
+            - name: http
+              containerPort: 8000
+          # /healthz is process + config liveness ONLY: it never calls the
+          # inference server, so the node stays healthy (and the Service keeps
+          # its endpoints) while the upstream is down - failed calls fail fast
+          # with the upstream's words instead of the node disappearing.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          envFrom:
+            - configMapRef:
+                name: zivon-llm-manager-config   # the node's UPSTREAM (router URL, model, streaming knobs)
+          env:
+            - name: ZIVON_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-factory-env
+                  key: ZIVON_API_KEY
+                  optional: true   # keyless local servers need no Secret (same Secret as the factory Job)
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi       # pure IO proxy: langchain + fastapi, no model weights
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Cluster-internal address the factory's ConfigMap points ZIVON_BASE_URL at:
+#   http://llm-manager.zivon.svc.cluster.local:80/v1
+# Deliberately ClusterIP (NOT NodePort): the node is internal plumbing -
+# only the cluster talks to it, nothing on the LAN or the internet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-manager
+  namespace: zivon
+  labels:
+    app: zivon-llm-manager
+spec:
+  type: ClusterIP
+  selector:
+    app: zivon-llm-manager
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

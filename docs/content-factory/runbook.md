@@ -14,13 +14,19 @@ first use of stage 07 launches Chromium. Everything after that is local.
 Server settings live in the **environment**, never in files (AGENTS.md rule;
 see `docs/content-factory/config-reference.md` and `.env.example`):
 
-1. `export ZIVON_BASE_URL=http://127.0.0.1:8000/v1` and
+1. `export ZIVON_BASE_URL=http://127.0.0.1:8080/v1` and
    `export ZIVON_MODEL=<name as GET /v1/models reports it>` - missing either
    one is the tripwire that blocks startup. If your server needs a key:
    `export ZIVON_API_KEY=<key>` - the key value never goes into any file.
+   `ZIVON_BASE_URL` decides the topology: point it at the server directly
+   (local host runs) or at the llm-manager node (`http://127.0.0.1:18090/v1`
+   via `docker compose up -d llm-manager`; in the cluster the factory's
+   ConfigMap already points at the llm-manager Service - see
+   `docs/deployment/kubernetes.md`).
 2. If the server rejects `response_format` with a 400, set
    `ZIVON_JSON_MODE=false` (the pipeline tells you exactly this; it never
-   downgrades on its own).
+   downgrades on its own). If it rejects `stream_options` with a 400, set
+   `ZIVON_STREAM_USAGE=false` (same policy).
 3. Optional: per-stage `temperature` under `stage_overrides`
    in `config.json` (the behaviour file: learner, retrieval, limits, paths,
    perf, repair live there).
@@ -86,22 +92,62 @@ is correct end to end and the only remaining variable is your real model.
   refused once because the catcher semantics changed; from now on, tuning the
   repair caps will NOT invalidate run dirs — caps are no longer in the
   fingerprint.)
+
+## Reading the LIVE log (and what changed on 2026-11-07)
 - Every run keeps full evidence in `runs/<run_id>/<stage>/`:
   `output.json` per stage; `attempts/attempt-NN/{request,response,meta}.json`
   for every model call including retries (`meta.json` carries latency, token
-  usage, sampling and payload sizes); stages that re-ran per repair round
+  usage, sampling, payload sizes, and since 2026-11-07 the streaming
+  evidence: `stream`, `first_token_s`, `chunks_received`, `finish_reason`,
+  `call_deadline_s`); stages that re-ran per repair round
   keep rounds separated (`attempts/round-01/attempt-NN/`, plus
   `03-check/combined-<round>.json` and `04-repair`/`10-reviewfix`
   `history.json`); `status.json` (per-stage state + fingerprint + `elapsed_s`)
   and `run_report.json` (aggregated `stage_durations_s`, `started_at`,
   `completed_at`) at the run root.
-- Reading the LIVE log (added 2026-11-04 after a run looked frozen while the
-  giant 02-generate call was actually running): every stage prints
-  `[NN-stage] starting` / `[NN-stage] ok in Xs (detail)`; every model call is
-  bracketed by `model call started` / `finished in Xs (tokens...)`, and while
-  a call blocks a heartbeat prints every 60 s. A live heartbeat means the
-  model is thinking/generating - wait; no stage line and no heartbeat means
-  something else is wrong. `scripts/logs-factory-run.sh` tails the Job log.
+- Every stage prints `[NN-stage] starting` / `[NN-stage] ok in Xs (detail)`;
+  every model call is bracketed by `model call started (validation round
+  i/N...)` / `finished in Xs (tokens...)`, and while a call blocks a
+  heartbeat prints every 60 s: `still waiting on the model (Ns, N chunks
+  received...)`. READ THE CHUNK COUNTER: a heartbeat with `0 chunks` means
+  the model is still thinking (normal for a giant generation call); a
+  heartbeat with growing chunk counts means tokens are streaming.
+  `scripts/logs-factory-run.sh` tails the Job log.
+
+### The 2026-11-07 transport diagnosis (why streaming + the deadline exist)
+
+A run died at stage 10-reviewfix: the inference server kept generating tokens
+for 3,592 s per attempt (77,921 then 131,445 then 199,056 tokens across
+three transport tries) while the client sat silent and read-timed-out at
+3,600 s each time. Root cause: `requests`' timeout is a per-read-operation
+timeout, not a total cap - and a non-streaming response sends ZERO bytes
+until generation ends, so a rambling generation was unkillable and every
+retry re-bought the same lottery while the server's single slot burned. The
+fix is structural: model calls now run through the shared `llm_manager`
+module with streaming transport (inactivity between chunks = the honest
+dead-server signal, and the heartbeat shows real chunk progress) plus a
+total wall-clock deadline `ZIVON_CALL_DEADLINE_S` (7200 in the cluster) that
+closes the stream mid-generation - which is what makes the server STOP and
+frees its slot for the next try. The node topology (factory -> llm-manager
+Service -> router -> server) and its knobs are documented in
+`docs/content-factory/architecture.md`, "Model calls: the llm_manager node".
+
+### Live-server probe (streaming + usage-in-stream support)
+
+Before flipping `ZIVON_STREAM` / `ZIVON_STREAM_USAGE` on a NEW server, probe
+it (NEVER while a factory run is live - the server is single-slot):
+
+    curl -sN --max-time 120 http://127.0.0.1:8080/v1/chat/completions \
+      -H 'Content-Type: application/json' \
+      -d '{"model":"<ZIVON_MODEL>","messages":[{"role":"user","content":"Reply with exactly: OK"}],"stream":true,"stream_options":{"include_usage":true},"max_tokens":16}'
+
+Read the answer: SSE `data: {...}` chunks with deltas? A final `data: [DONE]`?
+A usage chunk (empty `choices`, `usage` object)? If the server answers 400
+blaming `stream_options`, set `ZIVON_STREAM_USAGE=false` in `k8s/infra.env`
+and re-apply. If it rejects `stream: true` outright, STOP - do not silently
+fall back; the streaming semantics are the fix, a server without streaming
+needs a decision, not a default.
+
 - Re-run only some stages: `python pipeline.py "Motion" --stages 03-check,06-render`
   (upstream artifacts are read from the latest previous run that has them,
   copied into the new run, and the source run is printed - use `--run-id` to

@@ -4,6 +4,8 @@ Status: v1 implemented 2026-11-01; **graph v2 decided and implemented
 2026-11-03** after the first measured runs (founder decisions: consolidate the
 reasoning layer into one giant call; whatever agent catches an issue is the
 one that fixes it; runs must be resumable). Branch `feature/content-factory-pipeline`.
+Model calls were moved onto the shared **llm_manager** module with streaming
+transport on 2026-11-07 (see "Model calls: the llm_manager node" below).
 Owner workstream: the build-time content factory. Voice runtime is out of scope here.
 
 ## What one command does
@@ -122,7 +124,9 @@ ConfigError telling the operator to pass `--fresh` (or pick another `--run-id`)
   model fixes every shape problem per retry instead of burning a 50-minute
   attempt per error. Only the LATEST rejected output is kept in full in the
   transcript; older ones are trimmed to a stub, so a chain of validation
-  rounds cannot eat the server's context.
+  rounds cannot eat the server's context. Since 2026-11-07 this machinery
+  lives in `llm_manager/validation.py` (reusable by any consumer); the
+  factory adapter supplies the artifacts and the stage errors.
 - 02-generate runs the code-side rule checks (factory/checks.py) inside the
   model retry loop: the model sees its own fatal/major rule violations
   (invented number, uncited factual block, broken answer key) and fixes them.
@@ -138,9 +142,10 @@ ConfigError telling the operator to pass `--fresh` (or pick another `--run-id`)
   spell out — advisory, never blocks. `unverified:` suspicions can never be
   filed as fatal/major. The reviewer is told to hunt REAL errors and pass a
   faithful draft — the v1 "assume there is at least one error" framing is gone.
-- Network errors / 429 / 5xx retry with backoff; any other HTTP error fails
-  immediately with the server's body (a 400 about response_format tells you to
-  set `ZIVON_JSON_MODE=false`).
+- Network errors / inactivity timeouts / 429 / 5xx retry with backoff; any
+  other HTTP error fails immediately with the server's body (a 400 about
+  response_format tells you to set `ZIVON_JSON_MODE=false`, one about
+  stream_options to set `ZIVON_STREAM_USAGE=false`).
 - Unknown config keys, missing class-evidence strings, wrong PDFs, ambiguous
   chapter names, answer-key mismatches, invented numbers, external URLs,
   inline scripts: all hard errors.
@@ -258,7 +263,91 @@ MOTION page. Two harness bugs caused it, not the model:
   needs to judge - including the lesson text at 03-check, so "taught before
   tested" is verifiable.
 
-## Observability (2026-11-04)
+## Model calls: the llm_manager node (2026-11-07)
+
+Why this exists: on 2026-11-07 a factory run died at stage 10-reviewfix. The
+inference server kept generating tokens for 3,592 s per attempt (77,921 then
+131,445 then 199,056 tokens across three transport tries) while the client
+sat silent and read-timed-out at 3,600 s each time. The old client's
+`requests` timeout is a per-read-operation timeout, not a total cap, and a
+non-streaming response sends zero bytes until generation ends - so a rambling
+generation was unkillable, and every transport retry re-bought the same
+lottery while the single server slot burned.
+
+The fix is structural, and it lives in a standalone package plus its own
+deployment node:
+
+- **`llm_manager/` (library)** - the single, generalized model-call module:
+  `config.py` (LLMConfig: every knob is an input variable), `client.py`
+  (LLMManager: `complete()` / `stream()` / `stream_events()`),
+  `validation.py` (parse + schema rounds with errors-as-context feedback),
+  `errors.py`. It imports NOTHING from `factory/` (guarded by a test),
+  prints nothing (observer hooks instead), never counts tokens locally (the
+  server's reported usage only), and owns retry semantics itself
+  (`max_retries=0` is mandatory on the underlying langchain client so there
+  is exactly one retry policy).
+- **`llm_manager/service/` (the node)** - the same package behind a small
+  FastAPI app speaking plain OpenAI chat-completions (`POST
+  /v1/chat/completions`, aggregated or SSE; `GET /healthz` is process-only
+  and never calls the model). Shipped as its own slim image
+  (`Dockerfile.llm-manager`, no torch/pdfplumber/playwright) and deployed as
+  an isolated Deployment + Service (`k8s/16-llm-manager.yaml`, ClusterIP).
+
+Call topology (who talks to whom):
+
+    factory Job -> llm-manager Service -> inference-router (dev) -> server
+
+Every consumer points its `ZIVON_BASE_URL` at the node and speaks OpenAI
+format; the node is the only caller of the inference server. That is why a
+future translation service needs zero new plumbing (same env contract), and
+why the voice agent stays out of scope here (voice streaming is a different
+domain).
+
+**Streaming semantics (the honest timeouts):**
+
+- Model calls stream by default (`ZIVON_STREAM=true`): bytes flow as tokens
+  are generated. `ZIVON_TIMEOUT_S` therefore means the maximum INACTIVITY
+  between chunks - a thinking model legitimately silent before its first
+  token keeps the call alive only up to the inactivity bound; a dead server
+  is detected honestly; a generating server is never mistaken for a hung
+  one. With `stream=false` the old per-read-operation semantics apply (and
+  bound nothing) - the non-streaming path is kept working, not shipped as
+  the default.
+- `ZIVON_CALL_DEADLINE_S` (cluster default 7200) is a total wall-clock cap
+  per model call, checked on every chunk. On breach the stream is CLOSED
+  mid-generation - closing the connection is what makes the server stop
+  generating and frees its single slot - and a TransportError names the
+  deadline and the chunk count. This is the knob that bounds a runaway
+  generation even when every token keeps arriving on time.
+- Transport retries (`ZIVON_MAX_ATTEMPTS`, exponential backoff
+  `ZIVON_BACKOFF_BASE_S`) cover connection errors, inactivity timeouts, 429
+  and 5xx. A retry restarts the WHOLE response; on the incremental API
+  (`stream_events`) a failure after deltas were already delivered propagates
+  instead of silently restarting (duplicated text is worse than a loud
+  error).
+- Retries live at the node: the factory's cluster ConfigMap ships
+  `ZIVON_MAX_ATTEMPTS=1` for its leg because the node already retried the
+  upstream leg - without that split, one dead upstream would fan out into
+  node-attempts x factory-attempts calls.
+
+**Factory adapter (`factory/llm.py`):** a thin layer keeping every existing
+contract - same public API, same artifacts
+(`attempts/[<round_tag>/]attempt-NN/{request,response,meta}.json`, with
+additive streaming evidence in meta.json: `stream`, `first_token_s`,
+`chunks_received`, `call_deadline_s`, `finish_reason`), same error types
+(llm_manager failures surface as the same ModelCallError / SchemaError with
+their message shapes), same prints upgraded for streaming: the heartbeat now
+shows REAL progress (`N chunks received`), so "thinking, no tokens yet" and
+"streaming steadily" are visibly different states in the log. Validation
+rounds run in-process via `llm_manager.validation.run_validation_rounds` -
+only the LATEST rejected output stays in full in the retry transcript; older
+ones are trimmed to 1200 chars (their full text is in the attempt artifacts).
+
+No completion cap is ever sent (2026-11-04 founder decision, unchanged):
+`max_tokens` is a constructor-only knob in LLMConfig with NO environment
+variable - the factory never sets it; future consumers may, from code.
+
+## Observability (2026-11-04, streaming upgrade 2026-11-07)
 
 The 2026-11-04 stall diagnosis - a legitimate giant 02-generate call ran while
 the log stayed silent for its whole duration - added a heartbeat layer. The
@@ -266,11 +355,13 @@ next slow run is diagnosable from the log alone:
 
 - Every stage transition prints a live line: `[02-generate] starting` /
   `[02-generate] ok in 84.2s (claims=12 blocks=15)`.
-- Every model call is bracketed: `model call started (attempt 1/3...)`, then
-  while it is in flight a heartbeat every 60 s (`still waiting on the model
-  (60s on this attempt...)`), then `model call finished in Xs
-  (prompt_tokens=..., completion_tokens=...)`. A thinking model legitimately
-  grinding for ten minutes now looks like work, not like a hang.
+- Every model call is bracketed: `model call started (validation round
+  1/5...)`, then while it is in flight a heartbeat every 60 s (`still
+  waiting on the model (60s, 42 chunks received...)`), then `model call
+  finished in Xs (prompt_tokens=..., completion_tokens=...)`. A thinking
+  model legitimately grinding for ten minutes now looks like work, not like
+  a hang - and the chunk counter distinguishes "thinking, no tokens yet"
+  from "streaming steadily".
 - Rejected attempts print too (`attempt 2 rejected: ... -> retrying with the
   error fed back to the model`), so gate retries are visible.
 - `meta.json` records `finish_reason` per attempt (2026-11-05; it used to be

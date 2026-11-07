@@ -17,6 +17,7 @@ from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.errors import ModelCallError, SchemaError
 from factory.llm import LLMClient, parse_json_object
+from llm_manager import ChatResult, ValidationExhaustedError, run_validation_rounds
 from testing.content_factory.mocks.openai_mock import start_mock
 
 GOOD = {"topic": "x", "claims": []}
@@ -34,7 +35,8 @@ def make_cfg(tmp: Path, base_url: str, attempts: int = 3, validation_rounds=None
     base["paths"]["runs"] = str(tmp / "runs")
     path = tmp / "config.json"
     path.write_text(json.dumps(base), encoding="utf-8")
-    # server settings are env-only now
+    # server settings are env-only now; ZIVON_MAX_ATTEMPTS is the TRANSPORT
+    # retry budget - the model's own repair budget is ZIVON_VALIDATION_ROUNDS
     os.environ["ZIVON_BASE_URL"] = base_url
     os.environ["ZIVON_MODEL"] = "mock-model"
     os.environ["ZIVON_MAX_ATTEMPTS"] = str(attempts)
@@ -73,6 +75,8 @@ class TestLLMClient(unittest.TestCase):
             "ZIVON_MODEL",
             "ZIVON_MAX_ATTEMPTS",
             "ZIVON_VALIDATION_ROUNDS",
+            "ZIVON_STREAM",
+            "ZIVON_CALL_DEADLINE_S",
         ):
             os.environ.pop(key, None)
 
@@ -135,6 +139,14 @@ class TestLLMClient(unittest.TestCase):
                 "finish_reason",
             ):
                 self.assertIn(key, meta)
+            # additive streaming evidence (2026-11-07): the run dir shows the
+            # call streamed, how fast the first token landed and how many
+            # chunks arrived - plus the deadline that bound it.
+            self.assertIs(meta["stream"], True)
+            self.assertEqual(meta["finish_reason"], "stop")
+            self.assertGreater(meta["chunks_received"], 1)
+            self.assertIsNotNone(meta["first_token_s"])
+            self.assertIn("call_deadline_s", meta)
             self.assertEqual(state.served[0]["stage"], "02-generate")
         finally:
             server.shutdown()
@@ -307,13 +319,28 @@ class TestLLMClient(unittest.TestCase):
         # Context guard (2026-11-06): only the LATEST rejected output is kept
         # in full; older giant outputs are trimmed so a chain of validation
         # rounds cannot stack up and eat the server's context window.
-        transcript = [
-            {"role": "system", "content": "sys"},
-            {"role": "user", "content": "go"},
-        ]
-        LLMClient._feedback(transcript, "x" * 5000, "first violation")
-        LLMClient._feedback(transcript, "y" * 100, "second violation")
-        assistants = [m for m in transcript if m["role"] == "assistant"]
+        # (2026-11-07: the machinery moved to llm_manager/validation.py - the
+        # test drives it through run_validation_rounds with a scripted call_fn.)
+        seen: list[list[dict[str, str]]] = []
+        outputs = ["x" * 5000, "y" * 100, "z"]
+
+        def call_fn(
+            round_no: int, transcript: list[dict[str, str]]
+        ) -> tuple[str, str | None]:
+            seen.append([dict(m) for m in transcript])
+            return outputs[round_no - 1], "stop"
+
+        with self.assertRaises(ValidationExhaustedError):
+            run_validation_rounds(
+                call_fn,
+                [{"role": "user", "content": "go"}],
+                SIMPLE_SCHEMA,
+                "test",
+                rounds=3,
+            )
+        # round 3's transcript: the round-1 giant output is trimmed, the
+        # round-2 (latest rejected) output is still full.
+        assistants = [m for m in seen[-1] if m["role"] == "assistant"]
         self.assertEqual(len(assistants), 2)
         self.assertLess(len(assistants[0]["content"]), 2000)
         self.assertIn("trimmed", assistants[0]["content"])
@@ -413,32 +440,37 @@ class TestLLMClient(unittest.TestCase):
         # Observability gap found 2026-11-05: meta.json discarded finish_reason, so
         # a context-limit truncation looked like a mysterious parse failure. Now it
         # is recorded per attempt and a 'length' cut is rejected with plain advice.
+        # (2026-11-07: transport moved into llm_manager - the test injects the two
+        # ChatResults at the new seam, factory.llm.LLMManager.)
         server, url, _ = self._serve(GOOD)
         try:
             cfg = make_cfg(self.tmp, url)
             run = self._run(cfg)
             client = LLMClient(cfg, run)
-            with mock.patch.object(
-                LLMClient,
-                "_post_with_heartbeat",
-                side_effect=[
-                    (
-                        200,
-                        '{"topic": "trunc',
-                        {"prompt_tokens": 5, "completion_tokens": 5},
-                        "length",
-                    ),
-                    (
-                        200,
-                        json.dumps(GOOD),
-                        {"prompt_tokens": 5, "completion_tokens": 5},
-                        "stop",
-                    ),
-                ],
+            usage = {"prompt_tokens": 5, "completion_tokens": 5}
+
+            def chat_result(text: str, finish: str) -> ChatResult:
+                return ChatResult(
+                    text=text,
+                    usage=dict(usage),
+                    finish_reason=finish,
+                    http_status=200,
+                    latency_s=1.0,
+                    first_token_s=0.5,
+                    chunks_received=3,
+                    model="mock-model",
+                )
+
+            buf = io.StringIO()
+            with (
+                mock.patch("factory.llm.LLMManager") as manager_cls,
+                redirect_stdout(buf),
             ):
-                buf = io.StringIO()
-                with redirect_stdout(buf):
-                    out = self._call(client)
+                manager_cls.return_value.complete.side_effect = [
+                    chat_result('{"topic": "trunc', "length"),
+                    chat_result(json.dumps(GOOD), "stop"),
+                ]
+                out = self._call(client)
             self.assertEqual(out, GOOD)
             stage = run.stage_dir("02-generate") / "attempts"
             meta1 = json.loads((stage / "attempt-01" / "meta.json").read_text())

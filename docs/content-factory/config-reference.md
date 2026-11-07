@@ -17,26 +17,50 @@ variable; production always uses the repo root `config.json`.
 
 ## Server (environment variables)
 
+Since 2026-11-07 model calls run through the shared `llm_manager` module
+(streaming by default; see `llm_manager/README.md` and the architecture doc,
+"Model calls: the llm_manager node"). The same variables configure BOTH
+sides of the topology - the llm-manager node (its upstream is the inference
+router in containers/cluster) and the factory (its upstream is the node in
+the cluster, or the server directly on a local host):
+
+    factory -> llm-manager node -> (inference router) -> inference server
+
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
-| `ZIVON_BASE_URL` | yes | — | OpenAI-format base, e.g. `http://127.0.0.1:8000/v1`. `/chat/completions` is appended. |
+| `ZIVON_BASE_URL` | yes | — | OpenAI-format base, e.g. `http://127.0.0.1:8000/v1`. `/chat/completions` is appended. WHAT it points at depends on the plane: locally the server (or the node on `:18090`); in the cluster the llm-manager Service for the factory, and the router for the node (see `k8s/infra.env`). |
 | `ZIVON_MODEL` | yes | — | Model name exactly as your server reports it (e.g. via `GET /v1/models`). |
-| `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. |
-| `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. |
+| `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. Read by BOTH the factory leg and the node's upstream leg. |
+| `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. On the node this is node policy (a body `response_format` from a consumer is accepted for wire compatibility but ignored). |
 | `ZIVON_TEMPERATURE` | no | `0.2` | Default sampling temperature (per-stage override below). |
-| `ZIVON_TIMEOUT_S` | no | `3600` | Per-request timeout. Huge on purpose: local single-slot models are slow. It is the run's backstop - a hung call dies on its own; there is no wall-clock cap on the run itself (2026-11-06). |
-| `ZIVON_MAX_ATTEMPTS` | no | `3` | TRANSPORT retries only (2026-11-06): network/timeout/429/5xx retried inside ONE model call. |
-| `ZIVON_VALIDATION_ROUNDS` | no | `5` | The model's own repair budget per stage call: each JSON/schema/rule-validation failure gets the exact violation fed back and a fresh round to fix it. Separate from (and wider than) transport retries — the pipeline is continuous improvement, not a one-shot exam. Older rejected outputs are trimmed from the retry transcript. |
+| `ZIVON_TIMEOUT_S` | no | `3600` | **SEMANTIC CHANGE 2026-11-07:** with streaming (the default) this is the maximum INACTIVITY between streamed chunks — a generating server keeps the call alive, a dead one is detected honestly after this many silent seconds. With `ZIVON_STREAM=false` it degrades to the classic per-read-operation timeout, which bounds nothing (a non-streaming response sends zero bytes until the end). Huge on purpose; `ZIVON_CALL_DEADLINE_S` (below) is the wall-clock backstop — there is NO wall-clock cap on the run Job itself (2026-11-06 founder decision). |
+| `ZIVON_STREAM` | no | `true` | Streaming model calls. The honest-timeout path; disable only for a server without streaming support. |
+| `ZIVON_STREAM_USAGE` | no | `true` | Ask for usage stats in the final stream chunk (`stream_options.include_usage`). If the server 400s on `stream_options` (the error message says exactly this), set `false`. Probe first — command in the runbook. |
+| `ZIVON_CALL_DEADLINE_S` | no | `0` (= off) | Total wall-clock cap per model call. On breach the stream is CLOSED mid-generation (which makes the server stop generating and frees its slot) and the call fails with a TransportError naming the deadline. The cluster ships `7200` — generous by design; raise only deliberately. This is the fix for the 2026-11-07 runaway generation. |
+| `ZIVON_CONNECT_TIMEOUT_S` | no | `10` | TCP connect timeout. |
+| `ZIVON_MAX_ATTEMPTS` | no | `3` | Transport retries ONLY (connection errors, inactivity timeouts, 429, 5xx), exponential backoff from `ZIVON_BACKOFF_BASE_S`. In the cluster the factory ships `1` (see below). |
+| `ZIVON_BACKOFF_BASE_S` | no | `2.0` | Exponential backoff base (2 → 4 → 8 … seconds). |
+| `ZIVON_VALIDATION_ROUNDS` | no | `5` | The model's own repair budget per stage call: schema/JSON/length/rule failures are fed back (errors-as-context) and retried up to this many rounds, then SchemaError. Separate from the transport budget — the two never consume each other. |
+| `ZIVON_HEARTBEAT_S` | no | `60` | In-flight heartbeat cadence (`still waiting on the model (Ns, N chunks received...)`). |
 
-**No completion cap (2026-11-04 founder decision):** the factory sends no
-`max_tokens` at all. A measured `09-review` call spent 49,750 completion
-tokens (mostly thinking) and then answered correctly - Qwen thinks a lot and
-then gets things right, so any cap is a truncation risk. The server's own
-context budget bounds answer length; `ZIVON_TIMEOUT_S` is the backstop - a
-hung call dies on its own, and there is no wall-clock cap on the run itself
-(2026-11-06 founder decision). `.env.example` at the repo root documents the
-full set. A `server` section in `config.json` is now a hard error with a
+**No completion cap (2026-11-04 founder decision, unchanged):** the factory
+sends no `max_tokens` at all. A measured `09-review` call spent 49,750
+completion tokens (mostly thinking) and then answered correctly - Qwen thinks
+a lot and then gets things right, so any cap is a truncation risk.
+`max_tokens` exists in `llm_manager.LLMConfig` as a CONSTRUCTOR-ONLY knob
+with no environment variable, so only code can ever set it (a future
+translator may; the factory never does). The server's own context budget,
+`ZIVON_TIMEOUT_S` (inactivity) and `ZIVON_CALL_DEADLINE_S` (per-call wall
+clock) are the backstops; the run Job itself has no deadline (2026-11-06
+founder decision). `.env.example` at the repo root documents
+the full set. A `server` section in `config.json` is a hard error with a
 migration hint - delete it.
+
+**In-cluster retry split (why the factory's `ZIVON_MAX_ATTEMPTS` is `1` in
+its ConfigMap):** transport retries belong to the llm-manager node, which
+already retries the upstream leg. If the factory also retried, one dead
+upstream would fan out into node-attempts x factory-attempts calls. Local
+runs that bypass the node keep the default `3`.
 
 ## learner
 

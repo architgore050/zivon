@@ -10,6 +10,32 @@
 # host, and download caches (PDFs, text, HF models) warm between runs.
 # frontend/ is mounted so generated pages survive the container's death.
 services:
+  # The llm-manager NODE: the isolated model-call service (llm_manager/ +
+  # FastAPI, Dockerfile.llm-manager). The model-access point of the whole
+  # system - the factory talks OpenAI chat-completions to THIS and this is
+  # the only caller of the inference server:
+  #   factory -> llm-manager -> (inference-router) -> host server
+  # Its upstream is the host server (direct here; via the router for the
+  # cluster - k8s/infra.env carries the cluster value). To route the FACTORY
+  # through the node, run it with
+  #   ZIVON_BASE_URL=http://llm-manager:8000/v1
+  # (compose DNS) instead of the host address.
+  llm-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm-manager
+    image: zivon-llm-manager:0.1.0
+    environment:
+      # The node's UPSTREAM (what IT calls): the host's OpenAI-format server.
+      - ZIVON_BASE_URL=${ZIVON_BASE_URL:-}
+      - ZIVON_MODEL=${ZIVON_MODEL:-}
+      - ZIVON_API_KEY=${ZIVON_API_KEY:-}
+    ports:
+      # Host-side reachability for curl checks and for host-run consumers.
+      # 18090: distinct from the router's 18080 and the site's 8081.
+      - "127.0.0.1:18090:8000"
+    restart: unless-stopped
+
   factory:
     build: .
     image: zivon-factory:0.3.10

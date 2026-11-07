@@ -29,13 +29,15 @@ Run from the repo root:
 | `unit/test_design.py` | live design doctrine loading, example glob, palette parsing from zivon.css |
 | `unit/test_interactive.py` | Visual Builder wiring: per-sim calls, facts + doctrine in prompt, lint inside the retry loop |
 | `unit/test_render.py` | page HTML, CSP, manifest, staging layout, lint-gated render, courses.js |
-| `unit/test_llm.py` | LLM client vs mock: artifacts on disk (incl. timing/usage meta), retry feedback loops, per-round attempt separation, call start/finish log lines, error paths |
+| `unit/test_llm.py` | LLM client adapter vs mock: artifacts on disk (incl. timing/usage meta + streaming evidence), retry feedback loops, per-round attempt separation, call start/finish log lines, error paths |
+| `unit/test_llm_manager.py` | the standalone `llm_manager` package vs mock: streaming happy path (usage/finish_reason/first_token_s/chunks), 500-retry + 5xx exhaustion, non-retryable 400 with the server's words + hint, deadline abort (with proof the server saw the disconnect), inactivity-timeout retry, bad-shape error, non-streaming path, `LLMConfig.from_env()` coverage + sanity ranges, validation rounds (errors fed back, trimming, exhaustion), package isolation (never imports factory/) |
+| `unit/test_llm_manager_service.py` | the llm-manager SERVICE node (fastapi TestClient vs mock): `/healthz` without upstream calls, aggregated + SSE chat-completions (deltas reconstruct the text, usage chunk on request), upstream 500-exhaustion -> 502, upstream 400 passthrough with the hint, static no-factory-import guard |
 | `unit/test_perf_profile.py` | profile validation and budget verdict logic |
 | `unit/test_perf_fixloop.py` | 07-perf → 08-fixloop routing: fixable vs unfixable BudgetError, bounded rounds, pedagogy guard |
 | `unit/test_review.py` | Code Reviewer prompt (cited facts, drawn behaviour, live doctrine, honest framing + `unverified:` way-out) + the v2 contract: a fail verdict is RETURNED as the report (routing to 10-reviewfix), not raised |
 | `unit/test_catalog_sync.py` | catalog.json ↔ docs/content-factory/source-catalog.md sync; class coverage 6-12 |
 | `integration/test_end_to_end.py` | the REAL orchestrator as a subprocess: fixture PDFs → every stage → linked page; resume (re-trigger reuses completed stages), fingerprint guard, catcher routing (03→04, 09→10, bounded), observability asserts (stage lines, call brackets, per-stage `elapsed_s`), loud-failure test with a dead server |
-| `mocks/openai_mock.py` | OpenAI-format mock keyed on the `[ZIVON STAGE: ...]` marker; supports scripted first-attempt failures per stage (per-test fixture dirs) |
+| `mocks/openai_mock.py` | OpenAI-format mock keyed on the `[ZIVON STAGE: ...]` marker; STREAMING (SSE delta chunks + finish_reason + usage chunk + `[DONE]`) and non-streaming answers; scripted first-attempt failures per stage plus one-shot failure injections (`__fail500`, `__fail400`, `__badshape`, `__slow`, `__stall`, `__midstream_close`) and client-disconnect recording (per-test fixture dirs) |
 | `mocks/fixtures/` | component fixtures (`gt/lesson/blocks.json`), the combined `02-generate.json`, gate reports, `repair_plan.json`, fix plans + `make_pdfs.py` (hand-rolled minimal PDFs, reproducible) |
 | `perf/harness.py` | the Performance Engineer's instrument (CPU throttle, RSS sampling, FPS, budgets) |
 | `perf/profiles/*.json` | harshness tuning: `weak-android.json` (shipping gate; load/FCP budgets loosened 2026-11-04, see architecture doc), `mid-laptop.json` |
