@@ -161,6 +161,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 - Design system: type scale, color tokens, spacing, corner radii, component states. Polish the **exact screens the demo will show** first. Note (2026-11-04): the §10 lesson shell was pulled forward and ported into `zivon.css`/`zivon.js` + `render.py` (hand-stroke SVG pass) — Day 9 keeps the remaining §10 items (two-column page grid, language bar) plus polish.
 - Mobile-first responsiveness (primary device: low-end Android), micro-interactions, Devanagari rendering, contrast/accessibility basics.
 - Frontend telemetry events (engagement per topic/visual) flowing into the dashboard.
+- **Voice dock UI guard (founder 2026-11-07):** docs reference design-doctrine §10.12 as the dock's design home; the founder is adding §10.12 manually. Before dock UI work: verify the doctrine explicitly contains it — if not, inform the founder and halt dock frontend work (standing note in AGENTS.md).
 
 **Done when**: demo-flow screens meet the design bar; telemetry events landing in the dashboard.
 

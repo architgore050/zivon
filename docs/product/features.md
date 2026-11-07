@@ -473,6 +473,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 | Evidence | [STRONG] repo mandate; state-machine practice [WEAK-MODERATE] |
 | Depends on / blocks | NEED-003/004/006/007/008/009 (voice backend — to build); consent F-XCT-CON-01 gates first use |
 | Layer-independence | the whole ADD layer is off-switchable: dock collapses to a quiet "tutor unavailable" state; Core untouched |
+| Design home | design-doctrine **§10.12 (Voice dock)** — paper-card device, state visuals per dock state, earcon policy (≤ 3 non-speech sounds), chip styling, lazy-load rule, focus order after block text. (Section authored manually by founder 2026-11-07 — if the doctrine does not yet contain it, see the AGENTS.md voice-dock guard: inform founder, halt dock frontend work.) |
 
 **Behaviour (EARS)**
 1. When the mic button is pressed (push-to-talk), the system shall move dock → listening with an earcon + visual, and open the voice channel (NEED-004).
@@ -1117,6 +1118,10 @@ Non-blocking open questions stay on their cards.
   **Deferred 2026-11-07 (founder)** — rides with the translation-engine build;
   per-script / per-text-size vertical-offset direction recorded (T4 row + handoff §8).
 - **DCR-002** — design-doctrine §10.12: voice dock as a doctrine-covered component.
+  **Adopted 2026-11-07 (founder)** — the founder authors §10.12 manually; product docs
+  reference it as the dock's design home (F-ADD-VOI-01 "Design home" row). Agent guard:
+  if the doctrine does not yet explicitly contain the voice dock directive, inform the
+  founder and halt frontend work on the dock UI (standing note in AGENTS.md).
 
 Both await the doctrine owner (founder). No doctrine text was changed by this doc.
 
@@ -1148,5 +1153,6 @@ of its headline numbers:
 - **7 schema proposals** (SC-01…SC-07) + 1 test-set proposal (axe-core in factory CI).
 - **2 Doc Change Proposals:** DCR-001 (Devanagari verification clause — **deferred
   2026-11-07**, rides with the translation-engine build), DCR-002
-  (doctrine §10.12 voice dock).
+  (doctrine §10.12 voice dock — **adopted 2026-11-07**; founder authors the doctrine
+  section manually, agent guard in AGENTS.md).
 - **8 ADR flags** handed to Stage 2: T2, T3, T5, T6, T7, T8, T11, T12.

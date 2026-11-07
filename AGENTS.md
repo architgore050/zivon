@@ -25,6 +25,7 @@ Rules:
 - **Check before working:** before working on anything, scan `docs/` for docs relevant to that area and read them. Do not re-decide or contradict what the docs already establish.
 - **Keep docs current:** if your change affects what a doc describes (a decision, research finding, design rule), update that doc in the same PR.
 - **Keep this map current:** if you add, rename, or remove any folder or top-level file under `docs/`, update the layout above in the same PR.
+- **Voice dock doctrine guard (founder note, 2026-11-07):** the product docs reference design-doctrine **§10.12 "Voice dock"** as the design home for the voice dock UI; the founder is authoring that section manually. Before any frontend work on the voice dock UI, check that the doctrine actually contains it. If the doctrine does not explicitly state it: **inform the founder and stop all frontend work on the dock UI** — do not improvise the design and do not write the doctrine section yourself.
 
 ---
 

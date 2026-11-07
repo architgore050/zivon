@@ -175,3 +175,7 @@ perf-gate test set (F-XCT-A11Y-01 AC-1).
   as a paper-card lesson-page component: state visuals per dock state, earcon policy
   (≤ 3 non-speech sounds), chip styling, lazy-load rule, focus order after block text.
   Owner: doctrine owner (founder).
+  **Status 2026-11-07: adopted by founder** — the founder authors §10.12 manually;
+  product docs reference it as the dock's design home. **Agent guard:** if the doctrine
+  does not yet explicitly contain the voice dock directive, inform the founder and halt
+  frontend work on the dock UI (standing note in AGENTS.md).
