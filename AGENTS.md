@@ -36,7 +36,7 @@ Two coupled systems:
 2. **Voice tutor (product runtime):** the conversation loop —
    1. Student speaks (Hindi / English / code-mixed)
    2. **Gnani Prisma** transcribes the speech
-   3. **Gnani Evon** reasons and generates a tutor response (anchored to the page the student is on)
+   3. **Gemma 4 26B A4B** (Gate A outcome 2026-11-07; Evon v3.3 is the post-challenge aspiration) reasons and generates a tutor response (anchored to the page the student is on)
    4. **Gnani Timbre** speaks the response back, with expressive tags where appropriate
 
 The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voice is the primary interface for doubts; interactive visuals are the primary interface for learning.
@@ -45,8 +45,8 @@ The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voic
 
 ## Non-negotiable constraints
 
-- **Prisma v2.5** (STT) and **Timbre v2.5** (TTS) are non-negotiable for the product's voice loop. No OpenAI/Deepgram/ElevenLabs replacements for these.
-- **Evon v3.3** is the intended reasoning brain and the default. A fallback LLM (e.g. Gemma 4 or latest) is permitted **only** via Gate A in `TIMELINE.md` (a written Physics-reasoning eval decision), because the challenge requires at least one Gnani model and Prisma + Timbre already satisfy that. The goal and the public story remain the full three-model loop.
+- **Prisma v3.0** (STT) and **Timbre v3.0** (TTS) are the decided voice-loop models (founder decision 2026-11-07 — latest versions; they supersede the earlier v2.5 non-negotiable, which predates the v3.0 releases). They remain non-negotiable going forward: no OpenAI/Deepgram/ElevenLabs replacements for these.
+- **Gate A outcome (recorded 2026-11-07, founder decision):** the runtime LLM is **Gemma 4 26B A4B** (self-hosted; serve it via the existing OpenAI-format inference-router pattern). Evon v3.3 is no longer the runtime default — it is the post-challenge aspiration brain. The challenge's ≥1-Gnani-model requirement is carried by Prisma + Timbre; the public story is the full Gnani voice loop (Prisma v3.0 + Timbre v3.0) + Gemma 4 reasoning. See the Gate A row in `TIMELINE.md`.
 - The demo must work end-to-end with real voice input and output.
 - Prefer simplicity and reliability over feature count. A solid 60-second demo beats a half-broken multi-feature app.
 - Content sourcing: **NCERT (officially free) and public-domain sources only**, with citations in the source packs. No scraping copyrighted textbooks.
@@ -170,10 +170,10 @@ Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, 
 ## Gnani-specific notes
 
 - Prisma and Timbre are accessed via Gnani's API (`api.vachana.ai` / dashboard).
-- Evon is open-weight. You will need to run it yourself (or via a compatible inference server). Plan for this early — GPU hosting choice is a Day-0/1 task.
+- The runtime LLM (Gemma 4 26B A4B per the Gate A outcome 2026-11-07; Evon v3.3 if revived post-challenge) is open-weight. You will need to run it yourself (or via a compatible inference server — the repo's `docker/inference-router.Dockerfile` dev bridge is the existing pattern). Plan GPU hosting early.
 - Official LiveKit plugin exists: `livekit-plugins-gnani`. Prefer using it if you go the LiveKit route.
 - Programme credits are limited (5,000 per registrant). Log usage daily, use text-only dev mode where possible, and **reserve ~40% of credits** for demo day and judge traffic.
-- Timbre expressive tags **verified 2026-11-07 against docs.gnani.ai**: tags are a **Timbre v3.0-only** feature — 13-tag catalog (`<laugh> <giggle> <sigh> <exhales> <sniffles> <yawns> <coughs> <clears throat> <whispers> <shouting> <excited> <slow> <pauses>`; tags billable as characters; unknown tags stripped silently). **Timbre v2.5 strips tags before synthesis** — they are not spoken. Expressive tags therefore require a model-version decision (v2.5 vs v3.0, founder decision pending — see `docs/product/features.md` §7.3); until decided, prompt Evon for plain voice only. Fine-tuning for tag emission remains a stretch goal (P2), not the critical path.
+- Timbre expressive tags **verified 2026-11-07 against docs.gnani.ai**: tags are a **Timbre v3.0-only** feature — 13-tag catalog (`<laugh> <giggle> <sigh> <exhales> <sniffles> <yawns> <coughs> <clears throat> <whispers> <shouting> <excited> <slow> <pauses>`; tags billable as characters; unknown tags stripped silently). **Timbre v2.5 strips tags before synthesis** — they are not spoken. The founder decision of 2026-11-07 adopted **Timbre v3.0**, so the 13-tag catalog is available for the tutor (tags billable as characters; harness strips unknown tags server-side). Fine-tuning for tag emission remains a stretch goal (P2), not the critical path.
 - The models are strong on Indian languages and code-mixing — lean into that strength in demos and prompts.
 
 ---
