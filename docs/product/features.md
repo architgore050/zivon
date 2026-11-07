@@ -432,30 +432,30 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 | Decision-log ref | C-050 (C-027, C-055 merged; C-051/052/053 deferred) |
 | Job + moment | J4 · Reads |
 | Value hypothesis | If low-literacy kids can hear paragraphs, page completion and M1 rise for them specifically. |
-| Metrics / events | EVT-012; M7 (credit burn per page) |
+| Metrics / events | EVT-012; narration build budget (ops metric — no runtime credits per founder correction 2026-11-07) |
 | Principles applied | P4 (modality) · P7 (spoken form differs from on-screen: units spoken in full) · P10 (on-demand fetch only, no prefetch in data-saver) |
 | Evidence | [STRONG] Mayer modality; [ASSUMPTION] credit cost model |
-| Depends on / blocks | voice backend exists (Timbre client reused); NOT dependent on the tutor |
+| Depends on / blocks | factory narration stage (build-time Timbre v3.0 generation, C-051 adopted 2026-11-07) + publish flow; NOT dependent on the tutor or the voice backend |
 | Layer-independence | works with voice agent off; voice agent works with this off |
 
 **Behaviour (EARS)**
-1. When the speaker button is pressed, the system shall request block narration (NEED-017) and stream audio, showing progress on the button.
+1. When the speaker button is pressed, the system shall fetch the **pre-generated** block narration asset (NEED-017) and stream audio, showing progress on the button.
 2. While read-aloud audio plays and the mic opens (F-ADD-VOI-01), the system shall pause read-aloud (audio focus).
-3. If TTS fails or credits are exhausted, the system shall say "Read-aloud is unavailable right now" and the text stays fully usable.
+3. If the asset fetch fails or the asset does not exist for this block+language, the system shall say "Read-aloud is unavailable right now" and the text stays fully usable.
 4. When data-saver is on, the system shall not prefetch any audio and shall warn once per session that read-aloud uses data + credits.
 5. The system shall speak the block's *spoken form* (SC-06 when available; else block text with unit-pronunciation rules), not raw markup.
 
 **Acceptance criteria** — AC-1 first audio byte < 1.5 s p90 (separate from Gate C). AC-2 Stop control always visible while playing. AC-3 Screen reader unaffected (button announced; audio is not a live region). AC-4 Weak Android: no jank while streaming (perf gate). AC-5 Hindi text → Hindi voice (Timbre language param); untranslated block → read-aloud disabled with reason. AC-6 Privacy: read-aloud requests carry page/block ids only, never device identity beyond session pseudonym.
 
-**States** | default: quiet button per block · loading: streaming indicator · empty: n/a · partial: some blocks speakable (text/worked_example/check stem) others not (diagram caption only on request) · error: TTS fail copy + retry · offline: previously played clips replay; new ones disabled + reason · permission-denied: audio autoplay blocked → user-initiated only (built-in constraint) · reduced-motion: n/a (audio not motion) · untranslated: disabled + reason · quota-exhausted: disabled + budget copy (F-XCT-OFF-01) · consent-missing: n/a (read-aloud is not voice input; no consent gate — flagged: uses third-party TTS, disclosed in privacy page)
+**States** | default: quiet button per block · loading: streaming indicator · empty: n/a · partial: some blocks speakable (text/worked_example/check stem) others not (diagram caption only on request) · error: asset fetch fail copy + retry · offline: previously played clips replay; new ones disabled + reason · permission-denied: audio autoplay blocked → user-initiated only (built-in constraint) · reduced-motion: n/a (audio not motion) · untranslated: disabled + reason · quota-exhausted: n/a — read-aloud consumes no runtime credits (founder correction 2026-11-07) · consent-missing: n/a (read-aloud is not voice input; no consent gate — narration is pre-generated from lesson text at build time; no student data ever reaches the TTS; disclosed on privacy page)
 
-**Surfaces** SCR-LES-01.R3/R7 (buttons) · EL-LES-01-012 · INF-020, 089 (labels/copy; spoken content = source blocks INF-018…048) · NEED-017, NEED-008, NEED-009 · ENT?-PageMeta · EVT-012, EVT-007
+**Surfaces** SCR-LES-01.R3/R7 (buttons) · EL-LES-01-012 · INF-020, 089 (labels/copy; spoken content = source blocks INF-018…048) · NEED-017 (static asset delivery; build-time generation via Timbre v3.0 in the factory) · ENT?-PageMeta · EVT-012
 
-**Backend needs** NEED-017 block narration (page_id, block_id, lang → streamed audio, cached server-side per block+lang+version); reuses NEED-008 Timbre client; metered by NEED-009.
+**Backend needs** NEED-017 pre-generated block narration: factory/publish-time Timbre v3.0 generation per (block, lang, page version) → audio object + DB asset row; served as a static content-addressed asset. No runtime TTS call, no per-student credit burn (founder correction 2026-11-07).
 
-**Entities** ENT?-PageMeta. **Cost & risk** Timbre chars ≈ paragraph length × attempts; cache makes repeats free. Risk: credit burn — budget guard can disable read-aloud before it disables the tutor (priority order stated: tutor first).
+**Entities** ENT?-PageMeta + Stage-2 narration asset catalogue. **Cost & risk** one-time build-time Timbre chars ≈ paragraph length × blocks × languages (bounded build budget, capacity-and-cost spec); static repeats cost zero. Risk: narration build budget — founder-approved one-time tranche, separate from the voice-agent daily tranche.
 
-**Open questions** — Q: pre-generated narration (C-051) adoption? owner: founder + factory · blocking: n.
+**Open questions** — Q: pre-generated narration (C-051) adoption? — **resolved 2026-11-07 (founder, Stage-2 session): ADOPTED** — narration is pre-generated at build time and stored (DB + object store), served statically; credits apply only to the voice agent.
 
 ### F-ADD-VOI-01 · Voice dock (mic entry + state machine + transcript)
 
@@ -869,7 +869,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Behaviour (EARS)**
 1. Every Prisma stream-second and Timbre character shall be counted per session + global ledger at call time (NEED-009).
-2. The guard shall evaluate **two dimensions**: the global daily tranche (**1,000 credits/day**, founder decision 2026-11-07) and a **per-user daily cap** (default 200/user/day [ASSUMPTION — calibrate against the Gnani dashboard after the first real voice sessions], keyed on the pseudonymous device/session id). When global burn crosses the warn threshold (15% of tranche remaining — doc default), new sessions get voice_enabled=true + a dock notice; when either dimension exhausts, new sessions get typed_only (per-user exhaustion affects only that user); in-progress turns complete.
+2. The guard shall evaluate **two dimensions**: the global daily tranche (**1,000 credits/day**, founder decision 2026-11-07) and a **per-user daily cap** (**30 credits/user/day**, free-trial scale — founder correction 2026-11-07 Stage-2 session, replacing the earlier 200 default [ASSUMPTION — calibrate against the Gnani dashboard after the first real voice sessions], keyed on the pseudonymous device/session id). **Credits meter only the voice agent** (Prisma STT + tutor Timbre TTS) — pre-generated course narration is a build-time budget, never per-student metering. When global burn crosses the warn threshold (15% of tranche remaining — doc default), new sessions get voice_enabled=true + a dock notice; when either dimension exhausts, new sessions get typed_only (per-user exhaustion affects only that user); in-progress turns complete.
 3. Guard limits shall be **togglable** (founder decision 2026-11-07): the founder/admin mode flag flips the guard between the `normal` profile (1,000/day tranche + per-user cap) and a relaxed **`demo` profile with much higher — still bounded — limits** for demo-day judge traffic on the live link; the flip is an admin action and is logged. Runaway protection (bounded ceilings) survives in both profiles.
 4. The daily credit log (parallel-pipeline rule) shall be generated from the ledger automatically.
 
@@ -883,7 +883,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Entities** ENT?-CreditLedger (model, units, ts, bucket) + per-user daily counter keyed on the pseudonymous device/session id (counts only — never content). **Cost & risk** in-memory counters + periodic persist (Stage 2 chooses store). Risk: counter drift vs Gnani dashboard → daily reconciliation.
 
-**Open questions** — Q: warn threshold + daily tranche size? — **resolved 2026-11-07 (founder)**: daily tranche **1,000 credits**; total budget **10,000 credits** (5k × 2 team members — founder: headroom comfortable, "no worries"); **per-user cap added as a guard dimension** (founder: practical from a deployment perspective, demonstrates systems design); guard limits **togglable** to a relaxed demo profile for judge traffic on the live link. Remaining calibration [ASSUMPTION]s: warn at 15% of tranche (doc default) and per-user default 200/day — both to be calibrated against the Gnani dashboard after the first real voice sessions.
+**Open questions** — Q: warn threshold + daily tranche size? — **resolved 2026-11-07 (founder)**: daily tranche **1,000 credits**; total budget **10,000 credits** (5k × 2 team members — founder: headroom comfortable, "no worries"); **per-user cap added as a guard dimension** (founder: practical from a deployment perspective, demonstrates systems design) — **corrected 2026-11-07 (Stage-2 session): 30 credits/user/day** free-trial scale (the earlier 200 default was a misunderstanding); guard limits **togglable** to a relaxed demo profile for judge traffic on the live link (bounded; exact demo-profile numbers = founder calibration item); **credits apply only to the voice agent** (pre-generated narration is a build-time budget). Remaining calibration [ASSUMPTION]s: warn at 15% of tranche (doc default) and per-user 30/day — both to be calibrated against the Gnani dashboard after the first real voice sessions.
 
 ### F-OPS-TEL-01 · Product telemetry & latency tracking
 
@@ -1104,9 +1104,12 @@ No silent ❌ below.
    as a demo asset.
 5. ~~Credit-guard warn threshold + daily tranche size~~ — **resolved 2026-11-07
    (founder)**: **1,000-credit daily tranche**; total budget 10,000 credits (5k × 2
-   team members); **per-user cap** added as a guard dimension; guard limits
-   **togglable** (`normal` ↔ relaxed `demo` profile for judge traffic). Warn % and
-   per-user default remain calibration items [ASSUMPTION] against the dashboard.
+   team members); **per-user cap** added as a guard dimension — **corrected 2026-11-07
+   (Stage-2 session): 30 credits/user/day** (free-trial scale; the earlier 200 default
+   was a misunderstanding); guard limits **togglable** (`normal` ↔ relaxed `demo`
+   profile for judge traffic, bounded); **credits apply only to the voice agent**
+   (pre-generated narration is a build-time budget). Warn % and per-user default
+   remain calibration items [ASSUMPTION] against the dashboard.
 6. SC-02 adoption timing — owner: content factory — blocks P1 sim-quality slices,
    not the P0 ship.
 
@@ -1136,7 +1139,9 @@ of its headline numbers:
   the core new build (NEED-004 voice WebSocket channel — full message contract), 6
   wrap existing pieces (Prisma STT, Gemma 4 26B A4B LLM, Timbre TTS, credit guard, telemetry,
   admin API over the three sanctioned trigger scripts), the rest are small stores
-  (session, consent, coverage, deletion, reports, bundles, narration cache).
+  (session, consent, coverage, deletion, reports, bundles, pre-generated narration
+  assets — founder direction 2026-11-07: narration generated at build time, stored in
+  DB + object store, served statically; credits meter only the voice agent).
 - **10 entity proposals** (ENT?-Session, VoiceTurn, ConsentRecord, DeviceProfile,
   CreditLedger, TelemetryEvent, ProblemReport, PageMeta, RunStatus, LanguageBundle) —
   all preclude child profiling by construction (T5), all carry a nullable
