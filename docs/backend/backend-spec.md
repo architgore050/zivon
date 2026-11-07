@@ -480,3 +480,147 @@ EVT-009 counts rate-limit hits for ops (no free text).
   (voice_off). Honest allowance shown (INF-085/086 copy).
 - **Reconciliation:** nightly job compares ledger totals vs Gnani dashboard; drift > 2 % → alert
   (AC-2, NFR-25); daily usage log export (repo rule "log usage daily").
+
+---
+
+## 9. Failure-mode table (every component; what the *student* sees)
+
+| Component | Failure | Detect | Student sees | Auto response | Runbook | Data at risk |
+|---|---|---|---|---|---|---|
+| voice-backend pod | crash / OOM | pod restart count, liveness fail | dock → system-error state ("try again"); Core page fully intact | K8s restart; client reconnect + resume (API-009); in-flight turn lost (C5 memory — by design) | RB-02 | ≤ 1 turn of context; no durable data |
+| voice-backend pod | event-loop stall (latency regression) | EVT-006 p90 breach, healthz latency probe | slow answers; text floor may appear | shed load: disable partials → shorter replies → typed_only ladder | RB-09 | none |
+| WSS channel | dropped connection | heartbeat loss (2 missed pings) | dock "reconnecting"; last transcript stays | resume within 60 s window (finals replayed); else re-bootstrap | RB-09 | none |
+| Gnani Prisma (STT) | API down / timeout | error class E-STT-UNAVAILABLE rate | dock: no-match/retry copy (INF-067/068); **typed path still works** | degraded rung 1: typed_only for new turns; retry with backoff | RB-08 | none (audio never stored) |
+| Gemma GPU host | down / cold / slow | first-token p90 breach; probe fail | dock system-error + retry; Core + read-aloud unaffected | circuit-break LLM calls (fail fast, don't queue); typed path also halts (same brain) | RB-09, RB-02 (rebuild from C15 copy) | none |
+| Gnani Timbre (TTS) | API down / tag errors | E-TTS-UNAVAILABLE rate | **text floor**: transcript + captions; audio skipped | degraded rung: text-only replies; resume audio on recovery | RB-08 | none |
+| U2 Postgres | pod/PVC loss | probe fail, connection errors | bootstrap fails → dock system-error; **static pages + narration keep loading** (Core independence) | failover to restored instance (storage-tiering §6.1); voice backend refuses new voice turns meanwhile | RB-02 | ≤ 5 min of ledger/turn rows (RPO) |
+| U2 Postgres | connection pool exhaustion | pool wait metric | slow bootstrap/coverage saves | queue + shed telemetry first (fire-and-forget queues) | RB-01 | telemetry batch (client queue holds) |
+| U1 cache | full | usage > 75 % | nothing (cache is invisible) | evict cold-verified LRU (EVICT-01); never unverified | RB-01 | none if invariant holds |
+| U3 `zivon-frontend` PVC | loss | probe / 404 spike | hub/pages fail → offline chip | re-seed from U4/git (≤ 2 h); nginx serves stale-allowed shell | RB-02 | 0 for published versions (publish gate) |
+| U3 `zivon-sources` PVC | loss mid-run | factory Job error | nothing (students never see it) | run resumes from completed stages; archived runs re-seed | RB-02 | run evidence since last nightly mirror |
+| U4 cold provider | unreachable | upload errors, outbox backlog age | nothing | queue outbox; **eviction disabled**; lifecycle jobs pause | RB-03 | artifacts not yet cold-verified (publish holds) |
+| U4 | corrupt object returned | scrub checksum mismatch / read-back fail | nothing | quarantine + re-upload from hot copy | RB-06 | single object |
+| edge/nginx | down / rate-limit misconfig | synthetic probe (NFR-12) | offline chip; "couldn't load" chips | client SW cache serves last pages; limits auto-relax on window end | RB-01 | none |
+| credit guard | counter drift vs Gnani dashboard | nightly reconciliation > 2 % | nothing (or premature typed_only) | recompute counters from ledger; alert founder | RB-08 | none |
+| credit guard | exhausted (global) | state flip | INF-086 typed-only copy; voice off for new turns | ladder: shorter replies → typed_only; **in-progress turns complete** | RB-08 | none |
+| telemetry pipeline | ingestion down | EVT-009 + batch reject rate | nothing (invisible) | client queue ≤ 200, drop-oldest; server write-behind retries | RB-04 | telemetry ≤ 200 events/device |
+| consent middleware | stale notice version | E-CONSENT-STALE | consent overlay re-shows | voice off until re-ack; Core intact | RB-10 | none |
+| client | offline | client-side | offline chip; dock disabled with reason | local memory + event queue; sync on restore (EVT-016) | — | ≤ 200 queued events |
+| deletion pipeline | step failure | request status `failed` + audit | privacy page error copy (INF-094) | retry steps idempotently; ops alert; tombstone already exists | RB-10 | partial wipe window (bounded by retry SLA) |
+
+**Layer-independence check (checklist item):** every row above that touches voice/TTS/LLM/guard
+leaves the Core row (ST-01…04 static serving) explicitly working. The reverse never happens: no
+Core failure row disables voice *and* content simultaneously except total edge loss, which the
+client SW cache softens.
+
+---
+
+## 10. Security & privacy design
+
+### 10.1 Data map & processors (the classification table *is* the record of processing)
+
+Processors/sub-processors per data flow (for the DPDP register, post-challenge counsel pass):
+**Gnani API** (Prisma receives streamed audio for transcription — retention policy at Gnani is
+**[verify — ask before scale-up]**; Timbre receives tutor text) · **GPU host** (Gemma — self-run,
+in our control; page context + history window leaves the cluster) · **Backblaze B2 / Cloudflare
+R2** (cold archives, encrypted for child-adjacent classes) · **GitHub** (git snapshots — public-repo
+risk: `frontend/` snapshot contains only public content; **runs/ evidence stays gitignored**) ·
+**hosting/edge** (TBD at hosting stage). Cross-border: B2/R2 storage regions are US/EU (no India
+region — matrix §5) → **counsel question Q-L1 open**; mitigation live now: client-side envelope
+encryption for C9/C14/C10 uploads (A-13).
+
+### 10.2 Engineering controls (minors-by-default)
+
+- **Minimization enforced in schema, not policy:** `voice_turn.audio_retained CHECK false`; no
+  audio objects possible (C7 rule + storage audit assertion); telemetry has no free-text column;
+  `sim_state` capped at 4 KB; transcripts 7-d hard delete with no cold copy.
+- **Pseudonymity:** random client-generated `device_pseudo_id` (UUIDv4); no device fingerprinting;
+  no third-party analytics SDKs (repo rule); IP stored only as salted daily-rotating HMAC (A-12).
+- **Consent as middleware** (§8.2), not UI: voice, coverage-sync, and gated EVT refuse without
+  a granted record; withdrawal effective next call.
+- **No profiling by construction (T5):** `device` table has no behavioural columns; memory is
+  session-scoped coverage (J5), 24 h TTL, student-visible and clearable (EVT-018); any future
+  inferred item must carry `explanation` + be deletable (db-spec target note) — table absent today.
+- **Deletion pipeline** §storage-tiering 6.2 (DB → cold → caches-assert → logs-assert → audit →
+  tombstone + re-delete list).
+- **Access control:** least-privilege DB roles (voice app role cannot DROP; sync worker has its
+  own role; admin API separate token); humans have **no standing access** to transcripts (admin
+  panels display aggregates only — NFR-30; rubric sampling of transcripts requires consent per
+  INF-060 visible_to row and happens on a time-boxed export, logged to `audit_log`); break-glass
+  = founder + logged + reviewed.
+- **Secrets:** K8s Secrets runtime-only (Gnani keys, DB URL, session-token key, admin token,
+  cold-provider 3 identities, IP-hash salt); gitleaks + kube-linter already in CI (NFR-28);
+  Gnani keys never reach the browser (server-side only, handoff §1).
+
+### 10.3 STRIDE-style threat pass (brief, per vendored `secure-code-guardian`)
+
+| Threat | Vector | Mitigation |
+|---|---|---|
+| Spoofing | forged `device_pseudo_id` to claim consent state / drain another device's cap | caps are budget hygiene not identity (A-03); consent keyed on device id the caller must present + confirm token for DELETE; no per-device *read* API exists (nothing to steal) |
+| Tampering | poisoned lesson bundle in PVC | publish gate: sha256 + cold-verify before live; git snapshot diffable; CSP blocks injected eval |
+| Repudiation | "I did consent / I didn't" | append-only consent ledger with notice_version; audit_log hash-chained (target) |
+| Information disclosure | PII in logs / object keys / admin panels | zero-PII log rule + CI log-pipeline audit; keys never contain PII; panels aggregate-only |
+| DoS | audio flood, WS connect storm, credit exhaustion (burning *our* credits) | §8.3 buckets (audio family, ws family); cluster concurrent cap 10; guard is also a DoS damper — exhausted = typed_only not crash |
+| Elevation | admin UI compromise | admin token cluster-side, separate secret; actions limited to the three sanctioned scripts + guard toggle; every action audited |
+| Supply chain | new deps (boto3/b2sdk, asyncpg, alembic), models | dependabot (exists), image scanning in CI (exists), small dep set rule (AGENTS.md) |
+| Prompt injection | page text / transcripts into Gemma prompt | treat all page + transcript content as data (delimited blocks in prompt template); anchor payload is structured JSON, validated ≤ 4 KB; tutor system prompt forbids instruction-following from quoted content; output tag allow-list enforced by harness |
+
+### 10.4 Breach readiness
+
+Detection (anomaly alerts + scrub + audit review) → triage (founder, 1 h) → **DPDP Board
+notification clock 72 h [verify — secondary source, counsel required]** → affected-device notice
+via privacy page copy + remediation runbook → post-incident log entry. Rehearsed as part of the
+restore drill agenda (RB-12 includes a tabletop breach walk-through, P1).
+
+---
+
+## 11. Observability, SLOs, runbooks
+
+### 11.1 Signals (aligned to the Day-8 Prometheus/Grafana decision — no parallel stack)
+
+- **Golden signals** per service (voice backend, nginx, Postgres, sync worker): rate, errors,
+  duration, saturation + PVC usage per volume.
+- **Voice path:** per-stage histograms from `voice_turn.latency` + EVT-006 (eos, stt_final,
+  llm_first_token, tts_first_byte) — the Gate-C instrument; `trace_id` propagated client → WS →
+  STT → LLM → TTS → playback ack (NFR-29, 100 % of sessions).
+- **Tiering metrics:** outbox backlog age, cold-verification lag, WAL archive lag, SSD/PVC usage
+  + eviction rate, scrub drift count, last successful drill timestamp, deletion-request age
+  (storage-tiering §3 alerts bind to these).
+- **Product health (from EVT aggregates, pseudonymous):** sessions/day, turns + resolved-doubt
+  rate, first-attempt check correctness (EVT-004), fallback rates (typed_only, text floor,
+  no-translation), credit burn/hour, p95 first-audio latency (M1–M7 mapping).
+- **Structured JSON logs, zero transcripts/PII** (CI-audited pattern); Loki = P2 per repo decision.
+
+### 11.2 SLOs + error budgets `[ASSUMPTION]` (review after first measurement week)
+
+| SLO | Target | Error budget | On breach |
+|---|---|---|---|
+| Voice first-audio (completed turns ≤ 4.0 s p90 monthly) | 99 % of turns | 1 % of turns/month | freeze voice feature changes; RB-09 review (Gate-C posture) |
+| Voice session establishment | 99 % | 1 % | RB-08/RB-09 review |
+| Core content availability (probe ST-01/02) | 99.9 % | 43 min/month | page > 90 % or edge issue → RB-01 |
+| API p95 latency (bootstrap/coverage/consent) | 99 % < 300 ms | 1 % | pool/index review |
+| Publish → cold-verified | 99 % ≤ 5 min | 1 % | RB-04 |
+| WAL archive lag | 99 % ≤ 5 min | 1 % | RB-02 |
+| Deletion pipeline completion | 100 % ≤ 7 d | 0 | RB-10 (legal clock) |
+
+Alert routing (vendored `sre-engineer` rule): **page only** on voice first-audio p90 breach,
+outbox stuck > 15 min, WAL lag > 5 min, PVC > 90 %, scrub drift, deletion SLA breach. Everything
+else = ticket. Synthetic probes: page-load probe + voice probe (scripted typed.doubt round-trip,
+hourly, P1).
+
+### 11.3 Runbooks (one page each — owners named; P0 set rehearsed once before submission)
+
+| ID | Scenario | First actions | Owner |
+|---|---|---|---|
+| RB-01 | PVC ≥ 90 % / pool exhaustion | confirm invariant → evict verified LRU or add volume; never evict unverified | ops/founder |
+| RB-02 | node/PVC/DB loss & restore | storage-tiering §6.1 order; re-delete list before cutover | founder |
+| RB-03 | cold provider outage | disable eviction; pause lifecycle; watch backlog age; second provider unaffected | ops |
+| RB-04 | sync backlog / upload failure storm | inspect outbox errors; bounded retry; manual drain; publish gate stays held | ops |
+| RB-05 | credential leak (any cold identity) | rotate identity; writer key rotation ≤ 15 min; audit scan for junk uploads; quarantine suspects | founder |
+| RB-06 | corrupted cold object | quarantine state; re-upload from hot; scrub full-class re-check | ops |
+| RB-07 | bad content publish & rollback | flip `live_pointer` to previous version (one UPDATE); narration follows version pointer; post-mortem to factory reviewer | content |
+| RB-08 | credit exhaustion / guard anomaly | ladder states; dashboard reconciliation; founder decides demo-profile flip (logged); never mid-turn cut | founder |
+| RB-09 | voice latency regression | histogram diff per stage → fix long pole first (no feature work during breach) | voice dev |
+| RB-10 | deletion request / pipeline failure | re-run idempotent steps; verify tombstone; SLA clock visible | ops |
+| RB-11 | suspected breach | RB steps: contain → triage 1 h → counsel/Board clock decision → notify path → log | founder |
+| RB-12 | restore drill (monthly; P0 once) | timed full restore + smoke test + re-delete check + tabletop breach walk-through | founder + ops |
