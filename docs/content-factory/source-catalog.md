@@ -50,14 +50,17 @@ ingest stage verifies the class label inside each PDF instead of trusting codes.
 | Class | Book | Files | License |
 |---|---|---|---|
 | 11 | *Physics Part I - Textbook for Class XI* | `https://ncert.nic.in/textbook/pdf/keph1ps.pdf`, chapters `keph1nn.pdf` (rationalised ed.: Ch. 1-7) | NCERT terms of use |
-| 11 | *Physics Part II - Textbook for Class XI* | `https://ncert.nic.in/textbook/pdf/keph2ps.pdf`, chapters `keph2nn.pdf` (Ch. 8-15) | NCERT terms of use |
+| 11 | *Physics Part II - Textbook for Class XI* | `https://ncert.nic.in/textbook/pdf/keph2ps.pdf`, chapters `keph2nn.pdf` **within-part numbering**: Ch. 8 = `keph201` (catalog `chapter_url_offset: 7`; rationalised ed. Ch. 8-14) | NCERT terms of use |
 | 12 | *Physics Part I - Textbook for Class XII* | `https://ncert.nic.in/textbook/pdf/leph1ps.pdf`, chapters `leph1nn.pdf` (Ch. 1-8) | NCERT terms of use |
-| 12 | *Physics Part II - Textbook for Class XII* | `https://ncert.nic.in/textbook/pdf/leph2ps.pdf`, chapters `leph2nn.pdf` (Ch. 9-14) | NCERT terms of use |
+| 12 | *Physics Part II - Textbook for Class XII* | `https://ncert.nic.in/textbook/pdf/leph2ps.pdf`, chapters `leph2nn.pdf` **within-part numbering**: Ch. 9 = `leph201` (catalog `chapter_url_offset: 8`) | NCERT terms of use |
 
 Evidence: `leph1ps.pdf` / `leph2ps.pdf` confirmed as Class XII Physics Parts
 I/II; `leph106.pdf` confirmed as Electromagnetic Induction (Ch. 6, rationalised
-numbering). Class 11 codes follow the same scheme and still need a run-time
-byte check.
+numbering). Within-part URL numbering for Part II books confirmed in-cluster
+2026-11-06/07: `keph208.pdf` 404s on NCERT while Part I `keph101-107` all
+resolve - the earlier catalog (no offset) truncated Part II to 0 chapters on
+every run. Chapter counts remain unverified; the 404-truncation mechanism
+self-corrects them loudly.
 
 ## Openly licensed supplements (non-NCERT)
 

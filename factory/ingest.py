@@ -10,6 +10,9 @@ Guarantees:
 - A 404 on a chapter of a chapters_verified=false book ends that book's list at
   the last good chapter and records `truncated_at` in the output (printed
   loudly). A 404 on a chapters_verified=true book is fatal - fix the catalog.
+- Multi-part books use `chapter_url_offset` so the URL index restarts per part
+  (NCERT numbers chapter PDFs within each part: Part II Ch. 8 = keph201.pdf).
+  The run output always keeps the global chapter number.
 - Manual-download books must already exist at sources/pdfs/<id>/<filename>;
   otherwise the stage fails with exact placement instructions.
 - Hosts whose published TLS chain is broken (ncert.nic.in serves its leaf without
@@ -287,7 +290,15 @@ def _index_auto_book(
     chapters: list[dict[str, Any]] = []
     truncated_at: int | None = None
     for n in book["chapter_numbers"]:
-        url = book["chapter_url_template"].format(nn=f"{n:02d}")
+        # NCERT numbers chapter PDFs WITHIN each part: Part II chapter 8 is
+        # keph201.pdf, not keph208 (evidence: keph208.pdf 404s on NCERT live -
+        # seen in-cluster 2026-11-07; Part I leph106.pdf = Ch. 6 confirmed
+        # 2026-11-01). Books whose global chapter numbers do not restart at 1
+        # carry chapter_url_offset, so {nn} is the within-part index while the
+        # run output keeps the global chapter number.
+        url = book["chapter_url_template"].format(
+            nn=f"{n - book.get('chapter_url_offset', 0):02d}"
+        )
         dest = _book_dir(cfg, book_id) / f"ch{n:02d}.pdf"
         try:
             _fetch(cfg, url, dest)

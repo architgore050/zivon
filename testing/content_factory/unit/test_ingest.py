@@ -205,6 +205,46 @@ class IngestTestCase(unittest.TestCase):
         self.assertEqual(gap["truncated_at"], 3)
         self.assertEqual([c["n"] for c in gap["chapters"]], [1, 2])
 
+    def test_part2_offset_maps_global_chapters_to_within_part_urls(self):
+        # NCERT numbers chapter PDFs WITHIN each part (Part II Ch. 8 = keph201,
+        # confirmed in-cluster 2026-11-06: keph208.pdf 404s). chapter_url_offset
+        # maps the global chapter number to the within-part URL index while the
+        # run output keeps the global number. Staged files here are named by
+        # the WITHIN-part index (ch01, ch02 exist; ch03 does not), so the
+        # unverified list must ingest global chapters 8-9 and truncate at 10.
+        part_pdfs = stage_book_pdfs(
+            self.tmp, "part2-book", ["prelims.pdf", "ch01.pdf", "ch02.pdf"]
+        )
+        part2 = [
+            {
+                "id": "part2-book",
+                "class": 9,
+                "subject": "science",
+                "title": "Part Two Synthetic",
+                "publisher": "x",
+                "license": "x",
+                "is_ncert": True,
+                "download": "auto",
+                "prelims_url": part_pdfs["prelims.pdf"],
+                "chapter_url_template": part_pdfs["ch01.pdf"].replace(
+                    "ch01.pdf", "ch{nn}.pdf"
+                ),
+                "chapter_numbers": [8, 9, 10],  # global chapter numbers
+                "chapter_url_offset": 7,  # ...so URLs are ch01, ch02, ch03
+                "chapters_verified": False,
+                "class_evidence": ["class 9"],
+            }
+        ]
+        cfg = make_cfg(self.tmp, extra_books=part2)
+        out = ingest_run(cfg, self.run_ctx)
+        book = next(b for b in out["books"] if b["id"] == "part2-book")
+        self.assertEqual([c["n"] for c in book["chapters"]], [8, 9])
+        self.assertEqual(book["truncated_at"], 10)
+        # fetched PDFs land under the GLOBAL chapter names (ch08.pdf, ch09.pdf)
+        self.assertTrue(
+            all(c["pdf"].endswith(f"ch{c['n']:02d}.pdf") for c in book["chapters"])
+        )
+
     def test_manual_book_missing_gives_instructions(self):
         manual = [
             {
