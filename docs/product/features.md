@@ -160,7 +160,230 @@ proposed §10.12: paper-card device, state visuals, earcon policy; full text in 
 
 ## 4. Feature cards (survivors)
 
-<!-- PHASE-5 CONTENT -->
+21 cards. Every card cites ≥1 job + ≥1 metric, has EARS behaviour, acceptance criteria,
+states, surfaces, backend needs. Screens/regions referenced: **SCR-HUB-01** (Courses hub);
+**SCR-LES-01** (Lesson page) regions R1 header · R2 language bar · R3 text blocks ·
+R4 diagram · R5 simulation card · R6 check card · R7 worked-example/reveal/glossary ·
+R8 sources footer + report · R9 voice dock · R10 consent overlay · R11 settings sheet ·
+R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin dashboard v0).
+
+### F-COR-HUB-01 · Courses hub & topic navigation
+
+| Field | Value |
+|---|---|
+| Layer | COR |
+| Summary | The front door: a list of generated topic pages grouped by class, with an honest empty state. |
+| Priority | **P0** (built today; grouping slice P1) — P0 ladder requires ≥6 live pages reachable |
+| Kano | must-be |
+| Decision-log ref | C-001 (C-002, C-003, C-032 merged) |
+| Job + moment | J1 · Arrives |
+| Value hypothesis | If the hub groups by class, a Class-9 student finds their chapter page without scrolling past other classes — shown by topic_open→first-interaction time. |
+| Metrics / events | M6; EVT-017 (hub_view, topic_open) |
+| Principles applied | P1 (navigation serves J1) · P2 (no search, no filters — list only) · P7 (empty state says why) |
+| Evidence | [STRONG] built; grouping [ASSUMPTION] |
+| Depends on / blocks | needs ≥1 factory run (NEED-001/002) |
+| Layer-independence | fully static; works with every wrapper/add-on off; works offline after first visit (F-XCT-OFF-01) |
+
+**Behaviour (EARS)**
+1. When the hub loads, the system shall render one card per entry in `courses.js` (title, class, chapter, generated date), grouped under class headings when ≥2 classes exist.
+2. When `courses.js` is missing or empty, the system shall show the built empty-state paragraph and no broken list.
+3. If a card's target file is missing (stale catalogue), the link shall still render; the 404 page behaviour is the host's (state row).
+4. While offline (SW cache hit), the hub shall render from cache with the offline chip (F-XCT-OFF-01).
+
+**Acceptance criteria** — AC-1 Given a built site, When opened on 360 px, Then cards are single-column, touch targets ≥44 px, no horizontal overflow. AC-2 Given zero topics, When loaded, Then empty copy names the reason and what happens next. AC-3 Keyboard: each card is a link, focus ring visible. AC-4 Weak Android: hub load within perf gate (measured today). AC-5 Hindi chrome (P1 slice): grouping headings translated; untranslated → English. AC-6 Privacy: hub sets no cookies; only local flags.
+
+**States** | default: grouped cards · loading: native (static HTML) · empty: built copy · partial: some classes have topics · error: 404 target (host page) · offline: cached render + chip · permission-denied: n/a (public) · reduced-motion: n/a (no motion) · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a (voice consent is per voice use)
+
+**Surfaces** SCR-HUB-01 · EL-HUB-001…006 · INF-001…006, INF-070…072 · NEED-001, NEED-002 · ENT?-PageMeta · EVT-017, EVT-001, EVT-016
+
+**Backend needs** NEED-001 static delivery (exists); NEED-002 catalogue data (exists as `courses.js`; keep generated, never hand-edited).
+
+**Entities** ENT?-PageMeta (course_id, class, title, chapter, generated_at, sources[], translation availability post-SC-01).
+
+**Cost & risk** zero added bytes for P0; grouping ≤1 KB JS. Risk: stale catalogue after failed run — mitigated by publish staleness guard (already built).
+
+**Open questions** — Q: card order newest-first or class-then-chapter? owner: frontend Day-9 · blocking: n.
+
+### F-COR-LES-01 · Lesson reading surface
+
+| Field | Value |
+|---|---|
+| Layer | COR |
+| Summary | The generated chapter taught in full: objectives, typed text on ruled paper, one underlined statement to remember, worked examples, method reveals, glossary. |
+| Priority | **P0** (built) |
+| Kano | must-be |
+| Decision-log ref | C-005 (C-007, C-013 merged; C-031 as state row) |
+| Job + moment | J2 · Reads |
+| Value hypothesis | If every chapter section is taught with a signaled key statement, ≥2/3 kids restate the concept (Gate B). |
+| Metrics / events | M1; EVT-001, EVT-002 |
+| Principles applied | P4 (one highlighted statement, no decoration) · P2 (single column until Day-9 grid) · P5 (taught-before-tested ordering enforced by factory) · P7 (JS-off: text still readable) |
+| Evidence | [STRONG] Mayer signaling; built |
+| Depends on / blocks | factory stages 02/06 (exists) |
+| Layer-independence | fully readable with voice/TTS/translation off |
+
+**Behaviour (EARS)**
+1. When a lesson page loads, the system shall show header (title, course kicker, meta line, objectives) then blocks in authored order.
+2. When a block is a highlighted statement, the system shall render it as its own paragraph with the generated pen underline (shell-owned).
+3. When a worked example or reveal is present, its steps shall be native `<details>` (zero-JS openable).
+4. If `zivon.js` fails to load, the system shall still render all text/diagrams; interactive cards shall show their static content (state row), never blank.
+
+**Acceptance criteria** — AC-1 kid can read start-to-finish on 360 px without horizontal overflow (perf-gate overflow check exists). AC-2 Given reduced-motion, Then no animation anywhere (none exist today). AC-3 Screen reader: headings ordered, objectives list announced. AC-4 Weak Android: page within `weak-android` profile (measured per run). AC-5 Hindi (P1): body falls back per glyph per doctrine §10.3; no tofu (DCR-001 test). AC-6 Privacy: reading stores nothing server-side beyond EVT-001 aggregate.
+
+**States** | default: full page · loading: static HTML paint (no spinner) · empty: n/a (factory never ships an empty page — hard error upstream) · partial: a block whose sim JS failed shows the on-canvas error painter; text intact · error: kit-missing guard (lesson-kit throws in example; shell logs) · offline: cached full page · permission-denied: n/a · reduced-motion: static · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a
+
+**Surfaces** SCR-LES-01.R1/R3/R7 · EL-LES-01-001…010, 040…046 · INF-010…026 · NEED-001 · ENT?-PageMeta · EVT-001, EVT-002
+
+**Backend needs** NEED-001 (exists). No new capability for P0.
+
+**Entities** ENT?-PageMeta (manifest.json exists: chapter, sources, block_counts, generated_at).
+
+**Cost & risk** built; fonts bundled locally (bytes fixed). Risk: overlong Hindi strings breaking row rhythm — DCR-001 test.
+
+**Open questions** — Q: two-column grid Day-9 — pairing rule which blocks pair? owner: founder/frontend · blocking: n (Day-9).
+
+### F-COR-DIA-01 · Diagrams
+
+| Field | Value |
+|---|---|
+| Layer | COR |
+| Summary | Clean SVG drawn on the paper with hand-annotated labels; every diagram speaks (aria-label) and can carry a long description. |
+| Priority | **P0** (built; longdesc slice P1) |
+| Kano | performance (more clarity → better learning) |
+| Decision-log ref | C-014 (C-016 merged) |
+| Job + moment | J2 · Reads |
+| Value hypothesis | If diagrams pair words+pictures with annotated quantities, restatement quality (M1) rises vs text-only recall. |
+| Metrics / events | M1; EVT-002 (diagram focus) |
+| Principles applied | P4 (multimedia) · P7 (honest scale: arrow length ∝ magnitude, stated in caption) · P10 (fixed box scales via container query — built) |
+| Evidence | [STRONG] Mayer multimedia |
+| Depends on / blocks | factory 02 (SVG authored), 09-review (doctrine check) — exist |
+| Layer-independence | static SVG; works with everything off |
+
+**Behaviour (EARS)**
+1. When a diagram renders, the system shall include an `aria-label` listing its labels (built today).
+2. When P1 longdesc is present, the system shall offer it as a `<details>` "Describe this figure" under the caption.
+3. If the SVG fails the frame-adaptation overflow gate, the run never ships the page (harness guarantee, exists).
+4. When translated (P1), annotation labels swap language; quantity symbols (F, 10 N) never translate.
+
+**Acceptance criteria** — AC-1 caption + figure readable at 360 px (perf gate). AC-2 Screen reader reads label list. AC-3 Colour-blind check: meaning carried by shape/words, not hue alone (doctrine enforces). AC-4 No external refs (lint enforces). AC-5 Hindi labels render with Caveat→Kalam stack, no tofu. AC-6 n/a privacy.
+
+**States** | default: figure+caption · loading: inline (no wait) · empty: n/a · partial: longdesc absent → aria-label only · error: n/a (authored SVG) · offline: cached · reduced-motion: n/a (static) · untranslated: English labels + notice · others n/a
+
+**Surfaces** SCR-LES-01.R4 · EL-LES-01-020…023 · INF-027…030 · NEED-001, NEED-016 (P1) · ENT?-PageMeta · EVT-002
+
+**Backend needs** NEED-001; P1: NEED-016 for label strings (SC-01).
+
+**Entities** ENT?-PageMeta. **Cost & risk** built; longdesc adds ≤2 KB/page. Risk: thin aria-labels — 09-review checklist item.
+
+**Open questions** — Q: longdesc authored by factory or shell-generated from SVG labels? owner: content-factory · blocking: n.
+
+### F-COR-SIM-01 · Interactive simulations
+
+| Field | Value |
+|---|---|
+| Layer | COR |
+| Summary | Taped paper cards the student operates: sliders with live values, a canvas that responds physically, a text mirror of every state, a reset. |
+| Priority | **P0** (runtime + wiring built; state mirror P0 slice; reset + drag-alternative P1) |
+| Kano | performance → delighter when direct-manipulation sims arrive |
+| Decision-log ref | C-017 (C-018, C-022 merged; C-021 P1 slice) |
+| Job + moment | J2 · Reads (MoT-2) |
+| Value hypothesis | If students manipulate and immediately see physical consequence, conceptual gain roughly doubles (Hake) — shown by M6 + M1. |
+| Metrics / events | M6; EVT-003 |
+| Principles applied | P3 (start still — runtime honors; no autoplay) · P8 (reset) · P10 (rAF loop, 24 fps floor under 4× throttle) · P2 (≤3 control groups) |
+| Evidence | [STRONG] Hake + PhET |
+| Depends on / blocks | ZivonSim runtime (exists); SC-02 for units/state template |
+| Layer-independence | sims are pure client-side; voice off, TTS off — fully work |
+
+**Behaviour (EARS)**
+1. When a sim loads, the system shall draw `default_behaviour` once and not animate autonomously (reduced-motion: static frame only).
+2. When a control changes, the system shall update canvas + readout `<output>` + the aria-live state mirror within one frame.
+3. If sim JS throws, the system shall paint the error on canvas (exists) and the state mirror shall say "This simulation stopped working."
+4. When reset is pressed (P1), all controls return to `initial` values and the mirror announces it.
+5. If a sim has a draggable object (P1, SC-07), the system shall also provide arrow-key nudge or +/- buttons (WCAG 2.2 drag alternative).
+
+**Acceptance criteria** — AC-1 first interaction within 2 s of visibility on weak Android (EVT-003 time-to-first-interaction). AC-2 Keyboard: every slider operable; values announced. AC-3 Screen reader: state mirror updates politely (aria-live=polite, no flood). AC-4 Perf gate green (exists). AC-5 Hindi control labels within label budget (1–3 words, wrap allowed). AC-6 Privacy: sim state leaves the device only inside a voice turn (NEED-005) with consent given.
+
+**States** | default: still, default_behaviour drawn · loading: canvas blank until JS (≤1 frame) · empty: n/a · partial: broken sim → loud on-canvas error + mirror text · error: same · offline: fully works (cached) · permission-denied: n/a · reduced-motion: static frame + step-free (P2 revisit C-019) · untranslated: English labels + notice · quota-exhausted: n/a · consent-missing: n/a (sims need no consent)
+
+**Surfaces** SCR-LES-01.R5 · EL-LES-01-024…031 · INF-031…038 · NEED-001, NEED-005 (voice reads mirror) · ENT?-PageMeta · EVT-003
+
+**Backend needs** NEED-001; SC-02 (`unit`, `readout_format`, `state_text_template`) so the mirror + TTS + tutor can read sim state honestly.
+
+**Entities** ENT?-PageMeta. **Cost & risk** built; per-sim factory cost (one model call each). Risk: physically wrong sims — 09-review fact recheck (exists).
+
+**Open questions** — Q: SC-02 adoption timing (blocks mirror quality)? owner: content-factory · blocking: **y** for P1 slices, n for P0 ship.
+
+### F-COR-CHK-01 · Comprehension checks
+
+| Field | Value |
+|---|---|
+| Layer | COR |
+| Summary | MCQ and numeric self-tests: commit an answer, get kind specific feedback, open "Why?", retry freely — never scored on screen. |
+| Priority | **P0** (built; per-option misconception feedback P1) |
+| Kano | must-be (the product promises testing) |
+| Decision-log ref | C-008 (C-012 merged) |
+| Job + moment | J3 · Practices (MoT-3) |
+| Value hypothesis | If feedback addresses the misconception behind the wrong choice, first-attempt pass rate on re-visits rises (M4). |
+| Metrics / events | M4; EVT-004 |
+| Principles applied | P5 (answer hidden until commit — built) · P8 (retry, no lock) · P9 (attempt data is telemetry only, never a displayed score) |
+| Evidence | [STRONG] retrieval practice |
+| Depends on / blocks | factory 02/03 (answer keys reviewed) — exist |
+| Layer-independence | fully client-side; works with everything off |
+
+**Behaviour (EARS)**
+1. When options are selected and Check pressed, the system shall reveal correctness (shape + words, not hue) + one feedback sentence.
+2. When "Why?" opened, the system shall show the explanation `<details>` (built).
+3. If numeric format, the system shall parse the first number from the input (built) and compare to the answer key.
+4. If P1 option_feedback exists, the system shall show the feedback tied to the chosen distractor.
+5. While unanswered, the system shall show no answer hint (answer_index stays unrevealed in UI; DOM exposure accepted, see risk).
+
+**Acceptance criteria** — AC-1 kid completes a check unaided (Gate-B observation). AC-2 Keyboard/screen reader: radiogroup semantics (doctrine §10.6 fix exists), feedback announced politely. AC-3 Retry: reselecting + Check again works, no lock. AC-4 Perf: check cards within page budget. AC-5 Hindi question/option strings (P1) keep units/symbols untranslated. AC-6 Privacy: EVT-004 carries block_id + option_index + attempt_n only — no child identity beyond pseudonymous session.
+
+**States** | default: unanswered · loading: n/a · empty: n/a · partial: feedback shown, Why closed · error: numeric parse miss → "Enter a number like 5" · offline: fully works · permission-denied: n/a · reduced-motion: n/a · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a
+
+**Surfaces** SCR-LES-01.R6 · EL-LES-01-032…039 · INF-039…046 · NEED-001, NEED-010 · ENT?-PageMeta · EVT-004
+
+**Backend needs** NEED-001; SC-03 (`option_feedback[]` per check) for P1 slice.
+
+**Entities** ENT?-PageMeta. **Cost & risk** built. Risk: answer key in DOM (`data-answer-index`) — accepted for static MVP, flagged for post-challenge hardening.
+
+**Open questions** — Q: SC-03 per-option feedback — factory prompt + reviewer burden acceptable? owner: content-factory · blocking: n (P1).
+
+### F-COR-PROV-01 · Provenance & citations
+
+| Field | Value |
+|---|---|
+| Layer | COR |
+| Summary | Every page says where its content came from: NCERT/open sources with licenses, chapter pages, generation date — and students can report a problem. |
+| Priority | **P0** (footer + manifest built; report button P1) |
+| Kano | must-be (licensing + trust) |
+| Decision-log ref | C-028 (C-030 merged; C-029 deferred) |
+| Job + moment | J1 · Reads; J6 (guardian trust) |
+| Value hypothesis | If provenance is visible, guardians trust the product and wrong-physics reports reach ops (EVT-014 volume). |
+| Metrics / events | EVT-014; report-resolution SLA (ops metric) |
+| Principles applied | P7 (honesty) · P1 (safety valve for T12) |
+| Evidence | [STRONG] as principle |
+| Depends on / blocks | report inbox in F-OPS-ADM-01 |
+| Layer-independence | static text; report needs backend |
+
+**Behaviour (EARS)**
+1. When a lesson page renders, the footer shall name sources with licenses (built) and the manifest shall carry the same (exists).
+2. When Report pressed (P1), the system shall submit page_id, block_id (from focus region), category (wrong physics / bad translation / broken sim / other), optional short text.
+3. If the report endpoint is down, the button shall show "Could not send — try again" and keep the draft text.
+4. The system shall never ask for name/contact on the report form (child-data rule).
+
+**Acceptance criteria** — AC-1 sources visible without scrolling past 2 blocks on 360 px. AC-2 Keyboard operable form. AC-3 Report submission works offline? No — offline state disables with explanation. AC-4 Perf negligible. AC-5 Form labels translated (P1). AC-6 Privacy: reports carry no child identity beyond pseudonymous session; free-text flagged child-data-safe (no solicitation).
+
+**States** | default: footer visible; report button quiet graphite · loading: n/a · empty: n/a · partial: report draft kept unsent · error: send failure copy · offline: disabled + reason · permission-denied: n/a · reduced-motion: n/a · untranslated: English + notice · quota-exhausted: n/a · consent-missing: n/a (report needs no consent; still pseudonymous)
+
+**Surfaces** SCR-LES-01.R8 · EL-LES-01-047…049 · INF-047…049 · NEED-014 · ENT?-ProblemReport, ENT?-PageMeta · EVT-014
+
+**Backend needs** NEED-014 report submission.
+
+**Entities** ENT?-ProblemReport (page, block, category, text, status, ts; no PII). **Cost & risk** tiny. Risk: report spam → rate-limit (Stage 2).
+
+**Open questions** — Q: per-block citation display (C-029) timing? owner: content-factory · blocking: n.
+
+<!-- CARDS-BATCH-2 -->
 
 ---
 
