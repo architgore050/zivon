@@ -132,6 +132,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool) and `frontend/` (site shell + behaviour in Chromium) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 | [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
+| [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |
 
 ## Engineering Process
 
