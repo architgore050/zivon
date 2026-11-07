@@ -167,6 +167,10 @@ perf-gate test set (F-XCT-A11Y-01 AC-1).
   rendering verification clause — zero tofu at 360 px, ruled-line rhythm holds under
   Hindi strings, canvas `fillText` font stack pinned to the §10.3 fallback chain;
   perf-gate extension test. Owner: doctrine owner (founder).
+  **Status 2026-11-07: deferred by founder** — the clause + fix land with the
+  translation-engine build; founder's direction: per-script / per-text-size vertical
+  text offset to align glyphs with the ruled lines (or another technical fix chosen
+  at build time). Revisit trigger: translation-engine build start.
 - **DCR-002**: `docs/frontend/design-doctrine.md` gains §10.12 "Voice dock" — the dock
   as a paper-card lesson-page component: state visuals per dock state, earcon policy
   (≤ 3 non-speech sounds), chip styling, lazy-load rule, focus order after block text.
