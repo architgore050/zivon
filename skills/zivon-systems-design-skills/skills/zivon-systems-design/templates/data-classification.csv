@@ -1,0 +1,2 @@
+class_id,description,source_ids,system_of_record,item_size,items_per_day,mutability,access_pattern,sensitivity,retention_min,retention_max,legal_basis_placeholder,tier_hot_ssd,tier_cold,sync_trigger,verification,eviction_rule,deletion_path,restore_priority,phase,owner
+C1,Published lesson bundle,INF-…,cold+git,200KB,1,immutable,hot-read,public,forever,forever,n/a,current versions LRU,all versions,on publish,sha256 read-back,LRU if cold_verified and not pinned,n/a,P0,A,content
