@@ -57,7 +57,7 @@ This is an ambitious plan compressed into 12 days. The timeline is built so that
 - **Kanban**: GitHub Projects board — Backlog / Doing / Review / Done / Blocked, swim lanes per phase. Groomed every morning (15 min).
 - **Repo process**: real `.gitignore`, branch model (`main` protected, `prod` for production, `feature/*` branches), PR template, CI skeleton (lint / typecheck / build / test on every PR), agentic code-review workflow set up.
 - **Domain decision (from doc 03)**: final call on Zivon vs backups. Purchase + DNS + social handles. Hosting accounts: static (Cloudflare Pages / Vercel) + backend (Fly.io / Render / VPS).
-- **Gnani setup**: dashboard API keys, read credit pricing, estimate cost per STT minute / TTS character, set a usage budget, **reserve ~40% of the 5,000 credits** for demo day + judge usage on the live link.
+- **Gnani setup**: dashboard API keys, read credit pricing, estimate cost per STT minute / TTS character, set a usage budget, **reserve ~40% of the 5,000 credits** for demo day + judge usage on the live link. *(revised 2026-11-07 — founder: total budget is 10,000 credits (5k × 2 team members), headroom comfortable; guard config = 1k/day tranche + per-user cap + togglable demo profile — see Infra TODO below + F-OPS-MET-01.)*
 - **Evon prep starts**: request/download weights, read the technical report, price GPU options (RunPod / Modal / HF / local quantized).
 - **Line up kid testers**: 2–3 kids identified (family/neighbors), parental consent sorted, recording permission (doubles as demo footage).
 - **Pick 3 test topics**: one at kid level, one at their class, one above — e.g. Class 9 *Motion* (NCERT Ch. 8), Class 10 *Light: Reflection*, Class 11 *Kinematics*.
@@ -208,6 +208,7 @@ Open — work top-down:
 - ⬜ Publish pipeline: merge → build → push images to `ghcr.io/architgore050/zivon-*`.
 - ⬜ Deploy pipeline + hosting decision: real cluster choice, public domain, TLS. (2026-11-04: the HTTPS posture is LOCKED — edge TLS only; pages are already host-agnostic by harness guarantee; the mic-demo secure-context constraint is recorded in `docs/deployment/README.md` Decisions locked. The hosting choice itself stays deliberately open for the hosting stage.)
 - ⬜ Voice backend image (FastAPI/WebSockets) + Deployment + Service — Days 5–7 (Phase 2).
+- ⬜ **Credit guard config (build with the voice backend)** — founder decision 2026-11-07: global daily tranche **1,000 credits** + **per-user daily cap** (default 200 [ASSUMPTION] — calibrate against the Gnani dashboard after the first real voice sessions) + **togglable guard profile**: `normal` ↔ relaxed `demo` profile (much higher, still bounded caps for demo-day judge traffic on the live link). Total budget 10,000 credits (5k × 2 members). Wire into NEED-009 (`docs/product/backend-handoff.md`) + the Day-8 dashboard toggle. Spec: F-OPS-MET-01 in `docs/product/features.md`.
 - ⬜ Cluster monitoring dashboard (Prometheus + Grafana, admin-authed) — Day 8, per the Day-8 plan and P1 above.
 - ⬜ Cleanup stale images: `docker rmi zivon-factory:0.2.0 zivon-factory:0.2.1` + `minikube image rm` the same.
 

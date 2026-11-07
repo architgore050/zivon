@@ -854,7 +854,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 | Field | Value |
 |---|---|
 | Layer | OPS XCT |
-| Summary | Counts every Gnani credit second/character live, protects the reserved 40% demo tranche, and flips sessions to typed mode before credits die — never mid-turn. |
+| Summary | Counts every Gnani credit second/character live, enforces the founder-set **1,000-credit daily tranche + per-user cap**, and flips sessions to typed mode before credits die — never mid-turn. Guard limits are **togglable**: an admin mode flag flips to a relaxed demo profile for demo-day judge traffic. |
 | Priority | **P0** (backend guard); dashboard display slice in F-OPS-ADM-01 |
 | Kano | must-be |
 | Decision-log ref | C-103 (C-110 merged) |
@@ -862,27 +862,27 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 | Value hypothesis | If the guard trips at warn→typed before exhaustion, demo-day credit failure probability ≈ 0 (drill-tested). |
 | Metrics / events | M7; EVT-007, EVT-008 |
 | Principles applied | P7 (warn before limits) · P10 (typed floor) · TIMELINE credit rules [STRONG as plan] |
-| Evidence | [STRONG] as plan; thresholds [ASSUMPTION] |
+| Evidence | [STRONG] as plan; tranche + per-user dimension founder-set 2026-11-07; warn % and per-user default [ASSUMPTION] pending calibration |
 | Depends on / blocks | voice usage (NEED-006/008 metering points); feeds F-XCT-OFF-01 states |
 | Layer-independence | guard disables ADD/WRP audio layers; Core + typed tutor survive |
 
 **Behaviour (EARS)**
 1. Every Prisma stream-second and Timbre character shall be counted per session + global ledger at call time (NEED-009).
-2. When global burn crosses warn threshold, new sessions get voice_enabled=true + a dock notice; when exhausted, new sessions get typed_only; in-progress turns complete.
-3. The reserved tranche shall be a separate budget bucket: demo-day traffic draws from it only when the founder flips a mode flag.
+2. The guard shall evaluate **two dimensions**: the global daily tranche (**1,000 credits/day**, founder decision 2026-11-07) and a **per-user daily cap** (default 200/user/day [ASSUMPTION — calibrate against the Gnani dashboard after the first real voice sessions], keyed on the pseudonymous device/session id). When global burn crosses the warn threshold (15% of tranche remaining — doc default), new sessions get voice_enabled=true + a dock notice; when either dimension exhausts, new sessions get typed_only (per-user exhaustion affects only that user); in-progress turns complete.
+3. Guard limits shall be **togglable** (founder decision 2026-11-07): the founder/admin mode flag flips the guard between the `normal` profile (1,000/day tranche + per-user cap) and a relaxed **`demo` profile with much higher — still bounded — limits** for demo-day judge traffic on the live link; the flip is an admin action and is logged. Runaway protection (bounded ceilings) survives in both profiles.
 4. The daily credit log (parallel-pipeline rule) shall be generated from the ledger automatically.
 
 **Acceptance criteria** — AC-1 drill: burn to exhaustion in dev → typed mode engages cleanly, zero 500s, zero mid-turn cuts. AC-2 Ledger totals match Gnani dashboard within 2% (calibration check). AC-3 Counting adds < 5 ms per call. AC-4 Budget state visible in dashboard (F-OPS-ADM-01). AC-5 n/a localization. AC-6 Privacy: ledger holds counts only, never content.
 
-**States** ok / warn / exhausted / reserved-mode — these drive the quota-exhausted column of the state matrix.
+**States** ok / warn / exhausted / reserved-mode (reserved-mode = the relaxed `demo` profile is active via the mode flag) — these drive the quota-exhausted column of the state matrix.
 
 **Surfaces** SCR-ADM-01.R2; student-visible only via dock copy (F-ADD-VOI-01/03, F-XCT-OFF-01) · EL-ADM-003, 004; EL-LES-01-071, 072 · INF-085, 086, 097, 098 · NEED-009 · ENT?-CreditLedger · EVT-007, EVT-008
 
-**Backend needs** NEED-009 metering + guard service (counters, thresholds, mode flag, per-session flag push at session bootstrap + mid-session on state change).
+**Backend needs** NEED-009 metering + guard service (counters — global tranche + per-user daily totals, thresholds, `normal`/`demo` profile toggle, per-session flag push at session bootstrap + mid-session on state change).
 
-**Entities** ENT?-CreditLedger (model, units, ts, bucket). **Cost & risk** in-memory counters + periodic persist (Stage 2 chooses store). Risk: counter drift vs Gnani dashboard → daily reconciliation.
+**Entities** ENT?-CreditLedger (model, units, ts, bucket) + per-user daily counter keyed on the pseudonymous device/session id (counts only — never content). **Cost & risk** in-memory counters + periodic persist (Stage 2 chooses store). Risk: counter drift vs Gnani dashboard → daily reconciliation.
 
-**Open questions** — Q: warn threshold + daily tranche size? owner: founder (Day-8 decision) · blocking: **y** for guard config, n for spec.
+**Open questions** — Q: warn threshold + daily tranche size? — **resolved 2026-11-07 (founder)**: daily tranche **1,000 credits**; total budget **10,000 credits** (5k × 2 team members — founder: headroom comfortable, "no worries"); **per-user cap added as a guard dimension** (founder: practical from a deployment perspective, demonstrates systems design); guard limits **togglable** to a relaxed demo profile for judge traffic on the live link. Remaining calibration [ASSUMPTION]s: warn at 15% of tranche (doc default) and per-user default 200/day — both to be calibrated against the Gnani dashboard after the first real voice sessions.
 
 ### F-OPS-TEL-01 · Product telemetry & latency tracking
 
@@ -1101,8 +1101,11 @@ No silent ❌ below.
 4. ~~Does the demo link show the consent overlay to judges?~~ — **resolved 2026-11-07
    (founder)**: shown in both the demo video and the live link; consent flow treated
    as a demo asset.
-5. Credit-guard warn threshold + daily tranche size — owner: founder (Day-8) — blocks
-   guard config (F-OPS-MET-01).
+5. ~~Credit-guard warn threshold + daily tranche size~~ — **resolved 2026-11-07
+   (founder)**: **1,000-credit daily tranche**; total budget 10,000 credits (5k × 2
+   team members); **per-user cap** added as a guard dimension; guard limits
+   **togglable** (`normal` ↔ relaxed `demo` profile for judge traffic). Warn % and
+   per-user default remain calibration items [ASSUMPTION] against the dashboard.
 6. SC-02 adoption timing — owner: content factory — blocks P1 sim-quality slices,
    not the P0 ship.
 
