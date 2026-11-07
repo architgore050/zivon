@@ -123,6 +123,183 @@ rebuilt?**
 
 ---
 
-*(§3 sync policy, §4 eviction & cache policy, §5 cold provider selection, §6 restore &
-deletion pipeline, §7 retention jobs, §8 phase map are appended in the following phases of
-this stage — see `README.md` for the file map.)*
+---
+
+## 3. Sync policy — when hot moves to cold (twin: [`sync-policy.csv`](sync-policy.csv))
+
+Six rules. Each row: **class · trigger · mechanism · verify · on-failure · SLO · runbook · phase.**
+
+| ID | Class | Trigger | Mechanism | Verification | On failure | SLO `[ASSUMPTION]` | Phase |
+|---|---|---|---|---|---|---|---|
+| **SYNC-01** | C1, C2, C3-published | artifact finalized (publish / narration generation done) | **publish gate:** outbox row in the same DB transaction as the catalogue row → uploader (multipart > 16 MB, idempotent key = content hash, bounded concurrency, retry+backoff). P0 form: synchronous upload+verify step inside the publish flow (script step, no worker) | sha256 read-back (or provider checksum — semantics confirmed for multipart at build) → stamp `cold_verified_at` → **only then** flip `live_pointer` | publish stays `reviewed` (not live); backlog alert | ≥ 99 % verified ≤ 5 min; alert if outbox backlog age > 15 min | P0 (gate) / P1 (worker) |
+| **SYNC-02** | C14 | WAL segment closes or `archive_timeout = 60 s` elapses | Postgres `archive_command` → ship segment to U4 (`wal/{timeline}/{segment}`); base backup daily 02:30 IST off-peak CronJob (`pg_basebackup` → zstd → multipart) | segment checksum on write; base backup checksum; **monthly restore drill** (P0: one drill before submission) | archive_command retries; if persistent: alert WAL archive lag; DB keeps running (hot unaffected) | archive lag ≤ 5 min (NFR-17 = RPO) | P0 |
+| **SYNC-03** | C9, C13, C18 | on write (target: outbox) — P0: nightly 21:00 IST CronJob | export append-only tables since last snapshot → JSONL.zst + manifest (row count, min/max ts, sha256) → upload **encrypted client-side** (A-13) → immutable versioned copy | manifest row-count + checksum read-back | retry next night; alert if 2 consecutive misses (legal evidence — escalation) | snapshot lag ≤ 24 h | P0 |
+| **SYNC-04** | C10, C11 | day partition closed and older than hot window (90 d events; monthly ledger) | export → compress (JSONL) → upload date-partitioned key (`c10/dt=YYYY-MM-DD/part-NNNN.jsonl.zst`) → verify → **then** drop hot rows/partition | row count + min/max ts + checksum manifest **before** any hot delete — never drop before verified | keep hot rows, retry; if SSD pressure: alert (rows stay — SSD watermark rule yields to verification rule) | archive lag ≤ 48 h | P1 (P0 = plain 90-d delete, no archive) |
+| **SYNC-05** | C4 | run completes + 24 h settle delay | nightly batch: tar+zstd completed runs → upload + manifest; catalogue row per archive | tar checksum + file-count check | retry nightly; runs stay hot (last-10 window) | archive lag ≤ 72 h | P0 (mirror) / P1 (full) |
+| **SYNC-06** | C12 | optional, P2 only | compressed logs 90 d | checksum | skip (logs are not personal data) | n/a | P2 |
+
+Cross-cutting:
+
+- **Scrub & drift (weekly, P1; P0 = manual spot-check):** compare `object_catalog` vs cold
+  listing (missing/orphan objects), re-checksum a 1–5 %/day sample (NFR-20), alert on drift count > 0.
+- **Restore drill (monthly, P1):** full restore into an empty namespace, timed against RTO ≤ 4 h
+  (NFR-19). **P0 minimum: one drill before submission** (founder-run, logged in `docs/logs/`).
+- **Idempotency everywhere:** content-addressed keys mean a double upload is a no-op verify, not a duplicate.
+
+---
+
+## 4. Eviction & cache policy (U1/U3)
+
+1. **Watermarks (NFR-21):** alert > 70 % · evict-eligible > 75 % · page > 90 % (page = human
+   intervention, runbook RB-01).
+2. **What may be evicted:** only objects with `cold_verified_at IS NOT NULL` and `pinned = false`.
+   **Pinned by default:** the current live version of every published topic + the demo-flow lessons
+   (the Gate-C demo topics). Pinning is a catalogue column, flipped by the publish flow.
+3. **Eviction order:** LRU within class C2 narration first (largest, re-warmable), then C1 warm
+   copies on `zivon-cache`. U3 `zivon-frontend` live site is **never evicted** — it is the serving
+   copy; its durability comes from SYNC-01 origin copies, not from eviction.
+4. **Eviction transaction:** set `evicted_at` + `state='evicted'` in the same transaction as the
+   file-removal intent; a later read fetches from cold (transparent re-warm, latency visible only
+   to that first request).
+5. **Never evict while U4 is unreachable** (invariant §1). Outbox backlog grows instead; alert
+   at 15 min backlog age; SSD headroom is the bound — at 90 % the runbook is add-volume, not evict.
+6. **Cache warming:** publish flow warms `zivon-cache` with the newly live version + demo lessons.
+
+---
+
+## 5. Cold provider selection (ADR-0004 — criteria matrix from official pages, fetched 2026-11-07)
+
+Verified this session from official pricing/docs pages (B2 pricing page; R2 pricing + data-location
+docs). Cells marked **[verify]** were not confirmable from an official page in this session —
+no blog numbers used.
+
+| Criterion | **Backblaze B2** | **Cloudflare R2** | Wasabi | AWS S3 (Mumbai ap-south-1) | GCS (Mumbai ap-south1) |
+|---|---|---|---|---|---|
+| S3 API compat / SDK | S3-compatible API + native SDKs | S3 API first-class | S3-compatible | native | interop XML API (partial S3 compat) |
+| Storage price | **$6.95 / TB-mo** ($0.00695/GB) | $0.015/GB-mo Std; $0.01 IA | [verify — page unreachable this session] | [verify — region table not parseable this session; Std is the highest of the five] | [verify] |
+| Egress | **free up to 3× monthly storage**, then $0.01/GB; free via CDN partners | **free, all classes** | [verify] | free first 100 GB/mo (all AWS), then paid | paid, high |
+| Request/API cost | **Class A/B/C calls free** (PAYG); Class D $0.004/10 k, 2 500/day free | Class A $4.50/M, B $0.36/M; **free tier 1 M A + 10 M B/mo** | [verify] | per-request pricing | per-request |
+| Free tier | **first 10 GB free** | **10 GB-mo + ops free tier** | 10 GB trial [verify] | none (100 GB egress only) | none |
+| Min duration / size fees | **none** | none (Std); IA 30 d min | 30-day minimum storage duration policy [verify] | IA 30 d, Glacier 90 d, Deep Archive 180 d min | none (Standard) |
+| Immutability | **Object Lock + native file versioning** [verify feature pages] | no Object Lock/versioning today [verify] | [verify] | Object Lock (governance/compliance) | Object Lock (V1/V2) |
+| Lifecycle rules | yes | yes | yes | yes | yes |
+| Durability / availability claim | eleven-nines durability (vendor) | eleven-nines durability (vendor) | eleven-nines [verify] | 11 nines / 99.99 % SLA | 11 nines |
+| **India region / residency** | **none** (us-west, us-east, eu-central [verify]) | **no India jurisdiction**; Automatic placement + `apac` hint (best effort); Mumbai PoP for access | none [verify] | **yes — ap-south-1 Mumbai** | **yes — ap-south1 Mumbai** |
+| Write-only credentials | application keys per-bucket with fine-grained perms (no-delete achievable) | API tokens with bucket-scoped read/write-only | [verify] | IAM (clean) | IAM |
+| Provider independence from compute host | full (separate company/account/billing) | full | full | **no** if compute later lands on AWS; yes vs current minikube host | yes |
+| Exit path | S3 API → swappable | S3 API → swappable | S3 API | vendor lock-in risk | interop layer |
+
+**Decision (ADR-0004):** **Backblaze B2 primary** (lowest archive price at growth scale, free
+Class A/B/C transactions — WAL streaming costs nothing, no minimum-duration traps, native
+versioning + Object Lock for the backup immutability requirement, 10 GB free tier covers the
+whole challenge window) **+ Cloudflare R2 as the second copy for C9/C14 monthly pinned
+snapshots** (free tier, free egress, `apac` hint closest to India) — two independent providers
+at zero marginal cost at our volumes. **India-residency candidates (S3 ap-south-1, GCS
+ap-south1) stay open pending counsel** (A-13): until the counsel answer, child-adjacent archives
+are envelope-encrypted client-side before upload to either provider, keys held in-cluster only.
+
+**Credential model (non-negotiable):**
+- **Archival writer:** B2 application key, bucket-scoped **upload+read only — no delete, no
+  overwrite of existing versions** (append via unique content-addressed keys). Held by the
+  sync-worker service account only.
+- **Deleter/lifecycle:** separate privileged identity, used only by the deletion pipeline and
+  retention jobs, offline-stored except during those runs.
+- **Restore identity:** third key, read-only, held offline; loaded only by runbook RB-02/RB-06.
+- Object Lock (compliance mode where supported) on the backup bucket for the retention window.
+- **Encrypt-then-upload** for anything child-adjacent (C9 snapshots, C14 backups, C10 archives):
+  client-side envelope encryption (AGE or AES-256-GCM + per-period data keys), key material in a
+  K8s Secret outside U4. Public artifacts (C1/C2/C3) get integrity (sha256), not secrecy.
+- **Key scheme:** content-addressed for immutable artifacts (`c1/{course}/{class}/{lang}/{version}/{sha}.json`,
+  `c2/{course}/{class}/{block}/{lang}/{text_hash}.{voice}.opus`); date-partitioned for archives
+  (`c10/dt=YYYY-MM-DD/part-NNNN.jsonl.zst`, `wal/{timeline}/{segment}`, `base/{YYYY-MM-DD}.zst`,
+  `consent-snap/{YYYY-MM-DD}.jsonl.zst.enc`). **Never PII in keys.**
+- **Provider outage:** serving continues from U1–U3; outbox queues (bounded by SSD headroom);
+  no eviction; lifecycle/deletion jobs pause with visible backlog; second provider unaffected.
+
+---
+
+## 6. Restore & deletion
+
+### 6.1 Restore paths (RPO/RTO per class)
+
+| What died | Restore procedure | RPO | RTO target |
+|---|---|---|---|
+| U2 DB pod/PVC | provision fresh Postgres → fetch latest `base/{date}.zst` from U4 → replay WAL segments to target timestamp (PITR) → apply **re-delete-on-restore list** (C18 completed requests) → run Alembic migrations → flip service over | ≤ 5 min (NFR-17) | ≤ 4 h (NFR-19) |
+| U3 frontend PVC | re-seed from U4 origin copies (catalogue `state='cold_verified'` filter, current live pointers from U2 or, if U2 also dead, from `courses.js` in the git snapshot) → nginx serves | 0 for published versions (publish gate) | ≤ 2 h |
+| U3 sources PVC | re-seed archived runs from U4; active run resumes from completed stages (existing factory resumability) | ≤ 24 h settle window | ≤ 4 h |
+| Whole cluster | new namespace → apply `k8s/` manifests (git) → restore U2 per row 1 → re-seed U3 per rows 2–3 → voice backend stateless | as above | ≤ 4 h |
+| Single corrupted cold object | scrub detects → re-upload from hot copy if it still exists; else from DB/manifest reconstruction; else quarantine + alert (manual) | 0 (hot copy) | ≤ 1 day |
+
+Drill cadence: monthly full drill (P1); **one timed drill before submission (P0)** — result
+recorded in `docs/logs/`.
+
+### 6.2 Deletion pipeline (NEED-013 — the answer to "guardian clicks clear")
+
+Ordered fan-out, orchestrated by `voice/privacy`, each step recorded in `audit_log`:
+
+1. Insert `deletion_request` (status `requested`) — the tombstone exists before any wipe starts.
+2. **U2 rows:** hard-delete `voice_turn` (7-d rows), `session`, `telemetry_event`,
+   `consent_record`, `credit_ledger` device rows? **No** — ledger has no subject content
+   (db-spec §6); device row deleted last (FK cascades do most of the work); `problem_report`
+   device rows deleted.
+3. **U1/U3 files:** none keyed by child (no per-child files exist by design — C7 never stored,
+   transcripts never file-backed). Assert via catalogue: zero objects with `subject_ref = device`.
+4. **U4 objects:** privileged deleter identity removes any `subject_ref`-set objects + archives
+   containing the device (C10 archives: rewrite-partition path = re-export partition minus subject,
+   replace object, update manifest — P1; P0 window is 90 d hot rows only, archives absent).
+5. **Caches/CDN:** nothing per-child cached (static content only) — assert, don't purge.
+6. **Logs:** grep pipeline (should be empty by rule — C12 zero-PII rule); any hit = incident.
+7. **Backups:** cannot edit immutable archives → the completed `deletion_request` enters the
+   **re-delete-on-restore list**; archives age out within the documented window (≤ 30 d rolling +
+   monthly pinned 12 mo `[ASSUMPTION]`) — worst-case full erasure completes inside the window,
+   target ≤ 7 d for everything live (NFR-24), DPDP 90-day posture post-challenge.
+8. Mark request `completed` with counts (response shape NEED-013) + audit row. Online wipe
+   best-effort < 60 s p95; the pipeline never blocks the response.
+
+### 6.3 Retention jobs (CronJobs — the enforcement, all idempotent)
+
+| Job | Cadence | Enforces | Phase |
+|---|---|---|---|
+| `ttl-voice-turn` | nightly | 7-d transcript hard delete (C6) | P0 |
+| `ttl-coverage` | hourly | 24 h idle coverage clear (C5/session.coverage) | P0 |
+| `ttl-abuse-bucket` | hourly | 72 h rolling expiry (C19) | P0 |
+| `rollup-daily-stats` | nightly 01:30 IST | session roll-up → `daily_stats`, then 30-d session delete (C20) | P0 |
+| `ttl-telemetry` | nightly | 90-d event delete (C10, P0 form) | P0 |
+| `sync-nightly` | nightly 21:00 IST | SYNC-03 + SYNC-05 (+ SYNC-04 when archives exist) | P0 |
+| `base-backup` | daily 02:30 IST | C14 base backup → U4 | P0 |
+| `scrub-drift` | weekly | catalogue-vs-cold diff + sample checksums | P1 |
+| `archive-ledger` | monthly | C11 monthly cold archive then hot prune | P1 |
+| `backup-age` | weekly | expire backups outside the documented window (privileged identity) | P1 |
+| `restore-drill` | monthly (P0: one before submission) | timed full restore (NFR-19) | P0/P1 |
+
+---
+
+## 7. What this survives — the design claims, restated as tests
+
+1. **Pull the plug on U3 mid-demo:** live site rebuilds from U4/git ≤ 2 h; the demo itself never
+   depends on a cold read (everything demo-facing is hot + pinned).
+2. **Pull the plug on U2 mid-demo:** voice turns in flight die (C5 is memory); sessions resume
+   against the restored DB; **no published content, consent, or ledger row is lost** (WAL ≤ 5 min).
+3. **Pull the plug on U4 for a week:** nothing in the student path changes; outbox backlog grows;
+   eviction stops; alerts fire; when U4 returns, backlog drains idempotently.
+4. **Delete a device today:** every live copy gone ≤ 7 d; archived copies die with their backup
+   window; a restore tomorrow re-deletes it (tombstone list).
+5. **Writer credentials leaked:** attacker can upload junk, cannot delete or overwrite versions
+   (writer has no delete; versioning + Object Lock on backups); scrub + catalogue-vs-listing diff
+   catches junk objects; quarantine state available.
+
+---
+
+## 8. Phase map (what gets built when)
+
+| Capability | P0 (now) | P1 (Day-8/9 + post-challenge pilot) | Target (growth) |
+|---|---|---|---|
+| Publish gate SYNC-01 | synchronous upload+verify in publish flow | outbox + sync-worker Deployment | + second provider fan-out |
+| WAL archiving SYNC-02 | `archive_timeout=60` + archive_command to B2 | lag metric + alert | second-region WAL copy |
+| Nightly snapshots SYNC-03 | CronJob JSONL.zst encrypted | outbox-driven near-real-time | hash-chained snapshots |
+| Partition archival SYNC-04 | — (90-d delete only) | day partitions + verified drop | Parquet + query-on-archive |
+| Eviction §4 | watermark alerts + manual LRU (cold-verified only) | automated LRU + pinning | cache warming policy |
+| Scrub / drills | one timed drill before submission | weekly scrub, monthly drill | automated + second copy verify |
+| Deletion §6.2 | steps 1–2, 5–8 live (no archives yet) | archive rewrite path (step 4) | crypto-erasure evaluation |
+| Retention jobs §6.3 | all P0 rows | all P1 rows | — |
+
