@@ -636,7 +636,287 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Open questions** — Q: does memory view ship P0-lite (list only, no clear)? owner: founder · blocking: n.
 
-<!-- CARDS-BATCH-3 -->
+### F-XCT-CON-01 · Consent & privacy basics
+
+| Field | Value |
+|---|---|
+| Layer | XCT |
+| Summary | Before voice first runs: a one-page plain-language notice ("what we collect, what we never collect") with a guardian confirmation; plus a privacy page and a clear-my-data button. |
+| Priority | **P0** (notice + local record); **P1** (privacy page + clear) |
+| Kano | must-be |
+| Decision-log ref | C-085 (C-086 merged; C-087 deferred to counsel) |
+| Job + moment | J6 (guardian) · Asks |
+| Value hypothesis | If the notice is honest and short, guardians allow voice use and the demo ships responsibly (completion of first voice session after notice ≥ 90%). |
+| Metrics / events | EVT-013 |
+| Principles applied | P9 (private-by-default) · P7 (plain copy, no dark patterns) · T5/T6/T11 |
+| Evidence | [STRONG] as law-driven principle; DPDP children duties ~14 May 2027 per secondary sources — **re-verified 2026-11-07; counsel required before scale-up** |
+| Depends on / blocks | gates F-ADD-VOI-01 first use; NEED-012 |
+| Layer-independence | consent-missing blocks only the ADD layer (voice); Core fully usable — this is the isolation boundary made visible |
+
+**Behaviour (EARS)**
+1. Before the first voice session on a device, the system shall show the consent overlay: what voice use sends (speech → Gnani models → text kept 7 days → no raw audio), who it is not shown to, and a guardian-confirmation checkbox ("I am a parent/guardian or using this with one's OK").
+2. If confirmation is declined, the system shall return to the lesson with voice disabled and a quiet "Ask with typing or read the page" state — never re-nag.
+3. When confirmed, the system shall record (device_pseudo_id, consent_version, ts) locally + server-side (NEED-012) and enable the dock.
+4. The privacy page (P1) shall list every data class with retention and a Clear-my-data action (local wipe + server delete request, NEED-013).
+5. The notice shall be re-shown only when consent_version changes.
+
+**Acceptance criteria** — AC-1 overlay readable in ≤ 30 s at 360 px (copy budget ≤ 120 words). AC-2 Keyboard + screen reader complete the flow. AC-3 Declining leaves the page fully usable (Core test). AC-4 Copy in 3 languages (P1 slice; English P0). AC-5 Clear action removes local storage + calls NEED-013 and shows confirmation. AC-6 Audit: no analytics fires EVT-005+ before consent; EVT-001/002 pre-consent are aggregate-safe (no child identity beyond pseudonym) — flagged for legal review.
+
+**States** | default: not-yet-consented (voice chip quiet) · overlay-shown · confirmed · declined (voice disabled, no nag) · version-stale (re-show) · error: consent record save fail → voice stays off + retry · offline: local consent works; server sync later · untranslated: English P0 · others n/a |
+
+**Surfaces** SCR-LES-01.R10, SCR-PRIV-01 · EL-PRV-001…006 · INF-088…093 · NEED-012, NEED-013 · ENT?-ConsentRecord, ENT?-DeviceProfile · EVT-013, EVT-018
+
+**Backend needs** NEED-012 consent store; NEED-013 deletion endpoint (device_pseudo_id scope; DPDP 90-day response posture post-challenge).
+
+**Entities** ENT?-ConsentRecord (device_pseudo_id, version, guardian_flag, ts). **Cost & risk** tiny. Risk: self-declared consent ≠ VPC — **flagged for legal review** (C-087), acceptable for demo + founder-supervised kid sessions.
+
+**Open questions** — Q: does the demo link show the overlay to judges (friction) or pre-accepted demo profile? owner: founder (recommend: show it — it's part of the story) · blocking: **y** for demo script.
+
+### F-XCT-OFF-01 · Offline & degraded modes
+
+| Field | Value |
+|---|---|
+| Layer | XCT OPS |
+| Summary | The ladder that keeps Zivon alive: full → static (voice off) → typed-only → offline-reading; and the credit-exhaustion floor that never surprises a student mid-doubt. |
+| Priority | **P0** (ladder + over-budget states); **P1** (service worker) |
+| Kano | must-be |
+| Decision-log ref | C-089 (C-088 merged) |
+| Job + moment | J1 · Asks; J2 · Arrives; J7 |
+| Value hypothesis | If degradation is designed, a credit outage or flaky network never shows a broken UI — abandon rate during incidents < 30%. |
+| Metrics / events | EVT-016, EVT-008; M7 |
+| Principles applied | P10 (designed ladder) · P7 (warn before limits, never surprise cut-off) · P8 |
+| Evidence | [STRONG] as constraint (repo base case) |
+| Depends on / blocks | NEED-009 budget guard feeds quota-exhausted states |
+| Layer-independence | this feature IS the independence proof: each rung turns one layer off while Core survives |
+
+**Behaviour (EARS)**
+1. When the network drops, the system shall show an offline chip, disable voice/read-aloud with reasons, and keep reading/simulating/checking working (cached pages via SW, P1; browser cache P0).
+2. When the credit guard reports warn, the dock shall show "voice is limited today" before sessions start; when exhausted, voice switches to typed mode (NEED-004 text path) with plain copy — an in-progress turn is finished, never cut mid-answer.
+3. When connectivity returns, the system shall silently re-enable layers and sync queued local data (memory, EVT batch).
+4. The system shall never prefetch audio in data-saver or offline (F-XCT-SET-01).
+
+**Acceptance criteria** — AC-1 airplane-mode test: previously visited page fully readable + sims operable (SW P1; cache P0). AC-2 Budget-exhaustion drill: typed mode answers a doubt end-to-end with zero Gnani credits (Evon-only path). AC-3 Offline chip visible ≤ 1 s after connectivity loss. AC-4 No data loss: queued EVT/memory sync on return. AC-5 Copy in 3 languages (P1). AC-6 Privacy: queued local data respects consent state.
+
+**States** this card defines the offline / quota-exhausted columns of the screen-state matrix (§5.3).
+
+**Surfaces** SCR-LES-01.R9 + global chip, SCR-HUB-01 · EL-OFF-001…004 · INF-094…099 · NEED-009, NEED-004 · ENT?-Session · EVT-016, EVT-008
+
+**Backend needs** NEED-009 guard state push (session flag voice_enabled / typed_only); NEED-004 typed path.
+
+**Entities** ENT?-Session.flags. **Cost & risk** SW ~3 KB + version-rotation care (publish flow already rotates topics). Risk: stale SW serving old topic versions — cache versioning keyed to generated_at (Stage 2).
+
+**Open questions** — Q: warn threshold (credits remaining %)? owner: founder (recommend warn at 15% of daily tranche) · blocking: **y** for guard tuning.
+
+### F-XCT-A11Y-01 · Accessibility baseline
+
+| Field | Value |
+|---|---|
+| Layer | XCT |
+| Summary | The floor every screen must hold: keyboard everything, visible focus, 44–48 px targets, screen-reader mirrors, reduced motion, contrast (already doctrine-validated), captions for all audio. |
+| Priority | **P0** (built baseline + sim mirror); **P1** (drag alternatives, longdesc, polish audit) |
+| Kano | must-be |
+| Decision-log ref | C-090, C-091, C-092 (C-096 state rows) |
+| Job + moment | J2 · Reads; J3 · Practices |
+| Value hypothesis | If the WCAG-2.2-AA floor holds on generated pages, kids with low vision / motor limits / screen readers can complete a lesson (task-completion test per release). |
+| Metrics / events | a11y audit pass rate per topic (ops metric, not EVT) |
+| Principles applied | P8 · P10 · doctrine §10.8 (contrast, focus, targets — already validated) |
+| Evidence | [STRONG] WCAG 2.2 (criteria numbers verified against w3.org/TR/WCAG22 before quoting in Stage 2: 2.1.1 keyboard, 2.5.7 drag-movements alternative (AA, new in 2.2), target size minimum 24×24 (AA) / 44×44 (AAA) — we design to 44–48 px for children) |
+| Depends on / blocks | factory lint/review (exists) + shell |
+| Layer-independence | applies to every layer independently |
+
+**Behaviour (EARS)**
+1. Every control shall be keyboard operable with a visible 3 px pen-blue focus ring (doctrine, exists).
+2. Every canvas shall carry a text mirror updated politely (F-COR-SIM-01).
+3. If a sim offers drag (P1), the system shall also offer a single-pointer/keyboard alternative (WCAG 2.5.7).
+4. All spoken output (read-aloud, tutor) shall have a text equivalent visible on request or by default (T1).
+5. Reduced-motion shall zero all animation (runtime honors `prefers-reduced-motion`, exists).
+
+**Acceptance criteria** — AC-1 axe-core scan of each published page: zero serious/critical (CI extension — proposed to factory test set). AC-2 Keyboard-only lesson walk-through by a human tester per release. AC-3 Screen-reader walk-through: sim mirror + check feedback announced. AC-4 Targets ≥ 44 px measured. AC-5 No colour-only meaning (doctrine enforces). AC-6 No timed interactions anywhere (C-097 kill enforced).
+
+**States** reduced-motion column of the state matrix is defined here; all other columns per-screen in §5.3.
+
+**Surfaces** all screens · EL rows carry a11y columns in `ui-element-inventory.csv` · NEED-001 (static) · EVT: audit results to EVT-009 class (operational).
+
+**Backend needs** none beyond existing delivery; CI test-set extension proposed (handoff §7 note).
+
+**Entities** n/a. **Cost & risk** audit time per topic. Risk: generated code varies in a11y quality — factory Code Reviewer already gates; axe in CI closes the gap.
+
+**Open questions** — Q: axe-core in factory CI or perf-gate stage? owner: content-factory · blocking: n (P1).
+
+### F-XCT-SET-01 · Student settings
+
+| Field | Value |
+|---|---|
+| Layer | XCT |
+| Summary | Four honest switches, all local: language (via bar), speech pace, Guide/Tell depth, data-saver — plus "what the tutor remembers → clear". |
+| Priority | **P1** |
+| Kano | performance |
+| Decision-log ref | C-093 (settings shell for C-066 toggle, C-039 persistence) |
+| Job + moment | J4 · Reads; J5 |
+| Value hypothesis | If settings are explicit and few, students adapt the product without profiling (setting-change rate EVT-015 > 0 proves use). |
+| Metrics / events | EVT-015 |
+| Principles applied | P9 (explicit-only personalization, T5) · P2 (four settings, no menu tree) |
+| Evidence | [ASSUMPTION] usage |
+| Depends on / blocks | settings surfaces for LAN/TTS/VOI features |
+| Layer-independence | settings off → defaults work; each setting maps 1:1 to a feature's default |
+
+**Behaviour (EARS)**
+1. Settings shall live in a sheet opened from the dock/page header: Language, Read-aloud pace (0.75×/1×/1.25×), Tutor depth (Guide me / Explain directly), Data-saver (on/off), Memory (view/clear).
+2. All settings persist per device (localStorage); no server profile (T6).
+3. Data-saver on shall disable audio prefetch and warn once per session before any streamed audio.
+4. Changing Tutor depth mid-session shall apply from the next turn (no restart).
+
+**Acceptance criteria** — AC-1 sheet keyboard/screen-reader operable. AC-2 Defaults are the good experience (settings never required). AC-3 Pace applies to read-aloud and tutor TTS. AC-4 Local-only storage audit. AC-5 Labels translated (P1). AC-6 Clear-memory action confirm-then-clear (shared with F-ADD-MEM-01).
+
+**States** | default: all defaults · partial: a setting's feature unavailable (e.g. pace with TTS off) → control disabled + reason · offline: settings still work locally · others n/a |
+
+**Surfaces** SCR-LES-01.R11 · EL-SET-001…006 · INF-100…105 · NEED-018 (local) · ENT?-DeviceProfile · EVT-015
+
+**Backend needs** NEED-018 settings persistence: client-local primary; server mirror post-challenge only (out of P0/P1 build).
+
+**Entities** ENT?-DeviceProfile (local). **Cost & risk** tiny. Risk: settings exporting indecision (anti-pattern) — capped at four switches.
+
+**Open questions** — none blocking.
+
+### F-XCT-ONB-01 · First-use onboarding (anti-onboarding)
+
+| Field | Value |
+|---|---|
+| Layer | XCT |
+| Summary | Two one-time hints, then silence: a single "press and speak" label on the fresh mic chip, and one calm "wiggle-me" phrase on a sim whose object isn't obviously grabbable — both vanish on first interaction. |
+| Priority | **P1** |
+| Kano | delighter (small) |
+| Decision-log ref | C-094 |
+| Job + moment | J1 · Asks; J2 · Reads |
+| Value hypothesis | If first-session friction is two lines, time-to-first-interaction (sim and mic) drops (EVT-002/005 first-interaction timestamps). |
+| Metrics / events | EVT-002, EVT-005 (first_interaction latency) |
+| Principles applied | P3 (PhET wiggle-me rules) · P2 (no tour, no modal, no help center) |
+| Evidence | [STRONG] PhET |
+| Depends on / blocks | dock exists; sims exist |
+| Layer-independence | hints are per-layer (mic hint only when voice on) |
+
+**Behaviour (EARS)**
+1. On first-ever visit (local flag), the mic chip shall carry the label "Press to ask" and the first sim card a one-line hint; both disappear permanently on first interaction anywhere.
+2. The system shall show no tours, modals, or coach-mark sequences, ever.
+3. Help text, if ever added, shall be request-only, ≤ 4 short lines, adjacent to the item.
+
+**Acceptance criteria** — AC-1 hints never reappear after interaction. AC-2 Hints are plain text (screen-reader readable), not overlays. AC-3 Reduced-motion: wiggle-me is text-only (no animation). AC-4 Translated (P1). AC-5 Zero cost when off. AC-6 n/a privacy (local flag only).
+
+**States** | default: fresh flags · hinted (first session only) · done (flags set) · others n/a |
+
+**Surfaces** SCR-LES-01.R9/R5/R12 · EL-ONB-001…003 · INF-106…108 · NEED-018 (local flags) · ENT?-DeviceProfile · EVT-002, EVT-005
+
+**Backend needs** none (local flags).
+
+**Entities** ENT?-DeviceProfile.flags. **Cost & risk** trivial. Risk: hint becomes nag → permanent disappearance rule.
+
+**Open questions** — none blocking.
+
+### F-OPS-ADM-01 · Admin dashboard v0
+
+| Field | Value |
+|---|---|
+| Layer | OPS |
+| Summary | The founder's cockpit: live sessions, credit burn, topic engagement, the three trigger buttons (tests / generate / watch-run), run status, and the report inbox. |
+| Priority | **P1** (Day-8 ladder item; today it is the scripts — the dashboard wraps them) |
+| Kano | must-be (operations) |
+| Decision-log ref | C-100 (C-101, C-102, C-109 merged) |
+| Job + moment | J7 |
+| Value hypothesis | If the founder sees credit burn and engagement live, cut/fix decisions happen daily (decision-count/week ops metric). |
+| Metrics / events | M6, M7; reads EVT aggregates |
+| Principles applied | P7 (honest numbers) · P2 (five panels only) |
+| Evidence | [STRONG] as plan (TIMELINE Day 8 + trigger-button semantics mandated) |
+| Depends on / blocks | NEED-010 (data exists first), NEED-015; scripts are the sanctioned implementation behind buttons |
+| Layer-independence | staff-facing; zero student impact |
+
+**Behaviour (EARS)**
+1. The dashboard shall show: sessions today (count + pseudonymous list), credit burn (Prisma min / Timbre chars / guard state), topic engagement (opens, sim interactions, check attempts per topic), factory run status (latest run per topic + stage durations from run evidence), and open problem reports.
+2. The three buttons shall perform exactly the script semantics (TIMELINE table): clone test CronJob; render+apply factory Job template (manual-only, never scheduled); follow latest run logs by label lookup.
+3. Access shall be admin-gated (cluster-side auth / Grafana-style gate; no student-facing accounts).
+4. The report inbox shall allow status change (open → fixed → shipped-next-run).
+
+**Acceptance criteria** — AC-1 buttons create the same Jobs the scripts do (parity test). AC-2 Dashboard unreachable without admin auth (security scan). AC-3 Data freshness ≤ 5 min for usage panels. AC-4 No child free-text on any panel (transcripts never shown; aggregates only). AC-5 Runs panel reads `status.json`/`run_report.json` evidence (exists). AC-6 Rate-limit + CSRF protection on trigger actions (Stage 2).
+
+**States** | default: panels with data · loading: skeletons · empty: "no sessions yet" · partial: a panel's source down → panel error, others fine · error: auth fail → login · offline: n/a (staff tool) · permission-denied: 403 page · others n/a |
+
+**Surfaces** SCR-ADM-01 (R1 sessions · R2 usage/credits · R3 engagement · R4 ops/runs · R5 reports) · EL-ADM-001…012 · INF-109…120 · NEED-010, NEED-015, NEED-009 · ENT?-TelemetryEvent, ENT?-CreditLedger, ENT?-RunStatus, ENT?-ProblemReport · EVT-007, EVT-008 (read side)
+
+**Backend needs** NEED-015 admin API (query aggregates + trigger actions wrapping the three scripts); reads NEED-009/010 stores.
+
+**Entities** as listed. **Cost & risk** one small FastAPI service + minimal UI. Risk: trigger actions = privileged endpoints → auth + audit log (Stage 2 security).
+
+**Open questions** — Q: dashboard UI hand-rolled static + HTMX vs tiny React? owner: Stage 2 (recommend static, repo style) · blocking: n.
+
+### F-OPS-MET-01 · Credit metering & budget guard
+
+| Field | Value |
+|---|---|
+| Layer | OPS XCT |
+| Summary | Counts every Gnani credit second/character live, protects the reserved 40% demo tranche, and flips sessions to typed mode before credits die — never mid-turn. |
+| Priority | **P0** (backend guard); dashboard display slice in F-OPS-ADM-01 |
+| Kano | must-be |
+| Decision-log ref | C-103 (C-110 merged) |
+| Job + moment | J7 · Asks |
+| Value hypothesis | If the guard trips at warn→typed before exhaustion, demo-day credit failure probability ≈ 0 (drill-tested). |
+| Metrics / events | M7; EVT-007, EVT-008 |
+| Principles applied | P7 (warn before limits) · P10 (typed floor) · TIMELINE credit rules [STRONG as plan] |
+| Evidence | [STRONG] as plan; thresholds [ASSUMPTION] |
+| Depends on / blocks | voice usage (NEED-006/008 metering points); feeds F-XCT-OFF-01 states |
+| Layer-independence | guard disables ADD/WRP audio layers; Core + typed tutor survive |
+
+**Behaviour (EARS)**
+1. Every Prisma stream-second and Timbre character shall be counted per session + global ledger at call time (NEED-009).
+2. When global burn crosses warn threshold, new sessions get voice_enabled=true + a dock notice; when exhausted, new sessions get typed_only; in-progress turns complete.
+3. The reserved tranche shall be a separate budget bucket: demo-day traffic draws from it only when the founder flips a mode flag.
+4. The daily credit log (parallel-pipeline rule) shall be generated from the ledger automatically.
+
+**Acceptance criteria** — AC-1 drill: burn to exhaustion in dev → typed mode engages cleanly, zero 500s, zero mid-turn cuts. AC-2 Ledger totals match Gnani dashboard within 2% (calibration check). AC-3 Counting adds < 5 ms per call. AC-4 Budget state visible in dashboard (F-OPS-ADM-01). AC-5 n/a localization. AC-6 Privacy: ledger holds counts only, never content.
+
+**States** ok / warn / exhausted / reserved-mode — these drive the quota-exhausted column of the state matrix.
+
+**Surfaces** SCR-ADM-01.R2; student-visible only via dock copy (F-ADD-VOI-01/03, F-XCT-OFF-01) · EL-MET-001…003 · INF-121…123 · NEED-009 · ENT?-CreditLedger · EVT-007, EVT-008
+
+**Backend needs** NEED-009 metering + guard service (counters, thresholds, mode flag, per-session flag push at session bootstrap + mid-session on state change).
+
+**Entities** ENT?-CreditLedger (model, units, ts, bucket). **Cost & risk** in-memory counters + periodic persist (Stage 2 chooses store). Risk: counter drift vs Gnani dashboard → daily reconciliation.
+
+**Open questions** — Q: warn threshold + daily tranche size? owner: founder (Day-8 decision) · blocking: **y** for guard config, n for spec.
+
+### F-OPS-TEL-01 · Product telemetry & latency tracking
+
+| Field | Value |
+|---|---|
+| Layer | OPS XCT |
+| Summary | The measurement spine: 18 pseudonymous events, per-stage voice latency, structured errors — enough to prove Gate C and M1–M7, never enough to profile a child. |
+| Priority | **P0** |
+| Kano | must-be (Gate C is unprovable without it) |
+| Decision-log ref | C-104 (C-105 merged) |
+| Job + moment | J7 |
+| Value hypothesis | If EVT-006 latency p90 < 4 s is visible live, Gate C claims are defensible and regressions are caught same-day. |
+| Metrics / events | M2, M3, M4, M6, M7; EVT-001…018 (catalogue in handoff §4) |
+| Principles applied | P9 (privacy classes per event) · P6 (latency measured not felt) |
+| Evidence | [STRONG] as plan |
+| Depends on / blocks | event emission points across all features; ingestion endpoint |
+| Layer-independence | telemetry failure must never break a user-facing feature (fire-and-forget + local queue) |
+
+**Behaviour (EARS)**
+1. The client shall batch events (≤ 5 s or 20 events) to the ingestion endpoint; failures queue locally (≤ 200 events) and retry with backoff.
+2. The voice backend shall emit stage timestamps (end-of-speech, STT final, LLM first token, TTS first audio byte) per turn (EVT-006).
+3. Error events shall carry component + error class + latency context — never free-text payloads.
+4. Events fire only after consent state is known; pre-consent events limited to EVT-001/016/017 aggregate-safe set (flagged).
+5. No event shall contain raw child free text (transcripts stay in server logs, TTL 7 d, not in EVT).
+
+**Acceptance criteria** — AC-1 EVT-006 p90 < 4 s on deployed rehearsal (Gate C evidence). AC-2 Event schema validation rejects free-text fields (CI test). AC-3 Local queue survives reload (no loss of more than 200 events). AC-4 Ingestion adds < 50 ms to interaction path (async). AC-5 n/a localization. AC-6 Privacy audit: every EVT row has a privacy class (handoff §4 table is the audit artifact).
+
+**States** | default: batching · degraded: ingestion down → local queue + drop-oldest · consent-missing: restricted set only · offline: queue |
+
+**Surfaces** emission across all screens (no dedicated UI) · EL rows carry emits_event column · NEED-010 · ENT?-TelemetryEvent · EVT-001…018
+
+**Backend needs** NEED-010 ingestion (batch POST, schema-validated, pseudonymous ids only; sink: structured logs → dashboard aggregates; Loki is P2 per deployment docs).
+
+**Entities** ENT?-TelemetryEvent. **Cost & risk** tiny bandwidth. Risk: metric theater (vanity metrics) — catalogue is capped at 18 events tied to M1–M7.
+
+**Open questions** — Q: aggregate store (Postgres vs logs+Grafana)? owner: Stage 2 · blocking: n for product, y for dashboard build.
 
 ---
 
