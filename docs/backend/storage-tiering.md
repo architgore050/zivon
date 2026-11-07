@@ -140,15 +140,15 @@ Six rules. Each row: **class · trigger · mechanism · verify · on-failure · 
 
 Cross-cutting:
 
-- **Scrub & drift (weekly, P1; P0 = manual spot-check):** compare `object_catalog` vs cold
+- **SCRUB-01 — scrub & drift (weekly, P1; P0 = manual spot-check):** compare `object_catalog` vs cold
   listing (missing/orphan objects), re-checksum a 1–5 %/day sample (NFR-20), alert on drift count > 0.
-- **Restore drill (monthly, P1):** full restore into an empty namespace, timed against RTO ≤ 4 h
+- **DRILL-01 — restore drill (monthly, P1):** full restore into an empty namespace, timed against RTO ≤ 4 h
   (NFR-19). **P0 minimum: one drill before submission** (founder-run, logged in `docs/logs/`).
 - **Idempotency everywhere:** content-addressed keys mean a double upload is a no-op verify, not a duplicate.
 
 ---
 
-## 4. Eviction & cache policy (U1/U3)
+## 4. Eviction & cache policy (U1/U3) — rule EVICT-01
 
 1. **Watermarks (NFR-21):** alert > 70 % · evict-eligible > 75 % · page > 90 % (page = human
    intervention, runbook RB-01).
@@ -224,7 +224,7 @@ are envelope-encrypted client-side before upload to either provider, keys held i
 
 | What died | Restore procedure | RPO | RTO target |
 |---|---|---|---|
-| U2 DB pod/PVC | provision fresh Postgres → fetch latest `base/{date}.zst` from U4 → replay WAL segments to target timestamp (PITR) → apply **re-delete-on-restore list** (C18 completed requests) → run Alembic migrations → flip service over | ≤ 5 min (NFR-17) | ≤ 4 h (NFR-19) |
+| U2 DB pod/PVC | provision fresh Postgres → fetch latest `base/{date}.zst` from U4 → replay WAL segments to target timestamp (PITR) → apply **re-delete-on-restore list** (C18 completed requests; rule **REDEL-01** — before the DB accepts traffic) → run Alembic migrations → flip service over | ≤ 5 min (NFR-17) | ≤ 4 h (NFR-19) |
 | U3 frontend PVC | re-seed from U4 origin copies (catalogue `state='cold_verified'` filter, current live pointers from U2 or, if U2 also dead, from `courses.js` in the git snapshot) → nginx serves | 0 for published versions (publish gate) | ≤ 2 h |
 | U3 sources PVC | re-seed archived runs from U4; active run resumes from completed stages (existing factory resumability) | ≤ 24 h settle window | ≤ 4 h |
 | Whole cluster | new namespace → apply `k8s/` manifests (git) → restore U2 per row 1 → re-seed U3 per rows 2–3 → voice backend stateless | as above | ≤ 4 h |

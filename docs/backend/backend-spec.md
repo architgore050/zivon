@@ -624,3 +624,85 @@ hourly, P1).
 | RB-10 | deletion request / pipeline failure | re-run idempotent steps; verify tombstone; SLA clock visible | ops |
 | RB-11 | suspected breach | RB steps: contain → triage 1 h → counsel/Board clock decision → notify path → log | founder |
 | RB-12 | restore drill (monthly; P0 once) | timed full restore + smoke test + re-delete check + tabletop breach walk-through | founder + ops |
+
+---
+
+## 12. Deployment topology (K8s objects — consistent with `docs/deployment/`, numeric apply-order prefixes)
+
+New objects (target form; P0 subset marked ●):
+
+| Manifest (prefix = apply order) | Object | Notes |
+|---|---|---|
+| `k8s/00-namespace.yaml` (exists) | namespace `zivon` | unchanged |
+| `k8s/16-db-pvc.yaml` ● | PVC `zivon-db` (10 Gi demo) + PVC `zivon-cache` (5 Gi) | new volumes justified by data classes C11/C20/C6 (db) and C1/C2 warm cache — the ref-05 §5 rule "add volumes only with a data-class justification" |
+| `k8s/25-postgres.yaml` ● | Postgres 16 Deployment + Service + Secret `zivon-db-env` (runtime-only) + ConfigMap `zivon-db-config` (archive_timeout=60 etc.) + readiness/liveness probes | the only new stateful workload; gotchas 9/12 apply (image tags pinned in manifest; kube-linter gates) |
+| `k8s/35-voice-backend.yaml` ● | voice-backend Deployment + Service (FastAPI, image `zivon-voice:x.y.z` pinned) | envFrom Secret `zivon-voice-env` (Gnani keys, DB URL, session-token key, IP-hash salt, cold-writer key) + ConfigMap `zivon-voice-config` (limits, GPU base URL — same OpenAI-format env pattern as `ZIVON_BASE_URL` in infra.env, new keys `VOICE_LLM_BASE_URL`/`VOICE_LLM_MODEL` rendered from infra.env) |
+| `k8s/36-voice-service-exposure` ● | Service type per existing pattern (ClusterIP + edge at hosting stage; dev parity with NodePort 30080 pattern for phone testing) | TLS terminates at the edge only (locked 2026-11-04) |
+| `k8s/45-sync.yaml` | sync-worker Deployment (P1) + Secrets `zivon-cold-writer` / `zivon-cold-deleter` / `zivon-cold-restore` (three identities, storage-tiering §5) | separate service accounts; writer key has no delete |
+| `k8s/55-retention-cronjobs.yaml` ● | CronJobs: sync-nightly, base-backup, ttl-voice-turn, ttl-coverage, ttl-abuse-bucket, rollup-daily-stats, ttl-telemetry (storage-tiering §6.3 P0 rows) | CronJob cleanup = history limits, no ttlSeconds inside jobTemplate (gotcha 12); the **factory Job stays manual-only** — nothing here changes `k8s/20` |
+| `k8s/60-admin-api` ● | admin routes live **inside** the voice-backend Deployment (separate router + token), not a separate service | simplicity; separate NetworkPolicy later if needed |
+| CI (`.github/workflows/ci.yml`) | new jobs: build `zivon-voice` image (slim base, deps-before-code, non-root), smoke test parity with `docker/smoke_test.py` pattern, Alembic migrate-against-fresh-DB + migrate-against-cold-restore (ADR-0016), script-parity test (API-A7/8/9 vs the three scripts), kube-linter on new manifests | key-free (repo rule); third-party actions stay SHA-pinned |
+| `k8s/infra.env` additions | `VOICE_LLM_BASE_URL`, `VOICE_LLM_MODEL`, `COLD_PROVIDER="b2"`, `COLD_BUCKET_*` names (no secrets — keys live only in Secrets) | rendered by `scripts/apply-k8s.sh` like existing values |
+
+GPU host (Gemma, A-09): **outside the cluster** in P0 (external warm instance; reached via
+`VOICE_LLM_BASE_URL`; the dev inference-router bridge pattern extends to it). In-cluster GPU
+serving is a post-challenge infra decision (TIMELINE open item), not a manifest in this spec.
+
+## 13. Capacity & cost
+
+Full model in [`capacity-and-cost.md`](capacity-and-cost.md). Headline: storage/egress ≈ $0
+through the challenge window (B2 + R2 free tiers cover ≤ 8 GB cold total); the **binding
+constraint is Gnani credits** (10 000 total · 1 000/day tranche · 30/user/day · ~40 % demo
+reserve · ≤ 1 500 narration build budget A-15); the only real money line is the Gemma GPU host.
+
+## 14. ADR index
+
+[`adr/README.md`](adr/README.md) — 16 records, 1:1 map to the eight features.md ADR flags
+(T2→0009, T3→0010, T5→0011, T6→0007, T7→0012, T8→0013, T11→0008, T12→0014) plus eight
+systems-origin decisions (0001, 0002, 0003, 0004, 0005, 0006, 0015, 0016).
+
+## 15. Open questions & unverified facts (consolidated — none smoothed over)
+
+| # | Question | Where carried | Owner / trigger |
+|---|---|---|---|
+| A-01…A-15 | the full assumptions register (credit unit prices, demo-profile numbers, hinglish mappings, GPU warmth, IP-hash retention…) | §1.2 table | per-row owners |
+| Q-L1 | **India data residency for child-adjacent archives** — B2/R2 have no India region; S3 ap-south-1 / GCS ap-south1 are the designated swap candidates | ADR-0004, storage-tiering §5 | founder + counsel before any scale-up (mitigation live: encrypt-then-upload A-13) |
+| Q-L2 | DPDP clocks (72-h Board notice, 90-d rights response, children's-consent mechanics) are secondary-source facts | §10.4, ref 06 | counsel (already flagged Stage-1 C-087) |
+| Q-V1 | **Gnani-side retention of streamed audio/text at the API** — unknown; we minimize on our side but must ask Gnani | §10.1 [verify] | founder — ask Gnani before scale-up; irrelevant to demo integrity |
+| Q-V2 | B2 Object Lock / versioning feature pages; R2 lock/versioning status; multipart checksum semantics for the verify step | ADR-0004 [verify cells], SYNC-01 | Stage-3 build (before enabling lock) |
+| Q-V3 | Wasabi + AWS/GCS region prices not verified this session (pages unreachable/unparseable) — cells flagged, no blog numbers used | storage-tiering §5 | re-verify only if ADR-0004 revisit fires |
+| Q1…Q6 | DB-specific open questions (credit unit costs, crypto-erasure, guardian_ref, narration pace, class CHECK, partition thresholds) | db-spec §10 | per-row |
+| Q-O1 | demo-profile numbers (1 000/100) are A-05 `[ASSUMPTION]` — founder calibration | §1.2, TIMELINE infra TODO | founder before demo day |
+| Q-O2 | page-load gate duality (2 s target vs 6.0/3.5 s loosened gate) must always be cited together | NFR-07, A-08 | re-tighten at Phase 4 (Day 9) |
+
+## 16. Traceability (NEED ↔ endpoint ↔ entity ↔ class ↔ EVT)
+
+Machine-readable twins: [`db-traceability.csv`](db-traceability.csv) (column-level) and
+[`data-classification.csv`](data-classification.csv) / [`sync-policy.csv`](sync-policy.csv).
+The roll-up:
+
+| NEED | Endpoint / mechanism | Tables | Data classes | EVT side |
+|---|---|---|---|---|
+| 001 | ST-01 static (nginx, exists) | content_page, page_version, live_pointer | C1 | 001 |
+| 002 | ST-02 courses.js (exists) | content_page | C1 | 017 |
+| 003 | API-001 POST /v1/session (+009 resume) | device, session, consent_record, guard_counter | C20, C9 | — |
+| 004 | API-002 WSS /v1/voice (§7) | session, voice_turn | C5, C6, C7 | 005, 006, 010 |
+| 005 | context.snapshot message → voice/anchor | voice_turn.anchor | C5 | — |
+| 006 | voice/gnani Prisma client (inside 004) | voice_turn, credit_ledger | C6, C7, C11 | 005 |
+| 007 | voice/tutor Gemma client (inside 004) | voice_turn, credit_ledger | C6, C11 | 005, 006 |
+| 008 | voice/gnani Timbre client (inside 004) | voice_turn, credit_ledger | C6, C11 | 006 |
+| 009 | voice/guard + guard_counter/guard_profile + API-A3/A4 | credit_ledger, guard_counter, guard_profile | C11 | 007, 008 |
+| 010 | API-005 POST /v1/events | telemetry_event | C10 | all 18 (ingest side) |
+| 011 | API-003 PUT coverage | session.coverage | C5 boundary | — |
+| 012 | API-004 PUT /v1/consent + middleware | consent_record | C9 | 013 |
+| 013 | API-007 DELETE /v1/data + pipeline | deletion_request + fan-out | C18 (+ all personal classes) | 018 |
+| 014 | API-006 POST /v1/reports | problem_report | C17 | 014 |
+| 015 | API-A1…A10 admin (script-parity A7-A9) | daily_stats, session, factory_run, problem_report, audit_log | C20, C4, C13, C17 | aggregates of all |
+| 016 | ST-03 bundles (static) | language_bundle | C3 | 011 |
+| 017 | ST-04 narration (static) | narration_asset, object_catalog | C2 | 012 |
+| 018 | client localStorage (no endpoint) | — (device seam only) | C8 | 015 |
+
+**Zero-orphans check (mechanical, 2026-11-07):** NEED 18/18 covered · EVT 18/18 have a home ·
+INF 105/105 have a home or are storage-free shell-static/client-local rows · ENT? 10/10 mapped
+to tables · WS messages 14/14 catalogued · data classes 20/20 rendered in both twin files ·
+sync rules 10/10 labeled in both twins. No orphans.

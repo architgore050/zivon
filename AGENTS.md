@@ -19,6 +19,7 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
 - `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog).
 - `docs/product/` — consult before any feature, screen, UI-element, information, or backend-handoff work: the decided features document (decision log, feature cards, inventories, traceability, backend handoff). Feature decisions here are already made — do not re-litigate them; extend through the same method (`skills/zivon-product-design-skills/`).
+- `docs/backend/` — consult before any voice-backend, API, database, storage-tiering, credit-guard, deployment-topology, or ADR work: the Stage-2 systems specs (backend spec, DB spec, storage tiering + sync policy, data classification, capacity & cost, 16 ADRs). Systems decisions here are already made — extend or revisit only through an ADR's stated revisit trigger.
 - `docs/logs/` — dated session logs (done / not done / next) for the build-in-public record.
 
 Rules:
@@ -150,6 +151,8 @@ Non-negotiable: secrets never enter images, manifests, or workflows — runtime 
 `skills/content-creation/` holds the agent skills for the build-in-public posts (LinkedIn and X writers, shared post theme rules, asset/edit briefs, and the Kinocut + GIMP editing lessons store). Read [`skills/content-creation/README.md`](skills/content-creation/README.md) before any post work — it is the source of truth for the folder's layout and rules; this file does not list individual files.
 
 `skills/prompting-and-agent-design/` is the sibling skill for the engineering side: the current-era rules for prompting the factory's stage agents and the voice tutor, and for deciding what belongs in a prompt vs the harness. Read its `SKILL.md` before any agent-prompt or agent-graph work; its references file carries the dated evidence. Again: each folder's README is that folder's layout source of truth.
+
+`skills/zivon-systems-design-skills/` is the Stage-2 skill bundle behind `docs/backend/`: a 10-phase systems-design pipeline (method/NFRs, data classification & tiering, DB method, API/realtime, privacy/security/ops, capacity, ADRs, self-review) with vendored references. Read its `SKILL.md` before extending or revisiting any Stage-2 spec or ADR.
 
 Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or propose other editing tools.
 
