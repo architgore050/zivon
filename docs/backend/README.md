@@ -18,6 +18,7 @@ storage units; IP-based abuse prevention).
 | [`db-spec.md`](db-spec.md) | PostgreSQL schema: entities, keys, constraints, indexes (each justified by a named access pattern), i18n + content-versioning pattern, retention jobs, migration strategy; every column traces to INF-/ENT? IDs |
 | [`storage-tiering.md`](storage-tiering.md) | The three storage units (backend cache / hot DB / cold provider), data-class placement, sync triggers & schedules, checksum verification, two-phase eviction, restore, deletion pipeline, cold-provider selection, per-class "pull the plug" answers |
 | [`data-classification.csv`](data-classification.csv) | One row per data class (machine-readable twin of storage-tiering §2) |
+| [`db-traceability.csv`](db-traceability.csv) | One row per table/column group: ↔ INF/ENT?/EVT/NEED IDs ↔ PII class ↔ retention ↔ phase |
 | [`sync-policy.csv`](sync-policy.csv) | One row per sync rule: trigger, mechanism, verification, on-failure, SLO, runbook |
 | [`capacity-and-cost.md`](capacity-and-cost.md) | Storage / egress / Gnani-credit capacity model reconciled against the 10,000-credit budget, the 1,000-credit daily tranche, the 30-credit per-user cap, and the demo profile |
 | [`adr/`](adr/) | Architecture Decision Records — one per significant decision; maps 1:1 to the 8 `**ADR**` flags in `features.md` §3 (T2, T3, T5, T6, T7, T8, T11, T12) plus systems-origin decisions (primary DB, session store, realtime transport, cold provider, layer isolation, sync schedule, guard architecture, migrations) |
