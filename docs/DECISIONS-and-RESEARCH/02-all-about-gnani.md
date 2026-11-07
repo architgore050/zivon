@@ -205,3 +205,16 @@ As of late October 2026 we have roughly two weeks of focused build time left. Pr
 > Build something useful with Gnani AI’s models and APIs, show us how it works, and put your work in front of the team.
 
 Zivon is our answer to that brief.
+
+---
+
+## 12. Addendum — model & language facts re-verified 2026-11-07 (docs.gnani.ai + gnani.ai, fetched same day)
+
+Perishable facts in §3 of this doc were re-checked against the live Gnani docs. Verified state:
+
+- **Newer model versions exist and are on the API**: `prisma-v3.0` and `timbre-v3.0` model values; the official LiveKit plugin page covers them. Our non-negotiable (Prisma v2.5 + Timbre v2.5) predates these releases — **a v2.5-vs-v3.0 decision is now open with the founder** (tracked in `docs/product/features.md` §7.3).
+- **STT languages (Prisma v2.5 and v3.0, identical list)**: Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Punjabi, Tamil, Telugu — 10 languages, codes `bn-IN … te-IN`. `en-IN` accepts English-Hindi mixed audio. Prisma v3.0 only: `indic-auto` auto language detection (reply carries `detected_language_code`).
+- **TTS voices**: Timbre v2.5 = 42 voices, each with one preferred language, including a dedicated **Hinglish voice (Poorvi, `hi-en`)**; `language: auto` detects from input script. Timbre v3.0 = 13 voices, **every voice speaks all 10 languages**; personas include e-learning-suited ones (Lakshmi, Vasudha, Yashraj — "storytelling / e-learning narration"; Shivani — "warm, patient, empathy-first").
+- **Expressive audio tags are Timbre v3.0 only**: 13 tags (`<laugh> <giggle> <sigh> <exhales> <sniffles> <yawns> <coughs> <clears throat> <whispers> <shouting> <excited> <slow> <pauses>`); tags apply from position to end-of-input, are billable characters, unknown tags are stripped silently. **On Timbre v2.5 tags are removed before synthesis and never spoken** (tag-only text → 400).
+- **Founder correction 2026-11-07**: the product language set is **all Gnani-supported languages** — EN/Hindi/Hinglish were the demo subset, not the ceiling. Recorded as a dated revision on T2 in `docs/product/features.md` §3.
+- Gnani marketing claims checked today: 40+ languages/dialects across the platform with deep Indic coverage (Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi + Spanish); Prisma "#1 on 8 of 9 Indian languages" on Kathbath Noisy 8kHz. The speech **APIs** we build on expose the 10-language list above.

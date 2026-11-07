@@ -173,7 +173,7 @@ Non-negotiables: interview before drafting (Depth Gate), never fabricate facts, 
 - Evon is open-weight. You will need to run it yourself (or via a compatible inference server). Plan for this early — GPU hosting choice is a Day-0/1 task.
 - Official LiveKit plugin exists: `livekit-plugins-gnani`. Prefer using it if you go the LiveKit route.
 - Programme credits are limited (5,000 per registrant). Log usage daily, use text-only dev mode where possible, and **reserve ~40% of credits** for demo day and judge traffic.
-- Timbre supports expressive tags (whisper, excitement, etc.) — confirm the exact tag set from Gnani docs before prompting Evon to emit them. Fine-tuning for tag emission is a stretch goal (P2), not the critical path.
+- Timbre expressive tags **verified 2026-11-07 against docs.gnani.ai**: tags are a **Timbre v3.0-only** feature — 13-tag catalog (`<laugh> <giggle> <sigh> <exhales> <sniffles> <yawns> <coughs> <clears throat> <whispers> <shouting> <excited> <slow> <pauses>`; tags billable as characters; unknown tags stripped silently). **Timbre v2.5 strips tags before synthesis** — they are not spoken. Expressive tags therefore require a model-version decision (v2.5 vs v3.0, founder decision pending — see `docs/product/features.md` §7.3); until decided, prompt Evon for plain voice only. Fine-tuning for tag emission remains a stretch goal (P2), not the critical path.
 - The models are strong on Indian languages and code-mixing — lean into that strength in demos and prompts.
 
 ---

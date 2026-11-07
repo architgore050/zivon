@@ -140,7 +140,7 @@ the doctrine owner).
 | ID | Decision | Rejected alternative | Deciding principle | Falsification test | Flag |
 |---|---|---|---|---|---|
 | **T1** | Narration + visuals with **short labels only** by default. The voice dock shows the **final tutor transcript by default** (it doubles as status + a11y caption surface); live partial transcript is opt-in P1; lesson text is never duplicated as full captions. Per-user memory of the toggle. | (a) audio-only (fails a11y + noisy room); (c) always full text+audio duplication (Mayer redundancy cost) | Mayer redundancy/modality [STRONG] balanced against WCAG captions-for-audio [STRONG] | Kid test: do testers glance at the transcript or ignore it? Learning outcome equal-or-better with captions off vs on (Gate-B style A/B) | none (copy rule) |
-| **T2** | Language model: **UI languages = English / हिन्दी / Hinglish** (Hinglish in Roman script, house style: Devanagari for physics terms where natural, else English term kept). Hinglish is *also* the tutor's default speech style. Bar shows autonyms. v1 = 3 languages; bar chips wrap (doctrine §10.5) so ≥5 is a data change not a redesign. RTL out. | Hinglish as tutor-style only (page stays English); single "Hindi" covering both scripts | J4 (read at thinking speed) + the challenge's code-mix story [STRONG] | Kid preference sessions (Gate-B rounds): which UI language do testers stay in? Label-length audit at 360 px | **ADR** (per-string language data model; STT language hints; TTS voice choice) |
+| **T2** | Language model: **UI languages = English / हिन्दी / Hinglish** (Hinglish in Roman script, house style: Devanagari for physics terms where natural, else English term kept). Hinglish is *also* the tutor's default speech style. Bar shows autonyms. v1 = 3 languages; bar chips wrap (doctrine §10.5) so ≥5 is a data change not a redesign. RTL out. **Revision 2026-11-07 (founder correction):** the product language set is **all Gnani-supported languages**, not just the three demo ones — verified against docs.gnani.ai today: Prisma v2.5/v3.0 STT = 10 languages (bn-IN, en-IN, gu-IN, hi-IN, kn-IN, ml-IN, mr-IN, pa-IN, ta-IN, te-IN; en-IN accepts EN-HI mixed audio); Timbre v2.5 = 42 voices, one preferred language each (incl. a dedicated **Hinglish voice Poorvi**, `hi-en`); Timbre v3.0 = 13 voices, **each speaking all 10 languages**; Evon v3.3 = 11 Indian languages native. EN / हिन्दी / Hinglish = **demo subset**, not the ceiling; the bar stays data-driven (wrap rule already handles ≥5). Page translation remains a **separate second-layer pipeline** (SC-01) — the factory produces English natively. | Hinglish as tutor-style only (page stays English); single "Hindi" covering both scripts | J4 (read at thinking speed) + the challenge's code-mix story [STRONG] | Kid preference sessions (Gate-B rounds): which UI language do testers stay in? Label-length audit at 360 px | **ADR** (per-string language data model; STT language hints; TTS voice choice) |
 | **T3** | **Push-to-talk default** (tap-to-start, tap-or-endpoint-to-stop). Hands-free VAD is a P2 opt-in. | Hands-free default (false triggers in noisy shared rooms; always-on mic for a child) | Noisy shared room is the base case (repo rule) + child privacy | EVT-010 voice_abandon + false-trigger rate in field logs; quiet-room vs noisy-room session comparison | **ADR** (WebSocket PTT message contract) |
 | **T4** | Doctrine already names the Devanagari fallback stack (§10.3) — the gap is **verification**: LessonKit baseline alignment, canvas `fillText` font stack, and the row rhythm under Hindi strings are unproven. File **DCR-001**: doctrine gains a "Devanagari rendering verification" clause (no tofu, rules hold, canvas stack pinned) + the pipeline vendors Kalam/Nirmala-class faces. Never ship tofu. | Ship Hindi strings on the unverified stack; or drop Hindi from v1 | Doctrine owner decides doctrine; honesty + a11y [STRONG] | Device test: Hindi page at 360 px — zero tofu, rules under baselines after resize (perf-gate extension) | **DCR-001** |
 | **T5** | **Explicit + session-scoped only.** Explicit settings (language, pace, Guide/Tell, data-saver) and session coverage memory. **Persistent inferred profile: KILLED** (not deferred) — behavioural profiling of children. Cross-session *explicit* progress deferred to post-challenge with counsel. | Guardian-consented persistent memory now; inferred difficulty model | DPDP Rules 2025 bar tracking/behavioural monitoring of children (Act §8 duty + Rules; **verified 2026-11-07**: children's-data provisions fall in the "remaining provisions" batch in force **13 May 2027** per the MeitY commencement notification G.S.R. 843(E) of 13 Nov 2025, via secondary sources; counsel still required) + repo hard rule P9 | Legal review outcome; if killed profiling later proves necessary, it returns only as a counsel-cleared, purpose-limited feature | **ADR** (data model must preclude profiling by default) |
@@ -417,7 +417,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Entities** ENT?-LanguageBundle (page_id, lang, strings keyed by block_id+field, mt_flag, reviewed_flag, version). **Cost & risk** ~10–30 KB per page-language; factory review cost per language (T8 gate). Risk: bad terminology → report path + reviewer gate.
 
-**Open questions** — Q: Hinglish orthography house style sheet? owner: founder + native reviewer · blocking: **y** for Hindi/Hinglish content launch.
+**Open questions** — Q: Hinglish orthography house style sheet — **revised 2026-11-07 (founder)**: translation is a **separate second-layer pipeline** (SC-01, not yet built; factory produces English natively), so the per-language style sheet defers with that pipeline — it blocks only the pipeline's launch, not the demo. What the P0 voice loop needs now is Stage-2 prompt rules (reply in the student's language/mix; never-translate units/terms). Language set = all Gnani languages (10 STT languages verified 2026-11-07); EN/HI/Hinglish = demo subset. owner: founder + native reviewer (style sheet) / Stage 2 (voice rules).
 
 ### F-WRP-TTS-01 · Read-aloud of lesson content
 
@@ -490,7 +490,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Entities** ENT?-Session (pseudonymous), ENT?-VoiceTurn (transcript TTL 7 d server log, audio_retained=false). **Cost & risk** Prisma minutes + Timbre chars per turn (metered); battery: mic only while listening; echo/feedback loop in speaker→mic path (device testing). Risk: Gate C miss → Gate C fallback per TIMELINE (shorter replies, hybrid mode).
 
-**Open questions** — Q: earcon set (3 sounds) authored where? owner: frontend Day-9 · blocking: n. Q: exact Timbre tag set confirmation (Gnani docs) — owner: founder · blocking: **y** for expressive tags (C-069), n for plain voice.
+**Open questions** — Q: earcon set (3 sounds) authored where? owner: frontend Day-9 · blocking: n. Q: exact Timbre tag set — **resolved 2026-11-07 from docs.gnani.ai**: 13 tags, **Timbre v3.0 only** (v2.5 strips tags before synthesis). Replaced by: Q: Prisma/Timbre **model version v2.5 vs v3.0** (v3.0 adds `indic-auto` auto language detection + expressive tags) — owner: founder · blocking: **y** for expressive tags (C-069) and language-agnostic STT, n for plain voice on v2.5.
 
 ### F-ADD-VOI-02 · Page-context anchoring
 
@@ -599,7 +599,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Entities** ENT?-VoiceTurn (tutor_text, tags, redirect_flag, mode). **Cost & risk** Evon tokens per turn (GPU, not Gnani credits); risk: wrong physics → T12 provenance + report path; risk: over-refusal annoyance → redirect tone tested at Gate-B round 2.
 
-**Open questions** — Q: Gate A outcome (Evon vs Gemma 4) — owner: founder (Day-5 decision, runs now) · blocking: **y** for NEED-007 serving choice, n for product spec. Q: exact Timbre tag set — owner: founder (Gnani docs) · blocking: **y** for P1 tag slice.
+**Open questions** — Q: Gate A outcome (Evon vs Gemma 4) — owner: founder (Day-5 decision, runs now) · blocking: **y** for NEED-007 serving choice, n for product spec. Q: exact Timbre tag set — **resolved 2026-11-07** (13 tags, Timbre v3.0 only; v2.5 strips tags) → the P1 tag slice now blocks on the **model-version decision** (v2.5 vs v3.0) — owner: founder.
 
 ### F-ADD-MEM-01 · Session memory
 
@@ -1072,14 +1072,27 @@ No silent ❌ below.
 | WCAG 2.5.7 Dragging Movements, Level AA, single-pointer alternative required | w3.org WCAG22 Understanding page (fetched today) | ✅ as quoted |
 | Target size: 24×24 CSS px minimum (2.5.8, AA); 44×44 CSS px (2.5.5 Enhanced, AAA) | w3.org WCAG22 Understanding page (fetched today) | ✅ as quoted; we design 44–48 px for children |
 | DPDP: Act bars child tracking/behavioural monitoring/targeted advertising | Act §8 duty via secondary source (fetched today) | ✅ |
-| DPDP children's-data provisions in force date | MeitY commencement notification G.S.R. 843(E) (13 Nov 2025) via secondary source (fetched today) | **corrected 14 May → 13 May 2027** in §3 T5, F-XCT-CON-01, handoff §6; counsel still required for VPC design |
+| DPDP children's-data provisions in force date | MeitY commencement notification G.S.R. 843(E) (13 Nov 2025) via secondary source (fetched today) | **corrected 14 May → 13 May 2027** in §3 T5, F-XCT-CON-01, handoff §6, decision-log C-087; counsel still required for VPC design |
+| Gnani language coverage (founder correction 2026-11-07: product language set = all Gnani languages) | docs.gnani.ai supported-languages + available-voices pages (fetched today) | ✅ verified: Prisma v2.5/v3.0 STT = 10 languages (bn/en/gu/hi/kn/ml/mr/pa/ta/te, `*-IN`); Timbre v2.5 = 42 voices one-preferred-language-each (incl. Hinglish voice Poorvi `hi-en`); Timbre v3.0 = 13 voices × all 10 languages; supersedes the "10+" approximations in `02-all-about-gnani.md` |
+| Timbre expressive tag set | docs.gnani.ai audio-tags page (fetched today) | **13 tags, Timbre v3.0 only; Timbre v2.5 strips tags before synthesis** (tags billable as characters) — AGENTS.md note corrected; feeds the open model-version decision below |
+| Prisma v3.0 / Timbre v3.0 availability | gnani.ai homepage + docs.gnani.ai (fetched today) | ✅ available (`prisma-v3.0` / `timbre-v3.0` model values; official LiveKit plugin supports them; Prisma v3.0 adds `indic-auto` auto language detection) — the repo's v2.5 non-negotiable predates the v3.0 releases; founder decision pending |
 
 ### 7.3 Blocking open questions (aggregated from cards)
 
-1. Hinglish orthography house-style sheet — owner: founder + native reviewer — blocks
-   Hindi/Hinglish content launch (F-WRP-LAN-01).
-2. Exact Timbre expressive tag set from Gnani docs — owner: founder — blocks the P1
-   tag-emission slice (F-ADD-VOI-04).
+1. ~~Hinglish orthography house-style sheet~~ — **revised 2026-11-07 (founder)**: page
+   translation is a **separate second-layer pipeline** (SC-01, not yet built; the
+   factory produces English natively), so its per-language style sheet defers with
+   that pipeline. What the P0 voice loop needs now is Stage-2 prompt rules (reply in
+   the student's language/mix; never-translate units/terms). Language set = **all
+   Gnani languages** (10 STT languages verified); EN/HI/Hinglish = demo subset.
+2. ~~Exact Timbre expressive tag set~~ — **resolved 2026-11-07 from docs.gnani.ai**:
+   13 tags, **Timbre v3.0 only** (v2.5 strips tags). Replaced by the bigger open
+   decision: **Prisma/Timbre model version — keep v2.5** (challenge-brief wording;
+   no expressive tags; per-request language choice; 42 voices incl. Hinglish voice
+   Poorvi) **vs adopt v3.0** (auto language detection `indic-auto`; 13 voices ×
+   10 languages; expressive tags) — owner: founder; blocks the P1 tag slice (C-069)
+   and the language-agnostic STT design; **check v3.0 credit billing on the Gnani
+   dashboard before deciding**.
 3. Gate A outcome (Evon v3.3 vs fallback) — owner: founder (decision already running)
    — blocks NEED-007 serving choice, not the spec.
 4. Does the demo link show the consent overlay to judges? — owner: founder — blocks
