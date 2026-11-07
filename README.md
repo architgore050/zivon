@@ -128,6 +128,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
 | [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status |
 | [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status) |
+| [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
 | [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool) and `frontend/` (site shell + behaviour in Chromium) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
