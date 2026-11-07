@@ -79,7 +79,54 @@ jobs:
           name: factory-sbom-${{ github.sha }}
           path: sbom.json
 
-  # ---- 2b. the frontend image: lint, build, prove it serves ---------------
+  # ---- 2b. the llm-manager node image: lint, build, prove it boots --------
+  llm-manager-image:
+    name: Build llm-manager image + smoke + scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Dockerfile lint (hadolint)
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
+        with:
+          dockerfile: Dockerfile.llm-manager
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+      - name: Build node image (GitHub Actions layer cache)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.llm-manager
+          load: true                       # load into the runner's docker for the steps below
+          tags: zivon-llm-manager:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test (boots with config; /healthz answers with a dead upstream)
+        run: |
+          docker run -d --name llm-mgr -p 8000:8000 \
+            -e ZIVON_BASE_URL=http://127.0.0.1:9/v1 -e ZIVON_MODEL=smoke-model \
+            zivon-llm-manager:${{ github.sha }}
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:8000/healthz > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          docker logs llm-mgr
+          exit 1
+      - name: Refuses to boot without config (no silent defaults)
+        run: |
+          if timeout 30 docker run --rm zivon-llm-manager:${{ github.sha }}; then
+            echo "the node booted without config - it must refuse loudly"; exit 1
+          fi
+      - name: Image vulnerability scan (trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-llm-manager:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
+          ignore-unfixed: true
+
+  # ---- 2c. the frontend image: lint, build, prove it serves ---------------
   frontend-image:
     name: Frontend image build + smoke
     runs-on: ubuntu-latest

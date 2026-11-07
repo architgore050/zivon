@@ -289,7 +289,11 @@ deployment node:
 - **`llm_manager/service/` (the node)** - the same package behind a small
   FastAPI app speaking plain OpenAI chat-completions (`POST
   /v1/chat/completions`, aggregated or SSE; `GET /healthz` is process-only
-  and never calls the model). Shipped as its own slim image
+  and never calls the model). Policy lives on the node, not in request
+  bodies: JSON mode and the model are the node's configured behavior, and a
+  body `model` naming a DIFFERENT model is refused with a 400 that names both
+  models (a mismatch is a misconfiguration; silently answering with the
+  node's model would hide it). Shipped as its own slim image
   (`Dockerfile.llm-manager`, no torch/pdfplumber/playwright) and deployed as
   an isolated Deployment + Service (`k8s/16-llm-manager.yaml`, ClusterIP).
 
@@ -329,6 +333,23 @@ domain).
   `ZIVON_MAX_ATTEMPTS=1` for its leg because the node already retried the
   upstream leg - without that split, one dead upstream would fan out into
   node-attempts x factory-attempts calls.
+- **Keepalives on the node's downstream leg (review fix 2026-11-07):** the
+  Strata server streams thinking as `reasoning_content` deltas (probe-
+  confirmed), and llm_manager deliberately does not re-emit them as content.
+  A long thinking phase would therefore leave the node's SSE response silent
+  while the upstream is healthily busy - so the node emits SSE comment
+  keepalives (`: keepalive`) on its heartbeat cadence whenever the upstream
+  yields nothing re-emittable. OpenAI-format parsers ignore comment lines per
+  spec; the bytes keep the caller's inactivity timeout honest about what it
+  is really waiting for.
+- **Server-reported failure (terminal, message preserved):** an OpenAI-format
+  server may answer HTTP 200 and put the failure INSIDE the stream as an SSE
+  error payload (`{"error": {...}}` - llama.cpp context-overflow style; the
+  node relays its own exhausted upstream exactly this way). The openai SDK
+  raises a bare `openai.APIError` for such a payload; llm_manager maps it to
+  a TransportError carrying the server's own words verbatim (they already
+  name the fix when there is one) and does NOT retry - "the server says it
+  failed" is terminal.
 
 **Factory adapter (`factory/llm.py`):** a thin layer keeping every existing
 contract - same public API, same artifacts

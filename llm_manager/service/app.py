@@ -18,7 +18,9 @@ Policy lives on the node, not in request bodies: JSON mode
 model are the node's configured behavior - that is the isolation bargain.
 Consumers control per-call `temperature` and `max_tokens`; a body
 `response_format` field is accepted for wire compatibility but IGNORED (the
-node's own `ZIVON_JSON_MODE` decides - documented in config-reference.md).
+node's own `ZIVON_JSON_MODE` decides - documented in config-reference.md); a
+body `model` naming a DIFFERENT model is refused with 400 (a mismatch is a
+misconfiguration, and silently answering with the node's model would hide it).
 
 Errors surface honestly: an exhausted upstream transport maps to HTTP 502, a
 non-retryable upstream 400 passes through as 400 with the server's body (so
@@ -34,6 +36,7 @@ attempt would fan out into node-attempts x factory-attempts upstream calls.
 from __future__ import annotations
 
 import json
+import queue
 import threading
 import time
 import uuid
@@ -59,7 +62,7 @@ class _Message(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: str | None = None  # accepted, ignored: the node's config decides
+    model: str | None = None  # accepted; a mismatch with the node's model -> 400
     messages: list[_Message] = Field(min_length=1)
     temperature: float | None = None
     max_tokens: int | None = None
@@ -92,6 +95,24 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
     def chat_completions(body: ChatCompletionRequest) -> Response:
         state.config()  # loud config tripwire on first use (LLMConfigError -> 500)
         manager = LLMManager(state.config())
+        if body.model and body.model != manager.config.model:
+            # A single-model node serves its configured model - but a request
+            # naming a DIFFERENT model is a misconfiguration, and silently
+            # answering with the node's model would hide it (no silent
+            # fallbacks, ever). Refuse loudly with the fix in the message.
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "message": (
+                            f"this node serves model '{manager.config.model}'; "
+                            f"the request asked for '{body.model}'. Set your "
+                            "ZIVON_MODEL to match the node's configured model."
+                        ),
+                        "type": "invalid_request_error",
+                    }
+                },
+            )
         messages = [{"role": m.role, "content": m.content} for m in body.messages]
         if body.stream:
             include_usage = bool(
@@ -180,9 +201,24 @@ def _sse_stream(
     include_usage: bool,
 ):
     """Re-emit the upstream typed stream as an OpenAI-format SSE chunk stream.
+
     Upstream transport errors BEFORE the first event surface as an SSE error
     event (the HTTP head is already sent once streaming starts); after the
-    first event they surface the same way - no fake completion, ever."""
+    first event they surface the same way - no fake completion, ever.
+
+    Keepalives (review fix 2026-11-07): a thinking model streams reasoning
+    tokens for minutes, and llm_manager deliberately does NOT re-emit them as
+    content deltas. Without bytes flowing downstream, the CALLER's inactivity
+    timeout would kill a healthy call whose server is busy thinking - the
+    exact failure class this whole streaming redesign exists to end. So while
+    the upstream is silent this generator emits SSE comment keepalives
+    (`: keepalive`): OpenAI-format parsers ignore comment lines per spec, but
+    the bytes prove the connection is alive and reset the caller's read
+    timeout. The upstream stream is consumed in a feeder thread bridging a
+    bounded queue; a closed consumer sets `stop`, the feeder exits, and the
+    upstream generator's finally closes the upstream connection (no orphan
+    generation on the single-slot server).
+    """
     completion_id = f"chatcmpl-llmmgr-{uuid.uuid4().hex[:12]}"
     created = int(time.time())
     model = manager.config.model
@@ -198,9 +234,56 @@ def _sse_stream(
             }
         )
 
+    events: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=64)
+    stop = threading.Event()
+
+    def feed() -> None:
+        try:
+            for event in manager.stream_events(messages, temperature=body.temperature):
+                if stop.is_set():
+                    return  # consumer gone: dropping this generator closes upstream
+                while not stop.is_set():
+                    try:
+                        events.put(("event", event), timeout=1.0)
+                        break
+                    except queue.Full:
+                        pass
+        except LLMManagerError as exc:
+            if not stop.is_set():
+                try:
+                    events.put(("error", exc), timeout=5.0)
+                except queue.Full:
+                    pass
+        if not stop.is_set():
+            try:
+                events.put(("end", None), timeout=5.0)
+            except queue.Full:
+                pass
+
+    threading.Thread(target=feed, daemon=True).start()
+
     yield chunk({"role": "assistant"})
+    heartbeat_s = manager.config.heartbeat_s
     try:
-        for event in manager.stream_events(messages, temperature=body.temperature):
+        while True:
+            try:
+                kind, payload = events.get(timeout=heartbeat_s)
+            except queue.Empty:
+                yield ": keepalive\n\n"
+                continue
+            if kind == "end":
+                break
+            if kind == "error":
+                yield _sse_line(
+                    {
+                        "error": {
+                            "message": str(payload),
+                            "type": type(payload).__name__,
+                        }
+                    }
+                )
+                break
+            event = payload
             if event.delta is not None:
                 yield chunk({"content": event.delta})
             elif event.finish_reason is not None:
@@ -223,13 +306,8 @@ def _sse_stream(
                     }
                 )
         yield "data: [DONE]\n\n"
-    except LLMManagerError as exc:
-        yield _sse_line(
-            {
-                "error": {"message": str(exc), "type": type(exc).__name__},
-            }
-        )
-        yield "data: [DONE]\n\n"
+    finally:
+        stop.set()
 
 
 def _sse_line(payload: dict[str, Any]) -> str:

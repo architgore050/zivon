@@ -5,6 +5,7 @@ finish_reason / first_token_s / chunks, transport retry after a 500, the
 non-retryable 400 (with the server's words AND the copy-pasteable hint), the
 mid-stream deadline abort (with proof the server observed the disconnect),
 the inactivity timeout triggering a retry, the bad-shape response error, the
+server-reported mid-stream failure (HTTP 200 + SSE error payload), the
 non-streaming path, LLMConfig.from_env() coverage + validation, the
 validation-round loop (incl. transcript trimming), and the package isolation
 rule (llm_manager must never import factory/).
@@ -146,6 +147,29 @@ class TestStreamingClient(unittest.TestCase):
         self.assertIn("set ZIVON_JSON_MODE=false", message)
         self.assertEqual(
             len(self.state.served), 1, "a 400 must never be retried (one request)"
+        )
+
+    def test_midstream_error_payload_maps_to_transport_error(self):
+        # HTTP 200 + an SSE error payload INSIDE the stream: llama.cpp reports
+        # context overflow this way, and the llm-manager node relays its own
+        # exhausted upstream to callers exactly like this. The OpenAI SDK
+        # raises a bare openai.APIError for such a payload; llm_manager maps
+        # it to TransportError with the server's own words preserved (they
+        # already name the fix) and does NOT retry - "the server says it
+        # failed" is terminal.
+        self._fixture("02-generate.json", {"topic": "x"})
+        self._fixture(
+            "02-generate__stream_error.json", {"message": "context limit exceeded"}
+        )
+        self._start()
+        with self.assertRaises(TransportError) as ctx:
+            LLMManager(
+                _silent_config(base_url=self.url, model="m", max_attempts=3)
+            ).complete(MESSAGES)
+        self.assertIn("reported an error mid-call", str(ctx.exception))
+        self.assertIn("context limit exceeded", str(ctx.exception))
+        self.assertEqual(
+            len(self.state.served), 1, "server-reported failure is terminal - no retry"
         )
 
     def test_deadline_abort_closes_stream_and_server_notices(self):

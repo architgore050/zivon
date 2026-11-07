@@ -34,6 +34,23 @@ With streaming, bytes flow as tokens are generated: inactivity between chunks
 is an honest dead-server signal, and the deadline can close the connection
 mid-generation, which makes the server STOP and frees the slot.
 
+## Failure semantics (no silent fallbacks, ever)
+
+- Inactivity between chunks → retryable transport failure (up to `max_attempts`).
+- `call_deadline_s` breach → the stream is closed mid-generation; terminal
+  TransportError naming the deadline and the chunk count.
+- 429/5xx exhausted → TransportError; non-retryable 4xx → NonRetryableHTTPError
+  with the server's body and a copy-pasteable hint.
+- HTTP 200 + an SSE `{"error": ...}` payload (the server reporting failure
+  inside the stream - llama.cpp context-overflow style, and how the service
+  node relays its own exhausted upstream) → terminal TransportError with the
+  server's own words preserved; never retried.
+- Malformed response shape → BadServerResponseError.
+- While the node's upstream is silent (a thinking model streams reasoning
+  deltas that are deliberately not re-emitted as content), the node emits SSE
+  comment keepalives (`: keepalive`) so the caller's inactivity timeout stays
+  honest - OpenAI-format parsers ignore comment lines per spec.
+
 ## Library usage
 
 ```python

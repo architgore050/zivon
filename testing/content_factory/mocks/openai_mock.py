@@ -33,6 +33,13 @@ CodeQL py/path-injection):
 - <stage>__midstream_close.json   streaming only: {"content"} - two chunks,
                                    then the socket is closed abruptly
                                    (mid-stream transport-retry path)
+- <stage>__stream_error.json      streaming only: {"message"} - HTTP 200,
+                                   role chunk, then an SSE error payload
+                                   `{"error": {...}}`, then [DONE] (the
+                                   server-reported-failure path: llama.cpp
+                                   context-overflow style, and how the
+                                   llm-manager node relays an exhausted
+                                   upstream to its callers)
 
 Disconnect accounting: when a streaming write fails (the client aborted -
 e.g. a deadline abort closed the connection), the stage is appended to
@@ -204,6 +211,37 @@ class _Handler(BaseHTTPRequestHandler):
         slow = fixture(f"{stage}__slow.json")
         stall = fixture(f"{stage}__stall.json")
         midclose = fixture(f"{stage}__midstream_close.json")
+        stream_error = fixture(f"{stage}__stream_error.json")
+
+        if stream_error is not None and self._first_request(f"{stage}__stream_error"):
+            # HTTP 200 with the failure INSIDE the stream: the OpenAI SDK
+            # raises a bare openai.APIError carrying the payload's message -
+            # exactly the shape the llm-manager node emits when its upstream
+            # transport dies (and llama.cpp's for context overflow).
+            message = str(
+                self._load_json(stream_error).get("message", "mock stream error")
+            )
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            role_chunk = {
+                "id": "mock-stream",
+                "object": "chat.completion.chunk",
+                "model": body.get("model", "mock"),
+                "choices": [
+                    {"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}
+                ],
+            }
+            try:
+                for payload in (role_chunk, {"error": {"message": message}}):
+                    self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode())
+                self.wfile.write(b"data: [DONE]\n\n")
+                self.wfile.flush()
+            except _DISCONNECT_ERRORS:
+                with self.state._lock:
+                    self.state.disconnected.append(stage)
+            return
 
         pieces: list[str]
         inter_delay = 0.0

@@ -3,9 +3,11 @@
 The node is what "everybody else" talks to: an OpenAI-format
 chat-completions endpoint over LLMManager, shipped as its own image and run
 as a K8s Deployment + Service. These tests prove the HTTP contract:
-aggregated + SSE responses, upstream error mapping (502 for exhausted
-transport, 400 passthrough with the server's body), the health probe, and
-that the node NEVER pulls in factory/ (standalone isolation).
+aggregated + SSE responses, keepalives while the upstream is silent (so a
+thinking model never trips the caller's inactivity timeout), upstream error
+mapping (502 for exhausted transport, 400 passthrough with the server's
+body), the health probe, and that the node NEVER pulls in factory/
+(standalone isolation).
 
 Skipped automatically when fastapi is not installed (e.g. slim verification
 images); CI installs it via requirements.txt.
@@ -50,10 +52,10 @@ class TestServiceNode(unittest.TestCase):
     def _client(self, **config_over):
         self.server, self.url, self.state = start_mock(self.fixtures)
         self.addCleanup(self.server.shutdown)
+        config_over.setdefault("heartbeat_s", 1000.0)
         config = LLMConfig(
             base_url=self.url,
             model="mock-model",
-            heartbeat_s=1000.0,
             backoff_base_s=0.1,
             **config_over,
         )
@@ -74,7 +76,7 @@ class TestServiceNode(unittest.TestCase):
         client = self._client()
         response = client.post(
             "/v1/chat/completions",
-            json={"messages": MESSAGES, "temperature": 0.3},
+            json={"messages": MESSAGES, "temperature": 0.3, "model": "mock-model"},
         )
         self.assertEqual(response.status_code, 200)
         body = response.json()
@@ -143,6 +145,55 @@ class TestServiceNode(unittest.TestCase):
         self.assertNotIn('"usage"', raw)
         self.assertTrue(raw.rstrip().endswith("data: [DONE]"))
 
+    def test_stream_keepalives_flow_while_upstream_is_silent(self):
+        # Review fix 2026-11-07: a thinking model streams reasoning tokens for
+        # minutes, and llm_manager deliberately does NOT re-emit them as
+        # content deltas. Without bytes flowing downstream, the caller's
+        # inactivity timeout would kill a HEALTHY call whose server is busy
+        # thinking. The mock's __stall fixture freezes the upstream; with
+        # heartbeat_s=1 the node must keep SSE comment keepalives flowing to
+        # the caller during the freeze - comments are ignored by OpenAI-format
+        # parsers but reset the caller's read timeout.
+        self._fixture("02-generate.json", {"topic": "x"})
+        self._fixture(
+            "02-generate__stall.json",
+            {"content": '{"topic": "x"}', "stall_s": 3.0},
+        )
+        client = self._client(heartbeat_s=1.0)
+        with client.stream(
+            "POST",
+            "/v1/chat/completions",
+            json={"messages": MESSAGES, "stream": True},
+        ) as response:
+            self.assertEqual(response.status_code, 200)
+            raw = "".join(part.decode() for part in response.iter_raw())
+        blocks = [b for b in raw.split("\n\n") if b]
+        keepalive_blocks = [b for b in blocks if b.startswith(": keepalive")]
+        self.assertGreaterEqual(
+            len(keepalive_blocks), 2, "a 3 s upstream freeze must emit keepalives"
+        )
+        first_keepalive = blocks.index(keepalive_blocks[0])
+        first_content = next(
+            i
+            for i, b in enumerate(blocks)
+            if b.startswith("data: ") and '"content"' in b
+        )
+        self.assertLess(
+            first_keepalive, first_content, "keepalives must precede the real content"
+        )
+        events = [
+            json.loads(b[len("data: ") :])
+            for b in blocks
+            if b.startswith("data: ") and b != "data: [DONE]"
+        ]
+        deltas = "".join(
+            e["choices"][0]["delta"].get("content", "")
+            for e in events
+            if e.get("choices") and e["choices"][0]["delta"].get("content")
+        )
+        self.assertEqual(deltas, '{"topic": "x"}', "the stalled content still lands")
+        self.assertTrue(raw.rstrip().endswith("data: [DONE]"))
+
     def test_upstream_transport_exhaustion_maps_to_502(self):
         self._fixture("02-generate.json", {"topic": "x"})
         self._fixture("02-generate__fail500.json", {"error": "overloaded"})
@@ -163,6 +214,22 @@ class TestServiceNode(unittest.TestCase):
         message = response.json()["error"]["message"]
         self.assertIn("response_format json_object not supported", message)
         self.assertIn("set ZIVON_JSON_MODE=false", message)
+
+    def test_model_mismatch_is_refused_loudly(self):
+        # A single-model node serves its configured model; a request naming a
+        # DIFFERENT one is a misconfiguration - refusing beats silently
+        # answering with the node's model (no silent fallbacks, ever).
+        self._fixture("02-generate.json", {"topic": "x"})
+        client = self._client()
+        response = client.post(
+            "/v1/chat/completions",
+            json={"messages": MESSAGES, "model": "some-other-model"},
+        )
+        self.assertEqual(response.status_code, 400)
+        message = response.json()["error"]["message"]
+        self.assertIn("this node serves model 'mock-model'", message)
+        self.assertIn("some-other-model", message)
+        self.assertEqual(self.state.served, [], "the request never reached upstream")
 
     def test_service_module_never_imports_factory(self):
         # In-process sys.modules is polluted by sibling tests, so this is a

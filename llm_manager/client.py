@@ -258,6 +258,16 @@ class LLMManager:
                         self._sleep_backoff(attempt)
                     else:
                         raise self._non_retryable(exc) from exc
+                except openai.APIError as exc:
+                    # A bare APIError (not a status/connection/timeout subclass)
+                    # means the server itself reported failure inside the call:
+                    # an OpenAI-format server may answer HTTP 200 and put the
+                    # failure in an SSE error payload (llama.cpp does this for
+                    # context overflow; our llm-manager node does it when its
+                    # upstream budget is exhausted). The SDK raises it with the
+                    # server's own message. Retrying cannot fix "the server
+                    # says it failed" - terminal TransportError, message kept.
+                    raise self._server_reported(exc) from exc
         finally:
             client.close()
 
@@ -294,6 +304,10 @@ class LLMManager:
                     self._sleep_backoff(attempt)
                 else:
                     raise self._non_retryable(exc) from exc
+            except openai.APIError as exc:
+                # Server-reported failure inside the call (see stream_events):
+                # terminal, with the server's own message preserved.
+                raise self._server_reported(exc) from exc
             except (
                 openai.APIResponseValidationError,
                 KeyError,
@@ -521,6 +535,18 @@ class LLMManager:
         return TransportError(
             f"server returned HTTP {exc.status_code} on all {tries} tries. "
             f"Body: {_error_body(exc)[:500]}"
+        )
+
+    def _server_reported(self, exc: openai.APIError) -> TransportError:
+        """A bare openai.APIError: the server reported failure INSIDE the call
+        (HTTP 200 + an SSE error payload - llama.cpp context-overflow style, or
+        our llm-manager node relaying an exhausted upstream). The SDK carries
+        the server's own message; keep it verbatim - it already names the fix
+        when there is one. Terminal: retrying cannot un-fail what the server
+        says it failed."""
+        detail = exc.message or str(exc.body or "no detail")[:500]
+        return TransportError(
+            f"the inference server reported an error mid-call: {detail}"
         )
 
     def _non_retryable(self, exc: openai.APIStatusError) -> NonRetryableHTTPError:

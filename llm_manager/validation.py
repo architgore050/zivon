@@ -76,7 +76,9 @@ def format_jsonschema_error(exc: jsonschema.ValidationError) -> str:
             if isinstance(exc.instance, (list, dict, str))
             else ""
         )
-        return f"at '{path}': expected {want} here, got {_json_name(exc.instance)}{size}"
+        return (
+            f"at '{path}': expected {want} here, got {_json_name(exc.instance)}{size}"
+        )
     if kw in ("maxItems", "minItems") and isinstance(exc.instance, list):
         word = "at most" if kw == "maxItems" else "at least"
         return f"at '{path}': expected {word} {exc.validator_value} items, got {len(exc.instance)}"
