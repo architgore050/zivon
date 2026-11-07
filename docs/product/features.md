@@ -194,7 +194,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: grouped cards · loading: native (static HTML) · empty: built copy · partial: some classes have topics · error: 404 target (host page) · offline: cached render + chip · permission-denied: n/a (public) · reduced-motion: n/a (no motion) · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a (voice consent is per voice use)
 
-**Surfaces** SCR-HUB-01 · EL-HUB-001…006 · INF-001…006, INF-070…072 · NEED-001, NEED-002 · ENT?-PageMeta · EVT-017, EVT-001, EVT-016
+**Surfaces** SCR-HUB-01 · EL-HUB-001…008 · INF-001…008, INF-084 · NEED-001, NEED-002 · ENT?-PageMeta · EVT-017, EVT-001, EVT-016
 
 **Backend needs** NEED-001 static delivery (exists); NEED-002 catalogue data (exists as `courses.js`; keep generated, never hand-edited).
 
@@ -231,7 +231,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: full page · loading: static HTML paint (no spinner) · empty: n/a (factory never ships an empty page — hard error upstream) · partial: a block whose sim JS failed shows the on-canvas error painter; text intact · error: kit-missing guard (lesson-kit throws in example; shell logs) · offline: cached full page · permission-denied: n/a · reduced-motion: static · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a
 
-**Surfaces** SCR-LES-01.R1/R3/R7 · EL-LES-01-001…010, 040…046 · INF-010…026 · NEED-001 · ENT?-PageMeta · EVT-001, EVT-002
+**Surfaces** SCR-LES-01.R1/R3/R7 · EL-LES-01-001…011, 032…036 · INF-009…013, 018, 019, 043…049 · NEED-001 · ENT?-PageMeta · EVT-001, EVT-002
 
 **Backend needs** NEED-001 (exists). No new capability for P0.
 
@@ -268,7 +268,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: figure+caption · loading: inline (no wait) · empty: n/a · partial: longdesc absent → aria-label only · error: n/a (authored SVG) · offline: cached · reduced-motion: n/a (static) · untranslated: English labels + notice · others n/a
 
-**Surfaces** SCR-LES-01.R4 · EL-LES-01-020…023 · INF-027…030 · NEED-001, NEED-016 (P1) · ENT?-PageMeta · EVT-002
+**Surfaces** SCR-LES-01.R4 · EL-LES-01-014…017 · INF-022…026 · NEED-001, NEED-016 (P1) · ENT?-PageMeta · EVT-002
 
 **Backend needs** NEED-001; P1: NEED-016 for label strings (SC-01).
 
@@ -304,7 +304,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: still, default_behaviour drawn · loading: canvas blank until JS (≤1 frame) · empty: n/a · partial: broken sim → loud on-canvas error + mirror text · error: same · offline: fully works (cached) · permission-denied: n/a · reduced-motion: static frame + step-free (P2 revisit C-019) · untranslated: English labels + notice · quota-exhausted: n/a · consent-missing: n/a (sims need no consent)
 
-**Surfaces** SCR-LES-01.R5 · EL-LES-01-024…031 · INF-031…038 · NEED-001, NEED-005 (voice reads mirror) · ENT?-PageMeta · EVT-003
+**Surfaces** SCR-LES-01.R5 · EL-LES-01-018…024 · INF-027…035 · NEED-001, NEED-005 (voice reads mirror) · ENT?-PageMeta · EVT-003
 
 **Backend needs** NEED-001; SC-02 (`unit`, `readout_format`, `state_text_template`) so the mirror + TTS + tutor can read sim state honestly.
 
@@ -340,7 +340,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: unanswered · loading: n/a · empty: n/a · partial: feedback shown, Why closed · error: numeric parse miss → "Enter a number like 5" · offline: fully works · permission-denied: n/a · reduced-motion: n/a · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a
 
-**Surfaces** SCR-LES-01.R6 · EL-LES-01-032…039 · INF-039…046 · NEED-001, NEED-010 · ENT?-PageMeta · EVT-004
+**Surfaces** SCR-LES-01.R6 · EL-LES-01-025…031 · INF-036…042 · NEED-001, NEED-010 · ENT?-PageMeta · EVT-004
 
 **Backend needs** NEED-001; SC-03 (`option_feedback[]` per check) for P1 slice.
 
@@ -375,7 +375,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: footer visible; report button quiet graphite · loading: n/a · empty: n/a · partial: report draft kept unsent · error: send failure copy · offline: disabled + reason · permission-denied: n/a · reduced-motion: n/a · untranslated: English + notice · quota-exhausted: n/a · consent-missing: n/a (report needs no consent; still pseudonymous)
 
-**Surfaces** SCR-LES-01.R8 · EL-LES-01-047…049 · INF-047…049 · NEED-014 · ENT?-ProblemReport, ENT?-PageMeta · EVT-014
+**Surfaces** SCR-LES-01.R8 · EL-LES-01-037…041 · INF-050…055 · NEED-014 · ENT?-ProblemReport, ENT?-PageMeta · EVT-014
 
 **Backend needs** NEED-014 report submission.
 
@@ -411,7 +411,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: English (or remembered choice) · loading: bar visible, bundle fetch < 200 ms target · empty: n/a · partial: some blocks untranslated + markers · error: bundle fetch fail → stay current language + "couldn't load" chip · offline: cached bundle works; else English · permission-denied: n/a · reduced-motion: n/a · untranslated: the feature's own partial state · quota-exhausted: n/a · consent-missing: n/a
 
-**Surfaces** SCR-LES-01.R2 · EL-LES-01-011…014 · INF-007…009 (chrome strings), per-block translated variants of INF-010…049 · NEED-016 · ENT?-LanguageBundle · EVT-011
+**Surfaces** SCR-LES-01.R2 · EL-LES-01-006…009 · INF-014…017 (chrome), translated variants of INF-018…048, INF-049, 087, 088 · NEED-016 · ENT?-LanguageBundle · EVT-011
 
 **Backend needs** NEED-016 language bundle delivery: static JSON per (page, language), generated by factory (SC-01), fetched on first switch, cached by SW.
 
@@ -447,7 +447,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: quiet button per block · loading: streaming indicator · empty: n/a · partial: some blocks speakable (text/worked_example/check stem) others not (diagram caption only on request) · error: TTS fail copy + retry · offline: previously played clips replay; new ones disabled + reason · permission-denied: audio autoplay blocked → user-initiated only (built-in constraint) · reduced-motion: n/a (audio not motion) · untranslated: disabled + reason · quota-exhausted: disabled + budget copy (F-XCT-OFF-01) · consent-missing: n/a (read-aloud is not voice input; no consent gate — flagged: uses third-party TTS, disclosed in privacy page)
 
-**Surfaces** SCR-LES-01.R3/R7 (buttons) · EL-LES-01-015…017 · INF-050…052 (spoken forms) · NEED-017, NEED-008, NEED-009 · ENT?-PageMeta · EVT-012, EVT-007
+**Surfaces** SCR-LES-01.R3/R7 (buttons) · EL-LES-01-012 · INF-020, 089 (labels/copy; spoken content = source blocks INF-018…048) · NEED-017, NEED-008, NEED-009 · ENT?-PageMeta · EVT-012, EVT-007
 
 **Backend needs** NEED-017 block narration (page_id, block_id, lang → streamed audio, cached server-side per block+lang+version); reuses NEED-008 Timbre client; metered by NEED-009.
 
@@ -484,7 +484,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** (full machine) | idle: quiet chip "Ask a doubt" · requesting-permission: browser prompt + explainer line · ready: mic enabled · listening: pulsing ring + live level meter + earcon in · endpointing: "…got it" micro-state · thinking: animated pen-dot + "thinking" (≤300 ms) · speaking: waveform + tutor text streaming + Stop control · interrupted: instant return to listening · no-input (silence > 5 s): "I didn't hear anything — press and speak" · no-match: "I didn't catch that — say it again or type it" (→ F-ADD-VOI-03) · system-error: "The tutor hit a problem. Try again." + retry · offline: dock disabled + reason (Core intact) · quota-exhausted: "Voice is resting (daily limit). Type your doubt." (typed mode via NEED-004 text path) · mic-denied: fallback shown · mic-in-use: explanation + fallback · unsupported-browser: explanation + typed fallback · consent-missing: consent overlay (F-XCT-CON-01) shown first · reduced-motion: static state indicators · loading (channel open): "connecting" ≤ 1 s then error state
 
-**Surfaces** SCR-LES-01.R9 · EL-LES-01-050…060 · INF-053…066 · NEED-003, NEED-004, NEED-006, NEED-007, NEED-008, NEED-009, NEED-012 · ENT?-Session, ENT?-VoiceTurn · EVT-005, EVT-006, EVT-009, EVT-010, EVT-013
+**Surfaces** SCR-LES-01.R9 · EL-LES-01-042…049, 051…053 · INF-056…068 · NEED-003, NEED-004, NEED-006, NEED-007, NEED-008, NEED-009, NEED-012 · ENT?-Session, ENT?-VoiceTurn · EVT-005, EVT-006, EVT-009, EVT-010, EVT-013
 
 **Backend needs** see realtime section (handoff §3): PTT start/stop, audio frames up, partial/final transcript down, tutor text stream down, TTS audio chunks down, interrupt up, cancel down, latency meta down.
 
@@ -519,7 +519,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: auto-anchor = block nearest viewport center · loading: n/a · empty: whole-page anchor when nothing focused · partial: missing sim values → tutor told "values unavailable" · error: payload fail → generic answer + visible note · offline: n/a (voice off) · permission-denied: n/a · reduced-motion: n/a · untranslated: chip label English fallback · quota-exhausted: n/a (typed mode carries the same payload) · consent-missing: n/a
 
-**Surfaces** SCR-LES-01.R9 (chip) + per-block buttons (P1) · EL-LES-01-061…063 · INF-067…069 · NEED-005, NEED-007 · ENT?-VoiceTurn · EVT-005
+**Surfaces** SCR-LES-01.R9 (chip) + per-block buttons (P1) · EL-LES-01-013, 050, 056 · INF-021, 064 · NEED-005, NEED-007 · ENT?-VoiceTurn · EVT-005
 
 **Backend needs** NEED-005 context payload composition into the Evon prompt (Stage 2 designs the prompt assembly; product states the payload contract above).
 
@@ -555,7 +555,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** inherits the failure rows of F-ADD-VOI-01's state table; adds: fallback-open (input + send), help-shown (example phrases), retrying (context preserved indicator).
 
-**Surfaces** SCR-LES-01.R9 (fallback row) · EL-LES-01-064…066 · INF-073…078 (failure copy keys) · NEED-004 (text path), NEED-007 · ENT?-VoiceTurn · EVT-005 (modality=typed), EVT-009, EVT-010
+**Surfaces** SCR-LES-01.R9 (fallback row) · EL-LES-01-052, 053 · INF-066…068 (failure copy keys) · NEED-004 (text path), NEED-007 · ENT?-VoiceTurn · EVT-005 (modality=typed), EVT-009, EVT-010
 
 **Backend needs** NEED-004 text-turn message type (typed doubt → same pipeline minus STT); NEED-007 unchanged.
 
@@ -593,7 +593,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: Socratic · guide-tell (P1 toggle: guide default, tell mode) · redirect-shown · uncertain-phrasing (persona line) · turn-limit (session length cap: soft nudge "want to continue on the page?" at 20 turns) · all failure states inherited from F-ADD-VOI-01/03 |
 
-**Surfaces** SCR-LES-01.R9 (toggle P1) · EL-LES-01-067…069 · INF-079…084 (persona copy keys, toggle labels) · NEED-004, NEED-005, NEED-007, NEED-008, NEED-011 · ENT?-VoiceTurn, ENT?-Session · EVT-005, EVT-006
+**Surfaces** SCR-LES-01.R9/R11 (toggle P1) · EL-LES-01-045, 056, 065 · INF-057, 058, 061, 068, 079 (persona copy keys, toggle labels) · NEED-004, NEED-005, NEED-007, NEED-008, NEED-011 · ENT?-VoiceTurn, ENT?-Session · EVT-005, EVT-006
 
 **Backend needs** NEED-007 turn generation (persona + anchor payload + coverage summary + history window → streamed text with optional tags); NEED-011 coverage summary injection.
 
@@ -628,7 +628,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: silent accumulation · empty: fresh session · partial: offline → local only + "syncing later" · error: sync fail → local continues · permission-denied: n/a · quota-exhausted: n/a · consent-missing: local-only until consent given (server sync off) · others n/a |
 
-**Surfaces** SCR-LES-01.R9 (memory view entry P1) · EL-LES-01-070…072 · INF-085…087 · NEED-011, NEED-013 · ENT?-Session · EVT-018
+**Surfaces** SCR-LES-01.R9/R11 (memory view entry P1) · EL-LES-01-054, 067 · INF-069, 070, 081 · NEED-011, NEED-013 · ENT?-Session · EVT-018
 
 **Backend needs** NEED-011 session coverage store (session_id → covered blocks/checks, TTL 24 h); NEED-013 clear path.
 
@@ -664,7 +664,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: not-yet-consented (voice chip quiet) · overlay-shown · confirmed · declined (voice disabled, no nag) · version-stale (re-show) · error: consent record save fail → voice stays off + retry · offline: local consent works; server sync later · untranslated: English P0 · others n/a |
 
-**Surfaces** SCR-LES-01.R10, SCR-PRIV-01 · EL-PRV-001…006 · INF-088…093 · NEED-012, NEED-013 · ENT?-ConsentRecord, ENT?-DeviceProfile · EVT-013, EVT-018
+**Surfaces** SCR-LES-01.R10, SCR-PRIV-01 · EL-LES-01-057…061, EL-PRV-001…005 · INF-072…076, 090…094 · NEED-012, NEED-013 · ENT?-ConsentRecord, ENT?-DeviceProfile · EVT-013, EVT-018
 
 **Backend needs** NEED-012 consent store; NEED-013 deletion endpoint (device_pseudo_id scope; DPDP 90-day response posture post-challenge).
 
@@ -699,7 +699,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** this card defines the offline / quota-exhausted columns of the screen-state matrix (§5.3).
 
-**Surfaces** SCR-LES-01.R9 + global chip, SCR-HUB-01 · EL-OFF-001…004 · INF-094…099 · NEED-009, NEED-004 · ENT?-Session · EVT-016, EVT-008
+**Surfaces** SCR-LES-01.R9 + global chip, SCR-HUB-01 · EL-LES-01-070…072, EL-HUB-008 · INF-084…086 · NEED-009, NEED-004 · ENT?-Session · EVT-016, EVT-008
 
 **Backend needs** NEED-009 guard state push (session flag voice_enabled / typed_only); NEED-004 typed path.
 
@@ -770,7 +770,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: all defaults · partial: a setting's feature unavailable (e.g. pace with TTS off) → control disabled + reason · offline: settings still work locally · others n/a |
 
-**Surfaces** SCR-LES-01.R11 · EL-SET-001…006 · INF-100…105 · NEED-018 (local) · ENT?-DeviceProfile · EVT-015
+**Surfaces** SCR-LES-01.R11 · EL-LES-01-055, 062…067 · INF-071, 077…081 · NEED-018 (local) · ENT?-DeviceProfile · EVT-015
 
 **Backend needs** NEED-018 settings persistence: client-local primary; server mirror post-challenge only (out of P0/P1 build).
 
@@ -804,7 +804,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: fresh flags · hinted (first session only) · done (flags set) · others n/a |
 
-**Surfaces** SCR-LES-01.R9/R5/R12 · EL-ONB-001…003 · INF-106…108 · NEED-018 (local flags) · ENT?-DeviceProfile · EVT-002, EVT-005
+**Surfaces** SCR-LES-01.R9/R5/R12 · EL-LES-01-068, 069 · INF-082, 083 · NEED-018 (local flags) · ENT?-DeviceProfile · EVT-002, EVT-005
 
 **Backend needs** none (local flags).
 
@@ -839,7 +839,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: panels with data · loading: skeletons · empty: "no sessions yet" · partial: a panel's source down → panel error, others fine · error: auth fail → login · offline: n/a (staff tool) · permission-denied: 403 page · others n/a |
 
-**Surfaces** SCR-ADM-01 (R1 sessions · R2 usage/credits · R3 engagement · R4 ops/runs · R5 reports) · EL-ADM-001…012 · INF-109…120 · NEED-010, NEED-015, NEED-009 · ENT?-TelemetryEvent, ENT?-CreditLedger, ENT?-RunStatus, ENT?-ProblemReport · EVT-007, EVT-008 (read side)
+**Surfaces** SCR-ADM-01 (R1 sessions · R2 usage/credits · R3 engagement · R4 ops/runs · R5 reports) · EL-ADM-001…012 · INF-095…105 · NEED-010, NEED-015, NEED-009 · ENT?-TelemetryEvent, ENT?-CreditLedger, ENT?-RunStatus, ENT?-ProblemReport · EVT-007, EVT-008 (read side)
 
 **Backend needs** NEED-015 admin API (query aggregates + trigger actions wrapping the three scripts); reads NEED-009/010 stores.
 
@@ -874,7 +874,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** ok / warn / exhausted / reserved-mode — these drive the quota-exhausted column of the state matrix.
 
-**Surfaces** SCR-ADM-01.R2; student-visible only via dock copy (F-ADD-VOI-01/03, F-XCT-OFF-01) · EL-MET-001…003 · INF-121…123 · NEED-009 · ENT?-CreditLedger · EVT-007, EVT-008
+**Surfaces** SCR-ADM-01.R2; student-visible only via dock copy (F-ADD-VOI-01/03, F-XCT-OFF-01) · EL-ADM-003, 004; EL-LES-01-071, 072 · INF-085, 086, 097, 098 · NEED-009 · ENT?-CreditLedger · EVT-007, EVT-008
 
 **Backend needs** NEED-009 metering + guard service (counters, thresholds, mode flag, per-session flag push at session bootstrap + mid-session on state change).
 
@@ -922,7 +922,51 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 ## 5. Screens, elements, information
 
-<!-- PHASE-6 CONTENT -->
+### 5.1 Screen list
+
+| Screen | Name | Purpose | Regions | Features served |
+|---|---|---|---|---|
+| **SCR-HUB-01** | Courses hub | Front door; find and open a topic page | R1 header (kicker/title/sub) · R2 groups + course cards + empty state · R3 footer attribution · global offline chip | F-COR-HUB-01, F-XCT-OFF-01 |
+| **SCR-LES-01** | Lesson page | The whole generated chapter + doubt tutor + wrappers | R1 header/meta · R2 language bar · R3 text blocks · R4 diagram · R5 simulation card · R6 check card · R7 worked-example/reveal/glossary · R8 sources footer + report · R9 voice dock · R10 consent overlay · R11 settings sheet · R12 onboarding hints · global chips | all student-facing cards |
+| **SCR-PRIV-01** | Privacy summary | Guardian-facing: what is kept, for how long, how to erase | R1 title + back · R2 data-class table · R3 clear + confirmation | F-XCT-CON-01 |
+| **SCR-ADM-01** | Admin dashboard v0 | Founder cockpit: sessions, credits, engagement, runs, reports, triggers | R1 sessions · R2 usage/credits · R3 engagement · R4 ops/runs + triggers · R5 reports · R0 auth gate | F-OPS-ADM-01, F-OPS-MET-01 |
+
+### 5.2 Element inventory
+
+`ui-element-inventory.csv` — **97 rows** (EL-LES-01-001…072, EL-HUB-001…008,
+EL-PRV-001…005, EL-ADM-001…012). Every perceivable element on every screen has a row
+with states, interaction, emitted event, API need, entity read, i18n rule, TTS rule,
+a11y contract, perf budget, privacy class, priority. Walk-through test basis for §7.
+
+### 5.3 Information inventory
+
+`information-inventory.csv` — **105 rows** (INF-001…105). Every word/number/sound the UI
+can show, with source, format, units/symbols rule, nullability + fallback, freshness,
+localization rule, PII class, retention hint, visibility. Never-translate rule (units,
+symbols, autonyms, source names) and child-data flags live here.
+
+### 5.4 Screen-state matrix
+
+Every region × the 11 required states. `n/a` always carries a reason.
+
+| Screen / region | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | quota-exhausted | consent-missing |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SCR-HUB-01 (whole) | grouped cards + attribution | static HTML paint (no spinner) | built empty copy (INF-007) | some class groups have topics, others absent | card target 404 → host page; hub intact | cached render + offline chip (EL-HUB-008) | n/a (public page) | n/a (no motion) | English chrome + INF-087 marker (P1) | n/a (hub costs no credits) | n/a (voice consent is per voice use) |
+| SCR-LES-01.R1 header | kicker · title · meta · objectives | static paint | n/a (factory hard-errors on empty pages) | no objectives → section absent | n/a (static text) | cached full render | n/a | n/a | English + INF-087 | n/a | n/a |
+| SCR-LES-01.R2 language bar | 3 chips, remembered selection | bundle fetch < 200 ms | n/a | HI/Hinglish chips disabled until bundle exists | bundle fetch fail → stay current language + "couldn't load" chip | cached bundle works; else English + reason | n/a | n/a | this IS the untranslated surface (INF-087/088) | n/a | n/a |
+| SCR-LES-01.R3 text blocks | paragraphs + one highlighted statement | static paint | n/a | some blocks untranslated + markers | n/a (static text) | cached full text | n/a | n/a | English + INF-087 | text unaffected; read-aloud disabled (INF-089) | n/a (reading needs no consent) |
+| SCR-LES-01.R4 diagram | figure + caption | inline SVG (no wait) | n/a | no longdesc → aria-label only | n/a (authored + gated upstream) | cached | n/a | n/a (static SVG) | English labels + marker; symbols fixed | n/a | n/a |
+| SCR-LES-01.R5 simulation card | still; default_behaviour drawn once | canvas blank ≤ 1 frame until JS | n/a | broken sim → on-canvas painter + mirror text (INF-035) | same as partial; EVT-009 fires | fully works (pure client-side) | n/a | static frame; no rAF loop | English labels + marker; units never translated | n/a (sims cost no credits) | n/a (sims need no consent) |
+| SCR-LES-01.R6 check card | unanswered | n/a | n/a | answered → feedback shown, Why closed | numeric parse miss → INF-042 copy | fully works | n/a | n/a | English + INF-087 | n/a | n/a |
+| SCR-LES-01.R7 WE/reveal/glossary | details closed | n/a | n/a | some steps open | n/a (native `<details>`) | works | n/a | n/a | English + INF-087 | n/a | n/a |
+| SCR-LES-01.R8 sources + report | footer visible; report button quiet | n/a | n/a | report draft kept unsent | send fail copy (INF-055) | report disabled + reason | n/a | n/a | English + INF-087 | n/a | n/a (report is pseudonymous, no consent gate) |
+| SCR-LES-01.R9 voice dock | collapsed chip "Ask a doubt" | "connecting" ≤ 1 s → error if fail | transcript panel empty | partial transcript off by default; anchor = whole page | full failure machine (INF-068 copy → re-ask → help chips → typed fallback) | dock disabled + reason (INF-084); Core intact | mic denied → typed fallback shown, never re-prompted | static state indicators; earcons unchanged | English dock copy + marker | typed-only notice (INF-086); in-progress turn completes | consent overlay (R10) shown first |
+| SCR-LES-01.R10 consent overlay | closed | n/a | n/a | n/a | consent save fail → voice stays off + retry | local consent works; server sync deferred | declined → voice off quietly, no re-nag | n/a | English P0 (P1: all 3) | n/a | this IS the consent-missing surface |
+| SCR-LES-01.R11 settings sheet | closed | n/a | n/a | row for unavailable feature disabled + reason | n/a (local storage) | works locally | n/a | n/a | English + INF-087 | pace row still applies to typed mode | n/a (settings need no consent) |
+| SCR-LES-01.R12 onboarding hints | hidden (flags set) | n/a | n/a | n/a | n/a | works (local flags) | n/a | text-only hints | English P0 | n/a | mic hint hidden (voice off) |
+| SCR-LES-01 global chips | hidden | n/a | n/a | n/a | n/a | offline chip ≤ 1 s (INF-084) | n/a | n/a | English | warn (INF-085) / typed-only (INF-086) notices | n/a |
+| SCR-PRIV-01 | data-class table + clear button | static paint | no consent record → INF-076 fallback copy | n/a | clear fail copy | local wipe works; server deletion deferred + reason | n/a | n/a | English P0 | n/a | shows "no consent record" state honestly |
+| SCR-ADM-01 | five panels with data | skeletons | "no sessions yet" per panel | one panel's source down → panel error; others fine | auth fail → login / 403 | n/a (staff tool on cluster network) | 403 page | n/a | n/a (staff UI English) | guard badge shows exhausted | n/a (ops views are aggregates) |
 
 ---
 
