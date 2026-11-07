@@ -60,3 +60,16 @@ written. Method: `skills/zivon-systems-design-skills/` 10-phase pipeline, commit
 3. Before Gate-C rehearsal: Gnani dashboard credit-price calibration (A-01), 30-min v3.0 language
    smoke test (A-04), one timed restore drill (DRILL-01 P0 form).
 4. Counsel questions packaged: Q-L1 (residency), Q-L2 (DPDP clocks), Q-V1 (Gnani-side retention).
+
+## Self-review checklist (Phase 10) — results
+
+All items ✅; caveats named, no silent passes:
+
+- Traceability: ✅ endpoints cite NEED + ENT?/INF (backend-spec §16 roll-up); ✅ all 18 NEEDs served or explicitly deferred with phase; ✅ tables/columns cite INF/ENT? or carry the "systems-originated" label with a reason (db-spec §systems-originated); ✅ all 20 classes carry SoR/tier/retention/sync-trigger/verification/deletion-path/sensitivity; ✅ P0/P1/P2/post-challenge labels throughout, P0 = the 16-P0 Gate-D list, collisions called out (login-free vs authed-admin resolved via T6 + admin-only auth; no personalization vs memory — T5).
+- Numbers: ✅ NFR-01…30 numeric + tagged; ✅ capacity model reconciles (A-14 sized from A-05/A-15) and names the binding constraint (Gnani credits, not infra); ✅ latency budget sums to 4.0 s p90 with named levers + pre-Gate-C calibration items.
+- Tiering/durability: ✅ placement + sync trigger per class (CSV); ✅ EVICT-01 (never evicts unverified) + C-14 never evicted; ✅ cold = separate failure domain, three least-privilege credentials, writer cannot delete; ✅ restore path + RPO/RTO + DRILL-01 cadence + pull-the-plug per class; ✅ provider ADR-0004 with matrix from official pages only — Wasabi/AWS/GCS cells flagged [verify] (pages unreachable this session; deliberately not filled from blogs).
+- Privacy/safety: ✅ no raw child audio anywhere (ADR-0008); ✅ consent server-side (C-19) + deletion covers DB/SSD/cold/caches/logs/backups (REDEL-01 + C-19 path); ✅ personalization storage absent by construction (T5/T6); ✅ sub-processors + regions listed, legal questions open (Q-L1/L2/V1).
+- Resilience/ops: ✅ failure modes cover every component incl. what the student sees; ✅ Core survives voice/TTS/translation outages (RB-01…04, ADR-0005); ✅ SLOs + alerts + 12 rollback plans + the five required metrics (outbox lag, WAL lag, SSD usage, drift, last drill); ✅ security checklist run, secrets runtime-only per repo rules.
+- Decisions: ✅ ADRs cover engine (0001), transport (0003), cold provider+region posture (0004), outbox vs broker (0006), auth model (0007) — plus 11 more; ✅ open questions consolidated in backend-spec §15, unverifiable facts tagged [ASSUMPTION]/[verify]; ✅ no contradiction with `docs/deployment/` (CronJob gotcha 12 respected in the 93-manifest sketch; factory Job stays manual-only; edge-TLS posture; Deployment+Service pattern) and AGENTS.md updated in the same commit series.
+
+One honest watch-item: the checklist's "region" ADR expectation is carried by ADR-0004 (cold region posture + Q-L1 swap candidates) rather than a standalone ADR — U2's region is trivially "wherever the cluster is" [ASSUMPTION] until the hosting stage decides it.
