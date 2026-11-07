@@ -250,3 +250,233 @@ Fixed-by-Stage-1 numbers are inherited, not re-derived. `[ASSUMPTION]` until mea
 | NFR-28 | Security | secrets in images/manifests/workflows; CI keys | zero (repo rule); CI key-free | `[FIXED]` | gitleaks + kube-linter in CI (exists) | AGENTS.md | ops |
 | NFR-29 | Observability | trace id spans client → WS → STT → LLM → TTS → client playback | 100 % of voice sessions carry a `trace_id`; EVT-006 covers every completed turn | `[ASSUMPTION]` | trace sampling audit | F-OPS-TEL-01 | voice backend |
 | NFR-30 | Ops access | admin views display only aggregated, non-identifying data; transcripts never shown on panels | by design (AC-4 F-OPS-ADM-01) | `[FIXED]` | panel audit | F-OPS-ADM-01 | voice backend |
+
+---
+
+## 6. API catalogue
+
+Conventions (vendored `api-designer`): versioned under `/v1`; nouns for resources; **problem-details
+error body** `{code, message_key, trace_id, retryable}` — `message_key` maps to the INF-068 copy set
+so every error renders in the student's language, never raw model/stack text; OpenAPI generated from
+the FastAPI app is the single source of truth (frontend types generated from it); `trace_id` on every
+response (NFR-29). **Login-free by founder correction 3** — no student auth anywhere; abuse control
+is the IP-hash bucket family (§8.3). All latency targets cite NFR-09/10.
+
+### 6.1 Student endpoints (9 + 1 channel)
+
+#### API-001 `POST /v1/session` — bootstrap + flags
+- **Purpose:** open a lesson-page session; return pseudonymous session + feature flags. · **Serves:** NEED-003 · **Consumed by:** dock, lesson shell (F-ADD-VOI-01/03, F-XCT-CON-01)
+- **Auth + consent:** none to call; reads latest `consent_record` for the device to compute flags. · **Request:** `{device_pseudo_id (uuid, validated), lang (locale enum), consent_state (client claim — server truth wins), page: {course_id, class}}`
+- **Response:** `{session_id, session_token (short-lived, §8.1), flags: voice_enabled|typed_only|voice_off, consent_required: bool, guard_state: ok|warn|exhausted|reserved_mode}`
+- **Errors:** `E-RATE-LIMIT`, `E-INTERNAL` (dock system-error copy; Core intact). · **Idempotency:** POST creates a new session per page visit (by design); retry-safe via client backoff.
+- **Caching:** none. · **Rate limit:** api family 30/min/IP. · **p95:** < 300 ms (NFR-09).
+- **Data touched:** `device`, `session`, `consent_record`, `guard_counter` (read). · **EVT:** — (client fires EVT-001).
+- **Credit cost:** 0. · **Failure UI:** dock shows system-error state, Core page untouched. · **Version:** v1.
+
+#### API-002 `WSS /v1/voice` — the voice channel
+Full contract in **§7**. Serves NEED-004 (+005/006/007/008 inside it). Auth: `session_token` at
+connect, re-validated at resume. Consent-gated. Rate limit: ws family. Credit cost: the only
+metered surface (Prisma s + Timbre chars + Gemma tokens).
+
+#### API-003 `PUT /v1/session/{session_id}/coverage` — coverage store
+- **Purpose:** persist covered-items at turn boundaries (server mirror of local-first memory). · **Serves:** NEED-011 · **Consumed by:** memory view (EL-LES-01-054), prompt assembly (NEED-005)
+- **Auth + consent:** session_token; **server sync only with voice consent** — without consent the client keeps memory local-only (flag `coverage_synced=false`, "syncing later" copy). · **Request:** `{covered: [{block_id, type, status}]}` ≤ 32 items.
+- **Response:** `{ok, coverage_synced: true}`. · **Errors:** `E-SESSION-EXPIRED` (client re-bootstraps), `E-RATE-LIMIT`.
+- **Idempotency:** full-state PUT (last write wins, seq-guarded by `If-Match`-style `rev`). · **Caching:** none. · **Rate limit:** api family. · **p95:** < 300 ms.
+- **Data touched:** `session.coverage`. · **EVT:** — · **Credit cost:** 0. · **Failure UI:** local continues. · **Version:** v1.
+
+#### API-004 `PUT /v1/consent` — consent record store
+- **Purpose:** append consent event (granted/declined/withdrawn). · **Serves:** NEED-012 · **Consumed by:** consent overlay (EL-LES-01-058…061), privacy page (EL-PRV-002)
+- **Auth:** none (device-keyed). · **Request:** `{device_pseudo_id, consent_version, notice_version, guardian_flag, action: granted|declined|withdrawn, ts}`.
+- **Response:** `{ok, consent_id}`. · **Errors:** `E-RATE-LIMIT`, `E-INTERNAL` (voice stays off; retry copy).
+- **Idempotency:** append-only; duplicate same-action within 60 s deduped by `(device, action, minute)` partial. · **Caching:** none. · **Rate limit:** api family. · **p95:** < 300 ms.
+- **Data touched:** `consent_record` (append). · **EVT:** EVT-013 (client-side). · **Credit cost:** 0. · **Version:** v1; consent_version changes supersede, never edit.
+
+#### API-005 `POST /v1/events` — telemetry ingestion
+- **Purpose:** batched event intake, schema-validated. · **Serves:** NEED-010 · **Consumed by:** all instrumented elements (F-OPS-TEL-01)
+- **Auth + consent:** session_token optional for Core-safe events; **consent gate:** pre-consent only EVT-001/016/017 accepted (server-enforced). · **Request:** `{events: [{evt_id, session_id, course_id?, block_id?, props, ts, client_ts}]}` ≤ 20.
+- **Response:** `{accepted: n, rejected: [{i, code}]}` — 200 even on partial reject (batch semantics). · **Errors:** whole-batch `E-RATE-LIMIT`; per-event `E-EVT-SCHEMA` (free-text keys rejected).
+- **Idempotency:** per-event `event_uuid` from client (dedup unique). · **Caching:** none. · **Rate limit:** events family 12 batches/min/IP. · **p95:** < 50 ms added to interaction path (async write-behind to `telemetry_event`).
+- **Data touched:** `telemetry_event`. · **Credit cost:** 0. · **Failure UI:** client local queue ≤ 200, retry backoff, drop-oldest. · **Version:** v1; catalogue version in props schema version field.
+
+#### API-006 `POST /v1/reports` — problem report
+- **Purpose:** correctness-loop intake. · **Serves:** NEED-014 · **Consumed by:** report form (EL-LES-01-040/041)
+- **Auth:** none. **No PII fields accepted** — request schema has no name/contact keys; text ≤ 500 chars, child-safe flagged. · **Request:** `{course_id, class, block_id?, category: wrong_physics|bad_translation|broken_sim|other, text?}`.
+- **Response:** `{report_id}`. · **Errors:** `E-RATE-LIMIT` (draft kept + "could not send"). · **Idempotency:** client `report_nonce` unique index 10-min window. · **Rate limit:** reports family 5/min/IP. · **p95:** < 1 s.
+- **Data touched:** `problem_report`. · **EVT:** EVT-014 (client). · **Credit cost:** 0. · **Version:** v1.
+
+#### API-007 `DELETE /v1/data` — right-to-erasure
+- **Purpose:** device-scoped wipe. · **Serves:** NEED-013 · **Consumed by:** privacy page clear (EL-PRV-003/004)
+- **Auth:** identity = `device_pseudo_id` + confirm token (client proves possession: server issues a one-time challenge at GET privacy page — friction, not identity, A-03). · **Request:** `{device_pseudo_id, confirm_token, scope: "device"}`.
+- **Response:** `{deleted: {sessions, consents, events, turns, reports}}` counts (NEED-013 shape). · **Errors:** `E-CONFIRM-REQUIRED`, `E-RATE-LIMIT`, `E-INTERNAL` (ops alert + audit row).
+- **Idempotency:** second call for a wiped device returns `{deleted: 0…}` + existing tombstone. · **Rate limit:** 3/min/IP.
+- **Data touched:** `deletion_request` + fan-out per db-spec §6; pipeline per storage-tiering §6. · **EVT:** EVT-018 (client). · **Credit cost:** 0. · **Version:** v1.
+
+#### API-008 `GET /v1/health` — liveness/readiness (systems-originated: ops requirement, db-spec §7)
+- **Purpose:** probes + schema/release version. **Serves:** NFR-12 probes, deployment gates. · **Auth:** cluster-side.
+- **Response:** `{status, db: ok, schema_version (alembic), release (image tag), guard_profile_mode}`. · **Caching:** none. · **p95:** < 100 ms. · **Credit cost:** 0.
+
+#### API-009 `GET /v1/session/{session_id}` — resume check
+- **Purpose:** revalidate token + fetch flags/coverage after reconnect (handoff §3 "auth re-validated at resume"). · **Serves:** NEED-003/011 resume path · **Auth:** session_token.
+- **Response:** subset of API-001 response + `{coverage, rev}`. · **Errors:** `E-SESSION-EXPIRED` → client re-bootstraps. · **p95:** < 300 ms. · **Credit cost:** 0.
+
+### 6.2 Static content contracts (nginx-served — Core path, survives every voice outage)
+
+| ID | Contract | Serves | Rules |
+|---|---|---|---|
+| ST-01 | Lesson pages + assets `/courses/{course_id}/{class}/…` (exists today) | NEED-001 | content-addressed where hashed; `Cache-Control: public, max-age=3600` for shell, **`immutable, max-age=31536000`** for hashed page assets; strict CSP per Code Reviewer rules (no eval, no third-party hosts); stale manifest must still work (ref 04 §5) |
+| ST-02 | `courses.js` catalogue (exists today, never hand-edited) | NEED-002 | `max-age=300` (hub freshness); shape fixed: `[{course_id, class, title, chapter, generated_at, path}]` |
+| ST-03 | `GET /bundles/{course_id}.{lang}.json` (factory-generated, P1/SC-01) | NEED-016 | immutable (version in body + hash in path post-SC-01); `immutable, max-age=31536000`; lazy + SW cache on first switch; < 200 ms after switch (NFR-10); 404 → stay current language + "couldn't load" chip |
+| ST-04 | `GET /audio/{course_id}/{block_id}.{lang}.{content-hash}.opus` (pre-generated narration) | NEED-017 | **immutable, max-age=31536000** (content-hash path); served from `zivon-frontend` PVC, warm-cached on `zivon-cache`; absent → INF-089 disabled copy (client probes HEAD or manifest availability flag); first byte < 1.5 s p90 (NFR-08); nginx audio-family rate limit per IP (founder correction 3) |
+
+### 6.3 Admin endpoints (NEED-015 — separate surface, admin token, cluster-side; never student-facing)
+
+All admin routes under `/v1/admin/*`, authenticated by **admin token** (K8s Secret; separate from
+every student credential; AC-6 audit on every action; NFR-30 aggregate-only display).
+
+| ID | Route | Purpose / parity | Serves |
+|---|---|---|---|
+| API-A1 | `GET /v1/admin/summary` | sessions today, credit burn (INF-097), guard state (INF-098), engagement aggregates (INF-099), open reports count — ≤ 5 min lag | NEED-015 |
+| API-A2 | `GET /v1/admin/sessions?date=` | pseudonymous session rows (INF-096: id · topic · duration · turns — no free text) | NEED-015 |
+| API-A3 | `GET /v1/admin/credits` | ledger totals + reconciliation drift % (AC-2 ≤ 2 %) + profile config | NEED-009/015 |
+| API-A4 | `GET /v1/admin/guard` · `POST /v1/admin/guard/profile {mode}` | guard state read + **profile toggle** (normal↔demo) — writes `audit_log`, pushes `state` to open sessions ≤ 5 s | NEED-009 (founder toggle), NEED-015 |
+| API-A5 | `GET /v1/admin/runs` · `GET /v1/admin/runs/{run_id}` | run status rows + stage durations (INF-100/101, ≤ 1 min lag) | NEED-015 |
+| API-A6 | `GET /v1/admin/reports` · `PATCH /v1/admin/reports/{id} {status}` | report inbox (INF-104/105) | NEED-014/015 |
+| API-A7 | `POST /v1/admin/actions/run-tests` | **wraps `scripts/trigger-tests.sh` semantics** (parity-tested; the sanctioned "button") | NEED-015 |
+| API-A8 | `POST /v1/admin/actions/generate-topic {chapter, class, fresh?}` | **wraps `scripts/trigger-factory-run.sh`** (manual-only Job; never scheduled) | NEED-015 |
+| API-A9 | `GET /v1/admin/actions/watch-run/{run_id}/logs` | **wraps `scripts/logs-factory-run.sh`** semantics (INF-103 stream) | NEED-015 |
+| API-A10 | `GET /v1/admin/audit?from=` (P1) | audit log view (C13) | systems-originated |
+
+Parity rule (AGENTS.md): A7/A8/A9 must be behaviourally identical to the scripts (same Job/CronJob
+renders, same guards); CI parity test compares rendered manifests. Admin actions are async:
+`202 {action_id}` + status via A5.
+
+---
+
+## 7. WebSocket catalogue — the voice loop (NEED-004)
+
+### 7.1 Channel rules
+
+- **Endpoint:** `WSS /v1/voice?session_token=…` — opened after bootstrap + consent; one channel per
+  lesson-page visit; closes on navigation. TLS at the edge only (repo rule). Origin check on
+  upgrade. Max 1 concurrent channel per session; cluster cap 10 concurrent (A-07; NFR-13).
+- **Envelope (JSON frames):** `{v:1, type, id, seq, ts, session_id, turn_seq?, payload}`;
+  **binary frames** for audio with 8-byte header `{codec: opus, rate: 16000, seq}`.
+- **Ordering:** `turn_seq` monotonic per session (handoff §3); server-assigned down `seq` per
+  turn; client dedupes by seq and may resume within 60 s (API-009 revalidate, replay window of
+  final messages only — partials are never replayed).
+- **Backpressure:** bounded server queues; under pressure **drop `stt.partial`/`tutor.text.delta`
+  coalescing, never final messages**; client down-buffer ≤ 2 s audio → overflow drops chunks and
+  shows transcript (text floor); client up-buffer > 1 s → stop mic, system-error + retry (context
+  preserved). Max sizes: JSON ≤ 8 KB, `context.snapshot` ≤ 4 KB (NEED-005), audio frame ≤ 2 KB.
+- **Heartbeat:** `ping`/`pong` every 30 s; 2 missed → close (session row stays; resume allowed).
+  Idle channel close after 10 min without frames `[ASSUMPTION]`.
+- **Barge-in (F-ADD-VOI-01 AC-3):** `interrupt` → server stops TTS consumption ≤ 300 ms (NFR-05),
+  flushes queued `tts.chunk`, emits `turn.cancelled`; in-progress *turn* is never cut by guard
+  (handoff §3 — guard exhaustion only blocks the *next* turn).
+- **Echo path:** client-side ducking per A-11 (ADR-0010): dock pauses read-aloud/media audio while
+  dock is speaking; server-side gate flag as fallback, device-tested before Gate-C rehearsal.
+
+### 7.2 Message catalogue
+
+Client → server (7):
+
+| Type | Schema | Ordering/seq | Idempotent? | On loss | Billable? | Notes |
+|---|---|---|---|---|---|---|
+| `ptt.start` | `{turn_seq}` | opens turn | yes (same seq ignored) | client retries | no | mic opens only now (battery+privacy, handoff §3) |
+| `audio.frame` | binary opus 16 kHz mono ≤ 20 ms | seq per turn | n/a | dropped by STT gap tolerance; > 1 s buffer → stop mic | **yes (STT s)** | only while listening; **transient buffer, never persisted (T11)** |
+| `context.snapshot` | NEED-005 payload ≤ 4 KB | once per turn start | yes (latest wins) | turn proceeds with last snapshot + "I can't see…" honesty note (NEED-005 failure row) | no | validated by `voice/anchor` |
+| `ptt.stop` | `{turn_seq}` | closes capture | yes | server endpointing may have fired first | no | starts the Gate-C clock |
+| `typed.doubt` | `{turn_seq, text ≤ 1 000 chars}` | alternative turn opener | yes (seq) | client retries | **yes (LLM+TTS)** | typed path — same pipeline minus STT; works when STT down |
+| `interrupt` | `{turn_seq}` | any time | yes | client shows stop state | no | ≤ 300 ms effect (NFR-05) |
+| `ping` | `{}` | 30 s cadence | n/a | 2 missed → close | no | |
+
+Server → client (10):
+
+| Type | Schema | Ordering/seq | Idempotent? | On loss | Billable? | Notes |
+|---|---|---|---|---|---|---|
+| `stt.partial` | `{text, confidence}` | per turn | n/a | dropped under backpressure (never final) | no (already metered) | **only if user opted in** (EL-LES-01-048, INF-062 transient) |
+| `stt.final` | `{text, confidence, language_detected}` | once per turn | replayable in resume window | client re-asks | no | low confidence → `no-match` error instead of garbled text (INF-060 fallback) |
+| `tutor.text.delta` | `{chunk}` | seq per turn | coalesced on reconnect | text floor degrades gracefully | no (LLM metered at generation) | may precede audio — Gate-C enabler; tags stripped in UI (INF-061) |
+| `tts.chunk` | binary audio chunk + seq | seq per turn | deduped by seq | overflow → drop + transcript (text floor) | **yes (TTS chars)** | unknown tags already stripped server-side (harness) |
+| `tts.done` | `{seq}` | once per utterance | yes | client marks complete | no | |
+| `turn.cancelled` | `{turn_seq}` | on interrupt | yes | — | no | interrupt ack |
+| `turn.meta` | `{eos_ms, stt_final_ms, llm_first_token_ms, tts_first_byte_ms}` | once per turn | yes | EVT-006 fires server-side anyway | no | EVT-006 source; drives dock "thinking" cue ≤ 300 ms (NFR-06) |
+| `state` | `{voice_enabled\|typed_only\|voice_off, reason_key}` | anytime | latest wins | client re-reads at bootstrap | no | guard-state push ≤ 5 s (NEED-009); in-progress turn completes |
+| `error` | `{code, message_key, retryable, turn_seq?}` | anytime | n/a | — | no | §8.2 error model; copy from INF-068 set |
+| `pong` | `{}` | heartbeat | n/a | — | no | |
+
+### 7.3 Per-hop latency budget (sums against the fixed Stage-1 numbers — Gate C)
+
+Fixed ceilings inherited: STT final ≤ 1.5 s (NFR-02), LLM first token < 1.2 s (NFR-03), TTS first
+byte < 800 ms (NFR-04). The budget **overlaps stages** (ref 04 §4.2) — the pipeline never serializes:
+
+| Hop | p50 target | Ceiling | Overlap lever |
+|---|---|---|---|
+| Client → server `ptt.stop` arrives | 50 ms | 150 ms | keep-alive WS (no handshake per turn) |
+| STT finalize after end-of-speech | 600 ms | **1 500 ms** | Prisma streams partials during speech; server endpointing may fire **before** `ptt.stop` (handoff §3) — finalize starts early |
+| LLM first token after STT final | 500 ms | **1 200 ms** | warm Gemma host (A-09 — hard dependency); short system prompt; cached page context; history window ≤ 6 turns |
+| First speakable clause (clause boundary after first token) | 200 ms | 400 ms | prompt requires short first sentence (NEED-007 "≤ 3 sentences default"); chunk on punctuation **and clause** |
+| TTS first byte after clause handed to Timbre | 400 ms | **800 ms** | TTS starts on the first clause while the LLM continues generating the rest; connection reused; no cold start |
+| Downlink + client decode + playback start | 150 ms | 300 ms | small first chunk; client decodes ahead |
+| **Total Gate C** | **≈ 1.9 s p50** | **≤ 4.0 s p90** (ceilings sum to 4.05 s only if every stage hits its worst simultaneously — the levers above make that rare; histograms per EVT-006 decide) | — |
+
+Long-pole rule: the first stage whose p90 exceeds its ceiling gets the fix before any feature work
+(per-stage histograms are a P0 build requirement, not Day-8 polish — Gate C rehearsal depends on them).
+
+---
+
+## 8. Auth, consent, rate limits, credit guard
+
+### 8.1 Session token (systems-originated — handoff §3 "short-lived session token")
+
+`session_token` = HMAC-signed `{session_id, device_pseudo_id, iat, exp}` (exp 12 h, key from K8s
+Secret, rotated per deploy; not an account, not refreshable beyond session life). Carried as
+`?session_token=` on WSS connect and `Authorization: ZivonSession <token>` on REST calls that name
+a session. Revalidated at resume (API-009). **No student accounts anywhere** (TIMELINE out-of-scope;
+T6) — the token proves possession of the session, nothing more. Admin token is a separate K8s
+Secret, cluster-side only.
+
+### 8.2 Consent gating (server-side, not UI-side)
+
+Middleware on: WSS connect, `audio.frame`/`typed.doubt` ingestion, coverage PUT, consent-gated EVT
+ingestion. Rule: derived-latest `consent_record.action = granted` for the device, else
+`E-CONSENT-REQUIRED` → flags recompute to `voice_off` (Core untouched). Withdrawal takes effect on
+the next gated call (in-progress turn completes, handoff §3). Consent version bump (notice text
+change) forces re-consent: middleware returns `E-CONSENT-STALE` → overlay re-shows.
+
+### 8.3 Rate limits & abuse prevention (founder correction 3 — login-free but IP-keyed)
+
+Two layers, both keyed on the **salted daily-rotating IP hash** (A-12; raw IP never persisted):
+
+| Layer | Scope | Limits `[ASSUMPTION]` (tune at submission week) |
+|---|---|---|
+| nginx `limit_req` (existing frontend Deployment) | static pages, `courses.js`, bundles, **narration audio** (ST-01…04) | static 100 req/min/IP burst 20; audio 60/min burst 10 |
+| app token buckets (`voice/abuse`, `abuse_bucket` table) | API-001…009, WSS connects, events, reports | api 30/min; ws 10 connects/min + 1 concurrent/session + 10 cluster-wide; events 12 batches/min; reports 5/min; DELETE /data 3/min |
+
+On breach: `429 {code: E-RATE-LIMIT, retry_after}`; WS close code 1013 + backoff hint. DDoS posture:
+limits are per-IP; cluster-level connection caps + edge WAF at hosting stage (phase plan §3).
+EVT-009 counts rate-limit hits for ops (no free text).
+
+### 8.4 Credit metering & the two-dimension guard (NEED-009)
+
+- **Metered surface (founder correction 1):** Prisma STT seconds + tutor Timbre TTS characters +
+  Gemma tokens (self-hosted — tracked for capacity, not Gnani credits). **Pre-generated narration
+  is never metered per student** (C-051; served statically).
+- **Meter at call points** (`voice/guard` wraps `voice/gnani` + `voice/tutor`): quantity known at
+  call end → `credit_ledger` row (async) + hot-counter decrement.
+- **Enforce before the turn** (AP-02/03, < 5 ms): atomic upsert-reserve on `guard_counter` for
+  (period, global) AND (period, device) — both must have headroom for an estimated turn cost
+  (≈ 15 s STT + 600 chars TTS `[ASSUMPTION]` from handoff §5 per-turn figures). Mid-turn soft
+  checks stop *further* generation; **an in-progress turn is never cut** (handoff §3).
+- **States:** `ok` → `warn` (remaining ≤ 15 % of tranche, A-06: warn notice before sessions start,
+  INF-085) → `exhausted` (global → all new sessions `typed_only`; per-user → that device only,
+  INF-086) → `reserved_mode` (demo profile active). Push via `state` message ≤ 5 s (NFR-14).
+- **Profiles:** `normal` 1 000 global / 30 per-user (founder config); `demo` 1 000 / 100
+  `[ASSUMPTION A-05]` — toggled via API-A4, logged to `audit_log`, flips `guard_profile` row.
+  Hard ceiling in both profiles: total remaining programme budget minus a **demo reserve**
+  (repo rule ~40 % for demo/judges — enforced as a `reserved` bucket cap, not a note).
+- **Degrade ladder (never a hard wall):** shorter replies (≤ 2 sentences) → typed_only → read-only
+  (voice_off). Honest allowance shown (INF-085/086 copy).
+- **Reconciliation:** nightly job compares ledger totals vs Gnani dashboard; drift > 2 % → alert
+  (AC-2, NFR-25); daily usage log export (repo rule "log usage daily").
