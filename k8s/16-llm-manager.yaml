@@ -38,6 +38,11 @@ spec:
         app: zivon-llm-manager
     spec:
       automountServiceAccountToken: false   # a model proxy needs no K8s API access
+      # kubelet injects env vars named after every Service in the namespace
+      # (legacy link feature). The Service "llm-manager" injects
+      # LLM_MANAGER_PORT=tcp://... - found live 2026-11-08 crashing this pod.
+      # Off: nothing here consumes service links (gotcha 16).
+      enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000          # numeric UID of the image's "app" user (gotcha 1)
