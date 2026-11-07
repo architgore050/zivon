@@ -143,7 +143,7 @@ the doctrine owner).
 | **T2** | Language model: **UI languages = English / हिन्दी / Hinglish** (Hinglish in Roman script, house style: Devanagari for physics terms where natural, else English term kept). Hinglish is *also* the tutor's default speech style. Bar shows autonyms. v1 = 3 languages; bar chips wrap (doctrine §10.5) so ≥5 is a data change not a redesign. RTL out. | Hinglish as tutor-style only (page stays English); single "Hindi" covering both scripts | J4 (read at thinking speed) + the challenge's code-mix story [STRONG] | Kid preference sessions (Gate-B rounds): which UI language do testers stay in? Label-length audit at 360 px | **ADR** (per-string language data model; STT language hints; TTS voice choice) |
 | **T3** | **Push-to-talk default** (tap-to-start, tap-or-endpoint-to-stop). Hands-free VAD is a P2 opt-in. | Hands-free default (false triggers in noisy shared rooms; always-on mic for a child) | Noisy shared room is the base case (repo rule) + child privacy | EVT-010 voice_abandon + false-trigger rate in field logs; quiet-room vs noisy-room session comparison | **ADR** (WebSocket PTT message contract) |
 | **T4** | Doctrine already names the Devanagari fallback stack (§10.3) — the gap is **verification**: LessonKit baseline alignment, canvas `fillText` font stack, and the row rhythm under Hindi strings are unproven. File **DCR-001**: doctrine gains a "Devanagari rendering verification" clause (no tofu, rules hold, canvas stack pinned) + the pipeline vendors Kalam/Nirmala-class faces. Never ship tofu. | Ship Hindi strings on the unverified stack; or drop Hindi from v1 | Doctrine owner decides doctrine; honesty + a11y [STRONG] | Device test: Hindi page at 360 px — zero tofu, rules under baselines after resize (perf-gate extension) | **DCR-001** |
-| **T5** | **Explicit + session-scoped only.** Explicit settings (language, pace, Guide/Tell, data-saver) and session coverage memory. **Persistent inferred profile: KILLED** (not deferred) — behavioural profiling of children. Cross-session *explicit* progress deferred to post-challenge with counsel. | Guardian-consented persistent memory now; inferred difficulty model | DPDP Rules 2025 bar tracking/behavioural monitoring of children (secondary sources; substantive children's duties ~14 May 2027 — **re-verified 2026-11-07 against repo reference `06`, counsel still required**) + repo hard rule P9 | Legal review outcome; if killed profiling later proves necessary, it returns only as a counsel-cleared, purpose-limited feature | **ADR** (data model must preclude profiling by default) |
+| **T5** | **Explicit + session-scoped only.** Explicit settings (language, pace, Guide/Tell, data-saver) and session coverage memory. **Persistent inferred profile: KILLED** (not deferred) — behavioural profiling of children. Cross-session *explicit* progress deferred to post-challenge with counsel. | Guardian-consented persistent memory now; inferred difficulty model | DPDP Rules 2025 bar tracking/behavioural monitoring of children (Act §8 duty + Rules; **verified 2026-11-07**: children's-data provisions fall in the "remaining provisions" batch in force **13 May 2027** per the MeitY commencement notification G.S.R. 843(E) of 13 Nov 2025, via secondary sources; counsel still required) + repo hard rule P9 | Legal review outcome; if killed profiling later proves necessary, it returns only as a counsel-cleared, purpose-limited feature | **ADR** (data model must preclude profiling by default) |
 | **T6** | **Anonymous device-scoped profile** (localStorage: language, settings, session pointers; pseudonymous session id server-side). Data model gives every table a nullable `guardian_ref` column so a guardian identity can attach later. No accounts, no auth — TIMELINE boundary respected. | Magic-link guardian identity now; per-lesson anonymous profiles | Scope fit (TIMELINE out-of-scope list) while still serving J5/J6 | Field signal: share of sessions from a new device wanting prior memory (measured via EVT-001 device-new rate) | **ADR** (identity model) |
 | **T7** | Tutor may **highlight, scroll, and narrate** (visible, narrated, non-destructive). Tutor **setting** a sim value: P2, only with visible undo + spoken narration of the change. | Full page agency now | User control + honesty (P8/P7); conceptual model "the tutor points, I move" | Undo-usage rate; kid-test observation of confusion/annoyance when tutor moves a slider | **ADR** (tutor→page message types) |
 | **T8** | **Build-time reviewed** translation and (later) narration for all lesson content via the factory (glossary + reviewer gate per language). **Runtime only for tutor speech.** No runtime page translation. | Runtime LLM translation per visit | Physics terminology correctness is a correctness risk not cosmetic [STRONG]; cost/latency | Per-language launch gate = reviewer approval rate ≥ threshold before a language ships; terminology complaint rate via report-a-problem | **ADR** + content-factory schema proposals SC-01/SC-02 (see handoff §7) |
@@ -649,7 +649,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 | Value hypothesis | If the notice is honest and short, guardians allow voice use and the demo ships responsibly (completion of first voice session after notice ≥ 90%). |
 | Metrics / events | EVT-013 |
 | Principles applied | P9 (private-by-default) · P7 (plain copy, no dark patterns) · T5/T6/T11 |
-| Evidence | [STRONG] as law-driven principle; DPDP children duties ~14 May 2027 per secondary sources — **re-verified 2026-11-07; counsel required before scale-up** |
+| Evidence | [STRONG] as law-driven principle; DPDP children's-data provisions in force 13 May 2027 (remaining-provisions batch, G.S.R. 843(E); **verified 2026-11-07 via secondary sources; counsel required before scale-up**) |
 | Depends on / blocks | gates F-ADD-VOI-01 first use; NEED-012 |
 | Layer-independence | consent-missing blocks only the ADD layer (voice); Core fully usable — this is the isolation boundary made visible |
 
@@ -720,7 +720,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 | Value hypothesis | If the WCAG-2.2-AA floor holds on generated pages, kids with low vision / motor limits / screen readers can complete a lesson (task-completion test per release). |
 | Metrics / events | a11y audit pass rate per topic (ops metric, not EVT) |
 | Principles applied | P8 · P10 · doctrine §10.8 (contrast, focus, targets — already validated) |
-| Evidence | [STRONG] WCAG 2.2 (criteria numbers verified against w3.org/TR/WCAG22 before quoting in Stage 2: 2.1.1 keyboard, 2.5.7 drag-movements alternative (AA, new in 2.2), target size minimum 24×24 (AA) / 44×44 (AAA) — we design to 44–48 px for children) |
+| Evidence | [STRONG] WCAG 2.2 — **numbers verified 2026-11-07 against w3.org WCAG22 Understanding pages**: 2.1.1 keyboard; 2.5.7 Dragging Movements (Level AA, new in 2.2) single-pointer alternative; 2.5.8 Target Size Minimum 24×24 CSS px (AA) / 2.5.5 Target Size Enhanced 44×44 CSS px (AAA) — we design to 44–48 px for children |
 | Depends on / blocks | factory lint/review (exists) + shell |
 | Layer-independence | applies to every layer independently |
 
@@ -991,7 +991,111 @@ Full matrix: `traceability-matrix.csv` (21 rows, one per feature card).
 
 ## 7. Self-review + Doc Change Proposals
 
-<!-- PHASE-8 CONTENT -->
+Self-review run 2026-11-07 against the skill's delivery checklist (`references/08`).
+No silent ❌ below.
+
+### 7.1 Checklist results
+
+**A. Decision quality**
+- ✅ Decision log: 110 candidates, KEEP 73 / MERGE 2 / DEFER 19 / KILL 16; all KILLs
+  visible with reasons.
+- ✅ Every KEEP row carries job, mechanism + evidence tag, removal test, cost, risk,
+  metric (CSV-validated: no empty mandatory fields).
+- ✅ Layer independence: each card has an explicit "Layer-independence" row; the
+  degraded ladder (F-XCT-OFF-01) is the independence proof — consent-missing blocks
+  only the ADD layer; voice/TTS failure never blocks Core reading/simulating/checking.
+- ✅ T1–T12 all decided in §3 with rejected alternative + falsification test; no new
+  tensions surfaced during card writing that are not covered by T1–T12.
+- ✅ Priority tags on all 21 cards: **16 P0 / 5 P1 / 0 P2 / 0 post-challenge cards**
+  (P2 and post-challenge items live as DEFER rows with revisit triggers). P0 matches
+  the TIMELINE ladder exactly (T10 decision; Gate-D sign-off is the founder's act).
+
+**B. Principles**
+- ✅ 10-principle brief at §1, each with UI consequence + test.
+- ✅ Nielsen pass done at card + state-matrix level (status visibility P6 rows, error
+  recovery rows, user-control rows per screen). A dedicated per-screen heuristic
+  audit-log is scheduled for the Day-9 frontend pass — owner: frontend; not a
+  delivery blocker because every state already has designed copy + exit.
+- ✅ Mayer pass: redundancy/modality decided (T1), signaling (highlighted statement,
+  tutor highlight), segmenting (details-based reveals, WE steps), contiguity
+  (highlight-sync P1), pre-training (glossary + first-mention gloss).
+- ✅ PhET pass on the sim surface: start still (runtime rule), ≤3 control groups,
+  1–3 word labels, help on request only (wiggle-me once), consistent representations
+  (doctrine). Play/step/trace deferred deliberately (C-019/020) with triggers.
+- ✅ Child-safety/privacy pass: consent gate (F-XCT-CON-01), zero audio retention
+  (T11), no profiling (C-074 KILLED not deferred), no streaks/gamification (C-097/098/099
+  KILLed), honest copy audit = every state-matrix cell has plain-language text.
+
+**C. Granularity and traceability**
+- ✅ Walk-through test (10 random perceivable things, each → EL row + INF row +
+  feature): lesson title (EL-LES-01-002/INF-010/F-COR-LES-01) · sim slider readout
+  (020/030/SIM-01) · earcon sound (045/058/VOI-01) · "Why?" explanation (031/041/CHK-01)
+  · consent checkbox label (059/073/CON-01) · offline chip (070+HUB-008/084/OFF-01)
+  · hub empty paragraph (HUB-006/007/HUB-01) · anchor chip text (050/064/VOI-02)
+  · dashboard guard badge (ADM-004/098/MET-01) · wiggle-me hint (069/083/ONB-01).
+- ✅ State matrix: 16 region rows × 11 state columns, zero blank cells (mechanically
+  checked); every `n/a` carries a reason.
+- ✅ Orphan checks green both directions (mechanical): 97 EL, 105 INF, 18 NEED,
+  10 ENT?, 18 EVT — every ID referenced somewhere exists in an inventory, and every
+  inventory row is claimed by ≥1 feature.
+- ✅ Every INF row has source, format, units rule, nullability + fallback, freshness,
+  localization rule, PII class, retention hint, visibility (CSV-validated).
+- ✅ Every EL row has a11y role/name/keyboard + i18n rule; spoken elements name their
+  spoken text (INF-057 state labels, INF-058 earcons, INF-060/061 transcript/reply).
+- ✅ Sim trio: non-drag alternative (keyboard arrows built; SC-07 for future draggables
+  per WCAG 2.5.7), text state mirror (EL-022, SC-02), reduced-motion behaviour
+  (static frame, no rAF loop).
+
+**D. Handoff**
+- ✅ `backend-handoff.md` complete: 18 NEEDs, 10 ENT?, realtime contract, 18 EVT with
+  privacy classes, volumes, retention/consent, SC-01…07 with costs, DCRs.
+- ✅ Needs stated as capabilities + data shapes; endpoint paths shown are illustrative
+  shapes, Stage 2 owns the actual API design.
+- ✅ Schema proposals separated with build cost.
+- ✅ DCR-001 / DCR-002 listed with affected doc + section.
+- ✅ No contradictions with AGENTS.md / TIMELINE.md / design-doctrine.md /
+  blocks-schema.md: Prisma/Timbre non-negotiable respected; Evon default with Gate A
+  flagged; P0 ladder untouched (T10); doctrine followed, gaps raised as DCRs instead
+  of silently diverging; factory Job/trigger-script semantics mirrored exactly in
+  NEED-015.
+
+**E. Honesty**
+- ✅ Evidence tags on every card + decision row; behavioural claims without formal
+  research are tagged [ASSUMPTION]/[WEAK-MODERATE] and each has a falsification test.
+- ✅ Unknowns live in card "Open questions" rows + §7.3 below.
+
+### 7.2 Perishable-fact verification record (done this session, 2026-11-07)
+
+| Fact as quoted | Verified against | Result |
+|---|---|---|
+| WCAG 2.5.7 Dragging Movements, Level AA, single-pointer alternative required | w3.org WCAG22 Understanding page (fetched today) | ✅ as quoted |
+| Target size: 24×24 CSS px minimum (2.5.8, AA); 44×44 CSS px (2.5.5 Enhanced, AAA) | w3.org WCAG22 Understanding page (fetched today) | ✅ as quoted; we design 44–48 px for children |
+| DPDP: Act bars child tracking/behavioural monitoring/targeted advertising | Act §8 duty via secondary source (fetched today) | ✅ |
+| DPDP children's-data provisions in force date | MeitY commencement notification G.S.R. 843(E) (13 Nov 2025) via secondary source (fetched today) | **corrected 14 May → 13 May 2027** in §3 T5, F-XCT-CON-01, handoff §6; counsel still required for VPC design |
+
+### 7.3 Blocking open questions (aggregated from cards)
+
+1. Hinglish orthography house-style sheet — owner: founder + native reviewer — blocks
+   Hindi/Hinglish content launch (F-WRP-LAN-01).
+2. Exact Timbre expressive tag set from Gnani docs — owner: founder — blocks the P1
+   tag-emission slice (F-ADD-VOI-04).
+3. Gate A outcome (Evon v3.3 vs fallback) — owner: founder (decision already running)
+   — blocks NEED-007 serving choice, not the spec.
+4. Does the demo link show the consent overlay to judges? — owner: founder — blocks
+   demo script (recommendation: show it; it is part of the story).
+5. Credit-guard warn threshold + daily tranche size — owner: founder (Day-8) — blocks
+   guard config (F-OPS-MET-01).
+6. SC-02 adoption timing — owner: content factory — blocks P1 sim-quality slices,
+   not the P0 ship.
+
+Non-blocking open questions stay on their cards.
+
+### 7.4 Doc Change Proposals raised (full text in handoff §8)
+
+- **DCR-001** — design-doctrine §10: Devanagari rendering verification clause (T4).
+- **DCR-002** — design-doctrine §10.12: voice dock as a doctrine-covered component.
+
+Both await the doctrine owner (founder). No doctrine text was changed by this doc.
 
 ---
 

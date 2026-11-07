@@ -142,8 +142,9 @@ review). Post-consent: full catalogue. No event carries raw child free text, eve
 Consent gates the ADD layer only: voice input, transcripts, coverage server sync.
 Reading, simulating, checking, reporting work without consent (pseudonymous aggregates
 only). Self-declared guardian confirmation is **not** verifiable parental consent —
-flagged for counsel before any scale-up (C-087; DPDP children's duties ~14 May 2027
-per secondary sources — re-verified 2026-11-07, counsel still required).
+flagged for counsel before any scale-up (C-087; DPDP children's-data provisions in
+force 13 May 2027 per the G.S.R. 843(E) commencement batch — verified 2026-11-07 via
+secondary sources, counsel still required).
 
 ## 7. Content-factory / schema change proposals
 
