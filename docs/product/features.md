@@ -972,7 +972,20 @@ Every region × the 11 required states. `n/a` always carries a reason.
 
 ## 6. Traceability summary
 
-<!-- PHASE-7 CONTENT -->
+Full matrix: `traceability-matrix.csv` (21 rows, one per feature card).
+
+- **Coverage (feature → everything):** every card cites ≥1 job (J1–J7), ≥2 principles
+  (P1–P10), its screens/regions, its element + info ID ranges, its NEED/ENT?/EVT
+  references, ≥1 metric (M1–M7 or a named ops metric), its priority, and its
+  decision-log candidates.
+- **Zero orphans (everything → feature), verified mechanically:** all 97 EL rows, all
+  105 INF rows, all 18 NEEDs, all 10 ENT? entities, all 18 EVT events appear in at
+  least one feature row; no ID referenced anywhere exists outside the inventories.
+  F-XCT-A11Y-01 and F-OPS-TEL-01 bind to the *columns* of the inventories (a11y /
+  emits_event) rather than listing IDs — that is their contract form.
+- **Decision-log closure:** all 110 candidates resolve to KEEP (21 anchor cards +
+  merged slices), MERGE (2 infra), DEFER (19, each with a revisit trigger), or KILL
+  (16, each with a stated reason). No candidate is unaccounted.
 
 ---
 
@@ -984,4 +997,28 @@ Every region × the 11 required states. `n/a` always carries a reason.
 
 ## 8. Backend handoff (for the systems-design stage)
 
-<!-- PHASE-7 CONTENT — mirrored in backend-handoff.md -->
+Full text: **`docs/product/backend-handoff.md`** (the 8-section Stage-2 input). Mirror
+of its headline numbers:
+
+- **18 capability needs** (NEED-001…018): 2 exist (static delivery, catalogue), 1 is
+  the core new build (NEED-004 voice WebSocket channel — full message contract), 6
+  wrap existing pieces (Prisma STT, Evon LLM, Timbre TTS, credit guard, telemetry,
+  admin API over the three sanctioned trigger scripts), the rest are small stores
+  (session, consent, coverage, deletion, reports, bundles, narration cache).
+- **10 entity proposals** (ENT?-Session, VoiceTurn, ConsentRecord, DeviceProfile,
+  CreditLedger, TelemetryEvent, ProblemReport, PageMeta, RunStatus, LanguageBundle) —
+  all preclude child profiling by construction (T5), all carry a nullable
+  `guardian_ref` seam (T6).
+- **1 realtime channel contract** (handoff §3): PTT messages, audio frames up
+  (transient, never persisted — T11), partial/final transcript down, tutor text stream,
+  TTS chunks, interrupt/barge-in ≤ 300 ms, guard-state push, typed path, backpressure
+  rules, degraded rungs.
+- **18 events** with privacy classes; transcripts never in events; consent-gated
+  catalogue.
+- **Volume hints:** < 150 KB per voice turn; ≤ 500 sessions/day, ≤ 10 concurrent voice
+  sessions; per 20-turn session ≈ 5 min Prisma + ≈ 10 k Timbre chars.
+- **Retention:** zero raw audio, transcripts 7 d, coverage 24 h, telemetry 90 d.
+- **7 schema proposals** (SC-01…SC-07) + 1 test-set proposal (axe-core in factory CI).
+- **2 Doc Change Proposals:** DCR-001 (Devanagari verification clause), DCR-002
+  (doctrine §10.12 voice dock).
+- **8 ADR flags** handed to Stage 2: T2, T3, T5, T6, T7, T8, T11, T12.
