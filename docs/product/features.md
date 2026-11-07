@@ -672,7 +672,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Entities** ENT?-ConsentRecord (device_pseudo_id, version, guardian_flag, ts). **Cost & risk** tiny. Risk: self-declared consent ≠ VPC — **flagged for legal review** (C-087), acceptable for demo + founder-supervised kid sessions.
 
-**Open questions** — Q: does the demo link show the overlay to judges (friction) or pre-accepted demo profile? owner: founder (recommend: show it — it's part of the story) · blocking: **y** for demo script.
+**Open questions** — Q: does the demo link show the overlay to judges? — **resolved 2026-11-07 (founder)**: **show it in both** the demo video (~2–3 s of screen time) and the live link (one Continue tap) — the consent flow is a demo asset, not friction. Demo-script note: overlay copy is English at P0; narrate it in Hinglish.
 
 ### F-XCT-OFF-01 · Offline & degraded modes
 
@@ -1098,8 +1098,9 @@ No silent ❌ below.
    OpenAI-format inference-router pattern; Evon v3.3 becomes the post-challenge
    aspiration). Recorded in the TIMELINE.md Gate A row; public story updated — the
    Gnani voice loop (Prisma v3.0 + Timbre v3.0) carries the ≥1-Gnani-model requirement.
-4. Does the demo link show the consent overlay to judges? — owner: founder — blocks
-   demo script (recommendation: show it; it is part of the story).
+4. ~~Does the demo link show the consent overlay to judges?~~ — **resolved 2026-11-07
+   (founder)**: shown in both the demo video and the live link; consent flow treated
+   as a demo asset.
 5. Credit-guard warn threshold + daily tranche size — owner: founder (Day-8) — blocks
    guard config (F-OPS-MET-01).
 6. SC-02 adoption timing — owner: content factory — blocks P1 sim-quality slices,
