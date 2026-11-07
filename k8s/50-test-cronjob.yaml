@@ -51,7 +51,7 @@ spec:
             runAsUser: 1000
           containers:
             - name: tests
-              image: zivon-factory:0.3.10
+              image: zivon-factory:0.3.11
               imagePullPolicy: IfNotPresent
               command:
                 - sh
