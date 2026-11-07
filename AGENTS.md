@@ -159,6 +159,22 @@ Key review principles (generalizable; apply to every review in this repo, agenti
 - **One severity scale everywhere** (blocker / major / minor / nit / question / praise); any blocker → request changes.
 - **AI-written code (most of this repo) gets extra scrutiny:** hallucinated packages/APIs, tests bent to pass, over-building, reinvented helpers, swallowed errors, scope creep.
 
+`skills/zivon-product-design-skills/` is the feature-decision suite: it decides which features the product should have (value filter with a recorded KEEP / MERGE / DEFER / KILL decision log), then specifies each survivor to implementation granularity — feature → screen → element → data → API → event — ending in a traceability matrix + backend handoff list. Read [`skills/zivon-product-design-skills/skills/zivon-product-design/SKILL.md`](skills/zivon-product-design-skills/skills/zivon-product-design/SKILL.md) before writing, extending, or reviewing a feature list, PRD, UX spec, screen/element/information inventory, or a frontend→backend handoff. Visual style stays with `docs/frontend/design-doctrine.md`; agent prompting stays with `skills/prompting-and-agent-design/`.
+
+`skills/zivon-systems-design-skills/` is the sibling backend suite: it turns that handoff list into a backend spec, a database spec, and a storage-tiering plan (NFRs with numbers, data classification, API + WebSocket contracts, failure modes, capacity/cost, ADRs). Read [`skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md`](skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) before any backend/DB/storage design, API contract, or realtime (voice-loop) architecture work — always after the product-design skill; its input is that skill's output.
+
+Both bundles vendor third-party skills (pm-skills Apache-2.0, jeffallan-claude-skills MIT; licences retained in each bundle's `vendored/`): use them for the mechanics of a single artifact (ADR, journey map, user stories, FastAPI/Postgres/WebSocket idioms); the Zivon skills make the decisions, and where a vendored template conflicts with a Zivon hard rule, the hard rule wins.
+
+Key design-method principles (shared by the two bundles; apply to every spec in this repo):
+- **Decide, then specify.** No feature card without a surviving decision-log row; killed candidates are recorded, not silently dropped.
+- **No orphans — derive, don't invent.** Every UI element traces to a feature, every feature to a job + metric, every displayed datum to a source, every endpoint/table/column to a stated need.
+- **All states, failure first.** Specify loading / empty / error / offline / permission-denied / over-credit-budget, and what the student sees when each component fails — not just the happy path; for each data class, the "pull the plug" test (what is lost, RPO/RTO, who notices).
+- **Subtract first.** Fewer, deeper features; ask "what breaks if this is removed?" Every added component cites the requirement (NFR / job) that justifies it.
+- **Layer independence.** Core (reading, simulating, checking) works with voice, TTS, translation, and personalization all off — a product rule and the backend isolation boundary.
+- **Numbers and evidence tags over adjectives.** `[STRONG] / [MODERATE] / [WEAK] / [ASSUMPTION]` on claims (the design-doctrine convention); measurable NFRs; re-verify perishable facts (prices, limits, legal dates) at decision time.
+- **Children's data is an architecture constraint.** Private-by-default, minimization, deletion paths, no raw audio by default, no dark patterns; anything that tracks or profiles a child is flagged for legal review (DPDP).
+- **Specs are handoffs.** A reader with no access to the author must be able to build from them; prefer tables with stable IDs over prose.
+
 Content-creation non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or propose other editing tools.
 
 ---

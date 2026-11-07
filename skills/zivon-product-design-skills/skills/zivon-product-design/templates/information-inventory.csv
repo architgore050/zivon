@@ -1,0 +1,3 @@
+info_id,name,description,shown_in,source,type_format,units_and_symbols,nullability_and_fallback,freshness,localization_rule,pii_class,retention_hint,visible_to
+INF-001,lesson_title,Title of the topic page,EL-LES-01-001,ENT?-Lesson.title,string,none,"required; fall back to English title and show notice",per-lesson-version,translate,none,content-life,student
+INF-002,sim_velocity_readout,Current velocity shown beside the slider,EL-LES-01-032,computed from simulation state,number (1 decimal),m/s (never translated),"show '-' while sim is loading",live,numerals per locale (decision T-numerals); unit never translated,none,session,student
