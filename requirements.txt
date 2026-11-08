@@ -19,7 +19,7 @@ fastapi==0.162.0
 # --- content factory --------------------------------------------------------
 requests>=2.31
 pdfplumber>=0.11
-jsonschema>=4.21
+jsonschema>=4.26.0
 sentence-transformers>=3.0
 playwright>=1.45
 psutil>=5.9
