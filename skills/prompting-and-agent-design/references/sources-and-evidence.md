@@ -144,6 +144,42 @@ force:
    model gets latitude inside a verified envelope ("trust, but verify with the
    harness").
 
+## Repo-side experiment: 09-review bounded-procedure restructure (2026-11-08)
+
+Failure class (measured): the 09-review call rambled — it streamed ~2,000 s
+with no content chunks, then the server reported "structured output was
+incomplete (finish_reason=length); increase the output budget" mid-call.
+llm_manager maps server-reported errors to terminal transport failures, so
+the truncation preempted the validation-round logic that would otherwise ask
+for a compact retry. The successful review of the same page used 47k
+completion tokens; the ramble exhausted the remaining context (~207k).
+Run-level doom loop: each re-trigger burned ~34 minutes and died at the same
+stage.
+
+Lever applied (founder decision, prompting-only): the task section was
+rewritten from an open-ended "hunt for REAL defects" + six-item requirements
+checklist into a bounded six-step inspection procedure run EXACTLY ONCE
+(inventory → per-block correctness → facts sweep → usability/access →
+visual language + frame → verdict), with commitment language ("Commit to
+this procedure: one pass, one check per item, then the verdict") — the
+sanctioned fix for runaway thinking is scope setting, not switches. Two
+checklist items (perf hygiene, code quality) were dropped from the model's
+procedure: both are already enforced by the harness (07-perf gate, lint) and
+were minor-only, so the gate's power is unchanged.
+
+Rule mapping: the "numbered execution plans" anti-pattern targets
+GENERATION; a reviewer's defined pass order is a calibrated rubric [S7], and
+quantized local models need more scaffolding than frontier models [S3][S8].
+Honest framing, the severity ladder (now stated exactly once), the
+'unverified:' way out, and the JSON contract are unchanged.
+
+Status: unit-anchored (test_review.py pins the procedure); live validation
+against the real server pending (resume re-runs 09-review only). If the
+model still rambles, the founder-sanctioned next lever is splitting the
+review into smaller steps across calls; a harness-side alternative is
+treating a server-reported structured-output truncation as a validation
+round instead of a terminal error.
+
 ## Maintenance rules for this folder
 
 - Re-validate a rule against current official docs when the factory's model or

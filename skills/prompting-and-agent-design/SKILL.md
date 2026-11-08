@@ -195,7 +195,11 @@ certainty `[S3][S7]`:
 - The same constraint stated 2–3 times in one prompt ("verbatim" x3).
 - Numbered execution plans for generation ("1. synthesize, 2. draft, 3. lay
   out") — the model plans its own reasoning; give it layers as deliverables,
-  not steps.
+  not steps. Exception (2026-11-08, 09-review): a bounded inspection
+  procedure for a REVIEWER is a calibrated rubric, not a generation plan —
+  when a judge's runaway thinking is measurable, laying out its pass order
+  ("exactly once, one check per item, then the verdict") is sanctioned
+  scope setting.
 - Reviewer asked to judge something whose material it was not given (checking
   "taught before tested" without the lesson text).
 - Stale docstring/config defaults that contradict `_SERVER_DEFAULTS` — docs

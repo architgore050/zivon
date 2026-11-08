@@ -93,6 +93,23 @@ class TestReviewPrompt(unittest.TestCase):
         self.assertIn("physically wrong behaviour is a fatal issue", user)
         self.assertIn("verdict=fail only if you report at least one fatal", user)
 
+    def test_review_prompt_is_a_bounded_procedure_not_an_open_hunt(self):
+        # 2026-11-08 (founder decision after the 09-review doom loop - the
+        # reviewer rambled until finish_reason=length): the task is a defined
+        # single-pass inspection procedure (baby steps the harness lays out),
+        # not an open-ended "hunt" the model must plan itself. Scope-setting +
+        # commitment is the skill's sanctioned fix for runaway thinking.
+        stub = StubLLM()
+        self._review(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn("EXACTLY ONCE", user)
+        self.assertIn("Commit to this procedure", user)
+        for step in range(1, 7):
+            self.assertIn(f"STEP {step} -", user)
+        self.assertIn("one check per block", user)
+        # the open-ended hunt framing is gone
+        self.assertNotIn("Hunt for REAL defects", user)
+
     def test_reviewer_framing_is_honest_not_adversarial(self):
         # "Assume the page contains at least one defect" manufactured
         # trivia-failures (same lesson graph v2 learned for 03-check). The judge
@@ -119,7 +136,7 @@ class TestReviewPrompt(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(doctrine[:400], user)  # the live document, verbatim
-        self.assertIn("Visual language: the page follows the DESIGN DOCTRINE", user)
+        self.assertIn("The page follows the DESIGN DOCTRINE", user)
         self.assertIn("=== design-doctrine-lesson-example.html ===", user)
         self.assertNotIn("=== design-doctrine-example.html ===", user)
 
