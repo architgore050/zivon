@@ -292,6 +292,44 @@ Status: unit (282) + e2e (8) + frontend (11) green incl. a new Chromium
 legend-geometry regression test, ruff/mypy clean. 0.3.14 release + visual
 probe of the class-11 card pending.
 
+## Repo-side experiment: layout correctness into the kit (2026-11-09)
+
+A full pipeline run after any model change still shipped a broken quiz card:
+the renderer's `<fieldset>`+`<legend>` quiz markup diverges when the question
+wraps (border slices through the text, tape lands inside the question). The
+founder's diagnosis ("everything in the doctrine is right; only generation
+gets messed up") and fix ("building blocks") are both correct in substance:
+the root cause is mechanical kit composition, not model output quality —
+the same defect appeared under Qwen locally and the cloud model.
+
+Lever applied (extending the skill's standing rules — "guarantees in the
+harness, not in the prompt" and "contracts over coercion"):
+- ONE kit: `frontend/assets/zivon.css` + `zivon.js`, with a component catalog
+  in the CSS header naming every renderer-emitted markup contract (page chrome,
+  language bar, taped cards, quiz, sim, diagram). The doctrine §10 was
+  reframed around counting the guarantees the kit carries, not re-teaching
+  layout in prose.
+- The quiz legend overflow is fixed in the kit with the float-legend rule
+  (legend floats at 100% width so the card border paints OUTSIDE the question) —
+  CSS only, so pages already rendered (including the founder's just-published
+  class-11 page) are repaired at serve time with no re-render
+  (PIPELINE_VERSION stays 6 deliberately).
+- Kit ownership is enforced by lint (`lint_page_css_scope`: model page.css may
+  only style inside the block's `.zn-sim-<id>` scope; canvas sizing is
+  forbidden because the kit sizes it). The class-11 run's invented
+  `.zn-lang-bar`/`.sim-read` CSS - a textbook case of prompt-side layout
+  re-invention - now fails loudly at authoring sites (05-interactive,
+  06-render, both fixers) instead of shipping dead styles.
+- The lesson example is rebuilt onto the kit's exact classes and local fonts
+  (no Google Fonts, no `lesson-kit.js` duplicate — the `LessonKit` is
+  single-sourced in `frontend/assets/zivon.js` now).
+- The renderer's language bar (doctrine §10.5, previously flagged missing on
+  every page) is now renderer-emitted kit chrome.
+
+Status: unit (282) + e2e (8) + frontend (11) green incl. a new Chromium
+legend-geometry regression test, ruff/format/mypy clean. 0.3.14 release +
+visual probe of the class-11 card pending.
+
 ## Maintenance rules for this folder
 
 - Re-validate a rule against current official docs when the factory's model or
