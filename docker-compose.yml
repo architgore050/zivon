@@ -44,7 +44,7 @@ services:
 
   factory:
     build: .
-    image: zivon-factory:0.3.16
+    image: zivon-factory:0.3.17
     environment:
       # Server settings are env-only (docs/content-factory/config-reference.md).
       # Export them in your shell (see .env.example) before `compose run`.

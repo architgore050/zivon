@@ -212,6 +212,19 @@ class TestGenerateRuleWiring(unittest.TestCase):
         self.assertIn("Example of the required SHAPE", user)
         self.assertIn("never reuse", user)
 
+    def test_generate_prompt_routes_computed_geometry_to_simulations(self):
+        # Founder call 2026-11-09: hand-drawn graph geometry drifted from the
+        # physics (run 032406, b-09 fatal: a rectangle drawn for a trapezoid
+        # area). The diagram spec must route equation-fixed figures to
+        # simulations (JS computes them) and keep diagrams constructive-only.
+        stub = StubLLM()
+        self._run_generate(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn("CONSTRUCTIVE geometry only", user)
+        self.assertIn("must be spec'd as a simulation instead", user)
+        self.assertIn("computed in JS from the page's equations", user)
+        self.assertIn("a trapezoid, not the rectangle you would draw", user)
+
 
 class TestCheckPromptCalibration(unittest.TestCase):
     def setUp(self):

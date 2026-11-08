@@ -1,190 +1,68 @@
-function patchDiagrams(){
-  if(typeof document==='undefined')return;
-  var svgs=document.querySelectorAll('svg');
-  for(var i=0;i<svgs.length;i++){
-    var svg=svgs[i];
-    var txt=svg.textContent||'';
-    if(txt.indexOf('tangent slope')!==-1){
-      svg.setAttribute('role','img');
-      svg.setAttribute('aria-label','Position-time graph: horizontal axis t, vertical axis x, a curve with point P, and a tangent line at P labelled tangent slope = v');
-    } else if(txt.indexOf('area = displacement')!==-1){
-      svg.setAttribute('role','img');
-      svg.setAttribute('aria-label','Velocity-time graph: horizontal axis t, vertical axis v, a straight line labelled slope = a, and a dashed trapezoid under the line down to the t-axis labelled area = displacement');
-      var rects=svg.querySelectorAll('rect');
-      for(var j=0;j<rects.length;j++){
-        var r=rects[j];
-        if(r.getAttribute('stroke-dasharray')){
-          var NS=svg.namespaceURI||'svg';
-          var poly=document.createElementNS(NS,'polygon');
-          poly.setAttribute('points','60,150 340,60 340,190 60,190');
-          poly.setAttribute('fill','none');
-          poly.setAttribute('stroke','#1F3A9E');
-          poly.setAttribute('stroke-width','2');
-          poly.setAttribute('stroke-dasharray','4 4');
-          r.parentNode.replaceChild(poly,r);
+ZivonSim.register("b-04",{init:function(ctx){},draw:function(ctx){var g=ctx.g,W=480,H=320,L=56,R=16,T=46,B=38,pw=W-L-R,ph=H-T-B,t0=ctx.values.t;if(t0===undefined)t0=4;function px(t){return L+t/6*pw;}function py(x){return T+ph-x/18*ph;}var x0=0.08*t0*t0*t0,v=0.24*t0*t0;g.fillStyle="#F6F0CF";g.fillRect(0,0,W,H);g.strokeStyle="#5A5748";g.lineWidth=1;g.setLineDash([4,5]);for(var gx=0;gx<=18;gx+=6){g.beginPath();g.moveTo(L,py(gx));g.lineTo(L+pw,py(gx));g.stroke();}for(var gt=0;gt<=6;gt+=2){g.beginPath();g.moveTo(px(gt),T);g.lineTo(px(gt),T+ph);g.stroke();}g.setLineDash([]);g.strokeStyle="#1C1B18";g.lineWidth=3;g.beginPath();g.moveTo(L,T+ph);g.lineTo(L+pw,T+ph);g.stroke();g.beginPath();g.moveTo(L,T);g.lineTo(L,T+ph);g.stroke();g.fillStyle="#1C1B18";g.font='14px "Courier Prime","Courier New",monospace';g.textAlign="center";for(var tx=0;tx<=6;tx+=2){g.fillText(String(tx),px(tx),T+ph+20);}g.textAlign="right";for(var xx=0;xx<=18;xx+=6){g.fillText(String(xx),L-8,py(xx)+5);}g.textAlign="left";g.fillText("t (s)",L+pw-36,T+ph+20);g.fillText("x (m)",L+4,T-8);g.font='700 15px "Courier Prime","Courier New",monospace';g.fillText("x = 0.08 t^3",L+10,T+18);g.strokeStyle="#1C1B18";g.lineWidth=3;g.beginPath();for(var t=0;t<=6.001;t+=0.05){var x=0.08*t*t*t,X=px(t),Y=py(x);if(t===0)g.moveTo(X,Y);else g.lineTo(X,Y);}g.stroke();g.save();g.beginPath();g.rect(L,T,pw,ph);g.clip();g.strokeStyle="#1F3A9E";g.lineWidth=3;g.beginPath();g.moveTo(px(t0-3),py(x0+v*((t0-3)-t0)));g.lineTo(px(t0+3),py(x0+v*((t0+3)-t0)));g.stroke();g.restore();g.strokeStyle="#5A5748";g.lineWidth=2;g.setLineDash([5,5]);g.beginPath();g.moveTo(px(t0),py(x0));g.lineTo(px(t0),T+ph);g.stroke();g.beginPath();g.moveTo(px(t0),py(x0));g.lineTo(L,py(x0));g.stroke();g.setLineDash([]);var run=t0<=5?1:-1;if(v>0){g.beginPath();g.moveTo(px(t0),py(x0));g.lineTo(px(t0+run),py(x0));g.lineTo(px(t0+run),py(x0+v*run));g.stroke();}g.fillStyle="#1F3A9E";g.beginPath();g.arc(px(t0),py(x0),6,0,6.283);g.fill();g.strokeStyle="#F6F0CF";g.lineWidth=2;g.stroke();g.font='700 15px "Courier Prime","Courier New",monospace';g.fillText("tangent: slope = v",Math.min(px(t0)+10,L+pw-150),Math.max(T+34,py(x0)-12));g.fillStyle="#1C1B18";g.fillText("t = "+t0.toFixed(1)+" s   x = "+x0.toFixed(2)+" m   v = "+v.toFixed(2)+" m/s",L+10,H-8);}});
+
+ZivonSim.register('b-08', {
+  init: function (ctx) { ctx.tc = 0; },
+  draw: function (ctx) {
+    var g = ctx.g; if (!g) return;
+    var a = (ctx.values && typeof ctx.values.a === 'number') ? ctx.values.a : 2;
+    var v0 = (ctx.values && typeof ctx.values.v0 === 'number') ? ctx.values.v0 : 5;
+    var T = 4, vMin = -20, vMax = 32;
+    var L = 55, R = 465, Top = 38, Bot = 262;
+    function X(t) { return L + (t / T) * (R - L); }
+    function Y(v) { return Bot - ((v - vMin) / (vMax - vMin)) * (Bot - Top); }
+    function vel(t) { return v0 + a * t; }
+    g.clearRect(0, 0, 480, 320);
+    g.fillStyle = '#F6F0CF'; g.fillRect(0, 0, 480, 320);
+    g.font = '400 14px Courier Prime, monospace'; g.textAlign = 'right'; g.textBaseline = 'middle';
+    var gv = [-20, -10, 10, 20, 30];
+    g.strokeStyle = '#5A5748'; g.lineWidth = 1; g.setLineDash([4, 5]);
+    for (var i = 0; i < gv.length; i++) { var y = Y(gv[i]); g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); g.fillStyle = '#5A5748'; g.fillText(String(gv[i]), L - 6, y); }
+    for (var tt = 1; tt <= 4; tt++) { var x = X(tt); g.beginPath(); g.moveTo(x, Top); g.lineTo(x, Bot); g.stroke(); g.textAlign = 'center'; g.fillText(String(tt), x, Bot + 14); }
+    g.setLineDash([]);
+    g.strokeStyle = '#1C1B18'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(R, Y(0)); g.stroke();
+    g.beginPath(); g.moveTo(X(0), Top); g.lineTo(X(0), Bot); g.stroke();
+    g.fillStyle = '#1C1B18'; g.textAlign = 'left'; g.font = '700 14px Courier Prime, monospace';
+    g.fillText('v (m/s)', 8, Top - 12); g.textAlign = 'right'; g.fillText('t (s)', R, Bot + 14); g.textAlign = 'left'; g.fillText('0', L - 14, Y(0) + 14);
+    var period = 5; var raw = (typeof ctx.t === 'number') ? (ctx.t % period) : 2; var tc = Math.min(raw, T);
+    var pts = [];
+    for (var t = 0; t < tc; t += 0.05) { pts.push([t, vel(t)]); }
+    pts.push([tc, vel(tc)]);
+    var segs = [], cur = [];
+    for (var k = 0; k < pts.length; k++) {
+      if (k > 0) {
+        var p0 = pts[k - 1], p1 = pts[k];
+        if ((p0[1] >= 0 && p1[1] < 0) || (p0[1] <= 0 && p1[1] > 0)) {
+          var tx = p0[0] + (0 - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]);
+          cur.push([tx, 0]); segs.push(cur); cur = [[tx, 0]];
         }
       }
+      cur.push(pts[k]);
     }
-  }
-}
-function isLangBar(el){return el&&(el.classList&&(el.classList.contains('zn-lang-bar')||el.classList.contains('bar'))||el.getAttribute&&el.getAttribute('data-lang-bar')==='1');}
-function dedupePageChrome(){
-  try{
-    var headers=document.querySelectorAll('header');
-    var keptHeader=false;
-    for(var i=0;i<headers.length;i++){if(isLangBar(headers[i]))continue; if(!keptHeader){keptHeader=true;}else{headers[i].remove();}}
-    var footers=document.querySelectorAll('footer');
-    for(var j=1;j<footers.length;j++){footers[j].remove();}
-    var h1s=document.querySelectorAll('h1');
-    for(var k=1;k<h1s.length;k++){h1s[k].remove();}
-    var seen={};
-    var candidates=document.querySelectorAll('dl,section,div,ul,aside');
-    for(var m=0;m<candidates.length;m++){
-      var el=candidates[m];
-      if(isLangBar(el)||el.closest&&el.closest('.zn-lang-bar,.bar'))continue;
-      var cls=String(el.className||'');
-      var t=(el.textContent||'').replace(/\s+/g,' ').trim();
-      var low=t.toLowerCase();
-      var isGloss=cls.indexOf('gloss')!==-1||low.indexOf('glossary')!==-1||low.indexOf('words to keep')!==-1;
-      if(isGloss&&t.length>20){
-        var key='gloss:'+low.slice(0,120);
-        if(seen[key]){el.remove();}else{seen[key]=el;}
-      } else if(t.length>80){
-        var key2=el.tagName+':'+low.slice(0,160);
-        if(seen[key2]&&(el.tagName==='DL'||el.tagName==='SECTION'||el.tagName==='FOOTER'||el.tagName==='HEADER')){el.remove();}else if(!seen[key2]){seen[key2]=el;}
-      }
+    if (cur.length > 1) segs.push(cur);
+    for (var s = 0; s < segs.length; s++) {
+      var seg = segs[s]; if (seg.length < 2) continue;
+      var pos = false; for (var q = 0; q < seg.length; q++) { if (seg[q][1] > 0) pos = true; }
+      g.beginPath(); g.moveTo(X(seg[0][0]), Y(0));
+      for (var q2 = 0; q2 < seg.length; q2++) { g.lineTo(X(seg[q2][0]), Y(seg[q2][1])); }
+      g.lineTo(X(seg[seg.length - 1][0]), Y(0)); g.closePath();
+      g.globalAlpha = pos ? 0.28 : 0.35; g.fillStyle = pos ? '#1F3A9E' : '#5A5748'; g.fill(); g.globalAlpha = 1;
     }
-    var glossEls=document.querySelectorAll('.gloss,[class*="gloss"]');
-    for(var n=1;n<glossEls.length;n++){glossEls[n].remove();}
-  }catch(e){}
-}
-function ensureLanguageBar(){
-  try{
-    var existing=document.querySelector('.zn-lang-bar');
-    if(existing)return;
-    var bar=document.createElement('header');
-    bar.className='zn-lang-bar bar';
-    bar.setAttribute('data-lang-bar','1');
-    bar.innerHTML='<div class="zn-lang-in in"><span class="zn-lang-lab lab">Language</span><div class="zn-lang-row row" role="radiogroup" aria-label="Language">'+['English','हिन्दी','Hinglish'].map(function(l,idx){return '<button type="button" class="zn-chip chip" role="radio" aria-checked="'+(idx===0?'true':'false')+'">'+l+'</button>';}).join('')+'</div></div>';
-    document.body.insertBefore(bar,document.body.firstChild);
-    var chips=bar.querySelectorAll('.zn-chip');
-    for(var i=0;i<chips.length;i++){
-      chips[i].addEventListener('click',function(){
-        for(var j=0;j<chips.length;j++){chips[j].setAttribute('aria-checked',chips[j]===this?'true':'false');}
-      });
-    }
-  }catch(e){}
-}
-if(typeof document!=='undefined'){
-  patchDiagrams(); dedupePageChrome(); ensureLanguageBar();
-  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){patchDiagrams();dedupePageChrome();ensureLanguageBar();});}
-  if(typeof MutationObserver!=='undefined'&&document.body){
-    var mo=new MutationObserver(function(){patchDiagrams();});
-    mo.observe(document.body,{childList:true,subtree:true});
-  }
-  setTimeout(function(){patchDiagrams();dedupePageChrome();ensureLanguageBar();},0);
-}
-function updateSimReadout(ctx,muzzle,bulletGround,bulletRelCar,van,car){
-  var text='Muzzle speed '+muzzle.toFixed(0)+' m/s. Van '+van.toFixed(1)+' m/s, thief car '+car.toFixed(1)+' m/s. Bullet speed relative to ground '+bulletGround.toFixed(1)+' m/s. Bullet speed relative to thief car '+bulletRelCar.toFixed(1)+' m/s.';
-  try{if(ctx&&ctx.g&&ctx.g.canvas){ctx.g.canvas.setAttribute('role','img');ctx.g.canvas.setAttribute('aria-label',text);}}catch(e){}
-  try{
-    var container=document.querySelector('.zn-sim-b-26');
-    if(!container)return;
-    var read=container.querySelector('.sim-read');
-    if(!read){read=document.createElement('div');read.className='sim-read';read.setAttribute('aria-live','polite');read.setAttribute('role','status');container.appendChild(read);}
-    read.textContent=text;
-  }catch(e){}
-}
-ZivonSim.register("b-26", {
-  init: function (ctx) { ctx.state = {}; },
-  draw: function (ctx) {
-    var g = ctx.g;
-    var W = 480, H = 320;
-    var muzzle = (ctx.values && typeof ctx.values.muzzle === "number") ? ctx.values.muzzle : 150;
-    var van = 30 * 1000 / 3600;
-    var car = 192 * 1000 / 3600;
-    var bulletGround = van + muzzle;
-    var bulletRelCar = bulletGround - car;
-    updateSimReadout(ctx,muzzle,bulletGround,bulletRelCar,van,car);
-    var ink = "#1C1B18", graphite = "#5A5748", blue = "#1F3A9E", paperLight = "#F6F0CF";
-    function safeText(text,x,y){var w=g.measureText(text).width; x=Math.max(8,Math.min(x,W-w-8)); g.fillText(text,x,y); return x;}
-    function arrow(x, y, len, color, width) {
-      var x2 = Math.min(464, x + len);
-      g.strokeStyle = color; g.fillStyle = color; g.lineWidth = width || 3; g.lineCap = "round"; g.lineJoin = "round";
-      g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y); g.stroke();
-      g.beginPath(); g.moveTo(x2, y); g.lineTo(x2 - 10, y - 5); g.lineTo(x2 - 10, y + 5); g.closePath(); g.fill();
-    }
-    function rr(x, y, w, h, r) {
-      g.beginPath();
-      g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.arcTo(x + w, y, x + w, y + r, r);
-      g.lineTo(x + w, y + h - r); g.arcTo(x + w, y + h, x + w - r, y + h, r);
-      g.lineTo(x + r, y + h); g.arcTo(x, y + h, x, y + h - r, r);
-      g.lineTo(x, y + r); g.arcTo(x, y, x + r, y, r); g.closePath();
-    }
-    function vehicle(x, y, w, h, isVan) {
-      x = Math.max(8,Math.min(x, W - w - 8));
-      g.strokeStyle = ink; g.fillStyle = paperLight; g.lineWidth = 2.6;
-      rr(x, y, w, h, 2); g.fill(); g.stroke();
-      if (isVan) {
-        g.beginPath(); g.moveTo(x + w - 18, y); g.lineTo(x + w - 18, y + h); g.stroke();
-        g.beginPath(); g.moveTo(x + w - 18, y + 8); g.lineTo(x + w - 4, y + 8); g.lineTo(x + w - 4, y + h); g.stroke();
-      } else {
-        g.beginPath(); g.moveTo(x + 14, y); g.lineTo(x + 22, y - 12); g.lineTo(x + w - 20, y - 12); g.lineTo(x + w - 12, y); g.stroke();
-      }
-      g.fillStyle = ink;
-      g.beginPath(); g.arc(x + 14, y + h, 6, 0, Math.PI * 2); g.fill();
-      g.beginPath(); g.arc(x + w - 14, y + h, 6, 0, Math.PI * 2); g.fill();
-      return x;
-    }
-    g.fillStyle = paperLight; g.fillRect(0, 0, W, H);
-    g.textBaseline = "alphabetic";
-    g.font = "700 14px 'Courier Prime', 'Courier New', monospace";
-    g.fillStyle = graphite;
-    safeText("speeds, same direction ->",16,22);
-    var rows = [["van", van, ink],["car", car, ink],["bullet / ground", bulletGround, blue]];
-    var maxSpeed = Math.max(van, car, bulletGround);
-    var scale = Math.min(1.1, 200 / maxSpeed);
-    for (var i = 0; i < rows.length; i++) {
-      var y = 42 + i * 24;
-      g.fillStyle = ink; safeText(rows[i][0],16,y+5);
-      var len = rows[i][1] * scale;
-      arrow(150, y, len, rows[i][2], 3);
-      g.fillStyle = rows[i][2];
-      safeText(rows[i][1].toFixed(1) + " m/s", 150 + len + 14, y + 5);
-    }
-    g.strokeStyle = graphite; g.lineWidth = 1.5; g.setLineDash([4, 5]);
-    g.beginPath(); g.moveTo(16, 118); g.lineTo(464, 118); g.stroke(); g.setLineDash([]);
-    var T = 5, tt = ctx.t % T, k = 0.32;
-    var vanX = Math.min(36 + van * k * tt, W-64-8);
-    var carX = Math.min(260 + car * k * tt, W-70-8);
-    var bulletX = Math.min(70 + bulletGround * k * tt, 460);
-    var roadY = 252;
-    g.strokeStyle = ink; g.lineWidth = 3; g.lineCap = "round";
-    g.beginPath(); g.moveTo(16, roadY); g.lineTo(464, roadY); g.stroke();
-    g.strokeStyle = graphite; g.lineWidth = 1.5;
-    for (var j = 0; j < 10; j++) {var tx = 36 + j * 44; g.beginPath(); g.moveTo(tx, roadY + 10); g.lineTo(tx - 8, roadY); g.stroke();}
-    vanX = vehicle(vanX, 198, 64, 38, true);
-    carX = vehicle(carX, 206, 70, 32, false);
-    g.fillStyle = ink; g.font = "700 14px 'Courier Prime', 'Courier New', monospace";
-    safeText("police van",vanX,192);
-    safeText("thief car",carX,200);
-    if (bulletX > 10 && bulletX < 470) {
-      g.strokeStyle = graphite; g.lineWidth = 2; g.setLineDash([4, 5]);
-      g.beginPath(); g.moveTo(Math.max(16, bulletX - 42), 222); g.lineTo(bulletX - 6, 222); g.stroke(); g.setLineDash([]);
-      g.fillStyle = blue; g.beginPath(); g.arc(bulletX, 222, 6, 0, Math.PI * 2); g.fill();
-      g.fillStyle = blue; safeText("bullet",Math.max(16, bulletX - 18),214);
-    }
-    if (bulletX >= carX && bulletX <= carX + 70) {
-      g.strokeStyle = blue; g.lineWidth = 3;
-      g.beginPath(); g.arc(carX + 35, 222, 30, 0, Math.PI * 2); g.stroke();
-      g.fillStyle = blue; safeText("bullet reaches car",300,150);
-    }
-    arrow(vanX + 4, 176, van * scale, ink, 3);
-    arrow(carX + 4, 184, car * scale, ink, 3);
-    g.font = "700 15px 'Courier Prime', 'Courier New', monospace";
-    g.fillStyle = ink;
-    safeText("bullet / ground = 8.3 + " + muzzle.toFixed(0) + " = " + bulletGround.toFixed(1) + " m/s",16,284);
-    g.fillStyle = blue;
-    safeText("bullet / car = " + bulletGround.toFixed(1) + " - 53.3 = " + bulletRelCar.toFixed(1) + " m/s",16,308);
+    g.strokeStyle = '#1F3A9E'; g.lineWidth = 3; g.beginPath();
+    for (var t2 = 0; t2 <= T; t2 += 0.05) { var px = X(t2), py = Y(vel(t2)); if (t2 === 0) g.moveTo(px, py); else g.lineTo(px, py); }
+    g.stroke();
+    var vc = vel(tc), mx = X(tc), my = Y(vc);
+    g.strokeStyle = '#1F3A9E'; g.lineWidth = 1.5; g.setLineDash([4, 4]);
+    g.beginPath(); g.moveTo(mx, my); g.lineTo(mx, Y(0)); g.stroke();
+    g.beginPath(); g.moveTo(mx, my); g.lineTo(X(0), my); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#1F3A9E'; g.beginPath(); g.arc(mx, my, 5, 0, 6.2832); g.fill();
+    g.strokeStyle = '#F6F0CF'; g.lineWidth = 2; g.stroke();
+    var disp = v0 * tc + 0.5 * a * tc * tc;
+    g.fillStyle = '#1C1B18'; g.textAlign = 'left'; g.font = '700 16px Courier Prime, monospace';
+    g.fillText('Area under v-t line = displacement', L, 20);
+    g.font = '700 15px Courier Prime, monospace';
+    g.fillText('t = ' + tc.toFixed(1) + ' s   v = ' + vc.toFixed(1) + ' m/s   displacement = ' + disp.toFixed(1) + ' m', L, 288);
+    g.font = '400 14px Courier Prime, monospace'; g.fillStyle = '#5A5748';
+    g.fillText('v = v0 + a t   displacement = v0 t + 0.5 a t^2', L, 308);
   }
 });

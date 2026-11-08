@@ -330,6 +330,32 @@ Status: unit (282) + e2e (8) + frontend (11) green incl. a new Chromium
 legend-geometry regression test, ruff/format/mypy clean. 0.3.14 release +
 visual probe of the class-11 card pending.
 
+## 2026-11-09 — computed-geometry routing (founder call): graphs computed in JS, not drawn by hand
+
+- Observed failure class (run 032406, class-11 Motion, live in production):
+  the planner spec'd an area-under-curve figure as a static SVG `diagram`
+  block; the model placed coordinates by eye and drew a **rectangle** for the
+  trapezoid area under a slanted v–t line (09-review-design caught it as a
+  **fatal rendering** defect — the gate works, the class recurs). b-29, the
+  run's lone canvas sim, drew with 0 hard-coded moves (loop + per-step
+  evaluation): the Visual Builder already computes; the planner's block-type
+  choice was the drift source.
+- Fix (prompting only, two authoring sites; no harness change):
+  02-generate's diagram spec now restricts diagrams to CONSTRUCTIVE geometry
+  (schematics, rays, free-body arrows, apparatus) and routes every figure
+  whose shape is fixed by an equation to `simulation` blocks; 05-interactive
+  gains the "compute, do not draw by hand" contract law + a SHAPE line in
+  the sim skeleton (loop the domain, evaluate per point).
+- Why routing rather than a "do the math carefully" instruction for SVGs:
+  static SVG path data is unexecuted text — the only place JS math can make
+  a graph exact by construction is canvas. The b-09 trapezoid is in the
+  prompt as the worked example (a failure that looks fair is instructive).
+- PIPELINE_VERSION stays 7: an authoring-prompt change invalidates no
+  completed stage artifact (same reasoning as the 09-review split).
+
+Status: 286 unit green (+2 prompt anchors), ruff/format/mypy clean,
+architecture.md + TIMELINE.md updated. 0.3.17 release pending.
+
 ## Maintenance rules for this folder
 
 - Re-validate a rule against current official docs when the factory's model or

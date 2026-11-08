@@ -525,11 +525,23 @@ the vt-diagram labels and the recoil drawing.
   the generation specs) plus the parsed palette; diagrams no longer invent
   colours. The mechanical SVG element contract stays pinned; the doctrine's
   hand-drawn language is expressed with the allowed elements only.
+  Computed-geometry figures (graphs, areas under curves, trajectories) are
+  routed to `simulation` blocks (founder call 2026-11-09, after run 032406's
+  b-09 fatal: a rectangle drawn for the trapezoid area under a slanted v–t
+  line — hand-placed SVG coordinates drift from the physics) — `diagram`
+  blocks spec constructive geometry only (schematics, rays, free-body
+  arrows, apparatus); every plotted point of a graph is computed in JS from
+  the page's equations by the Visual Builder.
 - **05-interactive** gets the doctrine document, EVERY example page the glob
   finds, the palette, and a medium-translation bridge line: the shell (grid,
   cards, tape, controls) is renderer-built; the model fills one canvas
   simulation inside a paper card, reads the examples for the visual language
-  and never copies their structure. Since doctrine v1.6 the examples are
+  and never copies their structure. Geometry is computed, not drawn
+  (founder call 2026-11-09): every curve, plotted point and derived number
+  is computed in JS from the cited equations at draw time (loop the domain,
+  evaluate per point) — hand-computed coordinates are the observed drift
+  class, equations are exact by construction.
+  Since doctrine v1.6 the examples are
   kit-based demos (they link the same zivon.css/zivon.js the shell ships), so
   a model that copies their structure gets kit-consistent output by
   construction; the kit contract is additionally enforced by lint
