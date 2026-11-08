@@ -10,6 +10,14 @@ Guarantees:
 - A 404 on a chapter of a chapters_verified=false book ends that book's list at
   the last good chapter and records `truncated_at` in the output (printed
   loudly). A 404 on a chapters_verified=true book is fatal - fix the catalog.
+- A network-level failure (host unreachable / timeout) is NOT a 404 and is not
+  fatal by default (founder call 2026-11-08, NCERT netblock outage): if the
+  book already yielded at least one extracted chapter, the unreachable host
+  truncates the list exactly like a 404 (loudly, `truncated_at` recorded) - a
+  chapter we have cached must not be killed by the host falling over mid-run.
+  With ZERO chapters cached for the book it is fatal: nothing to teach from.
+  Whether the run's REQUIRED chapter survived is decided by 01-locate, which
+  fails loudly when no source covers it.
 - Multi-part books use `chapter_url_offset` so the URL index restarts per part
   (NCERT numbers chapter PDFs within each part: Part II Ch. 8 = keph201.pdf).
   The run output always keeps the global chapter number.
@@ -119,6 +127,10 @@ def _get(url: str, cfg: Config) -> requests.Response:
             )
             if attempt < _FETCH_ATTEMPTS:
                 time.sleep(5 * attempt)  # backoff: 5s, 10s
+    if isinstance(last_exc, (requests.ConnectionError, requests.Timeout)):
+        raise _Unreachable(
+            f"network failure fetching {url} after {_FETCH_ATTEMPTS} attempts: {last_exc}"
+        ) from last_exc
     raise SourceError(
         STAGE_ID, f"could not fetch {url} after {_FETCH_ATTEMPTS} attempts: {last_exc}"
     ) from last_exc
@@ -150,6 +162,19 @@ class _NotFound(Exception):
     def __init__(self, url: str):
         self.url = url
         super().__init__(f"404 at {url}")
+
+
+class _Unreachable(SourceError):
+    """Network-level failure (timeout/unroutable), distinct from HTTP statuses.
+
+    The caller decides tolerance: a book that already yielded extracted
+    chapters treats an unreachable host exactly like a 404 (terminal
+    truncation, loudly reported - the NCERT netblock falling over mid-run
+    must not kill a chapter we have cached). With ZERO content for the book
+    the caller hard-fails: there is nothing to teach from."""
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(STAGE_ID, detail)
 
 
 def _validate_pdf(path: Path, origin: str) -> None:
@@ -320,6 +345,31 @@ def _index_auto_book(
                 STAGE_ID,
                 f"book {book_id}: chapter {n} returned 404 at {url}, but the catalog marks this "
                 "book chapters_verified=true. Fix sources/catalog.json.",
+            ) from exc
+        except _Unreachable as exc:
+            # 2026-11-08 (founder): the host is sometimes unreachable (NCERT
+            # netblock down). Download failures are hard ONLY when nothing
+            # cached covers the book - with >=1 extracted chapter, an
+            # unreachable host truncates exactly like a 404 (loudly).
+            if chapters:
+                truncated_at = n
+                print(
+                    f"    [loud] book {book_id}: the network is unreachable ({exc}); "
+                    f"already have {len(chapters)} chapter(s) extracted, so the book "
+                    f"ends at chapter {n - 1} for this run (same handling as a 404 - "
+                    "deferred, not dead)."
+                )
+                run_ctx.mark_stage(
+                    STAGE_ID,
+                    "running",
+                    detail=f"{book_id}: chapter list truncated at {n - 1} (network)",
+                )
+                break
+            raise SourceError(
+                STAGE_ID,
+                f"book {book_id}: the network is unreachable ({exc}) and no chapter of "
+                "this book was already extracted - nothing to teach from. "
+                "Re-run when the network is back, or place the PDF manually.",
             ) from exc
         pages = _cached_pages(cfg, book_id, f"ch{n:02d}")
         if pages is None:

@@ -166,6 +166,14 @@ ConfigError telling the operator to pass `--fresh` (or pick another `--run-id`)
   entry marked `chapters_verified: false` ends that book's chapter list at the
   last good file, prints it, and records `truncated_at` in the output. This
   exists because NCERT books simply end; it is loud, never silent.
+- Network-level failure tolerance (founder call 2026-11-08, NCERT netblock
+  outage mid-run): a connect timeout / unreachable host is NOT treated as a
+  404. If the book already yielded at least one extracted chapter, the book's
+  list truncates at the failed chapter exactly like the 404 case (loudly,
+  `truncated_at` recorded) — a chapter already in the cache must not be killed
+  by the host falling over. With zero chapters cached for the book it stays
+  fatal: nothing to teach from. Whether the run's *required* chapter survived
+  is decided by 01-locate, which fails loudly when no source covers it.
 
 ## Source extraction (stage 00)
 
