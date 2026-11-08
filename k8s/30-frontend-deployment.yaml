@@ -28,18 +28,22 @@ spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 101           # nginx-unprivileged's UID
-        fsGroup: 101             # makes the PVC writable by the shell-seeding copy
+        # UID 1000 = the factory Job's uid = the writer of this PVC. The old
+        # 101 (nginx-unprivileged's default) made the seed own everything, and
+        # the factory then could not mkdir new topic dirs at 11-link (gotcha 17,
+        # 2026-11-08). nginx-unprivileged is designed to run as any non-root uid.
+        runAsUser: 1000
+        fsGroup: 1000            # keeps the PVC consistent with the writer uid
       initContainers:
         - name: seed-shell
-          image: zivon-frontend:0.1.3
+          image: zivon-frontend:0.1.6
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "cp -rn /opt/zivon-shell/* /usr/share/nginx/html/"]
           # busybox cp (Alpine) silently no-ops on a "/." source and exits 0;
           # the glob form is the safe one (the shell has no hidden files).
           securityContext:
             runAsNonRoot: true
-            runAsUser: 101
+            runAsUser: 1000      # seed as the writer uid too (gotcha 17)
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true   # writes go only to the PVC mount below
           resources:
@@ -54,11 +58,11 @@ spec:
               mountPath: /usr/share/nginx/html
       containers:
         - name: nginx
-          image: zivon-frontend:0.1.3
+          image: zivon-frontend:0.1.6
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
-            runAsUser: 101
+            runAsUser: 1000      # same uid as the PVC's writer (see pod-level note)
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]

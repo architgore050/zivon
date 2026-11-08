@@ -8,7 +8,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory.lint import lint_css, lint_html, lint_js
+from factory.lint import lint_css, lint_html, lint_js, lint_page_css_scope
 from factory.textops import chunk_text, normalize_title, titles_equivalent
 
 
@@ -47,6 +47,56 @@ class TestCssLints(unittest.TestCase):
         self.assertTrue(
             lint_css("a.css", ".a { background: url(https://x.example/i.png); }")
         )
+
+    # ---- page.css scope rule (kit contract, doctrine v1.6) -------------
+    def test_page_css_scope_rules(self):
+        scope = lint_page_css_scope
+        # the class-11 run's page.css drift, verbatim-ish: unscoped kit
+        # chrome the model invented. Every wrong selector must be a hit.
+        legacy = (
+            ".zn-lang-bar,.bar{position:sticky;top:0}\n"
+            ".zn-chip,.chip{padding:.5rem .875rem}\n"
+            ".zn-sim-b-26 canvas{display:block;width:100%;height:auto}\n"
+            ".zn-sim-b-26 .sim-read{font:700 1rem var(--row) var(--notes)}"
+        )
+        hits = scope("b-26/page.css", legacy, "b-26")
+        joined = "\n".join(hits)
+        self.assertIn(".zn-lang-bar", joined)  # unscoped chrome
+        self.assertIn(".zn-chip", joined)  # unscoped chrome
+        self.assertIn("must not size the canvas", joined)  # kit owns sizing
+        # 4 unscoped selectors (.zn-lang-bar/.bar/.zn-chip/.chip) + 1 canvas
+        # sizing = 5 hits; the .sim-read rule itself is in scope (a dead
+        # invented class - the renderer's .zn-sim-read is the canonical
+        # target) - only unscoped selectors and canvas sizing are hits.
+        self.assertEqual(len(hits), 5)
+
+    def test_page_css_scope_clean(self):
+        scope = lint_page_css_scope
+        clean = (
+            ".zn-sim-b-26 .sim-read{font:700 1rem var(--row) var(--notes)}\n"
+            ".zn-sim-b-26 .read{color:var(--pen-blue)}\n"
+            "@media (max-width: 500px){.zn-sim-b-26 canvas{border:0}}"
+        )
+        self.assertEqual(scope("b-26/page.css", clean, "b-26"), [])
+
+    def test_page_css_scope_other_block_id_rejected(self):
+        scope = lint_page_css_scope
+        hits = scope("b-26/page.css", ".zn-sim-b-99 .x{color:red}", "b-26")
+        self.assertEqual(len(hits), 1)
+        self.assertIn(".zn-sim-b-26", hits[0])
+
+    def test_page_css_scope_concatenated_allows_any_block(self):
+        scope = lint_page_css_scope
+        css = ".zn-sim-b-01 .x{color:red}\n.zn-sim-b-02 canvas{border:0}"
+        self.assertEqual(scope("page.css", css), [])
+        hits = scope("page.css", ".zn-lang-bar{position:sticky}")
+        self.assertEqual(len(hits), 1)
+
+    def test_page_css_scope_is_not_in_lint_css(self):
+        # grandfathered CSS read back by 09-review.mech lint must stay clean
+        self.assertEqual(lint_css("a.css", ".a { color: red; }"), [])
+        legacy = ".zn-lang-bar{position:sticky}\n.zn-chip{padding:.5rem}"
+        self.assertEqual(lint_css("b-26/page.css", legacy), [])
 
 
 class TestHtmlLints(unittest.TestCase):

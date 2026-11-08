@@ -24,6 +24,7 @@ from . import checks
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
+from .ledger import issue_entry
 from .llm import LLMClient
 from .schemas import CHECK_REPORT, GENERATED, REPAIR
 
@@ -91,7 +92,11 @@ def run_generate(
         "lesson section; in-text question or conceptual exercise -> a check "
         "block; worked example or multi-step numerical problem -> a "
         "worked_example block; a derivation or method the source walks through "
-        "-> a reveal block. Nothing from the inventory may be dropped. If a "
+        "-> a reveal block. Nothing from the inventory may be dropped. The block "
+        "sequence holds 4-45 blocks (the harness enforces this limit): if the "
+        "inventory is larger than the budget, fold same-type repetitive drills "
+        "into their most instructive instance - every concept and every "
+        "exercise TYPE must still appear. If a "
         "problem is unreadable in the source text (garbled figure data), replace "
         "it with an equivalent problem that the source's own method solves - "
         "never silently skip it.\n\n"
@@ -104,7 +109,8 @@ def run_generate(
         "diagram fill/stroke, invent nothing):\n"
         + palette_text(cfg)
         + "\n\nDELIVERABLE: ONE JSON object with exactly three layers - "
-        '"ground_truth", "lesson", "blocks".\n\n'
+        '"ground_truth", "lesson", "blocks" - the "blocks" layer is an object '
+        'whose single key "blocks" holds the ordered block array.\n\n'
         'LAYER 1 "ground_truth" - the page\'s fact base, synthesized from the '
         "sources above.\n"
         '- "topic": short topic name\n'
@@ -127,7 +133,7 @@ def run_generate(
         "needed is covered.\n"
         'Use source_id "ncert" for the primary NCERT chapter text.\n\n'
         "LAYER 2 - lesson: edit the ground truth into a SELF-CONTAINED lesson that explains "
-        f"everything slowly and properly for a first-time learner in class {cfg.learner['class_level']}.\n"
+        f"everything slowly and properly for a first-time learner in class {cfg.learner_class()}.\n"
         "Write as a patient tutor speaking directly to the student ('you'): clear, "
         "encouraging, step by step. Quality bar:\n"
         "- TEACHING ORDER: start from an everyday observation the student recognises, then "
@@ -144,7 +150,8 @@ def run_generate(
         '- "sections": one per chapter topic - every titled section of the chapter '
         'gets its own lesson section (typically 5-10) - of {"id": "sec-01", "title", "paragraphs": ["...", ...]} in teaching order\n'
         '- "glossary": [{"term", "definition"}] - at least 3, plain-English definitions\n\n'
-        "LAYER 3 - blocks: lay the lesson out as an ordered block sequence for the study "
+        'LAYER 3 - blocks: an object {"blocks": [ ... ]} - the lesson laid out '
+        "as an ordered block sequence for the study "
         "page. Valid claim ids for citations come from layer 1.\n"
         "Block types and spec shapes:\n"
         '- text: {"paragraphs": ["..."]} - carry the lesson prose in reading order\n'
@@ -179,7 +186,8 @@ def run_generate(
         "Frame law (doctrine §10.2): the page is read on phones (~360 px), tablets and laptops. "
         "Write for reflow: keep sentences and list items short enough to wrap cleanly, keep "
         "diagram viewBoxes wide-friendly, and never assume a fixed pixel layout - the shell "
-        "owns layout and keeps every block on the 36 px ruled grid at every width.\n"
+        "owns layout and the ruled-line alignment kit (LessonKit), keeping every "
+        "block a whole number of rows (--row) at every width.\n"
         "Cite claims in every text, worked_example, check and reveal block (a factual block "
         "without citations is rejected): "
         '"citations": [{"claim_id": "claim-01"}].\n'
@@ -195,7 +203,7 @@ def run_generate(
         '"lesson": {"title": "...", "objectives": ["After this lesson you can ..."], '
         '"sections": [{"id": "sec-01", "title": "...", "paragraphs": ["..."]}], '
         '"glossary": [{"term": "...", "definition": "..."}]}, '
-        '"blocks": [{"id": "b-01", "type": "text", "spec": {"paragraphs": ["..."]}, '
+        '"blocks": {"blocks": [{"id": "b-01", "type": "text", "spec": {"paragraphs": ["..."]}, '
         '"citations": [{"claim_id": "claim-01"}]}, '
         '{"id": "b-02", "type": "check", "spec": {"question": "...", "format": "mcq", '
         '"options": ["2 m/s", "4 m/s", "6 m/s", "8 m/s"], "answer_index": 1, '
@@ -204,10 +212,11 @@ def run_generate(
         '{"id": "b-03", "type": "simulation", "spec": {"title": "...", "description": "...", '
         '"learning_goal": "...", "controls": [{"id": "speed", "label": "Speed (m/s)", '
         '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
-        '"citations": [{"claim_id": "claim-03"}]}]}'
+        '"citations": [{"claim_id": "claim-03"}]}]}}'
         "\n\nBefore you answer: reread the SOURCE MATERIAL against your draft - "
         "every number, unit and concept in the page must survive that reread, and "
-        "every item of your chapter inventory must appear in the page. "
+        "every concept and every exercise type from your chapter inventory must "
+        "appear in the page. "
         "Return only the JSON object."
     )
 
@@ -326,7 +335,7 @@ def run_check(
         "1. Is each factual statement correct per the source material? Quote the source in your issue.\n"
         "2. Is every check's correct answer actually correct?\n"
         "3. Is the language and depth right for a class "
-        f"{cfg.learner['class_level']} first-time learner (not above, not below)?\n"
+        f"{cfg.learner_class()} first-time learner (not above, not below)?\n"
         "4. Does anything read as if it depends on material outside this page?\n"
         "5. For every check block: does the page teach the expected_understanding before "
         "asking for it? A check that asks something the page never taught is major.\n"
@@ -335,12 +344,15 @@ def run_check(
         "states. A wrong computed answer or wrong arithmetic step is fatal.\n"
         "7. COVERAGE: compare the page against the chapter's own structure - its "
         "titled sections, in-text questions, worked examples and end-of-chapter "
-        "exercises. Every one of them must appear on the page - taught, tested or "
-        "worked. Report every omission, quoting the chapter item that is missing.\n"
+        "exercises. Every chapter section and every distinct exercise TYPE must "
+        "appear on the page - taught, tested or worked; same-type repetitive "
+        "drills may share one representative block. Report every omitted "
+        "section or exercise type, quoting the chapter item that proves it is "
+        "missing.\n"
         "Severity ladder (apply it exactly):\n"
         "- fatal: a statement CONTRADICTS the source material, a check's answer key "
         "or a worked_example's computed answer is wrong, or the page omits a chapter "
-        "section, worked example or exercise that the SOURCE MATERIAL itself teaches. "
+        "section or an exercise TYPE that the SOURCE MATERIAL itself teaches. "
         "You must quote the source passage (or the omitted chapter item) that proves it.\n"
         "- major: a block teaches, tests, or relies on a Physics concept that the SOURCE "
         "MATERIAL never explains (a smuggled-in concept), or a learner would otherwise be "
@@ -358,7 +370,7 @@ def run_check(
         '"The block states the SI unit of speed is km/h; the source states the SI unit of '
         'speed is m/s [ncert page 12]."}'
     )
-    return llm.call(
+    report = llm.call(
         "03-check",
         [
             {
@@ -371,6 +383,17 @@ def run_check(
         "check_report",
         round_tag=round_tag,
     )
+    # Ledger (2026-11-08): every content-reviewer finding lands in the run's
+    # issues_ledger. 03-check issues carry no category field yet (its prompt
+    # stays untouched this round) - they aggregate as "content".
+    run_ctx.append_ledger(
+        "issues_ledger",
+        [
+            issue_entry("03-check", "check", round_tag, i, "content")
+            for i in report.get("issues", [])
+        ],
+    )
+    return report
 
 
 # -------------------------------------------------------------- 04-repair

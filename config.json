@@ -1,6 +1,5 @@
 {
   "learner": {
-    "class_level": 9,
     "language": "en"
   },
   "retrieval": {
@@ -14,7 +13,7 @@
     "max_chars_ncert_to_model": 120000,
     "max_chars_supplement_each": 4000,
     "max_chars_supplement_total": 16000,
-    "max_chars_design_context": 68000
+    "max_chars_design_context": 80000
   },
   "paths": {
     "catalog": "sources/catalog.json",
@@ -27,11 +26,12 @@
   },
   "perf": {
     "profile": "testing/content_factory/perf/profiles/weak-android.json",
-    "fix_rounds": 3
+    "fix_rounds": 6
   },
   "repair": {
-    "content_rounds": 2,
-    "code_rounds": 2
+    "content_rounds": 8,
+    "code_rounds": 6,
+    "stall_rounds": 3
   },
   "stage_overrides": {}
 }

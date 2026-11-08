@@ -260,12 +260,40 @@ class TestEndToEnd(unittest.TestCase):
         )
         self.assertEqual(stages_used.count("03-check"), 1)
         self.assertEqual(stages_used.count("05-interactive"), 1)
-        self.assertEqual(stages_used.count("09-review"), 1)
+        # 2026-11-08 split: 09-review is TWO calls (facts + design) per pass.
+        self.assertEqual(stages_used.count("09-review-facts"), 1)
+        self.assertEqual(stages_used.count("09-review-design"), 1)
         self.assertEqual(stages_used.count("04-repair"), 0)
         self.assertEqual(stages_used.count("10-reviewfix"), 0)
 
         report = json.loads((runs / "run_report.json").read_text(encoding="utf-8"))
         self.assertTrue(report["ok"])
+
+    @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
+    def test_learner_class_follows_the_flag_and_the_chapter(self):
+        """Founder decision 2026-11-06: config.json carries NO learner class.
+        Without --class the run's class is the located chapter's class (loud
+        print); --class pre-sets it and filters locate; a --class with no
+        matching book fails loudly instead of falling back to any default."""
+        derived = self._run("Motion", "--run-id", "e2e-learner-derived")
+        self.assertEqual(derived.returncode, 0, derived.stderr)
+        self.assertIn(
+            "[learner] class 9: taken from the located chapter", derived.stdout
+        )
+        courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
+        self.assertIn("courses/class-9-physics/", courses_text)
+        self.assertNotIn("class-11-physics", courses_text)
+
+        flagged = self._run("Motion", "--class", "9", "--run-id", "e2e-learner-flag")
+        self.assertEqual(flagged.returncode, 0, flagged.stderr)
+        courses_text = (self.frontend / "courses.js").read_text(encoding="utf-8")
+        self.assertIn("courses/class-9-physics/", courses_text)
+
+        wrong = self._run(
+            "Motion", "--class", "11", "--run-id", "e2e-learner-wrong-class"
+        )
+        self.assertEqual(wrong.returncode, 1)
+        self.assertIn("no catalog books for class 11", wrong.stderr)
 
     @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
     def test_resume_reuses_completed_stages(self):
@@ -278,7 +306,13 @@ class TestEndToEnd(unittest.TestCase):
 
         before = {
             s: served_count(s)
-            for s in ("02-generate", "03-check", "05-interactive", "09-review")
+            for s in (
+                "02-generate",
+                "03-check",
+                "05-interactive",
+                "09-review-facts",
+                "09-review-design",
+            )
         }
 
         second = self._run("Motion", "--run-id", "e2e-resume")
@@ -362,7 +396,7 @@ CHECK_FAIL = {
 CHECK_PASS = {"verdict": "pass", "issues": []}
 REVIEW_FIX_CSS = (
     "/* review-fix fixture: grounded spacing fix; no external references */\n"
-    ".zivon-check { padding: 0.75rem 1rem; }\n"
+    ".zn-sim-b-06 .zn-sim-desc { margin-top: 0.75rem; }\n"
 )
 
 
@@ -464,8 +498,10 @@ class TestCatcherRouting(unittest.TestCase):
 
     @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
     def test_check_fail_exhausts_repair_rounds_then_stops(self):
-        """A reviewer that keeps failing burns AT MOST repair.content_rounds
-        repair rounds, then fails the run loudly - no upstream re-run."""
+        """A reviewer that keeps failing gets the progress-aware catcher: it
+        stops at the stall limit (repair.stall_rounds no-improvement rechecks)
+        - well before the generous content_rounds cap - and fails loudly, with
+        no upstream re-run."""
         self._start(
             {
                 "03-check.json": CHECK_FAIL,  # every check call fails
@@ -476,11 +512,14 @@ class TestCatcherRouting(unittest.TestCase):
         )
         result = self._run("Motion", "--run-id", "route-repair-fail")
         self.assertEqual(result.returncode, 1)
-        self.assertIn("review still failing after 2 repair round(s)", result.stderr)
+        self.assertIn("review still failing after 3 repair round(s)", result.stderr)
+        self.assertIn("progress plateaued", result.stderr)
 
-        self.assertEqual(self._served("03-check"), 3, "check + two rechecks")
+        self.assertEqual(self._served("03-check"), 4, "check + three rechecks")
         self.assertEqual(
-            self._served("04-repair"), 2, "repair is bounded by repair.content_rounds"
+            self._served("04-repair"),
+            3,
+            "the loop stopped at the stall limit, not the generous cap",
         )
         self.assertEqual(self._served("05-interactive"), 0, "no stage after the gate")
 
@@ -506,21 +545,23 @@ class TestCatcherRouting(unittest.TestCase):
     @unittest.skipUnless(chromium_available(), "playwright chromium not installed")
     def test_review_fail_routes_to_reviewfix_bounded(self):
         """09-review fails -> 10-reviewfix applies file fixes + re-lint + re-perf
-        -> 09-review re-reviews; the mock keeps failing it, so the bounded loop
-        ends loudly and 11-link never runs."""
+        -> 09-review re-reviews; the mock keeps failing it, so the progress-aware
+        loop stops at the stall limit (not the generous code_rounds cap), ends
+        loudly, and 11-link never runs."""
         self._start(
             {
-                "09-review.json": {
-                    "verdict": "fail",
+                "09-review-facts.json": {
                     "issues": [
                         {
                             "severity": "fatal",
                             "block_id": "b-06",
+                            "category": "drawn_behaviour",
                             "message": "the simulation's drawn behaviour contradicts "
                             "claim-04 (reviewer fixture finding)",
                         }
-                    ],
+                    ]
                 },
+                "09-review-design.json": {"issues": []},
                 "10-reviewfix.json": {
                     "analysis": "reviewer fixture finding addressed by a spacing fix "
                     "in page.css; behaviour left untouched.",
@@ -530,11 +571,19 @@ class TestCatcherRouting(unittest.TestCase):
         )
         result = self._run("Motion", "--run-id", "route-reviewfix")
         self.assertEqual(result.returncode, 1)
-        self.assertIn("code review still failing after 2 fix round(s)", result.stderr)
+        self.assertIn("code review still failing after 3 fix round(s)", result.stderr)
+        self.assertIn("progress plateaued", result.stderr)
 
-        self.assertEqual(self._served("09-review"), 3, "review + two re-reviews")
         self.assertEqual(
-            self._served("10-reviewfix"), 2, "fix is bounded by repair.code_rounds"
+            self._served("09-review-facts"), 4, "review + three re-reviews"
+        )
+        self.assertEqual(
+            self._served("09-review-design"), 4, "both review calls run each round"
+        )
+        self.assertEqual(
+            self._served("10-reviewfix"),
+            3,
+            "the loop stopped at the stall limit, not the generous cap",
         )
 
         runs = self._tmp / "runs" / "route-reviewfix"
@@ -545,7 +594,7 @@ class TestCatcherRouting(unittest.TestCase):
         history = json.loads(
             (runs / "10-reviewfix" / "history.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(len(history), 2)
+        self.assertEqual(len(history), 3)
         self.assertTrue(all(h["perf_after_fix"]["pass"] for h in history))
 
         # the fix was really applied to the topic page
@@ -555,9 +604,14 @@ class TestCatcherRouting(unittest.TestCase):
         css = (Path(render_out["topic_dir"]) / "page.css").read_text(encoding="utf-8")
         self.assertIn("review-fix fixture", css)
 
-        # re-reviews keep separate attempt evidence per round
+        # re-reviews keep separate attempt evidence per round (per call)
         self.assertTrue(
-            (runs / "09-review" / "attempts" / "round-01" / "attempt-01").exists()
+            (runs / "09-review" / "attempts" / "round-01-facts" / "attempt-01").exists()
+        )
+        self.assertTrue(
+            (
+                runs / "09-review" / "attempts" / "round-01-design" / "attempt-01"
+            ).exists()
         )
 
 

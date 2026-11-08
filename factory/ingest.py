@@ -10,6 +10,17 @@ Guarantees:
 - A 404 on a chapter of a chapters_verified=false book ends that book's list at
   the last good chapter and records `truncated_at` in the output (printed
   loudly). A 404 on a chapters_verified=true book is fatal - fix the catalog.
+- A network-level failure (host unreachable / timeout) is NOT a 404 and is not
+  fatal by default (founder call 2026-11-08, NCERT netblock outage): if the
+  book already yielded at least one extracted chapter, the unreachable host
+  truncates the list exactly like a 404 (loudly, `truncated_at` recorded) - a
+  chapter we have cached must not be killed by the host falling over mid-run.
+  With ZERO chapters cached for the book it is fatal: nothing to teach from.
+  Whether the run's REQUIRED chapter survived is decided by 01-locate, which
+  fails loudly when no source covers it.
+- Multi-part books use `chapter_url_offset` so the URL index restarts per part
+  (NCERT numbers chapter PDFs within each part: Part II Ch. 8 = keph201.pdf).
+  The run output always keeps the global chapter number.
 - Manual-download books must already exist at sources/pdfs/<id>/<filename>;
   otherwise the stage fails with exact placement instructions.
 - Hosts whose published TLS chain is broken (ncert.nic.in serves its leaf without
@@ -71,7 +82,8 @@ def _cache_dir(cfg: Config, book_id: str) -> Path:
     return cfg.repo_path(cfg.paths["text_cache"]) / book_id
 
 
-_FETCH_ATTEMPTS = 3
+_FETCH_ATTEMPTS = 5  # polite network fetches: NCERT's flaky chain (2026-11-03)
+# earned a wider retry budget - a fetch retry is cheap, a dead run is not.
 _MIN_FETCH_GAP_S = (
     1.5  # politeness: bursty clients get throttled/reset (seen 2026-11-02)
 )
@@ -115,6 +127,10 @@ def _get(url: str, cfg: Config) -> requests.Response:
             )
             if attempt < _FETCH_ATTEMPTS:
                 time.sleep(5 * attempt)  # backoff: 5s, 10s
+    if isinstance(last_exc, (requests.ConnectionError, requests.Timeout)):
+        raise _Unreachable(
+            f"network failure fetching {url} after {_FETCH_ATTEMPTS} attempts: {last_exc}"
+        ) from last_exc
     raise SourceError(
         STAGE_ID, f"could not fetch {url} after {_FETCH_ATTEMPTS} attempts: {last_exc}"
     ) from last_exc
@@ -146,6 +162,19 @@ class _NotFound(Exception):
     def __init__(self, url: str):
         self.url = url
         super().__init__(f"404 at {url}")
+
+
+class _Unreachable(SourceError):
+    """Network-level failure (timeout/unroutable), distinct from HTTP statuses.
+
+    The caller decides tolerance: a book that already yielded extracted
+    chapters treats an unreachable host exactly like a 404 (terminal
+    truncation, loudly reported - the NCERT netblock falling over mid-run
+    must not kill a chapter we have cached). With ZERO content for the book
+    the caller hard-fails: there is nothing to teach from."""
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(STAGE_ID, detail)
 
 
 def _validate_pdf(path: Path, origin: str) -> None:
@@ -237,7 +266,7 @@ def _cached_pages(cfg: Config, book_id: str, stem: str) -> list[dict[str, Any]] 
     """Return previously extracted page text for this PDF, or None if absent/unusable.
 
     This is what makes a run resumable: on the cluster the text cache lives on the
-    sources PVC, so a run that dies partway (deadline, OOM) does not re-extract
+    sources PVC, so a run that dies partway (killed, OOM) does not re-extract
     books it already finished."""
     path = _cache_dir(cfg, book_id) / f"{stem}.pages.json"
     if not path.exists():
@@ -286,7 +315,15 @@ def _index_auto_book(
     chapters: list[dict[str, Any]] = []
     truncated_at: int | None = None
     for n in book["chapter_numbers"]:
-        url = book["chapter_url_template"].format(nn=f"{n:02d}")
+        # NCERT numbers chapter PDFs WITHIN each part: Part II chapter 8 is
+        # keph201.pdf, not keph208 (evidence: keph208.pdf 404s on NCERT live -
+        # seen in-cluster 2026-11-07; Part I leph106.pdf = Ch. 6 confirmed
+        # 2026-11-01). Books whose global chapter numbers do not restart at 1
+        # carry chapter_url_offset, so {nn} is the within-part index while the
+        # run output keeps the global chapter number.
+        url = book["chapter_url_template"].format(
+            nn=f"{n - book.get('chapter_url_offset', 0):02d}"
+        )
         dest = _book_dir(cfg, book_id) / f"ch{n:02d}.pdf"
         try:
             _fetch(cfg, url, dest)
@@ -308,6 +345,31 @@ def _index_auto_book(
                 STAGE_ID,
                 f"book {book_id}: chapter {n} returned 404 at {url}, but the catalog marks this "
                 "book chapters_verified=true. Fix sources/catalog.json.",
+            ) from exc
+        except _Unreachable as exc:
+            # 2026-11-08 (founder): the host is sometimes unreachable (NCERT
+            # netblock down). Download failures are hard ONLY when nothing
+            # cached covers the book - with >=1 extracted chapter, an
+            # unreachable host truncates exactly like a 404 (loudly).
+            if chapters:
+                truncated_at = n
+                print(
+                    f"    [loud] book {book_id}: the network is unreachable ({exc}); "
+                    f"already have {len(chapters)} chapter(s) extracted, so the book "
+                    f"ends at chapter {n - 1} for this run (same handling as a 404 - "
+                    "deferred, not dead)."
+                )
+                run_ctx.mark_stage(
+                    STAGE_ID,
+                    "running",
+                    detail=f"{book_id}: chapter list truncated at {n - 1} (network)",
+                )
+                break
+            raise SourceError(
+                STAGE_ID,
+                f"book {book_id}: the network is unreachable ({exc}) and no chapter of "
+                "this book was already extracted - nothing to teach from. "
+                "Re-run when the network is back, or place the PDF manually.",
             ) from exc
         pages = _cached_pages(cfg, book_id, f"ch{n:02d}")
         if pages is None:

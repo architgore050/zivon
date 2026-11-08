@@ -1,12 +1,16 @@
 """Unit tests for stage 00-ingest and stage 01-locate using file:// fixture PDFs."""
 
+import io
 import json
 import shutil
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
+
+import requests
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
@@ -203,6 +207,111 @@ class IngestTestCase(unittest.TestCase):
         self.assertEqual(gap["truncated_at"], 3)
         self.assertEqual([c["n"] for c in gap["chapters"]], [1, 2])
 
+    def _net_book(self, book_id: str, staged: list[str]) -> list[dict]:
+        """Catalog entry with https URLs; staged fixture PDFs are pre-placed in
+        the pdf cache so their fetch is a cache hit (no network needed). The
+        un-staged chapter is the one that hits the mocked network."""
+        dest = self.tmp / "pdfs" / book_id
+        dest.mkdir(parents=True, exist_ok=True)
+        for name in staged:
+            shutil.copy(PDFS / name, dest / name)
+        return [
+            {
+                "id": book_id,
+                "class": 9,
+                "subject": "science",
+                "title": "Net Book",
+                "publisher": "x",
+                "license": "x",
+                "is_ncert": True,
+                "download": "auto",
+                "prelims_url": "https://ncert.invalid/prelims.pdf",
+                "chapter_url_template": "https://ncert.invalid/ch{nn}.pdf",
+                "chapter_numbers": [1, 2, 3],
+                "chapters_verified": True,
+                "class_evidence": ["class 9"],
+            }
+        ]
+
+    @staticmethod
+    def _network_down():
+        """Patch ingest's network calls to fail like the 2026-11-08 NCERT outage
+        (connect timeout / unreachable), and skip the retry backoff sleeps."""
+        boom = requests.ConnectionError(
+            "Failed to establish a new connection: [Errno 101] Network is unreachable"
+        )
+        return (
+            mock.patch("factory.ingest.requests.get", side_effect=boom),
+            mock.patch("factory.ingest.time.sleep"),
+        )
+
+    def test_unreachable_host_truncates_when_chapters_cached(self):
+        # Founder rule 2026-11-08: download failures are hard ONLY when nothing
+        # cached covers the book. chapters_verified=True on purpose: the flag
+        # guards 404s (catalog errors), not network outages.
+        cfg = make_cfg(
+            self.tmp,
+            extra_books=self._net_book(
+                "net-book", ["prelims.pdf", "ch01.pdf", "ch02.pdf"]
+            ),
+        )
+        p_get, p_sleep = self._network_down()
+        with p_get, p_sleep:
+            out = ingest_run(cfg, self.run_ctx)
+        book = next(b for b in out["books"] if b["id"] == "net-book")
+        self.assertEqual(book["truncated_at"], 3)
+        self.assertEqual([c["n"] for c in book["chapters"]], [1, 2])
+
+    def test_unreachable_host_fails_when_nothing_cached(self):
+        # Zero extracted chapters for the book -> hard fail: nothing to teach from.
+        cfg = make_cfg(
+            self.tmp, extra_books=self._net_book("net-book-0", ["prelims.pdf"])
+        )
+        p_get, p_sleep = self._network_down()
+        with p_get, p_sleep, self.assertRaises(SourceError) as ctx:
+            ingest_run(cfg, self.run_ctx)
+        self.assertIn("nothing to teach from", str(ctx.exception))
+
+    def test_part2_offset_maps_global_chapters_to_within_part_urls(self):
+        # NCERT numbers chapter PDFs WITHIN each part (Part II Ch. 8 = keph201,
+        # confirmed in-cluster 2026-11-06: keph208.pdf 404s). chapter_url_offset
+        # maps the global chapter number to the within-part URL index while the
+        # run output keeps the global number. Staged files here are named by
+        # the WITHIN-part index (ch01, ch02 exist; ch03 does not), so the
+        # unverified list must ingest global chapters 8-9 and truncate at 10.
+        part_pdfs = stage_book_pdfs(
+            self.tmp, "part2-book", ["prelims.pdf", "ch01.pdf", "ch02.pdf"]
+        )
+        part2 = [
+            {
+                "id": "part2-book",
+                "class": 9,
+                "subject": "science",
+                "title": "Part Two Synthetic",
+                "publisher": "x",
+                "license": "x",
+                "is_ncert": True,
+                "download": "auto",
+                "prelims_url": part_pdfs["prelims.pdf"],
+                "chapter_url_template": part_pdfs["ch01.pdf"].replace(
+                    "ch01.pdf", "ch{nn}.pdf"
+                ),
+                "chapter_numbers": [8, 9, 10],  # global chapter numbers
+                "chapter_url_offset": 7,  # ...so URLs are ch01, ch02, ch03
+                "chapters_verified": False,
+                "class_evidence": ["class 9"],
+            }
+        ]
+        cfg = make_cfg(self.tmp, extra_books=part2)
+        out = ingest_run(cfg, self.run_ctx)
+        book = next(b for b in out["books"] if b["id"] == "part2-book")
+        self.assertEqual([c["n"] for c in book["chapters"]], [8, 9])
+        self.assertEqual(book["truncated_at"], 10)
+        # fetched PDFs land under the GLOBAL chapter names (ch08.pdf, ch09.pdf)
+        self.assertTrue(
+            all(c["pdf"].endswith(f"ch{c['n']:02d}.pdf") for c in book["chapters"])
+        )
+
     def test_manual_book_missing_gives_instructions(self):
         manual = [
             {
@@ -344,6 +453,84 @@ class LocateTestCase(unittest.TestCase):
         book_ids = {s["book_id"] for s in pack["supplements"]}
         self.assertNotIn("fixture-ncert-9", book_ids)
         self.assertIn("alt-open-physics", book_ids)
+
+    def _kinem_cfg(self, tmp: Path):
+        """Second NCERT class-9 book built from the kinem fixtures: ch02 is
+        'MOTION IN A STRAIGHT LINE' (clean opener title with a trailing book-page
+        number, like a real NCERT opener); ch04 is 'LAWS OF MOTION' whose BODY
+        sentence carries the query phrase - the 2026-11-05 contamination pair."""
+        dest = tmp / "pdfs" / "fixture-kinem-9"
+        dest.mkdir(parents=True, exist_ok=True)
+        urls = {}
+        for src, dst in [
+            ("prelims.pdf", "prelims.pdf"),
+            ("kinem-ch02.pdf", "ch02.pdf"),
+            ("kinem-ch04.pdf", "ch04.pdf"),
+        ]:
+            shutil.copy(PDFS / src, dest / dst)
+            urls[dst] = (dest / dst).as_uri()
+        book = {
+            "id": "fixture-kinem-9",
+            "class": 9,
+            "subject": "science",
+            "title": "Fixture Kinematics Class 9",
+            "publisher": "fixture",
+            "license": "test",
+            "is_ncert": True,
+            "download": "auto",
+            "prelims_url": urls["prelims.pdf"],
+            "chapter_url_template": urls["ch02.pdf"].replace("ch02.pdf", "ch{nn}.pdf"),
+            "chapter_numbers": [2, 4],
+            "chapters_verified": True,
+            "class_evidence": ["class 9"],
+        }
+        return make_cfg(tmp, extra_books=[book])
+
+    def test_locate_title_match_beats_body_phrase_lookalike(self):
+        # Founder contamination regression (2026-11-05): the class-11 run asked
+        # for 'MOTION IN A STRAIGHT LINE'; a Newton's-first-law sentence in the
+        # LAWS OF MOTION chapter fabricated an exact hit (found = query) and beat
+        # the real title match, silently building the wrong chapter's page.
+        # Exactness now belongs to title candidates only.
+        tmp2 = Path(tempfile.mkdtemp())
+        cfg2 = self._kinem_cfg(tmp2)
+        run2 = RunContext(cfg2.repo_path(cfg2.paths["runs"]), "t-kinem")
+        run2.save_stage_output("00-ingest", ingest_run(cfg2, run2))
+        pack = locate_run(cfg2, run2, "MOTION IN A STRAIGHT LINE", 9)
+        self.assertEqual(pack["chapter"]["book_id"], "fixture-kinem-9")
+        self.assertTrue(pack["chapter"]["file"].endswith("ch02.pdf"))
+        self.assertEqual(pack["chapter"]["matched_via"], "title_line")
+        self.assertEqual(
+            pack["chapter"]["title"], "MOTION IN A STRAIGHT LINE"
+        )  # trailing page number stripped
+        self.assertIn("uniform acceleration", pack["ncert_text"])
+        self.assertNotIn("Aristotle", pack["ncert_text"])  # the trap chapter stayed out
+
+    def test_locate_body_phrase_is_demoted_and_loud(self):
+        # A phrase that only lives in body prose can win only as a demoted
+        # partial - and it must announce itself so the operator confirms the pick.
+        tmp2 = Path(tempfile.mkdtemp())
+        cfg2 = self._kinem_cfg(tmp2)
+        run2 = RunContext(cfg2.repo_path(cfg2.paths["runs"]), "t-body")
+        run2.save_stage_output("00-ingest", ingest_run(cfg2, run2))
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            pack = locate_run(cfg2, run2, "law of inertia", 9)
+        self.assertEqual(pack["chapter"]["matched_via"], "body_phrase")
+        self.assertTrue(pack["chapter"]["file"].endswith("ch04.pdf"))
+        self.assertIn("[loud]", buf.getvalue())
+        self.assertIn("BODY", buf.getvalue())
+
+    def test_locate_loose_title_query_lists_exact_candidates(self):
+        # 'motion' is title-equivalent (containment) to BOTH kinem chapters and
+        # to the plain fixture chapter - a hard ambiguity error, never a silent pick.
+        tmp2 = Path(tempfile.mkdtemp())
+        cfg2 = self._kinem_cfg(tmp2)
+        run2 = RunContext(cfg2.repo_path(cfg2.paths["runs"]), "t-amb2")
+        run2.save_stage_output("00-ingest", ingest_run(cfg2, run2))
+        with self.assertRaises(SourceError) as ctx:
+            locate_run(cfg2, run2, "motion", 9)
+        self.assertIn("several", str(ctx.exception))
 
 
 def _make_table_page_pdf(path: Path) -> None:

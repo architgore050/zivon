@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
@@ -16,6 +17,7 @@ from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.errors import ModelCallError, SchemaError
 from factory.llm import LLMClient, parse_json_object
+from llm_manager import ChatResult, ValidationExhaustedError, run_validation_rounds
 from testing.content_factory.mocks.openai_mock import start_mock
 
 GOOD = {"topic": "x", "claims": []}
@@ -28,15 +30,18 @@ SIMPLE_SCHEMA = {
 }
 
 
-def make_cfg(tmp: Path, base_url: str, attempts: int = 3):
+def make_cfg(tmp: Path, base_url: str, attempts: int = 3, validation_rounds=None):
     base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
     base["paths"]["runs"] = str(tmp / "runs")
     path = tmp / "config.json"
     path.write_text(json.dumps(base), encoding="utf-8")
-    # server settings are env-only now
+    # server settings are env-only now; ZIVON_MAX_ATTEMPTS is the TRANSPORT
+    # retry budget - the model's own repair budget is ZIVON_VALIDATION_ROUNDS
     os.environ["ZIVON_BASE_URL"] = base_url
     os.environ["ZIVON_MODEL"] = "mock-model"
     os.environ["ZIVON_MAX_ATTEMPTS"] = str(attempts)
+    if validation_rounds is not None:
+        os.environ["ZIVON_VALIDATION_ROUNDS"] = str(validation_rounds)
     return load_config(path)
 
 
@@ -69,6 +74,9 @@ class TestLLMClient(unittest.TestCase):
             "ZIVON_BASE_URL",
             "ZIVON_MODEL",
             "ZIVON_MAX_ATTEMPTS",
+            "ZIVON_VALIDATION_ROUNDS",
+            "ZIVON_STREAM",
+            "ZIVON_CALL_DEADLINE_S",
         ):
             os.environ.pop(key, None)
 
@@ -128,8 +136,17 @@ class TestLLMClient(unittest.TestCase):
                 "temperature",
                 "prompt_chars",
                 "response_chars",
+                "finish_reason",
             ):
                 self.assertIn(key, meta)
+            # additive streaming evidence (2026-11-07): the run dir shows the
+            # call streamed, how fast the first token landed and how many
+            # chunks arrived - plus the deadline that bound it.
+            self.assertIs(meta["stream"], True)
+            self.assertEqual(meta["finish_reason"], "stop")
+            self.assertGreater(meta["chunks_received"], 1)
+            self.assertIsNotNone(meta["first_token_s"])
+            self.assertIn("call_deadline_s", meta)
             self.assertEqual(state.served[0]["stage"], "02-generate")
         finally:
             server.shutdown()
@@ -206,6 +223,74 @@ class TestLLMClient(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_happy_path_writes_calls_ledger(self):
+        server, url, _ = self._serve(GOOD)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            with redirect_stdout(io.StringIO()):
+                self._call(client)
+            rows = [
+                json.loads(x)
+                for x in (run.dir / "calls_ledger.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["outcome"], "answered")
+            self.assertEqual(rows[0]["stage"], "02-generate")
+            self.assertEqual(rows[0]["attempt"], 1)
+            self.assertIn("latency_s", rows[0])
+        finally:
+            server.shutdown()
+
+    def test_rejected_attempts_are_ledgered_with_their_reason(self):
+        # canonical is schema-invalid -> every validation round rejects; the
+        # ledger must show WHY, not just that the stage died.
+        server, url, _ = self._serve(BAD)
+        try:
+            cfg = make_cfg(self.tmp, url, validation_rounds=2)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            with redirect_stdout(io.StringIO()), self.assertRaises(SchemaError):
+                self._call(client)
+            rows = [
+                json.loads(x)
+                for x in (run.dir / "calls_ledger.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            rejected = [r for r in rows if r["outcome"] == "rejected"]
+            self.assertEqual(len(rejected), 2)
+            self.assertIn("topic", rejected[0]["reason"])
+        finally:
+            server.shutdown()
+
+    def test_transport_death_writes_failure_meta_and_ledger(self):
+        # 2026-11-08: a mid-call death must leave the same diagnosable trail
+        # as a completed call (previously: only request.json survived).
+        cfg = make_cfg(self.tmp, "http://127.0.0.1:9/v1", attempts=1)
+        run = self._run(cfg)
+        client = LLMClient(cfg, run)
+        with redirect_stdout(io.StringIO()), self.assertRaises(ModelCallError):
+            self._call(client)
+        meta_path = (
+            run.stage_dir("02-generate") / "attempts" / "attempt-01" / "meta.json"
+        )
+        self.assertTrue(meta_path.exists())
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        self.assertEqual(meta["outcome"], "transport-failure")
+        self.assertIn("error", meta)
+        self.assertIn("error_class", meta)
+        rows = [
+            json.loads(x)
+            for x in (run.dir / "calls_ledger.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+        ]
+        self.assertEqual(rows[-1]["outcome"], "transport-failure")
+
     def test_persistent_failure_raises_model_call_error(self):
         # base_url points at a port with nothing listening
         cfg = make_cfg(self.tmp, "http://127.0.0.1:9/v1", attempts=1)
@@ -216,11 +301,26 @@ class TestLLMClient(unittest.TestCase):
     def test_schema_failures_exhaust_to_schema_error(self):
         server, url, _ = self._serve(BAD)  # canonical is itself schema-invalid
         try:
-            cfg = make_cfg(self.tmp, url, attempts=2)
+            cfg = make_cfg(self.tmp, url, validation_rounds=2)
             client = LLMClient(cfg, self._run(cfg))
             with self.assertRaises(SchemaError) as ctx:
                 self._call(client)
-            self.assertIn("all 2 attempts", str(ctx.exception))
+            self.assertIn("all 2 validation rounds", str(ctx.exception))
+        finally:
+            server.shutdown()
+
+    def test_validation_rounds_are_the_model_repair_budget(self):
+        # 2026-11-06 founder decision: a schema-invalid output gets the FULL
+        # validation-round budget of feedback-driven retries - independent of
+        # the (small) transport attempt count. The model is never expected to
+        # one-shot its output.
+        server, url, state = self._serve(BAD)
+        try:
+            cfg = make_cfg(self.tmp, url, attempts=1, validation_rounds=4)
+            client = LLMClient(cfg, self._run(cfg))
+            with self.assertRaises(SchemaError):
+                self._call(client)
+            self.assertEqual(len(state.served), 4, "one call per validation round")
         finally:
             server.shutdown()
 
@@ -265,7 +365,7 @@ class TestLLMClient(unittest.TestCase):
     def test_extra_validator_exhaustion_raises_schema_error(self):
         server, url, _ = self._serve(GOOD)
         try:
-            cfg = make_cfg(self.tmp, url, attempts=2)
+            cfg = make_cfg(self.tmp, url, validation_rounds=2)
             client = LLMClient(cfg, self._run(cfg))
             with self.assertRaises(SchemaError) as ctx:
                 client.call(
@@ -278,8 +378,174 @@ class TestLLMClient(unittest.TestCase):
                     "test",
                     extra_validator=lambda parsed: ["always wrong"],
                 )
-            self.assertIn("all 2 attempts", str(ctx.exception))
+            self.assertIn("all 2 validation rounds", str(ctx.exception))
             self.assertIn("always wrong", str(ctx.exception))
+        finally:
+            server.shutdown()
+
+    def test_feedback_trims_older_rejected_outputs(self):
+        # Context guard (2026-11-06): only the LATEST rejected output is kept
+        # in full; older giant outputs are trimmed so a chain of validation
+        # rounds cannot stack up and eat the server's context window.
+        # (2026-11-07: the machinery moved to llm_manager/validation.py - the
+        # test drives it through run_validation_rounds with a scripted call_fn.)
+        seen: list[list[dict[str, str]]] = []
+        outputs = ["x" * 5000, "y" * 100, "z"]
+
+        def call_fn(
+            round_no: int, transcript: list[dict[str, str]]
+        ) -> tuple[str, str | None]:
+            seen.append([dict(m) for m in transcript])
+            return outputs[round_no - 1], "stop"
+
+        with self.assertRaises(ValidationExhaustedError):
+            run_validation_rounds(
+                call_fn,
+                [{"role": "user", "content": "go"}],
+                SIMPLE_SCHEMA,
+                "test",
+                rounds=3,
+            )
+        # round 3's transcript: the round-1 giant output is trimmed, the
+        # round-2 (latest rejected) output is still full.
+        assistants = [m for m in seen[-1] if m["role"] == "assistant"]
+        self.assertEqual(len(assistants), 2)
+        self.assertLess(len(assistants[0]["content"]), 2000)
+        self.assertIn("trimmed", assistants[0]["content"])
+        self.assertEqual(assistants[1]["content"], "y" * 100)
+
+    def test_validation_error_is_compact_and_names_types(self):
+        # Founder run 2026-11-05: jsonschema embedded the whole rejected 70-block
+        # list (55k characters) in the error message and the retry transcript
+        # ballooned 110k -> 243k characters. Errors must show path + expected +
+        # arrived type only - never an instance dump.
+        flat_blocks = {"blocks": [{"id": f"b-{i:02d}"} for i in range(70)]}
+        wrapper_schema = {
+            "type": "object",
+            "required": ["blocks"],
+            "properties": {
+                "blocks": {
+                    "type": "object",
+                    "required": ["blocks"],
+                    "properties": {"blocks": {"type": "array"}},
+                }
+            },
+        }
+        server, url, _ = self._serve(
+            {"blocks": {"blocks": [1, 2, 3, 4]}}, scripted_first=flat_blocks
+        )
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                out = client.call(
+                    "02-generate",
+                    [
+                        {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
+                        {"role": "user", "content": "go"},
+                    ],
+                    wrapper_schema,
+                    "test",
+                )
+            self.assertEqual(out["blocks"]["blocks"], [1, 2, 3, 4])
+            feedback = json.loads(
+                (
+                    run.stage_dir("02-generate")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )["messages"][-1]["content"]
+            self.assertIn("expected object here, got array of 70 items", feedback)
+            self.assertLess(len(feedback), 1200)
+            self.assertNotIn("b-01", feedback)  # no instance repr in the transcript
+        finally:
+            server.shutdown()
+
+    def test_multiple_violations_reported_in_one_retry_turn(self):
+        # The 2026-11-05 run burned one 50-minute attempt per error. The feedback
+        # turn now carries the best match plus up to 3 more violations at once.
+        bad = {"topic": 42, "surprise": "x"}
+        schema = {
+            "type": "object",
+            "required": ["topic"],
+            "additionalProperties": False,
+            "properties": {"topic": {"type": "string"}},
+        }
+        server, url, _ = self._serve({"topic": "fixed"}, scripted_first=bad)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                out = client.call(
+                    "02-generate",
+                    [
+                        {"role": "system", "content": "[ZIVON STAGE: 02-generate] x"},
+                        {"role": "user", "content": "go"},
+                    ],
+                    schema,
+                    "test",
+                )
+            self.assertEqual(out, {"topic": "fixed"})
+            feedback = json.loads(
+                (
+                    run.stage_dir("02-generate")
+                    / "attempts"
+                    / "attempt-02"
+                    / "request.json"
+                ).read_text()
+            )["messages"][-1]["content"]
+            self.assertIn("at 'topic': expected string here, got number", feedback)
+            self.assertIn("surprise", feedback)  # second violation, same turn
+        finally:
+            server.shutdown()
+
+    def test_finish_reason_is_recorded_and_length_cut_rejected(self):
+        # Observability gap found 2026-11-05: meta.json discarded finish_reason, so
+        # a context-limit truncation looked like a mysterious parse failure. Now it
+        # is recorded per attempt and a 'length' cut is rejected with plain advice.
+        # (2026-11-07: transport moved into llm_manager - the test injects the two
+        # ChatResults at the new seam, factory.llm.LLMManager.)
+        server, url, _ = self._serve(GOOD)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            usage = {"prompt_tokens": 5, "completion_tokens": 5}
+
+            def chat_result(text: str, finish: str) -> ChatResult:
+                return ChatResult(
+                    text=text,
+                    usage=dict(usage),
+                    finish_reason=finish,
+                    http_status=200,
+                    latency_s=1.0,
+                    first_token_s=0.5,
+                    chunks_received=3,
+                    model="mock-model",
+                )
+
+            buf = io.StringIO()
+            with (
+                mock.patch("factory.llm.LLMManager") as manager_cls,
+                redirect_stdout(buf),
+            ):
+                manager_cls.return_value.complete.side_effect = [
+                    chat_result('{"topic": "trunc', "length"),
+                    chat_result(json.dumps(GOOD), "stop"),
+                ]
+                out = self._call(client)
+            self.assertEqual(out, GOOD)
+            stage = run.stage_dir("02-generate") / "attempts"
+            meta1 = json.loads((stage / "attempt-01" / "meta.json").read_text())
+            meta2 = json.loads((stage / "attempt-02" / "meta.json").read_text())
+            self.assertEqual(meta1["finish_reason"], "length")
+            self.assertEqual(meta2["finish_reason"], "stop")
+            self.assertIn("finish_reason=length", buf.getvalue())
         finally:
             server.shutdown()
 

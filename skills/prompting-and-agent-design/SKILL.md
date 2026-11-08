@@ -91,7 +91,10 @@ shape), state the exact contract and say it must be matched.
    measured review call spent ~50k completion tokens thinking, then produced a
    correct verdict - thinking-heavy calls make any cap a truncation risk). If
    runaway thinking is measurable, fix it with scope-setting ("choose an
-   approach and commit to it"), not a switch.
+   approach and commit to it"), not a switch; if a bounded procedure is not
+   enough, SPLIT the task into smaller calls (2026-11-08: 09-review's one
+   giant call became two, and thinking bloat per call is now visible in the
+   run's calls ledger).
 10. **Self-check sparingly.** "Before you finish, verify against [criteria]"
     catches real errors on some models; strong current models often verify
     unprompted, and bolted-on verification language causes over-verification
@@ -109,9 +112,11 @@ shape), state the exact contract and say it must be matched.
    core decision). A reviewer must never be the author; gates are separate
    calls with their own context `[S2][S6]`.
 2. **Reviewers get calibrated rubrics, not vibes.** Define the severity ladder
-   exactly, define what FAIL means ("fail iff at least one fatal"), and give
-   the judge a way out: unverifiable suspicions are reported as
-   `unverified:` minor, never as fatal `[S2][S7]`. LLM-as-judge reliability is
+   exactly, define what FAIL means ("fail iff at least one fatal") — and put
+   that guarantee in the harness, not the prose: 09-review's calls now output
+   issues only and code computes the verdict `[S2][S7]`. Give the judge a way
+   out: unverifiable suspicions are reported as `unverified:` minor, never as
+   fatal `[S2][S7]`. LLM-as-judge reliability is
    the price of automation — calibrate judges against human reading of run
    evidence (transcripts) regularly `[S2][S7]`.
 3. **Honest reviewer framing.** Never "assume the page contains at least one
@@ -120,10 +125,14 @@ shape), state the exact contract and say it must be matched.
    `[S2][S7]`. This repo already fixed 03-check this way in v2; 09-review must
    keep the same posture.
 4. **Catcher pattern (fail → bounded repair, never re-run upstream).** Every
-   gate's verdict is a structured handoff to its paired fixer. Repair rounds
-   are bounded; the caught issue flows downstream with its evidence, not a
-   pipeline restart. This is the pipeline analogue of "give the agent
-   verification tools and let it iterate on findings" `[S4][S6]`.
+   gate's verdict is a structured handoff to its paired fixer. Repair loops
+   are progress-aware (founder decision 2026-11-06): they keep going while the
+   severity-weighted issue score improves and stop at a genuine plateau or a
+   generous safety cap — bounded, but never a blind small count; and a fix
+   that itself fails a check (lint, ownership, perf) costs a round, not the
+   run. The caught issue flows downstream with its evidence, not a pipeline
+   restart. This is the pipeline analogue of "give the agent verification
+   tools and let it iterate on findings" `[S4][S6]`.
 5. **Errors are context.** Validation/lint failures fed back into the retry
    transcript ("here is the exact violation; fix it, keep everything valid
    unchanged") are the single highest-value prompt content a generation stage
@@ -191,7 +200,11 @@ certainty `[S3][S7]`:
 - The same constraint stated 2–3 times in one prompt ("verbatim" x3).
 - Numbered execution plans for generation ("1. synthesize, 2. draft, 3. lay
   out") — the model plans its own reasoning; give it layers as deliverables,
-  not steps.
+  not steps. Exception (2026-11-08, 09-review): a bounded inspection
+  procedure for a REVIEWER is a calibrated rubric, not a generation plan —
+  when a judge's runaway thinking is measurable, laying out its pass order
+  ("exactly once, one check per item, then the verdict") is sanctioned
+  scope setting.
 - Reviewer asked to judge something whose material it was not given (checking
   "taught before tested" without the lesson text).
 - Stale docstring/config defaults that contradict `_SERVER_DEFAULTS` — docs

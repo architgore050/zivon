@@ -1,31 +1,40 @@
-"""OpenAI-format chat-completions client with full artifact logging.
+"""Model calls for the content factory: a thin adapter over llm_manager.
 
-Failure semantics (no silent fallbacks, ever):
-- Network errors, timeouts, 429 and 5xx are retried up to ZIVON_MAX_ATTEMPTS
-  with exponential backoff; each attempt's raw request/response is on disk.
-- Any other HTTP error fails the stage immediately, with the server's body in
-  the message (e.g. a 400 about response_format means: set ZIVON_JSON_MODE=false).
-- Output must be a single JSON object. In json_mode the server enforces it;
-  either way the text is parsed and validated against a JSON Schema (plus an
-  optional extra_validator, e.g. a stage's rule checks). Validation failures
-  are retried with the validator's error report fed back to the model, up to
-  max_attempts, then the stage fails with SchemaError.
+Since 2026-11-07 the actual model handling lives in the standalone
+`llm_manager` package (streaming calls, honest inactivity timeouts, a
+per-call wall-clock deadline that aborts a runaway generation mid-stream,
+transport retries, reusable validation rounds). This module keeps the
+FACTORY's contracts on top of it:
 
-Server settings (base url, model, key, sampling) come from the environment -
-see factory/config.py. The API key value is never written to any artifact:
-the Authorization header is a header, and only the request body is persisted.
+- Public API unchanged: `LLMClient(cfg, run).call(stage_id, messages,
+  schema, schema_name, temperature=None, extra_validator=None,
+  round_tag=None) -> dict`. Every stage call site is untouched.
+- Artifacts (2026-11-08): `attempts/[<round_tag>/]attempt-NN/request.json`
+  (redacted wire copy), `response.json` (raw text), `meta.json` with all
+  fields it always carried plus streaming evidence (`stream`, `first_token_s`,
+  `chunks_received`, `call_deadline_s`, `finish_reason`) - and meta.json is
+  now written for FAILED calls too (last heartbeat + error class), so a
+  mid-call death leaves the same diagnosable trail as a completed call.
+- Ledgers (2026-11-08): every attempt appends one line to the run's
+  `calls_ledger.jsonl` (answered / rejected-with-reason / transport-failure,
+  with latency, time-to-first-content and token usage) - the raw material
+  for "what are the agents actually failing at".
+- Errors unchanged: llm_manager failures surface as the same
+  ModelCallError / SchemaError types the pipeline already handles; message
+  shapes are preserved (updated only where streaming changed the truth -
+  e.g. "validation rounds" now names the model's own repair budget, which is
+  separate from the transport retry budget).
 
 No completion cap is ever sent (2026-11-04 founder decision): the factory
 sends no max_tokens at all - the server decides how long its answer, thinking
-included, may be within its own context; timeout_s and the Job's
-activeDeadlineSeconds are the backstops.
+included, may be within its own context. The wall-clock backstops are
+ZIVON_CALL_DEADLINE_S (per call) and the Job's activeDeadlineSeconds.
 
-Observability (2026-11-04): every attempt prints its start, an in-flight
-heartbeat every HEARTBEAT_S seconds, and its end with latency + token usage.
-A single giant generation call to a thinking model can legitimately run for
-many minutes; without in-flight logging a healthy run looks identical to a
-hang (diagnosis lesson of the 2026-11-04 stalled run). meta.json additionally
-records sampling settings and payload sizes.
+Observability: every call prints its start (naming the validation round), a
+heartbeat with REAL streaming progress (`N chunks received` - a thinking
+model waiting for its first token vs a streaming server are now visibly
+different), and its end with latency + token usage. This module prints via
+its observer; llm_manager itself never prints.
 """
 
 from __future__ import annotations
@@ -33,59 +42,59 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FuturesTimeout
 from datetime import UTC, datetime
 from typing import Any
 
-import jsonschema
-import requests
+from llm_manager import (
+    BadServerResponseError,
+    LLMConfig,
+    LLMManager,
+    LLMObserver,
+    NonRetryableHTTPError,
+    TransportError,
+    ValidationExhaustedError,
+    build_wire_request,
+    parse_json_object,
+    run_validation_rounds,
+)
 
 from .artifacts import RunContext
 from .config import Config
 from .errors import ModelCallError, SchemaError
 
-RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-
-# How often a blocked model call prints "still working". 60s: frequent enough
-# to prove a run is alive, sparse enough not to pollute a 2-hour Job log.
-HEARTBEAT_S = 60
+__all__ = ["LLMClient", "parse_json_object"]
 
 
-def _strip_code_fences(text: str) -> str:
-    """Remove a single wrapping markdown code fence if present."""
-    t = text.strip()
-    if t.startswith("```"):
-        first_newline = t.find("\n")
-        if first_newline != -1:
-            t = t[first_newline + 1 :]
-        if t.rstrip().endswith("```"):
-            t = t.rstrip()[:-3]
-    return t.strip()
+class _StageObserver(LLMObserver):
+    """The factory's in-flight voice: real streaming progress, not just
+    elapsed time. llm_manager calls this every heartbeat_s while the call is
+    in flight; nothing prints from inside llm_manager. The last heartbeat is
+    also kept so a mid-call transport death can be written to meta.json -
+    before 2026-11-08 a killed call left only request.json behind."""
 
+    def __init__(self, stage_id: str):
+        self.stage_id = stage_id
+        self.last_elapsed_s: float | None = None
+        self.last_chunks: int | None = None
 
-def parse_json_object(text: str) -> dict[str, Any]:
-    """Parse the model output into a JSON object. No salvage heuristics: if the
-    model returned prose around the JSON, that is a validation failure and the
-    caller retries with feedback."""
-    cleaned = _strip_code_fences(text)
-    try:
-        parsed = json.loads(cleaned)
-    except json.JSONDecodeError as exc:
-        raise ValueError(
-            f"output is not valid JSON: {exc}; first 200 chars: {cleaned[:200]!r}"
-        ) from exc
-    if not isinstance(parsed, dict):
-        raise ValueError(f"expected a JSON object, got {type(parsed).__name__}")  # noqa: TRY004 — ValueError is the contract callers catch
-    return parsed
+    def on_progress(self, elapsed_s: float, chunks_received: int) -> None:
+        self.last_elapsed_s = round(elapsed_s, 1)
+        self.last_chunks = chunks_received
+        print(
+            f"[{self.stage_id}] still waiting on the model "
+            f"({int(elapsed_s)}s, {chunks_received} chunks received...)"
+        )
 
 
 class LLMClient:
     def __init__(self, cfg: Config, run: RunContext):
         self.cfg = cfg
         self.run = run
+        # The URL the factory talks to (diagnostics + error messages). In the
+        # cluster this is the llm_manager Service; locally it may be the
+        # inference server directly. llm_manager appends /chat/completions.
         self.url = cfg.server["base_url"].rstrip("/") + "/chat/completions"
-        self._api_key = cfg.api_key()
+        self._llm_config = LLMConfig.from_mapping(cfg.server)
 
     # ------------------------------------------------------------------ call
     def call(
@@ -114,130 +123,166 @@ class LLMClient:
             "temperature",
             temperature if temperature is not None else self.cfg.server["temperature"],
         )
-        base_request = {
-            "model": self.cfg.server["model"],
-            "messages": messages,
-            "temperature": temperature,
-        }
-        if self.cfg.server["json_mode"]:
-            base_request["response_format"] = {"type": "json_object"}
-
-        # Transcript accumulates validator feedback across attempts.
-        transcript = [dict(m) for m in messages]
-        last_error = ""
         stage_dir = self.run.stage_dir(stage_id)
         attempts_dir = stage_dir / "attempts"
         if round_tag:
             attempts_dir = attempts_dir / round_tag
+        rounds = self.cfg.server["validation_rounds"]
+        round_note = f" [{round_tag}]" if round_tag else ""
 
-        for attempt in range(1, self.cfg.server["max_attempts"] + 1):
-            request = dict(base_request)
-            request["messages"] = [dict(m) for m in transcript]
-            attempt_dir = attempts_dir / f"attempt-{attempt:02d}"
-            self.run.write_json(attempt_dir / "request.json", self._redact(request))
+        def call_fn(
+            round_no: int, transcript: list[dict[str, str]]
+        ) -> tuple[str, str | None]:
+            attempt_dir = attempts_dir / f"attempt-{round_no:02d}"
+            wire = build_wire_request(self._llm_config, transcript, temperature, None)
+            self.run.write_json(attempt_dir / "request.json", self._redact(wire))
 
+            print(
+                f"[{stage_id}] model call started{round_note} (validation "
+                f"round {round_no}/{rounds}; a thinking model can take many "
+                "minutes - heartbeats will show it is alive)"
+            )
+            observer = _StageObserver(stage_id)
+            manager = LLMManager(self._llm_config, observer=observer)
             t0 = time.time()
-            round_note = f" [{round_tag}]" if round_tag else ""
-            print(
-                f"[{stage_id}] model call started{round_note} (attempt "
-                f"{attempt}/{self.cfg.server['max_attempts']}; a thinking model "
-                "can take many minutes - heartbeats will show it is alive)"
-            )
-            status, raw_text, usage = self._post_with_heartbeat(
-                request, stage_id, attempt
-            )
+            try:
+                result = manager.complete(transcript, temperature=temperature)
+            except (
+                TransportError,
+                NonRetryableHTTPError,
+                BadServerResponseError,
+            ) as exc:
+                # Failure evidence (2026-11-08): a mid-call death must leave
+                # the same diagnosable trail as a completed call - meta.json
+                # with the last heartbeat + the error, and a ledger line.
+                latency = round(time.time() - t0, 2)
+                self.run.write_json(
+                    attempt_dir / "meta.json",
+                    {
+                        "stage": stage_id,
+                        "attempt": round_no,
+                        "started_at": datetime.fromtimestamp(t0, UTC).isoformat(
+                            timespec="seconds"
+                        ),
+                        "latency_s": latency,
+                        "outcome": "transport-failure",
+                        "error_class": type(exc).__name__,
+                        "error": str(exc)[:400],
+                        "last_heartbeat_s": observer.last_elapsed_s,
+                        "chunks_received": observer.last_chunks,
+                        "call_deadline_s": self._llm_config.call_deadline_s,
+                    },
+                )
+                self.run.append_ledger(
+                    "calls_ledger",
+                    [
+                        {
+                            "stage": stage_id,
+                            "round_tag": round_tag,
+                            "attempt": round_no,
+                            "outcome": "transport-failure",
+                            "latency_s": latency,
+                            "last_heartbeat_s": observer.last_elapsed_s,
+                            "error_class": type(exc).__name__,
+                            "error": str(exc)[:180],
+                        }
+                    ],
+                )
+                raise ModelCallError(stage_id, str(exc)) from exc
             latency = round(time.time() - t0, 2)
+            usage = result.usage or {}
             print(
-                f"[{stage_id}] model call finished in {latency}s{self._usage_note(usage)}"
+                f"[{stage_id}] model call finished in {latency}s"
+                f"{self._usage_note(usage)}"
             )
-            self.run.write_text(attempt_dir / "response.json", raw_text)
+            self.run.write_text(attempt_dir / "response.json", result.text)
             self.run.write_json(
                 attempt_dir / "meta.json",
                 {
                     "stage": stage_id,
-                    "attempt": attempt,
+                    "attempt": round_no,
                     "started_at": datetime.fromtimestamp(t0, UTC).isoformat(
                         timespec="seconds"
                     ),
-                    "http_status": status,
+                    "outcome": "answered",
+                    "http_status": result.http_status,
                     "latency_s": latency,
                     "usage": usage,
-                    "model": self.cfg.server["model"],
+                    "model": result.model,
                     "temperature": temperature,
-                    "prompt_chars": sum(len(m["content"]) for m in request["messages"]),
-                    "response_chars": len(raw_text),
+                    "prompt_chars": sum(len(m["content"]) for m in transcript),
+                    "response_chars": len(result.text),
+                    # additive streaming evidence (2026-11-07)
+                    "finish_reason": result.finish_reason,
+                    "stream": self._llm_config.stream,
+                    "first_token_s": result.first_token_s,
+                    "chunks_received": result.chunks_received,
+                    "call_deadline_s": self._llm_config.call_deadline_s,
                 },
             )
+            self.run.append_ledger(
+                "calls_ledger",
+                [
+                    {
+                        "stage": stage_id,
+                        "round_tag": round_tag,
+                        "attempt": round_no,
+                        "outcome": "answered",
+                        "latency_s": latency,
+                        "first_token_s": result.first_token_s,
+                        "prompt_tokens": usage.get("prompt_tokens"),
+                        "completion_tokens": usage.get("completion_tokens"),
+                        "finish_reason": result.finish_reason,
+                        "chunks_received": result.chunks_received,
+                    }
+                ],
+            )
+            return result.text, result.finish_reason
 
-            try:
-                parsed = parse_json_object(raw_text)
-            except ValueError as exc:
-                last_error = f"JSON parse failure: {exc}"
-                self._reject(stage_id, attempt, last_error)
-                self._feedback(transcript, raw_text, last_error)
-                continue
-
-            try:
-                jsonschema.validate(instance=parsed, schema=schema)
-            except jsonschema.ValidationError as exc:
-                last_error = self._format_validation_error(exc)
-                self._reject(
-                    stage_id, attempt, f"Schema validation failed: {last_error}"
-                )
-                self._feedback(
-                    transcript, raw_text, f"Schema validation failed: {last_error}"
-                )
-                continue
-
-            if extra_validator is not None:
-                problems = extra_validator(parsed)
-                if problems:
-                    last_error = "; ".join(problems[:12])
-                    self._reject(stage_id, attempt, f"Rule checks failed: {last_error}")
-                    self._feedback(
-                        transcript,
-                        raw_text,
-                        f"Rule checks failed: {last_error}",
-                    )
-                    continue
-
-            return parsed
-
-        raise SchemaError(
-            stage_id,
-            f"{schema_name}: output failed validation on all "
-            f"{self.cfg.server['max_attempts']} attempts. Last error: {last_error}",
-            artifacts_dir=str(stage_dir),
-        )
+        try:
+            return run_validation_rounds(
+                call_fn,
+                messages,
+                schema,
+                schema_name,
+                rounds=rounds,
+                extra_validator=extra_validator,
+                on_reject=lambda no, err: self._reject(stage_id, round_tag, no, err),
+            )
+        except ValidationExhaustedError as exc:
+            # The factory's operational guidance (runbook): a SchemaError is a
+            # RESUME-able failure, not a dead end.
+            raise SchemaError(
+                stage_id,
+                f"{exc} (each round may itself carry up to "
+                f"{self._llm_config.max_attempts} transport retries). Re-trigger "
+                "the run to RESUME: completed stages are kept and this stage "
+                "re-runs with a fresh validation budget.",
+                artifacts_dir=str(stage_dir),
+            ) from exc
 
     # ------------------------------------------------------------- internals
-    def _post_with_heartbeat(
-        self, request: dict, stage_id: str, attempt: int
-    ) -> tuple[int, str, dict]:
-        """Run the blocking HTTP call on a worker thread and print a heartbeat
-        while it waits, so a long thinking/generation call is visibly alive.
-
-        Transport retries and error semantics are unchanged - they live inside
-        _post; this wrapper only observes."""
-        t0 = time.monotonic()
-        with ThreadPoolExecutor(max_workers=1) as pool:
-            future = pool.submit(self._post, request, stage_id, attempt)
-            while True:
-                try:
-                    return future.result(timeout=HEARTBEAT_S)
-                except FuturesTimeout:
-                    print(
-                        f"[{stage_id}] still waiting on the model "
-                        f"({int(time.monotonic() - t0)}s on this attempt...)"
-                    )
-
-    @staticmethod
-    def _reject(stage_id: str, attempt: int, error: str) -> None:
+    def _reject(
+        self, stage_id: str, round_tag: str | None, attempt: int, error: str
+    ) -> None:
         """Log a rejected attempt: the model gets the exact violation fed back
-        (errors-as-context), and the log shows why a retry is happening."""
+        (errors-as-context), the log shows why a retry is happening, and the
+        calls_ledger records the rejection class for cross-run analysis."""
         print(
             f"[{stage_id}] attempt {attempt} rejected: {error[:180]} "
             "-> retrying with the error fed back to the model"
+        )
+        self.run.append_ledger(
+            "calls_ledger",
+            [
+                {
+                    "stage": stage_id,
+                    "round_tag": round_tag,
+                    "attempt": attempt,
+                    "outcome": "rejected",
+                    "reason": error[:180],
+                }
+            ],
         )
 
     @staticmethod
@@ -250,98 +295,6 @@ class LLMClient:
             if key in usage
         ]
         return f" ({', '.join(parts)})" if parts else ""
-
-    def _post(
-        self, request: dict, stage_id: str, attempt: int
-    ) -> tuple[int, str, dict]:
-        headers = {"Content-Type": "application/json"}
-        if self._api_key:
-            headers["Authorization"] = f"Bearer {self._api_key}"
-
-        backoff = 2.0
-        for try_no in range(1, self.cfg.server["max_attempts"] + 1):
-            try:
-                resp = requests.post(
-                    self.url,
-                    headers=headers,
-                    json=request,
-                    timeout=self.cfg.server["timeout_s"],
-                )
-            except (requests.ConnectionError, requests.Timeout) as exc:
-                if try_no == self.cfg.server["max_attempts"]:
-                    raise ModelCallError(
-                        stage_id,
-                        f"could not reach inference server at {self.url} after "
-                        f"{try_no} tries: {exc}. Is the server running and is "
-                        "ZIVON_BASE_URL set correctly?",
-                    ) from exc
-                time.sleep(backoff)
-                backoff *= 2
-                continue
-
-            if resp.status_code in RETRYABLE_STATUS:
-                if try_no == self.cfg.server["max_attempts"]:
-                    raise ModelCallError(
-                        stage_id,
-                        f"server returned HTTP {resp.status_code} on all {try_no} tries. "
-                        f"Body: {resp.text[:500]}",
-                    )
-                time.sleep(backoff)
-                backoff *= 2
-                continue
-
-            if resp.status_code != 200:
-                # Non-retryable client error: crash now with the server's words.
-                hint = ""
-                if resp.status_code == 400 and "response_format" in resp.text.lower():
-                    hint = (
-                        " Your server appears not to support response_format json_object;"
-                        " set ZIVON_JSON_MODE=false in the environment and re-run."
-                    )
-                raise ModelCallError(
-                    stage_id,
-                    f"server rejected the call with HTTP {resp.status_code}: {resp.text[:500]}.{hint}",
-                )
-
-            try:
-                payload = resp.json()
-                content = payload["choices"][0]["message"]["content"]
-                usage = payload.get("usage", {})
-            except (KeyError, IndexError, ValueError) as exc:
-                raise ModelCallError(
-                    stage_id,
-                    f"response did not match the OpenAI chat-completions shape ({exc}). "
-                    f"Raw body starts with: {resp.text[:300]}",
-                ) from exc
-            return resp.status_code, content, usage
-
-        raise ModelCallError(
-            stage_id, "unreachable retry loop exit"
-        )  # pragma: no cover
-
-    @staticmethod
-    def _feedback(
-        transcript: list[dict[str, str]], bad_output: str, error: str
-    ) -> None:
-        """Errors-as-context (skills/prompting-and-agent-design): the exact
-        violation is the instruction; tell the model to fix precisely that and
-        preserve what was already valid."""
-        transcript.append({"role": "assistant", "content": bad_output})
-        transcript.append(
-            {
-                "role": "user",
-                "content": (
-                    f"{error}\n\nFix the reported problem(s) and return the "
-                    "corrected COMPLETE JSON object only. Keep every part that "
-                    "was already valid unchanged. No prose, no markdown fences."
-                ),
-            }
-        )
-
-    @staticmethod
-    def _format_validation_error(exc: jsonschema.ValidationError) -> str:
-        path = "/".join(str(p) for p in exc.absolute_path) or "(root)"
-        return f"at '{path}': {exc.message}"
 
     @staticmethod
     def _redact(request: dict) -> dict:

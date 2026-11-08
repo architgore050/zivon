@@ -65,13 +65,20 @@ def design_context(cfg: Config, *, with_examples: bool) -> str:
     parts = [f"--- design doctrine: {cfg.paths['doctrine']} ---", doctrine_text(cfg)]
     if with_examples:
         parts.append(
-            "--- doctrine example pages: VISUAL STYLING REFERENCE ONLY ---\n"
-            "These pages show how a finished lesson page LOOKS (paper, ink, cards, "
-            "hand strokes, feedback) and how COMPLETE a finished page is. Their "
-            "topic, facts, numbers, questions and examples belong to an unrelated "
-            "chapter: never reuse or imitate their content, and never let their "
-            "scope decide what your chapter should or should not cover - content "
-            "coverage is dictated by the SOURCE MATERIAL, never by these pages."
+            "--- doctrine example pages: COMPONENT DEMOS ---\n"
+            "These pages are composed of the SAME kit classes the shell ships "
+            "with every generated page (the zivon.css/zivon.js component "
+            "catalog - doctrine §10.6), and they show how a finished lesson "
+            "page LOOKS (paper, ink, cards, hand strokes, feedback) and how "
+            "COMPLETE a finished page is. Their topic, facts, numbers, "
+            "questions and examples belong to an unrelated chapter: never "
+            "reuse or imitate their content, and never let their scope decide "
+            "what your chapter should or should not cover - content coverage "
+            "is dictated by the SOURCE MATERIAL, never by these pages. The "
+            "LessonKit alignment/pen tools the example loads are shell-owned: "
+            "the shell hands every generated page the same kit through "
+            "zivon.js and calls it for you - never copy or re-implement them "
+            "in a page."
         )
         parts.append(examples_text(cfg))
     block = "\n\n".join(parts)

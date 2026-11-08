@@ -45,7 +45,9 @@ def run(
     interactive: dict[str, Any],
 ) -> dict[str, Any]:
     slug = slugify(lesson["title"])
-    course_id = f"class-{cfg.learner['class_level']}-physics"
+    # The course folder follows the class of the chapter actually located -
+    # the topic decides where it lives, never a config value (2026-11-06).
+    course_id = f"class-{source_pack['chapter']['class']}-physics"
 
     page_js = "\n\n".join(
         out["files"].get("page.js", "")
@@ -99,7 +101,7 @@ def run(
 
     manifest = {
         "course_id": course_id,
-        "class": cfg.learner["class_level"],
+        "class": source_pack["chapter"]["class"],
         "topic_slug": slug,
         "title": lesson["title"],
         "chapter": {
@@ -222,6 +224,7 @@ def _render_simulation(b: dict[str, Any]) -> str:
         f'    <div class="zn-sim-controls">\n{controls}\n    </div>\n'
         f'    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" '
         f'height="320" tabindex="0" aria-label="{_esc(spec.get("title", ""))} drawing"></canvas></div>\n'
+        f'    <p class="zn-sim-read" aria-live="polite"></p>\n'
         f'    <p class="zn-sim-desc">{_esc(spec.get("description", ""))}</p>\n'
         "  </section>"
     )
@@ -244,6 +247,19 @@ def _page_html(
     )
     page_js_tag = '<script src="page.js"></script>' if has_page_js else ""
     page_css_tag = '<link rel="stylesheet" href="page.css">' if has_page_css else ""
+    # Doctrine §10.5: the language bar is required on every lesson page and is
+    # renderer-owned kit chrome (the 2026-11-08 09-design probes flagged its
+    # absence as a major on every generated page). Switching behaviour beyond
+    # chrome is shell-owned per the doctrine example's note.
+    lang_bar = (
+        '<header class="zn-lang-bar"><div class="zn-lang-in">'
+        '<span class="zn-lang-lab">Language</span>'
+        '<div class="zn-lang-row" role="radiogroup" aria-label="Language">'
+        '<button type="button" class="zn-chip" role="radio" aria-checked="true">English</button>'
+        '<button type="button" class="zn-chip" role="radio" aria-checked="false">हिन्दी</button>'
+        '<button type="button" class="zn-chip" role="radio" aria-checked="false">Hinglish</button>'
+        "</div></div></header>"
+    )
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -255,6 +271,7 @@ def _page_html(
 {page_css_tag}
 </head>
 <body>
+{lang_bar}
 <main class="zn-page">
   <header class="zn-header">
     <p class="zn-kicker">{_esc(course_id)}</p>

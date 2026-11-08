@@ -2,7 +2,9 @@
 
 Two searches, per the founder's spec:
 1. EXACT search in NCERT: every cached NCERT chapter file's opening pages are
-   matched against the user's chapter name (normalised title equivalence).
+   matched against the user's chapter name (normalised title equivalence on
+   TITLE CANDIDATES only - body prose can never claim an exact hit; a
+   body-phrase-only match is a demoted partial, reported loudly).
    Ambiguity is a hard error that lists the candidates; `--class` resolves it.
 2. VECTOR search over the other PDFs' index: sentence-transformers embeddings
    of overlapping chunks from every OTHER book (alternates first, then other
@@ -116,6 +118,7 @@ def run(
             "file": match["file"],
             "pages": [pages[0]["page"], pages[-1]["page"]],
             "matched_line": match["matched_line"],
+            "matched_via": match["matched_via"],
         },
         "ncert_text": ncert_text,
         "ncert_text_truncated": truncated,
@@ -140,50 +143,90 @@ def _load_pages(cfg: Config, ch: dict[str, Any]) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _opening_lines(pages: list[dict[str, Any]]) -> list[str]:
-    """Candidate title lines from the first three pages, including the
-    'CHAPTER N' + next-line join that NCERT chapter openers use."""
+_CHAPTER_LINE = re.compile(r"(?i)^chapter\s+(?:\d+|[a-z]+)\s*$")
+_CHAPTER_INLINE = re.compile(r"(?i)^chapter\s+(?:\d+|[a-z]+)\s+(.+)$")
+
+
+def _looks_like_title(s: str) -> bool:
+    """A line that could BE a chapter title, not prose about one. NCERT prints
+    chapter titles in display caps; body sentences are long and mixed-case.
+    Without this filter a Newton's-first-law sentence ('...continues in uniform
+    motion in a straight line unless compelled...') matches a chapter query -
+    the 2026-11-05 contamination where 'Motion in a Straight Line' (class 11)
+    silently pulled the LAWS OF MOTION chapter."""
+    words = s.split()
+    if not (1 <= len(words) <= 8) or len(s) > 70:
+        return False
+    if s.endswith((".", ",", ";", ":")):
+        return False
+    letters = [c for c in s if c.isalpha()]
+    if not letters:
+        return False
+    return sum(c.isupper() for c in letters) >= len(letters) * 0.7
+
+
+def _title_candidates(pages: list[dict[str, Any]]) -> list[str]:
+    """Title-shaped lines from a chapter's opening pages: the line after a
+    'CHAPTER N' line (NCERT prints chapter numbers as words - 'CHAPTER TWO'),
+    an inline 'CHAPTER N Title', and standalone title-shaped lines - the clean
+    title the opener's contents block prints, e.g. 'MOTION IN A STRAIGHT LINE
+    15'. Display-type fragments ('M', 'OTION IN A') may appear here; they are
+    harmless because a corrupted fragment can never contain the full query."""
     blob = "\n".join(p["text"] for p in pages[:3])
     lines = [raw.strip() for raw in blob.splitlines() if raw.strip()]
-    joined: list[str] = list(lines)
+    out: list[str] = []
     for i, s in enumerate(lines):
-        if re.fullmatch(r"(?i)chapter\s*\d+", s) and i + 1 < len(lines):
-            joined.append(f"{s} {lines[i + 1]}")
-    return joined
+        m = _CHAPTER_INLINE.match(s)
+        if m:
+            out.append(m.group(1).strip())
+        elif _CHAPTER_LINE.match(s) and i + 1 < len(lines):
+            out.append(lines[i + 1])
+    out.extend(s for s in lines if _looks_like_title(s))
+    return out
+
+
+def _clean_title(line: str) -> str:
+    """Drop the trailing book-page number NCERT opener/contents lines carry
+    ('MOTION IN A STRAIGHT LINE 15' -> 'MOTION IN A STRAIGHT LINE')."""
+    return re.sub(r"\s+\d{1,4}$", "", line).strip()
 
 
 def _match_ncert_chapter(
     cfg: Config, query: str, ncert_books: list[dict[str, Any]]
 ) -> dict[str, Any]:
+    """Chapter matching contract (rewritten 2026-11-05 after the founder's
+    contamination incident): EXACT means a TITLE CANDIDATE (a title-shaped line
+    from the chapter opener, never body prose) is title-equivalent to the query.
+    A phrase that only appears in a chapter's BODY prose is a demoted PARTIAL -
+    it can win only when no title matches anywhere, and it is reported loudly
+    with its evidence so the operator can confirm. The old code let a body
+    sentence fabricate an exact hit (found = query -> always 'exact'), which
+    beat the real title match and silently built the wrong chapter's page."""
     exact: list[dict[str, Any]] = []
     partial: list[dict[str, Any]] = []
+    nq = normalize_title(query)
     for book in ncert_books:
         for ch in book["chapters"]:
             pages = _load_pages(cfg, ch)
             if not pages:
                 continue
-            found = None
-            for line in _opening_lines(pages):
-                if titles_equivalent(query, line):
-                    found = line
-                    break
-            if found is None:
-                nq = normalize_title(query)
-                blob3 = normalize_title("\n".join(p["text"] for p in pages[:3]))
-                if nq and nq in blob3:
-                    found = ch.get("title_detected") or query
-            if found is None:
+            hit_line = next(
+                (c for c in _title_candidates(pages) if titles_equivalent(query, c)),
+                None,
+            )
+            if hit_line is not None:
+                exact.append(
+                    _chapter_hit(
+                        book, ch, _clean_title(hit_line), hit_line, "title_line"
+                    )
+                )
                 continue
-            hit = {
-                "title": ch.get("title_detected") or found,
-                "matched_line": found,
-                "book_id": book["id"],
-                "book_title": book["title"],
-                "class": book["class"],
-                "file": ch["pdf"],
-                "exact": normalize_title(query) == normalize_title(found),
-            }
-            (exact if hit["exact"] else partial).append(hit)
+            if nq and nq in normalize_title("\n".join(p["text"] for p in pages)):
+                cands = _title_candidates(pages)
+                title = ch.get("title_detected") or (
+                    _clean_title(cands[0]) if cands else f"chapter {ch['n']}"
+                )
+                partial.append(_chapter_hit(book, ch, title, None, "body_phrase"))
 
     if exact:
         if len(exact) == 1:
@@ -197,7 +240,14 @@ def _match_ncert_chapter(
             + ". Re-run with --class <n> to disambiguate.",
         )
     if len(partial) == 1:
-        return partial[0]
+        hit = partial[0]
+        print(
+            f"    [loud] {STAGE_ID}: no chapter TITLE matches '{query}'; the phrase "
+            f"appears in the BODY of '{hit['title']}' ({hit['book_title']}, class "
+            f"{hit['class']}) - verify this is the chapter you meant, or re-run with "
+            "an exact chapter title."
+        )
+        return hit
     if partial:
         raise SourceError(
             STAGE_ID,
@@ -212,10 +262,35 @@ def _match_ncert_chapter(
         f"'{query}' matches no NCERT chapter in the cached library. Check the spelling, "
         "or extend sources/catalog.json. Cached chapter titles: "
         + ", ".join(
-            ch.get("title_detected") or f"ch{ch['n']:02d}"
-            for b in ncert_books
-            for ch in b["chapters"]
+            _library_title(cfg, ch) for b in ncert_books for ch in b["chapters"]
         ),
+    )
+
+
+def _chapter_hit(
+    book: dict[str, Any],
+    ch: dict[str, Any],
+    title: str,
+    matched_line: str | None,
+    via: str,
+) -> dict[str, Any]:
+    return {
+        "title": title,
+        "matched_line": matched_line,
+        "matched_via": via,
+        "book_id": book["id"],
+        "book_title": book["title"],
+        "class": book["class"],
+        "file": ch["pdf"],
+    }
+
+
+def _library_title(cfg: Config, ch: dict[str, Any]) -> str:
+    """Best display name for a chapter in error messages."""
+    pages = _load_pages(cfg, ch)
+    cands = _title_candidates(pages) if pages else []
+    return ch.get("title_detected") or (
+        _clean_title(cands[0]) if cands else f"ch{ch['n']:02d}"
     )
 
 

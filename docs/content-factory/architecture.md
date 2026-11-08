@@ -4,6 +4,8 @@ Status: v1 implemented 2026-11-01; **graph v2 decided and implemented
 2026-11-03** after the first measured runs (founder decisions: consolidate the
 reasoning layer into one giant call; whatever agent catches an issue is the
 one that fixes it; runs must be resumable). Branch `feature/content-factory-pipeline`.
+Model calls were moved onto the shared **llm_manager** module with streaming
+transport on 2026-11-07 (see "Model calls: the llm_manager node" below).
 Owner workstream: the build-time content factory. Voice runtime is out of scope here.
 
 ## What one command does
@@ -31,17 +33,18 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
 | 02 | generate | factory/agents.py | **ONE giant model call** (Curator+Synthesizer+Designer in one); rule checks run inside the retry loop; gets the live design doctrine + palette | {ground_truth, lesson, blocks} in one JSON object (schema `GENERATED`) |
 | 03 | check | factory/agents.py + factory/checks.py | model + code | combined verdict + issues with a fixed severity ladder; blocking (fatal/major) routes to 04 |
-| 04 | repair | factory/agents.py (catcher) | model, ≤ repair.content_rounds | replacement blocks for the flagged issues only (merged by id); recheck per round |
+| 04 | repair | factory/agents.py (catcher) | model, progress-aware loop: keeps going while the blocking score improves, stops at `repair.stall_rounds` no-progress rechecks or the `repair.content_rounds` cap | replacement blocks for the flagged issues only (merged by id); recheck per round |
 | 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 06 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
-| 08 | fixloop | factory/fixloop.py | model, up to perf.fix_rounds; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
-| 09 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine + lesson-page example | final verdict report (a fail verdict routes to 10, it does not raise) |
-| 10 | reviewfix | factory/reviewfix.py (catcher) | model, ≤ repair.code_rounds; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round |
+| 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
+| 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
+| 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
-Happy path costs 3 model calls + one per simulation (generate, check, review).
-Catcher calls happen only when a gate finds something.
+Happy path costs 4 model calls + one per simulation (generate, check,
+review-facts, review-design). Catcher calls happen only when a gate finds
+something.
 
 Mapping to the six agents in AGENTS.md: 00+01 = Curator; 02-generate =
 Synthesizer (+ instructional design in the same call); 03 = Comprehension &
@@ -54,6 +57,18 @@ rubbers-stamps its own work. 03 and 09 are independent model calls; only the
 reasoning layer was consolidated. **Why sim code stays a separate per-sim
 call (05):** its lint feedback loop is per-simulation — folding sim code into
 the giant call would make every lint violation re-generate the whole page.
+
+**Why 09-review is two calls (2026-11-08 founder decision):** the single giant
+review call asked one model to hold specs + facts + manifest + all page files
++ doctrine + example and self-plan a six-step review; even with a bounded
+procedure it thought 24k–130k tokens per pass and the 09↔10 catcher plateaued
+on it. Each call now carries only the context its checks need (facts: specs +
+cited facts + files; design: compact block inventory + files + doctrine +
+example), outputs issues only, and the verdict rule — fail iff any fatal —
+moved from prompt prose into harness code. The manifest is no longer sent to
+either call: it is mechanical page metadata whose traceability the static
+checks enforce; both calls get a 3-line identity header instead. Evidence:
+`skills/prompting-and-agent-design/references/sources-and-evidence.md`.
 
 ## Interface between stages
 
@@ -73,31 +88,58 @@ round overwrites another's evidence, and each check round also lands as
 `03-check/combined-<round>.json`.
 
 **Fingerprint guard:** `status.json` carries a fingerprint of the run's inputs
-(pipeline version, chapter, class, model, limits/retrieval/repair/learner
-config). Reopening a run whose fingerprint differs raises a ConfigError telling
-the operator to pass `--fresh` (or pick another `--run-id`) — stage artifacts
-of two different pipeline shapes are never mixed silently.
+(pipeline version, chapter, class, model, limits/retrieval/learner config).
+Repair round caps are deliberately NOT in the payload (2026-11-06): they are
+runtime policy, not artifact semantics — a draft repaired in 2 rounds is just
+as valid under a more generous catcher, so tuning the caps must not invalidate
+good generated work. Reopening a run whose fingerprint differs raises a
+ConfigError telling the operator to pass `--fresh` (or pick another `--run-id`)
+— stage artifacts of two different pipeline shapes are never mixed silently.
 
 ## Failure semantics (no silent fallbacks, no whole-pipeline re-runs)
 
-- A gate failure routes to ITS catcher, bounded, inside the same run:
-  03-check blocking issues (any fatal/major from model or rules) → 04-repair
-  regenerates ONLY the flagged blocks → 03-check re-runs in full; after
-  `repair.content_rounds` rounds without convergence the run fails with the
-  verdict history. 09-review fail → 10-reviewfix replaces topic files → 09
-  re-reviews; after `repair.code_rounds` rounds it fails. A topic-page perf
-  miss from 07 is raised as a *fixable* BudgetError and handed to 08-fixloop
-  (this routing predates v2 and is its template). An unfixable perf miss (the
-  landing page / shared assets) stops the run immediately — the fix loops only
-  touch topic-local files.
+- A gate failure routes to ITS catcher, inside the same run. Catchers are
+  **progress-aware loops** (founder decision 2026-11-06 — the pipeline is
+  continuous improvement, not a one-shot exam): they keep repairing while the
+  severity-weighted blocking score (fatal=2, major=1) improves, and stop at a
+  genuine plateau (`repair.stall_rounds` consecutive no-improvement rechecks)
+  or a generous safety cap (`repair.content_rounds` / `repair.code_rounds` /
+  `perf.fix_rounds`) — never at a blind small count. 03-check blocking issues
+  (any fatal/major from model or rules) → 04-repair regenerates ONLY the
+  flagged blocks → 03-check re-runs in full. 09-review fail → 10-reviewfix
+  replaces topic files → 09 re-reviews. A topic-page perf miss from 07 is
+  raised as a *fixable* BudgetError and handed to 08-fixloop (this routing
+  predates v2 and is its template). An unfixable perf miss (the landing page /
+  shared assets) stops the run immediately — the fix loops only touch
+  topic-local files. A fix that itself breaks a hard lint, touches a
+  renderer-owned file, or regresses the perf budget costs a ROUND, not the
+  run: the exact failure is fed into the next round's prompt so the fixer
+  repairs its own fix. When a catcher does stop (plateau or cap), it fails
+  loudly with the round history, the reason, and the resume hint — re-trigger
+  the same chapter+class and the catcher runs again with a fresh budget
+  against the kept repaired draft.
 - Upstream stages never re-run when a downstream gate complains: 02-generate's
   output is reused across check/repair rounds; a run that dies at 03 keeps its
   00-02 artifacts on disk and a re-trigger resumes from them. The factory Job
   has `backoffLimit: 0` — a Job-level whole-pod retry is never sanctioned;
   recovery is re-running the trigger script, which resumes.
 - Model output must parse as JSON and validate against factory/schemas.py.
-  Validation failures are retried with the error report fed back; after
-  `ZIVON_MAX_ATTEMPTS` the stage fails with SchemaError.
+  Validation failures are retried with the error report fed back, each failure
+  getting its own **validation round** (`ZIVON_VALIDATION_ROUNDS`, default 5) —
+  a budget separate from the transport retries (`ZIVON_MAX_ATTEMPTS`, 2026-11-06
+  founder decision: a thinking model is not expected to one-shot a giant JSON).
+  After all validation rounds the stage fails with SchemaError. The feedback
+  turn is compact by contract (2026-11-05): each violation is reported as
+  `at '<path>': expected <what>, got <what arrived>` — never jsonschema's
+  default message, which embeds the whole rejected instance (once a 55k-char
+  repr of 70 blocks; the retry transcript ballooned 110k → 243k characters).
+  The best-match violation plus up to 3 more are reported in ONE turn, so the
+  model fixes every shape problem per retry instead of burning a 50-minute
+  attempt per error. Only the LATEST rejected output is kept in full in the
+  transcript; older ones are trimmed to a stub, so a chain of validation
+  rounds cannot eat the server's context. Since 2026-11-07 this machinery
+  lives in `llm_manager/validation.py` (reusable by any consumer); the
+  factory adapter supplies the artifacts and the stage errors.
 - 02-generate runs the code-side rule checks (factory/checks.py) inside the
   model retry loop: the model sees its own fatal/major rule violations
   (invented number, uncited factual block, broken answer key) and fixes them.
@@ -113,9 +155,10 @@ of two different pipeline shapes are never mixed silently.
   spell out — advisory, never blocks. `unverified:` suspicions can never be
   filed as fatal/major. The reviewer is told to hunt REAL errors and pass a
   faithful draft — the v1 "assume there is at least one error" framing is gone.
-- Network errors / 429 / 5xx retry with backoff; any other HTTP error fails
-  immediately with the server's body (a 400 about response_format tells you to
-  set `ZIVON_JSON_MODE=false`).
+- Network errors / inactivity timeouts / 429 / 5xx retry with backoff; any
+  other HTTP error fails immediately with the server's body (a 400 about
+  response_format tells you to set `ZIVON_JSON_MODE=false`, one about
+  stream_options to set `ZIVON_STREAM_USAGE=false`).
 - Unknown config keys, missing class-evidence strings, wrong PDFs, ambiguous
   chapter names, answer-key mismatches, invented numbers, external URLs,
   inline scripts: all hard errors.
@@ -123,6 +166,14 @@ of two different pipeline shapes are never mixed silently.
   entry marked `chapters_verified: false` ends that book's chapter list at the
   last good file, prints it, and records `truncated_at` in the output. This
   exists because NCERT books simply end; it is loud, never silent.
+- Network-level failure tolerance (founder call 2026-11-08, NCERT netblock
+  outage mid-run): a connect timeout / unreachable host is NOT treated as a
+  404. If the book already yielded at least one extracted chapter, the book's
+  list truncates at the failed chapter exactly like the 404 case (loudly,
+  `truncated_at` recorded) — a chapter already in the cache must not be killed
+  by the host falling over. With zero chapters cached for the book it stays
+  fatal: nothing to teach from. Whether the run's *required* chapter survived
+  is decided by 01-locate, which fails loudly when no source covers it.
 
 ## Source extraction (stage 00)
 
@@ -145,6 +196,29 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   PUBLIC certificates — no private keys; safe for a public repo by design.
   Operational note: when NCERT renews its leaf certificate, refresh the bundle
   (fetch chain → replace file) or the polite retry path keeps failing.
+
+## Chapter matching (stage 01)
+
+The matching contract was rewritten 2026-11-05 after the founder's killed
+class-11 run: the query "Motion in a Straight Line" silently built a LAWS OF
+MOTION page. Two harness bugs caused it, not the model:
+
+- EXACT means a TITLE CANDIDATE matches. Candidates are title-shaped lines
+  from the chapter opener (the line after a `CHAPTER <number-or-word>` line,
+  an inline `CHAPTER N Title`, or a standalone display-caps line like the
+  real NCERT opener's `MOTION IN A STRAIGHT LINE 15` - trailing book-page
+  numbers are stripped). Body prose can never claim an exact hit: the old
+  code's blob fallback matched a Newton's-first-law sentence in the LAWS OF
+  MOTION chapter, set `found = query` (which made it always "exact"), and
+  that fake hit beat the real chapter's title match (whose trailing page
+  number had broken its `==` comparison).
+- A phrase that only appears in a chapter's BODY is a demoted PARTIAL: it can
+  win only when no title matches anywhere, and it prints a loud warning
+  naming the chapter and demanding the operator verify the pick. The source
+  pack records `matched_via` (`title_line` / `body_phrase`) so the evidence
+  says how the chapter was chosen.
+- Ambiguity stays a hard error listing the candidates; the no-match error
+  lists the library's chapter titles.
 
 ## Traceability and accuracy rules
 
@@ -176,6 +250,14 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   dropped), 03-check reports omissions as fatal, and 04-repair fixes them by
   ADDING blocks (new ids appended at the end, teach-then-test, last added
   block a check) - never by re-running 02.
+- The coverage budget, reconciled 2026-11-05: the block sequence holds 4-45
+  blocks and the prompt states exactly that (schema `maxItems` and the prompt
+  may never contradict each other - the original 18-block cap clashed with the
+  coverage contract and a model squeezed between them wrote 70 blocks). When a
+  chapter's inventory is larger than the budget, same-type repetitive drills
+  fold into their most instructive instance: every concept and every exercise
+  TYPE must appear; identical repetitions may share one block. 03-check's
+  coverage gate uses the same type-level law.
 - Simulations are physics, so the facts travel with them: 05 receives the
   block's cited claims plus every ground-truth equation ("FACTS THE
   SIMULATION MUST OBEY"), and 09-review re-checks the FINAL draw loop against
@@ -186,6 +268,14 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   inventing.
 - Block payloads live under `spec` everywhere (AGENTS.md format), which
   resolves the AGENTS.md-vs-TIMELINE.md schema contradiction.
+- The 02-generate SHAPE example IS the contract (fixed 2026-11-05): it must
+  show exactly what the GENERATED schema requires - `blocks` is an object
+  whose single key `blocks` holds the ordered array (the wrapper is the
+  canonical artifact shape across render/interactive/review). In the killed
+  class-11 run the example showed a flat array while the schema required the
+  wrapper; the model obeyed the example and died on validation twice. A unit
+  test now pins the example's wrapper form and the prompt-stated budget to
+  the schema's `maxItems`.
 - Prompt WRITING follows `skills/prompting-and-agent-design/` (2026-11-04):
   generation prompts are goal + deliverable contract, not execution plans;
   reviewers get honest framing, an exact severity ladder and a way out
@@ -194,7 +284,112 @@ Page text is extracted with pdfplumber (pdfminer engine), not raw pypdf:
   needs to judge - including the lesson text at 03-check, so "taught before
   tested" is verifiable.
 
-## Observability (2026-11-04)
+## Model calls: the llm_manager node (2026-11-07)
+
+Why this exists: on 2026-11-07 a factory run died at stage 10-reviewfix. The
+inference server kept generating tokens for 3,592 s per attempt (77,921 then
+131,445 then 199,056 tokens across three transport tries) while the client
+sat silent and read-timed-out at 3,600 s each time. The old client's
+`requests` timeout is a per-read-operation timeout, not a total cap, and a
+non-streaming response sends zero bytes until generation ends - so a rambling
+generation was unkillable, and every transport retry re-bought the same
+lottery while the single server slot burned.
+
+The fix is structural, and it lives in a standalone package plus its own
+deployment node:
+
+- **`llm_manager/` (library)** - the single, generalized model-call module:
+  `config.py` (LLMConfig: every knob is an input variable), `client.py`
+  (LLMManager: `complete()` / `stream()` / `stream_events()`),
+  `validation.py` (parse + schema rounds with errors-as-context feedback),
+  `errors.py`. It imports NOTHING from `factory/` (guarded by a test),
+  prints nothing (observer hooks instead), never counts tokens locally (the
+  server's reported usage only), and owns retry semantics itself
+  (`max_retries=0` is mandatory on the underlying langchain client so there
+  is exactly one retry policy).
+- **`llm_manager/service/` (the node)** - the same package behind a small
+  FastAPI app speaking plain OpenAI chat-completions (`POST
+  /v1/chat/completions`, aggregated or SSE; `GET /healthz` is process-only
+  and never calls the model). Policy lives on the node, not in request
+  bodies: JSON mode and the model are the node's configured behavior, and a
+  body `model` naming a DIFFERENT model is refused with a 400 that names both
+  models (a mismatch is a misconfiguration; silently answering with the
+  node's model would hide it). Shipped as its own slim image
+  (`Dockerfile.llm-manager`, no torch/pdfplumber/playwright) and deployed as
+  an isolated Deployment + Service (`k8s/16-llm-manager.yaml`, ClusterIP).
+
+Call topology (who talks to whom):
+
+    factory Job -> llm-manager Service -> inference-router (dev) -> server
+
+Every consumer points its `ZIVON_BASE_URL` at the node and speaks OpenAI
+format; the node is the only caller of the inference server. That is why a
+future translation service needs zero new plumbing (same env contract), and
+why the voice agent stays out of scope here (voice streaming is a different
+domain).
+
+**Streaming semantics (the honest timeouts):**
+
+- Model calls stream by default (`ZIVON_STREAM=true`): bytes flow as tokens
+  are generated. `ZIVON_TIMEOUT_S` therefore means the maximum INACTIVITY
+  between chunks - a thinking model legitimately silent before its first
+  token keeps the call alive only up to the inactivity bound; a dead server
+  is detected honestly; a generating server is never mistaken for a hung
+  one. With `stream=false` the old per-read-operation semantics apply (and
+  bound nothing) - the non-streaming path is kept working, not shipped as
+  the default.
+- `ZIVON_CALL_DEADLINE_S` (cluster default 7200) is a total wall-clock cap
+  per model call, checked on every chunk. On breach the stream is CLOSED
+  mid-generation - closing the connection is what makes the server stop
+  generating and frees its single slot - and a TransportError names the
+  deadline and the chunk count. This is the knob that bounds a runaway
+  generation even when every token keeps arriving on time.
+- Transport retries (`ZIVON_MAX_ATTEMPTS`, exponential backoff
+  `ZIVON_BACKOFF_BASE_S`) cover connection errors, inactivity timeouts, 429
+  and 5xx. A retry restarts the WHOLE response; on the incremental API
+  (`stream_events`) a failure after deltas were already delivered propagates
+  instead of silently restarting (duplicated text is worse than a loud
+  error).
+- Retries live at the node: the factory's cluster ConfigMap ships
+  `ZIVON_MAX_ATTEMPTS=1` for its leg because the node already retried the
+  upstream leg - without that split, one dead upstream would fan out into
+  node-attempts x factory-attempts calls.
+- **Keepalives on the node's downstream leg (review fix 2026-11-07):** the
+  Strata server streams thinking as `reasoning_content` deltas (probe-
+  confirmed), and llm_manager deliberately does not re-emit them as content.
+  A long thinking phase would therefore leave the node's SSE response silent
+  while the upstream is healthily busy - so the node emits SSE comment
+  keepalives (`: keepalive`) on its heartbeat cadence whenever the upstream
+  yields nothing re-emittable. OpenAI-format parsers ignore comment lines per
+  spec; the bytes keep the caller's inactivity timeout honest about what it
+  is really waiting for.
+- **Server-reported failure (terminal, message preserved):** an OpenAI-format
+  server may answer HTTP 200 and put the failure INSIDE the stream as an SSE
+  error payload (`{"error": {...}}` - llama.cpp context-overflow style; the
+  node relays its own exhausted upstream exactly this way). The openai SDK
+  raises a bare `openai.APIError` for such a payload; llm_manager maps it to
+  a TransportError carrying the server's own words verbatim (they already
+  name the fix when there is one) and does NOT retry - "the server says it
+  failed" is terminal.
+
+**Factory adapter (`factory/llm.py`):** a thin layer keeping every existing
+contract - same public API, same artifacts
+(`attempts/[<round_tag>/]attempt-NN/{request,response,meta}.json`, with
+additive streaming evidence in meta.json: `stream`, `first_token_s`,
+`chunks_received`, `call_deadline_s`, `finish_reason`), same error types
+(llm_manager failures surface as the same ModelCallError / SchemaError with
+their message shapes), same prints upgraded for streaming: the heartbeat now
+shows REAL progress (`N chunks received`), so "thinking, no tokens yet" and
+"streaming steadily" are visibly different states in the log. Validation
+rounds run in-process via `llm_manager.validation.run_validation_rounds` -
+only the LATEST rejected output stays in full in the retry transcript; older
+ones are trimmed to 1200 chars (their full text is in the attempt artifacts).
+
+No completion cap is ever sent (2026-11-04 founder decision, unchanged):
+`max_tokens` is a constructor-only knob in LLMConfig with NO environment
+variable - the factory never sets it; future consumers may, from code.
+
+## Observability (2026-11-04, streaming upgrade 2026-11-07)
 
 The 2026-11-04 stall diagnosis - a legitimate giant 02-generate call ran while
 the log stayed silent for its whole duration - added a heartbeat layer. The
@@ -202,17 +397,49 @@ next slow run is diagnosable from the log alone:
 
 - Every stage transition prints a live line: `[02-generate] starting` /
   `[02-generate] ok in 84.2s (claims=12 blocks=15)`.
-- Every model call is bracketed: `model call started (attempt 1/3...)`, then
-  while it is in flight a heartbeat every 60 s (`still waiting on the model
-  (60s on this attempt...)`), then `model call finished in Xs
-  (prompt_tokens=..., completion_tokens=...)`. A thinking model legitimately
-  grinding for ten minutes now looks like work, not like a hang.
+- Every model call is bracketed: `model call started (validation round
+  1/5...)`, then while it is in flight a heartbeat every 60 s (`still
+  waiting on the model (60s, 42 chunks received...)`), then `model call
+  finished in Xs (prompt_tokens=..., completion_tokens=...)`. A thinking
+  model legitimately grinding for ten minutes now looks like work, not like
+  a hang - and the chunk counter distinguishes "thinking, no tokens yet"
+  from "streaming steadily".
 - Rejected attempts print too (`attempt 2 rejected: ... -> retrying with the
   error fed back to the model`), so gate retries are visible.
+- `meta.json` records `finish_reason` per attempt (2026-11-05; it used to be
+  discarded, so a server-side context-limit truncation looked like a
+  mysterious parse failure). A `length` cut is rejected with plain advice
+  ("make the page more compact") instead of letting the model chase a broken
+  JSON error.
 - `status.json` stage entries carry `elapsed_s`; `run_report.json` aggregates
   `stage_durations_s` per stage (multi-round stages accumulate across rounds,
   resumed stages inherit their previous attempt's measurement) plus
   `started_at` / `completed_at`.
+
+Ledgers (2026-11-08, founder's logging ask): the progress lines answer "is
+the job alive"; the ledgers answer "what are the agents actually failing at",
+which is what prompting fixes need. Two append-only JSONL files per run:
+
+- `calls_ledger.jsonl` — one line per model attempt: `answered` (latency,
+  time-to-first-content as the thinking proxy, token usage, finish reason),
+  `rejected` (the exact violation fed back), or `transport-failure` (last
+  heartbeat + error class). A mid-call death now writes `meta.json` too —
+  previously only `request.json` survived, so a killed call left no evidence
+  of how long it ran or where it died.
+- `issues_ledger.jsonl` — one line per reviewer-found issue (stage, call,
+  severity, category, block, unverified flag). 09-review's issues carry a
+  category from a fixed enum (`answer_key`, `fact`, `drawn_behaviour`,
+  `inconsistency`, `visual_language`, `frame`, `accessibility`, `rendering`,
+  `other`); 03-check's issues aggregate as `content` until its prompt gains
+  the field.
+
+`run_report.json` rolls both up (`model_call_stats`, `issues_found`), and
+`scripts/issue_report.py` aggregates them across runs: per-stage call stats
+(thinking seconds, max completion tokens, `length` cuts — the thinking-loop
+signature), issue counts by stage/severity/category, and recurring findings
+(the same block+class across catcher rounds, i.e. the plateau signature).
+Run it against the host mirror: `scripts/publish-artifacts.sh` then
+`python3 scripts/issue_report.py`.
 
 ## Resume and freshness
 
@@ -225,12 +452,29 @@ next slow run is diagnosable from the log alone:
 - `--run-id` keeps parallel attempts of the same topic (each its own dir).
 - In the cluster, `runs/` lives on the `zivon-sources` PVC (subPath `runs`), so
   stage artifacts — and every attempt's evidence — survive pod death.
+- `PIPELINE_VERSION` (factory/stages.py) is part of the fingerprint. It is
+  bumped whenever stage contracts change, so a run dir built under the old
+  contract can never be resumed silently into new code — the guard refuses it
+  and says to pass `--fresh`. It is 7 since 2026-11-09 (the kit-refactor's
+  lint contract: `lint_page_css_scope` rejects model-authored page.css that
+  sizes the canvas or re-styles kit classes — and a completed 0.3.13-era run
+  resumable under v6 failed deep in 06-render on exactly that; first
+  `--fresh` on the cloud model re-proved the end-to-end loop). Version-6
+  dirs are therefore refused (re-trigger with `--fresh`).
+- The learner class is per-run input, never config (founder decision
+  2026-11-06): `config.json` carries no `learner.class_level` at all - a
+  config default for a per-run value is a hardcode. `--class` pre-sets the
+  class before the fingerprint; without it, `01-locate`'s chapter supplies it
+  (loud print). Consequence: every version-4 run dir - built while a config
+  default class leaked into its prompts and fingerprint - is refused on
+  resume; re-trigger those chapters with `--fresh`.
 
 ## Privacy
 
-The pipeline takes no learner data as input. The only learner-related setting
-is `learner.class_level` (a number) and `learner.language`. Run artifacts
-contain source text, prompts and model output only.
+The pipeline takes no learner data as input. The only learner-related config
+left is `learner.language`; the learner CLASS is per-run input (`--class` or
+the located chapter), never a stored value. Run artifacts contain source text,
+prompts and model output only.
 
 ## Rendering and frontend layering
 
@@ -261,11 +505,21 @@ how a finished page LOOKS and how COMPLETE it is - their topic, facts and
 questions belong to an unrelated chapter and must never be reused or imitated,
 and content coverage is dictated by the source material, never by the
 examples (founder diagnosis 2026-11-04: the old example's plain-simple
-content was bleeding into generated pages). A richer candidate - "example
-lesson page 2", `docs/frontend/candidates/design-doctrine-lesson-example-2.html`,
-full coverage of NCERT ch. 6 - deliberately lives OUTSIDE the glob until the
-founder approves it; approving means moving it into `docs/frontend/`, which
-the glob picks up with zero pipeline changes.
+content was bleeding into generated pages). The candidate "example lesson
+page 2" (full coverage of NCERT ch. 6) was superseded on 2026-11-05: the
+founder had a stronger model rebuild it with sound layout code plus the
+**LessonKit** alignment kit, and that file replaced the live example
+(`docs/frontend/design-doctrine-lesson-example.html`); the candidates folder
+was deleted. The kit is shell-owned: `frontend/assets/zivon.js` carries the
+same LessonKit code, every generated page gets ruled-line alignment, baseline
+normalisation and the title pen underline from the shell, and the loader
+header tells the model the kit is shell-owned and must never be copied into
+a page (doctrine v1.4, §10.2). The founder's same-day second pass (doctrine
+v1.5) externalised the kit as `docs/frontend/lesson-kit.js` beside the example
+(the example guards: no kit loaded, no page; the examples glob is HTML-only on
+purpose, so the kit implementation never enters model context), ruled ONE
+content-width token `--page-w` (47rem) with no per-block max-widths, and fixed
+the vt-diagram labels and the recoil drawing.
 
 - **02-generate** gets the doctrine document (its diagram rules govern the SVGs
   the generation specs) plus the parsed palette; diagrams no longer invent
@@ -275,10 +529,18 @@ the glob picks up with zero pipeline changes.
   finds, the palette, and a medium-translation bridge line: the shell (grid,
   cards, tape, controls) is renderer-built; the model fills one canvas
   simulation inside a paper card, reads the examples for the visual language
-  and never copies their structure.
-- **09-review** gets the doctrine document AND the lesson-page example, plus a
-  checklist item: a clear doctrine violation is major; one that misleads the
-  learner about what moves or what is correct is fatal.
+  and never copies their structure. Since doctrine v1.6 the examples are
+  kit-based demos (they link the same zivon.css/zivon.js the shell ships), so
+  a model that copies their structure gets kit-consistent output by
+  construction; the kit contract is additionally enforced by lint
+  (`lint_page_css_scope`: every page.css selector must be inside the block's
+  `.zn-sim-<id>` scope; canvas sizing declarations are rejected).
+- **09-review-design** (the review split, 2026-11-08) gets the doctrine
+  document AND the lesson-page example, plus a checklist item: a clear
+  doctrine violation is major; one that misleads the learner about what moves
+  or what is correct is fatal. Its sibling call **09-review-facts** checks the
+  page's truth (answer keys, cited facts, drawn behaviour, HTML-vs-JS
+  consistency) and deliberately carries no visual-language context.
 - **08-fixloop** and **10-reviewfix** (2026-11-04) get doctrine + example +
   palette too: they rewrite page code, so they must fix toward the reference
   language, not drift from it while repairing.

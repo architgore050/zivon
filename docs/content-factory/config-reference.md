@@ -17,31 +17,70 @@ variable; production always uses the repo root `config.json`.
 
 ## Server (environment variables)
 
+Since 2026-11-07 model calls run through the shared `llm_manager` module
+(streaming by default; see `llm_manager/README.md` and the architecture doc,
+"Model calls: the llm_manager node"). The same variables configure BOTH
+sides of the topology - the llm-manager node (its upstream is the inference
+router in containers/cluster) and the factory (its upstream is the node in
+the cluster, or the server directly on a local host):
+
+    factory -> llm-manager node -> (inference router) -> inference server
+
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
-| `ZIVON_BASE_URL` | yes | — | OpenAI-format base, e.g. `http://127.0.0.1:8000/v1`. `/chat/completions` is appended. |
+| `ZIVON_BASE_URL` | yes | — | OpenAI-format base, e.g. `http://127.0.0.1:8000/v1`. `/chat/completions` is appended. WHAT it points at depends on the plane: locally the server (or the node on `:18090`); in the cluster the llm-manager Service for the factory, and the router for the node (see `k8s/infra.env`). |
 | `ZIVON_MODEL` | yes | — | Model name exactly as your server reports it (e.g. via `GET /v1/models`). |
-| `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. |
-| `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. |
+| `ZIVON_API_KEY` | no | unset | The key itself. Unset = no Authorization header. Never written to any file or artifact. Read by BOTH the factory leg and the node's upstream leg. |
+| `ZIVON_JSON_MODE` | no | `true` | Send `response_format: {"type": "json_object"}`. If your server rejects it you get a 400 with a hint to set this false — the pipeline never downgrades on its own. On the node this is node policy (a body `response_format` from a consumer is accepted for wire compatibility but ignored); in the cluster the knob is rendered into the llm-manager ConfigMap from `k8s/infra.env` — the 400 hint points THERE, not at the factory side. |
 | `ZIVON_TEMPERATURE` | no | `0.2` | Default sampling temperature (per-stage override below). |
-| `ZIVON_TIMEOUT_S` | no | `3600` | Per-request timeout. Huge on purpose: local single-slot models are slow; the Job deadline is the real backstop. |
-| `ZIVON_MAX_ATTEMPTS` | no | `3` | Retries for network/429/5xx AND for schema-validation feedback loops. |
+| `ZIVON_TIMEOUT_S` | no | `3600` | **SEMANTIC CHANGE 2026-11-07:** with streaming (the default) this is the maximum INACTIVITY between streamed chunks — a generating server keeps the call alive, a dead one is detected honestly after this many silent seconds. With `ZIVON_STREAM=false` it degrades to the classic per-read-operation timeout, which bounds nothing (a non-streaming response sends zero bytes until the end). Huge on purpose; `ZIVON_CALL_DEADLINE_S` (below) is the wall-clock backstop — there is NO wall-clock cap on the run Job itself (2026-11-06 founder decision). |
+| `ZIVON_STREAM` | no | `true` | Streaming model calls. The honest-timeout path; disable only for a server without streaming support. |
+| `ZIVON_STREAM_USAGE` | no | `true` | Ask for usage stats in the final stream chunk (`stream_options.include_usage`). If the server 400s on `stream_options` (the error message says exactly this), set `false`. Probe first — command in the runbook. |
+| `ZIVON_CALL_DEADLINE_S` | no | `0` (= off) | Total wall-clock cap per model call. On breach the stream is CLOSED mid-generation (which makes the server stop generating and frees its slot) and the call fails with a TransportError naming the deadline. The cluster ships `7200` — generous by design; raise only deliberately. This is the fix for the 2026-11-07 runaway generation. |
+| `ZIVON_CONNECT_TIMEOUT_S` | no | `10` | TCP connect timeout. |
+| `ZIVON_MAX_ATTEMPTS` | no | `3` | Transport retries ONLY (connection errors, inactivity timeouts, 429, 5xx), exponential backoff from `ZIVON_BACKOFF_BASE_S`. In the cluster the factory ships `1` (see below). |
+| `ZIVON_BACKOFF_BASE_S` | no | `2.0` | Exponential backoff base (2 → 4 → 8 … seconds). |
+| `ZIVON_VALIDATION_ROUNDS` | no | `5` | The model's own repair budget per stage call: schema/JSON/length/rule failures are fed back (errors-as-context) and retried up to this many rounds, then SchemaError. Separate from the transport budget — the two never consume each other. |
+| `ZIVON_HEARTBEAT_S` | no | `60` | In-flight heartbeat cadence (`still waiting on the model (Ns, N chunks received...)`). |
 
-**No completion cap (2026-11-04 founder decision):** the factory sends no
-`max_tokens` at all. A measured `09-review` call spent 49,750 completion
-tokens (mostly thinking) and then answered correctly - Qwen thinks a lot and
-then gets things right, so any cap is a truncation risk. The server's own
-context budget bounds answer length; `ZIVON_TIMEOUT_S` and the Job deadline
-are the backstops. `.env.example` at the repo root documents the full set. A
-`server` section in `config.json` is now a hard error with a migration hint -
-delete it.
+**No completion cap (2026-11-04 founder decision, unchanged):** the factory
+sends no `max_tokens` at all. A measured `09-review` call spent 49,750
+completion tokens (mostly thinking) and then answered correctly - Qwen thinks
+a lot and then gets things right, so any cap is a truncation risk. The
+2026-11-08 review split did NOT change this law: the measured thinking bloat
+(24k–130k completion tokens per 09-review pass, one call killed mid-thinking)
+was treated as a TASK-SIZE problem - 09-review is now two smaller calls - not
+as a signal to cap thinking. Passage-level reasoning loops are the server's
+domain: the Strata server's opt-in `reasoning_loop_recovery` guard is the
+right lever there (see the dated entry in
+`skills/prompting-and-agent-design/references/sources-and-evidence.md`).
+`max_tokens` exists in `llm_manager.LLMConfig` as a CONSTRUCTOR-ONLY knob
+with no environment variable, so only code can ever set it (a future
+translator may; the factory never does). The server's own context budget,
+`ZIVON_TIMEOUT_S` (inactivity) and `ZIVON_CALL_DEADLINE_S` (per-call wall
+clock) are the backstops; the run Job itself has no deadline (2026-11-06
+founder decision). `.env.example` at the repo root documents
+the full set. A `server` section in `config.json` is a hard error with a
+migration hint - delete it.
+
+**In-cluster retry split (why the factory's `ZIVON_MAX_ATTEMPTS` is `1` in
+its ConfigMap):** transport retries belong to the llm-manager node, which
+already retries the upstream leg. If the factory also retried, one dead
+upstream would fan out into node-attempts x factory-attempts calls. Local
+runs that bypass the node keep the default `3`.
 
 ## learner
 
 | Key | Type | Meaning |
 |---|---|---|
-| `class_level` | int | 6-12. Drives prompts and the course folder (`class-9-physics`). |
 | `language` | str | Only `"en"` in v1 (founder decision 2026-11-01). |
+
+`learner.class_level` was **retired from config** (founder decision
+2026-11-06): a config default for a per-run value is just a hardcode with
+extra steps. The run's class comes from the `--class` flag, or - when it is
+omitted - from the class of the chapter actually located by `01-locate`.
+Prompts and the course folder (`class-N-physics`) follow that real class.
+Putting `class_level` back into `config.json` is a hard error with a hint.
 
 No other learner data may be configured - the pipeline must not learn anything
 about the test participant.
@@ -66,7 +105,7 @@ invalidated automatically when chunks or the model change.
 | `max_chars_ncert_to_model` | int | Cap on the NCERT chapter text sent to the model (120k chars — measured class-9 chapters run 19k–62k, so no chapter is truncated; the 256k-context server handles it. Raise further for long class 11–12 chapters if ever needed). |
 | `max_chars_supplement_each` | int | Cap per supplement chunk. |
 | `max_chars_supplement_total` | int | Cap on all supplements combined. |
-| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected by `factory/design.py`: doctrine text flows into 02/04; doctrine + lesson-page example flow into every stage that writes, reviews or fixes page code — 05/08/09/10 (founder rule, 2026-11-04). Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + lesson example ≈ 36k chars; raised 48000 → 64000 on 2026-11-04 so the richer candidate lesson example 2 (full-chapter coverage, ≈ 43k chars) fits when the founder approves it; raised 64000 → 68000 the same day after the doctrine v1.3 rewrite (typed page + frame-adaptation rules, founder batch) grew the composed swap context to ≈ 66k — verified against the inference server's measured `n_ctx = 262144` tokens, which the worst case (120k-char source pack + 68k design + full generation) fits with room to spare. |
+| `max_chars_design_context` | int | Budget for the design block (doctrine + its example pages) injected by `factory/design.py`: doctrine text flows into 02/04; doctrine + lesson-page example flow into every stage that writes, reviews or fixes page code — 05/08/09/10 (founder rule, 2026-11-04). Over-budget fails loudly with the numbers; never silently truncated. Shipped doctrine + lesson example ≈ 36k chars; raised 48000 → 64000 on 2026-11-04 so the richer candidate lesson example 2 (full-chapter coverage, ≈ 43k chars) fits when the founder approves it; raised 64000 → 68000 the same day after the doctrine v1.3 rewrite (typed page + frame-adaptation rules, founder batch) grew the composed swap context to ≈ 66k; raised 68000 → 80000 on 2026-11-05 when the founder's rebuilt example (sound layout code + the LessonKit alignment kit, ≈ 54k chars) replaced the live example and doctrine v1.4 flowed it - composed ≈ 78.4k; the founder's same-day second pass (doctrine v1.5) externalised the kit from the example (the examples glob is HTML-only, so the kit code never enters context) and brought the composed back to ≈ 68.7k - the cap stays 80000 as headroom for Day-9 doctrine growth. All raises verified against the inference server's measured `n_ctx = 262144` tokens: the worst case (120k-char source pack + 80k design + full generation) fits with room to spare. |
 
 ## paths
 
@@ -85,7 +124,7 @@ generated pages). See architecture.md, "Design doctrine flow".
 | Key | Type | Meaning |
 |---|---|---|
 | `profile` | str | Path to the perf profile JSON used by stages 07, 08 and 10 (see `testing/content_factory/perf/profiles/`; 10 re-measures it after each code fix). |
-| `fix_rounds` | int | Max model fix-and-retest rounds before the perf gate fails the run. |
+| `fix_rounds` | int | Safety cap on model fix-and-retest rounds for 08-fixloop (default 6). The loop is progress-aware: it stops earlier at a genuine plateau (`repair.stall_rounds` no-improvement retests). A fix that breaks lint or touches renderer-owned files consumes a round and is fed back as the next round's assignment. |
 
 The default shipping profile (`weak-android.json`) has its load/FCP budgets
 LOOSENED as of 2026-11-04 (6.0 s / 3.5 s) while first-generation diagnostics
@@ -95,21 +134,30 @@ budgets.
 
 ## repair
 
-Catcher budgets (graph v2, 2026-11-03). Gate failures route to their catcher;
-these knobs bound how many times a catcher may try before the run fails loudly.
+Catcher budgets (progress-aware redesign, founder decision 2026-11-06: the
+pipeline is continuous improvement — a generous cap is a safety valve, the
+real stopper is a state-aware plateau). Catchers keep repairing while the
+severity-weighted blocking score (fatal=2, major=1) improves; they stop at
+`stall_rounds` consecutive no-improvement rechecks (a genuine plateau — more
+of the same repair won't help) or at the generous cap. A fix that itself
+breaks a hard lint, touches a renderer-owned file, or regresses the perf
+budget consumes a round and is fed back as the next round's assignment.
 
 | Key | Type | Meaning |
 |---|---|---|
-| `content_rounds` | int | Max regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
-| `code_rounds` | int | Max replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
+| `content_rounds` | int (1..20) | Safety cap on regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
+| `code_rounds` | int (1..20) | Safety cap on replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
+| `stall_rounds` | int (1..10) | Consecutive no-improvement rechecks/re-reviews/retests that declare a plateau and stop the catcher (with the full history + resume hint). Applies to 04-repair, 08-fixloop and 10-reviewfix. |
 
 ## Resume and fingerprint (no config key — behaviour to know)
 
 Run ids are deterministic per (chapter, class). `status.json` stores a
 fingerprint of `pipeline_version + chapter + class + model + learner +
-retrieval + limits + repair`: editing any of those behaviour sections
-invalidates existing run dirs on purpose — the pipeline refuses to resume a
-mismatched dir and tells you to pass `--fresh` (or pick a new `--run-id`).
+retrieval + limits`: editing any of those behaviour sections invalidates
+existing run dirs on purpose — the pipeline refuses to resume a mismatched
+dir and tells you to pass `--fresh` (or pick a new `--run-id`). Repair round
+caps are NOT in the fingerprint (2026-11-06): they are runtime policy, not
+artifact semantics, so tuning them never invalidates good generated work.
 `--fresh` wipes the previous attempt for that topic before running.
 
 ## stage_overrides
@@ -130,6 +178,7 @@ then read timeouts once budgets grew. The fix (0.2.8) made the global knobs
 effectively non-binding (`ZIVON_MAX_TOKENS=65536`). The 2026-11-04 founder
 decision goes further: **caps removed entirely** — no `max_tokens` is sent at
 all (`ZIVON_MAX_TOKENS` retired from code and `infra.env` too). The server's
-own context budget (256k dev server), `ZIVON_TIMEOUT_S` and the run Job's
-`activeDeadlineSeconds` (2 h) bound the run. Per-stage `temperature` overrides
+own context budget (256k dev server) and `ZIVON_TIMEOUT_S` bound the model
+calls; the run itself carries no wall-clock cap (2026-11-06 founder decision:
+a blind timer must not kill a progressing run). Per-stage `temperature` overrides
 remain for the day a stage needs different sampling.

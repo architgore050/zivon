@@ -15,6 +15,12 @@ The chapter name is searched EXACTLY in the cached NCERT books (by title);
 other catalog PDFs are searched by vector similarity. Ambiguity is an error
 that lists the candidates - pass --class to disambiguate.
 
+--class is also the run's LEARNER class: prompts, the course folder
+(class-N-physics), and the manifest all follow it. config.json carries no
+class at all (founder decision 2026-11-06): when --class is omitted, the
+learner class is the class of the chapter actually located - the topic
+decides, so a class-11 chapter can never be built as a class-9 page.
+
 Run ids are deterministic per (chapter+class): re-running the same topic
 RESUMES the previous attempt (completed stages are reused, a late failure
 never re-derives early ones). --fresh wipes the previous attempt and

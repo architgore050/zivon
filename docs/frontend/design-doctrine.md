@@ -9,6 +9,27 @@ No visual rule changed.
 v1.3 (4 Nov 2026) re-ruled §10 after founder review of the lesson example: **typed page, handwritten accents**
 (typed Courier Prime body on a strict 36 px rhythm; handwriting only on titles, headings, pen underlines and
 annotation arrows/labels; hand-wobble retired from geometry; frame adaptation 360 px → laptop). §1–§9 unchanged.
+v1.4 (5 Nov 2026): the lesson example was rebuilt with sound layout code and the **alignment kit**
+(`LessonKit`) became shell-owned (`frontend/assets/zivon.js`): ruled lines are drawn from measured
+text baselines, never computed; one row token `--row` (rem) replaces fixed 36 px values. §10.2/§10.3/
+§10.5–§10.7 updated to match; §1–§9 unchanged.
+v1.5 (5 Nov 2026): founder's second pass on the rebuilt example - **one content-width token**
+`--page-w` (47rem) and **no per-block max-widths** (every block fills its column); the kit is
+externalised as `lesson-kit.js` beside the example (guard-thrown if missing); diagram labels and the
+recoil drawing fixed. §10.2/§10.3/§10.8 updated; §1–§9 unchanged.
+v1.6 (9 Nov 2026, **the kit refactor** - the founder's building-blocks directive): §10 stops
+re-teaching layout in prose. The shared stylesheet `frontend/assets/zivon.css` + behaviour layer
+`frontend/assets/zivon.js` are now the single standard toolkit (component catalog in the CSS
+header); §10.2/§10.5/§10.6 name the components and the guarantees the kit carries instead of
+re-stating pixel rules. The quiz `<legend>` overflow defect (the border slicing through a wrapped
+question - the founder's screenshot, reproduced in a full pipeline run after any model change) is
+fixed in the kit with the float-legend rule, so all existing pages are repaired by the CSS alone
+without re-render. Model-authored `page.css` is now lens-scoped and canvas-size-free by lint
+(05-interactive rejects re-styling kit components - the 2026-11-08 run's invented `.zn-lang-bar`
+and `.sim-read` rules are exactly that failure). The language bar is renderer-emitted kit chrome
+(§10.5, previously flagged missing on every generated page); next: content i18n. The lesson
+example is rebuilt onto the kit's exact classes and local fonts so models copy component patterns,
+never hand-rolled structure. §1–§9 unchanged.
 Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
 and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
 the look. Second reference implementation, for lesson pages: `design-doctrine-lesson-example.html` (same folder; §10).
@@ -160,37 +181,57 @@ alone - coverage is dictated by the source material.
   tried 1 Nov, rejected - flat paper-light read as the most honest); hand-wobble on geometry (retired
   2026-11-04: jittered rectangles read as defective boxes, not handwriting).
 
-### 10.2 Page grid (36 px rhythm) and frame adaptation
-- The ruled lines are the page grid. Pitch **36 px**, lines per §4 (graphite 40%, 2 px). **Every block on
-  the page is a multiple of 36 px tall**: 36 px line-heights, margins and paddings sum to whole rows (card
-  padding + border = one row: 17+17+1+1), visuals occupy whole rows (diagram box 288 px = 8 rows; simulation
-  box a whole number of rows - 288 px in the shell, 180 px in the examples), one blank ruled row between
-  blocks. Reflow may only then move a block by whole rows, never by 12 or 20 px.
-- Alignment is measured, not assumed: on load, after fonts load, and on every resize the page measures
-  where the text baseline sits in a 36 px line and shifts the ruled background so each rule lies **under the
-  baseline**; the title is nudged (≤18 px) onto a rule too. Fonts and fallbacks align without per-font
-  constants.
+### 10.2 Page grid (one row token) and frame adaptation
+- The kit is the contract (v1.6): every layout guarantee below is implemented
+  once, in `frontend/assets/zivon.css` + `zivon.js`, under the component names
+  the renderer emits (see the catalog in the CSS header). A generated page
+  never re-implements, copies, or re-styles kit chrome - the model writes only
+  inside the `.zn-sim-<id>` scope, enforced by lint.
+- ONE rhythm token: `--row` (2.25rem = 36 px at default size; rem so the user's font size scales the whole
+  grid). Lines per §4 (graphite 40%, 2 px). **Every block on the page is a whole number of rows tall**:
+  line-heights are `var(--row)`, margins and paddings sum to whole rows (card padding + border = one row:
+  `calc(--row/2 - 1px)` + 1 px border each side), visuals occupy whole rows (diagram box at most 8 rows,
+  shrinking to the drawing's own aspect rounded up to whole rows on narrow screens; simulation box a whole
+  number of rows - 8 rows in the shell, 5 in the example), one blank ruled row between blocks. Reflow may
+  only then move a block by whole rows, never by 12 or 20 px.
+- **Ruled lines are not CSS** (kit ruling 2026-11-05): the shell's alignment kit (`LessonKit`,
+  `frontend/assets/zivon.js`) reads where each line of text actually landed (Range client rects + ascent
+  probe) and draws an SVG rule **under that measured baseline**; the gap between two neighbouring text
+  lines is cut into a whole number of row steps; rules continue above the first and below the last line at
+  row pitch; every font's baseline is normalised to the reference offset inside its line; opaque cards hide
+  the rules and their text is not anchored. Redrawn on every layout change (MutationObserver,
+  ResizeObserver, font-load events) - nothing can drift: fonts, zoom, fallback glyphs, wrapping, resize.
+  Layout is CSS; JS only measures. Generated pages use the kit - never re-implement or copy it.
 - **Frame adaptation (added 2026-11-04, founder ruling):** the page must be consciously designed for phones
   (~360 px), tablets and laptops. No fixed pixel widths: visuals scale through `viewBox` or fixed-height
-  boxes (width 100%, fixed aspect), text capped in `ch`, chips wrap, touch targets >= 40 px (>= 36 px for
-  rows inside cards), no horizontal overflow at any width. Ruled alignment must survive every resize - a
-  rule sliding under text after a window change is a defect (founder-caught drift in the example; the 36 px
-  block rule is the structural fix, measured re-alignment the local one).
-- Page: max width 1100 px, 24 px side padding, two columns (text/diagram left, cards right), 36 px row gap,
-  48 px column gap, single column below 820 px. Top padding = language-bar height rounded up to whole rows.
+  boxes (width 100%, fixed aspect), no per-block max-widths (line length comes from the column, §10.2),
+  chips wrap, touch targets >= 40 px (>= one row for
+  rows inside cards), no horizontal overflow at any width. No breakpoints where intrinsic sizing works
+  (grid `auto-fit`, `clamp()`, `min()`); grid tracks use `minmax(0,1fr)` so they can shrink below content
+  size; never hide overflow bugs with `overflow-x:hidden` - fix the cause. Ruled alignment must survive
+  every resize - a rule sliding under text after a window change is a defect (founder-caught drift in the
+  example; the row-token grid is the structural fix, the measured kit the local one).
+- Page: ONE content-width token `--page-w` (47rem = 752 px; change this one token to resize the page); side
+  padding `max(1.5rem, safe-area, (100% - --page-w)/2)` - a centred column without a wrapper div, so the
+  paper stays full-bleed. Two columns only while each can be >= 22rem (22 + 22 + 3rem gap = 47rem exactly;
+  grid `auto-fit minmax(min(100%,22rem),1fr)` - no breakpoint), row gap one row, column gap 3rem.
+  **No block sets its own max-width** (v1.5 ruling, 5 Nov): every block fills its column, so text, cards
+  and diagrams share `--page-w` - line length is controlled by the column, never by a per-block `ch` cap.
 
 ### 10.3 Typography on the lesson page
 | Role | Font | Size / line | Notes |
 |---|---|---|---|
-| Title | **Caveat** 700 | clamp(46px, 7vw, 76px) / 72 | two rows tall |
-| Section heading | **Caveat** 700 | 34 / 72 | two rows tall |
-| Body | **Courier Prime** 400 | 17 / 36 | max 46 ch; monospace keeps every baseline exactly on its rule |
-| Highlighted statement | Courier Prime 700 | 17 / 36 | §10.4 |
-| Meta line (`Day 03 · Class 10 · Physics`) | Courier Prime 700 | 15 / 36 | top-left, as §6 |
-| Caption, readout, labels | Courier Prime 400 / 700 | 14 / 36, 16, 14 | graphite for captions |
-| Worked-example steps, glossary | Courier Prime 400 / 700 | 15 / 36 | typed notes on the paper |
-| Controls, questions, feedback | Bricolage Grotesque 500 | 15-17 | typed: operated things stay legible |
-| Diagram annotation labels | **Caveat** 700 | 22; key quantity 28 | the handwritten accent of §10.7 |
+| Title | **Caveat** 700 | clamp(2.875rem, 7vw, 4.75rem) / 2 rows | |
+| Section heading | **Caveat** 700 | 2.125rem / 2 rows | |
+| Body | **Courier Prime** 400 | 1.0625rem / 1 row | fills its column (§10.2); monospace keeps every baseline exactly on its rule |
+| Highlighted statement | Courier Prime 700 | 1.0625rem / 1 row | §10.4 |
+| Meta line (`Day 03 · Class 10 · Physics`) | Courier Prime 700 | .9375rem / 1 row | top-left, as §6 |
+| Caption, readout, labels | Courier Prime 400 / 700 | .875rem / 1 row, 1rem | graphite for captions |
+| Worked-example steps, glossary | Courier Prime 400 / 700 | .9375rem / 1 row | typed notes on the paper |
+| Controls, questions, feedback | Bricolage Grotesque 500 | .9375-1.0625rem | typed: operated things stay legible |
+| Diagram annotation labels | **Caveat** 700 | 20-24 (SVG units); key quantity pen-blue | the handwritten accent of §10.7 |
+- Sizes in rem (the user's font size scales the grid); line-heights are whole rows; px only for hairlines.
+  Inline mixed-font spans must not grow the line box (e.g. bold display words inside Courier lines).
 - Devanagari: Caveat and Courier Prime have no Devanagari glyphs - handwritten stack `Caveat, Kalam, "Segoe
   Print", "Bradley Hand", cursive` (Kalam = Hindi handwriting face); Hindi body falls back per glyph to system
   faces (Nirmala UI, Mangal). Set `lang="hi"` when Hindi is active.
@@ -202,43 +243,54 @@ alone - coverage is dictated by the source material.
 ### 10.5 Language (page-level setting)
 - Languages in v1: English, हिन्दी, Hinglish (Hindi in Latin script). Language belongs to the page, never to a
   widget: one control switches every string - title, body, diagram and simulation labels, questions, feedback.
-- The control is a bar **fixed to the top edge**: full width, paper-light, 1 px ink bottom border, no shadow, safe-area
-  top padding on phones. One label in Courier Prime 14, then one chip per language.
+- The control is a bar **sticky to the top edge, in flow** (its height may change when chips wrap and
+  nothing below needs to know): full width, paper-light, 1 px ink bottom border, no shadow, safe-area top
+  padding on phones. One label in Courier Prime 14, then one chip per language. **Renderer-emitted kit
+  chrome** (v1.6): the renderer emits `.zn-lang-bar` on every lesson page; generated `page.css` must never
+  define it (lint enforces the scope). Switching behaviour beyond chrome (string swaps) is shell-owned
+  and lands with i18n-aware content generation; until then chips switch `lang` + selected state only -
+  the same honest stub the lesson example demonstrates.
 - Chip: Bricolage Grotesque 500 / 15, min height 40 px, 2 px corners, 1 px ink border, transparent fill, ink
   text. Selected: ink fill, paper-light text (15.0:1). Selection shown by fill, never by colour alone.
 
 
 ### 10.6 Paper cards (things the learner operates)
-- Surface: paper-light `#F6F0CF`, 1 px ink border, 2 px corners (all four, identical), padding 17 px top and
-  bottom (with the borders: exactly one ruled row, so card height stays a multiple of 36 px), 18 px sides,
-  36 px below. **Flat**: no shadow (§6's hard offset is only for taped *screenshots*), no tilt, no grain,
-  no blur.
+- Surface: paper-light `#F6F0CF`, 1 px ink border, 2 px corners (all four, identical), padding
+  `calc(--row/2 - 1px)` top and bottom (with the borders: exactly one row, so card height stays a whole
+  number of rows), 1.125rem sides, one row below. **Flat**: no shadow (§6's hard offset is only for taped
+  *screenshots*), no tilt, no grain, no blur.
 - Tape: one strip per card, centred 13 px above the top edge, ~92 x 27 px (second card 84 px), masking-tape
   fill `rgba(196,174,104,0.5)`, torn ends (CSS `clip-path`), rotated -3 deg / +2 deg. Rotation belongs to
   the tape only.
 - Inside a card: ink for structure, graphite for guides, pen-blue for the thing that moves or is selected.
-- **Simulation**: a labelled range slider (`accent-color` pen-blue, 32 px) above the drawing (SVG in the
-  example, canvas in generated pages) with clean 1.5-3 px strokes - sims are precise instruments: mirror
-  ink 3, normal graphite 1.5 dashed 4/6, incident ray pen-blue 3 solid with arrowhead, reflected ray
-  pen-blue 3 **dashed 9/6** with arrowhead. Rays differ by dash, not colour. Readout Courier Prime 700 /
-  16, `aria-live`.
-- **Question**: stem in Bricolage 500 / 17; options as chips (§10.5 style) inside a `radiogroup`, each a
-  native `button` with `role="radio"` and correct `aria-checked`, one selected at a time. Feedback: a check
-  or cross plus one sentence in ink (Bricolage 500 / 15). Red and green stay reserved (§3): correctness uses
-  shape and words, not hue.
+- **Simulation**: labelled range sliders (`accent-color` pen-blue, full-row height) above the drawing (SVG
+  in the example, canvas in generated pages) with clean 1.5-3 px strokes - sims are precise instruments:
+  structure ink 3, guides graphite dashed, the live/net quantity pen-blue 3 with arrowhead, arrow length
+  proportional to magnitude. Readout Courier Prime 700 / 1rem, `aria-live`.
+- **Question**: stem in Bricolage 500 / 1.0625rem; options as chips (§10.5 style) inside a `radiogroup`, each
+  a native `button` with `role="radio"` and correct `aria-checked`, one selected at a time; wrapped option
+  chips are quantized to whole rows (`kit.row()`) so card height never breaks the rhythm. Feedback: a check
+  or cross plus one sentence in ink (Bricolage 500 / .9375rem). Red and green stay reserved (§3): correctness
+  uses shape and words, not hue.
+  Kit guarantees (v1.6, mechanical): the stem is a `<legend>` inside the card `fieldset`; the legend
+  **floats at 100% width** so the card border always paints OUTSIDE it - a wrapped, multi-line stem can no
+  longer overflow the top border and slice through the text (the founder's screenshot defect). The
+  tape's absolute position depends on the card being `position:relative` - kit-owned, never overridden
+  by generated CSS (lint: `page.css` may only style inside `.zn-sim-<id>`).
 
 ### 10.7 Diagrams (drawn clean, annotated by hand)
-- Drawn straight onto the paper, no card, in a fixed-height box (288 px = 8 rows).
+- Drawn straight onto the paper, no card, in a box at most 8 rows tall that shrinks to the drawing's own
+  aspect ratio rounded up to whole rows on narrow screens (container query).
 - **Geometry is clean** (founder ruling 2026-11-04, replacing the hand-stroke generator for shapes): straight
   `<line>`s, true circles and arcs, consistent corners - every rectangle uses the same corner style (2 px
   rounded, or all square); three rounded corners and one right angle on a box is a defect. Widths: ground
-  3, outlines 2.6, construction line graphite 2 dashed 7/8, hatching 2.2 (diagonals every 22 px), angle
-  arcs pen-blue 2.2.
+  3, object outlines 2.6, internal/construction links graphite 2 dashed, quantity arrows 3, arrowheads ~15
+  SVG units.
 - **Annotations are the handwritten layer**: the arrow pointing at a part is the one hand-drawn stroke left
   on the page - the hand-stroke generator (polyline sampled every ~28 px, seeded jitter +/-0.4-1.2 px,
-  quadratic smoothing, round caps) survives for annotation arrows only. Label: Caveat 700 / 22 ink; the
-  quantity the lesson is about (angles `i`, `r`) pen-blue Caveat 700 / 28. Labels are page-language strings.
-  No fills, gradients or icons.
+  quadratic smoothing, round caps) survives for annotation arrows only. Label: Caveat 700 / 20-24 ink; the
+  quantity the lesson is about (`F`, `10 N`, `m₁`) pen-blue. Labels are page-language strings. No fills,
+  gradients or icons.
 - Force/quantity arrows carry honest scale: length proportional to magnitude, stated in the caption. The
   diagram carries an `aria-label` listing its labels.
 
@@ -246,11 +298,12 @@ alone - coverage is dictated by the source material.
 - Contrast (computed): ink 15.0:1, pen-blue 8.5:1, graphite 6.3:1 on paper-light; 13.7:1, 7.7:1, 5.8:1 on
   paper; paper-light on ink (selected chip) 15.0:1.
 - Keyboard: native `button`/`input` controls; language chips form a `radiogroup`; focus ring 3 px pen-blue,
-  3 px offset; touch targets >= 40 px (>= 36 px in-card rows); no animation, so reduced-motion needs no
+  3 px offset; touch targets >= 40 px (>= one row in-card rows); no animation, so reduced-motion needs no
   variant.
 - Frames: checked at ~360, ~768 and ~1280 px - no horizontal overflow, chips wrap, visuals scale, ruled
   alignment holds after every resize (rules stay under text baselines).
-- Works without a server: one HTML file, inline CSS and JS, SVG drawn in the browser.
+- Works without a server: one HTML file plus the shared `lesson-kit.js` beside it (the example guards:
+  no kit loaded, no page), inline CSS and JS, SVG drawn in the browser.
 - Rejected after review (do not retry without new evidence): translucent glass, plastic bevel cards, tilted
   cards, drop shadows under taped cards, floating language control, scratch-work scenery, hand-wobble on
   geometry and handwritten body text (both retired by founder ruling 2026-11-04).
@@ -259,10 +312,10 @@ alone - coverage is dictated by the source material.
 | Earlier rule | Lesson page | Why |
 |---|---|---|
 | §5: no handwriting fonts (reading speed) | Caveat/Kalam for title, section headings and annotation labels; typed fonts for everything read (Courier Prime body, Bricolage controls) | handwritten warmth survives where consistently achievable; legibility first (founder ruling 2026-11-04) |
-| §3/§4: one pen annotation per post | one highlighted statement per screen, plus the diagram's annotated angles and the simulation's active ray | a lesson has several things to *do*, not one to *notice*; each blue mark is an annotation or the live state |
+| §3/§4: one pen annotation per post | one highlighted statement per screen, plus the diagram's annotated quantities and the simulation's live state | a lesson has several things to *do*, not one to *notice*; each blue mark is an annotation or the live state |
 | §5: rotation max 1.5 deg, never on text | no card rotation; tape only, -3 deg / +2 deg | tilted simulation cards looked wrong in review |
-| §6: 60 px margins on a 1080 px canvas | 24 px page padding, 36 px rhythm | a responsive page, not a fixed-size post |
-| §4: ruled lines at the 1080 px design width | same 2 px lines, 36 px pitch | the pitch follows the body line-height |
+| §6: 60 px margins on a 1080 px canvas | 1.5rem gutter, `--row` rhythm | a responsive page, not a fixed-size post |
+| §4: ruled lines at the 1080 px design width | same 2 px lines, `--row` pitch (36 px at default) | the pitch follows the body line-height |
 Unchanged: palette, pen underline algorithm, no gradients/shadows/grain, red and green reserved, ink/paper
 ratios.
 
@@ -275,12 +328,18 @@ ratios.
 | One underlined statement per screen | isolation effect marks the sentence to remember | STRONG |
 | Language bar fixed on top | always findable, never confused with a lesson control | MODERATE |
 | Flat taped cards | "this part is interactive" affordance with no UI chrome | MODERATE |
-| Dash, not hue, separates rays; check/cross plus words | meaning survives colour-blindness and sunlight glare | STRONG |
+| Shape and dash differences, not hue; check/cross plus words | meaning survives colour-blindness and sunlight glare | STRONG |
 
 ### 10.11 Risks and open decisions
-- Ruled alignment is measured in the browser and must hold across 360-1280 px resizes (the founder caught
-  drift in the example 2026-11-04). The 36 px block rule is the structural fix but is unverified on every
-  phone browser, in Hindi, and with fallback fonts - check on a real low-end Android before calling it done.
+- Ruled alignment is kit-owned (`LessonKit`): rules are drawn from measured baselines and must hold across
+  360-1280 px resizes. The row-token grid + kit are unverified on real low-end Android WebView
+  (MutationObserver/ResizeObserver, CSS `round()`/container queries, Hindi fallback fonts, user font-size
+  zoom) - check on a real device before calling it done.
+- The example used to depend on its sibling `docs/frontend/lesson-kit.js` (the canonical kit source; the shell
+  copy lives in `frontend/assets/zivon.js`) - the v1.6 rewrite makes the example load the shared kit files
+  directly (`../../frontend/assets/zivon.css` + `zivon.js`), so there is exactly one kit copy to rot.
+  `lesson-kit.js` stays in the repo as the legacy source of the kit's LessonKit section - nothing new
+  references it.
 - Fonts load from Google Fonts in the example; the pipeline must vendor Caveat, Kalam, Bricolage Grotesque
   and Courier Prime into the page folder (no external calls).
 - Hindi/Hinglish strings in the example were model-drafted, not reviewed by a native reader. Several

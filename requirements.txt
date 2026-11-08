@@ -4,6 +4,19 @@
 # Browser for the performance gate (one-time):
 #   python -m playwright install chromium
 
+# --- llm_manager (the shared model-call module + its service node) ---------
+# These pins mirror llm_manager/requirements.txt MINUS uvicorn: the factory
+# needs the library in-process (streaming calls, validation rounds) and CI
+# needs fastapi to test the service node (TestClient); uvicorn is only the
+# node's server runner and ships solely in the node image (its own
+# requirements file, Dockerfile.llm-manager).
+langchain-openai==1.7.4
+langchain-core==1.7.6
+openai==3.46.0
+httpx==0.28.1
+fastapi==0.162.0
+
+# --- content factory --------------------------------------------------------
 requests>=2.31
 pdfplumber>=0.11
 jsonschema>=4.21

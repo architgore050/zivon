@@ -24,10 +24,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.3.7 .
-docker run --rm zivon-factory:0.3.7                          # smoke test
-docker run --rm -it zivon-factory:0.3.7 bash                 # explore inside
-docker history zivon-factory:0.3.7                           # per-layer sizes
+docker build -t zivon-factory:0.3.16 .
+docker run --rm zivon-factory:0.3.16                          # smoke test
+docker run --rm -it zivon-factory:0.3.16 bash                 # explore inside
+docker history zivon-factory:0.3.16                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 
@@ -38,9 +38,9 @@ docker compose run --rm factory python pipeline.py "Motion" --class 9   # full p
 The static site ships as its own small nginx image — hosting the frontend is separate from the factory that generates it.
 
 ```bash
-docker build -f Dockerfile.frontend -t zivon-frontend:0.1.3 .
+docker build -f Dockerfile.frontend -t zivon-frontend:0.1.6 .
 docker compose up web                                       # serve ./frontend on http://localhost:8081
-docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.3
+docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-frontend:0.1.6
 ```
 
 - **Base:** `nginxinc/nginx-unprivileged:1.31.7-alpine3.24` — the official non-root nginx variant (UID 101, port 8080), matching the repo's non-root rule. A targeted `apk update && apk upgrade` (as a `USER 0`/`USER 101` sandwich — apk needs root; the final user stays non-root) freshens brotli/curl/libcurl/libexpat to trivy-fixed versions: the base ships a frozen package index from its build date, and the fixes landed after it. nginx itself is not upgraded.
