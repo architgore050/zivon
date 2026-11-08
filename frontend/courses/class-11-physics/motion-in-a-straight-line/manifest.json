@@ -30,13 +30,12 @@
     }
   ],
   "run_id": "motion-in-a-straight-line-c11",
-  "generated_at": "2026-11-08T22:02:58Z",
+  "generated_at": "2026-11-08T22:38:16Z",
   "block_counts": {
-    "text": 5,
-    "check": 10,
-    "diagram": 2,
-    "reveal": 4,
-    "worked_example": 9,
-    "simulation": 1
+    "text": 6,
+    "check": 18,
+    "simulation": 2,
+    "worked_example": 6,
+    "reveal": 1
   }
 }
