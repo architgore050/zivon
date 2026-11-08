@@ -46,7 +46,14 @@ the cluster, or the server directly on a local host):
 **No completion cap (2026-11-04 founder decision, unchanged):** the factory
 sends no `max_tokens` at all. A measured `09-review` call spent 49,750
 completion tokens (mostly thinking) and then answered correctly - Qwen thinks
-a lot and then gets things right, so any cap is a truncation risk.
+a lot and then gets things right, so any cap is a truncation risk. The
+2026-11-08 review split did NOT change this law: the measured thinking bloat
+(24k–130k completion tokens per 09-review pass, one call killed mid-thinking)
+was treated as a TASK-SIZE problem - 09-review is now two smaller calls - not
+as a signal to cap thinking. Passage-level reasoning loops are the server's
+domain: the Strata server's opt-in `reasoning_loop_recovery` guard is the
+right lever there (see the dated entry in
+`skills/prompting-and-agent-design/references/sources-and-evidence.md`).
 `max_tokens` exists in `llm_manager.LLMConfig` as a CONSTRUCTOR-ONLY knob
 with no environment variable, so only code can ever set it (a future
 translator may; the factory never does). The server's own context budget,

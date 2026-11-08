@@ -223,6 +223,74 @@ class TestLLMClient(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_happy_path_writes_calls_ledger(self):
+        server, url, _ = self._serve(GOOD)
+        try:
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            with redirect_stdout(io.StringIO()):
+                self._call(client)
+            rows = [
+                json.loads(x)
+                for x in (run.dir / "calls_ledger.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["outcome"], "answered")
+            self.assertEqual(rows[0]["stage"], "02-generate")
+            self.assertEqual(rows[0]["attempt"], 1)
+            self.assertIn("latency_s", rows[0])
+        finally:
+            server.shutdown()
+
+    def test_rejected_attempts_are_ledgered_with_their_reason(self):
+        # canonical is schema-invalid -> every validation round rejects; the
+        # ledger must show WHY, not just that the stage died.
+        server, url, _ = self._serve(BAD)
+        try:
+            cfg = make_cfg(self.tmp, url, validation_rounds=2)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            with redirect_stdout(io.StringIO()), self.assertRaises(SchemaError):
+                self._call(client)
+            rows = [
+                json.loads(x)
+                for x in (run.dir / "calls_ledger.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            rejected = [r for r in rows if r["outcome"] == "rejected"]
+            self.assertEqual(len(rejected), 2)
+            self.assertIn("topic", rejected[0]["reason"])
+        finally:
+            server.shutdown()
+
+    def test_transport_death_writes_failure_meta_and_ledger(self):
+        # 2026-11-08: a mid-call death must leave the same diagnosable trail
+        # as a completed call (previously: only request.json survived).
+        cfg = make_cfg(self.tmp, "http://127.0.0.1:9/v1", attempts=1)
+        run = self._run(cfg)
+        client = LLMClient(cfg, run)
+        with redirect_stdout(io.StringIO()), self.assertRaises(ModelCallError):
+            self._call(client)
+        meta_path = (
+            run.stage_dir("02-generate") / "attempts" / "attempt-01" / "meta.json"
+        )
+        self.assertTrue(meta_path.exists())
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        self.assertEqual(meta["outcome"], "transport-failure")
+        self.assertIn("error", meta)
+        self.assertIn("error_class", meta)
+        rows = [
+            json.loads(x)
+            for x in (run.dir / "calls_ledger.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+        ]
+        self.assertEqual(rows[-1]["outcome"], "transport-failure")
+
     def test_persistent_failure_raises_model_call_error(self):
         # base_url points at a port with nothing listening
         cfg = make_cfg(self.tmp, "http://127.0.0.1:9/v1", attempts=1)

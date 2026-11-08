@@ -180,6 +180,82 @@ review into smaller steps across calls; a harness-side alternative is
 treating a server-reported structured-output truncation as a validation
 round instead of a terminal error.
 
+## Repo-side experiment: 09-review split into two calls + failure ledgers (2026-11-08)
+
+Follow-up to the bounded-procedure entry above; same day, same stage.
+
+Live probe of the bounded procedure was green (444 s, 14k completion tokens,
+verdict=pass, 7 issues of which 3 major - compact, procedure-following). The
+founder's real re-trigger (run `factory-run-motion-in-a-straight-line-180935`)
+still doom-looped, and the attempt evidence shows the pathology moved from
+"one call rambles" to "the 09<->10 catcher plateau burns thinking every
+cycle":
+
+- First 09-review pass: 792.8 s, 24,035 completion tokens, `finish_reason`
+  clean, verdict=fail (5 issues) - mechanically sound, one REAL fatal
+  (b-31 quiz answer key: "49 s" is physically wrong).
+- 10-reviewfix round 1 "fixed" it by making page.js rewrite 49 s -> 37 s
+  while index.html still displayed 49 s.
+- Re-review round-01: 1,747 s, 55,101 completion tokens, verdict=fail (7
+  issues) - the same fatal re-flagged as an HTML-vs-JS inconsistency.
+  Blocking score 2 -> 2 (plateau, streak 1/3).
+- Reviewfix round 2 ok (380 s, 8,887 tokens); re-review round-02 thought
+  ~130k tokens and was killed by the founder mid-call. Server-side MoE
+  expert-cache hit rate had climbed to suspiciously high levels - the same
+  experts re-entered again and again: the loop signature.
+- `first_token_s == latency_s` on every review attempt: the model streamed
+  NOTHING until the final JSON - completion_tokens is essentially pure
+  thinking time, and the calls ledger now makes that visible per attempt.
+
+Server-side finding (the founder's "256 repeat trigger did not go off"): the
+Strata server's `REPEAT_STOP_TOKENS=256` guard only catches SINGLE-TOKEN
+runs (its motivating issue was 36,689 "!" tokens). Passage-level reasoning
+repetition is guarded by the OPT-IN `reasoning_loop_recovery` config
+("stop" ends the reply there; "recover" continues with a low-effort
+instruction) - unset on this server, so the 130k-token loop was invisible to
+it. Recommendation to the founder (their infra, their call): set
+`"reasoning_loop_recovery": "recover"` in `strata-iq3_xxs.json`.
+
+Lever applied (founder decision - the sanctioned fallback from the previous
+entry): 09-review's one giant call became TWO bounded calls, each carrying
+only the context its checks need:
+
+- `09-review-facts`: block specs + cited facts + final files. Answer keys,
+  fact contradictions, drawn behaviour, and a named HTML-vs-JS CONSISTENCY
+  sweep (the b-31 pathology is written into the prompt as the worked example:
+  "HTML shows 49 s while the script mutates it to 37 s"). No doctrine, no
+  example.
+- `09-review-design`: compact block inventory + final files + doctrine +
+  lesson example. Doctrine compliance, frame law, usability/access, plus a
+  general RENDERING SWEEP - "judge the page as a learner would, not against
+  the doctrine": labels vs what is drawn, clipped text, broken canvases,
+  animations contradicting captions. (Founder requirement: design correctness
+  must not be only doctrine-example comparison.) No full specs, no facts.
+- Both calls output ISSUES ONLY with a required `category` from a fixed enum;
+  the verdict rule ("fail iff any fatal") moved from prompt prose into
+  harness code - a guarantee in the harness, not in the prompt.
+- The manifest dump left the prompt entirely (mechanical metadata;
+  traceability is enforced by the static checks); both calls get a 3-line
+  identity header instead. Founder delegated this call; this is the decision.
+
+Logging layer (founder's ask: "actionable insights, not status updates"):
+append-only `calls_ledger.jsonl` + `issues_ledger.jsonl` per run, meta.json
+now written for mid-call transport deaths too, run_report rollups, and
+`scripts/issue_report.py` for cross-run failure-class analysis (per-stage
+thinking seconds, rejection reasons, issue categories, recurring
+block+category across rounds = plateau signature).
+
+Rule mapping: smaller task scope per call is the scope-setting lever [S4];
+verdict guarantees belong in the harness [S7]; categories turn reviewer
+findings into data that prompting fixes can target. PIPELINE_VERSION stays 6
+(00-08 artifacts unchanged; resume survives).
+
+Status: unit + e2e anchored (test_review.py two-call anchors, plateau e2e on
+the split fixtures); live probe of both calls pending; founder re-trigger of
+the class-11 run (resume, no --fresh) pending. If per-call thinking is still
+bloated, the documented harness-side option remains: treat a server-reported
+structured-output truncation as a validation round instead of terminal.
+
 ## Maintenance rules for this folder
 
 - Re-validate a rule against current official docs when the factory's model or

@@ -210,7 +210,8 @@ def _user_msg(
         i for i in report.get("issues", []) if i["severity"] in ("fatal", "major")
     ]
     issue_lines = "\n".join(
-        f"- [{i['severity']}] block {i.get('block_id', '(page level)')}: {i['message']}"
+        f"- [{i['severity']}{('/' + i['category']) if i.get('category') else ''}] "
+        f"block {i.get('block_id', '(page level)')}: {i['message']}"
         for i in issues
     )
     files_text = (

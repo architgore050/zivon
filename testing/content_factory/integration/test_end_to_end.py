@@ -260,7 +260,9 @@ class TestEndToEnd(unittest.TestCase):
         )
         self.assertEqual(stages_used.count("03-check"), 1)
         self.assertEqual(stages_used.count("05-interactive"), 1)
-        self.assertEqual(stages_used.count("09-review"), 1)
+        # 2026-11-08 split: 09-review is TWO calls (facts + design) per pass.
+        self.assertEqual(stages_used.count("09-review-facts"), 1)
+        self.assertEqual(stages_used.count("09-review-design"), 1)
         self.assertEqual(stages_used.count("04-repair"), 0)
         self.assertEqual(stages_used.count("10-reviewfix"), 0)
 
@@ -304,7 +306,13 @@ class TestEndToEnd(unittest.TestCase):
 
         before = {
             s: served_count(s)
-            for s in ("02-generate", "03-check", "05-interactive", "09-review")
+            for s in (
+                "02-generate",
+                "03-check",
+                "05-interactive",
+                "09-review-facts",
+                "09-review-design",
+            )
         }
 
         second = self._run("Motion", "--run-id", "e2e-resume")
@@ -542,17 +550,18 @@ class TestCatcherRouting(unittest.TestCase):
         loudly, and 11-link never runs."""
         self._start(
             {
-                "09-review.json": {
-                    "verdict": "fail",
+                "09-review-facts.json": {
                     "issues": [
                         {
                             "severity": "fatal",
                             "block_id": "b-06",
+                            "category": "drawn_behaviour",
                             "message": "the simulation's drawn behaviour contradicts "
                             "claim-04 (reviewer fixture finding)",
                         }
-                    ],
+                    ]
                 },
+                "09-review-design.json": {"issues": []},
                 "10-reviewfix.json": {
                     "analysis": "reviewer fixture finding addressed by a spacing fix "
                     "in page.css; behaviour left untouched.",
@@ -565,7 +574,12 @@ class TestCatcherRouting(unittest.TestCase):
         self.assertIn("code review still failing after 3 fix round(s)", result.stderr)
         self.assertIn("progress plateaued", result.stderr)
 
-        self.assertEqual(self._served("09-review"), 4, "review + three re-reviews")
+        self.assertEqual(
+            self._served("09-review-facts"), 4, "review + three re-reviews"
+        )
+        self.assertEqual(
+            self._served("09-review-design"), 4, "both review calls run each round"
+        )
         self.assertEqual(
             self._served("10-reviewfix"),
             3,
@@ -590,9 +604,14 @@ class TestCatcherRouting(unittest.TestCase):
         css = (Path(render_out["topic_dir"]) / "page.css").read_text(encoding="utf-8")
         self.assertIn("review-fix fixture", css)
 
-        # re-reviews keep separate attempt evidence per round
+        # re-reviews keep separate attempt evidence per round (per call)
         self.assertTrue(
-            (runs / "09-review" / "attempts" / "round-01" / "attempt-01").exists()
+            (runs / "09-review" / "attempts" / "round-01-facts" / "attempt-01").exists()
+        )
+        self.assertTrue(
+            (
+                runs / "09-review" / "attempts" / "round-01-design" / "attempt-01"
+            ).exists()
         )
 
 

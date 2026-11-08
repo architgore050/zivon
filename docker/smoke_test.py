@@ -23,6 +23,7 @@ FACTORY_MODULES = [
     "factory.ingest",
     "factory.interactive",
     "factory.link",
+    "factory.ledger",
     "factory.lint",
     "factory.llm",
     "factory.locate",

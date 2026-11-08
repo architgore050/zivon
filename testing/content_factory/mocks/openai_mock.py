@@ -60,7 +60,7 @@ from typing import Any
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
-_STAGE_RE = re.compile(r"\[ZIVON STAGE: ([0-9]{2}-[a-z]+)\]")
+_STAGE_RE = re.compile(r"\[ZIVON STAGE: ([0-9]{2}-[a-z]+(?:-[a-z]+)?)\]")
 
 # Exit codes for a write against a client that is gone.
 _DISCONNECT_ERRORS = (BrokenPipeError, ConnectionResetError, ConnectionAbortedError)

@@ -97,14 +97,30 @@ is correct end to end and the only remaining variable is your real model.
 - Every run keeps full evidence in `runs/<run_id>/<stage>/`:
   `output.json` per stage; `attempts/attempt-NN/{request,response,meta}.json`
   for every model call including retries (`meta.json` carries latency, token
-  usage, sampling, payload sizes, and since 2026-11-07 the streaming
-  evidence: `stream`, `first_token_s`, `chunks_received`, `finish_reason`,
-  `call_deadline_s`); stages that re-ran per repair round
+  usage, sampling, payload sizes, the streaming evidence added 2026-11-07
+  (`stream`, `first_token_s`, `chunks_received`, `finish_reason`,
+  `call_deadline_s`), and since 2026-11-08 an `outcome` line — a call that
+  died mid-stream now writes meta.json too: last heartbeat + error class,
+  not just request.json); stages that re-ran per repair round
   keep rounds separated (`attempts/round-01/attempt-NN/`, plus
   `03-check/combined-<round>.json` and `04-repair`/`10-reviewfix`
-  `history.json`); `status.json` (per-stage state + fingerprint + `elapsed_s`)
-  and `run_report.json` (aggregated `stage_durations_s`, `started_at`,
-  `completed_at`) at the run root.
+  `history.json`); 09-review namespaces its two calls (2026-11-08 split):
+  `attempts/facts/attempt-NN/` and `attempts/design/attempt-NN/`, re-reviews
+  as `attempts/round-01-facts/...`); `status.json` (per-stage state +
+  fingerprint + `elapsed_s`) and `run_report.json` (aggregated
+  `stage_durations_s`, `started_at`, `completed_at`, plus the 2026-11-08
+  ledger rollups `model_call_stats` and `issues_found`) at the run root.
+- Ledgers at the run root (2026-11-08): `calls_ledger.jsonl` (one line per
+  model attempt: answered / rejected+reason / transport-failure, with
+  latency, `first_token_s` as the thinking proxy, token usage, finish
+  reason) and `issues_ledger.jsonl` (one line per reviewer-found issue:
+  stage, call, severity, category, block, unverified flag). To answer
+  "what are the agents actually failing at?" across runs:
+  `scripts/publish-artifacts.sh` (mirror the PVC's runs/ to the host), then
+  `python3 scripts/issue_report.py` — per-stage call stats (thinking
+  seconds, max completion tokens, `length` cuts), issue counts by
+  stage/severity/category, and recurring findings (same block+class across
+  catcher rounds = the plateau signature).
 - Every stage prints `[NN-stage] starting` / `[NN-stage] ok in Xs (detail)`;
   every model call is bracketed by `model call started (validation round
   i/N...)` / `finished in Xs (tokens...)`, and while a call blocks a

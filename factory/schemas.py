@@ -237,6 +237,21 @@ BLOCKS: dict[str, Any] = {
     },
 }
 
+# Failure categories for review issues (2026-11-08): every 09-review finding
+# carries one, so cross-run ledgers can name the classes that prompting and
+# generation should target.
+REVIEW_CATEGORIES = [
+    "answer_key",
+    "fact",
+    "drawn_behaviour",
+    "inconsistency",
+    "visual_language",
+    "frame",
+    "accessibility",
+    "rendering",
+    "other",
+]
+
 CHECK_REPORT = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -253,6 +268,11 @@ CHECK_REPORT = {
                 "properties": {
                     "block_id": {"type": "string"},
                     "severity": {"enum": ["fatal", "major", "minor"]},
+                    # Optional (2026-11-08): 09-review's split calls tag every
+                    # issue with a failure category; the ledger aggregates them
+                    # so prompting improvements can target the common classes.
+                    # 03-check does not emit it yet.
+                    "category": {"enum": REVIEW_CATEGORIES},
                     "message": {"type": "string", "minLength": 10},
                 },
             },
@@ -292,6 +312,33 @@ FIX_PLAN = {
 }
 
 REVIEW_REPORT = CHECK_REPORT  # same shape: verdict + issues
+
+# 09-review sub-call contract (2026-11-08 split): ISSUES ONLY. The verdict is
+# computed by the harness from severities - the rule that used to be prompt
+# prose ("fail only if at least one fatal") is now code (guarantee in the
+# harness, not in the prompt), and each call carries a smaller task.
+REVIEW_CALL_REPORT = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["issues"],
+    "additionalProperties": False,
+    "properties": {
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["severity", "category", "message"],
+                "additionalProperties": False,
+                "properties": {
+                    "block_id": {"type": "string"},
+                    "severity": {"enum": ["fatal", "major", "minor"]},
+                    "category": {"enum": REVIEW_CATEGORIES},
+                    "message": {"type": "string", "minLength": 10},
+                },
+            },
+        },
+    },
+}
 
 
 # ---- 02-generate: the one giant generation call (Curator + Synthesizer +
@@ -342,4 +389,5 @@ SCHEMAS = {
     "interactive": INTERACTIVE,
     "fix_plan": FIX_PLAN,
     "review_report": REVIEW_REPORT,
+    "review_call": REVIEW_CALL_REPORT,
 }

@@ -9,10 +9,16 @@ FACTORY's contracts on top of it:
 - Public API unchanged: `LLMClient(cfg, run).call(stage_id, messages,
   schema, schema_name, temperature=None, extra_validator=None,
   round_tag=None) -> dict`. Every stage call site is untouched.
-- Artifacts unchanged: `attempts/[<round_tag>/]attempt-NN/request.json`
+- Artifacts (2026-11-08): `attempts/[<round_tag>/]attempt-NN/request.json`
   (redacted wire copy), `response.json` (raw text), `meta.json` with all
-  fields it always carried, plus additive streaming evidence (`stream`,
-  `first_token_s`, `chunks_received`, `call_deadline_s`, `finish_reason`).
+  fields it always carried plus streaming evidence (`stream`, `first_token_s`,
+  `chunks_received`, `call_deadline_s`, `finish_reason`) - and meta.json is
+  now written for FAILED calls too (last heartbeat + error class), so a
+  mid-call death leaves the same diagnosable trail as a completed call.
+- Ledgers (2026-11-08): every attempt appends one line to the run's
+  `calls_ledger.jsonl` (answered / rejected-with-reason / transport-failure,
+  with latency, time-to-first-content and token usage) - the raw material
+  for "what are the agents actually failing at".
 - Errors unchanged: llm_manager failures surface as the same
   ModelCallError / SchemaError types the pipeline already handles; message
   shapes are preserved (updated only where streaming changed the truth -
@@ -62,12 +68,18 @@ __all__ = ["LLMClient", "parse_json_object"]
 class _StageObserver(LLMObserver):
     """The factory's in-flight voice: real streaming progress, not just
     elapsed time. llm_manager calls this every heartbeat_s while the call is
-    in flight; nothing prints from inside llm_manager."""
+    in flight; nothing prints from inside llm_manager. The last heartbeat is
+    also kept so a mid-call transport death can be written to meta.json -
+    before 2026-11-08 a killed call left only request.json behind."""
 
     def __init__(self, stage_id: str):
         self.stage_id = stage_id
+        self.last_elapsed_s: float | None = None
+        self.last_chunks: int | None = None
 
     def on_progress(self, elapsed_s: float, chunks_received: int) -> None:
+        self.last_elapsed_s = round(elapsed_s, 1)
+        self.last_chunks = chunks_received
         print(
             f"[{self.stage_id}] still waiting on the model "
             f"({int(elapsed_s)}s, {chunks_received} chunks received...)"
@@ -130,7 +142,8 @@ class LLMClient:
                 f"round {round_no}/{rounds}; a thinking model can take many "
                 "minutes - heartbeats will show it is alive)"
             )
-            manager = LLMManager(self._llm_config, observer=_StageObserver(stage_id))
+            observer = _StageObserver(stage_id)
+            manager = LLMManager(self._llm_config, observer=observer)
             t0 = time.time()
             try:
                 result = manager.complete(transcript, temperature=temperature)
@@ -139,11 +152,48 @@ class LLMClient:
                 NonRetryableHTTPError,
                 BadServerResponseError,
             ) as exc:
+                # Failure evidence (2026-11-08): a mid-call death must leave
+                # the same diagnosable trail as a completed call - meta.json
+                # with the last heartbeat + the error, and a ledger line.
+                latency = round(time.time() - t0, 2)
+                self.run.write_json(
+                    attempt_dir / "meta.json",
+                    {
+                        "stage": stage_id,
+                        "attempt": round_no,
+                        "started_at": datetime.fromtimestamp(t0, UTC).isoformat(
+                            timespec="seconds"
+                        ),
+                        "latency_s": latency,
+                        "outcome": "transport-failure",
+                        "error_class": type(exc).__name__,
+                        "error": str(exc)[:400],
+                        "last_heartbeat_s": observer.last_elapsed_s,
+                        "chunks_received": observer.last_chunks,
+                        "call_deadline_s": self._llm_config.call_deadline_s,
+                    },
+                )
+                self.run.append_ledger(
+                    "calls_ledger",
+                    [
+                        {
+                            "stage": stage_id,
+                            "round_tag": round_tag,
+                            "attempt": round_no,
+                            "outcome": "transport-failure",
+                            "latency_s": latency,
+                            "last_heartbeat_s": observer.last_elapsed_s,
+                            "error_class": type(exc).__name__,
+                            "error": str(exc)[:180],
+                        }
+                    ],
+                )
                 raise ModelCallError(stage_id, str(exc)) from exc
             latency = round(time.time() - t0, 2)
+            usage = result.usage or {}
             print(
                 f"[{stage_id}] model call finished in {latency}s"
-                f"{self._usage_note(result.usage)}"
+                f"{self._usage_note(usage)}"
             )
             self.run.write_text(attempt_dir / "response.json", result.text)
             self.run.write_json(
@@ -154,9 +204,10 @@ class LLMClient:
                     "started_at": datetime.fromtimestamp(t0, UTC).isoformat(
                         timespec="seconds"
                     ),
+                    "outcome": "answered",
                     "http_status": result.http_status,
                     "latency_s": latency,
-                    "usage": result.usage,
+                    "usage": usage,
                     "model": result.model,
                     "temperature": temperature,
                     "prompt_chars": sum(len(m["content"]) for m in transcript),
@@ -169,6 +220,23 @@ class LLMClient:
                     "call_deadline_s": self._llm_config.call_deadline_s,
                 },
             )
+            self.run.append_ledger(
+                "calls_ledger",
+                [
+                    {
+                        "stage": stage_id,
+                        "round_tag": round_tag,
+                        "attempt": round_no,
+                        "outcome": "answered",
+                        "latency_s": latency,
+                        "first_token_s": result.first_token_s,
+                        "prompt_tokens": usage.get("prompt_tokens"),
+                        "completion_tokens": usage.get("completion_tokens"),
+                        "finish_reason": result.finish_reason,
+                        "chunks_received": result.chunks_received,
+                    }
+                ],
+            )
             return result.text, result.finish_reason
 
         try:
@@ -179,7 +247,7 @@ class LLMClient:
                 schema_name,
                 rounds=rounds,
                 extra_validator=extra_validator,
-                on_reject=lambda no, err: self._reject(stage_id, no, err),
+                on_reject=lambda no, err: self._reject(stage_id, round_tag, no, err),
             )
         except ValidationExhaustedError as exc:
             # The factory's operational guidance (runbook): a SchemaError is a
@@ -194,13 +262,27 @@ class LLMClient:
             ) from exc
 
     # ------------------------------------------------------------- internals
-    @staticmethod
-    def _reject(stage_id: str, attempt: int, error: str) -> None:
+    def _reject(
+        self, stage_id: str, round_tag: str | None, attempt: int, error: str
+    ) -> None:
         """Log a rejected attempt: the model gets the exact violation fed back
-        (errors-as-context), and the log shows why a retry is happening."""
+        (errors-as-context), the log shows why a retry is happening, and the
+        calls_ledger records the rejection class for cross-run analysis."""
         print(
             f"[{stage_id}] attempt {attempt} rejected: {error[:180]} "
             "-> retrying with the error fed back to the model"
+        )
+        self.run.append_ledger(
+            "calls_ledger",
+            [
+                {
+                    "stage": stage_id,
+                    "round_tag": round_tag,
+                    "attempt": attempt,
+                    "outcome": "rejected",
+                    "reason": error[:180],
+                }
+            ],
         )
 
     @staticmethod

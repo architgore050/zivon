@@ -24,6 +24,7 @@ from . import checks
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
+from .ledger import issue_entry
 from .llm import LLMClient
 from .schemas import CHECK_REPORT, GENERATED, REPAIR
 
@@ -369,7 +370,7 @@ def run_check(
         '"The block states the SI unit of speed is km/h; the source states the SI unit of '
         'speed is m/s [ncert page 12]."}'
     )
-    return llm.call(
+    report = llm.call(
         "03-check",
         [
             {
@@ -382,6 +383,17 @@ def run_check(
         "check_report",
         round_tag=round_tag,
     )
+    # Ledger (2026-11-08): every content-reviewer finding lands in the run's
+    # issues_ledger. 03-check issues carry no category field yet (its prompt
+    # stays untouched this round) - they aggregate as "content".
+    run_ctx.append_ledger(
+        "issues_ledger",
+        [
+            issue_entry("03-check", "check", round_tag, i, "content")
+            for i in report.get("issues", [])
+        ],
+    )
+    return report
 
 
 # -------------------------------------------------------------- 04-repair

@@ -38,12 +38,13 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 06 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
 | 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
-| 09 | review | factory/review.py | model + code; reviews the FINAL code against block specs, cited facts AND the live design doctrine + lesson-page example | final verdict report (a fail verdict routes to 10, it does not raise) |
+| 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
 | 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
 
-Happy path costs 3 model calls + one per simulation (generate, check, review).
-Catcher calls happen only when a gate finds something.
+Happy path costs 4 model calls + one per simulation (generate, check,
+review-facts, review-design). Catcher calls happen only when a gate finds
+something.
 
 Mapping to the six agents in AGENTS.md: 00+01 = Curator; 02-generate =
 Synthesizer (+ instructional design in the same call); 03 = Comprehension &
@@ -56,6 +57,18 @@ rubbers-stamps its own work. 03 and 09 are independent model calls; only the
 reasoning layer was consolidated. **Why sim code stays a separate per-sim
 call (05):** its lint feedback loop is per-simulation — folding sim code into
 the giant call would make every lint violation re-generate the whole page.
+
+**Why 09-review is two calls (2026-11-08 founder decision):** the single giant
+review call asked one model to hold specs + facts + manifest + all page files
++ doctrine + example and self-plan a six-step review; even with a bounded
+procedure it thought 24k–130k tokens per pass and the 09↔10 catcher plateaued
+on it. Each call now carries only the context its checks need (facts: specs +
+cited facts + files; design: compact block inventory + files + doctrine +
+example), outputs issues only, and the verdict rule — fail iff any fatal —
+moved from prompt prose into harness code. The manifest is no longer sent to
+either call: it is mechanical page metadata whose traceability the static
+checks enforce; both calls get a 3-line identity header instead. Evidence:
+`skills/prompting-and-agent-design/references/sources-and-evidence.md`.
 
 ## Interface between stages
 
@@ -395,6 +408,31 @@ next slow run is diagnosable from the log alone:
   resumed stages inherit their previous attempt's measurement) plus
   `started_at` / `completed_at`.
 
+Ledgers (2026-11-08, founder's logging ask): the progress lines answer "is
+the job alive"; the ledgers answer "what are the agents actually failing at",
+which is what prompting fixes need. Two append-only JSONL files per run:
+
+- `calls_ledger.jsonl` — one line per model attempt: `answered` (latency,
+  time-to-first-content as the thinking proxy, token usage, finish reason),
+  `rejected` (the exact violation fed back), or `transport-failure` (last
+  heartbeat + error class). A mid-call death now writes `meta.json` too —
+  previously only `request.json` survived, so a killed call left no evidence
+  of how long it ran or where it died.
+- `issues_ledger.jsonl` — one line per reviewer-found issue (stage, call,
+  severity, category, block, unverified flag). 09-review's issues carry a
+  category from a fixed enum (`answer_key`, `fact`, `drawn_behaviour`,
+  `inconsistency`, `visual_language`, `frame`, `accessibility`, `rendering`,
+  `other`); 03-check's issues aggregate as `content` until its prompt gains
+  the field.
+
+`run_report.json` rolls both up (`model_call_stats`, `issues_found`), and
+`scripts/issue_report.py` aggregates them across runs: per-stage call stats
+(thinking seconds, max completion tokens, `length` cuts — the thinking-loop
+signature), issue counts by stage/severity/category, and recurring findings
+(the same block+class across catcher rounds, i.e. the plateau signature).
+Run it against the host mirror: `scripts/publish-artifacts.sh` then
+`python3 scripts/issue_report.py`.
+
 ## Resume and freshness
 
 - `python pipeline.py "Motion" --class 9` on a run that already exists (same
@@ -481,9 +519,12 @@ the vt-diagram labels and the recoil drawing.
   cards, tape, controls) is renderer-built; the model fills one canvas
   simulation inside a paper card, reads the examples for the visual language
   and never copies their structure.
-- **09-review** gets the doctrine document AND the lesson-page example, plus a
-  checklist item: a clear doctrine violation is major; one that misleads the
-  learner about what moves or what is correct is fatal.
+- **09-review-design** (the review split, 2026-11-08) gets the doctrine
+  document AND the lesson-page example, plus a checklist item: a clear
+  doctrine violation is major; one that misleads the learner about what moves
+  or what is correct is fatal. Its sibling call **09-review-facts** checks the
+  page's truth (answer keys, cited facts, drawn behaviour, HTML-vs-JS
+  consistency) and deliberately carries no visual-language context.
 - **08-fixloop** and **10-reviewfix** (2026-11-04) get doctrine + example +
   palette too: they rewrite page code, so they must fix toward the reference
   language, not drift from it while repairing.
