@@ -37,6 +37,9 @@ ZivonSim.register("<BLOCK_ID>", {
   draw: function (ctx) {
     // ctx is the same object; mutate it in init, read ctx.values here.
     // Use plain canvas 2D (ctx.canvas.getContext('2d') is available as ctx.g).
+    // Geometry is COMPUTED from the cited equations, never hand-placed:
+    // SHAPE only - loop the graph's domain and evaluate the equation per step:
+    //   for (var t = 0; t <= T; t += STEP) { /* emit the point at t */ }
   }
 });
 """
@@ -126,6 +129,13 @@ def _build_simulation(
         "the stated equations and DEFAULT BEHAVIOUR. Never invent physics "
         "beyond these facts; where the facts do not pin a detail, draw exactly "
         "what DESCRIPTION and DEFAULT BEHAVIOUR state.\n"
+        "- COMPUTE, DO NOT DRAW BY HAND: every curve, plotted point and derived "
+        "number on screen is computed in JS from the cited equations at draw "
+        "time - loop over the graph's domain and evaluate the equation for "
+        "each point, then place the point. Never hard-code hand-computed "
+        "coordinates as the drawn geometry: geometry placed by hand drifts "
+        "from the physics it claims to show, while geometry computed from "
+        "the equation is exact by construction.\n"
         "- page.js MUST define exactly one registration using this skeleton:\n"
         f"{_skeleton_for(block['id'])}\n"
         "- Plain canvas 2D and requestAnimationFrame only. ctx.g is the 2d context.\n"
