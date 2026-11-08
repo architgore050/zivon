@@ -447,16 +447,12 @@ Run it against the host mirror: `scripts/publish-artifacts.sh` then
 - `PIPELINE_VERSION` (factory/stages.py) is part of the fingerprint. It is
   bumped whenever stage contracts change, so a run dir built under the old
   contract can never be resumed silently into new code — the guard refuses it
-  and says to pass `--fresh`. It is 4 since 2026-11-05 (locate matching +
-  generate blocks contract rewritten); version-3 run dirs, including the
-  contaminated class-11 one, are refused by design.
-  **Not bumped for the 2026-11-09 kit refactor (still 6)**: the renderer now
-  emits a language bar and a readout element, but the fingerprint payload
-  does not cover render markup — and the resume path is safe anyway, because
-  the card defect it fixes was CSS-only: pages rendered before the kit fix
-  are repaired by the new zivon.css at serve time, and the new chrome lands
-  on the next full render. Bumping the version would needlessly refuse
-  every completed run dir (the founder's class-11 00-08 for one).
+  and says to pass `--fresh`. It is 7 since 2026-11-09 (the kit-refactor's
+  lint contract: `lint_page_css_scope` rejects model-authored page.css that
+  sizes the canvas or re-styles kit classes — and a completed 0.3.13-era run
+  resumable under v6 failed deep in 06-render on exactly that; first
+  `--fresh` on the cloud model re-proved the end-to-end loop). Version-6
+  dirs are therefore refused (re-trigger with `--fresh`).
 - The learner class is per-run input, never config (founder decision
   2026-11-06): `config.json` carries no `learner.class_level` at all - a
   config default for a per-run value is a hardcode. `--class` pre-sets the
