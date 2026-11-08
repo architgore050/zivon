@@ -1,9 +1,0 @@
-.zn-sim-b-26 canvas{display:block;width:100%;height:auto;background:var(--paper-light);border:1px solid var(--ink);border-radius:2px}
-.zn-sim-b-26 .sim-read{font:700 1rem var(--row) var(--notes);color:var(--ink);margin-top:var(--row)}
-.zn-lang-bar,.bar{position:sticky;top:0;z-index:10;background:var(--paper-light);border-bottom:1px solid var(--ink);padding-top:env(safe-area-inset-top,0px)}
-.zn-lang-in,.in{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;padding:.5rem 1.5rem}
-.zn-lang-lab,.lab{font:400 .875rem var(--notes)}
-.zn-lang-row,.row{display:flex;flex-wrap:wrap;gap:.5rem}
-.zn-chip,.chip{font:500 .9375rem var(--display);padding:.5rem .875rem;min-height:2.5rem;border:1px solid var(--ink);border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
-.zn-chip[aria-checked="true"],.chip[aria-checked="true"]{background:var(--ink);color:var(--paper-light)}
-.zn-chip:focus-visible,.chip:focus-visible{outline:3px solid var(--pen-blue);outline-offset:3px}

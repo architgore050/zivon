@@ -6,18 +6,19 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'">
 <title>Motion in a Straight Line - Zivon</title>
 <link rel="stylesheet" href="../../../assets/zivon.css">
-<link rel="stylesheet" href="page.css">
+
 </head>
 <body>
+<header class="zn-lang-bar"><div class="zn-lang-in"><span class="zn-lang-lab">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" aria-checked="true">English</button><button type="button" class="zn-chip" role="radio" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" aria-checked="false">Hinglish</button></div></div></header>
 <main class="zn-page">
   <header class="zn-header">
     <p class="zn-kicker">class-11-physics</p>
     <h1 class="zn-title">Motion in a Straight Line</h1>
     <p class="zn-objectives-label">After this lesson you can:</p>
     <ul class="zn-objectives">
-      <li>After this lesson you can define velocity and acceleration as rates of change and read them from graphs.</li>
-      <li>After this lesson you can use the three kinematic equations for uniformly accelerated motion with correct signs.</li>
-      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems from this chapter.</li>
+      <li>After this lesson you can define position, velocity, speed and acceleration and get them from graphs.</li>
+      <li>After this lesson you can use the three kinematic equations for uniform acceleration with correct signs.</li>
+      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems.</li>
       <li>After this lesson you can distinguish displacement from path length and average velocity from average speed.</li>
     </ul>
   </header>
@@ -27,9 +28,9 @@
     <h1 class="zn-title">Motion in a Straight Line</h1>
     <p class="zn-objectives-label">After this lesson you can:</p>
     <ul class="zn-objectives">
-      <li>After this lesson you can define velocity and acceleration as rates of change and read them from graphs.</li>
-      <li>After this lesson you can use the three kinematic equations for uniformly accelerated motion with correct signs.</li>
-      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems from this chapter.</li>
+      <li>After this lesson you can define position, velocity, speed and acceleration and get them from graphs.</li>
+      <li>After this lesson you can use the three kinematic equations for uniform acceleration with correct signs.</li>
+      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems.</li>
       <li>After this lesson you can distinguish displacement from path length and average velocity from average speed.</li>
     </ul>
   </header>
@@ -39,252 +40,279 @@
     <h1 class="zn-title">Motion in a Straight Line</h1>
     <p class="zn-objectives-label">After this lesson you can:</p>
     <ul class="zn-objectives">
-      <li>After this lesson you can define velocity and acceleration as rates of change and read them from graphs.</li>
-      <li>After this lesson you can use the three kinematic equations for uniformly accelerated motion with correct signs.</li>
-      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems from this chapter.</li>
-      <li>After this lesson you can distinguish displacement from path length and average velocity from average speed.</li>
-    </ul>
-  </header>
-
-  <header class="zn-header">
-    <p class="zn-kicker">class-11-physics</p>
-    <h1 class="zn-title">Motion in a Straight Line</h1>
-    <p class="zn-objectives-label">After this lesson you can:</p>
-    <ul class="zn-objectives">
-      <li>After this lesson you can define velocity and acceleration as rates of change and read them from graphs.</li>
-      <li>After this lesson you can use the three kinematic equations for uniformly accelerated motion with correct signs.</li>
-      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems from this chapter.</li>
+      <li>After this lesson you can define position, velocity, speed and acceleration and get them from graphs.</li>
+      <li>After this lesson you can use the three kinematic equations for uniform acceleration with correct signs.</li>
+      <li>After this lesson you can solve free fall, stopping distance, reaction time and relative velocity problems.</li>
       <li>After this lesson you can distinguish displacement from path length and average velocity from average speed.</li>
     </ul>
   </header>
   <section class="zn-text">
-    <p>You see motion everywhere. Motion is change in position of an object with time. In this lesson we study only motion along a straight line, called rectilinear motion.</p>
-    <p>We treat objects as point objects when size is much smaller than distance moved. Kinematics describes motion without going into its causes.</p>
+    <p>Motion is change in position of an object with time. You walk, run, ride a bicycle, leaves fall, water flows, earth rotates and revolves. In this lesson we study only motion along a straight line, called rectilinear motion.</p>
+    <p>We treat objects as point objects when size is much smaller than distance moved in reasonable time. Kinematics describes motion without going into causes.</p>
   </section>
   <fieldset class="zn-check" id="b-02" data-format="mcq" data-answer-index="0">
-    <legend>In which examples can the body be considered approximately a point object? (a) railway carriage moving without jerks (b) monkey on man cycling on circular track (c) spinning cricket ball turning on ground (d) tumbling beaker slipping off table</legend>
+    <legend>In which can body be considered approximately a point object? (a) railway carriage moving without jerks (b) monkey on man cycling on circular track (c) spinning cricket ball turning on ground (d) tumbling beaker slipping off table</legend>
       <label class="zn-opt"><input type="radio" name="check-b-02" value="0"> <span>Only (a)</span></label>
       <label class="zn-opt"><input type="radio" name="check-b-02" value="1"> <span>Only (b)</span></label>
       <label class="zn-opt"><input type="radio" name="check-b-02" value="2"> <span>(a) and (b)</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-02" value="3"> <span>All of them</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-02" value="3"> <span>None</span></label>
     <button type="button" class="zn-check-btn">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Point object approximation is valid when size is much smaller than distance moved. A carriage moving without jerks between stations can be treated so; others involve size, rotation or tumbling.</p></details>
+    <details class="zn-check-why"><summary>Why?</summary><p>Point object needs size much smaller than distance moved and no important rotation or tumbling. Railway carriage moving without jerks qualifies; others involve rotation, spinning or tumbling where size matters.</p></details>
   </fieldset>
   <section class="zn-text">
-    <p>Average velocity tells how fast an object moved over an interval. Instantaneous velocity is the limit of average velocity as time interval becomes infinitesimally small: v = dx/dt.</p>
-    <p>On a position-time graph, velocity at an instant is slope of tangent at that point. For x = 0.08 t3 at t = 4.0 s, average velocity approaches 3.84 m s-1 as interval shrinks.</p>
+    <p>Average velocity tells how fast over an interval, not at an instant. Instantaneous velocity v is limit of average velocity as Delta t becomes infinitesimally small: v = lim Delta x/Delta t = dx/dt.</p>
+    <p>On position-time graph, velocity at t=4 s is slope of tangent at point P. Secant P1P2 for Delta t=2 s, then Q1Q2 for Delta t=1 s, in limit becomes tangent.</p>
   </section>
   <figure class="zn-diagram" id="b-04">
-    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="40" y1="190" x2="380" y2="190" stroke="#1C1B18" stroke-width="2"/><line x1="40" y1="190" x2="40" y2="20" stroke="#1C1B18" stroke-width="2"/><path d="M40 180 Q150 170 220 110 T360 30" fill="none" stroke="#1C1B18" stroke-width="2"/><line x1="220" y1="110" x2="300" y2="30" stroke="#1F3A9E" stroke-width="3"/><circle cx="220" cy="110" r="5" fill="#1F3A9E"/><text x="45" y="210" font-size="14" fill="#1C1B18">t</text><text x="15" y="30" font-size="14" fill="#1C1B18">x</text><text x="230" y="100" font-size="18" fill="#1F3A9E">tangent slope = v</text><text x="230" y="130" font-size="14" fill="#1C1B18">point P</text></svg></div>
-    <figcaption>Velocity at t=4 s is slope of tangent to position-time graph at P.</figcaption>
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="40" y1="190" x2="380" y2="190" stroke="#1C1B18" stroke-width="2"/><line x1="40" y1="190" x2="40" y2="20" stroke="#1C1B18" stroke-width="2"/><path d="M40 180 Q150 170 220 110 T370 30" fill="none" stroke="#1C1B18" stroke-width="2"/><line x1="120" y1="150" x2="300" y2="60" stroke="#1F3A9E" stroke-width="3"/><circle cx="210" cy="105" r="5" fill="#1F3A9E"/><text x="45" y="210" font-size="14" fill="#1C1B18">t</text><text x="15" y="30" font-size="14" fill="#1C1B18">x</text><text x="215" y="95" font-size="16" fill="#1F3A9E">P tangent</text><text x="250" y="180" font-size="14" fill="#5A5748">slope = velocity</text></svg></div>
+    <figcaption>Position-time curve with tangent at P; slope of tangent is instantaneous velocity.</figcaption>
   </figure>
-  <section class="zn-example" id="b-05">
+  <section class="zn-reveal" id="b-05">
+    <h3>Limiting process with x = 0.08 t^3 at t = 4.0 s</h3>
+      <details class="zn-reveal-step"><summary>Centre interval at 4.0 s</summary><p>Take Delta t = 2.0 s, 1.0 s, 0.5 s, 0.1 s, 0.01 s centred at t=4.0 s, so t1 = t - Delta t/2, t2 = t + Delta t/2.</p></details>
+      <details class="zn-reveal-step"><summary>Compute Delta x/Delta t</summary><p>x(t1)=0.08 t1^3, x(t2)=0.08 t2^3, Delta x = x(t2)-x(t1), ratio is average velocity for that Delta t.</p></details>
+      <details class="zn-reveal-step"><summary>Take limit</summary><p>As Delta t decreases from 2.0 s to 0.010 s, ratio approaches 3.84 m s-1, which is dx/dt at t=4.0 s.</p></details>
+  </section>
+  <section class="zn-example" id="b-06">
     <h3>Worked example</h3>
-    <p class="zn-example-problem">Example 2.1: Position x = a + b t2 where a = 8.5 m, b = 2.5 m s-2. Find velocity at t = 0 s and t = 2.0 s, and average velocity between t = 2.0 s and t = 4.0 s.</p>
+    <p class="zn-example-problem">Position x = a + b t^2 where a = 8.5 m, b = 2.5 m s-2, t in seconds. Find velocity at t=0 s and t=2.0 s, and average velocity between t=2.0 s and t=4.0 s.</p>
     <ol>
-      <li><strong>Velocity formula</strong> v = dx/dt = 2 b t = 5.0 t m s-1</li>
-      <li><strong>At t=0 and t=2</strong> v=0 m s-1 at 0 s; v=10 m s-1 at 2.0 s</li>
-      <li><strong>Average velocity</strong> (x(4)-x(2))/(4-2) = 15 m s-1</li>
+      <li><strong>Differentiate</strong> v = dx/dt = 2 b t = 5.0 t m s-1.</li>
+      <li><strong>At t=0 and 2.0 s</strong> v=0 m s-1 at 0 s; v=10 m s-1 at 2.0 s.</li>
+      <li><strong>Average velocity 2 to 4 s</strong> (x(4)-x(2))/(4-2) = (a+16b - (a+4b))/2 = 6.0 b = 15 m s-1.</li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> 0 m s-1, 10 m s-1, 15 m s-1</p>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> v(0)=0 m s-1, v(2)=10 m s-1, average velocity 2-4 s = 15 m s-1. For uniform motion velocity equals average velocity at all instants.</p>
   </section>
-  <section class="zn-text">
-    <p>Speed is magnitude of velocity. +24.0 m s-1 and -24.0 m s-1 both have speed 24.0 m s-1.</p>
-    <p>Average speed over a finite interval is greater than or equal to magnitude of average velocity. Instantaneous speed equals magnitude of instantaneous velocity.</p>
-  </section>
-  <fieldset class="zn-check" id="b-07" data-format="mcq" data-answer-index="1">
-    <legend>Why is no distinction needed between instantaneous speed and magnitude of instantaneous velocity, but distinction is needed for average speed and magnitude of average velocity?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-07" value="0"> <span>Instantaneous speed is defined as magnitude of instantaneous velocity</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-07" value="1"> <span>Average speed is total path length divided by time, which can exceed displacement magnitude when direction reverses</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-07" value="2"> <span>Both are always equal</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-07" value="3"> <span>Speed has no direction so it is always zero</span></label>
+  <fieldset class="zn-check" id="b-07" data-format="mcq" data-answer-index="0">
+    <legend>Why is instantaneous speed always equal to magnitude of instantaneous velocity, while average speed can be greater than magnitude of average velocity?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-07" value="0"> <span>At an instant there is no interval for turning back, so path and displacement coincide in magnitude</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-07" value="1"> <span>Speed is always zero</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-07" value="2"> <span>Velocity is always positive</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-07" value="3"> <span>They are unrelated</span></label>
     <button type="button" class="zn-check-btn">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Average speed uses total path length, average velocity uses displacement. Instantaneously there is no interval for reversal, so speed is magnitude of velocity.</p></details>
+    <details class="zn-check-why"><summary>Why?</summary><p>Over finite interval particle may turn back, making total path larger than net displacement. At an instant no turning interval exists, so magnitudes match.</p></details>
   </fieldset>
   <section class="zn-text">
-    <p>Average acceleration a = (v2 - v1)/(t2 - t1), SI unit m s-2. On velocity-time plot it is slope of line joining the two points.</p>
-    <p>Instantaneous acceleration a = dv/dt is slope of tangent to v-t curve. Acceleration can be positive, negative or zero and can arise from change in speed, direction, or both.</p>
+    <p>Velocity changes with time. Galileo found rate of change of velocity with time is constant for free fall, while with distance it decreases. So acceleration is rate of change of velocity with time.</p>
+    <p>Average acceleration a = (v2-v1)/(t2-t1), unit m s-2. On v-t plot it is slope of line joining (v1,t1) and (v2,t2). Instantaneous acceleration is dv/dt, slope of tangent to v-t curve.</p>
+    <p>Acceleration can be from change in speed, direction, or both. It can be positive, negative or zero. x-t curves upward for positive, downward for negative, straight for zero.</p>
   </section>
   <figure class="zn-diagram" id="b-09">
-    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="40" y1="190" x2="380" y2="190" stroke="#1C1B18" stroke-width="2"/><line x1="40" y1="190" x2="40" y2="20" stroke="#1C1B18" stroke-width="2"/><line x1="60" y1="150" x2="340" y2="60" stroke="#1C1B18" stroke-width="2"/><rect x="60" y="60" width="280" height="90" fill="none" stroke="#1F3A9E" stroke-width="2" stroke-dasharray="4 4"/><text x="45" y="210" font-size="14" fill="#1C1B18">t</text><text x="15" y="30" font-size="14" fill="#1C1B18">v</text><text x="180" y="110" font-size="16" fill="#1F3A9E">area = displacement</text><text x="250" y="50" font-size="14" fill="#1C1B18">slope = a</text></svg></div>
-    <figcaption>Area under v-t curve equals displacement; slope equals acceleration.</figcaption>
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="40" y1="190" x2="380" y2="190" stroke="#1C1B18" stroke-width="2"/><line x1="40" y1="190" x2="40" y2="20" stroke="#1C1B18" stroke-width="2"/><line x1="60" y1="160" x2="360" y2="60" stroke="#1C1B18" stroke-width="2"/><rect x="60" y="60" width="300" height="100" fill="none" stroke="#1F3A9E" stroke-width="2"/><text x="45" y="210" font-size="14" fill="#1C1B18">t</text><text x="15" y="30" font-size="14" fill="#1C1B18">v</text><text x="180" y="115" font-size="16" fill="#1F3A9E">area = displacement</text><text x="70" y="180" font-size="14" fill="#5A5748">slope = acceleration</text></svg></div>
+    <figcaption>Velocity-time straight line for constant acceleration; slope is acceleration, area under curve is displacement.</figcaption>
   </figure>
-  <fieldset class="zn-check" id="b-10" data-format="mcq" data-answer-index="0">
-    <legend>A particle in one-dimensional motion: (a) with zero speed at an instant may have non-zero acceleration (b) with zero speed may have non-zero velocity (c) with constant speed must have zero acceleration (d) with positive acceleration must be speeding up. Which are true?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-10" value="0"> <span>(a) only</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-10" value="1"> <span>(a) and (b)</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-10" value="2"> <span>(c) and (d)</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-10" value="3"> <span>(a), (c) and (d)</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>(a) true: zero velocity at highest point but gravity acceleration continues. (b) false: speed is magnitude of velocity. (c) false in general if direction changes, and in 1D constant speed with reversal needs acceleration. (d) false: sign depends on positive direction choice.</p></details>
-  </fieldset>
   <section class="zn-text">
-    <p>Position-time graphs curve upward for positive acceleration, downward for negative, straight for zero. For uniform motion x-t is inclined straight line, v-t parallel to time axis. For uniform acceleration x-t is parabola, v-t inclined straight line.</p>
-    <p>Area under v-t curve between t1 and t2 equals displacement. For constant velocity u, area between 0 and T is uT.</p>
+    <p>For constant velocity u, v-t graph is line parallel to time axis. Area between 0 and T is rectangle u x T = uT, which is displacement. Dimensions of v (length/time) times t (time) give length.</p>
+    <p>Graphs may have sharp kinks in textbook figures, but realistic velocity and acceleration change continuously, not abruptly.</p>
   </section>
-  <fieldset class="zn-check" id="b-12" data-format="mcq" data-answer-index="0">
-    <legend>On an x-t graph, how do you decide which interval has greatest average speed and sign of average velocity? And on a speed-time graph, which interval has greatest average acceleration magnitude?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-12" value="0"> <span>Greatest slope magnitude gives greatest average speed; sign from slope direction; greatest slope on v-t gives greatest average acceleration</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-12" value="1"> <span>Greatest area gives greatest speed</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-12" value="2"> <span>Steepest x-t always means greatest acceleration</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-12" value="3"> <span>Sign cannot be read from graph</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Average velocity is slope of x-t joining line; average speed uses magnitude. Average acceleration is slope of v-t joining line.</p></details>
-  </fieldset>
-  <section class="zn-reveal" id="b-13">
-    <h3>Deriving kinematic equations from area under v-t graph</h3>
-      <details class="zn-reveal-step"><summary>Start with v = v0 + a t</summary><p>For constant a, v-t graph is straight line from v0 at t=0 to v at t.</p></details>
-      <details class="zn-reveal-step"><summary>Area = triangle + rectangle</summary><p>Area between 0 and t = (1/2)(v - v0)t + v0 t = (1/2)(v+v0)t</p></details>
-      <details class="zn-reveal-step"><summary>Area = displacement</summary><p>x = (1/2)(v+v0)t, and with v - v0 = a t get x = v0 t + (1/2) a t2 and v2 = v02 + 2 a x</p></details>
+  <section class="zn-reveal" id="b-11">
+    <h3>Derivation of kinematic equations from v-t area</h3>
+      <details class="zn-reveal-step"><summary>Start with v = v0 + a t</summary><p>For constant a, v = v0 + a t, graph is straight line from v0 at t=0 to v at t.</p></details>
+      <details class="zn-reveal-step"><summary>Area under curve</summary><p>Area = triangle + rectangle = (1/2)(v - v0) t + v0 t = (1/2)(v+v0) t. This area is displacement x.</p></details>
+      <details class="zn-reveal-step"><summary>Eliminate t</summary><p>Use v - v0 = a t to get x = v0 t + (1/2) a t^2. Substitute t=(v-v0)/a to get v^2 = v0^2 + 2 a x.</p></details>
+      <details class="zn-reveal-step"><summary>General x0</summary><p>Replace x by x-x0: x = x0 + v0 t + (1/2) a t^2, v^2 = v0^2 + 2a(x-x0).</p></details>
   </section>
-  <section class="zn-reveal" id="b-14">
-    <h3>Deriving equations by calculus (Example 2.2)</h3>
-      <details class="zn-reveal-step"><summary>Integrate a = dv/dt</summary><p>dv = a dt, integrate from v0 to v and 0 to t gives v = v0 + a t</p></details>
-      <details class="zn-reveal-step"><summary>Integrate v = dx/dt</summary><p>dx = v dt gives x = x0 + v0 t + (1/2) a t2</p></details>
-      <details class="zn-reveal-step"><summary>Eliminate t</summary><p>v dv = a dx gives v2 = v02 + 2a(x - x0). Method also works for non-uniform acceleration.</p></details>
+  <section class="zn-reveal" id="b-12">
+    <h3>Equations by calculus</h3>
+      <details class="zn-reveal-step"><summary>Integrate acceleration</summary><p>a = dv/dt, dv = a dt, integrate from v0 to v and 0 to t gives v = v0 + a t for constant a.</p></details>
+      <details class="zn-reveal-step"><summary>Integrate velocity</summary><p>v = dx/dt, dx = v dt, integrate gives x = x0 + v0 t + (1/2) a t^2.</p></details>
+      <details class="zn-reveal-step"><summary>Eliminate t</summary><p>dv/dt = v dv/dx = a, so v dv = a dx, integrate gives v^2 = v0^2 + 2a(x-x0). Advantage: method also works for non-uniform acceleration.</p></details>
   </section>
-  <section class="zn-text">
-    <p>The three equations for x0=0 are v = v0 + a t, x = v0 t + (1/2) a t2, v2 = v02 + 2 a x. With x0 non-zero replace x by x - x0.</p>
-    <p>Choose origin and positive direction first, then substitute with proper signs. Kinematic equations need constant acceleration; definitions of velocity and acceleration are always exact.</p>
+  <section class="zn-example" id="b-13">
+    <h3>Worked example</h3>
+    <p class="zn-example-problem">Ball thrown vertically up with 20 m s-1 from top of building 25.0 m from ground. Take g = 10 m s-2. (a) How high will ball rise? (b) How long before it hits ground?</p>
+    <ol>
+      <li><strong>Choose upward positive</strong> v0=+20 m s-1, a=-g=-10 m s-2, at top v=0.</li>
+      <li><strong>Height</strong> 0 = 20^2 + 2(-10)(y-y0) gives y-y0 = 20 m above launch, 45 m from ground.</li>
+      <li><strong>Time first method</strong> Up: 0=20-10 t1 gives t1=2 s. Down from 45 m: 0=45+(1/2)(-10) t2^2 gives t2=3 s. Total 5 s.</li>
+      <li><strong>Time second method</strong> 0=25+20t+(1/2)(-10)t^2 gives 5t^2-20t-25=0, t=5 s. Second method avoids splitting path.</li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> (a) 20 m above launch point. (b) 5 s total.</p>
+  </section>
+  <section class="zn-example" id="b-14">
+    <h3>Worked example</h3>
+    <p class="zn-example-problem">Discuss free fall neglecting air resistance, g = 9.8 m s-2, upward positive, released from rest at y=0.</p>
+    <ol>
+      <li><strong>Acceleration</strong> a = -g = -9.8 m s-2 constant, so uniform acceleration.</li>
+      <li><strong>Velocity</strong> v = 0 - g t = -9.8 t m s-1.</li>
+      <li><strong>Position and v^2</strong> y = - (1/2) g t^2 = -4.9 t^2 m; v^2 = -2 g y = -19.6 y m^2 s-2.</li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> v=-9.8t m s-1, y=-4.9t^2 m, v^2=-19.6y. Acceleration constant, velocity linear in t, distance quadratic in t.</p>
+  </section>
+  <section class="zn-reveal" id="b-15">
+    <h3>Galileo law of odd numbers</h3>
+      <details class="zn-reveal-step"><summary>Divide time into equal tau</summary><p>Falling from rest, y = -(1/2) g t^2. Compute positions after tau, 2tau, 3tau...</p></details>
+      <details class="zn-reveal-step"><summary>Take unit y0</summary><p>Let y0 = -(1/2) g tau^2 be position after first interval. Positions in units of y0 are 1,4,9,16...</p></details>
+      <details class="zn-reveal-step"><summary>Differences</summary><p>Distances in successive tau intervals are 1,3,5,7,9,11... in units of y0, ratio 1:3:5:7...</p></details>
   </section>
   <section class="zn-example" id="b-16">
     <h3>Worked example</h3>
-    <p class="zn-example-problem">Example 2.3: Ball thrown vertically upwards with velocity 20 m s-1 from top of building 25.0 m from ground. Take g = 10 m s-2. (a) How high will ball rise? (b) How long before it hits ground?</p>
+    <p class="zn-example-problem">Derive stopping distance in terms of v0 and deceleration -a. Braking distances for a car were 10 m, 20 m, 34 m, 50 m for velocities 11, 15, 20, 25 m/s.</p>
     <ol>
-      <li><strong>Set axes</strong> Upward positive, v0=+20 m s-1, a=-10 m s-2, v=0 at top</li>
-      <li><strong>Height rise</strong> 0 = 20^2 + 2(-10)(y-y0) gives y-y0=20 m</li>
-      <li><strong>Time</strong> Up: 0=20-10 t1 gives t1=2 s. Down from 45 m: 0=45-5 t2^2 gives t2=3 s. Total 5 s. Second method: 0=25+20t-5t^2 gives t=5 s.</li>
+      <li><strong>Use v^2 = v0^2 + 2 a x</strong> At stop v=0, distance ds, so 0 = v0^2 + 2(-a) ds.</li>
+      <li><strong>Solve</strong> ds = -v0^2/(2a) with a negative, magnitude v0^2/(2|a|).</li>
+      <li><strong>Check proportionality</strong> ds proportional to v0^2. Doubling v0 increases ds by factor 4. Given data nearly consistent.</li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Rises 20 m above launch; total time 5 s</p>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> ds = v0^2/(2|a|), proportional to square of initial velocity.</p>
   </section>
   <section class="zn-example" id="b-17">
     <h3>Worked example</h3>
-    <p class="zn-example-problem">Example 2.4: Discuss free fall neglecting air resistance, g = 9.8 m s-2, released from rest at y=0, upward positive.</p>
+    <p class="zn-example-problem">Ruler dropped vertically through thumb and forefinger, caught after falling d = 21.0 cm. Estimate reaction time, g = 9.8 m s-2.</p>
     <ol>
-      <li><strong>Acceleration</strong> a = -g = -9.8 m s-2, v0=0</li>
-      <li><strong>Equations</strong> v = -9.8 t m s-1, y = -4.9 t2 m, v2 = -19.6 y m2 s-2</li>
+      <li><strong>Free fall</strong> v0=0, a=-g, distance d = (1/2) g t_r^2 in magnitude.</li>
+      <li><strong>Solve for t_r</strong> t_r = sqrt(2d/g) = sqrt(2 x 0.210 / 9.8) s.</li>
+      <li><strong>Estimate</strong> t_r approx 0.21 s from formula; reaction time is time to observe, think and act.</li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> v = -9.8 t, y = -4.9 t2, v2 = -19.6 y</p>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Reaction time from d=21.0 cm is sqrt(2d/g), about 0.2 s.</p>
   </section>
-  <section class="zn-example" id="b-18">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Example 2.5: Prove Galileo&#x27;s law of odd numbers for body falling from rest during equal intervals tau.</p>
-    <ol>
-      <li><strong>Position after intervals</strong> Use y = -(1/2) g t2 for t = tau, 2tau, 3tau...</li>
-      <li><strong>Distances in successive intervals</strong> Differences give ratio 1:3:5:7:9:11...</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Distances in ratio 1:3:5:7...</p>
+  <section class="zn-text">
+    <p>Summary: velocity is slope of tangent to x-t graph. Acceleration is slope of v-t graph. Area under v-t between t1 and t2 is displacement.</p>
+    <p>For uniform motion a=0, x-t straight inclined, v-t straight parallel to time axis. For uniform acceleration x-t parabola, v-t straight inclined.</p>
+    <p>Choose origin and positive direction first. Speeding up means acceleration along velocity; slowing means opposite. Sign of acceleration alone does not tell speeding up or slowing. Zero velocity does not mean zero acceleration.</p>
   </section>
   <section class="zn-example" id="b-19">
     <h3>Worked example</h3>
-    <p class="zn-example-problem">Example 2.6: Derive stopping distance in terms of v0 and deceleration -a. Braking distances 10 m, 20 m, 34 m, 50 m for 11, 15, 20, 25 m/s.</p>
+    <p class="zn-example-problem">Police van 30 km h-1 fires bullet at thief car 192 km h-1 same direction. Muzzle speed 150 m s-1. With what speed does bullet hit thief car?</p>
     <ol>
-      <li><strong>Use v2 = v02 + 2 a x</strong> v=0 at stop, a negative</li>
-      <li><strong>Result</strong> ds = -v02/(2a), proportional to v02; doubling v0 gives factor 4</li>
+      <li><strong>Convert muzzle speed</strong> 150 m s-1 = 540 km h-1 relative to van.</li>
+      <li><strong>Bullet speed relative ground</strong> 540 + 30 = 570 km h-1 in same direction.</li>
+      <li><strong>Relative to thief car</strong> 570 - 192 = 378 km h-1. This relative speed is relevant for damaging thief car.</li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> ds = -v02/(2a)</p>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> 378 km h-1 relative to thief car (570 km h-1 relative to ground).</p>
   </section>
-  <section class="zn-example" id="b-20">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Example 2.7: Ruler dropped vertically, caught after falling d = 21.0 cm. Estimate reaction time, g = 9.8 m s-2.</p>
-    <ol>
-      <li><strong>Free fall</strong> v0=0, a=-g, d = (1/2) g tr^2 in magnitude</li>
-      <li><strong>Solve</strong> tr = sqrt(2d/g) with d=0.210 m gives about 0.21 s</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Reaction time about 0.21 s from d=21.0 cm</p>
-  </section>
-  <fieldset class="zn-check" id="b-21" data-format="numeric" data-answer="3.06">
-    <legend>A car moving at 126 km h-1 is brought to stop within 200 m. What is the magnitude of uniform retardation in m s-2?</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-21-input"></label>
+  <fieldset class="zn-check" id="b-20" data-format="mcq" data-answer-index="0">
+    <legend>State true/false with reason: (a) zero speed may have non-zero acceleration (b) zero speed may have non-zero velocity (c) constant speed must have zero acceleration (d) positive acceleration must be speeding up</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="0"> <span>(a) True, (b) False, (c) False, (d) False</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="1"> <span>All true</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="2"> <span>(a) False, (b) True, (c) True, (d) True</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="3"> <span>(a) True, (b) True, (c) True, (d) True</span></label>
     <button type="button" class="zn-check-btn">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Convert 126 km h-1 to 35 m s-1. Use v2=v02+2ax with v=0, x=200 m to get a magnitude 3.06 m s-2. Time to stop from v=v0+at is about 11.4 s. This uses only kinematic equations from source.</p></details>
+    <details class="zn-check-why"><summary>Why?</summary><p>(a) True at top of throw. (b) False speed is magnitude of velocity. (c) False acceleration can be direction change. (d) False sign depends on axis choice.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-21" data-format="mcq" data-answer-index="0">
+    <legend>For x-t graphs of A and B from school O to homes P and Q, which graph is steeper means faster, earlier start means line leaves origin earlier, closer home means smaller final x. Which entries follow?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="0"> <span>Steeper slope = faster, intercept = start time, final x = distance from school</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="1"> <span>Steeper slope = slower</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="2"> <span>Final x has no meaning</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="3"> <span>Start time is slope</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Slope of x-t is velocity, so steeper is faster. Where line starts on t-axis is start time. Final x is home distance. Apply to the graph to choose A/B for each subpart including overtaking and same/different arrival.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-22" data-format="mcq" data-answer-index="0">
-    <legend>Player throws ball upwards with initial speed 29.4 m s-1, g=9.8 m s-2. (a) Direction of acceleration upward? (b) Velocity and acceleration at highest point? (d) Height rise and return time?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="0"> <span>Acceleration downward throughout; at top v=0, a=-g downward; height 44.1 m, return time 6 s</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="1"> <span>Acceleration upward; at top v=0, a=0; height 29.4 m, time 3 s</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="2"> <span>Acceleration downward; at top v=29.4 m s-1, a=-g; height 44.1 m, time 3 s</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="3"> <span>Acceleration zero upward; at top v=0, a=0; height 88.2 m, time 6 s</span></label>
+    <legend>Plotting: Woman 2.5 km at 5 km h-1, stay till 5 pm, return 25 km h-1; drunkard 5 forward 3 back steps 1 m 1 s each to pit 13 m. What shape x-t?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="0"> <span>Woman: rising line, horizontal stay, steeper falling line; Drunkard: sawtooth rising overall to 13 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="1"> <span>Both are parabolas only</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="2"> <span>Both are horizontal lines</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="3"> <span>Woman falls first then rises</span></label>
     <button type="button" class="zn-check-btn">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Gravity acceleration is downward even upward. At top velocity zero but acceleration -g continues. Height from v2=v02+2ax and time from v=v0+at.</p></details>
+    <details class="zn-check-why"><summary>Why?</summary><p>x-t slope is velocity. Staying means slope zero horizontal. Return means negative slope steeper magnitude. Drunkard forward steps slope positive, backward negative, net forward, time to 13 m found graphically and by counting cycles.</p></details>
   </fieldset>
-  <section class="zn-text">
-    <p>A woman walks 2.5 km at 5 km h-1, stays till 5.00 pm, returns at 25 km h-1. Her x-t graph is inclined, then horizontal, then steeper inclined.</p>
-    <p>A drunkard takes 5 steps forward and 3 steps backward, each 1 m and 1 s. His x-t graph is saw-tooth rising overall; pit at 13 m is reached after counting cycles.</p>
+  <section class="zn-example" id="b-23">
+    <h3>Worked example</h3>
+    <p class="zn-example-problem">Car moving along straight highway with speed 126 km h-1 is brought to stop within 200 m. What is retardation (uniform) and how long to stop?</p>
+    <ol>
+      <li><strong>Convert speed</strong> 126 km h-1 = 35 m s-1.</li>
+      <li><strong>Use v^2 = v0^2 + 2 a x</strong> 0 = 35^2 + 2 a (200) gives a = -1225/400 = -3.06 m s-2 approx.</li>
+      <li><strong>Time</strong> 0 = 35 + a t gives t = 35/3.06 approx 11.4 s, or average velocity 17.5 m s-1 over 200 m.</li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Retardation about 3.1 m s-2, time about 11 s.</p>
   </section>
-  <fieldset class="zn-check" id="b-24" data-format="mcq" data-answer-index="0">
-    <legend>Man walks 2.5 km at 5 km h-1 to market, returns at 7.5 km h-1. What are magnitude of average velocity and average speed over 0-30, 0-50, 0-40 min?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-24" value="0"> <span>Average velocity uses displacement/time, average speed uses total path/time; they differ when he turns back, and at return home average velocity is zero but average speed is not</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-24" value="1"> <span>Both are always equal</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-24" value="2"> <span>Average speed is zero at return home</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-24" value="3"> <span>Average velocity uses total path</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>At 30 min he is at market, at 40 min on way back, at 50 min home. Displacement at home is zero so average velocity zero, but total path is 5.0 km so average speed is non-zero.</p></details>
-  </fieldset>
+  <section class="zn-example" id="b-24">
+    <h3>Worked example</h3>
+    <p class="zn-example-problem">Player throws ball up with 29.4 m s-1, g=9.8 m s-2, neglect air. Height and return time? Direction of acceleration upward? Velocity and acceleration at highest point?</p>
+    <ol>
+      <li><strong>Acceleration direction</strong> Gravity downward throughout, so during upward motion acceleration is downward, negative if up is positive.</li>
+      <li><strong>Highest point</strong> Velocity zero, acceleration still -g downward.</li>
+      <li><strong>Height</strong> 0 = 29.4^2 + 2(-9.8) h gives h = 44.1 m.</li>
+      <li><strong>Return time</strong> Up time 29.4/9.8=3 s, total return 6 s by symmetry.</li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Height 44.1 m, return after 6 s; at top v=0, a=-9.8 m s-2 downward.</p>
+  </section>
   <fieldset class="zn-check" id="b-25" data-format="mcq" data-answer-index="0">
-    <legend>Ball dropped from 90 m loses one tenth of its speed at each collision. What does speed-time graph 0 to 12 s look like?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-25" value="0"> <span>Straight line increasing from 0, then drops to 90% at each bounce, then increases again with same slope</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-25" value="1"> <span>Parabola increasing continuously</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-25" value="2"> <span>Horizontal line</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-25" value="3"> <span>Decreasing straight line</span></label>
+    <legend>Distinguish magnitude of displacement vs total path length, and magnitude of average velocity vs average speed. When is second equal to first?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="0"> <span>Second &gt;= first; equality when motion is in one direction without turning back</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="1"> <span>Second always smaller</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="2"> <span>They are always equal</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="3"> <span>Equality when turning back</span></label>
     <button type="button" class="zn-check-btn">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Between bounces speed increases linearly with slope g. At each collision speed drops to nine tenths of previous impact speed.</p></details>
+    <details class="zn-check-why"><summary>Why?</summary><p>Path length counts all movement, displacement is net change. Average speed = path/time, magnitude of average velocity = |net displacement|/time, so speed &gt;= that magnitude, equality only for one-way motion.</p></details>
   </fieldset>
-  <section class="zn-sim zn-sim-b-26" id="b-26" data-sim-id="b-26" aria-label="Relative velocity: police van and thief car">
-    <h3>Relative velocity: police van and thief car</h3>
+  <section class="zn-example" id="b-26">
+    <h3>Worked example</h3>
+    <p class="zn-example-problem">Man walks 2.5 km at 5 km h-1 to market, instantly turns back at 7.5 km h-1. Find magnitude of average velocity and average speed over (i) 0-30 min (ii) 0-50 min (iii) 0-40 min.</p>
+    <ol>
+      <li><strong>Times</strong> To market 0.5 h =30 min. Back 2.5 km at 7.5 km h-1 takes 20 min, home at 50 min.</li>
+      <li><strong>0-30 min</strong> Displacement 2.5 km, path 2.5 km, avg velocity magnitude = average speed =5 km h-1.</li>
+      <li><strong>0-50 min</strong> Displacement 0, path 5.0 km, avg velocity 0, average speed =5.0 km / (50/60 h)=6 km h-1.</li>
+      <li><strong>0-40 min</strong> 10 min back =1.25 km back, displacement 1.25 km, path 3.75 km, avg vel =1.25/(2/3)=1.875 km h-1, avg speed=3.75/(2/3)=5.625 km h-1.</li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label">Answer</span> (i) 5 and 5 km h-1 (ii) 0 and 6 km h-1 (iii) 1.875 and 5.625 km h-1.</p>
+  </section>
+  <fieldset class="zn-check" id="b-27" data-format="mcq" data-answer-index="0">
+    <legend>Which x-t, v-t, a-t graphs cannot represent 1D motion? Is x-t straight for t&lt;0 and parabolic for t&gt;0 meaning particle moves in straight line then parabolic path?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="0"> <span>Graphs with discontinuous velocity/acceleration or impossible slopes cannot; x-t graph is not particle path in space, it is position vs time, so straight/parabolic refers to graph shape not spatial path</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="1"> <span>All graphs are possible</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="2"> <span>x-t graph is spatial path</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="3"> <span>Discontinuities are always possible</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Velocity and acceleration cannot change abruptly, so graphs with jumps in v or a are impossible. x-t plot shows position over time; a straight segment means constant velocity, parabolic means constant acceleration, not spatial parabola. Suggest context like uniform motion then uniformly accelerated motion.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-28" data-format="mcq" data-answer-index="0">
+    <legend>For x-t plot of oscillatory motion give signs of position, velocity, acceleration at t=0.3 s,1.2 s,-1.2 s; for x-t with three equal intervals which has greatest average speed; for speed-time graph which interval has greatest average acceleration and speed, signs of v and a, accelerations at points A,B,C,D?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="0"> <span>Sign of velocity = slope sign, acceleration sign = curvature (concavity) sign, average speed = |slope| magnitude, average acceleration = slope of v-t</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="1"> <span>Velocity sign is always positive</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="2"> <span>Acceleration sign is slope of x-t</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="3"> <span>Average speed is area under x-t</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Position sign is x value, velocity sign is slope of x-t, acceleration sign is whether slope increasing (concave up positive) or decreasing. Greatest average speed is steepest |slope| interval, least is flattest. For speed-time, average acceleration magnitude is steepest slope, average speed is average height, at points A-D acceleration is slope there (zero at flat top).</p></details>
+  </fieldset>
+  <section class="zn-sim zn-sim-b-29" id="b-29" data-sim-id="b-29" aria-label="Uniformly accelerated motion">
+    <h3>Uniformly accelerated motion</h3>
     <div class="zn-sim-controls">
-      <label class="zn-sim-control"><span>Muzzle speed (m/s)</span><input type="range" data-control="muzzle" min="50" max="200" step="10" value="150"><output>150</output></label>
+      <label class="zn-sim-control"><span>Initial velocity v0 (m/s)</span><input type="range" data-control="v0" min="-10" max="10" step="1" value="5"><output>5</output></label>
+      <label class="zn-sim-control"><span>Acceleration a (m/s^2)</span><input type="range" data-control="a" min="-5" max="5" step="0.5" value="2"><output>2</output></label>
+      <label class="zn-sim-control"><span>Time t (s)</span><input type="range" data-control="t" min="0" max="10" step="0.5" value="2"><output>2</output></label>
     </div>
-    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="Relative velocity: police van and thief car drawing"></canvas></div>
-    <p class="zn-sim-desc">Van at 30 km h-1, thief car at 192 km h-1 same direction, bullet muzzle speed 150 m s-1 relative to van.</p>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="Uniformly accelerated motion drawing"></canvas></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
+    <p class="zn-sim-desc">Move a point object with initial velocity and constant acceleration, see x-t, v-t and position update.</p>
   </section>
-  <fieldset class="zn-check" id="b-27" data-format="numeric" data-answer="105">
-    <legend>Police van 30 km h-1 fires bullet muzzle 150 m s-1 at thief car 192 km h-1 same direction. With what speed in m s-1 does bullet hit thief car relative to the car?</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-27-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Convert van 30 km h-1 to 8.33 m s-1 and car 192 km h-1 to 53.33 m s-1. Bullet relative to ground = 150+8.33=158.33 m s-1. Relative to car = 158.33-53.33=105 m s-1. That relative speed damages car.</p></details>
-  </fieldset>
-  <section class="zn-text">
-    <p>If speeding up, acceleration is in direction of velocity; if slowing, opposite. Sign of acceleration does not tell if speed increases; it depends on positive direction.</p>
-    <p>Zero velocity does not mean zero acceleration. Kinematic equations are algebraic with signs; they apply only for constant acceleration.</p>
-  </section>
-  <fieldset class="zn-check" id="b-29" data-format="mcq" data-answer-index="0">
-    <legend>Which graphs cannot represent one-dimensional motion, and can an x-t graph be straight for t&lt;0 and parabolic for t&gt;0 as a physical motion?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="0"> <span>Graphs where velocity or acceleration would need to change abruptly or where x-t would imply non-unique position at a time cannot represent motion; straight then parabolic x-t can represent motion with zero then constant acceleration, not motion in a straight line vs parabolic path in space</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="1"> <span>All graphs are possible</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="2"> <span>x-t graph shows path in space</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="3"> <span>Sharp kinks are always realistic</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>x-t graph is position vs time, not spatial path. Straight then parabolic means uniform then uniformly accelerated motion along line. Graphs implying abrupt velocity change or multiple positions at same time are impossible; realistic graphs are smooth.</p></details>
-  </fieldset>
   <fieldset class="zn-check" id="b-30" data-format="mcq" data-answer-index="0">
-    <legend>For a particle in one-dimensional simple harmonic motion x-t plot, what are signs of position, velocity and acceleration at t=0.3 s, 1.2 s, -1.2 s? Use slope for velocity and curvature for acceleration.</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-30" value="0"> <span>Read position from x value, velocity sign from slope of tangent, acceleration sign from curvature (upward curve positive, downward negative) at each time</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-30" value="1"> <span>All signs are always positive</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-30" value="2"> <span>Velocity sign is same as position sign always</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-30" value="3"> <span>Acceleration is zero everywhere</span></label>
+    <legend>Ball dropped from 90 m, loses one tenth of speed at each collision with floor. Plot speed-time graph 0 to 12 s. What happens at each bounce?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="0"> <span>Speed increases linearly under gravity, drops to 90% after bounce, repeats with smaller peaks</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="1"> <span>Speed stays constant</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="2"> <span>Speed decreases linearly to zero</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="3"> <span>Speed becomes negative</span></label>
     <button type="button" class="zn-check-btn">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Position is x coordinate, velocity is slope, acceleration is curvature of x-t graph. This is the method for reading signs from a graph without inventing figure values beyond reading signs.</p></details>
+    <details class="zn-check-why"><summary>Why?</summary><p>Between bounces speed magnitude grows with slope g. At collision speed reduces to nine-tenths, direction reverses in velocity but speed graph shows drop. Peaks decrease each bounce, total time finite within 12 s plot.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-31" data-format="mcq" data-answer-index="0">
+    <legend>A particle has zero velocity at an instant. What can you say about its acceleration at that instant?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="0"> <span>It may be non-zero, e.g. at highest point of upward throw acceleration is gravity</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="1"> <span>It must be zero</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="2"> <span>It must be negative</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="3"> <span>It must be positive</span></label>
+    <button type="button" class="zn-check-btn">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary>Why?</summary><p>Zero velocity does not imply zero acceleration. Definitions are exact, kinematic equations only for constant acceleration.</p></details>
   </fieldset>
   <section class="zn-glossary">
     <h2>Glossary</h2>
     <dl>
-      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with magnitude and direction.</dd>
-      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt, SI unit m s-2.</dd>
-      <dt>Displacement</dt><dd>Change in position from start to end, can be positive, negative or zero.</dd>
+      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with direction.</dd>
+      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt.</dd>
+      <dt>Displacement</dt><dd>Change in position from start to end, area under v-t graph.</dd>
       <dt>Average speed</dt><dd>Total path length divided by time interval.</dd>
-      <dt>Free fall</dt><dd>Fall under gravity with air resistance neglected, uniform acceleration -g.</dd>
+      <dt>Free fall</dt><dd>Fall under gravity neglecting air resistance with acceleration g downward.</dd>
     </dl>
   </section>
   <footer class="zn-footer">
@@ -294,11 +322,11 @@
   <section class="zn-glossary">
     <h2>Glossary</h2>
     <dl>
-      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with magnitude and direction.</dd>
-      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt, SI unit m s-2.</dd>
-      <dt>Displacement</dt><dd>Change in position from start to end, can be positive, negative or zero.</dd>
+      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with direction.</dd>
+      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt.</dd>
+      <dt>Displacement</dt><dd>Change in position from start to end, area under v-t graph.</dd>
       <dt>Average speed</dt><dd>Total path length divided by time interval.</dd>
-      <dt>Free fall</dt><dd>Fall under gravity with air resistance neglected, uniform acceleration -g.</dd>
+      <dt>Free fall</dt><dd>Fall under gravity neglecting air resistance with acceleration g downward.</dd>
     </dl>
   </section>
   <footer class="zn-footer">
@@ -308,25 +336,11 @@
   <section class="zn-glossary">
     <h2>Glossary</h2>
     <dl>
-      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with magnitude and direction.</dd>
-      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt, SI unit m s-2.</dd>
-      <dt>Displacement</dt><dd>Change in position from start to end, can be positive, negative or zero.</dd>
+      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with direction.</dd>
+      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt.</dd>
+      <dt>Displacement</dt><dd>Change in position from start to end, area under v-t graph.</dd>
       <dt>Average speed</dt><dd>Total path length divided by time interval.</dd>
-      <dt>Free fall</dt><dd>Fall under gravity with air resistance neglected, uniform acceleration -g.</dd>
-    </dl>
-  </section>
-  <footer class="zn-footer">
-    <p class="zn-sources">Generated by the Zivon content factory. Sources are listed in the course index.</p>
-  </footer>
-
-  <section class="zn-glossary">
-    <h2>Glossary</h2>
-    <dl>
-      <dt>Velocity</dt><dd>Rate of change of position with time, dx/dt, with magnitude and direction.</dd>
-      <dt>Acceleration</dt><dd>Rate of change of velocity with time, dv/dt, SI unit m s-2.</dd>
-      <dt>Displacement</dt><dd>Change in position from start to end, can be positive, negative or zero.</dd>
-      <dt>Average speed</dt><dd>Total path length divided by time interval.</dd>
-      <dt>Free fall</dt><dd>Fall under gravity with air resistance neglected, uniform acceleration -g.</dd>
+      <dt>Free fall</dt><dd>Fall under gravity neglecting air resistance with acceleration g downward.</dd>
     </dl>
   </section>
   <footer class="zn-footer">

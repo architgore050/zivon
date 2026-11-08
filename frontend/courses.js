@@ -15,6 +15,6 @@ window.ZIVON_COURSES = [
     "class": 11,
     "title": "Motion in a Straight Line",
     "chapter": "MOTION IN A STRAIGHT LINE",
-    "generated_at": "2026-11-08T18:45:59Z"
+    "generated_at": "2026-11-08T22:02:58Z"
   }
 ];
