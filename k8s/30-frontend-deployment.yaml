@@ -36,7 +36,7 @@ spec:
         fsGroup: 1000            # keeps the PVC consistent with the writer uid
       initContainers:
         - name: seed-shell
-          image: zivon-frontend:0.1.5
+          image: zivon-frontend:0.1.6
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "cp -rn /opt/zivon-shell/* /usr/share/nginx/html/"]
           # busybox cp (Alpine) silently no-ops on a "/." source and exits 0;
@@ -58,7 +58,7 @@ spec:
               mountPath: /usr/share/nginx/html
       containers:
         - name: nginx
-          image: zivon-frontend:0.1.5
+          image: zivon-frontend:0.1.6
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true

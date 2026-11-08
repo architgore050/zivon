@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # Zivon frontend image: the static site, served by nginx.
-#   Build:  docker build -f Dockerfile.frontend -t zivon-frontend:0.1.5 .
+#   Build:  docker build -f Dockerfile.frontend -t zivon-frontend:0.1.6 .
 #   Run:    docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" \
-#               zivon-frontend:0.1.5        # then open http://localhost:8081
+#               zivon-frontend:0.1.6        # then open http://localhost:8081
 #
 # What is baked: the HAND-MAINTAINED shell only - index.html, assets/ (shared
 # CSS/JS, local fonts) and the nginx site config. Generated pipeline output
