@@ -396,7 +396,7 @@ CHECK_FAIL = {
 CHECK_PASS = {"verdict": "pass", "issues": []}
 REVIEW_FIX_CSS = (
     "/* review-fix fixture: grounded spacing fix; no external references */\n"
-    ".zivon-check { padding: 0.75rem 1rem; }\n"
+    ".zn-sim-b-06 .zn-sim-desc { margin-top: 0.75rem; }\n"
 )
 
 

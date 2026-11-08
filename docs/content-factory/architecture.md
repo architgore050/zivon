@@ -450,6 +450,13 @@ Run it against the host mirror: `scripts/publish-artifacts.sh` then
   and says to pass `--fresh`. It is 4 since 2026-11-05 (locate matching +
   generate blocks contract rewritten); version-3 run dirs, including the
   contaminated class-11 one, are refused by design.
+  **Not bumped for the 2026-11-09 kit refactor (still 6)**: the renderer now
+  emits a language bar and a readout element, but the fingerprint payload
+  does not cover render markup — and the resume path is safe anyway, because
+  the card defect it fixes was CSS-only: pages rendered before the kit fix
+  are repaired by the new zivon.css at serve time, and the new chrome lands
+  on the next full render. Bumping the version would needlessly refuse
+  every completed run dir (the founder's class-11 00-08 for one).
 - The learner class is per-run input, never config (founder decision
   2026-11-06): `config.json` carries no `learner.class_level` at all - a
   config default for a per-run value is a hardcode. `--class` pre-sets the
@@ -518,7 +525,12 @@ the vt-diagram labels and the recoil drawing.
   finds, the palette, and a medium-translation bridge line: the shell (grid,
   cards, tape, controls) is renderer-built; the model fills one canvas
   simulation inside a paper card, reads the examples for the visual language
-  and never copies their structure.
+  and never copies their structure. Since doctrine v1.6 the examples are
+  kit-based demos (they link the same zivon.css/zivon.js the shell ships), so
+  a model that copies their structure gets kit-consistent output by
+  construction; the kit contract is additionally enforced by lint
+  (`lint_page_css_scope`: every page.css selector must be inside the block's
+  `.zn-sim-<id>` scope; canvas sizing declarations are rejected).
 - **09-review-design** (the review split, 2026-11-08) gets the doctrine
   document AND the lesson-page example, plus a checklist item: a clear
   doctrine violation is major; one that misleads the learner about what moves

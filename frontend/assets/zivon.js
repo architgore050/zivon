@@ -353,6 +353,23 @@
     ruledPaper, pen, px, textBaselines
   };
 
+  /* --------------- 5. language bar chips (visual toggle only) ---------------
+     Doctrine §10.5 / example contract: one control switches every string on
+     the page; switching CONTENT is shell-owned and lands with i18n-aware
+     pages. Until then the kit chrome toggles the selected chip and the
+     document lang (visual honesty - the example demonstrates this). */
+  function wireLangChips() {
+    var row = document.querySelector(".zn-lang-row");
+    if (!row) return;
+    row.addEventListener("click", function (event) {
+      var chip = event.target.closest(".zn-chip");
+      if (!chip) return;
+      row.querySelectorAll(".zn-chip").forEach(function (c) {
+        c.setAttribute("aria-checked", String(c === chip));
+      });
+    });
+  }
+
   /* ------------------------------- boot ----------------------------------
      LessonKit.init covers load, font swap, resize, card open/close and quiz
      feedback changes through its own observers - no manual re-fit listeners.
@@ -360,6 +377,7 @@
      (§10 scope guard) while the title pen underline still applies. */
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".zn-check").forEach(wireCheck);
+    wireLangChips();
     renderCourses();
     /* Doctrine §10.7 (v1.4): read each model diagram's viewBox and hand its
        height/width ratio to CSS (--dia-ar) so the diagram box shrinks to the

@@ -5,7 +5,11 @@ The repo rule is "no eval, no external calls". These rules make it mechanical:
   API, string-literal URLs, inline <script> injection.
 - HTML: any <script> tag (all JS lives in page.js / zivon.js, loaded from
   'self'), any http(s) URL in src/href except SVG/xml namespaces.
-- CSS: @import and url(http...) - external fetches.
+- CSS: @import and url(http...) - external fetches; plus the kit contract
+  (doctrine v1.6) via lint_page_css_scope - page.css may style ONLY inside
+  the .zn-sim-<id> scope and may never size the canvas (zivon.css owns
+  that), enforced at authoring sites only (05-interactive, 06-render,
+  08-fixloop, 10-reviewfix), never on files being read back.
 """
 
 from __future__ import annotations
@@ -13,6 +17,7 @@ from __future__ import annotations
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from typing import NamedTuple
 
 _JS_PATTERNS: list[tuple[str, str]] = [
     (r"\beval\s*\(", "eval() is forbidden"),
@@ -52,6 +57,51 @@ def lint_js(filename: str, code: str) -> list[str]:
     return hits
 
 
+class _CssRule(NamedTuple):
+    selector: str
+    body: str
+    line: int
+
+
+def _css_rules(code: str) -> list[_CssRule]:
+    """Yield every style rule (selector, body, line) at any nesting depth.
+
+    The scan walks brace pairs: a segment start after the last `{`/`}`; a
+    prelude that starts with `@` is a container - we descend into it -
+    and a style rule's body is taken flat (a style rule's body is flat
+    CSS by syntax), then the scan advances PAST the rule's closing brace.
+    (Getting `boundary` wrong glues the previous rule's declarations into
+    the next selector - caught by the scope tests.)
+    """
+    out: list[_CssRule] = []
+    i = 0
+    n = len(code)
+    keyframe_depth = 0  # >0 while inside an @keyframes block (its steps are
+    # not selectors - `from`/`to`/`50%` must never be checked for scoping)
+    while i < n:
+        o = code.find("{", i)
+        if o == -1:
+            break
+        prelude = code[i:o].strip()
+        depth, k = 1, o + 1
+        while k < n and depth:
+            if code[k] == "{":
+                depth += 1
+            elif code[k] == "}":
+                depth -= 1
+            k += 1
+        if prelude and not prelude.startswith("@") and keyframe_depth == 0:
+            out.append(
+                _CssRule(prelude, code[o + 1 : k - 1], code.count("\n", 0, o) + 1)
+            )
+        if "keyframes" in prelude:
+            keyframe_depth += 1
+        elif keyframe_depth and prelude == "":
+            keyframe_depth -= 1
+        i = o + 1 if prelude.startswith("@") else k
+    return out
+
+
 def lint_css(filename: str, code: str) -> list[str]:
     hits = []
     for m in re.finditer(r"@import\b", code):
@@ -60,6 +110,57 @@ def lint_css(filename: str, code: str) -> list[str]:
     for m in re.finditer(r"url\(\s*[\"']?https?://", code, re.IGNORECASE):
         line = code[: m.start()].count("\n") + 1
         hits.append(f"{filename}:{line}: url(http...) is forbidden (external fetch)")
+    return hits
+
+
+def lint_page_css_scope(
+    filename: str, code: str, block_id: str | None = None
+) -> list[str]:
+    """Kit contract (doctrine v1.6): model-authored page.css may style ONLY
+    inside the simulation's `.zn-sim-<id>` scope; cards, tape, quiz chrome,
+    the language bar and canvas sizing are kit-owned (zivon.css). Every
+    selector of a generated page.css either references a `.zn-sim-` scope
+    class or is rejected; a canvas sizing declaration inside scope is also
+    rejected (the kit sizes the canvas - see `.zn-sim .zn-sim-canvas`).
+    When `block_id` is known (05-interactive builds one sim per call) the
+    scope class must match it; when None (concatenated topic CSS) any
+    `.zn-sim-*` scope is accepted.
+
+    ENFORCEMENT SITES (deliberate): authoring/rewriting sites only -
+    05-interactive's retry loop + backstop, 06-render, 08-fixloop and
+    10-reviewfix via lint_generated. Files READ by 09-review's mechanical
+    pass are NOT scope-checked (`lint_file` keeps the original rules):
+    grandfathered page.css from before the kit contract must not hard-fail a
+    resumed run - the contract applies to new authorship, not re-judgment.
+    """
+    hits: list[str] = []
+    stripped = re.sub(r"/\*.*?\*/", "", code, flags=re.DOTALL)
+    for rule in _css_rules(stripped):
+        for sel in rule.selector.split(","):
+            sel = sel.strip()
+            if not sel:
+                continue
+            classes = re.findall(r"\.([A-Za-z][\w-]*)", sel)
+            scoped = [c for c in classes if c.startswith("zn-sim")]
+            if block_id is not None:
+                ok = f"zn-sim-{block_id}" in scoped
+            else:
+                ok = bool(scoped)
+            if not ok:
+                want = f".zn-sim-{block_id}" if block_id is not None else ".zn-sim-<id>"
+                hits.append(
+                    f"{filename}:{rule.line}: page.css selector '{sel}' is not "
+                    f"scoped under {want} (the kit owns cards, tape, quiz "
+                    "chrome, the language bar and canvas sizing - zivon.css)"
+                )
+            if re.search(r"(?<![\w-])canvas(?![\w-])", sel) and re.search(
+                r"(?<![\w-])(width|height|min-height|max-height|aspect-ratio)\s*:",
+                rule.body,
+            ):
+                hits.append(
+                    f"{filename}:{rule.line}: page.css must not size the "
+                    "canvas (the kit sizes it: .zn-sim .zn-sim-canvas)"
+                )
     return hits
 
 
@@ -143,5 +244,11 @@ def lint_generated(pages_js: str, pages_css: str, html: str) -> list[str]:
     return (
         lint_js("page.js", pages_js)
         + lint_css("page.css", pages_css)
+        # Kit contract (doctrine v1.6): concatenated topic CSS must still
+        # be .zn-sim-scoped (05-interactive already checked per block, THIS
+        # is the write-path guarantee for 06-render/08/10). Files READ
+        # back by 09-review are NOT scope-checked (grandfathered CSS must
+        # not hard-fail a resumed run).
+        + lint_page_css_scope("page.css", pages_css)
         + lint_html("index.html", html)
     )
