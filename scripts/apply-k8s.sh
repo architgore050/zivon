@@ -16,6 +16,12 @@
 #   4. the test CronJob rendered with TEST_CRON_SCHEDULE from infra.env
 #   5. one immediate full test run (scripts/trigger-tests.sh startup)
 #
+# ConfigMaps are read by pods ONLY at start: after the ConfigMaps are applied,
+# the llm-manager Deployment is rollout-restarted so an endpoint/model/knob
+# change in infra.env actually reaches the running node (an unchanged
+# Deployment manifest alone never restarts it - the node would keep the old
+# env and refuse calls naming the new model; gotcha 18).
+#
 # Jobs are immutable: the smoke Job is deleted + re-applied so it re-runs as a
 # post-apply health check. The run Job (k8s/20) is a template and never applied.
 set -euo pipefail
@@ -59,6 +65,13 @@ kubectl delete job factory-smoke -n zivon --ignore-not-found
 kubectl apply -f k8s/10-factory-smoke-job.yaml
 kubectl apply -f k8s/12-hf-cache-pvc.yaml -f k8s/13-sources-pvc.yaml -f k8s/15-frontend-pvc.yaml
 kubectl apply -f k8s/16-llm-manager.yaml
+# The node reads its env (endpoint/model/knobs) ONLY at pod start: applying
+# an updated ConfigMap above does NOT restart the node, and the stale-env
+# node refuses requests naming the new model (found live 2026-11-08: the
+# 02-generate call asked for 'stealth/crouton-alpha' while the node pod,
+# started before the config change, still served the old local model).
+kubectl rollout restart deployment/llm-manager -n zivon
+kubectl rollout status deployment/llm-manager -n zivon
 kubectl apply -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
