@@ -81,9 +81,9 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.3.15 .
+docker build -t zivon-factory:0.3.16 .
 docker build -f Dockerfile.llm-manager -t zivon-llm-manager:0.1.0 .   # the model-call node (slim, no torch)
-docker run --rm zivon-factory:0.3.15                          # environment smoke test
+docker run --rm zivon-factory:0.3.16                          # environment smoke test
 docker compose up -d llm-manager                              # the isolated model-access node (factory -> node -> server)
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8081
@@ -99,7 +99,7 @@ Manifests live in `k8s/` (numeric prefix = apply order); `k8s/infra.env` is the 
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.3.15   # minikube has its own container store
+minikube image load zivon-factory:0.3.16   # minikube has its own container store
 minikube image load zivon-llm-manager:0.1.0   # the model-call node
 scripts/apply-k8s.sh                      # ConfigMaps + all manifests + rendered CronJob + startup test run
 kubectl get jobs,pods,deploy,svc,cronjob,pvc -n zivon
