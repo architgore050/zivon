@@ -18,12 +18,15 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 - `docs/frontend/` — consult before any frontend or design work.
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
 - `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog).
+- `docs/product/` — consult before any feature, screen, UI-element, information, or backend-handoff work: the decided features document (decision log, feature cards, inventories, traceability, backend handoff). Feature decisions here are already made — do not re-litigate them; extend through the same method (`skills/zivon-product-design-skills/`).
+- `docs/backend/` — consult before any voice-backend, API, database, storage-tiering, credit-guard, deployment-topology, or ADR work: the Stage-2 systems specs (backend spec, DB spec, storage tiering + sync policy, data classification, capacity & cost, 16 ADRs). Systems decisions here are already made — extend or revisit only through an ADR's stated revisit trigger.
 - `docs/logs/` — dated session logs (done / not done / next) for the build-in-public record.
 
 Rules:
 - **Check before working:** before working on anything, scan `docs/` for docs relevant to that area and read them. Do not re-decide or contradict what the docs already establish.
 - **Keep docs current:** if your change affects what a doc describes (a decision, research finding, design rule), update that doc in the same PR.
 - **Keep this map current:** if you add, rename, or remove any folder or top-level file under `docs/`, update the layout above in the same PR.
+- **Voice dock doctrine guard (founder note, 2026-11-07):** the product docs reference design-doctrine **§10.12 "Voice dock"** as the design home for the voice dock UI; the founder is authoring that section manually. Before any frontend work on the voice dock UI, check that the doctrine actually contains it. If the doctrine does not explicitly state it: **inform the founder and stop all frontend work on the dock UI** — do not improvise the design and do not write the doctrine section yourself.
 
 ---
 
@@ -35,7 +38,7 @@ Two coupled systems:
 2. **Voice tutor (product runtime):** the conversation loop —
    1. Student speaks (Hindi / English / code-mixed)
    2. **Gnani Prisma** transcribes the speech
-   3. **Gnani Evon** reasons and generates a tutor response (anchored to the page the student is on)
+   3. **Gemma 4 26B A4B** (Gate A outcome 2026-11-07; **cloud-hosted via a Google Gemini API key** — founder confirmed 2026-11-09; Evon v3.3 is the post-challenge aspiration) reasons and generates a tutor response (anchored to the page the student is on)
    4. **Gnani Timbre** speaks the response back, with expressive tags where appropriate
 
 The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voice is the primary interface for doubts; interactive visuals are the primary interface for learning.
@@ -44,8 +47,8 @@ The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voic
 
 ## Non-negotiable constraints
 
-- **Prisma v2.5** (STT) and **Timbre v2.5** (TTS) are non-negotiable for the product's voice loop. No OpenAI/Deepgram/ElevenLabs replacements for these.
-- **Evon v3.3** is the intended reasoning brain and the default. A fallback LLM (e.g. Gemma 4 or latest) is permitted **only** via Gate A in `TIMELINE.md` (a written Physics-reasoning eval decision), because the challenge requires at least one Gnani model and Prisma + Timbre already satisfy that. The goal and the public story remain the full three-model loop.
+- **Prisma v3.0** (STT) and **Timbre v3.0** (TTS) are the decided voice-loop models (founder decision 2026-11-07 — latest versions; they supersede the earlier v2.5 non-negotiable, which predates the v3.0 releases). They remain non-negotiable going forward: no OpenAI/Deepgram/ElevenLabs replacements for these.
+- **Gate A outcome (recorded 2026-11-07, founder decision):** the runtime LLM is **Gemma 4 26B A4B**, **cloud-hosted via a Google Gemini API key** (founder confirmed 2026-11-09 — no self-hosted GPU serving for the tutor brain; the API key is a runtime secret like every other credential). Evon v3.3 is no longer the runtime default — it is the post-challenge aspiration brain. The challenge's ≥1-Gnani-model requirement is carried by Prisma + Timbre; the public story is the full Gnani voice loop (Prisma v3.0 + Timbre v3.0) + Gemma 4 reasoning. See the Gate A row in `TIMELINE.md`.
 - The demo must work end-to-end with real voice input and output.
 - Prefer simplicity and reliability over feature count. A solid 60-second demo beats a half-broken multi-feature app.
 - Content sourcing: **NCERT (officially free) and public-domain sources only**, with citations in the source packs. No scraping copyrighted textbooks.
@@ -163,7 +166,7 @@ Key review principles (generalizable; apply to every review in this repo, agenti
 
 `skills/zivon-product-design-skills/` is the feature-decision suite: it decides which features the product should have (value filter with a recorded KEEP / MERGE / DEFER / KILL decision log), then specifies each survivor to implementation granularity — feature → screen → element → data → API → event — ending in a traceability matrix + backend handoff list. Read [`skills/zivon-product-design-skills/skills/zivon-product-design/SKILL.md`](skills/zivon-product-design-skills/skills/zivon-product-design/SKILL.md) before writing, extending, or reviewing a feature list, PRD, UX spec, screen/element/information inventory, or a frontend→backend handoff. Visual style stays with `docs/frontend/design-doctrine.md`; agent prompting stays with `skills/prompting-and-agent-design/`.
 
-`skills/zivon-systems-design-skills/` is the sibling backend suite: it turns that handoff list into a backend spec, a database spec, and a storage-tiering plan (NFRs with numbers, data classification, API + WebSocket contracts, failure modes, capacity/cost, ADRs). Read [`skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md`](skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) before any backend/DB/storage design, API contract, or realtime (voice-loop) architecture work — always after the product-design skill; its input is that skill's output.
+`skills/zivon-systems-design-skills/` is the sibling backend suite — the Stage-2 skill bundle behind `docs/backend/`: it turns that handoff list into a backend spec, a database spec, and a storage-tiering plan through a 10-phase systems-design pipeline (method/NFRs with numbers, data classification & tiering, DB method, API + WebSocket contracts, privacy/security/ops, failure modes, capacity/cost, ADRs, self-review). Read [`skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md`](skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) before any backend/DB/storage design, API contract, or realtime (voice-loop) architecture work, and before extending or revisiting any Stage-2 spec or ADR — always after the product-design skill; its input is that skill's output.
 
 Both bundles vendor third-party skills (pm-skills Apache-2.0, jeffallan-claude-skills MIT; licences retained in each bundle's `vendored/`): use them for the mechanics of a single artifact (ADR, journey map, user stories, FastAPI/Postgres/WebSocket idioms); the Zivon skills make the decisions, and where a vendored template conflicts with a Zivon hard rule, the hard rule wins.
 
@@ -197,10 +200,10 @@ Content-creation non-negotiables: interview before drafting (Depth Gate), never 
 ## Gnani-specific notes
 
 - Prisma and Timbre are accessed via Gnani's API (`api.vachana.ai` / dashboard).
-- Evon is open-weight. You will need to run it yourself (or via a compatible inference server). Plan for this early — GPU hosting choice is a Day-0/1 task.
+- The runtime LLM (Gemma 4 26B A4B per the Gate A outcome 2026-11-07) is **cloud-hosted via a Google Gemini API key** — founder confirmed 2026-11-09. There is no GPU to provision for the tutor brain; the key is a runtime secret (env var / K8s Secret), never committed. If Evon v3.3 is revived post-challenge it would need self-hosting again. This does **not** change the content factory's or the llm-manager node's own OpenAI-format inference path (`docker/inference-router.Dockerfile`) — different consumer, unchanged.
 - Official LiveKit plugin exists: `livekit-plugins-gnani`. Prefer using it if you go the LiveKit route.
-- Programme credits are limited (5,000 per registrant). Log usage daily, use text-only dev mode where possible, and **reserve ~40% of credits** for demo day and judge traffic.
-- Timbre supports expressive tags (whisper, excitement, etc.) — confirm the exact tag set from Gnani docs before prompting Evon to emit them. Fine-tuning for tag emission is a stretch goal (P2), not the critical path.
+- Programme credits: 5,000 per registrant × 2 team members = **10,000 total** (founder confirmed 2026-11-07 — comfortable headroom at the planned burn). Log usage daily and use text-only dev mode where possible. Credit-guard config (founder decision 2026-11-07, corrected same day in the Stage-2 systems session): **1,000-credit daily tranche** + **per-user daily cap 30 credits** (free-trial scale; earlier 200 default was a misunderstanding) + **togglable guard limits** — the admin mode flag flips the guard to a relaxed demo profile so demo-day judge traffic on the live link gets much higher (still bounded) limits. **Credits apply only to the voice agent**: course-material narration is pre-generated at build time (C-051 adopted) and served statically, never metered per student. Spec: F-OPS-MET-01 in `docs/product/features.md`.
+- Timbre expressive tags **verified 2026-11-07 against docs.gnani.ai**: tags are a **Timbre v3.0-only** feature — 13-tag catalog (`<laugh> <giggle> <sigh> <exhales> <sniffles> <yawns> <coughs> <clears throat> <whispers> <shouting> <excited> <slow> <pauses>`; tags billable as characters; unknown tags stripped silently). **Timbre v2.5 strips tags before synthesis** — they are not spoken. The founder decision of 2026-11-07 adopted **Timbre v3.0**, so the 13-tag catalog is available for the tutor (tags billable as characters; harness strips unknown tags server-side). Fine-tuning for tag emission remains a stretch goal (P2), not the critical path.
 - The models are strong on Indian languages and code-mixing — lean into that strength in demos and prompts.
 
 ---

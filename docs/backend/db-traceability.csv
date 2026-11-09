@@ -1,0 +1,89 @@
+table,column,source_ids,need_ids,pii_class,retention,phase
+device,device_pseudo_id,"ENT?-Session.device_pseudo_id",NEED-003; NEED-012; NEED-013,pseudonymous,until deletion request,P0
+device,first_seen_at,systems-originated (guard/ops anchor),-,pseudonymous,until deletion request,P0
+device,last_seen_at,systems-originated,-,pseudonymous,until deletion request,P0
+device,locale,INF-063,NEED-003,pseudonymous,until deletion request,P0
+session,session_id,ENT?-Session.session_id,NEED-003,pseudonymous,30 d,P0
+session,device_pseudo_id,ENT?-Session,NEED-003; NEED-013,pseudonymous,30 d,P0
+session,course_id,INF-009; INF-096,NEED-015,pseudonymous,30 d,P0
+session,class_level,INF-006,NEED-015,pseudonymous,30 d,P0
+session,lang,ENT?-Session.lang; INF-011; INF-077,NEED-003,pseudonymous,30 d,P0
+session,mode,INF-079,NEED-003,pseudonymous,30 d,P0
+session,consent_ref,ENT?-Session.consent_ref,NEED-003; NEED-012,pseudonymous,30 d,P0
+session,guardian_ref,ENT?-Session.guardian_ref (T6 nullable by design),-,child-adjacent,until deletion request,P0 (dormant)
+session,flags,ENT?-Session.flags,NEED-003; NEED-009,pseudonymous,30 d,P0
+session,coverage,ENT?-Session.coverage; INF-069,NEED-011,child-data (flagged),24 h idle TTL,P0
+session,started_at / ended_at,systems-originated (INF-096 duration),NEED-015,pseudonymous,30 d,P0
+session,turn_count,INF-096,NEED-015,pseudonymous,30 d,P0
+session,coverage_synced,NEED-011 consent-gated sync flag,NEED-011,pseudonymous,30 d,P0
+voice_turn,turn_id,systems-originated,-,-,7 d,P0
+voice_turn,session_id,ENT?-VoiceTurn,NEED-004,pseudonymous,7 d,P0
+voice_turn,turn_seq,ENT?-VoiceTurn.turn_seq,NEED-004,pseudonymous,7 d,P0
+voice_turn,modality,ENT?-VoiceTurn.modality,NEED-004,pseudonymous,7 d,P0
+voice_turn,transcript,INF-060,NEED-006,child-data (flagged),7 d hard delete,P0
+voice_turn,tutor_text,INF-061,NEED-007,child-adjacent,7 d hard delete,P0
+voice_turn,tags,ENT?-VoiceTurn.tags (13-tag catalog CHECK),NEED-008,pseudonymous,7 d,P0
+voice_turn,detected_lang,NEED-006 detected_language_code; EVT-005,NEED-006,pseudonymous,7 d,P0
+voice_turn,anchor,ENT?-VoiceTurn.anchor; NEED-005 payload,NEED-005,pseudonymous,7 d,P0
+voice_turn,latency,ENT?-VoiceTurn.latency; EVT-006,NEED-004; NEED-006; NEED-007; NEED-008,operational,7 d,P0
+voice_turn,redirect_flag,ENT?-VoiceTurn.redirect_flag,NEED-007,operational,7 d,P0
+voice_turn,mode,ENT?-VoiceTurn.mode,NEED-007,pseudonymous,7 d,P0
+voice_turn,audio_retained,ENT?-VoiceTurn (always false; T11 CHECK),NEED-004,-,7 d,P0
+voice_turn,created_at,systems-originated (TTL clock),-, -,7 d,P0
+consent_record,consent_id,systems-originated,-,child-data,until deletion request,P0
+consent_record,device_pseudo_id,ENT?-ConsentRecord,NEED-012,child-data,until deletion request,P0
+consent_record,consent_version,ENT?-ConsentRecord.consent_version; INF-076,NEED-012,child-data,until deletion request,P0
+consent_record,notice_version,systems-originated (DPDP evidence),NEED-012,child-data,until deletion request,P0
+consent_record,guardian_flag,ENT?-ConsentRecord.guardian_flag; INF-073,NEED-012,child-data,until deletion request,P0
+consent_record,action,ENT?-ConsentRecord (granted/declined/withdrawn),NEED-012,child-data,until deletion request,P0
+consent_record,source,ENT?-ConsentRecord.source,NEED-012,child-data,until deletion request,P0
+consent_record,recorded_at,ENT?-ConsentRecord.ts,NEED-012,child-data,until deletion request,P0
+credit_ledger,entry_id,systems-originated,-,operational,90 d,P0
+credit_ledger,session_id,ENT?-CreditLedger context,NEED-009,pseudonymous,90 d,P0
+credit_ledger,device_pseudo_id,A-03 per-user cap keying,NEED-009,pseudonymous,90 d,P0
+credit_ledger,model,ENT?-CreditLedger.model (evon_gpu->gemma_gpu deviation Gate A),NEED-009,operational,90 d,P0
+credit_ledger,units,ENT?-CreditLedger.units,NEED-009,operational,90 d,P0
+credit_ledger,amount,ENT?-CreditLedger.amount,NEED-009,operational,90 d,P0
+credit_ledger,bucket,ENT?-CreditLedger.bucket,NEED-009,operational,90 d,P0
+credit_ledger,cost_credits,systems-originated (A-01 unknown unit prices),NEED-009,operational,90 d,P0
+credit_ledger,created_at,ENT?-CreditLedger.ts,NEED-009,operational,90 d,P0
+guard_counter,period / scope / scope_key / used_credits / state / updated_at,NEED-009 two dimensions + state push; INF-098; EVT-008,NEED-009,pseudonymous (device rows),current period,P0
+guard_profile,mode / global_tranche / per_user_cap / demo_* / warn_threshold_pct / updated_*,NEED-009 founder config (1000/30; A-05 demo 1000/100; A-06 warn 15%),NEED-009; NEED-015,-,forever,P0
+telemetry_event,event_id,systems-originated,-,pseudonymous,90 d,P0
+telemetry_event,evt_id,handoff §4 EVT-001..018,NEED-010,per-EVT class,90 d,P0
+telemetry_event,session_id,ENT?-TelemetryEvent.session_id,NEED-010,pseudonymous,90 d,P0
+telemetry_event,device_pseudo_id,systems-originated (deletion scoping),NEED-013,pseudonymous,90 d,P0
+telemetry_event,course_id / block_id,ENT?-TelemetryEvent; EVT props,NEED-010,pseudonymous,90 d,P0
+telemetry_event,props,handoff §4 properties (schema-typed per EVT; no free text),NEED-010,pseudonymous/operational,90 d,P0
+telemetry_event,ts / client_ts,ENT?-TelemetryEvent.ts; systems-originated,NEED-010,pseudonymous,90 d,P0
+problem_report,report_id,ENT?-ProblemReport.report_id,NEED-014,pseudonymous,resolved+90 d,P0
+problem_report,course_id / block_id,ENT?-ProblemReport.page_id/block_id; INF-104,NEED-014,pseudonymous,resolved+90 d,P0
+problem_report,category,ENT?-ProblemReport.category enum(4); INF-054,NEED-014,pseudonymous,resolved+90 d,P0
+problem_report,text,ENT?-ProblemReport.text; INF-104,NEED-014,child-safe free text,resolved+90 d,P0
+problem_report,status,ENT?-ProblemReport.status; INF-105,NEED-015,operational,resolved+90 d,P0
+problem_report,created_at / resolved_at,ENT?-ProblemReport.ts; systems-originated,-,-,resolved+90 d,P0
+content_page,course_id / class_level / title / chapter,INF-009; INF-005/006/010; ENT?-PageMeta,NEED-001; NEED-002,public,forever,P0
+page_version,page_version_id / version / status,systems-originated (versioning pattern),NEED-001,-,forever,P0
+page_version,sha256 / size_bytes,systems-originated (integrity + perf gate A-08),NEED-001,-,forever,P0
+page_version,manifest,ENT?-PageMeta (manifest.json extension),NEED-001,public,forever,P0
+page_version,sources,INF-051; ENT?-PageMeta.sources,NEED-001,public,forever,P0
+page_version,block_counts / translation_flags,ENT?-PageMeta,NEED-001; NEED-016,public,forever,P0
+page_version,run_id,ENT?-RunStatus.run_id,NEED-015,internal,forever,P0
+page_version,generated_at / published_at,INF-052; systems-originated,NEED-001,public,forever,P0
+live_pointer,course_id / class_level / locale / page_version_id / updated_at,systems-originated (live switch); T2 locale set,NEED-001; NEED-016,public,forever,P0
+narration_asset,asset_id / object_id / duration_ms / created_at,systems-originated,NEED-017,-,per version forever,P0
+narration_asset,course_id / class_level / block_id / locale,NEED-017 asset path contract,NEED-017,public,per version forever,P0
+narration_asset,voice,NEED-008 Timbre v3.0 voice catalog,NEED-017,public,per version forever,P0
+narration_asset,speed,INF-078 pace options,NEED-017,public,per version forever,P0
+narration_asset,page_version_id,systems-originated (version scoping),NEED-017,public,per version forever,P0
+narration_asset,text_hash,systems-originated (ref 03 §3 credit protection),NEED-017,-,per version forever,P0
+language_bundle,bundle_id / status,systems-originated,NEED-016,-,per version forever,P1
+language_bundle,page_version_id / locale / strings / mt_flag / reviewed_flag / version,ENT?-LanguageBundle; INF-014..017; INF-049; INF-088,NEED-016,public,per version forever,P1
+object_catalog,all columns,systems-originated (ref 02 §3 catalogue; eviction invariant columns),-,pseudonymous when subject_ref set,forever (row outlives object),P0
+outbox,all columns,systems-originated (ref 02 §3.1 outbox),-, -,processed pruned 30 d,P0 (table) / P1 (worker)
+factory_run,run_id / topic / class_level / stage / verdict / stage_durations / ts,ENT?-RunStatus; INF-100; INF-101,NEED-015,internal,last-10-runs window,P0
+audit_log,all columns,systems-originated (NEED-015 AC-6; F-OPS-MET-01 logged toggle),NEED-015,internal,1 y [ASSUMPTION],P0
+abuse_bucket,all columns,systems-originated (founder correction 3; A-12 salted daily-rotating IP hash),-,pseudonymous network attribute,72 h rolling [ASSUMPTION],P0
+deletion_request,request_id / status / counts / requested_at / completed_at,systems-originated (pipeline),NEED-013,pseudonymous,forever,P0
+deletion_request,device_pseudo_id / scope,NEED-013 scope + EVT-018 record side,NEED-013,pseudonymous tombstone,forever,P0
+daily_stats,all columns,systems-originated (roll-up; INF-095..099 aggregate sources; INF-099 no per-child rows),NEED-015,aggregate only,12 mo [ASSUMPTION],P0
