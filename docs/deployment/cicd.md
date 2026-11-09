@@ -4,7 +4,7 @@ Repo is public on GitHub → GitHub Actions is the decided CI/CD system. Workflo
 
 ## The merge gate — `ci.yml`
 
-Triggers: PR → `main`, push → `main`, manual dispatch. Seven parallel jobs on fresh `ubuntu-latest` VMs:
+Triggers: PR → `main`, push → `main`, manual dispatch. Eleven parallel jobs on fresh `ubuntu-latest` VMs:
 
 | Job | Checks |
 |---|---|
@@ -14,7 +14,38 @@ Triggers: PR → `main`, push → `main`, manual dispatch. Seven parallel jobs o
 | `secrets` | gitleaks over full git history (`fetch-depth: 0`) |
 | `deps` | pip-audit on the resolved `requirements.txt` tree (known CVEs) |
 | `manifests` | kubeconform (schema validity, strict) + kube-linter (security linting of `k8s/`). Both tools are downloaded with `-f` + retries to a file, then untarred — see Gate integrity below |
-| `tests` | content-factory unit tests (no network, no browser) + integration test (real orchestrator vs mock inference server + headless Chromium) + frontend shell behaviour tests; torch CPU-only, pinned to the same wheel the factory image installs |
+| `tests` | content-factory unit tests (no network, no browser) + integration test (real orchestrator vs mock inference server + headless Chromium) + frontend shell behaviour tests; torch CPU-only, pinned to the same wheel the factory image installs. A Postgres 16 service container + `ZIVON_DB_URL` are reserved for the Wave-E suites, and a guarded discovery step runs each Wave-E test set (`testing/backend|voice|translation|narration|observability|logging_manager|evals`) the day its folder lands |
+| `backend-image` | the core-backend monolith (`Dockerfile.backend`): hadolint → build → smoke (boot-with-config with a dead-DB DSN + refuse-without-config, via `docker/smoke_http_service.sh`) → trivy. `voice/` has no image of its own (ADR-0020) — this job gates what voice rides in |
+| `dashboard-image` | the admin dashboard (`Dockerfile.dashboard`): hadolint → build → smoke (boots without the admin Secret by spec — `/healthz` answers via the fallback path; fail-closed happens per request) → trivy |
+| `db-migrations` | Alembic upgrade-from-empty against a throwaway Postgres 16 service container (ADR-0016), plus an idempotent second `upgrade head` |
+| `evals-smoke` | the evals spec's deterministic-only PR subset (`python -m evals run --suite smoke --fail-on-regression`) — no judge model calls, key-free like every other gate |
+
+## Path guards — reserved gates that stay green until the service lands
+
+The four Wave-E jobs above (and every future service job) follow one rule:
+**a gate for an incoming service is merged BEFORE the service, guarded so it
+passes while the artifact is absent.** Each job's first step checks for the
+artifact (`Dockerfile.backend`, `Dockerfile.dashboard`, the migration chain's
+`alembic.ini`, `evals/__main__.py`) and emits `landed=true/false`; the real
+steps run only when it landed, and the absent case emits a `::notice::`
+naming the reservation. Consequences:
+
+- adding a service mid-wave cannot red the gate — its checks activate
+  automatically the day the artifact lands, with no further yml edit;
+- the same guard pattern covers the type and test gates: the `quality` job's
+  mypy paths and the `tests` job's suite discovery loop over candidate
+  folders and include only the ones that exist (the merge agent appends EX0's
+  monolith package names from its manifest to the mypy candidate list);
+- a guard must never mask a REAL failure: once the artifact exists, every
+  step runs exactly as hard as the always-present jobs. The `manifests`
+  applied by `scripts/apply-k8s.sh` follow the same doctrine (reserved
+  manifest numbers apply only when their file exists).
+
+Deliberate non-addition: the frontend perf-budget tests need **no** new job —
+the perf-budget spec (§6) states the `tests` job's existing `unittest
+discover` over `testing/frontend/` already picks up
+`test_perf_budget.py` when EX5 lands it; a separate job would duplicate the
+torch + Chromium installs for a subset that already gates.
 
 ## Gate integrity — the 2026-11-09 red-main postmortem
 
@@ -50,6 +81,39 @@ Rules this postmortem leaves behind (they extend the Hardening rules below):
    `minikube image load`, re-apply the stack, then bump the version tag as the
    release ritual.
 
+## Promotion pipeline — `promotion.yml`
+
+`main` → `prod` goes ONLY through `.github/workflows/promotion.yml` (AGENTS.md
+repo process; GAP-002). Triggers: manual dispatch or a `v*` release tag.
+Two jobs:
+
+1. **`security-gate`** — the release-time security pass at the promotion ref:
+   gitleaks over full history, pip-audit, kubeconform + kube-linter (same
+   loud-download pattern as the merge gate), CodeQL triage, and a build +
+   trivy scan (CRITICAL/HIGH with a fix available fails) of every image that
+   ships: factory, llm-manager, frontend always; backend and dashboard behind
+   the same path guards as the merge gate, so the scan set grows automatically
+   as the Wave-E services land.
+2. **`promote`** — opens a promotion PR `main → prod` from a
+   `promotion/main-to-prod-<run_id>` branch. **The founder approves by
+   reviewing and merging that PR — the PR is the manual-approval gate.** The
+   workflow never pushes `prod` directly; it no-ops when prod is already at
+   main and stays idempotent when a promotion PR is already open.
+
+Rollback: `prod` deploys only from the promotion tag — rollback = redeploy the
+previous tag (image + `apply-k8s.sh` ritual per the docker.md rules). Secrets
+never enter the pipeline: the whole gate runs key-free (GITHUB_TOKEN only).
+
+## Smoke pattern for service images — `docker/smoke_http_service.sh`
+
+The llm-manager CI job's inline check (boot-with-config → poll `/healthz` →
+refuses-without-config) is extracted into one audited script the Wave-E image
+jobs call with per-image arguments. One deliberate strictness fix over the
+original inline: in the refuse phase, a container that HANGS without config
+exits 124 from the `timeout` wrapper and is a FAILURE — a hang is not a
+refusal; the service must exit loudly and fast. The existing llm-manager job
+keeps its inline check; new image jobs use the script.
+
 ## In-cluster test runs (scheduled + startup + the "button" stand-in)
 
 CI gates every merge; the cluster ALSO runs the full suite continuously via the
@@ -80,6 +144,15 @@ CodeQL analyzes **our own Python code** (injection, path traversal, unsafe deser
 
 Weekly checks for pip, Docker base image, and GitHub Actions dependencies. Dependabot opens update PRs; security advisories surface as alerts. It also rotates our pinned action SHAs when new versions ship.
 
+Gotcha (Wave-E): the pip entries for `voice/` and `logging_manager/` are
+registered before their directories exist (the specs announce the files,
+GAP-001's consumers). Until then Dependabot logs a per-entry
+"directory not found" config warning while every other ecosystem keeps
+working; the entries activate on arrival. Do not delete them to silence the
+warning — deleting it re-opens the coverage gap it exists to close.
+CodeQL needs no per-package config: it analyzes all Python in the repo, so
+new packages are covered automatically the day they land.
+
 ## Security posture summary
 
 | Layer | Tool | Catches |
@@ -107,6 +180,7 @@ Known limitation: all scanners catch **published** CVEs only. Unknown vulnerabil
 ## Pending setup (GitHub UI, before the first merge)
 
 - **Branch protection on `main`** (Settings → Branches → Add rule): require PR before merging; require the checks above by name; forbid force pushes.
+- **Branch protection on `prod`** the same way (the promotion PR is the only writer once it is on) — and optionally a GitHub **environment** with a required reviewer for prod deploys, layered on top of the promotion PR review.
 - **Secret scanning + push protection** and **Dependency review** (Settings → Advanced Security — free on public repos; make dependency review a required check).
-- **Publish pipeline** (CD): on merge to `main`, build and push `ghcr.io/architgore050/zivon-factory:<git-sha>` + attach SBOM. Not written yet — next piece.
+- **Publish pipeline (CD)**: the promotion workflow is the release train — its registry push (build and push `ghcr.io/architgore050/zivon-*:<git-sha>` + attach SBOM on the promotion tag) is the remaining piece.
 - **Deploy pipeline**: blocked on the cluster hosting decision (see kubernetes.md).

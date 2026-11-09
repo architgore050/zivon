@@ -29,11 +29,44 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 - `30-frontend-deployment.yaml` — nginx Deployment serving the site. A no-clobber `initContainer` (`cp -rn /opt/zivon-shell/* ...` — glob form; see gotcha 6) seeds the hand-maintained shell (landing page + assets, baked at `/opt/zivon-shell` in the image) into an empty PVC, so the landing page exists before the first pipeline run and generated content is never overwritten. Non-root (UID 101), capabilities dropped, read-only root fs with writable mounts for nginx's pid/cache/log dirs, probes, resource ceilings. Because the seed is no-clobber, updating the shell on an existing PVC requires the re-seed procedure (gotcha 14).
 - `40-frontend-service.yaml` — NodePort `80 → 8080`, fixed `nodePort: 30080`. Stable host URL with no manual command: **http://192.168.49.2:30080** (minikube's fixed node IP). `minikube service frontend -n zivon` is the convenience opener. On a real cluster only the Service `type` changes (ingress/LB decision, TIMELINE.md infra TODO). The nodePort stays a concrete integer in the manifest: kubeconform strict needs an int, so it cannot be a `${...}` placeholder.
 - `50-test-cronjob.yaml` — the scheduled full test suite (unit + frontend + integration) using the factory image with a command override. THE ONLY AUTOMATIC workload in the stack. Its `schedule:` is a `${TEST_CRON_SCHEDULE}` placeholder rendered from `k8s/infra.env` by `scripts/apply-k8s.sh` — do not apply this file raw, and do not hardcode a cadence anywhere else (gotcha 7). Manual trigger: `scripts/trigger-tests.sh`.
-- `infra.env` — NOT a manifest: the single source of truth for cluster config values (`TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL` — the ROUTER address the llm-manager node calls, `ZIVON_LLM_MANAGER_URL` — the Service address the factory calls, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S` (max inactivity between streamed chunks since 2026-11-07), `ZIVON_CALL_DEADLINE_S` (per-call wall-clock backstop), `ZIVON_STREAM`, `ZIVON_STREAM_USAGE`, `ZIVON_MAX_ATTEMPTS`, `ZIVON_FACTORY_MAX_ATTEMPTS`; NO completion caps are sent at all as of 2026-11-04, see `docs/content-factory/config-reference.md`), consumed by `scripts/apply-k8s.sh` (rendered into the CronJob + TWO ConfigMaps: `zivon-llm-manager-config` for the node, `zivon-factory-config` for the factory). Secrets never belong here — API keys exist only as the runtime K8s Secret `zivon-factory-env` (read by the node AND the factory). Image tags deliberately stay pinned in the manifests (they are code versions, bumped with the code — gotcha 9).
+- `infra.env` — NOT a manifest: the single source of truth for cluster config values (`TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL` — the ROUTER address the llm-manager node calls, `ZIVON_LLM_MANAGER_URL` — the Service address the factory calls, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S` (max inactivity between streamed chunks since 2026-11-07), `ZIVON_CALL_DEADLINE_S` (per-call wall-clock backstop), `ZIVON_STREAM`, `ZIVON_STREAM_USAGE`, `ZIVON_MAX_ATTEMPTS`, `ZIVON_FACTORY_MAX_ATTEMPTS`; NO completion caps are sent at all as of 2026-11-04, see `docs/content-factory/config-reference.md`), consumed by `scripts/apply-k8s.sh` (rendered into the CronJob + TWO ConfigMaps: `zivon-llm-manager-config` for the node, `zivon-factory-config` for the factory). Secrets never belong here — API keys exist only as the runtime K8s Secret `zivon-factory-env` (read by the node AND the factory). Image tags deliberately stay pinned in the manifests (they are code versions, bumped with the code — gotcha 9). The Wave-E additions at the bottom of the file follow the same rules — evals (`EVAL_CRON_SCHEDULE`, `ZIVON_EVAL_JUDGE_MODEL`), observability/dashboard (`ZIVON_LOG_DSN`, `ZIVON_PUBLIC_BASE_URL`, `ZIVON_ENV`, `ZIVON_LOG_LEVEL`, `ZIVON_LOG_SYNC_SCHEDULE`), voice knobs (`ZIVON_VOICE_*` per the voice-agent spec §12), narration budget (`ZIVON_NARRATION_BUILD_BUDGET`, A-15) and cold-storage provider/bucket names (`COLD_PROVIDER`, `COLD_BUCKET_*`) — config values only; the credentials behind them live in the Secrets documented in [`secrets.md`](secrets.md).
+
+## Wave-E reserved manifest numbers (the GAP-017 map)
+
+The SP6 gap register fixes the numeric-prefix reservations for the incoming
+execution agents' manifests, so no two agents ever reach for the same number
+(numeric prefix = apply order). EX6-CICD publishes the map here; the owners
+create the files:
+
+| Manifests | Owner | What lands there |
+|---|---|---|
+| `17–18` | EX1 (conditional) | voice split-out Deployment + Service — ONLY if ADR-0020's split criteria fire; default is NO voice manifests (voice rides the core-backend monolith, `25–28`) |
+| `21–22` | EX2 (conditional) | translator Deployment + Service — default is NO service (translation runs in-factory stages 10a–10d) |
+| `23–24` | EX3 | admin dashboard Deployment + Service (`dashboard-spec` §1) |
+| `25–28` | EX0 | `25` Postgres + core-backend (+ `16-db-pvc` volumes), `26` Alembic migrate Job, `27` core-backend Service exposure, `28` monolith ConfigMap |
+| `29–30` | EX8 (conditional) | narration audio PVC/seed + narration Service, only if narration needs cluster objects |
+| `51` | EX3 (log) / EX0 (sync worker P1) | log-retention / sync worker objects (`ZIVON_LOG_SYNC_SCHEDULE` renders the cadence) |
+| `52` | EX4 | evals CronJob (`EVAL_CRON_SCHEDULE` renders the cadence) |
+| `53` | EX0 | sync/TTL CronJob bundle (sync-nightly, base-backup, ttl-voice-turn, ttl-coverage, ttl-abuse-bucket, rollup-daily-stats, ttl-telemetry) |
+
+**Numbering collision to resolve before EX8 applies manifests (challenge
+recorded in the EX6 manifest):** `k8s/30-frontend-deployment.yaml` already
+exists — `30` is TAKEN by the frontend Deployment. The gap register's
+"29–30 narration" rows therefore cannot both be applied as written; if EX8
+needs cluster objects, the working suggestion is `31–32` (next free numbers
+after 29, before the 40s) unless the founder renumbers the register. Until
+resolved, EX8 lands narration as build-time pipeline stages only.
+
+`scripts/apply-k8s.sh` applies these reservations in numeric order, each only
+when its file exists — a reservation whose owner has not merged yet is
+skipped loudly, and a manifest that lands joins the apply order with no script
+edit. `k8s/20` (factory run Job TEMPLATE) is outside this loop and stays
+manual-only forever. Secrets these manifests reference are documented in
+[`secrets.md`](secrets.md) (names + keys only).
 
 ## Cluster scripts (`scripts/`) — the apply flow and the admin "buttons"
 
-- `scripts/apply-k8s.sh` — applies the whole stack from `k8s/infra.env`: namespace → `zivon-llm-manager-config` (the node's upstream: router URL + model + streaming/deadline knobs) and `zivon-factory-config` (the factory's view: its `ZIVON_BASE_URL` = `ZIVON_LLM_MANAGER_URL`, the llm-manager Service) → manifests in dependency order (smoke Job deleted + re-applied so it re-runs as a post-apply health check; **20 deliberately NOT applied**) → the test CronJob rendered with `TEST_CRON_SCHEDULE` → **one immediate full test run** (`scripts/trigger-tests.sh startup`; the CronJob's first tick can be up to a full interval away, so startup coverage is explicit).
+- `scripts/apply-k8s.sh` — applies the whole stack from `k8s/infra.env`: namespace → `zivon-llm-manager-config` (the node's upstream: router URL + model + streaming/deadline knobs) and `zivon-factory-config` (the factory's view: its `ZIVON_BASE_URL` = `ZIVON_LLM_MANAGER_URL`, the llm-manager Service) → manifests in dependency order (smoke Job deleted + re-applied so it re-runs as a post-apply health check; **20 deliberately NOT applied**) → the Wave-E reserved manifests (section above: each only if the file exists) → the test CronJob rendered with `TEST_CRON_SCHEDULE` → **one immediate full test run** (`scripts/trigger-tests.sh startup`; the CronJob's first tick can be up to a full interval away, so startup coverage is explicit). Pods read env only at pod start, so the script rollout-restarts the llm-manager, dashboard and core-backend deployments after apply (gotcha 18).
 - `scripts/trigger-tests.sh [suffix]` — the test-suite "button": `kubectl create job test-<suffix>-<HHMMSS> --from=cronjob/test-suite -n zivon`.
 - `scripts/trigger-factory-run.sh "<chapter>" [class 6-12] [--fresh]` — the content factory "button": renders the 20 template (name + chapter + optional `--class` / `--fresh`) and applies it. Generation is manual-trigger only, by design: the factory NEVER runs on a schedule. A re-trigger of the same topic+class RESUMES the previous attempt; `--fresh` forces clean generation.
 - `scripts/logs-factory-run.sh [--status|--list]` — watches the **latest** generation run without knowing its generated name: every run Job carries label `task=factory-run` (20 template), so the script resolves the newest one by label and follows its logs. Output visibility never depends on a timestamp.
