@@ -18,8 +18,11 @@ the founder approves before the first live narration run. The guard's job:
 
 Money state lives at runs/narration-budget.json (gitignored with runs/).
 Factory runs are manual-only and never concurrent (the founder trigger
-discipline), so a whole-file read-modify-write is safe; a torn/corrupt file
-is rebuilt from zero rather than silently inflating the budget.
+discipline), so a whole-file read-modify-write is safe. A torn/corrupt file
+is a hard NarrationError, never a rebuild from zero: rebuilding would wipe
+total_credits_used and fail open against the money cap. Fix or delete the
+file instead; past per-block spend can be reconstructed from the per-run
+usage ledgers under runs/<run_id>/.
 """
 
 from __future__ import annotations
@@ -62,15 +65,19 @@ def load_state(runs_dir: Path, env: NarrationEnv) -> dict[str, Any]:
     else:
         try:
             state = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            # A torn write must never INFLATE the budget: rebuild from zero
-            # and let the usage ledgers (per-run narration_usage.jsonl)
-            # reconstruct.
-            state = {
-                "tranche_credits": env.budget_credits,
-                "total_credits_used": 0.0,
-                "runs": [],
-            }
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            # A torn/corrupt file must never be rebuilt from zero: that
+            # would forget total_credits_used and hand the run a fresh
+            # tranche (fail-open against a money cap). Fail loud, like an
+            # invalid-shaped file; the usage ledgers can reconstruct spend.
+            raise NarrationError(
+                STAGE_ID,
+                f"{path} is corrupt and cannot be parsed "
+                f"({exc.__class__.__name__}: {exc}) - fix or delete it "
+                "before narrating (deleting starts the tranche from zero; "
+                "per-run usage ledgers under runs/<run_id>/ can reconstruct "
+                "the spend)",
+            ) from exc
         if not isinstance(state, dict) or "total_credits_used" not in state:
             raise NarrationError(
                 STAGE_ID,

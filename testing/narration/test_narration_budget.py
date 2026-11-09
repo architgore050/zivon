@@ -95,10 +95,17 @@ class TestBudgetLedger(unittest.TestCase):
         reloaded = load_state(self.runs_dir, _env(budget=1500.0))
         self.assertEqual(reloaded["tranche_credits"], 1500.0)
 
-    def test_corrupt_file_rebuilds_from_zero_not_inflated(self):
+    def test_corrupt_file_raises_instead_of_rebuilding_from_zero(self):
+        # A torn write must fail LOUD, not rebuild from zero: rebuilding
+        # would forget total_credits_used and hand the run a fresh tranche
+        # (fail-open against the A-15 money cap). Same hard error as an
+        # invalid-shaped file.
+        from factory.narration.errors import NarrationError
+
         (self.runs_dir / "narration-budget.json").write_text("{torn", encoding="utf-8")
-        state = load_state(self.runs_dir, _env())
-        self.assertEqual(state["total_credits_used"], 0.0)
+        with self.assertRaises(NarrationError) as ctx:
+            load_state(self.runs_dir, _env())
+        self.assertIn("corrupt", str(ctx.exception))
 
     def test_invalid_shape_raises_loudly(self):
         (self.runs_dir / "narration-budget.json").write_text("[1,2]", encoding="utf-8")
