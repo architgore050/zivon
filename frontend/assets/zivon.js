@@ -778,6 +778,713 @@
   };
   window.ZivonStateMatrix = ZivonStateMatrix;
 
+  /* --------------- 7. voice loop WS client & mock server ------------------
+     Implements docs/specs/frontend/ws-client-contract.md reconciled with SP1's
+     canonical docs/specs/voice-agent/ws-contract.md:
+     - Transport: wss://<origin>/voice/ws (or injected mock socket for dev/test)
+     - 8-byte binary header (0xA5, v=1, segment_id, seq, flags, reserved=0)
+       per ADR-0020 §3.
+     - Client state machine: idle, connecting, requesting-permission, ready,
+       listening, endpointing, thinking, speaking, speaking_text, interrupted,
+       error:<code>, offline.
+     - Capture constraint ladder (16 kHz mono + AEC/NS/AGC -> drop sampleRate ->
+       drop channelCount) and GainNode ducking (never track.enabled=false) per
+       skills/zivon-audio-engineering-skills/ & ADR-0010.
+     - Jitter buffer scheduling (target 60-120 ms, min 2-3 frames, schedule >=
+       150 ms ahead on AudioContext.currentTime).
+     - Degraded text fallback (typed transcript via audio.end) & turn latency
+       stamps (t_endpoint, t_final_transcript, t_first_token, t_first_audio). */
+  var VOICE_MAGIC = 0xA5;
+  var VOICE_VERSION = 1;
+
+  function encodeAudioFrame(pcmBytes, segmentId, seq, isFinal) {
+    var payload = pcmBytes instanceof Uint8Array ? pcmBytes : new Uint8Array(pcmBytes || 0);
+    var out = new Uint8Array(8 + payload.byteLength);
+    var dv = new DataView(out.buffer);
+    dv.setUint8(0, VOICE_MAGIC);
+    dv.setUint8(1, VOICE_VERSION);
+    dv.setUint16(2, (segmentId || 1) & 0xFFFF, false);
+    dv.setUint16(4, (seq || 0) & 0xFFFF, false);
+    dv.setUint8(6, isFinal ? 1 : 0);
+    dv.setUint8(7, 0);
+    out.set(payload, 8);
+    return out.buffer;
+  }
+
+  function decodeAudioFrame(buffer) {
+    var arr = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) :
+      (buffer && buffer.buffer instanceof ArrayBuffer ? new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) : null);
+    if (!arr || arr.byteLength < 8) {
+      return { valid: false, reason: "short_frame" };
+    }
+    var dv = new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
+    var magic = dv.getUint8(0);
+    var ver = dv.getUint8(1);
+    if (magic !== VOICE_MAGIC || ver !== VOICE_VERSION) {
+      return { valid: false, reason: "header_mismatch", magic: magic, version: ver };
+    }
+    return {
+      valid: true,
+      magic: magic,
+      version: ver,
+      segment_id: dv.getUint16(2, false),
+      seq: dv.getUint16(4, false),
+      is_final: (dv.getUint8(6) & 1) === 1,
+      payload: arr.subarray(8)
+    };
+  }
+
+  function mapServerErrorToCode(code) {
+    var c = String(code || "system-error");
+    if (c === "credit.over_daily" || c === "credit.over_session" || c === "quota-exhausted") {
+      return "quota-exhausted";
+    }
+    if (c === "brain.first_event_timeout" || c === "brain.deadline" || c === "timeout") {
+      return "timeout";
+    }
+    if (c === "stt.no_match" || c === "no-match") return "no-match";
+    if (c === "stt.no_input" || c === "no-input") return "no-input";
+    if (c === "mic-denied" || c === "mic-in-use" || c === "unsupported-browser") return c;
+    return c;
+  }
+
+  function createVoiceClient(options) {
+    var opts = options || {};
+    var state = "idle";
+    var listeners = [];
+    var ws = null;
+    var sessionId = null;
+    var sessionToken = opts.session_token || "dev-session-token";
+    var deviceId = opts.device || (window.ZivonLocale && window.ZivonLocale.getDevicePseudoId ? window.ZivonLocale.getDevicePseudoId() : "dev-device");
+    var lastTurnId = null;
+    var micSeq = 0;
+    var expectedTtsSeq = {};
+    var jitterBuffer = [];
+    var minBufferFrames = opts.min_buffer_frames || 3; /* >= 2-3 Opus 20ms frames (60ms) */
+    var scheduleLookaheadS = 0.15; /* >= 150ms ahead for budget Android HAL */
+    var audioCtx = opts.audioContext || null;
+    var micGainNode = null;
+    var agentGainNode = null;
+    var mediaStream = null;
+    var pingTimer = null;
+    var lastPongTs = 0;
+    var consecutiveVadTriggers = 0;
+    var lastVadTriggerTs = 0;
+    var queuedTypedDoubts = [];
+    var transcripts = [];
+    var turnTimings = {};
+    var lastCompletedTurnMetrics = null;
+
+    function setState(nextState, detail) {
+      var prev = state;
+      state = nextState;
+      if (nextState === "offline") {
+        applyLessonStateBanner("offline", "Offline - voice tutor paused; lesson and simulations stay active.");
+      } else if (nextState === "error:quota-exhausted") {
+        applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+      }
+      listeners.forEach(function (fn) {
+        try { fn(state, prev, detail || {}); } catch (e) {}
+      });
+    }
+
+    function sendJson(msg) {
+      var payload = Object.assign({ v: VOICE_VERSION }, msg);
+      if (!ws || ws.readyState !== 1) {
+        setState("offline", { reason: "ws_not_open" });
+        return false;
+      }
+      ws.send(JSON.stringify(payload));
+      return true;
+    }
+
+    function ensureAudioGraph() {
+      if (!audioCtx && typeof window !== "undefined") {
+        var Ctor = window.AudioContext || window.webkitAudioContext;
+        if (Ctor) {
+          try { audioCtx = new Ctor(); } catch (e) {}
+        }
+      }
+      if (audioCtx) {
+        if (audioCtx.state === "suspended" && typeof audioCtx.resume === "function") {
+          try { audioCtx.resume(); } catch (e) {}
+        }
+        if (!micGainNode && typeof audioCtx.createGain === "function") {
+          micGainNode = audioCtx.createGain();
+          micGainNode.gain.value = 1.0;
+        }
+        if (!agentGainNode && typeof audioCtx.createGain === "function") {
+          agentGainNode = audioCtx.createGain();
+          agentGainNode.gain.value = 1.0;
+        }
+      }
+    }
+
+    function setDucking(mode) {
+      ensureAudioGraph();
+      if (mode === "agent_speaking") {
+        /* ADR-0010 / audio skill §3: duck mic gain, never mute track.enabled */
+        if (micGainNode && micGainNode.gain) micGainNode.gain.value = 0.2;
+        if (agentGainNode && agentGainNode.gain) agentGainNode.gain.value = 1.0;
+      } else if (mode === "user_barge_in") {
+        if (agentGainNode && agentGainNode.gain) agentGainNode.gain.value = 0.15;
+        if (micGainNode && micGainNode.gain) micGainNode.gain.value = 1.0;
+      } else {
+        if (micGainNode && micGainNode.gain) micGainNode.gain.value = 1.0;
+        if (agentGainNode && agentGainNode.gain) agentGainNode.gain.value = 1.0;
+      }
+    }
+
+    async function requestMicPermission() {
+      setState("requesting-permission");
+      ensureAudioGraph();
+      var nav = opts.navigator || (typeof navigator !== "undefined" ? navigator : null);
+      if (!nav || !nav.mediaDevices || typeof nav.mediaDevices.getUserMedia !== "function") {
+        setState("error:unsupported-browser", { fallback: "text" });
+        return { ok: false, error: "unsupported-browser" };
+      }
+      var ladder = [
+        { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1, sampleRate: 16000 } },
+        { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } },
+        { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }
+      ];
+      var lastErr = null;
+      for (var i = 0; i < ladder.length; i++) {
+        try {
+          mediaStream = await nav.mediaDevices.getUserMedia(ladder[i]);
+          var tracks = mediaStream && typeof mediaStream.getAudioTracks === "function" ? mediaStream.getAudioTracks() : [];
+          if (tracks.length && typeof tracks[0].getSettings === "function") {
+            var settings = tracks[0].getSettings() || {};
+            if (settings.sampleRate && settings.sampleRate !== 16000 && window.console && console.warn) {
+              console.warn("zivon.audio: sampleRate mismatch, got", settings.sampleRate);
+            }
+          }
+          setState(ws && ws.readyState === 1 ? "ready" : "idle", { permission: "granted" });
+          return { ok: true, stream: mediaStream };
+        } catch (err) {
+          lastErr = err;
+          var errName = err && err.name ? String(err.name) : "";
+          if (errName === "OverconstrainedError" || errName === "ConstraintNotSatisfiedError") {
+            continue;
+          }
+          if (errName === "NotReadableError" || errName === "TrackStartError") {
+            setState("error:mic-in-use", { fallback: "text" });
+            return { ok: false, error: "mic-in-use" };
+          }
+          break;
+        }
+      }
+      if (window.ZivonEvents && typeof window.ZivonEvents.recordError === "function") {
+        window.ZivonEvents.recordError("mic_permission");
+      }
+      setState("error:mic-denied", { fallback: "text", cause: String(lastErr || "denied") });
+      return { ok: false, error: "mic-denied" };
+    }
+
+    function handleBinaryFrame(data) {
+      var parsed = decodeAudioFrame(data);
+      if (!parsed.valid) {
+        setState("error:system-error", { reason: parsed.reason });
+        return;
+      }
+      var seg = parsed.segment_id;
+      if (Object.prototype.hasOwnProperty.call(expectedTtsSeq, seg) && parsed.seq > expectedTtsSeq[seg]) {
+        /* Gap bridged by skipping per SP1 §2 tts.audio note */
+        expectedTtsSeq[seg] = parsed.seq + 1;
+      } else {
+        expectedTtsSeq[seg] = parsed.seq + 1;
+      }
+      var nowTime = audioCtx && typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : (performance.now() / 1000);
+      jitterBuffer.push({
+        segment_id: seg,
+        seq: parsed.seq,
+        is_final: parsed.is_final,
+        bytes: parsed.payload.byteLength,
+        scheduled_at: nowTime + scheduleLookaheadS + (jitterBuffer.length * 0.02)
+      });
+      if (!turnTimings.t_first_audio) {
+        turnTimings.t_first_audio = performance.now();
+      }
+      if (jitterBuffer.length >= minBufferFrames || parsed.is_final) {
+        if (state !== "speaking") {
+          setDucking("agent_speaking");
+          setState("speaking", { buffered_frames: jitterBuffer.length, buffered_ms: jitterBuffer.length * 20 });
+        }
+      }
+    }
+
+    function handleServerMessage(msg) {
+      if (!msg || typeof msg !== "object") return;
+      if (msg.v !== undefined && msg.v !== VOICE_VERSION) {
+        setState("error:version.mismatch", { code: 4409 });
+        if (ws && typeof ws.close === "function") ws.close(4409, "version.mismatch");
+        return;
+      }
+      var t = msg.type;
+      var payload = msg.payload && typeof msg.payload === "object" ? msg.payload : msg;
+      if (t === "session.ready") {
+        sessionId = payload.session_id || "sess-1";
+        setState("ready", { session_id: sessionId, profile: payload.profile || "normal" });
+        return;
+      }
+      if (t === "stt.partial" || t === "partial_transcript") {
+        transcripts.push({ kind: "partial", text: String(payload.text || ""), turn_id: payload.turn_id });
+        return;
+      }
+      if (t === "stt.final" || t === "final_transcript") {
+        turnTimings.t_final_transcript = performance.now();
+        lastTurnId = payload.turn_id || lastTurnId || "turn-1";
+        transcripts.push({ kind: "student", text: String(payload.text || ""), turn_id: lastTurnId });
+        if (payload.confidence !== undefined && payload.confidence < 0.25) {
+          setState("error:no-match", { fallback: "text" });
+          return;
+        }
+        setState("thinking", { turn_id: lastTurnId, text: payload.text });
+        return;
+      }
+      if (t === "agent.state") {
+        var st = payload.state;
+        if (st === "listening" || st === "thinking" || st === "speaking" || st === "speaking_text") {
+          if (st === "speaking") setDucking("agent_speaking");
+          else if (st === "listening") setDucking("normal");
+          setState(st, { reason: payload.reason });
+        } else if (st === "idle") {
+          setDucking("normal");
+          setState("ready", { reason: payload.reason });
+        }
+        return;
+      }
+      if (t === "highlight") {
+        highlightBlocks(payload.block_ids || []);
+        return;
+      }
+      if (t === "tts.text" || t === "tutor.text") {
+        if (!turnTimings.t_first_token) {
+          turnTimings.t_first_token = performance.now();
+        }
+        var txt = payload.text !== undefined ? payload.text : (payload.delta || payload.final || "");
+        transcripts.push({ kind: "tutor", subkind: payload.kind || "speech", text: String(txt), turn_id: payload.turn_id || lastTurnId });
+        return;
+      }
+      if (t === "tts.start") {
+        setDucking("agent_speaking");
+        setState("speaking");
+        return;
+      }
+      if (t === "turn.end" || t === "tts.end") {
+        jitterBuffer = [];
+        setDucking("normal");
+        var e2eMs = (turnTimings.t_endpoint && (turnTimings.t_first_audio || turnTimings.t_first_token))
+          ? Math.max(0, Math.round((turnTimings.t_first_audio || turnTimings.t_first_token) - turnTimings.t_endpoint))
+          : (payload.latency_ms && payload.latency_ms.e2e ? payload.latency_ms.e2e : 0);
+        lastCompletedTurnMetrics = {
+          turn_id: payload.turn_id || lastTurnId || "turn-1",
+          end_reason: payload.end_reason || "done",
+          e2e_ms: e2eMs,
+          timings: Object.assign({}, turnTimings)
+        };
+        if (window.ZivonEvents && typeof window.ZivonEvents.recordVoiceTurnDone === "function") {
+          window.ZivonEvents.recordVoiceTurnDone(sessionId, lastCompletedTurnMetrics.turn_id, e2eMs);
+        }
+        if (payload.end_reason === "interrupted") {
+          setState("listening", { interrupted: true });
+        } else {
+          setState("ready", { turn_id: lastCompletedTurnMetrics.turn_id });
+        }
+        return;
+      }
+      if (t === "pong") {
+        lastPongTs = Date.now();
+        return;
+      }
+      if (t === "ping") {
+        sendJson({ type: "pong", t: Date.now() });
+        return;
+      }
+      if (t === "error") {
+        var mapped = mapServerErrorToCode(payload.code);
+        if (window.ZivonEvents && typeof window.ZivonEvents.recordError === "function") {
+          window.ZivonEvents.recordError("voice");
+        }
+        if (payload.code === "tts.unavailable" || payload.code === "brain.first_event_timeout") {
+          setState("speaking_text", { code: payload.code, message: payload.message });
+        } else {
+          setState("error:" + mapped, { code: payload.code, message: payload.message, recoverable: payload.recoverable !== false });
+        }
+        return;
+      }
+      /* Unknown message type: ignore + count per ws-client-contract.md §3 */
+    }
+
+    function connect(resumeFlag) {
+      setState("connecting");
+      var url = opts.url || ((window.location && window.location.protocol === "https:" ? "wss://" : "ws://") +
+        ((window.location && window.location.host) || "localhost:8080") + "/voice/ws");
+      var factory = opts.createWebSocket || function (u) { return new WebSocket(u, ["zivon-tutor.v1"]); };
+      try {
+        ws = factory(url);
+      } catch (err) {
+        setState("offline", { error: String(err) });
+        return false;
+      }
+      ws.binaryType = "arraybuffer";
+      ws.onopen = function () {
+        lastPongTs = Date.now();
+        var snap = buildContextSnapshot();
+        sendJson({
+          type: "session.start",
+          session_token: sessionToken,
+          device: deviceId,
+          locale: snap.lang_pref || "en",
+          capabilities: { ptt: true, opus: true, webrtc_vad: true },
+          resume: Boolean(resumeFlag),
+          last_turn_id: lastTurnId,
+          anchor: {
+            course_id: snap.course_id,
+            topic_slug: snap.topic_id,
+            block_id: snap.block_id,
+            lang: snap.lang_pref
+          }
+        });
+      };
+      ws.onmessage = function (ev) {
+        if (typeof ev.data === "string") {
+          try {
+            handleServerMessage(JSON.parse(ev.data));
+          } catch (err) {
+            setState("error:system-error", { reason: "invalid_json" });
+          }
+        } else {
+          handleBinaryFrame(ev.data);
+        }
+      };
+      ws.onerror = function () {
+        if (window.ZivonEvents && typeof window.ZivonEvents.recordError === "function") {
+          window.ZivonEvents.recordError("network");
+        }
+      };
+      ws.onclose = function (ev) {
+        if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+        if (ev && ev.code === 4401) {
+          setState("error:auth.invalid", { code: 4401 });
+        } else if (ev && ev.code === 4409) {
+          setState("error:version.mismatch", { code: 4409 });
+        } else if (state !== "idle") {
+          setState("offline", { code: ev ? ev.code : 1006 });
+        }
+      };
+      return true;
+    }
+
+    function startListening(turnHint) {
+      if (state === "speaking" || state === "thinking") {
+        /* P0 PTT press during speaking/thinking IS barge-in interrupt (SP1 §5) */
+        bargeIn("ptt_press");
+      }
+      if (!ws || ws.readyState !== 1) {
+        setState("offline", { reason: "ws_closed" });
+        return false;
+      }
+      micSeq = 0;
+      turnTimings = { t_start: performance.now() };
+      if (window.ZivonEvents && typeof window.ZivonEvents.recordMicPress === "function") {
+        window.ZivonEvents.recordMicPress(sessionId);
+      }
+      sendJson({ type: "context.snapshot", payload: buildContextSnapshot(), ...buildContextSnapshot() });
+      sendJson({ type: "audio.start", turn_hint: turnHint || null });
+      setState("listening");
+      return true;
+    }
+
+    function sendAudioChunk(pcmBytes, isFinal) {
+      if (state !== "listening") return false;
+      if (!ws || ws.readyState !== 1) {
+        setState("offline");
+        return false;
+      }
+      var frame = encodeAudioFrame(pcmBytes, 1, micSeq++, Boolean(isFinal));
+      ws.send(frame);
+      return true;
+    }
+
+    function endAudio() {
+      if (state !== "listening" && state !== "endpointing") return false;
+      turnTimings.t_endpoint = performance.now();
+      setState("endpointing");
+      return sendJson({ type: "audio.end" });
+    }
+
+    function notifyVadSpeech(active) {
+      var now = performance.now();
+      if (state === "speaking") {
+        if (active) {
+          setDucking("user_barge_in");
+          if (now - lastVadTriggerTs <= 1000) {
+            consecutiveVadTriggers += 1;
+          } else {
+            consecutiveVadTriggers = 1;
+          }
+          lastVadTriggerTs = now;
+          if (consecutiveVadTriggers >= 2) {
+            bargeIn("vad_over_playback");
+          }
+        }
+      } else if (state === "endpointing" && active) {
+        /* False endpoint recovery -> back to listening (ws-client-contract §2) */
+        setState("listening", { reason: "vad_retrigger" });
+      }
+    }
+
+    function bargeIn(reason) {
+      if (state !== "speaking" && state !== "thinking" && state !== "speaking_text") {
+        return false;
+      }
+      jitterBuffer = [];
+      setDucking("user_barge_in");
+      /* Discard tutor's partial sentence per ws-client-contract §2 */
+      if (transcripts.length && transcripts[transcripts.length - 1].kind === "tutor") {
+        transcripts[transcripts.length - 1].interrupted = true;
+      }
+      sendJson({ type: "interrupt", turn_id: lastTurnId });
+      setState("interrupted", { reason: reason || "user_interrupt" });
+      setDucking("normal");
+      setState("listening", { barge_in: true });
+      return true;
+    }
+
+    function sendTypedDoubt(text) {
+      var clean = String(text || "").trim();
+      if (!clean) return false;
+      turnTimings = { t_endpoint: performance.now() };
+      transcripts.push({ kind: "student", text: clean, typed: true });
+      if (!ws || ws.readyState !== 1) {
+        queuedTypedDoubts.push(clean);
+        setState("offline", { queued_typed: queuedTypedDoubts.length });
+        return false;
+      }
+      sendJson({ type: "context.snapshot", ...buildContextSnapshot() });
+      sendJson({ type: "audio.end", text: clean, fallback: "typed" });
+      setState("thinking", { typed: true, text: clean });
+      return true;
+    }
+
+    function reconnect() {
+      return connect(true);
+    }
+
+    function checkKeepalive(nowMs) {
+      var now = nowMs || Date.now();
+      if (lastPongTs && (now - lastPongTs > 30000)) {
+        setState("offline", { reason: "pong_timeout" });
+        return false;
+      }
+      return sendJson({ type: "ping", t: now });
+    }
+
+    function disconnect() {
+      if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+      queuedTypedDoubts = [];
+      jitterBuffer = [];
+      if (ws && typeof ws.close === "function") {
+        ws.close(1000, "client_disconnect");
+      }
+      ws = null;
+      setState("idle");
+    }
+
+    return {
+      getState: function () { return state; },
+      getSessionId: function () { return sessionId; },
+      getTranscripts: function () { return transcripts.slice(); },
+      getJitterBuffer: function () { return jitterBuffer.slice(); },
+      getQueuedTypedDoubts: function () { return queuedTypedDoubts.slice(); },
+      getLastTurnMetrics: function () { return lastCompletedTurnMetrics; },
+      getGainValues: function () {
+        return {
+          mic: micGainNode && micGainNode.gain ? micGainNode.gain.value : 1.0,
+          agent: agentGainNode && agentGainNode.gain ? agentGainNode.gain.value : 1.0
+        };
+      },
+      onStateChange: function (fn) { listeners.push(fn); },
+      requestMicPermission: requestMicPermission,
+      connect: connect,
+      reconnect: reconnect,
+      startListening: startListening,
+      sendAudioChunk: sendAudioChunk,
+      endAudio: endAudio,
+      notifyVadSpeech: notifyVadSpeech,
+      bargeIn: bargeIn,
+      sendTypedDoubt: sendTypedDoubt,
+      checkKeepalive: checkKeepalive,
+      disconnect: disconnect
+    };
+  }
+
+  /* Mock WS server for local dev and automated headless tests (mission brief) */
+  function createMockVoiceServer(options) {
+    var cfg = options || {};
+    var sentByClient = [];
+    var binaryReceived = [];
+    var socketInstance = null;
+    var turnCounter = 0;
+
+    function makeSocket(url) {
+      var sock = {
+        url: url,
+        protocol: "zivon-tutor.v1",
+        readyState: 0,
+        binaryType: "arraybuffer",
+        onopen: null,
+        onmessage: null,
+        onerror: null,
+        onclose: null,
+        send: function (data) {
+          if (typeof data === "string") {
+            var msg = JSON.parse(data);
+            sentByClient.push(msg);
+            handleClientJson(sock, msg);
+          } else {
+            var decoded = decodeAudioFrame(data);
+            binaryReceived.push(decoded);
+          }
+        },
+        close: function (code, reason) {
+          sock.readyState = 3;
+          if (typeof sock.onclose === "function") {
+            sock.onclose({ code: code || 1000, reason: reason || "" });
+          }
+        },
+        serverEmitJson: function (obj) {
+          if (sock.readyState !== 1) return;
+          if (typeof sock.onmessage === "function") {
+            sock.onmessage({ data: JSON.stringify(Object.assign({ v: VOICE_VERSION }, obj)) });
+          }
+        },
+        serverEmitAudio: function (segmentId, seq, isFinal, payloadLen) {
+          if (sock.readyState !== 1) return;
+          var dummy = new Uint8Array(payloadLen || 80);
+          var frame = encodeAudioFrame(dummy, segmentId || 1, seq || 0, Boolean(isFinal));
+          if (typeof sock.onmessage === "function") {
+            sock.onmessage({ data: frame });
+          }
+        },
+        simulateDrop: function () {
+          sock.readyState = 3;
+          if (typeof sock.onclose === "function") {
+            sock.onclose({ code: 1006, reason: "network_drop" });
+          }
+        }
+      };
+      socketInstance = sock;
+      setTimeout(function () {
+        sock.readyState = 1;
+        if (typeof sock.onopen === "function") sock.onopen({});
+      }, 0);
+      return sock;
+    }
+
+    function handleClientJson(sock, msg) {
+      if (msg.type === "session.start") {
+        if (cfg.rejectAuth) {
+          sock.close(4401, "auth.invalid");
+          return;
+        }
+        sock.serverEmitJson({
+          type: "session.ready",
+          session_id: cfg.session_id || "mock-sess-01",
+          profile: cfg.profile || "normal",
+          state: "idle",
+          server_time: Date.now()
+        });
+      } else if (msg.type === "audio.start") {
+        sock.serverEmitJson({ type: "agent.state", state: "listening" });
+      } else if (msg.type === "audio.end") {
+        turnCounter += 1;
+        var tid = "turn-" + turnCounter;
+        if (cfg.quotaExhausted) {
+          sock.serverEmitJson({
+            type: "error",
+            code: "credit.over_daily",
+            message: "Daily voice limit reached.",
+            recoverable: true
+          });
+          return;
+        }
+        var transcriptText = msg.text || cfg.transcript || "Sir, velocity-time graph ka slope kya batata hai?";
+        if (!msg.text) {
+          sock.serverEmitJson({ type: "stt.partial", turn_id: tid, seq: 0, text: "Sir, velocity-time" });
+        }
+        sock.serverEmitJson({
+          type: "stt.final",
+          turn_id: tid,
+          text: transcriptText,
+          lang: "hi-Latn",
+          confidence: cfg.confidence !== undefined ? cfg.confidence : 0.94
+        });
+        if (cfg.confidence !== undefined && cfg.confidence < 0.25) return;
+        sock.serverEmitJson({ type: "agent.state", state: "thinking" });
+        if (cfg.autoReply !== false) {
+          if (cfg.highlightBlocks) {
+            sock.serverEmitJson({ type: "highlight", turn_id: tid, block_ids: cfg.highlightBlocks });
+          }
+          sock.serverEmitJson({
+            type: "tts.text",
+            turn_id: tid,
+            segment_id: 1,
+            kind: "speech",
+            text: cfg.replyText || "Velocity-time graph ka slope acceleration dikhata hai."
+          });
+          if (cfg.ttsUnavailable) {
+            sock.serverEmitJson({
+              type: "error",
+              code: "tts.unavailable",
+              message: "Audio synthesis unavailable; showing text answer.",
+              recoverable: true
+            });
+            return;
+          }
+          sock.serverEmitAudio(1, 0, false, 80);
+          sock.serverEmitAudio(1, 1, false, 80);
+          sock.serverEmitAudio(1, 2, true, 80);
+          if (!cfg.holdSpeaking) {
+            sock.serverEmitJson({
+              type: "turn.end",
+              turn_id: tid,
+              end_reason: "done",
+              latency_ms: { L0: 120, L3: 480, L6: 890, e2e: 1150 },
+              usage: { stt_audio_s: 2.4, tts_chars: 54, brain_prompt_tokens: 310, brain_completion_tokens: 42, retries: 0 }
+            });
+          }
+        }
+      } else if (msg.type === "interrupt") {
+        sock.serverEmitJson({ type: "agent.state", state: "listening", reason: "barge_in" });
+        sock.serverEmitJson({
+          type: "turn.end",
+          turn_id: msg.turn_id || ("turn-" + turnCounter),
+          end_reason: "interrupted",
+          latency_ms: {},
+          usage: { stt_audio_s: 1.0, tts_chars: 18, brain_prompt_tokens: 310, brain_completion_tokens: 15, retries: 0 }
+        });
+      } else if (msg.type === "ping") {
+        sock.serverEmitJson({ type: "pong", t: msg.t });
+      }
+    }
+
+    return {
+      createWebSocket: makeSocket,
+      getSentMessages: function () { return sentByClient.slice(); },
+      getBinaryFrames: function () { return binaryReceived.slice(); },
+      getSocket: function () { return socketInstance; }
+    };
+  }
+
+  window.ZivonVoiceClient = {
+    create: createVoiceClient,
+    createMockServer: createMockVoiceServer,
+    encodeAudioFrame: encodeAudioFrame,
+    decodeAudioFrame: decodeAudioFrame
+  };
+
   /* ------------------------------- boot ----------------------------------
      LessonKit.init covers load, font swap, resize, card open/close and quiz
      feedback changes through its own observers - no manual re-fit listeners.
