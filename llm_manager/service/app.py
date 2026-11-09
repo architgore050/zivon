@@ -46,7 +46,7 @@ from fastapi import FastAPI, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..client import LLMManager
+from ..client import LLMManager, LLMObserver
 from ..config import LLMConfig, LLMConfigError
 from ..errors import (
     BadServerResponseError,
@@ -54,6 +54,39 @@ from ..errors import (
     NonRetryableHTTPError,
     TransportError,
 )
+
+
+def _log_event(event: str, fields: dict[str, Any] | None = None, **kwargs: Any) -> None:
+    """EX3-OBS adapter: the node's observer hook -> log_event, nothing more
+    (logging-api.md §7). logging_manager is imported lazily so the node stays
+    standalone; when the package is absent (slim image not yet rebuilt) the
+    node emits no events and behaves exactly as before."""
+    try:
+        from logging_manager import log_event as _emit
+    except ImportError:
+        return
+    _emit(event, fields, **kwargs)
+
+
+def _error_class(name: str) -> Any:
+    try:
+        from logging_manager import ErrorClass
+
+        return ErrorClass(name)
+    except ImportError:
+        return None
+
+
+class _NodeObserver(LLMObserver):
+    """Forwards transport retries to the map's node.call.transport_retry row
+    (reason enum: inactivity | status_5xx | rate_limited)."""
+
+    def on_retry(self, attempt: int, reason: str) -> None:
+        _log_event(
+            "node.call.transport_retry",
+            {"attempt": attempt, "reason_code": reason},
+            error_class=_error_class("transport_error"),
+        )
 
 
 class _Message(BaseModel):
@@ -81,6 +114,23 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
     app = FastAPI(title="zivon-llm-manager", docs_url=None, redoc_url=None)
     state = _State(config)
 
+    @app.middleware("http")
+    async def correlate(request: Any, call_next: Any) -> Any:
+        """Every HTTP edge (spec.md §3): accept a well-formed inbound
+        X-Request-Id, generate one otherwise, and ALWAYS return it — the
+        frontend shows it in error toasts for bug reports."""
+        try:
+            # the helper lives in the context module (not the frozen surface)
+            from logging_manager.context import bind_from_headers
+
+            request_id = bind_from_headers(request.headers)
+        except ImportError:
+            request_id = None
+        response = await call_next(request)
+        if request_id:
+            response.headers["X-Request-Id"] = request_id
+        return response
+
     @app.get("/healthz")
     def healthz() -> JSONResponse:
         try:
@@ -96,12 +146,18 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
     @app.post("/v1/chat/completions")
     def chat_completions(body: ChatCompletionRequest) -> Response:
         state.config()  # loud config tripwire on first use (LLMConfigError -> 500)
-        manager = LLMManager(state.config())
+        manager = LLMManager(state.config(), observer=_NodeObserver())
+        _log_event("node.call.received", {"stream": body.stream, "attempt": 1})
         if body.model and body.model != manager.config.model:
             # A single-model node serves its configured model - but a request
             # naming a DIFFERENT model is a misconfiguration, and silently
             # answering with the node's model would hide it (no silent
             # fallbacks, ever). Refuse loudly with the fix in the message.
+            _log_event(
+                "node.model_mismatch",
+                {"requested_model": body.model, "available_count": 1},
+                error_class=_error_class("validation_error"),
+            )
             return JSONResponse(
                 status_code=400,
                 content={
@@ -125,6 +181,7 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
                 media_type="text/event-stream",
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
+        t0 = time.monotonic()
         try:
             result = manager.complete(
                 messages,
@@ -139,6 +196,19 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
                 },
             )
         except (TransportError, BadServerResponseError) as exc:
+            if getattr(exc, "deadline_abort", False):
+                _log_event(
+                    "node.call.deadline_abort",
+                    {
+                        "deadline_s": getattr(exc, "deadline_s", None),
+                        "chunks_received": getattr(exc, "chunks_received", None),
+                    },
+                    latency_ms=int((time.monotonic() - t0) * 1000),
+                    error_class=_error_class("transport_error"),
+                )
+            # Exhausted/non-retryable upstream legs have no dedicated map row
+            # at the node: the caller's factory.call.transport_exhausted (and
+            # the SSE error path for streams) carry them — map-faithful.
             return JSONResponse(
                 status_code=502,
                 content={"error": {"message": str(exc), "type": "upstream_error"}},
@@ -154,6 +224,16 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
                     + result.usage.get("completion_tokens", 0),
                 ),
             }
+        _log_event(
+            "node.call.finished",
+            {
+                "first_token_s": result.first_token_s,
+                "chunks_received": result.chunks_received,
+                "finish_reason": result.finish_reason,
+                "usage_present": bool(result.usage),
+            },
+            latency_ms=int((time.monotonic() - t0) * 1000),
+        )
         return JSONResponse(
             content={
                 "id": f"chatcmpl-llmmgr-{uuid.uuid4().hex[:12]}",
@@ -224,6 +304,12 @@ def _sse_stream(
     completion_id = f"chatcmpl-llmmgr-{uuid.uuid4().hex[:12]}"
     created = int(time.time())
     model = manager.config.model
+    # EX3-OBS stream counters (node.call.finished row at the end)
+    stream_t0 = time.monotonic()
+    stream_chunks = 0
+    stream_first_token_s: float | None = None
+    stream_finish_reason: str | None = None
+    stream_usage_present = False
 
     def chunk(delta: dict[str, Any], finish: str | None = None) -> str:
         return _sse_line(
@@ -276,6 +362,27 @@ def _sse_stream(
             if kind == "end":
                 break
             if kind == "error":
+                if getattr(payload, "deadline_abort", False):
+                    _log_event(
+                        "node.call.deadline_abort",
+                        {
+                            "deadline_s": getattr(payload, "deadline_s", None),
+                            "chunks_received": getattr(
+                                payload, "chunks_received", stream_chunks
+                            ),
+                        },
+                        latency_ms=int((time.monotonic() - stream_t0) * 1000),
+                        error_class=_error_class("transport_error"),
+                    )
+                elif getattr(payload, "server_reported", False):
+                    # HTTP 200 + an SSE error payload from the upstream
+                    _log_event(
+                        "node.upstream_sse_error",
+                        {"reason_code": type(payload).__name__},
+                        error_class=_error_class("transport_error"),
+                    )
+                # exhausted transport at the node has no dedicated row (the
+                # caller's factory.call.transport_exhausted carries it)
                 yield _sse_line(
                     {
                         "error": {
@@ -287,10 +394,15 @@ def _sse_stream(
                 break
             event = payload
             if event.delta is not None:
+                if stream_first_token_s is None:
+                    stream_first_token_s = round(time.monotonic() - stream_t0, 3)
+                stream_chunks += 1
                 yield chunk({"content": event.delta})
             elif event.finish_reason is not None:
+                stream_finish_reason = event.finish_reason
                 yield chunk({}, finish=event.finish_reason)
             elif event.usage is not None and include_usage:
+                stream_usage_present = True
                 yield _sse_line(
                     {
                         "id": completion_id,
@@ -308,6 +420,16 @@ def _sse_stream(
                     }
                 )
         yield "data: [DONE]\n\n"
+        _log_event(
+            "node.call.finished",
+            {
+                "first_token_s": stream_first_token_s,
+                "chunks_received": stream_chunks,
+                "finish_reason": stream_finish_reason,
+                "usage_present": stream_usage_present,
+            },
+            latency_ms=int((time.monotonic() - stream_t0) * 1000),
+        )
     finally:
         stop.set()
 
