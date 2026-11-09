@@ -1,0 +1,83 @@
+card_id: EV-REV-002
+version: 1
+title: Code Reviewer (09-review) Security, Consistency, and Rendering Calibration
+stage: 09-review
+agent_role: Code Reviewer
+suites:
+- smoke
+- full
+- calibrate
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  seeded_defects:
+  - evals/goldens/defects/09-review/SD-SEC-001.json
+  - evals/goldens/defects/09-review/SD-SEC-002.json
+  - evals/goldens/defects/09-review/SD-SEC-003.json
+  - evals/goldens/defects/09-review/SD-SEC-004.json
+  - evals/goldens/defects/09-review/SD-SEC-005.json
+  - evals/goldens/defects/09-review/SD-REV-001.json
+  - evals/goldens/defects/09-review/SD-REV-002.json
+  - evals/goldens/defects/09-review/SD-REV-003.json
+  - evals/goldens/defects/09-review/SD-REV-004.json
+  - evals/goldens/defects/09-review/SD-REV-005.json
+  - evals/goldens/defects/09-review/SD-REV-006.json
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-REV02-SECURITY-DEFECTS
+  entrypoint: evals.checkers.visual_checks:check_security_defect_corpus
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.lint:lint_generated
+  description: Verifies 100% catch rate (5/5) on SD-SEC-001..005 (eval/Function, external URLs, inline
+    script/SVG onload, missing CSP/sources, unscoped page.css).
+- id: DET-REV02-PROMPT-CONTRACT
+  entrypoint: evals.checkers.prompt_contract_checks:check_09_review_prompt_contract
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.review:run
+  description: Verifies 09-review two-call split (facts vs design context isolation), identity header,
+    5-step bounded procedures, general rendering sweep, and honest framing.
+llm_judge:
+  enabled_in_suites:
+  - full
+  - calibrate
+  entrypoint: evals.judges.code_design_judge:calibrate_09_review
+  reuses_prompt_from: factory.review:run (_FACTS_TASK and _DESIGN_TASK)
+  severity_ladder:
+    fatal: Wrong answer key, contradiction of cited facts, physically wrong drawn simulation behaviour,
+      misleading HTML-vs-JS inconsistency, or rendering that teaches wrong physics.
+    major: Design doctrine violation, phone-frame overflow, inaccessible interactive element, or confusing
+      visual rendering.
+    minor: Style or wording notes, or unverifiable suspicion prefixed 'unverified:'.
+  way_out_rule: Report unverifiable suspicions as severity='minor' with message starting 'unverified:'
+    — never as fatal or major.
+  anchor_examples:
+  - label: Fatal — HTML vs JS Value Inconsistency (from run 180935 b-31)
+    input_summary: 'index.html displays quiz explanation ''t = 49 s'' while page.js rewrites #b-31 DOM
+      text to ''t = 37 s''.'
+    expected_issue:
+      block_id: b-31
+      severity: fatal
+      category: inconsistency
+      message: 'index.html states t = 49 s in #b-31 while page.js mutates #b-31 to t = 37 s.'
+  - label: Fatal — Hand-Drawn Rectangle for Trapezoid Area (from run 032406 b-09)
+    input_summary: Static SVG b-09 draws a flat rectangle for the area under a sloped v-t line with u
+      > 0.
+    expected_issue:
+      block_id: b-09
+      severity: fatal
+      category: rendering
+      message: b-09 draws a rectangle under a sloped v-t line; the area to the t-axis is a trapezoid.
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  recall_fatal_min: 1.0
+  recall_blocking_min: 1.0
+  specificity_clean_min: 1.0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 12
+  max_completion_tokens_per_call: 35000
+  call_deadline_s: 1800

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "pipeline_version_current": 7,
+  "golden_topics": [
+    {
+      "golden_id": "GT-01",
+      "directory": "evals/goldens/topics/class-9-motion",
+      "topic_slug": "how-forces-affect-motion",
+      "course_id": "class-9-physics",
+      "class_level": 9,
+      "pipeline_version_min": 3,
+      "status": "published"
+    },
+    {
+      "golden_id": "GT-02",
+      "directory": "evals/goldens/topics/class-11-motion-in-a-straight-line",
+      "topic_slug": "motion-in-a-straight-line",
+      "course_id": "class-11-physics",
+      "class_level": 11,
+      "pipeline_version_min": 7,
+      "status": "published"
+    },
+    {
+      "golden_id": "GT-03",
+      "directory": "evals/goldens/topics/class-9-forces-reference-kit",
+      "topic_slug": "class-9-forces-reference-kit",
+      "course_id": "class-9-physics",
+      "class_level": 9,
+      "pipeline_version_min": 7,
+      "status": "reference_golden"
+    },
+    {
+      "golden_id": "GT-04",
+      "directory": "evals/goldens/topics/class-10-light-reflection-and-refraction",
+      "topic_slug": "light-reflection-and-refraction",
+      "course_id": "class-10-physics",
+      "class_level": 10,
+      "pipeline_version_min": 7,
+      "status": "contract_frozen"
+    }
+  ],
+  "seeded_defect_sets": {
+    "03-check": [
+      "SD-CHK-001",
+      "SD-CHK-002",
+      "SD-CHK-003",
+      "SD-CHK-004",
+      "SD-CHK-005",
+      "SD-CHK-006",
+      "SD-CHK-007",
+      "SD-CHK-008"
+    ],
+    "09-review-security": [
+      "SD-SEC-001",
+      "SD-SEC-002",
+      "SD-SEC-003",
+      "SD-SEC-004",
+      "SD-SEC-005"
+    ],
+    "09-review-model": [
+      "SD-REV-001",
+      "SD-REV-002",
+      "SD-REV-003",
+      "SD-REV-004",
+      "SD-REV-005",
+      "SD-REV-006"
+    ]
+  }
+}

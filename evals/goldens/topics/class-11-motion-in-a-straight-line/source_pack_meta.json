@@ -1,0 +1,14 @@
+{
+  "book_id": "ncert-physics-11-part1",
+  "chapter_title": "MOTION IN A STRAIGHT LINE",
+  "class_level": 11,
+  "pages": [
+    1,
+    14
+  ],
+  "matched_via": "title_line",
+  "supplements": [
+    "openstax-hs-physics#c0001"
+  ],
+  "ncert_text_sha256": "b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9012"
+}

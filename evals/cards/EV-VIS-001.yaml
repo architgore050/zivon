@@ -1,0 +1,80 @@
+card_id: EV-VIS-001
+version: 1
+title: Visual Builder Renderability, Kit Scope, Accessibility, and Computed Simulation Loops
+stage: 05-interactive..06-render
+agent_role: Visual Builder
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-VIS01-LINTS-AND-SCOPE
+  entrypoint: evals.checkers.visual_checks:check_hard_lints_and_kit_scope
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.lint:lint_generated
+  description: Runs lint_html, lint_js, lint_css, and lint_page_css_scope on rendered topic files.
+- id: DET-VIS01-COMPUTED-SIM-LOOPS
+  entrypoint: evals.checkers.visual_checks:check_computed_sim_loop
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.interactive:run
+  description: Verifies every ZivonSim.register block in page.js computes curves in loops with 0 hand-placed
+    >=4 moveTo/lineTo literal sequences.
+- id: DET-VIS01-DOM-AND-A11Y
+  entrypoint: evals.checkers.visual_checks:check_chromium_render_and_a11y
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.render:run
+  description: Verifies kit chrome (.zn-lang-bar, .zn-sim-read aria-live population), SVG viewBox/no-fixed-size,
+    and .zn-check legend containment.
+- id: DET-VIS01-PROMPT-CONTRACT
+  entrypoint: evals.checkers.prompt_contract_checks:check_05_interactive_and_design_prompt_contracts
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.interactive:run
+  description: Verifies 05-interactive prompt contracts (cited claims, physics contract, compute-in-JS
+    law, live doctrine/examples/palette, and design context budget).
+llm_judge:
+  enabled_in_suites:
+  - full
+  entrypoint: evals.judges.code_design_judge:evaluate_visual_and_code
+  reuses_prompt_from: factory.review:_FACTS_TASK + factory.review:_DESIGN_TASK
+  severity_ladder:
+    fatal: Drawn simulation behaviour contradicts cited equations, or visual layout/rendering teaches
+      wrong physics.
+    major: Doctrine violation, phone-frame overflow, inaccessible control, or confusing rendering.
+    minor: Minor visual polish or unverified suspicion prefixed 'unverified:'.
+  way_out_rule: Report unverifiable suspicions as severity='minor' with message starting 'unverified:'
+    — never as fatal or major.
+  anchor_examples:
+  - label: Fatal — Wrong Drawn Behaviour in Simulation
+    input_summary: Simulation b-08 updates x = u*t + a*t² instead of u*t + 0.5*a*t², contradicting eq-02.
+    expected_issue:
+      block_id: b-08
+      severity: fatal
+      category: drawn_behaviour
+      message: In b-08 draw(), position x is updated as u*t + a*t² instead of u*t + 0.5*a*t², contradicting
+        eq-02.
+  - label: Major — Rendering Sweep Secant Defect (from 0.3.13 live probe b-05)
+    input_summary: Diagram b-05 draws Point P circle off the parabola so the tangent line cuts across
+      as a secant.
+    expected_issue:
+      block_id: b-05
+      severity: major
+      category: rendering
+      message: b-05 Point P circle is drawn at (180, 110) off the parabola y(x), so the tangent line reads
+        visually as a secant.
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 1
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 2
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 35000
+  call_deadline_s: 1800
