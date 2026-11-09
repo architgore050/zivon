@@ -12,6 +12,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
@@ -92,8 +93,8 @@ class _FakeSyncPlaywright:
 
 
 def _install(fake=None) -> None:
-    module = types.ModuleType("playwright")
-    inner = types.ModuleType("playwright.sync_api")
+    module: Any = types.ModuleType("playwright")
+    inner: Any = types.ModuleType("playwright.sync_api")
     if fake is not None:
         inner.sync_playwright = fake
     module.sync_api = inner
