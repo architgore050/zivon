@@ -1,22 +1,34 @@
 /* ==========================================================================
    Zivon shared style layer - Field Notes (docs/frontend/design-doctrine.md)
    --------------------------------------------------------------------------
-   STATUS 2026-11-05: doctrine v1.5. The lesson page follows the founder's
-   rebuilt example (docs/frontend/design-doctrine-lesson-example.html): ONE
-   rhythm token --row (rem), opaque full-bleed paper, and the ruled lines are
-   NOT CSS - zivon.js (LessonKit) measures where each line of text landed and
-   draws the rules as SVG under the measured baselines. This stylesheet only
-   provides the kit's contract: --row, --rule, an opaque paper element, and
-   whole-row heights/margins so gaps stay whole rows. One content-width token
-   --page-w (47rem, v1.5): no block sets its own max-width - line length comes
-   from the column.
+   STATUS 2026-11-08 (doctrine v1.6): THE KIT. This file + zivon.js are the
+   single standard toolkit every lesson page is composed from (the founder's
+   building-blocks directive); the doctrine §10 no longer re-teaches layout
+   in prose - it lists the components below and the guarantees the kit
+   carries, so a model that copies component patterns cannot drift.
+   Layout correctness lives HERE, not in prompts or in per-page CSS.
 
-   Doctrine guard (§10 scope): nothing in §10 (typed body on ruled lines,
-   handwritten accents, taped cards, row rhythm) leaks into the site shell.
-   §10 rules below attach to topic-page classes only; where a class is shared
-   with the landing page (main.zn-page.zn-home), the §10 rule is scoped with
-   :not(.zn-home) and the shell keeps its own look (including its CSS ruled
-   background - the kit only ever runs on lesson pages).
+   COMPONENT CATALOG (exact renderer-emitted markup contracts):
+   - page chrome: .zn-page > .zn-header (.zn-kicker, .zn-title,
+     .zn-objectives-label, .zn-objectives), .zn-glossary, .zn-footer.
+   - .zn-lang-bar (sticky, renderer-emitted, in flow): .zn-lang-in >
+     .zn-lang-lab + .zn-lang-row[role=radiogroup] > .zn-chip[role=radio].
+   - .zn-text (typed body), .zn-example (worked example, decimal list),
+     .zn-answer / .zn-answer-label.
+   - taped cards: .zn-reveal, .zn-sim, .zn-check (padding+border = one row,
+     tape = :before on the card top edge - the tape position is guaranteed
+     as long as the card is position:relative, which the kit alone owns).
+   - .zn-reveal > details.zn-reveal-step > summary + p.
+   - .zn-check (quiz): fieldset > legend (the question - ALWAYS the legend;
+     see the float rule under .zn-check legend) + label.zn-opt (native radio
+     inputs, name=check-<id>) + button.zn-check-btn + p.zn-check-feedback +
+     details.zn-check-why. JS (zivon.js wireCheck) is element-agnostic.
+   - .zn-sim card: .zn-sim-controls > label.zn-sim-control (span + range +
+     output), .zn-sim-canvas-wrap > canvas.zn-sim-canvas (KIT-SIZED: the
+     480x320 buffer scales, never distorts; page.css must not touch its
+     size), .zn-sim-desc.
+   - .zn-diagram figure > .zn-diagram-svg (box at most 8 rows, aspect read
+     from the model SVG's viewBox by zivon.js) + figcaption.
 
    Revisions: replace wholesale following the doctrine; keep the class names,
    the CSS custom properties, and the local @font-face declarations (generated
@@ -25,6 +37,13 @@
    handwritten accents - Courier Prime carries lesson body text on topic pages
    (§10.3); Caveat survives only on titles, section headings and diagram
    annotation labels; typed faces stay on controls, questions and feedback.
+
+   Doctrine guard (§10 scope): nothing in §10 (typed body on ruled lines,
+   handwritten accents, taped cards, row rhythm) leaks into the site shell.
+   §10 rules below attach to topic-page classes only; where a class is shared
+   with the landing page (main.zn-page.zn-home), the §10 rule is scoped with
+   :not(.zn-home) and the shell keeps its own look (including its CSS ruled
+   background - the kit only ever runs on lesson pages).
    ========================================================================== */
 
 /* ---- fonts (local, offline) ---- */
@@ -273,14 +292,23 @@ a { color: var(--pen-blue); }
 }
 
 /* ---- §10.6 question card: typed layer (stem, options, feedback); every
-    row is one ruled row so the card height stays a whole number of rows ---- */
+    row is one ruled row so the card height stays a whole number of rows.
+    The question is a <legend> inside the card fieldset: a legend must float
+    at 100% width so the card border paints OUTSIDE it. Without the float a
+    wrapped question overflows the top border - the border slices through
+    the text and the tape lands inside the question (the visual defect the
+    founder caught in a 2026-11-08 screenshot). The float also fixes the
+    padding-box top the absolute tape positions against. ------------- */
 .zn-check legend {
+  float: left;
+  width: 100%;
+  padding: 0;
   font-family: var(--display);
   font-weight: 500;
   font-size: 1.0625rem;
   line-height: var(--row);
-  padding: 0 6px;
 }
+.zn-check > :not(legend) { clear: left; }
 .zn-opt {
   display: flex;
   gap: 10px;
@@ -347,9 +375,52 @@ a { color: var(--pen-blue); }
   margin: 0;
 }
 
-/* ---- §10.6 simulation: typed controls + the drawn canvas. The canvas box
-    is a fixed 8 rows (border included) so sim height never depends on
-    viewport width - the grid survives resize ---- */
+/* ---- §10.5 language bar (kit component, emitted by the renderer):
+    sticky to the top edge, in flow; chips are the §10.5 lang buttons.
+    The model never styles the bar - the kit owns it (the generated
+    .zn-lang-bar CSS the 05 agent invented in early runs is now canonical
+    here, under ONE class set the renderer and the example share). ---- */
+.zn-lang-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--paper-light);
+  border-bottom: 1px solid var(--ink);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.zn-lang-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.5rem;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), calc((100% - var(--page-w)) / 2));
+}
+.zn-lang-lab {
+  font-family: var(--notes);
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: var(--row);
+}
+.zn-lang-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.zn-chip {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 0.5rem 0.875rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.zn-chip[aria-checked="true"] { background: var(--ink); color: var(--paper-light); }
+
+/* ---- §10.6 simulation: typed controls + the drawn canvas. The canvas chrome
+    and sizing are kit-owned (page.css must never re-size the canvas - the
+    480x320 buffer is scaled by CSS to fit the card; the more specific
+    selector guarantees the kit wins over any page.css re-size). ---- */
 .zn-sim-canvas-wrap {
   display: flex;
   align-items: center;
@@ -362,7 +433,19 @@ a { color: var(--pen-blue); }
   border: 1px solid var(--ink);
   margin: var(--row) auto;
 }
-.zn-sim-canvas {
+/* The kit sizes and chromes the canvas (480x320 buffer, aspect 3:2 - the
+   buffer scales, never distorts; page.css must not re-size it). The
+   selector is deliberately more specific than any page.css rule can be
+   (.zn-sim-b-NN canvas is 0,1,1; this is 0,2,0), and page.css loads after
+   this sheet - so only specificity protects the kit here. */
+.zn-sim .zn-sim-canvas {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
   max-width: 100%;
   max-height: 100%;
   touch-action: manipulation;
@@ -374,6 +457,21 @@ a { color: var(--pen-blue); }
   color: var(--graphite);
   margin: 0;
 }
+/* Live readout (agent-written summaries and per-control values): a 05 agent
+   inventing its own .sim-read (as the class-11 run did) is exactly the drift
+   the kit exists to prevent - one canonical readout class now, styled once. */
+.zn-sim-read {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: var(--row);
+  color: var(--ink);
+  margin: 0;
+}
+/* The renderer emits one readout per sim card, empty by default: it displays
+   nothing until page.js fills it, so it never adds a row to a card whose
+   sim authors no summary. When filled it takes exactly one whole row. */
+.zn-sim-read:empty { display: none; }
 .zn-sim-controls { display: flex; flex-direction: column; gap: var(--row); }
 .zn-sim-control {
   display: grid;

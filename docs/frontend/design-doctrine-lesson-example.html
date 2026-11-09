@@ -3,233 +3,151 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Zivon: How Forces Affect Motion — lesson page example 2 (refactored)</title>
-<!-- Zivon lesson-page EXAMPLE 2 - same content and look as the candidate, rebuilt with sound layout code.
-     Content: NCERT Class 9 Science (2025) Chapter 6 only; never reuse for another chapter.
-     Language bar is markup only; switching behaviour is shell-owned (Day-9). -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Courier+Prime:wght@400;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&display=swap">
+<title>Zivon: How Forces Affect Motion — lesson page example (kit v1.6)</title>
+<!-- Zivon lesson-page EXAMPLE - composed of the shared kit (frontend/assets/zivon.css + zivon.js):
+     every component below uses the exact class names a generated page uses, so a model reading this
+     file copies component patterns, never hand-rolled structure. Content: NCERT Class 9 Science
+     (2025) Chapter 6 only; never reuse for another chapter.
+     Language bar is chrome only; switching behaviour is shell-owned (Day-9). -->
+<link rel="stylesheet" href="../../frontend/assets/zivon.css">
 <style>
-/* ==========================================================================
-   LESSON PAGE - layout rules a model should copy
-   1. ONE rhythm token (--row). Every height/margin is a whole number of rows.
-   2. rem for type + space (respects user font size); px only for hairlines.
-   3. No breakpoints where intrinsic sizing works (grid auto-fit, clamp, min()).
-   4. Layout is CSS. JS only MEASURES a font baseline and writes a variable.
-   5. Never hide overflow bugs with overflow-x:hidden - fix the cause.
-   ========================================================================== */
-:root{
-  --paper:#EFE6B8;--paper-light:#F6F0CF;--ink:#1C1B18;--graphite:#5A5748;--pen-blue:#1F3A9E;
-  --rule:rgba(90,87,72,.4);
-  --display:"Bricolage Grotesque",Arial,sans-serif;
-  --notes:"Courier Prime","Courier New",monospace;
-  --hand:Caveat,Kalam,"Segoe Print","Bradley Hand",cursive;
-
-  --row:2.25rem;            /* one ruled line (36px at default size) */
-  --gutter:1.5rem;   /* NOTE: no text block sets its own max-width - every block fills the column, so text, cards and diagrams share --page-w */
-  --page-w:47rem;           /* THE max content width (752px). Header, text, cards, diagrams all stop here;
-                               wider screens just get equal side margins. Change this one token to resize the page. */
-}
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);color:var(--ink);font-family:var(--display)}
-:focus-visible{outline:3px solid var(--pen-blue);outline-offset:3px}
-
-/* Centered column WITHOUT a wrapper div: side padding grows once the viewport exceeds --page-w,
-   so full-bleed backgrounds (the ruled paper) still span the whole screen. */
-.wrap{
-  padding-left:max(var(--gutter),env(safe-area-inset-left,0px),calc((100% - var(--page-w))/2));
-  padding-right:max(var(--gutter),env(safe-area-inset-right,0px),calc((100% - var(--page-w))/2));
-}
-
-/* In-flow sticky bar: its height may change (wrapping) and nothing below needs to know. */
-.bar{position:sticky;top:0;z-index:10;background:var(--paper-light);border-bottom:1px solid var(--ink);padding-top:env(safe-area-inset-top,0px)}
-.in{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;padding-block:.5rem}
-.lab{font:400 .875rem var(--notes)}
-.row{display:flex;flex-wrap:wrap;gap:.5rem}
-.controls{margin-block:var(--row)}
-.chip{font:500 .9375rem var(--display);padding:.5rem .875rem;min-height:2.5rem;border:1px solid var(--ink);border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
-.chip[aria-checked=true]{background:var(--ink);color:var(--paper-light)}
-
-/* The ruled lines are NOT CSS. lesson-kit.js reads where each line of text really landed and
-   draws a rule under it, so they cannot drift. The page only needs: --row, --rule, an opaque paper. */
-.paper{flex:1;padding-block:calc(var(--row)/2) calc(var(--row)*2);background:var(--paper)}
-.day{font:700 .9375rem/var(--row) var(--notes)}
-h1.t{margin:0 0 var(--row);font:700 clamp(2.875rem,7vw,4.75rem)/calc(var(--row)*2) var(--hand)}
+/* example-local structure only (not part of the kit - generated pages have no
+   equivalents; listed here so the example stays self-contained visually):
+   .lede (topic summary), section h2 numerals, .key highlighted statements,
+   .mis misconception notes, .glance at-a-glance list, .sim (authored SVG sim
+   surface - generated pages draw canvas into .zn-sim-canvas instead). */
 .lede{margin:0 0 var(--row);font:400 1.0625rem/var(--row) var(--notes);color:var(--graphite)}
 h2{margin:var(--row) 0;font:700 2.125rem/calc(var(--row)*2) var(--hand)}
 h2 .no{display:block;font:700 .9375rem/var(--row) var(--notes);color:var(--graphite)}
-
-/* Two columns only while each can be >= 22rem; otherwise stack. minmax(min(100%,22rem),1fr)
-   cannot overflow a narrow screen. No media query needed. */
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--row) 3rem;align-items:start}
-
-.body{font:400 1.0625rem/var(--row) var(--notes)}
-.body p{margin:0 0 var(--row)}
-.key{position:relative;font-weight:700}
-p.key{width:fit-content}
-span.key{display:inline-block}     /* was display:block: split sentences in half */
-.uline{position:absolute;top:100%;pointer-events:none}
-
-/* Diagram box: at most 8 rows tall, but on narrow screens shrink to the drawing's own aspect
-   ratio (420:270) rounded UP to whole rows - no dead space, rhythm preserved. */
-figure{margin:0 0 var(--row);container-type:inline-size}
-figcaption{font:400 .875rem/var(--row) var(--notes);color:var(--graphite)}
-.dia{display:block;width:100%;height:min(calc(var(--row)*8),round(up,calc(100cqw*270/420),var(--row)))}
-.dia text{font-family:var(--hand);font-weight:700;fill:var(--ink)}
-.dia .pb{fill:var(--pen-blue)}
-
-/* Card: padding + border = exactly 1 row, so card height stays a multiple of --row. */
-.card{position:relative;margin:var(--row) 0;padding:calc(var(--row)/2 - 1px) 1.125rem;background:var(--paper-light);border:1px solid var(--ink);border-radius:2px}
-.card::before{content:"";position:absolute;top:-.8125rem;left:calc(50% - 2.875rem);width:5.75rem;height:1.6875rem;background:rgba(196,174,104,.5);transform:rotate(-3deg);
-  clip-path:polygon(0 0,100% 0,96% 12%,100% 25%,96% 37%,100% 50%,96% 62%,100% 75%,96% 87%,100% 100%,0 100%,4% 87%,0 75%,4% 62%,0 50%,4% 37%,0 25%,4% 12%)}
-.card--b::before{left:calc(50% - 2.375rem);width:5.25rem;transform:rotate(2deg)}
-/* Quiz/sim buttons wrap onto several lines. 2px margins + JS height rounding make every chip
-   a whole number of rows, so nothing below a card can drift off the lines. */
-.card .row{gap:0 .5rem}
-.card .chip{margin:2px 0;min-height:calc(var(--row) - 4px)}
-.card .lab{display:block;line-height:var(--row)}   /* inline label would grow the line box by a few px */
-input[type=range]{display:block;width:100%;height:var(--row);margin:0;accent-color:var(--pen-blue)}
-.srow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1.125rem}   /* minmax(0,..): bare 1fr can't shrink below content */
-.srow label{display:block;font:700 .9375rem/var(--row) var(--notes)}
-.sim{display:block;width:100%;max-width:21.25rem;height:calc(var(--row)*5)}
-.sim text{font:500 12px var(--display)}   /* SVG text: user units, scales with viewBox */
-.read{font:700 1rem/var(--row) var(--notes)}
-.q{margin:0 0 var(--row);font:500 1.0625rem/var(--row) var(--display)}
-.fb{min-height:var(--row);margin-top:var(--row);font:500 .9375rem/var(--row) var(--display)}
-
-.we{margin:0 0 var(--row)}
-.we .pr{margin:0 0 var(--row);font:400 1.0625rem/var(--row) var(--notes)}
-.we ol{margin:0;padding:0;list-style:none;counter-reset:st}
-.we li{position:relative;padding-left:2.125rem;counter-increment:st;font:400 .9375rem/var(--row) var(--notes)}
-.we li::before{content:counter(st);position:absolute;left:0;font:700 .9375rem/var(--row) var(--notes);color:var(--pen-blue)}
-.we .ans{margin-top:var(--row);font:700 1rem/var(--row) var(--notes);color:var(--pen-blue)}
-.card summary{min-height:var(--row);cursor:pointer;font:700 1.0625rem/var(--row) var(--display)}
-.card details ol{margin:var(--row) 0 0;padding:0;list-style:none}
-.card details li{font:400 .9375rem/var(--row) var(--notes)}
+.key{font-weight:700}
+.sim{width:100%;height:auto;display:block}
+.sim text{font:500 12px var(--display)}
 .mis{margin:0;padding:0;list-style:none}
-.mis li{font:400 .9375rem/var(--row) var(--notes)}
-.mis b{font-family:var(--display);line-height:0}  /* mixed font inline: must not grow the line box */
-.gloss{margin:0}
-.gloss dt{margin-top:var(--row);font:700 .9375rem/var(--row) var(--notes)}
-.gloss dd{margin:0;font:400 .9375rem/var(--row) var(--notes);color:var(--graphite)}
+.mis li{font:400 .9375rem/var(--row) var(--notes);margin-bottom:var(--row)}
+.mis b{font-family:var(--display);line-height:0}
 .glance{margin:0;padding:0 0 0 1.375rem;list-style:square}
 .glance li{margin:0 0 var(--row);font:400 .9375rem/var(--row) var(--notes)}
 </style>
 </head>
 <body>
-<!-- language bar: doctrine-required markup -->
-<header class="bar wrap"><div class="in"><span class="lab">Language</span><div class="row" role="radiogroup" aria-label="Language">
-<button class="chip" role="radio" aria-checked="true">English</button><button class="chip" role="radio" aria-checked="false">हिन्दी</button><button class="chip" role="radio" aria-checked="false">Hinglish</button>
+<!-- language bar: doctrine-required kit chrome (renderer emits this on generated pages) -->
+<header class="zn-lang-bar"><div class="zn-lang-in"><span class="zn-lang-lab">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language">
+<button type="button" class="zn-chip" role="radio" aria-checked="true">English</button><button type="button" class="zn-chip" role="radio" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" aria-checked="false">Hinglish</button>
 </div></div></header>
-<main class="paper wrap">
-  <div class="day">Day 01 · Class 9 · Physics · NCERT Chapter 6</div>
-  <h1 class="t">How Forces Affect Motion</h1>
+<main class="zn-page">
+  <p class="zn-kicker">Day 01 · Class 9 · Physics · NCERT Chapter 6</p>
+  <h1 class="zn-title">How Forces Affect Motion</h1>
   <p class="lede">What causes a change in motion — and how Newton's three laws answer every question and problem this chapter sets.</p>
 
   <h2><span class="no">NCERT 6.1 · 6.1.1</span>The concept of force</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>A force is a push or a pull. It can make a stationary object start moving, change the speed or the direction of a moving object, and even change the shape of an object — a ball starts moving when you kick it, a cricket bat changes a ball's speed and direction, a squeezed lemon changes shape.</p>
     <p>Every force has a magnitude <em>and</em> a direction: change either one and the effect changes. The SI unit of force is the <span class="key">newton (N)</span> — the full unit name is written lowercase ("newton"), the symbol is capitalised ("N"). A spring balance measures force; the weight of an object is the gravitational force on it. The lightest touch you can feel is only a few millinewtons.</p>
   </div>
   <div class="slot" data-ck="0"></div>
 
   <h2><span class="no">NCERT 6.2</span>Balanced and unbalanced forces</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>Most objects feel several forces at once. Two people pushing a stalled car together in the same direction add up: the net force is the <em>sum</em>, in the same direction. A ball floating on water has gravity pulling down and the water pushing up — equal and opposite forces that balance, so the ball's motion does not change.</p>
     <p>When forces do not balance, the net force is the difference, pointing along the larger force. The net force is what decides what happens to the motion.</p>
   </div>
   <div class="grid">
-    <figure><svg class="dia" data-dia="net" viewBox="0 0 420 270" role="img"></svg><figcaption>Arrows are drawn to scale: the 10 N arrow is longer than the 6 N arrow.</figcaption></figure>
-    <section class="card" data-sim="net">
-      <div class="srow">
-        <div><label class="lab" for="n1">force F₁ (N)</label><input type="range" id="n1" min="0" max="20" value="10"></div>
-        <div><label class="lab" for="n2">force F₂ (N)</label><input type="range" id="n2" min="0" max="20" value="6"></div>
+    <figure class="zn-diagram"><div class="zn-diagram-svg"><svg data-dia="net" viewBox="0 0 420 270" role="img"></svg></div><figcaption>Arrows are drawn to scale: the 10 N arrow is longer than the 6 N arrow.</figcaption></figure>
+    <section class="zn-sim" data-sim="net" aria-label="Net force on a block">
+      <h3>Net force, interactively</h3>
+      <div class="zn-sim-controls">
+        <label class="zn-sim-control"><span>force F₁ (N)</span><input type="range" id="n1" min="0" max="20" value="10"><output>10</output></label>
+        <label class="zn-sim-control"><span>force F₂ (N)</span><input type="range" id="n2" min="0" max="20" value="6"><output>6</output></label>
       </div>
-      <div class="row controls" role="radiogroup" aria-label="Directions of the two forces">
-        <button class="chip" data-dir="opp" aria-checked="true">opposite directions</button>
-        <button class="chip" data-dir="same" aria-checked="false">same direction</button>
+      <div class="zn-lang-row" role="radiogroup" aria-label="Directions of the two forces">
+        <button class="zn-chip" data-dir="opp" aria-checked="true">opposite directions</button>
+        <button class="zn-chip" data-dir="same" aria-checked="false">same direction</button>
       </div>
-      <svg class="sim" viewBox="0 0 320 180" role="img" aria-label="Net force on a block"></svg>
-      <div class="read" aria-live="polite"></div>
+      <div class="zn-sim-canvas-wrap"><svg class="sim" viewBox="0 0 320 180" role="img" aria-label="Net force on a block"></svg></div>
+      <p class="zn-sim-read" aria-live="polite"></p>
     </section>
   </div>
   <div class="slot" data-we="0"></div>
   <div class="slot" data-ck="1"></div>
 
   <h2><span class="no">NCERT 6.3 · Activities 6.1, 6.2</span>The force of friction</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>Friction is the force surfaces in contact apply on each other, opposite to the direction of motion. It is often overlooked, but it is almost always there: when you push a box, friction opposes you, and the box starts moving only when your push is larger than friction. What matters for motion is only the <em>net</em> force.</p>
     <p>Friction depends on the surfaces: in the chapter's coin-and-rubber-band activity, the same twist sends the coin stack different distances on wood, laminate and marble. Hook a spring balance to a block and pull: the reading tells you the friction that surface exerts.</p>
   </div>
-  <section class="card" data-sim="fric">
-    <label class="lab" for="fr">surface friction (0 = ideal, frictionless)</label>
-    <input type="range" id="fr" min="0" max="10" value="6">
-    <div class="row controls"><button class="chip" id="push">give the puck a push</button></div>
-    <svg class="sim" viewBox="0 0 320 180" role="img" aria-label="A puck sliding on a surface with adjustable friction"></svg>
-    <div class="read" aria-live="polite"></div>
+  <section class="zn-sim" data-sim="fric" aria-label="Friction on a sliding puck">
+    <h3>Friction, interactively</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span>surface friction</span><input type="range" id="fr" min="0" max="10" value="6"><output>6</output></label>
+    </div>
+    <div class="zn-lang-row"><button class="zn-chip" id="push">give the puck a push</button></div>
+    <div class="zn-sim-canvas-wrap"><svg class="sim" viewBox="0 0 320 180" role="img" aria-label="A puck sliding on a surface with adjustable friction"></svg></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
   </section>
   <div class="slot" data-ck="2"></div>
   <h2><span class="no">NCERT 6.3 Meet a Scientist · 6.4</span>From Aristotle to the first law</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>For close to two thousand years it was mistakenly believed that a force is needed to keep an object moving. Galileo argued this away: if nothing opposes its motion — no friction at all — a moving object would continue to move indefinitely. Newton gave this stubbornness a name: <span class="key">inertia</span>.</p>
     <p class="key">An object at rest remains at rest, and an object in motion continues to move with a constant velocity, unless a net force acts upon the object.</p>
     <p>Zero net force means the object cannot start moving and cannot change its velocity — its acceleration is zero. "Constant velocity" means no change in magnitude <em>or</em> direction. And remember the note: even with friction zeroed, a force is needed to <em>start</em> motion or to stop or turn an object — but never to keep it moving.</p>
   </div>
-  <figure><svg class="dia" data-dia="vt" viewBox="0 0 420 270" role="img"></svg><figcaption>Example 6.3: velocity–time graphs when no net force acts — at rest, or moving with constant velocity.</figcaption></figure>
+  <figure class="zn-diagram"><div class="zn-diagram-svg"><svg data-dia="vt" viewBox="0 0 420 270" role="img"></svg></div><figcaption>Example 6.3: velocity–time graphs when no net force acts — at rest, or moving with constant velocity.</figcaption></figure>
   <div class="slot" data-we="1"></div>
   <div class="slot" data-ck="3"></div>
   <div class="slot" data-ck="4"></div>
 
   <h2><span class="no">NCERT 6.5 · Activities 6.3, 6.4</span>The second law: F = ma</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>A net force produces acceleration. The chapter's cart-and-pulley activities pinned down the rules: doubling the pulling force doubled the cart's acceleration; doubling the cart's mass made the acceleration smaller. So the acceleration is in the direction of the net force, proportional to the net force, and inversely proportional to the mass:</p>
     <p class="key">a = F/m, that is F = ma — and 1 N is the force that gives 1 m s⁻² to a 1 kg mass (1 N = 1 kg m s⁻²).</p>
     <p>Hold a 100 g mass in your palm: the upward force you feel is about 1 N. Earth's gravity produces g = 9.8 m s⁻² (take it as ≈10 for quick estimates), so the weight of an object is F = mg — and g does not depend on the object's mass. The chapter's "Ready to Go Beyond" adds the deeper form: momentum = mass × velocity, and it is the <em>rate of change of momentum</em> that a net force drives.</p>
   </div>
-  <section class="card card--b"><details><summary>How the chapter's activities found F = ma</summary><ol>
-    <li>Cart + pulley + hanging cup: doubling the cup's mass doubles the pull force on the cart.</li>
-    <li>The cart covers the same distance from rest: s = ½aT², so a₁/a₂ = T₂²/T₁². The measured times showed the acceleration doubled when the force doubled → a ∝ F.</li>
-    <li>Same force, double the cart's mass → the acceleration dropped → a falls as m grows.</li>
-    <li>Combine both findings: a = F/m, i.e. F = ma, with a in the direction of the net force.</li>
-  </ol></details></section>
+  <section class="zn-reveal"><h3>How the chapter's activities found F = ma</h3>
+    <details class="zn-reveal-step"><summary>Cart + pulley + hanging cup</summary><p>Doubling the cup's mass doubles the pull force on the cart.</p></details>
+    <details class="zn-reveal-step"><summary>The cart covers the same distance from rest</summary><p>s = ½aT², so a₁/a₂ = T₂²/T₁². The measured times showed the acceleration doubled when the force doubled → a ∝ F.</p></details>
+    <details class="zn-reveal-step"><summary>Same force, double the cart's mass</summary><p>The acceleration dropped → a falls as m grows.</p></details>
+    <details class="zn-reveal-step"><summary>Combine both findings</summary><p>a = F/m, i.e. F = ma, with a in the direction of the net force.</p></details>
+  </section>
   <div class="slot" data-we="2"></div>
   <div class="slot" data-we="3"></div>
   <div class="slot" data-we="4"></div>
-  <div class="body">
+  <div class="zn-text">
     <p>The same law explains safety tricks: a cricket player pulls her hand back while catching — a longer stopping time means a smaller deceleration and a smaller force. Airbags do the same for passengers; bubble wrap and hay protect glassware the same way. A fresh coconut cracked in one go stops in such a short time that the ground must exert a very large force — and the shell breaks.</p>
   </div>
   <div class="slot" data-ck="5"></div>
   <div class="slot" data-ck="6"></div>
 
   <h2><span class="no">NCERT 6.6 · Activities 6.5, 6.6, 6.7</span>The third law: forces come in pairs</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>Forces arise from interactions — at least two objects. Push a ball and you feel the ball pushing you back. Two spring balances hooked together and pulled always show the <em>same</em> reading.</p>
     <p class="key">Whenever one object is exerting a force on a second object, the second object is simultaneously exerting an equal and opposite force on the first object.</p>
     <p>The pair acts on two <em>different</em> objects, so it never cancels. This is how you walk: your foot pushes the ground backwards, and the ground's friction pushes you forwards — friction <em>helps</em> you move. Grooves in shoe soles and treads in tyres increase it; wet or icy floors remove it. A canoeist pushes water backwards with the paddle; the water pushes paddle and canoe forwards. A rocket engine expels gas downwards; the gas pushes the rocket up with a larger force than its weight, so it lifts off — and firing the engine in the direction of motion slows a rocket down, exactly how Vikram braked Chandrayaan-3 for its soft landing. The law holds for contact <em>and</em> non-contact forces: magnets and charged balloons obey it too.</p>
   </div>
   <div class="grid">
-    <section class="card" data-sim="recoil">
-      <div class="srow">
-        <div><label class="lab" for="rf">force (N)</label><input type="range" id="rf" min="1" max="10" value="2"></div>
-        <div><label class="lab" for="rg">gun mass (kg)</label><input type="range" id="rg" min="1" max="10" value="5"></div>
-        <div><label class="lab" for="rb">bullet mass (kg)</label><input type="range" id="rb" min="0.05" max="1" step="0.05" value="0.1"></div>
+    <section class="zn-sim" data-sim="recoil" aria-label="A gun and bullet pushing on each other">
+      <h3>Recoil, interactively</h3>
+      <div class="zn-sim-controls">
+        <label class="zn-sim-control"><span>force (N)</span><input type="range" id="rf" min="1" max="10" value="2"><output>2</output></label>
+        <label class="zn-sim-control"><span>gun mass (kg)</span><input type="range" id="rg" min="1" max="10" value="5"><output>5</output></label>
+        <label class="zn-sim-control"><span>bullet mass (kg)</span><input type="range" id="rb" min="0.05" max="1" step="0.05" value="0.1"><output>0.1</output></label>
       </div>
-      <svg class="sim" viewBox="0 0 320 180" role="img" aria-label="A gun and bullet pushing on each other with equal forces"></svg>
-      <div class="read" aria-live="polite"></div>
+      <div class="zn-sim-canvas-wrap"><svg class="sim" viewBox="0 0 320 180" role="img" aria-label="A gun and bullet pushing on each other with equal forces"></svg></div>
+      <p class="zn-sim-read" aria-live="polite"></p>
     </section>
-    <figure><svg class="dia" data-dia="walk" viewBox="0 0 420 270" role="img"></svg><figcaption>Walking: the two forces of the pair act on different objects — the ground and you.</figcaption></figure>
+    <figure class="zn-diagram"><div class="zn-diagram-svg"><svg data-dia="walk" viewBox="0 0 420 270" role="img"></svg></div><figcaption>Walking: the two forces of the pair act on different objects — the ground and you.</figcaption></figure>
   </div>
   <div class="slot" data-we="5"></div>
   <div class="slot" data-ck="7"></div>
   <div class="slot" data-ck="8"></div>
 
   <h2><span class="no">NCERT 6.7</span>Forces acting on a system</h2>
-  <div class="body">
+  <div class="zn-text">
     <p>Two boxes of masses m₁ and m₂ tied by a string on a frictionless floor, pulled by a force F. The string's tension T is an <em>internal</em> force — it acts inside the system and cancels out. Treat the pair as one system, and only the <em>external</em> force matters:</p>
     <p class="key">a = F / (m₁ + m₂)</p>
     <p>(Gravity (m₁+m₂)g still acts downwards, balanced by the normal force.) Even walking fits this idea: your arms and legs move in complex ways, but you can treat your whole body as one object.</p>
   </div>
   <div class="grid">
-    <figure><svg class="dia" data-dia="sys" viewBox="0 0 420 270" role="img"></svg><figcaption>The tension T is internal; only F accelerates the pair.</figcaption></figure>
+    <figure class="zn-diagram"><div class="zn-diagram-svg"><svg data-dia="sys" viewBox="0 0 420 270" role="img"></svg></div><figcaption>The tension T is internal; only F accelerates the pair.</figcaption></figure>
     <div class="slot" data-we="6"></div>
   </div>
   <div class="slot" data-ck="9"></div>
@@ -248,15 +166,15 @@ input[type=range]{display:block;width:100%;height:var(--row);margin:0;accent-col
     <li><b>A firefighter struggling with the water pipe</b> — the hose shoves water forwards; the water shoves the hose (and the firefighter) backwards with an equal force (third law).</li>
   </ul>
 
-  <section class="card"><div class="q">Watch out — four ideas this chapter warns about</div><ul class="mis">
+  <section><div class="q">Watch out — four ideas this chapter warns about</div><ul class="mis">
     <li><b>"A force is needed to keep an object moving."</b> No — that is Aristotle's fallacy, and everyday friction is what fools us into believing it. With zero net force, motion continues at constant velocity.</li>
     <li><b>"Action and reaction cancel each other."</b> No — the pair acts on two different objects (paddle and water), so it never balances on a single object.</li>
     <li><b>"Equal forces mean equal accelerations."</b> No — a = F/m. The gun and the bullet feel the same 2 N but accelerate at 0.4 and 20 m s⁻².</li>
     <li><b>"A heavier object falls with a larger acceleration."</b> No — g = 9.8 m s⁻² does not depend on the mass of the object.</li>
   </ul></section>
 
-  <h2><span class="no">Chapter glossary</span>Words to keep</h2>
-  <dl class="gloss">
+  <section class="zn-glossary"><h2><span class="no">Chapter glossary</span>Words to keep</h2>
+  <dl>
     <dt>force</dt><dd>A push or a pull that can start or stop motion, change speed or direction, or change shape.</dd>
     <dt>newton (N)</dt><dd>The SI unit of force: 1 N = 1 kg m s⁻² — the force that gives 1 m s⁻² to a 1 kg mass.</dd>
     <dt>net force</dt><dd>The single force that stands for all the forces acting on an object together.</dd>
@@ -267,7 +185,7 @@ input[type=range]{display:block;width:100%;height:var(--row);margin:0;accent-col
     <dt>tension</dt><dd>The pulling force transmitted through a string.</dd>
     <dt>internal / external force</dt><dd>Internal forces act between parts inside a system and cancel; only external forces accelerate the system.</dd>
     <dt>acceleration due to gravity (g)</dt><dd>9.8 m s⁻² near Earth's surface, independent of mass; weight = mg.</dd>
-  </dl>
+  </dl></section>
 
   <h2><span class="no">At a Glance</span>The chapter in five lines</h2>
   <ul class="glance">
@@ -280,7 +198,7 @@ input[type=range]{display:block;width:100%;height:var(--row);margin:0;accent-col
 
   <div class="slot" data-ck="10"></div>
 </main>
-<script src="lesson-kit.js"></script>
+<script src="../../frontend/assets/zivon.js"></script>
 <script>
 const NS='http://www.w3.org/2000/svg',qa=(s,r=document)=>[...r.querySelectorAll(s)],root=document.documentElement;
 
@@ -320,7 +238,7 @@ net(el){let s=st(cl([[40,170],[380,170]]),3,'#1C1B18');
  s+=st(cl([[170,110],[250,110],[250,170],[170,170],[170,110]]),2.6,'#1C1B18');const y=140;
  s+=st(cl([[250,y],[350,y]]),3,'#1F3A9E')+st(cl(hd([350,y],[250,y])),3,'#1F3A9E');
  s+=st(cl([[170,y],[110,y]]),3,'#1F3A9E')+st(cl(hd([110,y],[170,y])),3,'#1F3A9E');
- s+=`<text class="pb" x="288" y="${y-12}" font-size="24">10 N</text><text class="pb" x="112" y="${y-12}" font-size="24">6 N</text>`;
+ s+=`<text x="288" y="${y-12}" font-size="24">10 N</text><text x="112" y="${y-12}" font-size="24">6 N</text>`;
  el.innerHTML=s;el.setAttribute('aria-label','A block with a 10 N force towards the right and a 6 N force towards the left; arrow lengths are to scale')},
 vt(el){let s='';const ax=x0=>{s+=st(cl([[x0,220],[x0+150,220]]),2.4,'#1C1B18')+st(cl([[x0,220],[x0,80]]),2.4,'#1C1B18')};
  ax(40);ax(240);
@@ -329,7 +247,7 @@ vt(el){let s='';const ax=x0=>{s+=st(cl([[x0,220],[x0+150,220]]),2.4,'#1C1B18')+s
  el.innerHTML=s;el.setAttribute('aria-label','Velocity-time graphs when no net force acts: a horizontal line at zero for an object at rest, a horizontal line above zero for constant velocity')},
 walk(el){let s=st(cl([[40,180],[380,180]]),3,'#1C1B18');
  s+=st(cl([[195,180],[205,150],[235,146],[252,158],[250,180]]),2.6,'#1C1B18');
- s+=st(cl([[200,200],[120,200]]),3,'#1C1B18')+st(cl(hd([120,200],[200,200])),3,'#1C1B18');
+ s+=st(cl([[200,200],[120,200]]),3,'#1C1B18')+st(cl(hd([120,200],[200,200])),3,'#1F3A9E');
  s+=st(cl([[255,164],[335,164]]),3,'#1F3A9E')+st(cl(hd([335,164],[255,164])),3,'#1F3A9E');
  s+=`<text x="42" y="238" font-size="20">you push the ground backwards</text><text x="252" y="150" font-size="20" class="pb">friction pushes you forwards</text>`;
  el.innerHTML=s;el.setAttribute('aria-label',"A foot pushes the ground backwards; the ground's friction pushes the foot forwards")},
@@ -352,12 +270,12 @@ net(el){const draw=()=>{const f1=+el.querySelector('#n1').value,f2=+el.querySele
  s+=same?arw(195,95,195+f2*5,95,'#1C1B18'):arw(195+f2*5,95,195,95,'#1C1B18');
  if(net!==0)s+=arw(160,145,160+net*3,145,'#1F3A9E');
  sv.innerHTML=s;
- el.querySelector('.read').textContent=net===0?'Balanced forces: net force 0 N — motion unchanged':`Net force: ${Math.abs(net)} N ${net>0?'→ right':'← left'}`;
+ el.querySelector('.zn-sim-read').textContent=net===0?'Balanced forces: net force 0 N — motion unchanged':`Net force: ${Math.abs(net)} N ${net>0?'→ right':'← left'}`;
  sv.setAttribute('aria-label',`Block with ${f1} N and ${f2} N in ${same?'the same':'opposite'} directions; net force ${Math.abs(net)} newtons ${net>0?'to the right':'to the left'}`)};
  qa('input',el).forEach(i=>i.oninput=draw);
  qa('[data-dir]',el).forEach(b=>b.onclick=()=>{qa('[data-dir]',el).forEach(x=>x.setAttribute('aria-checked',x===b));draw()});
  draw()},
-fric(el){const sv=el.querySelector('svg'),rd=el.querySelector('.read');let x=40,v=0,raf=0,t0=0;
+fric(el){const sv=el.querySelector('svg'),rd=el.querySelector('.zn-sim-read');let x=40,v=0,raf=0,t0=0;
  const draw=()=>{const fr=+el.querySelector('#fr').value;let s=gnd()+`<circle cx="${x.toFixed(1)}" cy="108" r="12" fill="#1F3A9E"/>`;
   if(v>0)s+=`<line x1="${Math.max(20,x-28).toFixed(1)}" y1="108" x2="${(x-16).toFixed(1)}" y2="108" stroke="#5A5748" stroke-width="2" stroke-dasharray="4 5"/>`;
   if(fr===0&&x>=300)s+=`<path d="M302 108l12 0m-7-6l7 6-7 6" fill="none" stroke="#1F3A9E" stroke-width="3" stroke-linecap="round"/>`;
@@ -375,31 +293,29 @@ recoil(el){const draw=()=>{const F=+el.querySelector('#rf').value,mg=+el.querySe
  s+=arw(118,126,118-ag*sc,126,'#1F3A9E')+arw(182,126,182+ab*sc,126,'#1F3A9E');
  s+=`<text x="88" y="58" fill="#1C1B18">gun ${mg} kg</text><text x="158" y="58" fill="#1C1B18">bullet ${mb} kg</text>`;
  sv.innerHTML=s;
- el.querySelector('.read').textContent=`a_gun = ${ag.toFixed(2)} m s⁻² · a_bullet = ${ab.toFixed(1)} m s⁻² — equal forces, different accelerations`;
+ el.querySelector('.zn-sim-read').textContent=`a_gun = ${ag.toFixed(2)} m s⁻² · a_bullet = ${ab.toFixed(1)} m s⁻² — equal forces, different accelerations`;
  sv.setAttribute('aria-label',`Gun and bullet push each other with ${F} newtons; the gun accelerates at ${ag.toFixed(2)} and the bullet at ${ab.toFixed(1)} metres per second squared`)};
  qa('input',el).forEach(i=>i.oninput=draw);draw()}};
 qa('[data-sim]').forEach(el=>SIMS[el.dataset.sim](el));
 
-/* ---------- render checks + worked examples from the data above (authored, trusted strings) ---------- */
-qa('.slot[data-ck]').forEach(el=>{const c=CK[+el.dataset.ck];el.className='card';
- el.innerHTML=`<div class="q">${c.q}</div><div class="row" role="radiogroup" aria-label="Answer options">`+c.o.map(o=>`<button class="chip" role="radio" aria-checked="false">${o}</button>`).join('')+`</div><div class="fb" aria-live="polite"></div>`;
- qa('button',el).forEach((b,i)=>b.addEventListener('click',()=>{const ok=i===c.a;
-  qa('button',el).forEach(x=>x.setAttribute('aria-checked',x===b));
-  el.querySelector('.fb').textContent=(ok?'✓ ':'✗ ')+(ok?c.ok:c.no)}))});
-qa('.slot[data-we]').forEach(el=>{const w=WE[+el.dataset.we];el.className='we';
- el.innerHTML=`<div class="pr">${w.p}</div><ol>`+w.s.map(s=>`<li><b>${s[0]}.</b> ${s[1]}</li>`).join('')+`</ol><div class="ans">Answer: ${w.a}</div>`});
+/* ---------- render checks + worked examples from the data above (authored, trusted strings) ----------
+   Quiz markup is IDENTICAL to the renderer (factory/render.py): fieldset.zn-check with a legend
+   question and labelled native radios, so the kit's float-legend rule is exercised exactly as
+   generated pages exercise it. The kit (zivon.js) wires the questions and charts the ruled paper. */
+qa('.slot[data-ck]').forEach(el=>{const c=CK[+el.dataset.ck];
+ el.outerHTML=`<fieldset class="zn-check" data-format="mcq" data-answer-index="${c.a}">`
+  +`<legend>${c.q}</legend>`
+  +c.o.map((o,i)=>`<label class="zn-opt"><input type="radio" name="ex-ck-${el.dataset.ck}" value="${i}"> <span>${o}</span></label>`).join('')
+  +`<button type="button" class="zn-check-btn">Check</button>`
+  +`<p class="zn-check-feedback" aria-live="polite"></p>`
+  +`<details class="zn-check-why"><summary>Why?</summary><p>${c.ok}</p></details></fieldset>`});
+qa('.slot[data-we]').forEach(el=>{const w=WE[+el.dataset.we];
+ el.outerHTML=`<section class="zn-example"><h3>Worked example</h3><p class="zn-example-problem">${w.p}</p><ol>`
+  +w.s.map(s=>`<li><strong>${s[0]}</strong> ${s[1]}</li>`).join('')
+  +`</ol><p class="zn-answer"><span class="zn-answer-label">Answer</span> ${w.a}</p></section>`});
 qa('svg[data-dia]').forEach(el=>DIA[el.dataset.dia](el));
 qa('[data-sim]').forEach(el=>SIMS[el.dataset.sim](el));
-/* language chips: visual toggle only - switching behaviour is shell-owned (Day-9) */
-qa('.bar .chip').forEach(b=>b.addEventListener('click',()=>qa('.bar .chip').forEach(x=>x.setAttribute('aria-checked',x===b))));
-
-/* ---------- shared kit: ruled paper + pen underlines (see lesson-kit.js) ---------- */
-let kit;
-if(typeof LessonKit==='undefined')throw new Error('lesson-kit.js did not load - keep it next to this page (<script src="lesson-kit.js">).');
-function quantizeChips(card){                           /* wrapped answer buttons -> whole rows tall, so cards stay one-row-multiples */
- const ROW=kit.row();
- qa('.chip',card).forEach(c=>{c.style.height='';c.style.height=Math.ceil((c.offsetHeight+4)/ROW)*ROW-4+'px'})}
-kit=LessonKit.init({paper:'.paper',pen:'.key,h1.t',beforeDraw:()=>qa('.card').forEach(quantizeChips)});
+/* language chips wired by the shared kit (zivon.js) - nothing to do here. */
 </script>
 </body>
 </html>

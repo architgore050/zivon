@@ -61,7 +61,7 @@ from .llm import LLMClient
 # detection, founder decision: the pipeline is continuous improvement, not a
 # one-shot exam) and a fix that breaks lint/perf now costs a round instead of
 # the run. Version-5 dirs are refused; re-trigger with --fresh.
-PIPELINE_VERSION = "6"
+PIPELINE_VERSION = "7"
 
 STAGE_ORDER = [
     "00-ingest",

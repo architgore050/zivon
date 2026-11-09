@@ -3,7 +3,7 @@
   "updated": "2026-11-01",
   "how_this_file_works": [
     "This catalog is the ONLY place the pipeline learns about source books. docs/content-factory/source-catalog.md mirrors it for humans and a unit test keeps them in sync.",
-    "chapter_url_template uses {nn} = zero-padded 2-digit chapter number, and {code} = the book code's {ps} placeholder for prelims.",
+    "chapter_url_template uses {nn} = zero-padded 2-digit chapter URL index; multi-part books add chapter_url_offset so {nn} is the within-part index (NCERT numbers chapter PDFs per part: Part II Ch. 8 = keph201.pdf). {code} = the book code's {ps} placeholder for prelims.",
     "ingest downloads the prelims PDF first, extracts the class-evidence string and the table of contents, then downloads the listed chapter numbers.",
     "A 404 on a chapter of a books entry with chapters_verified=true is a FATAL error (fix the catalog).",
     "A 404 on a chapter of an entry with chapters_verified=false ends that book's chapter list at the last successful chapter, records the fact in the run artifacts, and prints it loudly. This is the ONE sanctioned discovery behaviour, because NCERT books simply end; it is never silent.",
@@ -119,9 +119,10 @@
       "prelims_url": "https://ncert.nic.in/textbook/pdf/keph2ps.pdf",
       "chapter_url_template": "https://ncert.nic.in/textbook/pdf/keph2{nn}.pdf",
       "chapter_numbers": [8, 9, 10, 11, 12, 13, 14, 15],
+      "chapter_url_offset": 7,
       "chapters_verified": false,
       "class_evidence": ["class xi", "class 11", "grade 11"],
-      "verification": "Code inferred; chapter numbering continues from Part I per the rationalised edition. NOT directly verified."
+      "verification": "Within-part URL numbering confirmed in-cluster 2026-11-06/07: keph208.pdf 404s on NCERT while Part I keph101-107 all resolve, so Part II chapters are keph201.. (Ch. 8 = keph201). Chapter count NOT directly verified - the unverified list self-corrects via 404 truncation."
     },
     {
       "id": "ncert-physics-12-part1",
@@ -151,9 +152,10 @@
       "prelims_url": "https://ncert.nic.in/textbook/pdf/leph2ps.pdf",
       "chapter_url_template": "https://ncert.nic.in/textbook/pdf/leph2{nn}.pdf",
       "chapter_numbers": [9, 10, 11, 12, 13, 14],
+      "chapter_url_offset": 8,
       "chapters_verified": false,
       "class_evidence": ["class xii", "class 12", "grade 12"],
-      "verification": "leph2ps.pdf confirmed as Class XII Physics Part II via indexed title-page text on 2026-11-01. Chapter count follows the rationalised edition."
+      "verification": "leph2ps.pdf confirmed as Class XII Physics Part II via indexed title-page text on 2026-11-01. Within-part URL numbering (Ch. 9 = leph201) follows the confirmed Part I scheme (leph106.pdf = Ch. 6); same 404 pattern as keph208 observed in-cluster 2026-11-06/07. Chapter count NOT directly verified - 404 truncation self-corrects."
     },
     {
       "id": "openstax-hs-physics",

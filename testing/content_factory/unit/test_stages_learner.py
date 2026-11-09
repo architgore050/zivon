@@ -72,9 +72,11 @@ class TestLearnerClassDerivation(unittest.TestCase):
 
     def test_fingerprint_refuses_version4_run_dirs(self):
         # Version-4 dirs baked a config-default class into their fingerprint;
-        # version-5 dirs were built under the blind catcher caps. Both changed
-        # contracts, so resume must refuse them (--fresh).
-        self.assertEqual(PIPELINE_VERSION, "6")
+        # version-5 dirs were built under the blind catcher caps; version-7
+        # dirs precede the kit-contract lint (0.3.14+) under which old
+        # page.css (canvas sizing) fails lint. Any of those changed the stage
+        # artifacts' contracts, so resume must refuse them (--fresh).
+        self.assertEqual(PIPELINE_VERSION, "7")
         chapter = "Motion in a Straight Line"
         self.assertNotEqual(
             run_fingerprint(self.cfg, chapter, 11),

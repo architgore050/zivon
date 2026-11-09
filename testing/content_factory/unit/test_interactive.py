@@ -103,6 +103,17 @@ class TestInteractiveFacts(unittest.TestCase):
         self.assertIn("Clean geometry on canvas too", user)
         self.assertIn("Never invent physics facts", system)
 
+    def test_prompt_requires_geometry_computed_in_js(self):
+        # Founder call 2026-11-09: graphs must be computed from equations in
+        # JS, never drawn from hand-placed coordinates. Two anchors: the
+        # contract law (05 prompt) and the SHAPE line in the sim skeleton.
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        self.assertIn("COMPUTE, DO NOT DRAW BY HAND", user)
+        self.assertIn("computed in JS from the cited equations", user)
+        self.assertIn("Geometry is COMPUTED from the cited equations", user)
+        self.assertIn("SHAPE only", user)
+
     def test_prompt_carries_live_doctrine_examples_and_palette(self):
         # The design context is injected, not held: the prompt must contain the
         # live doctrine document, every example the glob finds, and the exact

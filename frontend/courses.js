@@ -8,5 +8,13 @@ window.ZIVON_COURSES = [
     "title": "How Forces Affect Motion",
     "chapter": "Motion",
     "generated_at": "2026-11-03T15:11:31Z"
+  },
+  {
+    "href": "courses/class-11-physics/motion-in-a-straight-line/index.html",
+    "course_id": "class-11-physics",
+    "class": 11,
+    "title": "Motion in a Straight Line",
+    "chapter": "MOTION IN A STRAIGHT LINE",
+    "generated_at": "2026-11-08T22:38:16Z"
   }
 ];

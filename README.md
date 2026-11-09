@@ -44,7 +44,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 ```
 
 - **Product runtime** runs on the Gnani stack (Prisma + Timbre; Evon as the intended reasoning brain).
-- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model — server wiring via environment variables, pipeline behaviour via `config.json` (see `.env.example`). Build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
+- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model — all model calls go through the standalone **`llm_manager/`** module (streaming transport, honest inactivity timeouts, a per-call wall-clock deadline), which also ships as an isolated **llm-manager node** (own image + K8s Deployment/Service) that every consumer talks to. Server wiring via environment variables, pipeline behaviour via `config.json` (see `.env.example`). Build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
 
 ## Run the content factory
 
@@ -57,9 +57,11 @@ export ZIVON_MODEL=qwen3.8-flash-next-iq3_xxs      # exactly as GET /v1/models r
 python pipeline.py "Motion" --class 9
 ```
 
+Model calls are streaming by default: `ZIVON_TIMEOUT_S` bounds INACTIVITY between chunks (a dead server is caught honestly) and `ZIVON_CALL_DEADLINE_S` is a total per-call wall-clock cap that aborts a runaway generation mid-stream. Locally you can also run the model path through the isolated **llm-manager node** (`docker compose up -d llm-manager`, then `ZIVON_BASE_URL=http://127.0.0.1:18090/v1`) — the same service the cluster runs at `http://llm-manager.zivon.svc.cluster.local/v1`.
+
 Run ids are deterministic per (chapter, class): re-running the same command **resumes** the previous attempt — completed stages load from `runs/` instead of re-calling the model; pass `--fresh` to wipe the attempt and generate clean.
 
-Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) and use `ZIVON_BASE_URL=http://192.168.49.1:18080/v1` (see [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md)).
+Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) AND the llm-manager node (`docker compose up -d llm-manager`), then point the factory at the node: in compose set `ZIVON_BASE_URL=http://llm-manager:8000/v1` **and** `ZIVON_NODE_UPSTREAM_URL=<server address>` (the node's own upstream — one variable for both would make the node call itself), plus `ZIVON_MAX_ATTEMPTS=1` on the factory side (the node owns transport retries). In the cluster the ConfigMaps already encode this split (factory → llm-manager Service → router). See [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md).
 
 Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`. The cluster also runs the full suite on a schedule (CronJob `test-suite`); trigger it on demand with `kubectl create job --from=cronjob/test-suite <name> -n zivon` — the standing "button" until the admin dashboard exists (see `docs/deployment/cicd.md`).
 
@@ -79,8 +81,10 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 The content factory ships as a container image (`Dockerfile` at the repo root):
 
 ```bash
-docker build -t zivon-factory:0.3.10 .
-docker run --rm zivon-factory:0.3.10                          # environment smoke test
+docker build -t zivon-factory:0.3.17 .
+docker build -f Dockerfile.llm-manager -t zivon-llm-manager:0.1.0 .   # the model-call node (slim, no torch)
+docker run --rm zivon-factory:0.3.17                          # environment smoke test
+docker compose up -d llm-manager                              # the isolated model-access node (factory -> node -> server)
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8081
 ```
@@ -95,8 +99,9 @@ Manifests live in `k8s/` (numeric prefix = apply order); `k8s/infra.env` is the 
 
 ```bash
 minikube start --driver=docker
-minikube image load zivon-factory:0.3.10   # minikube has its own container store
-scripts/apply-k8s.sh                      # ConfigMap + all manifests + rendered CronJob + startup test run
+minikube image load zivon-factory:0.3.17   # minikube has its own container store
+minikube image load zivon-llm-manager:0.1.0   # the model-call node
+scripts/apply-k8s.sh                      # ConfigMaps + all manifests + rendered CronJob + startup test run
 kubectl get jobs,pods,deploy,svc,cronjob,pvc -n zivon
 kubectl logs job/factory-smoke -n zivon   # expect: smoke test passed
 # the site, live with no extra command: http://192.168.49.2:30080

@@ -17,6 +17,19 @@ v1.5 (5 Nov 2026): founder's second pass on the rebuilt example - **one content-
 `--page-w` (47rem) and **no per-block max-widths** (every block fills its column); the kit is
 externalised as `lesson-kit.js` beside the example (guard-thrown if missing); diagram labels and the
 recoil drawing fixed. §10.2/§10.3/§10.8 updated; §1–§9 unchanged.
+v1.6 (9 Nov 2026, **the kit refactor** - the founder's building-blocks directive): §10 stops
+re-teaching layout in prose. The shared stylesheet `frontend/assets/zivon.css` + behaviour layer
+`frontend/assets/zivon.js` are now the single standard toolkit (component catalog in the CSS
+header); §10.2/§10.5/§10.6 name the components and the guarantees the kit carries instead of
+re-stating pixel rules. The quiz `<legend>` overflow defect (the border slicing through a wrapped
+question - the founder's screenshot, reproduced in a full pipeline run after any model change) is
+fixed in the kit with the float-legend rule, so all existing pages are repaired by the CSS alone
+without re-render. Model-authored `page.css` is now lens-scoped and canvas-size-free by lint
+(05-interactive rejects re-styling kit components - the 2026-11-08 run's invented `.zn-lang-bar`
+and `.sim-read` rules are exactly that failure). The language bar is renderer-emitted kit chrome
+(§10.5, previously flagged missing on every generated page); next: content i18n. The lesson
+example is rebuilt onto the kit's exact classes and local fonts so models copy component patterns,
+never hand-rolled structure. §1–§9 unchanged.
 Reference implementation: `design-doctrine-example.html` (same folder) — a working page that applies every token
 and rule below. Open it before generating any new page or post visual; match its patterns rather than re-deriving
 the look. Second reference implementation, for lesson pages: `design-doctrine-lesson-example.html` (same folder; §10).
@@ -169,6 +182,11 @@ alone - coverage is dictated by the source material.
   2026-11-04: jittered rectangles read as defective boxes, not handwriting).
 
 ### 10.2 Page grid (one row token) and frame adaptation
+- The kit is the contract (v1.6): every layout guarantee below is implemented
+  once, in `frontend/assets/zivon.css` + `zivon.js`, under the component names
+  the renderer emits (see the catalog in the CSS header). A generated page
+  never re-implements, copies, or re-styles kit chrome - the model writes only
+  inside the `.zn-sim-<id>` scope, enforced by lint.
 - ONE rhythm token: `--row` (2.25rem = 36 px at default size; rem so the user's font size scales the whole
   grid). Lines per §4 (graphite 40%, 2 px). **Every block on the page is a whole number of rows tall**:
   line-heights are `var(--row)`, margins and paddings sum to whole rows (card padding + border = one row:
@@ -227,7 +245,11 @@ alone - coverage is dictated by the source material.
   widget: one control switches every string - title, body, diagram and simulation labels, questions, feedback.
 - The control is a bar **sticky to the top edge, in flow** (its height may change when chips wrap and
   nothing below needs to know): full width, paper-light, 1 px ink bottom border, no shadow, safe-area top
-  padding on phones. One label in Courier Prime 14, then one chip per language.
+  padding on phones. One label in Courier Prime 14, then one chip per language. **Renderer-emitted kit
+  chrome** (v1.6): the renderer emits `.zn-lang-bar` on every lesson page; generated `page.css` must never
+  define it (lint enforces the scope). Switching behaviour beyond chrome (string swaps) is shell-owned
+  and lands with i18n-aware content generation; until then chips switch `lang` + selected state only -
+  the same honest stub the lesson example demonstrates.
 - Chip: Bricolage Grotesque 500 / 15, min height 40 px, 2 px corners, 1 px ink border, transparent fill, ink
   text. Selected: ink fill, paper-light text (15.0:1). Selection shown by fill, never by colour alone.
 
@@ -250,6 +272,11 @@ alone - coverage is dictated by the source material.
   chips are quantized to whole rows (`kit.row()`) so card height never breaks the rhythm. Feedback: a check
   or cross plus one sentence in ink (Bricolage 500 / .9375rem). Red and green stay reserved (§3): correctness
   uses shape and words, not hue.
+  Kit guarantees (v1.6, mechanical): the stem is a `<legend>` inside the card `fieldset`; the legend
+  **floats at 100% width** so the card border always paints OUTSIDE it - a wrapped, multi-line stem can no
+  longer overflow the top border and slice through the text (the founder's screenshot defect). The
+  tape's absolute position depends on the card being `position:relative` - kit-owned, never overridden
+  by generated CSS (lint: `page.css` may only style inside `.zn-sim-<id>`).
 
 ### 10.7 Diagrams (drawn clean, annotated by hand)
 - Drawn straight onto the paper, no card, in a box at most 8 rows tall that shrinks to the drawing's own
@@ -308,9 +335,11 @@ ratios.
   360-1280 px resizes. The row-token grid + kit are unverified on real low-end Android WebView
   (MutationObserver/ResizeObserver, CSS `round()`/container queries, Hindi fallback fonts, user font-size
   zoom) - check on a real device before calling it done.
-- The example depends on its sibling `docs/frontend/lesson-kit.js` (the canonical kit source; the shell
-  copy lives in `frontend/assets/zivon.js`) - keep the two files together; the loader glob is HTML-only on
-  purpose, so the kit implementation never enters model context.
+- The example used to depend on its sibling `docs/frontend/lesson-kit.js` (the canonical kit source; the shell
+  copy lives in `frontend/assets/zivon.js`) - the v1.6 rewrite makes the example load the shared kit files
+  directly (`../../frontend/assets/zivon.css` + `zivon.js`), so there is exactly one kit copy to rot.
+  `lesson-kit.js` stays in the repo as the legacy source of the kit's LessonKit section - nothing new
+  references it.
 - Fonts load from Google Fonts in the example; the pipeline must vendor Caveat, Kalam, Bricolage Grotesque
   and Courier Prime into the page folder (no external calls).
 - Hindi/Hinglish strings in the example were model-drafted, not reviewed by a native reader. Several

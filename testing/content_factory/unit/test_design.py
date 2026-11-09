@@ -65,13 +65,16 @@ class TestDesignLoader(unittest.TestCase):
         # 2026-11-04 (founder): the example's plain-simple CONTENT was bleeding
         # into generated pages. Every stage that receives the examples must be
         # told, in the same breath, that they are a styling reference only.
+        # 2026-11-09: the header became "COMPONENT DEMOS" (the examples now
+        # compose kit classes, so the framing must name that - the guard text
+        # after it is unchanged).
         block = design.design_context(self.cfg, with_examples=True)
-        self.assertIn("VISUAL STYLING REFERENCE ONLY", block)
+        self.assertIn("COMPONENT DEMOS", block)
         self.assertIn("never reuse or imitate their content", block)
         self.assertIn("dictated by the SOURCE MATERIAL", block)
         # the framing must come BEFORE the example bodies, never after them
         self.assertLess(
-            block.index("VISUAL STYLING REFERENCE ONLY"),
+            block.index("COMPONENT DEMOS"),
             block.index("=== design-doctrine-lesson-example.html ==="),
         )
 

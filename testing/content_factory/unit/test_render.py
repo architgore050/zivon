@@ -133,6 +133,26 @@ class TestRender(unittest.TestCase):
         self.assertNotIn('src="page.js"', html)
         self.assertFalse((Path(out["topic_dir"]) / "page.js").exists())
 
+    def test_kit_chrome_is_rendered(self):
+        # doctrine v1.6: the language bar is renderer-emitted kit chrome
+        # (§10.5 - 09-review flagged its absence as a major on every run),
+        # and every simulation carries the canonical readout element the
+        # kit owns (.zn-sim-read - the 05 agent once invented .sim-read).
+        source_pack, lesson, blocks, interactive = minimal_inputs()
+        out = render_run(
+            self.cfg,
+            self.run_ctx,
+            "Motion",
+            source_pack,
+            lesson,
+            blocks,
+            interactive,
+        )
+        html = (Path(out["topic_dir"]) / "index.html").read_text(encoding="utf-8")
+        self.assertIn('class="zn-lang-bar"', html)
+        self.assertIn('aria-checked="true">English</button>', html)
+        self.assertIn('<p class="zn-sim-read" aria-live="polite"></p>', html)
+
     def test_courses_js_regeneration(self):
         frontend = self.frontend
         write_courses_js(frontend)

@@ -7,21 +7,31 @@ Two layers, deliberately separate:
   git, identical on every machine. Validation is strict: unknown keys and
   wrong types are hard errors, because a typo in config must crash
   immediately, not silently run with defaults.
-- Environment variables: everything about WHICH inference server to talk to
-  (base url, model name, key, sampling knobs). Per AGENTS.md ("configuration
-  lives in environment variables") and the deployment rule (secrets enter
-  runtime only), these never appear in any file, image, manifest or artifact.
+- Environment variables: everything about WHICH model path to talk to
+  (base url, model name, key, sampling and streaming knobs). Per AGENTS.md
+  ("configuration lives in environment variables") and the deployment rule
+  (secrets enter runtime only), these never appear in any file, image,
+  manifest or artifact.
 
 Required environment variables:
     ZIVON_BASE_URL   OpenAI-format base, e.g. http://127.0.0.1:8000/v1
+                     (locally the server or the llm_manager node; in the
+                     cluster the llm_manager Service - see config-reference.md)
     ZIVON_MODEL      model name exactly as the server reports it
 Optional environment variables (defaults in parentheses):
     ZIVON_API_KEY    (unset = no Authorization header)
     ZIVON_JSON_MODE  (true)  response_format json_object
     ZIVON_TEMPERATURE(0.2)
-    ZIVON_TIMEOUT_S  (3600)   a giant generation call is legitimate
-    ZIVON_MAX_ATTEMPTS(3)     transport retries inside one model call
-    ZIVON_VALIDATION_ROUNDS(5) the model's own repair budget per stage call
+    ZIVON_TIMEOUT_S  (3600)  NOW (2026-11-07): max inactivity between streamed
+                             chunks (read timeout only when ZIVON_STREAM=false)
+    ZIVON_MAX_ATTEMPTS(3)    transport retries inside one model call
+    ZIVON_STREAM     (true)  streaming model calls (the honest timeout path)
+    ZIVON_STREAM_USAGE (true) usage stats in the final stream chunk
+    ZIVON_CALL_DEADLINE_S (0) total wall-clock cap per model call (0 = none)
+    ZIVON_CONNECT_TIMEOUT_S (10)
+    ZIVON_BACKOFF_BASE_S (2.0)
+    ZIVON_HEARTBEAT_S (60)   progress-print cadence
+    ZIVON_VALIDATION_ROUNDS (5) the model's own repair budget per stage call
 """
 
 from __future__ import annotations
@@ -100,6 +110,15 @@ _SERVER_DEFAULTS: dict[str, Any] = {
     # max_attempts is the TRANSPORT budget only (2026-11-06 founder decision):
     # connection errors / timeouts / 429 / 5xx retried inside one model call.
     "max_attempts": 3,
+    # Streaming model calls (2026-11-07): bytes flow as tokens are generated,
+    # so timeout_s means INACTIVITY between chunks (an honest dead-server
+    # signal) and call_deadline_s can abort a runaway generation mid-stream.
+    "stream": True,
+    "stream_usage": True,
+    "call_deadline_s": 0.0,
+    "connect_timeout_s": 10.0,
+    "backoff_base_s": 2.0,
+    "heartbeat_s": 60.0,
     # validation_rounds is the model's own repair budget: how many times a
     # stage call may produce output that fails JSON/schema/rule validation
     # and get the exact violation fed back to fix it (errors-as-context).
@@ -254,7 +273,7 @@ def _load_server_from_env() -> dict[str, Any]:
         raise ConfigError(
             f"missing required environment variable(s): {', '.join(missing)}. "
             "Server settings live in the environment, never in files. Export them, e.g.:\n"
-            "  export ZIVON_BASE_URL=http://127.0.0.1:8000/v1   # your OpenAI-format base\n"
+            "  export ZIVON_BASE_URL=http://127.0.0.1:8080/v1   # your OpenAI-format base\n"
             "  export ZIVON_MODEL=<model name as GET /v1/models reports it>\n"
             "  export ZIVON_API_KEY=<key>                        # only if your server needs auth\n"
             "(see docs/content-factory/config-reference.md and .env.example)"
@@ -281,6 +300,18 @@ def _load_server_from_env() -> dict[str, Any]:
     timeout_s = _env_number("ZIVON_TIMEOUT_S", 3600.0, integer=False)
     if timeout_s < 5:
         raise ConfigError("ZIVON_TIMEOUT_S must be >= 5 seconds")
+    connect_timeout_s = _env_number("ZIVON_CONNECT_TIMEOUT_S", 10.0, integer=False)
+    if connect_timeout_s < 1:
+        raise ConfigError("ZIVON_CONNECT_TIMEOUT_S must be >= 1 second")
+    call_deadline_s = _env_number("ZIVON_CALL_DEADLINE_S", 0.0, integer=False)
+    if call_deadline_s < 0:
+        raise ConfigError("ZIVON_CALL_DEADLINE_S must be >= 0 (0 = no cap)")
+    backoff_base_s = _env_number("ZIVON_BACKOFF_BASE_S", 2.0, integer=False)
+    if backoff_base_s < 0:
+        raise ConfigError("ZIVON_BACKOFF_BASE_S must be >= 0")
+    heartbeat_s = _env_number("ZIVON_HEARTBEAT_S", 60.0, integer=False)
+    if heartbeat_s < 1:
+        raise ConfigError("ZIVON_HEARTBEAT_S must be >= 1 second")
     return {
         "base_url": base_url,
         "api_key": _env_raw("ZIVON_API_KEY"),
@@ -289,7 +320,13 @@ def _load_server_from_env() -> dict[str, Any]:
         "temperature": temperature,
         "timeout_s": timeout_s,
         "max_attempts": max_attempts,
+        "stream": _env_bool("ZIVON_STREAM", True),
+        "stream_usage": _env_bool("ZIVON_STREAM_USAGE", True),
+        "call_deadline_s": call_deadline_s,
+        "connect_timeout_s": connect_timeout_s,
+        "backoff_base_s": backoff_base_s,
         "validation_rounds": validation_rounds,
+        "heartbeat_s": heartbeat_s,
     }
 
 

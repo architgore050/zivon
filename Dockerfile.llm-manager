@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1
+# Zivon llm-manager node image: the shared model-call module (llm_manager/)
+# behind a small OpenAI-format HTTP service. This is an ISOLATED node: the
+# factory Job, the test suite and every future consumer (translator) talk to
+# THIS service, and THIS service is the only caller of the inference server
+# (via the dev inference router in container/cluster setups).
+#
+#   Build:  docker build -f Dockerfile.llm-manager -t zivon-llm-manager:0.1.0 .
+#   Run:    docker run --rm -p 8000:8000 \
+#             -e ZIVON_BASE_URL=http://192.168.49.1:18080/v1 \
+#             -e ZIVON_MODEL=<model> zivon-llm-manager:0.1.0
+#   Probe:  curl -s http://127.0.0.1:8000/healthz
+#
+# Deliberately NOT the factory image: no torch, no pdfplumber, no playwright
+# (see llm_manager/requirements.txt) - small, fast to start, and an
+# independent CVE surface for the trivy gate.
+
+FROM python:3.12-slim
+
+# Python writes logs immediately (critical inside containers) and skips .pyc files.
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Install dependencies BEFORE copying code (layer cache: code edits do not
+# re-download the wheels).
+COPY llm_manager/requirements.txt ./llm_manager/requirements.txt
+RUN pip install --no-cache-dir -r llm_manager/requirements.txt
+
+# Copy ONLY the standalone package - the image has no factory code at all.
+COPY llm_manager ./llm_manager
+
+# Never run as root: fixed UID + numeric USER (kubelet-verifiable, hadolint
+# DL3066 - the same convention as the factory image).
+RUN useradd --create-home --uid 1000 app
+USER 1000
+
+EXPOSE 8000
+
+# The entry point loads ZIVON_BASE_URL / ZIVON_MODEL loudly and refuses to
+# boot without them (a misconfigured node must die at boot, not per-request).
+CMD ["python", "-m", "llm_manager.service"]

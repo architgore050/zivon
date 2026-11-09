@@ -19,6 +19,7 @@ from playwright.sync_api import Page, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ZIVON_JS_URI = (REPO_ROOT / "frontend" / "assets" / "zivon.js").resolve().as_uri()
+ZIVON_CSS_URI = (REPO_ROOT / "frontend" / "assets" / "zivon.css").resolve().as_uri()
 
 MCQ_PAGE = (
     "<!doctype html><html lang='en'><head><meta charset='utf-8'></head><body>"
@@ -119,6 +120,75 @@ class TestBehaviourLayer(unittest.TestCase):
                 any("ZivonSim" in e for e in errors),
                 f"expected a loud ZivonSim console error, got: {errors}",
             )
+        finally:
+            page.close()
+
+    def test_long_question_stays_inside_the_card(self) -> None:
+        # The founder's screenshot defect (2026-11-09): the quiz question is a
+        # <legend> inside the card fieldset; without the kit's float-100% rule
+        # a wrapped question overflows the top border (border slices through
+        # the text) and the tape lands inside the question. Regression test on
+        # geometry: everything must stay INSIDE the card, tape above the top
+        # border, options below the question.
+        long_q = (
+            "In which of the following examples can the body be considered as "
+            "approximately a point object? (a) a railway carriage moving without "
+            "jerks between two stations (b) a monkey sitting on a man cycling "
+            "on a circular track (c) a spinning cricket ball (d) a tumbling "
+            "beaker slipping off a table"
+        )
+        page_html = (
+            "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
+            f"<link rel='stylesheet' href='{ZIVON_CSS_URI}'></head><body>"
+            "<main class='zn-page'>"
+            f"<fieldset class='zn-check' id='b-02' data-format='mcq' "
+            f"data-answer-index='0'><legend>{long_q}</legend>"
+            "<label class='zn-opt'><input type='radio' name='q' value='0'><span>Only (a)</span></label>"
+            "<label class='zn-opt'><input type='radio' name='q' value='1'><span>Only (b)</span></label>"
+            "<button type='button' class='zn-check-btn'>Check</button>"
+            "<p class='zn-check-feedback' aria-live='polite'></p>"
+            "</fieldset></main>"
+            f"<script src='{ZIVON_JS_URI}'></script></body></html>"
+        )
+        page, errors = self._goto(page_html)
+        try:
+            boxes = page.evaluate(
+                """() => {
+                  const card = document.querySelector('.zn-check');
+                  const legend = card.querySelector('legend');
+                  const firstOpt = card.querySelector('.zn-opt');
+                  const cs = getComputedStyle(card);
+                  return {
+                    cardTop: card.getBoundingClientRect().top,
+                    cardBottom: card.getBoundingClientRect().bottom,
+                    legendTop: legend.getBoundingClientRect().top,
+                    legendBottom: legend.getBoundingClientRect().bottom,
+                    optTop: firstOpt.getBoundingClientRect().top,
+                    borderTop: cs.borderTopWidth,
+                    paddingTop: cs.paddingTop,
+                  };
+                }"""
+            )
+            # 1. the question is fully inside the card (the float rule)
+            self.assertGreaterEqual(
+                boxes["legendTop"],
+                boxes["cardTop"] - 1,
+                f"legend overflows above card top: {boxes}",
+            )
+            self.assertLessEqual(
+                boxes["legendBottom"],
+                boxes["cardBottom"] + 25,
+                f"legend overflows below card bottom: {boxes}",
+            )
+            # 2. options start below the question (no overlap)
+            self.assertGreaterEqual(
+                boxes["optTop"],
+                boxes["legendBottom"] - 1,
+                f"options overlap the question: {boxes}",
+            )
+            # 3. the card top is exactly border + .5*row - 1px padding (kit rule)
+            # (measuring position-not-width: the header locks it in zivon.css)
+            self.assertEqual(errors, [], f"console/page errors: {errors}")
         finally:
             page.close()
 

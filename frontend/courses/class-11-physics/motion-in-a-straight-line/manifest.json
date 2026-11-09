@@ -1,0 +1,41 @@
+{
+  "course_id": "class-11-physics",
+  "class": 11,
+  "topic_slug": "motion-in-a-straight-line",
+  "title": "Motion in a Straight Line",
+  "chapter": {
+    "query": "Motion in a Straight Line",
+    "title": "MOTION IN A STRAIGHT LINE",
+    "book": "Physics Part I - Textbook for Class XI",
+    "pages": [
+      1,
+      14
+    ]
+  },
+  "sources": [
+    {
+      "id": "ncert-physics-11-part1",
+      "title": "Physics Part I - Textbook for Class XI",
+      "license": "NCERT (free educational use)"
+    },
+    {
+      "id": "openstax-hs-physics",
+      "title": "OpenStax High School Physics",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-physics-11-part2",
+      "title": "Physics Part II - Textbook for Class XI",
+      "license": "see sources catalog"
+    }
+  ],
+  "run_id": "motion-in-a-straight-line-c11",
+  "generated_at": "2026-11-08T22:38:16Z",
+  "block_counts": {
+    "text": 6,
+    "check": 18,
+    "simulation": 2,
+    "worked_example": 6,
+    "reveal": 1
+  }
+}

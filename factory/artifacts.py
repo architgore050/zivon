@@ -18,6 +18,14 @@ every status.json stage entry carries `at` plus `elapsed_s` for measured runs;
 run_report.json collects the per-stage `stage_durations_s` so "where does a
 run spend its time" is answerable from the artifacts alone.
 
+Ledgers (2026-11-08, founder's logging ask): append-only JSONL evidence files
+(`calls_ledger.jsonl`, `issues_ledger.jsonl`) record what every model attempt
+burned (latency, thinking proxy, tokens, finish reason, rejection reason) and
+what every reviewer actually found (severity + category + block). run_report
+rolls both up; `scripts/issue_report.py` aggregates them across runs so
+"which failure classes keep recurring" becomes answerable - the input to
+prompting improvements.
+
 Nothing downstream ever runs on a failed stage, and every model call's exact
 request and response are on disk for diagnosis. Partial re-runs read upstream
 stage outputs from the latest previous run (see load_stage_output).
@@ -91,6 +99,29 @@ class RunContext:
 
     def save_stage_output(self, stage_id: str, output: Any) -> None:
         self.write_json(self.stage_dir(stage_id) / "output.json", output)
+
+    # -- ledgers (2026-11-08, founder's logging ask) --------------------------
+    def append_ledger(self, name: str, entries: list[dict[str, Any]]) -> None:
+        """Append structured evidence lines to runs/<run_id>/<name>.jsonl.
+
+        Two ledgers exist per run:
+        - calls_ledger: one line per model call attempt (latency, time-to-
+          first-content-token as the thinking proxy, token usage, finish
+          reason, rejection reason) - what the model burned and why a call
+          was rejected;
+        - issues_ledger: one line per reviewer-found issue (stage, call,
+          severity, category, block, message) - what the agents actually
+          catch, so cross-run analysis can name recurring failure classes.
+        Append-only JSONL: survives pod death, resumable runs keep adding,
+        and scripts/issue_report.py aggregates them across runs.
+        """
+        if not entries:
+            return
+        path = self.dir / f"{name}.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            for entry in entries:
+                fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
     def load_stage_output(self, stage_id: str) -> Any:
         """Read a stage's output.json for this run.
@@ -214,8 +245,97 @@ class RunContext:
                     stage: round(seconds, 1)
                     for stage, seconds in sorted(self._stage_elapsed.items())
                 },
+                # Ledger rollups (2026-11-08): the run answers "what did the
+                # model burn, and what did the reviewers actually find" from
+                # its own artifacts, without reading raw attempt files.
+                "model_call_stats": self._calls_ledger_summary(),
+                "issues_found": self._issues_ledger_summary(),
             },
         )
+
+    # -- ledger rollups --------------------------------------------------------
+    def _read_ledger(self, name: str) -> list[dict[str, Any]]:
+        path = self.dir / f"{name}.jsonl"
+        if not path.exists():
+            return []
+        rows: list[dict[str, Any]] = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue  # a torn append line must not break the report
+        return rows
+
+    def _calls_ledger_summary(self) -> dict[str, Any]:
+        """Per-stage model-call stats from calls_ledger.jsonl.
+
+        An attempt can appear twice (answered, then rejected by validation);
+        the final state per (stage, round_tag, attempt) wins: rejected beats
+        answered. thinking_s sums time-to-first-content-token - the honest
+        proxy for how long a call thought before answering (a thinking model
+        streams nothing until then).
+        """
+        final: dict[tuple[str, str, int], dict[str, Any]] = {}
+        for row in self._read_ledger("calls_ledger"):
+            key = (
+                str(row.get("stage", "?")),
+                str(row.get("round_tag") or ""),
+                int(row.get("attempt") or 0),
+            )
+            prev = final.get(key)
+            if prev is None or row.get("outcome") in ("rejected", "transport-failure"):
+                final[key] = row
+        by_stage: dict[str, dict[str, Any]] = {}
+        for row in final.values():
+            stats = by_stage.setdefault(
+                str(row.get("stage", "?")),
+                {
+                    "attempts": 0,
+                    "rejected": 0,
+                    "transport_failures": 0,
+                    "thinking_s": 0.0,
+                    "max_completion_tokens": 0,
+                },
+            )
+            stats["attempts"] += 1
+            outcome = row.get("outcome")
+            if outcome == "rejected":
+                stats["rejected"] += 1
+            elif outcome == "transport-failure":
+                stats["transport_failures"] += 1
+            first = row.get("first_token_s")
+            if isinstance(first, (int, float)):
+                stats["thinking_s"] = round(stats["thinking_s"] + first, 1)
+            completion = row.get("completion_tokens")
+            if isinstance(completion, (int, float)):
+                stats["max_completion_tokens"] = max(
+                    stats["max_completion_tokens"], int(completion)
+                )
+        return dict(sorted(by_stage.items()))
+
+    def _issues_ledger_summary(self) -> dict[str, Any]:
+        rows = self._read_ledger("issues_ledger")
+        by_stage: dict[str, int] = {}
+        by_severity: dict[str, int] = {}
+        by_category: dict[str, int] = {}
+        unverified = 0
+        for row in rows:
+            by_stage[str(row.get("stage", "?"))] = (
+                by_stage.get(str(row.get("stage", "?")), 0) + 1
+            )
+            sev = str(row.get("severity", "?"))
+            by_severity[sev] = by_severity.get(sev, 0) + 1
+            cat = str(row.get("category") or "other")
+            by_category[cat] = by_category.get(cat, 0) + 1
+            if row.get("unverified"):
+                unverified += 1
+        return {
+            "total": len(rows),
+            "unverified": unverified,
+            "by_stage": dict(sorted(by_stage.items())),
+            "by_severity": dict(sorted(by_severity.items())),
+            "by_category": dict(sorted(by_category.items())),
+        }
 
     # -- resume support -------------------------------------------------------
     def status_exists(self) -> bool:

@@ -21,7 +21,7 @@ from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
 from .errors import LintError
-from .lint import lint_css, lint_js
+from .lint import lint_css, lint_js, lint_page_css_scope
 from .llm import LLMClient
 from .schemas import INTERACTIVE
 
@@ -37,6 +37,9 @@ ZivonSim.register("<BLOCK_ID>", {
   draw: function (ctx) {
     // ctx is the same object; mutate it in init, read ctx.values here.
     // Use plain canvas 2D (ctx.canvas.getContext('2d') is available as ctx.g).
+    // Geometry is COMPUTED from the cited equations, never hand-placed:
+    // SHAPE only - loop the graph's domain and evaluate the equation per step:
+    //   for (var t = 0; t <= T; t += STEP) { /* emit the point at t */ }
   }
 });
 """
@@ -114,17 +117,25 @@ def _build_simulation(
         "controls) is built for you by the renderer. You fill ONE canvas "
         "simulation inside a paper card: apply the doctrine's visual language "
         "in canvas 2D. In page.css use the palette variables by name; on "
-        "canvas use the PALETTE hex values. The examples are single-file "
-        "shell demos - read them for the visual language, never copy their "
-        "structure. Ruled-line alignment and the pen underline are shell-owned "
-        "(the LessonKit kit in zivon.js): never draw ruled lines, baselines or "
-        "pen underlines in page.js or page.css.\n\n"
+        "canvas use the PALETTE hex values. The examples are kit-based demos "
+        "(they link the same zivon.css the shell ships) - read them for "
+        "component patterns, never copy their content. Ruled-line alignment "
+        "and the pen underline are shell-owned (the LessonKit kit in zivon.js): "
+        "never draw ruled lines, baselines or pen underlines in page.js or "
+        "page.css.\n\n"
         "CONTRACT (hard):\n"
         "- PHYSICS CONTRACT: the behaviour you draw must follow the FACTS above. "
         "When a control changes a value, the on-screen relationship must match "
         "the stated equations and DEFAULT BEHAVIOUR. Never invent physics "
         "beyond these facts; where the facts do not pin a detail, draw exactly "
         "what DESCRIPTION and DEFAULT BEHAVIOUR state.\n"
+        "- COMPUTE, DO NOT DRAW BY HAND: every curve, plotted point and derived "
+        "number on screen is computed in JS from the cited equations at draw "
+        "time - loop over the graph's domain and evaluate the equation for "
+        "each point, then place the point. Never hard-code hand-computed "
+        "coordinates as the drawn geometry: geometry placed by hand drifts "
+        "from the physics it claims to show, while geometry computed from "
+        "the equation is exact by construction.\n"
         "- page.js MUST define exactly one registration using this skeleton:\n"
         f"{_skeleton_for(block['id'])}\n"
         "- Plain canvas 2D and requestAnimationFrame only. ctx.g is the 2d context.\n"
@@ -132,6 +143,11 @@ def _build_simulation(
         "no document.write, no inline <script>.\n"
         "- Use only CSS classes scoped under .zn-sim-" + block["id"] + " in page.css; "
         "never define global styles, never touch elements outside the simulation container.\n"
+        "- The kit (zivon.css) owns cards, tape, the language bar, quiz chrome AND the "
+        "canvas chrome and sizing: NEVER restyle any .zn-* class and never set "
+        "width/height/min-height/max-height/aspect-ratio on the canvas - the kit sizes "
+        "it (.zn-sim .zn-sim-canvas). LINT ENFORCES THIS: unscoped selectors and "
+        "canvas sizing in page.css are rejected back to you.\n"
         "- Colours: use only PALETTE values (hex on canvas, variables by name "
         "in page.css). Invent no colours.\n"
         "- The runtime wires the range inputs to ctx.values[controlId] automatically.\n"
@@ -166,8 +182,10 @@ def _build_simulation(
             f"block {block['id']}: model returned an empty page.js",
             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
         )
-    hits = lint_js(f"{block['id']}/page.js", js) + lint_css(
-        f"{block['id']}/page.css", css
+    hits = (
+        lint_js(f"{block['id']}/page.js", js)
+        + lint_css(f"{block['id']}/page.css", css)
+        + lint_page_css_scope(f"{block['id']}/page.css", css, block["id"])
     )
     if hits:
         raise LintError(
@@ -189,8 +207,10 @@ def _lint_feedback(block_id: str) -> Callable[[dict[str, Any]], list[str]]:
         css = parsed.get("files", {}).get("page.css", "")
         if not js.strip():
             return [f"block {block_id}: page.js must be a non-empty file"]
-        return lint_js(f"{block_id}/page.js", js) + lint_css(
-            f"{block_id}/page.css", css
+        return (
+            lint_js(f"{block_id}/page.js", js)
+            + lint_css(f"{block_id}/page.css", css)
+            + lint_page_css_scope(f"{block_id}/page.css", css, block_id)
         )
 
     return check

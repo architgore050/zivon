@@ -10,15 +10,48 @@
 # host, and download caches (PDFs, text, HF models) warm between runs.
 # frontend/ is mounted so generated pages survive the container's death.
 services:
+  # The llm-manager NODE: the isolated model-call service (llm_manager/ +
+  # FastAPI, Dockerfile.llm-manager). The model-access point of the whole
+  # system - the factory talks OpenAI chat-completions to THIS and this is
+  # the only caller of the inference server:
+  #   factory -> llm-manager -> (inference-router) -> host server
+  # Two upstreams, two variables (one variable would make the node call
+  # ITSELF when the factory is pointed at it):
+  #   ZIVON_NODE_UPSTREAM_URL  what the NODE calls (the host server/router)
+  #   ZIVON_BASE_URL           what the FACTORY calls
+  # Default path (no node in between): set only ZIVON_BASE_URL=<server>; the
+  # node, if started, defaults its upstream to the same address.
+  # Node path: set ZIVON_NODE_UPSTREAM_URL=<server> AND point the factory at
+  # the node with ZIVON_BASE_URL=http://llm-manager:8000/v1 (compose DNS);
+  # also set ZIVON_MAX_ATTEMPTS=1 on the factory side - the node owns
+  # transport retries, and factory x node attempts multiply calls to a
+  # single-slot server (the cluster enforces this split via ConfigMaps).
+  llm-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm-manager
+    image: zivon-llm-manager:0.1.0
+    environment:
+      # The node's UPSTREAM (what IT calls): the host's OpenAI-format server.
+      - ZIVON_BASE_URL=${ZIVON_NODE_UPSTREAM_URL:-${ZIVON_BASE_URL:-}}
+      - ZIVON_MODEL=${ZIVON_MODEL:-}
+      - ZIVON_API_KEY=${ZIVON_API_KEY:-}
+    ports:
+      # Host-side reachability for curl checks and for host-run consumers.
+      # 18090: distinct from the router's 18080 and the site's 8081.
+      - "127.0.0.1:18090:8000"
+    restart: unless-stopped
+
   factory:
     build: .
-    image: zivon-factory:0.3.10
+    image: zivon-factory:0.3.17
     environment:
       # Server settings are env-only (docs/content-factory/config-reference.md).
       # Export them in your shell (see .env.example) before `compose run`.
       - ZIVON_BASE_URL=${ZIVON_BASE_URL:-}
       - ZIVON_MODEL=${ZIVON_MODEL:-}
       - ZIVON_API_KEY=${ZIVON_API_KEY:-}
+      - ZIVON_MAX_ATTEMPTS=${ZIVON_MAX_ATTEMPTS:-3}
     extra_hosts:
       # Lets the container reach an OpenAI-format server running on the host
       # (bind the host server to 0.0.0.0, then use http://host.docker.internal:PORT/v1).
