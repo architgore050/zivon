@@ -148,7 +148,30 @@
     if (y <= h - 8) g.fillText(line, x, y);
   }
 
-  /* --------------------- 3. landing page course list ---------------------- */
+  /* --------------------- 3. landing page course list ----------------------
+     Renders the same cards as before, grouped by class with a jump-nav.
+     The legacy <ul id="zn-courses"> is kept as a list of bare links for
+     screen readers and as the no-JS fallback: JS moves the full cards into
+     class sections and hides the list. */
+  function renderCard(course, reveal) {
+    var li = document.createElement("li");
+    var a = document.createElement("a");
+    a.className = "zn-card";
+    a.href = course.href;
+    var title = document.createElement("p");
+    title.className = "zn-card-title";
+    title.textContent = course.title;
+    var chapter = document.createElement("p");
+    chapter.className = "zn-card-chapter";
+    chapter.textContent = "Chapter: " + course.chapter;
+    var meta = document.createElement("p");
+    meta.className = "zn-card-meta";
+    meta.textContent = course.course_id + " - generated " + course.generated_at;
+    [title, chapter, meta].forEach(function (el) { a.appendChild(el); });
+    li.appendChild(a);
+    return li;
+  }
+
   function renderCourses() {
     var list = document.getElementById("zn-courses");
     if (!list || !window.ZIVON_COURSES) return;
@@ -157,25 +180,55 @@
       if (empty) empty.hidden = false;
       return;
     }
+    var byClass = {}, seenOrder = [];
     window.ZIVON_COURSES.forEach(function (course) {
-      var li = document.createElement("li");
-      var a = document.createElement("a");
-      a.className = "zn-card";
-      a.href = course.href;
-      var title = document.createElement("p");
-      title.className = "zn-card-title";
-      title.textContent = course.title;
-      var chapter = document.createElement("p");
-      chapter.className = "zn-card-chapter";
-      chapter.textContent = "Chapter: " + course.chapter;
-      var meta = document.createElement("p");
-      meta.className = "zn-card-meta";
-      meta.textContent = course.course_id + " - generated " + course.generated_at;
-      a.appendChild(title);
-      a.appendChild(chapter);
-      a.appendChild(meta);
-      li.appendChild(a);
-      list.appendChild(li);
+      var cls = (course.class === undefined || course.class === null || course.class === "")
+        ? "Other" : String(course.class);
+      if (!byClass[cls]) { byClass[cls] = []; seenOrder.push(cls); }
+      byClass[cls].push(course);
+    });
+    /* Numeric classes ascending; anything non-numeric (unclassified) last. */
+    var classes = seenOrder.sort(function (a, b) {
+      var na = Number(a), nb = Number(b);
+      if (isNaN(na) && isNaN(nb)) return 0;
+      if (isNaN(na)) return 1;
+      if (isNaN(nb)) return -1;
+      return na - nb;
+    });
+    classes.forEach(function (cls) {
+      byClass[cls].forEach(function (course) {
+        list.appendChild(renderCard(course));
+      });
+    });
+    var sectionsHost = document.getElementById("zn-class-sections");
+    var navLinks = document.getElementById("zn-grade-nav-links");
+    if (!sectionsHost) return;
+    var catalogue = document.getElementById("zn-catalogue");
+    if (catalogue) catalogue.hidden = false;
+    if (list) list.setAttribute("hidden", "");
+    var nav = document.getElementById("zn-grade-nav");
+    if (classes.length < 2 && nav) nav.setAttribute("hidden", "");
+    classes.forEach(function (cls) {
+      var section = document.createElement("section");
+      section.className = "zn-class-section";
+      section.setAttribute("aria-labelledby", "zn-class-" + cls);
+      var heading = document.createElement("h2");
+      heading.className = "zn-class-title";
+      heading.id = "zn-class-" + cls;
+      heading.textContent = cls === "Other" ? "Other topics" : "Class " + cls;
+      var ul = document.createElement("ul");
+      ul.className = "zn-courses";
+      byClass[cls].forEach(function (course) { ul.appendChild(renderCard(course)); });
+      section.appendChild(heading);
+      section.appendChild(ul);
+      sectionsHost.appendChild(section);
+      if (navLinks) {
+        var jump = document.createElement("a");
+        jump.className = "zn-grade-link";
+        jump.href = "#zn-class-" + cls;
+        jump.textContent = cls === "Other" ? "Other" : "Class " + cls;
+        navLinks.appendChild(jump);
+      }
     });
   }
 
