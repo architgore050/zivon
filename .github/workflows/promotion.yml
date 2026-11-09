@@ -1,0 +1,245 @@
+# Promotion pipeline: main -> prod — the ONLY sanctioned path to prod
+# (AGENTS.md repo process; GAP-002). Triggers: manual dispatch or a v* tag.
+#
+# Flow: security gate FIRST (gitleaks over full history, pip-audit, manifest
+# lint, CodeQL, and a build + trivy scan of every image that ships — the two
+# always-present images plus the path-guarded Wave-E images), then a
+# promotion PR is opened main -> prod. The founder approves by reviewing and
+# merging that PR — the PR is the manual-approval gate; this workflow never
+# pushes to prod directly, and `prod` must carry branch protection (see
+# docs/deployment/cicd.md § Promotion pipeline).
+#
+# Rollback: prod deploys only from the promotion tag — rollback = redeploy
+# the previous tag (documented in docs/deployment/cicd.md).
+#
+# Hardening conventions match ci.yml:
+#   - every third-party action pinned to a full commit SHA (tags can be retagged)
+#   - top-level `permissions: {}` = GITHUB_TOKEN starts with ZERO powers;
+#     each job grants only what it needs (least privilege)
+#   - CI never receives ZIVON_API_KEY or any product credential — the gate
+#     validates code/images/manifests key-free
+name: Promotion (main to prod)
+
+on:
+  workflow_dispatch: {}   # founder runs it from the Actions tab
+  push:
+    tags: ["v*"]          # release tags always route through promotion
+
+permissions: {}
+
+jobs:
+  # ---- 1. security gate at the promotion ref --------------------------------
+  security-gate:
+    name: Security gate (secrets + deps + images + manifests + CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # CodeQL results upload — the only writer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0                  # full history for gitleaks
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Secret leak scan (gitleaks, full history)
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency audit (pip-audit on the resolved tree)
+        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266  # v1.1.0
+        with:
+          req-file: requirements.txt
+
+      - name: Manifest validation (kubeconform + kube-linter)
+        run: |
+          # Same loud-download pattern as the ci.yml manifests job (gate
+          # integrity postmortem rule 6): a CDN blip must fail as itself,
+          # never as a fake manifest failure.
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -o kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz
+          tar xzf kubeconform.tar.gz
+          ./kubeconform -summary -strict -kubernetes-version 1.33.0 k8s/
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -o kube-linter.tar.gz \
+            https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz
+          tar xzf kube-linter.tar.gz
+          ./kube-linter lint --config .kube-linter.yaml k8s/
+
+      # ---- images that ship: build + scan (factory + node + frontend always;
+      #      backend/dashboard path-guarded exactly like ci.yml job 7) --------
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+
+      - name: Build factory image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          load: true
+          tags: zivon-factory:promotion-${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy scan — factory image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-factory:promotion-${{ github.run_id }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Build llm-manager node image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.llm-manager
+          load: true
+          tags: zivon-llm-manager:promotion-${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy scan — llm-manager image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-llm-manager:promotion-${{ github.run_id }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Build frontend image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.frontend
+          load: true
+          tags: zivon-frontend:promotion-${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy scan — frontend image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-frontend:promotion-${{ github.run_id }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - id: backend_guard
+        name: Path guard — backend image
+        run: |
+          if [ -f Dockerfile.backend ]; then
+            echo "landed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dockerfile.backend not landed - skipped from the promotion scan set"
+          fi
+      - name: Build backend image
+        if: steps.backend_guard.outputs.landed == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.backend
+          load: true
+          tags: zivon-backend:promotion-${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy scan — backend image
+        if: steps.backend_guard.outputs.landed == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-backend:promotion-${{ github.run_id }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - id: dashboard_guard
+        name: Path guard — dashboard image
+        run: |
+          if [ -f Dockerfile.dashboard ]; then
+            echo "landed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dockerfile.dashboard not landed - skipped from the promotion scan set"
+          fi
+      - name: Build dashboard image
+        if: steps.dashboard_guard.outputs.landed == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.dashboard
+          load: true
+          tags: zivon-dashboard:promotion-${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy scan — dashboard image
+        if: steps.dashboard_guard.outputs.landed == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-dashboard:promotion-${{ github.run_id }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: CodeQL triage (security scan of our Python)
+        uses: github/codeql-action/init@0fda7a646fd14a20daf520829ca1ae8847000819  # codeql-bundle-v2.27.3
+        with:
+          languages: python
+      - uses: github/codeql-action/autobuild@0fda7a646fd14a20daf520829ca1ae8847000819  # codeql-bundle-v2.27.3
+      - uses: github/codeql-action/analyze@0fda7a646fd14a20daf520829ca1ae8847000819  # codeql-bundle-v2.27.3
+
+  # ---- 2. the manual-approval gate: a PR the founder reviews and merges ------
+  promote:
+    name: Open promotion PR (founder approves by merging)
+    needs: security-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # push the promotion branch (never prod itself)
+      pull-requests: write     # open the promotion PR
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: main                       # always promote main (tags must be cut on main)
+          fetch-depth: 0
+
+      - name: Find or skip — is there anything to promote?
+        id: delta
+        run: |
+          git fetch origin prod --quiet
+          if git rev-parse --verify origin/prod >/dev/null 2>&1; then
+            count=$(git rev-list --count origin/prod..origin/main)
+          else
+            count=$(git rev-list --count HEAD)   # prod branch absent: everything is the delta
+          fi
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" -eq 0 ]; then
+            echo "::notice::prod is already at main - nothing to promote"
+          fi
+
+      - name: Push promotion branch
+        if: steps.delta.outputs.count != '0'
+        run: |
+          branch="promotion/main-to-prod-${{ github.run_id }}"
+          git push origin "refs/heads/main:refs/heads/${branch}"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+      - name: Open the promotion PR (the approval gate)
+        if: steps.delta.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="${{ steps.delta.outputs.branch }}"
+          if gh pr view "$branch" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::notice::promotion PR for $branch already open - leaving it as is"
+            exit 0
+          fi
+          gh pr create \
+            --base prod \
+            --head "$branch" \
+            --title "Promotion: main -> prod (run ${{ github.run_id }})" \
+            --body "Automated promotion PR. **The founder approves this promotion by reviewing and merging** — the workflow never pushes to \`prod\` directly.
+
+          Security gate run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (gitleaks full-history, pip-audit, kubeconform + kube-linter, CodeQL, build + trivy on every shipping image — CRITICAL/HIGH with a fix available fail the gate).
+
+          Rollback: \`prod\` deploys only from the promotion tag; rollback = redeploy the previous tag (docs/deployment/cicd.md § Promotion pipeline)."
