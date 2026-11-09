@@ -16,12 +16,23 @@
 # the same topic RESUMES the previous attempt (completed stages reused);
 # --fresh wipes it and generates from scratch. Server URL + model come from
 # the zivon-factory-config ConfigMap (k8s/infra.env).
-# Limitation: chapter names containing quotes or pipes are not supported
-# (sed-rendered template).
+# Topic is an ALLOWLIST (the chapter is sed-rendered into the Job template,
+# so anything outside the safe set is rejected, never sanitized): first char
+# alphanumeric, then alphanumerics / spaces / hyphens / underscores, 80 chars
+# total, one line only. The dashboard enforces the same rule, but this script
+# validates independently and must not trust its caller.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 chapter="${1:?usage: trigger-factory-run.sh \"<chapter>\" [class 6-12] [--fresh]}"
+if [[ "$chapter" == *$'\n'* || "$chapter" == *$'\r'* ]]; then
+  echo "topic must be one line (got: $chapter)" >&2
+  exit 1
+fi
+if [[ ! "$chapter" =~ ^[A-Za-z0-9][A-Za-z0-9\ _-]{0,79}$ ]]; then
+  echo "topic must start with a letter or digit and then contain only letters, digits, spaces, hyphens and underscores (max 80 chars, got: $chapter)" >&2
+  exit 1
+fi
 class="${2:-}"
 if [[ -n "$class" && ( ! "$class" =~ ^[0-9]+$ || "$class" -lt 6 || "$class" -gt 12 ) ]]; then
   echo "class must be an integer 6-12 (got: $class)" >&2

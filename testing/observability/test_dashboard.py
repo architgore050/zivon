@@ -8,6 +8,7 @@ session cookie)."""
 from __future__ import annotations
 
 import re
+import threading
 import unittest
 import unittest.mock
 import uuid
@@ -455,12 +456,37 @@ class ActionTests(unittest.TestCase):
 
     def test_factory_run_rejects_sed_breaking_topics(self) -> None:
         """trigger-factory-run.sh renders the topic via sed into the Job
-        template: quotes/pipes/backslashes are its documented unsupported
-        set, so the form enforces the boundary instead of trusting it."""
-        with _seeded_app() as client:
+        template: the topic is an allowlist (alphanumeric first char, then
+        alphanumerics/spaces/hyphens/underscores, max 80), so the form
+        enforces the boundary instead of trusting it."""
+        import dashboard.app as mod
+
+        with (
+            _seeded_app() as client,
+            unittest.mock.patch.object(
+                mod, "factory_run_in_progress", return_value=False
+            ),
+            unittest.mock.patch("dashboard.app.subprocess.run", create=True) as run,
+        ):
+            run.return_value = unittest.mock.Mock(
+                returncode=0, stdout="job/factory-run-x", stderr=""
+            )
             _login(client)
             csrf = _csrf_of(client.get("/admin").text)
-            for bad_topic in ('Motion" --evil', "a|b", "back\\slash", "quote'x"):
+            for bad_topic in (
+                'Motion" --evil',
+                "a|b",
+                "back\\slash",
+                "quote'x",
+                "Motion & Energy",  # shell metacharacter, not allowlisted
+                "Motion\nEnergy",  # embedded newline
+                "Motion\rEnergy",  # embedded carriage return
+                "Motion; rm -rf /",
+                "Motion$(id)",
+                "-leading-dash",
+                "",  # empty
+                "x" * 81,  # over the 80-char cap (not silently truncated)
+            ):
                 response = client.post(
                     "/admin/actions/factory-run",
                     data={"csrf": csrf, "topic": bad_topic},
@@ -469,10 +495,12 @@ class ActionTests(unittest.TestCase):
             ok = client.post(
                 "/admin/actions/factory-run",
                 data={"csrf": csrf, "topic": "Motion in a Straight Line"},
+                headers={"accept": "application/json"},
             )
-            self.assertIn(
-                ok.status_code, (303, 500)
-            )  # script may fail w/o kubectl; validation passed
+            self.assertEqual(ok.status_code, 200)  # validation passed, script ran
+            args = run.call_args[0][0]
+            self.assertTrue(args[0].endswith("/scripts/trigger-factory-run.sh"))
+            self.assertEqual(args[1], "Motion in a Straight Line")
 
     def test_factory_run_refuses_while_a_job_is_active(self) -> None:
         import dashboard.app as mod
@@ -496,6 +524,90 @@ class ActionTests(unittest.TestCase):
             )
             self.assertEqual(response.status_code, 409)
             self.assertIn("manual-only", response.json()["error"])
+
+
+class _ThreadFakeCursor:
+    description: Any = None
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        return None
+
+    def execute(self, sql: str, params: tuple[Any, ...] = ()) -> None:
+        return None
+
+    def fetchall(self) -> list[tuple[Any, ...]]:
+        return []
+
+
+class _ThreadFakeConnection:
+    def __init__(self) -> None:
+        self.used_by: set[int] = set()
+        self._lock = threading.Lock()
+
+    def cursor(self) -> _ThreadFakeCursor:
+        with self._lock:
+            self.used_by.add(threading.get_ident())
+        return _ThreadFakeCursor()
+
+    def close(self) -> None:
+        return None
+
+
+class ConnectionThreadLocalTests(unittest.TestCase):
+    """LogStore.from_env must hand each worker thread its OWN connection
+    (FastAPI serves sync endpoints from a thread pool; a shared handle is a
+    race on cursors/transaction state)."""
+
+    def test_concurrent_from_env_gives_distinct_connections(self) -> None:
+        import os
+        import sys
+        import threading
+
+        created: list[_ThreadFakeConnection] = []
+        created_lock = threading.Lock()
+
+        def _connect(dsn: str, **kwargs: Any) -> _ThreadFakeConnection:
+            conn = _ThreadFakeConnection()
+            with created_lock:
+                created.append(conn)
+            return conn
+
+        fake_psycopg = unittest.mock.Mock(connect=_connect)
+        os.environ["ZIVON_LOG_DSN"] = "postgresql://fake/fake"
+        results: dict[int, list[Any]] = {}
+        results_lock = threading.Lock()
+        barrier = threading.Barrier(8)
+
+        def _worker() -> None:
+            barrier.wait()
+            store_a = LogStore.from_env()
+            store_b = LogStore.from_env()  # same thread: reused
+            store_a._fetchall("SELECT 1")
+            with results_lock:
+                results[threading.get_ident()] = [
+                    store_a.connection,
+                    store_b.connection,
+                ]
+
+        try:
+            with unittest.mock.patch.dict(sys.modules, {"psycopg": fake_psycopg}):
+                threads = [threading.Thread(target=_worker) for _ in range(8)]
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join(timeout=20)
+        finally:
+            os.environ.pop("ZIVON_LOG_DSN")
+        self.assertEqual(len(results), 8)
+        for conns in results.values():
+            self.assertIs(conns[0], conns[1])  # reused on the same thread
+        mine = {id(conns[0]) for conns in results.values()}
+        self.assertEqual(len(mine), 8)  # distinct across threads
+        for conn in created:
+            self.assertLessEqual(len(conn.used_by), 1)  # never shared
 
 
 class SecurityHeaderTests(unittest.TestCase):

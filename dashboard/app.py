@@ -35,9 +35,12 @@ from .queries import LogStore, RunsArtifacts
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
-# trigger-factory-run.sh's documented limitation: chapter names containing
-# quotes or pipes break the sed render of the Job template.
-_TOPIC_FORBIDDEN = re.compile(r"['\"\\|`]")
+# trigger-factory-run.sh renders the topic through sed into the Job template,
+# so the topic space is an ALLOWLIST, enforced here and in the script itself
+# (the script must not trust its caller): first char alphanumeric, then
+# alphanumerics / spaces / hyphens / underscores, 80 chars total. Anything
+# else (& $ ; | quotes backslash newline ...) is rejected, never sanitized.
+_TOPIC_ALLOWED = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _-]{0,79}$")
 
 
 SECURITY_HEADERS = {
@@ -405,17 +408,22 @@ def create_app() -> FastAPI:
         denied = _guard(request)
         if denied:
             return denied
-        topic = topic.strip()[:80]
-        if not topic or topic.strip("-") == "":
-            return JSONResponse(status_code=422, content={"error": "topic required"})
-        if _TOPIC_FORBIDDEN.search(topic):
-            # trigger-factory-run.sh renders the topic through sed into the
-            # Job template: quotes/pipes/backslashes are its documented
-            # unsupported set — the form must enforce that boundary itself.
+        topic = topic.strip()
+        if "\r" in topic or "\n" in topic:
+            # an explicit newline rejection (a regex alone is not enough:
+            # "$" can match before a trailing newline in some engines).
+            return JSONResponse(
+                status_code=422, content={"error": "topic must be one line"}
+            )
+        if not _TOPIC_ALLOWED.fullmatch(topic):
             return JSONResponse(
                 status_code=422,
                 content={
-                    "error": "topic must not contain quotes, pipes or backslashes"
+                    "error": (
+                        "topic must start with a letter or digit and then "
+                        "contain only letters, digits, spaces, hyphens and "
+                        "underscores (max 80 chars)"
+                    )
                 },
             )
         if class_level and (
