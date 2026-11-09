@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}errors{% endblock %}
+{% block body %}
+<h1>Error feed</h1>
+<p>Latest ERROR/CRITICAL events grouped by the closed <code>error_class</code> taxonomy
+(spec.md §7). Filter with <code>?class=transport_error</code>.</p>
+{% if feed.rows %}
+<table>
+  <thead><tr><th>ts</th><th>severity</th><th>event</th><th>component</th><th>class</th><th>correlation</th></tr></thead>
+  <tbody>
+  {% for row in feed.rows %}
+    <tr>
+      <td>{{ row.ts }}</td>
+      <td><span class="state {{ 'failed' if row.severity == 'CRITICAL' else 'warning' }}">{{ row.severity }}</span></td>
+      <td>{{ row.event }}</td>
+      <td>{{ row.component }}</td>
+      <td>{{ row.error_class or "" }}</td>
+      <td class="corr">
+        {% if row.run_id %}run {{ row.run_id }}{% endif %}
+        {% if row.session_id %} sess {{ row.session_id[:8] }}{% endif %}
+        {% if row.turn_id %} turn {{ row.turn_id[:8] }}{% endif %}
+        {% if row.request_id %} req {{ row.request_id[:8] }}{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No ERROR/CRITICAL events — either genuinely quiet or the store is empty (both honest states).</p>
+{% endif %}
+
+<h2>Redaction violations (pinned)</h2>
+<p class="hint">A nonempty section is a call-site bug to fix, not noise to clear — every row names the offending key, never the payload.</p>
+{% if feed.redaction_violations %}
+<table>
+  <thead><tr><th>ts</th><th>event_ref</th><th>key</th><th>kind</th></tr></thead>
+  <tbody>
+  {% for row in feed.redaction_violations %}
+    <tr><td>{{ row.ts }}</td><td>{{ row.event_ref }}</td><td>{{ row.key }}</td><td>{{ row.kind }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No redaction violations — the denylist has not caught a leaking call site.</p>
+{% endif %}
+{% endblock %}

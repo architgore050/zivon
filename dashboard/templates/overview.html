@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}overview{% endblock %}
+{% block body %}
+<h1>Overview</h1>
+<div class="tiles">
+  <a class="tile" href="/admin/runs">
+    <span class="k">factory runs (recent)</span>
+    <span class="v">{{ runs | length }}</span>
+    <span class="s">
+      {% for run in runs[:3] %}{{ run.run_id }}: {{ run.state }} · {% endfor %}
+      {% if not runs %}no runs yet (manual trigger only){% endif %}
+    </span>
+  </a>
+  <a class="tile" href="/admin/tests">
+    <span class="k">test suite</span>
+    <span class="v">latest</span>
+    <span class="s">scheduled (TEST_CRON_SCHEDULE) + manual Jobs</span>
+  </a>
+  <a class="tile" href="/admin/voice">
+    <span class="k">voice p95 (24h) vs 4000 ms</span>
+    <span class="v">{% if voice_p95 %}{{ "%.0f" | format(voice_p95) }} ms{% else %}no data{% endif %}</span>
+    <span class="s">{{ voice_count }} turn(s) in window — honest empty until voice ships</span>
+  </a>
+  <a class="tile" href="/admin/credits">
+    <span class="k">credits vs burn budget</span>
+    <span class="v">{% if credit_latest %}{{ credit_latest | length }} profile(s){% else %}no data{% endif %}</span>
+    <span class="s">normal / demo profile counters (credit.counter_update)</span>
+  </a>
+  <a class="tile" href="/admin/errors">
+    <span class="k">errors (ERROR/CRITICAL)</span>
+    <span class="v">{{ error_count }}</span>
+    <span class="s">grouped by the closed error taxonomy</span>
+  </a>
+  <a class="tile" href="/admin/publish">
+    <span class="k">publish status</span>
+    <span class="v">view</span>
+    <span class="s">factory.publish.* + latest completions</span>
+  </a>
+</div>
+<section class="actions">
+  <h2>Actions (the two admin buttons — script semantics, nothing more)</h2>
+  <div class="action-row">
+    <form method="post" action="/admin/actions/tests-now" class="inline">
+      <input type="hidden" name="csrf" value="{{ csrf_token }}">
+      <button type="submit">Run tests now</button>
+    </form>
+    <form method="post" action="/admin/actions/factory-run" class="inline">
+      <input type="hidden" name="csrf" value="{{ csrf_token }}">
+      <input type="text" name="topic" placeholder="chapter, e.g. Motion" required>
+      <select name="class_level">
+        <option value="">class: locate decides</option>
+        {% for c in [6,7,8,9,10,11,12] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+      <label><input type="checkbox" name="fresh" value="1" checked> --fresh</label>
+      <button type="submit">Generate a topic</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
