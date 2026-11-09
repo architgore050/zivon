@@ -12,5 +12,6 @@
   "sim_seconds": 3,
   "pin_cores": 2,
   "scroll": true,
-  "click_checks": true
+  "click_checks": true,
+  "font_budget_kb": 300
 }

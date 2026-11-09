@@ -184,8 +184,11 @@
     function updateFallbackMirror() {
       if (!mirror) return;
       if (!mirror.textContent || !mirror.textContent.trim() || mirror.getAttribute("data-auto-mirror") === "true") {
-        mirror.setAttribute("data-auto-mirror", "true");
-        mirror.textContent = formatMirrorSummary();
+        var nextText = formatMirrorSummary();
+        if (mirror.textContent !== nextText) {
+          mirror.setAttribute("data-auto-mirror", "true");
+          mirror.textContent = nextText;
+        }
       }
     }
 
@@ -533,7 +536,13 @@
       mo.takeRecords();                                                           /* ignore our own DOM writes */
     }
     const refresh = () => raf(draw);
-    const mo = new MutationObserver(refresh);
+    const mo = new MutationObserver((records) => {
+      const relevant = records.some((r) => {
+        const el = r.target.nodeType === 1 ? r.target : r.target.parentElement;
+        return !el || !el.closest(".zn-sim-read, .zn-voice-dock-region");
+      });
+      if (relevant) refresh();
+    });
     mo.observe(paper, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["open", "hidden", "class", "aria-checked"] });
     new ResizeObserver(refresh).observe(paper);
     document.addEventListener("toggle", refresh, true);                           /* <details> open/close */
