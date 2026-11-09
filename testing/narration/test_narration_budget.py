@@ -13,6 +13,7 @@ from factory.narration.budget import (
     record_run_usage,
     refusal_message,
     save_state,
+    spend,
     would_exceed,
 )
 from factory.narration.env import NarrationEnv
@@ -65,8 +66,12 @@ class TestBudgetLedger(unittest.TestCase):
     def test_usage_recorded_and_persisted_across_instances(self):
         env = _env()
         state = load_state(self.runs_dir, env)
+        spend(state, 16.7)  # per-block fold, persisted immediately
+        save_state(self.runs_dir, state)
+        reloaded = load_state(self.runs_dir, env)
+        self.assertAlmostEqual(reloaded["total_credits_used"], 16.7, places=3)
         record_run_usage(
-            state,
+            reloaded,
             "run-a",
             mode="mock",
             chars=1000,
@@ -75,11 +80,20 @@ class TestBudgetLedger(unittest.TestCase):
             failed=1,
             refused=0,
         )
+        save_state(self.runs_dir, reloaded)
+        final = load_state(self.runs_dir, env)
+        # record_run_usage stamps the run row WITHOUT re-adding to the total
+        # (spend() already folded it per block).
+        self.assertAlmostEqual(final["total_credits_used"], 16.7, places=3)
+        self.assertEqual(final["runs"][0]["run_id"], "run-a")
+        self.assertEqual(final["runs"][0]["narrated"], 5)
+
+    def test_env_tranche_is_authoritative_over_the_persisted_one(self):
+        state = load_state(self.runs_dir, _env(budget=2.5))
         save_state(self.runs_dir, state)
-        reloaded = load_state(self.runs_dir, env)
-        self.assertAlmostEqual(reloaded["total_credits_used"], 16.7, places=3)
-        self.assertEqual(reloaded["runs"][0]["run_id"], "run-a")
-        self.assertEqual(reloaded["runs"][0]["narrated"], 5)
+        # The founder raises the cap in the env: the next load obeys the env.
+        reloaded = load_state(self.runs_dir, _env(budget=1500.0))
+        self.assertEqual(reloaded["tranche_credits"], 1500.0)
 
     def test_corrupt_file_rebuilds_from_zero_not_inflated(self):
         (self.runs_dir / "narration-budget.json").write_text("{torn", encoding="utf-8")

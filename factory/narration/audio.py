@@ -156,3 +156,37 @@ def write_asset(frontend_root: Path, rel_path: str, data: bytes) -> Path:
     tmp.write_bytes(data)
     os.replace(tmp, target)
     return target
+
+
+def probe_duration_ms(data: bytes) -> int | None:
+    """Measured duration of an opus asset in ms (ffprobe), or None when
+    ffprobe is unavailable. The narration manifest records the MEASURED
+    duration (GAP-015 {chars, duration_ms}), never an estimate."""
+    binary = shutil.which("ffprobe")
+    if not binary:
+        return None
+    try:
+        proc = subprocess.run(
+            [
+                binary,
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=nw=1:nk=1",
+                "pipe:0",
+            ],
+            input=data,
+            capture_output=True,
+            timeout=60,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        return round(float(proc.stdout.decode().strip()) * 1000)
+    except ValueError:
+        return None

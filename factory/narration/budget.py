@@ -44,31 +44,41 @@ def budget_path(runs_dir: Path) -> Path:
 
 
 def load_state(runs_dir: Path, env: NarrationEnv) -> dict[str, Any]:
-    """Read (or start) the cross-run budget ledger."""
+    """Read (or start) the cross-run budget ledger.
+
+    The ENV tranche is always authoritative: the persisted value is a record
+    of what the cap was, never a vote - if the founder raises (or lowers)
+    ZIVON_NARRATION_BUDGET_CREDITS, the next run obeys the env, and the
+    cumulative USED total carries over untouched.
+    """
     path = budget_path(runs_dir)
+    state: dict[str, Any]
     if not path.exists():
-        return {
+        state = {
             "tranche_credits": env.budget_credits,
             "total_credits_used": 0.0,
             "runs": [],
         }
-    try:
-        state = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        # A torn write must never INFLATE the budget: rebuild from zero and
-        # let the usage ledgers (per-run narration_usage.jsonl) reconstruct.
-        return {
-            "tranche_credits": env.budget_credits,
-            "total_credits_used": 0.0,
-            "runs": [],
-        }
-    if not isinstance(state, dict) or "total_credits_used" not in state:
-        raise NarrationError(
-            STAGE_ID,
-            f"{path} is not a valid narration budget file - fix or delete it "
-            "(a fresh file starts the tranche from zero; per-run usage "
-            "ledgers under runs/<run_id>/ can reconstruct the spend)",
-        )
+    else:
+        try:
+            state = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            # A torn write must never INFLATE the budget: rebuild from zero
+            # and let the usage ledgers (per-run narration_usage.jsonl)
+            # reconstruct.
+            state = {
+                "tranche_credits": env.budget_credits,
+                "total_credits_used": 0.0,
+                "runs": [],
+            }
+        if not isinstance(state, dict) or "total_credits_used" not in state:
+            raise NarrationError(
+                STAGE_ID,
+                f"{path} is not a valid narration budget file - fix or delete "
+                "it (a fresh file starts the tranche from zero; per-run usage "
+                "ledgers under runs/<run_id>/ can reconstruct the spend)",
+            )
+    state["tranche_credits"] = env.budget_credits
     return state
 
 
@@ -97,6 +107,16 @@ def would_exceed(state: dict[str, Any], credits: float) -> bool:
     return used + credits > tranche + _EPSILON
 
 
+def spend(state: dict[str, Any], credits: float) -> None:
+    """Fold one successful synthesis into the cumulative spend. The caller
+    persists immediately after: a crash mid-run must still leave the credits
+    that WERE spent on the ledger (a budget leak is a lost record, never a
+    free spend)."""
+    state["total_credits_used"] = round(
+        float(state.get("total_credits_used", 0.0)) + credits, 4
+    )
+
+
 def record_run_usage(
     state: dict[str, Any],
     run_id: str,
@@ -108,11 +128,9 @@ def record_run_usage(
     failed: int,
     refused: int,
 ) -> dict[str, Any]:
-    """Fold one run's usage into the ledger and stamp it. Returns the updated
-    state (caller persists)."""
-    state["total_credits_used"] = round(
-        float(state.get("total_credits_used", 0.0)) + credits, 4
-    )
+    """Append one run's usage roll-up (for capacity-and-cost.md
+    reconciliation). The cumulative total was already folded per block by
+    spend(); this only stamps the run row."""
     state.setdefault("runs", []).append(
         {
             "run_id": run_id,
