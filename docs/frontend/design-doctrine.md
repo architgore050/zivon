@@ -211,6 +211,10 @@ alone - coverage is dictated by the source material.
   row pitch; every font's baseline is normalised to the reference offset inside its line; opaque cards hide
   the rules and their text is not anchored. Redrawn on every layout change (MutationObserver,
   ResizeObserver, font-load events) - nothing can drift: fonts, zoom, fallback glyphs, wrapping, resize.
+  The paper's height is measured with the rules svg hidden (2026-11-09): the svg is absolutely
+  positioned and its fixed height feeds back into scrollHeight, so measuring with it present locks in
+  the first draw's height forever - a slower load (pre-font-metrics layout) then keeps a long empty
+  ruled scroll tail under the content indefinitely. Rules are sized to the true content height only.
   Layout is CSS; JS only measures. Generated pages use the kit - never re-implement or copy it.
 - **Frame adaptation (added 2026-11-04, founder ruling):** the page must be consciously designed for phones
   (~360 px), tablets and laptops. No fixed pixel widths: visuals scale through `viewBox` or fixed-height

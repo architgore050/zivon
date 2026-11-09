@@ -46,10 +46,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+from . import shots
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context
-from .errors import LintError
+from .errors import LintError, ModelCallError
 from .ledger import issue_entry
 from .lint import lint_file
 from .llm import LLMClient
@@ -134,7 +135,13 @@ _DESIGN_TASK = (
     "value, major when it merely confuses). "
     "Anything that would confuse or mislead a learner looking at the render "
     "is an issue (category rendering): fatal when it misleads about the "
-    "physics, major when it merely confuses.\n"
+    "physics, major when it merely confuses. "
+    "Rendered screenshots of this page's visuals at ~360 px, ~768 px and "
+    "~1280 px may be attached below (each captioned with its block and "
+    "width) - screenshots are ground truth for what the learner sees: judge "
+    "drawn geometry, clipping, alignment and legibility FROM THE IMAGES, "
+    "and say so in the finding (category rendering). If no images are "
+    "attached, fall back to judging from the files alone.\n"
     "STEP 5 - Report. Severity ladder: fatal = a learner would be taught "
     "wrong physics by what is drawn or laid out; major = confusing or "
     "unusable; minor = style. If you suspect an issue but cannot confirm it "
@@ -148,6 +155,23 @@ _DESIGN_TASK = (
     "under 40 words with one concrete pointer (a block id or a short quoted "
     "snippet)."
 )
+
+
+def _is_vision_rejection(message: str) -> bool:
+    """True when a model-endpoint 400 says it cannot read image input
+    (providers phrase it many ways). Only then is a text-only retry
+    retried; any other 400 still fails loudly."""
+    text = message.lower()
+    return "vision" in text or "image" in text or "multimodal" in text
+
+
+def _capture_review_shots(run_ctx: RunContext, topic_dir: Path) -> list[dict[str, Any]]:
+    """Rendered screenshots of the page's visuals for the design reviewer.
+    Best-effort: never raises (returns [] and the call goes text-only)."""
+    try:
+        return shots.capture(topic_dir, run_ctx.stage_dir(STAGE_ID) / "screenshots")
+    except Exception:  # noqa: BLE001 - capture must never block the review
+        return []
 
 
 def run(
@@ -212,33 +236,75 @@ def run(
         "review_call",
         round_tag=facts_tag,
     )
-    design_report = llm.call(
-        STAGE_ID,
-        [
-            {
-                "role": "system",
-                "content": _system("09-review-design", "design and rendering reviewer"),
-            },
-            {
-                "role": "user",
-                "content": (
-                    identity
-                    + "\n\nBLOCK INVENTORY (what the page contains):\n"
-                    + _block_inventory(blocks)
-                    + "\n\nFINAL PAGE FILES:\n"
-                    + files_text
-                    + "\n\nDESIGN DOCTRINE + LESSON-PAGE EXAMPLE (the visual "
-                    "language this page must follow):\n"
-                    + design_context(cfg, with_examples=True)
-                    + "\n\n"
-                    + _DESIGN_TASK
-                ),
-            },
-        ],
-        REVIEW_CALL_REPORT,
-        "review_call",
-        round_tag=design_tag,
+    design_text = (
+        identity
+        + "\n\nBLOCK INVENTORY (what the page contains):\n"
+        + _block_inventory(blocks)
+        + "\n\nFINAL PAGE FILES:\n"
+        + files_text
+        + "\n\nDESIGN DOCTRINE + LESSON-PAGE EXAMPLE (the visual "
+        "language this page must follow):\n"
+        + design_context(cfg, with_examples=True)
+        + "\n\n"
+        + _DESIGN_TASK
     )
+    design_messages: list[dict[str, Any]] = [
+        {
+            "role": "system",
+            "content": _system("09-review-design", "design and rendering reviewer"),
+        },
+        {"role": "user", "content": design_text},
+    ]
+    # Rendered screenshots of the page's visuals (the design reviewer's
+    # ground truth for what the learner sees). Best-effort: when capture
+    # produces nothing, or the endpoint cannot read images (the except
+    # fallthrough below retries text-only), the call stays exactly the
+    # pre-shots one.
+    shots_manifest = _capture_review_shots(run_ctx, topic_dir)
+    if shots_manifest:
+        vision_messages = list(design_messages)
+        vision_messages[1] = {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": design_text},
+                *shots.vision_parts(shots_manifest),
+            ],
+        }
+    else:
+        vision_messages = design_messages
+    try:
+        design_report = llm.call(
+            STAGE_ID,
+            vision_messages,
+            REVIEW_CALL_REPORT,
+            "review_call",
+            round_tag=design_tag,
+        )
+    except ModelCallError as exc:
+        if not _is_vision_rejection(str(exc)):
+            raise
+        # The endpoint cannot read images: fall back to the pre-shots
+        # text-only call (evidence: write a note next to the screenshots).
+        # The retry uses a fresh plain message list, never the vision variant.
+        run_ctx.write_json(
+            run_ctx.stage_dir(STAGE_ID) / "vision-fallback.json",
+            {"error_class": type(exc).__name__, "error": str(exc)[:300]},
+        )
+        design_report = llm.call(
+            STAGE_ID,
+            [
+                {
+                    "role": "system",
+                    "content": _system(
+                        "09-review-design", "design and rendering reviewer"
+                    ),
+                },
+                {"role": "user", "content": design_text},
+            ],
+            REVIEW_CALL_REPORT,
+            "review_call",
+            round_tag=design_tag,
+        )
 
     issues = list(facts_report["issues"]) + list(design_report["issues"])
     rule_issues = [

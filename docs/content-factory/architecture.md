@@ -37,10 +37,10 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 06 | render | factory/render.py | code | staging site + manifest + courses.js |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
-| 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches | fixed topic files + history; rounds=0 (no model call) when 07 passed |
-| 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
+| 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches; the post-fix index.html rebuild re-extracts the body and strips the old page shell first (idempotent; a shell-nesting rebuild fails loudly instead of shipping) | fixed topic files + history; rounds=0 (no model call) when 07 passed |
+| 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
 | 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
-| 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js, smoke test |
+| 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
 
 Happy path costs 4 model calls + one per simulation (generate, check,
 review-facts, review-design). Catcher calls happen only when a gate finds
@@ -600,3 +600,56 @@ repair rounds to the timing story. The 750 MB RAM ceiling, 24 fps floor under
 4x throttle, and 2-core pinning stay at founder spec. Tighten load back
 toward < 2 s at the Phase 4 frontend pass using measured numbers from 07-perf
 reports.
+
+## Pending work - accounted for, not yet built (tracked here so the plan is never lost)
+
+The pipeline above is the build-time content factory. The rest of the system
+was specified in `docs/product` + `docs/backend` (02 vs 05 design bundles),
+and each item below has an owner in the orchestration plan. Until built, the
+content factory's output (this doc) is the shipped product.
+
+- **Core backend monolith (EX0)** - the `backend/` package every other
+  runtime service plugs into: FastAPI modular monolith per ADR-0005, REST
+  endpoints (API-001..009 + admin surface), PostgreSQL 16 + Alembic core
+  tables, the credit guard (ADR-0015 tranche/cap/demo toggle), identity and
+  device pseudonymity, TTL/sync cron jobs. Served as one Deployment + Service
+  (k8s 25-28/53). `voice/` mounts into it; the voice backend must not build a
+  parallel app or image.
+- **Voice agent (EX1)** - `voice/` package: Prisma v3.0 (STT) + Timbre v3.0
+  (TTS) with Gemma 4 26B A4B brain via Gemini API key (Gate A), sentence-
+  chunked streaming TTS (speech before generation completes), thinking-out-
+  loud (filler vs summary blocks - evaluated in the spec), page-context
+  anchoring over WSS /v1/voice. k8s 17-18 only if an ADR splits it from the
+  monolith. Spec: `docs/specs/voice-agent/` (SP1).
+- **Translation pipeline (EX2)** - build-time Evon v3.3 translating one text
+  block at a time through the llm-manager node (ADR-0013 build-time,
+  ADR-0009 locale model). Spec: `docs/specs/translation/` (SP2).
+- **Logging manager + dashboard (EX3)** - `logging_manager/` client/node,
+  admin dashboard v0, log retention/sync (k8s 23-24/51). Spec:
+  `docs/specs/observability/` (SP3).
+- **Separate eval framework (EX4)** - `evals/` as a first-class package,
+  step-wise evals moved OUT of unit tests into golden sets + reviewer
+  calibration (k8s 52). Spec: `docs/specs/evals/` (SP4).
+- **Frontend completion (EX5)** - site shell fully built to the doctrine +
+  SEO/discoverability (`seo-plan.md` in `docs/specs/frontend/`): per-locale
+  hreflang, sitemap/robots generation in the publish flow, JSON-LD Course
+  structured data, Open Graph cards, Core Web Vitals inside the existing
+  budget, no third-party trackers (child-privacy guardrail). Spec: SP5.
+- **Narration stage (EX8)** - the TTS wrapper: `factory/` narration stage
+  pre-generating per-block read-aloud audio with Timbre v3.0 at build time
+  (C-051), A-15 1,500-credit build tranche budget guard, opus content-hash
+  assets, nginx ST-04 audio route. Spec: `docs/backend/` §6.2 + features.
+- **CI/CD readiness (EX6)** - per-service CI jobs (backend/mono, voice,
+  dashboard, translator, narration, evals), the promotion pipeline, required
+  checks, K8s env/Secret runbooks. Design constrained by
+  `docs/deployment/cicd.md` and the just-fixed gate-integrity rules there
+  (pinned tools + no silent downloads + no vendored code in the format gate).
+- **Gap closure (EX7)** - everything in the WS2 gap register
+  (`docs/specs/gaps/`): WS auth, runbooks/drills, live promotion practice.
+- **Bonus content tooling (human-in-the-loop judgement calls, do later):**
+  HTML-to-text fallback checker/paragraph alignment, numbered-band
+  consistency (block-step numbering vs text), unit/dimension checker,
+  vocabulary/spelling enforcement, audit-advice generator, table-of-contents
+  generation, standalone diagram/table builders, curriculum-gap analysis
+  against the block schema. Each is small; none is on the Gate A-C path.
+

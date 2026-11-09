@@ -58,7 +58,9 @@ from ..errors import (
 
 class _Message(BaseModel):
     role: str
-    content: str
+    # Vision-capable content parts (OpenAI image_url style) pass through to
+    # the upstream model verbatim; string content is unaffected.
+    content: str | list[dict[str, Any]]
 
 
 class ChatCompletionRequest(BaseModel):
@@ -196,7 +198,7 @@ class _State:
 
 def _sse_stream(
     manager: LLMManager,
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     body: ChatCompletionRequest,
     include_usage: bool,
 ):

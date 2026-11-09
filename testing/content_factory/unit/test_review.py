@@ -16,12 +16,14 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any, cast
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
 from factory import review
 from factory.artifacts import RunContext
+from factory.errors import ModelCallError
 from factory.llm import LLMClient
 from factory.render import run as render_run
 from testing.content_factory.unit.test_render import make_cfg, minimal_inputs
@@ -70,6 +72,34 @@ class StubLLM:
 
     def system(self, which: str) -> str:
         return self._msg(which, "system")
+
+
+class VisionRefusingLLM(StubLLM):
+    """Raises a vision-style rejection exactly once on the design call, then
+    answers normally (proves the design call retries text-only)."""
+
+    def __init__(self, design_issues=None):
+        super().__init__(design_issues=design_issues)
+        self.design_attempts = 0
+
+    def call(self, stage_id, messages, schema, schema_name, **kw):
+        tag = str(kw.get("round_tag") or "")
+        if "design" in tag and self.design_attempts < 1:
+            self.design_attempts += 1
+            self.calls.append(
+                {
+                    "stage_id": stage_id,
+                    "messages": messages,
+                    "schema": schema,
+                    "round_tag": tag,
+                    "schema_name": schema_name,
+                    "vision_rejected": True,
+                }
+            )
+            raise ModelCallError(
+                stage_id, "400 - the model does not support vision input (images)"
+            )
+        return super().call(stage_id, messages, schema, schema_name, **kw)
 
 
 class TestReviewCalls(unittest.TestCase):
@@ -195,6 +225,102 @@ class TestReviewCalls(unittest.TestCase):
         self.assertIn("as a learner would, not against the doctrine", user)
         self.assertIn("empty or broken canvases", user)
         self.assertIn("contradict their caption", user)
+
+    def test_design_call_carries_screenshots_when_capture_produces_them(self):
+        # The design reviewer sees the rendered page: screenshots captured
+        # by factory/shots.py arrive below the text as vision parts.
+        shot_file = self.tmp / "diagram-1-w1280.png"
+        shot_file.write_bytes(b"\x89PNG\r\n\x1a\ndata")
+        fake_shots = [
+            {
+                "path": str(shot_file),
+                "width": 1280,
+                "label": "figure.zn-diagram#1 @ 1280px",
+                "bytes": 16,
+            }
+        ]
+        stub = StubLLM()
+        with mock.patch("factory.review.shots.capture", return_value=fake_shots):
+            self._review(stub)
+        design = next(c for c in stub.calls if "design" in c["round_tag"])
+        content = next(m["content"] for m in design["messages"] if m["role"] == "user")
+        self.assertIsInstance(content, list)
+        self.assertEqual(content[0]["type"], "text")
+        self.assertIn("Rendering sweep", content[0]["text"])
+        image_parts = [p for p in content if p.get("type") == "image_url"]
+        self.assertEqual(len(image_parts), 1)
+        self.assertTrue(
+            image_parts[0]["image_url"]["url"].startswith("data:image/png;base64,")
+        )
+        labels = [p.get("text", "") for p in content if p.get("type") == "text"]
+        self.assertIn("[figure.zn-diagram#1 @ 1280px]", labels)
+
+    def test_design_call_stays_text_only_when_capture_produces_nothing(self):
+        # Capture failure (no chromium, render error) must not change the
+        # call shape at all: the pre-shots text call is the default.
+        stub = StubLLM()
+        with mock.patch("factory.review.shots.capture", return_value=[]):
+            self._review(stub)
+        design = next(c for c in stub.calls if "design" in c["round_tag"])
+        content = next(m["content"] for m in design["messages"] if m["role"] == "user")
+        self.assertIsInstance(content, str)
+        self.assertIn("Rendering sweep", content)
+
+    def test_vision_rejection_retries_text_only(self):
+        # A model endpoint without vision rejects the design call with a 400
+        # naming vision/images; the stage must fall back to the pre-shots
+        # text call instead of failing the run, and leave evidence.
+        shot_file = self.tmp / "diagram-1-w360.png"
+        shot_file.write_bytes(b"\x89PNG\r\n\x1a\ndata")
+        fake_shots = [
+            {
+                "path": str(shot_file),
+                "width": 360,
+                "label": "figure.zn-diagram#1 @ 360px",
+                "bytes": 16,
+            }
+        ]
+        stub = VisionRefusingLLM()
+        with mock.patch("factory.review.shots.capture", return_value=fake_shots):
+            self._review(stub)
+        design_calls = [c for c in stub.calls if "design" in c["round_tag"]]
+        self.assertEqual(len(design_calls), 2)
+        first = next(
+            m["content"] for m in design_calls[0]["messages"] if m["role"] == "user"
+        )
+        second = next(
+            m["content"] for m in design_calls[1]["messages"] if m["role"] == "user"
+        )
+        self.assertIsInstance(first, list)  # vision attempt
+        self.assertIsInstance(second, str)  # text-only fallback
+        self.assertIn("Rendering sweep", second)
+        evidence = self.run_ctx.stage_dir(review.STAGE_ID) / "vision-fallback.json"
+        self.assertTrue(evidence.exists())
+
+    def test_non_vision_model_errors_still_raise(self):
+        # A generic 400 is not a vision problem: it must propagate, not
+        # silently retry as text-only (which would double-charge a broken call).
+        class _OtherErrorLLM(StubLLM):
+            def call(self, stage_id, messages, schema, schema_name, **kw):
+                if "design" in str(kw.get("round_tag") or ""):
+                    raise ModelCallError(stage_id, "400 - bad schema upstream")
+                return super().call(stage_id, messages, schema, schema_name, **kw)
+
+        shot_file = self.tmp / "diagram-1-w768.png"
+        shot_file.write_bytes(b"\x89PNG\r\n\x1a\ndata")
+        fake_shots = [
+            {
+                "path": str(shot_file),
+                "width": 768,
+                "label": "figure.zn-diagram#1 @ 768px",
+                "bytes": 16,
+            }
+        ]
+        with (
+            mock.patch("factory.review.shots.capture", return_value=fake_shots),
+            self.assertRaises(ModelCallError),
+        ):
+            self._review(_OtherErrorLLM())
 
     def test_verdict_rule_is_harness_code_not_prompt_prose(self):
         # The old prompt carried "verdict=fail only if..."; the calls now
