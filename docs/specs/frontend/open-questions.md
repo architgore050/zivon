@@ -41,7 +41,7 @@ reads this file FIRST. Items are ordered by blast radius.
 - The brief's "screen-state matrix states" list includes `partial` and
   `over-credit-budget` for components that cannot have them on a static page;
   state-matrix.md carries them as `n/a (reason)` rather than inventing states.
-- No `TIMELINE.md` edit in this series: the infra TODO is untouched (no infra
+- No `TIMELINE.md` edit in this series: the Infra & Deployment task list is untouched (no infra
   changed — docs-only), per §6's "if infra changed" condition.
 - No CI workflow, factory, or publish-script edit in this series: all such
   items are assignment-table rows (seo-plan §8) / integration notes, not edits.

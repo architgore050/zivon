@@ -129,7 +129,7 @@ agent can build it without re-working anything:
    runtime router, ever (G1).
 3. **Generation hook**: localized trees can only be produced by i18n-aware
    content generation (factory side) and mirrored by the publish flow; the
-   frontend never translates at runtime. This is a factory/publish work item,
+   frontend never translates at runtime. This is a factory-side publish work item,
    not a frontend one — tracked in `open-questions.md` Q7.
 4. **SEO hook**: hreflang pairs + per-locale sitemap entries are specified in
    `seo-plan.md` §3 but marked do-not-build until ADR-0009 lands.
@@ -359,7 +359,7 @@ gate is the founder-loosened profile (`weak-android.json`: load 6.0 s, FCP
 
 Not in this list (explicitly): any CI workflow edit (integration_notes for the
 merge agent: `perf-budget-tests.md` §6 describes the `tests`-job extension and
-the Lighthouse-CI job the CI/CD agent must add); any factory/renderer change
+the Lighthouse-CI job the CI/CD agent must add); any factory renderer change
 (JSON-LD emission — `seo-plan.md` §4 assigns it); any CSP relaxation (founder).
 
 ### 12.3 Cache & versioning strategy for generated pages
