@@ -34,6 +34,9 @@ FACTORY_MODULES = [
     "factory.schemas",
     "factory.stages",
     "factory.textops",
+    "factory.transcheck",
+    "factory.translate",
+    "factory.transrepair",
 ]
 
 # The shared model-call module: standalone by contract (imports nothing from

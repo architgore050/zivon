@@ -3,10 +3,10 @@
 Two layers, deliberately separate:
 
 - config.json (committed at the repo root): the pipeline's BEHAVIOUR -
-  learner, retrieval, limits, paths, perf, stage_overrides. Reviewable in
-  git, identical on every machine. Validation is strict: unknown keys and
-  wrong types are hard errors, because a typo in config must crash
-  immediately, not silently run with defaults.
+  learner, retrieval, limits, paths, perf, repair, translation,
+  stage_overrides. Reviewable in git, identical on every machine. Validation is
+  strict: unknown keys and wrong types are hard errors, because a typo in
+  config must crash immediately, not silently run with defaults.
 - Environment variables: everything about WHICH model path to talk to
   (base url, model name, key, sampling and streaming knobs). Per AGENTS.md
   ("configuration lives in environment variables") and the deployment rule
@@ -65,8 +65,35 @@ _STAGE_IDS = [
     "08-fixloop",
     "09-review",
     "10-reviewfix",
+    "10a-translate",
+    "10b-transcheck",
+    "10c-transrepair",
+    "10d-transrender",
     "11-link",
 ]
+
+SUPPORTED_TARGET_LOCALES = {
+    "hi",
+    "hi-Latn",
+    "ta",
+    "te",
+    "mr",
+    "bn",
+    "gu",
+    "kn",
+    "ml",
+    "pa",
+}
+
+_DEFAULT_TRANSLATION: dict[str, Any] = {
+    "enabled": False,
+    "target_locales": ["hi", "hi-Latn"],
+    "optional_locales": [],
+    "glossary_path": "sources/glossary/physics_glossary.json",
+    "ui_strings_path": "sources/glossary/ui_strings.json",
+    "prompt_version": "1",
+    "max_chars_neighbour_context": 600,
+}
 
 _SPEC: dict[str, Any] = {
     "learner": {"language": str},
@@ -93,7 +120,21 @@ _SPEC: dict[str, Any] = {
         "doctrine_examples": str,
     },
     "perf": {"profile": str, "fix_rounds": int},
-    "repair": {"content_rounds": int, "code_rounds": int, "stall_rounds": int},
+    "repair": {
+        "content_rounds": int,
+        "code_rounds": int,
+        "translation_rounds": int,
+        "stall_rounds": int,
+    },
+    "translation": {
+        "enabled": bool,
+        "target_locales": list,
+        "optional_locales": list,
+        "glossary_path": str,
+        "ui_strings_path": str,
+        "prompt_version": str,
+        "max_chars_neighbour_context": int,
+    },
     "stage_overrides": dict,
 }
 
@@ -162,6 +203,10 @@ class Config:
     def repair(self) -> dict[str, Any]:
         return self.data["repair"]
 
+    @property
+    def translation(self) -> dict[str, Any]:
+        return self.data["translation"]
+
     # -- derived ------------------------------------------------------------
     def repo_path(self, configured: str) -> Path:
         p = Path(configured)
@@ -201,6 +246,19 @@ class Config:
             raise ConfigError(f"learner.class_level must be 6..12 (got {class_level})")
         data = dict(self.data)
         data["learner"] = {**data["learner"], "class_level": class_level}
+        return Config(data=data, server=self.server, root=self.root)
+
+    def with_locales(self, locales: list[str]) -> Config:
+        """Derived view enabling translation for the specified target locales."""
+        _validate_locale_list(locales, "translation.target_locales")
+        if not locales:
+            raise ConfigError("translation.target_locales must not be empty")
+        data = dict(self.data)
+        data["translation"] = {
+            **data["translation"],
+            "enabled": True,
+            "target_locales": list(locales),
+        }
         return Config(data=data, server=self.server, root=self.root)
 
     def learner_class(self) -> int:
@@ -330,6 +388,24 @@ def _load_server_from_env() -> dict[str, Any]:
     }
 
 
+def _validate_locale_list(locales: list[Any], field_name: str) -> None:
+    for loc in locales:
+        if not isinstance(loc, str):
+            raise ConfigError(
+                f"{field_name} entries must be strings (got {type(loc).__name__})"
+            )
+        if loc == "ur":
+            raise ConfigError(
+                f"{field_name}: 'ur' (Urdu RTL) is explicitly out of scope in v1/P1 "
+                "(ADR-0009 / SP2-TRANS §2.1)"
+            )
+        if loc not in SUPPORTED_TARGET_LOCALES:
+            raise ConfigError(
+                f"{field_name} contains unsupported locale {loc!r}. "
+                f"Supported target locales: {sorted(SUPPORTED_TARGET_LOCALES)}"
+            )
+
+
 def load_config(path: Path | None = None) -> Config:
     cfg_path = path or CONFIG_PATH
     if not cfg_path.exists():
@@ -361,6 +437,13 @@ def load_config(path: Path | None = None) -> Config:
             "--class flag or from the chapter actually located. Delete the key."
         )
 
+    # Backfill additive translation keys for legacy v7 test fixtures that
+    # construct minimal config dicts without the translation section.
+    if "translation" not in data:
+        data["translation"] = json.loads(json.dumps(_DEFAULT_TRANSLATION))
+    if isinstance(data.get("repair"), dict) and "translation_rounds" not in data["repair"]:
+        data["repair"]["translation_rounds"] = 6
+
     _validate(data, _SPEC, cfg_path)
 
     if data["learner"]["language"] != "en":
@@ -378,8 +461,29 @@ def load_config(path: Path | None = None) -> Config:
         raise ConfigError("repair.content_rounds must be 1..20")
     if data["repair"]["code_rounds"] < 1 or data["repair"]["code_rounds"] > 20:
         raise ConfigError("repair.code_rounds must be 1..20")
+    if (
+        data["repair"]["translation_rounds"] < 1
+        or data["repair"]["translation_rounds"] > 20
+    ):
+        raise ConfigError("repair.translation_rounds must be 1..20")
     if data["repair"]["stall_rounds"] < 1 or data["repair"]["stall_rounds"] > 10:
         raise ConfigError("repair.stall_rounds must be 1..10")
+
+    trans = data["translation"]
+    _validate_locale_list(trans["target_locales"], "translation.target_locales")
+    _validate_locale_list(trans["optional_locales"], "translation.optional_locales")
+    if trans["enabled"] and not trans["target_locales"]:
+        raise ConfigError(
+            "translation.target_locales must not be empty when translation.enabled is true"
+        )
+    if (
+        trans["max_chars_neighbour_context"] < 100
+        or trans["max_chars_neighbour_context"] > 4000
+    ):
+        raise ConfigError("translation.max_chars_neighbour_context must be 100..4000")
+    if not trans["prompt_version"].strip():
+        raise ConfigError("translation.prompt_version must not be empty")
+
     for stage_id in data["stage_overrides"]:
         if stage_id not in _STAGE_IDS:
             raise ConfigError(

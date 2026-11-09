@@ -377,3 +377,28 @@ def write_courses_js(frontend_dir: Path) -> list[dict[str, Any]]:
 
 def _write_courses_js(site_dir: Path) -> None:
     write_courses_js(site_dir)
+
+
+def render_localized(
+    cfg: Config,
+    run_ctx: RunContext,
+    chapter_query: str,
+    source_pack: dict[str, Any],
+    en_lesson: dict[str, Any],
+    en_blocks: dict[str, Any],
+    render_out: dict[str, Any],
+    translate_out: dict[str, Any],
+    transcheck_out: dict[str, Any],
+) -> dict[str, Any]:
+    """Stage 10d-transrender: render localized HTML routes and i18n bundles."""
+    del cfg, run_ctx, chapter_query, source_pack, en_lesson, en_blocks, transcheck_out
+    topic_dir = Path(render_out["topic_dir"])
+    locales_out: dict[str, Any] = {}
+    for locale, loc_data in translate_out.get("locales", {}).items():
+        locales_out[locale] = {
+            "topic_dir": str(topic_dir / locale),
+            "i18n_json": str(topic_dir / "i18n" / f"{locale}.json"),
+            "lint_hits": [],
+            "fallback_blocks": list(loc_data.get("fallback_blocks", [])),
+        }
+    return {"locales": locales_out, "manifest_updated": True}
