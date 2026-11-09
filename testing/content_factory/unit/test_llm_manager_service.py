@@ -90,6 +90,33 @@ class TestServiceNode(unittest.TestCase):
         self.assertEqual(body["usage"]["prompt_tokens"], 10)
         self.assertEqual(body["usage"]["total_tokens"], 20)
 
+    def test_vision_content_parts_pass_through_to_the_upstream(self):
+        # Vision inputs (OpenAI-style content parts) are forwarded to the
+        # model verbatim - the node is a transparent transport for them.
+        self._fixture("02-generate.json", {"topic": "x", "claims": []})
+        client = self._client()
+        parts = [
+            {"type": "text", "text": "judge this diagram"},
+            {
+                "type": "image_url",
+                "image_url": {"url": "data:image/png;base64,AAAA"},
+            },
+        ]
+        response = client.post(
+            "/v1/chat/completions",
+            json={
+                "messages": [
+                    {"role": "system", "content": MARKER},
+                    {"role": "user", "content": parts},
+                ],
+                "temperature": 0.3,
+                "model": "mock-model",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        served = self.state.served[0]["messages"]
+        self.assertEqual(served[1]["content"], parts)
+
     def test_streaming_completion_emits_sse_chunks(self):
         self._fixture("02-generate.json", {"topic": "x"})
         client = self._client()

@@ -100,7 +100,7 @@ class LLMClient:
     def call(
         self,
         stage_id: str,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         schema: dict,
         schema_name: str,
         temperature: float | None = None,
@@ -131,7 +131,7 @@ class LLMClient:
         round_note = f" [{round_tag}]" if round_tag else ""
 
         def call_fn(
-            round_no: int, transcript: list[dict[str, str]]
+            round_no: int, transcript: list[dict[str, Any]]
         ) -> tuple[str, str | None]:
             attempt_dir = attempts_dir / f"attempt-{round_no:02d}"
             wire = build_wire_request(self._llm_config, transcript, temperature, None)
@@ -210,7 +210,7 @@ class LLMClient:
                     "usage": usage,
                     "model": result.model,
                     "temperature": temperature,
-                    "prompt_chars": sum(len(m["content"]) for m in transcript),
+                    "prompt_chars": sum(len(m.get("content", "")) for m in transcript),
                     "response_chars": len(result.text),
                     # additive streaming evidence (2026-11-07)
                     "finish_reason": result.finish_reason,
@@ -299,7 +299,19 @@ class LLMClient:
     @staticmethod
     def _redact(request: dict) -> dict:
         """Copy of the request safe to persist (no secrets can be in it, but keep
-        the guarantee explicit and future-proof)."""
-        return json.loads(
-            json.dumps(request)
-        )  # deep copy; messages contain no auth material
+        the guarantee explicit and future-proof). Image parts are scrubbed to
+        a byte-count placeholder: data URIs would flood attempt artifacts with
+        megabytes; the PNGs live in the stage's screenshots/ dir instead."""
+        redacted = json.loads(json.dumps(request))  # deep copy
+        for message in redacted.get("messages", []) or []:
+            content = message.get("content")
+            if not isinstance(content, list):
+                continue
+            for part in content:
+                if not (isinstance(part, dict) and part.get("type") == "image_url"):
+                    continue
+                url = (part.get("image_url") or {}).get("url", "")
+                part["image_url"] = {
+                    "url": f"<redacted data-uri: {len(url)} chars; PNG in run screenshots/>"
+                }
+        return redacted

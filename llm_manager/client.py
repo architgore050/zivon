@@ -138,7 +138,7 @@ def _heartbeat(
 
 def build_wire_request(
     config: LLMConfig,
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     temperature: float,
     max_tokens: int | None,
 ) -> dict[str, Any]:
@@ -173,7 +173,7 @@ class LLMManager:
     # ------------------------------------------------------------- public API
     def complete(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         *,
         temperature: float | None = None,
         max_tokens: int | None = None,
@@ -202,7 +202,7 @@ class LLMManager:
 
     def stream(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         *,
         temperature: float | None = None,
     ) -> Iterator[str]:
@@ -214,7 +214,7 @@ class LLMManager:
 
     def stream_events(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         *,
         temperature: float | None = None,
     ) -> Iterator[StreamEvent]:
@@ -274,7 +274,7 @@ class LLMManager:
     # ------------------------------------------------------------- internals
     def _complete_with_retries(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float,
         max_tokens: int | None,
         wire: dict[str, Any],
@@ -324,7 +324,7 @@ class LLMManager:
 
     def _complete_streaming(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float,
         max_tokens: int | None,
         state: _CallState,
@@ -386,7 +386,7 @@ class LLMManager:
 
     def _complete_invocation(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float,
         max_tokens: int | None,
         state: _CallState,
@@ -431,7 +431,7 @@ class LLMManager:
     def _iter_events(
         self,
         chat: ChatOpenAI,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         state: _CallState,
     ) -> Iterator[StreamEvent]:
         deadline = (

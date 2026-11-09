@@ -151,6 +151,42 @@ class TestLLMClient(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_redact_scrubs_image_parts_from_persisted_request(self):
+        # Vision parts carry megabyte-scale data URIs; the persisted request
+        # artifact must record their presence, never their bytes.
+        wire = {
+            "model": "mock-model",
+            "messages": [
+                {"role": "system", "content": "[ZIVON STAGE: 09-review] x"},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "look at this diagram"},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": "data:image/png;base64," + "A" * 5000},
+                        },
+                    ],
+                },
+            ],
+            "temperature": 0.3,
+        }
+        redacted = LLMClient._redact(wire)
+        parts = redacted["messages"][1]["content"]
+        self.assertEqual(parts[0], {"type": "text", "text": "look at this diagram"})
+        self.assertEqual(parts[1]["type"], "image_url")
+        placeholder = parts[1]["image_url"]["url"]
+        self.assertTrue(placeholder.startswith("<redacted data-uri:"))
+        self.assertNotIn("AAAA", placeholder)
+        # plain-string content passes through untouched
+        self.assertEqual(
+            redacted["messages"][0]["content"], "[ZIVON STAGE: 09-review] x"
+        )
+        # live wire is untouched (redact is a copy, not a mutation)
+        self.assertTrue(
+            wire["messages"][1]["content"][1]["image_url"]["url"].startswith("data:")
+        )
+
     def test_round_tag_separates_attempt_artifacts_per_round(self):
         # Repair loops re-run a stage inside ONE run (03-check rechecks after
         # 04-repair). Attempts from different rounds must never overwrite
