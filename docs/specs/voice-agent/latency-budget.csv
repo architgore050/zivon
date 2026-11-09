@@ -1,0 +1,11 @@
+hop,name,budget_ms,tier,mode,basis,measure_method,owner
+L0,EOS detection (PTT release -> audio.end flush),20,STRONG,P0,local UI event,client perf mark at touchend vs ws send,EX1
+L0h,EOS detection (VAD hangover),400,MODERATE,P1,audio skill 300-500 ms hangover,client VAD timestamps,EX1
+L1,STT final transcript after EOS,250,ASSUMPTION,P0,partials stream during speech; final is a short tail,Prisma event timestamps n>=20 turns,EX1
+L2,auth + credit check + context assembly,50,ASSUMPTION,P0,indexed session lookups in-process,server span L1-end..brain-call-start,EX1
+L3,brain first stream event incl network,900,ASSUMPTION,P0,A-09 warm first token < 1.2 s; thinking scoped short,brain_client first-event delta n>=20,EX1
+L4,first speakable segment complete after first token,200,ASSUMPTION,P0,summary line or first short sentence at 60-100 tok/s,chunker first-flush delta,EX1
+L5,chunker + whitelist handoff,5,STRONG,P0,in-process string ops,server span,EX1
+L6,Timbre first audio byte,200,MODERATE,P0,vendor claim < 200 ms (OQ-03 verify),tts_client first-byte delta,EX1
+L7,WS S->C delivery + jitter buffer fill,180,ASSUMPTION,P0,audio skill 60-120 ms jitter + mobile RTT/2,dock jitter metrics,EX1+EX5
+L8,client playback start (low-end Android HAL),150,MODERATE,P0,audio skill output latency 100-300 ms,AudioContext outputLatency,EX5
