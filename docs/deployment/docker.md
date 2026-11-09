@@ -55,3 +55,26 @@ docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-fron
 - Dev-only exception to "no extra images": the **inference router** (`docker/inference-router.Dockerfile`, alpine+socat, `network_mode: host`) bridges the host's loopback-only inference server to containers and cluster pods (`192.168.49.1:18080 → 127.0.0.1:8080`). It is a dev tool: not a product image, not in CI, never deployed to real clusters.
 - Version tags: `name:semver` locally; CI will add commit-SHA tags in the registry.
 - Any new runtime dependency goes into `requirements.txt` (CI's pip-audit and trivy watch it).
+
+## Voice backend mounts into the core-backend image (no `Dockerfile.voice`)
+
+The voice tutor (`voice/` package, spec: `docs/specs/voice-agent/`) is **not** a separate image in
+P0 (ADR-0020): `voice/ws_api.mount_voice(app)` registers the `/voice/ws` route on the core
+backend's FastAPI app, so the "voice-backend" Deployment + Service (backend-spec §4.2, manifests
+25–27, owner: core-backend agent) is simply that monolith image with the router mounted.
+
+Gotchas for whoever folds the deps (merge agent):
+
+- `voice/requirements.txt` (google-genai, websockets, httpx) must be appended to the core
+  backend image's install list — `voice/` is a top-level package, so a plain `pip install -r` at
+  the repo root covers it only if the monolith Dockerfile copies `voice/` alongside `factory/`.
+  The image stays slim: no torch/pdfplumber/playwright — the brain is remote (ADR-0017).
+- `websockets` is pinned `>=12,<16` per the frozen spec; the client code imports the new asyncio
+  API first and falls back to the legacy name, so either line works.
+- Secrets (`ZIVON_VOICE_GEMINI_API_KEY`/`GEMINI_API_KEY`, `GNANI_PRISMA_API_KEY`,
+  `GNANI_TIMBRE_API_KEY`) are runtime env from the `zivon-voice-env` Secret (GAP-001 registry) —
+  never baked. CI stays key-free: the whole voice test suite runs on mocks
+  (`python -m unittest discover -s testing/voice -t .`).
+- Credit-guard knobs (`ZIVON_VOICE_CREDIT_*`) are unit-placeholder until OQ-06 pins the Gnani
+  vendor unit — the founder calibrates the defaults after the first live sessions; the guard
+  math itself is unit-agnostic.
