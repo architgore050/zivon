@@ -108,11 +108,19 @@ class TestAvailabilityManifests(unittest.TestCase):
             self.assertEqual(
                 set(entry), {"block_id", "lang", "hash", "chars", "duration_ms", "path"}
             )
-        # the flag's hash is the catalogue's content hash (cache-bust key)
+        # the flag's hash covers the catalogue's DETERMINISTIC content only
+        # (lang/voice/mode/blocks) - generated_at is metadata and never
+        # rotates the cache key (GAP-015: content-hash = immutable key)
+        catalogue = json.loads((self.topic / "narration-manifest.json").read_text())
         self.assertEqual(
             flag["hash"],
             manifest_hash(
-                json.loads((self.topic / "narration-manifest.json").read_text())
+                {
+                    "lang": catalogue["lang"],
+                    "voice": catalogue["voice"],
+                    "mode": catalogue["mode"],
+                    "blocks": catalogue["blocks"],
+                }
             ),
         )
 
@@ -128,12 +136,21 @@ class TestAvailabilityManifests(unittest.TestCase):
         self.assertFalse(manifest["narration"]["blocks"]["b-01"]["available"])
 
     def test_idempotent_same_state_same_hash(self):
+        import time as time_mod
+
         from factory.narration.publish import update_manifests
 
         args = (self.topic, "en", "mock", _assets(1), ["b-01"])
         first = update_manifests(*args)
+        time_mod.sleep(1.1)  # cross the timestamp resolution: hash must not move
         second = update_manifests(*args)
         self.assertEqual(first["hash"], second["hash"])
+        catalogue = json.loads((self.topic / "narration-manifest.json").read_text())
+        manifest = json.loads((self.topic / "manifest.json").read_text())
+        # the hash covers deterministic content only (lang/voice/mode/blocks);
+        # generated_at is metadata and must never rotate the cache key
+        self.assertEqual(manifest["narration"]["hash"], first["hash"])
+        self.assertIn("generated_at", catalogue)
 
     def test_missing_topic_manifest_raises(self):
         from factory.narration.errors import NarrationError
@@ -223,6 +240,18 @@ class TestColdUploadVerify(unittest.TestCase):
         self.assertEqual(first["verified_count"], 2)
         self.assertEqual(second["verified_count"], 2)
         self.assertTrue(all(v.get("cached") for v in second["verified"]))
+
+    def test_malformed_template_is_a_loud_config_error(self):
+        from factory.narration.errors import NarrationError
+
+        env = _env(
+            coldstore_upload_cmd="rclone copyto {src} b2:bucket/{oops}",
+            coldstore_readback_cmd="cat {dst}",
+        )
+        with self.assertRaises(NarrationError) as ctx:
+            cold_upload_and_verify(self.audio, env)
+        self.assertIn("malformed", str(ctx.exception))
+        self.assertIn("ZIVON_COLDSTORE", str(ctx.exception))
 
     def test_missing_audio_root_skips(self):
         report = cold_upload_and_verify(self.tmp / "nope", self._env())

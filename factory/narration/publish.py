@@ -96,6 +96,19 @@ def update_manifests(
     manifest_path = topic_dir / "narration-manifest.json"
     _write_json(manifest_path, narration_manifest)
 
+    # The flag's hash is the catalogue's cache-bust key, so it must be a
+    # hash of the DETERMINISTIC content only - generated_at is metadata and
+    # must not participate, or every re-run (even a zero-asset resume)
+    # would mint a new hash and needlessly bust client caches (GAP-015:
+    # the content-hash is an immutable cache key; it changes when the
+    # content changes, not when the clock does).
+    content_payload = {
+        "lang": lang,
+        "voice": voice or "(provider default)",
+        "mode": mode,
+        "blocks": narration_manifest["blocks"],
+    }
+
     blocks_flag: dict[str, Any] = {}
     available_ids = {asset["block_id"] for asset in assets}
     for block_id in speakable_block_ids:
@@ -112,7 +125,7 @@ def update_manifests(
     flag = {
         "available": bool(assets),
         "lang": lang,
-        "hash": manifest_hash(narration_manifest),
+        "hash": manifest_hash(content_payload),
         "mode": mode,
         "blocks": blocks_flag,
     }
@@ -162,8 +175,17 @@ def _run_template(
 ) -> subprocess.CompletedProcess[bytes]:
     """Execute an operator command template with {src}/{dst} substituted
     (shell-quoted). The operator owns the command and the provider
-    credentials; this code never sees a secret."""
-    command = template.format(src=shlex.quote(str(src)), dst=shlex.quote(dst))
+    credentials; this code never sees a secret. A malformed template (stray
+    braces) is a loud config error, not an opaque KeyError."""
+    try:
+        command = template.format(src=shlex.quote(str(src)), dst=shlex.quote(dst))
+    except (KeyError, IndexError, ValueError) as exc:
+        raise NarrationError(
+            STAGE_ID,
+            f"ZIVON_COLDSTORE command template is malformed ({exc}): only "
+            "{{src}} and {{dst}} placeholders are supported - fix the env "
+            "template",
+        ) from exc
     return subprocess.run(
         command,
         # shell=True is deliberate: the template is operator-owned ops config
