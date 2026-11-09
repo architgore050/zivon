@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -24,6 +25,12 @@ from typing import Any
 GATE_C_P95_BUDGET_MS = 4000
 CREDIT_BURN_BUDGET = 3000  # 40% demo reserve of the 10,000 total stays intact
 HOP_FIELDS = ("stt_final_ms", "llm_first_token_ms", "tts_first_audio_ms")
+
+# Run ids are factory slugify() output (factory/artifacts.py): lowercase
+# alphanumerics and hyphens, 63 chars max. Enforced at EVERY path
+# construction below so a route param can never carry path separators,
+# "..", or "..%2f"-decoded slashes outside runs/ (CodeQL py/path-injection).
+_RUN_ID_ALLOWED = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 
 
 def runs_dir() -> Path:
@@ -186,13 +193,23 @@ class LogStore:
             """,
             (run_id,),
         )
-        status_path = runs_dir() / run_id / "status.json"
         status: dict[str, Any] | None = None
-        if status_path.is_file():
-            try:
-                status = json.loads(status_path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError):
-                status = None
+        # Path guard (py/path-injection): two barriers dominate the read.
+        # (1) the slug allowlist rejects separators / traversal by
+        # construction; (2) resolve() + is_relative_to rejects any residual
+        # escape (e.g. a symlinked runs/<id> pointing outside the PVC mount).
+        # SQL above is parameterized and therefore safe; only the file read
+        # needs this guard, and invalid ids degrade to status=None.
+        if _RUN_ID_ALLOWED.fullmatch(run_id):
+            base_dir = runs_dir().resolve()
+            run_dir = (base_dir / run_id).resolve()
+            if run_dir.is_relative_to(base_dir):
+                status_path = run_dir / "status.json"
+                if status_path.is_file():
+                    try:
+                        status = json.loads(status_path.read_text(encoding="utf-8"))
+                    except (json.JSONDecodeError, OSError):
+                        status = None
         return {
             "run_id": run_id,
             "stages": stages,
@@ -406,8 +423,23 @@ class RunsArtifacts:
 
     base: Path = field(default_factory=runs_dir)
 
+    def _run_dir(self, run_id: str) -> Path | None:
+        """The run dir only when run_id is a strict slug AND the resolved
+        path stays inside base (same two barriers as run_detail: allowlist +
+        resolve()/is_relative_to, so a symlinked run dir cannot escape)."""
+        if not _RUN_ID_ALLOWED.fullmatch(run_id):
+            return None
+        base_dir = self.base.resolve()
+        run_dir = (base_dir / run_id).resolve()
+        if not run_dir.is_relative_to(base_dir):
+            return None
+        return run_dir
+
     def status(self, run_id: str) -> dict[str, Any] | None:
-        path = self.base / run_id / "status.json"
+        run_dir = self._run_dir(run_id)
+        if run_dir is None:
+            return None
+        path = run_dir / "status.json"
         if not path.is_file():
             return None
         try:
@@ -416,7 +448,10 @@ class RunsArtifacts:
             return None
 
     def report(self, run_id: str) -> dict[str, Any] | None:
-        path = self.base / run_id / "run_report.json"
+        run_dir = self._run_dir(run_id)
+        if run_dir is None:
+            return None
+        path = run_dir / "run_report.json"
         if not path.is_file():
             return None
         try:
@@ -425,4 +460,5 @@ class RunsArtifacts:
             return None
 
     def has_run(self, run_id: str) -> bool:
-        return (self.base / run_id).is_dir()
+        run_dir = self._run_dir(run_id)
+        return run_dir is not None and run_dir.is_dir()
