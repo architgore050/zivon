@@ -470,7 +470,9 @@ class ActionTests(unittest.TestCase):
                 "/admin/actions/factory-run",
                 data={"csrf": csrf, "topic": "Motion in a Straight Line"},
             )
-            self.assertIn(ok.status_code, (303, 500))  # script may fail w/o kubectl; validation passed
+            self.assertIn(
+                ok.status_code, (303, 500)
+            )  # script may fail w/o kubectl; validation passed
 
     def test_factory_run_refuses_while_a_job_is_active(self) -> None:
         import dashboard.app as mod
