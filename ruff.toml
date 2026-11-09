@@ -14,3 +14,8 @@
 # tree is passed to ruff explicitly (e.g. by a pre-commit hook).
 extend-exclude = ["skills/*/vendored"]
 force-exclude = true
+
+# CI pins ruff to 0.17.x (see .github/workflows/ci.yml). Requiring the same
+# line here keeps "green locally" and "green in CI" the same statement: a
+# newer major would fail loudly instead of formatting docs a different way.
+required-version = ">=0.17,<0.18"
