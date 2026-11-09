@@ -16,7 +16,10 @@ mini-spec):
 - ST-04 content-addressed assets: audio/{course_id}/{block_id}.{lang}.{hash}.opus
   with a text-hash key (immutable cache key; republish bumps the hash),
 - the A-15 bounded build tranche (<= 1,500 credits [ASSUMPTION], separate
-  from the voice-agent daily tranche) enforced refuse-before-exceed,
+  from the voice-agent daily tranche) enforced refuse-before-exceed in LIVE
+  mode, with the cross-run cumulative accrual counting LIVE spend only
+  (mock builds spend zero Gnani credits and are never refused - their
+  would-be estimates ride the ledger mode-tagged, for rehearsal only),
 - per-block resumability like every factory stage: a re-triggered run skips
   blocks whose audio already exists (content addressing makes that exact),
 - failures route to a bounded repair catcher (founder rule): failed blocks
@@ -243,7 +246,11 @@ def _narrate(
             )
             return "skipped"
 
-        if budget_mod.would_exceed(state, est):
+        # A-15 guard: LIVE mode only. Mock builds spend ZERO Gnani credits,
+        # so refusing a free build against a real-money cap would be wrong;
+        # the cumulative ledger accrues live spend only (reconciliation is
+        # against the Gnani dashboard, not against rehearsals).
+        if mode == "live" and budget_mod.would_exceed(state, est):
             refused.append({"block_id": unit.block_id, "est_credits": est})
             _write_json(
                 pass_dir / "meta.json",
@@ -273,12 +280,13 @@ def _narrate(
 
         write_asset(frontend_root, rel_path, opus)
         duration = probe_duration_ms(opus)
-        budget_mod.spend(state, est)
-        budget_mod.save_state(
-            run_ctx.runs_dir, state
-        )  # crash-safe: the spend is on the ledger
+        if mode == "live":
+            budget_mod.spend(state, est)
+            budget_mod.save_state(
+                run_ctx.runs_dir, state
+            )  # crash-safe: the spend is on the ledger
+            run_credits += est
         total_chars += len(text)
-        run_credits += est
         records[unit.block_id] = {
             "block_id": unit.block_id,
             "path": rel_path,

@@ -51,8 +51,11 @@ consumes ZERO runtime credits and never meters a student. The stage is
 opt-in (`ZIVON_NARRATION_ENABLED=true`) because it is a bounded credit
 spend: backend-spec A-15 caps it at a one-time tranche (default 1,500
 credits `[ASSUMPTION]`, enforced refuse-before-exceed by
-`factory/narration/budget.py` against a cross-run ledger at
-`runs/narration-budget.json`). It runs AFTER the review gates so credits are
+`factory/narration/budget.py` in LIVE mode against a cross-run ledger
+at `runs/narration-budget.json` - the cumulative accrues LIVE Gnani
+spend only, because mock builds spend zero credits and are never
+refused; their would-be estimates ride the ledger mode-tagged). It
+runs AFTER the review gates so credits are
 only ever spent on a page that passed every gate, and after 11-link so the
 audio lands directly in the served tree.
 

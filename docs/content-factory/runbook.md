@@ -89,15 +89,19 @@ Narration is OPT-IN (it is a bounded credit spend - backend-spec A-15):
   (see the Infra TODO in `TIMELINE.md`).
 - **Budget**: the A-15 tranche defaults to 1,500 credits
   `[ASSUMPTION]` at 0.0167 credits/char (capacity-model default; real
-  prices = A-01, founder reads them off the Gnani dashboard). The guard
-  refuses BEFORE a call that would exceed the tranche, narrates the
+  prices = A-01, founder reads them off the Gnani dashboard). The
+  guard is a real-money cap: it accrues and refuses LIVE spend only
+  (mock builds spend nothing and are never refused; their per-block
+  estimates ride the ledger mode-tagged for rehearsal). It refuses
+  BEFORE a call that would exceed the tranche, narrates the
   deterministic prefix that fits, and says exactly what to do: founder
   approval, then raise `ZIVON_NARRATION_BUDGET_CREDITS` and re-trigger the
   same topic - completed blocks are skipped by content hash, so only the
   remainder synthesizes. Cross-run spend lives in
   `runs/narration-budget.json`; per-block usage in
-  `runs/<run_id>/narration_usage.jsonl` (reconcile both against
-  `docs/backend/capacity-and-cost.md`).
+  `runs/<run_id>/narration_usage.jsonl` (reconcile the live total
+  against the Gnani dashboard; mock rows are estimates, not spend -
+  see `docs/backend/capacity-and-cost.md`).
 - **Failures**: per-block TTS/encode failures are retried by the bounded
   repair catcher (`ZIVON_NARRATION_REPAIR_ROUNDS`, default 2); blocks that
   still fail degrade read-aloud to the INF-089 disabled copy and the run
@@ -110,6 +114,10 @@ Narration is OPT-IN (it is a bounded credit spend - backend-spec A-15):
   client shows the disabled copy when a block's flag is false - never probe
   blindly.
 - **Publishing**: `scripts/publish-frontend.sh` mirrors `audio/` from the
+  PVC. Note the script's staleness guard compares courses/ against the
+  repo snapshot: a narration-ONLY re-publish (pages unchanged) exits
+  2 before reaching the audio mirror - re-trigger the topic instead
+  if you want a fresh snapshot. It
   PVC additively (content-hash names are immutable; old versions stay
   addressable) and runs the SYNC-01 cold gate (upload + sha256 read-back)
   when `ZIVON_COLDSTORE_UPLOAD_CMD` / `ZIVON_COLDSTORE_READBACK_CMD` are

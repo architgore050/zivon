@@ -265,24 +265,44 @@ class TestMockNarrationBuild(NarrationBuildBase):
         # check's own answer never leaves the selection module.
         self.assertNotIn("answer_index", spoken)
 
-    def test_budget_ledger_and_usage_are_recorded(self):
+    def test_mock_build_spends_no_credits_but_records_estimates(self):
         from factory.narration import run as run_narration
 
         out = run_narration(self.cfg, self.run_ctx)
         budget_file = self.runs_dir / "narration-budget.json"
         self.assertTrue(budget_file.exists())
         state = json.loads(budget_file.read_text(encoding="utf-8"))
-        self.assertAlmostEqual(state["total_credits_used"], out["credits"], places=3)
+        # A-15 accounting is LIVE Gnani spend: mock builds spend nothing and
+        # never eat the real tranche (their estimates ride mode-tagged).
+        self.assertEqual(state["total_credits_used"], 0.0)
         self.assertEqual(state["runs"][0]["run_id"], "motion-c9")
+        self.assertEqual(state["runs"][0]["mode"], "mock")
+        self.assertEqual(state["runs"][0]["credits"], 0.0)
         self.assertEqual(state["runs"][0]["narrated"], 5)
         ledger = self.runs_dir / "motion-c9" / "narration_usage.jsonl"
         lines = [json.loads(line) for line in ledger.read_text().splitlines()]
         self.assertEqual(len(lines), 5)
         self.assertTrue(all(entry["outcome"] == "narrated" for entry in lines))
-        # credits are per-character estimates over the assembled spoken form
-        self.assertAlmostEqual(
-            out["credits"], sum(a["credits"] for a in out["assets"]), places=3
-        )
+        self.assertTrue(all(entry["mode"] == "mock" for entry in lines))
+        # per-block records keep the would-be estimate (rehearsal value)
+        self.assertGreater(sum(a["credits"] for a in out["assets"]), 0.0)
+
+    def test_mock_build_is_never_budget_refused(self):
+        # Even a zero tranche cannot refuse a FREE build: the guard is a
+        # real-money cap, and mock spends nothing.
+        from factory.narration import run as run_narration
+
+        saved = os.environ.get("ZIVON_NARRATION_BUDGET_CREDITS")
+        os.environ["ZIVON_NARRATION_BUDGET_CREDITS"] = "0"
+        try:
+            out = run_narration(self.cfg, self.run_ctx, client=FakeTimbreClient())
+        finally:
+            if saved is None:
+                os.environ.pop("ZIVON_NARRATION_BUDGET_CREDITS", None)
+            else:
+                os.environ["ZIVON_NARRATION_BUDGET_CREDITS"] = saved
+        self.assertEqual(out["narrated"], 5)
+        self.assertEqual(out["refused"], [])
 
     def test_attempt_evidence_on_disk(self):
         from factory.narration import run as run_narration
@@ -340,7 +360,68 @@ class TestPerBlockResume(NarrationBuildBase):
         self.assertTrue(names[0].startswith("b-01.en."))
 
 
-class TestBudgetGuardInBuild(NarrationBuildBase):
+class TestBudgetGuardInBuild(unittest.TestCase):
+    """The A-15 guard, proven in LIVE mode with an injected fake client (the
+    guard is a real-money cap: it fires where credits are actually spent)."""
+
+    def setUp(self):
+        self.saved_env = install_narration_env(
+            enabled=True,
+            extra={
+                "ZIVON_NARRATION_MODE": "live",
+                "ZIVON_TIMBRE_BASE_URL": "https://timbre.calibration.test",
+                "ZIVON_TIMBRE_BACKOFF_BASE_S": "0",
+            },
+        )
+        self.tmp = Path(tempfile.mkdtemp(prefix="zivon-narrbuild-"))
+        self.runs_dir = self.tmp / "runs"
+        self.frontend = self.tmp / "frontend"
+        self.run_ctx = RunContext(self.runs_dir, "motion-c9")
+        self._seed_run_artifacts()
+        self._seed_published_topic()
+        self.cfg = self._cfg()
+
+    def tearDown(self):
+        release_narration_env(self.saved_env)
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _cfg(self) -> Config:
+        return Config(
+            data={
+                "learner": {"language": "en"},
+                "retrieval": {},
+                "limits": {},
+                "paths": {"frontend": str(self.frontend), "runs": str(self.runs_dir)},
+                "perf": {},
+                "repair": {},
+                "stage_overrides": {},
+            },
+            server={},
+            root=self.tmp,
+        )
+
+    def _seed_run_artifacts(self):
+        topic_dir = f"{self.tmp}/staging/courses/class-9-physics/motion"
+        self.run_ctx.save_stage_output(
+            "06-render",
+            {
+                "topic_dir": topic_dir,
+                "site_dir": f"{self.tmp}/staging",
+                "manifest": {"course_id": "class-9-physics"},
+            },
+        )
+        self.run_ctx.save_stage_output(
+            "02-generate", {"lesson": _lesson(), "blocks": _blocks()}
+        )
+
+    def _seed_published_topic(self):
+        topic = self.frontend / "courses" / "class-9-physics" / "motion"
+        topic.mkdir(parents=True, exist_ok=True)
+        (topic / "manifest.json").write_text(
+            json.dumps({"course_id": "class-9-physics", "title": "Motion"}),
+            encoding="utf-8",
+        )
+
     def test_refusal_stops_before_exceeding_and_is_resumable(self):
         from factory.narration import run as run_narration
 

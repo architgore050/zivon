@@ -81,7 +81,7 @@ the runbook's "Narration builds" section.
 | `ZIVON_NARRATION_ENABLED` | no | `false` | Master switch. Off = the stage is a clean no-op (read-aloud stays unbuilt). In-cluster default ships `false` via `k8s/infra.env`. |
 | `ZIVON_NARRATION_MODE` | no | `auto` | `auto` = live when a Timbre endpoint is configured, else mock (deterministic silence assets, labelled, never for the live site). `mock`/`live` force a mode. |
 | `ZIVON_NARRATION_LANGS` | no | `en` | Comma-separated locales, validated against the ADR-0009 enum (10 Gnani codes + `hinglish`). Challenge-window builds narrate English; per-locale expansion is a post-challenge tranche decision. |
-| `ZIVON_NARRATION_BUDGET_CREDITS` | no | `1500` | The A-15 one-time tranche `[ASSUMPTION]`, enforced refuse-before-exceed against the cross-run ledger `runs/narration-budget.json`. Raising it requires founder approval (A-15). |
+| `ZIVON_NARRATION_BUDGET_CREDITS` | no | `1500` | The A-15 one-time tranche `[ASSUMPTION]`, enforced refuse-before-exceed in LIVE mode against the cross-run ledger `runs/narration-budget.json` (the cumulative accrues LIVE Gnani spend only; mock builds are free and never refused). Raising it requires founder approval (A-15). |
 | `ZIVON_NARRATION_REPAIR_ROUNDS` | no | `2` | Bounded repair-catcher rounds for failed blocks (0..5). Residual failures degrade read-aloud to the INF-089 disabled copy - they never fail the run. |
 | `ZIVON_TIMBRE_BASE_URL` | for live | unset | Gnani Timbre v3.0 endpoint. Unset = mock mode under `auto`. |
 | `ZIVON_TIMBRE_API_KEY` | for live | unset | The key itself - runtime secret, never written to files/artifacts. |
