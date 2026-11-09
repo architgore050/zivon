@@ -7,10 +7,12 @@ never call-site strings.
 The instrumentation map (`docs/specs/observability/instrumentation-map.csv`)
 is the per-event source of truth: severity is declared ONCE per event there
 and `log_event` derives it; an emitted event with no row is flagged
-(`log.event_unknown`) and CI map-lint makes that red. Loading degrades
-honestly: when the CSV is not on disk (e.g. a slim image that ships only this
-package), validation is disabled and every event is delivered — the module
-never blocks a caller because it cannot find a doc file.
+(`log.event_unknown`) and CI map-lint makes that red. The map's single copy
+ships in the factory/dashboard/llm-manager images at exactly this path, so
+severity lookups work in the images. Loading degrades honestly when the CSV
+is not on disk (a bare package import outside an image): validation is
+disabled and every event is delivered — the module never blocks a caller
+because it cannot find a doc file.
 """
 
 from __future__ import annotations

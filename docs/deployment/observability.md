@@ -6,7 +6,7 @@ The **spec** for this subsystem is [`docs/specs/observability/`](../specs/observ
 
 | Piece | Code | Image / manifest | Notes |
 |---|---|---|---|
-| `logging_manager` module | `logging_manager/` | shipped inside the factory, dashboard, and retention images | every event goes through `log_event()`; the module owns redaction, sinks, correlation, and the `log_events` DDL |
+| `logging_manager` module | `logging_manager/` | shipped inside the factory, dashboard, llm-manager, and retention images | every event goes through `log_event()`; the module owns redaction, sinks, correlation, and the `log_events` DDL. The llm-manager node emits its `node.*` rows through it too (before this line, the slim node image shipped without the package and emitted nothing) |
 | Hot log store | Postgres `log_events` (day-partitioned, ADR-0025 DDL) | the backend DB (OQ-7 tenancy) | written ONLY by `logging_manager` (`ZIVON_LOG_DSN`); the DSN lives in the runtime Secret `zivon-backend-env`, never in `infra.env` |
 | JSONL fallback | `runs/logs/YYYYMMDD-<component>.jsonl` | the `zivon-sources` PVC (subPath `runs`) | byte-identical schema; a sync source for the daily Job; switch/recovery is loud (`log.store_fallback` / `log.store_recovered`) |
 | Log retention + cold sync | `python -m logging_manager.store sync` | CronJob `log-retention` (`k8s/51`), factory image | daily 03:30 IST (`ZIVON_LOG_SYNC_SCHEDULE` in `k8s/infra.env`); exports yesterday's UTC day + checksum manifest, ingests fallback JSONL, then sweeps (L1/L2/credit 7 hot days, L3 30); retain-until-synced — an unverified day is never dropped |
@@ -28,7 +28,8 @@ Config is env-only: `ZIVON_ENV`, `ZIVON_LOG_LEVEL`, `ZIVON_PUBLIC_BASE_URL`, `ZI
 
 ## Troubleshoot
 
-- **`log.store_fallback` in the error feed** — the hot store was unreachable; events went to `runs/logs/*.jsonl` on the PVC. Fix the DSN/pod; the next `log-retention` run ingests the fallback files (idempotent per file checksum) and `log.store_recovered` fires when Postgres accepts a batch again.
+- **`log.store_fallback` in the error feed** — the hot store was unreachable; events went to `runs/logs/*.jsonl` on the PVC. Fix the DSN/pod; the next `log-retention` run ingests each file's new rows only (the manifest records how many rows were already ingested, so a grown file contributes its tail, never a duplicate of the whole file) and `log.store_recovered` fires when Postgres accepts a batch again.
+- **Guardian deletion reports `status: failed`** — `delete_subject` returns `status: failed` / `ok: false` with the Postgres error, and the `privacy.subject_deleted` audit event carries `status`/`ok`/`error`. That means hot rows were NOT deleted: retry within the 24 h SLA; do not treat the audit event alone as proof of deletion — check its `status` field.
 - **Redaction violations in the error feed** — a call site tried to log denied keys (`transcript*`, `token`, …) or scrubbed payloads. The event names the offending key, never the payload: fix the call site, do not clear the section.
 - **Dashboard says `log store unreachable`** — the banner carries the driver error; `/healthz` answers `{"store": "unreachable"}`. Views degrade to honest empty states; nothing fabricated is shown.
 - **Voice/credit views show "no data"** — those events start when the voice backend ships (S2 contract rows in the instrumentation map). The dashboard never fakes a series.
