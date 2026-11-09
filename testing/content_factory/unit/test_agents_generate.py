@@ -1,9 +1,8 @@
-"""Unit tests for 02-generate / 03-check / 04-repair wiring (graph v2).
+"""Unit tests for 02-generate / 04-repair rule wiring and merge mechanics (graph v2).
 
-The generation call must carry the code-side rule checks AT GENERATION TIME
-(the model sees its own violations in the retry transcript), the fact
-reviewer prompt must carry the calibrated severity ladder, and the repair
-catcher must merge replacements correctly.
+Note: Prompt-substring and reviewer-calibration assertions were migrated to
+`evals/checkers/prompt_contract_checks.py` (`EV-SYN-001`, `EV-SYN-002`, `EV-REV-001`)
+per `docs/specs/evals/migration-map.csv` rows 12, 13, and 15.
 """
 
 import dataclasses
@@ -21,7 +20,7 @@ from factory import agents
 from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.llm import LLMClient
-from factory.schemas import BLOCKS, GENERATED, REPAIR
+from factory.schemas import GENERATED, REPAIR
 from testing.content_factory.unit._server_env import (
     install_server_env,
     release_server_env,
@@ -83,10 +82,6 @@ def _cfg(tmp: Path):
     (tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
     saved = install_server_env()
     try:
-        # root must be the real repo: the agents inject the shipped doctrine
-        # and stylesheet. with_class_level(9) simulates the post-01-locate
-        # state: in a real run the class arrives from --class / the located
-        # chapter (the fixture chapter is class 9) before any prompt stage.
         cfg = dataclasses.replace(load_config(tmp / "config.json"), root=REPO_ROOT)
         return cfg.with_class_level(9)
     finally:
@@ -116,62 +111,7 @@ class TestGenerateRuleWiring(unittest.TestCase):
         out = self._run_generate(stub)
         self.assertIn("extra_validator", stub.kwargs)
         validator = stub.kwargs["extra_validator"]
-        # the clean fixture page passes the rules - no feedback loop needed
         self.assertEqual(validator(out), [])
-
-    def test_prompt_promises_verbatim_problem_data_and_computed_answers(self):
-        # The harness checks PROBLEM data verbatim; answers are computed from
-        # the source's own equations and recomputed by 03-check. (2026-11-04:
-        # the old verbatim-answers rule made every NCERT numerical impossible,
-        # which is why the Motion page skipped all of them.)
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn("VERBATIM", user)
-        self.assertIn("COMPUTED from those numbers", user)
-        self.assertIn("do not convert units or compute new values", user)
-
-    def test_prompt_carries_the_coverage_contract(self):
-        # 2026-11-04 (founder): the Motion run taught only the basics and
-        # skipped momentum, conservation ideas, exercises and practice problems.
-        # The chapter is the unit of teaching - the prompt must say so in
-        # harness-verifiable words.
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn("COVERAGE CONTRACT", user)
-        self.assertIn("end-of-chapter exercises", user)
-        self.assertIn("every titled section of the chapter", user)
-        self.assertIn(
-            "every concept and every exercise type from your chapter inventory must",
-            user,
-        )
-
-    def test_generate_contract_shape_example_and_budget(self):
-        # Contract bug of 2026-11-05: the shape example showed "blocks" as a flat
-        # array while the GENERATED schema requires the {"blocks": [...]} wrapper -
-        # the model obeyed the example and died on validation twice. The example IS
-        # the contract: it must show the wrapper. And the budget the prompt states
-        # must equal the budget the schema enforces - prompt and schema may never
-        # contradict each other (the 70-block blowout was exactly that clash).
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn('"blocks": {"blocks": [{"id": "b-01"', user)
-        self.assertIn('whose single key "blocks" holds the ordered block array', user)
-        self.assertIn("4-45 blocks", user)
-        self.assertEqual(BLOCKS["properties"]["blocks"]["maxItems"], 45)
-
-    def test_prompt_carries_the_grounding_law(self):
-        # The founder calibration: model priors must not smuggle in concepts the
-        # chapter never teaches (the 2026-11-02 05-check failure class).
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        system = next(m["content"] for m in stub.messages if m["role"] == "system")
-        self.assertIn("standard Physics", user)  # in the page-level grounding law
-        self.assertIn("does NOT count", system)  # in the global rules
-        self.assertIn("whole universe of this page", system)
 
     def test_violations_are_reported_to_the_model(self):
         stub = StubLLM()
@@ -179,110 +119,12 @@ class TestGenerateRuleWiring(unittest.TestCase):
         validator = stub.kwargs["extra_validator"]
         bad = load("02-generate.json")
         bad["blocks"]["blocks"][2]["spec"]["problem"] = (
-            "A body gains a speed of 73 m/s in 5 s. What is its acceleration?"  # 73 appears nowhere in the sources - invented problem data
+            "A body gains a speed of 73 m/s in 5 s. What is its acceleration?"
         )
-        bad["blocks"]["blocks"][0]["citations"] = []  # uncited text block
+        bad["blocks"]["blocks"][0]["citations"] = []
         problems = validator(bad)
         self.assertTrue(any("73" in p for p in problems), problems)
         self.assertTrue(any("no citations" in p for p in problems), problems)
-
-    def test_generate_prompt_carries_live_doctrine_and_palette(self):
-        # 02-generate specs the diagrams, so it must see the live doctrine (its
-        # diagram rules) and the exact palette - not a held-over excerpt.
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn("DESIGN DOCTRINE", user)
-        doctrine = (REPO_ROOT / "docs" / "frontend" / "design-doctrine.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(doctrine[:400], user)  # the live document, verbatim
-        self.assertIn("#1F3A9E", user)  # palette parsed from zivon.css
-        self.assertIn("PALETTE values for fill/stroke", user)
-        # generate specs blocks, it does not build the shell: no example pages
-        self.assertNotIn("=== design-doctrine-example.html ===", user)
-
-    def test_generate_prompt_carries_persona_teaching_order_and_shape_example(self):
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn("patient tutor", user)
-        self.assertIn("TEACHING ORDER", user)
-        self.assertIn("keep numbers and units exactly", user)
-        self.assertIn("Example of the required SHAPE", user)
-        self.assertIn("never reuse", user)
-
-    def test_generate_prompt_routes_computed_geometry_to_simulations(self):
-        # Founder call 2026-11-09: hand-drawn graph geometry drifted from the
-        # physics (run 032406, b-09 fatal: a rectangle drawn for a trapezoid
-        # area). The diagram spec must route equation-fixed figures to
-        # simulations (JS computes them) and keep diagrams constructive-only.
-        stub = StubLLM()
-        self._run_generate(stub)
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn("CONSTRUCTIVE geometry only", user)
-        self.assertIn("must be spec'd as a simulation instead", user)
-        self.assertIn("computed in JS from the page's equations", user)
-        self.assertIn("a trapezoid, not the rectangle you would draw", user)
-
-
-class TestCheckPromptCalibration(unittest.TestCase):
-    def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
-        self.cfg = _cfg(self.tmp)
-        self.run_ctx = RunContext(self.cfg.repo_path(self.cfg.paths["runs"]), "t-check")
-
-    def _check_prompt(self) -> str:
-        stub = StubLLM()
-        agents.run_check(
-            self.cfg,
-            self.run_ctx,
-            cast(LLMClient, stub),
-            make_pack(),
-            load("gt.json"),
-            load("lesson.json"),
-            load("blocks.json"),
-        )
-        return next(m["content"] for m in stub.messages if m["role"] == "user")
-
-    def test_severity_ladder_is_exact(self):
-        user = self._check_prompt()
-        self.assertIn("Severity ladder (apply it exactly)", user)
-        self.assertIn("smuggled-in concept", user)
-        self.assertIn("advisory and must never fail the page", user)
-        self.assertIn("verdict=fail if and only if you report at least one fatal", user)
-
-    def test_reviewer_is_not_fed_adversarial_framing(self):
-        # Graph v1 said "assume the draft contains at least one error" - that
-        # framing manufactured trivia-failures. v2 demands honest review.
-        user = self._check_prompt()
-        self.assertNotIn("Assume the draft contains at least one error", user)
-        self.assertIn("Do not invent problems", user)
-
-    def test_reviewer_teaches_and_hedges(self):
-        user = self._check_prompt()
-        self.assertIn("teach the expected_understanding before", user)
-        self.assertIn("starting 'unverified:'", user)
-        self.assertIn("Example issue (SHAPE only", user)
-        self.assertIn("never reuse", user)
-
-    def test_reviewer_gates_coverage_and_arithmetic(self):
-        # 2026-11-04 (founder): a faithful-but-thin page must FAIL the gate.
-        # Coverage omissions are fatal, and every computed answer is recomputed
-        # from the problem data - never trusted.
-        user = self._check_prompt()
-        self.assertIn("RECOMPUTE every worked_example", user)
-        self.assertIn("COVERAGE", user)
-        self.assertIn("end-of-chapter exercises", user)
-        self.assertIn("omits a chapter section", user)
-
-    def test_reviewer_sees_the_lesson_it_must_verify_against(self):
-        # Checklist item 5 asks whether the page teaches an expected_understanding
-        # BEFORE testing it - the reviewer cannot judge that without the lesson
-        # prose in its context (context-completeness rule, prompting skill).
-        user = self._check_prompt()
-        self.assertIn("THE LESSON THE PAGE TEACHES", user)
-        self.assertIn(load("lesson.json")["title"], user)
 
 
 class TestRepairCatcher(unittest.TestCase):
@@ -293,7 +135,7 @@ class TestRepairCatcher(unittest.TestCase):
             self.cfg.repo_path(self.cfg.paths["runs"]), "t-repair"
         )
 
-    def test_repair_prompt_carries_findings_and_omission_rule(self):
+    def test_repair_passes_round_tag_kwarg(self):
         stub = StubLLM(fixture="repair_plan.json")
         issues = [
             {
@@ -313,15 +155,6 @@ class TestRepairCatcher(unittest.TestCase):
             issues,
             round_tag="round-01",
         )
-        user = next(m["content"] for m in stub.messages if m["role"] == "user")
-        self.assertIn("mass/force", user)  # the reviewer's verdict is the input
-        self.assertIn("OMIT it", user)
-        self.assertIn("Fix ONLY the flagged blocks", user)
-        # coverage omissions are fixed by ADDING blocks, not re-running 02
-        self.assertIn("coverage-omission fix", user)
-        self.assertIn("LAST added block a check", user)
-        self.assertIn("Example of the required SHAPE", user)
-        self.assertIn("never reuse", user)
         self.assertEqual(stub.kwargs.get("round_tag"), "round-01")
 
     def test_repair_output_validates_against_repair_schema(self):
@@ -344,8 +177,6 @@ class TestRepairCatcher(unittest.TestCase):
             round_tag="round-01",
         )
         validator = stub.kwargs["extra_validator"]
-        # a replacement that invents problem data must be caught even though
-        # the rest of the page is untouched
         bad_plan = load("repair_plan.json")
         bad_plan["blocks"][0]["spec"]["question"] = (
             "A runner covers 73 m in 20 s. What is her average speed (in m/s)?"
