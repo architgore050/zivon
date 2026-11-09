@@ -15,6 +15,18 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Freshen the Debian layer under the floating python:3.12-slim base (same fix
+# as Dockerfile.llm-manager, same reason): the base ships a frozen apt index
+# from its build date, so fixes published afterwards are invisible until
+# apt-get update runs. The newest 3.12-slim build (2026-11-08) still carries
+# zlib1g 1:1.3.dfsg+really1.3.1-1+b1 — trivy HIGH, fixes out (CVE-2026-85091
+# heap overflow in gz_vacate, CVE-2026-76844). Whole-tree and unpinned: Debian
+# drops old point revisions from the archive, so pins rot.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies BEFORE copying code.
 # Docker caches each instruction as a layer: as long as requirements.txt is
 # unchanged, rebuilding after a code edit reuses this (slow) layer instantly.
