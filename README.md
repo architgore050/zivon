@@ -144,6 +144,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`skills/zivon-systems-design-skills/`](skills/zivon-systems-design-skills/) | Backend/DB/storage-tiering spec method (original skill + vendored engineering skills); see the folder README |
 | [`docs/specs/voice-agent/`](docs/specs/voice-agent/README.md) | Voice-tutor agent architecture spec (wave S1): pipeline, WebSocket contract, latency budget vs Gate C, ADRs 0017–0020, open questions |
 | [`docs/specs/translation/`](docs/specs/translation/) | Build-time translation pipeline spec, per-block contracts, reviewer rubric, and translation ADRs (`0021`–`0023`); see the folder README |
+| [`docs/specs/observability/`](docs/specs/observability/) | System specs: observability (`logging_manager` API contract, instrumentation map, admin dashboard v0) with ADRs `0024`–`0026` under `docs/backend/adr/` |
 
 ## Engineering Process
 
