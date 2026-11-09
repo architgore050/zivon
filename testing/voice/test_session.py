@@ -148,6 +148,21 @@ class CreditGuardTest(unittest.TestCase):
     def test_estimate_uses_a07_figures(self) -> None:
         self.assertEqual(turn_estimate(VoiceSettings()), 15 + 600)
 
+    def test_demo_remaining_uses_session_dimension(self) -> None:
+        # spec.md §8: demo cap is per-SESSION — another session of the same
+        # user starts with its own budget, and H1 sees that too.
+        guard = CreditGuard(self._settings())
+        guard.check_turn("demo", "u1", "s1", estimate=15)
+        self.assertEqual(guard.remaining("demo", "u1", session_id="s1"), 5)
+        self.assertEqual(guard.remaining("demo", "u1", session_id="s2"), 20)
+        # without a session id the cap falls back to the user dimension
+        self.assertEqual(guard.remaining("demo", "u1"), 20)
+
+    def test_normal_remaining_uses_user_dimension(self) -> None:
+        guard = CreditGuard(self._settings())
+        guard.check_turn("normal", "u1", "s1", estimate=10)
+        self.assertEqual(guard.remaining("normal", "u1"), 20)
+
 
 class TurnRepositoryTest(unittest.IsolatedAsyncioTestCase):
     async def test_rows_written_and_recent_window(self) -> None:
@@ -224,6 +239,25 @@ class SessionStoreTest(unittest.TestCase):
         self.assertFalse(store.acquire_channel("a"))  # 1 channel per session
         store.release_channel("a")
         self.assertTrue(store.acquire_channel("c"))
+
+    def test_registry_bounded_evicts_oldest(self) -> None:
+        store = SessionStore(VoiceSettings(ws_max_concurrent_sessions=2))
+        store.MAX_SESSIONS = 3
+        for n in range(3):
+            store.create(SessionIdentity(f"s{n}", f"d{n}"), "normal", "hi-en")
+        store.create(SessionIdentity("s3", "d3"), "normal", "hi-en")
+        self.assertEqual(len(store._sessions), 3)
+        self.assertIsNone(store.get("s0"))  # oldest evicted
+        self.assertIsNotNone(store.get("s3"))
+
+    def test_registry_never_evicts_live_channel(self) -> None:
+        store = SessionStore(VoiceSettings(ws_max_concurrent_sessions=2))
+        store.MAX_SESSIONS = 1
+        store.create(SessionIdentity("live", "d0"), "normal", "hi-en")
+        self.assertTrue(store.acquire_channel("live"))
+        store.create(SessionIdentity("new", "d1"), "normal", "hi-en")
+        self.assertIsNotNone(store.get("live"))  # live channel survives
+        self.assertIsNotNone(store.get("new"))
 
     def test_replay_window_60s(self) -> None:
         now = [10_000.0]

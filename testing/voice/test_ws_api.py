@@ -670,7 +670,9 @@ class ThinkingOutLoudTest(unittest.IsolatedAsyncioTestCase):
             brain=brain,
         )
         await _open(harness)
-        await harness.send({"type": "typed.doubt", "text": "sawaal"})
+        # fillers are VOICE dead-air cover: the turn must be a voice turn
+        await harness.send({"type": "audio.start"})
+        await harness.send({"type": "audio.end"})
         await harness.finish_turn()
         await harness.disconnect()
         fillers = [
@@ -729,6 +731,107 @@ class ResumeTest(unittest.IsolatedAsyncioTestCase):
         replayed = harness.ws.outbox.of_type("turn.end")
         self.assertEqual(replayed[0]["end_reason"], "error")  # type: ignore[index]
         await harness.disconnect()
+
+
+class SelfReviewFixTest(unittest.IsolatedAsyncioTestCase):
+    """Regression tests for the §5 self-review findings."""
+
+    async def test_oversized_json_frame_dropped(self) -> None:
+        harness = Harness(_settings(), prisma=MockPrisma(), brain=MockBrain())
+        await _open(harness)
+        await harness.send({"type": "ping", "t": 1})  # sanity: loop alive
+        await harness.send({"type": "typed.doubt", "text": "x" * 9000})
+        await harness.send({"type": "ping", "t": 2})
+        await asyncio.sleep(0.1)
+        pongs = harness.ws.outbox.of_type("pong")
+        self.assertEqual(len(pongs), 2)  # both pings answered around the drop
+        self.assertEqual(harness.ws.outbox.first("error"), None)
+        self.assertEqual(harness.task is not None and harness.task.done(), False)
+        await harness.disconnect()
+
+    async def test_oversized_typed_text_rejected(self) -> None:
+        harness = Harness(_settings(), prisma=MockPrisma(), brain=MockBrain())
+        await _open(harness)
+        await harness.send({"type": "typed.doubt", "text": "y" * 1001})
+        await asyncio.sleep(0.1)
+        error = harness.ws.outbox.first("error")
+        assert error is not None
+        self.assertEqual(error["code"], "client_error")
+        self.assertEqual(harness.brain.opens, 0)
+        await harness.disconnect()
+
+    async def test_keepalive_reaps_dead_connection(self) -> None:
+        settings = _settings(ws_ping_interval_s=0.05, ws_ping_miss_max=2)
+        harness = Harness(settings, prisma=MockPrisma(), brain=MockBrain())
+        harness.start()
+        await harness.send(_start_message(harness.token()))
+        await asyncio.sleep(0.35)  # 2+ missed pongs
+        self.assertEqual(harness.ws.close_code, 1000)
+        pings = harness.ws.outbox.of_type("ping")
+        self.assertGreaterEqual(len(pings), 2)
+        await harness.disconnect()
+
+    async def test_keepalive_survives_pongs(self) -> None:
+        settings = _settings(ws_ping_interval_s=0.05, ws_ping_miss_max=2)
+        harness = Harness(settings, prisma=MockPrisma(), brain=MockBrain())
+        harness.start()
+        await harness.send(_start_message(harness.token()))
+        for _ in range(6):
+            await asyncio.sleep(0.06)
+            await harness.send({"type": "pong"})  # the dock answers
+        self.assertIsNone(harness.ws.close_code)  # still open
+        await harness.disconnect()
+
+    async def test_history_excludes_event_rows(self) -> None:
+        # Finding 1: F-row event rows are ledger data — the brain's dialogue
+        # window must contain only student/tutor turns.
+        harness = Harness(
+            _settings(), prisma=MockPrisma(), brain=MockBrain(content="Jawab.")
+        )
+        await _open(harness)
+        await harness.send({"type": "typed.doubt", "text": "sawaal ek"})
+        await harness.finish_turn()
+        await harness.disconnect()
+        brain = harness.brain
+        # force an event row into the store, then run a second turn
+        rows = harness.app.turns._rows  # type: ignore[attr-defined]
+        rows.append(
+            __import__("voice.session", fromlist=["TurnRecord"]).TurnRecord(
+                id="evt-1",
+                session_id="sess-1",
+                turn_idx=99,
+                role="event",
+                text="brain.first_event_timeout",
+            )
+        )
+        harness.ws = FakeWebSocket()
+        harness.start()
+        await harness.send(_start_message(harness.token()))
+        await asyncio.sleep(0.05)
+        await harness.send({"type": "typed.doubt", "text": "sawaal do"})
+        await harness.finish_turn()
+        await harness.disconnect()
+        history = [m.content for m in brain.last_messages[1:-1]]
+        self.assertTrue(all("brain.first_event_timeout" not in h for h in history))
+        self.assertIn("sawaal ek", " ".join(history))
+
+    async def test_no_filler_on_text_only_turns(self) -> None:
+        brain = MockBrain(content="Der se aaya jawab.", delay_before_first_s=0.2)
+        harness = Harness(
+            _settings(filler_silence_ms=20, brain_first_event_s=5.0),
+            prisma=MockPrisma(final_text="q"),
+            brain=brain,
+        )
+        await _open(harness)
+        await harness.send(
+            {"type": "typed.doubt", "text": "sawaal"}
+        )  # typed = no voice
+        await harness.finish_turn()
+        await harness.disconnect()
+        self.assertEqual(
+            [t for t in harness.ws.outbox.of_type("tts.text") if t["kind"] == "filler"],
+            [],
+        )
 
 
 class ClassifierFixtureTest(unittest.TestCase):

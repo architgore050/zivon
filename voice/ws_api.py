@@ -307,6 +307,8 @@ class _Connection:
         self._snapshot_obj: Any = None  # ContextSnapshot (set by _store_snapshot)
         self.send_lock = asyncio.Lock()
         self.pong_misses = 0
+        self.oversized_frames = 0
+        self.awaiting_pong = False
 
     async def send_json(self, payload: dict[str, Any]) -> None:
         async with self.send_lock:
@@ -417,7 +419,9 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
         await _replay(conn, session, str(first.get("last_turn_id") or ""))
     else:
         # H1 — remaining tranche (profile-aware) vs 0 (spec.md §8).
-        decision = app.guard.check_start(session.profile, session.user_key, now=now())
+        decision = app.guard.check_start(
+            session.profile, session.user_key, now=now(), session_id=session.session_id
+        )
         if not decision.allowed and session.profile != "demo":
             await conn.send_json(
                 {
@@ -447,13 +451,16 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
         if isinstance(anchor, dict):
             _store_snapshot(conn, anchor)
 
-    # Pre-open the vendors the turn will need (mock mode or configured keys).
-    if settings.mock_mode or settings.stt_configured or settings.brain_configured:
-        pass  # factories are lazy: built at first use, per spec factories DI
-
+    keepalive_task: asyncio.Task[None] | None = None
+    if settings.ws_ping_interval_s > 0:  # 0 = tests drive the loop by hand
+        keepalive_task = asyncio.ensure_future(_keepalive(conn))
     try:
         await _message_loop(conn)
     finally:
+        if keepalive_task is not None:
+            keepalive_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await keepalive_task
         app.sessions.release_channel(session.session_id)
         if conn.pump_task is not None:
             conn.pump_task.cancel()
@@ -474,6 +481,33 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
             {"turns": session.turn_idx},
             session_id=session.session_id,
         )
+
+
+async def _keepalive(conn: _Connection) -> None:
+    """Server-side heartbeat (ws-contract §2 ping/pong; backend-spec §7.1).
+
+    Pings every ``ws_ping_interval_s``; two consecutive pongs missed → close —
+    a dead NAT'd connection is reaped instead of holding a session slot.
+    Client pings are answered in the message loop (they reset the counter too).
+    """
+    interval = conn.settings.ws_ping_interval_s
+    while True:
+        await asyncio.sleep(interval)
+        if conn.awaiting_pong:
+            conn.pong_misses += 1
+            if conn.pong_misses >= conn.settings.ws_ping_miss_max:
+                log_event(
+                    "voice.ws.heartbeat_lost",
+                    {"misses": conn.pong_misses},
+                    severity=Severity.WARNING,
+                    error_class=ErrorClass.TRANSPORT_ERROR,
+                    session_id=conn.session.session_id if conn.session else None,
+                )
+                await conn.ws.close(_WS_CLOSE_NORMAL)
+                return
+        else:
+            conn.awaiting_pong = True
+        await conn.send_json({"type": "ping", "t": int(conn.app._clock() * 1000)})
 
 
 async def _replay(conn: _Connection, session: VoiceSession, last_turn_id: str) -> None:
@@ -555,9 +589,21 @@ async def _send_error(
 # --- message loop ---------------------------------------------------------------
 
 
+_MAX_JSON_BYTES = 8192  # backend-spec §7.1: JSON control frames ≤ 8 KB
+
+# Student-facing copy per error code (INF-068 posture: stable codes, copy —
+# never raw vendor/exception text; diagnostics go to structured logs only).
+_DOCK_COPY = {
+    "brain.first_event_timeout": "tutor thoda busy hai — dobara bolke dekho",
+    "brain.midturn_stall": "jawab adhura reh gaya — dobara poochho",
+    "brain.deadline": "jawab adhura reh gaya — dobara poochho",
+    "tts.unavailable": "audio nahi aa paya — jawab text mein hai",
+    "stt.unavailable": "voice input unavailable — type your doubt",
+    "context.stale": "page ka context nahi mil raha — page refresh karein",
+}
+
+
 async def _message_loop(conn: _Connection) -> None:
-    app = conn.app
-    settings = app.settings
     websocket = conn.ws
     while True:
         try:
@@ -572,6 +618,17 @@ async def _message_loop(conn: _Connection) -> None:
         text = received.get("text")
         if not text:
             continue
+        if len(text) > _MAX_JSON_BYTES:
+            # backend-spec §7.1 frame bound: drop + count, never crash
+            conn.oversized_frames += 1
+            log_event(
+                "voice.ws.oversized_frame",
+                {"bytes": len(text)},
+                severity=Severity.WARNING,
+                error_class=ErrorClass.CLIENT_ERROR,
+                session_id=conn.session.session_id if conn.session else None,
+            )
+            continue
         try:
             message = json.loads(text)
         except json.JSONDecodeError:
@@ -580,8 +637,10 @@ async def _message_loop(conn: _Connection) -> None:
         if mtype == "ping":
             await conn.send_json({"type": "pong", "t": message.get("t")})
             conn.pong_misses = 0
+            conn.awaiting_pong = False
         elif mtype == "pong":
             conn.pong_misses = 0
+            conn.awaiting_pong = False
         elif mtype == "context.snapshot":
             _store_snapshot(conn, message)
         elif mtype == "audio.start":
@@ -609,8 +668,6 @@ async def _message_loop(conn: _Connection) -> None:
                 error_class=ErrorClass.CLIENT_ERROR,
                 session_id=conn.session.session_id if conn.session else None,
             )
-        if settings.ws_ping_interval_s <= 0:  # pragma: no cover — tests drive
-            continue
 
 
 # --- audio-path handlers ----------------------------------------------------------
@@ -813,9 +870,12 @@ async def _run_audio_turn(conn: _Connection, turn: _Turn) -> None:
         turn.stamp("L1", turn.stt_final_at)
         turn.stt_seconds = conn.stt_uplink.audio_seconds
         await _run_brain_turn(conn, turn, typed=False)
-    except SttUnavailableError as exc:
-        # F1-adjacent: EOS arrived but no final — honest error turn.
-        await _send_error(conn, "stt.unavailable", str(exc), True)
+    except SttUnavailableError:
+        # F1-adjacent: EOS arrived but no final — honest error turn. The dock
+        # gets the stable code + copy, never raw vendor/exception text.
+        await _send_error(
+            conn, "stt.unavailable", "voice input unavailable — type your doubt", True
+        )
         await _send_state(conn, "listening", reason="text_input")
         await _finalize_turn(conn, turn, end_reason="error", event="stt.no_final")
     except asyncio.CancelledError:
@@ -862,15 +922,14 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
             or "NO PAGE CONTEXT — answer generically, say you cannot see the page."
         )
 
-    history = await app.turns.recent_turns(
-        session.session_id, limit=settings.history_turns_max
+    rows = await app.turns.recent_turns(
+        session.session_id, limit=settings.history_turns_max * 2
     )
+    # event rows (F1–F8 incidents) are ledger data, never dialogue
+    dialogue = [row for row in rows if row.role in ("student", "tutor")]
     messages = tuple(
-        BrainMessage(
-            "user" if row.role == "student" else "assistant",
-            row.text,
-        )
-        for row in history
+        BrainMessage("user" if row.role == "student" else "assistant", row.text)
+        for row in dialogue[-settings.history_turns_max :]
     )
     request = BrainRequest(
         system=TUTOR_SYSTEM_PROMPT,
@@ -883,13 +942,18 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
 
     # F4 at turn start: audio is disabled for the whole turn, the answer
     # still flows as text (spec.md F4: "reply text appears in dock immediately")
-    await _ensure_tts_turn(conn)
+    voice_turn = not typed and not session.text_only
+    if voice_turn:
+        await _ensure_tts_turn(conn)
     brain = _ensure_brain(conn)
     brain.retries_used = 0
     brain.events_yielded = 0
     ids = SegmentIds()
     chunker = SentenceChunker(ids, clock=now)
-    filler_task = asyncio.ensure_future(_filler_timer(conn, turn))
+    # fillers are VOICE dead-air cover — never armed on text-only turns
+    filler_task = (
+        asyncio.ensure_future(_filler_timer(conn, turn)) if voice_turn else None
+    )
     first_event_at: float | None = None
     usage: dict[str, Any] = {}
     brain_error: Exception | None = None
@@ -939,15 +1003,17 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
     except TtsUnavailableError as exc:
         brain_error = exc  # F4 — handled inside _dispatch_chunk, but escape guard
     except asyncio.CancelledError:
-        filler_task.cancel()
+        if filler_task is not None:
+            filler_task.cancel()
         await _finalize_turn(
             conn, turn, end_reason="interrupted", event="turn.interrupted"
         )
         raise
     finally:
-        filler_task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await filler_task
+        if filler_task is not None:
+            filler_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await filler_task
         if brain is not None:
             with contextlib.suppress(Exception):
                 await brain.abort()  # ensure the upstream is closed at turn end
@@ -1184,7 +1250,12 @@ async def _brain_error_turn(
                 "text": chunk.text,
             }
         )
-    await _send_error(conn, code, str(error) or "brain timeout", recoverable=True)
+    await _send_error(
+        conn,
+        code,
+        _DOCK_COPY.get(code, "kuch galat ho gaya — dobara koshish karein"),
+        recoverable=True,
+    )
     await _send_state(conn, "error", reason=code)
     await _finalize_turn(conn, turn, end_reason="error", event=f"brain.{code}")
 

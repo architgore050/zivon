@@ -232,20 +232,41 @@ class CreditGuard:
             "credit.over_daily",
         )
 
-    def remaining(self, profile: str, user_key: str, now: float | None = None) -> int:
+    def remaining(
+        self,
+        profile: str,
+        user_key: str,
+        now: float | None = None,
+        session_id: str = "",
+    ) -> int:
+        """Credits left under BOTH dimensions (ADR-0015 reserve semantics).
+
+        ``normal`` caps per USER per day; ``demo`` caps per SESSION (spec.md
+        §8) — pass ``session_id`` for demo sessions, else the cap check
+        falls back to the user dimension.
+        """
         tranche, cap, _ = self._limits(profile)
         period = self._period(now)
         counters = self._global.setdefault(period, _PeriodCounters())
         global_left = max(0, tranche - counters.reserved - counters.spent)
-        user_counters = self._per_user.setdefault((period, user_key), _PeriodCounters())
-        user_left = max(0, cap - user_counters.reserved - user_counters.spent)
-        return min(global_left, user_left)
+        if profile == "demo" and session_id:
+            bucket = self._per_session.setdefault(
+                (period, session_id), _PeriodCounters()
+            )
+        else:
+            bucket = self._per_user.setdefault((period, user_key), _PeriodCounters())
+        bucket_left = max(0, cap - bucket.reserved - bucket.spent)
+        return min(global_left, bucket_left)
 
     def check_start(
-        self, profile: str, user_key: str, now: float | None = None
+        self,
+        profile: str,
+        user_key: str,
+        now: float | None = None,
+        session_id: str = "",
     ) -> GuardDecision:
         """H1 — at session.start: remaining tranche (profile-aware) vs 0."""
-        remaining = self.remaining(profile, user_key, now)
+        remaining = self.remaining(profile, user_key, now, session_id=session_id)
         if remaining <= 0:
             _, _, reason = self._limits(profile)
             return GuardDecision(False, "exhausted", reason)
@@ -421,6 +442,8 @@ class SessionStore:
     backend swaps in the real store via ``mount_voice(sessions=...)``.
     """
 
+    MAX_SESSIONS = 1000  # memory bound; ADR-0002: lost-on-crash acceptable
+
     def __init__(
         self, settings: VoiceSettings, *, clock: Callable[[], float] = time.time
     ) -> None:
@@ -442,6 +465,13 @@ class SessionStore:
             locale=locale,
             user_key=identity.device_pseudo_id,
         )
+        while len(self._sessions) >= self.MAX_SESSIONS:
+            # evict the oldest session row (C5 state only; durable rows live
+            # in Postgres via the core backend's store adapter)
+            oldest = next(iter(self._sessions))
+            if oldest in self._open_channels:
+                break  # never evict a live channel
+            self._sessions.pop(oldest)
         self._sessions[session.session_id] = session
         return session
 
