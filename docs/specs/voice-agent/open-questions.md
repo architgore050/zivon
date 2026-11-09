@@ -67,8 +67,7 @@ were therefore not readable when this spec was written.
 (TTS, audio tags, realtime streaming)**. The non-negotiable in `AGENTS.md` is the *model choice*,
 which is unchanged; only the version strings are stale.
 
-**Docs needing the version-string update (owners: founder / core-backend agent, not S1 — outside
-this agent's file boundary):**
+**Docs needing the version-string update [WS1 update: AGENTS.md + README.md now v3.0 on merged main 2026-11-09; remaining rows unchanged]:**
 
 | File | Location | Stale | Update to |
 |---|---|---|---|

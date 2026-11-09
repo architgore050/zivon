@@ -4,7 +4,7 @@
 
 Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sovereign stack:
 
-> Student speaks (Hindi / English / Hinglish) → **Prisma v2.5** listens → **Evon v3.3** reasons → **Timbre v2.5** speaks back.
+> Student speaks (Hindi / English / Hinglish) → **Prisma v3.0** listens → **Gemma 4 26B A4B** (via Gemini API) reasons → **Timbre v3.0** speaks back.
 
 **Focus:** academic Physics, Class 9–12 — taught through interactive animations, simulations, and diagrams, with a patient spoken Hinglish tutor anchored to every page.
 
@@ -30,7 +30,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 ```
         ┌─────────────────────────── PRODUCT RUNTIME ───────────────────────────┐
         │                                                                       │
-  🎤 mic ─→ Prisma v2.5 ─→ Evon v3.3 ─→ Timbre v2.5 ─→ 🔊 tutor voice
+  🎤 mic ─→ Prisma v3.0 ─→ Gemma 4 26B A4B ─→ Timbre v3.0 ─→ 🔊 tutor voice
               (STT)         (reasoning)     (TTS + expressive tags)
                     ▲                              │
                     └──── page context (topic,     │
@@ -43,7 +43,7 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
         └───────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Product runtime** runs on the Gnani stack (Prisma + Timbre; Evon as the intended reasoning brain).
+- **Product runtime** runs on the Gnani stack (Prisma + Timbre + Gemma 4 reasoning (Evon = post-challenge aspiration)).
 - **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model — all model calls go through the standalone **`llm_manager/`** module (streaming transport, honest inactivity timeouts, a per-call wall-clock deadline), which also ships as an isolated **llm-manager node** (own image + K8s Deployment/Service) that every consumer talks to. Server wiring via environment variables, pipeline behaviour via `config.json` (see `.env.example`). Build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
 
 ## Run the content factory
@@ -69,9 +69,9 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 
 | Layer | Choice |
 |---|---|
-| STT | Gnani **Prisma v2.5** (streaming, code-mixed, noisy-audio strong) |
-| LLM | Gnani **Evon v3.3** (open-weight, self-hosted) |
-| TTS | Gnani **Timbre v2.5** (streaming, expressive tags) |
+| STT | Gnani **Prisma v3.0** (streaming, code-mixed, noisy-audio strong) |
+| LLM | Gnani **Gemma 4 26B A4B** via Google Gemini API (Evon v3.3 post-challenge aspiration) |
+| TTS | Gnani **Timbre v3.0** (streaming, expressive tags) |
 | Backend | Python — FastAPI + WebSockets |
 | Frontend | Web UI with mic; static interactive pages (canvas/SVG) |
 | Infra | Docker containers, Kubernetes, CI/CD, staging → prod |
@@ -159,7 +159,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 
 ## Built on Gnani's Models
 
-Zivon is built entirely on Gnani AI's sovereign stack — **Prisma v2.5, Evon v3.3, and Timbre v2.5** — Indian models for Indian learners, for the **Great Indian AI Internship Challenge**.
+Zivon is built entirely on Gnani AI's sovereign stack — **Prisma v3.0, Gemma 4 26B A4B, and Timbre v3.0** — Indian models for Indian learners, for the **Great Indian AI Internship Challenge**.
 
 `#GreatIndianAIInternshipChallenge` `#GnaniAI`
 

@@ -1,6 +1,6 @@
 # Observability Specs (SP3-OBS)
 
-Build-ready specification for Zivon-wide logging/observability and the admin dashboard v0 — the Wave-S1 docs deliverable that becomes the `logging_manager/` module. Every module that emits telemetry codes against [`logging-api.md`](logging-api.md); decisions live in ADRs 0017–0019 under `docs/backend/adr/`.
+Build-ready specification for Zivon-wide logging/observability and the admin dashboard v0 — the Wave-S1 docs deliverable that becomes the `logging_manager/` module. Every module that emits telemetry codes against [`logging-api.md`](logging-api.md); decisions live in ADRs 0024–0026 under `docs/backend/adr/` [WS1 renumber from 0017–0019].
 
 ## Layout
 

@@ -17,6 +17,9 @@ reads this file FIRST. Items are ordered by blast radius.
 | Q9 | Font subsetting/licensing: converting the four bundled TTFs to woff2 subsets creates DERIVED font files — the bundled faces are open-license fonts, but the exact license terms for derived/subset redistribution must be re-checked and `FONTS-LICENSE.md` kept truthful. | Spec C4 requires the license record to stay accurate; `test_font_payload_budget` guards the size win. | EX5-FRONT: verify each face's license permits subsetting/redistribution under the bundled license, update FONTS-LICENSE.md in the same change. | C4 |
 | Q10 | Branding/domain: `ZIVON_PUBLIC_BASE_URL` (canonical/sitemap/OG) has no value until the hosting decision lands (TIMELINE ⬜ open); the 404 page and og-card are new founder-visible surfaces. | Everything derives from the single env var; generators are offline + idempotent; 404 + og-card spec'd as shell work items (C1, S1). | Founder: hosting/domain decision; review 404 copy + og-card art. | sitemap/canonical correctness (files generate, URLs stay relative-correct once the env lands) |
 
+
+**WS1 (merge-agent, 2026-11-09) note:** W0 landed `docs/backend/` + `docs/product/` on main, so Q1/Q2 are no longer "absent everywhere" — `scripts/check_specs.py` 6× `EXPECTED_ABSENT` flags are stale markers, not defects. §R reconciliation is started (WS contract canonical = SP1, see `ws-client-contract.md` WS1 note; Prisma/Timbre = v3.0 everywhere) but the full EL→F- remap of `component-inventory.csv` against the canonical `ui-element-inventory.csv` remains EX5-FRONT work (provisional IDs retained until then).
+
 ## §R — Reconciliation procedure for provisional ids (run when the features doc lands)
 
 1. Join by `source_ref`: the canonical `ui-element-inventory.csv` (real EL- ids)

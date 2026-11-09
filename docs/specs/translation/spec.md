@@ -495,7 +495,7 @@ Traces to `docs/frontend/design-doctrine.md` §10.5 and `docs/product/features.m
 | Surface | P0 (Challenge Demo — Built Now) | P1 / Post-Challenge | Why |
 |---|---|---|---|
 | **Lesson pages (text, examples, checks, diagrams, sims)** | **Build-time translated** via `10a`–`10d` (`en`, `hi`, `hi-Latn`) | Expand to `ta`, `te`, `mr`, `bn`, `gu`, `kn`, `ml`, `pa` | Reviewed once, cached forever, 0 runtime latency, 0 Gnani credit burn (`ADR-0013`). |
-| **Voice tutor replies (`Prisma → Evon → Timbre`)** | **Direct native/code-mixed generation by Evon v3.3** (NO separate runtime translation step) | Optional `TranslationRuntimeStub` fallback only for low-resource locales if direct generation fails language check | **Latency & credit law (`Gate C`)**: The voice loop has a `< ~4 s` end-of-speech → first-audio budget (`04-backend-api-and-realtime.md` §4.2: LLM TTFT budget is `500–1200 ms`). Adding a sequential LLM translation hop after Evon reasoning would add `800–2000 ms` and break streaming sentence-by-sentence TTS pipelining into Timbre v2.5. Evon v3.3 natively speaks 11 Indian languages and Hinglish (`02-all-about-gnani.md` §3). |
+| **Voice tutor replies (`Prisma → Gemma 4 → Timbre`)** | **Direct native/code-mixed generation by Gemma 4 26B A4B via Gemini API (Gate A outcome)** (NO separate runtime translation step) | Optional `TranslationRuntimeStub` fallback only for low-resource locales if direct generation fails language check | **Latency & credit law (`Gate C`)**: The voice loop has a `< ~4 s` end-of-speech → first-audio budget (`04-backend-api-and-realtime.md` §4.2: LLM TTFT budget is `500–1200 ms`). Adding a sequential LLM translation hop after Evon reasoning would add `800–2000 ms` and break streaming sentence-by-sentence TTS pipelining into Timbre v3.0. Gemma 4 natively speaks Indian languages and Hinglish (`02-all-about-gnani.md` §3). |
 
 ### 6.2 What the Voice Backend Does at Runtime (Direct Anchoring Contract)
 
@@ -504,9 +504,9 @@ When a student presses the mic on a localized page (`locale = "hi"` or `"hi-Latn
    - `locale`: active page locale (`"en" | "hi" | "hi-Latn"`).
    - `anchor_block_id`: e.g. `"b-04"`.
    - `anchor_block_text`: both the localized block text currently on screen AND the English ground-truth claim/equation (`claim-03`, `eq-01`), plus the chapter's bilingual glossary pairs for that block.
-2. **Prisma v2.5** transcribes the student's Hindi/English/Hinglish speech.
+2. **Prisma v3.0** transcribes the student's Hindi/English/Hinglish speech.
 3. **Evon v3.3** receives a system prompt instructing it to reply **directly in the student's spoken language / active `locale`** using the bilingual glossary terms on screen and emitting Timbre expressive tags.
-4. **Timbre v2.5** synthesizes the streamed sentences in the matching Indic/Hinglish voice.
+4. **Timbre v3.0** synthesizes the streamed sentences in the matching Indic/Hinglish voice.
 
 ### 6.3 P1 Runtime Translation Stub Contract (`backend/translation/runtime_stub.py` — NOT Built in P0)
 

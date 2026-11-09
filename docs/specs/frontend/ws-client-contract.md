@@ -2,13 +2,10 @@
 
 Agent: SP5-FRONT · Status: SPEC of the CLIENT side only.
 
-**Consumes / flags:**
+**Consumes / flags [WS1 RECONCILED]:**
 
-- SP1's `ws-contract.md` — **ABSENT** (flagged; this file defines what the browser
-  will speak so SP1 has a counterparty proposal, not a unilateral decision).
-- `docs/backend/backend-spec.md` + ADR-0010 (ducking), ST-04 (range/transport),
-  ADR-0015 (budget guards) — **ABSENT**, though `skills/zivon-audio-engineering-skills/README.md`
-  cites them; those citations are treated as intentions, not contracts.
+> **Canonical contract is SP1's `docs/specs/voice-agent/ws-contract.md` (server side).** This file is the client-side implementation view of that contract, not a competing protocol. Where names, paths, or codecs differ, SP1 wins and EX5-FRONT must implement SP1 names. Original SP5 proposal names (kept for traceability, do not implement): `session.init` ≡ `session.start`, `partial_transcript` ≡ `stt.partial`, `final_transcript` ≡ `stt.final`, `tutor.text` ≡ `tts.text`, `tts.chunk` ≡ `tts.audio`, `tts.start/tts.end` ≡ `agent.state`+`turn.end`, `client.endpoint` ≡ `audio.end`, `client.interrupt` ≡ `interrupt`, `client.text_input` ≡ text-fallback `audio.end` with typed transcript (SP1 §9 F1), `client.*` prefix dropped. Transport: `wss://<origin>/voice/ws` per SP1/ADR-0003 (not `/ws/tutor`); auth: `session.start.session_token` per API-001 (no anonymous session); audio C→S = PCM16 16 kHz 100 ms frames with 8-byte header per ADR-0020 §3 (not raw client Opus); S→C audio = Opus 20 ms frames with header; envelope is SP1's `type`-keyed WS text frames (not `{v,type,seq,ts,payload}`); client states mirror SP1 §1 (`idle→connecting→listening→thinking→speaking→idle`, `error`, `offline`). Sections 4–8 below (jitter buffer 60–120 ms, capture ladder, VAD/duck tuning, CSP request, latency logging) remain binding client behavior on top of SP1 names.
+- `docs/backend/backend-spec.md` + ADR-0010 (ducking), ST-04 (range/transport), ADR-0015 (credit guards) — **now present** on merged main (W0); citations treated as contracts. ADR-0015 credit semantics map to SP1 hooks H1–H4; ST-04 narration transport is EX8-owned.
 - The voice backend itself (FastAPI/WebSockets Deployment + Service) is an open
   TIMELINE item — nothing can connect today, which is why the CSP in force
   (`connect-src 'none'`) is currently correct.
