@@ -223,11 +223,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: kubeconform — schema validity
         run: |
-          curl -sL https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz | tar xz
+          # -f + retries: without them a transient 504 from GitHub's release CDN
+          # downloads an HTML error page, tar chokes on it, and the step dies as a
+          # bare "Process completed with exit code 2" naming nothing — that is what
+          # reddened `manifests` on 3ae510b/5b93f3c while the manifests themselves
+          # were valid (kubeconform + kube-linter pass on the same k8s/ tree).
+          # Now the blip is retried, and a hard failure names the download.
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -o kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz
+          tar xzf kubeconform.tar.gz
           ./kubeconform -summary -strict -kubernetes-version 1.33.0 k8s/
       - name: kube-linter — security linting
         run: |
-          curl -sL https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz | tar xz
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -o kube-linter.tar.gz \
+            https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz
+          tar xzf kube-linter.tar.gz
           ./kube-linter lint --config .kube-linter.yaml k8s/
 
   # ---- 6. the actual test suites (content factory + frontend) ---------------
