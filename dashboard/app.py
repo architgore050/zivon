@@ -42,6 +42,21 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 # else (& $ ; | quotes backslash newline ...) is rejected, never sanitized.
 _TOPIC_ALLOWED = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _-]{0,79}$")
 
+# The only scripts _run_action may execute (CodeQL py/path-injection +
+# py/command-line-injection): argv[0] must be one of these constants — no
+# path separators, no leading dash, no other repo file. _ARG_ALLOWED covers
+# every argv[1:] element the buttons pass (topic, digit class, "dashboard",
+# the "--fresh" constant): first char alphanumeric blocks option injection
+# ("--evil" as an argument), and the same set is re-checked in _run_action so
+# the CodeQL barrier dominates the subprocess sink in the same function.
+_ALLOWED_SCRIPTS = ("trigger-tests.sh", "trigger-factory-run.sh")
+_ARG_ALLOWED = re.compile(r"^(?:[A-Za-z0-9][A-Za-z0-9 _-]{0,79}|--fresh)$")
+
+# Run ids are factory slugify() output (factory/artifacts.py): lowercase
+# alphanumerics and hyphens, 63 chars max. Same slug as dashboard/queries.py;
+# validated at the route so an id can never reach a filesystem path.
+_RUN_ID_ALLOWED = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
+
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'",
@@ -251,6 +266,11 @@ def create_app() -> FastAPI:
         denied = _guard(request)
         if denied:
             return denied
+        # Run-id allowlist at the HTTP edge (the queries layer re-checks it):
+        # anything outside the slug space (separators, traversal, encoded
+        # slashes) is no run at all — 404, never handed to a path.
+        if not _RUN_ID_ALLOWED.fullmatch(run_id):
+            return JSONResponse(status_code=404, content={"error": "unknown run"})
         store = _store()
         detail = store.run_detail(run_id)
         artifacts = RunsArtifacts()
@@ -355,19 +375,45 @@ def create_app() -> FastAPI:
         dashboard.action_triggered event with action/args/result."""
         if not auth.csrf_valid(_session_id(request), csrf):
             return JSONResponse(status_code=403, content={"error": "bad CSRF token"})
-        repo = Path(os.environ.get("ZIVON_REPO_DIR", str(REPO_ROOT)))
-        script = repo / "scripts" / argv[0]
+        # Path guard (py/path-injection): argv[0] must be an allowlisted
+        # constant (no separators / leading dash possible past this line),
+        # then resolve() + is_relative_to keeps the executable inside
+        # <repo>/scripts even if ZIVON_REPO_DIR itself were attacker-shaped.
+        if not argv or argv[0] not in _ALLOWED_SCRIPTS:
+            return JSONResponse(status_code=500, content={"error": "unknown script"})
+        repo = Path(os.environ.get("ZIVON_REPO_DIR", str(REPO_ROOT))).resolve()
+        scripts_dir = (repo / "scripts").resolve()
+        script = (scripts_dir / argv[0]).resolve()
+        if not script.is_relative_to(scripts_dir):
+            return JSONResponse(status_code=500, content={"error": "script path"})
         if not script.is_file():
             result = f"script missing: scripts/{argv[0]}"
             ok = False
         else:
+            # Command guard (py/command-line-injection): every argv element is
+            # re-checked against the same allowlist the handlers enforce, so
+            # the barrier dominates the subprocess sink in this function.
+            # List form + shell=False: no element is shell-parsed, and the
+            # first-char-alphanumeric rule blocks option injection ("--evil").
+            # ("--fresh" is the sole hyphen-leading constant, matched exactly.)
+            # Each element is appended to safe_args only after its own check,
+            # so the list reaching subprocess carries validated values only.
+            safe_args: list[str] = []
+            for arg in argv[1:]:
+                if not _ARG_ALLOWED.fullmatch(arg):
+                    return JSONResponse(
+                        status_code=500,
+                        content={"error": "invalid script argument"},
+                    )
+                safe_args.append(arg)
             try:
                 proc = subprocess.run(
-                    [str(script), *argv[1:]],
+                    [str(script), *safe_args],
                     capture_output=True,
                     text=True,
                     timeout=60,
                     check=False,
+                    shell=False,
                     cwd=str(repo),
                 )
                 ok = proc.returncode == 0
@@ -426,12 +472,13 @@ def create_app() -> FastAPI:
                     )
                 },
             )
-        if class_level and (
-            not class_level.isdigit() or not 6 <= int(class_level) <= 12
-        ):
-            return JSONResponse(
-                status_code=422, content={"error": "class must be 6-12"}
-            )
+        class_int: int | None = None
+        if class_level:
+            if not class_level.isdigit() or not 6 <= int(class_level) <= 12:
+                return JSONResponse(
+                    status_code=422, content={"error": "class must be 6-12"}
+                )
+            class_int = int(class_level)
         if factory_run_in_progress():
             return JSONResponse(
                 status_code=409,
@@ -440,8 +487,10 @@ def create_app() -> FastAPI:
                 },
             )
         argv = ["trigger-factory-run.sh", topic]
-        if class_level:
-            argv.append(class_level)
+        if class_int is not None:
+            # int round-trip: the argv element is int-derived, never the raw
+            # form string (CodeQL py/command-line-injection clean by type).
+            argv.append(str(class_int))
         if fresh:
             argv.append("--fresh")
         return _run_action(request, "factory-run", argv, csrf)
