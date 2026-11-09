@@ -48,7 +48,7 @@ slides past Gate C. Devanagari and Latin-script Hinglish both appear, sometimes 
 - Harder: boundary rules are repo law for the voice loop — changes go through
   `testing/voice/test_chunker.py` fixtures (incl. Devanagari + mixed-script cases) before tuning.
 - Monitor: flush-deadline firing rate (should be rare; frequent firing = prompt contract drifting
-  long) and first-segment length distribution (L4 row of `latency-budget.md`).
+  long) and first-segment length distribution (L4 row of `docs/specs/voice-agent/latency-budget.md`).
 
 ## Revisit trigger (measurable)
 
@@ -60,4 +60,4 @@ prompt authoring loop (baseline → minimal contract → fresh-instance test), n
 - `skills/zivon-audio-engineering-skills/` §1 (frame scheduling, jitter buffering — chunks are
   spoken in order, buffered 60–120 ms)
 - spec.md §2 stage 5; ws-contract.md §2 (`tts.text`, `tts.audio` segment fields);
-  `latency-budget.md` L4
+  `docs/specs/voice-agent/latency-budget.md` L4

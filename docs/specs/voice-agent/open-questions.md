@@ -61,7 +61,7 @@ were therefore not readable when this spec was written.
   natural code-switching (`gnani.ai` launch coverage/product pages). [MODERATE — launch coverage read;
   re-verify endpoint details from the Gnani developer docs at build time]
 - The v2.5 strings predate both launches (repo snapshot 7 Nov 2026 in
-  `skills/zivon-systems-design-skills/.../06-zivon-systems-constraints.md` still says v2.5).
+  `skills/zivon-systems-design-skills/skills/zivon-systems-design/references/06-zivon-systems-constraints.md` still says v2.5).
 
 **Consequence for this spec:** voice-loop contracts target **Prisma v3.0 (STT)** and **Timbre v3.0
 (TTS, audio tags, realtime streaming)**. The non-negotiable in `AGENTS.md` is the *model choice*,

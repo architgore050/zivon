@@ -26,7 +26,7 @@ rule is satisfied twice over, and the public story keeps the full three-model lo
 - Evon v3.3 remains the intended brain and the post-challenge goal; Gemma 4 26B A4B is the runtime
   choice for the challenge window, behind `ZIVON_VOICE_BRAIN_MODEL` (a config value, not a rewrite).
 - Backend-spec A-09 ("warm brain, first token < 1.2 s") now reads as a **warm serving-path SLO** —
-  met by the Gemini API route and pinned by measurement (`latency-budget.md` L3), not by a
+  met by the Gemini API route and pinned by measurement (`docs/specs/voice-agent/latency-budget.md` L3), not by a
   self-hosted GPU.
 - The factory (build-time) keeps using whatever the llm-manager node serves; this decision changes
   the product runtime only (TIMELINE guiding rule 4 — build-time vs runtime split).

@@ -26,7 +26,7 @@ and the repo rule that every long-running service is a Deployment + Service with
 ## Decision
 
 - **Framing:** one WSS connection (`/voice/ws`); JSON text frames for control, binary frames for
-  audio with the 8-byte header defined in `ws-contract.md` §3 (magic/version/segment_id/seq/flags).
+  audio with the 8-byte header defined in `docs/specs/voice-agent/ws-contract.md` §3 (magic/version/segment_id/seq/flags).
 - **Uplink (C→S):** PCM16 mono 16 kHz, 100 ms frames (3,200 B). Client captures via
   `getUserMedia` constraint ladder + AudioWorklet (never MediaRecorder — per-platform container
   drift), AEC on, ducking via GainNode only (A-11).
@@ -34,7 +34,7 @@ and the repo rule that every long-running service is a Deployment + Service with
   if Timbre streams PCM, the pinned rate ships and Opus wrapping is added only if bandwidth
   demands]. Jitter buffer 60–120 ms clocked off `AudioContext.currentTime`; never hard-schedule
   < 150 ms ahead (low-end Android output latency 100–300 ms, +100–200 ms on Bluetooth).
-- **Barge-in/echo:** per `ws-contract.md` §5 (PTT press = interrupt in P0; VAD barge-in over
+- **Barge-in/echo:** per `docs/specs/voice-agent/ws-contract.md` §5 (PTT press = interrupt in P0; VAD barge-in over
   ducked playback in P1; echo guard drops STT within 200 ms of playback stop).
 - **Storage boundary:** frames live in WS-handler memory only; nothing audio-shaped is persisted
   or logged (ADR-0008).
@@ -51,7 +51,7 @@ and the repo rule that every long-running service is a Deployment + Service with
 ## Consequences
 
 - Easier: one image to build/deploy before the deadline; the dock speaks one protocol; EX5 consumes
-  `ws-contract.md` directly; CI's existing pipeline covers the monolith.
+  `docs/specs/voice-agent/ws-contract.md` directly; CI's existing pipeline covers the monolith.
 - Harder: voice WS connections share the core backend's rollout (drain semantics on deploy —
   resume path F5 must survive pod death; it does, by design: reconnect + replay).
 - Monitor: concurrent WS count + per-pod memory; Opus jitter-buffer gap rate; uplink loss rate.
@@ -67,4 +67,4 @@ split are re-decided with a live-measured delta, not by preference.
 - RFC 6716 (Opus) via `skills/zivon-audio-engineering-skills/` §1 (frame sizes, FEC/DTX, jitter)
 - `llm_manager/README.md` (keepalive/idle patterns borrowed for ping/pong); `k8s/` numeric-prefix
   convention (apply order); AGENTS.md infra section (Deployment+Service for long-running services)
-- `ws-contract.md` §3/§5; spec.md §12 (mount + config); backend-spec §4.2 (per mission brief)
+- `docs/specs/voice-agent/ws-contract.md` §3/§5; spec.md §12 (mount + config); backend-spec §4.2 (per mission brief)
