@@ -30,7 +30,7 @@ cd "$(dirname "$0")/.."
 source k8s/infra.env
 # export so envsubst (a child process) can see the values — sourced vars are
 # shell-local by default.
-export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
+export TEST_CRON_SCHEDULE EVAL_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
   ZIVON_CALL_DEADLINE_S ZIVON_STREAM ZIVON_STREAM_USAGE ZIVON_JSON_MODE \
   ZIVON_MAX_ATTEMPTS \
   ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL \
@@ -92,5 +92,6 @@ kubectl apply -f k8s/23-dashboard-deployment.yaml -f k8s/24-dashboard-service.ya
 envsubst '${ZIVON_LOG_SYNC_SCHEDULE}' < k8s/51-log-retention-cronjob.yaml | kubectl apply -f -
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
+envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -
 
 scripts/trigger-tests.sh startup

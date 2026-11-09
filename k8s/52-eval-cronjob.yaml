@@ -1,0 +1,89 @@
+# Scheduled evaluation & reviewer calibration suite (evals/ package).
+# Schedule is rendered from ${EVAL_CRON_SCHEDULE} in k8s/infra.env by
+# scripts/apply-k8s.sh (default: daily at 02:00 UTC).
+#
+# Manual trigger (admin dashboard button stand-in):
+#   scripts/trigger-evals.sh [smoke|full|calibrate]
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: eval-suite
+  namespace: zivon
+  labels:
+    app: zivon-factory
+    task: eval-suite
+spec:
+  schedule: "${EVAL_CRON_SCHEDULE}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: zivon-factory
+            task: eval-suite
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          containers:
+            - name: evals
+              image: zivon-factory:0.3.17
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - >-
+                  python -m evals run --suite full &&
+                  python -m evals calibrate --stage all
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-factory-config
+                - secretRef:
+                    name: zivon-factory-env
+                    optional: true
+              env:
+                - name: HF_HUB_OFFLINE
+                  value: "1"
+                - name: ZIVON_EVAL_RUNS_DIR
+                  value: "/app/evals_runs"
+              volumeMounts:
+                - name: runs
+                  mountPath: /app/runs
+                - name: evals-runs
+                  mountPath: /app/evals_runs
+                - name: hf-cache
+                  mountPath: /app/.cache/huggingface
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+          volumes:
+            - name: runs
+              emptyDir: {}
+            - name: evals-runs
+              emptyDir: {}
+            - name: hf-cache
+              persistentVolumeClaim:
+                claimName: zivon-hf-cache
+            - name: tmp
+              emptyDir: {}

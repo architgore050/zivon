@@ -192,6 +192,15 @@ Content-creation non-negotiables: interview before drafting (Depth Gate), never 
 
 ---
 
+## Testing vs Evals (`testing/` vs `evals/`)
+
+- **`testing/` holds deterministic code tests** (unit mechanics, schema validation, mock-server stage orchestration, and static shell contracts). They must pass 100% key-free and offline.
+- **`evals/` holds model & prompt evaluations** (`EV-CUR-001`, `EV-SYN-001..002`, `EV-VIS-001`, `EV-PERF-001`, `EV-REV-001..002`, `EV-E2E-001`, `EV-KID-001`), Golden Topic contracts (`evals/goldens/topics/`), the 19-sample Seeded-Defect Reviewer Calibration corpus (`evals/goldens/defects/`), and the Dual-Write Eval Result Store (`ADR-0027`, `ADR-0028`).
+- Every eval card runs a **deterministic-first funnel**: zero-cost code checkers (`evals/checkers/`) execute first and short-circuit before any `llm_manager` judge call (`evals/judges/`).
+- Run fast PR smoke evals key-free via `python -m evals run --suite smoke --mock` and full/calibration suites via `python -m evals run --suite full` or `python -m evals calibrate --stage all`.
+
+---
+
 ## Coding standards
 
 - Prefer clear, readable Python.
