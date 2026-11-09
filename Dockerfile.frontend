@@ -16,8 +16,13 @@
 
 FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 
-# Freshen the four Alpine packages whose fixes landed after this base was built
-# (trivy gate: brotli/curl/libcurl/libexpat HIGH+CRITICAL, fixes available).
+# Freshen the Alpine packages whose fixes landed after this base was built
+# (trivy gate: HIGH+CRITICAL findings with fixes out). Round 1: brotli/curl/
+# libcurl/libexpat. Round 2 (2026-11-09): musl + musl-utils (CVE-2026-107891,
+# regcomp integer overflow -> 1.2.6-r3) and zlib (CVE-2026-85091, gz_vacate
+# heap overflow -> 1.3.2-r1) — 1.31.7-alpine3.24 is still the newest micro
+# build of this base (last rebuilt 2026-10-19), so bumping the tag cannot
+# reach those fixes; this layer is the fix.
 # The apk update is required: the base ships a frozen index from its build date,
 # so the newer fixes are invisible to apk upgrade without it. Targeted + unpinned
 # on purpose: Alpine repos keep only the newest -r revision, so exact pins rot
@@ -26,7 +31,7 @@ FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 # USER stays non-root.
 # hadolint ignore=DL3018
 USER 0
-RUN apk update && apk upgrade --no-cache brotli-libs curl libcurl libexpat
+RUN apk update && apk upgrade --no-cache brotli-libs curl libcurl libexpat musl musl-utils zlib
 USER 101
 
 # Replace the stock default site with the Zivon site config.

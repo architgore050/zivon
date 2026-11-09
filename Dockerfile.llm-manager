@@ -24,6 +24,19 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Freshen the Debian layer under the floating python:3.12-slim base. The base
+# ships a frozen apt index from its build date, so fixes published afterwards
+# are invisible until apt-get update runs: the newest 3.12-slim build (2026-11-08)
+# still carries zlib1g 1:1.3.dfsg+really1.3.1-1+b1, which trivy flags HIGH with
+# fixes out (CVE-2026-85091 heap overflow in gz_vacate, CVE-2026-76844).
+# Whole-tree upgrade, unpinned, on purpose: Debian drops old point revisions
+# from the archive, so pins rot; the frozen-index problem hits whatever package
+# the next CVE lands on, not just zlib.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies BEFORE copying code (layer cache: code edits do not
 # re-download the wheels).
 COPY llm_manager/requirements.txt ./llm_manager/requirements.txt
