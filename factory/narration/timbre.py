@@ -45,6 +45,7 @@ import httpx
 from ..errors import ConfigError
 from .env import NarrationEnv
 from .errors import NarrationError
+from .select import strip_non_whitelisted_tags
 
 # Mock speech rate (chars per second): a measured narration pace for Physics
 # prose is ~14-15 chars/s; the mock needs only a plausible, deterministic
@@ -77,7 +78,10 @@ class MockTimbreClient(TimbreClient):
     """Deterministic silence, sized like real speech. Zero credits."""
 
     def synthesize(self, text: str, language: str) -> SynthesisResult:
-        duration_s = min(MOCK_MAX_DURATION_S, max(1.0, len(text) / MOCK_CHARS_PER_SEC))
+        safe_text = strip_non_whitelisted_tags(text)
+        duration_s = min(
+            MOCK_MAX_DURATION_S, max(1.0, len(safe_text) / MOCK_CHARS_PER_SEC)
+        )
         return SynthesisResult(
             audio=_silence_wav(duration_s),
             content_type="audio/wav",
@@ -110,11 +114,16 @@ class LiveTimbreClient(TimbreClient):
         self._transport = transport
 
     def synthesize(self, text: str, language: str) -> SynthesisResult:
+        # Harness defense (like SP1's tag whitelist): only the narration
+        # whitelist (<pauses> <slow> <excited> <whispers>) is ever posted.
+        # The stage already caps tags in select.spoken_text; this strip makes
+        # direct callers safe too and never bills non-whitelisted characters.
+        safe_text = strip_non_whitelisted_tags(text)
         headers = {"Content-Type": "application/json"}
         if self.env.timbre_api_key:
             headers["Authorization"] = f"Bearer {self.env.timbre_api_key}"
         payload: dict[str, object] = {
-            "text": text,
+            "text": safe_text,
             "language": language,
             "format": "ogg-opus",
             "sample_rate": 48000,
