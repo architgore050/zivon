@@ -73,8 +73,8 @@ def _error_class(name: str) -> Any:
         from logging_manager import ErrorClass
 
         return ErrorClass(name)
-    except ImportError:
-        return None
+    except (ImportError, ValueError):
+        return None  # unknown names never break the node's request path
 
 
 class _NodeObserver(LLMObserver):

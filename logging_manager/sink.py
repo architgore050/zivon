@@ -120,7 +120,10 @@ class _JsonlSink:
     def write(self, record: dict[str, Any]) -> None:
         line = serialize(record)
         component = str(record.get("component", "log"))
-        day = str(record.get("ts", ""))[:10] or _utc_now_iso_ms()[:10]
+        # ADR-0025 §2: runs/logs/YYYYMMDD-<component>.jsonl (compact date)
+        day = (str(record.get("ts", ""))[:10] or _utc_now_iso_ms()[:10]).replace(
+            "-", ""
+        )
         path = self.path_for(component, day)
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -377,7 +380,10 @@ def _dispatch(record: dict[str, Any], *, internal: bool = False) -> None:
     global _pg_sink, _pg_dsn_seen
     dsn = os.environ.get("ZIVON_LOG_DSN", "").strip()
     if not dsn:
-        _mark_degraded(dsn_set=False)
+        if not internal:
+            # the module's own lifecycle events (store_fallback etc.) must
+            # not re-trigger the degradation marking they report
+            _mark_degraded(dsn_set=False)
         _jsonl().write(record)
         return
     delivered = False

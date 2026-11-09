@@ -59,7 +59,8 @@ class LogStore:
         try:
             with self.connection.cursor() as cur:
                 cur.execute(sql, params)
-                columns = [c.name for c in cur.description] if cur.description else []
+                description = cur.description if cur.description else []
+                columns = [getattr(c, "name", c[0]) for c in description]
                 return [dict(zip(columns, row)) for row in cur.fetchall()]
         except Exception as exc:  # noqa: BLE001 — a view never crashes the page
             self.error = self.error or str(exc)[:200]

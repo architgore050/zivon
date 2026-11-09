@@ -213,7 +213,6 @@ def export_day(conn: Any, day: str, out_dir: Path | None = None) -> dict[str, An
     day_end = day_start + timedelta(days=1)
     out_path = out_dir / f"{day}.ndjson"
     rows = 0
-    digest = hashlib.sha256()
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -231,11 +230,13 @@ def export_day(conn: Any, day: str, out_dir: Path | None = None) -> dict[str, An
                 )
                 fh.write(line + "\n")
                 rows += 1
-                digest.update(line.encode("utf-8"))
+    # The manifest's checksum is taken over the WRITTEN file bytes, so
+    # day_verified compares like with like.
+    digest = hashlib.sha256(out_path.read_bytes()).hexdigest()
     manifest = {
         "day": day,
         "rows": rows,
-        "sha256": digest.hexdigest(),
+        "sha256": digest,
         "bytes": out_path.stat().st_size,
         "exported_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "verified": True,
