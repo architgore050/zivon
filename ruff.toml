@@ -1,0 +1,16 @@
+# Ruff config for the whole repo (CI's `ruff check .` + `ruff format --check .`
+# and every local run read this file — one rule set, no CI-only flags).
+#
+# Why this file exists: since ruff 0.16, `ruff format` also formats Python code
+# blocks inside Markdown files. The skill bundles vendor third-party skills
+# verbatim under `skills/*/vendored/` (pm-skills Apache-2.0,
+# jeffallan-claude-skills MIT) — other projects' prose and samples, kept as
+# upstream wrote them, licences and all. Their Python snippets are not Zivon
+# code, and reformatting them to our style would corrupt the vendored copies
+# (provenance + licence integrity) and make every upstream re-sync unmergeable.
+# The gate covers Zivon's own code and docs; vendored trees are out of scope.
+#
+# `force-exclude` makes the exclusion hold even when a path inside a vendored
+# tree is passed to ruff explicitly (e.g. by a pre-commit hook).
+extend-exclude = ["skills/*/vendored"]
+force-exclude = true
