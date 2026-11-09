@@ -1,0 +1,43 @@
+{
+  "course_id": "class-11-physics",
+  "class": 11,
+  "topic_slug": "units-and-measurement",
+  "title": "Units and Measurement",
+  "chapter": {
+    "query": "Units and Measurement",
+    "title": "UNITS AND MEASUREMENT",
+    "book": "Physics Part I - Textbook for Class XI",
+    "pages": [
+      1,
+      12
+    ],
+    "number": 1
+  },
+  "sources": [
+    {
+      "id": "ncert-physics-11-part1",
+      "title": "Physics Part I - Textbook for Class XI",
+      "license": "NCERT (free educational use)"
+    },
+    {
+      "id": "openstax-hs-physics",
+      "title": "OpenStax High School Physics",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-physics-11-part2",
+      "title": "Physics Part II - Textbook for Class XI",
+      "license": "see sources catalog"
+    }
+  ],
+  "run_id": "units-and-measurement-c11",
+  "generated_at": "2026-11-09T11:56:46Z",
+  "block_counts": {
+    "text": 8,
+    "check": 14,
+    "diagram": 2,
+    "reveal": 5,
+    "worked_example": 11,
+    "simulation": 1
+  }
+}

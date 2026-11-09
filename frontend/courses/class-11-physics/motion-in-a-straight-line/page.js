@@ -1,68 +1,140 @@
-ZivonSim.register("b-04",{init:function(ctx){},draw:function(ctx){var g=ctx.g,W=480,H=320,L=56,R=16,T=46,B=38,pw=W-L-R,ph=H-T-B,t0=ctx.values.t;if(t0===undefined)t0=4;function px(t){return L+t/6*pw;}function py(x){return T+ph-x/18*ph;}var x0=0.08*t0*t0*t0,v=0.24*t0*t0;g.fillStyle="#F6F0CF";g.fillRect(0,0,W,H);g.strokeStyle="#5A5748";g.lineWidth=1;g.setLineDash([4,5]);for(var gx=0;gx<=18;gx+=6){g.beginPath();g.moveTo(L,py(gx));g.lineTo(L+pw,py(gx));g.stroke();}for(var gt=0;gt<=6;gt+=2){g.beginPath();g.moveTo(px(gt),T);g.lineTo(px(gt),T+ph);g.stroke();}g.setLineDash([]);g.strokeStyle="#1C1B18";g.lineWidth=3;g.beginPath();g.moveTo(L,T+ph);g.lineTo(L+pw,T+ph);g.stroke();g.beginPath();g.moveTo(L,T);g.lineTo(L,T+ph);g.stroke();g.fillStyle="#1C1B18";g.font='14px "Courier Prime","Courier New",monospace';g.textAlign="center";for(var tx=0;tx<=6;tx+=2){g.fillText(String(tx),px(tx),T+ph+20);}g.textAlign="right";for(var xx=0;xx<=18;xx+=6){g.fillText(String(xx),L-8,py(xx)+5);}g.textAlign="left";g.fillText("t (s)",L+pw-36,T+ph+20);g.fillText("x (m)",L+4,T-8);g.font='700 15px "Courier Prime","Courier New",monospace';g.fillText("x = 0.08 t^3",L+10,T+18);g.strokeStyle="#1C1B18";g.lineWidth=3;g.beginPath();for(var t=0;t<=6.001;t+=0.05){var x=0.08*t*t*t,X=px(t),Y=py(x);if(t===0)g.moveTo(X,Y);else g.lineTo(X,Y);}g.stroke();g.save();g.beginPath();g.rect(L,T,pw,ph);g.clip();g.strokeStyle="#1F3A9E";g.lineWidth=3;g.beginPath();g.moveTo(px(t0-3),py(x0+v*((t0-3)-t0)));g.lineTo(px(t0+3),py(x0+v*((t0+3)-t0)));g.stroke();g.restore();g.strokeStyle="#5A5748";g.lineWidth=2;g.setLineDash([5,5]);g.beginPath();g.moveTo(px(t0),py(x0));g.lineTo(px(t0),T+ph);g.stroke();g.beginPath();g.moveTo(px(t0),py(x0));g.lineTo(L,py(x0));g.stroke();g.setLineDash([]);var run=t0<=5?1:-1;if(v>0){g.beginPath();g.moveTo(px(t0),py(x0));g.lineTo(px(t0+run),py(x0));g.lineTo(px(t0+run),py(x0+v*run));g.stroke();}g.fillStyle="#1F3A9E";g.beginPath();g.arc(px(t0),py(x0),6,0,6.283);g.fill();g.strokeStyle="#F6F0CF";g.lineWidth=2;g.stroke();g.font='700 15px "Courier Prime","Courier New",monospace';g.fillText("tangent: slope = v",Math.min(px(t0)+10,L+pw-150),Math.max(T+34,py(x0)-12));g.fillStyle="#1C1B18";g.fillText("t = "+t0.toFixed(1)+" s   x = "+x0.toFixed(2)+" m   v = "+v.toFixed(2)+" m/s",L+10,H-8);}});
-
-ZivonSim.register('b-08', {
-  init: function (ctx) { ctx.tc = 0; },
+ZivonSim.register('b-05', {
+  init: function (ctx) {
+    if (ctx.values.t === undefined || ctx.values.t === null) { ctx.values.t = 4; }
+  },
   draw: function (ctx) {
-    var g = ctx.g; if (!g) return;
-    var a = (ctx.values && typeof ctx.values.a === 'number') ? ctx.values.a : 2;
-    var v0 = (ctx.values && typeof ctx.values.v0 === 'number') ? ctx.values.v0 : 5;
-    var T = 4, vMin = -20, vMax = 32;
-    var L = 55, R = 465, Top = 38, Bot = 262;
-    function X(t) { return L + (t / T) * (R - L); }
-    function Y(v) { return Bot - ((v - vMin) / (vMax - vMin)) * (Bot - Top); }
-    function vel(t) { return v0 + a * t; }
-    g.clearRect(0, 0, 480, 320);
-    g.fillStyle = '#F6F0CF'; g.fillRect(0, 0, 480, 320);
-    g.font = '400 14px Courier Prime, monospace'; g.textAlign = 'right'; g.textBaseline = 'middle';
-    var gv = [-20, -10, 10, 20, 30];
-    g.strokeStyle = '#5A5748'; g.lineWidth = 1; g.setLineDash([4, 5]);
-    for (var i = 0; i < gv.length; i++) { var y = Y(gv[i]); g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); g.fillStyle = '#5A5748'; g.fillText(String(gv[i]), L - 6, y); }
-    for (var tt = 1; tt <= 4; tt++) { var x = X(tt); g.beginPath(); g.moveTo(x, Top); g.lineTo(x, Bot); g.stroke(); g.textAlign = 'center'; g.fillText(String(tt), x, Bot + 14); }
+    var g = ctx.g;
+    var W = ctx.width || 480;
+    var H = ctx.height || 320;
+    var t0 = (ctx.values.t !== undefined && ctx.values.t !== null) ? ctx.values.t : 4;
+    var plotL = 58, plotR = W - 16, plotT = 20, plotB = H - 64;
+    var tMax = 6, xMax = 18;
+    function X(t) { return plotL + (t / tMax) * (plotR - plotL); }
+    function Y(x) { return plotB - (x / xMax) * (plotB - plotT); }
+    function pos(t) { return 0.08 * t * t * t; }
+    function vel(t) { return 0.24 * t * t; }
+    var x0 = pos(t0);
+    var v0 = vel(t0);
+    var gt, gx, t, tt, px, py, xt, tx, ty;
+    g.fillStyle = '#F6F0CF';
+    g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#5A5748';
+    g.globalAlpha = 0.18;
+    g.lineWidth = 1;
     g.setLineDash([]);
-    g.strokeStyle = '#1C1B18'; g.lineWidth = 2;
-    g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(R, Y(0)); g.stroke();
-    g.beginPath(); g.moveTo(X(0), Top); g.lineTo(X(0), Bot); g.stroke();
-    g.fillStyle = '#1C1B18'; g.textAlign = 'left'; g.font = '700 14px Courier Prime, monospace';
-    g.fillText('v (m/s)', 8, Top - 12); g.textAlign = 'right'; g.fillText('t (s)', R, Bot + 14); g.textAlign = 'left'; g.fillText('0', L - 14, Y(0) + 14);
-    var period = 5; var raw = (typeof ctx.t === 'number') ? (ctx.t % period) : 2; var tc = Math.min(raw, T);
-    var pts = [];
-    for (var t = 0; t < tc; t += 0.05) { pts.push([t, vel(t)]); }
-    pts.push([tc, vel(tc)]);
-    var segs = [], cur = [];
-    for (var k = 0; k < pts.length; k++) {
-      if (k > 0) {
-        var p0 = pts[k - 1], p1 = pts[k];
-        if ((p0[1] >= 0 && p1[1] < 0) || (p0[1] <= 0 && p1[1] > 0)) {
-          var tx = p0[0] + (0 - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]);
-          cur.push([tx, 0]); segs.push(cur); cur = [[tx, 0]];
-        }
-      }
-      cur.push(pts[k]);
-    }
-    if (cur.length > 1) segs.push(cur);
-    for (var s = 0; s < segs.length; s++) {
-      var seg = segs[s]; if (seg.length < 2) continue;
-      var pos = false; for (var q = 0; q < seg.length; q++) { if (seg[q][1] > 0) pos = true; }
-      g.beginPath(); g.moveTo(X(seg[0][0]), Y(0));
-      for (var q2 = 0; q2 < seg.length; q2++) { g.lineTo(X(seg[q2][0]), Y(seg[q2][1])); }
-      g.lineTo(X(seg[seg.length - 1][0]), Y(0)); g.closePath();
-      g.globalAlpha = pos ? 0.28 : 0.35; g.fillStyle = pos ? '#1F3A9E' : '#5A5748'; g.fill(); g.globalAlpha = 1;
-    }
-    g.strokeStyle = '#1F3A9E'; g.lineWidth = 3; g.beginPath();
-    for (var t2 = 0; t2 <= T; t2 += 0.05) { var px = X(t2), py = Y(vel(t2)); if (t2 === 0) g.moveTo(px, py); else g.lineTo(px, py); }
+    for (gt = 0; gt <= 6; gt++) { g.beginPath(); g.moveTo(X(gt), plotT); g.lineTo(X(gt), plotB); g.stroke(); }
+    for (gx = 0; gx <= 18; gx += 6) { g.beginPath(); g.moveTo(plotL, Y(gx)); g.lineTo(plotR, Y(gx)); g.stroke(); }
+    g.globalAlpha = 1;
+    g.strokeStyle = '#1C1B18';
+    g.lineWidth = 2.5;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(plotL, plotT);
+    g.lineTo(plotL, plotB);
+    g.lineTo(plotR, plotB);
     g.stroke();
-    var vc = vel(tc), mx = X(tc), my = Y(vc);
-    g.strokeStyle = '#1F3A9E'; g.lineWidth = 1.5; g.setLineDash([4, 4]);
-    g.beginPath(); g.moveTo(mx, my); g.lineTo(mx, Y(0)); g.stroke();
-    g.beginPath(); g.moveTo(mx, my); g.lineTo(X(0), my); g.stroke(); g.setLineDash([]);
-    g.fillStyle = '#1F3A9E'; g.beginPath(); g.arc(mx, my, 5, 0, 6.2832); g.fill();
-    g.strokeStyle = '#F6F0CF'; g.lineWidth = 2; g.stroke();
-    var disp = v0 * tc + 0.5 * a * tc * tc;
-    g.fillStyle = '#1C1B18'; g.textAlign = 'left'; g.font = '700 16px Courier Prime, monospace';
-    g.fillText('Area under v-t line = displacement', L, 20);
-    g.font = '700 15px Courier Prime, monospace';
-    g.fillText('t = ' + tc.toFixed(1) + ' s   v = ' + vc.toFixed(1) + ' m/s   displacement = ' + disp.toFixed(1) + ' m', L, 288);
-    g.font = '400 14px Courier Prime, monospace'; g.fillStyle = '#5A5748';
-    g.fillText('v = v0 + a t   displacement = v0 t + 0.5 a t^2', L, 308);
+    g.strokeStyle = '#1C1B18';
+    g.lineWidth = 3;
+    g.lineJoin = 'round';
+    g.beginPath();
+    for (t = 0; t <= 6.0001; t += 0.05) { px = X(t); py = Y(pos(t)); if (t === 0) { g.moveTo(px, py); } else { g.lineTo(px, py); } }
+    g.stroke();
+    g.strokeStyle = '#5A5748';
+    g.lineWidth = 1.5;
+    g.setLineDash([5, 5]);
+    g.beginPath();
+    g.moveTo(X(t0), Y(x0));
+    g.lineTo(X(t0), plotB);
+    g.moveTo(X(t0), Y(x0));
+    g.lineTo(plotL, Y(x0));
+    g.stroke();
+    g.setLineDash([]);
+    var dtri = t0 <= 5 ? 1 : -1;
+    var qx = X(t0 + dtri), qy = Y(x0), rx = qx, ry = Y(x0 + v0 * dtri);
+    g.setLineDash([4, 4]);
+    g.beginPath();
+    g.moveTo(X(t0), qy);
+    g.lineTo(qx, qy);
+    g.lineTo(rx, ry);
+    g.stroke();
+    g.setLineDash([]);
+    g.strokeStyle = '#1F3A9E';
+    g.lineWidth = 3;
+    g.beginPath();
+    var inSeg = false;
+    for (tt = 0; tt <= 6.0001; tt += 0.05) {
+      xt = x0 + v0 * (tt - t0);
+      if (xt >= 0 && xt <= xMax) {
+        tx = X(tt); ty = Y(xt);
+        if (!inSeg) { g.moveTo(tx, ty); inSeg = true; } else { g.lineTo(tx, ty); }
+      } else { inSeg = false; }
+    }
+    g.stroke();
+    g.fillStyle = '#1F3A9E';
+    g.beginPath();
+    g.arc(X(t0), Y(x0), 6, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = '#F6F0CF';
+    g.lineWidth = 2;
+    g.stroke();
+    g.fillStyle = '#5A5748';
+    g.font = '14px Courier Prime, monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    for (gt = 0; gt <= 6; gt++) { g.fillText(String(gt), X(gt), plotB + 6); }
+    g.textAlign = 'right';
+    g.textBaseline = 'middle';
+    for (gx = 0; gx <= 18; gx += 6) { g.fillText(String(gx), plotL - 8, Y(gx)); }
+    g.fillStyle = '#1C1B18';
+    g.font = 'bold 14px Courier Prime, monospace';
+    g.textAlign = 'left';
+    g.textBaseline = 'top';
+    g.fillText('x (m)', plotL + 6, plotT + 4);
+    g.textAlign = 'right';
+    g.textBaseline = 'bottom';
+    g.fillText('t (s)', plotR - 4, plotB - 4);
+    g.fillStyle = '#5A5748';
+    g.font = '14px Courier Prime, monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    g.fillText('1 s', (X(t0) + qx) / 2, qy + 4);
+    if (v0 > 0.05) {
+      g.textBaseline = 'middle';
+      if (dtri > 0) { g.textAlign = 'left'; g.fillText('Δx', qx + 4, (qy + ry) / 2); }
+      else { g.textAlign = 'right'; g.fillText('Δx', qx - 4, (qy + ry) / 2); }
+    }
+    var leftSide = X(t0) >= W - 190;
+    var ax = leftSide ? X(t0) - 180 : X(t0) + 14;
+    var ay = Y(x0) - 30;
+    if (ay < plotT + 4) { ay = plotT + 4; }
+    g.fillStyle = '#1F3A9E';
+    g.font = '700 20px Caveat, cursive';
+    g.textAlign = 'left';
+    g.textBaseline = 'top';
+    g.fillText('slope = v', ax, ay);
+    var sx = leftSide ? ax + 150 : ax;
+    var sy = ay + 10;
+    var ang = Math.atan2(Y(x0) - sy, X(t0) - sx);
+    g.strokeStyle = '#1F3A9E';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(sx, sy);
+    g.lineTo(X(t0), Y(x0));
+    g.moveTo(X(t0), Y(x0));
+    g.lineTo(X(t0) - 10 * Math.cos(ang - 0.4), Y(x0) - 10 * Math.sin(ang - 0.4));
+    g.moveTo(X(t0), Y(x0));
+    g.lineTo(X(t0) - 10 * Math.cos(ang + 0.4), Y(x0) - 10 * Math.sin(ang + 0.4));
+    g.stroke();
+    g.fillStyle = '#1C1B18';
+    g.font = '15px Courier Prime, monospace';
+    g.textAlign = 'left';
+    g.textBaseline = 'top';
+    g.fillText('t = ' + t0.toFixed(1) + ' s    x = 0.08 t³ = ' + x0.toFixed(2) + ' m', plotL, plotB + 24);
+    g.fillStyle = '#1F3A9E';
+    g.font = 'bold 16px Courier Prime, monospace';
+    g.fillText('v = dx/dt = 0.24 t² = ' + v0.toFixed(2) + ' m s⁻¹', plotL, plotB + 44);
   }
 });
+
+
+ZivonSim.register('b-09', { init: function (ctx) {}, draw: function (ctx) { var g = ctx.g || ctx.canvas.getContext('2d'); var W = ctx.canvas.width || 480; var H = ctx.canvas.height || 320; var v0 = (ctx.values && typeof ctx.values.v0 === 'number') ? ctx.values.v0 : 5; var a = (ctx.values && typeof ctx.values.a === 'number') ? ctx.values.a : 2; var T = 4; var vT = v0 + a * T; var disp = v0 * T + 0.5 * a * T * T; var lo = Math.min(0, v0, vT); var hi = Math.max(0, v0, vT); var pad = Math.max(2, (hi - lo) * 0.18); lo -= pad; hi += pad; var L = 50, R = 470, Tp = 40, Bt = 250; function xOf(t) { return L + (t / T) * (R - L); } function yOf(v) { return Tp + (hi - v) / (hi - lo) * (Bt - Tp); } function fmt(n) { return String(Math.round(n * 10) / 10); } g.fillStyle = '#EFE6B8'; g.fillRect(0, 0, W, H); g.beginPath(); g.moveTo(xOf(0), yOf(0)); g.lineTo(xOf(0), yOf(v0)); for (var t = 0; t <= T + 0.0001; t += 0.1) { var v = v0 + a * t; g.lineTo(xOf(t), yOf(v)); } g.lineTo(xOf(T), yOf(0)); g.closePath(); g.fillStyle = 'rgba(31,58,158,0.22)'; g.fill(); g.strokeStyle = '#1F3A9E'; g.lineWidth = 1.5; g.setLineDash([5, 4]); g.stroke(); g.setLineDash([]); if (a !== 0) { g.beginPath(); g.moveTo(xOf(0), yOf(v0)); g.lineTo(xOf(1), yOf(v0)); g.lineTo(xOf(1), yOf(v0 + a)); g.strokeStyle = '#5A5748'; g.lineWidth = 1.5; g.setLineDash([4, 4]); g.stroke(); g.setLineDash([]); } g.strokeStyle = '#1C1B18'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(L, yOf(0)); g.lineTo(R, yOf(0)); g.moveTo(xOf(0), Tp); g.lineTo(xOf(0), Bt); g.stroke(); g.beginPath(); g.moveTo(R, yOf(0)); g.lineTo(R - 10, yOf(0) - 5); g.lineTo(R - 10, yOf(0) + 5); g.closePath(); g.fillStyle = '#1C1B18'; g.fill(); g.beginPath(); g.moveTo(xOf(0), Tp); g.lineTo(xOf(0) - 5, Tp + 10); g.lineTo(xOf(0) + 5, Tp + 10); g.closePath(); g.fill(); g.beginPath(); for (var t2 = 0; t2 <= T + 0.0001; t2 += 0.1) { var v2 = v0 + a * t2; var px = xOf(t2); var py = yOf(v2); if (t2 === 0) { g.moveTo(px, py); } else { g.lineTo(px, py); } } g.strokeStyle = '#1F3A9E'; g.lineWidth = 3; g.stroke(); g.beginPath(); g.arc(xOf(0), yOf(v0), 5, 0, Math.PI * 2); g.fillStyle = '#F6F0CF'; g.fill(); g.strokeStyle = '#1C1B18'; g.lineWidth = 2; g.stroke(); g.beginPath(); g.arc(xOf(T), yOf(vT), 5, 0, Math.PI * 2); g.fill(); g.stroke(); var now = (typeof ctx.t === 'number') ? ctx.t : 0; var tt = now % T; var vv = v0 + a * tt; g.beginPath(); g.moveTo(xOf(tt), yOf(vv)); g.lineTo(xOf(tt), yOf(0)); g.strokeStyle = '#5A5748'; g.lineWidth = 1.5; g.setLineDash([4, 4]); g.stroke(); g.setLineDash([]); g.beginPath(); g.arc(xOf(tt), yOf(vv), 5, 0, Math.PI * 2); g.fillStyle = '#1F3A9E'; g.fill(); g.strokeStyle = '#1C1B18'; g.lineWidth = 2; g.stroke(); g.fillStyle = '#1C1B18'; g.font = '700 15px monospace'; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillText('Velocity-time graph', L, 24); g.save(); g.translate(18, (Tp + Bt) / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.font = '700 14px monospace'; g.fillText('v (m/s)', 0, 0); g.restore(); g.textAlign = 'right'; g.font = '700 14px monospace'; g.fillText('t (s)', R, yOf(0) - 8); g.textAlign = 'left'; g.fillText(fmt(v0), xOf(0) + 8, yOf(v0) - 8); g.textAlign = 'right'; g.fillText(fmt(vT), xOf(T) - 8, yOf(vT) - 8); g.textAlign = 'center'; g.font = '700 16px cursive'; g.fillStyle = '#1F3A9E'; g.fillText('area', xOf(T / 2), yOf((v0 + vT) / 4) + 5); if (a !== 0) { g.textAlign = 'left'; g.font = '700 14px monospace'; g.fillStyle = '#5A5748'; g.fillText('slope = a', xOf(1) + 6, yOf(v0 + a / 2) + 5); } g.fillStyle = '#F6F0CF'; g.fillRect(L, 262, R - L, 50); g.strokeStyle = '#1C1B18'; g.lineWidth = 1; g.strokeRect(L, 262, R - L, 50); g.fillStyle = '#1C1B18'; g.font = '700 14px monospace'; g.textAlign = 'left'; g.fillText('v0 = ' + fmt(v0) + ' m/s   a = ' + fmt(a) + ' m/s²   v(4 s) = ' + fmt(vT) + ' m/s', L + 10, 283); g.fillText('area = ((' + fmt(v0) + '+' + fmt(vT) + ')/2) x 4 = ' + fmt(disp) + ' m = displacement', L + 10, 303); } });

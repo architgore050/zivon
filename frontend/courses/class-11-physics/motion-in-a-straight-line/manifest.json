@@ -10,7 +10,8 @@
     "pages": [
       1,
       14
-    ]
+    ],
+    "number": 2
   },
   "sources": [
     {
@@ -30,12 +31,13 @@
     }
   ],
   "run_id": "motion-in-a-straight-line-c11",
-  "generated_at": "2026-11-08T22:38:16Z",
+  "generated_at": "2026-11-09T10:23:43Z",
   "block_counts": {
-    "text": 6,
-    "check": 18,
+    "text": 10,
+    "diagram": 1,
+    "check": 16,
     "simulation": 2,
-    "worked_example": 6,
-    "reveal": 1
+    "worked_example": 11,
+    "reveal": 2
   }
 }
