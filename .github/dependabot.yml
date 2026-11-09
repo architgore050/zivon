@@ -16,6 +16,30 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
 
+  # Wave-E additions (EX6-CICD work item 5): one entry per requirements file
+  # the execution specs ANNOUNCE, registered before the files land so
+  # dependency coverage is never an afterthought of a merge.
+  #   voice/requirements.txt      — voice-agent spec §3 (google-genai,
+  #                                 websockets, httpx; folded into
+  #                                 Dockerfile.backend by the merge agent)
+  #   logging_manager/requirements.txt — observability spec (logging-api.md):
+  #                                 DB driver only; the JSON path is stdlib.
+  # NOTE: until the owning agent lands the directory, Dependabot logs a
+  # per-entry config warning ("directory not found") while every other
+  # ecosystem entry keeps working — the entries activate on arrival, which is
+  # the intended behavior (documented in docs/deployment/cicd.md).
+  - package-ecosystem: pip
+    directory: "/voice/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: "/logging_manager/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
   - package-ecosystem: docker
     directory: "/"          # watches base image in Dockerfile
     schedule:
