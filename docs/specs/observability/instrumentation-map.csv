@@ -1,0 +1,63 @@
+component,event,severity,correlation_ids,required_fields,latency_ms,error_class,privacy_class,emitter,notes
+factory,factory.run.started,INFO,run_id,chapter;class_level;fresh;resumed,no,,L1,factory/stages.py::run_pipeline,run_id adopted verbatim from make_run_id; ZIVON_RUN_ID env into the Job pod
+factory,factory.run.resumed,INFO,run_id,resumed_stages_count,no,,L1,factory/stages.py::run_pipeline,emitted when a re-trigger reuses completed stages
+factory,factory.run.completed,INFO,run_id,stage_durations_present;blocks_published,run_wall_ms,,L1,factory/stages.py::run_pipeline,terminal ok; publish status derives from this + 11-link output
+factory,factory.run.failed,ERROR,run_id,failed_stage;reason_code,no,repair_exhausted,L1,factory/stages.py::run_pipeline,terminal fail; alert.pipeline_run_failed keys off this (spec 9)
+factory,factory.stage.start,INFO,run_id+stage,,no,,L1,factory/stages.py::run_pipeline,one per stage id 00-ingest..11-link
+factory,factory.stage.ok,INFO,run_id+stage,blocks;attempts,stage_ms,,L1,factory/stages.py::run_pipeline,elapsed accounting mirrors existing stage_durations_s
+factory,factory.stage.fail,ERROR,run_id+stage,reason_code;attempt,stage_ms,gate_fail,L1,factory/stages.py::run_pipeline,reason_code enum in fields; never exception text with page content
+factory,factory.call.started,INFO,run_id+stage+request_id,call_intent;attempt,no,,L1,factory/llm.py,call_intent enum (generate;check;repair;review;reviewfix;fixloop)
+factory,factory.call.finished,INFO,run_id+stage+request_id,first_token_s;chunks_received;finish_reason;usage_present,call_ms,,L1,factory/llm.py,usage_present=false when OpenRouter returns usage null (TIMELINE 2026-11-08)
+factory,factory.call.rejected,WARNING,run_id+stage+request_id,round;reason_code,no,validation_error,L1,factory/llm.py + factory/checks.py,schema/contract rejection; reason_code only
+factory,factory.call.transport_exhausted,ERROR,run_id+stage+request_id,attempts;last_status,no,transport_error,L1,factory/llm.py,mirrors TransportError terminal semantics (llm_manager README)
+factory,factory.repair.round,INFO,run_id+stage,round;issues_count,no,,L1,factory/fixloop.py + factory/reviewfix.py,catcher rounds (bounded; never whole-pipeline re-runs)
+factory,factory.repair.exhausted,ERROR,run_id+stage,plateau;cap_hit,no,repair_exhausted,L1,factory/fixloop.py + factory/reviewfix.py,catcher gave up; feeds factory.run.failed
+factory,factory.coverage.gap_fatal,ERROR,run_id+stage,missing_count,no,gate_fail,L1,factory/checks.py,coverage contract omission flagged fatal (0.3.4)
+factory,factory.perf.budget_fail,WARNING,run_id+stage,budget_name;measured_ms;limit_ms,measured_ms,gate_fail,L1,factory/perf.py,perf-harness gates (overflow; FCP; load budgets)
+factory,factory.publish.ok,INFO,run_id,target;asset_count,no,,L1,scripts/publish-frontend.sh,shell publish path; target enum (pvc;snapshot)
+factory,factory.publish.fail,ERROR,run_id,target;reason_code,no,infra_error,L1,scripts/publish-frontend.sh,publish status view input
+llm_node,node.call.received,INFO,request_id;run_id,stream;attempt,no,,L1,llm_manager/service/,OpenAI-format relay entry; no payload fields ever
+llm_node,node.call.finished,INFO,request_id;run_id,first_token_s;chunks_received;finish_reason;usage_present,call_ms,,L1,llm_manager/service/,same field names as client side for join
+llm_node,node.call.transport_retry,WARNING,request_id;run_id,attempt;reason_code,no,transport_error,L1,llm_manager/service/,inactivity retry; reason enum (inactivity;status_5xx;rate_limited)
+llm_node,node.call.deadline_abort,ERROR,request_id;run_id,deadline_s;chunks_received,call_ms,transport_error,L1,llm_manager/service/,ZIVON_CALL_DEADLINE_S mid-stream close (2026-11-07 fix)
+llm_node,node.upstream_sse_error,ERROR,request_id;run_id,reason_code,no,transport_error,L1,llm_manager/service/,HTTP 200 + SSE error payload; snippet passes redaction
+llm_node,node.model_mismatch,ERROR,request_id,requested_model;available_count,no,validation_error,L1,llm_manager/service/,existing 400 guard becomes an event
+voice,voice.session.started,INFO,session_id,topic;class_level,no,,L2,voice backend (S2 agent contract),pseudonymous session_id UUID4 created here (ADR-0011)
+voice,voice.session.ended,INFO,session_id,turn_count;duration_bucket,session_ms,,L2,voice backend (S2 agent contract),duration_bucket enum (<2m;2-10m;>10m)
+voice,voice.turn.started,INFO,session_id+turn_id,page_topic,no,,L2,voice backend (S2 agent contract),turn = one STT-LLM-TTS cycle
+voice,voice.stt.final,INFO,session_id+turn_id,stt_final_ms;language_mix;partial_count;char_count,stt_final_ms,,L2,voice backend (S2 agent contract),aggregates only; NO transcript (A-02; redact denylist)
+voice,voice.stt.upstream_error,ERROR,session_id+turn_id,provider_code,no,transport_error,L2,voice backend (S2 agent contract),Prisma upstream failure
+voice,voice.llm.first_token,INFO,session_id+turn_id,llm_first_token_ms,llm_first_token_ms,,L2,voice backend (S2 agent contract),Evon v3.3 (or Gate-A fallback) first token
+voice,voice.llm.done,INFO,session_id+turn_id,total_ms;finish_reason,total_ms,,L2,voice backend (S2 agent contract),reasoning turn complete
+voice,voice.tts.first_audio,INFO,session_id+turn_id,tts_first_audio_ms,tts_first_audio_ms,,L2,voice backend (S2 agent contract),Timbre first audio byte
+voice,voice.turn.e2e_latency,INFO,session_id+turn_id,slowest_hop,e2e_ms,,L2,voice backend (S2 agent contract),end-of-speech to first audio; p95 vs 4000 ms Gate C budget (spec 9)
+voice,voice.turn.error,ERROR,session_id+turn_id,hop;reason_code,no,transport_error,L2,voice backend (S2 agent contract),hop enum (stt;llm;tts;transport); turn-level terminal failure
+voice,voice.barge_in,INFO,session_id+turn_id,at_ms,no,,L2,voice backend (S2 agent contract),user interrupted playback
+voice,voice.events.ingest_rejected,WARNING,request_id,reasons_count,no,client_error,L1,voice backend (S2 agent contract),POST /api/v1/events validation rejects; sampled 1/10 (logging-api 10)
+translator,translator.translate.ok,INFO,session_id+request_id,src_lang;tgt_lang,translate_ms,,L2,translator (S-series agent contract),future consumer of llm_manager node (llm_manager README)
+translator,translator.translate.fail,ERROR,session_id+request_id,reason_code;attempts,no,transport_error,L2,translator (S-series agent contract),exhausted transport or validation rounds
+frontend,frontend.page_view,INFO,client_session_id,topic;chapter;class_level,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F01; sendBeacon
+frontend,frontend.section_view,INFO,client_session_id,topic;section_id;dwell_bucket,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F02; dwell_bucket enum (<5s;5-30s;>30s)
+frontend,frontend.sim_open,INFO,client_session_id,topic;block_id,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F03
+frontend,frontend.sim_interact,INFO,client_session_id,topic;block_id;variable;interactions,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F04; batched 1/5s while dragging
+frontend,frontend.check_answered,INFO,client_session_id,topic;block_id;correct;attempts,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F05; correct bool; attempts int
+frontend,frontend.mic_press,INFO,client_session_id+session_id,topic,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F06; session_id present once voice session active
+frontend,frontend.voice_turn_done,INFO,client_session_id+session_id+turn_id,topic;e2e_bucket,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F07; client-side mirror of voice.turn.e2e_latency
+frontend,frontend.error,WARNING,client_session_id,topic;error_kind,no,client_error,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F08; error_kind enum (js;mic_permission;network;voice); no stack contents; fetch keepalive
+frontend,frontend.language_bar_use,INFO,client_session_id,topic;lang_selected,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F09
+frontend,frontend.session_end,INFO,client_session_id,duration_bucket;turn_count,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F10; pagehide beacon
+frontend,frontend.publish_view,INFO,client_session_id,topic;source,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F11; source enum (pvc;snapshot)
+frontend,frontend.heartbeat,INFO,client_session_id,,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F12; 60s liveness
+credit,credit.call_counted,INFO,session_id,profile;model;units,no,,CR,voice backend (S2 agent contract; ADR-0015 counters),one per billable model call
+credit,credit.counter_update,INFO,session_id,profile;used;cap;remaining,no,,CR,voice backend (S2 agent contract; ADR-0015 counters),profile enum (normal;demo); alert input
+credit,credit.guard_blocked,CRITICAL,session_id,profile;requested;remaining,no,quota_error,CR,voice backend (S2 agent contract; F-OPS-MET-01 guard),call refused to protect the 2000-credit demo reserve (40% of 5000)
+dashboard,dashboard.session_started,INFO,,session_ref,no,,L3,dashboard app (SP3-OBS contract; manifests 23-24),admin session created; session_ref = server-side session id (opaque)
+dashboard,dashboard.auth_failure,WARNING,,ip_truncated;attempts,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),generic 401 body; 1s constant delay (ADR-0019)
+dashboard,dashboard.auth_lockout,CRITICAL,,ip_truncated;window_min,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),5 failures/15min trigger; fail-closed
+dashboard,dashboard.auth_unconfigured,CRITICAL,,secret_present,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),Secret missing at boot; all admin routes 503 (ADR-0019 fail-closed)
+dashboard,dashboard.action_triggered,INFO,,action;args;result,no,,L3,dashboard app (SP3-OBS contract; manifests 23-24),tests-now / factory-run button invocations; exact script semantics (TIMELINE admin trigger commands)
+log,log.store_fallback,WARNING,,dsn_set;target_path,no,store_error,L1,logging_manager/sink.py,Postgres unreachable or unset; JSONL fallback engaged (ADR-0018)
+log,log.store_recovered,INFO,,target_path,no,,L1,logging_manager/sink.py,Postgres write path restored
+log,log.redaction_violation,WARNING,,event_ref;key;kind,no,privacy_violation,L3,logging_manager/redact.py,payload NEVER included; per-call-site dedup (first + every 100th)
+log,log.event_unknown,WARNING,,offender_event,no,,L1,logging_manager/events.py,emitted event has no instrumentation-map.csv row; CI map-lint makes this red
+privacy,privacy.subject_deleted,INFO,session_id,session_count;stores_touched,no,,L3,logging_manager/store.py,guardian deletion completed within 24h (ADR-0018 4b); IDs only
