@@ -716,11 +716,16 @@ def run_pipeline(
                 )
 
         run_ctx.finish(ok=True, detail="pipeline complete")
+        # `blocks` is the 02-generate handoff dict ({"blocks": [...]}); count
+        # the actual block list, not the dict's keys.
+        block_list = (
+            blocks.get("blocks", []) if isinstance(blocks, dict) else (blocks or [])
+        )
         log_event(
             "factory.run.completed",
             {
                 "stage_durations_present": bool(run_ctx.stage_durations()),
-                "blocks_published": len(blocks) if blocks is not None else 0,
+                "blocks_published": len(block_list),
             },
             latency_ms=int((time.monotonic() - run_t0) * 1000),
         )

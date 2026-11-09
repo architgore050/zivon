@@ -14,6 +14,7 @@ X-Request-Id is bound at the HTTP edge and returned on every response
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,11 @@ from .queries import LogStore, RunsArtifacts
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+
+# trigger-factory-run.sh's documented limitation: chapter names containing
+# quotes or pipes break the sed render of the Job template.
+_TOPIC_FORBIDDEN = re.compile(r"['\"\\|`]")
+
 
 SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'",
@@ -402,6 +408,16 @@ def create_app() -> FastAPI:
         topic = topic.strip()[:80]
         if not topic or topic.strip("-") == "":
             return JSONResponse(status_code=422, content={"error": "topic required"})
+        if _TOPIC_FORBIDDEN.search(topic):
+            # trigger-factory-run.sh renders the topic through sed into the
+            # Job template: quotes/pipes/backslashes are its documented
+            # unsupported set — the form must enforce that boundary itself.
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "error": "topic must not contain quotes, pipes or backslashes"
+                },
+            )
         if class_level and (
             not class_level.isdigit() or not 6 <= int(class_level) <= 12
         ):

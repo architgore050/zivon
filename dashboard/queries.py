@@ -29,6 +29,22 @@ def runs_dir() -> Path:
     return Path(os.environ.get("ZIVON_RUNS_DIR", "runs"))
 
 
+# One pooled connection per DSN for the process lifetime (the dashboard is
+# single-replica, read-mostly); a failed query drops it so the next request
+# reconnects instead of poisoning every view with a dead handle.
+_CONNECTIONS: dict[str, Any] = {}
+
+
+def _drop_connection(conn: Any) -> None:
+    for dsn, cached in list(_CONNECTIONS.items()):
+        if cached is conn:
+            _CONNECTIONS.pop(dsn, None)
+    try:
+        conn.close()
+    except Exception as exc:  # noqa: BLE001 — a broken handle must not break the view
+        del exc
+
+
 @dataclass
 class LogStore:
     """A thin, honest query layer. `connection` is a psycopg connection (or
@@ -42,12 +58,17 @@ class LogStore:
         dsn = os.environ.get("ZIVON_LOG_DSN", "").strip()
         if not dsn:
             return cls(connection=None, error=None)  # fallback mode: honest
+        cached = _CONNECTIONS.get(dsn)
+        if cached is not None:
+            return cls(connection=cached)
         try:
             import psycopg
 
-            return cls(connection=psycopg.connect(dsn, autocommit=True))
+            conn = psycopg.connect(dsn, autocommit=True)
         except Exception as exc:  # noqa: BLE001 — degrade, say so on the page
             return cls(connection=None, error=str(exc)[:200])
+        _CONNECTIONS[dsn] = conn
+        return cls(connection=conn)
 
     @property
     def reachable(self) -> bool:
@@ -64,6 +85,7 @@ class LogStore:
                 return [dict(zip(columns, row)) for row in cur.fetchall()]
         except Exception as exc:  # noqa: BLE001 — a view never crashes the page
             self.error = self.error or str(exc)[:200]
+            _drop_connection(self.connection)
             return []
 
     # ------------------------------------------------------------- views

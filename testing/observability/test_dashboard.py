@@ -453,6 +453,25 @@ class ActionTests(unittest.TestCase):
                 422,
             )
 
+    def test_factory_run_rejects_sed_breaking_topics(self) -> None:
+        """trigger-factory-run.sh renders the topic via sed into the Job
+        template: quotes/pipes/backslashes are its documented unsupported
+        set, so the form enforces the boundary instead of trusting it."""
+        with _seeded_app() as client:
+            _login(client)
+            csrf = _csrf_of(client.get("/admin").text)
+            for bad_topic in ('Motion" --evil', "a|b", "back\\slash", "quote'x"):
+                response = client.post(
+                    "/admin/actions/factory-run",
+                    data={"csrf": csrf, "topic": bad_topic},
+                )
+                self.assertEqual(response.status_code, 422, bad_topic)
+            ok = client.post(
+                "/admin/actions/factory-run",
+                data={"csrf": csrf, "topic": "Motion in a Straight Line"},
+            )
+            self.assertIn(ok.status_code, (303, 500))  # script may fail w/o kubectl; validation passed
+
     def test_factory_run_refuses_while_a_job_is_active(self) -> None:
         import dashboard.app as mod
 
