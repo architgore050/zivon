@@ -92,7 +92,10 @@ cleanup() {
 trap cleanup EXIT
 
 echo "boot-with-config: starting $NAME from $IMAGE (port $PORT_MAP, healthz $HEALTHZ)"
-docker run -d --name "$NAME" -p "$PORT_MAP" "$IMAGE"
+run_args=(docker run -d --name "$NAME" -p "$PORT_MAP")
+for e in "${BOOT_ENVS[@]}"; do run_args+=(-e "$e"); done
+run_args+=("$IMAGE")
+"${run_args[@]}"
 
 host_port="${PORT_MAP%%:*}"
 for _ in $(seq 1 "$TIMEOUT"); do

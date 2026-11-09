@@ -509,7 +509,14 @@ jobs:
           cd "$(dirname "${{ steps.guard.outputs.alembic_ini }}")"
           alembic upgrade head
           alembic upgrade head      # second run must be a no-op (no drift)
-          alembic check 2>/dev/null || echo "alembic check unavailable in this version - skipped"
+          # Schema drift gate: alembic check exits nonzero when the models and
+          # the migrations disagree. Availability is probed FIRST so an older
+          # alembic skips loudly — never by masking a real nonzero exit.
+          if alembic check --help > /dev/null 2>&1; then
+            alembic check
+          else
+            echo "::warning::alembic check unavailable in this alembic version - drift gate skipped, upgrade EX0's pin"
+          fi
 
   # ---- 7d. evals deterministic smoke (EX4 spec §5.1, verbatim command) --------
   # PR-gate subset: the DETERMINISTIC checkers only (no judge model calls —

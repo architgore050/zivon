@@ -4,12 +4,13 @@ Repo is public on GitHub → GitHub Actions is the decided CI/CD system. Workflo
 
 ## The merge gate — `ci.yml`
 
-Triggers: PR → `main`, push → `main`, manual dispatch. Eleven parallel jobs on fresh `ubuntu-latest` VMs:
+Triggers: PR → `main`, push → `main`, manual dispatch. Twelve parallel jobs on fresh `ubuntu-latest` VMs:
 
 | Job | Checks |
 |---|---|
 | `quality` | `ruff check`, `ruff format --check` (config in `ruff.toml`: vendored third-party skill trees under `skills/*/vendored/` are out of scope — they are other projects' code and docs, kept verbatim with their licences), `mypy --ignore-missing-imports`. Tools pinned (`ruff==0.17.4`, `mypy==2.4.1`) — see Gate integrity below |
 | `docker` | hadolint (Dockerfile lint) → build with GHA layer cache (`type=gha`) → **smoke test** (`docker run --rm`) → trivy image scan (fails on CRITICAL/HIGH with fix available) → SBOM (CycloneDX) uploaded as build artifact |
+| `llm-manager-image` | the model-call node (`Dockerfile.llm-manager`): hadolint → build → smoke (**boots with config, `/healthz` answers with a dead upstream; refuses to boot without config** — the original of the `docker/smoke_http_service.sh` pattern) → trivy scan |
 | `frontend-image` | hadolint (`Dockerfile.frontend`) → build → **serve smoke test** (container up on :8080 with the html root seeded from the baked `/opt/zivon-shell` staging path — the cluster serving path, see `docker.md`; `/healthz` answers, landing page renders, shared assets resolve, CSP/nosniff/no-store headers present) → trivy scan |
 | `secrets` | gitleaks over full git history (`fetch-depth: 0`) |
 | `deps` | pip-audit on the resolved `requirements.txt` tree (known CVEs) |
