@@ -160,6 +160,37 @@ class TestSimulationBlocks(unittest.TestCase):
         self.assertNotIn("speed m/s", spoken)  # control labels excluded
         self.assertNotIn("car moves", spoken)
 
+    def test_non_ascii_readout_survives_unescaping(self):
+        # unicode_escape would mojibake non-ASCII (Hindi) readouts; the
+        # JSON-string parse keeps them intact (CP-TRN-003 Hindi content).
+        spec = {"title": "Sim", "description": "desc"}
+        interactive = {
+            "b-05": {
+                "files": {
+                    "page.js": 'ctx.t_str("d", "दूरी बढ़ती है"); ctx.t_str("e", "line\\nbreak");'
+                }
+            }
+        }
+        units = speakable_units(
+            _lesson(), _blocks(_block("b-05", "simulation", spec)), interactive
+        )
+        self.assertIn("दूरी बढ़ती है", units[1].parts)
+        self.assertIn("line\nbreak", units[1].parts)
+
+    def test_malformed_escape_skips_the_readout(self):
+        spec = {"title": "Sim", "description": "desc"}
+        interactive = {
+            "b-05": {
+                "files": {
+                    "page.js": 'ctx.t_str("x", "bad \\q escape"); ctx.t_str("y", "Good readout");'
+                }
+            }
+        }
+        units = speakable_units(
+            _lesson(), _blocks(_block("b-05", "simulation", spec)), interactive
+        )
+        self.assertEqual(units[1].parts, ("Sim", "desc", "Good readout"))
+
     def test_symbol_only_readouts_are_skipped(self):
         spec = {"title": "Sim", "description": "desc"}
         interactive = {

@@ -32,6 +32,7 @@ Nothing in this module performs I/O or calls a model: pure selection over the
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -216,7 +217,15 @@ def _simulation_parts(
             parts.append(text)
     page_js = interactive_out.get("files", {}).get("page.js", "")
     for fallback in _T_STR_RE.findall(page_js):
-        text = fallback.encode().decode("unicode_escape").strip()
+        # Unescape the JSON string literal properly (\" \\ \n \uXXXX):
+        # unicode_escape would mangle any non-ASCII fallback (Hindi readouts
+        # would arrive as mojibake). A malformed escape skips the readout -
+        # a corrupt canvas string never becomes narration.
+        try:
+            text = json.loads(f'"{fallback}"')
+        except json.JSONDecodeError:
+            continue
+        text = text.strip()
         if text and _SPEAKABLE_RE.search(text):
             parts.append(text)
     return parts

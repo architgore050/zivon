@@ -80,6 +80,10 @@ cp -a "$tmp/courses.js" frontend/courses.js
 
 # Narration audio: additive mirror (content-addressed, immutable - existing
 # hashes stay addressable; GAP-015), then the SYNC-01 P0 cold gate.
+# NOTE: this block only runs when the staleness guard above passed, i.e. the
+# pages changed. A narration-ONLY re-publish (pages identical) exits 2
+# before reaching here - the live site is unaffected (it serves from the
+# PVC); re-trigger the topic if you want a fresh repo snapshot.
 if [[ -d "$tmp/audio" ]]; then
   mkdir -p frontend/audio
   cp -a "$tmp/audio"/. frontend/audio/
