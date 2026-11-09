@@ -59,6 +59,7 @@ kubectl create configmap zivon-factory-config -n zivon \
   --from-literal=ZIVON_TIMEOUT_S="$ZIVON_TIMEOUT_S" \
   --from-literal=ZIVON_CALL_DEADLINE_S="$ZIVON_CALL_DEADLINE_S" \
   --from-literal=ZIVON_MAX_ATTEMPTS="$ZIVON_FACTORY_MAX_ATTEMPTS" \
+  --from-literal=ZIVON_NARRATION_ENABLED="$ZIVON_NARRATION_ENABLED" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl delete job factory-smoke -n zivon --ignore-not-found
