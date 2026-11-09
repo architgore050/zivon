@@ -57,6 +57,7 @@ from .audio import (
 )
 from .env import STAGE_ID, NarrationEnv
 from .errors import NarrationError
+from .publish import update_manifests
 from .select import NarrationUnit, speakable_units, spoken_text
 from .timbre import LiveTimbreClient, MockTimbreClient, TimbreClient
 
@@ -107,6 +108,20 @@ def run(
     out = _narrate(env, run_ctx, client, topic, units, lang, language, mode)
     out["env"] = env.redacted()
     out["stage"] = STAGE_ID
+
+    # ---- availability manifests (GAP-015): always stamp, even when the
+    # pass produced nothing - available=false IS the honest flag that makes
+    # the client show the INF-089 disabled copy instead of probing forever.
+    manifest_summary = update_manifests(
+        topic["topic_dir"],
+        lang,
+        mode,
+        out["assets"],
+        [u.block_id for u in units],
+        voice=env.timbre_voice,
+    )
+    out["manifest_updated"] = manifest_summary["manifest_updated"]
+    out["manifest"] = manifest_summary
     return out
 
 
