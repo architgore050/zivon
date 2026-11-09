@@ -38,7 +38,7 @@ Two coupled systems:
 2. **Voice tutor (product runtime):** the conversation loop —
    1. Student speaks (Hindi / English / code-mixed)
    2. **Gnani Prisma** transcribes the speech
-   3. **Gemma 4 26B A4B** (Gate A outcome 2026-11-07; Evon v3.3 is the post-challenge aspiration) reasons and generates a tutor response (anchored to the page the student is on)
+   3. **Gemma 4 26B A4B** (Gate A outcome 2026-11-07; **cloud-hosted via a Google Gemini API key** — founder confirmed 2026-11-09; Evon v3.3 is the post-challenge aspiration) reasons and generates a tutor response (anchored to the page the student is on)
    4. **Gnani Timbre** speaks the response back, with expressive tags where appropriate
 
 The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voice is the primary interface for doubts; interactive visuals are the primary interface for learning.
@@ -48,7 +48,7 @@ The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voic
 ## Non-negotiable constraints
 
 - **Prisma v3.0** (STT) and **Timbre v3.0** (TTS) are the decided voice-loop models (founder decision 2026-11-07 — latest versions; they supersede the earlier v2.5 non-negotiable, which predates the v3.0 releases). They remain non-negotiable going forward: no OpenAI/Deepgram/ElevenLabs replacements for these.
-- **Gate A outcome (recorded 2026-11-07, founder decision):** the runtime LLM is **Gemma 4 26B A4B** (self-hosted; serve it via the existing OpenAI-format inference-router pattern). Evon v3.3 is no longer the runtime default — it is the post-challenge aspiration brain. The challenge's ≥1-Gnani-model requirement is carried by Prisma + Timbre; the public story is the full Gnani voice loop (Prisma v3.0 + Timbre v3.0) + Gemma 4 reasoning. See the Gate A row in `TIMELINE.md`.
+- **Gate A outcome (recorded 2026-11-07, founder decision):** the runtime LLM is **Gemma 4 26B A4B**, **cloud-hosted via a Google Gemini API key** (founder confirmed 2026-11-09 — no self-hosted GPU serving for the tutor brain; the API key is a runtime secret like every other credential). Evon v3.3 is no longer the runtime default — it is the post-challenge aspiration brain. The challenge's ≥1-Gnani-model requirement is carried by Prisma + Timbre; the public story is the full Gnani voice loop (Prisma v3.0 + Timbre v3.0) + Gemma 4 reasoning. See the Gate A row in `TIMELINE.md`.
 - The demo must work end-to-end with real voice input and output.
 - Prefer simplicity and reliability over feature count. A solid 60-second demo beats a half-broken multi-feature app.
 - Content sourcing: **NCERT (officially free) and public-domain sources only**, with citations in the source packs. No scraping copyrighted textbooks.
@@ -200,7 +200,7 @@ Content-creation non-negotiables: interview before drafting (Depth Gate), never 
 ## Gnani-specific notes
 
 - Prisma and Timbre are accessed via Gnani's API (`api.vachana.ai` / dashboard).
-- The runtime LLM (Gemma 4 26B A4B per the Gate A outcome 2026-11-07; Evon v3.3 if revived post-challenge) is open-weight. You will need to run it yourself (or via a compatible inference server — the repo's `docker/inference-router.Dockerfile` dev bridge is the existing pattern). Plan GPU hosting early.
+- The runtime LLM (Gemma 4 26B A4B per the Gate A outcome 2026-11-07) is **cloud-hosted via a Google Gemini API key** — founder confirmed 2026-11-09. There is no GPU to provision for the tutor brain; the key is a runtime secret (env var / K8s Secret), never committed. If Evon v3.3 is revived post-challenge it would need self-hosting again. This does **not** change the content factory's or the llm-manager node's own OpenAI-format inference path (`docker/inference-router.Dockerfile`) — different consumer, unchanged.
 - Official LiveKit plugin exists: `livekit-plugins-gnani`. Prefer using it if you go the LiveKit route.
 - Programme credits: 5,000 per registrant × 2 team members = **10,000 total** (founder confirmed 2026-11-07 — comfortable headroom at the planned burn). Log usage daily and use text-only dev mode where possible. Credit-guard config (founder decision 2026-11-07, corrected same day in the Stage-2 systems session): **1,000-credit daily tranche** + **per-user daily cap 30 credits** (free-trial scale; earlier 200 default was a misunderstanding) + **togglable guard limits** — the admin mode flag flips the guard to a relaxed demo profile so demo-day judge traffic on the live link gets much higher (still bounded) limits. **Credits apply only to the voice agent**: course-material narration is pre-generated at build time (C-051 adopted) and served statically, never metered per student. Spec: F-OPS-MET-01 in `docs/product/features.md`.
 - Timbre expressive tags **verified 2026-11-07 against docs.gnani.ai**: tags are a **Timbre v3.0-only** feature — 13-tag catalog (`<laugh> <giggle> <sigh> <exhales> <sniffles> <yawns> <coughs> <clears throat> <whispers> <shouting> <excited> <slow> <pauses>`; tags billable as characters; unknown tags stripped silently). **Timbre v2.5 strips tags before synthesis** — they are not spoken. The founder decision of 2026-11-07 adopted **Timbre v3.0**, so the 13-tag catalog is available for the tutor (tags billable as characters; harness strips unknown tags server-side). Fine-tuning for tag emission remains a stretch goal (P2), not the critical path.
