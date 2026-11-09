@@ -13,6 +13,9 @@
 #      applied before anything that talks to it). k8s/20 is deliberately NOT
 #      applied: factory generation is manual-only
 #      (scripts/trigger-factory-run.sh).
+#   3b. the Wave-E reserved manifests (17-18, 21-29, 51-53 per the GAP-017
+#      map in docs/deployment/kubernetes.md) — each applied ONLY if the file
+#      has landed, so the apply flow works unchanged between Wave-E merges.
 #   4. the test CronJob rendered with TEST_CRON_SCHEDULE from infra.env
 #   5. one immediate full test run (scripts/trigger-tests.sh startup)
 #
@@ -35,7 +38,12 @@ export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
   ZIVON_MAX_ATTEMPTS \
   ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL \
   ZIVON_ENV ZIVON_LOG_LEVEL ZIVON_LOG_SYNC_SCHEDULE ZIVON_PUBLIC_BASE_URL \
-  ZIVON_GRAFANA_URL
+  ZIVON_GRAFANA_URL ZIVON_NARRATION_ENABLED \
+  EVAL_CRON_SCHEDULE ZIVON_EVAL_JUDGE_MODEL \
+  ZIVON_VOICE_BRAIN_TRANSPORT ZIVON_VOICE_BRAIN_MODEL \
+  ZIVON_NARRATION_BUILD_BUDGET COLD_PROVIDER
+# ZIVON_LOG_DSN is intentionally absent: it carries DB credentials and lives
+# only in the runtime Secret (never exported from this file).
 
 kubectl apply -f k8s/00-namespace.yaml
 
@@ -92,5 +100,45 @@ kubectl apply -f k8s/23-dashboard-deployment.yaml -f k8s/24-dashboard-service.ya
 envsubst '${ZIVON_LOG_SYNC_SCHEDULE}' < k8s/51-log-retention-cronjob.yaml | kubectl apply -f -
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
+
+# ---------------------------------------------------------------------------
+# Wave-E reserved manifests (GAP-017 map: docs/deployment/kubernetes.md).
+# Each reservation is applied only when its file exists — a reservation whose
+# owner (EX0/EX3/EX4/EX8) has not merged yet is SKIPPED loudly, so this script
+# works unchanged between the Wave-E merges and the new services enter the
+# apply order automatically the day they land. Numeric order = dependency
+# order. k8s/20 stays excluded (factory generation is manual-only) and the
+# always-present manifests above stay explicit — that is why 23/24 (dashboard)
+# and 51 (log retention, already rendered from infra.env) are NOT in this
+# loop: they are applied by the explicit steps above, and re-applying them
+# here would only duplicate work.
+for f in k8s/17-*.yaml k8s/18-*.yaml k8s/21-*.yaml k8s/22-*.yaml \
+         k8s/25-*.yaml k8s/26-*.yaml \
+         k8s/27-*.yaml k8s/28-*.yaml k8s/29-*.yaml \
+         k8s/52-*.yaml k8s/53-*.yaml; do
+  if compgen -G "$f" > /dev/null; then
+    echo "apply: $f"
+    # Schedule-bearing CronJobs get their cadence from infra.env exactly like
+    # k8s/50 above (never hardcoded in the YAML). The render list grows with
+    # the bundle owner's placeholders.
+    case "$f" in
+      k8s/52-*) envsubst '${EVAL_CRON_SCHEDULE}' < "$f" | kubectl apply -f - ;;
+      *)       kubectl apply -f "$f" ;;
+    esac
+  else
+    echo "skip (reservation not landed yet): $f"
+  fi
+done
+
+# Same gotcha-18 rule as the llm-manager restart above: pods read env/ConfigMaps
+# only at start, so an infra.env knob change must reach the running Wave-E
+# deployments. Guarded: a reserved deployment that has not landed yet is skipped.
+for dep in dashboard core-backend; do
+  if kubectl get deployment "$dep" -n zivon > /dev/null 2>&1; then
+    kubectl rollout restart "deployment/$dep" -n zivon
+  else
+    echo "skip rollout restart (not deployed yet): $dep"
+  fi
+done
 
 scripts/trigger-tests.sh startup
