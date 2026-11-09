@@ -1,4 +1,4 @@
-# ADR-0018: Two-Tier Translation Memory and Cache Architecture
+# ADR-0022: Two-Tier Translation Memory and Cache Architecture
 
 - **Status**: accepted
 - **Date / deciders**: 2026-11-09 / SP2-TRANS (Wave S1 architecture spec), building on ADR-0004 (cold storage provider separation), ADR-0006 (WAL & outbox sync), ADR-0009 (language/locale model), and ADR-0013 (build-time translation pipeline)

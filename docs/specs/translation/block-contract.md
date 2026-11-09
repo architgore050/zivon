@@ -1,7 +1,7 @@
 # Per-Block Translation Contract (`10a-translate` & `10c-transrepair`)
 
 - **Spec ID**: `SP2-TRANS` · `block-contract.md`
-- **Governing ADRs**: `ADR-0013` (per-block Evon v3.3 translation via `llm_manager`), [`ADR-0017`](../../backend/adr/0017-translation-stage-placement-and-resumability.md), [`ADR-0018`](../../backend/adr/0018-translation-memory-and-cache-architecture.md), [`ADR-0019`](../../backend/adr/0019-physics-terminology-and-script-rendering-policy.md)
+- **Governing ADRs**: `ADR-0013` (per-block Evon v3.3 translation via `llm_manager`), [`ADR-0021`](../../backend/adr/0021-translation-stage-placement-and-resumability.md), [`ADR-0022`](../../backend/adr/0022-translation-memory-and-cache-architecture.md), [`ADR-0023`](../../backend/adr/0023-physics-terminology-and-script-rendering-policy.md)
 - **Enforcing Modules**: `factory/translate.py` (orchestration), `factory/schemas.py` (JSON Schemas), `factory/llm.py` (`LLMClient` adapter over `llm_manager`)
 
 ---
@@ -465,7 +465,7 @@ TRANSLATED_SIMULATION_PAYLOAD = {
 ```
 - **Code-side `extra_validator`**:
   1. `[c["id"] for c in translated["controls"]] == [c["id"] for c in source_payload["controls"]]`.
-  2. Each `c["label"]` has `len(c["label"]) <= 32` (`ADR-0019` slider label budget).
+  2. Each `c["label"]` has `len(c["label"]) <= 32` (`ADR-0023` slider label budget).
 - **Harness Reassembly**: Merges `translated["controls"][i]["label"]` into a copy of `source_block["spec"]["controls"][i]`, keeping `id`, `min`, `max`, `step`, and `initial` untouched.
 
 ---

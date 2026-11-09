@@ -82,13 +82,13 @@ The v1 block schema above remains frozen and unmodified for English generation (
 
 ### CP-TRN-001: Additive Per-Block Translation Payload Schemas (`factory/schemas.py`)
 
-- **Owner**: `EX2-TRANS` · **Traces to**: [`ADR-0017`](../backend/adr/0017-translation-stage-placement-and-resumability.md), [`docs/specs/translation/block-contract.md`](../specs/translation/block-contract.md)
+- **Owner**: `EX2-TRANS` · **Traces to**: [`ADR-0021`](../backend/adr/0021-translation-stage-placement-and-resumability.md), [`docs/specs/translation/block-contract.md`](../specs/translation/block-contract.md)
 - **Proposal**: Add unit-level translation schemas to `factory/schemas.py` (`TRANSLATED_META_PAYLOAD`, `TRANSLATED_TEXT_PAYLOAD`, `TRANSLATED_WORKED_EXAMPLE_PAYLOAD`, `TRANSLATED_CHECK_MCQ_PAYLOAD`, `TRANSLATED_CHECK_NUMERIC_PAYLOAD`, `TRANSLATED_REVEAL_PAYLOAD`, `TRANSLATED_DIAGRAM_PAYLOAD`, `TRANSLATED_SIMULATION_PAYLOAD`, and `TRANSLATION_REVIEW_CALL_REPORT`) without altering `BLOCKS`, `LESSON`, or `GENERATED`.
 - **Rationale**: Each `10a-translate` call sends only the translatable strings of a single block to Evon v3.3 via `llm_manager`, while harness code (`reassemble_translated_unit`) preserves `id`, `type`, `citations`, `check.spec.answer_index`, `numeric` check answers (`spec.answer`), and `simulation.spec.controls[].{id, min, max, step, initial}` deterministically. This guarantees that reassembled localized blocks conform 100% to the frozen v1 `BLOCKS` schema.
 
 ### CP-TRN-002: Diagram SVG `<text>` String Table Extraction & `data-i18n` Attribute Rule
 
-- **Owner**: `EX2-TRANS` · **Traces to**: [`ADR-0019`](../backend/adr/0019-physics-terminology-and-script-rendering-policy.md), [`docs/specs/translation/block-contract.md` §3.6](../specs/translation/block-contract.md)
+- **Owner**: `EX2-TRANS` · **Traces to**: [`ADR-0023`](../backend/adr/0023-physics-terminology-and-script-rendering-policy.md), [`docs/specs/translation/block-contract.md` §3.6](../specs/translation/block-contract.md)
 - **Proposal**: Keep `diagram.spec.svg` as a single self-contained `<svg>` string in v1, but forbid the translation model from reading or emitting raw `<svg>` markup. Instead:
   1. `factory/translate.py` parses `diagram.spec.svg`, extracts descriptive `<text>` node strings and root `aria-label` into `svg_texts: [{"id": "t-0", "source": "...", "max_chars": N}]` (skipping standalone math/unit tokens like `F`, `10 N`, `m₁`, `v (m/s)`).
   2. After Evon v3.3 translates `svg_texts`, `factory/translate.py` re-injects the strings into a clone of the English `<svg>` DOM, tags each localized `<text>` element with `data-i18n="<block_id>.svg_texts.t-<k>"` (presentation/DOM data attribute only — zero `<script>` or `<style>`), and re-runs `factory/checks.py::rule_diagram_svg`.
@@ -103,7 +103,7 @@ The v1 block schema above remains frozen and unmodified for English generation (
 
 ### CP-TRN-004: Topic `manifest.json` and `courses.js` Localization Metadata
 
-- **Owner**: `EX2-TRANS` · **Traces to**: [`ADR-0018`](../backend/adr/0018-translation-memory-and-cache-architecture.md), [`docs/specs/translation/spec.md` §5.1](../specs/translation/spec.md)
+- **Owner**: `EX2-TRANS` · **Traces to**: [`ADR-0022`](../backend/adr/0022-translation-memory-and-cache-architecture.md), [`docs/specs/translation/spec.md` §5.1](../specs/translation/spec.md)
 - **Proposal**: Add optional additive fields to `manifest.json` (emitted by `10d-transrender` / `06-render`) and `window.ZIVON_COURSES` entries in `courses.js`:
   ```json
   {

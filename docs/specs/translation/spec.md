@@ -2,16 +2,16 @@
 
 - **Spec ID**: `SP2-TRANS` (Wave S1)
 - **Status**: Build-ready specification for `EX2-TRANS` (factory translation stages) and `EX5-FRONT` (frontend locale switcher & localized bundles)
-- **Governing ADRs**: `ADR-0004`, `ADR-0006`, `ADR-0009`, `ADR-0013`, `ADR-0015`, [`ADR-0017`](../../backend/adr/0017-translation-stage-placement-and-resumability.md), [`ADR-0018`](../../backend/adr/0018-translation-memory-and-cache-architecture.md), [`ADR-0019`](../../backend/adr/0019-physics-terminology-and-script-rendering-policy.md)
+- **Governing ADRs**: `ADR-0004`, `ADR-0006`, `ADR-0009`, `ADR-0013`, `ADR-0015`, [`ADR-0021`](../../backend/adr/0021-translation-stage-placement-and-resumability.md), [`ADR-0022`](../../backend/adr/0022-translation-memory-and-cache-architecture.md), [`ADR-0023`](../../backend/adr/0023-physics-terminology-and-script-rendering-policy.md)
 - **Product Traceability**: Features `F-WRP-TRN-01` (Localized Lesson Reading), `F-WRP-TRN-02` (In-Page Language Bar & Locale Persistence), `F-WRP-TRN-03` (Bilingual Physics Glossary & First-Mention Gloss), `F-WRP-TRN-04` (Untranslated Block Fallback & Issue Report); Tension Decisions `T2`, `T4`, `T8`; Doc Change Proposal `DCR-001`.
 
 ---
 
-## 1. Pipeline Shape & Stage Graph (`ADR-0013`, `ADR-0017`)
+## 1. Pipeline Shape & Stage Graph (`ADR-0013`, `ADR-0021`)
 
 ### 1.1 Where Translation Runs in the Content Factory
 
-Per `ADR-0013` and `ADR-0017`, lesson localization is a **build-time** responsibility of the content factory (`pipeline.py`), positioned **after** the English page has passed all factual, performance, and code review gates (`03-check`/`04-repair`, `07-perf`/`08-fixloop`, and `09-review`/`10-reviewfix`) and **immediately before** `11-link` publishes the staging tree into `frontend/`.
+Per `ADR-0013` and `ADR-0021`, lesson localization is a **build-time** responsibility of the content factory (`pipeline.py`), positioned **after** the English page has passed all factual, performance, and code review gates (`03-check`/`04-repair`, `07-perf`/`08-fixloop`, and `09-review`/`10-reviewfix`) and **immediately before** `11-link` publishes the staging tree into `frontend/`.
 
 ```
 00-ingest → 01-locate → 02-generate → 03-check ↔ 04-repair
@@ -41,7 +41,7 @@ Per `ADR-0013` and `ADR-0017`, lesson localization is a **build-time** responsib
 
 ### 1.3 Resumability & Fingerprint Contract
 
-1. **Per-block checkpointing (`ADR-0017`)**:
+1. **Per-block checkpointing (`ADR-0021`)**:
    - The translation worklist for a topic in locale `L` consists of `1 + N` ordered units:
      - `b-00-meta`: Lesson metadata envelope (`lesson.title`, `lesson.objectives`, `lesson.sections`, `lesson.glossary`, and extracted `sim_strings` from `page.js`).
      - `b-01` .. `b-NN`: Each block in `blocks["blocks"]` (`4 <= N <= 45`).
@@ -76,7 +76,7 @@ Per `ADR-0013` and `ADR-0017`, lesson localization is a **build-time** responsib
 
 ---
 
-## 2. Block-by-Block Translation Strategy (`ADR-0019`, `ADR-0009`)
+## 2. Block-by-Block Translation Strategy (`ADR-0023`, `ADR-0009`)
 
 ### 2.1 Language & Locale Model (`ADR-0009`)
 
@@ -117,7 +117,7 @@ Every block preserves its outer envelope (`id`, `type`, `citations`) untouched. 
 To prevent context bloat and thinking-token runaway (which caused 09-review stalls prior to the 2026-11-08 split in `docs/content-factory/architecture.md`):
 - **One block per model call**: Each `10a-translate` call translates **at most 1 unit** (`b-00-meta` or one `b-NN` block).
 - **Bounded surrounding context (`<= 600 chars`)**: Each per-block prompt includes:
-  1. Target locale descriptor (`locale`, `autonym`, `script`, script rules per `ADR-0019`).
+  1. Target locale descriptor (`locale`, `autonym`, `script`, script rules per `ADR-0023`).
   2. Filtered **Chapter Glossary Subset**: Only the glossary terms (from `sources/glossary/physics_glossary.json` + `b-00-meta` translated `lesson.glossary`) whose English term appears (case-insensitive stem match) in the current block's text (~3–12 terms, `< 800 chars`).
   3. **Neighbour Context Window**: Read-only 1-sentence / 300-char excerpt of `b-(k-1)` (already translated in target locale, for terminology/pronoun continuity) and `b-(k+1)` (English source, for forward context), capped at `config.translation.max_chars_neighbour_context = 600` chars total.
   4. The current block's translatable JSON payload + target JSON schema contract.
@@ -125,7 +125,7 @@ To prevent context bloat and thinking-token runaway (which caused 09-review stal
 
 ---
 
-## 3. Translation Memory, Database Schema & Storage Tiering (`ADR-0018`, `ADR-0004`, `ADR-0006`)
+## 3. Translation Memory, Database Schema & Storage Tiering (`ADR-0022`, `ADR-0004`, `ADR-0006`)
 
 ### 3.1 Deterministic Canonical Hash (`canonical_block_hash`)
 
@@ -164,7 +164,7 @@ All tables below belong to **Data Class `C3` (Translations & glossaries)** in Po
 | Table Name | Data Class | System of Record | Traces to `ENT?` / `INF` | Serves `NEED` / `F-*` |
 |---|---|---|---|---|
 | `glossary_term` | `C3` | PostgreSQL (seeded from `sources/glossary/physics_glossary.json`) | `ENT?-GlossaryTerm`, `INF-014` (glossary term & gloss) | `NEED-TRN-02`, `F-WRP-TRN-03` |
-| `translation_memory_entry` | `C3` | PostgreSQL + `sources/cache/tm/` PVC mirror | `ENT?-TranslationMemory`, systems-originated (`ADR-0018`) | `NEED-TRN-01`, `NFR-TRN-04` |
+| `translation_memory_entry` | `C3` | PostgreSQL + `sources/cache/tm/` PVC mirror | `ENT?-TranslationMemory`, systems-originated (`ADR-0022`) | `NEED-TRN-01`, `NFR-TRN-04` |
 | `block_translation` | `C3` | PostgreSQL (compiled into `C1` bundle at publish) | `ENT?-BlockTranslation`, `INF-011`..`INF-016` | `NEED-TRN-01`, `F-WRP-TRN-01`, `F-WRP-TRN-04` |
 | `ui_string` | `C3` | PostgreSQL (seeded from `sources/glossary/ui_strings.json`) | `ENT?-UIString`, `INF-009` (localized UI chrome) | `NEED-TRN-03`, `F-WRP-TRN-02` |
 | `locale_fallback` | `C3` | PostgreSQL (seeded reference data) | `ENT?-LocaleFallback`, `INF-010` (fallback notice) | `NEED-TRN-03`, `F-WRP-TRN-04` |
@@ -251,7 +251,7 @@ erDiagram
 #### Per-Table Column Specifications
 
 ##### Table 1: `glossary_term` (Data Class `C3`)
-- **Purpose**: Canonical Class 9–12 Physics terminology table ensuring consistent bilingual first-mention glosses (`ADR-0019`) across all chapters and blocks.
+- **Purpose**: Canonical Class 9–12 Physics terminology table ensuring consistent bilingual first-mention glosses (`ADR-0023`) across all chapters and blocks.
 - **Keys & Constraints**:
   - `PRIMARY KEY (id)` (`UUIDv7`)
   - `UNIQUE (term_slug, locale, glossary_version)`
@@ -267,7 +267,7 @@ erDiagram
 | `locale` | `varchar(16)` | `NOT NULL` | — | `ENT?-GlossaryTerm.locale` | `none` | `content-life` |
 | `english_term` | `varchar(128)` | `NOT NULL` | — | `INF-014` | `none` | `content-life` |
 | `native_term` | `varchar(128)` | `NOT NULL` | — | `INF-014` | `none` | `content-life` |
-| `first_mention_gloss` | `varchar(256)` | `NOT NULL` | — | `INF-014` (`ADR-0019`) | `none` | `content-life` |
+| `first_mention_gloss` | `varchar(256)` | `NOT NULL` | — | `INF-014` (`ADR-0023`) | `none` | `content-life` |
 | `short_label` | `varchar(64)` | `NOT NULL` | — | `INF-015` (sim/diagram label) | `none` | `content-life` |
 | `do_not_translate` | `boolean` | `NOT NULL` | `false` | `ENT?-GlossaryTerm.dnt` | `none` | `content-life` |
 | `pronunciation_hint` | `varchar(256)` | `NULL` | `NULL` | `INF-018` (TTS override) | `none` | `content-life` |
@@ -275,7 +275,7 @@ erDiagram
 | `updated_at` | `timestamptz` | `NOT NULL` | `now()` | systems-originated | `none` | `content-life` |
 
 ##### Table 2: `translation_memory_entry` (Data Class `C3`)
-- **Purpose**: Deduplicated cross-run and cross-version translation cache keyed by `tm_key` (`ADR-0018`). Mirrored to `sources/cache/tm/<locale>/<tm_key[:2]>/<tm_key>.json` on the `zivon-sources` PVC.
+- **Purpose**: Deduplicated cross-run and cross-version translation cache keyed by `tm_key` (`ADR-0022`). Mirrored to `sources/cache/tm/<locale>/<tm_key[:2]>/<tm_key>.json` on the `zivon-sources` PVC.
 - **Keys & Constraints**:
   - `PRIMARY KEY (tm_key)` (`char(64)`)
   - `UNIQUE (source_content_sha256, locale, glossary_version, prompt_version)`
@@ -287,7 +287,7 @@ erDiagram
 
 | Column | Type | Null | Default | Source (`INF`/`ENT?`) | PII Class | Retention |
 |---|---|---|---|---|---|---|
-| `tm_key` | `char(64)` | `NOT NULL` | — | systems-originated (`ADR-0018`) | `none` | `content-life` |
+| `tm_key` | `char(64)` | `NOT NULL` | — | systems-originated (`ADR-0022`) | `none` | `content-life` |
 | `source_content_sha256` | `char(64)` | `NOT NULL` | — | systems-originated | `none` | `content-life` |
 | `unit_type` | `varchar(24)` | `NOT NULL` | — | `ENT?-BlockTranslation.type` | `none` | `content-life` |
 | `locale` | `varchar(16)` | `NOT NULL` | — | `ENT?-BlockTranslation.locale` | `none` | `content-life` |
@@ -323,7 +323,7 @@ erDiagram
 | `block_id_str` | `varchar(16)` | `NOT NULL` | — | `ENT?-ContentBlock.block_id` (`b-00-meta` \| `b-01`..`b-45`) | `none` | `content-life` |
 | `locale` | `varchar(16)` | `NOT NULL` | — | `INF-008`, `ENT?-BlockTranslation.locale` | `none` | `content-life` |
 | `source_content_sha256` | `char(64)` | `NOT NULL` | — | systems-originated | `none` | `content-life` |
-| `tm_key` | `char(64)` | `NULL` | `NULL` | systems-originated (`ADR-0018`) | `none` | `content-life` |
+| `tm_key` | `char(64)` | `NULL` | `NULL` | systems-originated (`ADR-0022`) | `none` | `content-life` |
 | `translated_spec` | `jsonb` | `NOT NULL` | — | `INF-011`..`INF-015`, `ENT?-BlockTranslation.spec` | `none` | `content-life` |
 | `translation_source` | `varchar(16)` | `NOT NULL` | `'machine'` | `INF-016` (machine vs human badge) | `none` | `content-life` |
 | `status` | `varchar(24)` | `NOT NULL` | `'draft'` | `INF-010`, `ENT?-BlockTranslation.status` | `none` | `content-life` |
@@ -566,7 +566,7 @@ Reconciled with `skills/zivon-systems-design-skills/skills/zivon-systems-design/
 | **Monthly student egress for localized pages** (`14 KB` gz × sessions) | `~14 MB/mo` (`1,000` views) | `~350 MB/mo` (`25,000` views) | `~3.5 GB/mo` (`250,000` views) | Served by nginx / CDN edge cache |
 
 **Binding Constraint**: Build-time wall-clock latency when running sequentially against a single-slot inference server (`35 calls × ~8 s/call ≈ 4.6 min` per locale on cloud OpenRouter/vLLM; `~18 min` per locale on a 20 tok/s local quantized server). Mitigated by:
-1. Per-block checkpointing + Translation Memory (`ADR-0017`, `ADR-0018`), which cuts repeat runs to `< 30 s`.
+1. Per-block checkpointing + Translation Memory (`ADR-0021`, `ADR-0022`), which cuts repeat runs to `< 30 s`.
 2. Setting `max_tokens = 4096` in `LLMConfig` constructor inside `factory/translate.py` (allowed per `llm_manager/README.md:110`: *"max_tokens is constructor-only by design... a future translator may [set it]; the factory never does"*) to bound any runaway per-block generation early alongside `ZIVON_CALL_DEADLINE_S=1800`.
 
 ---

@@ -1,4 +1,4 @@
-# ADR-0019: Physics Terminology, Numeral, and Indic Script Rendering Policy
+# ADR-0023: Physics Terminology, Numeral, and Indic Script Rendering Policy
 
 - **Status**: accepted
 - **Date / deciders**: 2026-11-09 / SP2-TRANS (Wave S1 architecture spec), building on ADR-0009 (language/locale model), T2 & T4 tension resolutions in `docs/product/features.md`, and `DCR-001` (per-script vertical text offset note)

@@ -1,4 +1,4 @@
-# ADR-0017: Translation Stage Placement and Per-Block Resumability in the Content Factory
+# ADR-0021: Translation Stage Placement and Per-Block Resumability in the Content Factory
 
 - **Status**: accepted
 - **Date / deciders**: 2026-11-09 / SP2-TRANS (Wave S1 architecture spec), building on ADR-0013 (build-time translation pipeline) and ADR-0009 (language/locale model)
@@ -43,7 +43,7 @@ We adopt **Option 3**:
 2. **Two-level resumability (stage + per-block checkpointing)**:
    - **Per-block artifact checkpoint**: Inside `10a-translate` and `10c-transrepair`, each completed `(locale, block_id)` translation is immediately persisted atomically (write-temp-then-rename) to `runs/<run_id>/10a-translate/blocks/<locale>/<block_id>.json` alongside its `block_sha256` input hash.
    - **Resume behavior**: If a pod is killed mid-translation and re-triggered, `10a-translate` inspects `runs/<run_id>/10a-translate/blocks/<locale>/<block_id>.json`. Any block whose file exists, validates against `TRANSLATED_BLOCK_SCHEMA`, and matches the current `block_sha256` is loaded from disk in `< 1 ms` without calling `llm-manager`.
-   - **Cross-run Translation Memory (TM) lookup**: Before calling `llm-manager` on a cache miss in `runs/<run_id>/`, `10a-translate` checks the persistent Translation Memory (ADR-0018). If an identical `(block_sha256, locale, glossary_version, prompt_version)` entry exists with status `verified`, it is reused directly.
+   - **Cross-run Translation Memory (TM) lookup**: Before calling `llm-manager` on a cache miss in `runs/<run_id>/`, `10a-translate` checks the persistent Translation Memory (ADR-0022). If an identical `(block_sha256, locale, glossary_version, prompt_version)` entry exists with status `verified`, it is reused directly.
 
 3. **Partial-locale isolation**:
    - If a target locale still has unresolved `fatal`/`major` issues after `10c-transrepair` exhausts its repair budget, the failure policy is controlled by `translation.on_locale_failure`:

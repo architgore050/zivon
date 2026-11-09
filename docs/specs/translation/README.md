@@ -4,15 +4,15 @@ This directory contains the build-ready architecture and implementation specific
 
 ## Governing Decisions & Non-Negotiables
 
-1. **Build-time block-by-block translation via Evon v3.3 (`ADR-0013`, `ADR-0017`)**:
+1. **Build-time block-by-block translation via Evon v3.3 (`ADR-0013`, `ADR-0021`)**:
    Lesson pages are translated at build time inside the content factory (`pipeline.py`) **after** the English draft and interactive simulations have passed `03-check`, `07-perf`, and `09-review` (`10-reviewfix`), and **before** `11-link` publishes to `frontend/`. Translation operates **one block at a time** (`b-00-meta`, `b-01`..`b-45`) so each model call fits comfortably inside a small, deterministic context window and resumes at per-`(locale, block_id)` granularity.
 2. **All model calls route through `llm_manager/` (`AGENTS.md`)**:
    The translator and translation reviewer are consumers of `llm_manager/` (`LLMClient` adapter in `factory/llm.py` talking to the isolated `llm-manager` Service node at `k8s/16-llm-manager.yaml`). Hand-rolled HTTP calls to an inference server are strictly prohibited.
 3. **Zero Gnani Prisma/Timbre credit burn (`ADR-0015`)**:
    Translation uses open-weight/self-hosted **Evon v3.3** via the `llm-manager` node and consumes **0** Gnani API programme credits (preserving the 5,000-credit pool and 40% demo-day reserve exclusively for live Prisma STT and Timbre TTS).
-4. **Two-tier Translation Memory (`ADR-0018`)**:
+4. **Two-tier Translation Memory (`ADR-0022`)**:
    Verified block translations are cached by deterministic content hash `tm_key = sha256(source_content_sha256 : locale : glossary_version : prompt_version)` on the `zivon-sources` PVC (`sources/cache/tm/`, Phase A) and in PostgreSQL Class C3 tables (`block_translation`, `translation_memory_entry`, `glossary_term`, Phase B/C) backed by WAL shipping (`SYNC-02`) and Class C1 bundle outbox sync (`SYNC-01`).
-5. **Bilingual First-Mention Physics Glossary & Immutable Numerals/SI Units (`ADR-0019`, `ADR-0009`, `DCR-001`)**:
+5. **Bilingual First-Mention Physics Glossary & Immutable Numerals/SI Units (`ADR-0023`, `ADR-0009`, `DCR-001`)**:
    First mention of a Physics term in a block renders `<Native Term> (<English Term>)` (e.g., `वेग (velocity)`); Western Arabic numerals (`0–9`), SI units (`m/s²`, `N`, `kg`), variables, equations, citations, and SVG geometry attributes are never translated or transliterated.
 
 ## Layout of This Folder
@@ -28,9 +28,9 @@ This directory contains the build-ready architecture and implementation specific
 ## Cross-References
 
 - **ADRs**:
-  - [`docs/backend/adr/0017-translation-stage-placement-and-resumability.md`](../../backend/adr/0017-translation-stage-placement-and-resumability.md)
-  - [`docs/backend/adr/0018-translation-memory-and-cache-architecture.md`](../../backend/adr/0018-translation-memory-and-cache-architecture.md)
-  - [`docs/backend/adr/0019-physics-terminology-and-script-rendering-policy.md`](../../backend/adr/0019-physics-terminology-and-script-rendering-policy.md)
+  - [`docs/backend/adr/0021-translation-stage-placement-and-resumability.md`](../../backend/adr/0021-translation-stage-placement-and-resumability.md)
+  - [`docs/backend/adr/0022-translation-memory-and-cache-architecture.md`](../../backend/adr/0022-translation-memory-and-cache-architecture.md)
+  - [`docs/backend/adr/0023-physics-terminology-and-script-rendering-policy.md`](../../backend/adr/0023-physics-terminology-and-script-rendering-policy.md)
   - Upstream Wave S0 ADRs: `ADR-0004` (Cold storage provider), `ADR-0006` (WAL & outbox sync), `ADR-0009` (Language & locale model), `ADR-0013` (Build-time translation pipeline), `ADR-0015` (Transactional credit guards)
 - **Content Factory**:
   - [`docs/content-factory/architecture.md`](../../content-factory/architecture.md)
