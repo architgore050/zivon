@@ -89,11 +89,15 @@
     return m ? parseFloat(m[0]) : null;
   }
 
+  var lastCheckState = null;
+
   function wireCheck(fieldset) {
     var format = fieldset.getAttribute("data-format");
     var button = fieldset.querySelector(".zn-check-btn");
     var feedback = fieldset.querySelector(".zn-check-feedback");
     if (!button || !feedback) return;
+    var attempts = 0;
+    var blockId = fieldset.id || fieldset.getAttribute("data-block-id") || "check";
 
     button.addEventListener("click", function () {
       var correct;
@@ -107,14 +111,22 @@
         }
         correct = parseInt(chosen.value, 10) === expected;
       } else {
+        var numInput = fieldset.querySelector(".zn-numeric-input");
         var expectedNum = firstNumber(fieldset.getAttribute("data-answer"));
-        var got = firstNumber(fieldset.querySelector(".zn-numeric-input").value);
+        var got = numInput ? firstNumber(numInput.value) : null;
         correct = expectedNum !== null && got !== null &&
           Math.abs(got - expectedNum) <= Math.max(0.01, Math.abs(expectedNum) * 0.01);
       }
+      attempts += 1;
+      fieldset.setAttribute("data-attempts", String(attempts));
+      fieldset.setAttribute("data-check-state", correct ? "answered-correct" : "answered-wrong");
+      lastCheckState = { block_id: blockId, format: String(format || "mcq"), correct: Boolean(correct), attempts: attempts };
       // \u-escaped: charset-proof no matter how the embedding page loads this file
       feedback.textContent = correct ? "\u2713 Correct." : "\u2717 Not yet - try again.";
       feedback.className = correct ? "zn-check-feedback correct" : "zn-check-feedback wrong";
+      if (window.ZivonEvents && typeof window.ZivonEvents. recordCheck === "function") {
+        window.ZivonEvents.recordCheck(blockId, String(format || "mcq"), Boolean(correct), attempts);
+      }
     });
   }
 
@@ -134,15 +146,67 @@
     var canvas = container.querySelector("canvas");
     if (!canvas) return;
     var values = {};
+    var initialValues = {};
+    var mirror = container.querySelector(".zn-sim-read");
     container.querySelectorAll("[data-control]").forEach(function (input) {
       var key = input.getAttribute("data-control");
-      values[key] = parseFloat(input.value);
-      var output = input.parentElement.querySelector("output");
+      var initVal = parseFloat(input.value);
+      values[key] = initVal;
+      initialValues[key] = initVal;
+      var output = input.parentElement ? input.parentElement.querySelector("output") : null;
       input.addEventListener("input", function () {
         values[key] = parseFloat(input.value);
         if (output) output.textContent = input.value;
+        updateFallbackMirror();
+        if (reduceMotion) {
+          try {
+            impl.draw(ctx);
+            updateFallbackMirror();
+          } catch (err) {
+            paintError(ctx.g, ctx.width, ctx.height, String(err), container, id);
+          }
+        }
+        if (window.ZivonEvents && typeof window.ZivonEvents.recordSimControl === "function") {
+          window.ZivonEvents.recordSimControl(id, key, values[key], input);
+        }
       });
     });
+
+    function formatMirrorSummary() {
+      var keys = Object.keys(values);
+      if (!keys.length) {
+        var desc = container.querySelector(".zn-sim-desc");
+        return desc && desc.textContent ? desc.textContent.trim() : "Simulation running.";
+      }
+      return keys.map(function (k) { return k + " = " + values[k]; }).join(", ");
+    }
+
+    function updateFallbackMirror() {
+      if (!mirror) return;
+      if (!mirror.textContent || !mirror.textContent.trim() || mirror.getAttribute("data-auto-mirror") === "true") {
+        mirror.setAttribute("data-auto-mirror", "true");
+        mirror.textContent = formatMirrorSummary();
+      }
+    }
+
+    var resetBtn = container.querySelector(".zn-sim-reset");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", function () {
+        container.querySelectorAll("[data-control]").forEach(function (input) {
+          var key = input.getAttribute("data-control");
+          if (Object.prototype.hasOwnProperty.call(initialValues, key)) {
+            input.value = String(initialValues[key]);
+            values[key] = initialValues[key];
+            var out = input.parentElement ? input.parentElement.querySelector("output") : null;
+            if (out) out.textContent = String(initialValues[key]);
+          }
+        });
+        updateFallbackMirror();
+        if (reduceMotion) {
+          try { impl.draw(ctx); } catch (err) { paintError(ctx.g, ctx.width, ctx.height, String(err), container, id); }
+        }
+      });
+    }
 
     var ctx = {
       canvas: canvas,
@@ -158,38 +222,58 @@
       if (typeof impl.init === "function") impl.init(ctx);
     } catch (err) {
       // A broken simulation must be loud, not silent: paint the error on canvas.
-      paintError(ctx.g, ctx.width, ctx.height, String(err));
+      paintError(ctx.g, ctx.width, ctx.height, String(err), container, id);
       return;
     }
 
     if (reduceMotion) {
-      try { impl.draw(ctx); } catch (err) { paintError(ctx.g, ctx.width, ctx.height, String(err)); }
+      container.setAttribute("data-sim-state", "reduced-motion");
+      try {
+        impl.draw(ctx);
+        updateFallbackMirror();
+      } catch (err) {
+        paintError(ctx.g, ctx.width, ctx.height, String(err), container, id);
+      }
       return;
     }
+    container.setAttribute("data-sim-state", "running");
     var t0 = performance.now();
     (function frame(now) {
       ctx.t = (now - t0) / 1000;
       try {
         impl.draw(ctx);
+        updateFallbackMirror();
       } catch (err) {
-        paintError(ctx.g, ctx.width, ctx.height, String(err));
+        paintError(ctx.g, ctx.width, ctx.height, String(err), container, id);
         return;
       }
       requestAnimationFrame(frame);
     })(t0);
   }
 
-  function paintError(g, w, h, message) {
-    g.save();
-    g.setTransform(1, 0, 0, 1, 0, 0);
-    g.fillStyle = "#EFE6B8";
-    g.fillRect(0, 0, w, h);
-    g.fillStyle = "#B3261E";
-    g.font = "bold 14px monospace";
-    g.fillText("simulation error:", 12, 24);
-    wrapText(g, message, 12, 44, w - 24, 16, h);
-    g.restore();
+  function paintError(g, w, h, message, container, simId) {
+    if (g) {
+      g.save();
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.fillStyle = "#EFE6B8";
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = "#B3261E";
+      g.font = "bold 14px monospace";
+      g.fillText("simulation error:", 12, 24);
+      wrapText(g, message, 12, 44, w - 24, 16, h);
+      g.restore();
+    }
+    if (container) {
+      container.setAttribute("data-sim-state", "error");
+      var mirror = container.querySelector(".zn-sim-read");
+      if (mirror) {
+        mirror.textContent = "simulation error: " + message;
+      }
+    }
     if (window.console && console.error) console.error("ZivonSim:", message);
+    if (window.ZivonEvents && typeof window.ZivonEvents.recordSimError === "function") {
+      window.ZivonEvents.recordSimError(simId || "sim", message);
+    }
   }
 
   function wrapText(g, text, x, y, maxW, lh, h) {
@@ -510,6 +594,190 @@
     });
   }
 
+
+  /* --------------- 6. lesson page state & context snapshot ----------------
+     Implements:
+     - Reserved voice dock mount region (.R9, EL-LES-01-090, spec.md §7 / C5)
+       with a lazy loader stub that loads nothing until doctrine §10.12 lands
+       (DCR-002 standing guard).
+     - Structured <= 4 KB page context snapshot (ADR-0014 / SP1 context.snapshot).
+     - Tutor block highlight handler (ADR-0012 / EL-LES-01-056).
+     - State matrix inspection & dev override helper (state-matrix.md). */
+  function ensureVoiceDockRegion() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return null;
+    var existing = lessonPage.querySelector('[data-element-id="EL-LES-01-090"], .zn-voice-dock-region');
+    if (existing) return existing;
+    var region = document.createElement("aside");
+    region.className = "zn-voice-dock-region";
+    region.setAttribute("data-region", "SCR-LES-01.R9");
+    region.setAttribute("data-element-id", "EL-LES-01-090");
+    region.setAttribute("aria-label", "Voice tutor dock");
+    region.hidden = true;
+    lessonPage.appendChild(region);
+    return region;
+  }
+
+  var ZivonVoiceDock = {
+    doctrineReady: false, /* DCR-002: design-doctrine.md §10.12 is founder-gated */
+    getRegion: ensureVoiceDockRegion,
+    lazyMount: function () {
+      var region = ensureVoiceDockRegion();
+      if (!ZivonVoiceDock.doctrineReady) {
+        return { mounted: false, reason: "founder-gated: design-doctrine.md §10.12 absent (DCR-002)" };
+      }
+      return { mounted: Boolean(region), region: region };
+    }
+  };
+  window.ZivonVoiceDock = ZivonVoiceDock;
+
+  function buildContextSnapshot(explicitBlockId) {
+    var route = ZivonRouter.currentRoute();
+    var kicker = document.querySelector(".zn-kicker");
+    var titleEl = document.querySelector("h1.zn-title");
+    var checkedChip = document.querySelector('.zn-lang-row .zn-chip[aria-checked="true"]');
+    var langPref = checkedChip ? (checkedChip.getAttribute("data-lang") || checkedChip.textContent.trim()) : (document.documentElement.lang || "en");
+    var visibleBlocks = [];
+    document.querySelectorAll(".zn-page [id]").forEach(function (el) {
+      if (visibleBlocks.length >= 12) return;
+      var tag = el.className || el.tagName.toLowerCase();
+      var bType = "text";
+      if (tag.indexOf("zn-sim") !== -1) bType = "simulation";
+      else if (tag.indexOf("zn-check") !== -1) bType = "check";
+      else if (tag.indexOf("zn-diagram") !== -1) bType = "diagram";
+      else if (tag.indexOf("zn-example") !== -1) bType = "worked_example";
+      else if (tag.indexOf("zn-reveal") !== -1) bType = "reveal";
+      var h = el.querySelector("h3, legend, figcaption");
+      visibleBlocks.push({
+        id: el.id,
+        type: bType,
+        title: h ? h.textContent.trim().slice(0, 80) : el.id
+      });
+    });
+
+    var simStates = [];
+    document.querySelectorAll(".zn-sim[data-sim-id]").forEach(function (simEl) {
+      var sid = simEl.getAttribute("data-sim-id");
+      var controls = {};
+      simEl.querySelectorAll("[data-control]").forEach(function (inp) {
+        controls[inp.getAttribute("data-control")] = parseFloat(inp.value);
+      });
+      var mirror = simEl.querySelector(".zn-sim-read");
+      simStates.push({
+        block_id: sid,
+        controls: controls,
+        state_text: mirror ? mirror.textContent.trim().slice(0, 160) : ""
+      });
+    });
+
+    var docEl = document.documentElement;
+    var maxScroll = Math.max(1, (docEl.scrollHeight || 1) - (window.innerHeight || 1));
+    var scrollPct = Math.min(100, Math.max(0, Math.round(((window.scrollY || 0) / maxScroll) * 100)));
+    var activeBlock = explicitBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
+    var firstSim = simStates[0] || null;
+
+    var snap = {
+      topic_id: route.topic_slug || (titleEl ? titleEl.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : "topic"),
+      course_id: route.course_id || (kicker ? kicker.textContent.trim() : "physics"),
+      class: parseInt(String(route.course_id || "9").replace(/\D+/g, ""), 10) || 9,
+      chapter: titleEl ? titleEl.textContent.trim().slice(0, 120) : "",
+      block_id: activeBlock,
+      block_type: firstSim && activeBlock === firstSim.block_id ? "simulation" : "text",
+      sim_id: firstSim ? firstSim.block_id : null,
+      sim_vars: firstSim ? firstSim.controls : {},
+      visible_blocks: visibleBlocks,
+      sim_states: simStates,
+      last_check: lastCheckState,
+      scroll_pct: scrollPct,
+      lang_pref: langPref,
+      ts: Date.now()
+    };
+
+    var json = JSON.stringify(snap);
+    if (json.length > 4096) {
+      snap.visible_blocks = snap.visible_blocks.slice(0, 4);
+      snap.sim_states = snap.sim_states.slice(0, 2);
+    }
+    return snap;
+  }
+
+  function highlightBlocks(blockIds) {
+    document.querySelectorAll(".zn-tutor-highlight").forEach(function (el) {
+      el.classList.remove("zn-tutor-highlight");
+    });
+    if (!Array.isArray(blockIds)) return;
+    blockIds.forEach(function (bid) {
+      var target = document.getElementById(String(bid));
+      if (target) target.classList.add("zn-tutor-highlight");
+    });
+  }
+
+  function applyLessonStateBanner(kind, copyText) {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return null;
+    var id = "zn-lesson-status-" + kind;
+    var existing = document.getElementById(id);
+    if (!copyText) {
+      if (existing) existing.hidden = true;
+      return existing;
+    }
+    if (!existing) {
+      existing = document.createElement("p");
+      existing.id = id;
+      existing.className = "zn-status-chip" + (kind === "warn" || kind === "exhausted" ? " zn-status-" + kind : "");
+      existing.setAttribute("role", "status");
+      existing.setAttribute("aria-live", "polite");
+      if (kind === "offline") existing.setAttribute("data-element-id", "EL-LES-01-070");
+      if (kind === "warn") existing.setAttribute("data-element-id", "EL-LES-01-071");
+      if (kind === "exhausted") existing.setAttribute("data-element-id", "EL-LES-01-072");
+      var header = lessonPage.querySelector(".zn-header");
+      if (header && header.nextSibling) {
+        lessonPage.insertBefore(existing, header.nextSibling);
+      } else {
+        lessonPage.prepend(existing);
+      }
+    }
+    existing.textContent = copyText;
+    existing.hidden = false;
+    return existing;
+  }
+
+  var ZivonStateMatrix = {
+    CANONICAL_STATES: [
+      "default", "loading", "empty", "partial", "error",
+      "offline", "permission-denied", "reduced-motion",
+      "untranslated", "over-credit-budget"
+    ],
+    buildContextSnapshot: buildContextSnapshot,
+    highlightBlocks: highlightBlocks,
+    applyState: function (stateName) {
+      var s = String(stateName || "default");
+      document.documentElement.setAttribute("data-zivon-state", s);
+      if (s === "empty" && document.getElementById("zn-courses")) {
+        window.ZIVON_COURSES = [];
+        renderCourses();
+      } else if (s === "offline") {
+        var homeChip = document.getElementById("zn-offline-chip");
+        if (homeChip) homeChip.hidden = false;
+        applyLessonStateBanner("offline", "Offline - lesson content and simulations work without a connection.");
+      } else if (s === "over-credit-budget") {
+        applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+      } else if (s === "untranslated") {
+        document.querySelectorAll(".zn-text, .zn-example").forEach(function (blk) {
+          if (!blk.querySelector(".zn-untranslated-notice")) {
+            var n = document.createElement("p");
+            n.className = "zn-untranslated-notice";
+            n.setAttribute("data-copy-key", "lesson.untranslated.notice");
+            n.textContent = "Not translated yet - showing reviewed English text.";
+            blk.prepend(n);
+          }
+        });
+      }
+      return s;
+    }
+  };
+  window.ZivonStateMatrix = ZivonStateMatrix;
+
   /* ------------------------------- boot ----------------------------------
      LessonKit.init covers load, font swap, resize, card open/close and quiz
      feedback changes through its own observers - no manual re-fit listeners.
@@ -520,6 +788,7 @@
     wireLangChips();
     renderCourses();
     wireOfflineChip();
+    ensureVoiceDockRegion();
     /* Doctrine §10.7 (v1.4): read each model diagram's viewBox and hand its
        height/width ratio to CSS (--dia-ar) so the diagram box shrinks to the
        drawing's own aspect, rounded up to whole rows on narrow screens.

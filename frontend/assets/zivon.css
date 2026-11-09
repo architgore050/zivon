@@ -649,3 +649,25 @@ a { color: var(--pen-blue); }
   border-color: var(--pencil-red);
   color: var(--pencil-red);
 }
+
+/* ---- untranslated block notice (spec.md §8, INF-087) ---- */
+.zn-untranslated-notice {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: var(--row);
+  color: var(--pencil-red);
+  border: 1px dashed var(--pencil-red);
+  border-radius: 2px;
+  padding: 0 10px;
+  margin: 0 0 var(--row);
+}
+/* ---- tutor highlight ring (ADR-0012 / EL-LES-01-056) ---- */
+.zn-tutor-highlight {
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 4px;
+}
+/* ---- reserved voice dock mount region (spec.md §7, EL-LES-01-090) ---- */
+.zn-voice-dock-region:empty {
+  display: none;
+}
