@@ -30,7 +30,11 @@ HOP_FIELDS = ("stt_final_ms", "llm_first_token_ms", "tts_first_audio_ms")
 # alphanumerics and hyphens, 63 chars max. Enforced at EVERY path
 # construction below so a route param can never carry path separators,
 # "..", or "..%2f"-decoded slashes outside runs/ (CodeQL py/path-injection).
-_RUN_ID_ALLOWED = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
+# The guard is spelled inline at each site as
+# re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id): CodeQL py/path-injection
+# recognizes the re.fullmatch module call with a literal pattern as a
+# sanitizer, but not a compiled-pattern .fullmatch() — keep the literal at
+# each call site for that reason.
 
 
 def runs_dir() -> Path:
@@ -193,13 +197,13 @@ class LogStore:
             """,
             (run_id,),
         )
-        # Path guard (py/path-injection): early-return fullmatch guard
+        # Path guard (py/path-injection): early-return re.fullmatch guard
         # BEFORE any Path use kills run_id taint — construction below runs
         # only for slug-shaped ids. resolve() + is_relative_to is kept as
         # defense-in-depth (a symlinked runs/<id> cannot escape the PVC
         # mount). SQL above is parameterized and therefore safe; only the
         # file read needs this guard, and invalid ids degrade to status=None.
-        if not _RUN_ID_ALLOWED.fullmatch(run_id):
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id):
             return {
                 "run_id": run_id,
                 "stages": stages,
@@ -441,7 +445,7 @@ class RunsArtifacts:
         """The run dir only when run_id is a strict slug AND the resolved
         path stays inside base (same two barriers as run_detail: allowlist +
         resolve()/is_relative_to, so a symlinked run dir cannot escape)."""
-        if not _RUN_ID_ALLOWED.fullmatch(run_id):
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id):
             return None
         base_dir = self.base.resolve()
         run_dir = (base_dir / run_id).resolve()
