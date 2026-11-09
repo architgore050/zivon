@@ -1317,6 +1317,12 @@
       ws.binaryType = "arraybuffer";
       ws.onopen = function () {
         lastPongTs = Date.now();
+        if (pingTimer) clearInterval(pingTimer);
+        pingTimer = setInterval(function () {
+          if (state === "ready" || state === "thinking" || state === "idle") {
+            checkKeepalive(Date.now());
+          }
+        }, 15000);
         var snap = buildContextSnapshot();
         sendJson({
           type: "session.start",
@@ -1377,7 +1383,7 @@
       if (window.ZivonEvents && typeof window.ZivonEvents.recordMicPress === "function") {
         window.ZivonEvents.recordMicPress(sessionId);
       }
-      sendJson({ type: "context.snapshot", payload: buildContextSnapshot(), ...buildContextSnapshot() });
+      sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
       sendJson({ type: "audio.start", turn_hint: turnHint || null });
       setState("listening");
       return true;
@@ -1449,7 +1455,7 @@
         setState("offline", { queued_typed: queuedTypedDoubts.length });
         return false;
       }
-      sendJson({ type: "context.snapshot", ...buildContextSnapshot() });
+      sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
       sendJson({ type: "audio.end", text: clean, fallback: "typed" });
       setState("thinking", { typed: true, text: clean });
       return true;
@@ -1466,6 +1472,12 @@
         return false;
       }
       return sendJson({ type: "ping", t: now });
+    }
+
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+      window.addEventListener("pagehide", function () {
+        queuedTypedDoubts = [];
+      });
     }
 
     function disconnect() {

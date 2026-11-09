@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import fnmatch
 import http.server
+import os
 import socketserver
 import sys
 import threading
@@ -67,9 +68,11 @@ except ModuleNotFoundError:
 
                     for pattern, handler_fn in reversed(parent.routes):
                         pat = pattern.replace("**/", "*")
-                        if fnmatch.fnmatch(req_path, pat) or fnmatch.fnmatch(
-                            full_url, pat
-                        ) or req_path.endswith(pattern.lstrip("*")):
+                        if (
+                            fnmatch.fnmatch(req_path, pat)
+                            or fnmatch.fnmatch(full_url, pat)
+                            or req_path.endswith(pattern.lstrip("*"))
+                        ):
                             r = _Route(full_url)
                             handler_fn(r)
                             if r.fulfilled is not None:
@@ -240,12 +243,14 @@ except ModuleNotFoundError:
               window.__zivonPageErrors = window.__zivonPageErrors || [];
               const origErr = console.error;
               console.error = function(...args) {
-                window.__zivonConsoleLogs.push({type: 'error', text: args.map(String).join(' ')});
+                const txt = args.map(String).join(' ');
+                window.__zivonConsoleLogs.push({type: 'error', text: txt});
                 if (origErr) origErr.apply(console, args);
               };
               const origDebug = console.debug;
               console.debug = function(...args) {
-                window.__zivonConsoleLogs.push({type: 'debug', text: args.map(String).join(' ')});
+                const txt = args.map(String).join(' ');
+                window.__zivonConsoleLogs.push({type: 'debug', text: txt});
                 if (origDebug) origDebug.apply(console, args);
               };
               window.addEventListener('error', function(e) {
@@ -253,7 +258,9 @@ except ModuleNotFoundError:
               });
               const origRAF = window.requestAnimationFrame;
               window.requestAnimationFrame = function(cb) {
-                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                const mq = window.matchMedia
+                  && window.matchMedia('(prefers-reduced-motion: reduce)');
+                if (mq && mq.matches) {
                   return origRAF ? origRAF(cb) : 0;
                 }
                 let fired = false;
@@ -289,7 +296,8 @@ except ModuleNotFoundError:
             try:
                 logs = (
                     self._driver.execute_script(
-                        "const l = window.__zivonConsoleLogs || []; window.__zivonConsoleLogs = []; return l;"
+                        "const l = window.__zivonConsoleLogs || []; "
+                        "window.__zivonConsoleLogs = []; return l;"
                     )
                     or []
                 )
@@ -299,7 +307,8 @@ except ModuleNotFoundError:
                         cb(msg)
                 errs = (
                     self._driver.execute_script(
-                        "const e = window.__zivonPageErrors || []; window.__zivonPageErrors = []; return e;"
+                        "const e = window.__zivonPageErrors || []; "
+                        "window.__zivonPageErrors = []; return e;"
                     )
                     or []
                 )
@@ -364,7 +373,9 @@ except ModuleNotFoundError:
 
         def click(self, selector: str) -> None:
             self._driver.execute_script(
-                "const el = document.querySelector(arguments[0]); if (!el) throw new Error('Missing ' + arguments[0]); el.click();",
+                "const el = document.querySelector(arguments[0]); "
+                "if (!el) throw new Error('Missing ' + arguments[0]); "
+                "el.click();",
                 selector,
             )
             self._flush_logs()
@@ -514,7 +525,6 @@ except ModuleNotFoundError:
 try:
     import psutil  # noqa: F401
 except ModuleNotFoundError:
-    import os
 
     class _NoSuchProcess(Exception):
         pass
@@ -546,7 +556,11 @@ except ModuleNotFoundError:
                 raise _NoSuchProcess()
             try:
                 raw = p.read_bytes()
-                return [s.decode("utf-8", errors="replace") for s in raw.split(b"\x00") if s]
+                return [
+                    s.decode("utf-8", errors="replace")
+                    for s in raw.split(b"\x00")
+                    if s
+                ]
             except OSError as exc:
                 raise _NoSuchProcess() from exc
 

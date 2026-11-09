@@ -176,11 +176,15 @@ def generate_sitemap_xml(
         if alts:
             for lang_code, alt_path in sorted(alts.items()):
                 alt_href = escape(f"{base}{alt_path}")
+                lang_esc = escape(lang_code)
                 lines.append(
-                    f'    <xhtml:link rel="alternate" hreflang="{escape(lang_code)}" href="{alt_href}"/>'
+                    f'    <xhtml:link rel="alternate" '
+                    f'hreflang="{lang_esc}" href="{alt_href}"/>'
                 )
+            loc_esc = escape(loc)
             lines.append(
-                f'    <xhtml:link rel="alternate" hreflang="x-default" href="{escape(loc)}"/>'
+                f'    <xhtml:link rel="alternate" '
+                f'hreflang="x-default" href="{loc_esc}"/>'
             )
         lines.append("  </url>")
         url_blocks.append("\n".join(lines))

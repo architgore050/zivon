@@ -27,8 +27,9 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
 from playwright.sync_api import sync_playwright
+
+import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
 from testing.content_factory.perf.harness import load_profile, run_profile
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -48,7 +49,8 @@ ZIVON_CSS_URI = (FRONTEND / "assets" / "zivon.css").resolve().as_uri()
 
 def _synthetic_sim_html(include_explicit_mirror: bool = False) -> str:
     mirror_update = (
-        "document.querySelector('.zn-sim-read').textContent = 'x = ' + (ctx.values.v * ctx.t).toFixed(1) + ' m';"
+        "document.querySelector('.zn-sim-read').textContent = "
+        "'x = ' + (ctx.values.v * ctx.t).toFixed(1) + ' m';"
         if include_explicit_mirror
         else ""
     )
@@ -59,7 +61,9 @@ def _synthetic_sim_html(include_explicit_mirror: bool = False) -> str:
         "<main class='zn-page'>"
         "<header class='zn-header'><p class='zn-kicker'>class-9-physics</p>"
         "<h1 class='zn-title'>Uniform Motion</h1></header>"
-        "<section class='zn-text'><p>Position changes linearly with time when velocity is constant.</p></section>"
+        "<section class='zn-text'>"
+        "<p>Position changes linearly with time when velocity is constant.</p>"
+        "</section>"
         "<section class='zn-sim zn-sim-b-01' id='b-01' data-sim-id='b-01'>"
         "<h3>Uniform motion track</h3>"
         "<div class='zn-sim-controls'>"
@@ -69,12 +73,14 @@ def _synthetic_sim_html(include_explicit_mirror: bool = False) -> str:
         "<div class='zn-sim-canvas-wrap'>"
         "<canvas class='zn-sim-canvas' width='480' height='320'></canvas></div>"
         "<p class='zn-sim-read' aria-live='polite'></p>"
-        "<p class='zn-sim-desc'>Block moving at constant velocity along a straight axis.</p>"
+        "<p class='zn-sim-desc'>Block moving at constant velocity along axis.</p>"
         "</section>"
         "<fieldset class='zn-check' id='b-02' data-format='mcq' data-answer-index='1'>"
         "<legend>What is the slope of the position-time graph?</legend>"
-        "<label class='zn-opt'><input type='radio' name='q' value='0'><span>Time</span></label>"
-        "<label class='zn-opt'><input type='radio' name='q' value='1'><span>Velocity</span></label>"
+        "<label class='zn-opt'><input type='radio' name='q' value='0'>"
+        "<span>Time</span></label>"
+        "<label class='zn-opt'><input type='radio' name='q' value='1'>"
+        "<span>Velocity</span></label>"
         "<button type='button' class='zn-check-btn'>Check</button>"
         "<p class='zn-check-feedback' aria-live='polite'></p>"
         "</fieldset>"
@@ -99,8 +105,6 @@ def _synthetic_sim_html(include_explicit_mirror: bool = False) -> str:
 
 class TestPerfBudget(unittest.TestCase):
     """Enforces the low-end Android performance budgets in CI."""
-
-    _tmp: tempfile.TemporaryDirectory
 
     _tmp: tempfile.TemporaryDirectory
     _landing_report: dict[str, Any] | None = None
@@ -139,7 +143,8 @@ class TestPerfBudget(unittest.TestCase):
             rel = page_path.relative_to(REPO_ROOT)
             self.assertTrue(
                 report["pass"],
-                f"published page {rel} failed weak-android budget: {report['failures']} "
+                f"published page {rel} failed weak-android budget: "
+                f"{report['failures']} "
                 f"(measured={report['measured']}, budgets={report['budgets']})",
             )
 
@@ -150,12 +155,16 @@ class TestPerfBudget(unittest.TestCase):
         report = run_profile(syn_file.resolve().as_uri(), WEAK_ANDROID)
         fps = report["measured"].get("fps_median")
         self.assertIsNotNone(fps, f"expected median FPS measurement, got {report}")
+        throttle = profile["cpu_throttle_rate"]
         self.assertGreaterEqual(
             float(fps),
             float(profile["fps_min"]),
-            f"FPS {fps} < profile fps_min {profile['fps_min']} under {profile['cpu_throttle_rate']}x throttle",
+            f"FPS {fps} < profile fps_min {profile['fps_min']} under {throttle}x",
         )
-        self.assertTrue(report["pass"], f"sim FPS harness run failed: {report['failures']}")
+        self.assertTrue(
+            report["pass"],
+            f"sim FPS harness run failed: {report['failures']}",
+        )
 
     def test_ram_budget(self) -> None:
         profile = load_profile(WEAK_ANDROID)
@@ -210,7 +219,7 @@ class TestPerfBudget(unittest.TestCase):
                 self.assertEqual(
                     long_tasks,
                     [],
-                    f"main-thread LongTasks > 200 ms detected during scroll + check input: {long_tasks}",
+                    f"LongTasks > 200 ms detected during input: {long_tasks}",
                 )
             finally:
                 browser.close()
@@ -269,7 +278,7 @@ class TestPerfBudget(unittest.TestCase):
                 self.assertEqual(
                     draws,
                     1,
-                    f"expected exactly 1 static draw under prefers-reduced-motion: reduce, got {draws}",
+                    f"expected 1 static draw under reduced-motion, got {draws}",
                 )
             finally:
                 browser.close()
@@ -303,16 +312,17 @@ class TestPerfBudget(unittest.TestCase):
         budget_kb = float(profile.get("font_budget_kb", 300))
         fonts_dir = FRONTEND / "assets" / "fonts"
         woff2_files = list(fonts_dir.glob("*.woff2"))
+        names = [f.name for f in woff2_files]
         self.assertEqual(
             len(woff2_files),
             4,
-            f"expected 4 subsetted .woff2 font files in {fonts_dir}, found {[f.name for f in woff2_files]}",
+            f"expected 4 subsetted .woff2 font files in {fonts_dir}, found {names}",
         )
         total_kb = sum(f.stat().st_size for f in woff2_files) / 1024.0
         self.assertLessEqual(
             total_kb,
             budget_kb,
-            f"total woff2 font payload {total_kb:.1f} KB exceeds profile font_budget_kb {budget_kb:.1f} KB",
+            f"woff2 font payload {total_kb:.1f} KB > font_budget_kb {budget_kb:.1f} KB",
         )
 
 

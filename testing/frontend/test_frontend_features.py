@@ -23,8 +23,9 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
-import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
 from playwright.sync_api import Page, sync_playwright
+
+import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = REPO_ROOT / "frontend"
@@ -32,6 +33,7 @@ INDEX = FRONTEND / "index.html"
 NOT_FOUND = FRONTEND / "404.html"
 ZIVON_JS_URI = (FRONTEND / "assets" / "zivon.js").resolve().as_uri()
 ZIVON_CSS_URI = (FRONTEND / "assets" / "zivon.css").resolve().as_uri()
+SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
 def _load_seo_module() -> Any:
@@ -51,48 +53,66 @@ LESSON_SYNTHETIC_HTML = (
     "<header class='zn-lang-bar'><div class='zn-lang-in'>"
     "<span class='zn-lang-lab'>Language</span>"
     "<div class='zn-lang-row' role='radiogroup' aria-label='Language'>"
-    "<button type='button' class='zn-chip' role='radio' aria-checked='true'>English</button>"
-    "<button type='button' class='zn-chip' role='radio' aria-checked='false'>हिन्दी</button>"
-    "<button type='button' class='zn-chip' role='radio' aria-checked='false'>Hinglish</button>"
+    "<button type='button' class='zn-chip' role='radio' "
+    "aria-checked='true'>English</button>"
+    "<button type='button' class='zn-chip' role='radio' "
+    "aria-checked='false'>हिन्दी</button>"
+    "<button type='button' class='zn-chip' role='radio' "
+    "aria-checked='false'>Hinglish</button>"
     "</div></div></header>"
     "<main class='zn-page' data-generated-at='2026-11-09T00:00:00Z'>"
     "<header class='zn-header'><p class='zn-kicker'>class-9-physics</p>"
     "<h1 class='zn-title'>Motion</h1>"
     "<p class='zn-objectives-label'>After this lesson you can:</p>"
     "<ul class='zn-objectives'><li>Define displacement and velocity.</li></ul></header>"
-    "<section class='zn-text' id='b-01'><p>Velocity is displacement divided by time interval.</p></section>"
+    "<section class='zn-text' id='b-01'>"
+    "<p>Velocity is displacement divided by time interval.</p></section>"
     "<section class='zn-example' id='b-02'><h3>Worked example</h3>"
     "<p class='zn-example-problem'>Find velocity for 20 m in 4 s.</p>"
-    "<ol><li>v = 20 / 4</li></ol><p class='zn-answer'><span class='zn-answer-label'>Answer:</span> 5 m/s</p></section>"
+    "<ol><li>v = 20 / 4</li></ol>"
+    "<p class='zn-answer'><span class='zn-answer-label'>Answer:</span> 5 m/s</p>"
+    "</section>"
     "<section class='zn-reveal' id='b-03'><h3>Derivation steps</h3>"
-    "<details class='zn-reveal-step'><summary>Step 1</summary><p>Write delta x / delta t.</p></details></section>"
+    "<details class='zn-reveal-step'><summary>Step 1</summary>"
+    "<p>Write delta x / delta t.</p></details></section>"
     "<figure class='zn-diagram' id='b-04'>"
-    "<div class='zn-diagram-svg'><svg viewBox='0 0 280 180' aria-label='Displacement arrow'><line x1='20' y1='90' x2='260' y2='90' stroke='#1C1B18' stroke-width='3'/></svg></div>"
+    "<div class='zn-diagram-svg'>"
+    "<svg viewBox='0 0 280 180' aria-label='Displacement arrow'>"
+    "<line x1='20' y1='90' x2='260' y2='90' stroke='#1C1B18' stroke-width='3'/>"
+    "</svg></div>"
     "<figcaption>Scale: 1 cm = 2 m.</figcaption></figure>"
     "<section class='zn-sim zn-sim-b-05' id='b-05' data-sim-id='b-05'>"
     "<h3>Constant velocity</h3>"
     "<div class='zn-sim-controls'>"
     "<label class='zn-sim-control'><span>Velocity v (m/s)</span>"
-    "<input type='range' data-control='v' min='0' max='10' step='1' value='5'><output>5</output></label>"
+    "<input type='range' data-control='v' min='0' max='10' step='1' value='5'>"
+    "<output>5</output></label>"
     "<button type='button' class='zn-sim-reset'>Reset</button>"
     "</div>"
-    "<div class='zn-sim-canvas-wrap'><canvas class='zn-sim-canvas' width='480' height='320'></canvas></div>"
+    "<div class='zn-sim-canvas-wrap'>"
+    "<canvas class='zn-sim-canvas' width='480' height='320'></canvas></div>"
     "<p class='zn-sim-read' aria-live='polite'></p>"
     "<p class='zn-sim-desc'>Adjust v to see position change.</p></section>"
     "<fieldset class='zn-check' id='b-06' data-format='mcq' data-answer-index='0'>"
     "<legend>Which quantity has direction?</legend>"
-    "<label class='zn-opt'><input type='radio' name='check-b-06' value='0'><span>Velocity</span></label>"
-    "<label class='zn-opt'><input type='radio' name='check-b-06' value='1'><span>Speed</span></label>"
+    "<label class='zn-opt'><input type='radio' name='check-b-06' value='0'>"
+    "<span>Velocity</span></label>"
+    "<label class='zn-opt'><input type='radio' name='check-b-06' value='1'>"
+    "<span>Speed</span></label>"
     "<button type='button' class='zn-check-btn'>Check</button>"
     "<p class='zn-check-feedback' aria-live='polite'></p>"
-    "<details class='zn-check-why'><summary>Why?</summary><p>Velocity is a vector.</p></details></fieldset>"
+    "<details class='zn-check-why'><summary>Why?</summary>"
+    "<p>Velocity is a vector.</p></details></fieldset>"
     "<footer class='zn-footer'><p class='zn-sources'>NCERT Grade 9 Science</p></footer>"
     "</main>"
     f"<script src='{ZIVON_JS_URI}'></script>"
     "<script>"
     "window.ZivonSim.register('b-05', {"
     "  init: function (ctx) {},"
-    "  draw: function (ctx) { ctx.g.fillStyle = '#F6F0CF'; ctx.g.fillRect(0, 0, ctx.width, ctx.height); }"
+    "  draw: function (ctx) {"
+    "    ctx.g.fillStyle = '#F6F0CF';"
+    "    ctx.g.fillRect(0, 0, ctx.width, ctx.height);"
+    "  }"
     "});"
     "</script></body></html>"
 )
@@ -138,9 +158,11 @@ class TestFrontendFeatures(unittest.TestCase):
         try:
             page.goto(NOT_FOUND.resolve().as_uri())
             self.assertIn("Page not found", page.title())
-            self.assertIsNotNone(page.query_selector('[data-element-id="EL-404-01-001"]'))
-            self.assertIsNotNone(page.query_selector('[data-element-id="EL-404-01-002"]'))
+            el_title = page.query_selector('[data-element-id="EL-404-01-001"]')
+            el_body = page.query_selector('[data-element-id="EL-404-01-002"]')
             back = page.query_selector('[data-element-id="EL-404-01-003"]')
+            self.assertIsNotNone(el_title)
+            self.assertIsNotNone(el_body)
             self.assertIsNotNone(back)
             assert back is not None
             self.assertEqual(back.get_attribute("href"), "/")
@@ -155,29 +177,31 @@ class TestFrontendFeatures(unittest.TestCase):
             res = page.evaluate(
                 """() => {
                   const R = window.ZivonRouter;
+                  const p = '/courses/class-9-physics/motion/';
                   return {
                     home: R.parseRoute('/'),
-                    lessonEn: R.parseRoute('/courses/class-9-physics/motion/index.html'),
-                    lessonHi: R.parseRoute('/hi/courses/class-9-physics/motion/'),
-                    lessonHinglish: R.parseRoute('/hi-Latn/courses/class-11-physics/kinematics/'),
+                    lessonEn: R.parseRoute(p + 'index.html'),
+                    lessonHi: R.parseRoute('/hi' + p),
+                    lessonHinglish: R.parseRoute('/hi-Latn' + p),
                     missing: R.parseRoute('/unknown/path'),
-                    builtHi: R.buildLocalizedHref('/courses/class-9-physics/motion/', 'hi'),
-                    builtHinglish: R.buildLocalizedHref('/courses/class-9-physics/motion/', 'hinglish'),
-                    builtEn: R.buildLocalizedHref('/hi/courses/class-9-physics/motion/', 'en'),
+                    builtHi: R.buildLocalizedHref(p, 'hi'),
+                    builtHinglish: R.buildLocalizedHref(p, 'hinglish'),
+                    builtEn: R.buildLocalizedHref('/hi' + p, 'en'),
                   };
                 }"""
             )
+            canon = "/courses/class-9-physics/motion/"
             self.assertEqual(res["home"]["screen"], "SCR-HOME-01")
             self.assertEqual(res["lessonEn"]["screen"], "SCR-LES-01")
             self.assertEqual(res["lessonEn"]["course_id"], "class-9-physics")
             self.assertEqual(res["lessonEn"]["topic_slug"], "motion")
             self.assertEqual(res["lessonHi"]["locale"], "hi")
-            self.assertEqual(res["lessonHi"]["canonical_path"], "/courses/class-9-physics/motion/")
+            self.assertEqual(res["lessonHi"]["canonical_path"], canon)
             self.assertEqual(res["lessonHinglish"]["locale"], "hi-Latn")
             self.assertEqual(res["missing"]["screen"], "SCR-404-01")
-            self.assertEqual(res["builtHi"], "/hi/courses/class-9-physics/motion/")
-            self.assertEqual(res["builtHinglish"], "/hi-Latn/courses/class-9-physics/motion/")
-            self.assertEqual(res["builtEn"], "/courses/class-9-physics/motion/")
+            self.assertEqual(res["builtHi"], "/hi" + canon)
+            self.assertEqual(res["builtHinglish"], "/hi-Latn" + canon)
+            self.assertEqual(res["builtEn"], canon)
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -197,24 +221,28 @@ class TestFrontendFeatures(unittest.TestCase):
                   };
                 }"""
             )
-            self.assertRegex(
-                initial["devId"],
-                r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            uuid_re = (
+                r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-"
+                r"[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             )
+            self.assertRegex(initial["devId"], uuid_re)
             self.assertEqual(initial["savedLang"], "en")
 
-            # Click Hindi chip -> aria-checked updates, localStorage['zivon.lang'] = 'hi',
-            # documentElement.lang stays 'en' (v1 honest stub per spec.md §3.2/§8)
+            # Click Hindi chip -> aria-checked updates, localStorage['zivon.lang']
+            # becomes 'hi', documentElement.lang stays 'en' (v1 honest stub)
             chips = page.query_selector_all(".zn-lang-row .zn-chip")
             self.assertEqual(len(chips), 3)
             chips[1].click()
             after_click = page.evaluate(
-                """() => ({
-                  stored: localStorage.getItem('zivon.lang'),
-                  c0: document.querySelectorAll('.zn-chip')[0].getAttribute('aria-checked'),
-                  c1: document.querySelectorAll('.zn-chip')[1].getAttribute('aria-checked'),
-                  docLang: document.documentElement.lang
-                })"""
+                """() => {
+                  const cs = document.querySelectorAll('.zn-chip');
+                  return {
+                    stored: localStorage.getItem('zivon.lang'),
+                    c0: cs[0].getAttribute('aria-checked'),
+                    c1: cs[1].getAttribute('aria-checked'),
+                    docLang: document.documentElement.lang
+                  };
+                }"""
             )
             self.assertEqual(after_click["stored"], "hi")
             self.assertEqual(after_click["c0"], "false")
@@ -232,14 +260,21 @@ class TestFrontendFeatures(unittest.TestCase):
             page.evaluate(
                 """() => {
                   const chip1 = document.querySelectorAll('.zn-chip')[1];
-                  chip1.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}));
+                  const ev = new KeyboardEvent('keydown', {
+                    key: 'ArrowRight',
+                    bubbles: true
+                  });
+                  chip1.dispatchEvent(ev);
                 }"""
             )
             after_key = page.evaluate(
-                """() => ({
-                  stored: localStorage.getItem('zivon.lang'),
-                  c2: document.querySelectorAll('.zn-chip')[2].getAttribute('aria-checked')
-                })"""
+                """() => {
+                  const cs = document.querySelectorAll('.zn-chip');
+                  return {
+                    stored: localStorage.getItem('zivon.lang'),
+                    c2: cs[2].getAttribute('aria-checked')
+                  };
+                }"""
             )
             self.assertEqual(after_key["stored"], "hi-Latn")
             self.assertEqual(after_key["c2"], "true")
@@ -250,7 +285,7 @@ class TestFrontendFeatures(unittest.TestCase):
     def test_events_instrumentation_and_privacy_rules(self) -> None:
         page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "events.html")
         try:
-            # Verify initial boot emitted EVT-lesson_viewed (EVT-F01) and EVT-sim_opened (EVT-F03)
+            # Verify initial boot emitted EVT-lesson_viewed and EVT-sim_opened
             boot_evts = page.evaluate("window.ZivonEvents.getQueue()")
             evt_names = [e["evt"] for e in boot_evts]
             self.assertIn("EVT-lesson_viewed", evt_names)
@@ -307,15 +342,16 @@ class TestFrontendFeatures(unittest.TestCase):
                   const dockStatus = window.ZivonVoiceDock.lazyMount();
                   const states = window.ZivonStateMatrix.CANONICAL_STATES;
                   window.ZivonStateMatrix.applyState('offline');
-                  const offlineBanner = document.getElementById('zn-lesson-status-offline');
-                  const offlineVisible = offlineBanner && !offlineBanner.hidden;
+                  const offEl = document.getElementById('zn-lesson-status-offline');
+                  const offlineVisible = Boolean(offEl && !offEl.hidden);
 
                   window.ZivonStateMatrix.applyState('over-credit-budget');
-                  const quotaBanner = document.getElementById('zn-lesson-status-exhausted');
-                  const quotaVisible = quotaBanner && !quotaBanner.hidden;
+                  const qEl = document.getElementById('zn-lesson-status-exhausted');
+                  const quotaVisible = Boolean(qEl && !qEl.hidden);
 
                   window.ZivonStateMatrix.applyState('untranslated');
-                  const untranslatedCount = document.querySelectorAll('.zn-untranslated-notice').length;
+                  const notices = document.querySelectorAll('.zn-untranslated-notice');
+                  const untranslatedCount = notices.length;
 
                   const snap = window.ZivonStateMatrix.buildContextSnapshot('b-05');
                   return {
@@ -350,11 +386,12 @@ class TestFrontendFeatures(unittest.TestCase):
                   const VC = window.ZivonVoiceClient;
                   const mock = VC.createMockServer({ highlightBlocks: ['b-05'] });
                   const history = [];
+                  const track = {
+                    getSettings: () => ({ sampleRate: 16000, channelCount: 1 })
+                  };
                   const fakeNav = {
                     mediaDevices: {
-                      getUserMedia: async () => ({
-                        getAudioTracks: () => [{ getSettings: () => ({ sampleRate: 16000, channelCount: 1 }) }]
-                      })
+                      getUserMedia: async () => ({ getAudioTracks: () => [track] })
                     }
                   };
                   const client = VC.create({
@@ -375,11 +412,16 @@ class TestFrontendFeatures(unittest.TestCase):
                   client.endAudio();
                   const stateAfterTurn = client.getState();
                   const metrics = client.getLastTurnMetrics();
-                  const highlighted = document.getElementById('b-05').classList.contains('zn-tutor-highlight');
+                  const b05 = document.getElementById('b-05');
+                  const highlighted = b05.classList.contains('zn-tutor-highlight');
 
                   // Test barge-in while speaking
                   const mockHold = VC.createMockServer({ holdSpeaking: true });
-                  const c2 = VC.create({ createWebSocket: mockHold.createWebSocket, navigator: fakeNav, min_buffer_frames: 2 });
+                  const c2 = VC.create({
+                    createWebSocket: mockHold.createWebSocket,
+                    navigator: fakeNav,
+                    min_buffer_frames: 2
+                  });
                   c2.connect();
                   await new Promise((r) => setTimeout(r, 20));
                   c2.startListening();
@@ -395,10 +437,13 @@ class TestFrontendFeatures(unittest.TestCase):
                       getUserMedia: async () => { throw new Error('NotAllowedError'); }
                     }
                   };
-                  const c3 = VC.create({ createWebSocket: mock.createWebSocket, navigator: deniedNav });
+                  const c3 = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    navigator: deniedNav
+                  });
                   await c3.requestMicPermission();
                   const deniedState = c3.getState();
-                  // While WS not connected, typed doubt queues in memory and sets offline
+                  // While WS not connected, typed doubt queues in memory & sets offline
                   c3.sendTypedDoubt('Why is acceleration constant in free fall?');
                   const offlineState = c3.getState();
                   const queuedCount = c3.getQueuedTypedDoubts().length;
@@ -460,12 +505,9 @@ class TestFrontendFeatures(unittest.TestCase):
         self.assertIn("Disallow: /healthz", robots_txt)
         self.assertIn("Sitemap: https://zivon.local/sitemap.xml", robots_txt)
 
-        # Validate sitemap.xml parses as valid XML and contains landing + published courses
+        # Validate sitemap.xml parses as valid XML and contains landing + courses
         root = ET.fromstring(sitemap_path.read_text(encoding="utf-8"))
-        locs = [
-            el.text
-            for el in root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url/{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
-        ]
+        locs = [el.text for el in root.findall(f"{SITEMAP_NS}url/{SITEMAP_NS}loc")]
         self.assertIn("https://zivon.local/", locs)
         self.assertIn(
             "https://zivon.local/courses/class-9-physics/how-forces-affect-motion/",
