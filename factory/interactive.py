@@ -38,8 +38,13 @@ ZivonSim.register("<BLOCK_ID>", {
     // ctx is the same object; mutate it in init, read ctx.values here.
     // Use plain canvas 2D (ctx.canvas.getContext('2d') is available as ctx.g).
     // Geometry is COMPUTED from the cited equations, never hand-placed:
-    // SHAPE only - loop the graph's domain and evaluate the equation per step:
+    // GRAPH SHAPE - loop the graph's domain and evaluate the equation per step:
     //   for (var t = 0; t <= T; t += STEP) { /* emit the point at t */ }
+    // APPARATUS TOO - every drawn element (parts, arrows, labels) sits at a
+    // position given by an EXPRESSION of ctx.values or state (e.g. cart at
+    // x = d*SCALE, the arrow from the pulley along the string) - name each
+    // element and its expression before writing draw(), and sanity-check
+    // each expression at the default control values.
   }
 });
 """
