@@ -43,14 +43,21 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 _TOPIC_ALLOWED = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _-]{0,79}$")
 
 # The only scripts _run_action may execute (CodeQL py/path-injection +
-# py/command-line-injection): argv[0] must be one of these constants — no
-# path separators, no leading dash, no other repo file. _ARG_ALLOWED covers
-# every argv[1:] element the buttons pass (topic, digit class, "dashboard",
-# the "--fresh" constant): first char alphanumeric blocks option injection
-# ("--evil" as an argument), and the same set is re-checked in _run_action so
-# the CodeQL barrier dominates the subprocess sink in the same function.
-_ALLOWED_SCRIPTS = ("trigger-tests.sh", "trigger-factory-run.sh")
+# py/command-line-injection): allowed names map to *literal* Paths built at
+# import time — no user value appears in construction; _run_action only
+# looks the requested name up (_SCRIPTS.get(argv[0])) and never builds a
+# path from it. _ARG_ALLOWED covers every argv[1:] element the buttons pass
+# (topic, digit class, "dashboard", the "--fresh" constant): first char
+# alphanumeric blocks option injection ("--evil" as an argument), and the
+# same set is re-checked in _run_action so the CodeQL barrier dominates the
+# subprocess sink in the same function.
+_SCRIPTS = {
+    "trigger-tests.sh": REPO_ROOT / "scripts" / "trigger-tests.sh",
+    "trigger-factory-run.sh": REPO_ROOT / "scripts" / "trigger-factory-run.sh",
+}
 _ARG_ALLOWED = re.compile(r"^(?:[A-Za-z0-9][A-Za-z0-9 _-]{0,79}|--fresh)$")
+_CLASS_ALLOWED = re.compile(r"^(?:6|7|8|9|1[0-2])$")
+_FRESH_ALLOWED = re.compile(r"^(?:|1)$")
 
 # Run ids are factory slugify() output (factory/artifacts.py): lowercase
 # alphanumerics and hyphens, 63 chars max. Same slug as dashboard/queries.py;
@@ -375,46 +382,69 @@ def create_app() -> FastAPI:
         dashboard.action_triggered event with action/args/result."""
         if not auth.csrf_valid(_session_id(request), csrf):
             return JSONResponse(status_code=403, content={"error": "bad CSRF token"})
-        # Path guard (py/path-injection): argv[0] must be an allowlisted
-        # constant (no separators / leading dash possible past this line),
-        # then resolve() + is_relative_to keeps the executable inside
-        # <repo>/scripts even if ZIVON_REPO_DIR itself were attacker-shaped.
-        if not argv or argv[0] not in _ALLOWED_SCRIPTS:
+        # Path guard (py/path-injection): argv[0] is only ever a dict KEY —
+        # the Path it resolves to is a literal built at import time with no
+        # user value in construction. An unknown name returns before any
+        # filesystem use. resolve() + is_relative_to is kept as
+        # defense-in-depth (a symlinked scripts/ cannot escape).
+        script = _SCRIPTS.get(argv[0]) if argv else None
+        if script is None:
             return JSONResponse(status_code=500, content={"error": "unknown script"})
-        repo = Path(os.environ.get("ZIVON_REPO_DIR", str(REPO_ROOT))).resolve()
-        scripts_dir = (repo / "scripts").resolve()
-        script = (scripts_dir / argv[0]).resolve()
-        if not script.is_relative_to(scripts_dir):
+        scripts_dir = (REPO_ROOT / "scripts").resolve()
+        resolved_script = script.resolve()
+        if not resolved_script.is_relative_to(scripts_dir):
             return JSONResponse(status_code=500, content={"error": "script path"})
+        if len(argv) > 4:
+            return JSONResponse(
+                status_code=500, content={"error": "invalid script argument"}
+            )
         if not script.is_file():
-            result = f"script missing: scripts/{argv[0]}"
+            result = f"script missing: scripts/{script.name}"
             ok = False
         else:
-            # Command guard (py/command-line-injection): every argv element is
-            # re-checked against the same allowlist the handlers enforce, so
-            # the barrier dominates the subprocess sink in this function.
-            # List form + shell=False: no element is shell-parsed, and the
-            # first-char-alphanumeric rule blocks option injection ("--evil").
-            # ("--fresh" is the sole hyphen-leading constant, matched exactly.)
-            # Each element is appended to safe_args only after its own check,
-            # so the list reaching subprocess carries validated values only.
-            safe_args: list[str] = []
-            for arg in argv[1:]:
-                if not _ARG_ALLOWED.fullmatch(arg):
+            # Command guard (py/command-line-injection): each argv element is
+            # validated with a simple early-return fullmatch guard on a local
+            # variable that dominates its append and the subprocess sink (no
+            # loop that mixes checked and unchecked values; arity is capped
+            # above). List form + shell=False: no element is shell-parsed,
+            # and the first-char-alphanumeric rule blocks option injection
+            # ("--evil"). ("--fresh" is the sole hyphen-leading constant,
+            # matched exactly.) The list reaching subprocess carries only
+            # values that passed their own guard.
+            validated_args: list[str] = []
+            if len(argv) > 1:
+                first = argv[1]
+                if not _ARG_ALLOWED.fullmatch(first):
                     return JSONResponse(
                         status_code=500,
                         content={"error": "invalid script argument"},
                     )
-                safe_args.append(arg)
+                validated_args.append(first)
+            if len(argv) > 2:
+                second = argv[2]
+                if not _ARG_ALLOWED.fullmatch(second):
+                    return JSONResponse(
+                        status_code=500,
+                        content={"error": "invalid script argument"},
+                    )
+                validated_args.append(second)
+            if len(argv) > 3:
+                third = argv[3]
+                if not _ARG_ALLOWED.fullmatch(third):
+                    return JSONResponse(
+                        status_code=500,
+                        content={"error": "invalid script argument"},
+                    )
+                validated_args.append(third)
             try:
                 proc = subprocess.run(
-                    [str(script), *safe_args],
+                    [str(script), *validated_args],
                     capture_output=True,
                     text=True,
                     timeout=60,
                     check=False,
                     shell=False,
-                    cwd=str(repo),
+                    cwd=str(REPO_ROOT),
                 )
                 ok = proc.returncode == 0
                 result = (proc.stdout + proc.stderr).strip()[:400] or (
@@ -474,11 +504,21 @@ def create_app() -> FastAPI:
             )
         class_int: int | None = None
         if class_level:
-            if not class_level.isdigit() or not 6 <= int(class_level) <= 12:
+            # Early-return fullmatch guard: CodeQL kills class_level taint
+            # here; the argv element below is the int round-trip of the
+            # already-validated string, never the raw form value.
+            if not _CLASS_ALLOWED.fullmatch(class_level):
                 return JSONResponse(
                     status_code=422, content={"error": "class must be 6-12"}
                 )
             class_int = int(class_level)
+        # Early-return fullmatch guard on fresh: only "" (unchecked) and
+        # "1" (the checkbox value) reach the branch below, which appends
+        # the constant "--fresh" — never the raw form string.
+        if not _FRESH_ALLOWED.fullmatch(fresh):
+            return JSONResponse(
+                status_code=422, content={"error": "fresh must be empty or 1"}
+            )
         if factory_run_in_progress():
             return JSONResponse(
                 status_code=409,
