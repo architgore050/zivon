@@ -148,6 +148,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/specs/evals/`](docs/specs/evals/) | Evaluation framework spec (`evals/` package, test-to-eval migration map, stage & E2E eval cards, golden sets, regression tracking) |
 | [`docs/backend/adr/`](docs/backend/adr/) | Backend and evaluation Architecture Decision Records (ADRs) |
 | [`docs/specs/frontend/`](docs/specs/frontend/) | Frontend implementation spec (wave S1): component inventory, state matrix, WS client contract, perf-budget tests, SEO plan |
+| [`docs/specs/gaps/`](docs/specs/gaps/) | Gap register + Wave-E assignment (SP6) |
 
 ## Engineering Process
 
