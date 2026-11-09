@@ -93,6 +93,8 @@ spec:
           volumeMounts:
             - name: runs
               mountPath: /app/runs
+              subPath: runs     # the factory writes runs/<run_id>/ artifacts at this path
+                                # on the same PVC (same layout as the factory Job's mount)
               readOnly: true    # V1/V6 read artifacts; the dashboard writes nothing here
             - name: tmp
               mountPath: /tmp
@@ -107,8 +109,5 @@ spec:
         - name: runs
           persistentVolumeClaim:
             claimName: zivon-sources
-            # subPath: the factory writes runs/<run_id>/ artifacts at this path
-            # on the same PVC (same layout as the factory Job's mount)
-            subPath: runs
         - name: tmp
           emptyDir: {}
