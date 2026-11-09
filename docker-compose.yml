@@ -113,3 +113,100 @@ services:
       - "8081:8080"
     volumes:
       - ./frontend:/usr/share/nginx/html
+
+  # ---------------------------------------------------------------------------
+  # Wave-E dev stack (EX6-CICD work item 4) — dev-only, OPT-IN.
+  #
+  #   docker compose --profile dev-stack up -d     # db + backend + dashboard
+  #   docker compose run --rm evals-runner         # deterministic eval smoke
+  #
+  # Every service below carries `profiles: ["dev-stack"]`, so the default
+  # `docker compose up` / `compose run factory` behave EXACTLY as before the
+  # Wave-E work: profiled services build/start only when the profile is
+  # enabled. Host ports stay out of the occupied range (8081 site, 18080
+  # router, 18090 node): db 5433, backend 8090, dashboard 8091, bound to
+  # loopback only.
+  #
+  # Mock/dev posture: the backend boots on CONFIG-ONLY env (no product
+  # secrets in compose — repo rule; real keys come from the shell at runtime,
+  # same ${VAR:-} pattern as the factory service). The voice package's dev/
+  # mock transport switches land with EX0/EX1 (spec §12: every knob has a
+  # default, secrets from env) — until then this is a boot-and-probe stack,
+  # not a talking tutor.
+  db:
+    # Dev Postgres 16 (backend-spec §12 — same major the cluster runs).
+    # Profiled: the factory/llm-manager/web stack never touches it.
+    image: postgres:16-alpine
+    profiles: ["dev-stack"]
+    environment:
+      - POSTGRES_USER=${DEV_DB_USER:-zivon}
+      - POSTGRES_PASSWORD=${DEV_DB_PASSWORD:-zivon}
+      - POSTGRES_DB=${DEV_DB_NAME:-zivon}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - ./runs/dev-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DEV_DB_USER:-zivon}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  # The core-backend monolith (voice/ mounts into it, ADR-0020 — no separate
+  # voice service or image). Builds from EX0's Dockerfile.backend; until that
+  # lands, enabling this profile errors ONLY when this service is targeted.
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: zivon-backend:0.1.0
+    profiles: ["dev-stack"]
+    environment:
+      # Dev DB: the compose `db` service (credentials are throwaway dev values).
+      - ZIVON_DB_URL=postgresql://${DEV_DB_USER:-zivon}:${DEV_DB_PASSWORD:-zivon}@db:5432/${DEV_DB_NAME:-zivon}
+      - ZIVON_ENV=dev
+      # Voice knobs (spec §12 family): dummy transport config for dev boot;
+      # no API key here on purpose — the tutor runs degraded/mock in dev.
+      - ZIVON_VOICE_BRAIN_TRANSPORT=${ZIVON_VOICE_BRAIN_TRANSPORT:-gemini-direct}
+      - ZIVON_VOICE_BRAIN_MODEL=${ZIVON_VOICE_BRAIN_MODEL:-gemma-4-26b-a4b-it}
+      - ZIVON_VOICE_STT_URL=${ZIVON_VOICE_STT_URL:-}
+      - ZIVON_VOICE_TTS_URL=${ZIVON_VOICE_TTS_URL:-}
+    ports:
+      - "127.0.0.1:8090:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Admin dashboard v0 (dashboard-spec §1): boots WITHOUT the admin secret and
+  # WITHOUT the log store — /healthz answers via the fallback path (fail-closed
+  # happens per request: admin routes 503 + dashboard.auth_unconfigured). That
+  # is the spec'd dev posture, not a bug.
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    image: zivon-dashboard:0.1.0
+    profiles: ["dev-stack"]
+    environment:
+      - ZIVON_ENV=dev
+      - ZIVON_LOG_DSN=${ZIVON_LOG_DSN:-}
+    ports:
+      - "127.0.0.1:8091:8000"
+    restart: unless-stopped
+
+  # Evals runner (EX4, spec §5): same factory image (evals rides in it —
+  # k8s/52 runs the exact same command), profile-gated, no ports.
+  evals-runner:
+    build: .
+    image: zivon-factory:0.3.17
+    profiles: ["dev-stack"]
+    command: ["python", "-m", "evals", "run", "--suite", "smoke", "--fail-on-regression"]
+    environment:
+      - ZIVON_BASE_URL=${ZIVON_BASE_URL:-}
+      - ZIVON_MODEL=${ZIVON_MODEL:-}
+      - ZIVON_API_KEY=${ZIVON_API_KEY:-}
+    volumes:
+      - ./runs:/app/runs
+      - ./hf-cache:/app/.cache/huggingface
