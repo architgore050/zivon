@@ -928,6 +928,8 @@ def run_pipeline(
                 transcheck_out = run_ctx.load_stage_output("10b-transcheck")
             if render_out is None:
                 render_out = run_ctx.load_stage_output("06-render")
+            if source_pack is None:
+                source_pack = run_ctx.load_stage_output("01-locate")
             assert (
                 source_pack is not None and lesson is not None and blocks is not None
             ), "10d-transrender requires 01-locate and 02-generate outputs"

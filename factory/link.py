@@ -2,8 +2,9 @@
 course index.
 
 This is the ONLY stage that writes into frontend/. It copies the topic
-directory from the staging site, regenerates courses.js from all manifests,
-and smoke-tests that every course link resolves to a real file.
+directory from the staging site, copies any localized course hub directories
+when present, regenerates courses.js from all manifests, and smoke-tests that
+every course link and localized variant resolves to a real file.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from .artifacts import RunContext
 from .config import Config
 from .errors import StageError
 from .render import write_courses_js
+from .translate import LOCALE_METADATA
 
 STAGE_ID = "11-link"
 
@@ -32,14 +34,37 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
         shutil.rmtree(topic_dst)
     shutil.copytree(topic_src, topic_dst)
 
+    # Copy top-level locale hub directories (e.g. site/hi/index.html -> frontend/hi/index.html)
+    published_locale_hubs: list[str] = []
+    for loc in LOCALE_METADATA:
+        if loc == "en":
+            continue
+        hub_src = site / loc
+        if hub_src.is_dir() and (hub_src / "index.html").is_file():
+            hub_dst = frontend / loc
+            if hub_dst.exists():
+                shutil.rmtree(hub_dst)
+            shutil.copytree(hub_src, hub_dst)
+            published_locale_hubs.append(loc)
+
     entries = write_courses_js(frontend)
 
-    # Smoke test: every href in courses.js must resolve inside frontend/.
+    # Smoke test: every href in courses.js (and any declared locales_available) must resolve.
     missing = []
     for e in entries:
         target = frontend / e["href"]
         if not target.exists():
             missing.append(e["href"])
+        topic_folder = target.parent
+        for loc in e.get("locales_available", []):
+            if loc == "en":
+                continue
+            loc_index = topic_folder / loc / "index.html"
+            loc_json = topic_folder / "i18n" / f"{loc}.json"
+            if not loc_index.exists():
+                missing.append(str(loc_index.relative_to(frontend)))
+            if not loc_json.exists():
+                missing.append(str(loc_json.relative_to(frontend)))
     if missing:
         raise StageError(
             STAGE_ID,
@@ -65,6 +90,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
 
     return {
         "published_to": str(topic_dst),
+        "published_locale_hubs": published_locale_hubs,
         "courses": entries,
         "course_count": len(entries),
     }
