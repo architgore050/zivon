@@ -26,7 +26,7 @@ Zivon's content factory already writes per-run stage artifacts and two append-on
 | **Option 1: Flat JSONL files on `zivon-sources` PVC only (do nothing / simplest)** | Zero DB setup; works offline in CI and minikube immediately; matches `calls_ledger.jsonl` pattern. | No transactional integrity with `lesson_version` or `consent_record`; linear scan slows down dashboard queries; PVC loss destroys history unless synced to cold storage. | ₹0 / zero extra pods. | Fails `NFR-DURABILITY-C4` (single failure domain on node SSD) and `NFR-PRIVACY-DPDP` (no FK cascade on consent withdrawal) in Phase B. |
 | **Option 2: PostgreSQL-only store (require DB for all eval runs)** | Strong relational integrity (`UUIDv7` PKs, FK to `lesson_version` and `consent_record`), indexed diff queries, covered by WAL archiving (`ADR-0006`). | Breaks key-free CI (`eval-smoke`) and standalone/offline cluster runs when Postgres is not running; violates `AGENTS.md` ("avoid over-engineering databases early"). | Low (uses existing backend Postgres instance). | Fails P0/CI zero-dependency requirement (`AGENTS.md` line 125). |
 | **Option 3: External SaaS Eval Store (LangSmith / Braintrust / Arize Cloud)** | Pre-built UI for traces and dataset diffs. | Requires outbound internet from cluster pods (impossible under gotcha 15: containers only reach `192.168.49.1`); requires third-party API keys in CI/cluster; vendor lock-in. | Paid SaaS tier + secret management overhead. | Fails offline cluster constraint (gotcha 15) and `AGENTS.md` key-free CI rule. |
-| **Option 4: Dual-Mode Store — Append-Only JSONL on PVC (`Phase A`) + Optional PostgreSQL Dual-Write & Transactional Outbox to Cold Storage (`Phase B`) (Selected)** | Works 100% offline/key-free in CI and P0 (`runs/evals/*.jsonl` on `zivon-sources` PVC `subPath: evals`); when `ZIVON_DB_URL` is set, dual-writes to 5 PostgreSQL tables (`eval_run`, `eval_card_result`, `eval_defect_sample_result`, `eval_human_edit`, `eval_kid_session`) and archives completed run bundles to cold object storage under data class `C4`. | Small adapter layer (`evals/store.py`, ~180 LOC) to support both JSONL and SQLAlchemy/psycopg writers plus a `backfill-db` CLI command. | ₹0 in P0; marginal KB/day in Postgres + S3 cold storage in Phase B. | Fails none. |
+| **Option 4: Dual-Mode Store — Append-Only JSONL on PVC (`Phase A`) + Optional PostgreSQL Dual-Write & Transactional Outbox to Cold Storage (`Phase B`) (Selected)** | Works 100% offline/key-free in CI and P0 (`evals_runs/*.jsonl` on `zivon-sources` PVC `subPath: evals`); when `ZIVON_DB_URL` is set, dual-writes to 5 PostgreSQL tables (`eval_run`, `eval_card_result`, `eval_defect_sample_result`, `eval_human_edit`, `eval_kid_session`) and archives completed run bundles to cold object storage under data class `C4`. | Small adapter layer (`evals/store.py`, ~180 LOC) to support both JSONL and SQLAlchemy/psycopg writers plus a `backfill-db` CLI command. | ₹0 in P0; marginal KB/day in Postgres + S3 cold storage in Phase B. | Fails none. |
 
 ---
 
@@ -35,12 +35,12 @@ Zivon's content factory already writes per-run stage artifacts and two append-on
 We adopt **Option 4 (Dual-Mode Store)**:
 
 1. **Always-On Local/PVC Ledger (`Phase A` — P0 & CI)**:
-   - Every `evals` invocation writes to `/app/runs/evals/` (mounted from PVC `zivon-sources`, `subPath: evals` in `k8s/52-eval-cronjob.yaml` — separate from `subPath: runs` so `pipeline.py --fresh` never wipes eval history):
-     - `runs/evals/eval_runs_ledger.jsonl` (one summary JSON line per suite run)
-     - `runs/evals/eval_cards_ledger.jsonl` (one line per `(eval_run_id, card_id, topic_slug)`)
-     - `runs/evals/human_edits_ledger.jsonl` (one line per `evals record-edit`)
-     - `runs/evals/kid_sessions_ledger.jsonl` (one line per `evals record-kid-test`)
-     - `runs/evals/<eval_run_id>/{eval_report.json,diff_report.json,eval_summary.md}`
+   - Every `evals` invocation writes to `/app/evals_runs/` (mounted from PVC `zivon-sources`, `subPath: evals` in `k8s/52-eval-cronjob.yaml` — separate from `subPath: runs` so `pipeline.py --fresh` never wipes eval history):
+     - `evals_runs/eval_runs_ledger.jsonl` (one summary JSON line per suite run)
+     - `evals_runs/eval_cards_ledger.jsonl` (one line per `(eval_run_id, card_id, topic_slug)`)
+     - `evals_runs/human_edits_ledger.jsonl` (one line per `evals record-edit`)
+     - `evals_runs/kid_sessions_ledger.jsonl` (one line per `evals record-kid-test`)
+     - `evals_runs/<eval_run_id>/{eval_report.json,diff_report.json,eval_summary.md}`
 2. **Relational Persistence (`Phase B` — `db-spec.md` Alignment)**:
    - When `ZIVON_DB_URL` is present in the environment, `evals/store.py` dual-writes to five tables in PostgreSQL (schemas defined in [`docs/specs/evals/spec.md`](../../specs/evals/spec.md) §4.1):
      - `eval_run` (UUIDv7 PK, indexed on `(suite, pipeline_version, started_at DESC)`)
@@ -48,11 +48,11 @@ We adopt **Option 4 (Dual-Mode Store)**:
      - `eval_defect_sample_result` (UUIDv7 PK, FK to `eval_card_result`, indexed on `(sample_id, outcome_class)`)
      - `eval_human_edit` (UUIDv7 PK, tracks `human_edit_rate` per topic/version)
      - `eval_kid_session` (UUIDv7 PK, FK `consent_record_id` with `ON DELETE CASCADE` for DPDP erasure)
-   - A CLI command `python -m evals backfill-db --from-dir runs/evals` idempotently imports Phase A JSONL rows into PostgreSQL using deterministic UUIDv5/UUIDv7 keys derived from `(eval_run_id, card_id, sample_id)`.
+   - A CLI command `python -m evals backfill-db --from-dir evals_runs` idempotently imports Phase A JSONL rows into PostgreSQL using deterministic UUIDv5/UUIDv7 keys derived from `(eval_run_id, card_id, sample_id)`.
 3. **Storage Tiering (`storage-tiering.md` Data Class `C4` Alignment)**:
    - Relational rows in `eval_run`, `eval_card_result`, `eval_defect_sample_result`, and `eval_human_edit` are covered by continuous PostgreSQL WAL archiving + daily base backups (`C14`, `ADR-0006`).
-   - Raw per-run artifact directories (`runs/evals/<eval_run_id>/`) are classified under **`C4` (Content-factory & eval run evidence)**:
-     - **Sync Trigger**: On `eval_run` completion, a transactional outbox job compresses `runs/evals/<eval_run_id>/` to `.tar.zst`, computes its `sha256`, and uploads to the cold S3-compatible provider at `c4/evals/dt=YYYY-MM-DD/<eval_run_id>/<sha256>.tar.zst`.
+   - Raw per-run artifact directories (`evals_runs/<eval_run_id>/`) are classified under **`C4` (Content-factory & eval run evidence)**:
+     - **Sync Trigger**: On `eval_run` completion, a transactional outbox job compresses `evals_runs/<eval_run_id>/` to `.tar.zst`, computes its `sha256`, and uploads to the cold S3-compatible provider at `c4/evals/dt=YYYY-MM-DD/<eval_run_id>/<sha256>.tar.zst`.
      - **Verification & Eviction**: The outbox worker verifies the read-back SHA-256 and sets `cold_verified_at` on the `object` catalogue row. Local SSD directories on `zivon-sources` PVC are only eligible for LRU eviction when `cold_verified_at IS NOT NULL`, `pinned = FALSE` (the active baseline run for each `PIPELINE_VERSION` is `pinned = TRUE`), and `age > 14 days`.
 
 ---
@@ -72,7 +72,7 @@ We adopt **Option 4 (Dual-Mode Store)**:
 
 ## Revisit trigger
 
-- Revisit if `runs/evals/` exceeds `2 GiB` on the `zivon-sources` PVC before Phase B cold-storage eviction is enabled, or if concurrent eval writers ever exceed `1` (`k8s/52-eval-cronjob.yaml` enforces `concurrencyPolicy: Forbid`).
+- Revisit if `evals_runs/` exceeds `2 GiB` on the `zivon-sources` PVC before Phase B cold-storage eviction is enabled, or if concurrent eval writers ever exceed `1` (`k8s/52-eval-cronjob.yaml` enforces `concurrencyPolicy: Forbid`).
 
 ---
 

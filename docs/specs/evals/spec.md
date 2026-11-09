@@ -54,7 +54,7 @@ evals/
 ├── config.py                   # EvalConfig (reads ZIVON_* + ZIVON_EVAL_* env vars; zero secrets in files)
 ├── models.py                   # Typed dataclasses / JSON schemas for EvalRun, CardResult, DefectSample, DiffReport
 ├── runner.py                   # Suite orchestrator (smoke vs full vs calibration; deterministic-first funnel)
-├── store.py                    # Dual-write persistence: runs/evals/ JSONL + PostgreSQL outbox (ADR-0017)
+├── store.py                    # Dual-write persistence: evals_runs/ JSONL + PostgreSQL outbox (ADR-0017)
 ├── diff.py                     # Run-to-run regression calculator & threshold alerter
 ├── report.py                   # JSON + Markdown + terminal scorecard formatter & Prometheus/dashboard emitter
 ├── checkers/                   # Deterministic code graders (0 model calls)
@@ -332,7 +332,7 @@ The golden dataset is organized into three versioned layers under `evals/goldens
 Following [`skills/zivon-systems-design-skills/`](../../../skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) (`references/02-data-classification-and-tiering.md` and `references/03-database-spec-method.md`), eval artifacts and relational records are phased so P0 works with zero database dependencies while Phase B/production persists into PostgreSQL and cold object storage:
 
 - **Phase A (P0 / Build-Time / Offline Cluster)**:
-  - `evals/store.py` writes append-only JSONL ledgers (`runs/evals/eval_runs_ledger.jsonl`, `runs/evals/eval_cards_ledger.jsonl`, `runs/evals/human_edits_ledger.jsonl`, `runs/evals/kid_sessions_ledger.jsonl`) and per-run directories (`runs/evals/<eval_run_id>/eval_report.json`, `diff_report.json`, `eval_summary.md`) onto the `zivon-sources` PVC (`subPath: evals`, alongside `subPath: runs`).
+  - `evals/store.py` writes append-only JSONL ledgers (`evals_runs/eval_runs_ledger.jsonl`, `evals_runs/eval_cards_ledger.jsonl`, `evals_runs/human_edits_ledger.jsonl`, `evals_runs/kid_sessions_ledger.jsonl`) and per-run directories (`evals_runs/<eval_run_id>/eval_report.json`, `diff_report.json`, `eval_summary.md`) onto the `zivon-sources` PVC (`subPath: evals`, alongside `subPath: runs`).
   - `scripts/publish-artifacts.sh` mirrors `evals/` alongside `runs/` to the host for offline inspection.
 - **Phase B (PostgreSQL + Cold Storage Tiering — `db-spec.md` & `storage-tiering.md` Alignment)**:
   - When `ZIVON_DB_URL` is configured, `evals/store.py` dual-writes into five PostgreSQL tables using **UUIDv7** primary keys, `timestamptz` UTC timestamps, and JSONB payload columns validated by `evals/models.py`:
@@ -346,7 +346,7 @@ Following [`skills/zivon-systems-design-skills/`](../../../skills/zivon-systems-
 | `eval_kid_session` | `id UUID` (UUIDv7) | Gate B kid-comprehension observation row: `session_code VARCHAR(32)` (pseudonymous `kid-r1-01`), `consent_record_id UUID NULL REFERENCES consent_record(id)`, `topic_slug VARCHAR(128)`, `lesson_version_id UUID NULL`, `tester_class SMALLINT`, `topic_class SMALLINT`, `is_above_class_level BOOL`, `restated_in_own_words BOOL`, `followup_1_correct BOOL`, `followup_2_correct BOOL`, `gate_b_pass BOOL`, `confusion_blocks JSONB`, `notes TEXT` (redacted, no child PII), `promoted_defect_id VARCHAR(32) NULL`, `recorded_at TIMESTAMPTZ`. | `C10` / `C4` hybrid: Pseudonymous, linked to `C9` `consent_record`; hard-deletable (`ON DELETE CASCADE` or tombstoned) if guardian withdraws consent (`05-privacy-security-ops.md`). | `INF-GATE-B-RESULT` / `NEED-KID-VALIDATION` |
 
 - **Storage Tiering & "Pull the Plug" Invariant (`storage-tiering.md`)**:
-  - Raw eval run directories (`runs/evals/<eval_run_id>/`) are compressed to `.tar.zst`, hashed (`sha256`), uploaded to the cold S3-compatible provider under key `c4/evals/dt=YYYY-MM-DD/<eval_run_id>/<sha256>.tar.zst`, read-back verified (`cold_verified_at` set in `object` catalogue table), and only evicted from the SSD PVC when `cold_verified_at IS NOT NULL` and age `> 14 days` (keeping the latest baseline run for each `PIPELINE_VERSION` pinned on SSD).
+  - Raw eval run directories (`evals_runs/<eval_run_id>/`) are compressed to `.tar.zst`, hashed (`sha256`), uploaded to the cold S3-compatible provider under key `c4/evals/dt=YYYY-MM-DD/<eval_run_id>/<sha256>.tar.zst`, read-back verified (`cold_verified_at` set in `object` catalogue table), and only evicted from the SSD PVC when `cold_verified_at IS NOT NULL` and age `> 14 days` (keeping the latest baseline run for each `PIPELINE_VERSION` pinned on SSD).
 
 ### 4.2 Run-to-Run Diff Reports & Regression Alerting (`evals/diff.py`)
 
@@ -375,7 +375,7 @@ To make `TIMELINE.md`'s primary metric (**human edit rate per generated topic**)
    ```bash
    python -m evals record-edit --topic class-11-physics/motion-in-a-straight-line [--notes "0 lines edited; published raw from run 040410"]
    ```
-   diffs the committed files in `frontend/courses/` against the run's stage `11-link` (or `06-render`/`10-reviewfix`) snapshot in `runs/<run_id>/`, computes `manual_added_lines`, `manual_deleted_lines`, and `human_edit_rate`, and appends the record to `runs/evals/human_edits_ledger.jsonl` (and `eval_human_edit` in Postgres).
+   diffs the committed files in `frontend/courses/` against the run's stage `11-link` (or `06-render`/`10-reviewfix`) snapshot in `runs/<run_id>/`, computes `manual_added_lines`, `manual_deleted_lines`, and `human_edit_rate`, and appends the record to `evals_runs/human_edits_ledger.jsonl` (and `eval_human_edit` in Postgres).
 
 ---
 
@@ -425,7 +425,7 @@ Full eval runs (which invoke LLM judges and reviewer calibration via the in-clus
 - **Kube-Linter Compliance (Gotcha 12)**: No `ttlSecondsAfterFinished` on the CronJob's `jobTemplate.spec`; cleanup uses `successfulJobsHistoryLimit: 3` and `failedJobsHistoryLimit: 3`.
 - **Security Context (Gotchas 1 & 17)**: `automountServiceAccountToken: false`, `runAsNonRoot: true`, `runAsUser: 1000`, `allowPrivilegeEscalation: false`, `capabilities.drop: ["ALL"]`, `readOnlyRootFilesystem: true`.
 - **Model Routing**: Uses `envFrom: configMapRef: zivon-factory-config` (so `ZIVON_BASE_URL` points at `http://llm-manager.zivon.svc.cluster.local:80/v1`, never hand-rolling HTTP to the inference server) and optional `ZIVON_API_KEY` from `secretKeyRef: zivon-factory-env`.
-- **Volumes**: Mounts `zivon-sources` PVC (`subPath: evals` at `/app/runs/evals` and `subPath: runs` read-only at `/app/runs/factory` so evals persist across pod deaths), `zivon-hf-cache` at `/app/.cache/huggingface` with `HF_HUB_OFFLINE=1` (Gotcha 15b), and `/tmp` as `emptyDir`.
+- **Volumes**: Mounts `zivon-sources` PVC (`subPath: evals` at `/app/evals_runs` and `subPath: runs` read-only at `/app/runs/factory` so evals persist across pod deaths), `zivon-hf-cache` at `/app/.cache/huggingface` with `HF_HUB_OFFLINE=1` (Gotcha 15b), and `/tmp` as `emptyDir`.
 
 #### `k8s/52-eval-cronjob.yaml` Specification
 
@@ -497,12 +497,23 @@ spec:
                       key: ZIVON_API_KEY
                       optional: true
               volumeMounts:
-                - name: evals-store
-                  mountPath: /app/runs/evals
+                - name: sources
+                  mountPath: /app/evals_runs
                   subPath: evals
-                - name: factory-runs
-                  mountPath: /app/runs/factory
+                - name: sources
+                  mountPath: /app/runs
                   subPath: runs
+                  readOnly: true
+                - name: sources
+                  mountPath: /app/sources/pdfs
+                  subPath: pdfs
+                  readOnly: true
+                - name: sources
+                  mountPath: /app/sources/cache
+                  subPath: cache
+                  readOnly: true
+                - name: site
+                  mountPath: /app/frontend
                   readOnly: true
                 - name: hf-cache
                   mountPath: /app/.cache/huggingface
@@ -516,12 +527,12 @@ spec:
                   cpu: "2"
                   memory: 2Gi
           volumes:
-            - name: evals-store
+            - name: sources
               persistentVolumeClaim:
                 claimName: zivon-sources
-            - name: factory-runs
+            - name: site
               persistentVolumeClaim:
-                claimName: zivon-sources
+                claimName: zivon-frontend
             - name: hf-cache
               persistentVolumeClaim:
                 claimName: zivon-hf-cache
@@ -543,8 +554,16 @@ Mirrors `scripts/trigger-tests.sh` as the third admin "button" for the Day-8 das
 #   scripts/trigger-evals.sh smoke                  -> one-off smoke job (0 model calls)
 #   scripts/trigger-evals.sh calibrate              -> reviewer calibration only (EV-REV-001/002)
 set -euo pipefail
-suite="${1:-full}"
-suffix="${2:-manual}"
+case "${1:-full}" in
+  smoke|full|calibrate)
+    suite="$1"
+    suffix="${2:-manual}"
+    ;;
+  *)
+    suite="smoke"
+    suffix="$1"
+    ;;
+esac
 job="eval-${suite}-${suffix}-$(date +%H%M%S)"
 
 if [[ "$suite" == "full" ]]; then
@@ -575,7 +594,7 @@ Line-edits required in `k8s/infra.env` and `scripts/apply-k8s.sh` when the execu
 
 ### 6.1 Run Report Format (JSON + Human-Readable Markdown/CLI)
 
-Every execution of `python -m evals run` writes two artifacts into `runs/evals/<eval_run_id>/`:
+Every execution of `python -m evals run` writes two artifacts into `evals_runs/<eval_run_id>/`:
 
 1. **Machine-Readable Report (`eval_report.json`)**:
 ```json
