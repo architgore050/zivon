@@ -319,8 +319,13 @@ def day_verified(day: str, out_dir: Path | None = None) -> bool:
 
 def ingest_fallback_files(conn: Any, out_dir: Path | None = None) -> dict[str, int]:
     """Ingest JSONL fallback files into the hot store (the recovery half of
-    the daily sync). Idempotent per file: a sync manifest keyed by the
-    file's sha256 skips files already ingested unchanged."""
+    the daily sync). Idempotent: the sync manifest records per file the
+    sha256 plus how many rows were already ingested, so a file that simply
+    GREW since the last run contributes only its new tail rows — never a
+    whole-file re-insert (which duplicated every previously ingested row).
+    A file that shrank (truncation / guardian-deletion rewrite) no longer
+    matches the recorded prefix, so it is ingested whole again; the rare
+    duplicates that can cause are the known cost of that rewrite path."""
     out_dir = out_dir or sync_dir()
     out_dir.mkdir(parents=True, exist_ok=True)
     ingested = {"files": 0, "rows": 0, "skipped": 0}
@@ -328,7 +333,7 @@ def ingest_fallback_files(conn: Any, out_dir: Path | None = None) -> dict[str, i
     if not logs_dir.is_dir():
         return ingested
     done_manifest = out_dir / "fallback-ingested.json"
-    done: dict[str, str] = {}
+    done: dict[str, Any] = {}
     if done_manifest.is_file():
         try:
             done = dict(json.loads(done_manifest.read_text(encoding="utf-8")))
@@ -340,15 +345,35 @@ def ingest_fallback_files(conn: Any, out_dir: Path | None = None) -> dict[str, i
         except OSError:
             continue
         file_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-        if done.get(path.name) == file_hash:
+        state = done.get(path.name)
+        # Legacy manifests stored the bare hash string; the new shape is
+        # {"sha256": ..., "lines": n}. An unchanged file skips either way.
+        if isinstance(state, str):
+            state = {"sha256": state, "lines": 0}
+        if not isinstance(state, dict):
+            state = {"sha256": None, "lines": 0}
+        if state.get("sha256") == file_hash:
             ingested["skipped"] += 1
             continue
         rows = [line for line in content.splitlines() if line.strip()]
-        if _insert_lines(conn, rows):
-            done[path.name] = file_hash
+        already = state.get("lines") or 0
+        if already and len(rows) < already:
+            already = 0  # shrank/rewritten: the recorded prefix cannot apply
+        fresh = rows[already:]
+        if not fresh:
+            # Hash moved but there is no new tail (e.g. blank-line churn):
+            # record the new hash so the next run skips this file.
+            done[path.name] = {"sha256": file_hash, "lines": len(rows)}
+            ingested["skipped"] += 1
+            done_manifest.write_text(
+                json.dumps(done, indent=2, sort_keys=True), encoding="utf-8"
+            )
+            continue
+        if _insert_lines(conn, fresh):
+            done[path.name] = {"sha256": file_hash, "lines": len(rows)}
             ingested["files"] += 1
-            ingested["rows"] += len(rows)
-            (done_manifest).write_text(
+            ingested["rows"] += len(fresh)
+            done_manifest.write_text(
                 json.dumps(done, indent=2, sort_keys=True), encoding="utf-8"
             )
     return ingested
@@ -440,6 +465,7 @@ def delete_subject(session_id: str) -> dict[str, Any]:
 
     stores_touched: list[str] = []
     hot_removed = 0
+    hot_error: str | None = None
     dsn = os.environ.get("ZIVON_LOG_DSN", "").strip()
     if dsn:
         import psycopg
@@ -454,19 +480,26 @@ def delete_subject(session_id: str) -> dict[str, Any]:
                     hot_removed = max(cur.rowcount or 0, 0)
                 conn.commit()
             stores_touched.append("hot")
-        except Exception as exc:  # noqa: BLE001 — deletion retries; never raise to the guardian path
-            del exc
+        except Exception as exc:  # noqa: BLE001 — reported, never silently OK: see below
+            # A failure here used to be swallowed and the caller told the
+            # deletion succeeded, which missed the 24 h guardian SLA
+            # invisibly. Surface it instead.
+            hot_error = str(exc)[:200]
     stores_touched.append("fallback")  # the rewrite pass runs unconditionally
     fallback_removed = _jsonl().remove_session(session_id)
-    summary = {
+    succeeded = hot_error is None
+    summary: dict[str, Any] = {
         "session_id": session_id,
         "session_count": hot_removed + fallback_removed,
         "stores_touched": stores_touched or ["none"],
+        "status": "ok" if succeeded else "failed",
+        "ok": succeeded,
+        "error": hot_error,
     }
     record = {
         "ts": _utc_now_iso_ms(),
         "schema_version": 1,
-        "severity": "INFO",
+        "severity": "INFO" if succeeded else "ERROR",
         "event": "privacy.subject_deleted",
         "component": _events.component_for("privacy.subject_deleted"),
         "env": _events.env_name(),
@@ -474,7 +507,11 @@ def delete_subject(session_id: str) -> dict[str, Any]:
         "fields": {
             "session_count": summary["session_count"],
             "stores_touched": summary["stores_touched"],
+            "status": summary["status"],
+            "ok": succeeded,
+            "error": hot_error,
         },
+        "error_class": None if succeeded else "store_error",
     }
     _dispatch(record)
     return summary

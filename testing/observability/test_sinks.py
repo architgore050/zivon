@@ -192,10 +192,44 @@ class StoreHelperTests(ObservabilityTest):
         self.assertIn("other-subject", remaining[0])
         self.assertEqual(summary["session_count"], 1)
         self.assertIn("fallback", summary["stores_touched"])
+        self.assertEqual(summary["status"], "ok")
+        self.assertTrue(summary["ok"])
         audit = self.last_event("privacy.subject_deleted")
         self.assertEqual(audit["component"], "privacy")
         self.assertEqual(audit["fields"]["session_count"], 1)
+        self.assertEqual(audit["fields"]["status"], "ok")
         self.assertEqual(audit["session_id"], session)
+
+    def test_delete_subject_surfaced_when_postgres_fails(self) -> None:
+        """A hot-store failure must be surfaced (status failed + audit
+        carries the error), never returned as success — otherwise the
+        guardian 24 h SLA is missed invisibly."""
+        import sys
+        import unittest.mock
+
+        from logging_manager import delete_subject
+
+        session = "0d0c8b2e-1111-4222-8333-444455556666"
+        os.environ["ZIVON_LOG_DSN"] = "postgresql://fake/fake"
+        try:
+            with unittest.mock.patch.dict(
+                sys.modules,
+                {
+                    "psycopg": unittest.mock.Mock(
+                        connect=unittest.mock.Mock(side_effect=RuntimeError("db down"))
+                    )
+                },
+            ):
+                summary = delete_subject(session)
+            self.assertEqual(summary["status"], "failed")
+            self.assertFalse(summary["ok"])
+            self.assertIn("db down", summary["error"])
+            self.assertNotIn("hot", summary["stores_touched"])
+            audit = self.last_event("privacy.subject_deleted")
+            self.assertEqual(audit["fields"]["status"], "failed")
+            self.assertEqual(audit["severity"], "ERROR")
+        finally:
+            os.environ.pop("ZIVON_LOG_DSN", None)
 
 
 class JsonlDeletionIsolationTests(ObservabilityTest):

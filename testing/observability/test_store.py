@@ -188,6 +188,56 @@ class FallbackIngestionTests(ObservabilityTest):
             os.environ.pop("ZIVON_RUNS_DIR", None)
         self.assertTrue(done_manifest.is_file())  # the manifest recorded the hash
 
+    def test_append_then_reingest_inserts_only_the_new_tail(self) -> None:
+        """A file that grew must not re-insert its already-ingested head
+        (the old whole-file-sha rule duplicated every old row)."""
+        runs = self.runs_dir / "ingest-append"
+        os.environ["ZIVON_RUNS_DIR"] = str(runs)
+        logs = runs / "logs"
+        logs.mkdir(parents=True, exist_ok=True)
+        path = logs / "20261108-factory.jsonl"
+
+        def _line(seconds: int) -> str:
+            return json.dumps(
+                {
+                    "ts": f"2026-11-08T10:00:{seconds:02d}.000Z",
+                    "schema_version": 1,
+                    "severity": "INFO",
+                    "event": "factory.stage.ok",
+                    "component": "factory",
+                    "env": "dev",
+                    "fields": {},
+                }
+            )
+
+        path.write_text(_line(0) + "\n", encoding="utf-8")
+        out = self.runs_dir / "logs-exports-append"
+        inserted: list[str] = []
+
+        original = st._insert_lines
+
+        def _capture(conn: Any, lines: list[str]) -> bool:
+            inserted.extend(lines)
+            return True
+
+        st.__dict__["_insert_lines"] = _capture
+        try:
+            first = st.ingest_fallback_files(None, out)  # type: ignore[arg-type]
+            self.assertEqual(first["rows"], 1)
+            path.write_text(_line(0) + "\n" + _line(1) + "\n", encoding="utf-8")
+            second = st.ingest_fallback_files(None, out)  # type: ignore[arg-type]
+            # only the appended row is inserted; the head is not re-inserted
+            self.assertEqual(second["rows"], 1)
+            self.assertEqual(second["files"], 1)
+            third = st.ingest_fallback_files(None, out)  # type: ignore[arg-type]
+            self.assertEqual(third["rows"], 0)
+            self.assertEqual(third["skipped"], 1)
+        finally:
+            st.__dict__["_insert_lines"] = original
+            os.environ.pop("ZIVON_RUNS_DIR", None)
+        self.assertEqual(len(inserted), 2)
+        self.assertEqual(inserted, [_line(0), _line(1)])
+
 
 class CliTests(unittest.TestCase):
     """The CLI (python -m logging_manager.store) is the k8s/51 Job's entry
