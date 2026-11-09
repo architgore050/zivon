@@ -66,6 +66,7 @@ _STAGE_IDS = [
     "09-review",
     "10-reviewfix",
     "11-link",
+    "12-narration",
 ]
 
 _SPEC: dict[str, Any] = {
