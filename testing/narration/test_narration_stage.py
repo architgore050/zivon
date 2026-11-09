@@ -62,6 +62,37 @@ class TestNarrationDisabledNoOp(unittest.TestCase):
         self.assertFalse(out["enabled"])
 
 
+class TestSingleLocaleGuard(unittest.TestCase):
+    def setUp(self):
+        self.saved_env = install_narration_env(
+            enabled=True, extra={"ZIVON_NARRATION_LANGS": "en,hi"}
+        )
+        self.tmp = Path(tempfile.mkdtemp(prefix="zivon-narr-langs-"))
+        self.runs_dir = self.tmp / "runs"
+        self.runs_dir.mkdir()
+        self.run_ctx = _FakeRunContext(self.runs_dir, "run-narr-langs")
+
+    def tearDown(self):
+        release_narration_env(self.saved_env)
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_multiple_locales_fail_loud_before_anything_runs(self):
+        from factory.narration import run as run_narration
+        from factory.narration.errors import NarrationError
+
+        # Single-locale v1: the guard precedes topic loading, so the fake
+        # run context (no artifacts at all) must still see the loud error,
+        # and nothing may be created or spent on the way to it.
+        with self.assertRaises(NarrationError) as ctx:
+            run_narration(_minimal_cfg(self.tmp), self.run_ctx)
+        message = str(ctx.exception)
+        self.assertIn("single-locale", message)
+        self.assertIn("en,hi", message)
+        self.assertIn("ZIVON_NARRATION_LANGS", message)
+        self.assertFalse((self.tmp / "frontend" / "audio").exists())
+        self.assertFalse((self.runs_dir / "narration-budget.json").exists())
+
+
 class _FakeRunContext:
     """Minimal RunContext stand-in: the disabled stage writes nothing."""
 

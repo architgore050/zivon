@@ -27,6 +27,9 @@ mini-spec):
   pipeline; residual failures degrade read-aloud to the INF-089 disabled
   copy for those blocks instead of failing the run.
 - availability flag + narration-manifest.json (publish.py).
+- single-locale v1: exactly one locale in ZIVON_NARRATION_LANGS is narrated
+  per page; more than one is a hard NarrationError raised before any
+  synthesis (multi-locale narration waits on translated blocks, EX2).
 
 Failure policy: per-block outcomes are recorded, never fatal - the product
 has a designed degraded state (INF-089 disabled copy). Only two things raise:
@@ -89,6 +92,18 @@ def run(
             "stage": STAGE_ID,
             "detail": "narration disabled by environment",
         }
+
+    if len(env.langs) > 1:
+        raise NarrationError(
+            STAGE_ID,
+            f"ZIVON_NARRATION_LANGS={','.join(env.langs)} names "
+            f"{len(env.langs)} locales but narration v1 is single-locale: "
+            "only one locale is narrated per page (the speakable units are "
+            "English-lesson forms; per-locale audio needs translated blocks "
+            "from EX2). Set ZIVON_NARRATION_LANGS to one locale "
+            "(challenge-window default: en) and re-trigger - no synthesis "
+            "was attempted and no credits were spent.",
+        )
 
     mode = env.resolved_mode
     lang = env.langs[0]
