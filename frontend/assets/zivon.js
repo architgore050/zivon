@@ -22,6 +22,67 @@
 (function () {
   "use strict";
 
+  /* --------------------- 0. routing & localized hook ----------------------
+     File-path routing on nginx (spec.md §3.1) plus the reserved localized-route
+     hook (spec.md §3.2, DCR-001 deferred; ADR-0009 11-locale model + doctrine
+     v1 subset). Exposes canonical URL parsing, screen classification, and
+     localized path resolution without any runtime router. */
+  var SUPPORTED_LOCALES = [
+    "en", "hi", "hi-Latn", "hinglish",
+    "en-IN", "hi-IN", "bn-IN", "gu-IN", "kn-IN",
+    "ml-IN", "mr-IN", "pa-IN", "ta-IN", "te-IN"
+  ];
+  var V1_UI_LOCALES = ["en", "hi", "hi-Latn"];
+
+  function parseRoute(pathname) {
+    var raw = String(pathname || (window.location && window.location.pathname) || "/");
+    var clean = raw.replace(/\/index\.html$/, "/").replace(/\/+$/, "") || "/";
+    var parts = clean.split("/").filter(Boolean);
+    var locale = "en";
+    if (parts.length > 0 && SUPPORTED_LOCALES.indexOf(parts[0]) !== -1) {
+      locale = parts.shift();
+    }
+    if (parts.length === 0) {
+      return { screen: "SCR-HOME-01", locale: locale, course_id: null, topic_slug: null, canonical_path: "/" };
+    }
+    if (parts[0] === "courses" && parts.length >= 3) {
+      var cid = parts[1];
+      var slug = parts[2];
+      return {
+        screen: "SCR-LES-01",
+        locale: locale,
+        course_id: cid,
+        topic_slug: slug,
+        canonical_path: "/courses/" + cid + "/" + slug + "/"
+      };
+    }
+    if (parts[0] === "404.html" || document.querySelector(".zn-404")) {
+      return { screen: "SCR-404-01", locale: "en", course_id: null, topic_slug: null, canonical_path: "/404.html" };
+    }
+    return { screen: "SCR-404-01", locale: locale, course_id: null, topic_slug: null, canonical_path: clean };
+  }
+
+  function buildLocalizedHref(canonicalPath, targetLocale) {
+    var norm = String(canonicalPath || "/");
+    if (norm.charAt(0) !== "/") norm = "/" + norm;
+    norm = norm.replace(/^\/(en|hi|hi-Latn|hinglish|[a-z]{2}-IN)(?=\/|$)/, "") || "/";
+    var loc = String(targetLocale || "en");
+    if (loc === "hinglish") loc = "hi-Latn";
+    if (!loc || loc === "en" || SUPPORTED_LOCALES.indexOf(loc) === -1) {
+      return norm;
+    }
+    return "/" + loc + (norm === "/" ? "/" : norm);
+  }
+
+  var ZivonRouter = {
+    SUPPORTED_LOCALES: SUPPORTED_LOCALES,
+    V1_UI_LOCALES: V1_UI_LOCALES,
+    parseRoute: parseRoute,
+    currentRoute: function () { return parseRoute(window.location ? window.location.pathname : "/"); },
+    buildLocalizedHref: buildLocalizedHref
+  };
+  window.ZivonRouter = ZivonRouter;
+
   /* ---------------------------- 1. quizzes ------------------------------- */
   function firstNumber(text) {
     var m = /-?\d+(?:\.\d+)?/.exec(String(text));

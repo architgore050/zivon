@@ -616,3 +616,8 @@ a { color: var(--pen-blue); }
 }
 .zn-note svg { width: 40px; height: 28px; flex: none; }
 .zn-note > span:last-child { font-family: var(--hand); font-weight: 700; font-size: 30px; line-height: 1; }
+
+/* ---- branded 404 page (SCR-404-01, shell-owned, §1-§9 look only) ---- */
+.zn-404-body { margin-top: 24px; }
+.zn-404-actions { margin-top: 24px; }
+.zn-404-back { display: inline-block; font-weight: 700; }
