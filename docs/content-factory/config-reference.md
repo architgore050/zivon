@@ -94,6 +94,20 @@ the runbook's "Narration builds" section.
 | `ZIVON_COLDSTORE_UPLOAD_CMD` / `ZIVON_COLDSTORE_READBACK_CMD` | for cold gate | unset | Operator command templates for the SYNC-01 P0 gate (`rclone copyto {src} b2:bucket/{dst}` style; `{src}`/`{dst}` are shell-quoted). Unset = the gate reports a loud SKIP. |
 | `ZIVON_COLDSTORE_PREFIX` / `ZIVON_COLDSTORE_TIMEOUT_S` | no | `narration` / `120` | Cold key prefix / per-file command timeout. |
 
+**Spoken form (no new knobs).** The spoken text is built deterministically in
+`factory/narration/select.py`: LaTeX, math notation and Unicode symbols are
+verbalized into words ("x squared plus one", "3.06 metres per second squared",
+"the integral of velocity with respect to time") and wrapped in the whitelisted
+Timbre v3.0 tags (`<pauses>` `<slow>` `<excited>` `<whispers>` — the SP1
+Appendix A subset of the 13-tag catalog), at most one cue per two sentences
+and at most 8 per block. This text layer stands in for the factory's future
+equation-rendering upgrade; no LLM (hence no OpenRouter key) is involved. If
+an LLM verbalization fallback is ever added it must go through `llm_manager`
+(`ZIVON_BASE_URL` / `ZIVON_MODEL` / `ZIVON_API_KEY`, K8s Secret
+`zivon-factory-env` — the exact key variable and Secret the factory uses);
+never introduce a second OpenRouter key variable and never POST to OpenRouter
+directly (see `llm_manager/README.md` and `k8s/infra.env`).
+
 ## learner
 
 | Key | Type | Meaning |
