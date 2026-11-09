@@ -157,7 +157,7 @@ class SttClient:
                 raise SttUnavailableError("start() first")
             try:
                 raw = await self._ws.recv()
-            except Exception:
+            except Exception:  # noqa: BLE001 — any transport death → reconnect/F1
                 if await self._maybe_reconnect():
                     continue
                 return None
@@ -206,7 +206,7 @@ class SttClient:
         event = SttEvent(
             kind=kind,
             text=text,
-            seq=self._seq if kind == "final" else self._seq,
+            seq=self._seq,
             lang=str(payload.get("lang", "")),
             confidence=float(confidence) if confidence is not None else None,
         )
@@ -219,7 +219,7 @@ class SttClient:
         for attempt in range(1 + self._reconnect_attempts):
             try:
                 return await self._connect_factory()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 — transport-agnostic seam
                 last = exc
                 log_event(
                     "voice.stt.connect_retry",
