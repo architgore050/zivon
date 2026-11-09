@@ -11,6 +11,8 @@ generation graph). Design notes:
 - GENERATED is the one-giant-call contract (02-generate): ground truth, lesson
   and blocks in a single JSON object, so the reasoning layer pays ONE thinking
   cycle instead of three.
+- Per-unit translation payload schemas (CP-TRN-001, ADR-0021, block-contract.md)
+  govern 10a-translate and 10c-transrepair without modifying BLOCKS or LESSON.
 """
 
 from __future__ import annotations
@@ -379,6 +381,240 @@ REPAIR = {
     },
 }
 
+# ---- 10a-translate / 10b-transcheck / 10c-transrepair (CP-TRN-001) ---------
+TRANSLATED_META_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["title", "objectives", "sections", "glossary", "sim_strings"],
+    "additionalProperties": False,
+    "properties": {
+        "title": {"type": "string", "minLength": 2},
+        "objectives": {
+            "type": "array",
+            "minItems": 2,
+            "items": {"type": "string", "minLength": 10},
+        },
+        "sections": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+                "type": "object",
+                "required": ["id", "title", "paragraphs"],
+                "additionalProperties": False,
+                "properties": {
+                    "id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
+                    "title": {"type": "string", "minLength": 2},
+                    "paragraphs": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {"type": "string", "minLength": 20},
+                    },
+                },
+            },
+        },
+        "glossary": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+                "type": "object",
+                "required": ["term", "definition"],
+                "additionalProperties": False,
+                "properties": {
+                    "term": {"type": "string", "minLength": 2},
+                    "definition": {"type": "string", "minLength": 8},
+                },
+            },
+        },
+        "sim_strings": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {"type": "string"},
+            },
+            "description": "Map of simulation block_id -> {string_key: translated_label}.",
+        },
+    },
+}
+
+TRANSLATED_TEXT_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["paragraphs"],
+    "additionalProperties": False,
+    "properties": {
+        "paragraphs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 10},
+        }
+    },
+}
+
+TRANSLATED_WORKED_EXAMPLE_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["problem", "steps", "answer"],
+    "additionalProperties": False,
+    "properties": {
+        "problem": {"type": "string", "minLength": 10},
+        "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["title", "detail"],
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string", "minLength": 2},
+                    "detail": {"type": "string", "minLength": 5},
+                },
+            },
+        },
+        "answer": {"type": "string", "minLength": 1},
+    },
+}
+
+TRANSLATED_CHECK_MCQ_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["question", "options", "explanation", "expected_understanding"],
+    "additionalProperties": False,
+    "properties": {
+        "question": {"type": "string", "minLength": 5},
+        "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {"type": "string", "minLength": 1},
+        },
+        "explanation": {"type": "string", "minLength": 5},
+        "expected_understanding": {"type": "string", "minLength": 5},
+    },
+}
+
+TRANSLATED_CHECK_NUMERIC_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["question", "explanation", "expected_understanding"],
+    "additionalProperties": False,
+    "properties": {
+        "question": {"type": "string", "minLength": 5},
+        "explanation": {"type": "string", "minLength": 5},
+        "expected_understanding": {"type": "string", "minLength": 5},
+    },
+}
+
+TRANSLATED_REVEAL_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["title", "steps"],
+    "additionalProperties": False,
+    "properties": {
+        "title": {"type": "string", "minLength": 2},
+        "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["title", "detail"],
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string", "minLength": 2},
+                    "detail": {"type": "string", "minLength": 5},
+                },
+            },
+        },
+    },
+}
+
+TRANSLATED_DIAGRAM_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["caption", "svg_aria_label", "svg_texts"],
+    "additionalProperties": False,
+    "properties": {
+        "caption": {"type": "string", "minLength": 5},
+        "svg_aria_label": {"type": "string"},
+        "svg_texts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "text"],
+                "additionalProperties": False,
+                "properties": {
+                    "id": {"type": "string", "pattern": "^t-[0-9]+$"},
+                    "text": {"type": "string", "minLength": 1},
+                },
+            },
+        },
+    },
+}
+
+TRANSLATED_SIMULATION_PAYLOAD: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "title",
+        "description",
+        "learning_goal",
+        "controls",
+        "default_behaviour",
+    ],
+    "additionalProperties": False,
+    "properties": {
+        "title": {"type": "string", "minLength": 2},
+        "description": {"type": "string", "minLength": 5},
+        "learning_goal": {"type": "string", "minLength": 5},
+        "controls": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "label"],
+                "additionalProperties": False,
+                "properties": {
+                    "id": {"type": "string"},
+                    "label": {"type": "string", "minLength": 1, "maxLength": 32},
+                },
+            },
+        },
+        "default_behaviour": {"type": "string", "minLength": 5},
+    },
+}
+
+TRANSLATION_REVIEW_CATEGORIES = [
+    "physics_meaning",
+    "glossary_term",
+    "untranslated_leak",
+    "hallucinated_content",
+    "grade_register",
+    "awkward_phrasing",
+]
+
+TRANSLATION_REVIEW_CALL_REPORT: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["issues"],
+    "additionalProperties": False,
+    "properties": {
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["block_id", "severity", "category", "message"],
+                "additionalProperties": False,
+                "properties": {
+                    "block_id": {
+                        "type": "string",
+                        "pattern": "^(b-00-meta|b-[0-9]{2})$",
+                    },
+                    "severity": {"enum": ["fatal", "major", "minor"]},
+                    "category": {"enum": TRANSLATION_REVIEW_CATEGORIES},
+                    "message": {"type": "string", "minLength": 15},
+                },
+            },
+        }
+    },
+}
+
 SCHEMAS = {
     "generated": GENERATED,
     "ground_truth": GROUND_TRUTH,
@@ -390,4 +626,13 @@ SCHEMAS = {
     "fix_plan": FIX_PLAN,
     "review_report": REVIEW_REPORT,
     "review_call": REVIEW_CALL_REPORT,
+    "translated_meta": TRANSLATED_META_PAYLOAD,
+    "translated_text": TRANSLATED_TEXT_PAYLOAD,
+    "translated_worked_example": TRANSLATED_WORKED_EXAMPLE_PAYLOAD,
+    "translated_check_mcq": TRANSLATED_CHECK_MCQ_PAYLOAD,
+    "translated_check_numeric": TRANSLATED_CHECK_NUMERIC_PAYLOAD,
+    "translated_reveal": TRANSLATED_REVEAL_PAYLOAD,
+    "translated_diagram": TRANSLATED_DIAGRAM_PAYLOAD,
+    "translated_simulation": TRANSLATED_SIMULATION_PAYLOAD,
+    "translation_review_call": TRANSLATION_REVIEW_CALL_REPORT,
 }
