@@ -122,9 +122,12 @@ agent can build it without re-working anything:
    ADR-0009 language list (absent — provisionally `en`, `hi`, `hi-Latn` per
    doctrine §10.5's English / हिन्दी / Hinglish). No wildcard-locale routing in
    nginx until the scheme is decided — the hook is a naming convention, not code.
-2. **Document hook already present**: every page carries `<html lang="…">` and
-   the lesson bar chips toggle it (`zivon.js::wireLangChips` toggles the selected
-   chip; doctrine §10.5: switching `lang` + selected state only). A localized
+2. **Document hook already present**: every page carries `<html lang="…">`.
+   The v1 chips switch the SELECTED state only (`zivon.js::wireLangChips` sets
+   `aria-checked`; verified against the shell — it does not yet switch
+   `documentElement.lang`; the doctrine example demonstrates the fuller stub).
+   Switching the document lang arrives with i18n-aware generation (C3 spec
+   only adds persistence + preselect). A localized
    route is the same page with `lang` and content swapped at publish time — no
    runtime router, ever (G1).
 3. **Generation hook**: localized trees can only be produced by i18n-aware
@@ -249,11 +252,12 @@ the integration seam a dock plugs into:
   anatomy: Bricolage 500/15, min-height 40 px, 2 px corners, 1 px ink border,
   `role=radio` in a `role=radiogroup`; selection by ink fill + paper-light text
   (15.0:1) — never colour alone.
-- **Behavior (v1, honest stub)**: chips switch the selected state and
-  `document.documentElement.lang` only — string swaps are shell-owned and land
-  with i18n-aware content generation (doctrine v1.6 §10.5 ruling; factory work
-  item, Q7). The UI must not pretend: no chip implies translated content that
-  does not exist.
+- **Behavior (v1, honest stub)**: chips switch the selected state only
+  (`wireLangChips` sets `aria-checked`; the shell does not switch
+  `documentElement.lang` today — that lands with i18n-aware content
+  generation, doctrine v1.6 §10.5 ruling; factory work item, Q7). C3 adds
+  persistence + preselect, nothing more. The UI must not pretend: no chip
+  implies translated content that does not exist.
 - **Persistence (device pseudonym per the brief's ADR-0007 — ABSENT, flag Q3)**:
   until that ADR exists, the only sanctioned persistence is local-only:
   `localStorage["zivon.lang"] = <locale>` written on explicit chip activation,

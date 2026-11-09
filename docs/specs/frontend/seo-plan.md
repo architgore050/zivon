@@ -30,7 +30,7 @@ agent / respective owners — listed in §8's assignment table.
 | Page | `<title>` | meta description | canonical | OG/Twitter |
 |---|---|---|---|---|
 | Landing (`SCR-HOME-01`) | `Zivon — Physics you can talk to` (copy key `home.seo.title`) | one sentence: NCERT-based interactive Physics pages + Hinglish voice tutor (copy key `home.seo.desc`) | `ZIVON_PUBLIC_BASE_URL + /` | `og:type=website`, `og:title`, `og:description`, `og:image=$BASE_URL/assets/og-card.png` |
-| Lesson (`SCR-LES-01`) | `<Lesson title> — Zivon` (renderer already emits this shape) | derived from the lesson's first text block / objectives (renderer rule, not hand-written per page) | `…/courses/<course_id>/<topic_slug>/` | `og:type=article`, plus `og:updated_time` from `manifest.generated_at` |
+| Lesson (`SCR-LES-01`) | `<Lesson title> - Zivon` (the renderer's existing shape, e.g. "Motion in a Straight Line - Zivon") | derived from the lesson's first text block / objectives (renderer rule, not hand-written per page) | `…/courses/<course_id>/<topic_slug>/` | `og:type=article`, plus `og:updated_time` from `manifest.generated_at` |
 | 404 | `Page not found — Zivon` | n/a | n/a | n/a |
 
 Mechanics: the LANDING page is shell-owned (EX5-FRONT adds the tags — static
