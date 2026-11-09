@@ -42,7 +42,7 @@ PAGE_HTML = """<!doctype html>
 <head><meta http-equiv="Content-Security-Policy" content="default-src 'none'"></head>
 <body>
 <main class="zn-page">
-  <header>
+  <header class="zn-header">
     <ul class="zn-objectives"><li>Use &amp; apply v = u + at</li></ul>
   </header>
   <section class="zn-glossary"><dl>
@@ -238,6 +238,35 @@ class TestFixloopStage(unittest.TestCase):
             )
         self.assertFalse(ctx.exception.fixable)
         self.assertIn("after 1 fix rounds", str(ctx.exception))
+
+    def test_rebuild_html_does_not_nest_the_shell(self):
+        # Regression (2026-11-09, class-11 Units page): _rebuild_html_if_needed
+        # used to feed the whole <main> content (old header + glossary +
+        # footer included) back in as the body, so _page_html wrapped it in a
+        # FRESH shell and every fixloop round doubled the header/glossary.
+        cfg = make_cfg(self.tmp)
+        fixloop_mod._rebuild_html_if_needed(cfg, self.render_out, self.topic)
+        html = (self.topic / "index.html").read_text(encoding="utf-8")
+        for marker in (
+            '<header class="zn-lang-bar">',
+            '<header class="zn-header">',
+            '<section class="zn-glossary">',
+            '<footer class="zn-footer">',
+        ):
+            self.assertEqual(html.count(marker), 1, marker)
+        # objectives/glossary survive the rebuild (re-extracted from the old
+        # page), and a second rebuild is a no-op in shape (idempotent).
+        self.assertIn("Use &amp; apply v = u + at", html)
+        self.assertIn("Speed &amp; direction", html)
+        fixloop_mod._rebuild_html_if_needed(cfg, self.render_out, self.topic)
+        html2 = (self.topic / "index.html").read_text(encoding="utf-8")
+        for marker in (
+            '<header class="zn-lang-bar">',
+            '<header class="zn-header">',
+            '<section class="zn-glossary">',
+            '<footer class="zn-footer">',
+        ):
+            self.assertEqual(html2.count(marker), 1, marker)
 
     def test_fix_plan_touching_renderer_files_costs_a_round_not_the_run(self):
         # 2026-11-06 founder decision: renderer-owned files are skipped and

@@ -159,6 +159,41 @@ class TestRender(unittest.TestCase):
         text = (frontend / "courses.js").read_text(encoding="utf-8")
         self.assertIn("window.ZIVON_COURSES = []", text)
 
+    def test_courses_js_orders_by_chapter_number_not_run_order(self):
+        # Entries may arrive in any run order (a class-11 chapter-2 topic can
+        # be published before its chapter-1 topic); the catalogue must still
+        # come out in true NCERT chapter order - numbers run continuously
+        # across parts (Part II starts at 8). Unnumbered entries (older
+        # manifests / non-NCERT topics) sort last within their class.
+        import json
+
+        frontend = self.frontend
+        specs = [
+            ("ch2-topic", 11, 2, "MOTION IN A STRAIGHT LINE"),
+            ("ch1-topic", 11, 1, "UNITS AND MEASUREMENT"),
+            ("unnum-topic", 11, None, "SOME SUPPLEMENT TOPIC"),
+            ("c9-topic", 9, 6, "FORCE AND LAWS OF MOTION"),
+        ]
+        for slug, cls, number, chapter in specs:
+            topic = frontend / "courses" / f"class-{cls}-physics" / slug
+            topic.mkdir(parents=True)
+            (topic / "index.html").write_text("<html></html>", encoding="utf-8")
+            (topic / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "course_id": f"class-{cls}-physics",
+                        "class": cls,
+                        "chapter": {"title": chapter, "number": number},
+                        "title": chapter.title(),
+                        "generated_at": "2026-11-09T00:00:00Z",
+                    }
+                ),
+                encoding="utf-8",
+            )
+        entries = write_courses_js(frontend)
+        order = [(e["class"], e["chapter_number"]) for e in entries]
+        self.assertEqual(order, [(9, 6), (11, 1), (11, 2), (11, None)])
+
 
 class TestDiagramAsAuthored(unittest.TestCase):
     """Doctrine v1.3 (founder ruling 2026-11-04): the handify_svg jitter pass is

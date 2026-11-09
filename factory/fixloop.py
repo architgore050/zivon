@@ -215,9 +215,17 @@ def _rebuild_html_if_needed(
     title = render_out["manifest"]["title"]
     course_id = render_out["manifest"]["course_id"]
     # Re-extract the body between the known markers instead of re-rendering blocks.
+    # The extracted <main> content still contains the OLD page's header
+    # (objectives), glossary and footer - strip all three before re-wrapping,
+    # otherwise _page_html nests the shell inside itself (header/glossary/
+    # footer doubled in every fixloop round; seen in the wild 2026-11-09).
     start = old.index('<main class="zn-page">') + len('<main class="zn-page">')
     end = old.index("</main>")
-    body = old[start:end]
+    inner = old[start:end]
+    head_start = inner.index('<header class="zn-header">')
+    head_end = inner.index("</header>", head_start) + len("</header>")
+    tail_start = inner.index('<section class="zn-glossary">')
+    body = inner[head_end:tail_start]
     has_js = (topic_dir / "page.js").exists()
     has_css = (topic_dir / "page.css").exists()
     new_html = _page_html(
@@ -233,6 +241,19 @@ def _rebuild_html_if_needed(
         has_page_js=has_js,
         has_page_css=has_css,
     )
+    # Belt and braces: the shell must appear exactly once. A rebuild that
+    # silently nests/joins pages is worse than a loud failure.
+    for marker in (
+        '<header class="zn-lang-bar">',
+        '<header class="zn-header">',
+        '<section class="zn-glossary">',
+        '<footer class="zn-footer">',
+    ):
+        if new_html.count(marker) != 1:
+            raise RuntimeError(
+                "fixloop rebuild produced a malformed page: "
+                f"{marker!r} appears {new_html.count(marker)} times (expected exactly 1)"
+            )
     html_path.write_text(new_html, encoding="utf-8")
     # copy into the staging landing tree as well
     site_topic = (
