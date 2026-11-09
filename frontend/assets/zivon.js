@@ -345,7 +345,15 @@
       o.beforeDraw && o.beforeDraw();
       const row = px(paper, "var(--row)");
       normalize(paper, o.ref || "p", skipShift, row);
-      const pr = paper.getBoundingClientRect(), W = pr.width, H = paper.scrollHeight;
+      const pr = paper.getBoundingClientRect(), W = pr.width;
+      /* The rules svg feeds back into scrollHeight: measuring WITH it
+         locks in whatever height the previous draw set (on a slower load
+         that can be the pre-font-metrics height), leaving an endless
+         empty ruled scroll tail under the content. Measure the real
+         content height underneath it. */
+      svg.style.display = "none";
+      const H = paper.scrollHeight;
+      svg.style.display = "";
       const dpr = devicePixelRatio || 1, snap = (y) => Math.round(y * dpr) / dpr, th = o.thickness || 2;
       const a = mergeLines(textBaselines(paper, skip), row).map((y) => y - pr.top);
       const ys = [];
