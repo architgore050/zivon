@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -29,16 +30,29 @@ def runs_dir() -> Path:
     return Path(os.environ.get("ZIVON_RUNS_DIR", "runs"))
 
 
-# One pooled connection per DSN for the process lifetime (the dashboard is
-# single-replica, read-mostly); a failed query drops it so the next request
-# reconnects instead of poisoning every view with a dead handle.
-_CONNECTIONS: dict[str, Any] = {}
+# Thread-local connections (FastAPI runs sync endpoints on a thread pool; a
+# single shared psycopg handle must not cross threads — cursors and
+# transaction state are not safe for concurrent use). Each worker thread
+# keeps its own connection for the process lifetime (the dashboard is
+# single-replica, read-mostly); a failed query drops the caller's own handle
+# so the next request on that thread reconnects instead of poisoning every
+# view with a dead handle. Connections are never shared between threads.
+_CONNECTIONS = threading.local()
+
+
+def _cached_connection() -> tuple[str | None, Any | None]:
+    return (
+        getattr(_CONNECTIONS, "dsn", None),
+        getattr(_CONNECTIONS, "conn", None),
+    )
 
 
 def _drop_connection(conn: Any) -> None:
-    for dsn, cached in list(_CONNECTIONS.items()):
-        if cached is conn:
-            _CONNECTIONS.pop(dsn, None)
+    cached_dsn, cached = _cached_connection()
+    if cached is conn:
+        _CONNECTIONS.dsn = None  # type: ignore[attr-defined]
+        _CONNECTIONS.conn = None  # type: ignore[attr-defined]
+        del cached_dsn
     try:
         conn.close()
     except Exception as exc:  # noqa: BLE001 — a broken handle must not break the view
@@ -58,8 +72,8 @@ class LogStore:
         dsn = os.environ.get("ZIVON_LOG_DSN", "").strip()
         if not dsn:
             return cls(connection=None, error=None)  # fallback mode: honest
-        cached = _CONNECTIONS.get(dsn)
-        if cached is not None:
+        cached_dsn, cached = _cached_connection()
+        if cached is not None and cached_dsn == dsn:
             return cls(connection=cached)
         try:
             import psycopg
@@ -67,7 +81,8 @@ class LogStore:
             conn = psycopg.connect(dsn, autocommit=True)
         except Exception as exc:  # noqa: BLE001 — degrade, say so on the page
             return cls(connection=None, error=str(exc)[:200])
-        _CONNECTIONS[dsn] = conn
+        _CONNECTIONS.dsn = dsn  # type: ignore[attr-defined]
+        _CONNECTIONS.conn = conn  # type: ignore[attr-defined]
         return cls(connection=conn)
 
     @property
