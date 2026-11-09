@@ -33,7 +33,9 @@ source k8s/infra.env
 export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
   ZIVON_CALL_DEADLINE_S ZIVON_STREAM ZIVON_STREAM_USAGE ZIVON_JSON_MODE \
   ZIVON_MAX_ATTEMPTS \
-  ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL
+  ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL \
+  ZIVON_ENV ZIVON_LOG_LEVEL ZIVON_LOG_SYNC_SCHEDULE ZIVON_PUBLIC_BASE_URL \
+  ZIVON_GRAFANA_URL
 
 kubectl apply -f k8s/00-namespace.yaml
 
@@ -73,6 +75,20 @@ kubectl apply -f k8s/16-llm-manager.yaml
 kubectl rollout restart deployment/llm-manager -n zivon
 kubectl rollout status deployment/llm-manager -n zivon
 kubectl apply -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
+
+# The admin DASHBOARD (k8s/23 + 24): its config is env-only (infra.env);
+# ZIVON_ADMIN_TOKEN / ZIVON_LOG_DSN stay in runtime Secrets, never here.
+kubectl create configmap zivon-dashboard-config -n zivon \
+  --from-literal=ZIVON_ENV="$ZIVON_ENV" \
+  --from-literal=ZIVON_LOG_LEVEL="$ZIVON_LOG_LEVEL" \
+  --from-literal=ZIVON_PUBLIC_BASE_URL="$ZIVON_PUBLIC_BASE_URL" \
+  --from-literal=ZIVON_GRAFANA_URL="$ZIVON_GRAFANA_URL" \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f k8s/23-dashboard-deployment.yaml -f k8s/24-dashboard-service.yaml
+
+# The log-retention CronJob (k8s/51): render its schedule from infra.env
+# (same pattern as the test CronJob; the raw placeholder is not a cron expr).
+envsubst '${ZIVON_LOG_SYNC_SCHEDULE}' < k8s/51-log-retention-cronjob.yaml | kubectl apply -f -
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
 

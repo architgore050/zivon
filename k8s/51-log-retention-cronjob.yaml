@@ -1,0 +1,87 @@
+# Daily log retention + cold sync (EX3-OBS, ADR-0025 §3/§5): ONE CronJob owns
+# the `log_events` lifecycle — export the previous UTC day to NDJSON + a
+# checksum manifest, ingest any JSONL the fallback wrote while the DB was
+# down, verify, and only then let the sweeper drop what is verified
+# (retain-until-synced). Retention per class: L1/L2/credit 7 hot days,
+# L3 (security/audit) 30.
+#
+# THE SCHEDULE IS A CONFIG VALUE: ${ZIVON_LOG_SYNC_SCHEDULE} is rendered from
+# k8s/infra.env by scripts/apply-k8s.sh (03:30 IST default = 22:00 UTC). Do
+# not apply this file raw. Same gotcha as k8s/50: no ttlSecondsAfterFinished
+# inside a CronJob jobTemplate (kube-linter forbids it there — history
+# limits below are the cleanup); backoffLimit 0 (a failed sync is a signal
+# and blocks the sweep for that day — exactly the safe direction).
+#
+# Image: the FACTORY image — it already carries logging_manager + psycopg
+# (ADR-0025 §5), so the retention Job needs no image of its own.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: log-retention
+  namespace: zivon
+  labels:
+    app: zivon-factory
+spec:
+  schedule: "${ZIVON_LOG_SYNC_SCHEDULE}"   # rendered from k8s/infra.env
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0            # a failed sync must not be retried into double-ingestion
+      activeDeadlineSeconds: 900  # hard cap: the job is a batch export, not a service
+      template:
+        metadata:
+          labels:
+            app: zivon-factory
+            task: log-retention
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+          containers:
+            - name: retention
+              image: zivon-factory:0.3.17
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - >-
+                  python -m logging_manager.store sync
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true   # writes go only to the mounted runs/ volume
+              env:
+                - name: ZIVON_LOG_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: zivon-backend-env    # the backend DB's runtime Secret (OQ-7)
+                      key: ZIVON_LOG_DSN
+                      optional: true             # absent -> nothing to sync; the job says so
+                - name: ZIVON_RUNS_DIR
+                  value: /app/runs
+              volumeMounts:
+                - name: runs
+                  mountPath: /app/runs
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: "500m"
+                  memory: 512Mi
+          volumes:
+            - name: runs
+              persistentVolumeClaim:
+                claimName: zivon-sources
+                subPath: runs      # fallback JSONL in runs/logs, exports to runs/logs-exports
+            - name: tmp
+              emptyDir: {}

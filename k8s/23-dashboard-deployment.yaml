@@ -1,0 +1,114 @@
+# The admin dashboard v0 Deployment (EX3-OBS, dashboard-spec.md §1): a small
+# read-mostly FastAPI app over the ADR-0025 hot store + the runs/ PVC, with
+# the two admin trigger buttons. Long-running => Deployment + Service (24).
+#
+# Image: zivon-dashboard:0.1.0 (Dockerfile.dashboard) — slim, no torch.
+# `minikube image load zivon-dashboard:0.1.0` after building locally (gotcha 2).
+#
+# Config via env (values in k8s/infra.env, rendered by scripts/apply-k8s.sh
+# into the zivon-dashboard-config ConfigMap): ZIVON_ENV, ZIVON_LOG_LEVEL,
+# ZIVON_PUBLIC_BASE_URL (Secure cookies at the edge), ZIVON_GRAFANA_URL.
+# ZIVON_LOG_DSN arrives from the runtime Secret zivon-backend-env (the
+# backend DB's credentials are secrets — NEVER in infra.env or manifests).
+# The admin token arrives from the dedicated zivon-admin-auth Secret
+# (ADR-0026); create it once per cluster:
+#   kubectl -n zivon create secret generic zivon-admin-auth \
+#     --from-literal=ZIVON_ADMIN_TOKEN="$(openssl rand -hex 32)"
+#
+# RBAC (integration note I-1, infra agent wires it): the dashboard
+# ServiceAccount needs list/get Jobs + pods/log in zivon (V1/V2 views) and
+# create Jobs from cronjob/test-suite (the tests-now button). Until that
+# Role lands, kubectl answers Forbidden and the views say so honestly.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: zivon
+  labels:
+    app: zivon-dashboard
+spec:
+  replicas: 1                    # single-replica by design: in-process sessions (ADR-0026)
+  selector:
+    matchLabels:
+      app: zivon-dashboard
+  template:
+    metadata:
+      labels:
+        app: zivon-dashboard
+    spec:
+      # The buttons + Job views need the K8s API (read jobs, create one from
+      # the CronJob) — the RBAC grants are I-1's; nothing else mounts secrets.
+      automountServiceAccountToken: true
+      enableServiceLinks: false   # gotcha 16: no service-link env injection
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000           # numeric UID of the image's "app" user (gotcha 1)
+        fsGroup: 1000             # read access to the runs/ PVC mount
+      containers:
+        - name: dashboard
+          image: zivon-dashboard:0.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true   # kube-linter gate; writes go to /tmp only
+          ports:
+            - name: http
+              containerPort: 8000
+          # /healthz: process up AND (store reachable OR fallback active) — a
+          # dashboard that cannot read the store says so on the page instead
+          # of flapping (dashboard-spec.md §1).
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          envFrom:
+            - configMapRef:
+                name: zivon-dashboard-config   # env, log level, base URL, grafana link
+          env:
+            - name: ZIVON_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-admin-auth
+                  key: ZIVON_ADMIN_TOKEN
+            - name: ZIVON_LOG_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-backend-env      # owned by the backend agent (OQ-7)
+                  key: ZIVON_LOG_DSN
+                  optional: true               # absent -> JSONL fallback mode (honest)
+            - name: ZIVON_RUNS_DIR
+              value: /app/runs
+          volumeMounts:
+            - name: runs
+              mountPath: /app/runs
+              readOnly: true    # V1/V6 read artifacts; the dashboard writes nothing here
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi     # a read-mostly UI; retune with measured evidence
+      volumes:
+        - name: runs
+          persistentVolumeClaim:
+            claimName: zivon-sources
+            # subPath: the factory writes runs/<run_id>/ artifacts at this path
+            # on the same PVC (same layout as the factory Job's mount)
+            subPath: runs
+        - name: tmp
+          emptyDir: {}
