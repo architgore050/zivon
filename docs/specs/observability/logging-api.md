@@ -1,6 +1,6 @@
 # logging_manager — API contract (SP3-OBS)
 
-**This is the contract every module codes against.** The system decisions (why stdlib JSON logging, why Postgres, why this auth) live in ADR-0017/0018/0019 and [`spec.md`](spec.md). This document pins the exact surface: signatures, the JSON line schema, sinks, header propagation, and the closed vocabularies. If your code needs something not expressible through this surface, open an OQ in [`open-questions.md`](open-questions.md) — do not work around the module.
+**This is the contract every module codes against.** The system decisions (why stdlib JSON logging, why Postgres, why this auth) live in ADR-0024/0018/0019 and [`spec.md`](spec.md). This document pins the exact surface: signatures, the JSON line schema, sinks, header propagation, and the closed vocabularies. If your code needs something not expressible through this surface, open an OQ in [`open-questions.md`](open-questions.md) — do not work around the module.
 
 ## 1. Package layout
 
@@ -89,9 +89,9 @@ Field table (types are enforced at serialization; `null`/absent means "not appli
 | `latency_ms` | int ≥ 0 | timing events | the map marks which events carry it |
 | `error_class` | enum | failure-shaped | §8 closed enum |
 | `fields` | object | always (may be `{}`) | REDACTED payload (§6); values: str/int/float/bool/null or flat arrays of scalars, depth ≤ 2 |
-| `trace_id` / `span_id` | string | reserved | ADR-0017 OTel path; do not populate yet |
+| `trace_id` / `span_id` | string | reserved | ADR-0024 OTel path; do not populate yet |
 
-## 5. Sinks (ADR-0018 behavior, exact)
+## 5. Sinks (ADR-0025 behavior, exact)
 
 - **Postgres (primary):** when `ZIVON_LOG_DSN` is set — batched inserts (flush every 1 s or 64 events, whichever first; batch failure retries once, then falls back for the batch and emits `log.store_fallback`). Writes go ONLY through this sink: no module writes `log_events` by hand.
 - **JSONL fallback:** when the DSN is unset, or the DB is unreachable — append to `runs/logs/YYYYMMDD-<component>.jsonl` on the factory/sources PVC. First switch emits `log.store_fallback` (WARNING, `store_error`); recovery back to Postgres emits `log.store_recovered` (INFO). The fallback file IS a sync source for the daily `log-sync` Job.
@@ -135,7 +135,7 @@ Owned by the voice backend (runtime API); contract here so frontend and dashboar
 
 - Body: `{"events": [ {event object per §4, client-produced subset}, ... ]}` — ≤ 32 events / 16 KB per request; `Content-Type: application/json`.
 - Server-side: validate against the EVT-Fxx rows of `instrumentation-map.csv` (unknown name / out-of-enum field / oversized → `422` with per-event reasons and a `voice.events.ingest_rejected` WARNING, `client_error`, sampled 1/10); accepted events are re-emitted through `log_event(component="frontend", ...)` so they land in the same store with server `ts` (client `ts` kept in `fields.client_ts`).
-- Auth: none for EVT-Fxx (pseudonymous, no PII — ADR-0019 scope is admin routes); rate-limited per IP (60 beacons/min, then drop silently — a dropped beacon must never break the page). CSP: same-origin only (spec §8, carve-out F-1).
+- Auth: none for EVT-Fxx (pseudonymous, no PII — ADR-0026 scope is admin routes); rate-limited per IP (60 beacons/min, then drop silently — a dropped beacon must never break the page). CSP: same-origin only (spec §8, carve-out F-1).
 
 ## 11. Anti-patterns (fail review)
 

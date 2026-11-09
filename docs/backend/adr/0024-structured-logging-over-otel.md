@@ -5,7 +5,7 @@ created: 2026-11-09
 status: Accepted
 ---
 
-# ADR-0017: Structured stdlib logging (JSON lines) over OpenTelemetry for Zivon-wide observability
+# ADR-0024: Structured stdlib logging (JSON lines) over OpenTelemetry for Zivon-wide observability
 
 ## Status
 
@@ -37,7 +37,7 @@ Forces at play:
 
 ## Decision
 
-We will implement observability on **Python stdlib `logging` emitting versioned JSON lines** through the shared `logging_manager/` module (`log_event()` + context propagation + PII denylist enforcement), stored per ADR-0018. Concretely:
+We will implement observability on **Python stdlib `logging` emitting versioned JSON lines** through the shared `logging_manager/` module (`log_event()` + context propagation + PII denylist enforcement), stored per ADR-0025. Concretely:
 
 - One JSON line schema (`schema_version` field), one correlation-ID discipline (`run_id` / `session_id` / `turn_id` / `request_id`), one severity policy — specified in `docs/specs/observability/spec.md` and `logging-api.md`.
 - Latency telemetry is **event-based, not span-based**: each component emits explicit timing events (e.g. `voice.turn.e2e_latency`, `factory.stage.ok` with `elapsed_ms`, `node.call.finished` with `first_token_s`); percentiles are computed by the dashboard from stored events.
@@ -68,7 +68,7 @@ We will implement observability on **Python stdlib `logging` emitting versioned 
 |-------------|---------------|
 | **Build, buy, or prompt** | Build (stdlib + one module). Buy (OTel vendor/backend) ruled out by cost + DPDP egress; full OTel self-host ruled out by crunch economics at 3–4 orders of magnitude below justifying scale |
 | **What is now coupled to it** | The JSON line schema (`schema_version: 1`), event-name taxonomy, and correlation-ID rules in `logging-api.md`; every module's call sites |
-| **Operating cost accepted** | One Postgres table + a daily cold-sync Job (ADR-0018); ~50 MB/day hot at demo-day peak |
+| **Operating cost accepted** | One Postgres table + a daily cold-sync Job (ADR-0025); ~50 MB/day hot at demo-day peak |
 | **Reversal cost** | Low-moderate: call sites stay (they call `log_event`); only the sink/formatter layer changes. Reserved `trace_id`/`span_id` fields avoid a schema migration |
 | **What would reopen this** | Sustained > ~1M events/day, ≥3 concurrent long-lived services with opaque cross-service failures, or a post-challenge requirement for vendor-grade APM — whichever arrives first with evidence |
 
@@ -84,13 +84,13 @@ Rejected: "later" inside a 12.5-day build never arrives before the deadline; a h
 
 ### Log to files only (stdout → k8s logs), no structured store
 
-Rejected: the dashboard v0 requires SQL-able queries (percentiles, error feed, credit counters, run status joins); scraping pod stdout back into a queryable store re-invents ADR-0018 badly. stdout JSON lines remain the **fallback sink** (PVC JSONL) for components that cannot reach Postgres — same schema, daily sync into the hot store.
+Rejected: the dashboard v0 requires SQL-able queries (percentiles, error feed, credit counters, run status joins); scraping pod stdout back into a queryable store re-invents ADR-0025 badly. stdout JSON lines remain the **fallback sink** (PVC JSONL) for components that cannot reach Postgres — same schema, daily sync into the hot store.
 
 ## References
 
 - `docs/specs/observability/spec.md` (log levels, redaction, correlation rules)
 - `docs/specs/observability/logging-api.md` (the exact contract)
-- ADR-0018 (hot log store + lifecycle), ADR-0019 (dashboard admin auth)
+- ADR-0025 (hot log store + lifecycle), ADR-0026 (dashboard admin auth)
 - ADR-0004 (cold provider), ADR-0006 (sync mechanism) — cold-tier interface only
 - ADR-0007 / ADR-0011 (identity model, pseudonymous IDs) — correlation-ID privacy classes
 - ADR-0015 (credit counters) — `credit.*` event family

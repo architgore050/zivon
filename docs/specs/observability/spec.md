@@ -10,13 +10,13 @@ This folder is the build-ready specification for **industry-standard logging/obs
 2. **Correlation IDs:** create/propagate per §3 below. If your component has no ID in its hands, pass `run_id=None`-style absent fields — absence is honest, fabricating IDs is not.
 3. **What you may never put in an event:** transcripts, learner free text, raw audio or references to raw audio, prompts, model responses, page content (§4 redaction — enforced in the module, violations are loud).
 4. **Your rows in the map:** [`instrumentation-map.csv`](instrumentation-map.csv) lists every event your component emits, with severity, fields, and privacy class. Add rows there (same PR as your code) when you add events.
-5. **Decisions already made for you:** stdlib JSON logging over OpenTelemetry (ADR-0017), Postgres hot store with PVC JSONL fallback (ADR-0018), single-admin dashboard auth (ADR-0019). Challenge via a manifest/challenge note, never by silently overriding.
+5. **Decisions already made for you:** stdlib JSON logging over OpenTelemetry (ADR-0024), Postgres hot store with PVC JSONL fallback (ADR-0025), single-admin dashboard auth (ADR-0026). Challenge via a manifest/challenge note, never by silently overriding.
 
 ## 1. Scope and non-goals
 
 **In scope (this spec):** the `logging_manager/` module contract; the JSON line schema and its versioning; correlation-ID rules across factory, llm-manager node, voice backend, translator, and frontend; log-level policy; PII/child-data redaction enforced in code; log storage, tiering, retention, sync and deletion; the instrumentation map (every component's events, latency timings, error taxonomy); the admin dashboard v0 (views, auth, k8s shape, trigger buttons); the minimum alerting set; the frontend event contract.
 
-**Non-goals (this window):** distributed tracing (deferred, ADR-0017), Loki log aggregation (P2, per `docs/deployment/README.md`), per-user admin identity (post-challenge, ADR-0019), email/Telegram paging (P1 — the v0 channel is the dashboard banner + alert events), infra metrics (Prometheus/Grafana owns CPU/RAM/pod telemetry — locked decision; this spec owns product-level events), full analytics (P2).
+**Non-goals (this window):** distributed tracing (deferred, ADR-0024), Loki log aggregation (P2, per `docs/deployment/README.md`), per-user admin identity (post-challenge, ADR-0026), email/Telegram paging (P1 — the v0 channel is the dashboard banner + alert events), infra metrics (Prometheus/Grafana owns CPU/RAM/pod telemetry — locked decision; this spec owns product-level events), full analytics (P2).
 
 The system has two telemetry planes by deliberate design. The **infra plane** (Prometheus + Grafana, `kube-prometheus-stack`) watches pods, nodes, and load, with Grafana's own auth as its gate. The **product plane** (this spec: `log_events` store + dashboard v0) watches Zivon-shaped things: factory runs, voice turns, credits, errors, publishes. They meet in the dashboard, which links out to Grafana for infra drill-down; neither re-implements the other.
 
@@ -26,9 +26,9 @@ The system has two telemetry planes by deliberate design. The **infra plane** (P
 
 - `log_event(event, fields, *, severity=..., run_id=None, session_id=None, turn_id=None, request_id=None, stage=None, latency_ms=None, error_class=None)` — the single emission point for every component.
 - Context helpers: `bind_context(...)`, `context_scope(...)`, `current_context()` — Python `contextvars`-based, so async voice handlers and threaded factory stages each carry their correlation IDs without threading them through every call.
-- Sinks: Postgres `log_events` (day-partitioned, ADR-0018) when `ZIVON_LOG_DSN` is set; otherwise JSONL files under the PVC (`runs/logs/YYYYMMDD-<component>.jsonl`), byte-identical schema, with a loud `log.store_fallback` event on degradation. stdout is always written too (one JSON line per event) — `kubectl logs` stays human-useful and the factory's existing label-resolved log follower keeps working.
+- Sinks: Postgres `log_events` (day-partitioned, ADR-0025) when `ZIVON_LOG_DSN` is set; otherwise JSONL files under the PVC (`runs/logs/YYYYMMDD-<component>.jsonl`), byte-identical schema, with a loud `log.store_fallback` event on degradation. stdout is always written too (one JSON line per event) — `kubectl logs` stays human-useful and the factory's existing label-resolved log follower keeps working.
 - Redaction: `redact.py` applies the §4 denylist/regexes to every event before any sink; violations become `log.redaction_violation` events carrying only the offending key name and event name, never the payload.
-- Deletion: `delete_subject(session_id)` implements the guardian-deletion path (ADR-0018 §4).
+- Deletion: `delete_subject(session_id)` implements the guardian-deletion path (ADR-0025 §4).
 
 Module-level tests are part of the deliverable when the module lands (`testing/logging_manager/`): redaction guarantees, schema shape, fallback switching, context propagation. The module ships with `LOG_SCHEMA_VERSION = 1` and `requirements.txt` limited to the DB driver — the JSON path needs nothing outside the stdlib.
 
@@ -75,9 +75,9 @@ Rules: severity is a property of the event name (declared once in [`instrumentat
 
 ## 6. Storage, tiering, retention, sync, deletion (summary)
 
-Full decision in ADR-0018. Summary with the numbers this spec commits to:
+Full decision in ADR-0025. Summary with the numbers this spec commits to:
 
-- **Hot:** `log_events` in the backend's Postgres (SSD), `PARTITION BY RANGE (ts)` per day, indexes per ADR-0018's DDL. Demo-day peak ≈ 50 MB/day; 7-day hot window ≈ 0.35 GB — SSD-trivial.
+- **Hot:** `log_events` in the backend's Postgres (SSD), `PARTITION BY RANGE (ts)` per day, indexes per ADR-0025's DDL. Demo-day peak ≈ 50 MB/day; 7-day hot window ≈ 0.35 GB — SSD-trivial.
 - **Fallback:** PVC JSONL (`runs/logs/`), same schema, loud `log.store_fallback` on switch; the daily sync ingests it.
 - **Cold:** daily `log-sync` CronJob exports the previous UTC day's partition(s) + fallback JSONL as NDJSON to the cold provider (ADR-0004) via ADR-0006's batch mechanism; row-count + checksum verified **before** the sweeper may drop the hot partition (retain-until-synced). Trigger: daily 03:30 IST + 200 MB file cap. **[ASSUMPTION]** trigger cadence/size align with `sync-policy.csv`; reconcile at merge (OQ-2).
 - **Retention per class:** L1 system/diagnostic 7 d hot / 90 d cold; L2 usage/telemetry 7 d / 90 d; L3 security/audit 30 d / 365 d; credit counters 7 d / 365 d. Deletion = partition drop by the sweeper.
@@ -106,7 +106,7 @@ The taxonomy is closed: adding a class is a spec change (row here + map column n
 
 The complete per-component inventory (events, severities, fields, latency measurements, privacy classes, emitter locations) is [`instrumentation-map.csv`](instrumentation-map.csv) — one row per (component, event), covering factory stages 00-ingest…11-link, the llm-manager node and client, the voice backend per-hop path, the translator, frontend client events, credit counters, dashboard audit events, and `logging_manager`'s own events. Components add rows in the same PR as their code.
 
-**Frontend event contract (EVT-Fxx):** the browser-originated events are named `frontend.<action>` with stable catalogue IDs `EVT-F01`…`EVT-F12` in the map. Exact names/properties (all fields pseudonymous or content-id references; privacy class **L2** per the map — the ADR-0018 usage/telemetry retention class; no free text, no transcripts, no audio):
+**Frontend event contract (EVT-Fxx):** the browser-originated events are named `frontend.<action>` with stable catalogue IDs `EVT-F01`…`EVT-F12` in the map. Exact names/properties (all fields pseudonymous or content-id references; privacy class **L2** per the map — the ADR-0025 usage/telemetry retention class; no free text, no transcripts, no audio):
 
 | EVT ID | Event | Required properties | Transport |
 |---|---|---|---|
@@ -141,8 +141,8 @@ Gate C hop budget (measured per hop, budget-checked by the dashboard): end-of-sp
 
 ## 10. Dashboard v0 and admin auth (summary)
 
-Full specification in [`dashboard-spec.md`](dashboard-spec.md); decisions in ADR-0019 (auth) and ADR-0018 (data sources). Summary: a small FastAPI app + static UI (no JS framework), k8s manifests **23** (Deployment) and **24** (ClusterIP Service) — the numbers reserved in the mission brief; admin-only via the single-secret flow of ADR-0019; views = factory runs status (resume/fail/repair-catcher), test-suite results, voice latency percentiles, credit usage vs tranche/cap (normal vs demo profile), error feed, publish status; the two trigger scripts' exact semantics exposed as the two admin buttons. The dashboard reads core-backend's admin surface contract rather than inventing a parallel one — the reconciliation item is OQ-3 because §6.3 was not present on this base.
+Full specification in [`dashboard-spec.md`](dashboard-spec.md); decisions in ADR-0026 (auth) and ADR-0025 (data sources). Summary: a small FastAPI app + static UI (no JS framework), k8s manifests **23** (Deployment) and **24** (ClusterIP Service) — the numbers reserved in the mission brief; admin-only via the single-secret flow of ADR-0026; views = factory runs status (resume/fail/repair-catcher), test-suite results, voice latency percentiles, credit usage vs tranche/cap (normal vs demo profile), error feed, publish status; the two trigger scripts' exact semantics exposed as the two admin buttons. The dashboard reads core-backend's admin surface contract rather than inventing a parallel one — the reconciliation item is OQ-3 because §6.3 was not present on this base.
 
 ## 11. Assumptions index
 
-All `[ASSUMPTION]` tags carried in the ADRs and this spec, collected: session/event-volume parameters (§2 of ADR-0017 — founder-plan estimates, conclusion insensitive at 10×); cold provider = S3-compatible via ADR-0004/0006 with daily+size sync triggers (ADR-0018 — reconcile with `sync-policy.csv`, OQ-2); two shared-admin principals (ADR-0019); DB driver choice follows the backend agent (ADR-0018 §5); §6.3 admin-surface reconciliation (OQ-3); CSP carve-out pending founder sign-off (OQ-5). Items that are **not** assumptions: every number in §6/§9 (computed from the repo's own parameters — TIMELINE.md scope, `k8s/infra.env` cadence, credit tranche — scale math recorded in the SP3-OBS manifest), the retention table (this spec's decision), the EVT-Fxx catalogue (this spec's contract).
+All `[ASSUMPTION]` tags carried in the ADRs and this spec, collected: session/event-volume parameters (§2 of ADR-0024 — founder-plan estimates, conclusion insensitive at 10×); cold provider = S3-compatible via ADR-0004/0006 with daily+size sync triggers (ADR-0025 — reconcile with `sync-policy.csv`, OQ-2); two shared-admin principals (ADR-0026); DB driver choice follows the backend agent (ADR-0025 §5); §6.3 admin-surface reconciliation (OQ-3); CSP carve-out pending founder sign-off (OQ-5). Items that are **not** assumptions: every number in §6/§9 (computed from the repo's own parameters — TIMELINE.md scope, `k8s/infra.env` cadence, credit tranche — scale math recorded in the SP3-OBS manifest), the retention table (this spec's decision), the EVT-Fxx catalogue (this spec's contract).

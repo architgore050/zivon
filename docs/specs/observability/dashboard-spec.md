@@ -1,6 +1,6 @@
 # Admin Dashboard v0 (SP3-OBS)
 
-**Scope:** the Day-8 "admin dashboard v0" from `TIMELINE.md` — one small FastAPI app + static UI, admin-only per [ADR-0019](../../backend/adr/0019-admin-auth.md), reading the product telemetry plane (ADR-0018's `log_events`) plus the factory's existing run artifacts. The infra plane stays with Prometheus + Grafana (`docs/deployment/README.md`, Decisions locked); the dashboard **links** to Grafana, it does not embed or re-implement it. Auth, k8s shape, and the two trigger buttons are specified here; the event names it consumes live in [`instrumentation-map.csv`](instrumentation-map.csv), the query contract is SQL over `log_events` per [`logging-api.md`](logging-api.md) §5.
+**Scope:** the Day-8 "admin dashboard v0" from `TIMELINE.md` — one small FastAPI app + static UI, admin-only per [ADR-0026](../../backend/adr/0026-admin-auth.md), reading the product telemetry plane (ADR-0025's `log_events`) plus the factory's existing run artifacts. The infra plane stays with Prometheus + Grafana (`docs/deployment/README.md`, Decisions locked); the dashboard **links** to Grafana, it does not embed or re-implement it. Auth, k8s shape, and the two trigger buttons are specified here; the event names it consumes live in [`instrumentation-map.csv`](instrumentation-map.csv), the query contract is SQL over `log_events` per [`logging-api.md`](logging-api.md) §5.
 
 ## 1. Kubernetes shape and deployment
 
@@ -12,11 +12,11 @@
 | Namespace/config | `zivon`; env via `k8s/infra.env` line-edits (`ZIVON_LOG_DSN`, `ZIVON_PUBLIC_BASE_URL`, `ZIVON_ENV`, `ZIVON_LOG_SYNC_SCHEDULE`), secret `zivon-admin-auth` (key `ZIVON_ADMIN_TOKEN`) mounted env-only — secrets never in manifests (AGENTS.md) |
 | Resources | requests 64 Mi / 50 m, limits 256 Mi / 250 m (a read-mostly UI; measured post-deploy, retuned with evidence) |
 | Probes | `/healthz` (liveness+readiness): 200 when the process is up and the store is reachable OR fallback is active (a dashboard that cannot read the store says so on the page — it does not flap) |
-| Data mounts | `runs/` PVC **read-only** (run artifacts, status.json, run_report.json); no other volumes; sessions in-memory (single replica, ADR-0019) |
+| Data mounts | `runs/` PVC **read-only** (run artifacts, status.json, run_report.json); no other volumes; sessions in-memory (single replica, ADR-0026) |
 
 Lints: kubeconform + kube-linter clean like every other manifest; hadolint on the new Dockerfile; the Deployment is `USER 1000` numeric like the factory image (gotcha 1).
 
-## 2. Auth (summary — full decision in ADR-0019)
+## 2. Auth (summary — full decision in ADR-0026)
 
 Single-admin bearer secret in K8s Secret `zivon-admin-auth`; login sets an HttpOnly, SameSite=Strict session cookie (opaque 128-bit id, 12 h TTL, 60 min idle re-auth, ≤ 8 sessions); constant-time compare; fail-closed (`503` on all admin routes if the Secret is missing, `dashboard.auth_unconfigured` CRITICAL); 5 failures / 15 min / source → 15 min lockout (`dashboard.auth_lockout`); every auth outcome and every button press is an L3 audit event. Route guard is a FastAPI dependency covering everything except `/admin/login` and `/healthz`. No multi-user, no OAuth — post-challenge.
 
@@ -66,7 +66,7 @@ The buttons reproduce the existing scripts' semantics **by invoking those script
 | Run tests now | `scripts/trigger-tests.sh` | creates `test-manual-<HHMMSS>` Job from the CronJob spec; V2 shows it |
 | Generate a topic | `scripts/trigger-factory-run.sh "<topic>" <class> --fresh` (form: topic text, class select 9–12, `--fresh` checkbox default on) | creates `factory-run-<slug>-<HHMMSS>` Job with `task=factory-run` labels; V1 shows it |
 
-Guards: session + CSRF double-submit token (ADR-0019 §5); the factory Job keeps `backoffLimit: 0` and manual-only scheduling — the dashboard never schedules, retries, or deletes Jobs; concurrency rule preserved (a second factory run while one is running is refused in the form, matching `scripts/trigger-factory-run.sh`'s own guard); every invocation emits `dashboard.action_triggered` (L3) with action/args/result. "Watch the latest run" remains the label-based `scripts/logs-factory-run.sh` behavior, surfaced as a link from V1, not a websocket tail (P1 if wanted).
+Guards: session + CSRF double-submit token (ADR-0026 §5); the factory Job keeps `backoffLimit: 0` and manual-only scheduling — the dashboard never schedules, retries, or deletes Jobs; concurrency rule preserved (a second factory run while one is running is refused in the form, matching `scripts/trigger-factory-run.sh`'s own guard); every invocation emits `dashboard.action_triggered` (L3) with action/args/result. "Watch the latest run" remains the label-based `scripts/logs-factory-run.sh` behavior, surfaced as a link from V1, not a websocket tail (P1 if wanted).
 
 ## 6. Non-goals
 

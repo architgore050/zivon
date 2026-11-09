@@ -52,12 +52,12 @@ credit,credit.call_counted,INFO,session_id,profile;model;units,no,,CR,voice back
 credit,credit.counter_update,INFO,session_id,profile;used;cap;remaining,no,,CR,voice backend (S2 agent contract; ADR-0015 counters),profile enum (normal;demo); alert input
 credit,credit.guard_blocked,CRITICAL,session_id,profile;requested;remaining,no,quota_error,CR,voice backend (S2 agent contract; F-OPS-MET-01 guard),call refused to protect the 2000-credit demo reserve (40% of 5000)
 dashboard,dashboard.session_started,INFO,,session_ref,no,,L3,dashboard app (SP3-OBS contract; manifests 23-24),admin session created; session_ref = server-side session id (opaque)
-dashboard,dashboard.auth_failure,WARNING,,ip_truncated;attempts,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),generic 401 body; 1s constant delay (ADR-0019)
+dashboard,dashboard.auth_failure,WARNING,,ip_truncated;attempts,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),generic 401 body; 1s constant delay (ADR-0026)
 dashboard,dashboard.auth_lockout,CRITICAL,,ip_truncated;window_min,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),5 failures/15min trigger; fail-closed
-dashboard,dashboard.auth_unconfigured,CRITICAL,,secret_present,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),Secret missing at boot; all admin routes 503 (ADR-0019 fail-closed)
+dashboard,dashboard.auth_unconfigured,CRITICAL,,secret_present,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),Secret missing at boot; all admin routes 503 (ADR-0026 fail-closed)
 dashboard,dashboard.action_triggered,INFO,,action;args;result,no,,L3,dashboard app (SP3-OBS contract; manifests 23-24),tests-now / factory-run button invocations; exact script semantics (TIMELINE admin trigger commands)
-log,log.store_fallback,WARNING,,dsn_set;target_path,no,store_error,L1,logging_manager/sink.py,Postgres unreachable or unset; JSONL fallback engaged (ADR-0018)
+log,log.store_fallback,WARNING,,dsn_set;target_path,no,store_error,L1,logging_manager/sink.py,Postgres unreachable or unset; JSONL fallback engaged (ADR-0025)
 log,log.store_recovered,INFO,,target_path,no,,L1,logging_manager/sink.py,Postgres write path restored
 log,log.redaction_violation,WARNING,,event_ref;key;kind,no,privacy_violation,L3,logging_manager/redact.py,payload NEVER included; per-call-site dedup (first + every 100th)
 log,log.event_unknown,WARNING,,offender_event,no,,L1,logging_manager/events.py,emitted event has no instrumentation-map.csv row; CI map-lint makes this red
-privacy,privacy.subject_deleted,INFO,session_id,session_count;stores_touched,no,,L3,logging_manager/store.py,guardian deletion completed within 24h (ADR-0018 4b); IDs only
+privacy,privacy.subject_deleted,INFO,session_id,session_count;stores_touched,no,,L3,logging_manager/store.py,guardian deletion completed within 24h (ADR-0025 4b); IDs only

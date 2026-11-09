@@ -5,7 +5,7 @@ created: 2026-11-09
 status: Accepted
 ---
 
-# ADR-0018: Hot log store is a day-partitioned Postgres table; PVC JSONL fallback + daily cold sync
+# ADR-0025: Hot log store is a day-partitioned Postgres table; PVC JSONL fallback + daily cold sync
 
 ## Status
 
@@ -16,14 +16,14 @@ Accepted
 
 ## Context
 
-ADR-0017 settles the event format (versioned JSON lines via `logging_manager`). This ADR decides **where those lines live**: the brief's hot-store options were a Postgres table or a file on a PVC, tiered hot-SSD vs cold per `docs/backend/storage-tiering.md` conventions, with retention per data class and sync triggers consistent with `docs/backend/sync-policy.csv`.
+ADR-0024 settles the event format (versioned JSON lines via `logging_manager`). This ADR decides **where those lines live**: the brief's hot-store options were a Postgres table or a file on a PVC, tiered hot-SSD vs cold per `docs/backend/storage-tiering.md` conventions, with retention per data class and sync triggers consistent with `docs/backend/sync-policy.csv`.
 
 Forces:
 
 - **The dashboard is SQL-shaped.** Dashboard v0 (`docs/specs/observability/dashboard-spec.md`) needs: p95 voice latency per day, error feed by class, factory-run status rollups, credit-counter latest values, publish status. These are aggregation queries — natural in Postgres, painful over JSONL files.
 - **Writers are heterogeneous.** The factory Job, llm-manager node, voice backend, and dashboard all emit. A single Postgres table gives one queryable sink; stdout/PVC files fragment per pod.
 - **Not every writer can always reach Postgres.** The factory Job runs before/without the backend DB in early cluster states; the voice backend must degrade honestly if the DB blips (Zivon failure-mode rule: no silent loss, loud degradation).
-- **Volume is trivial.** ≤ 15.8k events/day, ~450 B/line → ≤ ~50 MB/day, ~0.35 GB per 7-day hot window, ~0.6 GB per 90-day cold window at demo-day peak (computed in the ADR-0017 context). Any storage decision here is not capacity-driven; it is query-and-lifecycle-driven.
+- **Volume is trivial.** ≤ 15.8k events/day, ~450 B/line → ≤ ~50 MB/day, ~0.35 GB per 7-day hot window, ~0.6 GB per 90-day cold window at demo-day peak (computed in the ADR-0024 context). Any storage decision here is not capacity-driven; it is query-and-lifecycle-driven.
 - **Tiering conventions** (`storage-tiering.md` + `sync-policy.csv` + `data-classification.csv` — the Wave-0 backend docs this spec builds on) put hot queryable data on the backend's SSD-backed Postgres and cold, rarely-queried history on the cold provider (ADR-0004) synced by ADR-0006's batch mechanism. Log events are class-cold-after-7-days data: queried hot for the dashboard's recent windows, retained cold for the challenge's forensics window.
 - **A-02 boundary:** transcripts live in their own DB rows with 7-day TTL and are NEVER in log rows; guardian-initiated deletion (DPDP, ADR-0007/0011 pseudonymous identity) must reach log rows too — a queryable store makes deletion executable, an append-only file makes it a rewrite.
 
@@ -51,8 +51,8 @@ Forces:
      stage           TEXT,                          -- factory stage id, e.g. 03-check
      latency_ms      BIGINT,                        -- where the event measures a duration
      error_class     TEXT,                          -- taxonomy enum, spec.md §7
-     fields          JSONB NOT NULL DEFAULT '{}'::jsonb,  -- redacted payload (ADR-0017)
-     trace_id        TEXT,                          -- reserved for ADR-0017 OTel path
+     fields          JSONB NOT NULL DEFAULT '{}'::jsonb,  -- redacted payload (ADR-0024)
+     trace_id        TEXT,                          -- reserved for ADR-0024 OTel path
      span_id         TEXT,
      PRIMARY KEY (id, ts)
    ) PARTITION BY RANGE (ts);
@@ -101,7 +101,7 @@ Forces:
 
 | Consequence | This decision |
 |-------------|---------------|
-| **Build, buy, or prompt** | Build (one table + one Job) on the already-decided backend Postgres; buy (log SaaS) ruled out (cost, egress, DPDP); Loki/OTel-file stacks deferred per ADR-0017 |
+| **Build, buy, or prompt** | Build (one table + one Job) on the already-decided backend Postgres; buy (log SaaS) ruled out (cost, egress, DPDP); Loki/OTel-file stacks deferred per ADR-0024 |
 | **What is now coupled to it** | `logging_manager`'s writer, the dashboard's queries, the sweeper/sync Job, and the table DDL above |
 | **Operating cost accepted** | ≤ ~0.35 GB hot / ~0.6 GB cold per 90-day window at demo-day peak; one CronJob |
 | **Reversal cost** | Moderate: the JSON line schema is the stable interface; the store behind it can be swapped by changing one writer + one reader |
@@ -123,7 +123,7 @@ Rejected: volume (≤ 50 MB/day) does not justify a second instance; tenancy on 
 
 ## References
 
-- ADR-0017 (stdlib JSON logging decision), ADR-0019 (admin auth)
+- ADR-0024 (stdlib JSON logging decision), ADR-0026 (admin auth)
 - ADR-0004 (cold provider), ADR-0006 (sync mechanism) — interface only
 - ADR-0007 / ADR-0011 (identity, pseudonymous IDs) — guardian deletion path
 - ADR-0015 (credit counters) — retention row above

@@ -5,7 +5,7 @@ created: 2026-11-09
 status: Accepted
 ---
 
-# ADR-0019: Minimal admin auth for the observability dashboard — single-admin bearer secret, HttpOnly session, fail-closed
+# ADR-0026: Minimal admin auth for the observability dashboard — single-admin bearer secret, HttpOnly session, fail-closed
 
 ## Status
 
@@ -24,7 +24,7 @@ Forces:
 - **The buttons are remote code execution by design** (they create cluster Jobs). Unauthenticated exposure is unacceptable even on an internal NodePort; the dashboard must also never widen the factory's manual-only rule.
 - **Grafana's own auth is the gate for the infra plane** (`docs/deployment/README.md`, Decisions locked) — this ADR must give the *product* dashboard an equally explicit, equally minimal gate without depending on Grafana.
 - **Secrets discipline (AGENTS.md non-negotiable):** credentials live in K8s Secrets at runtime, never in manifests/images/code.
-- **Audit:** admin actions are exactly the L3 audit class in ADR-0018 — auth events must flow through `logging_manager` like everything else.
+- **Audit:** admin actions are exactly the L3 audit class in ADR-0025 — auth events must flow through `logging_manager` like everything else.
 
 **[ASSUMPTION]** Exactly two admin principals exist this window (founder + teammate) and can share one rotation-capable secret; per-person identity for admins is post-challenge (revisit with ADR-0007's full identity work).
 
@@ -45,7 +45,7 @@ Forces:
 ### Positive
 
 - Buildable in an afternoon; the entire auth surface is ~100 lines + one Secret + tests — reviewable by the security lens with high confidence.
-- Every privileged action lands in the L3 audit stream (30 d hot / 365 d cold per ADR-0018), so "who ran the factory Job" is answerable.
+- Every privileged action lands in the L3 audit stream (30 d hot / 365 d cold per ADR-0025), so "who ran the factory Job" is answerable.
 - Fail-closed + rate-limited + CSRF-checked covers the OWASP basics for this tiny surface without pulling an auth framework.
 
 ### Negative
@@ -86,7 +86,7 @@ Rejected: the buttons create cluster Jobs; defense-in-depth is cheap here and th
 
 - `docs/specs/observability/dashboard-spec.md` (routes, buttons, session rules)
 - `docs/specs/observability/logging-api.md` (`dashboard.*` audit events)
-- ADR-0018 (audit retention), ADR-0007 (identity model), ADR-0011 (pseudonymous IDs)
+- ADR-0025 (audit retention), ADR-0007 (identity model), ADR-0011 (pseudonymous IDs)
 - `TIMELINE.md` "Admin trigger commands" (button = script semantics), scope ladder (multi-user auth out of scope)
 - `docs/deployment/README.md` Decisions locked (edge TLS; Grafana gate for infra plane)
 - AGENTS.md (secrets runtime-only; env-var configuration)
