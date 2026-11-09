@@ -13,6 +13,7 @@ Failure scripting: ``fail_connect=True`` → SttUnavailableError on start (F1);
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Callable
 
@@ -34,6 +35,7 @@ class MockPrisma:
         fail_connect: bool = False,
         die_after: int | None = None,
         clock: Callable[[], float] = time.monotonic,
+        reset_on_finish: bool = True,
     ) -> None:
         self.settings = settings or VoiceSettings()
         self._script: list[SttEvent] = []
@@ -52,6 +54,10 @@ class MockPrisma:
         self._fail_connect = fail_connect
         self._die_after = die_after
         self._clock = clock
+        self._reset_on_finish = reset_on_finish
+        # After a final, next_event() parks here until the next EOS — the
+        # real Prisma rhythm (one session, many turns, waiting for audio).
+        self._turn_gate = asyncio.Event()
         self._cursor = 0
         self._started = False
         self._finished = False
@@ -75,7 +81,8 @@ class MockPrisma:
         self.audio_seconds += len(pcm) / 2 / self.settings.stt_sample_rate
 
     async def finish(self) -> None:
-        self._finished = True
+        self._finished = True  # EOS marker
+        self._turn_gate.set()  # release the parked pump for the next turn
 
     def arm_echo_guard(self, duration_ms: int | None = None) -> None:
         ms = self.settings.echo_guard_ms if duration_ms is None else duration_ms
@@ -87,6 +94,15 @@ class MockPrisma:
         if self._die_after is not None and self._cursor >= self._die_after:
             return None  # upstream died: caller sees an honest early end
         if self._cursor >= len(self._script):
+            if self._reset_on_finish and self.sent_final:
+                # one Prisma session, many turns: park until the next EOS,
+                # then replay the script (never spin — the pump must not
+                # starve the event loop)
+                await self._turn_gate.wait()
+                self._turn_gate.clear()
+                self._cursor = 0
+                self.sent_final = False
+                return await self.next_event()
             return None
         event = self._script[self._cursor]
         self._cursor += 1

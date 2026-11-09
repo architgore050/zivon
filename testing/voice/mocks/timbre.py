@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import AsyncIterator, Callable
+from types import SimpleNamespace
 
 from voice.config import VoiceSettings
 from voice.tts_client import TtsAudio, TtsUnavailableError
@@ -36,6 +37,8 @@ class MockTimbre:
         self.kinds: list[str] = []
         self.closed = False
         self.chars_billed = 0
+        # the real client exposes per-turn meters; the mock mirrors the shape
+        self.meters = SimpleNamespace(chars_billed=self.chars_billed)
 
     async def start_turn(self) -> None:
         if self.fail:
@@ -50,6 +53,7 @@ class MockTimbre:
         self.segment_ids.append(segment_id)
         self.kinds.append(kind)
         self.chars_billed += len(text)
+        self.meters.chars_billed = self.chars_billed
         for index in range(self.frames_per_segment):
             # deterministic fake opus frame; nothing audio-shaped is stored
             yield TtsAudio(data=bytes([segment_id % 256, index]), final=False)

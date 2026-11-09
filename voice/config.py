@@ -80,6 +80,7 @@ class VoiceSettings:
     stt_frame_ms: int = 100
     stt_languages: tuple[str, ...] = ("hi", "en")
     echo_guard_ms: int = 200  # drop STT events within 200 ms of playback stop
+    stt_final_timeout_s: float = 2.0  # NFR-02 ceiling 1.5 s + grace (F1/F3 path)
 
     # --- TTS (Timbre v3.0 realtime, OQ-03) ----------------------------------
     tts_url: str = ""  # empty = not configured → F4 degraded path, honest

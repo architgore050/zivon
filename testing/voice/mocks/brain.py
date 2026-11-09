@@ -49,6 +49,7 @@ class MockBrain:
     opens: int = 0
     closed: bool = False
     last_messages: list[BrainMessage] = field(default_factory=list)
+    yield_log: list[str] = field(default_factory=list)  # interleaving evidence
 
     def request(
         self, transcript: str, history: tuple[BrainMessage, ...] = ()
@@ -73,6 +74,7 @@ class MockBrain:
                     await asyncio.sleep(self.delay_before_first_s)
                 if self.thoughts:
                     for thought in self.thoughts:
+                        self.yield_log.append(f"thought:{thought}")
                         yield RawChunk(thought=thought)
                         if self.chunk_delay_s:
                             await asyncio.sleep(self.chunk_delay_s)
@@ -84,6 +86,7 @@ class MockBrain:
                     ):
                         await asyncio.sleep(3600)  # inactivity budget must fire
                         return
+                    self.yield_log.append(f"content:{line}")
                     yield RawChunk(content=line + "\n")
                     if self.chunk_delay_s:
                         await asyncio.sleep(self.chunk_delay_s)
