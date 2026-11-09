@@ -81,6 +81,7 @@ class NarrationEnv:
     # client can authenticate, but it must NEVER be written to artifacts,
     # ledgers, or logs by any narration code path.
     timbre_api_key: str | None
+    timbre_tts_path: str
     timbre_voice: str
     credits_per_char: float
     timbre_timeout_s: float
@@ -130,6 +131,12 @@ class NarrationEnv:
         )
         if credits_per_char <= 0:
             raise ConfigError("ZIVON_TIMBRE_CREDITS_PER_CHAR must be > 0")
+        tts_path = _env_raw("ZIVON_TIMBRE_TTS_PATH") or "/v1/tts"
+        if not tts_path.startswith("/"):
+            raise ConfigError(
+                "ZIVON_TIMBRE_TTS_PATH must start with '/' (it is appended to "
+                "ZIVON_TIMBRE_BASE_URL)"
+            )
         timeout_s = _env_number("ZIVON_TIMBRE_TIMEOUT_S", 120.0, integer=False)
         if timeout_s < 5:
             raise ConfigError("ZIVON_TIMBRE_TIMEOUT_S must be >= 5 seconds")
@@ -157,6 +164,7 @@ class NarrationEnv:
             repair_rounds=repair_rounds,
             timbre_base_url=_env_raw("ZIVON_TIMBRE_BASE_URL"),
             timbre_api_key=_env_raw("ZIVON_TIMBRE_API_KEY"),
+            timbre_tts_path=tts_path,
             timbre_voice=_env_raw("ZIVON_TIMBRE_VOICE") or "",
             credits_per_char=credits_per_char,
             timbre_timeout_s=timeout_s,
