@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /healthz
+Sitemap: https://zivon.local/sitemap.xml
