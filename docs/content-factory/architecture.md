@@ -41,6 +41,49 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
 | 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
 | 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
+| 12 | narration | factory/narration/ (stage.py + select/spoken/timbre/audio/budget/publish) | code + **Gnani Timbre v3.0** (build-time TTS, opt-in via `ZIVON_NARRATION_ENABLED`; never an LLM call) | opus assets under `frontend/audio/{course_id}/` (ST-04 content-hash names), `narration` availability flag in the topic manifest + `narration-manifest.json`, A-15 budget ledger (`runs/narration-budget.json`) + `narration_usage.jsonl` |
+
+### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
+
+Decision C-051: lesson narration is PRE-GENERATED at build time with Gnani
+Timbre v3.0 and served statically - read-aloud (features.md F-WRP-TTS-01)
+consumes ZERO runtime credits and never meters a student. The stage is
+opt-in (`ZIVON_NARRATION_ENABLED=true`) because it is a bounded credit
+spend: backend-spec A-15 caps it at a one-time tranche (default 1,500
+credits `[ASSUMPTION]`, enforced refuse-before-exceed by
+`factory/narration/budget.py` against a cross-run ledger at
+`runs/narration-budget.json`). It runs AFTER the review gates so credits are
+only ever spent on a page that passed every gate, and after 11-link so the
+audio lands directly in the served tree.
+
+- **Speakable rules** (gap-register GAP-015, coded in `factory/narration/select.py`):
+  text -> full prose; worked_example -> problem + steps + answer; check ->
+  question + options (never the answer/explanation); simulation/animation ->
+  title + description + page.js readout strings (never JS code); diagram ->
+  `svg_texts` only (none in English v1, so diagrams are not narrated);
+  `b-00-meta` -> lesson title + objectives; reveal -> not speakable. Parts
+  are joined with the `<pauses>` tag (the only expressive tag narration
+  uses) and unit-pronunciation rules apply (m/s2 -> "metres per second
+  squared").
+- **Assets**: `audio/{course_id}/{block_id}.{lang}.{content-hash}.opus`
+  (backend-spec ST-04; the hash is a TEXT hash of lang|voice|spoken-form, so
+  a re-run finds its completed work and spends nothing, while changed text
+  bumps the hash and the old asset stays addressable). 24 kbps mono Opus via
+  ffmpeg (opus input passes through untouched). The topic manifest gains the
+  `narration` availability flag and a `narration-manifest.json` catalogue
+  `{block_id, lang, hash, chars, duration_ms, path}` lands next to it.
+- **Resumability + failures**: per-block resume like every stage
+  (content-addressed); synthesis failures route to a bounded repair catcher
+  (`ZIVON_NARRATION_REPAIR_ROUNDS`, default 2) and degrade read-aloud to the
+  INF-089 disabled copy for that block - a narration failure never fails the
+  page. Only a pass where attempts were made but NOTHING succeeded raises.
+- **Mock mode**: no Timbre endpoint configured -> deterministic silence
+  assets, clearly labelled `mode: "mock"` in the manifests (proof of
+  pipeline, never for the live site).
+- **Publish**: `scripts/publish-frontend.sh` mirrors `audio/` additively and
+  runs the SYNC-01 P0 cold gate (sha256 read-back via
+  `factory/narration/publish.py`). nginx serves `/audio/` immutable with an
+  audio-family per-IP rate limit.
 
 Happy path costs 4 model calls + one per simulation (generate, check,
 review-facts, review-design). Catcher calls happen only when a gate finds

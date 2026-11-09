@@ -70,6 +70,59 @@ is correct end to end and the only remaining variable is your real model.
   calls (generate / check / review) plus one per simulation - budget tens of
   minutes. Catchers (04, 08, 10) only add time when a gate finds something.
 
+## Narration builds (read-aloud audio, stage 12)
+
+Narration is OPT-IN (it is a bounded credit spend - backend-spec A-15):
+
+    export ZIVON_NARRATION_ENABLED=true
+    python pipeline.py "Motion" --class 9 --stages 11-link,12-narration
+
+- A full run narrates automatically when the env is set; the `--stages`
+  subset above narrates an already-built topic without touching the model
+  stages.
+- **Mock vs live**: with no `ZIVON_TIMBRE_BASE_URL` (or
+  `ZIVON_NARRATION_MODE=mock`) the stage produces REAL opus files whose
+  audio is silence - pipeline proof, zero credits, loudly printed and
+  labelled `mode: "mock"` in the manifests. Never publish mock audio to the
+  live site. Live mode needs `ZIVON_TIMBRE_BASE_URL` +
+  `ZIVON_TIMBRE_API_KEY` (runtime secrets, never files) and ffmpeg on PATH
+  (see the Infra TODO in `TIMELINE.md`).
+- **Budget**: the A-15 tranche defaults to 1,500 credits
+  `[ASSUMPTION]` at 0.0167 credits/char (capacity-model default; real
+  prices = A-01, founder reads them off the Gnani dashboard). The guard
+  refuses BEFORE a call that would exceed the tranche, narrates the
+  deterministic prefix that fits, and says exactly what to do: founder
+  approval, then raise `ZIVON_NARRATION_BUDGET_CREDITS` and re-trigger the
+  same topic - completed blocks are skipped by content hash, so only the
+  remainder synthesizes. Cross-run spend lives in
+  `runs/narration-budget.json`; per-block usage in
+  `runs/<run_id>/narration_usage.jsonl` (reconcile both against
+  `docs/backend/capacity-and-cost.md`).
+- **Failures**: per-block TTS/encode failures are retried by the bounded
+  repair catcher (`ZIVON_NARRATION_REPAIR_ROUNDS`, default 2); blocks that
+  still fail degrade read-aloud to the INF-089 disabled copy and the run
+  stays green (loud summary). A pass where NOTHING succeeded raises - fix
+  the endpoint/ffmpeg and re-trigger (resume skips everything already
+  done).
+- **What lands where**: `frontend/audio/{course_id}/` holds the opus
+  assets; the topic's `manifest.json` gains the `narration` availability
+  flag and a `narration-manifest.json` catalogue sits next to it. The
+  client shows the disabled copy when a block's flag is false - never probe
+  blindly.
+- **Publishing**: `scripts/publish-frontend.sh` mirrors `audio/` from the
+  PVC additively (content-hash names are immutable; old versions stay
+  addressable) and runs the SYNC-01 cold gate (upload + sha256 read-back)
+  when `ZIVON_COLDSTORE_UPLOAD_CMD` / `ZIVON_COLDSTORE_READBACK_CMD` are
+  configured; without them the gate reports a loud SKIP (PVC-only serving).
+  Standalone verify: `python -m factory.narration.publish --root
+  frontend/audio --cold`.
+- **nginx**: `/audio/` is served immutable (`max-age=31536000`) with a
+  per-IP audio rate limit (`docker/nginx.conf`). Compose check:
+  `docker compose up web` then
+  `curl -I localhost:8081/audio/<course_id>/<any asset name>` - expect
+  `HTTP 200`, `Content-Type: audio/opus`,
+  `Cache-Control: public, max-age=31536000, immutable`.
+
 ## Re-runs, failures and debugging
 
 - Gate failures are REPAIRED, not fatal: 03→04-repair, 07→08-fixloop and

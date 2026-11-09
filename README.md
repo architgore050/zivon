@@ -59,6 +59,16 @@ python pipeline.py "Motion" --class 9
 
 Model calls are streaming by default: `ZIVON_TIMEOUT_S` bounds INACTIVITY between chunks (a dead server is caught honestly) and `ZIVON_CALL_DEADLINE_S` is a total per-call wall-clock cap that aborts a runaway generation mid-stream. Locally you can also run the model path through the isolated **llm-manager node** (`docker compose up -d llm-manager`, then `ZIVON_BASE_URL=http://127.0.0.1:18090/v1`) — the same service the cluster runs at `http://llm-manager.zivon.svc.cluster.local/v1`.
 
+Read-aloud narration (stage 12) is **opt-in** build-time TTS: `export
+ZIVON_NARRATION_ENABLED=true` before a run (or
+`python pipeline.py "Motion" --class 9 --stages 11-link,12-narration` on a
+finished topic). Without a Timbre endpoint it produces silent mock assets
+(credited `mode: "mock"` in the manifests, zero credits); with
+`ZIVON_TIMBRE_BASE_URL`/`ZIVON_TIMBRE_API_KEY` it pre-generates real audio
+with Gnani Timbre v3.0 under the A-15 credit tranche (refuse-before-exceed;
+see `docs/content-factory/runbook.md`, "Narration builds"). ffmpeg must be
+on PATH for the Opus encode.
+
 Run ids are deterministic per (chapter, class): re-running the same command **resumes** the previous attempt — completed stages load from `runs/` instead of re-calling the model; pass `--fresh` to wipe the attempt and generate clean.
 
 Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) AND the llm-manager node (`docker compose up -d llm-manager`), then point the factory at the node: in compose set `ZIVON_BASE_URL=http://llm-manager:8000/v1` **and** `ZIVON_NODE_UPSTREAM_URL=<server address>` (the node's own upstream — one variable for both would make the node call itself), plus `ZIVON_MAX_ATTEMPTS=1` on the factory side (the node owns transport retries). In the cluster the ConfigMaps already encode this split (factory → llm-manager Service → router). See [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md).
