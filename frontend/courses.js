@@ -29,5 +29,14 @@ window.ZIVON_COURSES = [
     "title": "Motion in a Straight Line",
     "chapter": "MOTION IN A STRAIGHT LINE",
     "generated_at": "2026-11-09T10:23:43Z"
+  },
+  {
+    "href": "courses/class-11-physics/motion-in-a-plane/index.html",
+    "course_id": "class-11-physics",
+    "class": 11,
+    "chapter_number": 3,
+    "title": "Motion in a Plane",
+    "chapter": "MOTION IN A PLANE",
+    "generated_at": "2026-11-09T13:57:47Z"
   }
 ];
