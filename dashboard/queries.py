@@ -193,23 +193,37 @@ class LogStore:
             """,
             (run_id,),
         )
+        # Path guard (py/path-injection): early-return fullmatch guard
+        # BEFORE any Path use kills run_id taint — construction below runs
+        # only for slug-shaped ids. resolve() + is_relative_to is kept as
+        # defense-in-depth (a symlinked runs/<id> cannot escape the PVC
+        # mount). SQL above is parameterized and therefore safe; only the
+        # file read needs this guard, and invalid ids degrade to status=None.
+        if not _RUN_ID_ALLOWED.fullmatch(run_id):
+            return {
+                "run_id": run_id,
+                "stages": stages,
+                "repairs": repairs,
+                "calls": calls,
+                "status": None,
+            }
+        base_dir = runs_dir().resolve()
+        run_dir = (base_dir / run_id).resolve()
+        if not run_dir.is_relative_to(base_dir):
+            return {
+                "run_id": run_id,
+                "stages": stages,
+                "repairs": repairs,
+                "calls": calls,
+                "status": None,
+            }
+        status_path = run_dir / "status.json"
         status: dict[str, Any] | None = None
-        # Path guard (py/path-injection): two barriers dominate the read.
-        # (1) the slug allowlist rejects separators / traversal by
-        # construction; (2) resolve() + is_relative_to rejects any residual
-        # escape (e.g. a symlinked runs/<id> pointing outside the PVC mount).
-        # SQL above is parameterized and therefore safe; only the file read
-        # needs this guard, and invalid ids degrade to status=None.
-        if _RUN_ID_ALLOWED.fullmatch(run_id):
-            base_dir = runs_dir().resolve()
-            run_dir = (base_dir / run_id).resolve()
-            if run_dir.is_relative_to(base_dir):
-                status_path = run_dir / "status.json"
-                if status_path.is_file():
-                    try:
-                        status = json.loads(status_path.read_text(encoding="utf-8"))
-                    except (json.JSONDecodeError, OSError):
-                        status = None
+        if status_path.is_file():
+            try:
+                status = json.loads(status_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                status = None
         return {
             "run_id": run_id,
             "stages": stages,
