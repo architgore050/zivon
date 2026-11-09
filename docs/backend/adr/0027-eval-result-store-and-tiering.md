@@ -1,4 +1,4 @@
-# ADR-0017: Eval Result Store, Dual-Write Ledger, and Cold Storage Tiering
+# ADR-0027: Eval Result Store, Dual-Write Ledger, and Cold Storage Tiering
 
 - **Status**: accepted (Wave S1 — `SP4-EVALS`)
 - **Date / deciders**: 2026-11-09 / Founder + `SP4-EVALS`

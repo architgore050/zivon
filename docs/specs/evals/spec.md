@@ -3,7 +3,7 @@
 - **Status**: Specified (Wave S1 — `SP4-EVALS`)
 - **Target Package**: `evals/` (repo root)
 - **Applies To**: Build-time Content Factory (`pipeline.py`, `factory/`) and Gate B Kid-Comprehension Loop (`TIMELINE.md`)
-- **Binding Constraints**: [`AGENTS.md`](../../../AGENTS.md), [`TIMELINE.md`](../../../TIMELINE.md), [`docs/content-factory/architecture.md`](../../content-factory/architecture.md), [`skills/prompting-and-agent-design/SKILL.md`](../../../skills/prompting-and-agent-design/SKILL.md), [`ADR-0017`](../../backend/adr/0017-eval-result-store-and-tiering.md), [`ADR-0018`](../../backend/adr/0018-eval-judge-model-and-calibration.md)
+- **Binding Constraints**: [`AGENTS.md`](../../../AGENTS.md), [`TIMELINE.md`](../../../TIMELINE.md), [`docs/content-factory/architecture.md`](../../content-factory/architecture.md), [`skills/prompting-and-agent-design/SKILL.md`](../../../skills/prompting-and-agent-design/SKILL.md), [`ADR-0027`](../../backend/adr/0027-eval-result-store-and-tiering.md), [`ADR-0028`](../../backend/adr/0028-eval-judge-model-and-calibration.md)
 
 ---
 
@@ -54,7 +54,7 @@ evals/
 ├── config.py                   # EvalConfig (reads ZIVON_* + ZIVON_EVAL_* env vars; zero secrets in files)
 ├── models.py                   # Typed dataclasses / JSON schemas for EvalRun, CardResult, DefectSample, DiffReport
 ├── runner.py                   # Suite orchestrator (smoke vs full vs calibration; deterministic-first funnel)
-├── store.py                    # Dual-write persistence: evals_runs/ JSONL + PostgreSQL outbox (ADR-0017)
+├── store.py                    # Dual-write persistence: evals_runs/ JSONL + PostgreSQL outbox (ADR-0027)
 ├── diff.py                     # Run-to-run regression calculator & threshold alerter
 ├── report.py                   # JSON + Markdown + terminal scorecard formatter & Prometheus/dashboard emitter
 ├── checkers/                   # Deterministic code graders (0 model calls)
@@ -64,7 +64,7 @@ evals/
 │   ├── visual_checks.py        # JS/CSS/HTML/SVG lints, kit scope, ZivonSim skeleton, Chromium DOM/a11y/bbox probe
 │   ├── perf_harness.py         # Migrated from testing/content_factory/perf/harness.py (CDP throttle, RSS, FPS, overflow)
 │   └── prompt_contract_checks.py # Prompt-contract invariants migrated from unit/test_agents_generate.py & test_review.py
-├── judges/                     # LLM-as-judge graders via llm_manager/ (ADR-0018)
+├── judges/                     # LLM-as-judge graders via llm_manager/ (ADR-0028)
 │   ├── __init__.py
 │   ├── base.py                 # LLMManager wrapper, structured JSON validation, quote-grounding verifier
 │   ├── curator_judge.py        # Claim-to-passage quote verification & external-concept smuggling judge
@@ -327,7 +327,7 @@ The golden dataset is organized into three versioned layers under `evals/goldens
 
 ## 4. Regression Tracking, Persistence & Human-Edit-Rate Capture
 
-### 4.1 Persistence Architecture (Traceable to `db-spec.md` & `storage-tiering.md`, [`ADR-0017`](../../backend/adr/0017-eval-result-store-and-tiering.md))
+### 4.1 Persistence Architecture (Traceable to `db-spec.md` & `storage-tiering.md`, [`ADR-0027`](../../backend/adr/0027-eval-result-store-and-tiering.md))
 
 Following [`skills/zivon-systems-design-skills/`](../../../skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) (`references/02-data-classification-and-tiering.md` and `references/03-database-spec-method.md`), eval artifacts and relational records are phased so P0 works with zero database dependencies while Phase B/production persists into PostgreSQL and cold object storage:
 
@@ -585,7 +585,7 @@ echo "watch it: kubectl logs -f job/$job -n zivon"
 ```
 
 Line-edits required in `k8s/infra.env` and `scripts/apply-k8s.sh` when the execution agent builds `evals/`:
-- `k8s/infra.env`: Add `EVAL_CRON_SCHEDULE="0 */6 * * *"` and optional `ZIVON_EVAL_JUDGE_MODEL` (defaults to `ZIVON_MODEL` if unset; see [`ADR-0018`](../../backend/adr/0018-eval-judge-model-and-calibration.md)).
+- `k8s/infra.env`: Add `EVAL_CRON_SCHEDULE="0 */6 * * *"` and optional `ZIVON_EVAL_JUDGE_MODEL` (defaults to `ZIVON_MODEL` if unset; see [`ADR-0028`](../../backend/adr/0028-eval-judge-model-and-calibration.md)).
 - `scripts/apply-k8s.sh`: Export `EVAL_CRON_SCHEDULE` and apply `envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -`.
 
 ---

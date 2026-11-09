@@ -25,8 +25,8 @@ This folder specifies Zivon's standalone **`evals/`** package and the migration 
 
 | ADR | Decision |
 |---|---|
-| [`docs/backend/adr/0017-eval-result-store-and-tiering.md`](../../backend/adr/0017-eval-result-store-and-tiering.md) | Dual-mode eval persistence: append-only JSONL on PVC `zivon-sources` (`subPath: evals`) for P0/offline runs + PostgreSQL relational tables (`eval_run`, `eval_card_result`, `eval_defect_sample_result`, `eval_human_edit`, `eval_kid_session`) synced to cold object storage under data class `C4`. |
-| [`docs/backend/adr/0018-eval-judge-model-and-calibration.md`](../../backend/adr/0018-eval-judge-model-and-calibration.md) | Judge model selection and cost control: all judge calls route through `llm_manager/`, deterministic checkers gate before any model call, reviewer rubrics are reused verbatim from `factory/agents.py` and `factory/review.py`, and judge accuracy is calibrated against seeded-defect sets. |
+| [`docs/backend/adr/0027-eval-result-store-and-tiering.md`](../../backend/adr/0027-eval-result-store-and-tiering.md) | Dual-mode eval persistence: append-only JSONL on PVC `zivon-sources` (`subPath: evals`) for P0/offline runs + PostgreSQL relational tables (`eval_run`, `eval_card_result`, `eval_defect_sample_result`, `eval_human_edit`, `eval_kid_session`) synced to cold object storage under data class `C4`. |
+| [`docs/backend/adr/0028-eval-judge-model-and-calibration.md`](../../backend/adr/0028-eval-judge-model-and-calibration.md) | Judge model selection and cost control: all judge calls route through `llm_manager/`, deterministic checkers gate before any model call, reviewer rubrics are reused verbatim from `factory/agents.py` and `factory/review.py`, and judge accuracy is calibrated against seeded-defect sets. |
 
 ---
 
@@ -36,4 +36,4 @@ This folder specifies Zivon's standalone **`evals/`** package and the migration 
 2. Read [`spec.md`](spec.md) for the `evals/` package architecture, CLI contract, eval cards (`EV-CUR-001` through `EV-KID-001`), regression store, and K8s/CI wiring.
 3. Follow [`migration-map.csv`](migration-map.csv) row-by-row when extracting eval assertions out of `testing/content_factory/` into `evals/`.
 4. Populate `evals/goldens/` using the schemas and defect catalog in [`golden-sets.md`](golden-sets.md) and [`card-template.md`](card-template.md).
-5. Check [`open-questions.md`](open-questions.md) and ADRs [`0017`](../../backend/adr/0017-eval-result-store-and-tiering.md)–[`0018`](../../backend/adr/0018-eval-judge-model-and-calibration.md) before wiring database persistence or dashboard endpoints.
+5. Check [`open-questions.md`](open-questions.md) and ADRs [`0027`](../../backend/adr/0027-eval-result-store-and-tiering.md)–[`0028`](../../backend/adr/0028-eval-judge-model-and-calibration.md) before wiring database persistence or dashboard endpoints.

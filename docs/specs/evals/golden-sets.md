@@ -275,7 +275,7 @@ Every seeded defect sample is a self-contained JSON bundle derived from a **real
 |---|---|---|---|
 | `expected.json`, `source_pack_meta.json`, `artifact_ref.json`, and `defects/**/*.json` | Committed in Git under `evals/goldens/` | `< 500 KB` total across all files | Versioned in Git (`C16` / `C1`); available in every CI runner and container build without network or PVC mounts. |
 | Committed Golden Topic Renders (`GT-01`, `GT-02`, `GT-03`) | Committed in Git at `frontend/courses/` and `docs/frontend/design-doctrine-lesson-example.html` | `~150–300 KB` per topic | Mirrored via `scripts/publish-frontend.sh` (`C1`); git history is the version rotation. |
-| Full Historical Run Directories & Raw PDF Caches | `zivon-sources` PVC (`subPath: runs` and `subPath: evals`) → Cold Object Storage (`C4`) | `5–50 MB` per run | Synced to cold storage via transactional outbox (`ADR-0017`); never committed to Git. |
+| Full Historical Run Directories & Raw PDF Caches | `zivon-sources` PVC (`subPath: runs` and `subPath: evals`) → Cold Object Storage (`C4`) | `5–50 MB` per run | Synced to cold storage via transactional outbox (`ADR-0027`); never committed to Git. |
 
 ### 4.2 How Goldens Rotate When Content or Pipeline Versions Change
 

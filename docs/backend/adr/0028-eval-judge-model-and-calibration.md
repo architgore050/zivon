@@ -1,4 +1,4 @@
-# ADR-0018: LLM-as-Judge Model Selection, Calibration Anchor Strategy, and Cost Budget
+# ADR-0028: LLM-as-Judge Model Selection, Calibration Anchor Strategy, and Cost Budget
 
 - **Status**: accepted (Wave S1 — `SP4-EVALS`)
 - **Date / deciders**: 2026-11-09 / Founder + `SP4-EVALS`
