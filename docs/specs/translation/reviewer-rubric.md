@@ -67,12 +67,12 @@ Following the 2026-11-08 `09-review` split in `factory/schemas.py:320`, the LLM 
 
 ```python
 TRANSLATION_REVIEW_CATEGORIES = [
-    "physics_meaning",      # Translation alters or inverts a physical law, condition, or causal direction
-    "glossary_term",        # Wrong physics term used, or missing required first-mention bilingual gloss
-    "untranslated_leak",    # English clauses/sentences left untranslated in native-script locale (or vice versa)
-    "hallucinated_content", # Translator added claims, steps, or examples not present in the English block
-    "grade_register",       # Overly archaic/unnatural phrasing that a Class 9-12 Indian student cannot follow
-    "awkward_phrasing",     # Minor grammar/gender/postposition stiffness that does not hurt physics accuracy
+    "physics_meaning",  # Translation alters or inverts a physical law, condition, or causal direction
+    "glossary_term",  # Wrong physics term used, or missing required first-mention bilingual gloss
+    "untranslated_leak",  # English clauses/sentences left untranslated in native-script locale (or vice versa)
+    "hallucinated_content",  # Translator added claims, steps, or examples not present in the English block
+    "grade_register",  # Overly archaic/unnatural phrasing that a Class 9-12 Indian student cannot follow
+    "awkward_phrasing",  # Minor grammar/gender/postposition stiffness that does not hurt physics accuracy
 ]
 
 TRANSLATION_REVIEW_CALL_REPORT = {

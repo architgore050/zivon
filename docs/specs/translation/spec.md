@@ -132,11 +132,14 @@ To prevent context bloat and thinking-token runaway (which caused 09-review stal
 To key Translation Memory identically across Phase A (PVC files) and Phase B/C (PostgreSQL):
 
 ```python
-def extract_translatable_payload(unit_id: str, block_or_meta: dict[str, Any]) -> dict[str, Any]:
+def extract_translatable_payload(
+    unit_id: str, block_or_meta: dict[str, Any]
+) -> dict[str, Any]:
     """Return ONLY the fields whose change requires re-translation.
     Excludes citations, numeric control bounds (min/max/step/initial),
     check numeric answers, and raw SVG geometry (includes only extracted svg_texts)."""
     ...
+
 
 def compute_tm_keys(
     unit_id: str,
@@ -147,10 +150,17 @@ def compute_tm_keys(
 ) -> tuple[str, str]:
     normalized = unicodedata.normalize(
         "NFC",
-        json.dumps(translatable_payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")),
+        json.dumps(
+            translatable_payload,
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
     )
     source_content_sha256 = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-    composite = f"{source_content_sha256}:{target_locale}:{glossary_version}:{prompt_version}"
+    composite = (
+        f"{source_content_sha256}:{target_locale}:{glossary_version}:{prompt_version}"
+    )
     tm_key = hashlib.sha256(composite.encode("utf-8")).hexdigest()
     return source_content_sha256, tm_key
 ```
@@ -516,18 +526,21 @@ For P1 text-only fallback or cross-locale tutor transcript translation, we speci
 class RuntimeTranslationRequest(TypedDict):
     session_id: str
     turn_id: str
-    source_locale: str          # e.g. "en"
-    target_locale: str          # e.g. "ta"
-    text: str                   # <= 1200 chars (single tutor turn)
+    source_locale: str  # e.g. "en"
+    target_locale: str  # e.g. "ta"
+    text: str  # <= 1200 chars (single tutor turn)
     anchor_block_id: str | None
     glossary_terms: list[dict[str, str]]  # [{"en": "velocity", "native": "திசைவேகம்"}]
+
 
 class RuntimeTranslationResponse(TypedDict):
     translated_text: str
     target_locale: str
-    model_id: str               # routed via llm-manager node (ZIVON_LLM_MANAGER_URL)
+    model_id: str  # routed via llm-manager node (ZIVON_LLM_MANAGER_URL)
     latency_ms: int
-    fallback_used: bool         # True if llm-manager timed out -> returns original text + notice
+    fallback_used: (
+        bool  # True if llm-manager timed out -> returns original text + notice
+    )
 ```
 
 **Explicitly NOT built in Wave 1 / P0**:

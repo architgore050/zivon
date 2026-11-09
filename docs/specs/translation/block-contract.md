@@ -530,7 +530,9 @@ def translate_single_unit(
     round_tag_prefix: str = "init",
     repair_feedback: list[str] | None = None,
 ) -> dict[str, Any]:
-    source_payload = extract_translatable_payload(unit_id, unit_type, source_block_or_meta)
+    source_payload = extract_translatable_payload(
+        unit_id, unit_type, source_block_or_meta
+    )
     schema, schema_name = schema_for_unit(unit_id, unit_type, source_block_or_meta)
     messages = build_translate_messages(
         locale=locale,
@@ -552,7 +554,11 @@ def translate_single_unit(
             glossary_subset=glossary_subset,
         )
 
-    round_tag = f"{locale}/{unit_id}" if round_tag_prefix == "init" else f"{locale}/{unit_id}/{round_tag_prefix}"
+    round_tag = (
+        f"{locale}/{unit_id}"
+        if round_tag_prefix == "init"
+        else f"{locale}/{unit_id}/{round_tag_prefix}"
+    )
     translated_payload = llm.call(
         stage_id="10a-translate" if round_tag_prefix == "init" else "10c-transrepair",
         messages=messages,
@@ -561,5 +567,7 @@ def translate_single_unit(
         extra_validator=validate_invariants,
         round_tag=round_tag,
     )
-    return reassemble_translated_unit(unit_id, unit_type, source_block_or_meta, translated_payload)
+    return reassemble_translated_unit(
+        unit_id, unit_type, source_block_or_meta, translated_payload
+    )
 ```

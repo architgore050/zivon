@@ -19,8 +19,14 @@ Public surface (everything else is private; importing privates fails review):
 
 ```python
 from logging_manager import (
-    log_event, bind_context, context_scope, current_context,
-    delete_subject, LOG_SCHEMA_VERSION, Severity, ErrorClass,
+    log_event,
+    bind_context,
+    context_scope,
+    current_context,
+    delete_subject,
+    LOG_SCHEMA_VERSION,
+    Severity,
+    ErrorClass,
 )
 ```
 
