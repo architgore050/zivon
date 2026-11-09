@@ -98,6 +98,7 @@ The v1 block schema above remains frozen and unmodified for English generation (
 - **Owner**: `EX2-TRANS` + `EX5-FRONT` · **Traces to**: [`docs/specs/translation/spec.md` §5.2](../specs/translation/spec.md), [`docs/specs/translation/block-contract.md` §3.1](../specs/translation/block-contract.md)
 - **Proposal**: Extend the `ZivonSim` runtime context in `frontend/assets/zivon.js` from `{canvas, g, width, height, values, t}` to `{canvas, g, width, height, values, t, locale, t_str}`:
   - `ctx.t_str(key, fallback)` looks up `window.ZIVON_I18N[ctx.locale]?.sim_strings?.["<BLOCK_ID>"]?.[key] || fallback`.
+  - `factory/translate.py` extracts `(key, fallback)` pairs from `page.js` via regex scan (`ctx.t_str("key", "English fallback")`) into `b-00-meta.sim_strings`. For existing v7 `page.js` files that do not yet call `ctx.t_str`, `sim_strings` defaults to `{}` while `simulation.spec` DOM chrome (`h3`, control labels, `.zn-sim-desc`, `aria-label`) still localizes in full without re-running `05-interactive`.
   - When a user clicks a `.zn-chip[data-locale]` in `.zn-lang-bar`, `zivon.js` updates `ctx.locale` and invokes `impl.draw(ctx)` once so canvas legends and `.zn-sim-read` live readouts switch language immediately without duplicating `page.js` per locale or resetting slider values (`ctx.values`).
 
 ### CP-TRN-004: Topic `manifest.json` and `courses.js` Localization Metadata

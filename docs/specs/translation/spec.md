@@ -54,18 +54,23 @@ Per `ADR-0013` and `ADR-0017`, lesson localization is a **build-time** responsib
    - Once all units for all target locales complete in `10a-translate`, `run_ctx.save_stage_output("10a-translate", ...)` and `run_ctx.mark_stage("10a-translate", "ok")` execute.
    - If the pod dies during `10b-transcheck` or `10c-transrepair`, re-triggering `scripts/trigger-factory-run.sh "<chapter>" <class>` skips `00-ingest`..`10a-translate` and resumes directly at `10b-transcheck` (picking up any repaired blocks from `10c-transrepair` exactly as `03-check`/`04-repair` do in `factory/stages.py:315`).
 3. **Fingerprint backward compatibility**:
-   - In `config.json`, `translation` is a top-level section:
-     ```json
-     "translation": {
-       "enabled": false,
-       "target_locales": ["hi", "hi-Latn"],
-       "optional_locales": [],
-       "glossary_path": "sources/glossary/physics_glossary.json",
-       "ui_strings_path": "sources/glossary/ui_strings.json",
-       "prompt_version": "1",
-       "max_chars_neighbour_context": 600
-     }
-     ```
+   - In `config.json`, `translation` is a top-level section (and `repair` adds `translation_rounds`):
+```json
+{
+  "translation": {
+    "enabled": false,
+    "target_locales": ["hi", "hi-Latn"],
+    "optional_locales": [],
+    "glossary_path": "sources/glossary/physics_glossary.json",
+    "ui_strings_path": "sources/glossary/ui_strings.json",
+    "prompt_version": "1",
+    "max_chars_neighbour_context": 600
+  },
+  "repair": {
+    "translation_rounds": 6
+  }
+}
+```
    - In `config.json`, `repair` adds `"translation_rounds": 6` (range `1..20`).
    - When `translation.enabled` is `false`, `run_fingerprint()` omits the `translation` payload so existing `PIPELINE_VERSION = "7"` run directories remain 100% resumable without `--fresh`. When `translation.enabled` is `true`, `translation` (`target_locales`, `prompt_version`, `glossary_sha256`) is mixed into `run_fingerprint()`.
 
@@ -338,7 +343,16 @@ erDiagram
 
 ### 3.3 Storage Tiering, Sync Policy & "Pull the Plug" Test (`storage-tiering.md` & `sync-policy.csv`)
 
-Per `docs/backend/storage-tiering.md` and `docs/backend/sync-policy.csv` (`02-data-classification-and-tiering.md` §2–§3):
+Per `docs/backend/storage-tiering.md` and `docs/backend/sync-policy.csv` (`02-data-classification-and-tiering.md` §2–§3), the exact 12-column `sync-policy.csv` rows governing translation artifacts are:
+
+```csv
+rule_id,class_id,trigger,mechanism,idempotency_key,verification,on_failure,retry_policy,slo,alert,runbook,phase
+SYNC-01,C1,on publish (11-link / publish-frontend.sh),outbox->worker->multipart upload of localized bundle,sha256,read-back checksum + object.cold_verified_at update,hold live_pointer(lesson_id locale) flag,exp backoff max 24h,99% verified in 5min,backlog age>15min,RB-04,B
+SYNC-02,C3,WAL segment close (60s) + daily 02:30 IST base backup,wal-g wal-push + pg_basebackup + tm/ tarball sync,wal_lsn_sha256,pg_verifybackup + weekly checksum scrub (SYNC-06),alert + pause SSD cache eviction,continuous retry backoff max 15m,RPO<=5min RTO<=4h,wal archive lag>5min,RB-02,B
+SYNC-03,C4,run completes + 24h settle delay,nightly batch compress (tar.zst) -> cold upload,run_id_sha256,read-back checksum + manifest row in object table,retain hot run dir on zivon-sources PVC,exp backoff 3x nightly,99% archived in 48h,unarchived runs>10,RB-05,B
+```
+
+Summary by storage tier:
 
 | Sync Rule ID | Data Class | Artifact / Table | Hot on SSD | Cold Storage (Separate Provider per `ADR-0004`) | Trigger & Mechanism | Verification & Eviction Invariant |
 |---|---|---|---|---|---|---|

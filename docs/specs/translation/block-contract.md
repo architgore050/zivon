@@ -271,59 +271,59 @@ To make MCQ answer-key mismatches and numeric answer corruption **structurally i
   }
   ```
 - **Response Schema (`TRANSLATED_CHECK_MCQ_PAYLOAD`)**:
-  ```python
-  TRANSLATED_CHECK_MCQ_PAYLOAD = {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "type": "object",
-      "required": ["question", "options", "explanation", "expected_understanding"],
-      "additionalProperties": False,
-      "properties": {
-          "question": {"type": "string", "minLength": 5},
-          "options": {
-              "type": "array",
-              "minItems": 2,
-              "items": {"type": "string", "minLength": 1},
-          },
-          "explanation": {"type": "string", "minLength": 5},
-          "expected_understanding": {"type": "string", "minLength": 5},
-      },
-  }
-  ```
+```python
+TRANSLATED_CHECK_MCQ_PAYLOAD = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["question", "options", "explanation", "expected_understanding"],
+    "additionalProperties": False,
+    "properties": {
+        "question": {"type": "string", "minLength": 5},
+        "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {"type": "string", "minLength": 1},
+        },
+        "explanation": {"type": "string", "minLength": 5},
+        "expected_understanding": {"type": "string", "minLength": 5},
+    },
+}
+```
 - **Harness Reassembly (`reassemble_translated_block`)**:
-  ```python
-  spec_out = copy.deepcopy(source_block["spec"])
-  spec_out["question"] = translated["question"]
-  spec_out["options"] = translated["options"]
-  # Deterministic lock: answer is ALWAYS options[answer_index]
-  spec_out["answer"] = translated["options"][source_block["spec"]["answer_index"]]
-  spec_out["explanation"] = translated["explanation"]
-  spec_out["expected_understanding"] = translated["expected_understanding"]
-  ```
+```python
+spec_out = copy.deepcopy(source_block["spec"])
+spec_out["question"] = translated["question"]
+spec_out["options"] = translated["options"]
+# Deterministic lock: answer is ALWAYS options[answer_index]
+spec_out["answer"] = translated["options"][source_block["spec"]["answer_index"]]
+spec_out["explanation"] = translated["explanation"]
+spec_out["expected_understanding"] = translated["expected_understanding"]
+```
 
 #### Variant B: `check` with `format == "numeric"`
 
 - **`source_payload` sent to model** (note: `answer` is omitted so the model cannot alter the numeric string!):
-  ```json
-  {
-    "question": "A car accelerates uniformly from rest to 20 m/s in 5 s. Calculate its acceleration in m/s².",
-    "explanation": "Using a = (v - u) / t = (20 - 0) / 5 = 4 m/s².",
-    "expected_understanding": "Apply a = (v - u) / t with u = 0."
-  }
-  ```
+```json
+{
+  "question": "A car accelerates uniformly from rest to 20 m/s in 5 s. Calculate its acceleration in m/s².",
+  "explanation": "Using a = (v - u) / t = (20 - 0) / 5 = 4 m/s².",
+  "expected_understanding": "Apply a = (v - u) / t with u = 0."
+}
+```
 - **Response Schema (`TRANSLATED_CHECK_NUMERIC_PAYLOAD`)**:
-  ```python
-  TRANSLATED_CHECK_NUMERIC_PAYLOAD = {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "type": "object",
-      "required": ["question", "explanation", "expected_understanding"],
-      "additionalProperties": False,
-      "properties": {
-          "question": {"type": "string", "minLength": 5},
-          "explanation": {"type": "string", "minLength": 5},
-          "expected_understanding": {"type": "string", "minLength": 5},
-      },
-  }
-  ```
+```python
+TRANSLATED_CHECK_NUMERIC_PAYLOAD = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["question", "explanation", "expected_understanding"],
+    "additionalProperties": False,
+    "properties": {
+        "question": {"type": "string", "minLength": 5},
+        "explanation": {"type": "string", "minLength": 5},
+        "expected_understanding": {"type": "string", "minLength": 5},
+    },
+}
+```
 - **Harness Reassembly**: Copies `spec_out["answer"] = source_block["spec"]["answer"]` (e.g. `"4"`) untouched.
 
 ---
@@ -410,7 +410,7 @@ TRANSLATED_DIAGRAM_PAYLOAD = {
 ```
 2. **Re-injection (`reinject_diagram_svg(source_svg, translated_diagram_payload)`)**:
    - Verifies `[x["id"] for x in translated["svg_texts"]] == [x["id"] for x in source_payload["svg_texts"]]` and `len(x["text"]) <= source_item["max_chars"]`.
-   - Replaces only `.text` on the corresponding `<text>` nodes (XML-escaped by ElementTree) and `aria-label` on `<svg>`, adds `data-i18n="<block_id>.svg_texts.<id>"` to each localized `<text>` node, serializes back to `<svg ...>...</svg>`, and runs `factory/checks.py::rule_diagram_svg` to guarantee zero security/lint regressions.
+   - Rejects any `svg_texts[].text` or `svg_aria_label` containing `<` or `>` characters before DOM insertion (defense-in-depth against tag injection), assigns `.text` on the corresponding `<text>` nodes and `aria-label` on `<svg>` (both XML/attribute-escaped by `xml.etree.ElementTree`), adds `data-i18n="<block_id>.svg_texts.<id>"` to each localized `<text>` node, serializes back to `<svg ...>...</svg>`, and runs `factory/checks.py::rule_diagram_svg` to guarantee zero security or lint regressions.
 
 ---
 
@@ -486,13 +486,25 @@ Every completed unit translation is persisted on disk and in `sources/cache/tm/<
   "model_id": "evon-v3.3",
   "translation_source": "machine",
   "review_status": "machine_verified",
-  "source_payload": { ... },
-  "translated_payload": { ... },
+  "source_payload": {
+    "problem": "A car accelerates uniformly from 0 m/s to 20 m/s in 5 s.",
+    "steps": [{"title": "Apply a = (v - u) / t", "detail": "a = (20 - 0) / 5 = 4 m/s²."}],
+    "answer": "4 m/s²"
+  },
+  "translated_payload": {
+    "problem": "एक कार 5 s में 0 m/s से 20 m/s तक एकसमान रूप से त्वरित होती है।",
+    "steps": [{"title": "a = (v - u) / t लागू करें", "detail": "a = (20 - 0) / 5 = 4 m/s²।"}],
+    "answer": "त्वरण (acceleration) = 4 m/s²"
+  },
   "reassembled_block": {
     "id": "b-03",
     "type": "worked_example",
     "citations": [{"claim_id": "claim-04"}],
-    "spec": { ... }
+    "spec": {
+      "problem": "एक कार 5 s में 0 m/s से 20 m/s तक एकसमान रूप से त्वरित होती है।",
+      "steps": [{"title": "a = (v - u) / t लागू करें", "detail": "a = (20 - 0) / 5 = 4 m/s²।"}],
+      "answer": "त्वरण (acceleration) = 4 m/s²"
+    }
   },
   "created_at": "2026-11-09T08:00:00Z"
 }
