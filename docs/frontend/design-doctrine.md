@@ -39,6 +39,16 @@ the look. Second reference implementation, for lesson pages: `design-doctrine-le
 **"Field Notes" is the name of the whole design system, not of a lesson-page style.** §1–§9 are the base system
 that the entire product and every post follows. §10 is an extension that ONLY lesson pages add on top.
 
+### 0.1 Every element earns its place (the value-addition filter)
+Before any text, section, label, or widget is planned onto a page, ask: **if this element were removed, would
+the user lose a capability — read, navigate, answer a question, see sourcing?** If not, the element does not
+go on the page. Banned category: *decorative chrome copied from the textbook it comes from* (NCERT's own
+framing sections — "Threads of Curiosity", "Bridging Science and Society", "At a Glance", "Ready to Go
+Beyond", chapter epigraphs, "Meet a Scientist" side bars), brand text on navigational pages, and duplicated
+narration (objectives restated as body text, recaps re-listing key statements already highlighted under
+§10.4). The bar is the learner's job, not the author's completeness: coverage is dictated by the source
+material, scope is dictated by what a removing-test survives.
+
 | Surface | Rules that apply | Reference implementation |
 |---|---|---|
 | Build-in-public post visuals (LinkedIn/X) | §1–§9 | `design-doctrine-example.html` |
@@ -225,7 +235,7 @@ alone - coverage is dictated by the source material.
 | Section heading | **Caveat** 700 | 2.125rem / 2 rows | |
 | Body | **Courier Prime** 400 | 1.0625rem / 1 row | fills its column (§10.2); monospace keeps every baseline exactly on its rule |
 | Highlighted statement | Courier Prime 700 | 1.0625rem / 1 row | §10.4 |
-| Meta line (`Day 03 · Class 10 · Physics`) | Courier Prime 700 | .9375rem / 1 row | top-left, as §6 |
+| Meta line (`Class 10 · Physics`) | Courier Prime 700 | .9375rem / 1 row | top-left, as §6. No build-in-public Day counter on lesson pages (§0.1) |
 | Caption, readout, labels | Courier Prime 400 / 700 | .875rem / 1 row, 1rem | graphite for captions |
 | Worked-example steps, glossary | Courier Prime 400 / 700 | .9375rem / 1 row | typed notes on the paper |
 | Controls, questions, feedback | Bricolage Grotesque 500 | .9375-1.0625rem | typed: operated things stay legible |
