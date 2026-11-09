@@ -119,7 +119,7 @@ Rejected: query-lifecycle (TTL, deletion, cold tier) is unimplementable on pod s
 
 ### Separate Postgres instance just for logs
 
-Rejected: volume (≤ 50 MB/day) does not justify a second instance; tenancy on the backend's instance with its own partitions and roles is enough. Reopen if the backend agent's isolation NFRs say otherwise (open-questions).
+Rejected: volume (≤ 50 MB/day) does not justify a second instance; tenancy on the backend's instance with its own partitions and roles is enough. Reopen if the backend agent's isolation NFRs say otherwise (OQ-7 in `docs/specs/observability/open-questions.md`).
 
 ## References
 

@@ -106,7 +106,7 @@ The taxonomy is closed: adding a class is a spec change (row here + map column n
 
 The complete per-component inventory (events, severities, fields, latency measurements, privacy classes, emitter locations) is [`instrumentation-map.csv`](instrumentation-map.csv) — one row per (component, event), covering factory stages 00-ingest…11-link, the llm-manager node and client, the voice backend per-hop path, the translator, frontend client events, credit counters, dashboard audit events, and `logging_manager`'s own events. Components add rows in the same PR as their code.
 
-**Frontend event contract (EVT-Fxx):** the browser-originated events are named `frontend.<action>` with stable catalogue IDs `EVT-F01`…`EVT-F12` in the map. Exact names/properties (all fields pseudonymous or content-id references; privacy class P2 per data-classification conventions — no free text, no transcripts, no audio):
+**Frontend event contract (EVT-Fxx):** the browser-originated events are named `frontend.<action>` with stable catalogue IDs `EVT-F01`…`EVT-F12` in the map. Exact names/properties (all fields pseudonymous or content-id references; privacy class **L2** per the map — the ADR-0018 usage/telemetry retention class; no free text, no transcripts, no audio):
 
 | EVT ID | Event | Required properties | Transport |
 |---|---|---|---|
@@ -145,4 +145,4 @@ Full specification in [`dashboard-spec.md`](dashboard-spec.md); decisions in ADR
 
 ## 11. Assumptions index
 
-All `[ASSUMPTION]` tags carried in the ADRs and this spec, collected: session/event-volume parameters (§2 of ADR-0017 — founder-plan estimates, conclusion insensitive at 10×); cold provider = S3-compatible via ADR-0004/0006 with daily+size sync triggers (ADR-0018 — reconcile with `sync-policy.csv`, OQ-2); two shared-admin principals (ADR-0019); DB driver choice follows the backend agent (ADR-0018 §5); §6.3 admin-surface reconciliation (OQ-3); CSP carve-out pending founder sign-off (OQ-5). Items that are **not** assumptions: every number in §6/§9 (computed from repo parameters — `scripts/sp3-obs` scale math), the retention table (this spec's decision), the EVT-Fxx catalogue (this spec's contract).
+All `[ASSUMPTION]` tags carried in the ADRs and this spec, collected: session/event-volume parameters (§2 of ADR-0017 — founder-plan estimates, conclusion insensitive at 10×); cold provider = S3-compatible via ADR-0004/0006 with daily+size sync triggers (ADR-0018 — reconcile with `sync-policy.csv`, OQ-2); two shared-admin principals (ADR-0019); DB driver choice follows the backend agent (ADR-0018 §5); §6.3 admin-surface reconciliation (OQ-3); CSP carve-out pending founder sign-off (OQ-5). Items that are **not** assumptions: every number in §6/§9 (computed from the repo's own parameters — TIMELINE.md scope, `k8s/infra.env` cadence, credit tranche — scale math recorded in the SP3-OBS manifest), the retention table (this spec's decision), the EVT-Fxx catalogue (this spec's contract).
