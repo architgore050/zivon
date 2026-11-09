@@ -18,6 +18,7 @@ This project is being built for the **Great Indian AI Internship Challenge** by 
 - `docs/frontend/` — consult before any frontend or design work.
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
 - `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog).
+- `docs/specs/` — consult before any product-runtime backend or voice work; `docs/specs/voice-agent/` is the voice-tutor architecture spec (wave S1: pipeline, WebSocket contract, latency budget, ADRs 0017–0020, open questions).
 - `docs/product/` — consult before any feature, screen, UI-element, information, or backend-handoff work: the decided features document (decision log, feature cards, inventories, traceability, backend handoff). Feature decisions here are already made — do not re-litigate them; extend through the same method (`skills/zivon-product-design-skills/`).
 - `docs/backend/` — consult before any voice-backend, API, database, storage-tiering, credit-guard, deployment-topology, or ADR work: the Stage-2 systems specs (backend spec, DB spec, storage tiering + sync policy, data classification, capacity & cost, 16 ADRs). Systems decisions here are already made — extend or revisit only through an ADR's stated revisit trigger.
 - `docs/logs/` — dated session logs (done / not done / next) for the build-in-public record.

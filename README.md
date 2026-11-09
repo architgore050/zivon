@@ -142,6 +142,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |
 | [`skills/zivon-product-design-skills/`](skills/zivon-product-design-skills/) | Feature-decision + granular-spec method (original skill + vendored PM skills); see the folder README |
 | [`skills/zivon-systems-design-skills/`](skills/zivon-systems-design-skills/) | Backend/DB/storage-tiering spec method (original skill + vendored engineering skills); see the folder README |
+| [`docs/specs/voice-agent/`](docs/specs/voice-agent/README.md) | Voice-tutor agent architecture spec (wave S1): pipeline, WebSocket contract, latency budget vs Gate C, ADRs 0017–0020, open questions |
 
 ## Engineering Process
 
