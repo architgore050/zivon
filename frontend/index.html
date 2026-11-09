@@ -9,13 +9,18 @@
 <body>
 <main class="zn-page zn-home">
   <header class="zn-header">
-    <p class="zn-kicker">Zivon - Field Notes</p>
     <h1 class="zn-title">Courses</h1>
-    <p class="zn-sub">Study pages generated from NCERT and open sources, one topic at a time.
-      Every page states its sources.</p>
   </header>
 
   <ul id="zn-courses" class="zn-courses" aria-label="Available courses"></ul>
+
+  <div id="zn-catalogue" class="zn-catalogue" hidden>
+    <nav id="zn-grade-nav" class="zn-grade-nav" aria-label="Jump to a class">
+      <span class="zn-grade-nav-label">Jump to:</span>
+      <span id="zn-grade-nav-links"></span>
+    </nav>
+    <div id="zn-class-sections"></div>
+  </div>
 
   <p id="zn-empty" class="zn-empty" hidden>
     No topics yet - the content factory has not run. This page fills in automatically

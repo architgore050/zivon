@@ -565,6 +565,39 @@ a { color: var(--pen-blue); }
   padding: 16px;
   margin-top: 24px;
 }
+/* ---- class-grouped catalogue (landing-page upgrade, 2026-11-09) ----
+   Grade-grouped navigation for the courses list: a jump-nav of class chips
+   plus one section per class. Same card markup the list renderer always
+   emitted - only the containers are new. Row-safe heights: headings sit on
+   the shell's own spacing, never on ruled rows (the landing shell is
+   outside the §10 row rhythm, so no rows to break). */
+.zn-catalogue { margin-top: 8px; }
+.zn-grade-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 24px 0 8px;
+}
+.zn-grade-nav-label { font-family: var(--notes); font-size: 0.875rem; color: var(--graphite); margin-right: 4px; }
+.zn-grade-link {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 0.375rem 0.75rem;
+  background: var(--paper-light);
+  text-decoration: none;
+  color: var(--ink);
+}
+.zn-grade-link:hover { background: var(--ink); color: var(--paper-light); }
+.zn-class-section { margin-top: 32px; scroll-margin-top: 1rem; }
+.zn-class-title { font-size: 28px; font-weight: 800; margin: 0 0 4px; }
+.zn-class-section .zn-courses { margin-top: 12px; }
+/* hidden[] guard: author display rules would otherwise defeat the hidden
+   attribute (display:grid/flex on the containers above). */
+.zn-courses[hidden], .zn-grade-nav[hidden], #zn-catalogue[hidden] { display: none; }
 
 /* ---- handwritten annotation (Caveat) - short notes pointing at typed content ----
    Structure: <span class="zn-note" aria-hidden="true"><svg ...arrow/><span>text</span></span>

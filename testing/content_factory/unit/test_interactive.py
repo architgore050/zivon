@@ -112,7 +112,9 @@ class TestInteractiveFacts(unittest.TestCase):
         self.assertIn("COMPUTE, DO NOT DRAW BY HAND", user)
         self.assertIn("computed in JS from the cited equations", user)
         self.assertIn("Geometry is COMPUTED from the cited equations", user)
-        self.assertIn("SHAPE only", user)
+        self.assertIn("GRAPH SHAPE", user)
+        self.assertIn("APPARATUS TOO", user)
+        self.assertIn("PLAN THE GEOMETRY SYMBOLICALLY FIRST", user)
 
     def test_prompt_carries_live_doctrine_examples_and_palette(self):
         # The design context is injected, not held: the prompt must contain the

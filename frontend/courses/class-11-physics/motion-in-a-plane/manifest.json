@@ -1,0 +1,43 @@
+{
+  "course_id": "class-11-physics",
+  "class": 11,
+  "topic_slug": "motion-in-a-plane",
+  "title": "Motion in a Plane",
+  "chapter": {
+    "query": "Motion in a Plane",
+    "title": "MOTION IN A PLANE",
+    "book": "Physics Part I - Textbook for Class XI",
+    "pages": [
+      1,
+      22
+    ],
+    "number": 3
+  },
+  "sources": [
+    {
+      "id": "ncert-physics-11-part1",
+      "title": "Physics Part I - Textbook for Class XI",
+      "license": "NCERT (free educational use)"
+    },
+    {
+      "id": "openstax-hs-physics",
+      "title": "OpenStax High School Physics",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-physics-11-part2",
+      "title": "Physics Part II - Textbook for Class XI",
+      "license": "see sources catalog"
+    }
+  ],
+  "run_id": "motion-in-a-plane-c11",
+  "generated_at": "2026-11-09T13:57:47Z",
+  "block_counts": {
+    "text": 11,
+    "diagram": 4,
+    "check": 13,
+    "worked_example": 9,
+    "reveal": 4,
+    "simulation": 1
+  }
+}

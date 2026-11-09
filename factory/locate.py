@@ -119,6 +119,7 @@ def run(
             "pages": [pages[0]["page"], pages[-1]["page"]],
             "matched_line": match["matched_line"],
             "matched_via": match["matched_via"],
+            "number": match.get("number"),
         },
         "ncert_text": ncert_text,
         "ncert_text_truncated": truncated,
@@ -274,6 +275,11 @@ def _chapter_hit(
     matched_line: str | None,
     via: str,
 ) -> dict[str, Any]:
+    # NCERT numbers chapters continuously across parts of a class (Part I
+    # ends at 7, Part II starts at 8 - founder confirmed 2026-11-09), and
+    # ingest's chapter records carry that global number as "n". Carry it
+    # through so the manifest/courses index can order by real chapter
+    # number; non-NCERT chapters have no reliable number and sort last.
     return {
         "title": title,
         "matched_line": matched_line,
@@ -282,6 +288,7 @@ def _chapter_hit(
         "book_title": book["title"],
         "class": book["class"],
         "file": ch["pdf"],
+        "number": ch.get("n") if book.get("is_ncert") else None,
     }
 
 
