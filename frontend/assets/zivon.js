@@ -577,22 +577,200 @@
     ruledPaper, pen, px, textBaselines
   };
 
-  /* --------------- 5. language bar chips (visual toggle only) ---------------
-     Doctrine §10.5 / example contract: one control switches every string on
-     the page; switching CONTENT is shell-owned and lands with i18n-aware
-     pages. Until then the kit chrome toggles the selected chip and the
-     document lang (visual honesty - the example demonstrates this). */
+  /* --------------- 5. language bar chips & ADR-0007 persistence --------------
+     Doctrine §10.5 + spec.md §8 (C3) + ADR-0007 (device pseudonymity):
+     - v1 honest stub: chips switch the selected state (aria-checked) and
+       persist localStorage["zivon.lang"]; documentElement.lang is NOT switched
+       in v1 until i18n-aware content generation lands (spec.md §3.2/§8).
+     - Preselects the chip matching localStorage["zivon.lang"] on load.
+     - Keyboard radiogroup navigation (ArrowLeft/Up, ArrowRight/Down, Home, End).
+     - Graceful fallback when localStorage is blocked/unavailable (private mode).
+     - ADR-0007 device_pseudo_id (UUIDv4) persisted locally in
+       localStorage["zivon.device_pseudo_id"]. */
+  var LANG_STORAGE_KEY = "zivon.lang";
+  var DEVICE_STORAGE_KEY = "zivon.device_pseudo_id";
+
+  var AUTONYM_TO_CODE = {
+    "english": "en",
+    "en": "en",
+    "हिन्दी": "hi",
+    "hindi": "hi",
+    "hi": "hi",
+    "hinglish": "hi-Latn",
+    "hi-latn": "hi-Latn"
+  };
+
+  function safeStorageGet(key) {
+    try {
+      return window.localStorage ? window.localStorage.getItem(key) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function safeStorageSet(key, val) {
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(key, String(val));
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function generateUuidV4() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    var bytes = new Uint8Array(16);
+    if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+      window.crypto.getRandomValues(bytes);
+    } else {
+      for (var i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    var hex = [];
+    for (var j = 0; j < 16; j++) {
+      hex.push((bytes[j] + 0x100).toString(16).slice(1));
+    }
+    return (
+      hex.slice(0, 4).join("") + "-" +
+      hex.slice(4, 6).join("") + "-" +
+      hex.slice(6, 8).join("") + "-" +
+      hex.slice(8, 10).join("") + "-" +
+      hex.slice(10, 16).join("")
+    );
+  }
+
+  var cachedDeviceId = null;
+  function getDevicePseudoId() {
+    if (cachedDeviceId) return cachedDeviceId;
+    var stored = safeStorageGet(DEVICE_STORAGE_KEY);
+    if (stored && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(stored)) {
+      cachedDeviceId = stored;
+      return stored;
+    }
+    cachedDeviceId = generateUuidV4();
+    safeStorageSet(DEVICE_STORAGE_KEY, cachedDeviceId);
+    return cachedDeviceId;
+  }
+
+  function chipLocaleCode(chip) {
+    if (!chip) return "en";
+    var explicit = chip.getAttribute("data-lang");
+    if (explicit) return explicit;
+    var txt = (chip.textContent || "").trim().toLowerCase();
+    return AUTONYM_TO_CODE[txt] || txt || "en";
+  }
+
+  function getSavedLang() {
+    var saved = safeStorageGet(LANG_STORAGE_KEY);
+    if (!saved) return "en";
+    var norm = AUTONYM_TO_CODE[saved.toLowerCase()] || saved;
+    return norm;
+  }
+
+  function selectLangChip(row, targetChip, persistAndEmit) {
+    if (!row || !targetChip) return;
+    var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
+    var prevChip = row.querySelector('.zn-chip[aria-checked="true"]');
+    var fromCode = prevChip ? chipLocaleCode(prevChip) : "en";
+    var toCode = chipLocaleCode(targetChip);
+
+    chips.forEach(function (c) {
+      var isTarget = c === targetChip;
+      c.setAttribute("aria-checked", String(isTarget));
+      c.setAttribute("tabindex", isTarget ? "0" : "-1");
+    });
+
+    /* If an i18n bundle is present on the page (window.ZIVON_I18N_BUNDLE) and
+       lacks a block translation for the selected non-English language, render
+       the honest untranslated notice (spec.md §8, INF-087). */
+    if (window.ZIVON_I18N_BUNDLE && toCode !== "en") {
+      var bundle = window.ZIVON_I18N_BUNDLE[toCode] || {};
+      document.querySelectorAll(".zn-text[id], .zn-example[id]").forEach(function (blk) {
+        var hasTrans = Boolean(bundle && bundle[blk.id]);
+        var existingNotice = blk.querySelector(".zn-untranslated-notice");
+        if (!hasTrans && !existingNotice) {
+          var notice = document.createElement("p");
+          notice.className = "zn-untranslated-notice";
+          notice.setAttribute("data-copy-key", "lesson.untranslated.notice");
+          notice.textContent = "Not translated yet - showing reviewed English text.";
+          blk.prepend(notice);
+        } else if (hasTrans && existingNotice) {
+          existingNotice.remove();
+        }
+      });
+    } else if (toCode === "en") {
+      document.querySelectorAll(".zn-untranslated-notice").forEach(function (n) { n.remove(); });
+    }
+
+    if (persistAndEmit) {
+      safeStorageSet(LANG_STORAGE_KEY, toCode);
+      if (window.ZivonEvents && typeof window.ZivonEvents.recordLangSwitch === "function") {
+        window.ZivonEvents.recordLangSwitch(fromCode, toCode);
+      }
+    }
+  }
+
   function wireLangChips() {
     var row = document.querySelector(".zn-lang-row");
     if (!row) return;
+    var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
+    if (!chips.length) return;
+    chips.forEach(function (c) {
+      if (!c.getAttribute("data-lang")) {
+        c.setAttribute("data-lang", chipLocaleCode(c));
+      }
+    });
+
+    /* Preselect chip from localStorage["zivon.lang"] if present (spec C3) */
+    var saved = getSavedLang();
+    var match = chips.find(function (c) {
+      var code = chipLocaleCode(c);
+      return code === saved || (c.textContent || "").trim().toLowerCase() === saved.toLowerCase();
+    });
+    selectLangChip(row, match || chips[0], false);
+
     row.addEventListener("click", function (event) {
       var chip = event.target.closest(".zn-chip");
       if (!chip) return;
-      row.querySelectorAll(".zn-chip").forEach(function (c) {
-        c.setAttribute("aria-checked", String(c === chip));
-      });
+      selectLangChip(row, chip, true);
+    });
+
+    row.addEventListener("keydown", function (event) {
+      var current = event.target.closest(".zn-chip");
+      if (!current) return;
+      var idx = chips.indexOf(current);
+      if (idx === -1) return;
+      var nextIdx = -1;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        nextIdx = (idx + 1) % chips.length;
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        nextIdx = (idx - 1 + chips.length) % chips.length;
+      } else if (event.key === "Home") {
+        nextIdx = 0;
+      } else if (event.key === "End") {
+        nextIdx = chips.length - 1;
+      }
+      if (nextIdx !== -1) {
+        event.preventDefault();
+        var nextChip = chips[nextIdx];
+        selectLangChip(row, nextChip, true);
+        nextChip.focus();
+      }
     });
   }
+
+  window.ZivonLocale = {
+    LANG_STORAGE_KEY: LANG_STORAGE_KEY,
+    DEVICE_STORAGE_KEY: DEVICE_STORAGE_KEY,
+    getDevicePseudoId: getDevicePseudoId,
+    getSavedLang: getSavedLang,
+    setSavedLang: function (loc) { return safeStorageSet(LANG_STORAGE_KEY, loc); },
+    chipLocaleCode: chipLocaleCode
+  };
 
 
   /* --------------- 6. lesson page state & context snapshot ----------------
