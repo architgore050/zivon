@@ -30,7 +30,7 @@ emit_publish_log() {
   local evt="$1"
   local lvl="$2"
   local detail="$3"
-  printf '{"ts":"%s","level":"%s","service":"factory","env":"local","event":"%s","detail":"%s"}\n' \
+  printf '{"ts":"%s","schema_version":1,"severity":"%s","component":"factory","env":"local","event":"%s","fields":{"detail":"%s"}}\n' \
     "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$lvl" "$evt" "$detail" >&2
 }
 
@@ -96,8 +96,8 @@ for loc in "${locale_hubs[@]}"; do
   fi
 done
 
-count=$(find frontend/courses -mindepth 3 -maxdepth 3 -name index.html | wc -l)
-loc_count=$(find frontend/courses -mindepth 4 -maxdepth 4 -name index.html | wc -l)
+count=$(find frontend/courses -mindepth 3 -maxdepth 3 -name index.html | wc -l | tr -d '[:space:]')
+loc_count=$(find frontend/courses -mindepth 4 -maxdepth 4 -name index.html | wc -l | tr -d '[:space:]')
 emit_publish_log "factory.publish.ok" "INFO" "published_topics=${count} localized_variants=${loc_count}"
 echo "Published $count topic page(s) (+ $loc_count localized variant page(s)) from $ns/zivon-frontend PVC -> frontend/"
 find frontend/courses -mindepth 3 -maxdepth 4 -name index.html | sed 's|/index.html||; s|^|  |'

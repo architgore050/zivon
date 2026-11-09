@@ -28,10 +28,14 @@ from .artifacts import RunContext, slugify
 from .config import Config
 from .errors import LintError
 from .lint import lint_generated, lint_html, lint_js
+import xml.etree.ElementTree as ET
+
 from .translate import (
     LOCALE_METADATA,
     extract_diagram_payload,
     extract_sim_strings_from_js,
+    is_pure_symbol_or_numeral,
+    load_glossary,
     load_ui_strings,
 )
 
@@ -188,6 +192,25 @@ def _esc(text: Any) -> str:
     return html_mod.escape(str(text), quote=True)
 
 
+def _tag_svg_with_i18n(block_id: str, svg_str: str) -> str:
+    """Ensure descriptive <text> nodes in an SVG carry data-i18n attributes."""
+    if 'data-i18n="' in svg_str:
+        return svg_str
+    try:
+        root = ET.fromstring(svg_str)
+    except ET.ParseError:
+        return svg_str
+    idx = 0
+    for elem in root.iter():
+        tag = elem.tag.split("}", 1)[1] if "}" in elem.tag else elem.tag
+        if tag in ("text", "tspan"):
+            raw = (elem.text or "").strip()
+            if raw and not is_pure_symbol_or_numeral(raw):
+                elem.set("data-i18n", f"{block_id}.svg_texts.t-{idx}")
+                idx += 1
+    return ET.tostring(root, encoding="unicode")
+
+
 def _render_block(
     b: dict[str, Any],
     *,
@@ -283,10 +306,11 @@ def _render_block(
 
     if t == "diagram":
         if with_i18n_attrs:
+            tagged_svg = _tag_svg_with_i18n(str(b["id"]), str(spec.get("svg", "")))
             return (
                 f'  <figure class="zn-diagram" id="{bid}"{fallback_attr}>\n'
                 f"{fallback_banner}"
-                f'    <div class="zn-diagram-svg">{spec.get("svg", "")!s}</div>\n'
+                f'    <div class="zn-diagram-svg">{tagged_svg}</div>\n'
                 f'    <figcaption data-i18n="{bid}.caption">{_esc(spec.get("caption", ""))}</figcaption>\n  </figure>'
             )
         return (
@@ -768,9 +792,21 @@ def _flatten_strings_map(
                 flat[f"{bid}.steps.{i}.detail"] = str(s.get("detail", ""))
         elif btype == "diagram":
             flat[f"{bid}.caption"] = str(spec.get("caption", ""))
-            diag_payload = extract_diagram_payload(b)
-            for item in diag_payload.get("svg_texts", []):
-                flat[f"{bid}.svg_texts.{item['id']}"] = str(item["source"])
+            svg_raw = str(spec.get("svg", ""))
+            found_tagged = False
+            try:
+                root = ET.fromstring(svg_raw)
+                for elem in root.iter():
+                    i18n_key = elem.attrib.get("data-i18n")
+                    if i18n_key and (elem.text or "").strip():
+                        flat[i18n_key] = (elem.text or "").strip()
+                        found_tagged = True
+            except ET.ParseError:
+                pass
+            if not found_tagged:
+                diag_payload = extract_diagram_payload(b)
+                for item in diag_payload.get("svg_texts", []):
+                    flat[f"{bid}.svg_texts.{item['id']}"] = str(item["source"])
         elif btype == "simulation":
             flat[f"{bid}.title"] = str(spec.get("title", ""))
             flat[f"{bid}.description"] = str(spec.get("description", ""))
@@ -858,7 +894,7 @@ def render_localized(
 
     locales_map = translate_out.get("locales", {})
     locales_available = ["en"] + [loc for loc in locales_map.keys() if loc != "en"]
-    glossary_ver = "1.0.0"
+    glossary_ver = str(load_glossary(cfg).get("glossary_version", "1.0.0"))
 
     # 1. Build and write English i18n/en.json
     en_strings = _flatten_strings_map(en_lesson, en_blocks_list, en_ui)

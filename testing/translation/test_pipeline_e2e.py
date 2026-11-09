@@ -191,6 +191,10 @@ class TestTranslationPipelineE2E(unittest.TestCase):
         self.assertTrue((self.frontend / "hi" / "index.html").is_file())
         self.assertTrue((self.frontend / "hi-Latn" / "index.html").is_file())
 
+        # Verify canonical English index.html also has data-i18n anchors on SVG <text> nodes
+        en_html = (pub_topic / "index.html").read_text(encoding="utf-8")
+        self.assertIn('data-i18n="b-05.svg_texts.t-0"', en_html)
+
         # Verify Hindi HTML route attributes, language bar, data-i18n anchors, and strict lints
         hi_html = (pub_topic / "hi" / "index.html").read_text(encoding="utf-8")
         self.assertIn('<html lang="hi" data-script="Deva">', hi_html)

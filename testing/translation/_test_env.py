@@ -7,7 +7,6 @@ packages whenever present in the environment.
 
 from __future__ import annotations
 
-import json
 import os
 import sys
 import types
