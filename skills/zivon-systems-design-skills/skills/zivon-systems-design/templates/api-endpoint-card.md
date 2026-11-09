@@ -1,0 +1,16 @@
+# API-<NNN> <METHOD> <path>
+- Purpose:
+- Serves: NEED-… · Consumed by: EL-… / F-…
+- Auth + consent scope:
+- Request schema:
+- Response schema:
+- Status codes / error shapes (problem details + message key):
+- Idempotency:
+- Caching (ETag / immutable / none):
+- Rate limit:
+- p95 latency target:
+- Data touched (entities / classes):
+- Events emitted (EVT-…):
+- Credit cost (STT s / TTS chars / LLM tokens):
+- UI behaviour on failure:
+- Version / deprecation:

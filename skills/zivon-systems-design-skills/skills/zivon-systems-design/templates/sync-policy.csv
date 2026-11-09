@@ -1,0 +1,2 @@
+rule_id,class_id,trigger,mechanism,idempotency_key,verification,on_failure,retry_policy,slo,alert,runbook,phase
+SYNC-01,C1,on publish,outbox->worker->multipart upload,sha256,read-back checksum + catalogue update,hold "live" flag,exp backoff max 24h,99% verified in 5min,backlog age>15min,RB-04,A
