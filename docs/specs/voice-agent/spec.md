@@ -28,30 +28,30 @@ assets (EX8-NARRATION), the dock's visual design (design-doctrine §10.12, DCR-0
 ## 2. Pipeline
 
 ```
- mic (PTT press, P0)                                   speaker
-   │ getUserMedia 16 kHz mono, AEC on                        ▲
-   ▼                                                         │ binary WS frames (Opus, 20 ms)
- [audio_io] ──PCM16 100 ms frames──▶ [ws_api]                │
-                                        │                    │
-                                        ▼                    │
-                                 [stt_client] Prisma v3.0 streaming WS
-                                        │ partials → UI live; final → below
-                                        ▼
-                          [session] auth+credit hooks (H1/H2) · [anchoring] snapshot→prompt
-                                        │
-                                        ▼
-                          [brain_client] gemma-4-26b-a4b-it via Gemini API, streaming
-                                        │  · thought summaries (flag on) → whitelist → TTS now
-                                        │  · content prose → [chunker] sentence/clause chunks
-                                        ▼
-                                 [tts_client] Timbre v3.0 realtime, tags inline
-                                        │
-                                        └──▶ [ws_api] ──tts.audio frames + tts.text + highlight──▶ dock
+        dock (EX5-FRONT)                          voice backend (voice/ package)
+ ┌─────────────────────────┐                ┌────────────────────────────────────────┐
+ │ mic (PTT press, P0)     │  WSS binary    │ [ws_api] ──▶ [audio_io] frame validate │
+ │  getUserMedia 16 kHz    │ ──PCM16 100ms─▶│      │                                  │
+ │  mono, AEC on           │                │      ▼                                  │
+ │                         │                │ [stt_client] Prisma v3.0 streaming WS   │
+ │ speaker ◀───────────────┤ ◀─tts.audio────│      │ partials → dock; final → below   │
+ │  (Opus 20 ms frames,    │  + tts.text +  │      ▼                                  │
+ │  jitter buffer 60–120ms)│   highlight    │ [session] H1/H2 · [anchoring] snapshot  │
+ └─────────────────────────┘                │      ▼                                  │
+                                            │ [brain_client] gemma-4-26b-a4b-it via   │
+                                            │   Gemini API, streaming                 │
+                                            │      │ thought summaries (flag on) →    │
+                                            │      │  whitelist → TTS now             │
+                                            │      │ content prose → [chunker]        │
+                                            │      ▼                                  │
+                                            │ [tts_client] Timbre v3.0 realtime,      │
+                                            │   tags inline                           │
+                                            └────────────────────────────────────────┘
 ```
 
 Stage notes:
 
-1. **Capture (`audio_io` client-side contract):** `getUserMedia` with an explicit constraint ladder
+1. **Capture (dock-side contract; `audio_io` validates the result server-side):** `getUserMedia` with an explicit constraint ladder
    `{ echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1,
    sampleRate: 16000 }`; fall back down the ladder on `OverconstrainedError` and verify real
    settings via `getSettings()` (MediaRecorder silently downmixes to 8 kHz on some WebViews —
@@ -246,7 +246,7 @@ The guard reads only these; no credit logic anywhere else.
 | # | Failure | Detection | Student sees (dock) | `agent.state` | Recovery / degraded path | Credit impact |
 |---|---|---|---|---|---|---|
 | F1 | STT down / WS to Prisma fails | `stt_client` connect/reconnect error | text input enabled in dock ("type your doubt — voice is resting"), partials banner "voice input unavailable" | `error` → `listening_text` | text turn: same brain + TTS path, no STT | no STT spend; brain/TTS continue |
-| F2 | Brain first-event deadline breached (3 s) ×2 | `brain_client` | "ho gaya restart" beat; then text-only answer in dock | `thinking` → `error` → `speaking_text` | text fallback with the answer prose (no TTS) | brain tokens logged; no TTS spend |
+| F2 | Brain first-event deadline breached twice (both the initial 3 s attempt and its one retry) | `brain_client` | "ho gaya restart" beat; then text-only answer in dock | `thinking` → `error` → `speaking_text` | text fallback with the answer prose (no TTS) | brain tokens logged; no TTS spend |
 | F3 | Brain mid-turn inactivity (4 s) / wall-clock (45 s) | `brain_client` | partial answer already spoken stays; dock shows "answer cut short" + full partial text | `speaking` → `error` | no retry after speech started (§4); turn ends with partial + written remainder if any | per-usage |
 | F4 | TTS down / Timbre errors | `tts_client` error before/while streaming | reply text appears in dock immediately (transcript panel), no audio | `speaking_text` | text-only mode for the turn; browser SpeechSynthesis is **not** used (product story = Gnani voice; flagged as founder's demo-day contingency decision, consistent with the no-replacement rule) | no TTS spend |
 | F5 | WS drop mid-turn | `ws_api` disconnect | dock state `offline` ("connection thin thi — reconnecting…"), typed input kept client-side | `offline` | auto-reconnect (exp backoff ≤ 3 tries) → `session.start resume:true` with `session_token` + `last_turn_id`; server replays `agent.state` + continues or aborts turn honestly (F3 semantics) | per-usage (no double-bill: turn id idempotent in ledger) |

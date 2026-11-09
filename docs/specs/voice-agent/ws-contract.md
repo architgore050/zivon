@@ -25,8 +25,8 @@ Dir: C→S = client→server, S→C = server→client. Billable? = Gnani program
 
 | Type | Dir | Schema (JSON unless binary) | Ordering/seq | Idempotent? | On loss | Billable? | Consumer / notes |
 |---|---|---|---|---|---|---|---|
-| session.start | C→S | `{v, session_token, device, locale, profile_hint?, capabilities{ptt,opus?}, resume?, last_turn_id?, anchor?}` | first (and on resume) | yes (resume-safe) | retry until session.ready | no | server: auth (4401), H1 guard, state store |
-| session.ready | S→C | `{v, session_id, profile, state, server_time}` | after start | — | client re-requests via resume | no | dock: enable mic UI |
+| session.start | C→S | `{v, session_token, device, locale, capabilities{ptt,opus?}, resume?, last_turn_id?, anchor?}` | first (and on resume) | yes (resume-safe) | retry until session.ready | no | server: auth (4401), H1 guard, state store |
+| session.ready | S→C | `{v, session_id, profile, state, server_time}` | after start | — | client re-requests via resume | no | dock: enable mic UI; `profile` is **server-asserted** (spec.md §11) |
 | audio.start | C→S | `{turn_hint?}` | per PTT press | no (each press = new turn intent) | ignore (no press = no turn) | no | server: open mic stream, state listening |
 | audio.chunk | C→S | **binary** header+PCM16 (§3) | seq per mic stream, monotonic | n/a | drop old partials; STT tolerates gaps | yes (STT seconds) | stt_client feeds Prisma |
 | audio.end | C→S | `{}` | once per press (PTT release) or client-VAD EOS (P1) | no | resend once if no stt.final in 1 s | no | EOS trigger; L0 starts here |

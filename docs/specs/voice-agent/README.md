@@ -33,7 +33,7 @@ without asking anything. Where a number is not yet measured it carries an eviden
 | [`latency-budget.md`](latency-budget.md) | Per-hop latency budget meeting Gate C, evidence tags, measurement plan, degraded-path budgets | EX1-VOICE, review agents, Gate C judge |
 | [`latency-budget.csv`](latency-budget.csv) | Machine-readable budget rows (parsed by `testing/voice/test_latency_budget.py`) | EX1-VOICE tests |
 | [`open-questions.md`](open-questions.md) | Resolved + open questions incl. the Prisma/Timbre version reconciliation and the S0-branch cross-references | Merge agent, founder |
-| New ADRs: `docs/backend/adr/0017`–`0020` | Brain serving path · thinking-out-loud approach · chunking strategy · audio transport | Merge agent, reviewers |
+| New ADRs: `docs/backend/adr/0017-brain-serving-path-gemma-gemini-api.md` + `docs/backend/adr/0018-thinking-out-loud-approach.md` + `docs/backend/adr/0019-streaming-chunking-strategy.md` + `docs/backend/adr/0020-voice-audio-transport-and-mount.md` | Brain serving path · thinking-out-loud approach · chunking strategy · audio transport | Merge agent, reviewers |
 
 ## Related docs this spec does NOT duplicate
 

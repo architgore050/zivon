@@ -29,7 +29,7 @@ were therefore not readable when this spec was written.
 | ID cited here | Claimed here as | Where cited |
 |---|---|---|
 | ADR-0002 | session store owns session state | spec.md §6 |
-| ADR-0003 | raw WebSocket (no media server) is the transport decision | spec.md §2, ADR-0020 |
+| ADR-0003 | raw WebSocket (no media server) is the transport decision | ADR-0020, ws-contract.md header |
 | ADR-0008 | raw audio is never persisted | spec.md §6, failure modes |
 | ADR-0010 | PTT contract + echo path; barge-in semantics | spec.md §2/§8, ws-contract.md §4 |
 | ADR-0012 | tutor→page messaging; T7 "highlight first" | spec.md §7, ws-contract.md §3 |
