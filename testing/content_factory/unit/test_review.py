@@ -123,6 +123,13 @@ class TestReviewCalls(unittest.TestCase):
             blocks,
             interactive,
         )
+        # Historical tests pin the TEXT-ONLY design call; capture is stubbed
+        # off by default (vision tests re-enable it per test). Otherwise a
+        # real browser in CI turns content into parts-list and the old
+        # assertions break.
+        _patcher = mock.patch("factory.review.shots.capture", return_value=[])
+        _patcher.start()
+        self.addCleanup(_patcher.stop)
 
     def _review(self, stub: StubLLM) -> dict[str, Any]:
         return review.run(
