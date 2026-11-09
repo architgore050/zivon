@@ -15,8 +15,7 @@ message, and table cites a Stage-1 ID (`NEED-`/`INF-`/`ENT?-`/`EVT-`) or is labe
 - Voice stack: **Prisma v3.0** STT (`indic-auto`, `detected_language_code`) + **Timbre v3.0**
   TTS (13 polyglot voices, 13 expressive tags, tags billable as characters) — verified facts
   in `docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md` addendum 12. Runtime LLM:
-  **Gemma 4 26B A4B**, self-hosted, OpenAI-format serving via the existing
-  inference-router pattern (Gate A outcome). Evon v3.3 is post-challenge aspiration — not
+  **Gemma 4 26B A4B**, cloud-hosted via Google Gemini API (founder confirmed 2026-11-09; Gate A outcome — `docs/DECISIONS-and-RESEARCH/05-gate-a-brain-decision.md` + ADR-0017). Evon v3.3 is post-challenge aspiration — not
   designed against.
 - Architecture: hybrid B+ — static curated content (Core) + on-demand page-anchored doubt
   tutor. Layer independence: Core (read/simulate/check) stays up when voice, TTS,
@@ -61,7 +60,7 @@ explicit assumptions, each with an owner and a calibration trigger:
 | A-06 | Guard warn threshold = 15 % of the daily tranche remaining | 15 % | founder (doc default in F-XCT-OFF-01) |
 | A-07 | Traffic envelope: ≤ 500 sessions/day, ≤ 10 concurrent voice sessions, ≤ 20 turns/session, ≤ 30 events/session (handoff §5) | as stated | re-measure during submission week (judge traffic) |
 | A-08 | Page-load gate: product target **< 2 s** (NEED-001); the factory perf gate is currently **loosened to 6.0 s load / 3.5 s FCP** by founder decision until first real measurements — both numbers are stated wherever the gate is cited | 2 s target / 6.0 s gate | re-tighten at Phase 4 (architecture.md § Performance budgets) |
-| A-09 | Gemma 4 26B A4B serving must be a **warm GPU instance** meeting first-token < 1.2 s; the dev inference-router path (single-slot local server, ~20 tok/s) does NOT meet Gate C — Gate-C rehearsal must run against the real Gemma host | < 1.2 s first token | founder/ops — GPU hosting is an open TIMELINE infra item; hard dependency of Gate C |
+| A-09 | Gemma 4 26B A4B serving must be a **cloud API with warm-path first-token budget** meeting first-token < 1.2 s; the dev inference-router path (single-slot local server, ~20 tok/s) does NOT meet Gate C — Gate-C rehearsal must run via the Gemini API | < 1.2 s first token | founder/ops — Gemini API key is a runtime Secret; hard dependency of Gate C |
 | A-10 | Voice failure-count reset window (F-ADD-VOI-03 "3 consecutive failures") = **per session** | per session | Stage-2 decision (card open question assigned to Stage 2) |
 | A-11 | Echo path (tutor speaker → mic): **client-side ducking** (pause read-aloud, duck media volume during tutor speech) + server-side gate as fallback flag; device-tested before Gate-C rehearsal | client ducking | frontend + device test (handoff §3 assigns the choice to Stage 2 — decided in ADR-0010) |
 | A-12 | IP-based abuse tracking stores only a **salted daily-rotating hash of the IP** (HMAC), retention ≤ 72 h rolling window `[ASSUMPTION]`; raw IPs are never persisted or joined to pseudonymous data | 72 h | DPDP treats IP as personal data — minimization applied; counsel review post-challenge |
@@ -165,7 +164,7 @@ flowchart LR
     Factory[factory Job manual only]
     Mon[Prometheus + Grafana Day-8 decision]
   end
-  GPU[**Gemma 4 26B A4B GPU host** OpenAI-format, warm instance]
+  Cloud[**Gemma 4 26B A4B** Gemini API, streaming]
   Gnani[Gnani API Prisma v3.0 + Timbre v30 server-side keys only]
   Cold[**Cold object store separate provider ADR-0004** write-capable creds for writer, separate delete creds]
   Browser -->|HTTPS/WSS| edge --> Web
@@ -222,7 +221,7 @@ Fixed-by-Stage-1 numbers are inherited, not re-derived. `[ASSUMPTION]` until mea
 |---|---|---|---|---|---|---|---|
 | NFR-01 | Voice latency (Gate C) | end-of-speech (`ptt.stop`/endpoint) → first spoken audio byte at the client | **p50 ≤ 3.0 s, p90 ≤ 4.0 s** | `[ASSUMPTION]`; Gate-C gate is `< ~4 s` `[FIXED]` | EVT-006 per-stage histograms, server + client clocks | F-ADD-VOI-01, M2 | voice backend |
 | NFR-02 | Voice stage | STT final after end-of-speech | ≤ 1.5 s | `[FIXED]` NEED-006 | per-stage timer | F-ADD-VOI-01 | voice backend |
-| NFR-03 | Voice stage | LLM first token after STT final | < 1.2 s | `[FIXED]` NEED-007 | per-stage timer | F-ADD-VOI-04 | GPU host (A-09) |
+| NFR-03 | Voice stage | LLM first token after STT final | < 1.2 s | `[FIXED]` NEED-007 | per-stage timer | F-ADD-VOI-04 | cloud API (ADR-0017) |
 | NFR-04 | Voice stage | TTS first audio byte after text-stream start for that utterance | < 800 ms | `[FIXED]` NEED-008 | per-stage timer | F-ADD-VOI-01 | voice backend |
 | NFR-05 | Voice control | barge-in: `interrupt` received → TTS output stopped + `turn.cancelled` | ≤ 300 ms | `[FIXED]` handoff §3 | WS timers | F-ADD-VOI-01 AC-3 | voice backend |
 | NFR-06 | UX status | "thinking" cue after end-of-speech | ≤ 300 ms | `[FIXED]` P6 | client timer | F-ADD-VOI-01 | frontend |
@@ -415,7 +414,7 @@ byte < 800 ms (NFR-04). The budget **overlaps stages** (ref 04 §4.2) — the pi
 |---|---|---|---|
 | Client → server `ptt.stop` arrives | 50 ms | 150 ms | keep-alive WS (no handshake per turn) |
 | STT finalize after end-of-speech | 600 ms | **1 500 ms** | Prisma streams partials during speech; server endpointing may fire **before** `ptt.stop` (handoff §3) — finalize starts early |
-| LLM first token after STT final | 500 ms | **1 200 ms** | warm Gemma host (A-09 — hard dependency); short system prompt; cached page context; history window ≤ 6 turns |
+| LLM first token after STT final | 500 ms | **1 200 ms** | Gemini API first token (ADR-0017 — hard dependency); short system prompt; cached page context; history window ≤ 6 turns |
 | First speakable clause (clause boundary after first token) | 200 ms | 400 ms | prompt requires short first sentence (NEED-007 "≤ 3 sentences default"); chunk on punctuation **and clause** |
 | TTS first byte after clause handed to Timbre | 400 ms | **800 ms** | TTS starts on the first clause while the LLM continues generating the rest; connection reused; no cold start |
 | Downlink + client decode + playback start | 150 ms | 300 ms | small first chunk; client decodes ahead |
@@ -461,7 +460,7 @@ EVT-009 counts rate-limit hits for ops (no free text).
 ### 8.4 Credit metering & the two-dimension guard (NEED-009)
 
 - **Metered surface (founder correction 1):** Prisma STT seconds + tutor Timbre TTS characters +
-  Gemma tokens (self-hosted — tracked for capacity, not Gnani credits). **Pre-generated narration
+  Gemma tokens (cloud-hosted — tracked for capacity, not Gnani credits). **Pre-generated narration
   is never metered per student** (C-051; served statically).
 - **Meter at call points** (`voice/guard` wraps `voice/gnani` + `voice/tutor`): quantity known at
   call end → `credit_ledger` row (async) + hot-counter decrement.
@@ -491,7 +490,7 @@ EVT-009 counts rate-limit hits for ops (no free text).
 | voice-backend pod | event-loop stall (latency regression) | EVT-006 p90 breach, healthz latency probe | slow answers; text floor may appear | shed load: disable partials → shorter replies → typed_only ladder | RB-09 | none |
 | WSS channel | dropped connection | heartbeat loss (2 missed pings) | dock "reconnecting"; last transcript stays | resume within 60 s window (finals replayed); else re-bootstrap | RB-09 | none |
 | Gnani Prisma (STT) | API down / timeout | error class E-STT-UNAVAILABLE rate | dock: no-match/retry copy (INF-067/068); **typed path still works** | degraded rung 1: typed_only for new turns; retry with backoff | RB-08 | none (audio never stored) |
-| Gemma GPU host | down / cold / slow | first-token p90 breach; probe fail | dock system-error + retry; Core + read-aloud unaffected | circuit-break LLM calls (fail fast, don't queue); typed path also halts (same brain) | RB-09, RB-02 (rebuild from C15 copy) | none |
+| Gemma brain (Gemini API) | down / quota / slow | first-token p90 breach; probe fail | dock system-error + retry; Core + read-aloud unaffected | circuit-break LLM calls (fail fast, don't queue); typed path also halts (same brain) | RB-09, RB-02 (rebuild from C15 copy) | none |
 | Gnani Timbre (TTS) | API down / tag errors | E-TTS-UNAVAILABLE rate | **text floor**: transcript + captions; audio skipped | degraded rung: text-only replies; resume audio on recovery | RB-08 | none |
 | U2 Postgres | pod/PVC loss | probe fail, connection errors | bootstrap fails → dock system-error; **static pages + narration keep loading** (Core independence) | failover to restored instance (storage-tiering §6.1); voice backend refuses new voice turns meanwhile | RB-02 | ≤ 5 min of ledger/turn rows (RPO) |
 | U2 Postgres | connection pool exhaustion | pool wait metric | slow bootstrap/coverage saves | queue + shed telemetry first (fire-and-forget queues) | RB-01 | telemetry batch (client queue holds) |
@@ -521,8 +520,7 @@ client SW cache softens.
 
 Processors/sub-processors per data flow (for the DPDP register, post-challenge counsel pass):
 **Gnani API** (Prisma receives streamed audio for transcription — retention policy at Gnani is
-**[verify — ask before scale-up]**; Timbre receives tutor text) · **GPU host** (Gemma — self-run,
-in our control; page context + history window leaves the cluster) · **Backblaze B2 / Cloudflare
+**[verify — ask before scale-up]**; Timbre receives tutor text) · **Google Gemini API** (Gemma — cloud; page context + history window leaves the cluster to Google — external processor) · **Backblaze B2 / Cloudflare
 R2** (cold archives, encrypted for child-adjacent classes) · **GitHub** (git snapshots — public-repo
 risk: `frontend/` snapshot contains only public content; **runs/ evidence stays gitignored**) ·
 **hosting/edge** (TBD at hosting stage). Cross-border: B2/R2 storage regions are US/EU (no India
@@ -636,24 +634,22 @@ New objects (target form; P0 subset marked ●):
 | `k8s/00-namespace.yaml` (exists) | namespace `zivon` | unchanged |
 | `k8s/16-db-pvc.yaml` ● | PVC `zivon-db` (10 Gi demo) + PVC `zivon-cache` (5 Gi) | new volumes justified by data classes C11/C20/C6 (db) and C1/C2 warm cache — the ref-05 §5 rule "add volumes only with a data-class justification" |
 | `k8s/25-postgres.yaml` ● | Postgres 16 Deployment + Service + Secret `zivon-db-env` (runtime-only) + ConfigMap `zivon-db-config` (archive_timeout=60 etc.) + readiness/liveness probes | the only new stateful workload; gotchas 9/12 apply (image tags pinned in manifest; kube-linter gates) |
-| `k8s/35-voice-backend.yaml` ● | voice-backend Deployment + Service (FastAPI, image `zivon-voice:x.y.z` pinned) | envFrom Secret `zivon-voice-env` (Gnani keys, DB URL, session-token key, IP-hash salt, cold-writer key) + ConfigMap `zivon-voice-config` (limits, GPU base URL — same OpenAI-format env pattern as `ZIVON_BASE_URL` in infra.env, new keys `VOICE_LLM_BASE_URL`/`VOICE_LLM_MODEL` rendered from infra.env) |
-| `k8s/36-voice-service-exposure` ● | Service type per existing pattern (ClusterIP + edge at hosting stage; dev parity with NodePort 30080 pattern for phone testing) | TLS terminates at the edge only (locked 2026-11-04) |
-| `k8s/45-sync.yaml` | sync-worker Deployment (P1) + Secrets `zivon-cold-writer` / `zivon-cold-deleter` / `zivon-cold-restore` (three identities, storage-tiering §5) | separate service accounts; writer key has no delete |
-| `k8s/55-retention-cronjobs.yaml` ● | CronJobs: sync-nightly, base-backup, ttl-voice-turn, ttl-coverage, ttl-abuse-bucket, rollup-daily-stats, ttl-telemetry (storage-tiering §6.3 P0 rows) | CronJob cleanup = history limits, no ttlSeconds inside jobTemplate (gotcha 12); the **factory Job stays manual-only** — nothing here changes `k8s/20` |
-| `k8s/60-admin-api` ● | admin routes live **inside** the voice-backend Deployment (separate router + token), not a separate service | simplicity; separate NetworkPolicy later if needed |
-| CI (`.github/workflows/ci.yml`) | new jobs: build `zivon-voice` image (slim base, deps-before-code, non-root), smoke test parity with `docker/smoke_test.py` pattern, Alembic migrate-against-fresh-DB + migrate-against-cold-restore (ADR-0016), script-parity test (API-A7/8/9 vs the three scripts), kube-linter on new manifests | key-free (repo rule); third-party actions stay SHA-pinned |
-| `k8s/infra.env` additions | `VOICE_LLM_BASE_URL`, `VOICE_LLM_MODEL`, `COLD_PROVIDER="b2"`, `COLD_BUCKET_*` names (no secrets — keys live only in Secrets) | rendered by `scripts/apply-k8s.sh` like existing values |
+| `k8s/25-core-backend.yaml` ● (+ `26-`, `27-`, `28-` monolith bundle) | Core backend Deployment + Service (FastAPI monolith incl. `voice/` router, image `zivon-backend:x.y.z` pinned — **no separate `zivon-voice` image** per ADR-0020) | envFrom Secret `zivon-voice-env` (Gnani keys, `ZIVON_VOICE_GEMINI_API_KEY`, DB URL, session-token key, IP-hash salt) + ConfigMap `zivon-voice-config` (limits, `ZIVON_VOICE_BRAIN_TRANSPORT`) |
+| `k8s/25-core-backend.yaml` (Service part) ● | Service (ClusterIP + edge at hosting stage; dev parity NodePort 30080) | TLS terminates at the edge only (locked 2026-11-04) |
+| `k8s/51-sync-worker.yaml` (P1 sync worker; plan reservation 51–53) | sync-worker Deployment (P1) + Secrets `zivon-cold-writer` / `zivon-cold-deleter` / `zivon-cold-restore` (three identities, storage-tiering §5) | separate service accounts; writer key has no delete |
+| `k8s/53-sync-cronjobs.yaml` ● | CronJobs: sync-nightly, base-backup, ttl-voice-turn, ttl-coverage, ttl-abuse-bucket, rollup-daily-stats, ttl-telemetry (storage-tiering §6.3 P0 rows) | CronJob cleanup = history limits, no ttlSeconds inside jobTemplate (gotcha 12); the **factory Job stays manual-only** — nothing here changes `k8s/20` |
+| `k8s/25-core-backend.yaml` (admin router) ● | admin routes live **inside** the core-backend monolith (incl. voice router) (separate router + token), not a separate service | simplicity; separate NetworkPolicy later if needed |
+| CI (`.github/workflows/ci.yml`) | new jobs: build `zivon-backend` image (slim base, deps-before-code, non-root), smoke test parity with `docker/smoke_test.py` pattern, Alembic migrate-against-fresh-DB + migrate-against-cold-restore (ADR-0016), script-parity test (API-A7/8/9 vs the three scripts), kube-linter on new manifests | key-free (repo rule); third-party actions stay SHA-pinned |
+| `k8s/infra.env` additions | `ZIVON_VOICE_GEMINI_API_KEY` (name only; value in Secret), `ZIVON_VOICE_BRAIN_TRANSPORT`, `COLD_PROVIDER="b2"`, `COLD_BUCKET_*` names (no secrets — keys live only in Secrets) | rendered by `scripts/apply-k8s.sh` like existing values |
 
-GPU host (Gemma, A-09): **outside the cluster** in P0 (external warm instance; reached via
-`VOICE_LLM_BASE_URL`; the dev inference-router bridge pattern extends to it). In-cluster GPU
-serving is a post-challenge infra decision (TIMELINE open item), not a manifest in this spec.
+Gemma brain (ADR-0017): **cloud API, no GPU host in P0** — reached via Google Gemini API key (`ZIVON_VOICE_GEMINI_API_KEY`, runtime Secret); OpenRouter route is a config-selected fallback transport. There is no `VOICE_LLM_BASE_URL` / GPU manifest in P0 (the dev inference-router bridge is the factory/llm-manager path, not the voice path).
 
 ## 13. Capacity & cost
 
 Full model in [`capacity-and-cost.md`](capacity-and-cost.md). Headline: storage/egress ≈ $0
 through the challenge window (B2 + R2 free tiers cover ≤ 8 GB cold total); the **binding
 constraint is Gnani credits** (10 000 total · 1 000/day tranche · 30/user/day · ~40 % demo
-reserve · ≤ 1 500 narration build budget A-15); the only real money line is the Gemma GPU host.
+reserve · ≤ 1 500 narration build budget A-15); the only real money lines are Gemini API usage + Gnani credits (no GPU host).
 
 ## 14. ADR index
 

@@ -82,5 +82,5 @@ reading costs zero runtime credits.
    tranche decision (A-15), storage stays trivial.
 3. **Unit prices (A-01)**: if `p_c` (per char) is high, shorten tutor replies (≤ 2 sentences
    ladder) before touching caps — prompt lever before budget lever.
-4. **GPU hosting cost**: the only real money line; self-host vs managed — TIMELINE infra item,
+4. **GPU hosting cost**: the only real money line; Gemini API cloud usage (no GPU hosting) — TIMELINE infra item,
    founder decision, outside this spec's authority.

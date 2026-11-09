@@ -526,7 +526,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **Backend needs** NEED-005 context payload composition into the LLM prompt (Gemma 4 26B A4B per Gate A outcome 2026-11-07; Stage 2 designs the prompt assembly; product states the payload contract above).
 
-**Entities** ENT?-VoiceTurn.anchor. **Cost & risk** prompt tokens per turn (Gemma 4 26B A4B self-hosted — no Gnani credit, GPU cost). Risk: wrong anchoring misleads → chip honesty + T12.
+**Entities** ENT?-VoiceTurn.anchor. **Cost & risk** prompt tokens per turn (Gemma 4 26B A4B via Gemini API — no Gnani credit, API cost). Risk: wrong anchoring misleads → chip honesty + T12.
 
 **Open questions** — Q: scroll-observer definition of "visible block" (≥50% area?) owner: frontend · blocking: n.
 
@@ -698,7 +698,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 3. When connectivity returns, the system shall silently re-enable layers and sync queued local data (memory, EVT batch).
 4. The system shall never prefetch audio in data-saver or offline (F-XCT-SET-01).
 
-**Acceptance criteria** — AC-1 airplane-mode test: previously visited page fully readable + sims operable (SW P1; cache P0). AC-2 Budget-exhaustion drill: typed mode answers a doubt end-to-end with zero Gnani credits (self-hosted LLM path). AC-3 Offline chip visible ≤ 1 s after connectivity loss. AC-4 No data loss: queued EVT/memory sync on return. AC-5 Copy in 3 languages (P1). AC-6 Privacy: queued local data respects consent state.
+**Acceptance criteria** — AC-1 airplane-mode test: previously visited page fully readable + sims operable (SW P1; cache P0). AC-2 Budget-exhaustion drill: typed mode answers a doubt end-to-end with zero Gnani credits (cloud LLM path). AC-3 Offline chip visible ≤ 1 s after connectivity loss. AC-4 No data loss: queued EVT/memory sync on return. AC-5 Copy in 3 languages (P1). AC-6 Privacy: queued local data respects consent state.
 
 **States** this card defines the offline / quota-exhausted columns of the screen-state matrix (§5.3).
 
@@ -1095,7 +1095,7 @@ No silent ❌ below.
    credit-billing parity check on the Gnani dashboard; 30-minute v3.0 smoke test
    before the Gate-C rehearsal.
 3. ~~Gate A outcome (Evon v3.3 vs fallback)~~ — **resolved 2026-11-07 (founder)**:
-   runtime LLM = **Gemma 4 26B A4B** (self-hosted, served via the existing
+   runtime LLM = **Gemma 4 26B A4B** (cloud-hosted via Google Gemini API, 
    OpenAI-format inference-router pattern; Evon v3.3 becomes the post-challenge
    aspiration). Recorded in the TIMELINE.md Gate A row; public story updated — the
    Gnani voice loop (Prisma v3.0 + Timbre v3.0) carries the ≥1-Gnani-model requirement.
