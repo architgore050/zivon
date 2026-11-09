@@ -34,6 +34,7 @@ FACTORY_MODULES = [
     "factory.schemas",
     "factory.stages",
     "factory.textops",
+    "factory.tm_store",
     "factory.transcheck",
     "factory.translate",
     "factory.transrepair",
