@@ -65,9 +65,13 @@ audio lands directly in the served tree.
   title + description + page.js readout strings (never JS code); diagram ->
   `svg_texts` only (none in English v1, so diagrams are not narrated);
   `b-00-meta` -> lesson title + objectives; reveal -> not speakable. Parts
-  are joined with the `<pauses>` tag (the only expressive tag narration
-  uses) and unit-pronunciation rules apply (m/s2 -> "metres per second
-  squared").
+  are wrapped in the whitelisted Timbre v3.0 tags `<pauses>` / `<slow>` /
+  `<excited>` / `<whispers>` (the SP1 Appendix A subset of the 13-tag
+  catalog; `<whispers>` is whitelisted but never auto-emitted in v1 - `<slow>`
+  cues a verbalized equation, `<excited>` cues the worked-example answer,
+  `<pauses>` separates parts), capped at one cue per two sentences and at
+  most 8 cues per block with delivery cues funded before breathing pauses,
+  and unit-pronunciation rules apply (m/s2 -> "metres per second squared").
 - **Assets**: `audio/{course_id}/{block_id}.{lang}.{content-hash}.opus`
   (backend-spec ST-04; the hash is a TEXT hash of lang|voice|spoken-form, so
   a re-run finds its completed work and spends nothing, while changed text
