@@ -124,7 +124,7 @@
       // \u-escaped: charset-proof no matter how the embedding page loads this file
       feedback.textContent = correct ? "\u2713 Correct." : "\u2717 Not yet - try again.";
       feedback.className = correct ? "zn-check-feedback correct" : "zn-check-feedback wrong";
-      if (window.ZivonEvents && typeof window.ZivonEvents. recordCheck === "function") {
+      if (window.ZivonEvents && typeof window.ZivonEvents.recordCheck === "function") {
         window.ZivonEvents.recordCheck(blockId, String(format || "mcq"), Boolean(correct), attempts);
       }
     });
@@ -1663,6 +1663,287 @@
     decodeAudioFrame: decodeAudioFrame
   };
 
+
+  /* --------------- 8. event instrumentation (ZivonEvents) -----------------
+     Implements spec.md §9 (C2), SP3 docs/specs/observability/instrumentation-map.csv
+     (EVT-F01..EVT-F12), and GAP-013 reconciliation:
+     - Capped in-memory queue (200 events, oldest dropped) with a no-op default
+       sink so CSP connect-src 'none' is never violated.
+     - Observable via console.debug when localStorage['zivon.evtdebug'] or
+       window.__ZIVON_EVTDEBUG__ is truthy.
+     - Every emitted event carries canonical SP3 fields (evt_id: EVT-F01..F12,
+       event: frontend.*, client_session_id, privacy_class: L2) alongside the
+       SP5 trigger name (evt: EVT-<verb_noun>) for 1:1 traceability.
+     - Never logs child free-text or quiz option text; hashes sim error strings
+       and quantises slider values into buckets. */
+  var EVENT_QUEUE_MAX = 200;
+  var eventQueue = [];
+  var customEventSink = null;
+  var clientSessionId = null;
+  var sessionStartMs = Date.now();
+  var voiceTurnsCount = 0;
+  var simInteractionCounts = {};
+
+  var EVENT_CATALOG = {
+    "EVT-lesson_viewed":       { evt_id: "EVT-F01", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-lesson_opened":       { evt_id: "EVT-F01", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-section_viewed":      { evt_id: "EVT-F02", event: "frontend.section_view",     privacy_class: "L2" },
+    "EVT-reveal_opened":       { evt_id: "EVT-F02", event: "frontend.section_view",     privacy_class: "L2" },
+    "EVT-sim_opened":          { evt_id: "EVT-F03", event: "frontend.sim_open",         privacy_class: "L2" },
+    "EVT-sim_control_changed": { evt_id: "EVT-F04", event: "frontend.sim_interact",     privacy_class: "L2" },
+    "EVT-check_answered":      { evt_id: "EVT-F05", event: "frontend.check_answered",   privacy_class: "L2" },
+    "EVT-check_retried":       { evt_id: "EVT-F05", event: "frontend.check_answered",   privacy_class: "L2" },
+    "EVT-mic_pressed":         { evt_id: "EVT-F06", event: "frontend.mic_press",        privacy_class: "L2" },
+    "EVT-tutor_turn_completed":{ evt_id: "EVT-F07", event: "frontend.voice_turn_done",  privacy_class: "L2" },
+    "EVT-sim_error":           { evt_id: "EVT-F08", event: "frontend.error",            privacy_class: "L2" },
+    "EVT-client_error":        { evt_id: "EVT-F08", event: "frontend.error",            privacy_class: "L2" },
+    "EVT-lang_switched":       { evt_id: "EVT-F09", event: "frontend.language_bar_use", privacy_class: "L2" },
+    "EVT-session_ended":       { evt_id: "EVT-F10", event: "frontend.session_end",      privacy_class: "L2" },
+    "EVT-publish_viewed":      { evt_id: "EVT-F11", event: "frontend.publish_view",     privacy_class: "L2" },
+    "EVT-heartbeat":           { evt_id: "EVT-F12", event: "frontend.heartbeat",        privacy_class: "L2" }
+  };
+
+  function getClientSessionId() {
+    if (!clientSessionId) {
+      clientSessionId = generateUuidV4();
+    }
+    return clientSessionId;
+  }
+
+  function hashStringHex(str) {
+    var h = seedFrom(String(str || ""));
+    return ("00000000" + h.toString(16)).slice(-8);
+  }
+
+  function quantiseBucket(val, inputEl) {
+    var num = parseFloat(val);
+    if (isNaN(num)) return "0";
+    if (inputEl) {
+      var min = parseFloat(inputEl.getAttribute("min") || "0");
+      var max = parseFloat(inputEl.getAttribute("max") || "100");
+      if (max > min) {
+        var ratio = (num - min) / (max - min);
+        if (ratio < 0.25) return "q1";
+        if (ratio < 0.50) return "q2";
+        if (ratio < 0.75) return "q3";
+        return "q4";
+      }
+    }
+    return String(Math.round(num * 10) / 10);
+  }
+
+  function isEvtDebugEnabled() {
+    if (window.__ZIVON_EVTDEBUG__) return true;
+    var flag = safeStorageGet("zivon.evtdebug");
+    return flag === "1" || flag === "true";
+  }
+
+  function currentTopicMeta() {
+    var route = ZivonRouter.currentRoute();
+    var titleEl = document.querySelector("h1.zn-title");
+    return {
+      topic: route.topic_slug || (route.screen === "SCR-HOME-01" ? "hub" : "unknown"),
+      course_id: route.course_id || "physics",
+      chapter: titleEl ? titleEl.textContent.trim().slice(0, 80) : "",
+      class_level: parseInt(String(route.course_id || "9").replace(/\D+/g, ""), 10) || 9,
+      screen: route.screen,
+      locale: getSavedLang()
+    };
+  }
+
+  function emitEvent(evtName, rawProps) {
+    var meta = currentTopicMeta();
+    var specEntry = EVENT_CATALOG[evtName] || {
+      evt_id: "EVT-F08",
+      event: String(evtName),
+      privacy_class: "L2"
+    };
+    var cleanProps = Object.assign({}, rawProps || {});
+    /* Privacy guard: strip any accidental free-text or raw option keys */
+    delete cleanProps.option_text;
+    delete cleanProps.raw_text;
+    delete cleanProps.transcript;
+    delete cleanProps.stack;
+
+    var record = {
+      v: 1,
+      evt: evtName,
+      evt_id: specEntry.evt_id,
+      event: specEntry.event,
+      privacy_class: specEntry.privacy_class,
+      ts: Date.now(),
+      client_session_id: getClientSessionId(),
+      screen: meta.screen,
+      locale: meta.locale,
+      props: Object.assign({ topic: meta.topic }, cleanProps)
+    };
+
+    if (eventQueue.length >= EVENT_QUEUE_MAX) {
+      eventQueue.shift();
+    }
+    eventQueue.push(record);
+
+    if (isEvtDebugEnabled() && window.console && typeof console.debug === "function") {
+      console.debug("[ZivonEvents]", record.evt_id, record.event, record);
+    }
+    if (typeof customEventSink === "function") {
+      try { customEventSink(record); } catch (e) {}
+    }
+    return record;
+  }
+
+  function recordCheck(blockId, format, correct, attempts) {
+    emitEvent("EVT-check_answered", {
+      block_id: String(blockId),
+      format: String(format),
+      correct: Boolean(correct),
+      attempts: Number(attempts || 1)
+    });
+    if (attempts > 1) {
+      emitEvent("EVT-check_retried", {
+        block_id: String(blockId),
+        attempt_no: Number(attempts),
+        correct: Boolean(correct),
+        attempts: Number(attempts)
+      });
+    }
+  }
+
+  function recordSimControl(blockId, controlId, value, inputEl) {
+    var key = String(blockId) + ":" + String(controlId);
+    simInteractionCounts[key] = (simInteractionCounts[key] || 0) + 1;
+    emitEvent("EVT-sim_control_changed", {
+      block_id: String(blockId),
+      control_id: String(controlId),
+      variable: String(controlId),
+      value_bucket: quantiseBucket(value, inputEl),
+      interactions: simInteractionCounts[key]
+    });
+  }
+
+  function recordSimError(blockId, rawMessage) {
+    emitEvent("EVT-sim_error", {
+      block_id: String(blockId),
+      error_kind: "js",
+      message_hash: hashStringHex(rawMessage)
+    });
+  }
+
+  function recordLangSwitch(fromLoc, toLoc) {
+    emitEvent("EVT-lang_switched", {
+      from: String(fromLoc),
+      to: String(toLoc),
+      lang_selected: String(toLoc)
+    });
+  }
+
+  function recordMicPress(voiceSessionId) {
+    emitEvent("EVT-mic_pressed", {
+      session_id: voiceSessionId || null
+    });
+  }
+
+  function recordVoiceTurnDone(voiceSessionId, turnId, e2eMs) {
+    voiceTurnsCount += 1;
+    var bucket = "<2s";
+    if (e2eMs >= 4000) bucket = ">4s";
+    else if (e2eMs >= 2000) bucket = "2-4s";
+    emitEvent("EVT-tutor_turn_completed", {
+      session_id: voiceSessionId || null,
+      turn_id: turnId || null,
+      e2e_ms: Number(e2eMs || 0),
+      e2e_bucket: bucket
+    });
+  }
+
+  function recordError(errorKind) {
+    var allowed = { js: true, mic_permission: true, network: true, voice: true };
+    var kind = allowed[errorKind] ? errorKind : "js";
+    emitEvent("EVT-client_error", {
+      error_kind: kind
+    });
+  }
+
+  function wirePageInstrumentation() {
+    var meta = currentTopicMeta();
+    /* Catalogue card clicks -> EVT-lesson_opened */
+    var courseList = document.getElementById("zn-courses");
+    if (courseList) {
+      courseList.addEventListener("click", function (ev) {
+        var card = ev.target.closest("a.zn-card");
+        if (!card) return;
+        emitEvent("EVT-lesson_opened", {
+          href: card.getAttribute("href") || "",
+          course_id: card.getAttribute("data-course-id") || "",
+          chapter: meta.chapter,
+          class_level: meta.class_level
+        });
+      });
+    }
+
+    /* Lesson view & sim open events */
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (lessonPage) {
+      var blocksCount = lessonPage.querySelectorAll("section, fieldset, figure").length;
+      emitEvent("EVT-lesson_viewed", {
+        course_id: meta.course_id,
+        topic_slug: meta.topic,
+        chapter: meta.chapter,
+        class_level: meta.class_level,
+        generated_at: lessonPage.getAttribute("data-generated-at") || "",
+        block_count: blocksCount
+      });
+      emitEvent("EVT-publish_viewed", {
+        source: window.location && window.location.protocol === "file:" ? "snapshot" : "pvc"
+      });
+      lessonPage.querySelectorAll(".zn-sim[data-sim-id]").forEach(function (simEl) {
+        emitEvent("EVT-sim_opened", {
+          block_id: simEl.getAttribute("data-sim-id") || simEl.id || "sim"
+        });
+      });
+      lessonPage.querySelectorAll(".zn-reveal details.zn-reveal-step").forEach(function (det) {
+        det.addEventListener("toggle", function () {
+          if (det.open) {
+            var revParent = det.closest(".zn-reveal");
+            var bid = (revParent && revParent.id) || det.id || "reveal";
+            emitEvent("EVT-reveal_opened", {
+              block_id: bid,
+              section_id: bid,
+              dwell_bucket: "<5s"
+            });
+          }
+        });
+      });
+    }
+
+    window.addEventListener("pagehide", function () {
+      var elapsedS = (Date.now() - sessionStartMs) / 1000;
+      var durBucket = elapsedS < 120 ? "<2m" : (elapsedS <= 600 ? "2-10m" : ">10m");
+      emitEvent("EVT-session_ended", {
+        duration_bucket: durBucket,
+        turn_count: voiceTurnsCount
+      });
+    });
+  }
+
+  window.ZivonEvents = {
+    EVENT_QUEUE_MAX: EVENT_QUEUE_MAX,
+    EVENT_CATALOG: EVENT_CATALOG,
+    emit: emitEvent,
+    getQueue: function () { return eventQueue.slice(); },
+    clearQueue: function () { eventQueue.length = 0; },
+    setSink: function (fn) { customEventSink = typeof fn === "function" ? fn : null; },
+    getClientSessionId: getClientSessionId,
+    recordCheck: recordCheck,
+    recordSimControl: recordSimControl,
+    recordSimError: recordSimError,
+    recordLangSwitch: recordLangSwitch,
+    recordMicPress: recordMicPress,
+    recordVoiceTurnDone: recordVoiceTurnDone,
+    recordError: recordError,
+    heartbeat: function () { return emitEvent("EVT-heartbeat", {}); }
+  };
+
   /* ------------------------------- boot ----------------------------------
      LessonKit.init covers load, font swap, resize, card open/close and quiz
      feedback changes through its own observers - no manual re-fit listeners.
@@ -1674,6 +1955,7 @@
     renderCourses();
     wireOfflineChip();
     ensureVoiceDockRegion();
+    wirePageInstrumentation();
     /* Doctrine §10.7 (v1.4): read each model diagram's viewBox and hand its
        height/width ratio to CSS (--dia-ar) so the diagram box shrinks to the
        drawing's own aspect, rounded up to whole rows on narrow screens.
