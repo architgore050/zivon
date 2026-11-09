@@ -219,6 +219,8 @@
     var a = document.createElement("a");
     a.className = "zn-card";
     a.href = course.href;
+    a.setAttribute("data-element-id", "EL-HOME-01-006");
+    a.setAttribute("data-course-id", String(course.course_id || ""));
     var title = document.createElement("p");
     title.className = "zn-card-title";
     title.textContent = course.title;
@@ -235,9 +237,13 @@
 
   function renderCourses() {
     var list = document.getElementById("zn-courses");
-    if (!list || !window.ZIVON_COURSES) return;
-    if (!window.ZIVON_COURSES.length) {
-      var empty = document.getElementById("zn-empty");
+    var empty = document.getElementById("zn-empty");
+    if (!list) return;
+    while (list.firstChild) list.removeChild(list.firstChild);
+    if (!Array.isArray(window.ZIVON_COURSES)) {
+      if (window.console && console.error) {
+        console.error("ZivonCourses: window.ZIVON_COURSES is missing or invalid");
+      }
       if (empty) empty.hidden = false;
       return;
     }
@@ -291,6 +297,18 @@
         navLinks.appendChild(jump);
       }
     });
+  }
+
+  function wireOfflineChip() {
+    var chip = document.getElementById("zn-offline-chip");
+    if (!chip) return;
+    function syncOffline() {
+      var isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
+      chip.hidden = !isOffline;
+    }
+    window.addEventListener("online", syncOffline);
+    window.addEventListener("offline", syncOffline);
+    syncOffline();
   }
 
   /* ---------------------- 4. LESSON KIT (LessonKit) -----------------------
@@ -501,6 +519,7 @@
     document.querySelectorAll(".zn-check").forEach(wireCheck);
     wireLangChips();
     renderCourses();
+    wireOfflineChip();
     /* Doctrine §10.7 (v1.4): read each model diagram's viewBox and hand its
        height/width ratio to CSS (--dia-ar) so the diagram box shrinks to the
        drawing's own aspect, rounded up to whole rows on narrow screens.

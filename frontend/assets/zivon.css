@@ -621,3 +621,31 @@ a { color: var(--pen-blue); }
 .zn-404-body { margin-top: 24px; }
 .zn-404-actions { margin-top: 24px; }
 .zn-404-back { display: inline-block; font-weight: 700; }
+
+/* ---- catalogue class grouping & status chips (EL-HUB-004, EL-HUB-008, EL-LES-01-070..072) ---- */
+.zn-class-group { margin: 8px 0 0; }
+.zn-class-heading {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--graphite);
+  margin: 0;
+}
+.zn-status-chip {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: var(--row);
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px dashed var(--graphite);
+  border-radius: 2px;
+  padding: 0 12px;
+  margin: 16px 0 0;
+}
+.zn-status-chip.zn-status-warn,
+.zn-status-chip.zn-status-exhausted {
+  border-color: var(--pencil-red);
+  color: var(--pencil-red);
+}

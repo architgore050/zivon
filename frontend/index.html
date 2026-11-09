@@ -7,12 +7,16 @@
 <link rel="stylesheet" href="assets/zivon.css">
 </head>
 <body>
-<main class="zn-page zn-home">
-  <header class="zn-header">
-    <h1 class="zn-title">Courses</h1>
+<main class="zn-page zn-home" data-screen-id="SCR-HOME-01">
+  <header class="zn-header" data-region="SCR-HOME-01.R2">
+    <h1 class="zn-title" data-element-id="EL-HOME-01-003" data-copy-key="home.title">Courses</h1>
   </header>
 
-  <ul id="zn-courses" class="zn-courses" aria-label="Available courses"></ul>
+  <p id="zn-offline-chip" class="zn-status-chip" role="status" aria-live="polite" data-element-id="EL-HUB-008" hidden>
+    Offline - published lessons on this device remain available to read and practice.
+  </p>
+
+  <ul id="zn-courses" class="zn-courses" aria-label="Available courses" data-region="SCR-HOME-01.R3" data-element-id="EL-HOME-01-005"></ul>
 
   <div id="zn-catalogue" class="zn-catalogue" hidden>
     <nav id="zn-grade-nav" class="zn-grade-nav" aria-label="Jump to a class">
@@ -22,13 +26,13 @@
     <div id="zn-class-sections"></div>
   </div>
 
-  <p id="zn-empty" class="zn-empty" hidden>
+  <p id="zn-empty" class="zn-empty" data-element-id="EL-HOME-01-007" data-copy-key="home.empty" hidden>
     No topics yet - the content factory has not run. This page fills in automatically
     after the first successful pipeline run.
   </p>
 
-  <footer class="zn-footer">
-    <p class="zn-sources">Built in public for the Great Indian AI Internship Challenge.
+  <footer class="zn-footer" data-region="SCR-HOME-01.R4">
+    <p class="zn-sources" data-element-id="EL-HOME-01-008" data-copy-key="home.footer">Built in public for the Great Indian AI Internship Challenge.
       Content is paraphrased from NCERT (free educational use) and openly licensed sources, with citations on every page.</p>
   </footer>
 </main>
