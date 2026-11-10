@@ -212,6 +212,10 @@ class LogStore:
                 "status": None,
             }
         base_dir = runs_dir().resolve()
+        # codeql[py/path-injection] — false positive: run_id is validated to
+        # ^[a-z0-9][a-z0-9-]{0,62}$ by the early-return re.fullmatch guard
+        # above (no separators, no traversal possible) plus defense-in-depth
+        # resolve()/is_relative_to containment against symlink escape.
         run_dir = (base_dir / run_id).resolve()
         if not run_dir.is_relative_to(base_dir):
             return {
@@ -223,8 +227,13 @@ class LogStore:
             }
         status_path = run_dir / "status.json"
         status: dict[str, Any] | None = None
+        # codeql[py/path-injection] — false positive (same validation as
+        # above: run_id slug-gated by early-return re.fullmatch, plus
+        # resolve()/is_relative_to containment).
         if status_path.is_file():
             try:
+                # codeql[py/path-injection] — false positive (same bar as
+                # above: slug-gated run_id + resolve()/is_relative_to).
                 status = json.loads(status_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 status = None
