@@ -64,6 +64,10 @@ _PII_FORBIDDEN_KEYS = frozenset(
 )
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _PHONE_RE = re.compile(r"(?:\+91[\s-]?)?[6-9]\d{9}\b")
+_AUDIO_VIDEO_PATH_RE = re.compile(
+    r"[\w./\\-]+\.(?:wav|mp3|m4a|ogg|aac|flac|mp4|webm|mov)\b",
+    re.IGNORECASE,
+)
 
 
 def generate_uuid7(ts_ms: int | None = None) -> str:
@@ -96,6 +100,12 @@ def validate_kid_session_dpdp(payload: dict[str, Any]) -> None:
         raise ValueError(
             "DPDP privacy violation: notes field contains an email address or phone number"
         )
+    for key, value in payload.items():
+        if isinstance(value, str) and _AUDIO_VIDEO_PATH_RE.search(value):
+            raise ValueError(
+                "DPDP privacy violation: audio/video recording paths are never "
+                f"stored (field {key!r})"
+            )
 
 
 def _card_Result_from_dict(d: dict[str, Any]) -> CardResult:
@@ -117,6 +127,7 @@ def _card_Result_from_dict(d: dict[str, Any]) -> CardResult:
         thinking_s=float(d.get("thinking_s", 0.0)),
         max_completion_tokens=int(d.get("max_completion_tokens", 0)),
         length_cuts=int(d.get("length_cuts", 0)),
+        duration_s=float(d.get("duration_s", 0.0)),
         metrics=dict(d.get("metrics", {})),
         delta_vs_baseline=dict(d.get("delta_vs_baseline", {})),
         issues=list(d.get("issues", [])),
@@ -179,6 +190,21 @@ class EvalStore:
         with path.open("a", encoding="utf-8") as fh:
             fh.write(line + "\n")
 
+    def _append_jsonl_unique(self, path: Path, row: dict[str, Any], key: str) -> bool:
+        """Append `row` unless a row with the same `key` value already exists.
+
+        The ledger is append-only, but writing the same `eval_run_id` twice
+        (e.g. `persist_run` retried after a DB error) must not duplicate it.
+        Returns True when a row was written.
+        """
+        value = row.get(key)
+        if value is not None:
+            for existing in self._read_jsonl(path):
+                if existing.get(key) == value:
+                    return False
+        self._append_jsonl(path, row)
+        return True
+
     def _read_jsonl(self, path: Path) -> list[dict[str, Any]]:
         if not path.is_file():
             return []
@@ -192,7 +218,7 @@ class EvalStore:
     def persist_run(self, report: EvalRunReport) -> dict[str, Any]:
         """Persist an `EvalRunReport` to JSONL ledger, per-run directory, and optional DB."""
         report_dict = report.to_dict()
-        self._append_jsonl(self.runs_ledger, report_dict)
+        self._append_jsonl_unique(self.runs_ledger, report_dict, "eval_run_id")
 
         run_dir = self.evals_runs_dir / report.eval_run_id
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -254,12 +280,17 @@ class EvalStore:
                 return zst_path
         except FileNotFoundError:
             pass
-        with tarfile.open(zst_path, "w:gz") as gzf:
+        # No `zstd` binary: write a gzip tarball under its real extension
+        # instead of mislabelling gzip bytes as `.tar.zst` (cold-storage
+        # consumers dispatch on the extension).
+        gz_path = self.outbox_dir / f"{eval_run_id}.tar.gz"
+        with tarfile.open(gz_path, "w:gz") as gzf:
             for item in sorted(run_dir.rglob("*")):
                 if item.is_file():
                     gzf.add(item, arcname=f"{eval_run_id}/{item.relative_to(run_dir)}")
         tar_path.unlink(missing_ok=True)
-        return zst_path
+        zst_path.unlink(missing_ok=True)
+        return gz_path
 
     def _ensure_sqlite_schema(self, conn: sqlite3.Connection) -> None:
         conn.executescript(
@@ -447,7 +478,7 @@ class EvalStore:
                             c.thinking_s,
                             c.max_completion_tokens,
                             c.length_cuts,
-                            0,
+                            max(0, int(c.duration_s * 1000)),
                             report.completed_at,
                         ),
                     )

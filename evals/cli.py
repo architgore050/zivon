@@ -29,7 +29,7 @@ from .report import (
     write_run_artifacts,
 )
 from .runner import rotate_golden, run_eval_suite
-from .store import EvalStore
+from .store import EvalStore, eval_run_report_from_dict, utc_now_iso
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -61,6 +61,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument(
         "--out", default=None, help="Output directory for report artifacts"
     )
+    p_run.add_argument(
+        "--fail-on-regression",
+        action="store_true",
+        help=(
+            "Diff against the most recent same-suite run in the ledger and "
+            "exit 2 when a regression is detected (CI merge gate)"
+        ),
+    )
 
     # 2. calibrate
     p_cal = sub.add_parser(
@@ -79,6 +87,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_cal.add_argument(
         "--out", default=None, help="Output directory for calibration artifacts"
+    )
+    p_cal.add_argument(
+        "--fail-on-regression",
+        action="store_true",
+        help="Diff against the previous calibration run and exit 2 on regression",
     )
 
     # 3. diff
@@ -126,9 +139,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_kid.add_argument(
         "--input",
-        required=True,
-        help="Path to JSON file or inline JSON object containing kid session telemetry",
+        default=None,
+        help=(
+            "Path to JSON file or inline JSON object containing kid session "
+            "telemetry (alternative to the explicit flags below)"
+        ),
     )
+    p_kid.add_argument("--session-code", default=None, help="Pseudonymous kid-rN-MM")
+    p_kid.add_argument(
+        "--topic",
+        default=None,
+        help="topic_slug or course/topic (e.g. class-9-physics/how-forces-affect-motion)",
+    )
+    p_kid.add_argument("--tester-class", type=int, default=None)
+    p_kid.add_argument("--topic-class", type=int, default=None)
+    p_kid.add_argument("--restated", default=None, help="true/false")
+    p_kid.add_argument("--followup-1", default=None, help="true/false")
+    p_kid.add_argument("--followup-2", default=None, help="true/false")
+    p_kid.add_argument(
+        "--confusion-block",
+        action="append",
+        default=[],
+        help="Repeatable block id the kid was confused by (e.g. b-06)",
+    )
+    p_kid.add_argument("--promoted-defect-id", default=None)
+    p_kid.add_argument("--consent-record-id", default=None)
+    p_kid.add_argument("--lesson-version-id", default=None)
+    p_kid.add_argument("--notes", default="")
+    p_kid.add_argument("--recorded-at", default=None)
 
     # 6. report
     p_rep = sub.add_parser("report", help="Render report for a completed run")
@@ -172,6 +210,40 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _find_previous_run(store: EvalStore, suite: str, current_id: str):
+    """Return the most recent same-suite run in the JSONL ledger, if any."""
+    for row in reversed(store.list_runs()):
+        if row.get("eval_run_id") == current_id:
+            continue
+        if row.get("suite") != suite:
+            continue
+        return eval_run_report_from_dict(row)
+    return None
+
+
+def _diff_against_baseline(store: EvalStore, run_rec, cfg: EvalConfig, suite: str):
+    baseline = _find_previous_run(store, suite, run_rec.eval_run_id)
+    if baseline is None:
+        return None
+    return compute_run_diff(
+        baseline,
+        run_rec,
+        load_all_cards(cfg.cards_dir),
+        fallback_dir=cfg.evals_runs_dir,
+    )
+
+
+def _parse_cli_bool(raw: str | None, flag: str) -> bool | None:
+    if raw is None:
+        return None
+    lowered = raw.strip().lower()
+    if lowered in ("true", "1", "yes"):
+        return True
+    if lowered in ("false", "0", "no"):
+        return False
+    raise SystemExit(f"{flag} must be true/false (or 1/0, yes/no), got {raw!r}")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -188,7 +260,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             topic_filter=args.topic,
             out_dir=out_dir,
         )
-        print(render_markdown_report(run_rec), end="")
+        diff_rep = None
+        if args.fail_on_regression:
+            diff_rep = _diff_against_baseline(EvalStore(cfg), run_rec, cfg, args.suite)
+        print(render_markdown_report(run_rec, diff_rep), end="")
+        if diff_rep is not None and diff_rep.regression_detected:
+            return 2
         return 0 if run_rec.overall_pass else 1
 
     if args.subcommand == "calibrate":
@@ -206,7 +283,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             card_id=card_id,
             out_dir=out_dir,
         )
-        print(render_markdown_report(run_rec), end="")
+        diff_rep = None
+        if args.fail_on_regression:
+            diff_rep = _diff_against_baseline(EvalStore(cfg), run_rec, cfg, "calibrate")
+        print(render_markdown_report(run_rec, diff_rep), end="")
+        if diff_rep is not None and diff_rep.regression_detected:
+            return 2
         return 0 if run_rec.overall_pass else 1
 
     if args.subcommand == "diff":
@@ -244,11 +326,73 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.subcommand == "record-kid-test":
         store = EvalStore(cfg)
-        inp = args.input.strip()
-        if inp.startswith("{"):
-            payload = json.loads(inp)
+        if args.input:
+            inp = args.input.strip()
+            candidate = Path(inp)
+            if not inp.startswith("{") and candidate.suffix.lower() in {
+                ".wav",
+                ".mp3",
+                ".m4a",
+                ".ogg",
+                ".aac",
+                ".flac",
+                ".mp4",
+                ".webm",
+                ".mov",
+            }:
+                print(
+                    "ERROR (DPDP Guardrail): audio/video recordings are never "
+                    "accepted; record the observation as flags or JSON",
+                    file=sys.stderr,
+                )
+                return 1
+            payload = (
+                json.loads(inp)
+                if inp.startswith("{")
+                else json.loads(candidate.read_text(encoding="utf-8"))
+            )
         else:
-            payload = json.loads(Path(inp).read_text(encoding="utf-8"))
+            missing = [
+                flag
+                for flag, value in (
+                    ("--session-code", args.session_code),
+                    ("--topic", args.topic),
+                    ("--tester-class", args.tester_class),
+                    ("--topic-class", args.topic_class),
+                    ("--restated", args.restated),
+                    ("--followup-1", args.followup_1),
+                    ("--followup-2", args.followup_2),
+                )
+                if value is None
+            ]
+            if missing:
+                print(
+                    "ERROR: record-kid-test needs --input or all of "
+                    + ", ".join(missing),
+                    file=sys.stderr,
+                )
+                return 1
+            restated = _parse_cli_bool(args.restated, "--restated")
+            followup_1 = _parse_cli_bool(args.followup_1, "--followup-1")
+            followup_2 = _parse_cli_bool(args.followup_2, "--followup-2")
+            topic_slug = str(args.topic).rstrip("/").rsplit("/", 1)[-1]
+            payload = {
+                "session_code": args.session_code,
+                "topic_slug": topic_slug,
+                "tester_class": args.tester_class,
+                "topic_class": args.topic_class,
+                "is_above_class_level": args.tester_class < args.topic_class,
+                "restated_in_own_words": bool(restated),
+                "followup_1_correct": bool(followup_1),
+                "followup_2_correct": bool(followup_2),
+                "gate_b_pass": bool(restated and followup_1 and followup_2),
+                "confusion_blocks": args.confusion_block,
+                "promoted_defect_id": args.promoted_defect_id,
+                "consent_record_id": args.consent_record_id,
+                "lesson_version_id": args.lesson_version_id,
+                "notes": args.notes,
+                "recorded_at": args.recorded_at or utc_now_iso(),
+            }
         try:
             kid_rec = store.record_kid_session(payload)
         except ValueError as exc:

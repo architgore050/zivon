@@ -5,10 +5,13 @@ from __future__ import annotations
 import dataclasses
 import importlib
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 from evals.cli import main as cli_main
 from evals.config import EvalConfig
@@ -37,7 +40,7 @@ class TestStoreDiffAndCli(unittest.TestCase):
                 "ZIVON_EVAL_RUNS_DIR": str(self.tmp / "evals_runs"),
                 "ZIVON_DB_URL": f"sqlite:///{self.db_path}",
                 "ZIVON_EVAL_STORE_BACKEND": "dual",
-                "EVAL_MOCK_MODE": "1",
+                "ZIVON_EVAL_MOCK": "1",
             }
         )
 
@@ -84,6 +87,165 @@ class TestStoreDiffAndCli(unittest.TestCase):
         self.assertTrue(report.overall_pass)
         outbox = bad_cfg.evals_runs_dir / "outbox" / f"{report.eval_run_id}.tar.zst"
         self.assertTrue(outbox.is_file())
+
+    def test_persist_run_is_idempotent_and_records_card_duration(self) -> None:
+        report = run_eval_suite(self.cfg, suite="calibrate")
+        store = EvalStore(self.cfg)
+        store.persist_run(report)  # retry of the same run id must not duplicate
+
+        rows = [
+            row
+            for row in store._read_jsonl(store.runs_ledger)
+            if row["eval_run_id"] == report.eval_run_id
+        ]
+        self.assertEqual(len(rows), 1)
+
+        with sqlite3.connect(self.db_path) as conn:
+            measured = conn.execute(
+                "SELECT COUNT(*) FROM eval_card_result WHERE duration_ms > 0"
+            ).fetchone()[0]
+        self.assertGreater(measured, 0)
+
+    def test_outbox_falls_back_to_real_gzip_extension(self) -> None:
+        store = EvalStore(self.cfg)
+        run_id = "eval-fallback-001"
+        run_dir = self.cfg.evals_runs_dir / run_id
+        run_dir.mkdir(parents=True)
+        (run_dir / "eval_report.json").write_text("{}", encoding="utf-8")
+        with mock.patch(
+            "evals.store.subprocess.run",
+            return_value=SimpleNamespace(returncode=1),
+        ):
+            bundle = store.create_outbox_bundle(run_id)
+        self.assertEqual(bundle.suffix, ".gz")
+        self.assertTrue(bundle.is_file())
+
+    def test_regression_diff_detects_dropped_card(self) -> None:
+        cards = load_all_cards(self.cfg.cards_dir)
+        base_run = run_eval_suite(self.cfg, suite="calibrate")
+        dropped = dataclasses.replace(
+            base_run,
+            eval_run_id=base_run.eval_run_id + "-dropped",
+            cards=base_run.cards[:-1],
+        )
+        diff = compute_run_diff(base_run, dropped, cards)
+        self.assertTrue(diff.regression_detected)
+        self.assertTrue(
+            any("missing from current run" in r for r in diff.blocking_reasons)
+        )
+
+    def test_skipped_card_is_not_a_metric_regression(self) -> None:
+        cards = load_all_cards(self.cfg.cards_dir)
+        base_run = run_eval_suite(self.cfg, suite="smoke", card_id="EV-E2E-001")
+        skipped_card = dataclasses.replace(
+            base_run.cards[0],
+            verdict="skip",
+            deterministic_score=0.0,
+        )
+        skipped_run = dataclasses.replace(
+            base_run,
+            eval_run_id=base_run.eval_run_id + "-skip",
+            cards=[skipped_card],
+        )
+        diff = compute_run_diff(base_run, skipped_run, cards)
+        self.assertFalse(diff.regression_detected)
+        self.assertEqual(diff.card_diffs[0].deterministic_delta, 0.0)
+
+    def test_cli_fail_on_regression_exits_2(self) -> None:
+        base_run = run_eval_suite(self.cfg, suite="smoke", card_id="EV-E2E-001")
+        self.assertEqual(base_run.cards[0].verdict, "pass")
+        regressed_card = dataclasses.replace(
+            base_run.cards[0],
+            verdict="fail",
+            deterministic_score=0.0,
+            fatal_count=1,
+        )
+        regressed_run = dataclasses.replace(
+            base_run,
+            eval_run_id=base_run.eval_run_id + "-current",
+            overall_pass=False,
+            cards=[regressed_card],
+        )
+        with (
+            mock.patch("evals.cli.EvalConfig.from_env", return_value=self.cfg),
+            mock.patch("evals.cli.run_eval_suite", return_value=regressed_run),
+        ):
+            rc = cli_main(["run", "--suite", "smoke", "--fail-on-regression"])
+        self.assertEqual(rc, 2)
+
+        with (
+            mock.patch("evals.cli.EvalConfig.from_env", return_value=self.cfg),
+            mock.patch("evals.cli.run_eval_suite", return_value=base_run),
+        ):
+            rc_clean = cli_main(["run", "--suite", "smoke", "--fail-on-regression"])
+        self.assertEqual(rc_clean, 0)
+
+    def test_cli_record_kid_test_flags_and_audio_rejection(self) -> None:
+        cli_runs = self.tmp / "cli_evals_runs"
+        env = {
+            "ZIVON_EVAL_RUNS_DIR": str(cli_runs),
+            "ZIVON_EVAL_MOCK": "1",
+        }
+        with mock.patch.dict(os.environ, env, clear=True):
+            rc = cli_main(
+                [
+                    "record-kid-test",
+                    "--session-code",
+                    "kid-r9-01",
+                    "--topic",
+                    "class-9-physics/how-forces-affect-motion",
+                    "--tester-class",
+                    "9",
+                    "--topic-class",
+                    "9",
+                    "--restated",
+                    "true",
+                    "--followup-1",
+                    "true",
+                    "--followup-2",
+                    "false",
+                    "--confusion-block",
+                    "b-06",
+                    "--promoted-defect-id",
+                    "SD-REV-005",
+                    "--notes",
+                    "Slider interaction unclear.",
+                ]
+            )
+            self.assertEqual(rc, 0)
+            rows = (cli_runs / "kid_sessions_ledger.jsonl").read_text(encoding="utf-8")
+            self.assertIn("kid-r9-01", rows)
+            self.assertIn('"gate_b_pass": false', rows)
+
+            rc_audio = cli_main(
+                ["record-kid-test", "--input", "/tmp/session-recording.wav"]
+            )
+            self.assertEqual(rc_audio, 1)
+
+            rc_path_in_json = cli_main(
+                [
+                    "record-kid-test",
+                    "--input",
+                    json.dumps(
+                        {
+                            "session_code": "kid-r9-02",
+                            "topic_slug": "motion",
+                            "tester_class": 9,
+                            "topic_class": 9,
+                            "is_above_class_level": False,
+                            "restated_in_own_words": True,
+                            "followup_1_correct": True,
+                            "followup_2_correct": True,
+                            "gate_b_pass": True,
+                            "confusion_blocks": [],
+                            "promoted_defect_id": None,
+                            "notes": "recording at /tmp/session.mp3",
+                            "recorded_at": "2026-11-10T00:00:00Z",
+                        }
+                    ),
+                ]
+            )
+            self.assertEqual(rc_path_in_json, 1)
 
     def test_regression_diff_detects_verdict_flip_and_recall_drop(self) -> None:
         cards = load_all_cards(self.cfg.cards_dir)
