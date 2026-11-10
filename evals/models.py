@@ -44,6 +44,9 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
         },
         "version": {"type": "integer", "minimum": 1},
         "title": {"type": "string", "minLength": 10},
+        # Stage values are the lineage ranges defined in
+        # docs/specs/evals/card-template.md §1; kept verbatim rather than
+        # modelled as arbitrary strings so a typo fails at load time.
         "stage": {
             "type": "string",
             "enum": [
@@ -130,6 +133,7 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "severity_ladder": {
                     "type": "object",
                     "required": ["fatal", "major", "minor"],
+                    "additionalProperties": False,
                     "properties": {
                         "fatal": {"type": "string"},
                         "major": {"type": "string"},
@@ -146,10 +150,22 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                     "items": {
                         "type": "object",
                         "required": ["label", "input_summary", "expected_issue"],
+                        "additionalProperties": False,
                         "properties": {
                             "label": {"type": "string"},
                             "input_summary": {"type": "string"},
-                            "expected_issue": {"type": "object"},
+                            "expected_issue": {
+                                "type": "object",
+                                "required": ["severity", "message"],
+                                "additionalProperties": False,
+                                "properties": {
+                                    "block_id": {"type": ["string", "null"]},
+                                    "claim_id": {"type": ["string", "null"]},
+                                    "severity": {"enum": ["fatal", "major", "minor"]},
+                                    "category": {"type": "string"},
+                                    "message": {"type": "string"},
+                                },
+                            },
                         },
                     },
                 },
@@ -235,6 +251,7 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
                 "chapter_title_normalized",
                 "matched_via",
             ],
+            "additionalProperties": False,
             "properties": {
                 "primary_book_id": {"type": "string"},
                 "chapter_title_normalized": {"type": "string"},
@@ -258,6 +275,7 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
                 "simulations_min",
                 "diagrams_max",
             ],
+            "additionalProperties": False,
             "properties": {
                 "sections_min": {"type": "integer"},
                 "claims_min": {"type": "integer"},
@@ -277,6 +295,7 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
         "required_concepts_and_equations": {
             "type": "object",
             "required": ["key_terms_must_include", "equation_patterns_must_include"],
+            "additionalProperties": False,
             "properties": {
                 "key_terms_must_include": {
                     "type": "array",
@@ -298,6 +317,7 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
                     "expected_answer_values",
                     "tolerance_rel",
                 ],
+                "additionalProperties": False,
                 "properties": {
                     "source_label": {"type": "string"},
                     "problem_numbers": {"type": "array", "items": {"type": "string"}},
@@ -317,6 +337,7 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
                 "computed_graphs_as_simulations",
                 "max_overflow_px",
             ],
+            "additionalProperties": False,
             "properties": {
                 "requires_lang_bar": {"type": "boolean"},
                 "requires_sim_readout_populated": {"type": "boolean"},
@@ -333,6 +354,7 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
                 "load_budget_s",
                 "fcp_budget_s",
             ],
+            "additionalProperties": False,
             "properties": {
                 "profile": {"type": "string"},
                 "ram_budget_mb": {"type": "number"},
@@ -548,8 +570,33 @@ EVAL_REPORT_SCHEMA: dict[str, Any] = {
                 "human_edit_rate_rolling",
                 "gate_b_comprehension_rate",
             ],
+            "additionalProperties": True,
+            "properties": {
+                "cards_total": {"type": "integer", "minimum": 0},
+                "cards_passed": {"type": "integer", "minimum": 0},
+                "cards_failed": {"type": "integer", "minimum": 0},
+                "cards_skipped": {"type": "integer", "minimum": 0},
+                "model_calls_total": {"type": "integer", "minimum": 0},
+                "total_thinking_s": {"type": "number", "minimum": 0.0},
+                # null = not measured (no E2E run ledgers / no kid sessions);
+                # never default these to 0.0/1.0, which would read as success.
+                "human_edit_rate_rolling": {"type": ["number", "null"]},
+                "gate_b_comprehension_rate": {"type": ["number", "null"]},
+            },
         },
-        "cards": {"type": "array"},
+        "cards": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["card_id", "stage", "verdict"],
+                "additionalProperties": True,
+                "properties": {
+                    "card_id": {"type": "string", "pattern": "^EV-"},
+                    "stage": {"type": "string"},
+                    "verdict": {"enum": ["pass", "fail", "skip"]},
+                },
+            },
+        },
     },
 }
 
@@ -578,7 +625,20 @@ DIFF_REPORT_SCHEMA: dict[str, Any] = {
         "regression_detected": {"type": "boolean"},
         "exit_code": {"type": "integer", "enum": [0, 1, 2]},
         "blocking_reasons": {"type": "array", "items": {"type": "string"}},
-        "card_diffs": {"type": "array"},
+        "card_diffs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["card_id", "current_verdict", "regressed", "reasons"],
+                "additionalProperties": True,
+                "properties": {
+                    "card_id": {"type": "string", "pattern": "^EV-"},
+                    "current_verdict": {"type": "string"},
+                    "regressed": {"type": "boolean"},
+                    "reasons": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        },
         "cost_delta": {"type": "object"},
         "human_edit_rate_delta": {"type": "number"},
     },
@@ -681,6 +741,7 @@ class CardResult:
     thinking_s: float = 0.0
     max_completion_tokens: int = 0
     length_cuts: int = 0
+    duration_s: float = 0.0
     metrics: dict[str, Any] = field(default_factory=dict)
     delta_vs_baseline: dict[str, Any] = field(default_factory=dict)
     issues: list[dict[str, Any]] = field(default_factory=list)
@@ -705,6 +766,7 @@ class CardResult:
             "thinking_s": round(self.thinking_s, 2),
             "max_completion_tokens": self.max_completion_tokens,
             "length_cuts": self.length_cuts,
+            "duration_s": round(self.duration_s, 3),
             "metrics": self.metrics,
             "delta_vs_baseline": self.delta_vs_baseline,
             "issues": self.issues,

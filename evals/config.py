@@ -1,7 +1,8 @@
 """Evaluation configuration (`EvalConfig`).
 
-Reads `ZIVON_*` and `ZIVON_EVAL_*` (plus `EVAL_*` aliases) environment variables
-with zero secrets stored in files. Supports key-free execution in `--suite smoke`
+Reads `ZIVON_*` and `ZIVON_EVAL_*` environment variables (plus the
+`EVAL_DB_URL` alias shared with the Alembic migration) with zero secrets stored
+in files. Supports key-free execution in `--suite smoke`
 while building an `llm_manager.LLMConfig` with `temperature=0.0` (ADR-0028) when
 judge or reviewer-calibration model calls are invoked.
 """
@@ -98,16 +99,6 @@ class EvalConfig:
     heartbeat_s: float = 60.0
     factory_image_tag: str = "0.3.17"
 
-    @property
-    def golden_dir(self) -> Path:
-        """Compatibility alias for `goldens_dir`."""
-        return self.goldens_dir
-
-    @property
-    def code_model(self) -> str:
-        """Compatibility alias for `generator_model`."""
-        return self.generator_model
-
     @classmethod
     def from_env(
         cls,
@@ -125,9 +116,7 @@ class EvalConfig:
         root = (repo_root or REPO_ROOT).resolve()
 
         runs_raw = _clean_env(env_map, "ZIVON_RUNS_DIR")
-        evals_runs_raw = _clean_env(env_map, "ZIVON_EVAL_RUNS_DIR") or _clean_env(
-            env_map, "EVAL_RUNS_DIR"
-        )
+        evals_runs_raw = _clean_env(env_map, "ZIVON_EVAL_RUNS_DIR")
         goldens_raw = _clean_env(env_map, "ZIVON_EVAL_GOLDENS_DIR")
         cards_raw = _clean_env(env_map, "ZIVON_EVAL_CARDS_DIR")
         frontend_raw = _clean_env(env_map, "ZIVON_FRONTEND_DIR")
@@ -142,15 +131,15 @@ class EvalConfig:
         db_url = _clean_env(env_map, "ZIVON_DB_URL") or _clean_env(
             env_map, "EVAL_DB_URL"
         )
-        store_backend = (
-            _clean_env(env_map, "ZIVON_EVAL_STORE_BACKEND")
-            or _clean_env(env_map, "EVAL_STORE_BACKEND")
-            or "dual"
+        store_backend = _clean_env(env_map, "ZIVON_EVAL_STORE_BACKEND") or "dual"
+        if store_backend not in ("jsonl", "dual", "postgres"):
+            raise EvalConfigError(
+                "ZIVON_EVAL_STORE_BACKEND must be one of jsonl|dual|postgres, "
+                f"got {store_backend!r}"
+            )
+        mock_mode = _parse_bool(
+            _clean_env(env_map, "ZIVON_EVAL_MOCK"), False, "ZIVON_EVAL_MOCK"
         )
-        mock_raw = _clean_env(env_map, "ZIVON_EVAL_MOCK") or _clean_env(
-            env_map, "EVAL_MOCK_MODE"
-        )
-        mock_mode = _parse_bool(mock_raw, False, "EVAL_MOCK_MODE")
 
         timeout_s = _parse_float(
             _clean_env(env_map, "ZIVON_TIMEOUT_S"), 600.0, "ZIVON_TIMEOUT_S"

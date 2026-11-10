@@ -437,7 +437,8 @@ def check_golden_perf_budgets(
                         )
                     )
         elif page_path and page_path.exists():
-            # Static asset size & frame budget check when headless Chromium binary is absent
+            # No headless Chromium: static asset-size check only. FPS / load /
+            # RSS are NOT measured and must not be invented.
             total_bytes = sum(
                 f.stat().st_size for f in page_path.parent.glob("*") if f.is_file()
             )
@@ -445,11 +446,6 @@ def check_golden_perf_budgets(
                 {
                     "topic": exp["topic_slug"],
                     "static_bundle_kb": round(total_bytes / 1024, 1),
-                    "load_s": 0.45,
-                    "fcp_s": 0.25,
-                    "fps_median": 58.0,
-                    "peak_browser_rss_mb": 210.0,
-                    "overflow_px": 0,
                 }
             )
             if total_bytes > 2 * 1024 * 1024:
@@ -462,18 +458,32 @@ def check_golden_perf_budgets(
                     )
                 )
 
-    if measured_topics:
-        metrics_acc["topics_measured"] = len(measured_topics)
-        metrics_acc["load_s_max"] = max(
-            float(m.get("load_s", 0.0)) for m in measured_topics
-        )
-        metrics_acc["fps_min_observed"] = min(
-            float(m.get("fps_median") or 60.0) for m in measured_topics
-        )
-        metrics_acc["peak_rss_mb_max"] = max(
-            float(m.get("peak_browser_rss_mb", 0.0)) for m in measured_topics
-        )
+    budget_topics = [m for m in measured_topics if "load_s" in m]
+    metrics_acc["topics_measured"] = len(measured_topics)
+    metrics_acc["topics_budget_measured"] = len(budget_topics)
+    if budget_topics:
+        metrics_acc["load_s_max"] = max(float(m["load_s"]) for m in budget_topics)
+        fps_values = [
+            float(m["fps_median"]) for m in budget_topics if "fps_median" in m
+        ]
+        rss_values = [
+            float(m["peak_browser_rss_mb"])
+            for m in budget_topics
+            if "peak_browser_rss_mb" in m
+        ]
+        if fps_values:
+            metrics_acc["fps_min_observed"] = min(fps_values)
+        if rss_values:
+            metrics_acc["peak_rss_mb_max"] = max(rss_values)
 
+    if not has_chromium and not issues:
+        context.setdefault("skipped_checks", {})["DET-PERF01-BUDGET-GATE"] = (
+            "headless Chromium unavailable; hardware budget not measured"
+        )
+    elif has_chromium and not budget_topics and not issues:
+        context.setdefault("skipped_checks", {})["DET-PERF01-BUDGET-GATE"] = (
+            "no published golden topic page found to profile"
+        )
     return issues
 
 

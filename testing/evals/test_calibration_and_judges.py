@@ -24,7 +24,7 @@ from evals.runner import run_single_card
 
 class TestCalibrationAndJudges(unittest.TestCase):
     def setUp(self) -> None:
-        self.cfg = EvalConfig.from_env({"EVAL_MOCK_MODE": "1"})
+        self.cfg = EvalConfig.from_env({"ZIVON_EVAL_MOCK": "1"})
         self.cards = load_all_cards(self.cfg.cards_dir)
 
     def test_calibrated_judge_passes_all_cards_and_19_seeded_defects(self) -> None:
@@ -116,6 +116,54 @@ class TestCalibrationAndJudges(unittest.TestCase):
         self.assertEqual(res.model_calls, 0)
         self.assertIsNone(res.judge_score)
 
+    def test_severity_on_fail_floor_escalates_a_minor_finding(self) -> None:
+        base_card = self.cards["EV-CUR-001"]
+        minor_spec = DeterministicCheckSpec(
+            id="DET-TEST-MINOR",
+            entrypoint="testing.evals.test_calibration_and_judges:_minor_check_helper",
+            severity_on_fail="fatal",
+            description="Synthetic checker that under-reports severity",
+        )
+        card = dataclasses.replace(base_card, deterministic_checks=[minor_spec])
+        res = run_single_card(
+            card, self.cfg, JudgeClient.mock(self.cfg), execute_judge=False
+        )
+        self.assertEqual(res.verdict, "fail")
+        self.assertEqual(res.fatal_count, 1)
+
+    def test_severity_floor_never_escalates_unverified_minor(self) -> None:
+        base_card = self.cards["EV-CUR-001"]
+        unverified_spec = DeterministicCheckSpec(
+            id="DET-TEST-UNVERIFIED",
+            entrypoint="testing.evals.test_calibration_and_judges:_unverified_check_helper",
+            severity_on_fail="fatal",
+            description="Synthetic checker that returns an unverified minor hedge",
+        )
+        card = dataclasses.replace(base_card, deterministic_checks=[unverified_spec])
+        res = run_single_card(
+            card, self.cfg, JudgeClient.mock(self.cfg), execute_judge=False
+        )
+        self.assertEqual(res.fatal_count, 0)
+        self.assertEqual(res.minor_count, 1)
+
+    def test_kid_card_with_no_sessions_is_skipped_not_passed(self) -> None:
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as td:
+            cfg = EvalConfig.from_env(
+                {"ZIVON_EVAL_RUNS_DIR": str(Path(td) / "evals_runs")}
+            )
+            res = run_single_card(
+                self.cards["EV-KID-001"],
+                cfg,
+                None,
+                execute_judge=False,
+            )
+        self.assertEqual(res.verdict, "skip")
+        self.assertNotIn("gate_b_pass_rate", res.metrics)
+        self.assertIn("DET-KID01-GATE-B-COHORT", res.metrics["skipped_checks"])
+
     def test_verify_source_quote_grounding(self) -> None:
         corpus = "According to NCERT Section 8.2, the SI unit of speed is metre per second (m s-1)."
         self.assertTrue(
@@ -131,6 +179,31 @@ class TestCalibrationAndJudges(unittest.TestCase):
                 "Completely unrelated hallucination", corpus, ["kelvin"]
             )
         )
+
+
+def _minor_check_helper(
+    _cfg: EvalConfig, _card: Any, _context: dict[str, Any]
+) -> list[IssueRecord]:
+    return [
+        IssueRecord(
+            severity="minor",
+            check_id="DET-TEST-MINOR",
+            message="Under-reported severity for a fatal-declared check",
+        )
+    ]
+
+
+def _unverified_check_helper(
+    _cfg: EvalConfig, _card: Any, _context: dict[str, Any]
+) -> list[IssueRecord]:
+    return [
+        IssueRecord(
+            severity="minor",
+            check_id="DET-TEST-UNVERIFIED",
+            message="unverified: could not confirm this suspicion",
+            unverified=True,
+        )
+    ]
 
 
 def _failing_check_helper(

@@ -685,12 +685,56 @@ def check_e2e_published_courses_and_edit_rate(
 
     metrics = context.setdefault("metrics", {})
     metrics["published_courses_count"] = len(hrefs)
+    # None = no human-edit records to average; None is honest, 0.0 is a claim.
     metrics["human_edit_rate_rolling"] = (
-        round(sum(rates) / len(rates), 4) if rates else 0.0
+        round(sum(rates) / len(rates), 4) if rates else None
     )
-    metrics["pipeline_completed_ok"] = len(issues) == 0
-    metrics["length_cuts"] = 0
+    pipeline = _measure_pipeline_metrics(cfg)
+    metrics["pipeline_completed_ok"] = pipeline["pipeline_completed_ok"]
+    metrics["length_cuts"] = pipeline["length_cuts"]
+    metrics["pipeline_metrics_status"] = pipeline["status"]
     return issues
+
+
+def _measure_pipeline_metrics(cfg: EvalConfig) -> dict[str, Any]:
+    """Read the latest factory run ledger; return None metrics when absent.
+
+    These metrics come from a real pipeline run (`runs/<run_id>/`). In smoke
+    mode over the committed golden pages there may be no run directory at all
+    — in that case the honest answer is "not measured", not `True`/`0`.
+    """
+    run_reports = sorted(
+        cfg.runs_dir.glob("*/run_report.json"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if not run_reports:
+        return {
+            "pipeline_completed_ok": None,
+            "length_cuts": None,
+            "status": "skipped_no_run_ledgers",
+        }
+    run_dir = run_reports[0].parent
+    run_report = json.loads(run_reports[0].read_text(encoding="utf-8"))
+    link_ok = False
+    status_path = run_dir / "status.json"
+    if status_path.is_file():
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        link_ok = (status.get("stages") or {}).get("11-link", {}).get("state") == "ok"
+    length_cuts = 0
+    calls_path = run_dir / "calls_ledger.jsonl"
+    if calls_path.is_file():
+        for line in calls_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if row.get("finish_reason") == "length":
+                length_cuts += 1
+    return {
+        "pipeline_completed_ok": bool(run_report.get("ok")) and link_ok,
+        "length_cuts": length_cuts,
+        "status": "measured",
+    }
 
 
 def check_kid_sessions_gate_b(
@@ -708,55 +752,17 @@ def check_kid_sessions_gate_b(
             if line.strip():
                 sessions.append(json.loads(line))
 
-    # Default baseline Round-1 cohort if no external ledger rows have been written yet
+    metrics = context.setdefault("metrics", {})
+    metrics["sessions_total"] = len(sessions)
+
     if not sessions:
-        sessions = [
-            {
-                "session_code": "kid-r1-01",
-                "topic_slug": "how-forces-affect-motion",
-                "tester_class": 9,
-                "topic_class": 9,
-                "is_above_class_level": False,
-                "restated_in_own_words": True,
-                "followup_1_correct": True,
-                "followup_2_correct": True,
-                "gate_b_pass": True,
-                "confusion_blocks": [],
-                "promoted_defect_id": None,
-                "notes": "Restated balanced vs unbalanced forces clearly and solved both follow-up checks.",
-                "recorded_at": "2026-11-05T14:00:00Z",
-            },
-            {
-                "session_code": "kid-r1-02",
-                "topic_slug": "motion-in-a-straight-line",
-                "tester_class": 9,
-                "topic_class": 11,
-                "is_above_class_level": True,
-                "restated_in_own_words": True,
-                "followup_1_correct": True,
-                "followup_2_correct": True,
-                "gate_b_pass": True,
-                "confusion_blocks": [],
-                "promoted_defect_id": None,
-                "notes": "Class 9 tester completed Class 11 kinematics topic above level using v-t simulation.",
-                "recorded_at": "2026-11-05T15:00:00Z",
-            },
-            {
-                "session_code": "kid-r1-03",
-                "topic_slug": "motion-in-a-straight-line",
-                "tester_class": 10,
-                "topic_class": 11,
-                "is_above_class_level": True,
-                "restated_in_own_words": True,
-                "followup_1_correct": True,
-                "followup_2_correct": False,
-                "gate_b_pass": False,
-                "confusion_blocks": ["b-08"],
-                "promoted_defect_id": "SD-REV-005",
-                "notes": "Promoted blank .zn-sim-read readout confusion on b-08 to SD-REV-005.",
-                "recorded_at": "2026-11-05T16:00:00Z",
-            },
-        ]
+        # No kid sessions recorded: a fabricated "clean" cohort would make an
+        # empty Gate B look like a perfect Gate B. Mark the check skipped and
+        # leave gate_b_pass_rate absent entirely.
+        context.setdefault("skipped_checks", {})["DET-KID01-GATE-B-COHORT"] = (
+            "no eval_kid_session records in kid_sessions_ledger.jsonl"
+        )
+        return issues
 
     passed_count = 0
     above_level_passed = False
@@ -817,9 +823,15 @@ def check_kid_sessions_gate_b(
             )
         )
 
-    metrics = context.setdefault("metrics", {})
     metrics["sessions_total"] = n
     metrics["sessions_passed"] = passed_count
-    metrics["gate_b_pass_rate"] = round(pass_rate, 4)
     metrics["above_class_level_pass"] = above_level_passed
+    if n < 3 and not issues:
+        # Gate B is a cohort criterion (N >= 3); one or two sessions cannot
+        # prove it. Report skipped rather than a misleading rate.
+        context.setdefault("skipped_checks", {})["DET-KID01-GATE-B-COHORT"] = (
+            f"cohort has {n} session(s); Gate B requires N >= 3"
+        )
+        return issues
+    metrics["gate_b_pass_rate"] = round(pass_rate, 4)
     return issues

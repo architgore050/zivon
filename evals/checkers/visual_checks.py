@@ -159,11 +159,15 @@ def check_computed_sim_loop(
     return issues
 
 
-def check_chromium_render_and_a11y(
+def check_dom_and_a11y_invariants(
     cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
 ) -> list[IssueRecord]:
-    """`DET-VIS01-DOM-AND-A11Y`: Verify kit chrome (`.zn-lang-bar`, `.zn-sim-read`),
-    `<svg>` `viewBox` without fixed width/height, and `.zn-check` `<legend>` float rule.
+    """`DET-VIS01-DOM-AND-A11Y`: Static DOM/a11y probe over the rendered HTML.
+
+    Verifies kit chrome (`.zn-lang-bar`), `<svg>` `viewBox` without fixed
+    width/height, and the `.zn-check` `<legend>` float rule in `zivon.css`.
+    This is a regex/CSS probe, not a headless-Chromium run; the Chromium CDP
+    instrumentation lives in `perf_harness.py` (`EV-PERF-001`).
     """
     issues: list[IssueRecord] = []
 

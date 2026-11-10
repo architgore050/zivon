@@ -67,6 +67,15 @@ def compute_run_diff(
                 if m_key in prev_num:
                     deltas[m_key] = round(curr_val - prev_num[m_key], 6)
 
+            if curr_card.verdict == "skip":
+                # A skipped card means "not measured" (e.g. no kid sessions),
+                # not "scored 0.0". Diffing its metrics against a measured
+                # baseline would report a false regression.
+                prev_num, curr_num = {}, {}
+                deltas = {}
+                det_delta = 0.0
+                judge_delta = None
+
             if "fatal_recall" in prev_num and "fatal_recall" in curr_num:
                 drop = prev_num["fatal_recall"] - curr_num["fatal_recall"]
                 if drop > 0.0:
@@ -131,10 +140,40 @@ def compute_run_diff(
             )
         )
 
-    prev_edit = float(prev_run.summary.get("human_edit_rate_rolling", 0.0))
-    curr_edit = float(curr_run.summary.get("human_edit_rate_rolling", 0.0))
-    edit_delta = round(curr_edit - prev_edit, 4)
-    if edit_delta > 0.05:
+    curr_ids = {c.card_id for c in curr_run.cards}
+    for prev_card in prev_run.cards:
+        if prev_card.card_id in curr_ids:
+            continue
+        # A card that silently disappeared from the suite must block: a
+        # "clean" diff that only compared the surviving cards would hide a
+        # removed regression gate.
+        reason = (
+            f"{prev_card.card_id}: card present in baseline run but missing "
+            "from current run"
+        )
+        blocking_reasons.append(reason)
+        card_diffs.append(
+            CardDiff(
+                card_id=prev_card.card_id,
+                topic_slug=prev_card.topic_slug,
+                baseline_verdict=prev_card.verdict,
+                current_verdict="missing",
+                deterministic_delta=0.0,
+                judge_delta=None,
+                metric_deltas={},
+                regressed=True,
+                reasons=[reason],
+            )
+        )
+
+    prev_edit = prev_run.summary.get("human_edit_rate_rolling")
+    curr_edit = curr_run.summary.get("human_edit_rate_rolling")
+    edit_delta = (
+        round(float(curr_edit) - float(prev_edit), 4)
+        if prev_edit is not None and curr_edit is not None
+        else 0.0
+    )
+    if prev_edit is not None and curr_edit is not None and edit_delta > 0.05:
         blocking_reasons.append(
             f"human_edit_rate_rolling increased by {edit_delta:.4f} > 0.05 "
             f"({prev_edit:.4f} -> {curr_edit:.4f})"

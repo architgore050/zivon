@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import shutil
 import subprocess
 import time
@@ -80,6 +81,24 @@ def compute_topic_sha256(topic_dir: Path) -> str:
     return h.hexdigest()
 
 
+_SEVERITY_RANK = {"minor": 1, "major": 2, "fatal": 3, "unverified": 1}
+
+
+def _apply_severity_floor(issues: list[IssueRecord], floor: str) -> None:
+    """Raise each failing issue to the check's declared `severity_on_fail` floor.
+
+    A checker that reports a `minor` result for a check the card declares `fatal`
+    must still fail the card. Unverified hedges (`unverified:` way-out rule) are
+    never escalated above minor.
+    """
+    floor_rank = _SEVERITY_RANK.get(floor, 1)
+    for issue in issues:
+        if issue.unverified or issue.message.startswith("unverified:"):
+            continue
+        if _SEVERITY_RANK.get(issue.severity, 1) < floor_rank:
+            issue.severity = floor
+
+
 def run_single_card(
     card: EvalCard,
     cfg: EvalConfig,
@@ -87,25 +106,41 @@ def run_single_card(
     *,
     execute_judge: bool = True,
     topic_filter: str | None = None,
+    suite: str = "smoke",
 ) -> CardResult:
     """Execute one `EvalCard` following the deterministic-first funnel."""
+    card_t0 = time.monotonic()
     det_issues: list[IssueRecord] = []
     det_metrics: dict[str, Any] = {}
+    skipped_checks: dict[str, str] = {}
     checks_passed = 0
+    checks_evaluated = 0
 
-    context: dict[str, Any] = {"metrics": det_metrics}
+    context: dict[str, Any] = {
+        "metrics": det_metrics,
+        "skipped_checks": skipped_checks,
+        "suite": suite,
+    }
     if topic_filter:
         context["topic_filter"] = topic_filter
 
     for check_spec in card.deterministic_checks:
         issues = run_deterministic_check(check_spec.entrypoint, cfg, card, context)
+        if check_spec.id in skipped_checks:
+            # A checker with no data to grade must say so; it never silently
+            # counts as a pass (that is how a broken pipeline reports 1.0).
+            continue
+        _apply_severity_floor(issues, check_spec.severity_on_fail)
         det_issues.extend(issues)
+        checks_evaluated += 1
         has_blocking = any(i.severity in ("fatal", "major") for i in issues)
         if not has_blocking:
             checks_passed += 1
 
-    total_checks = max(1, len(card.deterministic_checks))
-    det_score = round(checks_passed / total_checks, 4)
+    if checks_evaluated:
+        det_score = round(checks_passed / checks_evaluated, 4)
+    else:
+        det_score = 0.0
 
     fatal_count = sum(1 for i in det_issues if i.severity == "fatal")
     major_count = sum(1 for i in det_issues if i.severity == "major")
@@ -120,6 +155,9 @@ def run_single_card(
     det_failed = (
         fatal_count > fatal_max or major_count > major_max or det_score < det_min
     )
+    card_skipped = checks_evaluated == 0
+    if skipped_checks:
+        det_metrics["skipped_checks"] = dict(skipped_checks)
 
     judge_score: float | None = None
     model_calls = 0
@@ -131,7 +169,8 @@ def run_single_card(
     # Deterministic-first funnel (spec.md §1.2 Rule 3):
     # Only invoke LLM judge if all deterministic checks passed!
     if (
-        not det_failed
+        not card_skipped
+        and not det_failed
         and execute_judge
         and card.llm_judge is not None
         and judge_client is not None
@@ -165,7 +204,7 @@ def run_single_card(
             else "pass"
         )
     else:
-        verdict = "fail" if det_failed else "pass"
+        verdict = "skip" if card_skipped else ("fail" if det_failed else "pass")
 
     return CardResult(
         card_id=card.card_id,
@@ -182,6 +221,7 @@ def run_single_card(
         thinking_s=thinking_s,
         max_completion_tokens=max_comp_tokens,
         length_cuts=length_cuts,
+        duration_s=round(max(0.0, time.monotonic() - card_t0), 3),
         metrics=det_metrics,
         delta_vs_baseline={},
         issues=[i.to_dict() for i in det_issues],
@@ -216,7 +256,9 @@ def run_eval_suite(
 
     ts_slug = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     git_sha = _detect_git_sha(cfg.repo_root)
-    eval_run_id = f"eval-{suite}-{ts_slug}-{git_sha[:7]}"
+    # Two runs can start inside the same wall-clock second (e.g. a smoke run
+    # followed by a calibration run); add entropy so ledger keys never collide.
+    eval_run_id = f"eval-{suite}-{ts_slug}-{git_sha[:7]}-{secrets.token_hex(3)}"
 
     if judge_client is None:
         judge_client = JudgeClient.mock(cfg) if cfg.mock_mode else JudgeClient(cfg)
@@ -245,6 +287,7 @@ def run_eval_suite(
             judge_client,
             execute_judge=execute_judge,
             topic_filter=topic_filter,
+            suite=suite,
         )
         cards_out.append(res)
 
@@ -252,18 +295,22 @@ def run_eval_suite(
     duration_s = round(max(0.01, time.monotonic() - t0), 2)
     cards_passed = sum(1 for c in cards_out if c.verdict == "pass")
     cards_failed = sum(1 for c in cards_out if c.verdict == "fail")
+    cards_skipped = sum(1 for c in cards_out if c.verdict == "skip")
     overall_pass = cards_failed == 0
     model_calls_total = sum(c.model_calls for c in cards_out)
     total_thinking_s = round(sum(c.thinking_s for c in cards_out), 2)
 
-    e2e_card = next((c for c in cards_out if c.card_id == "EV-E2E-001"), None)
-    kid_card = next((c for c in cards_out if c.card_id == "EV-KID-001"), None)
-    human_edit_rate_rolling = (
-        float(e2e_card.metrics.get("human_edit_rate_rolling", 0.0)) if e2e_card else 0.0
-    )
-    gate_b_comprehension_rate = (
-        float(kid_card.metrics.get("gate_b_pass_rate", 1.0)) if kid_card else 1.0
-    )
+    def _measured_metric(card_id: str, key: str) -> float | None:
+        card = next((c for c in cards_out if c.card_id == card_id), None)
+        if card is None or card.verdict == "skip":
+            return None
+        value = card.metrics.get(key)
+        return None if value is None else float(value)
+
+    # null means "no measurement available" — never coerce to 0.0/1.0, which
+    # would make an empty run look like a perfect run on the dashboard.
+    human_edit_rate_rolling = _measured_metric("EV-E2E-001", "human_edit_rate_rolling")
+    gate_b_comprehension_rate = _measured_metric("EV-KID-001", "gate_b_pass_rate")
 
     report = EvalRunReport(
         eval_run_id=eval_run_id,
@@ -284,6 +331,7 @@ def run_eval_suite(
             "cards_total": len(cards_out),
             "cards_passed": cards_passed,
             "cards_failed": cards_failed,
+            "cards_skipped": cards_skipped,
             "model_calls_total": model_calls_total,
             "total_thinking_s": total_thinking_s,
             "human_edit_rate_rolling": human_edit_rate_rolling,
@@ -368,6 +416,19 @@ def rotate_golden(
     old_sha = target_entry.get("sha256", "")
     if not dry_run:
         target_entry["sha256"] = new_sha
+        # Persist the audit trail in the manifest (not only in stdout): a
+        # golden rotation must be attributable months later.
+        rotations = target_entry.setdefault("rotations", [])
+        rotations.append(
+            {
+                "rotated_at": utc_now_iso(),
+                "reason": reason,
+                "old_sha256": old_sha,
+                "new_sha256": new_sha,
+                "source_dir": str(source_dir) if source_dir is not None else None,
+                "tool": "python -m evals rotate-golden",
+            }
+        )
         manifest_path.write_text(
             json.dumps(raw, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",

@@ -165,6 +165,7 @@ def emit_eval_event(
     ctx = current_context()
     eff_run_id = run_id or ctx.get("run_id")
 
+    emitted_via_manager = False
     try:
         import logging_manager  # type: ignore[import-not-found]
 
@@ -179,6 +180,7 @@ def emit_eval_event(
             run_id=eff_run_id,
             stage=stage,
         )
+        emitted_via_manager = True
     except ImportError:
         pass
 
@@ -191,7 +193,7 @@ def emit_eval_event(
         "severity": eff_sev.value,
         "event": dot_event,
         "evt_id": evt_id,
-        "component": "factory",
+        "component": "evals",
         "env": os.environ.get("ZIVON_ENV", "dev"),
     }
     if eff_run_id:
@@ -204,7 +206,7 @@ def emit_eval_event(
         record["error_class"] = error_class.value
     record["fields"] = redacted
 
-    if fallback_dir is not None:
+    if fallback_dir is not None and not emitted_via_manager:
         logs_dir = fallback_dir / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
         day_str = datetime.now(UTC).strftime("%Y%m%d")
@@ -277,12 +279,25 @@ def format_prometheus_metrics(
             f'zivon_eval_human_edit_rate{{topic_slug="{slug}",class_level="{cls_lv}"}} {rate:.4f}'
         )
 
-    gate_b = report_dict.get("summary", {}).get("gate_b_comprehension_rate", 1.0)
+    gate_b = report_dict.get("summary", {}).get("gate_b_comprehension_rate")
     lines.extend(
         [
             "# HELP zivon_eval_gate_b_pass_rate Gate B kid comprehension cohort pass rate",
             "# TYPE zivon_eval_gate_b_pass_rate gauge",
-            f'zivon_eval_gate_b_pass_rate{{round="current"}} {float(gate_b):.4f}',
+        ]
+    )
+    if gate_b is None:
+        # No recorded kid sessions: omit the sample entirely rather than
+        # exporting a fabricated 1.0 that reads as "all kids passed".
+        lines.append(
+            "# zivon_eval_gate_b_pass_rate absent: no kid-comprehension sessions recorded"
+        )
+    else:
+        lines.append(
+            f'zivon_eval_gate_b_pass_rate{{round="current"}} {float(gate_b):.4f}'
+        )
+    lines.extend(
+        [
             "# HELP zivon_eval_run_duration_seconds Duration of eval suite run in seconds",
             "# TYPE zivon_eval_run_duration_seconds gauge",
             f'zivon_eval_run_duration_seconds{{suite="{report_dict.get("suite", "smoke")}"}} {float(report_dict.get("duration_s", 0.0)):.2f}',
