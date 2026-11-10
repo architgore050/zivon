@@ -51,6 +51,17 @@ if [[ ! -f frontend/index.html ]]; then
   echo "repo frontend/ shell missing (index.html) - refusing to publish" >&2
   exit 1
 fi
+# Canonical/sitemap/OG URLs come from ONE env var (seo-plan §5). Publishing with
+# it unset would write placeholder URLs into the committed snapshot and the
+# sitemap would point crawlers at a host that does not exist - fail loudly.
+if [[ -z "${ZIVON_PUBLIC_BASE_URL:-}" ]]; then
+  emit_publish_log "factory.publish.fail" "ERROR" "ZIVON_PUBLIC_BASE_URL is unset"
+  echo "ZIVON_PUBLIC_BASE_URL is unset - refusing to publish." >&2
+  echo "Set it to the live site origin (e.g. https://<domain>) so sitemap.xml," >&2
+  echo "robots.txt and the og: URLs are canonical, then re-run." >&2
+  echo "(Hosting/domain is a founder decision - open-questions.md Q10.)" >&2
+  exit 1
+fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -101,7 +112,6 @@ fi
 rm -rf frontend/courses
 cp -a "$tmp/courses" frontend/courses
 cp -a "$tmp/courses.js" frontend/courses.js
-python3 scripts/gen-seo-files.py
 
 copied_hubs=()
 for loc in "${locale_hubs[@]}"; do
@@ -111,6 +121,11 @@ for loc in "${locale_hubs[@]}"; do
     copied_hubs+=("frontend/$loc")
   fi
 done
+
+# Generate AFTER the locale hub copy: discover_locale_alternates() walks the
+# on-disk locale trees, so generating before hubs land made hreflang one
+# publish behind. Uses ZIVON_PUBLIC_BASE_URL (required above).
+python3 scripts/gen-seo-files.py
 
 # Narration audio: additive mirror (content-addressed, immutable - existing
 # hashes stay addressable; GAP-015), then the SYNC-01 P0 cold gate.
