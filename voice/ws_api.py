@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import ipaddress
 import json
 import random
 import re
@@ -45,6 +46,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Protocol
+from urllib.parse import urlsplit
 
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
@@ -66,11 +68,13 @@ from .session import (
     CreditGuard,
     InMemoryTurnRepository,
     IpRateLimiter,
+    SessionIdentity,
     SessionStore,
     TokenValidator,
     TurnRecord,
     TurnRepository,
     VoiceSession,
+    credit_points,
     new_turn_id,
     turn_estimate,
 )
@@ -83,6 +87,7 @@ _WS_CLOSE_AUTH = 4401
 _WS_CLOSE_VERSION = 4409
 _WS_CLOSE_RATE = 1013
 _WS_CLOSE_NORMAL = 1000
+_WS_CLOSE_POLICY = 1008  # origin/protocol policy violation (backend-spec §7.1)
 
 TUTOR_SYSTEM_PROMPT = """You are Zivon, a patient Physics tutor for a Class 9–12 student in India, speaking out loud.
 The student hears you; they may be reading the page you are anchored to.
@@ -160,6 +165,9 @@ SttFactory = Callable[[VoiceSettings], Any]
 BrainFactory = Callable[[VoiceSettings], BrainClient]
 TtsFactory = Callable[[VoiceSettings], TtsClient]
 Clock = Callable[[], float]
+# Profile seam: the core backend decides `demo` server-side (spec.md §11) —
+# never a client claim. Default: everyone is `normal`.
+ProfileFor = Callable[["SessionIdentity"], str]  # → "normal" | "demo"
 
 
 def is_procedural_summary(line: str) -> bool:
@@ -212,6 +220,7 @@ class VoiceApp:
         stt_factory: SttFactory | None = None,
         brain_factory: BrainFactory | None = None,
         tts_factory: TtsFactory | None = None,
+        profile_for: ProfileFor | None = None,
         clock: Clock | None = None,
     ) -> None:
         self.settings = settings or VoiceSettings()
@@ -230,6 +239,7 @@ class VoiceApp:
         self.stt_factory: SttFactory = stt_factory or (lambda s: SttClient(s))
         self.brain_factory: BrainFactory = brain_factory or (lambda s: BrainClient(s))
         self.tts_factory: TtsFactory = tts_factory or (lambda s: TtsClient(s))
+        self.profile_for: ProfileFor = profile_for or (lambda identity: "normal")
         self._clock: Clock = clock
 
     async def endpoint(self, websocket: WebSocket) -> None:
@@ -279,8 +289,13 @@ class _Turn:
     )
     reserved: int = 0
     end_reason: str = "done"
-    audio_seq: int = 0  # per-turn monotonic tts.audio seq (ws-contract §3)
+    # ws-contract §3: (segment_id, seq) monotonic, seq from 0 per segment.
+    audio_seq: dict[int, int] = field(default_factory=dict)
     answer_text: str = ""  # accumulated tutor speech for the voice_turn row
+    allow_audio: bool = True  # False ⇒ text-only session: tts.text, no audio
+    text_state_sent: bool = False  # speaking_text emitted for this text turn
+    finalized: bool = False  # turn.end emitted exactly once (catch-all guard)
+    tts_chars_at_start: int = 0  # per-turn meter delta baseline (H4)
 
     def stamp(self, hop: str, at: float) -> None:
         if self.latency.get(hop) is None and self.audio_end_at is not None:
@@ -305,6 +320,8 @@ class _Connection:
         self.current_turn: _Turn | None = None
         self._tts_turn_open = False
         self._snapshot_obj: Any = None  # ContextSnapshot (set by _store_snapshot)
+        self.pending_turn_id: str = ""  # open mic press: partials carry this id
+        self.partial_seq: int = 0
         self.send_lock = asyncio.Lock()
         self.pong_misses = 0
         self.oversized_frames = 0
@@ -326,15 +343,85 @@ class _Connection:
 # --- endpoint -----------------------------------------------------------------
 
 
+def _origin_allowed(websocket: WebSocket, settings: VoiceSettings) -> bool:
+    """backend-spec §7.1 upgrade origin check.
+
+    ``ws_allowed_origins`` set ⇒ exact match against the configured origins;
+    empty (the default) ⇒ same-origin only: the browser ``Origin`` host must
+    equal the request ``Host``. A missing ``Origin`` is a non-browser client
+    (browsers always send it for WSS); it still has to pass session-token auth,
+    so the check only bounds drive-by browser pages.
+    """
+    origin = websocket.headers.get("origin")
+    if origin is None:
+        return True
+    if settings.ws_allowed_origins:
+        allowed = {value.rstrip("/").lower() for value in settings.ws_allowed_origins}
+        return origin.rstrip("/").lower() in allowed
+    host = (websocket.headers.get("host") or "").strip().lower()
+    if not host:
+        return True
+    try:
+        parsed = urlsplit(origin)
+    except ValueError:
+        return False
+    return parsed.netloc.lower() == host
+
+
+def _is_trusted_proxy(ip: str, trusted: tuple[str, ...]) -> bool:
+    for entry in trusted:
+        try:
+            if ipaddress.ip_address(ip) in ipaddress.ip_network(entry, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def _client_ip(websocket: WebSocket, settings: VoiceSettings) -> str:
+    """The client IP for the limiter, honouring the trusted-proxy list.
+
+    Behind the ingress the direct peer is the proxy pod, so keying the bucket
+    on ``websocket.client.host`` would collapse every client into one global
+    bucket. When the peer is trusted, the last untrusted ``X-Forwarded-For``
+    hop (right-to-left) is used; ``X-Real-IP`` is the fallback.
+    """
+    peer = websocket.client.host if websocket.client else ""
+    if not peer or not settings.ws_trusted_proxies:
+        return peer
+    if not _is_trusted_proxy(peer, settings.ws_trusted_proxies):
+        return peer  # a peer spoofing XFF from an untrusted address is ignored
+    forwarded = websocket.headers.get("x-forwarded-for") or ""
+    hops = [hop.strip() for hop in forwarded.split(",") if hop.strip()]
+    for hop in reversed(hops):
+        if not _is_trusted_proxy(hop, settings.ws_trusted_proxies):
+            return hop
+    real = (websocket.headers.get("x-real-ip") or "").strip()
+    return real or peer
+
+
 async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
-    """The /voice/ws handler: auth → session.ready → message loop."""
+    """The /voice/ws handler: origin → rate limits → auth → session.ready."""
     conn = _Connection(app, websocket)
     settings = app.settings
     now = app._clock
 
     await websocket.accept()
-    ip = websocket.client.host if websocket.client else ""
-    if not app.limiter.allow_connect(ip):  # GAP-003: 10 connects/min/IP
+    # backend-spec §7.1: origin check on upgrade (CSRF/drive-by defence —
+    # the session token alone must not make any page able to open the mic).
+    if not _origin_allowed(websocket, settings):
+        await conn.send_json(
+            {
+                "type": "error",
+                "code": "auth.invalid",
+                "message": "origin not allowed",
+                "recoverable": False,
+            }
+        )
+        await websocket.close(_WS_CLOSE_POLICY)
+        return
+    ip = _client_ip(websocket, settings)
+    if not app.limiter.allow_connect(ip):  # GAP-003: 10 connects/min/bucket
         await conn.send_json(
             {
                 "type": "error",
@@ -405,14 +492,30 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
         await websocket.close(_WS_CLOSE_RATE)
         return
 
+    if not app.limiter.allow_device(identity.device_pseudo_id):
+        # Secondary bucket (pseudonymous device): keeps the limit meaningful
+        # behind an ingress, where every direct peer is the proxy pod.
+        await conn.send_json(
+            {
+                "type": "error",
+                "code": "E-RATE-LIMIT",
+                "message": "too many connects",
+                "recoverable": True,
+            }
+        )
+        await websocket.close(_WS_CLOSE_RATE)
+        return
+
     session = app.sessions.get(identity.session_id)
     resume = bool(first.get("resume"))
     if session is None:
         session = app.sessions.create(
-            identity, profile="normal", locale=str(first.get("locale") or "hi-en")
+            identity,
+            profile=app.profile_for(identity),
+            locale=str(first.get("locale") or "hi-en"),
         )
-    # profile is SERVER-asserted (spec.md §11); the demo flag lives on the
-    # session row the core backend owns — the client can never claim it.
+    # profile is SERVER-asserted (spec.md §11); the server-side seam is the
+    # ``profile_for`` dependency — the client can never claim it.
     conn.session = session
 
     if resume:
@@ -420,7 +523,7 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
     else:
         # H1 — remaining tranche (profile-aware) vs 0 (spec.md §8).
         decision = app.guard.check_start(
-            session.profile, session.user_key, now=now(), session_id=session.session_id
+            session.profile, session.user_key, session_id=session.session_id
         )
         if not decision.allowed and session.profile != "demo":
             await conn.send_json(
@@ -437,16 +540,20 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
         if not decision.allowed:  # demo profile: downgrade, judge still gets text
             session.text_only = True
         session.state = "idle"
-        await _send_state(conn, "idle")
         await conn.send_json(
             {
                 "type": "session.ready",
                 "session_id": session.session_id,
                 "profile": session.profile,
-                "state": "text_only" if session.text_only else decision.state,
+                # ws-contract §2: `state` is the dock state machine value —
+                # `idle` here. The credit verdict is a separate field so the
+                # dock never interprets guard words as agent states.
+                "state": "idle",
+                "credit_state": "text_only" if session.text_only else decision.state,
                 "server_time": int(now() * 1000),
             }
         )
+        await _send_state(conn, "idle")  # ws-contract §2: idle after ready
         anchor = first.get("anchor")
         if isinstance(anchor, dict):
             _store_snapshot(conn, anchor)
@@ -473,6 +580,9 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
         if conn.stt is not None:
             with contextlib.suppress(Exception):
                 await conn.stt.close()
+        if conn.brain is not None:
+            with contextlib.suppress(Exception):
+                await conn.brain.aclose()  # release the shared SDK client
         if conn.tts is not None:
             with contextlib.suppress(Exception):
                 await conn.tts.close()
@@ -513,6 +623,7 @@ async def _keepalive(conn: _Connection) -> None:
 async def _replay(conn: _Connection, session: VoiceSession, last_turn_id: str) -> None:
     """F5 resume: replay agent.state + the lost turn's turn.end (60 s window)."""
     app = conn.app
+    credit_state = "text_only" if session.text_only else "ok"
     if app.sessions.replay_window_alive(session, now=app._clock()):
         if session.last_state_message:
             await conn.send_json(session.last_state_message)
@@ -523,6 +634,7 @@ async def _replay(conn: _Connection, session: VoiceSession, last_turn_id: str) -
                 "session_id": session.session_id,
                 "profile": session.profile,
                 "state": "resumed",
+                "credit_state": credit_state,
                 "server_time": int(app._clock() * 1000),
             }
         )
@@ -544,6 +656,7 @@ async def _replay(conn: _Connection, session: VoiceSession, last_turn_id: str) -
             "session_id": session.session_id,
             "profile": session.profile,
             "state": "resumed",
+            "credit_state": credit_state,
             "server_time": int(app._clock() * 1000),
         }
     )
@@ -558,8 +671,10 @@ def _store_snapshot(conn: _Connection, payload: dict[str, Any]) -> None:
         conn.session.snapshot = payload
         conn.session.snapshot_at = conn.app._clock()
         conn._snapshot_obj = snapshot
-    except anchoring.SnapshotError:
-        # keep the last good snapshot; a bad one never crashes the loop (F7)
+    except (anchoring.SnapshotError, ValueError, TypeError):
+        # keep the last good snapshot; a bad one never crashes the loop (F7).
+        # parse_snapshot now raises SnapshotError for coercion failures too —
+        # this tuple is the belt-and-braces guard for any future field.
         log_event(
             "voice.snapshot.rejected",
             {},
@@ -618,12 +733,15 @@ async def _message_loop(conn: _Connection) -> None:
         text = received.get("text")
         if not text:
             continue
-        if len(text) > _MAX_JSON_BYTES:
-            # backend-spec §7.1 frame bound: drop + count, never crash
+        frame_bytes = len(text.encode("utf-8"))
+        if frame_bytes > _MAX_JSON_BYTES:
+            # backend-spec §7.1 frame bound (BYTES, not characters — a
+            # Devanagari/Hinglish frame is up to 3–4 bytes per char): drop +
+            # count, never crash
             conn.oversized_frames += 1
             log_event(
                 "voice.ws.oversized_frame",
-                {"bytes": len(text)},
+                {"bytes": frame_bytes},
                 severity=Severity.WARNING,
                 error_class=ErrorClass.CLIENT_ERROR,
                 session_id=conn.session.session_id if conn.session else None,
@@ -686,6 +804,11 @@ def _arm_stt_pump(conn: _Connection) -> None:
     The pump forwards upstream events into the queue; when the stream dies
     (``None``) the pump exits and is re-armed at the next ``audio.start`` —
     the SttClient itself owns reconnect-with-resume inside its budget.
+
+    Partials are forwarded to the dock LIVE while the mic is open (state
+    ``listening``): waiting for ``audio.end`` would hide the transcript until
+    the student stopped speaking. Only the final transcript has to reach the
+    turn task, so it stays queued.
     """
     if conn.pump_task is not None and not conn.pump_task.done():
         return
@@ -694,11 +817,32 @@ def _arm_stt_pump(conn: _Connection) -> None:
         assert conn.stt is not None
         while True:
             event = await conn.stt.next_event()
-            await conn.stt_queue.put(event)  # None = stream died (F1)
             if event is None:
+                await conn.stt_queue.put(None)  # stream died (F1)
                 return  # re-armed at the next audio.start
+            if (
+                event.kind == "partial"
+                and conn.session is not None
+                and conn.session.state == "listening"
+            ):
+                await _forward_partial(conn, event.text)
+                continue
+            await conn.stt_queue.put(event)
 
     conn.pump_task = asyncio.ensure_future(pump())
+
+
+async def _forward_partial(conn: _Connection, text: str) -> None:
+    """Live ``stt.partial`` while the student is still speaking (ws-contract §2)."""
+    conn.partial_seq += 1
+    await conn.send_json(
+        {
+            "type": "stt.partial",
+            "turn_id": conn.pending_turn_id,
+            "seq": conn.partial_seq,
+            "text": text,
+        }
+    )
 
 
 def _ensure_tts(conn: _Connection) -> TtsClient:
@@ -718,6 +862,8 @@ async def _on_audio_start(conn: _Connection) -> None:
     assert session is not None
     session.interrupt_times.clear()  # F8: window resets at each new press
     conn.stt_uplink = UplinkStream()
+    conn.pending_turn_id = new_turn_id()  # partials carry the turn they belong to
+    conn.partial_seq = 0
     while not conn.stt_queue.empty():  # stale events never pollute the turn
         conn.stt_queue.get_nowait()
     if session.text_only:
@@ -729,6 +875,9 @@ async def _on_audio_start(conn: _Connection) -> None:
         _arm_stt_pump(conn)  # pump runs only once the upstream is open
         await _send_state(conn, "listening")
     except Exception:  # noqa: BLE001 — F1: any STT failure degrades to text
+        if conn.stt is not None:
+            with contextlib.suppress(Exception):
+                await conn.stt.close()  # never leak a half-opened Prisma socket
         conn.stt = None
         await _send_error(
             conn, "stt.unavailable", "voice input unavailable — type your doubt", True
@@ -758,20 +907,28 @@ async def _on_audio_end(conn: _Connection) -> None:
     session = conn.session
     assert session is not None
     if conn.turn_task is not None and not conn.turn_task.done():
-        return  # a turn is already in flight: ignore double EOS
+        turn = conn.current_turn
+        if turn is not None and not turn.finalized:
+            return  # a turn is genuinely in flight: ignore double EOS
+        # turn.end is already out; only the task's teardown remains. Let it
+        # settle instead of dropping a legitimate next press (a fast re-press
+        # right after the turn end must not open a turn with no EOS).
+        with contextlib.suppress(asyncio.CancelledError):
+            await conn.turn_task
     if session.text_only or conn.stt is None:
         await _send_state(conn, "listening", reason="text_input")
         return
     with contextlib.suppress(Exception):
         await conn.stt.finish()  # EOS reaches Prisma: the final may now land
     turn = _Turn(
-        turn_id=new_turn_id(),
+        turn_id=conn.pending_turn_id or new_turn_id(),
         turn_idx=session.turn_idx + 1,
         kind="audio",
         started_at=conn.app._clock(),
         audio_end_at=conn.app._clock(),
+        allow_audio=not session.text_only,
     )
-    conn.turn_task = asyncio.ensure_future(_run_audio_turn(conn, turn))
+    conn.turn_task = asyncio.ensure_future(_run_turn_guarded(conn, turn, typed=False))
 
 
 async def _on_typed_doubt(conn: _Connection, message: dict[str, Any]) -> None:
@@ -793,8 +950,9 @@ async def _on_typed_doubt(conn: _Connection, message: dict[str, Any]) -> None:
         transcript=text,
         started_at=conn.app._clock(),
         audio_end_at=conn.app._clock(),
+        allow_audio=not session.text_only,
     )
-    conn.turn_task = asyncio.ensure_future(_run_brain_turn(conn, turn, typed=True))
+    conn.turn_task = asyncio.ensure_future(_run_turn_guarded(conn, turn, typed=True))
 
 
 async def _on_interrupt(conn: _Connection) -> None:
@@ -818,18 +976,85 @@ async def _on_interrupt(conn: _Connection) -> None:
         return  # harmless no-op (contract: repeat = same intent)
     if conn.current_turn is not None:
         conn.current_turn.interrupted = True  # finalize will say "interrupted"
+    at_ms = (
+        int((conn.app._clock() - conn.current_turn.started_at) * 1000)
+        if conn.current_turn is not None
+        else 0
+    )
+    # ws-contract §5: `agent.state listening` lands BEFORE the cut turn's
+    # turn.end — the dock must not flash idle between barge-in and mic-open.
+    # Emitted before aborting the brain so a stream that closes cleanly on the
+    # abort cannot race its own turn.end ahead of the state.
+    await _send_state(conn, "listening")
     if conn.brain is not None:
         await conn.brain.abort()  # close upstream mid-stream: frees the slot
     conn.turn_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await conn.turn_task
     conn.current_turn = None
-    await _send_state(conn, "listening")
+    if conn.tts is not None:
+        # Timbre shares one socket across turns: drain the cancelled segment's
+        # unread frames to segment_end, else the next turn plays the old tail.
+        with contextlib.suppress(Exception):
+            await conn.tts.abort()
     if conn.stt is not None:  # echo guard: tutor audio just stopped
         conn.stt.arm_echo_guard(conn.settings.echo_guard_ms)
+    log_event(
+        "voice.barge_in",
+        {"at_ms": at_ms},
+        session_id=session.session_id,
+        turn_id=conn.pending_turn_id or None,
+    )
 
 
 # --- turn pipeline ------------------------------------------------------------
+
+
+async def _run_turn_guarded(conn: _Connection, turn: _Turn, *, typed: bool) -> None:
+    """Turn-task entry point with a catch-all (no silent stuck-thinking dock).
+
+    Any unexpected exception (a send failure, a bug in a chunker/TTS path)
+    must still write ``turn.end`` with ``end_reason: error``, release the H2
+    reservation and reset the dock state — otherwise the reservation leaks for
+    the day and the dock shows "thinking" forever.
+    """
+    try:
+        if typed:
+            await _run_brain_turn(conn, turn, typed=True)
+        else:
+            await _run_audio_turn(conn, turn)
+    except asyncio.CancelledError:
+        raise  # barge-in / teardown: those paths finalize themselves
+    except Exception:  # noqa: BLE001 — catch-all is the point of this wrapper
+        session = conn.session
+        log_event(
+            "voice.turn.error",
+            {"hop": "transport", "reason_code": "unexpected_exception"},
+            severity=Severity.ERROR,
+            error_class=ErrorClass.TRANSPORT_ERROR,
+            session_id=session.session_id if session else None,
+            turn_id=turn.turn_id,
+        )
+        _release_reservation(conn, turn)
+        with contextlib.suppress(Exception):
+            await _finalize_turn(
+                conn, turn, end_reason="error", event="voice.turn.error"
+            )
+
+
+def _release_reservation(conn: _Connection, turn: _Turn) -> None:
+    """Return an in-flight H2 reservation without recording spend (H4)."""
+    session = conn.session
+    if session is None or turn.reserved <= 0:
+        return
+    conn.app.guard.commit_turn(
+        session.profile,
+        session.user_key,
+        session.session_id,
+        estimate=turn.reserved,
+        actual=0,
+    )
+    turn.reserved = 0
 
 
 async def _run_audio_turn(conn: _Connection, turn: _Turn) -> None:
@@ -879,6 +1104,12 @@ async def _run_audio_turn(conn: _Connection, turn: _Turn) -> None:
         await _send_state(conn, "listening", reason="text_input")
         await _finalize_turn(conn, turn, end_reason="error", event="stt.no_final")
     except asyncio.CancelledError:
+        # Interrupt landed while waiting for stt.final: the turn still ends
+        # honestly (turn.end{interrupted} + ledger row), never a dangling turn.
+        turn.interrupted = True
+        await _finalize_turn(
+            conn, turn, end_reason="interrupted", event="turn.interrupted"
+        )
         raise
 
 
@@ -894,13 +1125,12 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
     conn.current_turn = turn
 
     # H2 — estimated turn cost vs remaining (spec.md §8; ADR-0015 reserve).
-    # Text turns (typed path, or a text_only session) spend NO Gnani credits:
-    # brain tokens are tracked for capacity, never metered (backend-spec
-    # §8.4) — so their voice estimate is 0 and they keep working when voice
-    # is exhausted (F6: "text turns keep working (brain only)").
-    estimate = 0 if (typed or session.text_only) else turn_estimate(settings)
+    # Text-only sessions spend NO Gnani credits (no STT, no TTS — F6); typed
+    # turns DO speak, so they reserve and bill their TTS share (spec.md §8,
+    # backend-spec §7.2 "typed path — same pipeline minus STT").
+    estimate = 0 if session.text_only else turn_estimate(settings, typed=typed)
     decision = app.guard.check_turn(
-        session.profile, session.user_key, session.session_id, estimate, now=now()
+        session.profile, session.user_key, session.session_id, estimate
     )
     turn.reserved = decision.reserved
     if not decision.allowed:
@@ -942,7 +1172,9 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
 
     # F4 at turn start: audio is disabled for the whole turn, the answer
     # still flows as text (spec.md F4: "reply text appears in dock immediately")
-    voice_turn = not typed and not session.text_only
+    # Text-only sessions (F6 demo downgrade) never open Timbre at all.
+    voice_turn = turn.allow_audio
+    turn.tts_chars_at_start = _tts_chars(conn)  # H4 per-turn delta baseline
     if voice_turn:
         await _ensure_tts_turn(conn)
     brain = _ensure_brain(conn)
@@ -991,9 +1223,11 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
                 continue
             if event.kind == "content":
                 for chunk in chunker.feed(event.text):
-                    await _dispatch_chunk(conn, turn, chunk)
+                    await _dispatch_chunk(
+                        conn, turn, chunk, allow_audio=turn.allow_audio
+                    )
         for chunk in chunker.flush():
-            await _dispatch_chunk(conn, turn, chunk)
+            await _dispatch_chunk(conn, turn, chunk, allow_audio=turn.allow_audio)
     except BrainFirstEventTimeout:
         brain_error = BrainFirstEventTimeout()  # F2
     except BrainStallError as exc:
@@ -1061,7 +1295,7 @@ async def _filler_timer(conn: _Connection, turn: _Turn) -> None:
             "text": filler,
         }
     )
-    await _speak_text(conn, turn, filler, kind="filler")
+    await _speak_text(conn, turn, filler, kind="filler", allow_audio=turn.allow_audio)
 
 
 async def _speak_summary(
@@ -1090,12 +1324,19 @@ async def _speak_summary(
         await conn.send_json(panel)
         return already_voiced
     await conn.send_json(panel)
-    await _speak_text(conn, turn, text, kind="summary")
+    await _speak_text(conn, turn, text, kind="summary", allow_audio=turn.allow_audio)
     return already_voiced + 1
 
 
-async def _dispatch_chunk(conn: _Connection, turn: _Turn, chunk: Chunk) -> None:
-    """Chunk → tts.text (panel) → tts.audio frames; T7 ordering; F4 degrade."""
+async def _dispatch_chunk(
+    conn: _Connection, turn: _Turn, chunk: Chunk, *, allow_audio: bool
+) -> None:
+    """Chunk → tts.text (panel) → tts.audio frames; T7 ordering; F4 degrade.
+
+    ``allow_audio`` is ``not session.text_only``: a text-only session still
+    gets the panel line and the ``speaking_text`` state, but no Timbre call and
+    no binary frames (credits are never spent on audio it cannot hear).
+    """
     now = conn.app._clock
     if turn.first_segment_at is None:
         turn.first_segment_at = now()
@@ -1112,7 +1353,12 @@ async def _dispatch_chunk(conn: _Connection, turn: _Turn, chunk: Chunk) -> None:
         }
     )
     await _speak_text(
-        conn, turn, chunk.text, kind=chunk.kind, segment_id=chunk.segment_id
+        conn,
+        turn,
+        chunk.text,
+        kind=chunk.kind,
+        segment_id=chunk.segment_id,
+        allow_audio=allow_audio,
     )
 
 
@@ -1151,8 +1397,18 @@ async def _speak_text(
     *,
     kind: str,
     segment_id: int | None = None,
+    allow_audio: bool,
 ) -> None:
-    """Stream one segment through Timbre; on F4 degrade to text-only."""
+    """Stream one segment through Timbre; on F4 degrade to text-only.
+
+    ``allow_audio=False`` (text-only session): the panel already has the line —
+    emit the ``speaking_text`` state once and never touch Timbre (no credits).
+    """
+    if not allow_audio:
+        if not turn.text_state_sent:
+            turn.text_state_sent = True
+            await _send_state(conn, "speaking_text", reason="text_only")
+        return
     now = conn.app._clock
     if not await _ensure_tts_turn(conn):
         return  # text already on the panel
@@ -1168,9 +1424,9 @@ async def _speak_text(
                 if not turn.audio_dispatched:
                     turn.audio_dispatched = True
                     await _send_state(conn, "speaking")
-            payload = pack_downlink(seg, _next_audio_seq(turn), audio.data)
+            payload = pack_downlink(seg, _next_audio_seq(turn, seg), audio.data)
             await conn.send_bytes(payload)
-        final_frame = pack_downlink(seg, _next_audio_seq(turn), b"", final=True)
+        final_frame = pack_downlink(seg, _next_audio_seq(turn, seg), b"", final=True)
         await conn.send_bytes(final_frame)
     except TtsUnavailableError:
         conn._tts_turn_open = False
@@ -1181,9 +1437,10 @@ async def _speak_text(
         await _send_state(conn, "speaking_text")
 
 
-def _next_audio_seq(turn: _Turn) -> int:
-    seq = turn.audio_seq  # monotonic per segment, from 0 (ws-contract §3)
-    turn.audio_seq += 1
+def _next_audio_seq(turn: _Turn, segment_id: int) -> int:
+    """Monotonic seq per SEGMENT, from 0 (ws-contract §3)."""
+    seq = turn.audio_seq.get(segment_id, 0)
+    turn.audio_seq[segment_id] = seq + 1
     return seq
 
 
@@ -1192,7 +1449,6 @@ async def _over_credit_turn(conn: _Connection, turn: _Turn, reason_code: str) ->
     session = conn.session
     assert session is not None
     line = conn.settings.over_credit_line
-    await _send_state(conn, "speaking", reason="over_credit")
     await conn.send_json(
         {
             "type": "tts.text",
@@ -1203,22 +1459,24 @@ async def _over_credit_turn(conn: _Connection, turn: _Turn, reason_code: str) ->
         }
     )
     turn.answer_text = (turn.answer_text + " " + line).strip()
-    if await _ensure_tts_turn(conn):
-        try:
-            tts = _ensure_tts(conn)
-            async for audio in tts.speak(line, 1, kind="speech"):
-                if audio.final:
-                    break
+    if turn.allow_audio:  # a text-only session never spends TTS credits
+        await _send_state(conn, "speaking", reason="over_credit")
+        if await _ensure_tts_turn(conn):
+            try:
+                tts = _ensure_tts(conn)
+                async for audio in tts.speak(line, 1, kind="speech"):
+                    if audio.final:
+                        break
+                    await conn.send_bytes(
+                        pack_downlink(1, _next_audio_seq(turn, 1), audio.data)
+                    )
                 await conn.send_bytes(
-                    pack_downlink(1, _next_audio_seq(turn), audio.data)
+                    pack_downlink(1, _next_audio_seq(turn, 1), b"", final=True)
                 )
-            await conn.send_bytes(
-                pack_downlink(1, _next_audio_seq(turn), b"", final=True)
-            )
-        except TtsUnavailableError:
-            conn._tts_turn_open = False
-            await _send_state(conn, "speaking_text")
-    await _close_tts_turn(conn)
+            except TtsUnavailableError:
+                conn._tts_turn_open = False
+                await _send_state(conn, "speaking_text")
+        await _close_tts_turn(conn)
     await _send_error(conn, reason_code, "daily credit limit reached", False)
     session.text_only = True  # F6: text turns keep working (brain only)
     await _finalize_turn(conn, turn, end_reason="error", event="credit.over")
@@ -1264,18 +1522,23 @@ async def _finalize_turn(
     conn: _Connection, turn: _Turn, *, end_reason: str, event: str | None
 ) -> None:
     """turn.end + H4 ledger write (meters read NOW, not at turn start)."""
+    if turn.finalized:
+        return  # exactly one turn.end per turn (catch-all re-entry guard)
+    turn.finalized = True
     session = conn.session
     assert session is not None
     app = conn.app
+    settings = app.settings
     turn.end_reason = end_reason if not turn.interrupted else "interrupted"
     usage = dict(turn.usage)
     usage.setdefault("brain_prompt_tokens", None)
     usage.setdefault("brain_completion_tokens", None)
     usage.setdefault("thinking_tokens", None)
+    tts_chars = _turn_tts_chars(conn, turn)
     usage.update(
         {
             "stt_audio_s": round(turn.stt_seconds, 3),
-            "tts_chars": _tts_chars(conn),
+            "tts_chars": tts_chars,
             "retries": conn.brain.retries_used if conn.brain is not None else 0,
         }
     )
@@ -1290,16 +1553,17 @@ async def _finalize_turn(
     session.last_turn_end = message
     session.last_turn_end_at = app._clock()
 
-    # H4 — credit ledger (OQ-06 unit placeholder: STT seconds + TTS chars)
-    actual = int(turn.stt_seconds + usage["tts_chars"])
+    # H4 — credit ledger in POINTS (same unit as the caps and the H2
+    # reservation; see session.credit_points).
+    actual = credit_points(settings, stt_seconds=turn.stt_seconds, tts_chars=tts_chars)
     app.guard.commit_turn(
         session.profile,
         session.user_key,
         session.session_id,
         estimate=turn.reserved,
         actual=actual,
-        now=app._clock(),
     )
+    turn.reserved = 0
 
     # voice_turn rows (A-02, Appendix B) — transcripts only, never audio
     try:
@@ -1353,7 +1617,17 @@ async def _finalize_turn(
             session_id=session.session_id,
             turn_id=turn.turn_id,
         )
-    await _send_state(conn, "idle")
+    # echo guard: the loudspeaker tail must not echo back into the next STT
+    # window — armed on EVERY playback stop (normal end and barge-in), not
+    # only on interrupt (ws-contract §5; OQ-07).
+    if turn.audio_dispatched and conn.stt is not None:
+        conn.stt.arm_echo_guard(settings.echo_guard_ms)
+    if conn.current_turn is turn:
+        conn.current_turn = None  # turn fully accounted for (see _on_audio_end)
+    if turn.end_reason != "interrupted":
+        # ws-contract §5: barge-in ends at `listening` (no idle flash); every
+        # other end settles the dock back to idle.
+        await _send_state(conn, "idle")
     log_event(
         "voice.turn.e2e_latency",
         {"end_reason": turn.end_reason},
@@ -1365,3 +1639,13 @@ async def _finalize_turn(
 
 def _tts_chars(conn: _Connection) -> int:
     return conn.tts.meters.chars_billed if conn.tts is not None else 0
+
+
+def _turn_tts_chars(conn: _Connection, turn: _Turn) -> int:
+    """TTS characters billed BY THIS TURN (delta, not the session total).
+
+    The real client resets its meter at ``start_turn``; the delta baseline
+    keeps text-only turns (which never open Timbre) from inheriting a previous
+    turn's spend and keeps injected/mock clients honest.
+    """
+    return max(0, _tts_chars(conn) - turn.tts_chars_at_start)

@@ -58,6 +58,14 @@ class ParseSnapshotTest(unittest.TestCase):
         with self.assertRaises(SnapshotError):
             parse_snapshot({**_PAYLOAD, "sim_vars": {"v": {"nested": 1}}})
 
+    def test_non_numeric_scroll_and_ts_raise_snapshot_error(self) -> None:
+        # int("abc") / float({...}) must not escape as bare ValueError: the
+        # WS handler catches SnapshotError and keeps the last good snapshot.
+        with self.assertRaises(SnapshotError):
+            parse_snapshot({**_PAYLOAD, "scroll_pct": "abc"})
+        with self.assertRaises(SnapshotError):
+            parse_snapshot({**_PAYLOAD, "ts": {"nested": 1}})
+
     def test_adr0014_visible_blocks_wording(self) -> None:
         snap = parse_snapshot({**_PAYLOAD, "visible_blocks": ["x1", "x2"]})
         self.assertEqual(snap.block_list, ("x1", "x2"))

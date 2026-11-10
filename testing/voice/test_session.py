@@ -18,6 +18,7 @@ from voice.session import (
     SessionStore,
     TokenValidator,
     TurnRecord,
+    credit_points,
     issue_session_token,
     turn_estimate,
 )
@@ -76,6 +77,29 @@ class IpRateLimiterTest(unittest.TestCase):
     def test_unsalted_fails_open_with_warning(self) -> None:
         limiter = IpRateLimiter(VoiceSettings(ip_hash_salt=""))
         self.assertTrue(limiter.allow_connect("1.2.3.4"))
+
+    def test_hash_uses_injected_clock_for_daily_rotation(self) -> None:
+        # hash_ip must follow the injected clock, not wall time — otherwise
+        # the daily rotation is untestable and a frozen clock still rotates.
+        now = [0.0]
+        settings = VoiceSettings(ip_hash_salt="salt")
+        limiter = IpRateLimiter(settings, clock=lambda: now[0])
+        first = limiter.hash_ip("203.0.113.9")
+        now[0] += 60.0
+        self.assertEqual(limiter.hash_ip("203.0.113.9"), first)  # same IST day
+        now[0] += 86400.0 * 2
+        self.assertNotEqual(limiter.hash_ip("203.0.113.9"), first)  # rotated
+
+    def test_device_bucket_is_secondary_rate_limit(self) -> None:
+        # Behind an ingress every peer is the proxy: the device bucket keeps
+        # the per-client limit meaningful and is independent of the IP bucket.
+        settings = VoiceSettings(ip_hash_salt="salt", ws_connects_per_min=2)
+        limiter = IpRateLimiter(settings)
+        self.assertTrue(limiter.allow_device("device-a"))
+        self.assertTrue(limiter.allow_device("device-a"))
+        self.assertFalse(limiter.allow_device("device-a"))
+        self.assertTrue(limiter.allow_device("device-b"))
+        self.assertTrue(limiter.allow_connect("203.0.113.9"))  # separate bucket
 
 
 class CreditGuardTest(unittest.TestCase):
@@ -145,8 +169,23 @@ class CreditGuardTest(unittest.TestCase):
         self.assertTrue(decision.allowed)
         self.assertEqual(decision.state, "warn")  # ≤ 15 % of the tranche left
 
-    def test_estimate_uses_a07_figures(self) -> None:
-        self.assertEqual(turn_estimate(VoiceSettings()), 15 + 600)
+    def test_credit_points_conversion_is_coherent(self) -> None:
+        s = VoiceSettings(
+            credit_stt_seconds_per_point=30, credit_tts_chars_per_point=300
+        )
+        self.assertEqual(credit_points(s, stt_seconds=15, tts_chars=600), 3)
+        self.assertEqual(credit_points(s, stt_seconds=0.2, tts_chars=33), 2)
+        self.assertEqual(credit_points(s), 0)
+        # a whole normal day fits the 30-point cap: ~10 voice turns
+        self.assertLessEqual(turn_estimate(s) * 10, s.credit_per_user_cap)
+        self.assertGreater(turn_estimate(s) * 11, s.credit_per_user_cap)
+
+    def test_estimate_uses_a07_figures_in_points(self) -> None:
+        # A-07 physical estimate (≈ 15 s STT + 600 TTS chars) converted to
+        # credit points: ceil(15/30) + ceil(600/300) = 3 points per voice turn.
+        self.assertEqual(turn_estimate(VoiceSettings()), 3)
+        # A typed turn spends no STT: 2 points (it still speaks).
+        self.assertEqual(turn_estimate(VoiceSettings(), typed=True), 2)
 
     def test_demo_remaining_uses_session_dimension(self) -> None:
         # spec.md §8: demo cap is per-SESSION — another session of the same

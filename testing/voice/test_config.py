@@ -20,6 +20,11 @@ class VoiceSettingsTest(unittest.TestCase):
         self.assertEqual(s.filler_silence_ms, 2000)
         self.assertEqual(s.credit_daily_tranche, 1000)  # founder config
         self.assertEqual(s.credit_per_user_cap, 30)
+        # OQ-06 placeholder unit: 1 point = 30 s STT = 300 TTS chars
+        self.assertEqual(s.credit_stt_seconds_per_point, 30)
+        self.assertEqual(s.credit_tts_chars_per_point, 300)
+        self.assertEqual(s.ws_allowed_origins, ())  # same-origin default
+        self.assertEqual(s.ws_trusted_proxies, ())
         self.assertEqual(s.tts_char_cap_turn, 1200)
         self.assertEqual(s.ws_path, "/voice/ws")
 
@@ -41,6 +46,23 @@ class VoiceSettingsTest(unittest.TestCase):
         self.assertTrue(s.thinking_summaries)
         self.assertEqual(s.credit_per_user_cap, 12)
         self.assertTrue(s.mock_mode)
+
+    def test_env_parses_origin_and_proxy_lists(self) -> None:
+        s = VoiceSettings.from_env(
+            {
+                "ZIVON_VOICE_WS_ALLOWED_ORIGINS": "https://zivon.example, https://www.zivon.example",
+                "ZIVON_VOICE_WS_TRUSTED_PROXIES": "10.0.0.0/8,192.168.0.0/16",
+                "ZIVON_VOICE_WS_CONNECTS_PER_MIN": "4",
+                "ZIVON_VOICE_CREDIT_TTS_CHARS_PER_POINT": "50",
+            }
+        )
+        self.assertEqual(
+            s.ws_allowed_origins,
+            ("https://zivon.example", "https://www.zivon.example"),
+        )
+        self.assertEqual(s.ws_trusted_proxies, ("10.0.0.0/8", "192.168.0.0/16"))
+        self.assertEqual(s.ws_connects_per_min, 4)
+        self.assertEqual(s.credit_tts_chars_per_point, 50)
 
     def test_bad_transport_and_numbers_fall_back_to_defaults(self) -> None:
         s = VoiceSettings.from_env(

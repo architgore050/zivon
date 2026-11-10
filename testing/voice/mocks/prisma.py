@@ -34,6 +34,7 @@ class MockPrisma:
         final_confidence: float = 0.93,
         fail_connect: bool = False,
         die_after: int | None = None,
+        final_delay_s: float = 0.0,
         clock: Callable[[], float] = time.monotonic,
         reset_on_finish: bool = True,
     ) -> None:
@@ -53,11 +54,16 @@ class MockPrisma:
             )
         self._fail_connect = fail_connect
         self._die_after = die_after
+        self.final_delay_s = final_delay_s
         self._clock = clock
         self._reset_on_finish = reset_on_finish
-        # After a final, next_event() parks here until the next EOS — the
-        # real Prisma rhythm (one session, many turns, waiting for audio).
+        # After a final, next_event() parks until the NEXT EOS — the real
+        # Prisma rhythm (one session, many turns, waiting for audio). Counting
+        # finishes vs returned finals is what stops a replay between a turn's
+        # finish() and the pump consuming that turn's final.
         self._turn_gate = asyncio.Event()
+        self._finishes = 0
+        self._finals_returned = 0
         self._cursor = 0
         self._started = False
         self._finished = False
@@ -82,6 +88,7 @@ class MockPrisma:
 
     async def finish(self) -> None:
         self._finished = True  # EOS marker
+        self._finishes += 1
         self._turn_gate.set()  # release the parked pump for the next turn
 
     def arm_echo_guard(self, duration_ms: int | None = None) -> None:
@@ -93,25 +100,30 @@ class MockPrisma:
             return None
         if self._die_after is not None and self._cursor >= self._die_after:
             return None  # upstream died: caller sees an honest early end
-        if self._cursor >= len(self._script):
-            if self._reset_on_finish and self.sent_final:
-                # one Prisma session, many turns: park until the next EOS,
-                # then replay the script (never spin — the pump must not
-                # starve the event loop)
-                await self._turn_gate.wait()
-                self._turn_gate.clear()
+        while True:
+            if self._cursor >= len(self._script):
+                if not (self._reset_on_finish and self.sent_final):
+                    return None
+                if self._finishes <= self._finals_returned:
+                    # park until the next EOS (never spin — the pump must not
+                    # starve the event loop)
+                    self._turn_gate.clear()
+                    if self._finishes <= self._finals_returned:
+                        await self._turn_gate.wait()
+                    continue
                 self._cursor = 0
                 self.sent_final = False
-                return await self.next_event()
-            return None
-        event = self._script[self._cursor]
-        self._cursor += 1
-        if self._clock() < self.echo_guard_until:
-            self.dropped_echo += 1
-            return await self.next_event()
-        if event.kind == "final":
-            self.sent_final = True
-        return event
+            event = self._script[self._cursor]
+            self._cursor += 1
+            if self._clock() < self.echo_guard_until:
+                self.dropped_echo += 1
+                continue
+            if event.kind == "final":
+                if self.final_delay_s:
+                    await asyncio.sleep(self.final_delay_s)
+                self.sent_final = True
+                self._finals_returned += 1
+            return event
 
     async def close(self) -> None:
         self._closed = True

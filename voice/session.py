@@ -14,11 +14,18 @@ whether it arrives as the ``?session_token=`` query parameter (S0) or inside
 ``session.start`` (SP1 ws-contract). Invalid/expired → close 4401. Tokens
 never appear in logs.
 
-Rate limits (GAP-003, backend-spec §8.3): ws connects ≤ 10/min per IP hash,
+Rate limits (GAP-003, backend-spec §8.3): ws connects ≤ 10/min per IP hash
+**and** per pseudonymous device id (the secondary bucket keeps the limit
+meaningful behind an ingress, where every direct peer is the proxy pod),
 1 concurrent channel per session, 10 cluster-wide (process-global at the P0
 1-replica scale). IP hash = HMAC(salt + IST date, ip) truncated, salted from
 ``ZIVON_IP_HASH_SALT`` — the raw IP is never stored, and buckets expire
 ≤ 72 h.
+
+Credit guard units (OQ-06 placeholder): every counter is in credit POINTS —
+1 point = 30 s Prisma audio = 300 Timbre characters (see ``credit_points``),
+so the per-user cap (30/day) and the A-07 turn estimate (≈ 3 points) are
+commensurable. Caps and actuals are never mixed with raw vendor units.
 """
 
 from __future__ import annotations
@@ -26,6 +33,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import math
 import time
 import uuid
 import zoneinfo
@@ -47,7 +55,9 @@ __all__ = [
     "TurnRecord",
     "TurnRepository",
     "VoiceSession",
+    "credit_points",
     "issue_session_token",
+    "turn_estimate",
 ]
 
 _IST = zoneinfo.ZoneInfo("Asia/Kolkata")
@@ -143,12 +153,29 @@ class IpRateLimiter:
         self._bucket_ts: dict[str, float] = {}
 
     def hash_ip(self, ip: str) -> str:
-        day = datetime.now(_IST).strftime("%Y%m%d")
+        moment = datetime.fromtimestamp(self._clock(), tz=UTC).astimezone(_IST)
+        day = moment.strftime("%Y%m%d")  # injected clock: testable, daily-rotating
         material = f"{self._salt}:{day}:{ip}"
         return hmac.new(material.encode(), b"ip", hashlib.sha256).hexdigest()[:16]
 
     def allow_connect(self, ip: str) -> bool:
         """ws family: ≤ 10 connects/min per IP hash (GAP-003)."""
+        return self._allow(f"ip:{ip}", self.hash_ip(ip))
+
+    def allow_device(self, device_pseudo_id: str) -> bool:
+        """Secondary bucket on the (post-auth) pseudonymous device id.
+
+        Behind an ingress the direct peer is the proxy pod, so the IP bucket
+        alone degrades to one global bucket; the device bucket keeps the
+        per-client limit meaningful and survives NAT/egress sharing.
+        """
+        if not self._salt:  # salt unconfigured: fail open but loudly
+            return True
+        material = f"{self._salt}:device:{device_pseudo_id}"
+        key = hmac.new(material.encode(), b"dev", hashlib.sha256).hexdigest()[:16]
+        return self._allow(f"dev:{key}", key)
+
+    def _allow(self, bucket: str, key: str) -> bool:
         if not self._salt:  # salt unconfigured: fail open but loudly
             log_event(
                 "voice.ratelimit.unsalted",
@@ -157,16 +184,15 @@ class IpRateLimiter:
                 error_class=ErrorClass.AUTH_ERROR,
             )
             return True
-        key = self.hash_ip(ip)
         now = self._clock()
         self._prune(now)
-        window = [t for t in self._windows.get(key, []) if now - t < 60.0]
+        window = [t for t in self._windows.get(bucket, []) if now - t < 60.0]
         if len(window) >= self._settings.ws_connects_per_min:
-            self._windows[key] = window
+            self._windows[bucket] = window
             return False
         window.append(now)
-        self._windows[key] = window
-        self._bucket_ts[key] = now
+        self._windows[bucket] = window
+        self._bucket_ts[bucket] = now
         return True
 
     def _prune(self, now: float) -> None:
@@ -206,17 +232,27 @@ class CreditGuard:
     H3 = the TTS char cap (tts_client), H4 = :meth:`commit_turn`.
     """
 
-    def __init__(self, settings: VoiceSettings) -> None:
+    def __init__(
+        self,
+        settings: VoiceSettings,
+        *,
+        clock: Callable[[], float] = time.time,
+    ) -> None:
         self._settings = settings
+        # The period key is the IST calendar day, so the guard MUST use wall
+        # time. It owns its clock instead of taking the caller's monotonic
+        # latency clock (that mix put spend in the 1970 bucket).
+        self._clock = clock
         self._global: dict[str, _PeriodCounters] = {}  # period -> counters
         self._per_user: dict[tuple[str, str], _PeriodCounters] = {}  # period, user
         self._per_session: dict[
             tuple[str, str], _PeriodCounters
         ] = {}  # period, session
 
-    @staticmethod
-    def _period(now: float | None = None) -> str:
-        moment = datetime.fromtimestamp(now or time.time(), tz=UTC).astimezone(_IST)
+    def _period(self, now: float | None = None) -> str:
+        moment = datetime.fromtimestamp(
+            now if now is not None else self._clock(), tz=UTC
+        ).astimezone(_IST)
         return moment.strftime("%Y-%m-%d")  # tranche resets 00:00 IST
 
     def _limits(self, profile: str) -> tuple[int, int, str]:
@@ -231,6 +267,17 @@ class CreditGuard:
             self._settings.credit_per_user_cap,
             "credit.over_daily",
         )
+
+    def _budget(self, profile: str) -> int:
+        """The binding budget for the warn state (per-user cap usually binds).
+
+        The warn threshold must be measured against whatever dimension binds
+        a single user — comparing the remaining points to 15 % of the *global*
+        tranche would mark every free-trial user permanently "warn" (30-point
+        cap < 150-point global warn line).
+        """
+        tranche, cap, _ = self._limits(profile)
+        return min(tranche, cap)
 
     def remaining(
         self,
@@ -270,8 +317,8 @@ class CreditGuard:
         if remaining <= 0:
             _, _, reason = self._limits(profile)
             return GuardDecision(False, "exhausted", reason)
-        tranche = self._limits(profile)[0]
-        warn_at = int(tranche * self._settings.credit_warn_ratio)
+        budget = self._budget(profile)
+        warn_at = int(budget * self._settings.credit_warn_ratio)
         state = "warn" if remaining <= warn_at else "ok"
         return GuardDecision(True, state, "")
 
@@ -308,12 +355,13 @@ class CreditGuard:
         remaining_global = max(0, tranche - counters.reserved - counters.spent)
         remaining_user = max(0, cap - user_counters.reserved - user_counters.spent)
         remaining = min(remaining_global, remaining_user)
+        budget = self._budget(profile)
         state = (
             "exhausted"
             if remaining == 0
             else (
                 "warn"
-                if remaining <= int(tranche * self._settings.credit_warn_ratio)
+                if remaining <= int(budget * self._settings.credit_warn_ratio)
                 else "ok"
             )
         )
@@ -344,9 +392,35 @@ class CreditGuard:
         user_counters.spent += actual
 
 
-def turn_estimate(settings: VoiceSettings) -> int:
-    """The per-turn estimate (A-07 figures): ≈ 15 s STT + 600 TTS chars."""
-    return settings.credit_turn_estimate_stt_s + settings.credit_turn_estimate_tts_chars
+def credit_points(
+    settings: VoiceSettings, *, stt_seconds: float = 0.0, tts_chars: int = 0
+) -> int:
+    """Convert vendor usage into credit POINTS (the guard's single unit).
+
+    1 point == ``credit_stt_seconds_per_point`` seconds of Prisma audio and
+    == ``credit_tts_chars_per_point`` Timbre characters (tags included). The
+    factors are OQ-06 placeholders; caps, tranches, reservations and actuals
+    all speak this unit, so a cap of 30/day is meaningful against a turn.
+    """
+    stt_seconds_per_point = max(1, settings.credit_stt_seconds_per_point)
+    tts_chars_per_point = max(1, settings.credit_tts_chars_per_point)
+    stt = math.ceil(stt_seconds / stt_seconds_per_point) if stt_seconds > 0 else 0
+    tts = math.ceil(tts_chars / tts_chars_per_point) if tts_chars > 0 else 0
+    return stt + tts
+
+
+def turn_estimate(settings: VoiceSettings, *, typed: bool = False) -> int:
+    """The per-turn estimate in credit POINTS (A-07 figures, converted).
+
+    A voice turn reserves ≈ 15 s STT + 600 TTS chars → 3 points with the
+    default factors; a typed turn spends no STT → 2 points (it still speaks,
+    so its TTS share is reserved and billed — spec.md §8, backend-spec §7.2).
+    """
+    return credit_points(
+        settings,
+        stt_seconds=0 if typed else settings.credit_turn_estimate_stt_s,
+        tts_chars=settings.credit_turn_estimate_tts_chars,
+    )
 
 
 # --- session state + voice_turn rows (ADR-0002, Appendix B, A-02) --------------

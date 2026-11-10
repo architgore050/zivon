@@ -99,6 +99,13 @@ def parse_snapshot(
     else:
         ids = ()
     block_text = str(payload.get("block_text", "") or "")
+    try:
+        scroll_pct = int(payload.get("scroll_pct") or 0)
+        ts = float(payload.get("ts") or 0.0)
+    except (TypeError, ValueError) as exc:
+        # int("abc") / float({...}) must surface as SnapshotError, never as a
+        # bare ValueError that escapes the WS handler (F7 posture).
+        raise SnapshotError(f"snapshot.scroll_pct/ts must be numeric: {exc}") from exc
     return ContextSnapshot(
         topic_id=str(payload["topic_id"]),
         class_name=str(class_name or ""),
@@ -107,9 +114,9 @@ def parse_snapshot(
         block_type=str(payload["block_type"]),
         sim_id=str(payload.get("sim_id") or ""),
         sim_vars={str(k): str(v) for k, v in sim_vars.items()},
-        scroll_pct=int(payload.get("scroll_pct") or 0),
+        scroll_pct=scroll_pct,
         lang_pref=str(payload.get("lang_pref") or "hi-en"),
-        ts=float(payload.get("ts") or 0.0),
+        ts=ts,
         block_title=str(payload.get("block_title") or ""),
         block_text=block_text,
         visible_blocks=ids,

@@ -10,6 +10,22 @@ GAP-001/003): ``GNANI_PRISMA_API_KEY`` / ``GNANI_TIMBRE_API_KEY`` /
 (``GNANI_API_KEY``, ``GEMINI_API_KEY``) accepted as fallbacks so the mount
 works under either naming. Session-token and IP-hash-salt keys come from the
 core backend's registry (``ZIVON_SESSION_TOKEN_KEY``, ``ZIVON_IP_HASH_SALT``).
+
+**Credit unit (OQ-06 placeholder).** The guard counts *credit points*, never
+raw vendor units, so the founder's per-user cap (30/day) and the A-07 per-turn
+estimate are commensurable:
+
+- 1 point = ``credit_stt_seconds_per_point`` seconds of Prisma audio (30 s),
+- 1 point = ``credit_tts_chars_per_point`` Timbre characters (300, tags
+  included).
+
+The A-07 estimate (≈ 15 s STT + 600 TTS chars) therefore costs
+``ceil(15/30) + ceil(600/300) = 3`` points per voice turn, i.e. ~10 voice
+turns/day under the 30-point cap (typed turns skip the STT component: 2
+points) and ~33 under the 100-point demo session cap. Actuals are converted
+with the same factors at ``turn.end`` (H4), so reservations and spend always
+share one unit. The factors are ``ZIVON_VOICE_CREDIT_*`` knobs: when OQ-06
+pins the real Gnani dashboard unit, only these two factors change.
 """
 
 from __future__ import annotations
@@ -53,6 +69,12 @@ def _env_bool(e: Mapping[str, str], name: str, default: bool) -> bool:
     return raw in ("1", "true", "on", "yes")
 
 
+def _env_list(e: Mapping[str, str], name: str) -> tuple[str, ...]:
+    """Comma-separated list value; empty means 'unset' (caller default)."""
+    raw = _env(e, name)
+    return tuple(part.strip() for part in raw.split(",") if part.strip())
+
+
 @dataclass(frozen=True)
 class VoiceSettings:
     """Immutable voice-loop settings (spec.md §12 config family)."""
@@ -91,12 +113,17 @@ class VoiceSettings:
     tts_first_audio_budget_ms: int = 200  # L6 vendor claim, measured not trusted
 
     # --- credit guard (H1–H4, ADR-0015 / NEED-009; founder config 2026-11-07)
+    # Caps + tranches are in credit POINTS (see the module docstring): the
+    # A-07 physical figures below are converted with the two per-point
+    # factors, so every counter in the guard shares one unit.
     credit_daily_tranche: int = 1000
     credit_per_user_cap: int = 30
     credit_demo_tranche: int = 1000  # separate demo-day tranche
     credit_demo_session_cap: int = 100  # [ASSUMPTION A-05]
-    credit_turn_estimate_stt_s: int = 15  # A-07 estimate figures
-    credit_turn_estimate_tts_chars: int = 600
+    credit_stt_seconds_per_point: int = 30  # OQ-06 placeholder: 1 pt / 30 s
+    credit_tts_chars_per_point: int = 300  # OQ-06 placeholder: 1 pt / 300 chars
+    credit_turn_estimate_stt_s: int = 15  # A-07 estimate figures (seconds)
+    credit_turn_estimate_tts_chars: int = 600  # A-07 estimate figures (chars)
     credit_warn_ratio: float = 0.15  # ok → warn when remaining ≤ 15 %
     over_credit_line: str = "Itna hi aaj!"  # ≤ 15 chars of speech (H2)
 
@@ -104,7 +131,17 @@ class VoiceSettings:
     ws_path: str = "/voice/ws"
     ws_version: int = 1  # mismatch → close 4409
     ws_max_concurrent_sessions: int = 10  # cluster cap at 1 replica (A-07)
-    ws_connects_per_min: int = 10  # per IP hash (GAP-003)
+    ws_connects_per_min: int = 10  # per IP hash + per device (GAP-003)
+    # Origin check (backend-spec §7.1): empty tuple = same-origin only, i.e.
+    # the browser Origin's host must equal the request Host. Configure full
+    # origins (``https://zivon.example``) when the dock is served from a
+    # different host than the WS endpoint.
+    ws_allowed_origins: tuple[str, ...] = ()
+    # Behind the ingress (or any reverse proxy) ``websocket.client.host`` is
+    # the proxy pod's IP, which would turn the per-IP bucket into one global
+    # bucket. List the trusted proxy IPs/CIDRs here and the limiter keys on
+    # the last untrusted hop in ``X-Forwarded-For`` instead.
+    ws_trusted_proxies: tuple[str, ...] = ()
     ws_ping_interval_s: float = 15.0
     ws_ping_miss_max: int = 2
     resume_window_s: float = 60.0  # ADR-0002 final-message replay window
@@ -127,7 +164,12 @@ class VoiceSettings:
     ip_hash_salt: str = field(default="", repr=False)
     openrouter_api_key: str = field(default="", repr=False)
 
-    # --- dev/mock mode (mock default; live probes only with founder keys) ---
+    # --- dev/mock mode (test marker only; live factory defaults in prod) ---
+    # ``mock_mode`` is a TEST-only marker: it makes ``brain_configured`` true
+    # so config tests can exercise the empty-key path without a key. No
+    # production code path consults it — the vendor seams are injected
+    # factories (``mount_voice(stt_factory=..., brain_factory=...,
+    # tts_factory=...)``) and the shipped defaults are the live clients.
     mock_mode: bool = False
 
     @classmethod
@@ -166,8 +208,17 @@ class VoiceSettings:
             credit_demo_session_cap=_env_int(
                 e, "ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP", 100
             ),
+            credit_stt_seconds_per_point=_env_int(
+                e, "ZIVON_VOICE_CREDIT_STT_SECONDS_PER_POINT", 30
+            ),
+            credit_tts_chars_per_point=_env_int(
+                e, "ZIVON_VOICE_CREDIT_TTS_CHARS_PER_POINT", 300
+            ),
             ws_path=e.get("ZIVON_VOICE_WS_PATH", "/voice/ws"),
             ws_max_concurrent_sessions=_env_int(e, "ZIVON_VOICE_WS_MAX_SESSIONS", 10),
+            ws_connects_per_min=_env_int(e, "ZIVON_VOICE_WS_CONNECTS_PER_MIN", 10),
+            ws_allowed_origins=_env_list(e, "ZIVON_VOICE_WS_ALLOWED_ORIGINS"),
+            ws_trusted_proxies=_env_list(e, "ZIVON_VOICE_WS_TRUSTED_PROXIES"),
             ws_ping_interval_s=_env_float(e, "ZIVON_VOICE_PING_INTERVAL_S", 15.0),
             gemini_api_key=_env(e, "ZIVON_VOICE_GEMINI_API_KEY", "GEMINI_API_KEY"),
             gnani_stt_api_key=_env(e, "GNANI_PRISMA_API_KEY", "GNANI_API_KEY"),

@@ -14,6 +14,7 @@ import base64
 import json
 import time
 import unittest
+from types import SimpleNamespace
 
 from starlette.websockets import Message, WebSocket
 
@@ -36,12 +37,14 @@ def _settings(**kw: object) -> VoiceSettings:
         "brain_inactivity_s": 0.4,
         "brain_turn_deadline_s": 5.0,
         "filler_silence_ms": 2000,
-        # OQ-06 [open]: the vendor credit unit is unpinned — the founder's
-        # 30/day per-user cap vs the A-07 per-turn estimate (15 s + 600 chars)
-        # is incoherent until the dashboard pins it. Tests use small units so
-        # H2 behaves as designed; the guard math itself is unit-agnostic.
-        "credit_turn_estimate_stt_s": 1,
-        "credit_turn_estimate_tts_chars": 5,
+        # echo guard shrunk so back-to-back scripted turns do not have their
+        # next final dropped as loudspeaker tail (default 200 ms is e2e-real);
+        # the guard window itself is covered in test_stt_client.
+        "echo_guard_ms": 10,
+        # Credit stay on the shipped defaults (points, OQ-06 placeholders):
+        # a normal voice turn costs 3 points against the 30/day cap. No test
+        # may shrink the estimate — a masked unit is how the 615-vs-30 bug
+        # shipped in the first place.
     }
     params.update(kw)
     return VoiceSettings(**params)  # type: ignore[arg-type]
@@ -67,10 +70,13 @@ class Outbox:
 class FakeWebSocket(WebSocket):
     """Queue-backed starlette WebSocket: the endpoint runs unmodified."""
 
-    def __init__(self, query_string: bytes = b"") -> None:
+    def __init__(self, query_string: bytes = b"", origin: str | None = None) -> None:
         self.incoming: asyncio.Queue[dict[str, object]] = asyncio.Queue()
         self.outbox = Outbox()
         self.close_code: int | None = None
+        headers: list[tuple[bytes, bytes]] = [(b"host", b"testserver")]
+        if origin is not None:
+            headers.append((b"origin", origin.encode()))
         scope = {
             "type": "websocket",
             "path": "/voice/ws",
@@ -78,7 +84,7 @@ class FakeWebSocket(WebSocket):
             "root_path": "",
             "scheme": "ws",
             "query_string": query_string,
-            "headers": [],
+            "headers": headers,
             "client": ("203.0.113.9", 1234),
             "server": ("testserver", 80),
             "subprotocols": [],
@@ -319,6 +325,18 @@ class HappyPathTest(unittest.IsolatedAsyncioTestCase):
         # binary downlink frames carry monotonic per-turn segment/seq
         self.assertEqual(audios[0]["segment_id"], 1)
         self.assertEqual(audios[0]["seq"], 0)
+        # seq restarts at 0 for each segment (ws-contract §3), segment ids
+        # start at 1
+        second = [a for a in audios if a["segment_id"] == 2]
+        self.assertTrue(second)
+        self.assertEqual(second[0]["seq"], 0)
+        # ws-contract §2: ready carries the dock state + the credit verdict
+        ready = outbox.first("session.ready")
+        assert ready is not None
+        self.assertEqual(ready["state"], "idle")
+        self.assertEqual(ready["credit_state"], "ok")
+        # the echo guard is armed on normal playback stop too (not only barge-in)
+        self.assertGreater(harness.prisma.echo_guard_until, 0.0)
         # turn.end with the latency grid + usage
         self.assertEqual(end["end_reason"], "done")
         usage_row = end["usage"]  # type: ignore[index]
@@ -401,6 +419,24 @@ class BargeInTest(unittest.IsolatedAsyncioTestCase):
         assert end is not None
         self.assertEqual(end["end_reason"], "interrupted")  # type: ignore[index]
         self.assertTrue(brain.closed)  # upstream closed: the slot is freed
+        # ws-contract §5 ordering: listening BEFORE turn.end, and no idle flash
+        # between the cut turn and the next press.
+        types = harness.ws.outbox.types()
+        end_index = types.index("turn.end")
+        listening_index = max(
+            index
+            for index, item in enumerate(harness.ws.outbox.items)
+            if item.get("type") == "agent.state" and item.get("state") == "listening"
+        )
+        self.assertLess(listening_index, end_index)
+        state_items = [
+            item
+            for item in harness.ws.outbox.items
+            if item.get("type") == "agent.state"
+        ]
+        self.assertEqual(state_items[0]["state"], "idle")  # session-start state
+        self.assertNotIn("idle", [item["state"] for item in state_items[1:]])
+        self.assertTrue(harness.tts.aborted)  # Timbre tail drained for next turn
 
     async def test_interrupt_storm_ignored_f8(self) -> None:
         brain = MockBrain(content="Ek.", chunk_delay_s=0.3)
@@ -549,16 +585,15 @@ class FailureModeTest(unittest.IsolatedAsyncioTestCase):
 
 class CreditGuardTest(unittest.IsolatedAsyncioTestCase):
     async def test_h2_over_credit_line_then_text_only(self) -> None:
-        # H1 passes (remaining 50 > 0) but the turn estimate (100) exceeds the
-        # per-user cap — H2 refuses before the brain call (spec.md §8).
+        # H1 passes (remaining 2 > 0) but the turn estimate (3 points with the
+        # shipped defaults) exceeds the per-user cap — H2 refuses before the
+        # brain call (spec.md §8).
         harness = Harness(
             _settings(
                 credit_daily_tranche=1000,
-                credit_per_user_cap=50,
+                credit_per_user_cap=2,
                 credit_demo_tranche=1000,
-                credit_demo_session_cap=50,
-                credit_turn_estimate_stt_s=50,
-                credit_turn_estimate_tts_chars=50,
+                credit_demo_session_cap=2,
             ),
             prisma=MockPrisma(final_text="q"),
             brain=MockBrain(content="nahi aayega"),
@@ -606,35 +641,73 @@ class CreditGuardTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(error["code"], "credit.over_daily")
 
     async def test_h1_demo_profile_downgrades_to_text_only(self) -> None:
-        harness = Harness(
-            _settings(
-                credit_daily_tranche=0,
-                credit_per_user_cap=0,
-                credit_demo_tranche=0,
-                credit_demo_session_cap=0,
-            ),
-            prisma=MockPrisma(final_text="q"),
-            brain=MockBrain(content="Text jawab."),
+        # The demo flag is a SERVER-side decision: the seam is the
+        # `profile_for` dependency handed to `mount_voice` (spec.md §11).
+        settings = _settings(
+            credit_daily_tranche=0,
+            credit_per_user_cap=0,
+            credit_demo_tranche=0,
+            credit_demo_session_cap=0,
         )
-        # the demo flag is a server-side field on the session row (spec §11)
-        from voice.session import SessionIdentity
+        prisma = MockPrisma(final_text="q")
+        brain = MockBrain(content="Text jawab.")
+        routes: list[tuple[str, object]] = []
+        app_stub = SimpleNamespace(
+            add_api_websocket_route=lambda path, endpoint: routes.append(
+                (path, endpoint)
+            )
+        )
 
-        harness.app.sessions.create(
-            SessionIdentity("sess-1", "device-1"), profile="demo", locale="hi-en"
+        def brain_factory(_s: VoiceSettings) -> ws.BrainClient:
+            return ws.BrainClient(settings, brain.factory())
+
+        voice = ws.mount_voice(
+            app_stub,
+            settings=settings,
+            sessions=SessionStore(settings),
+            auth=TokenValidator(_KEY),
+            limiter=IpRateLimiter(settings),
+            guard=CreditGuard(settings),
+            stt_factory=lambda _s: prisma,
+            brain_factory=brain_factory,
+            tts_factory=lambda _s: MockTimbre(settings),
+            profile_for=lambda identity: "demo",
         )
-        harness.start()
-        await harness.send(_start_message(harness.token()))
-        await asyncio.sleep(0.05)  # let the loop process the start
-        ready = harness.ws.outbox.first("session.ready")
-        await harness.send({"type": "typed.doubt", "text": "sawaal"})
-        end = await harness.finish_turn()
-        await harness.disconnect()
+        self.assertEqual(routes[0][0], "/voice/ws")
+        websocket = FakeWebSocket()
+        from voice.session import issue_session_token
+
+        task = asyncio.ensure_future(voice.endpoint(websocket))  # type: ignore[arg-type]
+        websocket.incoming.put_nowait({"type": "websocket.connect"})
+        await websocket.incoming.put(
+            {
+                "type": "websocket.receive",
+                "text": json.dumps(
+                    _start_message(issue_session_token("sess-demo", "d-1", _KEY))
+                ),
+            }
+        )
+        await asyncio.sleep(0.05)
+        ready = websocket.outbox.first("session.ready")
         assert ready is not None
-        self.assertEqual(ready["state"], "text_only")  # type: ignore[index]
-        # judge still gets text answers, never silence
-        texts = [t["text"] for t in harness.ws.outbox.of_type("tts.text")]
+        self.assertEqual(ready["profile"], "demo")
+        self.assertEqual(ready["state"], "idle")  # ws-contract §2 dock state
+        self.assertEqual(ready["credit_state"], "text_only")  # guard verdict
+        await websocket.incoming.put(
+            {
+                "type": "websocket.receive",
+                "text": json.dumps({"type": "typed.doubt", "text": "demo sawaal"}),
+            }
+        )
+        async with asyncio.timeout(5.0):
+            while websocket.outbox.first("turn.end") is None:
+                await asyncio.sleep(0.01)
+        await websocket.incoming.put({"type": "websocket.disconnect", "code": 1000})
+        await asyncio.wait_for(task, timeout=5.0)
+        # judge still gets text answers, never silence and never audio spend
+        texts = [t["text"] for t in websocket.outbox.of_type("tts.text")]
         self.assertIn("Text jawab.", texts)
-        self.assertEqual(end["end_reason"], "done")  # type: ignore[index]
+        self.assertEqual(websocket.outbox.of_type("tts.audio"), [])
 
 
 class ThinkingOutLoudTest(unittest.IsolatedAsyncioTestCase):
@@ -749,6 +822,19 @@ class SelfReviewFixTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(harness.task is not None and harness.task.done(), False)
         await harness.disconnect()
 
+    async def test_frame_bound_measured_in_bytes_not_characters(self) -> None:
+        # backend-spec §7.1: JSON ≤ 8 KB. 3,000 Devanagari chars = 9,000 UTF-8
+        # bytes: over the bound, so it is dropped even though len(text) < 8192.
+        harness = Harness(_settings(), prisma=MockPrisma(), brain=MockBrain())
+        await _open(harness)
+        await harness.send({"type": "typed.doubt", "text": "क" * 3000})
+        await harness.send({"type": "ping", "t": 3})
+        await asyncio.sleep(0.1)
+        self.assertIsNotNone(harness.ws.outbox.first("pong"))  # loop alive
+        self.assertEqual(harness.ws.outbox.first("error"), None)
+        self.assertEqual(harness.brain.opens, 0)
+        await harness.disconnect()
+
     async def test_oversized_typed_text_rejected(self) -> None:
         harness = Harness(_settings(), prisma=MockPrisma(), brain=MockBrain())
         await _open(harness)
@@ -823,15 +909,264 @@ class SelfReviewFixTest(unittest.IsolatedAsyncioTestCase):
             brain=brain,
         )
         await _open(harness)
-        await harness.send(
-            {"type": "typed.doubt", "text": "sawaal"}
-        )  # typed = no voice
+        session = harness.app.sessions.get("sess-1")
+        assert session is not None
+        session.text_only = True  # F6 downgrade: never any voice on this turn
+        await harness.send({"type": "typed.doubt", "text": "sawaal"})
         await harness.finish_turn()
         await harness.disconnect()
         self.assertEqual(
             [t for t in harness.ws.outbox.of_type("tts.text") if t["kind"] == "filler"],
             [],
         )
+        self.assertEqual(harness.ws.outbox.of_type("tts.audio"), [])
+
+
+class OriginAndAbuseTest(unittest.IsolatedAsyncioTestCase):
+    """backend-spec §7.1 origin check + the ingress-safe rate-limit buckets."""
+
+    async def test_cross_origin_upgrade_closed_1008(self) -> None:
+        harness = Harness(_settings(), prisma=MockPrisma(), brain=MockBrain())
+        harness.ws = FakeWebSocket(origin="https://evil.example")
+        harness.start()
+        await harness.send(_start_message(harness.token()))
+        await asyncio.sleep(0.05)
+        self.assertEqual(harness.ws.close_code, 1008)
+        error = harness.ws.outbox.first("error")
+        assert error is not None
+        self.assertEqual(error["code"], "auth.invalid")
+        self.assertIsNone(harness.ws.outbox.first("session.ready"))
+
+    async def test_same_origin_upgrade_accepted(self) -> None:
+        harness = Harness(
+            _settings(), prisma=MockPrisma(final_text="q"), brain=MockBrain()
+        )
+        harness.ws = FakeWebSocket(origin="http://testserver")
+        harness.start()
+        await harness.send(_start_message(harness.token()))
+        await asyncio.sleep(0.05)
+        self.assertIsNotNone(harness.ws.outbox.first("session.ready"))
+        await harness.disconnect()
+
+    async def test_configured_origin_allowlist(self) -> None:
+        settings = _settings(ws_allowed_origins=("https://zivon.example",))
+        harness = Harness(
+            settings, prisma=MockPrisma(final_text="q"), brain=MockBrain()
+        )
+        harness.ws = FakeWebSocket(origin="https://zivon.example")
+        harness.start()
+        await harness.send(_start_message(harness.token()))
+        await asyncio.sleep(0.05)
+        self.assertIsNotNone(harness.ws.outbox.first("session.ready"))
+        await harness.disconnect()
+
+    async def test_forwarded_for_used_only_from_trusted_proxy(self) -> None:
+        settings = _settings(ws_trusted_proxies=("10.0.0.0/8",))
+        harness = Harness(settings, prisma=MockPrisma(), brain=MockBrain())
+        harness.ws = FakeWebSocket()
+        harness.ws.scope["client"] = ("10.1.2.3", 5555)
+        harness.ws.scope["headers"] = [
+            (b"host", b"testserver"),
+            (b"x-forwarded-for", b"203.0.113.7, 10.1.2.3"),
+        ]
+        ip = ws._client_ip(harness.ws, settings)
+        self.assertEqual(ip, "203.0.113.7")  # last untrusted hop
+        # an untrusted peer cannot spoof the header
+        harness.ws.scope["client"] = ("198.51.100.4", 5555)
+        self.assertEqual(ws._client_ip(harness.ws, settings), "198.51.100.4")
+
+
+class ReviewFixTest(unittest.IsolatedAsyncioTestCase):
+    """Regression tests for the EX1 review findings (blockers 1–12)."""
+
+    async def test_shipped_credit_defaults_allow_turns_then_exhaust(self) -> None:
+        # Blocker 1: with the SHIPPED VoiceSettings defaults a normal voice
+        # turn must be affordable (3 points vs the 30/day cap) and repeated
+        # turns must exhaust the cap — not deny the very first turn.
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="q"),
+            brain=MockBrain(content="Ek jawab."),
+        )
+        self.assertEqual(ws.turn_estimate(harness.settings), 3)
+        await _open(harness)
+        allowed = 0
+        for _ in range(25):
+            before = len(harness.ws.outbox.of_type("turn.end"))
+            await harness.send({"type": "audio.start"})
+            await harness.send(_audio_frame(0))
+            await harness.send({"type": "audio.end"})
+            async with asyncio.timeout(5.0):
+                while len(harness.ws.outbox.of_type("turn.end")) == before:
+                    await asyncio.sleep(0.005)
+            last = harness.ws.outbox.of_type("turn.end")[-1]
+            if last["end_reason"] != "done":
+                break
+            allowed += 1
+            # the dock re-arms the mic only after the turn task settles (idle)
+            async with asyncio.timeout(5.0):
+                while harness.ws.outbox.of_type("agent.state")[-1]["state"] != "idle":
+                    await asyncio.sleep(0.005)
+            await asyncio.sleep(0.02)  # task teardown before the next press
+        await harness.disconnect()
+        self.assertGreaterEqual(allowed, 5)  # first turn never denied
+        self.assertLessEqual(allowed, 20)  # 30-point cap exhausts sensibly
+        codes = [e["code"] for e in harness.ws.outbox.of_type("error")]
+        self.assertIn("credit.over_daily", codes)
+        session = harness.app.sessions.get("sess-1")
+        assert session is not None
+        self.assertTrue(session.text_only)
+
+    async def test_text_only_session_sends_text_but_never_audio(self) -> None:
+        # Blocker 2: `text_only` must not open Timbre at all (credits!), while
+        # the answer still reaches the panel and the dock gets speaking_text.
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="q"),
+            brain=MockBrain(content="Text mein jawab."),
+        )
+        await _open(harness)
+        session = harness.app.sessions.get("sess-1")
+        assert session is not None
+        session.text_only = True
+        await harness.send({"type": "typed.doubt", "text": "sawaal"})
+        end = await harness.finish_turn()
+        await harness.disconnect()
+        self.assertIn(
+            "Text mein jawab.",
+            [t["text"] for t in harness.ws.outbox.of_type("tts.text")],
+        )
+        self.assertEqual(harness.ws.outbox.of_type("tts.audio"), [])
+        self.assertEqual(harness.tts.spoken, [])  # Timbre never touched
+        states = [s["state"] for s in harness.ws.outbox.of_type("agent.state")]
+        self.assertIn("speaking_text", states)
+        usage = end["usage"]
+        assert isinstance(usage, dict)
+        self.assertEqual(usage["tts_chars"], 0)
+        # zero points spent: the text floor keeps working after voice exhausts
+        self.assertEqual(
+            harness.app.guard.remaining("normal", "device-1"),
+            harness.settings.credit_per_user_cap,
+        )
+
+    async def test_typed_turn_speaks_and_is_metered(self) -> None:
+        # Blocker 2 (second half): typed turns DO speak (spec F1 / backend-spec
+        # §7.2), so they must reserve and bill their TTS share.
+        harness = Harness(
+            _settings(), prisma=MockPrisma(), brain=MockBrain(content="Typed jawab.")
+        )
+        await _open(harness)
+        await harness.send({"type": "typed.doubt", "text": "sawaal"})
+        end = await harness.finish_turn()
+        await harness.disconnect()
+        self.assertTrue(harness.ws.outbox.of_type("tts.audio"))
+        usage = end["usage"]
+        assert isinstance(usage, dict)
+        self.assertEqual(usage["tts_chars"], len("Typed jawab."))
+        self.assertLess(
+            harness.app.guard.remaining("normal", "device-1"),
+            harness.settings.credit_per_user_cap,
+        )
+
+    async def test_stt_partial_forwarded_while_listening(self) -> None:
+        # Blocker 6: partials must reach the dock DURING speech, not only after
+        # audio.end (the live transcript line is the point).
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(partials=["pehla"], final_text="pehla sawaal"),
+            brain=MockBrain(content="Jawab."),
+        )
+        await _open(harness)
+        await harness.send({"type": "audio.start"})
+        await asyncio.sleep(0.05)  # mic open, still speaking
+        partials = harness.ws.outbox.of_type("stt.partial")
+        self.assertEqual([p["text"] for p in partials], ["pehla"])
+        end_before = harness.ws.outbox.first("turn.end")
+        self.assertIsNone(end_before)  # forwarded before EOS/turn.end
+        await harness.send({"type": "audio.end"})
+        await harness.finish_turn()
+        await harness.disconnect()
+        # no duplicate: the live-forwarded partial is not replayed by the turn
+        self.assertEqual(len(harness.ws.outbox.of_type("stt.partial")), 1)
+
+    async def test_malformed_snapshot_never_kills_the_socket(self) -> None:
+        # Blocker 5: int('abc')/float(dict) must be rejected, not raised.
+        harness = Harness(
+            _settings(), prisma=MockPrisma(final_text="q"), brain=MockBrain()
+        )
+        await _open(harness)
+        base = {
+            "type": "context.snapshot",
+            "topic_id": "t",
+            "class": "9",
+            "chapter": "c",
+            "block_id": "b1",
+            "block_type": "text",
+        }
+        await harness.send({**base, "scroll_pct": "abc"})
+        await harness.send({**base, "ts": {"nested": 1}})
+        await harness.send({"type": "ping", "t": 1})
+        await asyncio.sleep(0.05)
+        self.assertIsNone(harness.ws.close_code)  # socket survived
+        self.assertIsNotNone(harness.ws.outbox.first("pong"))
+        session = harness.app.sessions.get("sess-1")
+        assert session is not None
+        self.assertIsNone(session.snapshot)  # last-good (none) kept
+        await harness.disconnect()
+
+    async def test_interrupt_during_stt_final_ends_turn_interrupted(self) -> None:
+        # Minor: a barge-in while waiting for stt.final must still write
+        # turn.end{interrupted} and a ledger row.
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="der se aaya", final_delay_s=0.5),
+            brain=MockBrain(content="Jawab."),
+        )
+        await _open(harness)
+        await harness.send({"type": "audio.start"})
+        await harness.send(_audio_frame(0))
+        await harness.send({"type": "audio.end"})
+        await asyncio.sleep(0.05)  # waiting in the stt.final window
+        await harness.send({"type": "interrupt"})
+        await asyncio.sleep(0.2)
+        await harness.disconnect()
+        end = harness.ws.outbox.first("turn.end")
+        assert end is not None
+        self.assertEqual(end["end_reason"], "interrupted")  # type: ignore[index]
+        rows = [r for r in harness.app.turns._rows if r.role == "event"]  # type: ignore[attr-defined]
+        self.assertIn("turn.interrupted", [r.text for r in rows])
+
+    async def test_unexpected_send_failure_ends_turn_and_releases_reservation(
+        self,
+    ) -> None:
+        # Blocker 12: a raising send must not leave the dock thinking or leak
+        # the H2 reservation for the rest of the day.
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="q"),
+            brain=MockBrain(content="Ek jawab."),
+        )
+        await _open(harness)
+
+        async def boom(data: bytes) -> None:
+            raise RuntimeError("send exploded")
+
+        harness.ws.send_bytes = boom  # type: ignore[method-assign]
+        await harness.send({"type": "audio.start"})
+        await harness.send(_audio_frame(0))
+        await harness.send({"type": "audio.end"})
+        end = await harness.finish_turn()
+        await harness.disconnect()
+        self.assertEqual(end["end_reason"], "error")  # type: ignore[index]
+        # the reservation is gone (points left = cap − the actual spend only)
+        period = harness.app.guard._period()
+        self.assertEqual(harness.app.guard._global[period].reserved, 0)
+        self.assertLess(
+            harness.app.guard.remaining("normal", "device-1"),
+            harness.settings.credit_per_user_cap,
+        )
+        states = [s["state"] for s in harness.ws.outbox.of_type("agent.state")]
+        self.assertEqual(states[-1], "idle")  # dock not stuck thinking
 
 
 class ClassifierFixtureTest(unittest.TestCase):

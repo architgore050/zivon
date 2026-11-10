@@ -41,7 +41,7 @@ PCM_FRAME_BYTES = 3200
 # reassembly may deliver short tails; STT tolerates gaps, so anything outside
 # the bound is dropped (counted), never crashed on.
 _MIN_UPLINK_PAYLOAD = 64  # 2 ms of PCM16 — below this the frame is useless
-_MAX_UPLINK_PAYLOAD = 8000  # 250 ms at 16 kHz — the contract's 2× hard bound
+_MAX_UPLINK_PAYLOAD = 6400  # 200 ms at 16 kHz — 2× the 100 ms contract frame
 
 
 class AudioFrameError(ValueError):
