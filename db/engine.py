@@ -347,7 +347,7 @@ class DatabaseEngine:
                 tx.execute(
                     """
                     UPDATE session
-                    SET flags = ?, coverage_synced = 0
+                    SET flags = ?, coverage_synced = FALSE
                     WHERE device_pseudo_id = ?
                     """,
                     (

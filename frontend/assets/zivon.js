@@ -2937,6 +2937,32 @@
     var expectedTtsSeq = {};
     var pendingFrames = [];
     var pcmJitterQueue = [];
+    var sessionBootstrapPending = false;
+
+    /* API-001: the browser never mints its own token. Bootstrap a
+       pseudonymous session from the core backend and use the issued
+       HMAC token for the WS. Without this the server correctly rejects the
+       dev placeholder with auth.invalid (found 2026-11-10). */
+    function bootstrapSessionToken() {
+      var snap = buildContextSnapshot();
+      var locale = snap.lang_pref || "en";
+      var lang = locale === "hi" ? "hi-IN" : (locale === "hi-Latn" ? "hi-en" : "en-IN");
+      return sameOriginRequest("/v1/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_pseudo_id: deviceId,
+          lang: lang,
+          mode: "guide",
+          page: { course_id: snap.course_id, class: snap.class }
+        })
+      })
+        .then(function (res) { return res && res.ok ? res.json() : null; })
+        .then(function (data) {
+          return data && data.session_token ? data.session_token : null;
+        })
+        .catch(function () { return null; });
+    }
     var jitterBufferedMs = 0;
     var jitterTargetMs = opts.jitter_target_ms || 80;
     var minLeadTimeS = (opts.min_lead_ms !== undefined ? opts.min_lead_ms : 150) / 1000.0;
@@ -3389,6 +3415,18 @@
           pendingStartHint = null;
           if (state === "ready") beginListening(queuedHint);
         }
+        /* A typed doubt submitted before the socket opened is sent now.
+           The student line was already echoed locally; only the turn frames
+           are replayed here (never a duplicate transcript row). */
+        if (queuedTypedDoubts.length) {
+          var queuedTurns = queuedTypedDoubts.slice();
+          queuedTypedDoubts = [];
+          queuedTurns.forEach(function (text) {
+            sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
+            sendJson({ type: "typed.doubt", text: text });
+          });
+          setState("thinking", { typed: true, text: queuedTurns[queuedTurns.length - 1] });
+        }
         return;
       }
       if (t === "stt.partial" || t === "partial_transcript") {
@@ -3447,7 +3485,12 @@
           turnTimings.t_first_token = performance.now();
         }
         var txt = payload.text !== undefined ? payload.text : (payload.delta || payload.final || "");
-        transcripts.push({ kind: "tutor", subkind: payload.kind || "speech", text: String(txt), turn_id: payload.turn_id || lastTurnId });
+        /* A segment that is only Timbre tags (e.g. a standalone <pauses>) is
+           a delivery cue, not a sentence: never render it as tutor text. */
+        var tagOnly = /^\s*(?:<[^>]+>\s*)+$/.test(String(txt));
+        if (!tagOnly) {
+          transcripts.push({ kind: "tutor", subkind: payload.kind || "speech", text: String(txt), turn_id: payload.turn_id || lastTurnId });
+        }
         return;
       }
       if (t === "tts.start") {
@@ -3580,9 +3623,23 @@
       clearPingTimer();
       detachSocket();
       setState("connecting");
+      if ((!sessionToken || sessionToken === "dev-session-token") && !sessionBootstrapPending) {
+        sessionBootstrapPending = true;
+        bootstrapSessionToken().then(function (tok) {
+          sessionBootstrapPending = false;
+          if (tok) {
+            sessionToken = tok;
+            connect(resumeFlag);
+          } else {
+            setState("offline", { reason: "session_bootstrap_failed" });
+            scheduleReconnect();
+          }
+        });
+        return false;
+      }
       var url = opts.url || ((window.location && window.location.protocol === "https:" ? "wss://" : "ws://") +
         ((window.location && window.location.host) || "localhost:8080") + "/voice/ws");
-      var factory = opts.createWebSocket || function (u) { return new WebSocket(u, ["zivon-tutor.v1"]); };
+      var factory = opts.createWebSocket || function (u) { return new WebSocket(u); };
       try {
         ws = factory(url);
       } catch (err) {
@@ -3759,11 +3816,21 @@
       transcripts.push({ kind: "student", text: clean, typed: true });
       if (!ws || ws.readyState !== 1) {
         queuedTypedDoubts.push(clean);
-        setState("offline", { queued_typed: queuedTypedDoubts.length });
-        return false;
+        /* A typed doubt must not depend on a prior mic press to open the
+           socket (found 2026-11-10: the text path queued forever and the
+           tutor never replied). Open it now; session.ready flushes the
+           queue. */
+        if (state === "idle" || state === "offline") {
+          connect();
+        } else {
+          setState(state === "connecting" ? "connecting" : "offline", {
+            queued_typed: queuedTypedDoubts.length
+          });
+        }
+        return true;
       }
       sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
-      sendJson({ type: "audio.end", text: clean, fallback: "typed" });
+      sendJson({ type: "typed.doubt", text: clean });
       setState("thinking", { typed: true, text: clean });
       return true;
     }

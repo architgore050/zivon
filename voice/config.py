@@ -92,6 +92,11 @@ class VoiceSettings:
     # probe: thought parts arrive before the answer and consumed the default
     # budget, leaving truncated replies). The budget must cover thinking +
     # answer; 2048 was verified sufficient for a several-sentence tutor turn.
+    # Gate A keeps Gemma 4 as the tutor. Gemma 4 on the free Gemini tier
+    # thinks 20-120 s before its first content token (measured 2026-11-10),
+    # so a bounded fallback model answers when Gemma breaches the first-event
+    # budget. Empty = no fallback (tests/other transports).
+    brain_fallback_model: str = ""
     brain_max_output_tokens: int = 8192
     brain_temperature: float = 0.4
     # Gemini thinking budget (-1 = don't send it, the model default). Set 0 on
@@ -211,6 +216,7 @@ class VoiceSettings:
                 e, "ZIVON_VOICE_BRAIN_TURN_DEADLINE_S", 45.0
             ),
             brain_max_retries=_env_int(e, "ZIVON_VOICE_BRAIN_MAX_RETRIES", 2),
+            brain_fallback_model=e.get("ZIVON_VOICE_BRAIN_FALLBACK_MODEL", ""),
             brain_max_output_tokens=_env_int(
                 e, "ZIVON_VOICE_BRAIN_MAX_OUTPUT_TOKENS", 8192
             ),

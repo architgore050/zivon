@@ -128,7 +128,8 @@ services:
       # runs gemini-2.5-flash with thinking disabled (first content ~1.6 s);
       # Gemma 4 remains the code default and a one-env-var switch. Deviation
       # recorded in TIMELINE.md + the report (see docs/specs/voice-agent).
-      - ZIVON_VOICE_BRAIN_MODEL=${ZIVON_VOICE_BRAIN_MODEL:-gemini-2.5-flash}
+      - ZIVON_VOICE_BRAIN_MODEL=${ZIVON_VOICE_BRAIN_MODEL:-gemma-4-26b-a4b-it}
+      - ZIVON_VOICE_BRAIN_FALLBACK_MODEL=${ZIVON_VOICE_BRAIN_FALLBACK_MODEL:-gemini-3.5-flash}
       - ZIVON_VOICE_BRAIN_THINKING_BUDGET=${ZIVON_VOICE_BRAIN_THINKING_BUDGET:-0}
       - ZIVON_VOICE_BRAIN_FIRST_EVENT_S=${ZIVON_VOICE_BRAIN_FIRST_EVENT_S:-6}
       - ZIVON_VOICE_BRAIN_INACTIVITY_S=${ZIVON_VOICE_BRAIN_INACTIVITY_S:-4}
@@ -140,6 +141,7 @@ services:
       - ZIVON_VOICE_TTS_MODEL=${ZIVON_VOICE_TTS_MODEL:-timbre-v3.0}
       - ZIVON_VOICE_TTS_LANGUAGE=${ZIVON_VOICE_TTS_LANGUAGE:-hi-en}
       - ZIVON_VOICE_TTS_VOICE=${ZIVON_VOICE_TTS_VOICE:-Shivani}
+      - ZIVON_VOICE_TTS_TAG_MAX_PER_TURN=${ZIVON_VOICE_TTS_TAG_MAX_PER_TURN:-8}
       # Judged demo link: bounded demo credit profile + explicit caps.
       - ZIVON_VOICE_PROFILE=${ZIVON_VOICE_PROFILE:-demo}
       - ZIVON_VOICE_CREDIT_DEMO_TRANCHE=${ZIVON_VOICE_CREDIT_DEMO_TRANCHE:-1000}
