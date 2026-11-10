@@ -54,7 +54,9 @@ spec:
                 secretKeyRef:
                   name: zivon-voice-env
                   key: ZIVON_DB_URL
-                  optional: true
+                  # Mandatory: a migrate Job with no database URL would silently
+                  # create/upgrade the wrong DB. Fail at scheduling instead.
+                  optional: false
           volumeMounts:
             - name: tmp
               mountPath: /tmp

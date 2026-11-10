@@ -58,9 +58,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: zivon-voice-config
+            # Mandatory: the core backend has no sane fallback DB in cluster
+            # mode — a missing ZIVON_DB_URL must fail loud, not boot a wrong DB.
             - secretRef:
                 name: zivon-voice-env
-                optional: true
+                optional: false
           env:
             - name: ZIVON_ADMIN_TOKEN
               valueFrom:

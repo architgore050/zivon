@@ -24,13 +24,13 @@ from __future__ import annotations
 
 import datetime
 import json
-import os
 import sys
 from typing import Any
 
 from db.engine import DatabaseEngine
 from db.uuid7 import uuid7_str
 
+from .config import BackendConfig
 from .logging_shim import delete_subject
 
 
@@ -474,7 +474,10 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entry point for K8s CronJobs (`k8s/53-sync-cronjobs.yaml`)."""
     args = argv if argv is not None else sys.argv[1:]
     job = args[0] if args else "all-ttl"
-    db_url = os.environ.get("ZIVON_DB_URL", "sqlite:///:memory:")
+    # Fail loud in cluster mode: BackendConfig.from_env raises a clear
+    # RuntimeError when ZIVON_DB_URL is unset (no sqlite fallback in pods).
+    # In dev, from_env defaults to the sqlite in-memory DB.
+    db_url = BackendConfig.from_env(strict_secrets=False).db_url
     engine = DatabaseEngine.from_url(db_url, auto_migrate=True)
     svc = DeletionAndRetentionService(engine)
 
