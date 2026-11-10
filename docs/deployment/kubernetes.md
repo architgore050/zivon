@@ -26,8 +26,13 @@ Core idea: K8s is declarative. You write desired state in YAML; controllers reco
 - `16-llm-manager.yaml` — the **llm-manager node**: the shared model-call service (`llm_manager/`, own slim image `zivon-llm-manager:0.1.0`, no torch/pdfplumber/playwright) as Deployment + Service. This is the model-access point of the whole system: the factory Job's `ZIVON_BASE_URL` points at `http://llm-manager.zivon.svc.cluster.local:80/v1` (ClusterIP — internal plumbing, never NodePort/LoadBalancer), and THIS pod is the only caller of the inference server (via the router below). `/healthz` is process + config only and NEVER calls the model, so the node stays healthy (and the Service keeps its endpoints) while the upstream is down. Its ConfigMap (`zivon-llm-manager-config`) carries the node's OWN upstream (`ZIVON_BASE_URL` = router) + the streaming/deadline knobs; the API key comes from the same runtime Secret the factory uses. `replicas: 1` on purpose — the upstream is single-slot; `readOnlyRootFilesystem` + dropped capabilities + numeric UID 1000 per the house rules.
 - `13-sources-pvc.yaml` — the `zivon-sources` PVC: the textbook PDF + extracted-text cache (`sources/pdfs`, `sources/cache`) shared across pipeline runs. The first run downloads the catalog once; later runs reuse it (ingest never re-fetches a valid cached PDF). A cold run that dies partway is resumable.
 - `15-frontend-pvc.yaml` — the `zivon-frontend` PVC: the shared site volume. The run Job writes generated pages onto it (11-link publishes into `/app/frontend`); the frontend Deployment serves it. Truth model: the PVC is the LIVE workspace; the repo's `frontend/` is the PERMANENT deploy snapshot (publish bridge below). Apply order note: the PVC (15) must exist before the Job (20) that mounts it.
+- `25-postgres.yaml` — Hot database (U2, PostgreSQL 16 Deployment + ClusterIP Service + `zivon-db` 10Gi PVC) + `zivon-cache` 5Gi warm cache PVC (U1) + `zivon-db-config` ConfigMap (`archive_mode=on`, `archive_timeout=60s`).
+- `26-backend-migrate-job.yaml` — Standalone Alembic migration Job (`python -m db.migrate upgrade head`, `ttlSecondsAfterFinished: 86400`) applying linear revisions (`0001` -> `0002`) before `core-backend` starts.
+- `27-core-backend.yaml` — Core backend monolith Deployment + ClusterIP Service (`zivon-backend:0.1.0`, non-root UID 1000, `/healthz` liveness + `/readyz` readiness probes, mounts `zivon-cache` and read-only `zivon-sources` `runs/`).
+- `28-backend-config.yaml` — Non-secret `zivon-voice-config` ConfigMap rendered from `k8s/infra.env`.
 - `30-frontend-deployment.yaml` — nginx Deployment serving the site. A no-clobber `initContainer` (`cp -rn /opt/zivon-shell/* ...` — glob form; see gotcha 6) seeds the hand-maintained shell (landing page + assets, baked at `/opt/zivon-shell` in the image) into an empty PVC, so the landing page exists before the first pipeline run and generated content is never overwritten. Non-root (UID 101), capabilities dropped, read-only root fs with writable mounts for nginx's pid/cache/log dirs, probes, resource ceilings. Because the seed is no-clobber, updating the shell on an existing PVC requires the re-seed procedure (gotcha 14).
 - `40-frontend-service.yaml` — NodePort `80 → 8080`, fixed `nodePort: 30080`. Stable host URL with no manual command: **http://192.168.49.2:30080** (minikube's fixed node IP). `minikube service frontend -n zivon` is the convenience opener. On a real cluster only the Service `type` changes (ingress/LB decision, TIMELINE.md infra TODO). The nodePort stays a concrete integer in the manifest: kubeconform strict needs an int, so it cannot be a `${...}` placeholder.
+- `53-sync-cronjobs.yaml` — P0 retention, TTL, and cold-storage sync CronJob bundle (`ttl-voice-turn` 7d, `ttl-coverage` 24h, `ttl-abuse-bucket` 72h, `rollup-daily-stats` 30d, `ttl-telemetry` 90d, `sync-nightly`, `base-backup`; history-limit cleanup, no `ttlSecondsAfterFinished` inside `jobTemplate` per gotcha 12).
 - `50-test-cronjob.yaml` — the scheduled full test suite (unit + frontend + integration) using the factory image with a command override. THE ONLY AUTOMATIC workload in the stack. Its `schedule:` is a `${TEST_CRON_SCHEDULE}` placeholder rendered from `k8s/infra.env` by `scripts/apply-k8s.sh` — do not apply this file raw, and do not hardcode a cadence anywhere else (gotcha 7). Manual trigger: `scripts/trigger-tests.sh`.
 - `infra.env` — NOT a manifest: the single source of truth for cluster config values (`TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL` — the ROUTER address the llm-manager node calls, `ZIVON_LLM_MANAGER_URL` — the Service address the factory calls, `ZIVON_MODEL`, `ZIVON_TIMEOUT_S` (max inactivity between streamed chunks since 2026-11-07), `ZIVON_CALL_DEADLINE_S` (per-call wall-clock backstop), `ZIVON_STREAM`, `ZIVON_STREAM_USAGE`, `ZIVON_MAX_ATTEMPTS`, `ZIVON_FACTORY_MAX_ATTEMPTS`; NO completion caps are sent at all as of 2026-11-04, see `docs/content-factory/config-reference.md`), consumed by `scripts/apply-k8s.sh` (rendered into the CronJob + TWO ConfigMaps: `zivon-llm-manager-config` for the node, `zivon-factory-config` for the factory). Secrets never belong here — API keys exist only as the runtime K8s Secret `zivon-factory-env` (read by the node AND the factory). Image tags deliberately stay pinned in the manifests (they are code versions, bumped with the code — gotcha 9).
 
@@ -120,3 +125,22 @@ Closed by the frontend objects (15/30/40): generated pages persist on a PVC, ngi
 Still open (hosting stage): **which real cluster** runs this (managed Kubernetes vs a small VM host running k3s), and the **public domain** piece (ingress vs load balancer, TLS, DNS — the local NodePort is a dev convenience, not the public answer). The deploy pipeline waits on those.
 
 What is NOT open (HTTPS posture, locked 2026-11-04): TLS terminates at the **edge** — the app and cluster serve plain HTTP behind it and never implement TLS themselves. Generated pages are already host-agnostic: the relative-URL guarantee lives in the harness (factory lint + page CSP, re-checked on published snapshots in CI) — see `docs/deployment/README.md`, Decisions locked. The NodePort site stays dev-only.
+
+## Content Rollback Procedure (`RB-07` / `GAP-012`)
+
+When a published topic page in `frontend/` needs to be rolled back to a prior git snapshot:
+
+1. **Restore repo snapshot from git history**:
+   ```bash
+   git checkout <prior-commit-or-tag> -- frontend/courses frontend/courses.js
+   ```
+2. **Verify manifest hashes and run `SYNC-01` cold verification**:
+   ```bash
+   scripts/publish-verify-hook.sh frontend/courses C1
+   ```
+3. **Sync rolled-back snapshot into the live `zivon-frontend` PVC and verify**:
+   ```bash
+   kubectl cp frontend/courses zivon/$(kubectl get pod -n zivon -l app=zivon-frontend -o jsonpath='{.items[0].metadata.name}'):/usr/share/nginx/html/courses
+   kubectl cp frontend/courses.js zivon/$(kubectl get pod -n zivon -l app=zivon-frontend -o jsonpath='{.items[0].metadata.name}'):/usr/share/nginx/html/courses.js
+   python3 -m unittest discover -s testing/frontend -t . -v
+   ```

@@ -94,6 +94,7 @@ The content factory ships as a container image (`Dockerfile` at the repo root):
 docker build -t zivon-factory:0.3.17 .
 docker build -f Dockerfile.llm-manager -t zivon-llm-manager:0.1.0 .   # the model-call node (slim, no torch)
 docker build -f Dockerfile.dashboard -t zivon-dashboard:0.1.0 .       # the admin dashboard (slim + kubectl)
+docker build -f Dockerfile.backend -t zivon-backend:0.1.0 .           # core backend monolith (FastAPI + DB + guard)
 docker run --rm zivon-factory:0.3.17                          # environment smoke test
 docker compose up -d llm-manager                              # the isolated model-access node (factory -> node -> server)
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
@@ -148,7 +149,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | [`docs/backend/`](docs/backend/) | Stage-2 systems specs (2026-11-07): backend spec (APIs, voice WebSocket contract, guard), database spec (Postgres schema), storage-tiering spec (cache / hot DB / cold provider), capacity & cost model, 16 ADRs |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
-| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `frontend/` (site shell + behaviour in Chromium) and `observability/` (the logging_manager contract harness + dashboard tests) |
+| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `frontend/` (site shell + behaviour in Chromium), `observability/` (the logging_manager contract harness + dashboard tests), and `backend/` (REST/admin contracts, credit guard concurrency, consent/wipe cascade, TTL, HMAC abuse, Alembic migrations) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 | [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
 | [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |
