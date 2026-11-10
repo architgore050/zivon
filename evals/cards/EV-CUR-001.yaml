@@ -43,7 +43,7 @@ llm_judge:
   enabled_in_suites:
   - full
   entrypoint: evals.judges.curator_judge:evaluate_curator_ground_truth
-  reuses_prompt_from: factory.agents:run_check (item 1 quote fidelity + grounding law)
+  reuses_prompt_from: factory.agents:GLOBAL_RULES + run_check item-1 severity ladder (prompt assembled in evals/judges/curator_judge.py; not a verbatim factory prompt)
   severity_ladder:
     fatal: A claim or equation contradicts the cited source passage, or cites a passage that does not
       support the claim. Must quote the exact source text.

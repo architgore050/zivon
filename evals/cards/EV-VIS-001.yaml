@@ -26,11 +26,11 @@ deterministic_checks:
   description: Verifies every ZivonSim.register block in page.js computes curves in loops with 0 hand-placed
     >=4 moveTo/lineTo literal sequences.
 - id: DET-VIS01-DOM-AND-A11Y
-  entrypoint: evals.checkers.visual_checks:check_chromium_render_and_a11y
+  entrypoint: evals.checkers.visual_checks:check_dom_and_a11y_invariants
   severity_on_fail: fatal
   reuses_factory_rule: factory.render:run
-  description: Verifies kit chrome (.zn-lang-bar, .zn-sim-read aria-live population), SVG viewBox/no-fixed-size,
-    and .zn-check legend containment.
+  description: Static DOM/a11y probe (regex/CSS, no browser) for kit chrome (.zn-lang-bar), SVG viewBox/no-fixed-size,
+    and the .zn-check float-legend rule. Chromium CDP measurement lives in EV-PERF-001.
 - id: DET-VIS01-PROMPT-CONTRACT
   entrypoint: evals.checkers.prompt_contract_checks:check_05_interactive_and_design_prompt_contracts
   severity_on_fail: fatal

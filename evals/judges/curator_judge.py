@@ -2,6 +2,12 @@
 
 Verifies claim-to-passage quote fidelity and checks that `ground_truth` claims
 and equations introduce zero smuggled concepts outside the source pack.
+
+Prompt provenance: this module assembles a narrow claim/equation verification
+prompt over `factory.agents.GLOBAL_RULES` and reuses `03-check`'s severity
+ladder and `CHECK_REPORT` schema; it is NOT a verbatim copy of
+`factory.agents.run_check` (that reviewer also recomputes worked examples and
+audits coverage). The EVAL card records this honestly.
 """
 
 from __future__ import annotations
@@ -99,6 +105,8 @@ def evaluate_curator_ground_truth(
         score=score,
         verdict=verdict,
         issues=issues,
-        metrics={"claim_quote_precision": 1.0 if fatals == 0 else 0.0},
+        # A pass/fail gate, not a precision estimate: only the presence of a
+        # grounded fatal issue is observed here.
+        metrics={"claim_quote_grounding_ok": 1.0 if fatals == 0 else 0.0},
         stats=judge_client.stats,
     )

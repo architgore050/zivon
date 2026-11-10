@@ -94,10 +94,15 @@ def evaluate_synthesizer_coverage_and_pedagogy(
         score=1.0 if verdict == "pass" else 0.0,
         verdict=verdict,
         issues=issues,
+        # Honest aggregate counts. One 03-check call returns a mixed issue
+        # list; it does not measure coverage, recomputation and
+        # teach-before-test independently, so we do not publish three
+        # dimension scores derived from the same sums.
         metrics={
-            "coverage_score": 1.0 if fatals == 0 else 0.0,
-            "recompute_accuracy": 1.0 if fatals == 0 else 0.0,
-            "teach_before_test_compliance": 1.0 if majors == 0 else 0.0,
+            "fatal_issues": fatals,
+            "major_issues": majors,
+            "blocking_issues": fatals + majors,
+            "metrics_source": "derived_from_run_check_issue_counts",
         },
         stats=judge_client.stats,
     )
