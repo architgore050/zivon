@@ -281,6 +281,7 @@ def openrouter_stream_factory(settings: VoiceSettings) -> StreamFactory:
             "Authorization": f"Bearer {settings.openrouter_api_key}",
             "Content-Type": "application/json",
         }
+        headers.update(getattr(settings, "brain_extra_headers", {}) or {})
         body: dict[str, Any] = {
             "model": settings.brain_model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
@@ -387,7 +388,22 @@ class BrainClient:
         self._fallback_factory = None
         self._fallback_used = False
         fallback_model = getattr(settings, "brain_fallback_model", "")
-        if fallback_model and settings.brain_transport == "gemini-direct":
+        if fallback_model and settings.brain_fallback_transport == "openrouter":
+            self._fallback_factory = openrouter_stream_factory(
+                dataclasses.replace(
+                    settings,
+                    brain_model=fallback_model,
+                    brain_openrouter_base_url=(
+                        settings.brain_fallback_base_url
+                        or settings.brain_openrouter_base_url
+                    ),
+                    openrouter_api_key=(
+                        settings.brain_fallback_api_key
+                        or settings.openrouter_api_key
+                    ),
+                )
+            )
+        elif fallback_model and settings.brain_transport == "gemini-direct":
             self._fallback_factory = gemini_stream_factory(
                 dataclasses.replace(
                     settings, brain_model=fallback_model, brain_thinking_budget=0

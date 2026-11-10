@@ -852,6 +852,18 @@
       if (window.ZivonEvents && typeof window.ZivonEvents.recordLangSwitch === "function") {
         window.ZivonEvents.recordLangSwitch(fromCode, toCode);
       }
+      /* A locale with a generated page lives at <topic>/<locale>/ (the
+         renderer writes it next to its bundle). English is the bare topic
+         path. Only navigate when the target differs from where we are. */
+      if (/\/courses\//.test(window.location.pathname)) {
+        var basePath = window.location.pathname.replace(/\/(hi|hi-Latn)\/?$/, "/");
+        var targetPath =
+          toCode === "en" ? basePath : basePath.replace(/\/$/, "/") + toCode + "/";
+        if (targetPath !== window.location.pathname) {
+          window.location.assign(targetPath);
+          return;
+        }
+      }
     }
     /* §10.13: read-aloud buttons follow the active locale; a locale with no
        narration shows no buttons. Rebuild them on every switch. */
@@ -2099,6 +2111,12 @@
           }
         }, 5000);
       }
+    },
+    syncTranscript: function () {
+      if (!ZivonVoiceDock._activeClient) return;
+      var region = ensureVoiceDockRegion();
+      if (!region || region.getAttribute("data-zn-dock-mounted") !== "true") return;
+      ZivonVoiceDock.renderAgentState(ZivonVoiceDock._activeClient.getState(), {});
     },
     lazyMount: function (opts) {
       var options = opts || {};

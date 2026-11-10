@@ -69,6 +69,20 @@ def _env_bool(e: Mapping[str, str], name: str, default: bool) -> bool:
     return raw in ("1", "true", "on", "yes")
 
 
+def _json_headers(raw: str) -> dict[str, str]:
+    if not raw:
+        return {}
+    import json
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    return {str(k): str(v) for k, v in parsed.items()}
+
+
 def _env_list(e: Mapping[str, str], name: str) -> tuple[str, ...]:
     """Comma-separated list value; empty means 'unset' (caller default)."""
     raw = _env(e, name)
@@ -97,6 +111,10 @@ class VoiceSettings:
     # so a bounded fallback model answers when Gemma breaches the first-event
     # budget. Empty = no fallback (tests/other transports).
     brain_fallback_model: str = ""
+    brain_fallback_transport: str = "gemini-direct"  # or openrouter
+    brain_fallback_base_url: str = ""
+    brain_fallback_api_key: str = field(default="", repr=False)
+    brain_extra_headers: dict[str, str] = field(default_factory=dict)
     brain_max_output_tokens: int = 8192
     brain_temperature: float = 0.4
     # Gemini thinking budget (-1 = don't send it, the model default). Set 0 on
@@ -217,6 +235,14 @@ class VoiceSettings:
             ),
             brain_max_retries=_env_int(e, "ZIVON_VOICE_BRAIN_MAX_RETRIES", 2),
             brain_fallback_model=e.get("ZIVON_VOICE_BRAIN_FALLBACK_MODEL", ""),
+            brain_fallback_transport=e.get(
+                "ZIVON_VOICE_BRAIN_FALLBACK_TRANSPORT", "gemini-direct"
+            ),
+            brain_fallback_base_url=e.get(
+                "ZIVON_VOICE_BRAIN_FALLBACK_BASE_URL", ""
+            ),
+            brain_fallback_api_key=_env(e, "ZIVON_VOICE_BRAIN_FALLBACK_API_KEY"),
+            brain_extra_headers=_json_headers(e.get("ZIVON_VOICE_BRAIN_EXTRA_HEADERS", "")),
             brain_max_output_tokens=_env_int(
                 e, "ZIVON_VOICE_BRAIN_MAX_OUTPUT_TOKENS", 8192
             ),
