@@ -1,0 +1,493 @@
+/* ==========================================================================
+   THROWAWAY MOCKUP LAYER - tmp/voice-dock-examples/_dock.css
+   --------------------------------------------------------------------------
+   Inert, visual-only. Not doctrine. Not production. Founder deletes this
+   folder. No design-doctrine §10.12 content is expressed here: this file
+   borrows the EXISTING tokens/idioms of §3-§6 + §10.1-§10.11 only (paper,
+   ink, 2 px corners, 2 px ink borders, tape -3deg/+2deg, Courier Prime for
+   read text, Caveat for labels, no gradients/shadows/grain/card rotation,
+   pen-blue = annotation, pencil-red + tick-green stay reserved).
+   Shared chrome every variant inherits; each variant file adds its own
+   positioning + expansion rules in its own <style>.
+   Animation budget: transform + opacity ONLY. No filters, no backdrop
+   blur, no box-shadow animation, no scroll-linked JS.
+   ========================================================================== */
+
+:root {
+  --paper: #EFE6B8;
+  --paper-light: #F6F0CF;
+  --ink: #1C1B18;
+  --graphite: #5A5748;
+  --pen-blue: #1F3A9E;
+  --pencil-red: #B3261E;
+  --tick-green: #2F6B2F;
+  --display: "Bricolage Grotesque", Arial, sans-serif;
+  --notes: "Courier Prime", "Courier New", monospace;
+  --hand: Caveat, "Segoe Print", "Bradley Hand", cursive;
+  --row: 2.25rem;
+  --page-w: 47rem;
+  --tape: rgba(196, 174, 104, 0.5);
+  --hair: rgba(90, 87, 72, 0.4);
+
+  /* MEASURED from the real page (chromium, file://, #b-13): the sticky
+     .zn-lang-bar is 57 px tall (105 px at 360 px where the chips wrap) and
+     the fragment scroll puts b-13's top at viewport y=0, i.e. behind it.
+     Cross-origin file:// iframes do not expose contentDocument, so the
+     ring's box is measured-fallback geometry, not live geometry. Served
+     over http:// the variant script measures b-13 for real. */
+  --lb: 57px;
+  --hl-h: 517px;
+  --ease: cubic-bezier(.2, .7, .3, 1);
+}
+@media (max-width: 751px) { :root { --hl-h: 553px; } }
+@media (max-width: 699px) { :root { --hl-h: 661px; } }
+@media (max-width: 559px) { :root { --hl-h: 733px; } }
+@media (max-width: 479px) { :root { --hl-h: 913px; } }
+@media (max-width: 419px) { :root { --hl-h: 1200px; } }
+@media (max-width: 379px) { :root { --lb: 105px; --hl-h: 1200px; } }
+
+@font-face {
+  font-family: "Courier Prime";
+  src: url("../../frontend/assets/fonts/CourierPrime-Regular.woff2") format("woff2");
+  font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: "Courier Prime";
+  src: url("../../frontend/assets/fonts/CourierPrime-Bold.woff2") format("woff2");
+  font-weight: 700; font-display: swap;
+}
+@font-face {
+  font-family: "Caveat";
+  src: url("../../frontend/assets/fonts/Caveat-Variable.woff2") format("woff2");
+  font-weight: 400 700; font-display: swap;
+}
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../../frontend/assets/fonts/BricolageGrotesque-Variable.woff2") format("woff2");
+  font-weight: 200 800; font-display: swap;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 500;
+  -webkit-text-size-adjust: 100%;
+}
+:focus-visible { outline: 3px solid var(--pen-blue); outline-offset: 3px; }
+
+/* ---- the real generated page, full bleed; never restyled ------------- */
+.stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--paper);
+  display: block;
+}
+
+/* ---- b-13 tutor highlight (ADR-0012 look: pen-blue 3 px ring) --------- */
+.hl-ring {
+  position: fixed;
+  z-index: 3;
+  pointer-events: none;
+  top: calc(var(--lb) + 2px);
+  left: max(1.25rem, calc((100% - var(--page-w)) / 2));
+  right: max(1.25rem, calc((100% - var(--page-w)) / 2));
+  height: calc(var(--hl-h) - 8px);
+  border: 3px solid var(--pen-blue);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity .16s var(--ease);
+}
+.hl-ring.is-on { opacity: 1; }
+.hl-tag {
+  position: absolute;
+  top: -1.15rem;
+  left: -3px;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: var(--pen-blue);
+  background: var(--paper);
+  padding: 0 .2rem;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ---- dock shell ------------------------------------------------------- */
+.dk {
+  position: fixed;
+  z-index: 20;
+  background: var(--paper-light);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  color: var(--ink);
+  font-family: var(--notes);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.dk, .dk * { -webkit-user-select: none; user-select: none; }
+
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dk-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.65rem;
+}
+.dk-live { flex: 1 1 auto; min-width: 0; }
+.dk-tools { display: flex; align-items: center; gap: 0.35rem; flex: 0 0 auto; }
+
+/* ---- mic: hold-to-talk (ADR-0018) ------------------------------------ */
+.dk-mic {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color .1s linear, color .1s linear, transform .07s linear;
+}
+.dk-mic svg { width: 22px; height: 22px; display: block; }
+.dk-mic[aria-pressed="true"] { background: var(--ink); color: var(--paper-light); }
+.dk-mic:active { transform: translateY(1px); }
+.dk-mic[disabled] { cursor: not-allowed; border-style: dashed; color: var(--graphite); }
+.dk-mic[disabled] svg { opacity: .45; }
+
+.dk-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.55rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: .02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  cursor: pointer;
+}
+.dk-btn:hover { background: rgba(28, 27, 24, .06); }
+.dk-btn:active { transform: translateY(1px); }
+.dk-btn[aria-expanded="true"] { background: var(--ink); color: var(--paper-light); border-color: var(--ink); }
+.dk-btn svg { width: 15px; height: 15px; display: block; }
+
+/* ---- state line: shape + words, never hue alone ---------------------- */
+.dk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dk-mark {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--graphite);
+  background: transparent;
+}
+.dk[data-state="listening"] .dk-chip,
+.dk[data-state="speaking"] .dk-chip,
+.dk[data-state="endpointing"] .dk-chip,
+.dk[data-state="thinking"] .dk-chip { color: var(--ink); }
+.dk[data-state="listening"] .dk-mark,
+.dk[data-state="speaking"] .dk-mark { background: var(--ink); border-color: var(--ink); border-radius: 50%; }
+.dk[data-state="endpointing"] .dk-mark { border-style: dashed; border-radius: 50%; }
+.dk[data-state="thinking"] .dk-mark { border-radius: 50%; }
+.dk[data-state="interrupted"] .dk-mark { background: var(--graphite); border-color: var(--graphite); }
+.dk[data-state^="error"] .dk-mark,
+.dk[data-state="offline"] .dk-mark { border-radius: 0; border-color: var(--graphite); }
+.dk[data-state="text_only"] .dk-mic { opacity: .55; }
+
+/* ---- live caption (the thing being judged) --------------------------- */
+.dk-cap {
+  margin: 0;
+  font-family: var(--notes);
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  color: var(--ink);
+  min-height: 2.7em;
+}
+.dk[data-state="idle"] .dk-cap,
+.dk[data-state="ready"] .dk-cap { color: var(--graphite); }
+.dk-cap .grow { /* streamed text keeps its own node so it can grow */ }
+.dk-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.02em;
+  margin-left: 1px;
+  vertical-align: -0.16em;
+  background: var(--ink);
+  animation: dk-blink 1.05s steps(1, end) infinite;
+}
+.dk[data-state="speaking_text"] .dk-caret,
+.dk[data-state="interrupted"] .dk-caret { display: none; }
+@keyframes dk-blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0; } }
+
+/* ---- level bars: listening/speaking only, never a spinner ------------ */
+.dk-bars {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+  margin-left: 2px;
+  vertical-align: -0.2em;
+}
+.dk-bars i {
+  display: block;
+  width: 3px;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleY(.28);
+  transform-origin: center;
+}
+.dk[data-state="listening"] .dk-bars,
+.dk[data-state="speaking"] .dk-bars { display: inline-flex; }
+.dk[data-state="listening"] .dk-bars i,
+.dk[data-state="speaking"] .dk-bars i { animation: dk-level .62s var(--ease) infinite alternate; }
+.dk-bars i:nth-child(1) { animation-delay: 0s; }
+.dk-bars i:nth-child(2) { animation-delay: .16s; }
+.dk-bars i:nth-child(3) { animation-delay: .08s; }
+.dk-bars i:nth-child(4) { animation-delay: .24s; }
+@keyframes dk-level { from { transform: scaleY(.22); } to { transform: scaleY(1); } }
+.dk[data-state="endpointing"] .dk-bars { display: inline-flex; opacity: .45; }
+.dk[data-state="endpointing"] .dk-bars i { transform: scaleY(.14); background: var(--graphite); }
+
+/* endpointing: a dashed hairline that breathes - "still waiting", no ETA */
+.dk-wait {
+  display: none;
+  height: 2px;
+  margin-top: 4px;
+  border-top: 2px dashed var(--graphite);
+  animation: dk-breathe 1.9s ease-in-out infinite;
+}
+.dk[data-state="endpointing"] .dk-wait { display: block; }
+@keyframes dk-breathe { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+
+/* thinking: indeterminate sweep, explicitly no timer ------------------ */
+.dk-think {
+  display: none;
+  margin-top: 4px;
+  height: 2px;
+  background: var(--hair);
+  position: relative;
+  overflow: hidden;
+}
+.dk-think span {
+  position: absolute;
+  top: 0; left: 0;
+  width: 34%;
+  height: 100%;
+  background: var(--ink);
+  animation: dk-sweep 1.15s var(--ease) infinite;
+}
+.dk[data-state="thinking"] .dk-think { display: block; }
+@keyframes dk-sweep { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+
+/* ---- inline notes (errors keep the text path open) ------------------- */
+.dk-note {
+  margin: 0;
+  padding: 0.45rem 0.65rem 0;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--ink);
+  border-top: 1px solid var(--hair);
+  margin-top: 0.45rem;
+  display: none;
+}
+.dk[data-state^="error"] .dk-note,
+.dk[data-state="offline"] .dk-note,
+.dk[data-state="text_only"] .dk-note { display: block; }
+.dk-note b { font-weight: 700; }
+.dk-stamp {
+  display: inline-block;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 0 .3rem;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: .06em;
+  margin-right: .4rem;
+  vertical-align: 1px;
+}
+
+/* ---- text fallback: reachable from EVERY state ----------------------- */
+.dk-text { display: none; border-top: 1px solid var(--ink); }
+.dk-text.is-open { display: block; }
+.dk-form { display: flex; gap: 0.4rem; padding: 0.5rem 0.65rem; }
+.dk-in {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--notes);
+  font-size: 1rem;
+}
+.dk-in::placeholder { color: var(--graphite); }
+.dk-send {
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 52px;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--paper-light);
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.dk-send:active { transform: translateY(1px); }
+
+/* ---- transcript ------------------------------------------------------ */
+.dk-tr {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.dk-tr li {
+  padding: 0.4rem 0.65rem 0.45rem;
+  border-bottom: 1px solid var(--hair);
+  font-family: var(--notes);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+.dk-tr li:last-child { border-bottom: 0; }
+.dk-tr .who {
+  display: block;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.1;
+  color: var(--graphite);
+}
+.dk-tr .who.tutor { color: var(--pen-blue); }
+.dk-tr .cut {
+  color: var(--graphite);
+  font-style: normal;
+}
+.dk-tr li[data-cut="1"] { border-left: 3px solid var(--graphite); }
+
+/* ---- tape (variant 02 / any card) ----------------------------------- */
+.tape {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  width: 92px;
+  height: 27px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: var(--tape);
+  clip-path: polygon(0 8%, 6% 0, 94% 4%, 100% 0, 98% 92%, 92% 100%, 7% 96%, 0 100%);
+  pointer-events: none;
+}
+
+/* ---- hand-written pen underline (one per screen, §4.1 spirit) -------- */
+.pen-ul { display: block; width: 100%; height: 8px; overflow: visible; }
+.pen-ul path { fill: none; stroke: var(--pen-blue); stroke-linecap: round; }
+
+/* ---- dev state switcher (mock-only chrome, deleted with the folder) --- */
+.dev {
+  position: fixed;
+  z-index: 60;
+  top: var(--dev-top, 8px);
+  bottom: var(--dev-bottom, auto);
+  left: var(--dev-left, 8px);
+  max-width: calc(100vw - 16px);
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px dashed var(--graphite);
+  border-radius: 2px;
+}
+.dev-toggle {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 .5rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: .04em;
+  text-align: left;
+  cursor: pointer;
+}
+.dev-body { padding: 0 .5rem .5rem; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; max-width: min(92vw, 560px); }
+.dev-body[hidden] { display: none; }
+.dev select {
+  min-height: 32px;
+  max-width: 46vw;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--notes);
+  font-size: 0.75rem;
+}
+.dev button {
+  min-height: 32px;
+  padding: 0 .45rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.dev button[aria-pressed="true"] { background: var(--ink); color: var(--paper-light); }
+
+/* ---- reduced motion: growth degrades to text, no choreography -------- */
+@media (prefers-reduced-motion: reduce) {
+  .dk-bars i, .dk-wait, .dk-think span, .dk-caret { animation: none !important; }
+  .dk-bars i { transform: scaleY(.4); }
+  .dk-caret { opacity: 1; }
+  .hl-ring { transition: none; }
+}

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dock mockup 06 · status strip (throwaway)</title>
+<!--
+  ============================================================================
+  THROWAWAY MOCKUP 06 - "always-visible status strip"
+  ----------------------------------------------------------------------------
+  INERT AND VISUAL-ONLY: no WebSocket, no fetch, no CDN, no getUserMedia, no
+  storage; all data fake (_dock.js). NOT design-doctrine §10.12 (§10.12 is
+  founder-gated and absent, DCR-002). Reuses only existing §3-§6 /
+  §10.1-§10.11 tokens. Backdrop = the real generated lesson page, unmodified.
+  A 46 px strip sits above the page and never disappears: mic + one live
+  line. Expanding it grows the conversation downward to at most 55 % of the
+  viewport, so the lesson keeps the majority of the screen.
+  ============================================================================
+-->
+<link rel="stylesheet" href="_dock.css">
+<style>
+  /* ---- strip is at the TOP, above the page's own language bar --------- */
+  .stage { top: 46px; height: calc(100% - 46px); }
+  /* the strip owns the top-left corner, so the mock control moves to the
+     free bottom-left corner in this variant only */
+  :root { --dev-bottom: 8px; --dev-top: auto; }
+  .hl-ring { top: calc(46px + var(--lb) + 2px); }
+
+  .dk {
+    left: 0; right: 0; top: 0;
+    display: flex; flex-direction: column;
+    border-width: 0 0 2px 0;
+    max-height: 55dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .dk-top {
+    align-items: center;
+    gap: .55rem;
+    padding: 0 .7rem;
+    min-height: 46px;
+  }
+  .dk-mic { width: 44px; height: 38px; min-height: 38px; border-width: 2px; }
+  .dk-live { padding-top: 0; display: flex; align-items: center; gap: .5rem; min-width: 0; }
+  .dk-chip { margin: 0; flex: 0 0 auto; }
+  .dk-bars { height: 14px; }
+  .dk-cap {
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    min-height: 0;
+    max-height: 1.2em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .dk-tr { order: 2; border-top: 1px solid var(--hair); border-bottom: 0; max-height: calc(55dvh - 120px); }
+  .dk-note { order: 3; }
+  .dk-text { order: 4; }
+  .dk-tools { gap: .3rem; }
+  .dk-tools .dk-btn { min-height: 38px; font-size: .75rem; }
+
+  /* ---- collapsed: exactly the strip, nothing else --------------------- */
+  .dk.is-collapsed { max-height: 46px; }
+  .dk.is-collapsed .dk-tr,
+  .dk.is-collapsed .dk-note,
+  .dk.is-collapsed .dk-text { display: none; }
+  .dk.is-collapsed .dk-cap { max-height: 1.2em; }
+
+  /* expanded: the caption may breathe to two lines */
+  .dk:not(.is-collapsed) .dk-top { align-items: flex-start; padding-top: .45rem; padding-bottom: .45rem; }
+  .dk:not(.is-collapsed) .dk-live { display: block; padding-top: 3px; }
+  .dk:not(.is-collapsed) .dk-cap {
+    white-space: normal; max-height: 3.6em; margin-top: 2px;
+  }
+  .dk:not(.is-collapsed) .dk-chip { margin-bottom: 2px; }
+
+  @media (max-width: 460px) {
+    .dk-chip { display: none; }         /* the words that matter are the caption */
+    .dk:not(.is-collapsed) .dk-chip { display: flex; }
+    .dk-tools [data-texttoggle] { padding: 0 .4rem; }
+  }
+</style>
+</head>
+<body data-variant="06-status-strip">
+
+<iframe class="stage"
+        src="../../frontend/courses/class-11-physics/laws-of-motion/index.html#b-13"
+        title="Laws of Motion - the real generated lesson page, anchored at block b-13"
+        loading="eager"></iframe>
+
+<aside class="dk is-collapsed" id="dock" data-state="idle" aria-label="Voice tutor dock">
+  <div class="dk-top">
+    <button class="dk-mic" data-mic type="button" aria-pressed="false" aria-label="Hold to talk">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2.5" width="6" height="11" rx="3"></rect>
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"></path>
+      </svg>
+    </button>
+    <div class="dk-live">
+      <p class="dk-chip">
+        <span class="dk-mark" aria-hidden="true"></span>
+        <span data-chip>Mic idle</span>
+        <span class="dk-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      </p>
+      <p class="dk-cap" data-caption aria-live="polite" aria-atomic="true">Hold the mic and speak your doubt.</p>
+      <div class="dk-wait" aria-hidden="true"></div>
+      <div class="dk-think" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="dk-tools">
+      <button class="dk-btn" type="button" data-texttoggle aria-expanded="false" aria-controls="dk-text">Type</button>
+      <button class="dk-btn" type="button" data-collapse aria-expanded="false" aria-label="Collapse the dock (mic stays available)">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"></path></svg>
+        <span class="vh">Shrink dock</span>
+      </button>
+    </div>
+  </div>
+
+  <p class="dk-note" data-note></p>
+
+  <div class="dk-text" id="dk-text" data-textpanel>
+    <form class="dk-form" data-form>
+      <input class="dk-in" data-input type="text" placeholder="Apna doubt type karo…" aria-label="Type your Physics doubt" autocomplete="off">
+      <button class="dk-send" type="submit">Send</button>
+    </form>
+  </div>
+
+  <ol class="dk-tr" data-transcript role="log" aria-live="polite" aria-label="Conversation"></ol>
+</aside>
+
+<script src="_dock.js"></script>
+</body>
+</html>

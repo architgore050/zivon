@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice dock · six throwaway variants (gallery)</title>
+<!--
+  ============================================================================
+  THROWAWAY MOCKUP GALLERY - tmp/voice-dock-examples/index.html
+  ----------------------------------------------------------------------------
+  INERT: no network, no WebSocket, no getUserMedia, no external fonts. Each
+  frame below is a self-contained visual mockup of the SAME six-turn Hinglish
+  conversation, over the SAME real generated page (b-13, Laws of Motion).
+  Not design-doctrine §10.12. §10.12 does not exist yet - these are shape
+  candidates for the founder to pick from, nothing more.
+  ============================================================================
+-->
+<link rel="stylesheet" href="_dock.css">
+<style>
+  body {
+    overflow: auto;
+    background: var(--paper);
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  .kicker {
+    font-family: var(--notes);
+    font-weight: 700;
+    font-size: .875rem;
+    letter-spacing: .04em;
+    color: var(--graphite);
+    margin: 0 0 .25rem;
+  }
+  h1 {
+    font-family: var(--hand);
+    font-weight: 700;
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    line-height: 1.05;
+    margin: 0 0 .75rem;
+  }
+  .lede {
+    font-family: var(--notes);
+    font-size: 1rem;
+    line-height: 1.5;
+    max-width: 62ch;
+    margin: 0 0 .35rem;
+  }
+  .lede.small { font-size: .875rem; color: var(--graphite); }
+  .rule { height: 2px; background: var(--hair); margin: 1.75rem 0 1.5rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.75rem 1.25rem;
+  }
+  .card { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+  .num {
+    font-family: var(--notes);
+    font-weight: 700;
+    font-size: .875rem;
+    color: var(--graphite);
+    margin: 0;
+  }
+  .name {
+    font-family: var(--hand);
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1;
+    margin: 0;
+  }
+  .frame {
+    position: relative;
+    width: 100%;
+    max-width: 180px;
+    aspect-ratio: 180 / 370;
+    overflow: hidden;
+    border: 2px solid var(--ink);
+    border-radius: 2px;
+    background: var(--paper);
+  }
+  .frame iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 360px;
+    height: 740px;
+    border: 0;
+    transform-origin: 0 0;
+    transform: scale(var(--s, .5));
+  }
+  .trade {
+    font-family: var(--notes);
+    font-size: .8125rem;
+    line-height: 1.4;
+    color: var(--graphite);
+    margin: 0;
+    max-width: 30ch;
+  }
+  .open {
+    font-family: var(--notes);
+    font-weight: 700;
+    font-size: .8125rem;
+    color: var(--pen-blue);
+    text-underline-offset: 2px;
+  }
+  .seams {
+    margin-top: 3rem;
+    border-top: 2px solid var(--hair);
+    padding-top: 1.25rem;
+  }
+  .seams h2 { font-family: var(--hand); font-weight: 700; font-size: 1.75rem; margin: 0 0 .5rem; }
+  .seams ul { font-family: var(--notes); font-size: .875rem; line-height: 1.55; margin: 0; padding-left: 1.25rem; }
+  .seams code { background: var(--paper-light); padding: 0 .2rem; border: 1px solid var(--hair); border-radius: 2px; }
+  @media (max-width: 520px) {
+    body { padding: 1.5rem 1rem 3rem; }
+    .frame { max-width: 100%; aspect-ratio: 180 / 370; }
+    .frame iframe { --s: 1; width: 100%; height: 100%; transform: none; position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">mockups · 10 nov 2026 · not doctrine</p>
+  <h1>Six voice docks, one conversation</h1>
+  <p class="lede">Every frame runs the identical six-turn Hinglish doubt — “Sir, impulse aur change in momentum same kyun hote hain?” — over the real generated Laws of Motion page, with block <b>b-13</b> (the batsman worked example) ringed in pen-blue. Hold the mic (or press <b>space</b>) to speak; <b>Esc</b> stops the tutor; the little <b>MOCK · state</b> button forces any of the 18 client states.</p>
+  <p class="lede small">Inert fakes: no WebSocket, no microphone, no network, no fonts from a CDN. Judge the shape and the streamed caption, not the content.</p>
+  <div class="rule"></div>
+
+  <div class="grid">
+    <div class="card">
+      <p class="num">01</p>
+      <p class="name">bottom bar</p>
+      <div class="frame"><iframe src="01-bottom-bar.html" title="Variant 01, bottom bar" loading="lazy"></iframe></div>
+      <p class="trade">Cheapest, most conventional. Costs the page 100–330 px of bottom viewport forever; every school app already looks like this.</p>
+      <a class="open" href="01-bottom-bar.html">open full size →</a>
+    </div>
+
+    <div class="card">
+      <p class="num">02</p>
+      <p class="name">floating pill</p>
+      <div class="frame"><iframe src="02-floating-pill.html" title="Variant 02, floating pill" loading="lazy"></iframe></div>
+      <p class="trade">Least intrusive, most ignorable. A 36 px capsule breaks §6's square-corner rule and reads a little like a chat widget.</p>
+      <a class="open" href="02-floating-pill.html">open full size →</a>
+    </div>
+
+    <div class="card">
+      <p class="num">03</p>
+      <p class="name">margin rail</p>
+      <div class="frame"><iframe src="03-margin-rail.html" title="Variant 03, margin rail" loading="lazy"></iframe></div>
+      <p class="trade">Only variant that never covers the lesson at 1280 px. Dies below 1120 px, where it has to become a bar anyway.</p>
+      <a class="open" href="03-margin-rail.html">open full size →</a>
+    </div>
+
+    <div class="card">
+      <p class="num">04</p>
+      <p class="name">inline under block</p>
+      <div class="frame"><iframe src="04-inline-under-block.html" title="Variant 04, inline under block" loading="lazy"></iframe></div>
+      <p class="trade">Strongest “we are talking about <i>this</i> paragraph” signal. Needs ~260 px below the block; impossible on a phone.</p>
+      <a class="open" href="04-inline-under-block.html">open full size →</a>
+    </div>
+
+    <div class="card">
+      <p class="num">05</p>
+      <p class="name">sheet</p>
+      <div class="frame"><iframe src="05-sheet.html" title="Variant 05, bottom sheet" loading="lazy"></iframe></div>
+      <p class="trade">Best transcript history + thumb reach. Costs up to 60 % of the screen when open; sheet chrome fights the paper page.</p>
+      <a class="open" href="05-sheet.html">open full size →</a>
+    </div>
+
+    <div class="card">
+      <p class="num">06</p>
+      <p class="name">status strip</p>
+      <div class="frame"><iframe src="06-status-strip.html" title="Variant 06, status strip" loading="lazy"></iframe></div>
+      <p class="trade">Always-on presence, 46 px only. Sits between the page's language bar and the text, so it competes with the chrome it copies.</p>
+      <a class="open" href="06-status-strip.html">open full size →</a>
+    </div>
+  </div>
+
+  <section class="seams">
+    <h2>What a winner must map onto</h2>
+    <ul>
+      <li>Mount target: <code>aside.zn-voice-dock-region</code> inside <code>.zn-page</code> (<code>data-region="SCR-LES-01.R9"</code>, <code>data-element-id="EL-LES-01-090"</code>, currently <code>hidden</code>).</li>
+      <li>Mount seam: <code>window.ZivonVoiceDock.lazyMount()</code> — inert today until §10.12 exists.</li>
+      <li>Client: <code>window.ZivonVoiceClient.create()</code>; context from <code>buildContextSnapshot()</code>; highlight via <code>highlightBlocks()</code> / <code>EL-LES-01-056</code>.</li>
+      <li>CSP: the lesson page ships <code>connect-src 'none'</code> — no WebSocket opens until <code>connect-src 'self'</code> is granted. These mockups are inert by design.</li>
+      <li>Anything that cannot live inside that one <code>aside</code> region is a layout change, not a dock variant.</li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>
