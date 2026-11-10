@@ -12,7 +12,8 @@ repo's own hardening rules (docs/deployment/cicd.md § Hardening rules):
      `permissions: write-all` is rejected at workflow AND job level.
   4. `pull_request_target` is rejected (fork code with a write token).
   5. No product secret names appear in the workflow text — dot AND bracket
-     reference forms (`secrets.NAME` / `secrets['NAME']`).
+     reference forms (`secrets.NAME` / `secrets['NAME']`). Reported by file +
+     rule only: the matched expression never reaches the job log.
   6. Every job either has `steps` or a reusable-workflow `uses`.
   7. `if:` conditions are non-empty strings; `run:` bodies are non-empty.
 
@@ -92,11 +93,21 @@ def _check_permissions(value: object, where: str, failures: list[str]) -> None:
 
 
 def _check_secrets(text: str, name: str, failures: list[str]) -> None:
-    """Rule 5: no product secret names, in dot or bracket reference form."""
+    """Rule 5: no product secret names, in dot or bracket reference form.
+
+    The report names the FILE and the rule only — never the matched
+    expression or the secret name it resolved to. A `secrets.X` reference is
+    the taint source for CodeQL's clear-text-logging query, and this checker's
+    findings go to stdout (the workflow step log); echoing the match would
+    make the gate itself the leak. One finding per file is also enough to act
+    on: the rule is "no product secret references at all".
+    """
     referenced = set(SECRET_REF.findall(text))
-    for secret in FORBIDDEN_SECRET_NAMES:
-        if secret in referenced:
-            failures.append(f"{name}: references forbidden secret {secret}")
+    if referenced.intersection(FORBIDDEN_SECRET_NAMES):
+        failures.append(
+            f"{name}: references a forbidden product secret name "
+            "(rule 5: product secrets never reach CI; use runtime config)"
+        )
 
 
 def _check_steps(
@@ -293,7 +304,7 @@ jobs:
             "wf.yml",
             True,
             "workflows",
-            "references forbidden secret ZIVON_API_KEY",
+            "references a forbidden product secret name",
         ),
         (
             "write-all permissions rejected",
