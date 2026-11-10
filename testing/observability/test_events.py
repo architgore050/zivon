@@ -57,6 +57,19 @@ EMITTED_BY_THIS_BRANCH = [
     "log.event_unknown",
     # guardian deletion
     "privacy.subject_deleted",
+    # voice backend (voice/ package)
+    "voice.brain.first_event_breach",
+    "voice.brain.transport_retry",
+    "voice.ratelimit.unsalted",
+    "voice.session.closed",
+    "voice.snapshot.rejected",
+    "voice.stt.connect_retry",
+    "voice.tts.connect_retry",
+    "voice.turn.e2e_latency",
+    "voice.turn.ledger_failed",
+    "voice.ws.heartbeat_lost",
+    "voice.ws.oversized_frame",
+    "voice.ws.unknown_message",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming
@@ -76,7 +89,7 @@ class MapParsingTests(unittest.TestCase):
     def test_map_parses_rfc4180_with_consistent_columns(self) -> None:
         text = MAP_PATH.read_text(encoding="utf-8")
         rows = list(csv.DictReader(text.splitlines()))
-        self.assertEqual(len(rows), 62)
+        self.assertEqual(len(rows), 73)
         expected_columns = [
             "component",
             "event",
