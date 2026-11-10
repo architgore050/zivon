@@ -1,0 +1,117 @@
+# Scheduled evaluation & reviewer calibration suite (evals/ package).
+# Schedule is rendered from ${EVAL_CRON_SCHEDULE} in k8s/infra.env by
+# scripts/apply-k8s.sh (shipped default: daily at 02:00 UTC).
+#
+# Evidence retention: evals_runs/ MUST live on the shared zivon-sources PVC
+# (subPath: evals), exactly like runs/ (subPath: runs), so a completed eval
+# report survives pod death and the next run can diff against it. An emptyDir
+# here silently discarded every report when the pod exited.
+#
+# Manual trigger (admin dashboard button stand-in):
+#   scripts/trigger-evals.sh [smoke|full|calibrate]
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: eval-suite
+  namespace: zivon
+  labels:
+    app: zivon-factory
+    component: evals
+spec:
+  schedule: "${EVAL_CRON_SCHEDULE}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      # No ttlSecondsAfterFinished on a CronJob jobTemplate (kube-linter gotcha 12).
+      template:
+        metadata:
+          labels:
+            app: zivon-factory
+            task: eval-suite
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            # fsGroup lets the non-root user write the PVC-backed evals_runs/ dir.
+            fsGroup: 1000
+          containers:
+            - name: evals
+              image: zivon-factory:0.3.17
+              imagePullPolicy: IfNotPresent
+              # `run --suite full` already includes the EV-REV calibration judge
+              # calls; a second `calibrate` invocation would duplicate every call.
+              command:
+                - python
+                - -m
+                - evals
+                - run
+                - --suite
+                - full
+                - --fail-on-regression
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-factory-config
+                - secretRef:
+                    name: zivon-factory-env
+                    optional: true
+              env:
+                - name: HF_HUB_OFFLINE
+                  value: "1"
+                - name: ZIVON_EVAL_RUNS_DIR
+                  value: "/app/evals_runs"
+              volumeMounts:
+                - name: sources
+                  mountPath: /app/evals_runs
+                  subPath: evals
+                - name: sources
+                  mountPath: /app/runs
+                  subPath: runs
+                  readOnly: true
+                - name: sources
+                  mountPath: /app/sources/pdfs
+                  subPath: pdfs
+                  readOnly: true
+                - name: sources
+                  mountPath: /app/sources/cache
+                  subPath: cache
+                  readOnly: true
+                - name: site
+                  mountPath: /app/frontend
+                  readOnly: true
+                - name: hf-cache
+                  mountPath: /app/.cache/huggingface
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: "2"
+                  memory: 2Gi
+          volumes:
+            - name: sources
+              persistentVolumeClaim:
+                claimName: zivon-sources
+            - name: site
+              persistentVolumeClaim:
+                claimName: zivon-frontend
+            - name: hf-cache
+              persistentVolumeClaim:
+                claimName: zivon-hf-cache
+            - name: tmp
+              emptyDir: {}

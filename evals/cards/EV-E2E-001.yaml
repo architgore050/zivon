@@ -1,0 +1,33 @@
+card_id: EV-E2E-001
+version: 1
+title: End-to-End Topic Page Quality, Catcher Convergence, and Human Edit Rate
+stage: 00-ingest..11-link
+agent_role: End-to-End Pipeline
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-E2E01-PUBLISHED-INTEGRITY
+  entrypoint: evals.checkers.prompt_contract_checks:check_e2e_published_courses_and_edit_rate
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.link:run
+  description: Audits published frontend/courses/* snapshots, manifest traceability, catcher convergence
+    ledgers, and verifies human_edit_rate <= 0.05 (target 0.00).
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 16000
+  call_deadline_s: 1800

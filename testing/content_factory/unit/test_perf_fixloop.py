@@ -1,10 +1,8 @@
 """Unit tests for stage 07-perf routing and stage 08-fixloop behaviour.
 
-The perf harness is faked (no Chromium here); the integration test exercises
-the real one. What we prove: a topic-page miss is routed to the fix loop,
-an unfixable miss stops the run, and the fix loop repairs, re-lints, retests,
-feeds a failed fix back into the next round, and stops progress-aware (a
-plateau or the generous cap) - loudly, with the full history.
+Note: `test_fix_prompt_carries_specs_and_teaching_guard` was migrated to
+`evals/checkers/prompt_contract_checks.py` (`EV-PERF-001`) per
+`docs/specs/evals/migration-map.csv` row 29.
 """
 
 import dataclasses
@@ -344,33 +342,6 @@ class TestFixloopStage(unittest.TestCase):
         self.assertEqual(llm.calls, 2, "stopped at the plateau, not at the cap")
         self.assertIn("progress plateaued", str(ctx.exception))
 
-    def test_fix_prompt_carries_specs_and_teaching_guard(self):
-        # A perf fix must not be allowed to gut the page: the model sees the
-        # sim specs it must preserve, the measurement context, and the budgets.
-        cfg = make_cfg(self.tmp, fix_rounds=1)
-        llm = StubLLM()
-        with self.assertRaises(BudgetError):
-            self._run(
-                cfg,
-                fake_report(False, ["FPS 12 < 24"]),
-                [fake_report(False, ["FPS 12 < 24"])],
-                llm,
-            )
-        system = next(m["content"] for m in llm.messages[0] if m["role"] == "system")
-        user = next(m["content"] for m in llm.messages[0] if m["role"] == "user")
-        self.assertIn("must still TEACH", system)
-        self.assertIn("low-end Android", system)
-        self.assertIn("PAGE SPECS", user)
-        self.assertIn("Connect the size of acceleration", user)  # the sim's goal
-        self.assertIn("budgets", user)
-        # 2026-11-04: a perf fixer edits page code, so it must see the design
-        # language it is preserving - doctrine + the lesson-page example + palette.
-        self.assertIn("DESIGN DOCTRINE + LESSON-PAGE EXAMPLE", user)
-        self.assertIn("design-doctrine-lesson-example.html", user)
-        self.assertNotIn("=== design-doctrine-example.html ===", user)
-        self.assertIn("PALETTE", user)
-        self.assertIn("--ink:", user)
-
     def test_second_round_sees_previous_attempts(self):
         # Without the attempt history the model repeats a failed fix unchanged.
         cfg = make_cfg(self.tmp, fix_rounds=2)
@@ -398,6 +369,89 @@ class TestFixloopStage(unittest.TestCase):
         self.assertIn("Use & apply v = u + at", objectives)
         glossary = fixloop_mod._extract_glossary(PAGE_HTML)
         self.assertEqual(glossary[0]["term"], "Speed & direction")
+
+
+class TestSpecCorrectionChannel(unittest.TestCase):
+    """2026-11-09 (this repo's own failed run): review findings about block
+    CONTENT are unfixable in page code - the fix plan gained a "blocks"
+    channel. The harness merges corrections by id and re-renders the page
+    body from the merged specs, so index.html has exactly one writer."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.cfg = make_cfg(self.tmp)
+        self.site, self.topic, self.render_out = make_page(self.tmp)
+        self.blocks = load("blocks.json")
+
+    def _apply(self, plan, blocks=None):
+        return fixloop_mod._apply_plan(self.topic, plan, blocks)
+
+    def test_corrected_blocks_merge_by_id_and_keep_others(self):
+        corrected = json.loads(json.dumps(self.blocks["blocks"][4]))  # b-05 diagram
+        corrected["spec"] = dict(corrected["spec"], caption="fixed caption")
+        rejected, merged = self._apply(
+            {"analysis": "x" * 30, "files": {}, "blocks": [corrected]}, self.blocks
+        )
+        self.assertEqual(rejected, [])
+        assert merged is not None
+        by_id = {b["id"]: b for b in merged["blocks"]}
+        self.assertEqual(by_id["b-05"]["spec"]["caption"], "fixed caption")
+        self.assertEqual(len(merged["blocks"]), len(self.blocks["blocks"]))
+        self.assertEqual(by_id["b-01"], self.blocks["blocks"][0])
+
+    def test_simulation_spec_edits_are_rejected_with_feedback(self):
+        corrected = json.loads(json.dumps(self.blocks["blocks"][5]))  # b-06 sim
+        rejected, merged = self._apply(
+            {"analysis": "x" * 30, "files": {}, "blocks": [corrected]}, self.blocks
+        )
+        self.assertTrue(any("simulation block(s) b-06" in r for r in rejected))
+        self.assertIsNone(merged, "rejected corrections must not reach the draft")
+
+    def test_renderer_file_in_plan_is_a_rejection_sentence(self):
+        rejected, merged = self._apply(
+            {"analysis": "x" * 30, "files": {"index.html": "<html></html>"}},
+            self.blocks,
+        )
+        self.assertTrue(any("renderer-owned" in r for r in rejected))
+        self.assertIsNone(merged)
+        self.assertNotIn("<html></html>", (self.topic / "index.html").read_text())
+
+    def test_rebuild_from_blocks_writes_corrected_geometry_without_nesting(self):
+        # spelling guard on the method name below (lowercase w caught by lint)
+        corrected = json.loads(json.dumps(self.blocks["blocks"][4]))
+        corrected["spec"] = dict(corrected["spec"], caption="fixed caption")
+        _, merged = self._apply(
+            {"analysis": "x" * 30, "files": {}, "blocks": [corrected]}, self.blocks
+        )
+        assert merged is not None
+        fixloop_mod._rebuild_html_if_needed(
+            self.cfg, self.render_out, self.topic, merged
+        )
+        html = (self.topic / "index.html").read_text(encoding="utf-8")
+        self.assertIn("fixed caption", html)
+        for marker in (
+            '<header class="zn-lang-bar">',
+            '<header class="zn-header">',
+            '<section class="zn-glossary">',
+            '<footer class="zn-footer">',
+        ):
+            self.assertEqual(html.count(marker), 1, marker)
+        # idempotent: a second rebuild from the same specs changes nothing
+        fixloop_mod._rebuild_html_if_needed(
+            self.cfg, self.render_out, self.topic, merged
+        )
+        self.assertIn("fixed caption", (self.topic / "index.html").read_text())
+
+    def test_rebuild_without_blocks_still_collapses_nested_shells(self):
+        # A page left poisoned by an older runner (shells nested; seen in the
+        # wild 2026-11-09) must be normalized, not joined again.
+        _, topic, render_out = make_page(self.tmp / "poison")
+        good = (topic / "index.html").read_text(encoding="utf-8")
+        (topic / "index.html").write_text(good + good, encoding="utf-8")
+        fixloop_mod._rebuild_html_if_needed(self.cfg, render_out, topic)
+        html = (topic / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(html.count('<header class="zn-header">'), 1)
+        self.assertEqual(html.count('<section class="zn-glossary">'), 1)
 
 
 if __name__ == "__main__":

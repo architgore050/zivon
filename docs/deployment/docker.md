@@ -11,7 +11,7 @@ The factory depends on heavy, fragile things: `sentence-transformers` (torch), `
 - **Layer order:** `requirements.txt` installed *before* code is copied, so code edits reuse the cached dependency layer (rebuilds take seconds).
 - **CPU-only torch:** installed from `download.pytorch.org/whl/cpu` first, pinned to the exact wheel (`torch==2.15.0+cpu`) so the Python-dependency layer of a rebuild is reproducible (hadolint DL3013); the OS layer above it is deliberately unpinned, so a rebuild is package-fresh rather than bit-identical. The default PyPI torch wheel bundles ~2 GB of CUDA libraries the pipeline never uses (`retrieval.device: "cpu"`).
 - **trivy-pinned Python packages:** `setuptools==84.2.1 wheel==0.46.2 jaraco.context==6.1.0` after the requirements install. torch pins `setuptools==78.1.0` exactly, and 78.1.0 + its vendored `jaraco.context`/`wheel` copies carry HIGH CVEs; 84.2.1 is clean and vendors the fixed copies. The torch pin conflict is a pip warning only (setuptools is a build-time dep for torch).
-- **Playwright:** `playwright install --with-deps chromium` bakes Chromium + its OS libraries into the image; browsers live at `/opt/playwright` (fixed path readable by the non-root user).
+- **Playwright:** `playwright install --with-deps chromium` bakes Chromium + its OS libraries into the image; browsers live at `/opt/playwright` (fixed path readable by the non-root user). **libatomic1 gotcha (2026-11-10):** `playwright>=1.45` floats, and playwright ≥1.65's bundled Node driver links `libatomic.so.1`, which slim does not ship — and `playwright install --with-deps` must run the driver BEFORE it can enumerate its own apt deps, so the whole RUN died with exit 127 (`libatomic.so.1: cannot open shared object file`). Fix: `libatomic1` is installed explicitly in the apt layer above (works at any playwright version), and the playwright step is its own `RUN` layer so a playwright-side failure does not re-download the pip wheels layer.
 - **Non-root:** build runs as root, but `useradd --uid 1000 app` + numeric `USER 1000` makes the container run unprivileged. The numeric form is deliberate: kubelets cannot verify non-root for a named user (gotcha 1 in `kubernetes.md`) and hadolint flags it too (DL3066).
 - **`ENV PYTHONPATH=/app`:** Python sets `sys.path[0]` to the *script's* directory, so scripts outside the repo root (e.g. `docker/smoke_test.py`) can't see `factory/` without this. Placed after the pip layer so changing it doesn't invalidate the dependency cache.
 - **Default CMD:** `python docker/smoke_test.py` — imports all 19 factory modules, the `pipeline.py` entry point, and the heavy deps. A broken image fails in seconds, locally and in CI.
@@ -25,10 +25,10 @@ Excludes `.git`, secrets (`.env*`, `*.key`, `*.pem`), local caches (`runs/`, `so
 ## Local workflow
 
 ```bash
-docker build -t zivon-factory:0.3.17 .
-docker run --rm zivon-factory:0.3.17                          # smoke test
-docker run --rm -it zivon-factory:0.3.17 bash                 # explore inside
-docker history zivon-factory:0.3.17                           # per-layer sizes
+docker build -t zivon-factory:0.3.22 .
+docker run --rm zivon-factory:0.3.22                          # smoke test
+docker run --rm -it zivon-factory:0.3.22 bash                 # explore inside
+docker history zivon-factory:0.3.22                           # per-layer sizes
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 ```
 

@@ -162,10 +162,16 @@ def run_generate(
         "methods the source itself states, with every step shown. Never put a figure "
         "into the problem that the source does not give.\n"
         '- check: {"question", "format": "mcq"|"numeric", "options": ["A","B","C","D"], '
-        '"answer_index": 0-3 (mcq), "answer": "text" (numeric), "explanation", '
+        '"answer_index": 0-3 (mcq), "answer": "text" (mcq only), "explanation", '
         '"expected_understanding"} - every in-text question and conceptual exercise from '
         "your inventory becomes a check, and every lesson section gets at least one; "
         "single-step numerical exercises may become numeric checks. "
+        'For format "numeric" the answer field is MANDATORY and must be the bare '
+        "number only - digits, optional decimal point and optional minus sign, "
+        'e.g. {"format": "numeric", "answer": "6"} - never a unit, never a word, '
+        'never a sentence ("6 s", "0.6 N s", "about 6" are all REJECTED by the '
+        "answer-key rule). The unit belongs in the question: ask "
+        '"... in seconds?" or state "Give the answer in seconds." '
         "answer_index must point at the correct option; one option may address a listed misconception\n"
         '- reveal: {"title", "steps": [{"title", "detail"}]} - a step-by-step derivation or method\n'
         '- diagram: {"svg": "<svg ...>...</svg> string using only viewBox, rect, circle, line, '
@@ -194,6 +200,28 @@ def run_generate(
         "drift from the physics (the area under a slanted v-t line is a trapezoid, "
         "not the rectangle you would draw). If the figure's shape is fixed by an "
         "equation, it is a simulation; if it is chosen by eye, it is a diagram.\n"
+        "Diagram CONTENT law (2026-11-10 founder bug report: drawn figures carried "
+        "basic content mistakes, not just render defects - a label naming the "
+        "starting point sat under the wrong part of the figure, a force arrow "
+        "was not perpendicular to the drawn surface, an angle the caption named "
+        "was never drawn): within a diagram the geometry must ENCODE the caption. "
+        "(a) Anchor every label to the element it names: put it immediately "
+        "beside that element (or attach it with a leader line) - never float it "
+        "somewhere that reads as belonging to another part. (b) Every drawn "
+        "arrow is a claim about DIRECTION (motion, force, transfer): make the "
+        "arrowhead show that direction and label the arrow with the quantity it "
+        "represents; draw force arrows from the point where the force acts, "
+        "normal perpendicular to the drawn surface, weight vertical, "
+        "friction/tension along the surface/string. (c) Never imply magnitudes "
+        "you are not showing: arrow lengths either scale to the stated values "
+        "or are drawn equal with the caption saying 'directions only'. "
+        "(d) Any angle, distance or equality the caption mentions must be "
+        "DRAWN: the angle as an arc between the two surfaces with the symbol, a "
+        "'same height' claim as a level line through both actual points. "
+        "(e) No label or arrow may overlap another label, a line or a shape; "
+        "keep clearance in viewBox units so the figure stays legible at 360 px. "
+        "Check the finished figure against its caption point by point before "
+        "returning it.\n"
         '- simulation: {"title", "description", "learning_goal", "controls": [{"id", "label", '
         '"min", "max", "step", "initial"}], "default_behaviour": "what it shows before any input"} '
         "- the home of every graph, curve, area and plotted trajectory: those are "

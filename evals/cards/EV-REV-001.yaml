@@ -1,0 +1,91 @@
+card_id: EV-REV-001
+version: 1
+title: Comprehension & Fact Reviewer (03-check) Calibration on Seeded Defects and Clean Goldens
+stage: 03-check
+agent_role: Comprehension & Fact Reviewer
+suites:
+- smoke
+- full
+- calibrate
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  seeded_defects:
+  - evals/goldens/defects/03-check/SD-CHK-001.json
+  - evals/goldens/defects/03-check/SD-CHK-002.json
+  - evals/goldens/defects/03-check/SD-CHK-003.json
+  - evals/goldens/defects/03-check/SD-CHK-004.json
+  - evals/goldens/defects/03-check/SD-CHK-005.json
+  - evals/goldens/defects/03-check/SD-CHK-006.json
+  - evals/goldens/defects/03-check/SD-CHK-007.json
+  - evals/goldens/defects/03-check/SD-CHK-008.json
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-REV01-PROMPT-CONTRACT
+  entrypoint: evals.checkers.prompt_contract_checks:check_03_check_prompt_contract
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.agents:run_check
+  description: Verifies 03-check prompt carries exact severity ladder, THE LESSON THE PAGE TEACHES, RECOMPUTE
+    every worked_example, COVERAGE, 'unverified:' way-out, and no adversarial framing.
+- id: DET-REV01-STATIC-RULES
+  entrypoint: evals.checkers.synthesizer_checks:check_static_rules_on_defect_corpus
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:run_all_rules
+  description: Verifies deterministic rule checks pass on clean samples and catch synthetic rule defects
+    in 0ms.
+llm_judge:
+  enabled_in_suites:
+  - full
+  - calibrate
+  entrypoint: evals.judges.pedagogy_judge:calibrate_03_check
+  reuses_prompt_from: factory.agents:run_check (CHECK_REPORT schema in factory/schemas.py)
+  severity_ladder:
+    fatal: A statement contradicts the source material, a check's answer key or a worked_example's computed
+      answer is wrong, or the page omits a chapter section or an exercise TYPE that the source material
+      itself teaches. Must quote the source passage or omitted item.
+    major: A block teaches, tests, or relies on a Physics concept that the source material never explains
+      (a smuggled-in concept), or tests an expected_understanding before the lesson teaches it.
+    minor: Style, wording, or common-knowledge definitions not spelled out in the source. Advisory only;
+      never fails the page.
+  way_out_rule: Report unverifiable suspicions as severity='minor' with message starting 'unverified:'
+    — never as fatal or major.
+  anchor_examples:
+  - label: Fatal — Wrong Computed Numerical Answer (from production run 000509 b-21)
+    input_summary: Car decelerates from 126 km/h (35 m/s) to rest over 200 m; worked_example b-21 claims
+      a = -3.94 m/s² and t = 8.9 s.
+    expected_issue:
+      block_id: b-21
+      severity: fatal
+      message: Recomputation from u = 35 m/s, v = 0, s = 200 m via v² - u² = 2as gives a = -3.06 m/s²
+        and t = 11.4 s, not 3.94 m/s² / 8.9 s [ncert Example 2.6].
+  - label: Major — Smuggled Concept from Outside Chapter (from production run 040410 b-28)
+    input_summary: Class 11 Ch. 2 (Motion in a Straight Line) check block b-28 asks about simple harmonic
+      motion period T = 2π√(l/g).
+    expected_issue:
+      block_id: b-28
+      severity: major
+      message: Block b-28 tests simple harmonic motion (SHM), a concept from Oscillations (Part II Ch.
+        13) that this chapter pack never explains.
+  - label: Minor — Unverified Suspicion / Common Knowledge Hedge
+    input_summary: Text block b-01 notes that 'SI stands for Système International' while the NCERT excerpt
+      only writes 'SI units'.
+    expected_issue:
+      block_id: b-01
+      severity: minor
+      message: 'unverified: The expansion ''Système International'' is common knowledge not explicitly
+        spelled out in the chapter text.'
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  recall_fatal_min: 1.0
+  recall_blocking_min: 0.8
+  specificity_clean_min: 1.0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 8
+  max_completion_tokens_per_call: 35000
+  call_deadline_s: 1800

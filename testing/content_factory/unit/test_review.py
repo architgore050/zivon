@@ -1,12 +1,10 @@
-"""Unit tests for 09-review (two-call split, 2026-11-08).
+"""Unit tests for 09-review harness verdict and issues_ledger mechanics.
 
-The Code Reviewer is now two bounded calls - facts (truth) and design (visual
-usability) - each carrying only the context its checks need, each outputting
-issues only; the verdict is computed by the harness from severities. These
-tests pin: the context split, both bounded procedures (incl. the general
-rendering sweep), the manifest decision (identity header, no manifest dump),
-the harness verdict rule, the honest framing + 'unverified:' way-out, and the
-issues_ledger entries every finding must land in.
+Note: Context-split and bounded-procedure prompt calibration tests were migrated
+to `evals/checkers/prompt_contract_checks.py` (`EV-REV-002`) per
+`docs/specs/evals/migration-map.csv` row 31. The screenshot/vision-fallback
+mechanics tests added in the visual-review refactor stay here (harness behaviour,
+not prompt calibration).
 """
 
 import dataclasses
@@ -21,7 +19,7 @@ from unittest import mock
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from factory import review
+from factory import review, reviewfix
 from factory.artifacts import RunContext
 from factory.errors import ModelCallError
 from factory.llm import LLMClient
@@ -154,85 +152,6 @@ class TestReviewCalls(unittest.TestCase):
         self.assertIn("[ZIVON STAGE: 09-review-facts]", stub.system("facts"))
         self.assertIn("[ZIVON STAGE: 09-review-design]", stub.system("design"))
 
-    def test_facts_call_gets_specs_facts_files_not_doctrine(self):
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("facts")
-        self.assertIn("BLOCK SPECS", user)
-        self.assertIn("CITED FACTS", user)
-        self.assertIn("FINAL PAGE FILES", user)
-        for c in load("gt.json")["claims"]:
-            self.assertIn(c["statement"], user)
-        for e in load("gt.json")["equations"]:
-            self.assertIn(e["expression"], user)
-        # the truth call carries no visual-language context
-        self.assertNotIn("DESIGN DOCTRINE", user)
-
-    def test_design_call_gets_inventory_files_doctrine_not_specs_or_facts(self):
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("design")
-        self.assertIn("BLOCK INVENTORY", user)
-        self.assertIn("FINAL PAGE FILES", user)
-        self.assertIn("DESIGN DOCTRINE", user)
-        self.assertIn("=== design-doctrine-lesson-example.html ===", user)
-        self.assertNotIn("=== design-doctrine-example.html ===", user)
-        # the visual call re-reads neither the full specs nor the facts list
-        self.assertNotIn("CITED FACTS", user)
-        self.assertNotIn("BLOCK SPECS (what the page must implement)", user)
-        # inventory is compact: one line per block with id + type
-        for b in self.blocks["blocks"]:
-            self.assertIn(f"- {b['id']} [{b['type']}]", user)
-
-    def test_manifest_dump_replaced_by_identity_header(self):
-        # The manifest is mechanical page metadata; its traceability is a
-        # static check. Both calls get a 3-line identity header instead.
-        stub = StubLLM()
-        self._review(stub)
-        for which in ("facts", "design"):
-            self.assertIn("PAGE UNDER REVIEW", stub.user(which))
-            self.assertNotIn("MANIFEST:", stub.user(which))
-
-    # ------------------------------------------------- the bounded procedures
-    def test_facts_call_is_a_bounded_truth_procedure(self):
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("facts")
-        self.assertIn("EXACTLY ONCE", user)
-        self.assertIn("Commit to this procedure", user)
-        self.assertIn("one check per item", user)
-        for step in range(1, 6):
-            self.assertIn(f"STEP {step} -", user)
-        self.assertIn("Answer keys", user)
-        self.assertIn("Facts sweep", user)
-        self.assertIn("DRAWN behaviour", user)
-        self.assertIn("physically wrong behaviour is a fatal issue", user)
-        # the b-31 pathology from the live plateau: HTML vs JS value drift
-        self.assertIn("Consistency sweep", user)
-        self.assertIn("49 s", user)
-        self.assertNotIn("Hunt for REAL defects", user)
-
-    def test_design_call_includes_the_general_rendering_sweep(self):
-        # Founder requirement (2026-11-08): design correctness must not be
-        # only doctrine-example comparison - the model must also identify
-        # rendering errors on its own terms.
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("design")
-        self.assertIn("EXACTLY ONCE", user)
-        self.assertIn("Commit to this procedure", user)
-        for step in range(1, 6):
-            self.assertIn(f"STEP {step} -", user)
-        self.assertIn("The page follows the DESIGN DOCTRINE", user)
-        doctrine = (REPO_ROOT / "docs" / "frontend" / "design-doctrine.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(doctrine[:400], user)  # the live document, verbatim
-        self.assertIn("Rendering sweep", user)
-        self.assertIn("as a learner would, not against the doctrine", user)
-        self.assertIn("empty or broken canvases", user)
-        self.assertIn("contradict their caption", user)
-
     def test_design_call_carries_screenshots_when_capture_produces_them(self):
         # The design reviewer sees the rendered page: screenshots captured
         # by factory/shots.py arrive below the text as vision parts.
@@ -329,6 +248,16 @@ class TestReviewCalls(unittest.TestCase):
         ):
             self._review(_OtherErrorLLM())
 
+    def test_graph_content_is_a_correctness_check_not_styling(self):
+        # Founder report 2026-11-10: graphs carried basic CONTENT mistakes and
+        # the reviewer let them through as if they were rendering nits.
+        task = review._DESIGN_TASK
+        self.assertIn("GRAPH CONTENT IS A CORRECTNESS CHECK", task)
+        self.assertIn("AXIS/DATA CONSISTENCY", task)
+        self.assertIn("tick LABELS match the pixel positions", task)
+        self.assertIn("normal perpendicular to the drawn surface", task)
+        self.assertIn("IN-FIGURE labels", task)
+
     def test_verdict_rule_is_harness_code_not_prompt_prose(self):
         # The old prompt carried "verdict=fail only if..."; the calls now
         # output issues only and the harness computes the verdict. The task
@@ -348,20 +277,6 @@ class TestReviewCalls(unittest.TestCase):
         # and the contract each call must return is issues-only
         for c in stub.calls:
             self.assertEqual(list(c["schema"]["required"]), ["issues"])
-
-    # ------------------------------------------------------ honesty + way-out
-    def test_reviewer_framing_is_honest_not_adversarial(self):
-        # "Assume the page contains at least one defect" manufactured
-        # trivia-failures (same lesson graph v2 learned for 03-check). Both
-        # calls also keep the way out: unverifiable suspicions are
-        # 'unverified:' minor.
-        stub = StubLLM()
-        self._review(stub)
-        for which in ("facts", "design"):
-            user = stub.user(which)
-            self.assertNotIn("Assume the page contains at least one defect", user)
-            self.assertIn("do not invent problems", user)
-            self.assertIn("starting 'unverified:'", user)
 
     # ------------------------------------------------- harness verdict + save
     def test_clean_page_passes_and_report_is_saved(self):
@@ -468,6 +383,154 @@ class TestReviewCalls(unittest.TestCase):
         stub = StubLLM()
         self._review(stub)
         self.assertFalse((self.run_ctx.dir / "issues_ledger.jsonl").exists())
+
+
+class ReviewFixStubLLM:
+    """Returns one canned review_fix_plan for the 10-reviewfix calls."""
+
+    def __init__(self, plan: dict[str, Any]):
+        self.plan = plan
+        self.calls = 0
+
+    def call(self, stage_id, messages, schema, schema_name, **kw):
+        self.calls += 1
+        return json.loads(json.dumps(self.plan))
+
+
+class TestReviewFixSpecChannel(unittest.TestCase):
+    """The 2026-11-09 plateau fix: review findings about BLOCK CONTENT (drawn
+    geometry, captions) must be repairable. The fix plan may carry corrected
+    full block objects; the harness merges them by id, re-renders index.html
+    from the corrected specs, and threads the corrected draft back through
+    re-review. Findings that are code stay in page.js/page.css."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.cfg, _ = make_cfg(self.tmp)
+        self.cfg = dataclasses.replace(self.cfg, root=REPO_ROOT)
+        self.run_ctx = RunContext(
+            self.cfg.repo_path(self.cfg.paths["runs"]), "t-revfix"
+        )
+        source_pack, lesson, blocks, interactive = minimal_inputs()
+        self.blocks = blocks
+        self.gt = load("gt.json")
+        self.render_out = render_run(
+            self.cfg,
+            self.run_ctx,
+            "Motion",
+            source_pack,
+            lesson,
+            blocks,
+            interactive,
+        )
+        self.topic = Path(self.render_out["topic_dir"])
+        _patcher = mock.patch("factory.review.shots.capture", return_value=[])
+        _patcher.start()
+        self.addCleanup(_patcher.stop)
+        # perf re-measure is stubbed like the fixloop tests (no Chromium here)
+        perf_patcher = mock.patch(
+            "factory.reviewfix._harness",
+            return_value=lambda url, profile: {"pass": True, "failures": []},
+        )
+        perf_patcher.start()
+        self.addCleanup(perf_patcher.stop)
+
+    def _fail_report(self) -> dict[str, Any]:
+        return {
+            "verdict": "fail",
+            "issues": [
+                {
+                    "severity": "fatal",
+                    "block_id": "b-05",
+                    "category": "drawn_behaviour",
+                    "message": "the diagram's second ball sits on the ground",
+                }
+            ],
+        }
+
+    def _block(self, block_id: str) -> dict[str, Any]:
+        b = next(x for x in self.blocks["blocks"] if x["id"] == block_id)
+        return json.loads(json.dumps(b))
+
+    def test_block_content_correction_is_merged_re_rendered_and_threaded(self):
+        corrected = self._block("b-05")
+        corrected["spec"] = dict(corrected["spec"], caption="corrected caption")
+        plan = {
+            "analysis": "the diagram contradicting its caption is a spec error; "
+            "the corrected spec fixes the drawn content",
+            "files": {},
+            "blocks": [corrected],
+        }
+        out = reviewfix.run(
+            self.cfg,
+            self.run_ctx,
+            cast(LLMClient, ReviewFixStubLLM(plan)),
+            self.render_out,
+            self._fail_report(),
+            self.gt,
+            self.blocks,
+            "round-01",
+        )
+        html = (self.topic / "index.html").read_text(encoding="utf-8")
+        # the corrected spec is what the SERVED page shows now
+        self.assertIn("corrected caption", html)
+        self.assertNotIn((self._block("b-05")["spec"]["caption"]), html)
+        # the shell stays single (the re-render cannot nest)
+        self.assertEqual(html.count('<main class="zn-page">'), 1)
+        # the corrected draft is threaded back for the next re-review + resume
+        merged_caption = next(
+            b["spec"]["caption"] for b in out["page"]["blocks"] if b["id"] == "b-05"
+        )
+        self.assertEqual(merged_caption, "corrected caption")
+        self.assertEqual(out["lint_hits"], [])
+        self.assertTrue(
+            (self.run_ctx.stage_dir("10-reviewfix") / "history.json").exists()
+        )
+
+    def test_simulation_spec_corrections_cost_a_round_not_the_page(self):
+        corrected = self._block("b-06")  # the simulation block
+        corrected["spec"] = dict(corrected["spec"], learning_goal="rewritten goal")
+        plan = {
+            "analysis": "trying to re-spec the simulation directly in one turn",
+            "files": {},
+            "blocks": [corrected],
+        }
+        out = reviewfix.run(
+            self.cfg,
+            self.run_ctx,
+            cast(LLMClient, ReviewFixStubLLM(plan)),
+            self.render_out,
+            self._fail_report(),
+            self.gt,
+            self.blocks,
+            "round-01",
+        )
+        # the raised violation becomes the next round's assignment (in-plan
+        # prose the harness wrote), and the sim spec on disk is untouched
+        self.assertTrue(
+            any("simulation block(s) b-06" in h for h in out["lint_hits"]), out
+        )
+        kept = next(b for b in out["page"]["blocks"] if b["id"] == "b-06")
+        self.assertNotEqual(kept["spec"]["learning_goal"], "rewritten goal")
+
+    def test_renderer_owned_files_in_plan_are_rejected(self):
+        plan = {
+            "analysis": "attempting to edit index.html directly in one go",
+            "files": {"index.html": "<html></html>"},
+        }
+        out = reviewfix.run(
+            self.cfg,
+            self.run_ctx,
+            cast(LLMClient, ReviewFixStubLLM(plan)),
+            self.render_out,
+            self._fail_report(),
+            self.gt,
+            self.blocks,
+            "round-01",
+        )
+        html = (self.topic / "index.html").read_text(encoding="utf-8")
+        self.assertIn("renderer-owned", out["lint_hits"][0])
+        self.assertNotIn("<html></html>", html, "the model's html was never applied")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,24 @@
+# Core backend non-secret configuration ConfigMap (GAP-017 reservation 28).
+# Rendered/overridden by scripts/apply-k8s.sh from k8s/infra.env.
+# Secrets NEVER live here — all keys/credentials live in zivon-voice-env,
+# zivon-db-env, zivon-admin-secret, and zivon-cold-* Secrets.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zivon-voice-config
+  namespace: zivon
+  labels:
+    app: zivon-backend
+data:
+  ZIVON_ENV: "cluster"
+  ZIVON_BACKEND_HOST: "0.0.0.0"
+  ZIVON_BACKEND_PORT: "8000"
+  ZIVON_RUNS_DIR: "/app/runs"
+  ZIVON_COLD_STAGING_DIR: "/tmp/zivon-cold-staging"
+  ZIVON_VOICE_BRAIN_TRANSPORT: "gemini-direct"
+  ZIVON_VOICE_BRAIN_MODEL: "gemma-4-26b-a4b-it"
+  COLD_PROVIDER: "b2"
+  COLD_BUCKET_PRIMARY: "zivon-cold-primary"
+  COLD_BUCKET_SECONDARY: "zivon-cold-secondary"
+  ZIVON_NOTICE_VERSION: "zivon-voice-notice-v1"
+  ZIVON_CONSENT_VERSION: "v1"

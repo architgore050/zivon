@@ -1,0 +1,70 @@
+{
+  "golden_id": "GT-04",
+  "topic_slug": "light-reflection-and-refraction",
+  "course_id": "class-10-physics",
+  "class_level": 10,
+  "pipeline_version_min": 7,
+  "source_provenance": {
+    "primary_book_id": "ncert-science-10",
+    "chapter_title_normalized": "lightreflectionandrefraction",
+    "matched_via": "title_line",
+    "forbidden_smuggled_terms": [
+      "huygens principle",
+      "brewster angle",
+      "fraunhofer diffraction"
+    ]
+  },
+  "structure_bounds": {
+    "sections_min": 5,
+    "claims_min": 12,
+    "claims_max": 40,
+    "blocks_min": 18,
+    "blocks_max": 45,
+    "checks_min": 8,
+    "worked_examples_min": 4,
+    "simulations_min": 2,
+    "diagrams_max": 4
+  },
+  "required_concepts_and_equations": {
+    "key_terms_must_include": [
+      "focal length",
+      "radius of curvature",
+      "refractive index",
+      "magnification",
+      "dioptre"
+    ],
+    "equation_patterns_must_include": [
+      "1/v + 1/u = 1/f",
+      "1/v - 1/u = 1/f",
+      "P = 1/f"
+    ]
+  },
+  "canonical_numerical_anchors": [
+    {
+      "source_label": "NCERT Class 10 Example 9.1 convex mirror (R = 3.00 m, u = -5.00 m)",
+      "problem_numbers": [
+        "3.00",
+        "5.00"
+      ],
+      "expected_answer_values": [
+        1.5,
+        1.15,
+        0.23
+      ],
+      "tolerance_rel": 0.02
+    }
+  ],
+  "visual_and_kit_invariants": {
+    "requires_lang_bar": true,
+    "requires_sim_readout_populated": true,
+    "computed_graphs_as_simulations": true,
+    "max_overflow_px": 2
+  },
+  "perf_budgets": {
+    "profile": "evals/goldens/profiles/weak-android.json",
+    "ram_budget_mb": 750,
+    "fps_min": 24,
+    "load_budget_s": 6.0,
+    "fcp_budget_s": 3.5
+  }
+}

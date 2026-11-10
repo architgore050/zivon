@@ -9,9 +9,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from testing.content_factory.perf.harness import _judge, load_profile
+from evals.checkers.perf_harness import _judge, load_profile
 
-PROFILES = REPO_ROOT / "testing" / "content_factory" / "perf" / "profiles"
+PROFILES = REPO_ROOT / "evals" / "goldens" / "profiles"
 
 
 class TestProfiles(unittest.TestCase):
@@ -28,8 +28,6 @@ class TestProfiles(unittest.TestCase):
     def test_missing_key_rejected(self):
         bad = json.loads((PROFILES / "weak-android.json").read_text())
         del bad["fps_min"]
-        # Write scratch files to a temp dir, never into the source tree:
-        # cluster pods run with a read-only root filesystem and must pass too.
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td) / "tmp-bad.json"
             tmp.write_text(json.dumps(bad))

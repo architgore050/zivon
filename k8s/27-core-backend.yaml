@@ -1,0 +1,113 @@
+# Core backend monolith Deployment + Service (ADR-0005, ADR-0020, GAP-017 27).
+# Serves REST API-001..009, Admin API-A1..A10, and mounts the `voice/` router
+# (no separate voice image per ADR-0020).
+#
+# Secrets come ONLY from the runtime K8s Secret `zivon-voice-env` (GAP-001):
+#   GNANI_PRISMA_API_KEY, GNANI_TIMBRE_API_KEY, ZIVON_VOICE_GEMINI_API_KEY,
+#   ZIVON_DB_URL, ZIVON_SESSION_TOKEN_KEY, ZIVON_IP_HASH_SALT
+# and `zivon-admin-secret` (ZIVON_ADMIN_TOKEN).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-backend
+  namespace: zivon
+  labels:
+    app: zivon-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zivon-backend
+  template:
+    metadata:
+      labels:
+        app: zivon-backend
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: core-backend
+          image: zivon-backend:0.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          ports:
+            - name: http
+              containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          envFrom:
+            - configMapRef:
+                name: zivon-voice-config
+            # Mandatory: the core backend has no sane fallback DB in cluster
+            # mode — a missing ZIVON_DB_URL must fail loud, not boot a wrong DB.
+            - secretRef:
+                name: zivon-voice-env
+                optional: false
+          env:
+            - name: ZIVON_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-admin-secret
+                  key: ZIVON_ADMIN_TOKEN
+                  optional: true
+          volumeMounts:
+            - name: cache
+              mountPath: /app/cache
+            - name: sources
+              mountPath: /app/runs
+              subPath: runs
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: zivon-cache
+        - name: sources
+          persistentVolumeClaim:
+            claimName: zivon-sources
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-backend
+  namespace: zivon
+  labels:
+    app: zivon-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: zivon-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

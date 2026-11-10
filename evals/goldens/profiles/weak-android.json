@@ -1,0 +1,16 @@
+{
+  "name": "weak-android",
+  "notes": "Default gate: approximates a low-end Android phone on desktop Chromium. cpu_throttle_rate=4 means every JS operation costs 4x, so 24 fps under throttle corresponds to roughly 60 fps on the real device. founder-spec RAM ceiling: 750 MB for the whole browser process tree. LOOSENED 2026-11-04 (founder decision): load/FCP budgets raised 3x while first real-generation diagnostics are collected - no generated page has been measured under the tight numbers yet, and the perf gate must not mask the pipeline's real timing story. Tighten back toward the repo budget (load < 2s) at the Phase 4 frontend pass with measured data in hand. fps/RAM stay at founder spec.",
+  "viewport_width": 360,
+  "viewport_height": 640,
+  "device_scale_factor": 2,
+  "cpu_throttle_rate": 4,
+  "ram_budget_mb": 750,
+  "load_budget_s": 6.0,
+  "fcp_budget_s": 3.5,
+  "fps_min": 24,
+  "sim_seconds": 3,
+  "pin_cores": 2,
+  "scroll": true,
+  "click_checks": true
+}

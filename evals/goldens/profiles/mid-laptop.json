@@ -1,0 +1,16 @@
+{
+  "name": "mid-laptop",
+  "notes": "Mild profile: a mid-range laptop. Use for quick sanity checks; the shipping gate is weak-android.",
+  "viewport_width": 1280,
+  "viewport_height": 800,
+  "device_scale_factor": 1,
+  "cpu_throttle_rate": 1,
+  "ram_budget_mb": 2048,
+  "load_budget_s": 1.5,
+  "fcp_budget_s": 1.0,
+  "fps_min": 45,
+  "sim_seconds": 2,
+  "pin_cores": null,
+  "scroll": true,
+  "click_checks": true
+}

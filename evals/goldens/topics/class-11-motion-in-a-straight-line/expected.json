@@ -1,0 +1,71 @@
+{
+  "golden_id": "GT-02",
+  "topic_slug": "motion-in-a-straight-line",
+  "course_id": "class-11-physics",
+  "class_level": 11,
+  "pipeline_version_min": 7,
+  "source_provenance": {
+    "primary_book_id": "ncert-physics-11-part1",
+    "chapter_title_normalized": "motioninastraightline",
+    "matched_via": "title_line",
+    "forbidden_smuggled_terms": [
+      "simple harmonic motion",
+      "moment of inertia",
+      "torque",
+      "angular momentum"
+    ]
+  },
+  "structure_bounds": {
+    "sections_min": 5,
+    "claims_min": 12,
+    "claims_max": 40,
+    "blocks_min": 20,
+    "blocks_max": 45,
+    "checks_min": 10,
+    "worked_examples_min": 4,
+    "simulations_min": 2,
+    "diagrams_max": 1
+  },
+  "required_concepts_and_equations": {
+    "key_terms_must_include": [
+      "instantaneous velocity",
+      "instantaneous speed",
+      "acceleration",
+      "free fall",
+      "stopping distance"
+    ],
+    "equation_patterns_must_include": [
+      "v = v0 + at",
+      "x = v0t + (1/2)at^2",
+      "v^2 = v0^2 + 2ax"
+    ]
+  },
+  "canonical_numerical_anchors": [
+    {
+      "source_label": "NCERT Ch. 2 stopping distance / retardation (126 km/h = 35 m/s over 200 m)",
+      "problem_numbers": [
+        "126",
+        "200"
+      ],
+      "expected_answer_values": [
+        3.06,
+        11.4
+      ],
+      "tolerance_rel": 0.02
+    }
+  ],
+  "visual_and_kit_invariants": {
+    "requires_lang_bar": true,
+    "requires_sim_readout_populated": true,
+    "computed_graphs_as_simulations": true,
+    "max_overflow_px": 2
+  },
+  "perf_budgets": {
+    "profile": "evals/goldens/profiles/weak-android.json",
+    "ram_budget_mb": 750,
+    "fps_min": 24,
+    "load_budget_s": 6.0,
+    "fcp_budget_s": 3.5
+  },
+  "structure_bounds_note": "diagrams_max 0->1 (2026-11-10): the refreshed published GT-02 page carries exactly 1 static illustration diagram (b-02 position-axis figure). It is a physical illustration, not a computed x-t/v-t graph, so the routing rule (graphs must be simulation blocks) is unaffected and remains enforced by the geometry check. GT-01 was separately tightened 4->2."
+}

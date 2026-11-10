@@ -115,7 +115,7 @@ rebuilt?**
 | **U1 pod dies** (cache/session memory gone) | live sessions drop (C5), warm caches cold | client reconnects → new session bootstrap (NEED-003); caches re-warm from U2/U3; guard counters rebuilt from hot DB rows (C11) — no credit loss beyond ≤ 1 turn |
 | **U3 `zivon-frontend` PVC dies** | live site + narration gone | re-seed from cold origin copies (C1/C2 verified) or git snapshot `frontend/`; `live_pointer` in U2 says which version to serve; **RTO ≤ 4 h** (NFR-19) |
 | **U3 `zivon-sources` PVC dies** | active run evidence lost mid-run | run resumes from completed stages (existing resumability); archived runs re-seed from cold (C4); worst case: re-run stages — credits, not data, are the cost |
-| **U2 dies entirely (PVC + pod)** | hot DB lost | rebuild Postgres from U4: base backup + WAL replay → **RPO ≤ 5 min** (NFR-17), RTO ≤ 4 h; apply re-delete-on-restore list (C18); catalogue + pointers restored |
+| **U2 dies entirely (PVC + pod)** | hot DB lost | rebuild Postgres from U4: base backup + WAL replay → **RPO ≤ 5 min** (NFR-17), RTO ≤ 4 h; apply re-delete-on-restore list (C18); catalogue + pointers restored. **P0 SIMULATED (2026-11-10): no WAL replay implemented — effective RPO = last base backup (≤ 24 h)** |
 | **Cluster dies** | U1+U2+U3 gone | content re-seeded from cold/git; DB from U4 backups; voice backend is stateless except via U2 — full restore ≤ 4 h; Core pages could even be served from the git `frontend/` snapshot alone |
 | **U4 provider dies** | no new cold copies; restores impossible while out | serving continues from U1–U3 (nothing hot-reads cold); outbox queues uploads (alert on backlog age > 15 min); **no eviction while cold unreachable**; lifecycle/deletion jobs pause with visible backlog |
 | **Gnani API dies** | voice loop down | Core path untouched (layer independence); dock shows failure states; narration (C2) is static — read-aloud keeps working |
@@ -132,8 +132,8 @@ Six rules. Each row: **class · trigger · mechanism · verify · on-failure · 
 | ID | Class | Trigger | Mechanism | Verification | On failure | SLO `[ASSUMPTION]` | Phase |
 |---|---|---|---|---|---|---|---|
 | **SYNC-01** | C1, C2, C3-published | artifact finalized (publish / narration generation done) | **publish gate:** outbox row in the same DB transaction as the catalogue row → uploader (multipart > 16 MB, idempotent key = content hash, bounded concurrency, retry+backoff). P0 form: synchronous upload+verify step inside the publish flow (script step, no worker) | sha256 read-back (or provider checksum — semantics confirmed for multipart at build) → stamp `cold_verified_at` → **only then** flip `live_pointer` | publish stays `reviewed` (not live); backlog alert | ≥ 99 % verified ≤ 5 min; alert if outbox backlog age > 15 min | P0 (gate) / P1 (worker) |
-| **SYNC-02** | C14 | WAL segment closes or `archive_timeout = 60 s` elapses | Postgres `archive_command` → ship segment to U4 (`wal/{timeline}/{segment}`); base backup daily 02:30 IST off-peak CronJob (`pg_basebackup` → zstd → multipart) | segment checksum on write; base backup checksum; **monthly restore drill** (P0: one drill before submission) | archive_command retries; if persistent: alert WAL archive lag; DB keeps running (hot unaffected) | archive lag ≤ 5 min (NFR-17 = RPO) | P0 |
-| **SYNC-03** | C9, C13, C18 | on write (target: outbox) — P0: nightly 21:00 IST CronJob | export append-only tables since last snapshot → JSONL.zst + manifest (row count, min/max ts, sha256) → upload **encrypted client-side** (A-13) → immutable versioned copy | manifest row-count + checksum read-back | retry next night; alert if 2 consecutive misses (legal evidence — escalation) | snapshot lag ≤ 24 h | P0 |
+| **SYNC-02** | C14 | WAL segment closes or `archive_timeout = 60 s` elapses | Postgres `archive_command` → ship segment to U4 (`wal/{timeline}/{segment}`); base backup daily 02:30 IST off-peak CronJob (`pg_basebackup` → zstd → multipart). **P0 SIMULATED (2026-11-10): no real object storage wired — `backend.sync base-backup` stages the encrypted envelope locally (`base/{date}.enc`); no WAL archiving at all; restore path = `python -m backend.sync decrypt` + manual upload** | segment checksum on write; base backup checksum; **monthly restore drill** (P0: one drill before submission) | archive_command retries; if persistent: alert WAL archive lag; DB keeps running (hot unaffected) | archive lag ≤ 5 min (NFR-17 = RPO). **Not met in P0 — effective RPO = last base backup** | P0 |
+| **SYNC-03** | C9, C13, C18 | on write (target: outbox) — P0: nightly 21:00 IST CronJob | export append-only tables since last snapshot → JSONL.zst + manifest (row count, min/max ts, sha256) → upload **encrypted client-side** (A-13) → immutable versioned copy. **P0 SIMULATED (2026-11-10): `backend.sync sync-nightly` stages the encrypted JSONL envelope locally (`consent-snap/{date}.jsonl.enc`); no real object storage wired; recovery = `python -m backend.sync decrypt` + manual upload/re-import** | manifest row-count + checksum read-back | retry next night; alert if 2 consecutive misses (legal evidence — escalation) | snapshot lag ≤ 24 h | P0 |
 | **SYNC-04** | C10, C11 | day partition closed and older than hot window (90 d events; monthly ledger) | export → compress (JSONL) → upload date-partitioned key (`c10/dt=YYYY-MM-DD/part-NNNN.jsonl.zst`) → verify → **then** drop hot rows/partition | row count + min/max ts + checksum manifest **before** any hot delete — never drop before verified | keep hot rows, retry; if SSD pressure: alert (rows stay — SSD watermark rule yields to verification rule) | archive lag ≤ 48 h | P1 (P0 = plain 90-d delete, no archive) |
 | **SYNC-05** | C4 | run completes + 24 h settle delay | nightly batch: tar+zstd completed runs → upload + manifest; catalogue row per archive | tar checksum + file-count check | retry nightly; runs stay hot (last-10 window) | archive lag ≤ 72 h | P0 (mirror) / P1 (full) |
 | **SYNC-06** | C12 | optional, P2 only | compressed logs 90 d | checksum | skip (logs are not personal data) | n/a | P2 |
@@ -213,6 +213,9 @@ are envelope-encrypted client-side before upload to either provider, keys held i
   `c2/{course}/{class}/{block}/{lang}/{text_hash}.{voice}.opus`); date-partitioned for archives
   (`c10/dt=YYYY-MM-DD/part-NNNN.jsonl.zst`, `wal/{timeline}/{segment}`, `base/{YYYY-MM-DD}.zst`,
   `consent-snap/{YYYY-MM-DD}.jsonl.zst.enc`). **Never PII in keys.**
+  **P0 SIMULATED (2026-11-10):** real prefixes/naming are the target state — what
+  `backend.sync` actually writes today is `base/{date}.enc` and
+  `consent-snap/{date}.jsonl.enc` under the local cold-staging dir only.
 - **Provider outage:** serving continues from U1–U3; outbox queues (bounded by SSD headroom);
   no eviction; lifecycle/deletion jobs pause with visible backlog; second provider unaffected.
 
@@ -224,7 +227,7 @@ are envelope-encrypted client-side before upload to either provider, keys held i
 
 | What died | Restore procedure | RPO | RTO target |
 |---|---|---|---|
-| U2 DB pod/PVC | provision fresh Postgres → fetch latest `base/{date}.zst` from U4 → replay WAL segments to target timestamp (PITR) → apply **re-delete-on-restore list** (C18 completed requests; rule **REDEL-01** — before the DB accepts traffic) → run Alembic migrations → flip service over | ≤ 5 min (NFR-17) | ≤ 4 h (NFR-19) |
+| U2 DB pod/PVC | provision fresh Postgres → fetch latest `base/{date}.zst` from U4 → replay WAL segments to target timestamp (PITR) → apply **re-delete-on-restore list** (C18 completed requests; rule **REDEL-01** — before the DB accepts traffic) → run Alembic migrations → flip service over | ≤ 5 min (NFR-17). **P0 SIMULATED (2026-11-10): no WAL/PITR implemented — restore = `backend.sync decrypt` of the latest base backup + manual load; effective RPO = last backup (≤ 24 h); see `docs/deployment/restore-drill.md`** | ≤ 4 h (NFR-19) |
 | U3 frontend PVC | re-seed from U4 origin copies (catalogue `state='cold_verified'` filter, current live pointers from U2 or, if U2 also dead, from `courses.js` in the git snapshot) → nginx serves | 0 for published versions (publish gate) | ≤ 2 h |
 | U3 sources PVC | re-seed archived runs from U4; active run resumes from completed stages (existing factory resumability) | ≤ 24 h settle window | ≤ 4 h |
 | Whole cluster | new namespace → apply `k8s/` manifests (git) → restore U2 per row 1 → re-seed U3 per rows 2–3 → voice backend stateless | as above | ≤ 4 h |
@@ -295,8 +298,8 @@ Ordered fan-out, orchestrated by `voice/privacy`, each step recorded in `audit_l
 | Capability | P0 (now) | P1 (Day-8/9 + post-challenge pilot) | Target (growth) |
 |---|---|---|---|
 | Publish gate SYNC-01 | synchronous upload+verify in publish flow | outbox + sync-worker Deployment | + second provider fan-out |
-| WAL archiving SYNC-02 | `archive_timeout=60` + archive_command to B2 | lag metric + alert | second-region WAL copy |
-| Nightly snapshots SYNC-03 | CronJob JSONL.zst encrypted | outbox-driven near-real-time | hash-chained snapshots |
+| WAL archiving SYNC-02 | **NOT WIRED in P0 (2026-11-10): no WAL shipping; base backup = `backend.sync` → local staged envelope** | lag metric + alert | second-region WAL copy |
+| Nightly snapshots SYNC-03 | `backend.sync` → local staged encrypted envelope (`*.jsonl.enc`) | outbox-driven near-real-time | hash-chained snapshots |
 | Partition archival SYNC-04 | — (90-d delete only) | day partitions + verified drop | Parquet + query-on-archive |
 | Eviction §4 | watermark alerts + manual LRU (cold-verified only) | automated LRU + pinning | cache warming policy |
 | Scrub / drills | one timed drill before submission | weekly scrub, monthly drill | automated + second copy verify |

@@ -46,7 +46,7 @@ Rules this postmortem leaves behind (they extend the Hardening rules below):
    freeze their index at build date, so the images freshen it themselves (see
    `docker.md`); re-check the trivy gate after any base bump.
 5. **A Dockerfile change is not deployed until the image is rebuilt.** The
-   manifests pin `zivon-factory:0.3.17` / `zivon-frontend:0.1.6`: rebuild,
+   manifests pin `zivon-factory:0.3.22` / `zivon-frontend:0.1.6`: rebuild,
    `minikube image load`, re-apply the stack, then bump the version tag as the
    release ritual.
 
