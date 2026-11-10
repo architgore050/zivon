@@ -20,6 +20,7 @@ import html as html_mod
 import json
 import shutil
 import time
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
@@ -28,8 +29,6 @@ from .artifacts import RunContext, slugify
 from .config import Config
 from .errors import LintError
 from .lint import lint_generated, lint_html, lint_js
-import xml.etree.ElementTree as ET
-
 from .translate import (
     LOCALE_METADATA,
     extract_diagram_payload,
@@ -489,7 +488,7 @@ def _build_lang_bar(
             inline_locs = [ordered[0], ordered[1], current_locale]
         more_locs = [loc for loc in ordered if loc not in inline_locs]
         inline_chips = "".join(_chip_html(loc) for loc in inline_locs)
-        more_chips = "".join(_chip_html(loc) for loc in more_chips)
+        more_chips = "".join(_chip_html(loc) for loc in more_locs)
         chips_html = (
             f"{inline_chips}"
             f'<details class="zn-lang-more"><summary class="zn-chip">More \u00b7 \u092d\u093e\u0937\u093e\u090f\u0901</summary>'
@@ -893,7 +892,7 @@ def render_localized(
     i18n_dir.mkdir(parents=True, exist_ok=True)
 
     locales_map = translate_out.get("locales", {})
-    locales_available = ["en"] + [loc for loc in locales_map.keys() if loc != "en"]
+    locales_available = ["en"] + [loc for loc in locales_map if loc != "en"]
     glossary_ver = str(load_glossary(cfg).get("glossary_version", "1.0.0"))
 
     # 1. Build and write English i18n/en.json
