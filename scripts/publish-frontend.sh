@@ -10,19 +10,21 @@
 #
 # What it copies: courses/, courses.js, any generated top-level locale hub
 # directories (hi/, hi-Latn/, etc.), and the pre-generated narration audio
-# (audio/, stage 12-narration) when present. The hand-maintained shell
-# (index.html, assets/) stays repo-owned and is never overwritten from the
-# cluster. Version rotation: courses/ is replaced wholesale, so the repo copy
-# always mirrors exactly the current site; previous versions live in git
-# history. audio/ is mirrored ADDITIVELY (the content-hash filenames are
-# immutable addresses - GAP-015: old audio stays addressable until eviction),
-# and every audio asset is synchronously uploaded to the cold provider and
-# sha256-read-back-verified when the coldstore env is configured (backend-spec
-# SYNC-01 P0 form, class C2). Commit after publishing.
+# (audio/, stage 12-narration) when present. It then regenerates
+# frontend/sitemap.xml and frontend/robots.txt via scripts/gen-seo-files.py
+# (seo-plan.md §5). The hand-maintained shell (index.html, 404.html, assets/)
+# stays repo-owned and is never overwritten from the cluster. Version
+# rotation: courses/ is replaced wholesale, so the repo copy always mirrors
+# exactly the current site; previous versions live in git history. audio/ is
+# mirrored ADDITIVELY (the content-hash filenames are immutable addresses -
+# GAP-015: old audio stays addressable until eviction), and every audio asset
+# is synchronously uploaded to the cold provider and sha256-read-back-verified
+# when the coldstore env is configured (backend-spec SYNC-01 P0 form, class C2).
+# Commit after publishing.
 #
 # Standalone deploy once published:
 #   docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" \
-#       zivon-frontend:0.1.5        # no factory, no cluster involved
+#       zivon-frontend:0.1.6        # no factory, no cluster involved
 #
 # Usage: scripts/publish-frontend.sh
 set -euo pipefail
@@ -47,6 +49,17 @@ fi
 if [[ ! -f frontend/index.html ]]; then
   emit_publish_log "factory.publish.fail" "ERROR" "repo frontend/index.html missing"
   echo "repo frontend/ shell missing (index.html) - refusing to publish" >&2
+  exit 1
+fi
+# Canonical/sitemap/OG URLs come from ONE env var (seo-plan §5). Publishing with
+# it unset would write placeholder URLs into the committed snapshot and the
+# sitemap would point crawlers at a host that does not exist - fail loudly.
+if [[ -z "${ZIVON_PUBLIC_BASE_URL:-}" ]]; then
+  emit_publish_log "factory.publish.fail" "ERROR" "ZIVON_PUBLIC_BASE_URL is unset"
+  echo "ZIVON_PUBLIC_BASE_URL is unset - refusing to publish." >&2
+  echo "Set it to the live site origin (e.g. https://<domain>) so sitemap.xml," >&2
+  echo "robots.txt and the og: URLs are canonical, then re-run." >&2
+  echo "(Hosting/domain is a founder decision - open-questions.md Q10.)" >&2
   exit 1
 fi
 
@@ -114,6 +127,11 @@ for loc in "${locale_hubs[@]}"; do
   fi
 done
 
+# Generate AFTER the locale hub copy: discover_locale_alternates() walks the
+# on-disk locale trees, so generating before hubs land made hreflang one
+# publish behind. Uses ZIVON_PUBLIC_BASE_URL (required above).
+python3 scripts/gen-seo-files.py
+
 # Narration audio: additive mirror (content-addressed, immutable - existing
 # hashes stay addressable; GAP-015), then the SYNC-01 P0 cold gate.
 # NOTE: this block only runs when the staleness guard above passed, i.e. the
@@ -144,5 +162,5 @@ echo "Published $count topic page(s) (+ $loc_count localized variant page(s)) fr
 find frontend/courses -mindepth 3 -maxdepth 4 -name index.html | sed 's|/index.html||; s|^|  |'
 echo
 echo "Next: review the diff and commit - git history is the version rotation:"
-echo "  git add frontend/courses frontend/courses.js frontend/audio ${copied_hubs[*]:-}"
+echo "  git add frontend/courses frontend/courses.js frontend/sitemap.xml frontend/robots.txt frontend/audio ${copied_hubs[*]:-}"
 echo "  git commit -m 'feat(site): publish <what changed>'"

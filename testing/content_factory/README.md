@@ -10,6 +10,8 @@ Run from the repo root:
     python -m unittest testing.content_factory.integration.test_end_to_end
 
     # the weak-hardware perf harness on any page
+    # (it adds --allow-file-access-from-files so file:// pages load font
+    #  preloads exactly as HTTP(S) production does)
     python -m testing.content_factory.perf.harness --url file://$PWD/frontend/index.html \
         --profile testing/content_factory/perf/profiles/weak-android.json
 

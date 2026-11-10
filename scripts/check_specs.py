@@ -57,20 +57,10 @@ CSV_COLUMNS = [
     "notes",
 ]
 
-# Upstream artifacts the spec is BUILT ON being absent. If one shows up on the
-# branch, the reconciliation procedure (open-questions.md §R) must run first.
-EXPECTED_ABSENT = {
-    "docs/product/features.md",
-    "docs/product/ui-element-inventory.csv",
-    "docs/product/information-inventory.csv",
-    "docs/product/traceability-matrix.csv",
-    "docs/product/decision-log.csv",
-    "docs/product/backend-handoff.md",
-    "docs/backend/backend-spec.md",
-    "docs/backend/adr",
-    "docs/product",
-    "docs/backend",
-}
+# Upstream artifacts originally flagged absent when SP5-FRONT was authored;
+# Wave 0 landed docs/product/ and docs/backend/ on main (open-questions.md WS1
+# note, GAP-016), so check_paths now verifies they exist like any other path.
+EXPECTED_ABSENT: set[str] = set()
 
 # Work items this spec DECLARES (owner named in the same file) - not present yet.
 KNOWN_PENDING = {

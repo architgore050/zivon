@@ -46,28 +46,32 @@
    background - the kit only ever runs on lesson pages).
    ========================================================================== */
 
-/* ---- fonts (local, offline) ---- */
+/* ---- fonts (local, offline; woff2 primary + ttf fallback per spec C4) ---- */
 @font-face {
   font-family: "Bricolage Grotesque";
-  src: url("fonts/BricolageGrotesque-Variable.ttf") format("truetype");
+  src: url("fonts/BricolageGrotesque-Variable.woff2") format("woff2"),
+       url("fonts/BricolageGrotesque-Variable.ttf") format("truetype");
   font-weight: 200 800;
   font-display: swap;
 }
 @font-face {
   font-family: "Courier Prime";
-  src: url("fonts/CourierPrime-Regular.ttf") format("truetype");
+  src: url("fonts/CourierPrime-Regular.woff2") format("woff2"),
+       url("fonts/CourierPrime-Regular.ttf") format("truetype");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Courier Prime";
-  src: url("fonts/CourierPrime-Bold.ttf") format("truetype");
+  src: url("fonts/CourierPrime-Bold.woff2") format("woff2"),
+       url("fonts/CourierPrime-Bold.ttf") format("truetype");
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "Caveat";
-  src: url("fonts/Caveat-Variable.ttf") format("truetype");
+  src: url("fonts/Caveat-Variable.woff2") format("woff2"),
+       url("fonts/Caveat-Variable.ttf") format("truetype");
   font-weight: 400 700;
   font-display: swap;
 }
@@ -616,3 +620,57 @@ a { color: var(--pen-blue); }
 }
 .zn-note svg { width: 40px; height: 28px; flex: none; }
 .zn-note > span:last-child { font-family: var(--hand); font-weight: 700; font-size: 30px; line-height: 1; }
+
+/* ---- branded 404 page (SCR-404-01, shell-owned, §1-§9 look only) ---- */
+.zn-404-body { margin-top: 24px; }
+.zn-404-actions { margin-top: 24px; }
+.zn-404-back { display: inline-block; font-weight: 700; }
+
+/* ---- catalogue class grouping & status chips (EL-HUB-004, EL-HUB-008, EL-LES-01-070..072) ---- */
+.zn-class-heading {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--graphite);
+  margin: 0;
+}
+.zn-status-chip {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: var(--row);
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px dashed var(--graphite);
+  border-radius: 2px;
+  padding: 0 12px;
+  margin: 16px 0 0;
+}
+.zn-status-chip.zn-status-warn,
+.zn-status-chip.zn-status-exhausted {
+  border-color: var(--pencil-red);
+  color: var(--pencil-red);
+}
+
+/* ---- untranslated block notice (spec.md §8, INF-087) ---- */
+.zn-untranslated-notice {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: var(--row);
+  color: var(--pencil-red);
+  border: 1px dashed var(--pencil-red);
+  border-radius: 2px;
+  padding: 0 10px;
+  margin: 0 0 var(--row);
+}
+/* ---- tutor highlight ring (ADR-0012 / EL-LES-01-056) ---- */
+.zn-tutor-highlight {
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 4px;
+}
+/* ---- reserved voice dock mount region (spec.md §7, EL-LES-01-090) ---- */
+.zn-voice-dock-region:empty {
+  display: none;
+}

@@ -10,10 +10,12 @@ from __future__ import annotations
 import sys
 
 from evals.checkers.perf_harness import (  # noqa: F401
+    CHROMIUM_LAUNCH_ARGS,
     REQUIRED_PROFILE_KEYS,
     _browser_pid,
     _chromium_pids,
     _judge,
+    _launch,
     _pin_browser_cores,
     _sample_fps,
     _TreeRSS,

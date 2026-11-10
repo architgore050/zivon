@@ -19,6 +19,9 @@ from typing import Any
 
 from playwright.sync_api import Page, sync_playwright
 
+import testing.frontend  # noqa: F401 - loud Playwright import guard
+from testing.frontend import serve_static
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = REPO_ROOT / "frontend"
 INDEX = FRONTEND / "index.html"
@@ -109,14 +112,22 @@ class TestShellBehaviour(unittest.TestCase):
 
     _pw: Any  # Playwright handle, injected in setUpClass
     _browser: Any  # Chromium browser, injected in setUpClass
+    _server: Any  # static HTTP server (file:// blocks font CORS)
+    _base_url: str
 
     @classmethod
     def setUpClass(cls) -> None:
         cls._pw = sync_playwright().start()
         cls._browser = cls._pw.chromium.launch()
+        # Serve frontend/ over HTTP: Chromium refuses woff2 @font-face and
+        # crossorigin preloads from an opaque file:// origin (CORS), which is
+        # not how the site is ever deployed.
+        cls._server = serve_static(FRONTEND)
+        cls._base_url = cls._server.__enter__()
 
     @classmethod
     def tearDownClass(cls) -> None:
+        cls._server.__exit__(None, None, None)
         cls._browser.close()
         cls._pw.stop()
 
@@ -132,7 +143,7 @@ class TestShellBehaviour(unittest.TestCase):
     def test_page_loads_clean_with_a11y_basics(self) -> None:
         page, errors = self._new_page()
         try:
-            page.goto(INDEX.resolve().as_uri())
+            page.goto(f"{self._base_url}/index.html")
             self.assertEqual(errors, [], f"console/page errors on load: {errors}")
             self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
             self.assertTrue(page.title().startswith("Zivon"))
@@ -157,7 +168,7 @@ class TestShellBehaviour(unittest.TestCase):
                     content_type="application/javascript",
                 ),
             )
-            page.goto(INDEX.resolve().as_uri())
+            page.goto(f"{self._base_url}/index.html")
             self.assertEqual(
                 page.evaluate("document.querySelectorAll('#zn-courses a').length"), 0
             )
@@ -185,7 +196,7 @@ class TestShellBehaviour(unittest.TestCase):
                     status=200, body=fake, content_type="application/javascript"
                 ),
             )
-            page.goto(INDEX.resolve().as_uri())
+            page.goto(f"{self._base_url}/index.html")
             cards = page.query_selector_all("#zn-courses a.zn-card")
             self.assertEqual(len(cards), 1)
             text = cards[0].inner_text()

@@ -4,10 +4,11 @@
 #   Run:    docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" \
 #               zivon-frontend:0.1.6        # then open http://localhost:8081
 #
-# What is baked: the HAND-MAINTAINED shell only - index.html, assets/ (shared
-# CSS/JS, local fonts) and the nginx site config. Generated pipeline output
-# (courses/, courses.js) is NEVER baked into an image (repo rule): it arrives
-# at runtime on a volume (compose) or PVC (cluster) mounted at the html root.
+# What is baked: the HAND-MAINTAINED shell only - index.html, 404.html, assets/
+# (shared CSS/JS, local fonts) and the nginx site config. Generated pipeline
+# output (courses/, courses.js) is NEVER baked into an image (repo rule): it
+# arrives at runtime on a volume (compose) or PVC (cluster) mounted at the html
+# root.
 #
 # nginx-unprivileged is the official non-root nginx variant: runs as UID 101,
 # listens on 8080, keeps the stock nginx.conf (our file replaces only the
@@ -41,6 +42,7 @@ COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 # without losing it: compose mounts ./frontend directly; the K8s Deployment
 # seeds it into an empty PVC with a no-clobber initContainer (cp -rn).
 COPY frontend/index.html /opt/zivon-shell/index.html
+COPY frontend/404.html /opt/zivon-shell/404.html
 COPY frontend/assets /opt/zivon-shell/assets
 
 EXPOSE 8080

@@ -270,6 +270,11 @@ in config.json at the gate you want. Standalone use:
     python -m testing.content_factory.perf.harness --url file:///path/to/page.html \
         --profile testing/content_factory/perf/profiles/weak-android.json
 
+The harness itself launches Chromium with `--allow-file-access-from-files` so
+`file://` pages load their font preloads exactly as they do over HTTP(S); you
+do not pass this yourself (see `CHROMIUM_LAUNCH_ARGS` in
+`testing/content_factory/perf/harness.py`).
+
 ## Build-time translation & localization (`10a`..`10d`) and `llm-manager` upstream fallback (`GAP-008`)
 
 - Pass `--locales hi,hi-Latn` (or set `"translation": {"enabled": true}` in `config.json`) to run stages `10a-translate` → `10b-transcheck` → `10c-transrepair` → `10d-transrender` after `09-review` / `10-reviewfix` and before `11-link`.

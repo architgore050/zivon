@@ -48,6 +48,16 @@ PHASE_4_LOAD_TARGET_S = 2.0
 PHASE_4_FCP_TARGET_S = 1.2
 
 
+# Chromium launch args for the perf stage. The pages under test load from
+# file://, where Chromium gives the document an opaque origin and blocks
+# CORS-required subresources - the hand-maintained shell's font preloads and
+# @font-face woff2 files - exactly like a cross-origin fetch. Production
+# serves the same files over HTTP(S) where they load normally, so the flag
+# restores production-load semantics for the measurement; it is a
+# test-transport concern only and must never appear in product code.
+CHROMIUM_LAUNCH_ARGS = ["--allow-file-access-from-files"]
+
+
 def load_profile(path: str | Path) -> dict[str, Any]:
     profile = json.loads(Path(path).read_text(encoding="utf-8"))
     for key, types in REQUIRED_PROFILE_KEYS.items():
@@ -138,7 +148,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
 
     with sync_playwright() as p:
         existing = _chromium_pids()
-        browser = p.chromium.launch(headless=True)
+        browser = _launch(p)
         try:
             browser_pid = _browser_pid(existing)
             rss = _TreeRSS(browser_pid) if browser_pid else None
@@ -226,6 +236,15 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
 
     _judge(report)
     return report
+
+
+def _launch(playwright: Any) -> Any:
+    """Launch Chromium with the perf stage's file-access args (see above).
+
+    The args list is copied: Playwright may retain and even mutate the list,
+    which must never leak back into the module constant.
+    """
+    return playwright.chromium.launch(headless=True, args=list(CHROMIUM_LAUNCH_ARGS))
 
 
 def _chromium_pids() -> set[int] | None:
