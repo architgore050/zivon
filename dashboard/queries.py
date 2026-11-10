@@ -445,20 +445,19 @@ class RunsArtifacts:
     base: Path = field(default_factory=runs_dir)
 
     def _run_dir(self, run_id: str) -> Path | None:
-        """The run dir only when run_id is a strict slug AND the resolved
-        path stays inside base (same two barriers as run_detail: allowlist +
-        resolve()/is_relative_to, so a symlinked run dir cannot escape)."""
+        """The run dir only when run_id is a strict slug AND matches a real,
+        server-controlled directory entry. Never constructs a Path from the
+        user-supplied run_id: the slug check stays as defense-in-depth and
+        the match is entry.name == run_id by string equality over the trusted
+        base listing — no user value enters Path construction."""
         if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id):
             return None
         base_dir = self.base.resolve()
-
-        # codeql[py/path-injection] — false positive: run_id is validated to
-        # ^[a-z0-9][a-z0-9-]{0,62}$ by the early-return re.fullmatch guard
-        # above (no separators, no traversal possible) plus defense-in-depth
-        # resolve()/is_relative_to containment against symlink escape.
-        run_dir = (base_dir / run_id).resolve()
-        if not run_dir.is_relative_to(base_dir):
-            return None
+        run_dir: Path | None = None
+        for entry in base_dir.iterdir():
+            if entry.name == run_id and entry.is_dir():
+                run_dir = entry
+                break
         return run_dir
 
     def status(self, run_id: str) -> dict[str, Any] | None:
