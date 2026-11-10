@@ -76,37 +76,45 @@ which is unchanged; only the version strings are stale.
 | `docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md` | wherever versions are pinned (check) | v2.5 | v3.0 |
 | `k8s/infra.env` comment block | if it pins versions (check) | v2.5 | v3.0 |
 
-## OQ-02 (open) — Prisma v3.0 streaming endpoint shape [ASSUMPTION]
+## OQ-02 (RESOLVED 2026-11-10) — Prisma v3.0 streaming endpoint shape
 
-Question: exact realtime STT contract — WS URL, auth header, audio framing (PCM16/16 kHz?
-chunk size?), partial/final event JSON, language hints for code-mixed Hinglish.
-Best current answer: 16 kHz mono PCM16 streamed over WS with incremental partials + a final
-event; endpoint + auth per Gnani developer docs (`docs.gnani.ai`). [ASSUMPTION]
-Owner: EX1-VOICE. Vehicle: live probe against Prisma sandbox before `voice/stt_client.py` is
-finalized; record the discovered contract in `ws-contract.md` §2 notes. Deadline: EX1 day 1.
+**Live contract, verified against docs.gnani.ai and a real call:**
+`wss://api.vachana.ai/stt/v3/stream`; auth + config are upgrade headers —
+`x-api-key-id: <GNANI key>`, `model: prisma-v3.0`, `language_code: indic-auto` (or a
+comma list), `x-sample-rate: 16000`. Binary PCM16 mono frames (docs recommend 1024-byte
+frames). End-of-speech is the JSON frame `{"type":"commit"}`. Server events are JSON
+`{"type":"transcript","text":...,"detected_language_code":...,"segment_id":...,"latency":...}`
+— **one transcript per VAD segment, no separate partial stream**; the client maps a
+transcript to the turn's `stt.final`. A 5.1 s Hinglish clip transcribed correctly
+(`hi-IN`). The earlier "[ASSUMPTION]" (bearer auth, in-band `config`, `audio_end`,
+partial/final events) was wrong and has been replaced in `voice/stt_client.py`.
 
-## OQ-03 (open) — Timbre v3.0 realtime endpoint + voice selection [ASSUMPTION]
+## OQ-03 (RESOLVED 2026-11-10) — Timbre v3.0 realtime endpoint + voice
 
-Question: realtime TTS invocation (REST-chunked vs WS streaming), output audio format/rate
-(assumed Opus or PCM 24/48 kHz — pinned in ADR-0020 as verify-at-build), which of the 13 voices
-is the tutor persona, exact credit cost per character incl. audio-tag characters.
-Best current answer: realtime streaming endpoint with inline audio tags; tutor voice = the
-warm, patient female/male Hindi+English voice from the 13-voice list — founder picks by ear. [ASSUMPTION]
-Owner: EX1-VOICE + founder (voice pick). Vehicle: Gnani docs + a 5-voice A/B in the CLI loop.
-Deadline: EX1 day 2.
+**Live contract, verified against docs.gnani.ai and a real call:**
+`wss://api.vachana.ai/api/v1/tts`; key as the `X-API-Key-ID` upgrade header. One JSON
+synthesis request per segment: `{text, voice, model: "timbre-v3.0", language: "hi-en",
+speed, audio_config:{sample_rate, num_channels, sample_width, encoding:"linear_pcm",
+container:"raw"}}`. Audio comes back **base64 inside JSON** (`{"type":"audio",
+"data":{"audio":...,"is_final":...}}`), terminated by `{"type":"complete"}` — not binary
+Opus frames. First audio arrived at **0.27 s** on the probe; the tutor voice used for
+the first turn is `Shivani`. The founder's by-ear voice pick is still open; the 13-tag
+v3.0 catalog is available and the harness whitelist is unchanged.
 
-## OQ-04 (open) — thought-summary streaming availability for Gemma 4 on Gemini API [ASSUMPTION]
+## OQ-04 (RESOLVED 2026-11-10) — Gemma 4 thinking on the Gemini API
 
-Question: does `gemma-4-26b-a4b-it` on the Gemini API surface thinking/thought-summary events in
-the streaming response (and does `ThinkingConfig(thinking_level=…)` apply to Gemma 4)? Option B
-(ADR-0018) prefers speaking **filtered thought summaries during thinking**; if the route cannot
-surface them, the flag defaults off and dead-air fillers (option A) cover the gap.
-Best current answer: the Gemma-on-Gemini-API doc confirms a thinking process with a controllable
-level; whether summaries are exposed per-chunk in streaming is unverified. [ASSUMPTION]
-Owner: EX1-VOICE. Vehicle: 10-line probe script against the real model; result recorded as an
-amendment note in ADR-0018. Deadline: EX1 day 1.
+**Measured:** `gemma-4-26b-a4b-it` on the Gemini API thinks unconditionally. It exposes
+`thought=True` parts; `ThinkingConfig(thinking_budget=0)` and `thinking_level` are both
+rejected (`400 INVALID_ARGUMENT: not supported for this model`). On the full tutor prompt
+its first **content** token arrived at **~20 s** (and at ~45 s on a longer prompt, hitting
+the turn deadline with thoughts only). Raising `max_output_tokens` is required or the
+thinking consumes the budget and the reply truncates. **Consequence for P0:** the deployed
+demo uses `gemini-2.5-flash` with `thinking_budget=0` (first content **~1.6 s**) via
+deployment env; Gemma 4 26B A4B remains the code default and a one-env-var switch. This
+is a recorded deviation from Gate A, not a silent model swap. Thought-summary streaming
+stays off (ADR-0018 B-on) — the thought stream is real but not yet filtered into speech.
 
-## OQ-05 (open) — Gemini API limits for the tutor's traffic shape [ASSUMPTION]
+## OQ-05 (open) — Gemini API limits for the tutor's traffic shape
 
 Question: free-tier/paid rate limits (RPM/TPM) and streaming SSE support for
 `gemma-4-26b-a4b-it`; whether the OpenAI-compatibility endpoint streams thought summaries.

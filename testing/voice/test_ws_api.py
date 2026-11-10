@@ -310,6 +310,12 @@ class HappyPathTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("idle", states)
         partials = outbox.of_type("stt.partial")
         self.assertEqual([p["text"] for p in partials], ["pehla"])
+        # ws-contract §2: stt.final freezes the live transcript before the
+        # answer streams (mock/live parity — the dock is driven by it).
+        stt_final = outbox.first("stt.final")
+        assert stt_final is not None
+        self.assertEqual(stt_final["text"], "Newton ka kya law tha?")
+        self.assertEqual(stt_final["lang"], "hi-en")
         highlight = outbox.first("highlight")
         assert highlight is not None
         self.assertEqual(highlight["block_ids"], ["b-01"])

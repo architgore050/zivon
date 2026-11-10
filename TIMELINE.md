@@ -395,3 +395,51 @@ Constraints carried forward: cron granularity is minutes (sub-minute loops = run
 - [ ] Posts live on X and LinkedIn, both hashtags, nominated
 - [ ] Reserved credits intact
 - [ ] Fallback video ready in case the live link degrades
+
+---
+
+## Execution log — 2026-11-10 (P0 live-voice run)
+
+Branch `fix/p0-voice-live` off `main` @ `51f03b6`.
+
+**Done**
+- **Public link live (Tier 0):** `https://pads-caught-colours-ballot.trycloudflare.com` —
+  a Cloudflare quick tunnel in front of the compose stack (`postgres` + `core-backend` +
+  nginx `web`). Serves the 6 generated pages, `courses.js`, 200 on `/` and every page.
+  SEO regenerated with `ZIVON_PUBLIC_BASE_URL`; no `zivon.local` left in `frontend/`.
+- **Voice loop end-to-end on the public URL:** Prisma v3.0 STT → `gemini-2.5-flash` →
+  Timbre v3.0, measured first audio **2.98 s** after end-of-speech (inside the 4 s Gate C
+  bar); answer audio captured (11.8 s). `turn.end` latency: L1 267 / L3 2208 / L6 2514 ms.
+- **Real vendor contracts pinned** (OQ-02/03): Prisma `wss://api.vachana.ai/stt/v3/stream`
+  (header config, `commit` EOS, `transcript` events); Timbre
+  `wss://api.vachana.ai/api/v1/tts` (single JSON request, base64 JSON audio, `complete`).
+  Clients rewritten; tests updated.
+- **HTTP/CSP:** nginx `/voice/` WS proxy + `location ^~ /courses/` with
+  `connect-src 'self'` (lesson pages only; every other location stays `'none'`). Generator
+  (`factory/render.py`) emits the relaxed meta CSP. Compose network alias `core-backend`
+  keeps one upstream name for compose and cluster.
+- **`stt.final` now emitted** (mock/live parity); demo profile wired server-side
+  (`ZIVON_VOICE_PROFILE=demo`, demo tranche 1000 / session cap 100).
+- **Voice-dock mockups** delivered for founder review: `tmp/voice-dock-examples/`
+  (six variants + gallery + README), gitignored.
+- Voice tests: 170 green; backend tests: 28 green.
+
+**Recorded deviation from Gate A (needs founder sign-off)**
+- Gemma 4 26B A4B on the Gemini API thinks unconditionally and took **~20 s** to its first
+  content token on the full tutor prompt (`thinking_budget`/`thinking_level` are rejected
+  by the model). The deployed demo therefore runs **`gemini-2.5-flash` with
+  `thinking_budget=0`** (first content ~1.6 s) via deployment config. Gemma 4 remains the
+  code default and a one-env-var switch. See `docs/specs/voice-agent/open-questions.md` OQ-04.
+
+**Not done / deferred (post-submission)**
+- Dock UI: blocked on founder-authored design-doctrine §10.12 (mockups are ready).
+- Browser audio playback in `frontend/assets/zivon.js` (client is protocol/state-machine
+  only); the live loop is proven server-side and via the recorded answer audio.
+- Minikube deployment (images built, manifest subset ready): the judged link runs the
+  compose stack instead (recorded deviation, Tier-1 VM plan in
+  `/tmp/opencode/zivon-we-remaining.md` §9).
+- Deferred list from the handoff doc: pseudonym consent, live narration run, perf-budget
+  re-tighten, promotion token, migration unification, real cold storage + DRILL-01,
+  dashboard RBAC/edge, eval telemetry rows, eval site target, PyYAML/multipart pins,
+  reconnect demo-profile fix, `.zn-sim-read` a11y, counsel questions.
+

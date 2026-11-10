@@ -35,7 +35,13 @@ class FakeTimbreTransport:
 
     async def send(self, data: str | bytes) -> None:
         self.sent.append(data)
-        if self.auto_queue and isinstance(data, str) and '"type": "speak"' in data:
+        # Timbre v3.0 realtime: any JSON synthesis request (text + voice).
+        if (
+            self.auto_queue
+            and isinstance(data, str)
+            and '"voice"' in data
+            and '"text"' in data
+        ):
             # real Timbre pushes frames as they synthesize; the fake queues
             # replies eagerly so speak() can drain them
             self.queue_segment()
@@ -176,6 +182,43 @@ class AudioFlowTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([f.final for f in frames], [False, False, True])
         self.assertEqual(client.meters.segments, 1)
         self.assertIsNotNone(client.meters.first_audio_s)
+
+    async def test_realtime_base64_audio_and_complete(self) -> None:
+        # Timbre v3.0 realtime (docs.gnani.ai): audio arrives base64 inside
+        # JSON, terminated by `complete` — not binary frames + segment_end.
+        import base64
+        import json
+
+        client, transport = _client()
+        transport.auto_queue = False
+        await client.start_turn()
+        pcm = b"\x01\x02" * 8
+        transport.replies.extend(
+            [
+                json.dumps({"type": "start", "request_id": "req_1"}),
+                json.dumps(
+                    {
+                        "type": "audio",
+                        "data": {
+                            "chunk_index": 1,
+                            "audio": base64.b64encode(pcm).decode(),
+                            "is_final": False,
+                        },
+                    }
+                ),
+                json.dumps(
+                    {"type": "complete", "data": {"audio": "", "is_final": True}}
+                ),
+            ]
+        )
+        frames = await _drain(client, "Ek sentence.")
+        self.assertEqual(frames[0].data, pcm)
+        self.assertTrue(frames[-1].final)
+        # request is the documented single synthesis payload
+        request = json.loads(next(s for s in transport.sent if isinstance(s, str)))
+        self.assertEqual(request["model"], "timbre-v3.0")
+        self.assertEqual(request["audio_config"]["container"], "raw")
+        self.assertIn("text", request)
 
     async def test_f4_transport_death_raises(self) -> None:
         mock = MockTimbre(fail=True)

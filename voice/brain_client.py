@@ -190,12 +190,22 @@ class _GeminiStreamFactory:
     ) -> AsyncGenerator[RawChunk, None]:
         client, types = await self._ensure_client()
         settings = self._settings
-        config: dict[str, Any] = {}
+        config: dict[str, Any] = {
+            "max_output_tokens": settings.brain_max_output_tokens,
+            "temperature": settings.brain_temperature,
+        }
         if settings.thinking_summaries:
             # OQ-04 [ASSUMPTION]: whether Gemma surfaces thought summaries in
             # streaming is unverified — the flag stays default-off until the
             # probe + falsification test pass (ADR-0018).
             config["thinking_config"] = types.ThinkingConfig(include_thoughts=True)
+        elif settings.brain_thinking_budget >= 0:
+            # Gemini only: Gemma 4 rejects thinking_config (2026-11-10 probe).
+            # 0 disables deliberation — the difference between a ~20 s first
+            # content event and a ~1.6 s one, i.e. a usable voice turn.
+            config["thinking_config"] = types.ThinkingConfig(
+                thinking_budget=settings.brain_thinking_budget
+            )
         system_text = "\n\n".join(m.content for m in messages if m.role == "system")
         if system_text:
             config["system_instruction"] = system_text

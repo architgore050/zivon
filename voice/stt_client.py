@@ -59,7 +59,9 @@ ConnectFactory = Callable[[VoiceSettings], Awaitable[SttTransport]]
 
 
 def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[SttTransport]]:
-    """Live transport: Prisma streaming WS with the Gnani key header."""
+    """Live transport: Prisma v3.0 realtime WS (verified against docs.gnani.ai
+    2026-11-10: all configuration travels as upgrade headers, audio as binary
+    PCM16, end-of-speech as a JSON ``{"type": "commit"}``)."""
 
     async def _connect() -> SttTransport:
         try:  # websockets >= 13 (new asyncio implementation)
@@ -67,7 +69,12 @@ def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[SttTransp
         except ImportError:  # websockets 12 (legacy client, same surface)
             from websockets import connect as ws_connect  # type: ignore[no-redef]
 
-        headers = {"Authorization": f"Bearer {settings.gnani_stt_api_key}"}
+        headers = {
+            "x-api-key-id": settings.gnani_stt_api_key,
+            "model": settings.stt_model,
+            "language_code": settings.stt_language,
+            "x-sample-rate": str(settings.stt_sample_rate),
+        }
         try:
             return await ws_connect(settings.stt_url, additional_headers=headers)  # type: ignore[no-untyped-call]
         except TypeError:  # websockets < 14 named the option extra_headers
@@ -121,18 +128,16 @@ class SttClient:
         self.reconnects = 0
 
     async def start(self) -> None:
-        """Open the upstream stream and send the language-hint config."""
+        """Open the upstream stream.
+
+        Prisma v3.0 realtime takes its configuration (model, language,
+        sample rate, key) as WebSocket upgrade headers, so there is no
+        in-band config message — see ``default_connect``.
+        """
         if self._closed:
             raise SttUnavailableError("client already closed")
         if self._ws is None:
             self._ws = await self._open_with_retry()
-        cfg = {
-            "type": "config",
-            "sample_rate": self._settings.stt_sample_rate,
-            "encoding": "pcm_s16le",
-            "languages": list(self._settings.stt_languages),  # code-mixed hints
-        }
-        await self._send(json.dumps(cfg))
 
     async def send_audio(self, pcm: bytes) -> None:
         """Forward one mic frame; bytes are dropped from memory after send."""
@@ -142,8 +147,8 @@ class SttClient:
         self.audio_seconds += len(pcm) / 2 / self._settings.stt_sample_rate
 
     async def finish(self) -> None:
-        """Signal end-of-speech upstream (the PTT-release EOS trigger)."""
-        await self._send(json.dumps({"type": "audio_end"}))
+        """Signal end-of-speech upstream (Prisma realtime EOS = ``commit``)."""
+        await self._send(json.dumps({"type": "commit"}))
 
     async def next_event(self) -> SttEvent | None:
         """Next normalized event, or None when the upstream stream ended.
@@ -191,10 +196,30 @@ class SttClient:
         try:
             payload = json.loads(raw)
             kind = payload["type"]
-            text = payload["text"]
         except (json.JSONDecodeError, KeyError, TypeError):
             self.dropped_unparsed += 1
             return None
+        # Prisma v3.0 realtime emits one ``transcript`` event per VAD segment
+        # (verified 2026-11-10); there is no separate partial stream. A
+        # transcript is therefore the turn's final. ``partial``/``final`` stay
+        # accepted so the mock transports and older shapes keep working.
+        if kind == "transcript":
+            text = payload.get("text")
+            if not isinstance(text, str):
+                self.dropped_unparsed += 1
+                return None
+            self.finals += 1
+            self._seq += 1
+            return SttEvent(
+                kind="final",
+                text=text,
+                seq=self._seq - 1,
+                lang=str(
+                    payload.get("detected_language_code") or payload.get("lang") or ""
+                ),
+                confidence=None,
+            )
+        text = payload.get("text")
         if kind not in ("partial", "final") or not isinstance(text, str):
             self.dropped_unparsed += 1
             return None
@@ -237,9 +262,8 @@ class SttClient:
             self._ws = await self._open_with_retry()
         except SttUnavailableError:
             return False
-        # resume hint: same logical session, best-effort (OQ-02 verifies field)
-        with contextlib.suppress(Exception):
-            await self._send(json.dumps({"type": "config", "resume": True}))
+        # Configuration lives in the upgrade headers, so the reconnect is
+        # self-describing; there is no in-band resume handshake to replay.
         return True
 
     async def _send(self, data: str) -> None:

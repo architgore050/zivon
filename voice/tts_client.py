@@ -33,6 +33,7 @@ browser SpeechSynthesis is never used (product story = Gnani voice).
 from __future__ import annotations
 
 import asyncio
+import base64
 import contextlib
 import json
 import re
@@ -82,6 +83,19 @@ CLOSING_LINE = "<pauses>… theek hai, aage ka agle turn mein."
 _TAG_RX = re.compile(r"<([a-zA-Z ]+?)>")
 _SENTENCE_END = re.compile(r"[।.!?…]\s*")
 
+
+def _b64decode(chunk: str) -> bytes:
+    """Decode a Timbre base64 audio chunk, tolerating padding variations."""
+    try:
+        return base64.b64decode(chunk)
+    except (ValueError, TypeError):
+        try:
+            padded = chunk + "=" * (-len(chunk) % 4)
+            return base64.b64decode(padded)
+        except (ValueError, TypeError):
+            return b""
+
+
 # Barge-in drain budget: Timbre's tail frames of a cancelled segment arrive
 # within ~a segment's synthesis time; past this the socket is reset instead.
 _ABORT_DRAIN_S = 0.75
@@ -105,7 +119,9 @@ ConnectFactory = Callable[[], Awaitable[TtsTransport]]
 
 
 def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[TtsTransport]]:
-    """Live transport: Timbre v3.0 realtime WS with the Gnani key header."""
+    """Live transport: Timbre v3.0 realtime WS (verified against docs.gnani.ai
+    2026-11-10: key as the ``X-API-Key-ID`` upgrade header; one JSON synthesis
+    request per segment; audio comes back **base64 inside JSON**, not binary)."""
 
     async def _connect() -> TtsTransport:
         try:  # websockets >= 13 (new asyncio implementation)
@@ -113,7 +129,7 @@ def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[TtsTransp
         except ImportError:  # websockets 12 (legacy client, same surface)
             from websockets import connect as ws_connect  # type: ignore[no-redef]
 
-        headers = {"Authorization": f"Bearer {settings.gnani_tts_api_key}"}
+        headers = {"X-API-Key-ID": settings.gnani_tts_api_key}
         try:
             return await ws_connect(settings.tts_url, additional_headers=headers)  # type: ignore[no-untyped-call]
         except TypeError:  # websockets < 14 named the option extra_headers
@@ -198,13 +214,23 @@ class TtsClient:
         if not prepared.text:
             return
         self.meters.segments += 1
+        # Timbre v3.0 realtime request (docs.gnani.ai/api/TTS/tts-websocket):
+        # one JSON synthesis message per segment; `audio_config.container`
+        # "raw" returns headerless PCM16 which concatenates cleanly for the
+        # dock's decode path (WAV would put a header on the first chunk only).
         request = {
-            "type": "speak",
-            "segment_id": segment_id,
-            "kind": kind,
             "text": prepared.text,
             "voice": self._settings.tts_voice,
-            "format": "opus_20ms",  # ADR-0020 downlink; pinned at OQ-03
+            "model": self._settings.tts_model,
+            "language": self._settings.tts_language,
+            "speed": 1.0,
+            "audio_config": {
+                "sample_rate": self._settings.tts_sample_rate,
+                "num_channels": 1,
+                "sample_width": 2,
+                "encoding": "linear_pcm",
+                "container": "raw",
+            },
         }
         await self._send(json.dumps(request))
         while True:
@@ -214,6 +240,7 @@ class TtsClient:
                 self._ws = None
                 raise TtsUnavailableError(f"Timbre stream died: {exc}") from exc
             if isinstance(raw, bytes):
+                # binary downlink (mock/legacy shape)
                 if self.meters.first_audio_s is None:
                     self.meters.first_audio_s = self._clock() - self._turn_start
                 yield TtsAudio(data=raw, final=False)
@@ -221,14 +248,25 @@ class TtsClient:
             try:
                 event = json.loads(raw)
             except json.JSONDecodeError:
-                continue  # tolerated gap: OQ-03 contract is not final yet
-            if event.get("type") == "segment_end":
+                continue  # tolerated gap
+            kind = event.get("type")
+            if kind == "audio":
+                data = event.get("data") or {}
+                chunk = data.get("audio") or ""
+                payload = _b64decode(chunk) if chunk else b""
+                if payload:
+                    if self.meters.first_audio_s is None:
+                        self.meters.first_audio_s = self._clock() - self._turn_start
+                    yield TtsAudio(data=payload, final=False)
+                continue
+            if kind in ("complete", "segment_end"):
                 if self.meters.first_audio_s is None:
                     self.meters.first_audio_s = self._clock() - self._turn_start
                 yield TtsAudio(data=b"", final=True)
                 return
-            if event.get("type") == "error":
+            if kind == "error":
                 raise TtsUnavailableError(str(event.get("message", "timbre error")))
+            # `start` and other non-audio frames are ignored
 
     async def close_turn(self) -> None:
         """End the turn; meters stay readable for the H4 ledger write."""
@@ -266,7 +304,7 @@ class TtsClient:
                 event = json.loads(raw)
             except json.JSONDecodeError:
                 continue
-            if event.get("type") == "segment_end":
+            if event.get("type") in ("complete", "segment_end"):
                 return  # tail fully consumed; the socket is clean for the next turn
             if event.get("type") == "error":
                 await self.close()

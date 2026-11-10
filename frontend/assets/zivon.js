@@ -1038,10 +1038,12 @@
        close; a pong timeout closes the socket before reporting offline.
      - Degraded text fallback (typed transcript via audio.end) & turn latency
        stamps (t_endpoint, t_final_transcript, t_first_token, t_first_audio).
-     CSP NOTE: createVoiceClient() opens a WebSocket. The server-level CSP in
-     docker/nginx.conf is connect-src 'none'; a dock-enabled page REQUIRES the
-     founder-gated scoped relaxation to connect-src 'self' at wire-up time
-     (ws-client-contract.md §8, TIMELINE). Nothing in this file relaxes CSP. */
+     CSP NOTE: createVoiceClient() opens a same-origin WebSocket. Lesson pages
+     now carry `connect-src 'self'` (the founder-authorised scoped relaxation,
+     ws-client-contract.md §8): the generator emits it as the page meta CSP and
+     docker/nginx.conf repeats it for the /courses/ location, while every other
+     location keeps the server-level `connect-src 'none'`. This file relaxes no
+     CSP itself — it only assumes the lesson page granted 'self'. */
   var VOICE_MAGIC = 0xA5;
   var VOICE_VERSION = 1;
 

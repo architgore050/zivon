@@ -99,7 +99,9 @@ class TestRender(unittest.TestCase):
         self.assertIn("<svg", html)  # diagram inlined
         self.assertTrue((topic / "page.js").exists())
         self.assertTrue((topic / "page.css").exists())
-        self.assertIn("connect-src 'none'", html)
+        # P0 wire-up: lesson pages opt into the same-origin voice WS only.
+        self.assertIn("connect-src 'self'", html)
+        self.assertIn("default-src 'none'", html)
         # assets copied into staging
         self.assertTrue((Path(out["site_dir"]) / "assets" / "zivon.css").exists())
         self.assertTrue((Path(out["site_dir"]) / "assets" / "zivon.js").exists())
