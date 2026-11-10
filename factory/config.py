@@ -404,6 +404,7 @@ def _load_server_from_env() -> dict[str, Any]:
         "heartbeat_s": heartbeat_s,
         "extra_headers": extra_headers,
         "user_agent": _env_raw("ZIVON_USER_AGENT") or "",
+        "reasoning_effort": _env_raw("ZIVON_REASONING_EFFORT") or None,
     }
 
 

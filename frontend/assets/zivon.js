@@ -2982,9 +2982,9 @@
         .catch(function () { return null; });
     }
     var jitterBufferedMs = 0;
-    var jitterTargetMs = opts.jitter_target_ms || 80;
-    var minLeadTimeS = (opts.min_lead_ms !== undefined ? opts.min_lead_ms : 150) / 1000.0;
-    var ttsSampleRate = opts.tts_sample_rate || (typeof window !== "undefined" && window.ZIVON_VOICE_TTS_SAMPLE_RATE) || 48000;
+    var jitterTargetMs = opts.jitter_target_ms || 180;
+    var minLeadTimeS = (opts.min_lead_ms !== undefined ? opts.min_lead_ms : 60) / 1000.0;
+    var ttsSampleRate = opts.tts_sample_rate || (typeof window !== "undefined" && window.ZIVON_VOICE_TTS_SAMPLE_RATE) || 16000;
     var nextPlayTimeS = 0;
     var activeSources = [];
     var scheduledChunksCount = 0;
@@ -3093,13 +3093,13 @@
         jitterBufferedMs = 0;
         return;
       }
-      if (!forceFlush && nextPlayTimeS === 0 && jitterBufferedMs < 60 && pcmJitterQueue.length < minFramesBeforeSpeaking) {
+      if (!forceFlush && nextPlayTimeS === 0 && jitterBufferedMs < jitterTargetMs && pcmJitterQueue.length < minFramesBeforeSpeaking) {
         return;
       }
       var nowS = typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : 0;
       if (nextPlayTimeS < nowS + minLeadTimeS) {
         /* Never hard-schedule < 150 ms ahead on initial/underrun start (ws-contract.md §2/§3) */
-        nextPlayTimeS = nowS + Math.max(minLeadTimeS, jitterTargetMs / 1000.0);
+        nextPlayTimeS = nowS + minLeadTimeS;
       }
       if (agentGainNode && agentGainNode.gain) {
         agentGainNode.gain.value = 1.0;
@@ -3395,7 +3395,7 @@
       if (!turnTimings.t_first_audio) {
         turnTimings.t_first_audio = performance.now();
       }
-      if (pendingFrames.length >= minFramesBeforeSpeaking || jitterBufferedMs >= 60 || parsed.is_final) {
+      if (pendingFrames.length >= minFramesBeforeSpeaking || jitterBufferedMs >= jitterTargetMs || parsed.is_final) {
         if (state !== "speaking") {
           setDucking("agent_speaking");
           setState("speaking", { frames_received: pendingFrames.length, buffered_ms: Math.round(jitterBufferedMs) });

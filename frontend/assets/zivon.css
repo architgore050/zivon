@@ -49,29 +49,25 @@
 /* ---- fonts (local, offline; woff2 primary + ttf fallback per spec C4) ---- */
 @font-face {
   font-family: "Bricolage Grotesque";
-  src: url("fonts/BricolageGrotesque-Variable.woff2") format("woff2"),
-       url("fonts/BricolageGrotesque-Variable.ttf") format("truetype");
+  src: url("fonts/BricolageGrotesque-Variable.woff2") format("woff2");
   font-weight: 200 800;
   font-display: swap;
 }
 @font-face {
   font-family: "Courier Prime";
-  src: url("fonts/CourierPrime-Regular.woff2") format("woff2"),
-       url("fonts/CourierPrime-Regular.ttf") format("truetype");
+  src: url("fonts/CourierPrime-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "Courier Prime";
-  src: url("fonts/CourierPrime-Bold.woff2") format("woff2"),
-       url("fonts/CourierPrime-Bold.ttf") format("truetype");
+  src: url("fonts/CourierPrime-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "Caveat";
-  src: url("fonts/Caveat-Variable.woff2") format("woff2"),
-       url("fonts/Caveat-Variable.ttf") format("truetype");
+  src: url("fonts/Caveat-Variable.woff2") format("woff2");
   font-weight: 400 700;
   font-display: swap;
 }
