@@ -260,8 +260,10 @@ the integration seam a dock plugs into:
   implies translated content that does not exist.
 - **Persistence (device pseudonym per the brief's ADR-0007 — ABSENT, flag Q3)**:
   until that ADR exists, the only sanctioned persistence is local-only:
-  `localStorage["zivon.lang"] = <locale>` written on explicit chip activation,
-  read on load to preselect a chip; no server write, no identifier, cleared by
+  `localStorage["zivon_locale"] = <locale>` written on explicit chip activation
+  (single owner key, reconciled with the translation spec in open-questions
+  Q11; `zivon.lang` is read-only legacy), read on load to preselect a chip; no
+  server write, no identifier, cleared by
   the platform's storage controls. When ADR-0007 lands, the same key becomes the
   device-pseudonym-scoped preference — the read/write site does not move.
 - **Untranslated state (per the method's translation rules)**: when i18n-aware
@@ -357,7 +359,7 @@ gate is the founder-loosened profile (`weak-android.json`: load 6.0 s, FCP
 |---|---|---|---|
 | C1 | Branded 404 page + `error_page 404 /404.html;` | `frontend/404.html` (new), `docker/nginx.conf` | §6; demo polish, off-brand default today |
 | C2 | `ZivonEvents` queue + no-op sink + `zivon.evtdebug` | `frontend/assets/zivon.js` | §9; Day-9 telemetry groundwork, zero CSP impact |
-| C3 | Locale persistence `localStorage["zivon.lang"]` + chip preselect | `frontend/assets/zivon.js` (`wireLangChips`) | §8 |
+| C3 | Locale persistence `localStorage["zivon_locale"]` (`zivon.lang` read-only legacy) + chip preselect | `frontend/assets/zivon.js` (`wireLangChips`) | §8 |
 | C4 | Font payload reduction: subset + convert the four TTFs to woff2 (keep TTF fallbacks), `preload` the two above-the-fold faces (Bricolage variable, Courier Prime regular) | `frontend/assets/fonts/`, `zivon.css` | §11; ~940 KB → est. <300 KB, the only realistic path inside the <2 s re-tighten on 3G-class networks. Keep `FONTS-LICENSE.md` accurate; re-run the perf gate before/after |
 | C5 | Reserved voice-dock mount region + lazy loader stub (loads NOTHING until the founder's dock lands) | `zivon.js` boot + `spec.md` §7 | §7 seam |
 

@@ -17,7 +17,9 @@ Implements `docs/specs/frontend/perf-budget-tests.md`:
 - `test_sim_read_mirror_populated`: after `sim_seconds`, `.zn-sim-read` is
   non-empty (enforces the 040410 live-validation contract).
 - `test_font_payload_budget`: total transfer size of active `.woff2` fonts in
-  `frontend/assets/fonts/` <= the profile's `font_budget_kb` (spec C4).
+  `frontend/assets/fonts/` <= `FONT_BUDGET_KB` (spec C4; the budget lives here,
+  in the frontend suite that enforces it - content-factory perf profiles carry
+  page budgets only).
 """
 
 from __future__ import annotations
@@ -29,13 +31,12 @@ from typing import Any
 
 from playwright.sync_api import sync_playwright
 
-import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
+import testing.frontend  # noqa: F401 - loud Playwright import guard / serve_static
 from testing.content_factory.perf.harness import load_profile, run_profile
 from testing.frontend import serve_static
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = REPO_ROOT / "frontend"
-INDEX = FRONTEND / "index.html"
 WEAK_ANDROID = (
     REPO_ROOT
     / "testing"
@@ -46,6 +47,10 @@ WEAK_ANDROID = (
 )
 ZIVON_JS_URI = (FRONTEND / "assets" / "zivon.js").resolve().as_uri()
 ZIVON_CSS_URI = (FRONTEND / "assets" / "zivon.css").resolve().as_uri()
+# Font payload budget for the frontend shell (spec C4). Owned here, not in the
+# content-factory page profiles: those describe page load, this describes the
+# shell asset weight.
+FONT_BUDGET_KB = 300.0
 
 
 def _synthetic_sim_html(include_explicit_mirror: bool = False) -> str:
@@ -259,7 +264,9 @@ class TestPerfBudget(unittest.TestCase):
                     } catch (e) {}
                     """
                 )
-                page.goto(INDEX.resolve().as_uri(), wait_until="load")
+                # Over HTTP like production: file:// changes font loading and
+                # therefore the layout-shift sequence this test measures.
+                page.goto(f"{self._base_url}/index.html", wait_until="load")
                 page.wait_for_timeout(250)
                 cls_score = float(page.evaluate("window.__zivonCLS || 0"))
                 self.assertLessEqual(
@@ -319,8 +326,7 @@ class TestPerfBudget(unittest.TestCase):
                 browser.close()
 
     def test_font_payload_budget(self) -> None:
-        profile = load_profile(WEAK_ANDROID)
-        budget_kb = float(profile.get("font_budget_kb", 300))
+        budget_kb = FONT_BUDGET_KB
         fonts_dir = FRONTEND / "assets" / "fonts"
         woff2_files = list(fonts_dir.glob("*.woff2"))
         names = [f.name for f in woff2_files]
@@ -333,7 +339,7 @@ class TestPerfBudget(unittest.TestCase):
         self.assertLessEqual(
             total_kb,
             budget_kb,
-            f"woff2 font payload {total_kb:.1f} KB > font_budget_kb {budget_kb:.1f} KB",
+            f"woff2 font payload {total_kb:.1f} KB > FONT_BUDGET_KB {budget_kb:.1f} KB",
         )
 
 

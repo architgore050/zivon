@@ -19,7 +19,7 @@ from typing import Any
 
 from playwright.sync_api import Page, sync_playwright
 
-import testing.frontend  # noqa: F401 - Playwright-over-Selenium shim when needed
+import testing.frontend  # noqa: F401 - loud Playwright import guard
 from testing.frontend import serve_static
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

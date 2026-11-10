@@ -94,6 +94,12 @@ signals (DPDP), codec bitrate/FEC settings per network profile.
   100–300 ms) [V: audio skill §4].
 - `speak.end`-to-`ready` transition requires the buffer drained, not the last
   frame received.
+- **Implementation status (2026-11-10):** `frontend/assets/zivon.js` implements
+  this section's frame/sequence bookkeeping and the `speaking` transition ONLY.
+  It does not decode Opus or schedule AudioContext playback, and its gain nodes
+  are bookkeeping values, not a connected output graph. The earlier "jitter
+  buffer / ducking playback" claim was removed from the client header and
+  TIMELINE; real playback lands with the voice backend.
 
 ## 5. Capture constraints [V: audio skill §2]
 
@@ -148,6 +154,13 @@ connect-src 'self'          (was: connect-src 'none')
 - Core pages (no dock) KEEP `'none'` — the relaxation is opt-in per page, which
   keeps G5 mechanically enforced. Generated lesson pages get the dock only when
   the founder's §10.12 directive says so; until then NOTHING changes.
+- **Wire-up requirement (2026-11-10):** `window.ZivonVoiceClient.create()` is
+  the call site that opens the WebSocket, and it is inert while CSP says
+  `connect-src 'none'`. The moment a page enables the dock (or the
+  `ZivonEvents` sink), that page is NOT functional until `connect-src 'self'`
+  is live — the header cannot be relaxed from a meta tag and the shell must not
+  pretend otherwise. This is recorded at the `create()` call site (zivon.js
+  §7 header), in `docker/nginx.conf` next to the header, and in `TIMELINE.md`.
 - The request is recorded in the manifest's `integration_notes`; it is NOT
   applied by this patch series.
 

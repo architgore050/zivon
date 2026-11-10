@@ -627,7 +627,6 @@ a { color: var(--pen-blue); }
 .zn-404-back { display: inline-block; font-weight: 700; }
 
 /* ---- catalogue class grouping & status chips (EL-HUB-004, EL-HUB-008, EL-LES-01-070..072) ---- */
-.zn-class-group { margin: 8px 0 0; }
 .zn-class-heading {
   font-family: var(--notes);
   font-weight: 700;

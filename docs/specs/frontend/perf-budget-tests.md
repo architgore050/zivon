@@ -57,7 +57,7 @@ Playwright Chromium, no new dependencies — it imports the existing harness).
 | `test_cls_under_threshold` | layout shift ≤ 0.1 with fonts swapping (the woff2 migration, spec C4, must not regress this) | both |
 | `test_reduced_motion_single_draw` | `prefers-reduced-motion: reduce` emulated → a registered sim's `draw` runs EXACTLY once (instrument via a counting wrapper) | era-independent |
 | `test_sim_read_mirror_populated` | after `sim_seconds`, `.zn-sim-read` is non-empty (the 040410 Builder-defect class, enforced on the shell side of the contract) | era-independent |
-| `test_font_payload_budget` | total transfer size of `assets/fonts/*` ≤ the profile's `font_budget_kb` (new profile key; §4) | era-gated |
+| `test_font_payload_budget` | total transfer size of `assets/fonts/*` ≤ `FONT_BUDGET_KB` (300 KB, owned by the frontend test that enforces it — page-budget profiles stay page-only; §4) | era-gated |
 
 ### 3.2 Mechanics
 
@@ -71,9 +71,10 @@ Playwright Chromium, no new dependencies — it imports the existing harness).
 - Synthetic sim pattern copied from `test_behaviour_layer.py` (temp dir, real
   `zivon.js`, counting wrapper around `draw`), so the test never depends on a
   published page existing.
-- Every budget read from `perf/profiles/weak-android.json`; the file grows one
-  key in Era 2: `font_budget_kb` (add in the same patch as the test — profiles
-  are data, tests are code).
+- Page budgets are read from `perf/profiles/weak-android.json`; the font
+  payload budget is `FONT_BUDGET_KB` in `testing/frontend/test_perf_budget.py`
+  (reconciled 2026-11-10: `font_budget_kb` was removed from the
+  content-factory page profiles — it described shell assets, not page load).
 - Failure messages name the budget, the measured value, and the profile key —
   a red build must be self-explaining (repo review principle: evidence over
   opinion).
@@ -99,7 +100,8 @@ actual output]), keep the TTFs as fallback, `preload` Bricolage + Courier
 Prime regular only, keep `FONTS-LICENSE.md` truthful. `test_font_payload_budget`
 is the guardrail that makes C4 stick and prevents re-gression by a future
 font drop. Era 1 keeps the current files (the loosened gate tolerates them);
-`font_budget_kb` starts generous (e.g. 1000) and re-tightens with the rest.
+`FONT_BUDGET_KB` starts generous (300 KB after the woff2 migration) and
+re-tightens with the rest.
 
 ## 5. Reduced motion — what is already true and what the test pins
 

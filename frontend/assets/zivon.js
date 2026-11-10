@@ -591,14 +591,20 @@
   /* --------------- 5. language bar chips & ADR-0007 persistence --------------
      Doctrine §10.5 + spec.md §8 (C3) + ADR-0007 (device pseudonymity):
      - v1 honest stub: chips switch the selected state (aria-checked) and
-       persist localStorage["zivon.lang"]; documentElement.lang is NOT switched
-       in v1 until i18n-aware content generation lands (spec.md §3.2/§8).
-     - Preselects the chip matching localStorage["zivon.lang"] on load.
+       persist the locale; documentElement.lang is NOT switched in v1 until
+       i18n-aware content generation lands (spec.md §3.2/§8).
+     - Storage key is the translation spec's "zivon_locale" (one key, one
+       owner: docs/specs/translation/spec.md §5.2). "zivon.lang" is still READ
+       as a legacy fallback for students who used the earlier shell key, but it
+       is never written again (reconciled in docs/specs/frontend/
+       open-questions.md, Q11).
+     - Preselects the matching chip on load from that key.
      - Keyboard radiogroup navigation (ArrowLeft/Up, ArrowRight/Down, Home, End).
      - Graceful fallback when localStorage is blocked/unavailable (private mode).
      - ADR-0007 device_pseudo_id (UUIDv4) persisted locally in
        localStorage["zivon.device_pseudo_id"]. */
-  var LANG_STORAGE_KEY = "zivon.lang";
+  var LANG_STORAGE_KEY = "zivon_locale";
+  var LEGACY_LANG_STORAGE_KEY = "zivon.lang";
   var DEVICE_STORAGE_KEY = "zivon.device_pseudo_id";
 
   var AUTONYM_TO_CODE = {
@@ -676,10 +682,49 @@
   }
 
   function getSavedLang() {
-    var saved = safeStorageGet(LANG_STORAGE_KEY);
+    /* zivon_locale is the owner key; zivon.lang is read-only legacy (Q11). */
+    var saved = safeStorageGet(LANG_STORAGE_KEY) || safeStorageGet(LEGACY_LANG_STORAGE_KEY);
     if (!saved) return "en";
     var norm = AUTONYM_TO_CODE[saved.toLowerCase()] || saved;
     return norm;
+  }
+
+  /* INF-087 untranslated notice reads the REAL i18n bundle shape emitted by
+     factory/render.py (docs/specs/translation/spec.md §5.2):
+       window.ZIVON_I18N = { "<locale>": { strings, ui_strings, sim_strings,
+                                            fallback_blocks: ["b-03", ...] } }
+     "fallback_blocks" is the authoritative per-locale list of blocks that are
+     still English. Returns:
+       null        -> no bundle on the page; leave the DOM untouched
+       "*"         -> the bundle exists but has no entry for this locale
+       [block ids] -> only those blocks are untranslated
+     English always returns null: the page IS the English source. */
+  function untranslatedBlocksFor(locale) {
+    var root = window.ZIVON_I18N;
+    if (!root || typeof root !== "object") return null;
+    if (!locale || locale === "en") return null;
+    if (!Object.prototype.hasOwnProperty.call(root, locale)) return "*";
+    var loc = root[locale];
+    if (!loc || typeof loc !== "object") return "*";
+    return Array.isArray(loc.fallback_blocks) ? loc.fallback_blocks.map(String) : [];
+  }
+
+  function renderUntranslatedNotices(locale) {
+    var untranslated = untranslatedBlocksFor(locale);
+    if (untranslated === null) return;
+    document.querySelectorAll(".zn-text[id], .zn-example[id]").forEach(function (blk) {
+      var showNotice = untranslated === "*" || untranslated.indexOf(blk.id) !== -1;
+      var existingNotice = blk.querySelector(".zn-untranslated-notice");
+      if (showNotice && !existingNotice) {
+        var notice = document.createElement("p");
+        notice.className = "zn-untranslated-notice";
+        notice.setAttribute("data-copy-key", "lesson.untranslated.notice");
+        notice.textContent = "Not translated yet - showing reviewed English text.";
+        blk.prepend(notice);
+      } else if (!showNotice && existingNotice) {
+        existingNotice.remove();
+      }
+    });
   }
 
   function selectLangChip(row, targetChip, persistAndEmit) {
@@ -695,26 +740,11 @@
       c.setAttribute("tabindex", isTarget ? "0" : "-1");
     });
 
-    /* If an i18n bundle is present on the page (window.ZIVON_I18N_BUNDLE) and
-       lacks a block translation for the selected non-English language, render
-       the honest untranslated notice (spec.md §8, INF-087). */
-    if (window.ZIVON_I18N_BUNDLE && toCode !== "en") {
-      var bundle = window.ZIVON_I18N_BUNDLE[toCode] || {};
-      document.querySelectorAll(".zn-text[id], .zn-example[id]").forEach(function (blk) {
-        var hasTrans = Boolean(bundle && bundle[blk.id]);
-        var existingNotice = blk.querySelector(".zn-untranslated-notice");
-        if (!hasTrans && !existingNotice) {
-          var notice = document.createElement("p");
-          notice.className = "zn-untranslated-notice";
-          notice.setAttribute("data-copy-key", "lesson.untranslated.notice");
-          notice.textContent = "Not translated yet - showing reviewed English text.";
-          blk.prepend(notice);
-        } else if (hasTrans && existingNotice) {
-          existingNotice.remove();
-        }
-      });
-    } else if (toCode === "en") {
+    /* Untranslated notice (INF-087) from the real bundle shape. */
+    if (toCode === "en") {
       document.querySelectorAll(".zn-untranslated-notice").forEach(function (n) { n.remove(); });
+    } else {
+      renderUntranslatedNotices(toCode);
     }
 
     if (persistAndEmit) {
@@ -829,7 +859,14 @@
     var visibleBlocks = [];
     document.querySelectorAll(".zn-page [id]").forEach(function (el) {
       if (visibleBlocks.length >= 12) return;
-      var tag = el.className || el.tagName.toLowerCase();
+      /* SVG/MathML elements expose className as an SVGAnimatedString, not a
+         string. Normalise before the class-name probe so an id'd <svg>/<g>/
+         <math> child can never throw and take the whole snapshot down. */
+      var classAttr = el.className;
+      var className = typeof classAttr === "string"
+        ? classAttr
+        : (classAttr && typeof classAttr.baseVal === "string" ? classAttr.baseVal : "");
+      var tag = className || el.tagName.toLowerCase();
       var bType = "text";
       if (tag.indexOf("zn-sim") !== -1) bType = "simulation";
       else if (tag.indexOf("zn-check") !== -1) bType = "check";
@@ -942,9 +979,20 @@
     applyState: function (stateName) {
       var s = String(stateName || "default");
       document.documentElement.setAttribute("data-zivon-state", s);
-      if (s === "empty" && document.getElementById("zn-courses")) {
+      if (s === "empty") {
         window.ZIVON_COURSES = [];
-        renderCourses();
+        if (document.getElementById("zn-courses")) renderCourses();
+        /* The class-grouped catalogue renders into #zn-class-sections; an empty
+           state must clear that copy too, or stale cards survive the reset. */
+        ["zn-class-sections", "zn-grade-nav-links"].forEach(function (hostId) {
+          var host = document.getElementById(hostId);
+          if (!host) return;
+          while (host.firstChild) host.removeChild(host.firstChild);
+        });
+        var catalogue = document.getElementById("zn-catalogue");
+        if (catalogue) catalogue.hidden = false;
+        var emptyMsg = document.getElementById("zn-empty");
+        if (emptyMsg) emptyMsg.hidden = false;
       } else if (s === "offline") {
         var homeChip = document.getElementById("zn-offline-chip");
         if (homeChip) homeChip.hidden = false;
@@ -977,12 +1025,23 @@
        listening, endpointing, thinking, speaking, speaking_text, interrupted,
        error:<code>, offline.
      - Capture constraint ladder (16 kHz mono + AEC/NS/AGC -> drop sampleRate ->
-       drop channelCount) and GainNode ducking (never track.enabled=false) per
-       skills/zivon-audio-engineering-skills/ & ADR-0010.
-     - Jitter buffer scheduling (target 60-120 ms, min 2-3 frames, schedule >=
-       150 ms ahead on AudioContext.currentTime).
+       drop channelCount) and GainNode ducking values (never track.enabled=false)
+       per skills/zivon-audio-engineering-skills/ & ADR-0010.
+     - PROTOCOL/STATE-MACHINE HARNESS ONLY. Received audio frames are parsed
+       and counted (segment/sequence bookkeeping, "speaking" entered once a
+       small frame count arrives) but this client does NOT decode Opus or
+       schedule playback, and the gain nodes are bookkeeping values that are
+       NOT connected to an output graph. Audible playback + wired ducking is a
+       follow-up when the voice backend and a decode path exist; the TIMELINE
+       entry says the same (no jitter-buffer/ducking-playback claim).
+     - Reconnect: capped exponential backoff with jitter after an unexpected
+       close; a pong timeout closes the socket before reporting offline.
      - Degraded text fallback (typed transcript via audio.end) & turn latency
-       stamps (t_endpoint, t_final_transcript, t_first_token, t_first_audio). */
+       stamps (t_endpoint, t_final_transcript, t_first_token, t_first_audio).
+     CSP NOTE: createVoiceClient() opens a WebSocket. The server-level CSP in
+     docker/nginx.conf is connect-src 'none'; a dock-enabled page REQUIRES the
+     founder-gated scoped relaxation to connect-src 'self' at wire-up time
+     (ws-client-contract.md §8, TIMELINE). Nothing in this file relaxes CSP. */
   var VOICE_MAGIC = 0xA5;
   var VOICE_VERSION = 1;
 
@@ -1033,8 +1092,20 @@
     }
     if (c === "stt.no_match" || c === "no-match") return "no-match";
     if (c === "stt.no_input" || c === "no-input") return "no-input";
-    if (c === "mic-denied" || c === "mic-in-use" || c === "unsupported-browser") return c;
+    if (c === "mic-denied" || c === "mic-in-use" || c === "mic-constraint" || c === "unsupported-browser") return c;
     return c;
+  }
+
+  /* Module-scope pagehide cleanup registry: one listener for every client this
+     page ever creates, so a client can unregister on disconnect() instead of
+     stacking a closure per instance. */
+  var voiceClientCleanups = [];
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("pagehide", function () {
+      voiceClientCleanups.slice().forEach(function (fn) {
+        try { fn(); } catch (e) {}
+      });
+    });
   }
 
   function createVoiceClient(options) {
@@ -1043,19 +1114,31 @@
     var listeners = [];
     var ws = null;
     var sessionId = null;
-    var sessionToken = opts.session_token || "dev-session-token";
+    var sessionToken = opts.session_token || null;
+    if (!sessionToken) {
+      /* Never pretend an anonymous session is valid: the backend rejects one
+         (API-001). The placeholder keeps dev/mock pages working, but says so. */
+      sessionToken = "dev-session-token";
+      if (typeof window !== "undefined" && window.console && console.warn) {
+        console.warn("zivon.voice: no session_token supplied - using the dev placeholder; the voice backend rejects anonymous sessions in production.");
+      }
+    }
     var deviceId = opts.device || (window.ZivonLocale && window.ZivonLocale.getDevicePseudoId ? window.ZivonLocale.getDevicePseudoId() : "dev-device");
     var lastTurnId = null;
     var micSeq = 0;
     var expectedTtsSeq = {};
-    var jitterBuffer = [];
-    var minBufferFrames = opts.min_buffer_frames || 3; /* >= 2-3 Opus 20ms frames (60ms) */
-    var scheduleLookaheadS = 0.15; /* >= 150ms ahead for budget Android HAL */
+    var pendingFrames = [];
+    var minFramesBeforeSpeaking = opts.min_frames_before_speaking || opts.min_buffer_frames || 3;
     var audioCtx = opts.audioContext || null;
     var micGainNode = null;
     var agentGainNode = null;
     var mediaStream = null;
     var pingTimer = null;
+    var reconnectTimer = null;
+    var reconnectAttempts = 0;
+    var maxReconnectAttempts = opts.max_reconnect_attempts !== undefined ? opts.max_reconnect_attempts : 6;
+    var reconnectBaseMs = opts.reconnect_base_ms !== undefined ? opts.reconnect_base_ms : 500;
+    var reconnectMaxMs = opts.reconnect_max_ms !== undefined ? opts.reconnect_max_ms : 15000;
     var lastPongTs = 0;
     var consecutiveVadTriggers = 0;
     var lastVadTriggerTs = 0;
@@ -1067,6 +1150,13 @@
     function setState(nextState, detail) {
       var prev = state;
       state = nextState;
+      /* Terminal / non-speaking states restore the bookkeeping gains: a turn
+         that ends in error, interrupt or offline must not leave the mic path
+         ducked at 0.2 forever. */
+      if (nextState === "offline" || nextState === "interrupted" ||
+          nextState === "error" || String(nextState).indexOf("error:") === 0) {
+        setDucking("normal");
+      }
       if (nextState === "offline") {
         applyLessonStateBanner("offline", "Offline - voice tutor paused; lesson and simulations stay active.");
       } else if (nextState === "error:quota-exhausted") {
@@ -1138,6 +1228,7 @@
         { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }
       ];
       var lastErr = null;
+      var lastErrName = "";
       for (var i = 0; i < ladder.length; i++) {
         try {
           mediaStream = await nav.mediaDevices.getUserMedia(ladder[i]);
@@ -1152,16 +1243,26 @@
           return { ok: true, stream: mediaStream };
         } catch (err) {
           lastErr = err;
-          var errName = err && err.name ? String(err.name) : "";
-          if (errName === "OverconstrainedError" || errName === "ConstraintNotSatisfiedError") {
+          lastErrName = err && err.name ? String(err.name) : "";
+          if (lastErrName === "OverconstrainedError" || lastErrName === "ConstraintNotSatisfiedError") {
             continue;
           }
-          if (errName === "NotReadableError" || errName === "TrackStartError") {
+          if (lastErrName === "NotReadableError" || lastErrName === "TrackStartError") {
             setState("error:mic-in-use", { fallback: "text" });
             return { ok: false, error: "mic-in-use" };
           }
           break;
         }
+      }
+      if (lastErrName === "OverconstrainedError" || lastErrName === "ConstraintNotSatisfiedError") {
+        /* The constraint ladder is exhausted: the hardware cannot meet even
+           the loosest profile. That is NOT a permission denial - say so, so
+           the UI can offer device advice instead of a "blocked" message. */
+        if (window.ZivonEvents && typeof window.ZivonEvents.recordError === "function") {
+          window.ZivonEvents.recordError("mic_permission");
+        }
+        setState("error:mic-constraint", { fallback: "text", cause: String(lastErr || "constraint") });
+        return { ok: false, error: "mic-constraint" };
       }
       if (window.ZivonEvents && typeof window.ZivonEvents.recordError === "function") {
         window.ZivonEvents.recordError("mic_permission");
@@ -1177,27 +1278,22 @@
         return;
       }
       var seg = parsed.segment_id;
-      if (Object.prototype.hasOwnProperty.call(expectedTtsSeq, seg) && parsed.seq > expectedTtsSeq[seg]) {
-        /* Gap bridged by skipping per SP1 §2 tts.audio note */
-        expectedTtsSeq[seg] = parsed.seq + 1;
-      } else {
-        expectedTtsSeq[seg] = parsed.seq + 1;
-      }
-      var nowTime = audioCtx && typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : (performance.now() / 1000);
-      jitterBuffer.push({
+      /* Protocol bookkeeping only (no decode/playback): track the next
+         expected sequence per segment so a gap/duplicate is observable. */
+      expectedTtsSeq[seg] = parsed.seq + 1;
+      pendingFrames.push({
         segment_id: seg,
         seq: parsed.seq,
         is_final: parsed.is_final,
-        bytes: parsed.payload.byteLength,
-        scheduled_at: nowTime + scheduleLookaheadS + (jitterBuffer.length * 0.02)
+        bytes: parsed.payload.byteLength
       });
       if (!turnTimings.t_first_audio) {
         turnTimings.t_first_audio = performance.now();
       }
-      if (jitterBuffer.length >= minBufferFrames || parsed.is_final) {
+      if (pendingFrames.length >= minFramesBeforeSpeaking || parsed.is_final) {
         if (state !== "speaking") {
           setDucking("agent_speaking");
-          setState("speaking", { buffered_frames: jitterBuffer.length, buffered_ms: jitterBuffer.length * 20 });
+          setState("speaking", { frames_received: pendingFrames.length, buffered_ms: pendingFrames.length * 20 });
         }
       }
     }
@@ -1261,7 +1357,7 @@
         return;
       }
       if (t === "turn.end" || t === "tts.end") {
-        jitterBuffer = [];
+        pendingFrames = [];
         setDucking("normal");
         var e2eMs = (turnTimings.t_endpoint && (turnTimings.t_first_audio || turnTimings.t_first_token))
           ? Math.max(0, Math.round((turnTimings.t_first_audio || turnTimings.t_first_token) - turnTimings.t_endpoint))
@@ -1305,7 +1401,75 @@
       /* Unknown message type: ignore + count per ws-client-contract.md §3 */
     }
 
+    function clearPingTimer() {
+      if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+    }
+
+    function clearReconnectTimer() {
+      if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    }
+
+    function detachSocket() {
+      if (!ws) return;
+      /* Detach BEFORE closing: a stale socket's close must never mark the live
+         connection offline (review finding: reconnect raced the old close). */
+      ws.onopen = null;
+      ws.onmessage = null;
+      ws.onerror = null;
+      ws.onclose = null;
+      try {
+        if (typeof ws.close === "function") ws.close(1000, "client_reconnect");
+      } catch (e) {}
+      ws = null;
+    }
+
+    function scheduleReconnect() {
+      if (reconnectTimer || reconnectAttempts >= maxReconnectAttempts) return false;
+      var capped = Math.min(reconnectMaxMs, reconnectBaseMs * Math.pow(2, reconnectAttempts));
+      var delay = Math.max(1, Math.round(capped * (0.5 + Math.random() * 0.5))); /* jitter */
+      reconnectAttempts += 1;
+      reconnectTimer = setTimeout(function () {
+        reconnectTimer = null;
+        if (state === "offline") connect(true);
+      }, delay);
+      return true;
+    }
+
+    function teardownMediaAndAudio() {
+      if (mediaStream) {
+        try {
+          var tracks = typeof mediaStream.getTracks === "function" ? mediaStream.getTracks() : [];
+          tracks.forEach(function (t) { try { t.stop(); } catch (e) {} });
+        } catch (e) {}
+        mediaStream = null;
+      }
+      if (audioCtx && typeof audioCtx.close === "function") {
+        try {
+          var closing = audioCtx.close();
+          if (closing && typeof closing.catch === "function") closing.catch(function () {});
+        } catch (e) {}
+      }
+      audioCtx = null;
+      micGainNode = null;
+      agentGainNode = null;
+    }
+
+    /* One teardown for disconnect() and pagehide: mic tracks, AudioContext,
+       timers, queued turns. pagehide fires it through the module-scope
+       registry, so no per-instance listener is ever left behind. */
+    function cleanup() {
+      clearPingTimer();
+      clearReconnectTimer();
+      queuedTypedDoubts = [];
+      pendingFrames = [];
+      teardownMediaAndAudio();
+    }
+    voiceClientCleanups.push(cleanup);
+
     function connect(resumeFlag) {
+      clearReconnectTimer();
+      clearPingTimer();
+      detachSocket();
       setState("connecting");
       var url = opts.url || ((window.location && window.location.protocol === "https:" ? "wss://" : "ws://") +
         ((window.location && window.location.host) || "localhost:8080") + "/voice/ws");
@@ -1314,12 +1478,14 @@
         ws = factory(url);
       } catch (err) {
         setState("offline", { error: String(err) });
+        scheduleReconnect();
         return false;
       }
       ws.binaryType = "arraybuffer";
       ws.onopen = function () {
+        reconnectAttempts = 0;
         lastPongTs = Date.now();
-        if (pingTimer) clearInterval(pingTimer);
+        clearPingTimer();
         pingTimer = setInterval(function () {
           if (state === "ready" || state === "thinking" || state === "idle") {
             checkKeepalive(Date.now());
@@ -1359,13 +1525,14 @@
         }
       };
       ws.onclose = function (ev) {
-        if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+        clearPingTimer();
         if (ev && ev.code === 4401) {
           setState("error:auth.invalid", { code: 4401 });
         } else if (ev && ev.code === 4409) {
           setState("error:version.mismatch", { code: 4409 });
         } else if (state !== "idle") {
           setState("offline", { code: ev ? ev.code : 1006 });
+          scheduleReconnect();
         }
       };
       return true;
@@ -1434,7 +1601,7 @@
       if (state !== "speaking" && state !== "thinking" && state !== "speaking_text") {
         return false;
       }
-      jitterBuffer = [];
+      pendingFrames = [];
       setDucking("user_barge_in");
       /* Discard tutor's partial sentence per ws-client-contract §2 */
       if (transcripts.length && transcripts[transcripts.length - 1].kind === "tutor") {
@@ -1470,26 +1637,24 @@
     function checkKeepalive(nowMs) {
       var now = nowMs || Date.now();
       if (lastPongTs && (now - lastPongTs > 30000)) {
+        /* Close the stale socket FIRST, then report offline: the UI must never
+           show a live-looking connection while the keepalive says it is dead. */
+        clearPingTimer();
+        detachSocket();
         setState("offline", { reason: "pong_timeout" });
+        scheduleReconnect();
         return false;
       }
       return sendJson({ type: "ping", t: now });
     }
 
-    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
-      window.addEventListener("pagehide", function () {
-        queuedTypedDoubts = [];
-      });
-    }
-
     function disconnect() {
-      if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
-      queuedTypedDoubts = [];
-      jitterBuffer = [];
-      if (ws && typeof ws.close === "function") {
-        ws.close(1000, "client_disconnect");
-      }
-      ws = null;
+      var idx = voiceClientCleanups.indexOf(cleanup);
+      if (idx !== -1) voiceClientCleanups.splice(idx, 1);
+      cleanup();
+      /* Detach before closing so this deliberate close is not seen as a drop
+         (and therefore never schedules a reconnect). */
+      detachSocket();
       setState("idle");
     }
 
@@ -1497,7 +1662,7 @@
       getState: function () { return state; },
       getSessionId: function () { return sessionId; },
       getTranscripts: function () { return transcripts.slice(); },
-      getJitterBuffer: function () { return jitterBuffer.slice(); },
+      getPendingFrames: function () { return pendingFrames.slice(); },
       getQueuedTypedDoubts: function () { return queuedTypedDoubts.slice(); },
       getLastTurnMetrics: function () { return lastCompletedTurnMetrics; },
       getGainValues: function () {
@@ -1706,6 +1871,7 @@
   var sessionStartMs = Date.now();
   var voiceTurnsCount = 0;
   var simInteractionCounts = {};
+  var simLastEmitMs = {};
 
   var EVENT_CATALOG = {
     "EVT-lesson_viewed":       { evt_id: "EVT-F01", event: "frontend.page_view",        privacy_class: "L2" },
@@ -1835,6 +2001,13 @@
   function recordSimControl(blockId, controlId, value, inputEl) {
     var key = String(blockId) + ":" + String(controlId);
     simInteractionCounts[key] = (simInteractionCounts[key] || 0) + 1;
+    /* EVT-F04 is a coarse usage signal, not a telemetry firehose: a dragged
+       slider can emit hundreds of input events. Count every interaction but
+       emit at most one event per (block, control) per 5 s. */
+    var nowMs = Date.now();
+    var lastEmit = simLastEmitMs[key] || 0;
+    if (nowMs - lastEmit < 5000) return;
+    simLastEmitMs[key] = nowMs;
     emitEvent("EVT-sim_control_changed", {
       block_id: String(blockId),
       control_id: String(controlId),
@@ -1919,20 +2092,39 @@
       emitEvent("EVT-publish_viewed", {
         source: window.location && window.location.protocol === "file:" ? "snapshot" : "pvc"
       });
-      lessonPage.querySelectorAll(".zn-sim[data-sim-id]").forEach(function (simEl) {
+      /* EVT-F03 means the sim was actually SEEN, not that the page parsed it:
+         emit on first viewport intersection, never at load for off-screen
+         sims (an unread sim is not a sim_open). */
+      var emitSimOpened = function (simEl) {
+        if (simEl.getAttribute("data-sim-open-emitted") === "1") return;
+        simEl.setAttribute("data-sim-open-emitted", "1");
         emitEvent("EVT-sim_opened", {
           block_id: simEl.getAttribute("data-sim-id") || simEl.id || "sim"
         });
-      });
+      };
+      var simEls = lessonPage.querySelectorAll(".zn-sim[data-sim-id]");
+      if (typeof IntersectionObserver === "function") {
+        var simObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            emitSimOpened(entry.target);
+            simObserver.unobserve(entry.target);
+          });
+        }, { threshold: 0.1 });
+        simEls.forEach(function (simEl) { simObserver.observe(simEl); });
+      } else {
+        simEls.forEach(emitSimOpened);
+      }
       lessonPage.querySelectorAll(".zn-reveal details.zn-reveal-step").forEach(function (det) {
         det.addEventListener("toggle", function () {
           if (det.open) {
             var revParent = det.closest(".zn-reveal");
             var bid = (revParent && revParent.id) || det.id || "reveal";
+            /* No dwell_bucket here: it was fabricated ("<5s" hard-coded).
+               Dwell must be measured; until it is, omit the property. */
             emitEvent("EVT-reveal_opened", {
               block_id: bid,
-              section_id: bid,
-              dwell_bucket: "<5s"
+              section_id: bid
             });
           }
         });

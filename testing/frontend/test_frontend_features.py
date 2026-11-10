@@ -1,13 +1,15 @@
 """Tests for the frontend execution wave (EX5-FRONT):
 - Routing + localized-route hook (DCR-001) + branded 404 page (SCR-404-01)
 - Screen-state matrix walk-through across all 10 canonical states
-- Locale switcher persistence (`localStorage["zivon.lang"]`), radiogroup a11y,
+- Locale switcher persistence (`localStorage["zivon_locale"]`), radiogroup a11y,
   untranslated notice (`INF-087`), and ADR-0007 `device_pseudo_id` UUIDv4
 - Event instrumentation (`ZivonEvents` queue, SP3 `EVT-F01..F12` mapping,
   privacy redaction/bucketing/hashing)
 - Voice loop WS client state machine (`ZivonVoiceClient`) + mock WS server +
-  binary framing (ADR-0020) + ducking (ADR-0010) + barge-in + degraded text
-  fallback + DCR-002 standing guard verification
+  binary framing (ADR-0020) + gain-value ducking bookkeeping (ADR-0010) +
+  reconnect/backoff + barge-in + degraded text fallback + teardown cleanup +
+  DCR-002 standing guard verification. NOTE: this is a protocol/state-machine
+  harness — no Opus decode or AudioContext playback is implemented or claimed.
 - Static multilingual SEO (`scripts/gen-seo-files.py`: `sitemap.xml`,
   `robots.txt`, JSON-LD `LearningResource`/`Course`, hreflang gating, landing
   OG/canonical metadata)
@@ -25,7 +27,7 @@ from typing import Any
 
 from playwright.sync_api import Page, sync_playwright
 
-import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
+import testing.frontend  # noqa: F401 - loud Playwright import guard
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = REPO_ROOT / "frontend"
@@ -77,7 +79,7 @@ LESSON_SYNTHETIC_HTML = (
     "<p>Write delta x / delta t.</p></details></section>"
     "<figure class='zn-diagram' id='b-04'>"
     "<div class='zn-diagram-svg'>"
-    "<svg viewBox='0 0 280 180' aria-label='Displacement arrow'>"
+    "<svg id='b-ig-04' viewBox='0 0 280 180' aria-label='Displacement arrow'>"
     "<line x1='20' y1='90' x2='260' y2='90' stroke='#1C1B18' stroke-width='3'/>"
     "</svg></div>"
     "<figcaption>Scale: 1 cm = 2 m.</figcaption></figure>"
@@ -103,6 +105,8 @@ LESSON_SYNTHETIC_HTML = (
     "<p class='zn-check-feedback' aria-live='polite'></p>"
     "<details class='zn-check-why'><summary>Why?</summary>"
     "<p>Velocity is a vector.</p></details></fieldset>"
+    "<div id='zn-class-sections'></div>"
+    "<p id='zn-offline-chip' hidden>Offline - this page keeps working while offline; the voice tutor needs a connection.</p>"
     "<footer class='zn-footer'><p class='zn-sources'>NCERT Grade 9 Science</p></footer>"
     "</main>"
     f"<script src='{ZIVON_JS_URI}'></script>"
@@ -211,7 +215,7 @@ class TestFrontendFeatures(unittest.TestCase):
         try:
             initial = page.evaluate(
                 """() => {
-                  localStorage.removeItem('zivon.lang');
+                  localStorage.removeItem('zivon_locale');
                   localStorage.removeItem('zivon.device_pseudo_id');
                   const devId = window.ZivonLocale.getDevicePseudoId();
                   return {
@@ -228,7 +232,7 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertRegex(initial["devId"], uuid_re)
             self.assertEqual(initial["savedLang"], "en")
 
-            # Click Hindi chip -> aria-checked updates, localStorage['zivon.lang']
+            # Click Hindi chip -> aria-checked updates, localStorage['zivon_locale']
             # becomes 'hi', documentElement.lang stays 'en' (v1 honest stub)
             chips = page.query_selector_all(".zn-lang-row .zn-chip")
             self.assertEqual(len(chips), 3)
@@ -237,7 +241,7 @@ class TestFrontendFeatures(unittest.TestCase):
                 """() => {
                   const cs = document.querySelectorAll('.zn-chip');
                   return {
-                    stored: localStorage.getItem('zivon.lang'),
+                    stored: localStorage.getItem('zivon_locale'),
                     c0: cs[0].getAttribute('aria-checked'),
                     c1: cs[1].getAttribute('aria-checked'),
                     docLang: document.documentElement.lang
@@ -249,12 +253,39 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(after_click["c1"], "true")
             self.assertEqual(after_click["docLang"], "en")
 
-            # Reload page -> Hindi chip is preselected from localStorage['zivon.lang']
+            # Reload page -> Hindi chip is preselected from localStorage['zivon_locale']
             page.goto((Path(self._tmp.name) / "locale.html").resolve().as_uri())
             preselected = page.evaluate(
                 "document.querySelectorAll('.zn-chip')[1].getAttribute('aria-checked')"
             )
             self.assertEqual(preselected, "true")
+
+            # Q11 migration: the legacy key alone still preselects a chip, and
+            # the next explicit activation writes ONLY the owner key.
+            page.evaluate(
+                """() => {
+                  localStorage.removeItem('zivon_locale');
+                  localStorage.setItem('zivon.lang', 'hi-Latn');
+                }"""
+            )
+            page.goto((Path(self._tmp.name) / "locale.html").resolve().as_uri())
+            legacy = page.evaluate(
+                """() => ({
+                  hinglish: document.querySelectorAll('.zn-chip')[2].getAttribute('aria-checked'),
+                  ownerKey: localStorage.getItem('zivon_locale')
+                })"""
+            )
+            self.assertEqual(legacy["hinglish"], "true")
+            self.assertIsNone(legacy["ownerKey"])
+            page.query_selector_all(".zn-lang-row .zn-chip")[0].click()
+            rewritten = page.evaluate(
+                """() => ({
+                  owner: localStorage.getItem('zivon_locale'),
+                  legacy: localStorage.getItem('zivon.lang')
+                })"""
+            )
+            self.assertEqual(rewritten["owner"], "en")
+            self.assertEqual(rewritten["legacy"], "hi-Latn")
 
             # Test keyboard ArrowRight navigation on radiogroup
             page.evaluate(
@@ -271,7 +302,7 @@ class TestFrontendFeatures(unittest.TestCase):
                 """() => {
                   const cs = document.querySelectorAll('.zn-chip');
                   return {
-                    stored: localStorage.getItem('zivon.lang'),
+                    stored: localStorage.getItem('zivon_locale'),
                     c2: cs[2].getAttribute('aria-checked')
                   };
                 }"""
@@ -282,21 +313,67 @@ class TestFrontendFeatures(unittest.TestCase):
         finally:
             page.close()
 
+    def test_untranslated_notice_reads_real_i18n_shape(self) -> None:
+        # INF-087: the notice must read the shape factory/render.py actually
+        # emits — window.ZIVON_I18N[locale].fallback_blocks — not the invented
+        # window.ZIVON_I18N_BUNDLE key map. Only fallback blocks get a notice.
+        bundle = (
+            "<script>window.ZIVON_I18N={"
+            "'hi':{strings:{'b-01':'x'},ui_strings:{},fallback_blocks:['b-02']},"
+            "'en':{strings:{},ui_strings:{},fallback_blocks:[]}};</script>"
+        )
+        html = LESSON_SYNTHETIC_HTML.replace(
+            f"<script src='{ZIVON_JS_URI}'></script>",
+            bundle + f"<script src='{ZIVON_JS_URI}'></script>",
+        )
+        page, errors = self._open_html(html, "i18n.html")
+        try:
+            page.query_selector_all(".zn-lang-row .zn-chip")[1].click()
+            hi = page.evaluate(
+                """() => ({
+                  b01: Boolean(document.querySelector('#b-01 .zn-untranslated-notice')),
+                  b02: Boolean(document.querySelector('#b-02 .zn-untranslated-notice')),
+                  total: document.querySelectorAll('.zn-untranslated-notice').length
+                })"""
+            )
+            self.assertFalse(hi["b01"], "b-01 is translated: no notice")
+            self.assertTrue(hi["b02"], "b-02 is in fallback_blocks: notice required")
+            self.assertEqual(hi["total"], 1)
+            page.query_selector_all(".zn-lang-row .zn-chip")[0].click()
+            self.assertEqual(
+                page.evaluate(
+                    "document.querySelectorAll('.zn-untranslated-notice').length"
+                ),
+                0,
+            )
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
     def test_events_instrumentation_and_privacy_rules(self) -> None:
         page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "events.html")
         try:
-            # Verify initial boot emitted EVT-lesson_viewed and EVT-sim_opened
+            # EVT-F03 fires on VIEW, not load: bring the sim into the viewport
+            # and let the IntersectionObserver deliver before asserting.
+            page.evaluate(
+                "document.getElementById('b-05').scrollIntoView({block: 'center'})"
+            )
+            page.wait_for_timeout(300)
+            # Verify initial boot emitted EVT-lesson_viewed and (on view) EVT-sim_opened
             boot_evts = page.evaluate("window.ZivonEvents.getQueue()")
             evt_names = [e["evt"] for e in boot_evts]
             self.assertIn("EVT-lesson_viewed", evt_names)
             self.assertIn("EVT-sim_opened", evt_names)
 
-            # Interact with slider, check (wrong then right), reveal, and language chip
+            # Interact with slider (three rapid inputs), check (wrong then right),
+            # reveal, and language chip
             page.evaluate(
                 """() => {
                   const inp = document.querySelector('[data-control="v"]');
-                  inp.value = '8';
-                  inp.dispatchEvent(new Event('input', {bubbles: true}));
+                  for (const v of ['6', '7', '8']) {
+                    inp.value = v;
+                    inp.dispatchEvent(new Event('input', {bubbles: true}));
+                  }
                 }"""
             )
             page.click("input[value='1']")
@@ -312,7 +389,16 @@ class TestFrontendFeatures(unittest.TestCase):
             )
             q = page.evaluate("window.ZivonEvents.getQueue()")
             by_evt = {e["evt"]: e for e in q}
+            sim_events = [e for e in q if e["evt"] == "EVT-sim_control_changed"]
+            self.assertEqual(
+                len(sim_events),
+                1,
+                "EVT-F04 must throttle to one event per 5 s (interactions still counted)",
+            )
             self.assertIn("EVT-sim_control_changed", by_evt)
+            self.assertEqual(
+                by_evt["EVT-sim_control_changed"]["props"]["interactions"], 1
+            )
             self.assertEqual(by_evt["EVT-sim_control_changed"]["evt_id"], "EVT-F04")
             self.assertEqual(
                 by_evt["EVT-sim_control_changed"]["event"], "frontend.sim_interact"
@@ -330,6 +416,11 @@ class TestFrontendFeatures(unittest.TestCase):
 
             self.assertIn("EVT-reveal_opened", by_evt)
             self.assertEqual(by_evt["EVT-reveal_opened"]["evt_id"], "EVT-F02")
+            self.assertNotIn(
+                "dwell_bucket",
+                by_evt["EVT-reveal_opened"]["props"],
+                "dwell must be measured, never fabricated",
+            )
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -354,6 +445,12 @@ class TestFrontendFeatures(unittest.TestCase):
                   const untranslatedCount = notices.length;
 
                   const snap = window.ZivonStateMatrix.buildContextSnapshot('b-05');
+                  // Empty state must clear the class-grouped sections too.
+                  document.getElementById('zn-class-sections').innerHTML =
+                    '<section class="zn-class-section">stale</section>';
+                  window.ZivonStateMatrix.applyState('empty');
+                  const sectionsLeft =
+                    document.querySelectorAll('#zn-class-sections > *').length;
                   return {
                     dockStatus,
                     statesCount: states.length,
@@ -361,7 +458,9 @@ class TestFrontendFeatures(unittest.TestCase):
                     quotaVisible,
                     untranslatedCount,
                     snapSize: JSON.stringify(snap).length,
-                    snapSimId: snap.sim_id
+                    snapSimId: snap.sim_id,
+                    snapHasSvgId: snap.visible_blocks.some((b) => b.id === 'b-ig-04'),
+                    sectionsLeft
                   };
                 }"""
             )
@@ -374,6 +473,9 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertGreaterEqual(res["untranslatedCount"], 2)
             self.assertLessEqual(res["snapSize"], 4096)
             self.assertEqual(res["snapSimId"], "b-05")
+            # SVGAnimatedString className must not throw; the id'd svg is listed.
+            self.assertTrue(res["snapHasSvgId"])
+            self.assertEqual(res["sectionsLeft"], 0)
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -430,6 +532,7 @@ class TestFrontendFeatures(unittest.TestCase):
                   const speakingGain = c2.getGainValues();
                   c2.bargeIn('user_speech');
                   const afterBargeIn = c2.getState();
+                  const afterBargeInGain = c2.getGainValues();
 
                   // Test mic-denied + degraded typed fallback + offline queue
                   const deniedNav = {
@@ -460,6 +563,7 @@ class TestFrontendFeatures(unittest.TestCase):
                     speakingState,
                     speakingGain,
                     afterBargeIn,
+                    afterBargeInGain,
                     deniedState,
                     offlineState,
                     queuedCount
@@ -480,10 +584,272 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertTrue(result["metricsPresent"])
             self.assertTrue(result["highlighted"])
             self.assertEqual(result["speakingState"], "speaking")
+            self.assertAlmostEqual(
+                result["speakingGain"]["mic"],
+                0.2,
+                msg="agent playback must duck the mic gain bookkeeping value",
+            )
+            self.assertEqual(result["speakingGain"]["agent"], 1.0)
             self.assertEqual(result["afterBargeIn"], "listening")
+            self.assertEqual(result["afterBargeInGain"]["mic"], 1.0)
+            self.assertEqual(result["afterBargeInGain"]["agent"], 1.0)
             self.assertEqual(result["deniedState"], "error:mic-denied")
             self.assertEqual(result["offlineState"], "offline")
             self.assertEqual(result["queuedCount"], 1)
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_reconnect_backoff_and_stale_socket(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "reconnect.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const sockets = [];
+                  const factory = (url) => {
+                    const s = mock.createWebSocket(url);
+                    sockets.push(s);
+                    return s;
+                  };
+                  const history = [];
+                  const client = VC.create({
+                    createWebSocket: factory,
+                    session_token: 'test-token',
+                    reconnect_base_ms: 10,
+                    reconnect_max_ms: 40
+                  });
+                  client.onStateChange((s) => history.push(s));
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+
+                  // 1. A stale socket replaced by connect() must not mark the
+                  //    live connection offline when it closes.
+                  const stale = sockets[0];
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  stale.simulateDrop();
+                  const stateAfterStaleClose = client.getState();
+
+                  // 2. An unexpected drop recovers through capped backoff.
+                  mock.getSocket().simulateDrop();
+                  const offlineAt = client.getState();
+                  await new Promise((r) => setTimeout(r, 500));
+                  return {
+                    connections: sockets.length,
+                    stateAfterStaleClose,
+                    offlineAt,
+                    finalState: client.getState(),
+                    history
+                  };
+                }"""
+            )
+            self.assertEqual(
+                result["stateAfterStaleClose"],
+                "ready",
+                "a replaced socket's close must not mark the live link offline",
+            )
+            self.assertEqual(result["offlineAt"], "offline")
+            self.assertGreaterEqual(result["connections"], 3)
+            self.assertEqual(result["finalState"], "ready")
+            self.assertIn("offline", result["history"])
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_keepalive_pong_timeout_closes_socket(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "keepalive.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'test-token',
+                    max_reconnect_attempts: 0
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  const stillOpen = client.checkKeepalive(Date.now());
+                  const timedOut = client.checkKeepalive(Date.now() + 31000);
+                  return {
+                    stillOpen,
+                    timedOut,
+                    state: client.getState(),
+                    socketState: mock.getSocket().readyState
+                  };
+                }"""
+            )
+            self.assertTrue(result["stillOpen"])
+            self.assertFalse(result["timedOut"])
+            self.assertEqual(result["state"], "offline")
+            self.assertEqual(
+                result["socketState"],
+                3,
+                "pong timeout must CLOSE the stale socket before going offline",
+            )
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_disconnect_and_pagehide_release_microphone(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "cleanup.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const makeStream = (sink, tag) => {
+                    const track = { stop: () => sink.push(tag) };
+                    return {
+                      getTracks: () => [track],
+                      getAudioTracks: () => [track]
+                    };
+                  };
+                  const makeCtx = (sink, tag) => ({
+                    state: 'running',
+                    createGain: () => ({ gain: { value: 1 } }),
+                    close: () => { sink.push(tag); }
+                  });
+                  const stops = [];
+                  const stream = makeStream(stops, 'disconnect-track');
+                  const ctx = makeCtx(stops, 'disconnect-ctx');
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    navigator: { mediaDevices: { getUserMedia: async () => stream } },
+                    audioContext: ctx,
+                    session_token: 'test-token'
+                  });
+                  await client.requestMicPermission();
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  client.disconnect();
+                  const afterDisconnect = {
+                    state: client.getState(),
+                    stops: stops.slice(),
+                    socketState: mock.getSocket().readyState
+                  };
+
+                  // pagehide uses the module-scope registry, not a per-client
+                  // listener left behind after teardown.
+                  const phStops = [];
+                  const phStream = makeStream(phStops, 'pagehide-track');
+                  const phCtx = makeCtx(phStops, 'pagehide-ctx');
+                  const client2 = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    navigator: { mediaDevices: { getUserMedia: async () => phStream } },
+                    audioContext: phCtx,
+                    session_token: 'test-token'
+                  });
+                  await client2.requestMicPermission();
+                  window.dispatchEvent(new Event('pagehide'));
+                  return { afterDisconnect, phStops };
+                }"""
+            )
+            self.assertEqual(result["afterDisconnect"]["state"], "idle")
+            self.assertIn("disconnect-track", result["afterDisconnect"]["stops"])
+            self.assertIn("disconnect-ctx", result["afterDisconnect"]["stops"])
+            self.assertEqual(result["afterDisconnect"]["socketState"], 3)
+            self.assertIn("pagehide-track", result["phStops"])
+            self.assertIn("pagehide-ctx", result["phStops"])
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_ducking_restores_on_error_and_turn_end(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "ducking.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({ autoReply: false });
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'test-token',
+                    min_frames_before_speaking: 1
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  const sock = mock.getSocket();
+                  sock.serverEmitAudio(1, 0, false, 80);
+                  const speaking = client.getGainValues();
+                  sock.serverEmitJson({ type: 'error', code: 'system-error', message: 'x' });
+                  const afterError = { state: client.getState(), gains: client.getGainValues() };
+
+                  sock.serverEmitJson({ type: 'tts.start' });
+                  const speaking2 = client.getGainValues();
+                  sock.serverEmitJson({ type: 'turn.end', turn_id: 't1', end_reason: 'done' });
+                  const afterEnd = { state: client.getState(), gains: client.getGainValues() };
+                  return { speaking, afterError, speaking2, afterEnd };
+                }"""
+            )
+            self.assertAlmostEqual(result["speaking"]["mic"], 0.2)
+            self.assertEqual(result["afterError"]["state"], "error:system-error")
+            self.assertEqual(result["afterError"]["gains"], {"mic": 1.0, "agent": 1.0})
+            self.assertAlmostEqual(result["speaking2"]["mic"], 0.2)
+            self.assertEqual(result["afterEnd"]["state"], "ready")
+            self.assertEqual(result["afterEnd"]["gains"], {"mic": 1.0, "agent": 1.0})
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_frame_sequence_gap_and_duplicates_are_counted(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "frames.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({ autoReply: false });
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'test-token',
+                    min_frames_before_speaking: 3
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  const sock = mock.getSocket();
+                  // Out-of-order + duplicate sequence numbers must not throw.
+                  sock.serverEmitAudio(1, 5, false, 80);
+                  sock.serverEmitAudio(1, 3, false, 80);
+                  sock.serverEmitAudio(1, 3, false, 80);
+                  return {
+                    frames: client.getPendingFrames().length,
+                    state: client.getState(),
+                    metrics: client.getLastTurnMetrics()
+                  };
+                }"""
+            )
+            self.assertEqual(result["frames"], 3)
+            self.assertEqual(result["state"], "speaking")
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_offline_chip_toggles(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "offline.html")
+        try:
+            res = page.evaluate(
+                """() => {
+                  const chip = document.getElementById('zn-offline-chip');
+                  const initial = chip.hidden;
+                  Object.defineProperty(navigator, 'onLine', {
+                    get: () => false, configurable: true
+                  });
+                  window.dispatchEvent(new Event('offline'));
+                  const offline = chip.hidden;
+                  Object.defineProperty(navigator, 'onLine', {
+                    get: () => true, configurable: true
+                  });
+                  window.dispatchEvent(new Event('online'));
+                  return { initial, offline, online: chip.hidden, copy: chip.textContent };
+                }"""
+            )
+            self.assertTrue(res["initial"])
+            self.assertFalse(res["offline"])
+            self.assertTrue(res["online"])
+            self.assertIn("keeps working while offline", res["copy"])
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -499,14 +865,18 @@ class TestFrontendFeatures(unittest.TestCase):
             "frontend/assets/og-card.png must exist",
         )
 
-        # Validate robots.txt
+        # Validate robots.txt (committed output is clearly marked as placeholder)
         robots_txt = robots_path.read_text(encoding="utf-8")
+        self.assertIn("Generated by scripts/gen-seo-files.py", robots_txt)
+        self.assertIn("PLACEHOLDER", robots_txt)
         self.assertIn("User-agent: *", robots_txt)
         self.assertIn("Disallow: /healthz", robots_txt)
         self.assertIn("Sitemap: https://zivon.local/sitemap.xml", robots_txt)
 
         # Validate sitemap.xml parses as valid XML and contains landing + courses
-        root = ET.fromstring(sitemap_path.read_text(encoding="utf-8"))
+        sitemap_text = sitemap_path.read_text(encoding="utf-8")
+        self.assertIn("PLACEHOLDER", sitemap_text)
+        root = ET.fromstring(sitemap_text)
         locs = [el.text for el in root.findall(f"{SITEMAP_NS}url/{SITEMAP_NS}loc")]
         self.assertIn("https://zivon.local/", locs)
         self.assertIn(
@@ -517,6 +887,43 @@ class TestFrontendFeatures(unittest.TestCase):
             "https://zivon.local/courses/class-11-physics/motion-in-a-straight-line/",
             locs,
         )
+
+        # Generator correctness on an explicit base URL + ABSOLUTE href handling:
+        # absolute courses.js hrefs must resolve to the same on-disk tree, and a
+        # missing manifest must skip loudly instead of fabricating a URL.
+        import shutil
+
+        with tempfile.TemporaryDirectory(prefix="zivon-seo-") as tmp:
+            site = Path(tmp) / "frontend"
+            shutil.copytree(FRONTEND, site, ignore=shutil.ignore_patterns("fonts"))
+            courses_js = site / "courses.js"
+            courses_js.write_text(
+                courses_js.read_text(encoding="utf-8").replace(
+                    '"href": "courses/', '"href": "https://zivon.example/courses/'
+                ),
+                encoding="utf-8",
+            )
+            generated = seo.generate_sitemap_xml(site, base_url="https://zivon.example")
+            self.assertNotIn("PLACEHOLDER", generated)
+            self.assertIn(
+                "https://zivon.example/courses/class-11-physics/"
+                "motion-in-a-straight-line/",
+                generated,
+            )
+            seo.write_seo_files(site, base_url="https://zivon.example")
+            index_html = (site / "index.html").read_text(encoding="utf-8")
+            self.assertIn(
+                'content="https://zivon.example/assets/og-card.png"', index_html
+            )
+            self.assertIn('property="og:url"', index_html)
+            self.assertIn('content="https://zivon.example/"', index_html)
+            robots = (site / "robots.txt").read_text(encoding="utf-8")
+            self.assertIn("Sitemap: https://zivon.example/sitemap.xml", robots)
+
+        # The committed og:image/twitter:image must be absolute, not relative.
+        index_html = (FRONTEND / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(index_html, r'property="og:image"\s+content="https?://[^"]+"')
+        self.assertRegex(index_html, r'name="twitter:image"\s+content="https?://[^"]+"')
 
         # Validate JSON-LD generator against a real published manifest.json
         manifest_path = (
