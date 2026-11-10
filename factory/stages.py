@@ -33,7 +33,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import time
 from typing import Any
+
+from logging_manager import ErrorClass, bind_context, log_event
 
 from . import (
     agents,
@@ -51,7 +55,13 @@ from . import (
 )
 from .artifacts import RunContext, slugify, wipe_run
 from .config import Config
-from .errors import BudgetError, ConfigError, FactoryError, StageError
+from .errors import (
+    BudgetError,
+    ConfigError,
+    FactoryError,
+    MissingArtifactError,
+    StageError,
+)
 from .llm import LLMClient
 
 # Bump when the stage graph or stage contracts change: old run dirs then
@@ -118,6 +128,29 @@ def run_fingerprint(cfg: Config, chapter: str, class_filter: int | None) -> str:
     ).hexdigest()[:16]
 
 
+def _error_class_for(exc: FactoryError) -> ErrorClass | None:
+    """The failure-shape of a terminal factory error (spec.md §7 taxonomy).
+    The map pins repair_exhausted as factory.run.failed's default; the
+    classes below are the honest overrides for non-catcher failures."""
+    if isinstance(exc, ConfigError):
+        return ErrorClass.VALIDATION_ERROR
+    if isinstance(exc, MissingArtifactError):
+        return ErrorClass.INFRA_ERROR
+    return None
+
+
+def _reason_code_for(exc: FactoryError) -> str:
+    """A short, content-free failure code for events (never the message
+    text — page content must not ride the error feed, spec §4)."""
+    if isinstance(exc, ConfigError):
+        return "config_mismatch"
+    if isinstance(exc, BudgetError):
+        return "budget_unfixable" if not exc.fixable else "budget_fixable"
+    if isinstance(exc, StageError):
+        return "catcher_exhausted"
+    return type(exc).__name__
+
+
 def _blocking_issues(combined: dict[str, Any]) -> list[dict[str, Any]]:
     """What must be FIXED before the page may proceed: any fatal or major
     issue from the model reviewer or the code rules. Minor issues are
@@ -175,7 +208,13 @@ def run_pipeline(
     if class_filter is not None:
         cfg = cfg.with_class_level(class_filter)
     runs_dir = cfg.repo_path(cfg.paths["runs"])
+    # Correlation edge (spec.md §3): the run_id is born here — deterministic
+    # per (chapter, class), --run-id overrides for parallel attempts, and the
+    # cluster Job may pass ZIVON_RUN_ID for pod-level joins (the env var is
+    # honored only when it agrees with a fresh id being made anyway).
+    run_id = run_id or os.environ.get("ZIVON_RUN_ID", "").strip() or None
     run_id = run_id or make_run_id(chapter, class_filter)
+    bind_context(run_id=run_id)
     if fresh and wipe_run(runs_dir, run_id):
         print(f"[resume] --fresh: previous run '{run_id}' wiped; generating clean")
     run_ctx = RunContext(runs_dir, run_id)
@@ -196,6 +235,19 @@ def run_pipeline(
         resume = True
         print(f"[resume] run '{run_id}' found: completed stages will be reused")
     run_ctx.set_fingerprint(fingerprint)
+    resumed_count = sum(1 for stage in STAGE_ORDER if run_ctx.stage_ok(stage))
+    log_event(
+        "factory.run.started",
+        {
+            "chapter": chapter,
+            "class_level": cfg.learner.get("class_level"),
+            "fresh": fresh,
+            "resumed": resume,
+        },
+    )
+    if resume and resumed_count:
+        log_event("factory.run.resumed", {"resumed_stages_count": resumed_count})
+    run_t0 = time.monotonic()
 
     # In-memory handoffs; also persisted to each stage dir for inspection.
     source_pack: dict[str, Any] | None = None
@@ -254,6 +306,7 @@ def run_pipeline(
                         f"claims={len(generated['ground_truth']['claims'])} "
                         f"blocks={len(generated['blocks']['blocks'])}"
                     ),
+                    blocks=len(generated["blocks"]["blocks"]),
                 )
             generated = run_ctx.load_stage_output("02-generate")
             ground_truth = generated["ground_truth"]
@@ -305,6 +358,9 @@ def run_pipeline(
                     f"model={model_report['verdict']} rules={rule_report['verdict']} "
                     f"blocking={len(blocking)}"
                 ),
+                blocks=len(blocks["blocks"]) if blocks else 0,
+                reason_code=None if not blocking else "check_blocking",
+                error_class=ErrorClass.GATE_FAIL if blocking else None,
             )
             return combined
 
@@ -374,7 +430,9 @@ def run_pipeline(
                     run_ctx.save_stage_output(
                         "04-repair", {"page": blocks, "history": history}
                     )
-                    run_ctx.mark_stage("04-repair", "ok", detail=f"rounds={rounds}")
+                    run_ctx.mark_stage(
+                        "04-repair", "ok", detail=f"rounds={rounds}", attempts=rounds
+                    )
                     combined = run_check_once(tag)
                     now = _severity_score(_blocking_issues(combined))
                     if now < best:
@@ -392,6 +450,15 @@ def run_pipeline(
                         f"no improvement (best blocking score {best})"
                         if stalls >= stall_limit
                         else f"repair-round cap {max_rounds} reached"
+                    )
+                    log_event(
+                        "factory.repair.exhausted",
+                        {
+                            "plateau": stalls >= stall_limit,
+                            "cap_hit": rounds >= max_rounds,
+                        },
+                        stage="03-check",
+                        error_class=ErrorClass.REPAIR_EXHAUSTED,
                     )
                     raise StageError(
                         "03-check",
@@ -427,7 +494,10 @@ def run_pipeline(
                 )
                 run_ctx.save_stage_output("05-interactive", interactive_out)
                 run_ctx.mark_stage(
-                    "05-interactive", "ok", detail=f"built={len(interactive_out)}"
+                    "05-interactive",
+                    "ok",
+                    detail=f"built={len(interactive_out)}",
+                    blocks=len(interactive_out),
                 )
 
         if wanted("06-render"):
@@ -474,7 +544,13 @@ def run_pipeline(
                     # Engineer's repair loop) instead of killing the run.
                     # Unfixable misses (e.g. the landing page) stop immediately.
                     perf_report = exc.report
-                    run_ctx.mark_stage("07-perf", "failed", detail=str(exc))
+                    run_ctx.mark_stage(
+                        "07-perf",
+                        "failed",
+                        detail=str(exc),
+                        reason_code="budget_fail",
+                        error_class=ErrorClass.GATE_FAIL,
+                    )
                     if not (exc.fixable and wanted("08-fixloop")):
                         raise
 
@@ -490,7 +566,10 @@ def run_pipeline(
                 )
                 run_ctx.save_stage_output("08-fixloop", fix_out)
                 run_ctx.mark_stage(
-                    "08-fixloop", "ok", detail=f"rounds={fix_out['rounds']}"
+                    "08-fixloop",
+                    "ok",
+                    detail=f"rounds={fix_out['rounds']}",
+                    attempts=fix_out["rounds"],
                 )
 
         # ---- 09-review + 10-reviewfix: the code gate and its catcher -------
@@ -508,6 +587,10 @@ def run_pipeline(
                 "09-review",
                 "ok" if report["verdict"] == "pass" else "failed",
                 detail=f"verdict={report['verdict']} issues={len(report['issues'])}",
+                reason_code=None if report["verdict"] == "pass" else "review_blocking",
+                error_class=(
+                    ErrorClass.GATE_FAIL if report["verdict"] != "pass" else None
+                ),
             )
             return report
 
@@ -553,7 +636,10 @@ def run_pipeline(
                 fix_feedback = []
                 run_ctx.save_stage_output("10-reviewfix", fix_out)
                 run_ctx.mark_stage(
-                    "10-reviewfix", "ok", detail=f"rounds={fix_out['rounds']}"
+                    "10-reviewfix",
+                    "ok",
+                    detail=f"rounds={fix_out['rounds']}",
+                    attempts=fix_out["rounds"],
                 )
                 if fix_out["lint_hits"]:
                     # The fix itself broke a hard lint: the NEXT round repairs
@@ -601,6 +687,12 @@ def run_pipeline(
                     f"no improvement (best issue score {best})"
                     if stalls >= stall_limit
                     else f"fix-round cap {max_rounds} reached"
+                )
+                log_event(
+                    "factory.repair.exhausted",
+                    {"plateau": stalls >= stall_limit, "cap_hit": rounds >= max_rounds},
+                    stage="09-review",
+                    error_class=ErrorClass.REPAIR_EXHAUSTED,
                 )
                 raise StageError(
                     "09-review",
@@ -650,11 +742,36 @@ def run_pipeline(
             run_ctx.mark_stage("12-narration", "ok", detail=detail)
 
         run_ctx.finish(ok=True, detail="pipeline complete")
+        # `blocks` is the 02-generate handoff dict ({"blocks": [...]}); count
+        # the actual block list, not the dict's keys.
+        block_list = (
+            blocks.get("blocks", []) if isinstance(blocks, dict) else (blocks or [])
+        )
+        log_event(
+            "factory.run.completed",
+            {
+                "stage_durations_present": bool(run_ctx.stage_durations()),
+                "blocks_published": len(block_list),
+            },
+            latency_ms=int((time.monotonic() - run_t0) * 1000),
+        )
         return {"run_id": run_ctx.run_id, "ok": True}
 
     except FactoryError as exc:
         run_ctx.mark_stage(
-            getattr(exc, "stage_id", "pipeline"), "failed", detail=str(exc)
+            getattr(exc, "stage_id", "pipeline"),
+            "failed",
+            detail=str(exc),
+            reason_code=_reason_code_for(exc),
+            error_class=_error_class_for(exc),
         )
         run_ctx.finish(ok=False, detail=str(exc))
+        log_event(
+            "factory.run.failed",
+            {
+                "failed_stage": getattr(exc, "stage_id", "pipeline"),
+                "reason_code": _reason_code_for(exc),
+            },
+            error_class=_error_class_for(exc),
+        )
         raise

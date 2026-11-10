@@ -47,6 +47,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from logging_manager import ErrorClass, log_event
+
 from .errors import MissingArtifactError
 
 
@@ -171,15 +173,29 @@ class RunContext:
         return candidates[-1][2]
 
     # -- status ---------------------------------------------------------------
-    def mark_stage(self, stage_id: str, state: str, detail: str = "") -> None:
-        """Record a stage transition, print it, and measure stage wall-time.
+    def mark_stage(
+        self,
+        stage_id: str,
+        state: str,
+        detail: str = "",
+        *,
+        blocks: int = 0,
+        attempts: int = 0,
+        reason_code: str | None = None,
+        error_class: ErrorClass | None = None,
+    ) -> None:
+        """Record a stage transition, print it, measure stage wall-time, and
+        emit the stage's event row (factory.stage.start/ok/fail — EX3-OBS).
 
         The progress print is the run's live heartbeat for whoever is watching
         `kubectl logs`; the measured `elapsed_s` (status.json) plus
         `stage_durations_s` (run_report.json) make per-stage timing auditable
         after the fact. Multi-round stages (03-check, 09-review) accumulate
         across rounds; resumed stages carry over the previous attempt's
-        measured time.
+        measured time. blocks/attempts are true counts (0 for stages that
+        produce neither); reason_code/error_class are only meaningful on
+        'failed' transitions (the map pins error_class=gate_fail as the
+        stage.fail default; callers override for infra-shaped failures).
         """
         now = time.time()
         status: dict[str, Any] = {
@@ -212,6 +228,46 @@ class RunContext:
         stages[stage_id] = entry
         self.write_json(self._status_path, status)
         self._print_stage(stage_id, state, detail, elapsed)
+        self._emit_stage_event(
+            stage_id, state, blocks, attempts, reason_code, error_class, elapsed
+        )
+
+    def _emit_stage_event(
+        self,
+        stage_id: str,
+        state: str,
+        blocks: int,
+        attempts: int,
+        reason_code: str | None,
+        error_class: ErrorClass | None,
+        elapsed: float | None,
+    ) -> None:
+        """The instrumentation-map rows for stage transitions; one event per
+        transition, emitted when the thing happens (idempotency at the
+        caller — retries re-enter mark_stage, never re-log)."""
+        stage_ms = int(elapsed * 1000) if elapsed is not None else None
+        if state == "running":
+            log_event("factory.stage.start", run_id=self.run_id, stage=stage_id)
+        elif state == "ok":
+            log_event(
+                "factory.stage.ok",
+                {"blocks": blocks, "attempts": attempts},
+                latency_ms=stage_ms,
+                run_id=self.run_id,
+                stage=stage_id,
+            )
+        elif state == "failed":
+            log_event(
+                "factory.stage.fail",
+                {
+                    "reason_code": reason_code or "stage_error",
+                    "attempt": attempts,
+                },
+                latency_ms=stage_ms,
+                run_id=self.run_id,
+                stage=stage_id,
+                error_class=error_class,
+            )
 
     @staticmethod
     def _print_stage(
@@ -224,6 +280,11 @@ class RunContext:
         timing = f" in {elapsed}s" if elapsed is not None else ""
         suffix = f" ({detail})" if detail else ""
         print(f"[{stage_id}] {state}{timing}{suffix}")
+
+    def stage_durations(self) -> dict[str, float]:
+        """Measured wall-time per stage (a copy; the accumulated values the
+        run report carries as stage_durations_s)."""
+        return dict(self._stage_elapsed)
 
     def finish(self, ok: bool, detail: str = "") -> None:
         status: dict[str, Any] = {}

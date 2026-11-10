@@ -16,6 +16,13 @@ openai==3.46.0
 httpx==0.28.1
 fastapi==0.162.0
 
+# --- logging_manager (EX3-OBS observability) --------------------------------
+# The JSON event path is stdlib-only; the driver below is needed ONLY for the
+# ZIVON_LOG_DSN hot-store path (ADR-0025): the factory image carries it so the
+# factory, the test CronJob and the k8s/51 log-retention Job can all write to
+# / sync `log_events`. Imported lazily — no DSN, no import.
+psycopg[binary]>=3.2
+
 # --- content factory --------------------------------------------------------
 requests>=2.31
 pdfplumber>=0.11

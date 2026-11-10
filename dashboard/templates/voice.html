@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}voice latency{% endblock %}
+{% block body %}
+<h1>Voice latency percentiles</h1>
+<p>End-of-speech → first spoken audio (<code>voice.turn.e2e_latency</code>) against the
+Gate C budget of <strong>{{ gate_c_ms }} ms</strong>. Hop budgets: STT ≤ 600 ms →
+LLM first token ≤ 900 ms → TTS first audio ≤ 1800 ms.</p>
+{% set has_any = [] %}
+{% for label, w in voice.windows.items() %}
+  {% if w.count %}{% if has_any.append(1) %}{% endif %}{% endif %}
+{% endfor %}
+{% if has_any %}
+<table>
+  <thead><tr><th>window</th><th>turns</th><th>p50</th><th>p95</th><th>max</th><th>stt p95</th><th>llm p95</th><th>tts p95</th></tr></thead>
+  <tbody>
+  {% for label, w in voice.windows.items() %}
+    <tr>
+      <td>{{ label }}</td>
+      <td>{{ w.count }}</td>
+      <td>{% if w.p50_ms %}{{ "%.0f" | format(w.p50_ms) }} ms{% else %}—{% endif %}</td>
+      <td class="{{ 'breach' if w.p95_ms and w.p95_ms > gate_c_ms else 'ok' }}">
+        {% if w.p95_ms %}{{ "%.0f" | format(w.p95_ms) }} ms{% else %}—{% endif %}</td>
+      <td>{% if w.max_ms %}{{ "%.0f" | format(w.max_ms) }} ms{% else %}—{% endif %}</td>
+      {% for hop in ['stt_final_ms', 'llm_first_token_ms', 'tts_first_audio_ms'] %}
+        <td>{% set h = w.hops[hop] %}{% if h and h.p95 %}{{ "%.0f" | format(h.p95) }} ms{% else %}—{% endif %}</td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if voice.slowest_hop %}<p>Slowest hop (24 h): <strong>{{ voice.slowest_hop }}</strong> — a p95 breach names it so the fix is evidence-backed.</p>{% endif %}
+{% else %}
+<p class="empty">No voice traffic yet — the voice backend has not shipped its events (Day-8 reality).
+This view renders honestly empty until <code>voice.turn.e2e_latency</code> rows arrive; it will never show a fake series.</p>
+{% endif %}
+{% endblock %}

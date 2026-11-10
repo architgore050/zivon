@@ -57,12 +57,26 @@ from llm_manager import (
     parse_json_object,
     run_validation_rounds,
 )
+from logging_manager import ErrorClass, context_scope, log_event
+from logging_manager.context import correlation_headers, new_request_id
 
 from .artifacts import RunContext
 from .config import Config
 from .errors import ModelCallError, SchemaError
 
 __all__ = ["LLMClient", "parse_json_object"]
+
+# factory.call.* call_intent enum (instrumentation-map.csv): what the call is
+# FOR, derived from the calling stage (the model-calling stages).
+_CALL_INTENT = {
+    "02-generate": "generate",
+    "03-check": "check",
+    "04-repair": "repair",
+    "05-interactive": "generate",
+    "08-fixloop": "fixloop",
+    "09-review": "review",
+    "10-reviewfix": "reviewfix",
+}
 
 
 class _StageObserver(LLMObserver):
@@ -133,17 +147,39 @@ class LLMClient:
         def call_fn(
             round_no: int, transcript: list[dict[str, Any]]
         ) -> tuple[str, str | None]:
+            # One request edge per attempt (spec.md §3): the id rides the
+            # X-Request-Id header to the llm-manager node and joins this
+            # attempt's factory.call.* rows with the node's node.call.* rows.
+            with context_scope(request_id=new_request_id()):
+                return _call_once(round_no, transcript)
+
+        def _call_once(
+            round_no: int, transcript: list[dict[str, str]]
+        ) -> tuple[str, str | None]:
             attempt_dir = attempts_dir / f"attempt-{round_no:02d}"
             wire = build_wire_request(self._llm_config, transcript, temperature, None)
             self.run.write_json(attempt_dir / "request.json", self._redact(wire))
 
+            log_event(
+                "factory.call.started",
+                {
+                    "call_intent": _CALL_INTENT.get(stage_id, "generate"),
+                    "attempt": round_no,
+                },
+                run_id=self.run.run_id,
+                stage=stage_id,
+            )
             print(
                 f"[{stage_id}] model call started{round_note} (validation "
                 f"round {round_no}/{rounds}; a thinking model can take many "
                 "minutes - heartbeats will show it is alive)"
             )
             observer = _StageObserver(stage_id)
-            manager = LLMManager(self._llm_config, observer=observer)
+            manager = LLMManager(
+                self._llm_config,
+                observer=observer,
+                default_headers=correlation_headers(),
+            )
             t0 = time.time()
             try:
                 result = manager.complete(transcript, temperature=temperature)
@@ -187,6 +223,17 @@ class LLMClient:
                             "error": str(exc)[:180],
                         }
                     ],
+                )
+                last_status = getattr(exc, "status_code", None)
+                log_event(
+                    "factory.call.transport_exhausted",
+                    {
+                        "attempts": self._llm_config.max_attempts,
+                        "last_status": last_status,
+                    },
+                    run_id=self.run.run_id,
+                    stage=stage_id,
+                    error_class=ErrorClass.TRANSPORT_ERROR,
                 )
                 raise ModelCallError(stage_id, str(exc)) from exc
             latency = round(time.time() - t0, 2)
@@ -237,6 +284,18 @@ class LLMClient:
                     }
                 ],
             )
+            log_event(
+                "factory.call.finished",
+                {
+                    "first_token_s": result.first_token_s,
+                    "chunks_received": result.chunks_received,
+                    "finish_reason": result.finish_reason,
+                    "usage_present": bool(usage),
+                },
+                latency_ms=int(latency * 1000),
+                run_id=self.run.run_id,
+                stage=stage_id,
+            )
             return result.text, result.finish_reason
 
         try:
@@ -283,6 +342,13 @@ class LLMClient:
                     "reason": error[:180],
                 }
             ],
+        )
+        log_event(
+            "factory.call.rejected",
+            {"round": attempt, "reason_code": error[:120]},
+            run_id=self.run.run_id,
+            stage=stage_id,
+            error_class=ErrorClass.VALIDATION_ERROR,
         )
 
     @staticmethod
