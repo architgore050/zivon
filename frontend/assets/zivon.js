@@ -1027,13 +1027,12 @@
      - Capture constraint ladder (16 kHz mono + AEC/NS/AGC -> drop sampleRate ->
        drop channelCount) and GainNode ducking values (never track.enabled=false)
        per skills/zivon-audio-engineering-skills/ & ADR-0010.
-     - PROTOCOL/STATE-MACHINE HARNESS ONLY. Received audio frames are parsed
-       and counted (segment/sequence bookkeeping, "speaking" entered once a
-       small frame count arrives) but this client does NOT decode Opus or
-       schedule playback, and the gain nodes are bookkeeping values that are
-       NOT connected to an output graph. Audible playback + wired ducking is a
-       follow-up when the voice backend and a decode path exist; the TIMELINE
-       entry says the same (no jitter-buffer/ducking-playback claim).
+     - WEB AUDIO API PLAYBACK (ws-contract.md §3): server downlink is 8-byte
+       header + little-endian PCM16 mono at ZIVON_VOICE_TTS_SAMPLE_RATE (48 kHz
+       default). Client decodes PCM16 to Float32, buffers toward 60-120 ms
+       (never hard-scheduling < 150 ms ahead on first chunk), schedules
+       AudioBufferSourceNodes through agentGainNode -> audioCtx.destination,
+       and ramps gain down ~50 ms + stops sources on interrupt/barge-in/offline.
      - Reconnect: capped exponential backoff with jitter after an unexpected
        close; a pong timeout closes the socket before reporting offline.
      - Degraded text fallback (typed transcript via audio.end) & turn latency
@@ -1084,6 +1083,21 @@
     };
   }
 
+  function decodePcm16ToFloat32(payloadBytes) {
+    var bytes = payloadBytes instanceof Uint8Array
+      ? payloadBytes
+      : new Uint8Array(payloadBytes || 0);
+    var sampleCount = Math.floor(bytes.byteLength / 2);
+    var out = new Float32Array(sampleCount);
+    if (!sampleCount) return out;
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, sampleCount * 2);
+    for (var i = 0; i < sampleCount; i++) {
+      var s = dv.getInt16(i * 2, true); /* little-endian PCM16 */
+      out[i] = s < 0 ? s / 32768.0 : s / 32767.0;
+    }
+    return out;
+  }
+
   function mapServerErrorToCode(code) {
     var c = String(code || "system-error");
     if (c === "credit.over_daily" || c === "credit.over_session" || c === "quota-exhausted") {
@@ -1130,11 +1144,21 @@
     var micSeq = 0;
     var expectedTtsSeq = {};
     var pendingFrames = [];
+    var pcmJitterQueue = [];
+    var jitterBufferedMs = 0;
+    var jitterTargetMs = opts.jitter_target_ms || 80;
+    var minLeadTimeS = (opts.min_lead_ms !== undefined ? opts.min_lead_ms : 150) / 1000.0;
+    var ttsSampleRate = opts.tts_sample_rate || (typeof window !== "undefined" && window.ZIVON_VOICE_TTS_SAMPLE_RATE) || 48000;
+    var nextPlayTimeS = 0;
+    var activeSources = [];
+    var scheduledChunksCount = 0;
     var minFramesBeforeSpeaking = opts.min_frames_before_speaking || opts.min_buffer_frames || 3;
     var audioCtx = opts.audioContext || null;
     var micGainNode = null;
     var agentGainNode = null;
+    var agentGainConnected = false;
     var mediaStream = null;
+    var creditState = "ok";
     var pingTimer = null;
     var reconnectTimer = null;
     var reconnectAttempts = 0;
@@ -1157,6 +1181,9 @@
          ducked at 0.2 forever. */
       if (nextState === "offline" || nextState === "interrupted" ||
           nextState === "error" || String(nextState).indexOf("error:") === 0) {
+        if (nextState === "offline" || nextState === "interrupted") {
+          stopPlaybackImmediately();
+        }
         setDucking("normal");
       }
       if (nextState === "offline") {
@@ -1198,7 +1225,102 @@
           agentGainNode = audioCtx.createGain();
           agentGainNode.gain.value = 1.0;
         }
+        if (agentGainNode && !agentGainConnected && audioCtx.destination && typeof agentGainNode.connect === "function") {
+          try {
+            agentGainNode.connect(audioCtx.destination);
+            agentGainConnected = true;
+          } catch (e) {}
+        }
       }
+    }
+
+    function scheduleJitterBuffer(forceFlush) {
+      if (!pcmJitterQueue.length) return;
+      ensureAudioGraph();
+      if (!audioCtx || typeof audioCtx.createBuffer !== "function" || typeof audioCtx.createBufferSource !== "function") {
+        pcmJitterQueue = [];
+        jitterBufferedMs = 0;
+        return;
+      }
+      if (!forceFlush && nextPlayTimeS === 0 && jitterBufferedMs < 60 && pcmJitterQueue.length < minFramesBeforeSpeaking) {
+        return;
+      }
+      var nowS = typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : 0;
+      if (nextPlayTimeS < nowS + minLeadTimeS) {
+        /* Never hard-schedule < 150 ms ahead on initial/underrun start (ws-contract.md §2/§3) */
+        nextPlayTimeS = nowS + Math.max(minLeadTimeS, jitterTargetMs / 1000.0);
+      }
+      if (agentGainNode && agentGainNode.gain) {
+        agentGainNode.gain.value = 1.0;
+      }
+      while (pcmJitterQueue.length > 0) {
+        var chunk = pcmJitterQueue.shift();
+        var samples = chunk.samples;
+        if (!samples || !samples.length) continue;
+        try {
+          var buf = audioCtx.createBuffer(1, samples.length, ttsSampleRate);
+          if (typeof buf.copyToChannel === "function") {
+            buf.copyToChannel(samples, 0);
+          } else if (typeof buf.getChannelData === "function") {
+            var ch = buf.getChannelData(0);
+            if (ch && typeof ch.set === "function") ch.set(samples);
+          }
+          var src = audioCtx.createBufferSource();
+          src.buffer = buf;
+          if (agentGainNode && typeof src.connect === "function") {
+            src.connect(agentGainNode);
+          } else if (audioCtx.destination && typeof src.connect === "function") {
+            src.connect(audioCtx.destination);
+          }
+          var startAt = nextPlayTimeS;
+          var durS = samples.length / ttsSampleRate;
+          nextPlayTimeS = startAt + durS;
+          activeSources.push(src);
+          scheduledChunksCount += 1;
+          src.onended = (function (s) {
+            return function () {
+              var idx = activeSources.indexOf(s);
+              if (idx !== -1) activeSources.splice(idx, 1);
+            };
+          })(src);
+          if (typeof src.start === "function") {
+            src.start(startAt);
+          }
+        } catch (e) {}
+      }
+      jitterBufferedMs = 0;
+    }
+
+    function stopPlaybackImmediately() {
+      pcmJitterQueue = [];
+      jitterBufferedMs = 0;
+      nextPlayTimeS = 0;
+      if (audioCtx && agentGainNode && agentGainNode.gain) {
+        var nowS = typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : 0;
+        try {
+          if (typeof agentGainNode.gain.cancelScheduledValues === "function") {
+            agentGainNode.gain.cancelScheduledValues(nowS);
+          }
+          if (typeof agentGainNode.gain.setValueAtTime === "function") {
+            agentGainNode.gain.setValueAtTime(agentGainNode.gain.value, nowS);
+          }
+          if (typeof agentGainNode.gain.linearRampToValueAtTime === "function") {
+            agentGainNode.gain.linearRampToValueAtTime(0.0001, nowS + 0.05);
+          } else {
+            agentGainNode.gain.value = 0.0;
+          }
+        } catch (e) {
+          agentGainNode.gain.value = 0.0;
+        }
+      }
+      var toStop = activeSources.slice();
+      activeSources = [];
+      toStop.forEach(function (src) {
+        try {
+          if (typeof src.stop === "function") src.stop(0);
+          if (typeof src.disconnect === "function") src.disconnect();
+        } catch (e) {}
+      });
     }
 
     function setDucking(mode) {
@@ -1283,20 +1405,32 @@
       /* Protocol bookkeeping only (no decode/playback): track the next
          expected sequence per segment so a gap/duplicate is observable. */
       expectedTtsSeq[seg] = parsed.seq + 1;
+      var floatSamples = decodePcm16ToFloat32(parsed.payload);
+      var chunkDurationMs = floatSamples.length > 0 ? (floatSamples.length / ttsSampleRate) * 1000.0 : 20.0;
       pendingFrames.push({
         segment_id: seg,
         seq: parsed.seq,
         is_final: parsed.is_final,
-        bytes: parsed.payload.byteLength
+        bytes: parsed.payload.byteLength,
+        samples: floatSamples.length,
+        duration_ms: Math.round(chunkDurationMs)
       });
+      pcmJitterQueue.push({
+        segment_id: seg,
+        seq: parsed.seq,
+        is_final: parsed.is_final,
+        samples: floatSamples
+      });
+      jitterBufferedMs += chunkDurationMs;
       if (!turnTimings.t_first_audio) {
         turnTimings.t_first_audio = performance.now();
       }
-      if (pendingFrames.length >= minFramesBeforeSpeaking || parsed.is_final) {
+      if (pendingFrames.length >= minFramesBeforeSpeaking || jitterBufferedMs >= 60 || parsed.is_final) {
         if (state !== "speaking") {
           setDucking("agent_speaking");
-          setState("speaking", { frames_received: pendingFrames.length, buffered_ms: pendingFrames.length * 20 });
+          setState("speaking", { frames_received: pendingFrames.length, buffered_ms: Math.round(jitterBufferedMs) });
         }
+        scheduleJitterBuffer(Boolean(parsed.is_final));
       }
     }
 
@@ -1311,7 +1445,18 @@
       var payload = msg.payload && typeof msg.payload === "object" ? msg.payload : msg;
       if (t === "session.ready") {
         sessionId = payload.session_id || "sess-1";
-        setState("ready", { session_id: sessionId, profile: payload.profile || "normal" });
+        creditState = payload.credit_state || "ok";
+        if (creditState === "warn") {
+          applyLessonStateBanner("warn", "Voice is limited today - short doubts work best; typing is always free.");
+          setState("ready", { session_id: sessionId, profile: payload.profile || "normal", credit_state: creditState });
+        } else if (creditState === "text_only" || creditState === "exhausted") {
+          applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+          setState("text_only", { session_id: sessionId, profile: payload.profile || "normal", credit_state: "text_only" });
+        } else {
+          applyLessonStateBanner("warn", "");
+          applyLessonStateBanner("exhausted", "");
+          setState("ready", { session_id: sessionId, profile: payload.profile || "normal", credit_state: creditState });
+        }
         return;
       }
       if (t === "stt.partial" || t === "partial_transcript") {
@@ -1331,13 +1476,33 @@
       }
       if (t === "agent.state") {
         var st = payload.state;
+        if (payload.credit_state) {
+          creditState = payload.credit_state;
+          if (creditState === "warn") {
+            applyLessonStateBanner("warn", "Voice is limited today - short doubts work best; typing is always free.");
+          } else if (creditState === "text_only" || creditState === "exhausted") {
+            applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+          }
+        }
         if (st === "listening" || st === "thinking" || st === "speaking" || st === "speaking_text") {
           if (st === "speaking") setDucking("agent_speaking");
           else if (st === "listening") setDucking("normal");
           setState(st, { reason: payload.reason });
+        } else if (st === "text_only") {
+          /* Never cut an in-progress turn; transition to text_only when not mid-answer */
+          creditState = "text_only";
+          applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+          if (state !== "speaking" && state !== "thinking" && state !== "speaking_text") {
+            setDucking("normal");
+            setState("text_only", { reason: payload.reason || "credit_exhausted" });
+          }
         } else if (st === "idle") {
           setDucking("normal");
-          setState("ready", { reason: payload.reason });
+          if (creditState === "text_only" || creditState === "exhausted") {
+            setState("text_only", { reason: payload.reason || "credit_exhausted" });
+          } else {
+            setState("ready", { reason: payload.reason });
+          }
         }
         return;
       }
@@ -1359,6 +1524,9 @@
         return;
       }
       if (t === "turn.end" || t === "tts.end") {
+        if (payload.end_reason !== "interrupted") {
+          scheduleJitterBuffer(true);
+        }
         pendingFrames = [];
         setDucking("normal");
         var e2eMs = (turnTimings.t_endpoint && (turnTimings.t_first_audio || turnTimings.t_first_token))
@@ -1374,7 +1542,10 @@
           window.ZivonEvents.recordVoiceTurnDone(sessionId, lastCompletedTurnMetrics.turn_id, e2eMs);
         }
         if (payload.end_reason === "interrupted") {
+          stopPlaybackImmediately();
           setState("listening", { interrupted: true });
+        } else if (creditState === "text_only" || creditState === "exhausted") {
+          setState("text_only", { turn_id: lastCompletedTurnMetrics.turn_id });
         } else {
           setState("ready", { turn_id: lastCompletedTurnMetrics.turn_id });
         }
@@ -1451,9 +1622,11 @@
           if (closing && typeof closing.catch === "function") closing.catch(function () {});
         } catch (e) {}
       }
+      stopPlaybackImmediately();
       audioCtx = null;
       micGainNode = null;
       agentGainNode = null;
+      agentGainConnected = false;
     }
 
     /* One teardown for disconnect() and pagehide: mic tracks, AudioContext,
@@ -1603,6 +1776,7 @@
       if (state !== "speaking" && state !== "thinking" && state !== "speaking_text") {
         return false;
       }
+      stopPlaybackImmediately();
       pendingFrames = [];
       setDucking("user_barge_in");
       /* Discard tutor's partial sentence per ws-client-contract §2 */
@@ -1667,6 +1841,17 @@
       getPendingFrames: function () { return pendingFrames.slice(); },
       getQueuedTypedDoubts: function () { return queuedTypedDoubts.slice(); },
       getLastTurnMetrics: function () { return lastCompletedTurnMetrics; },
+      getCreditState: function () { return creditState; },
+      getPlaybackStats: function () {
+        return {
+          scheduled_chunks: scheduledChunksCount,
+          active_sources: activeSources.length,
+          next_play_time_s: nextPlayTimeS,
+          sample_rate: ttsSampleRate,
+          audio_ctx_state: audioCtx ? audioCtx.state : "none"
+        };
+      },
+      stopPlayback: stopPlaybackImmediately,
       getGainValues: function () {
         return {
           mic: micGainNode && micGainNode.gain ? micGainNode.gain.value : 1.0,
@@ -1850,7 +2035,8 @@
     create: createVoiceClient,
     createMockServer: createMockVoiceServer,
     encodeAudioFrame: encodeAudioFrame,
-    decodeAudioFrame: decodeAudioFrame
+    decodeAudioFrame: decodeAudioFrame,
+    decodePcm16ToFloat32: decodePcm16ToFloat32
   };
 
 

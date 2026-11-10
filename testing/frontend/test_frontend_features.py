@@ -795,6 +795,96 @@ class TestFrontendFeatures(unittest.TestCase):
         finally:
             page.close()
 
+    def test_voice_pcm16_playback_jitter_buffer_and_barge_in_stop(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "pcm_playback.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  // 1. Verify little-endian PCM16 -> Float32 decoding
+                  const pcmBytes = new Uint8Array([0x00, 0x00, 0xFF, 0x7F, 0x00, 0x80]);
+                  const floats = VC.decodePcm16ToFloat32(pcmBytes);
+
+                  // 2. Verify Web Audio scheduling + 150ms minimum lead + barge-in stop
+                  const scheduled = [];
+                  const stopped = [];
+                  const fakeGain = {
+                    gain: {
+                      value: 1.0,
+                      cancelScheduledValues: () => {},
+                      setValueAtTime: () => {},
+                      linearRampToValueAtTime: (v) => { fakeGain.gain.value = v; }
+                    },
+                    connect: () => {}
+                  };
+                  const fakeCtx = {
+                    state: 'suspended',
+                    currentTime: 10.0,
+                    destination: {},
+                    resumeCalled: 0,
+                    resume: function () { this.resumeCalled += 1; this.state = 'running'; return Promise.resolve(); },
+                    createGain: () => fakeGain,
+                    createBuffer: (ch, len, sr) => ({
+                      length: len,
+                      sampleRate: sr,
+                      copyToChannel: () => {}
+                    }),
+                    createBufferSource: () => {
+                      const src = {
+                        buffer: null,
+                        onended: null,
+                        connect: () => {},
+                        start: (when) => scheduled.push(when),
+                        stop: () => stopped.push(true),
+                        disconnect: () => {}
+                      };
+                      return src;
+                    },
+                    close: () => Promise.resolve()
+                  };
+                  const mock = VC.createMockServer({ holdSpeaking: true });
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    audioContext: fakeCtx,
+                    session_token: 'test-token',
+                    min_frames_before_speaking: 2
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  client.startListening();
+                  client.endAudio();
+                  const statsWhileSpeaking = client.getPlaybackStats();
+                  const firstScheduledAt = scheduled[0] || 0;
+                  client.bargeIn('user_ptt');
+                  const statsAfterBargeIn = client.getPlaybackStats();
+                  return {
+                    floats: Array.from(floats),
+                    resumeCalled: fakeCtx.resumeCalled,
+                    scheduledCount: scheduled.length,
+                    firstLeadMs: Math.round((firstScheduledAt - 10.0) * 1000),
+                    stoppedCount: stopped.length,
+                    statsWhileSpeaking,
+                    statsAfterBargeIn
+                  };
+                }"""
+            )
+            self.assertEqual(len(result["floats"]), 3)
+            self.assertAlmostEqual(result["floats"][0], 0.0, places=4)
+            self.assertAlmostEqual(result["floats"][1], 1.0, places=4)
+            self.assertAlmostEqual(result["floats"][2], -1.0, places=4)
+            self.assertGreaterEqual(result["resumeCalled"], 1)
+            self.assertEqual(result["scheduledCount"], 3)
+            self.assertGreaterEqual(
+                result["firstLeadMs"],
+                150,
+                "jitter buffer must never hard-schedule < 150 ms ahead",
+            )
+            self.assertEqual(result["stoppedCount"], 3)
+            self.assertEqual(result["statsAfterBargeIn"]["active_sources"], 0)
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
     def test_voice_frame_sequence_gap_and_duplicates_are_counted(self) -> None:
         page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "frames.html")
         try:
