@@ -1,0 +1,324 @@
+{
+  "glossary_version": "1.0.0",
+  "description": "Canonical NCERT Class 9-12 Physics bilingual glossary (ADR-0023).",
+  "terms": [
+    {
+      "term_slug": "motion",
+      "english_term": "motion",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "गति",
+          "first_mention_gloss": "गति (motion)",
+          "short_label": "गति",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "motion",
+          "first_mention_gloss": "motion (gati)",
+          "short_label": "motion",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "இயக்கம்",
+          "first_mention_gloss": "இயக்கம் (motion)",
+          "short_label": "இயக்கம்",
+          "pronunciation_hint": null
+        },
+        "te": {
+          "native_term": "చలనం",
+          "first_mention_gloss": "చలనం (motion)",
+          "short_label": "చలనం",
+          "pronunciation_hint": null
+        },
+        "mr": {
+          "native_term": "गती",
+          "first_mention_gloss": "गती (motion)",
+          "short_label": "गती",
+          "pronunciation_hint": null
+        },
+        "bn": {
+          "native_term": "গতি",
+          "first_mention_gloss": "গতি (motion)",
+          "short_label": "গতি",
+          "pronunciation_hint": null
+        },
+        "gu": {
+          "native_term": "ગતિ",
+          "first_mention_gloss": "ગતિ (motion)",
+          "short_label": "ગતિ",
+          "pronunciation_hint": null
+        },
+        "kn": {
+          "native_term": "ಚಲನೆ",
+          "first_mention_gloss": "ಚಲನೆ (motion)",
+          "short_label": "ಚಲನೆ",
+          "pronunciation_hint": null
+        },
+        "ml": {
+          "native_term": "ചലനം",
+          "first_mention_gloss": "ചലനം (motion)",
+          "short_label": "ചലനം",
+          "pronunciation_hint": null
+        },
+        "pa": {
+          "native_term": "ਗਤੀ",
+          "first_mention_gloss": "ਗਤੀ (motion)",
+          "short_label": "ਗਤੀ",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "distance",
+      "english_term": "distance",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "दूरी",
+          "first_mention_gloss": "दूरी (distance)",
+          "short_label": "दूरी",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "distance",
+          "first_mention_gloss": "distance (doori)",
+          "short_label": "distance",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "தொலைவு",
+          "first_mention_gloss": "தொலைவு (distance)",
+          "short_label": "தொலைவு",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "displacement",
+      "english_term": "displacement",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "विस्थापन",
+          "first_mention_gloss": "विस्थापन (displacement)",
+          "short_label": "विस्थापन",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "displacement",
+          "first_mention_gloss": "displacement (visthapan)",
+          "short_label": "displacement",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "இடப்பெயர்ச்சி",
+          "first_mention_gloss": "இடப்பெயர்ச்சி (displacement)",
+          "short_label": "இடப்பெயர்ச்சி",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "speed",
+      "english_term": "speed",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "चाल",
+          "first_mention_gloss": "चाल (speed)",
+          "short_label": "चाल",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "speed",
+          "first_mention_gloss": "speed (chaal)",
+          "short_label": "speed",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "வேகம்",
+          "first_mention_gloss": "வேகம் (speed)",
+          "short_label": "வேகம்",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "velocity",
+      "english_term": "velocity",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "वेग",
+          "first_mention_gloss": "वेग (velocity)",
+          "short_label": "वेग",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "velocity",
+          "first_mention_gloss": "velocity (veg)",
+          "short_label": "velocity",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "திசைவேகம்",
+          "first_mention_gloss": "திசைவேகம் (velocity)",
+          "short_label": "திசைவேகம்",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "acceleration",
+      "english_term": "acceleration",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "त्वरण",
+          "first_mention_gloss": "त्वरण (acceleration)",
+          "short_label": "त्वरण",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "acceleration",
+          "first_mention_gloss": "acceleration (tvaran)",
+          "short_label": "acceleration",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "முடுக்கம்",
+          "first_mention_gloss": "முடுக்கம் (acceleration)",
+          "short_label": "முடுக்கம்",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "scalar",
+      "english_term": "scalar",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "अदिश",
+          "first_mention_gloss": "अदिश (scalar)",
+          "short_label": "अदिश",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "scalar",
+          "first_mention_gloss": "scalar (adish)",
+          "short_label": "scalar",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "அदिश",
+          "first_mention_gloss": "ஸ்கேலார் (scalar)",
+          "short_label": "ஸ்கேலார்",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "vector",
+      "english_term": "vector",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "सदिश",
+          "first_mention_gloss": "सदिश (vector)",
+          "short_label": "सदिश",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "vector",
+          "first_mention_gloss": "vector (sadish)",
+          "short_label": "vector",
+          "pronunciation_hint": null
+        },
+        "ta": {
+          "native_term": "வெக்டர்",
+          "first_mention_gloss": "வெக்டர் (vector)",
+          "short_label": "வெக்டர்",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "uniform-motion",
+      "english_term": "uniform motion",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "एकसमान गति",
+          "first_mention_gloss": "एकसमान गति (uniform motion)",
+          "short_label": "एकसमान गति",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "uniform motion",
+          "first_mention_gloss": "uniform motion (eksamaan gati)",
+          "short_label": "uniform motion",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "force",
+      "english_term": "force",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "बल",
+          "first_mention_gloss": "बल (force)",
+          "short_label": "बल",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "force",
+          "first_mention_gloss": "force (bal)",
+          "short_label": "force",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "momentum",
+      "english_term": "momentum",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "संवेग",
+          "first_mention_gloss": "संवेग (momentum)",
+          "short_label": "संवेग",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "momentum",
+          "first_mention_gloss": "momentum (samveg)",
+          "short_label": "momentum",
+          "pronunciation_hint": null
+        }
+      }
+    },
+    {
+      "term_slug": "slope",
+      "english_term": "slope",
+      "do_not_translate": false,
+      "locales": {
+        "hi": {
+          "native_term": "ढाल",
+          "first_mention_gloss": "ढाल (slope)",
+          "short_label": "ढाल",
+          "pronunciation_hint": null
+        },
+        "hi-Latn": {
+          "native_term": "slope",
+          "first_mention_gloss": "slope (dhaal)",
+          "short_label": "slope",
+          "pronunciation_hint": null
+        }
+      }
+    }
+  ]
+}

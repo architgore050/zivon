@@ -55,6 +55,7 @@ python -m playwright install chromium      # once, for the perf gate
 export ZIVON_BASE_URL=http://127.0.0.1:8080/v1     # your inference server (host loopback is fine HERE)
 export ZIVON_MODEL=qwen3.8-flash-next-iq3_xxs      # exactly as GET /v1/models reports
 python pipeline.py "Motion" --class 9
+python pipeline.py "Motion" --class 9 --locales hi,hi-Latn   # optional: build Hindi + Hinglish localized routes
 ```
 
 Model calls are streaming by default: `ZIVON_TIMEOUT_S` bounds INACTIVITY between chunks (a dead server is caught honestly) and `ZIVON_CALL_DEADLINE_S` is a total per-call wall-clock cap that aborts a runaway generation mid-stream. Locally you can also run the model path through the isolated **llm-manager node** (`docker compose up -d llm-manager`, then `ZIVON_BASE_URL=http://127.0.0.1:18090/v1`) — the same service the cluster runs at `http://llm-manager.zivon.svc.cluster.local/v1`.
@@ -149,7 +150,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | [`docs/backend/`](docs/backend/) | Stage-2 systems specs (2026-11-07): backend spec (APIs, voice WebSocket contract, guard), database spec (Postgres schema), storage-tiering spec (cache / hot DB / cold provider), capacity & cost model, 16 ADRs |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
-| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `frontend/` (site shell + behaviour in Chromium), `observability/` (the logging_manager contract harness + dashboard tests), and `backend/` (REST/admin contracts, credit guard concurrency, consent/wipe cascade, TTL, HMAC abuse, Alembic migrations) |
+| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `translation/` (10a..10d localization + TM + reviewer rules), `frontend/` (site shell + behaviour in Chromium), `observability/` (the logging_manager contract harness + dashboard tests), and `backend/` (REST/admin contracts, credit guard concurrency, consent/wipe cascade, TTL, HMAC abuse, Alembic migrations) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 | [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
 | [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |

@@ -3,10 +3,12 @@
 
 Usage:
     python pipeline.py "Motion" [--class 9] [--run-id ID] [--fresh]
+                                [--locales hi,hi-Latn]
                                 [--stages 00-ingest,01-locate]
 
 Examples:
     python pipeline.py "Motion" --class 9
+    python pipeline.py "Motion" --class 9 --locales hi,hi-Latn
     python pipeline.py "Light - Reflection and Refraction"
     python pipeline.py "Motion" --class 9 --fresh        # force clean generation
     python pipeline.py "Motion" --stages 00-ingest,01-locate   # re-run source stages only
@@ -63,6 +65,11 @@ def main() -> int:
         "(default: a re-trigger RESUMES the previous attempt's completed stages)",
     )
     parser.add_argument(
+        "--locales",
+        default=None,
+        help="comma-separated target locales to build (e.g. hi,hi-Latn); enables 10a..10d",
+    )
+    parser.add_argument(
         "--stages",
         default=None,
         help=f"comma-separated subset of stages to run from {STAGE_ORDER}",
@@ -79,8 +86,16 @@ def main() -> int:
             )
             return 2
 
+    locales = (
+        [loc.strip() for loc in args.locales.split(",") if loc.strip()]
+        if args.locales
+        else None
+    )
+
     try:
         cfg = load_config()
+        if locales is not None:
+            cfg = cfg.with_locales(locales)
         result = run_pipeline(
             cfg, args.chapter, args.class_, args.run_id, only, fresh=args.fresh
         )
