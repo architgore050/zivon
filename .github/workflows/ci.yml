@@ -548,15 +548,23 @@ jobs:
           cache: pip
       - name: Install dependencies
         if: steps.guard.outputs.landed == 'true'
-        # requirements.txt first (the monolith's own pins). EX0's seam: once
-        # the chain lands, alembic must be pinned in requirements.txt; until
-        # then this fallback is pinned too (determinism — an unpinned CLI is
-        # the same gate-integrity defect as an unpinned ruff). Extend this
-        # step with EX0's migration env (psycopg is already there) if the
-        # chain needs more.
+        # The chain is the CORE BACKEND's, so install the core backend's own
+        # pins (backend/requirements.txt: alembic + SQLAlchemy + psycopg 3) —
+        # the same set Dockerfile.backend ships. NOT root requirements.txt:
+        # that is the factory's set (no alembic), and a probe of `import
+        # alembic` there resolves the repo's own `alembic/` directory as an
+        # implicit namespace package, falsely "finding" the CLI and skipping
+        # the install (that is how this job reddened on run 42771064418).
+        # The fallback keeps the gate green if only the ini landed first.
         run: |
-          pip install -r requirements.txt
-          python -c "import alembic" 2>/dev/null || pip install alembic==1.20.1
+          if [ -f backend/requirements.txt ]; then
+            pip install -r backend/requirements.txt
+          else
+            pip install alembic==1.14.0 'sqlalchemy==2.0.36' 'psycopg[binary]==3.2.3'
+          fi
+          command -v alembic >/dev/null || {
+            echo "::error::alembic CLI is not on PATH after installing the backend pins"; exit 1; }
+          alembic --version
       - name: Upgrade from empty, twice (idempotent second run)
         if: steps.guard.outputs.landed == 'true'
         run: |
@@ -564,8 +572,10 @@ jobs:
           # A migration chain must be LINEAR: more than one head means two
           # branches diverged (e.g. an orphan revision next to EX0's 0002
           # baseline) and "upgrade head" is ambiguous. Fail loudly instead of
-          # letting Alembic pick. EX0's chain is expected to converge on the
-          # single 0002 head; EX2's translation revision must be wired into it.
+          # letting Alembic pick. alembic.ini's version_locations spans both
+          # alembic/versions (0001 -> 0002) and migrations/versions (EX2's
+          # 0022, welded with down_revision = "0002"), so the single head here
+          # proves the two directories are one chain.
           heads=$(alembic heads | grep -c . || true)
           if [ "$heads" -ne 1 ]; then
             echo "::error::alembic reports $heads heads - the chain must be linear with exactly one head"
@@ -574,14 +584,21 @@ jobs:
           fi
           alembic upgrade head
           alembic upgrade head      # second run must be a no-op (no drift)
-          # Schema drift gate: alembic check exits nonzero when the models and
-          # the migrations disagree. Availability is probed FIRST so an older
-          # alembic skips loudly — never by masking a real nonzero exit.
-          if alembic check --help > /dev/null 2>&1; then
-            alembic check
-          else
-            echo "::warning::alembic check unavailable in this alembic version - drift gate skipped, upgrade EX0's pin"
+          # Post-condition, not a vibe: the database's recorded revision is
+          # the single head we just printed.
+          head=$(alembic heads | awk '{print $1}')
+          current=$(alembic current | awk '{print $1}')
+          if [ "$current" != "$head" ]; then
+            echo "::error::alembic_version is '$current' but the head is '$head'"
+            exit 1
           fi
+          # `alembic check` is deliberately NOT run: it needs SQLAlchemy ORM
+          # metadata, and the monolith schema is hand-authored DDL
+          # (db/schema.py, target_metadata = None in alembic/env.py), so the
+          # check would fail against a correct schema. Drift between the DDL
+          # and the runtime chain is covered by the idempotent second upgrade
+          # above and by testing/backend/test_alembic_migrations.py.
+          echo "::notice::schema drift check skipped by design - hand-authored DDL, no ORM metadata (see alembic/env.py)"
 
   # ---- 7d. evals deterministic smoke (EX4 spec §5.1, verbatim command) --------
   # PR-gate subset: the DETERMINISTIC checkers only (no judge model calls —

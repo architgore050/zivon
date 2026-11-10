@@ -220,7 +220,9 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
         spec.loader.exec_module(module)
 
         self.assertEqual(module.revision, "0022_translation_memory_c3")
-        self.assertIsNone(module.down_revision)
+        # EX6 weld: EX2's revision is chained onto EX0's head (0002) so the hot
+        # database has exactly one Alembic head — not a second chain root.
+        self.assertEqual(module.down_revision, "0002")
 
         executed_sql: list[str] = []
         fake_op = types.SimpleNamespace(
