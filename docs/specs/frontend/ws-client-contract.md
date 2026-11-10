@@ -94,12 +94,16 @@ signals (DPDP), codec bitrate/FEC settings per network profile.
   100–300 ms) [V: audio skill §4].
 - `speak.end`-to-`ready` transition requires the buffer drained, not the last
   frame received.
-- **Implementation status (2026-11-10):** `frontend/assets/zivon.js` implements
-  this section's frame/sequence bookkeeping and the `speaking` transition ONLY.
-  It does not decode Opus or schedule AudioContext playback, and its gain nodes
-  are bookkeeping values, not a connected output graph. The earlier "jitter
-  buffer / ducking playback" claim was removed from the client header and
-  TIMELINE; real playback lands with the voice backend.
+- **Implementation status (Wave E2, 2026-11-10):** `frontend/assets/zivon.js`
+  implements full Web Audio API downlink playback per `docs/specs/voice-agent/ws-contract.md` §3:
+  the server sends an 8-byte header (`0xA5`, `v=1`, `segment_id`, `seq`, `flags`, `reserved=0`)
+  followed by **little-endian PCM16 mono at `ZIVON_VOICE_TTS_SAMPLE_RATE` (48 kHz default)**.
+  The client decodes PCM16 to `Float32Array`, buffers toward a 60–120 ms target (never
+  hard-scheduling < 150 ms ahead on first chunk), schedules `AudioBufferSourceNode`s through
+  the connected `agentGainNode → audioCtx.destination` graph, ramps gain down over ~50 ms and
+  stops all active sources immediately on `interrupt`/barge-in or `offline`, reuses a single
+  `AudioContext` per session (resumed on first user gesture), and tears down cleanly on
+  `disconnect()` / `pagehide`.
 
 ## 5. Capture constraints [V: audio skill §2]
 
