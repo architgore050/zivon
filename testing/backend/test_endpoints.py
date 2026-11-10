@@ -413,6 +413,35 @@ class TestBackendEndpoints(unittest.TestCase):
         self.assertEqual(ra9.json()["label_selector"], "task=factory-run")
         self.assertEqual(len(ra9.json()["logs"]), 1)
 
+        # API-A9 guard: run_id is a path component. Only the slug allowlist is
+        # accepted, and an unknown (but well-formed) id reads nothing.
+        for bad_run_id in (".hidden", "Upper", "a_b~c"):
+            bad = self.client.get(
+                f"/v1/admin/actions/watch-run/{bad_run_id}/logs", headers=headers
+            )
+            self.assertEqual(bad.status_code, 422, bad_run_id)
+        # Second, independent barrier: a run directory that resolves outside
+        # runs_dir (e.g. a planted symlink) is never read, even with a valid slug.
+        outside = Path(self._tmp.name) / "outside-run"
+        outside.mkdir()
+        (outside / "status.json").write_text('{"leak": true}', encoding="utf-8")
+        link = self.runs_dir / "escape-run"
+        try:
+            link.symlink_to(outside, target_is_directory=True)
+        except OSError:  # pragma: no cover - filesystem without symlink support
+            self.skipTest("symlinks unsupported on this filesystem")
+        escaped = self.client.get(
+            "/v1/admin/actions/watch-run/escape-run/logs", headers=headers
+        )
+        self.assertEqual(escaped.status_code, 200)
+        self.assertEqual(escaped.json()["logs"], [])
+        self.assertNotIn("leak", escaped.text)
+        unknown = self.client.get(
+            "/v1/admin/actions/watch-run/does-not-exist/logs", headers=headers
+        )
+        self.assertEqual(unknown.status_code, 200)
+        self.assertEqual(unknown.json()["logs"], [])
+
         # API-A10: audit log
         ra10 = self.client.get("/v1/admin/audit", headers=headers)
         self.assertEqual(ra10.status_code, 200)

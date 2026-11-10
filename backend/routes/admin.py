@@ -613,11 +613,24 @@ def admin_watch_run_logs(
     if not _RUN_ID_SLUG_RE.match(run_id):
         # run_id is interpolated into filesystem paths — allowlist the slug form only
         raise APIError("E-VALIDATION", status_code=422)
-    run_dir = Path(cfg.runs_dir) / run_id
+    # Second, independent guard: never build the path from the request string.
+    # The directory is looked up in the server-side listing of runs_dir and the
+    # resolved path must stay inside runs_dir, so a traversal segment cannot
+    # reach the filesystem even if the slug allowlist above were relaxed later.
+    runs_root = Path(cfg.runs_dir).resolve()
+    run_dir: Path | None = None
+    if runs_root.is_dir():
+        for candidate in runs_root.iterdir():
+            if candidate.name == run_id and candidate.is_dir():
+                resolved = candidate.resolve()
+                if resolved.parent == runs_root:
+                    run_dir = resolved
+                break
     lines: list[str] = []
-    status_file = run_dir / "status.json"
-    if status_file.is_file():
-        lines.append(status_file.read_text(encoding="utf-8").strip())
+    if run_dir is not None:
+        status_file = run_dir / "status.json"
+        if status_file.is_file():
+            lines.append(status_file.read_text(encoding="utf-8").strip())
 
     return JSONResponse(
         content={
