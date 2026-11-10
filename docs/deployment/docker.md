@@ -63,18 +63,26 @@ P0 (ADR-0020): `voice/ws_api.mount_voice(app)` registers the `/voice/ws` route o
 backend's FastAPI app, so the "voice-backend" Deployment + Service (backend-spec §4.2, manifests
 25–27, owner: core-backend agent) is simply that monolith image with the router mounted.
 
-Gotchas for whoever folds the deps (merge agent):
+The weld is landed in `Dockerfile.backend` (EX6-CICD):
 
-- `voice/requirements.txt` (google-genai, websockets, httpx) must be appended to the core
-  backend image's install list — `voice/` is a top-level package, so a plain `pip install -r` at
-  the repo root covers it only if the monolith Dockerfile copies `voice/` alongside `factory/`.
-  The image stays slim: no torch/pdfplumber/playwright — the brain is remote (ADR-0017).
+- `COPY voice/requirements.txt` + `pip install -r backend/requirements.txt -r voice/requirements.txt`
+  in one deps layer (deps before code), then `COPY voice ./voice`. `voice/` is a top-level
+  package on `PYTHONPATH=/app`, so `from voice.ws_api import mount_voice` resolves in the image.
+  `logging_manager/` (EX3's shared event contract, imported by `voice/logging_surface.py` with no
+  local fallback) ships in the same COPY block — its JSONL path is stdlib-only and the Postgres
+  driver is already in `backend/requirements.txt`.
+- `backend/app.py` mounts the real router with `VoiceSettings.from_env()`; the session-token and
+  IP-hash-salt secrets fall back to the backend's own config, so the backend-issued
+  `session_token` (full HMAC-SHA256 hex digest) validates on the voice channel. The EX0
+  `backend/voice_stub.py` fallback is retired — there is one voice code path.
+- The image stays slim: no torch/pdfplumber/playwright — the brain is remote (ADR-0017).
 - `websockets` is pinned `>=12,<16` per the frozen spec; the client code imports the new asyncio
   API first and falls back to the legacy name, so either line works.
 - Secrets (`ZIVON_VOICE_GEMINI_API_KEY`/`GEMINI_API_KEY`, `GNANI_PRISMA_API_KEY`,
   `GNANI_TIMBRE_API_KEY`) are runtime env from the `zivon-voice-env` Secret (GAP-001 registry) —
   never baked. CI stays key-free: the whole voice test suite runs on mocks
-  (`python -m unittest discover -s testing/voice -t .`).
+  (`python -m unittest discover -s testing/voice -t .`), and the backend suite imports the real
+  app via the mocked-factory seams only.
 - Credit-guard knobs (`ZIVON_VOICE_CREDIT_*`) are unit-placeholder until OQ-06 pins the Gnani
   vendor unit — the founder calibrates the defaults after the first live sessions; the guard
   math itself is unit-agnostic.

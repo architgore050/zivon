@@ -1,10 +1,17 @@
 """Class C3 translation memory, block translations, and glossary tables.
 
 Revision ID: 0022_translation_memory_c3
-Revises: None (chain root until EX0-BACKEND's initial revision lands; merge
-agent asserts single alembic head in CI, and a follow-up welds this onto the
-EX0 initial revision)
+Revises: 0002 (EX0-BACKEND's Wave-E addenda head — this revision is welded onto
+EX0's chain by EX6-CICD so the hot database has exactly ONE Alembic head; both
+version directories are listed in alembic.ini's version_locations)
 Create Date: 2026-11-09
+
+Since EX0's `0002` already ships the same C3 tables (from `db/schema.py`) with
+`CREATE TABLE IF NOT EXISTS` and `ON CONFLICT DO NOTHING` seeds, running this
+revision after `0002` is a schema no-op on a fresh database — it stays as the
+record of EX2's translation contract and keeps every reference to
+`migrations/versions/0022_translation_memory_c3.py` valid. Order it AFTER
+`0002` (never as a second root) and the chain is linear: 0001 -> 0002 -> 0022.
 
 Traces to:
 - ADR-0009 (11-locale model)
@@ -21,10 +28,10 @@ from __future__ import annotations
 from typing import Any
 
 revision: str = "0022_translation_memory_c3"
-# Chain root until EX0-BACKEND's initial revision lands; the merge agent
-# asserts single alembic head in CI. A follow-up change welds this onto the
-# EX0 initial revision once it exists on main.
-down_revision: str | None = None
+# Welded onto EX0-BACKEND's head (`0002`) by EX6-CICD: one linear chain, one
+# head. The DB tables already exist from 0002, so the DDL below is defensive
+# (`IF NOT EXISTS`) and the seed is idempotent (`ON CONFLICT DO NOTHING`).
+down_revision: str | None = "0002"
 branch_labels: tuple[str, ...] | None = None
 depends_on: tuple[str, ...] | None = None
 

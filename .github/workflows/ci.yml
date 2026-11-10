@@ -35,13 +35,35 @@ jobs:
         # Python blocks in Markdown — and redden main with no repo change.
         # Bump deliberately, after a local `ruff check . && ruff format --check .`
         # on the same version. Dependabot rotates requirements.txt, not CI pins.
-        run: pip install ruff==0.17.4 mypy==2.4.1
+        run: pip install ruff==0.17.4 mypy==2.4.1 pyyaml==6.0.3
+      - name: Workflow checker self-test
+        # The checker's own rule fixtures run before the scan, so a rule
+        # cannot silently rot (scripts/check_workflows.py --self-test).
+        run: python3 scripts/check_workflows.py --self-test
+      - name: Workflow hardening checks
+        # YAML parse + SHA pins (step and reusable-workflow level) + no
+        # write-all / pull_request_target + no product secret references.
+        run: python3 scripts/check_workflows.py .
       - name: Ruff lint
         run: ruff check .
       - name: Ruff format check
         run: ruff format --check .
       - name: Mypy type check
-        run: mypy --ignore-missing-imports factory/ docker/ pipeline.py testing/
+        run: |
+          # Fixed core paths + guarded Wave-E extension paths: a package joins
+          # the gate only once its directory exists, so a service landing
+          # mid-wave cannot red the gate before its code exists — and needs
+          # no further yml edit once it does (see cicd.md, path-guard rule).
+          # The candidate list now carries EX0's monolith package names
+          # (backend, db, guard) as well as the Wave-E services, so the
+          # monolith joins the type gate the day its code lands; the merge
+          # agent appends any further EX0 package name here (one line).
+          paths=(factory docker pipeline.py testing)
+          for candidate in voice logging_manager dashboard evals narration \
+                           backend db guard; do
+            if [ -e "$candidate" ]; then paths+=("$candidate"); fi
+          done
+          mypy --ignore-missing-imports "${paths[@]}"
 
   # ---- 2. the image: lint, build, prove it works, scan it ------------------
   docker:
@@ -49,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write      # only for uploading the SBOM artifact
+      actions: read       # only for uploading the SBOM artifact
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: Dockerfile lint (hadolint)
@@ -246,6 +268,29 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    # Postgres 16 service container (backend-spec §12 CI row): the DB the
+    # core-backend test set and the migration chain run against once EX0
+    # lands. Reserved from day one so adding testing/backend needs no yml
+    # edit and the merge gate never flaps on infra churn mid-wave. Key-free:
+    # throwaway CI credentials, not product secrets.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: zivon
+          POSTGRES_PASSWORD: zivon
+          POSTGRES_DB: zivon
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zivon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # Same throwaway value the db-migrations job uses; today's suites never
+      # read it (they are key-free and offline) — the backend suite will.
+      ZIVON_DB_URL: postgresql://zivon:zivon@127.0.0.1:5432/zivon
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
@@ -259,6 +304,40 @@ jobs:
           pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu
           pip install -r requirements.txt
           python -m playwright install --with-deps chromium
+      - name: Install ffmpeg (stage 12 narration encodes Opus)
+        # The narration suite is not a mock of the encoder: it runs the real
+        # ffmpeg path (48 kHz mono WAV -> 24 kb/s Opus, `is_opus` verification)
+        # and the build suite FAILS loud when ffmpeg is absent (NarrationError,
+        # "total synthesis failure"). Do not rely on the runner image: the
+        # hosted `ubuntu-latest` image does not guarantee ffmpeg on PATH — it
+        # was missing on run 42765825432 while the factory image ships it
+        # (Dockerfile apt layer). Install it here so the tests job matches the
+        # environment narration actually runs in. ZIVON_FFMPEG_PATH stays
+        # unset: a PATH install is the documented default.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+      - name: Install Wave-E service deps (guarded — dashboard/voice when they land)
+        # testing/backend imports the real monolith app, which mounts voice/
+        # (EX6 weld, ADR-0020) — so the job installs voice/requirements.txt the
+        # same way the image does (Dockerfile.backend), or the backend suite
+        # would be a weaker environment than the image it gates.
+        # testing/observability/test_dashboard.py imports the real FastAPI app,
+        # which needs dashboard/requirements.txt (python-multipart backs the
+        # /admin/login form dependency). Path-guarded like every other Wave-E
+        # seam: green before either package lands, active after.
+        run: |
+          if [ -f dashboard/requirements.txt ]; then
+            pip install -r dashboard/requirements.txt
+          else
+            echo "dashboard/requirements.txt not on this branch yet — reserved (path guard passes)"
+          fi
+          if [ -f voice/requirements.txt ]; then
+            pip install -r voice/requirements.txt
+          else
+            echo "voice/requirements.txt not on this branch yet — reserved (path guard passes)"
+          fi
       - name: Content factory unit tests (fast, no network, no browser; embedder is a fixture)
         run: python -m unittest discover -s testing/content_factory/unit -t . -v
       - name: Content factory integration test (real orchestrator vs mock inference server + real headless Chromium)
@@ -266,3 +345,292 @@ jobs:
         run: python -m unittest testing.content_factory.integration.test_end_to_end -v
       - name: Frontend shell + behaviour tests (headless Chromium)
         run: python -m unittest discover -s testing/frontend -t . -v
+      - name: Wave-E test suites (each runs once its folder lands)
+        # Same path-guard rule as the mypy extension: EX0-EX8 add the test
+        # sets (testing/backend, testing/voice, testing/translation,
+        # testing/narration, testing/observability, testing/logging_manager,
+        # testing/evals) under the repo's unittest layout — this loop runs
+        # each suite only when its folder exists, so a suite landing mid-wave
+        # is covered automatically without another yml edit. Any suite
+        # failure fails the job; the guard only skips ABSENT folders.
+        run: |
+          status=0
+          for d in backend voice translation narration observability logging_manager evals; do
+            if [ -d "testing/$d" ]; then
+              echo "=== testing/$d ==="
+              python -m unittest discover -s "testing/$d" -t . -v || status=1
+            else
+              echo "testing/$d not on this branch yet — reserved (path guard passes)"
+            fi
+          done
+          exit $status
+
+  # ---- 7. Wave-E reserved image gates ----------------------------------------
+  # Path-guard doctrine (docs/deployment/cicd.md § Path guards): every new
+  # service job below is written so it PASSES BEFORE the service exists —
+  # a single guard step checks for the image's Dockerfile and the build/smoke/
+  # scan steps run only when it landed. Adding a service therefore cannot red
+  # the gate, and the day it lands its full gate activates with no yml edit.
+  # Smoke pattern: docker/smoke_http_service.sh (boot-with-config -> healthz,
+  # refuses-without-config — see the script header for the semantics).
+
+  # ---- 7a. the core-backend monolith image (backend-spec §12 CI row) --------
+  # voice/ has NO image of its own (ADR-0020): it mounts into this monolith,
+  # so this one job gates both (mypy/pytest coverage comes from the quality
+  # + tests guard loops above).
+  backend-image:
+    name: Core-backend image (guard = Dockerfile.backend)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - id: guard
+        name: Path guard (green until EX0 lands Dockerfile.backend)
+        run: |
+          if [ -f Dockerfile.backend ]; then
+            echo "landed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dockerfile.backend not on this branch yet - the core-backend image gate is reserved and green by design (backend-spec §12; wiring notes in docs/deployment/cicd.md)"
+          fi
+      - name: Dockerfile lint (hadolint)
+        if: steps.guard.outputs.landed == 'true'
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
+        with:
+          dockerfile: Dockerfile.backend
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+        if: steps.guard.outputs.landed == 'true'
+      - name: Build image (GitHub Actions layer cache)
+        if: steps.guard.outputs.landed == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.backend
+          load: true                       # load into the runner's docker for the steps below
+          tags: zivon-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test (boot-with-config, /healthz; llm-manager pattern)
+        # Boot contract assumption (adjust when EX0 lands the image): the
+        # monolith boots with config env present even against a DEAD Postgres
+        # (127.0.0.1:9) and answers /healthz - the smoke proves config wiring,
+        # not DB connectivity (that is the db-migrations job's business).
+        if: steps.guard.outputs.landed == 'true'
+        run: |
+          docker/smoke_http_service.sh \
+            --image zivon-backend:${{ github.sha }} \
+            --name zivon-backend-smoke \
+            --port 18095:8000 \
+            --boot-env ZIVON_DB_URL=postgresql://zivon:smoke@127.0.0.1:9/zivon \
+            --boot-env ZIVON_ENV=dev
+      - name: Refuses to boot without config (no silent defaults)
+        if: steps.guard.outputs.landed == 'true'
+        run: |
+          docker/smoke_http_service.sh \
+            --image zivon-backend:${{ github.sha }} \
+            --refuse-without-config \
+            --config-error-pattern 'ZIVON_DB_URL|ZIVON_ENV|required|missing'
+      - name: Image vulnerability scan (trivy)
+        if: steps.guard.outputs.landed == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-backend:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
+          ignore-unfixed: true
+
+  # ---- 7b. the admin dashboard image (dashboard-spec §1 integration note I-2)
+  # No refuse-without-config check BY SPEC: without its admin Secret the
+  # dashboard still boots and /healthz answers (fail-closed happens per
+  # request, 503 on admin routes + dashboard.auth_unconfigured).
+  dashboard-image:
+    name: Dashboard image (guard = Dockerfile.dashboard)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - id: guard
+        name: Path guard (green until EX3 lands Dockerfile.dashboard)
+        run: |
+          if [ -f Dockerfile.dashboard ]; then
+            echo "landed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dockerfile.dashboard not on this branch yet - the dashboard image gate is reserved and green by design (dashboard-spec §1 I-2; wiring notes in docs/deployment/cicd.md)"
+          fi
+      - name: Dockerfile lint (hadolint)
+        if: steps.guard.outputs.landed == 'true'
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
+        with:
+          dockerfile: Dockerfile.dashboard
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+        if: steps.guard.outputs.landed == 'true'
+      - name: Build image (GitHub Actions layer cache)
+        if: steps.guard.outputs.landed == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.dashboard
+          load: true                       # load into the runner's docker for the steps below
+          tags: zivon-dashboard:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test (boots with fallback store, /healthz answers)
+        if: steps.guard.outputs.landed == 'true'
+        run: |
+          docker/smoke_http_service.sh \
+            --image zivon-dashboard:${{ github.sha }} \
+            --name zivon-dashboard-smoke \
+            --port 18096:8000 \
+            --boot-env ZIVON_ENV=dev
+      - name: Image vulnerability scan (trivy)
+        if: steps.guard.outputs.landed == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: zivon-dashboard:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
+          ignore-unfixed: true
+          # ONLY the vendored-module CVEs of the upstream kubectl binary;
+          # every entry is justified and dated in the file itself.
+          trivyignores: docker/.trivyignore-dashboard
+
+  # ---- 7c. the migration chain (backend-spec §12: Alembic against a fresh DB)
+  # Upgrade-from-empty proves the chain builds the schema with no hand steps.
+  # Guard: the migration chain's location is EX0's choice (alembic.ini at
+  # repo root, migrations/, or backend/) — the job runs whichever landed;
+  # until then it is a reserved green gate.
+  db-migrations:
+    name: Alembic upgrade-from-empty (guard = migration chain)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: zivon
+          POSTGRES_PASSWORD: zivon
+          POSTGRES_DB: zivon
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zivon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      ZIVON_DB_URL: postgresql://zivon:zivon@127.0.0.1:5432/zivon
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - id: guard
+        name: Path guard (green until EX0 lands the migration chain)
+        run: |
+          found=""
+          for f in migrations/alembic.ini backend/alembic.ini alembic.ini; do
+            if [ -f "$f" ]; then found="$f"; break; fi
+          done
+          echo "alembic_ini=$found" >> "$GITHUB_OUTPUT"
+          if [ -n "$found" ]; then
+            echo "landed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::no alembic.ini yet - the migration gate is reserved and green by design (backend-spec §12; ADR-0016)"
+          fi
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        if: steps.guard.outputs.landed == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        if: steps.guard.outputs.landed == 'true'
+        # The chain is the CORE BACKEND's, so install the core backend's own
+        # pins (backend/requirements.txt: alembic + SQLAlchemy + psycopg 3) —
+        # the same set Dockerfile.backend ships. NOT root requirements.txt:
+        # that is the factory's set (no alembic), and a probe of `import
+        # alembic` there resolves the repo's own `alembic/` directory as an
+        # implicit namespace package, falsely "finding" the CLI and skipping
+        # the install (that is how this job reddened on run 42771064418).
+        # The fallback keeps the gate green if only the ini landed first.
+        run: |
+          if [ -f backend/requirements.txt ]; then
+            pip install -r backend/requirements.txt
+          else
+            pip install alembic==1.14.0 'sqlalchemy==2.0.36' 'psycopg[binary]==3.2.3'
+          fi
+          command -v alembic >/dev/null || {
+            echo "::error::alembic CLI is not on PATH after installing the backend pins"; exit 1; }
+          alembic --version
+      - name: Upgrade from empty, twice (idempotent second run)
+        if: steps.guard.outputs.landed == 'true'
+        run: |
+          cd "$(dirname "${{ steps.guard.outputs.alembic_ini }}")"
+          # A migration chain must be LINEAR: more than one head means two
+          # branches diverged (e.g. an orphan revision next to EX0's 0002
+          # baseline) and "upgrade head" is ambiguous. Fail loudly instead of
+          # letting Alembic pick. alembic.ini's version_locations spans both
+          # alembic/versions (0001 -> 0002) and migrations/versions (EX2's
+          # 0022, welded with down_revision = "0002"), so the single head here
+          # proves the two directories are one chain.
+          heads=$(alembic heads | grep -c . || true)
+          if [ "$heads" -ne 1 ]; then
+            echo "::error::alembic reports $heads heads - the chain must be linear with exactly one head"
+            alembic heads
+            exit 1
+          fi
+          alembic upgrade head
+          alembic upgrade head      # second run must be a no-op (no drift)
+          # Post-condition, not a vibe: the database's recorded revision is
+          # the single head we just printed.
+          head=$(alembic heads | awk '{print $1}')
+          current=$(alembic current | awk '{print $1}')
+          if [ "$current" != "$head" ]; then
+            echo "::error::alembic_version is '$current' but the head is '$head'"
+            exit 1
+          fi
+          # `alembic check` is deliberately NOT run: it needs SQLAlchemy ORM
+          # metadata, and the monolith schema is hand-authored DDL
+          # (db/schema.py, target_metadata = None in alembic/env.py), so the
+          # check would fail against a correct schema. Drift between the DDL
+          # and the runtime chain is covered by the idempotent second upgrade
+          # above and by testing/backend/test_alembic_migrations.py.
+          echo "::notice::schema drift check skipped by design - hand-authored DDL, no ORM metadata (see alembic/env.py)"
+
+  # ---- 7d. evals deterministic smoke (EX4 spec §5.1, verbatim command) --------
+  # PR-gate subset: the DETERMINISTIC checkers only (no judge model calls —
+  # the suite must run key-free like every other gate). The full eval suite
+  # (judges + calibration) stays in-cluster on the k8s/52 CronJob cadence.
+  evals-smoke:
+    name: Evals deterministic smoke (guard = evals package)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - id: guard
+        name: Path guard (green until EX4 lands the evals package)
+        run: |
+          if [ -f evals/__main__.py ]; then
+            echo "landed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::evals/ not on this branch yet - the eval smoke gate is reserved and green by design (evals spec §5.1; starts gating on real regressions the moment the package lands)"
+          fi
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        if: steps.guard.outputs.landed == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        if: steps.guard.outputs.landed == 'true'
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Run deterministic eval smoke suite on golden sets
+        if: steps.guard.outputs.landed == 'true'
+        run: python -m evals run --suite smoke --fail-on-regression

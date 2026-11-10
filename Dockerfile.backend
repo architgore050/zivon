@@ -1,11 +1,16 @@
 # syntax=docker/dockerfile:1
 # Zivon core backend monolith image (ADR-0005, ADR-0020):
-# FastAPI modular monolith (`backend/`, `db/`, `guard/`, `alembic/`) + mount
-# seam for `voice/` (EX1-VOICE).
+# FastAPI modular monolith (`backend/`, `db/`, `guard/`, `alembic/`) with the
+# voice loop mounted in-process (`voice/`, EX1-VOICE — one image, no separate
+# voice deployment per ADR-0020).
 #
 #   Build:  docker build -f Dockerfile.backend -t zivon-backend:0.1.0 .
 #   Smoke:  docker run --rm zivon-backend:0.1.0 python -m backend --smoke
-#   Run:    docker run --rm -p 8000:8000 zivon-backend:0.1.0
+#   Run:    docker run --rm -p 8000:8000 \
+#             -e ZIVON_ENV=dev -e ZIVON_DB_URL=sqlite:///:memory: \
+#             zivon-backend:0.1.0
+#           (ZIVON_ENV is required: the server refuses to boot on silent
+#           defaults — see backend/__main__.py)
 
 FROM python:3.12-slim
 
@@ -22,16 +27,27 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies BEFORE copying application code for layer caching.
+# Install dependencies BEFORE copying application code for layer caching. The
+# voice loop owns its own small requirements file (google-genai, websockets) so
+# backend/ stays the slim FastAPI+DB set; both install in one layer.
 COPY backend/requirements.txt ./backend/requirements.txt
-RUN pip install --no-cache-dir -r backend/requirements.txt
+COPY voice/requirements.txt ./voice/requirements.txt
+RUN pip install --no-cache-dir \
+        -r backend/requirements.txt \
+        -r voice/requirements.txt
 
-# Copy only the backend monolith packages and Alembic migration assets.
+# Copy the backend monolith packages, the mounted voice package (which also
+# imports the shared logging_manager contract — no local fallback), and the
+# Alembic migration assets (alembic.ini's version_locations spans both
+# alembic/versions and migrations/versions).
 COPY alembic.ini ./alembic.ini
 COPY alembic ./alembic
+COPY migrations ./migrations
 COPY db ./db
 COPY guard ./guard
+COPY logging_manager ./logging_manager
 COPY backend ./backend
+COPY voice ./voice
 COPY scripts/trigger-tests.sh ./scripts/trigger-tests.sh
 COPY scripts/trigger-factory-run.sh ./scripts/trigger-factory-run.sh
 COPY scripts/logs-factory-run.sh ./scripts/logs-factory-run.sh

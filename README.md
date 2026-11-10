@@ -107,6 +107,16 @@ ZIVON_ADMIN_TOKEN=<secret> docker compose up -d dashboard    # admin dashboard v
 - `runs/`, PDF/text caches, and the HuggingFace model cache are mounted as volumes, so containers stay disposable and caches survive between runs.
 - `docker-compose.yml` is the local dev runner; Kubernetes manifests come with the deployment setup.
 
+**Dev stack for the incoming Wave-E services** (opt-in profile — the default `compose up` commands above behave exactly as before):
+
+```bash
+docker compose --profile dev-stack run --rm evals-runner  # deterministic eval smoke (profile-gated; backend+postgres run non-profiled: `docker compose up -d backend`); the dashboard keeps its own `docker compose up -d dashboard` (:8082)
+docker compose --profile backend up -d      # db + core-backend (:8090) — needs EX0's Dockerfile.backend
+docker compose run --rm evals-runner        # deterministic eval smoke (no model calls)
+```
+
+These boot key-free by design (config-only env, throwaway dev DB credentials) and error only when a service's Dockerfile has not landed yet — see [`docs/deployment/cicd.md`](docs/deployment/cicd.md) § Path guards.
+
 ## Kubernetes (local cluster)
 
 Manifests live in `k8s/` (numeric prefix = apply order); `k8s/infra.env` is the single source of truth for cluster config values (test cadence, inference server URL, model). Local cluster is minikube with the docker driver:
@@ -132,7 +142,7 @@ scripts/publish-frontend.sh               # mirror the cluster-built site (cours
 
 ## CI/CD (GitHub Actions)
 
-Merge gate (`.github/workflows/ci.yml`, required on every PR to `main`): ruff lint/format, mypy, Dockerfile lint (hadolint), image build + smoke test, image CVE scan (trivy), SBOM artifact, secret-leak scan (gitleaks), dependency audit (pip-audit), manifest checks (kubeconform + kube-linter). Code scanning (`.github/workflows/codeql.yml`) analyzes our Python code weekly and on every PR. Dependabot watches pip/docker/actions dependencies. All third-party actions are pinned to commit SHAs; `GITHUB_TOKEN` permissions are least-privilege.
+Merge gate (`.github/workflows/ci.yml`, required on every PR to `main`): ruff lint/format, mypy, Dockerfile lint (hadolint), image build + smoke test, image CVE scan (trivy), SBOM artifact, secret-leak scan (gitleaks), dependency audit (pip-audit), manifest checks (kubeconform + kube-linter), and the test suites — plus the path-guarded Wave-E gates (core-backend image, dashboard image, Alembic upgrade-from-empty, evals deterministic smoke) that stay green until each service lands, and a Postgres 16 service container the backend suites and migrations run against. Code scanning (`.github/workflows/codeql.yml`) analyzes our Python code weekly and on every PR. **Promotion** (`.github/workflows/promotion.yml`): `main` → `prod` only through it — security gate (gitleaks, pip-audit, manifests, CodeQL, build + trivy of every shipping image), then the founder approves by merging the promotion PR. Dependabot watches pip/docker/actions dependencies. All third-party actions are pinned to commit SHAs; `GITHUB_TOKEN` permissions are least-privilege; CI runs key-free.
 
 Branch protection on `main` (Settings → Branches): require PR + these checks green before merge — configured once in the repo UI.
 
@@ -146,7 +156,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md`](docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
-| [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status |
+| [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status — incl. the secrets registry (`secrets.md`) and the Wave-E reserved manifest numbering map |
 | [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status) |
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | [`docs/backend/`](docs/backend/) | Stage-2 systems specs (2026-11-07): backend spec (APIs, voice WebSocket contract, guard), database spec (Postgres schema), storage-tiering spec (cache / hot DB / cold provider), capacity & cost model, 16 ADRs |

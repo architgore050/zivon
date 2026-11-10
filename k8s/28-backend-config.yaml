@@ -15,10 +15,29 @@ data:
   ZIVON_BACKEND_PORT: "8000"
   ZIVON_RUNS_DIR: "/app/runs"
   ZIVON_COLD_STAGING_DIR: "/tmp/zivon-cold-staging"
-  ZIVON_VOICE_BRAIN_TRANSPORT: "gemini-direct"
-  ZIVON_VOICE_BRAIN_MODEL: "gemma-4-26b-a4b-it"
   COLD_PROVIDER: "b2"
   COLD_BUCKET_PRIMARY: "zivon-cold-primary"
   COLD_BUCKET_SECONDARY: "zivon-cold-secondary"
   ZIVON_NOTICE_VERSION: "zivon-voice-notice-v1"
   ZIVON_CONSENT_VERSION: "v1"
+  # --- voice loop (EX1, voice-agent spec §12) ------------------------------
+  # The monolith mounts voice/ in-process (ADR-0020), so every ZIVON_VOICE_*
+  # knob from k8s/infra.env must reach this container. Empty endpoint URLs /
+  # voice mean "not configured yet": the loop degrades honestly (F1/F4:
+  # text path, no mic) instead of guessing a vendor endpoint. API keys are
+  # NOT here — they live only in Secret zivon-voice-env.
+  ZIVON_VOICE_BRAIN_TRANSPORT: "gemini-direct"
+  ZIVON_VOICE_BRAIN_MODEL: "gemma-4-26b-a4b-it"
+  ZIVON_VOICE_STT_URL: ""
+  ZIVON_VOICE_TTS_URL: ""
+  ZIVON_VOICE_TTS_VOICE: ""
+  ZIVON_VOICE_TTS_TAG_MAX_PER_TURN: "8"
+  ZIVON_VOICE_TTS_CHAR_CAP_TURN: "1200"
+  ZIVON_VOICE_THINKING_SUMMARIES: "off"
+  ZIVON_VOICE_BRAIN_INACTIVITY_S: "4"
+  ZIVON_VOICE_BRAIN_FIRST_EVENT_S: "3"
+  ZIVON_VOICE_BRAIN_TURN_DEADLINE_S: "45"
+  ZIVON_VOICE_CREDIT_DAILY_TRANCHE: "1000"
+  ZIVON_VOICE_CREDIT_PER_USER_CAP: "30"
+  ZIVON_VOICE_CREDIT_DEMO_TRANCHE: ""
+  ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP: ""

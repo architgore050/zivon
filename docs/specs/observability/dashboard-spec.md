@@ -9,7 +9,7 @@
 | Manifests | `k8s/23-dashboard-deployment.yaml`, `k8s/24-dashboard-service.yaml` (numbers reserved in the mission brief; apply order between 20-factory-run and 30-frontend) |
 | Service | ClusterIP `dashboard.zivon.svc.cluster.local:80`; reached via `kubectl port-forward` or the edge route if `ZIVON_PUBLIC_BASE_URL` is set |
 | Image | New `Dockerfile.dashboard` (python:slim + FastAPI + uvicorn + driver), tag pinned in the manifest per gotcha 9; **new CI job required** (build + smoke + scan) — integration note I-2, the infra agent owns the workflow edit |
-| Namespace/config | `zivon`; env via `k8s/infra.env` line-edits (`ZIVON_LOG_DSN`, `ZIVON_PUBLIC_BASE_URL`, `ZIVON_ENV`, `ZIVON_LOG_SYNC_SCHEDULE`), secret `zivon-admin-auth` (key `ZIVON_ADMIN_TOKEN`) mounted env-only — secrets never in manifests (AGENTS.md) |
+| Namespace/config | `zivon`; env via `k8s/infra.env` line-edits (`ZIVON_PUBLIC_BASE_URL`, `ZIVON_ENV`, `ZIVON_LOG_SYNC_SCHEDULE`), secret `zivon-admin-auth` (key `ZIVON_ADMIN_TOKEN`) and `zivon-backend-env` (key `ZIVON_LOG_DSN`) mounted env-only — secrets never in manifests, never in `infra.env` (AGENTS.md) |
 | Resources | requests 64 Mi / 50 m, limits 256 Mi / 250 m (a read-mostly UI; measured post-deploy, retuned with evidence) |
 | Probes | `/healthz` (liveness+readiness): 200 when the process is up and the store is reachable OR fallback is active (a dashboard that cannot read the store says so on the page — it does not flap) |
 | Data mounts | `runs/` PVC **read-only** (run artifacts, status.json, run_report.json); no other volumes; sessions in-memory (single replica, ADR-0026) |

@@ -25,6 +25,14 @@ Easier: `/v1/health` exposes schema_version; rollback = `alembic downgrade -1` +
 rotation (gotcha 9). Harder: CI needs a throwaway DB + a downloaded base backup (small pipeline
 addition to `ci.yml`). Monitor: migration duration in CI (> 60 s = index-building smell).
 
+Implementation note (2026-11-10, EX6 weld): the chain runs with the driver the monolith image
+actually ships — `psycopg` 3 — so `alembic/env.py` normalizes `postgresql://` and
+`postgresql+asyncpg://` DSNs to `postgresql+psycopg://` (SQLAlchemy's default for a bare
+`postgresql://` URL is psycopg2, which is not installed; that mismatch used to be swallowed into
+a fallback that bypassed the revision files). The schema itself is hand-authored DDL
+(`db/schema.py`, no ORM models), so `alembic check`/autogenerate is not applicable; the drift
+gate is the idempotent second `upgrade head` plus the schema round-trip test.
+
 ## Revisit trigger (measurable)
 None anticipated pre-growth; if partition DDL (target revisions) outgrows Alembic ergonomics,
 pair it with pg_partman — additive, not a replacement.

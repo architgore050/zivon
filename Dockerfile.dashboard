@@ -19,8 +19,12 @@ FROM python:3.12-slim
 
 # Kubectl version pinned like every other tool (a floating pin would let an
 # upstream release change the gate under us). args so the pin is visible and
-# overridable in one place.
-ARG KUBECTL_VERSION=v1.31.2
+# overridable in one place. Bumped v1.31.2 -> v1.37.2 on 2026-11-10: the old
+# binary's embedded Go stdlib carried fixable HIGH CVEs (net/http, crypto/tls,
+# html/template) that the trivy gate rejects; the current release ships a
+# patched Go. kubectl stays within +/-1 minor of the cluster version at apply
+# time - re-pin together with the cluster upgrade.
+ARG KUBECTL_VERSION=v1.37.2
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -32,6 +36,10 @@ WORKDIR /app
 # reasoning as Dockerfile.llm-manager: the base's frozen apt index hides
 # published fixes from trivy). curl + ca-certificates are needed only to
 # fetch kubectl below; tini-free (uvicorn handles its own signals).
+# Whole-tree and unpinned on purpose: Debian drops old point revisions from the
+# archive, so exact pins rot within days — the same call Dockerfile documents
+# for its own apt layer (hadolint DL3008).
+# hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends curl ca-certificates \
@@ -45,7 +53,7 @@ RUN set -eux; \
     curl -fsSL -o /usr/local/bin/kubectl \
       "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${arch}/kubectl"; \
     chmod 0555 /usr/local/bin/kubectl; \
-    kubectl version --client=true --output=yaml | head -n 3
+    kubectl version --client=true --output=yaml > /dev/null
 
 # Install dependencies BEFORE copying code (layer cache: code edits do not
 # re-download the wheels).
@@ -65,9 +73,10 @@ COPY logging_manager ./logging_manager
 # truth (a second in-package copy would drift from the CSV tests lint).
 COPY docs/specs/observability/instrumentation-map.csv \
     ./docs/specs/observability/instrumentation-map.csv
-COPY scripts/trigger-tests.sh scripts/trigger-factory-run.sh ./scripts/
 COPY k8s/20-factory-run-job.yaml ./k8s/20-factory-run-job.yaml
-RUN chmod 0555 scripts/trigger-tests.sh scripts/trigger-factory-run.sh
+# Executable bits in the COPY itself: a trailing `RUN chmod` would be a second
+# consecutive RUN with the useradd below (hadolint DL3059).
+COPY --chmod=0555 scripts/trigger-tests.sh scripts/trigger-factory-run.sh ./scripts/
 
 # Never run as root: fixed UID + numeric USER (gotcha 1, same as the other
 # images). Everything the pod writes goes to mounted volumes / tmp.
