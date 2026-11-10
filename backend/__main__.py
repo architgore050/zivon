@@ -34,6 +34,19 @@ def main(argv: list[str] | None = None) -> int:
         print("usage: python -m backend [--smoke]")
         return 0
 
+    # Config via env only, no silent defaults (repo rule; CI's
+    # refuse-without-config smoke gate): the long-running server must be told
+    # which environment it is in. ZIVON_DB_URL keeps its documented dev
+    # fallback once ZIVON_ENV=dev is explicit, but a bare container refuses.
+    if not os.environ.get("ZIVON_ENV", "").strip():
+        print(
+            "config error: ZIVON_ENV is required (dev|cluster|prod); "
+            "the server never boots on implicit defaults — set ZIVON_ENV "
+            "and ZIVON_DB_URL from the environment",
+            file=sys.stderr,
+        )
+        return 2
+
     strict = os.environ.get("ZIVON_ENV", "dev").strip() in ("cluster", "prod")
     cfg = BackendConfig.from_env(strict_secrets=strict)
     app = create_app(cfg)

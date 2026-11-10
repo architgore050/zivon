@@ -91,7 +91,12 @@ def issue_session_token(
     import base64
 
     body = base64.urlsafe_b64encode(payload.encode()).decode().rstrip("=")
-    sig = hmac.new(key.encode(), body.encode(), hashlib.sha256).hexdigest()[:32]
+    # Full HMAC-SHA256 hex digest: this must stay byte-compatible with the
+    # core backend's IdentityManager._sign (backend/identity.py), because the
+    # core backend issues the real session_token and this package only
+    # validates it (EX6 weld: a truncated digest silently 4401'd every
+    # backend-issued token).
+    sig = hmac.new(key.encode(), body.encode(), hashlib.sha256).hexdigest()
     return f"{body}.{sig}"
 
 
@@ -113,7 +118,7 @@ class TokenValidator:
             return None
         expected = hmac.new(
             self._key.encode(), body.encode(), hashlib.sha256
-        ).hexdigest()[:32]
+        ).hexdigest()
         if not hmac.compare_digest(sig, expected):
             return None
         try:

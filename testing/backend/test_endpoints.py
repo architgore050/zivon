@@ -451,7 +451,8 @@ class TestBackendEndpoints(unittest.TestCase):
         self.assertIn("trigger.run-tests", actions)
         self.assertIn("trigger.generate-topic", actions)
 
-    def test_voice_websocket_mount_stub(self) -> None:
+    def test_voice_websocket_mount(self) -> None:
+        """The monolith serves the real voice loop at /voice/ws (ADR-0020)."""
         dev_id = str(uuid.uuid4())
         self.client.put(
             "/v1/consent",
@@ -467,14 +468,18 @@ class TestBackendEndpoints(unittest.TestCase):
             json={"device_pseudo_id": dev_id, "lang": "en-IN"},
         ).json()["session_token"]
 
-        with self.client.websocket_connect(f"/v1/voice?session_token={tok}") as ws:
-            ws.send_json({"type": "ping"})
-            reply = ws.receive_json()
-            self.assertEqual(reply["type"], "pong")
-            ws.send_json({"type": "session.start", "session_token": tok})
+        # A backend-issued token must validate in the mounted voice endpoint
+        # (same HMAC key + digest — the EX6 auth weld).
+        self.assertIsNotNone(self.app.state.voice.auth.validate(tok))
+
+        with self.client.websocket_connect(f"/voice/ws?session_token={tok}") as ws:
+            ws.send_json({"type": "session.start", "v": 1, "session_token": tok})
+            ready = ws.receive_json()
+            self.assertEqual(ready["type"], "session.ready")
+            self.assertEqual(ready["state"], "idle")
             state_msg = ws.receive_json()
-            self.assertEqual(state_msg["type"], "state")
-            self.assertEqual(state_msg["payload"]["state"], "voice_enabled")
+            self.assertEqual(state_msg["type"], "agent.state")
+            self.assertEqual(state_msg["state"], "idle")
 
 
 if __name__ == "__main__":

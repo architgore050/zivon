@@ -318,18 +318,25 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg
           ffmpeg -version | head -n 1
-      - name: Install Wave-E service deps (guarded — dashboard when it lands)
+      - name: Install Wave-E service deps (guarded — dashboard/voice when they land)
+        # testing/backend imports the real monolith app, which mounts voice/
+        # (EX6 weld, ADR-0020) — so the job installs voice/requirements.txt the
+        # same way the image does (Dockerfile.backend), or the backend suite
+        # would be a weaker environment than the image it gates.
         # testing/observability/test_dashboard.py imports the real FastAPI app,
         # which needs dashboard/requirements.txt (python-multipart backs the
-        # /admin/login form dependency). The factory image installs that file
-        # too (Dockerfile.dashboard); the tests job must not be a weaker
-        # environment than the image it gates. Path-guarded like every other
-        # Wave-E seam: green before dashboard/ lands, active after.
+        # /admin/login form dependency). Path-guarded like every other Wave-E
+        # seam: green before either package lands, active after.
         run: |
           if [ -f dashboard/requirements.txt ]; then
             pip install -r dashboard/requirements.txt
           else
             echo "dashboard/requirements.txt not on this branch yet — reserved (path guard passes)"
+          fi
+          if [ -f voice/requirements.txt ]; then
+            pip install -r voice/requirements.txt
+          else
+            echo "voice/requirements.txt not on this branch yet — reserved (path guard passes)"
           fi
       - name: Content factory unit tests (fast, no network, no browser; embedder is a fixture)
         run: python -m unittest discover -s testing/content_factory/unit -t . -v

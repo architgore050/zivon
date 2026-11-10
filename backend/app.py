@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+import logging
 import re
 import uuid
 from collections.abc import Callable
@@ -11,6 +13,9 @@ from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from voice.config import VoiceSettings
+from voice.ws_api import mount_voice
+
 from .config import BackendConfig
 from .errors import (
     APIError,
@@ -19,7 +24,8 @@ from .errors import (
     validation_error_handler,
 )
 from .logging_shim import context_scope
-from .voice_stub import mount_voice_channel
+
+logger = logging.getLogger(__name__)
 
 _UUID_RE = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -43,6 +49,7 @@ def create_app(
     app.state.config = cfg
     app.state.db = db_engine
     app.state.guard = credit_guard
+    app.state.db_boot_error = None
 
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
@@ -85,6 +92,20 @@ def create_app(
     @app.get("/readyz")
     def readiness_probe() -> JSONResponse:
         """Readiness probe checking database connectivity when configured."""
+        db_boot_error = getattr(app.state, "db_boot_error", None)
+        if db_boot_error is not None:
+            # The process is alive (liveness stays green) but it booted without
+            # its database, so it must not receive traffic until redeployed/
+            # fixed. Never report "ok" for a store that failed to initialize.
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "ok": False,
+                    "status": "degraded",
+                    "db": "boot_failed",
+                    "error_class": db_boot_error,
+                },
+            )
         db = getattr(app.state, "db", None)
         if db is not None and hasattr(db, "ping") and not db.ping():
             return JSONResponse(
@@ -95,8 +116,22 @@ def create_app(
 
     _wire_components(app, cfg, db_engine=db_engine, credit_guard=credit_guard)
 
-    app.state.voice_mount_mode = mount_voice_channel(app)
+    # The voice loop (ADR-0020): voice/ mounts into this monolith. Settings come
+    # from the ZIVON_VOICE_* env family; the session-token/IP-salt secrets fall
+    # back to the backend's own config so both halves verify the same tokens.
+    app.state.voice = mount_voice(app, settings=_voice_settings(cfg))
     return app
+
+
+def _voice_settings(cfg: BackendConfig) -> VoiceSettings:
+    """Voice settings from the environment, sharing the backend's auth secrets."""
+    settings = VoiceSettings.from_env()
+    overrides: dict[str, Any] = {}
+    if not settings.session_token_key:
+        overrides["session_token_key"] = cfg.session_token_key
+    if not settings.ip_hash_salt:
+        overrides["ip_hash_salt"] = cfg.ip_hash_salt
+    return dataclasses.replace(settings, **overrides) if overrides else settings
 
 
 def _wire_components(
@@ -113,8 +148,20 @@ def _wire_components(
 
             db_engine = DatabaseEngine.from_url(cfg.db_url, auto_migrate=True)
             app.state.db = db_engine
+            app.state.db_boot_error = None
         except ImportError:
-            pass
+            app.state.db_boot_error = None
+        except Exception as exc:
+            # Liveness is a process check (backend-spec §6): a dead database
+            # must not make /healthz unreachable (the k8s liveness probe would
+            # kill-loop a healthy process while Postgres restarts). Record the
+            # failure loudly, serve /healthz, and fail /readyz 503 until fixed.
+            logger.exception(
+                "database initialization failed at boot (%s); "
+                "serving liveness only, readiness is degraded",
+                type(exc).__name__,
+            )
+            app.state.db_boot_error = type(exc).__name__
 
     if app.state.db is not None:
         from .logging_shim import register_db_sink
