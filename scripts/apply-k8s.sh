@@ -12,16 +12,26 @@
 #      28 = backend config, 30/40 = frontend). k8s/20 is deliberately NOT
 #      applied: factory generation is manual-only
 #      (scripts/trigger-factory-run.sh).
-#   4. the test CronJob (50) and retention/sync CronJobs (53) rendered with
-#      schedules from infra.env
-#   5. one immediate full test run (scripts/trigger-tests.sh startup)
+#   4. the test CronJob (50), retention (51) and eval (52) CronJobs and the
+#      sync/backup CronJobs (53) rendered with schedules from infra.env
+#   5. one immediate full test run (scripts/trigger-tests.sh startup) and one
+#      smoke eval run (scripts/trigger-evals.sh smoke startup)
+#
+# ConfigMaps are read by pods ONLY at start: after the ConfigMaps are applied,
+# the llm-manager Deployment is rollout-restarted so an endpoint/model/knob
+# change in infra.env actually reaches the running node (an unchanged
+# Deployment manifest alone never restarts it - the node would keep the old
+# env and refuse calls naming the new model; gotcha 18).
+#
+# Jobs are immutable: the smoke Job is deleted + re-applied so it re-runs as a
+# post-apply health check. The run Job (k8s/20) is a template and never applied.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck disable=SC1091
 source k8s/infra.env
 # export so envsubst (a child process) can see the values — sourced vars are
 # shell-local by default.
-export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
+export TEST_CRON_SCHEDULE EVAL_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
   ZIVON_CALL_DEADLINE_S ZIVON_STREAM ZIVON_STREAM_USAGE ZIVON_JSON_MODE \
   ZIVON_MAX_ATTEMPTS \
   ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL \
@@ -104,6 +114,11 @@ kubectl apply -f k8s/23-dashboard-deployment.yaml -f k8s/24-dashboard-service.ya
 envsubst '${ZIVON_LOG_SYNC_SCHEDULE}' < k8s/51-log-retention-cronjob.yaml | kubectl apply -f -
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
+envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -
 envsubst '${TTL_VOICE_TURN_CRON_SCHEDULE} ${SYNC_NIGHTLY_CRON_SCHEDULE} ${BASE_BACKUP_CRON_SCHEDULE}' < k8s/53-sync-cronjobs.yaml | kubectl apply -f -
 
 scripts/trigger-tests.sh startup
+# One immediate smoke eval (0 model calls) so the apply is also an eval
+# health check; the full suite stays on the EVAL_CRON_SCHEDULE cadence
+# (OQ-EVAL-01).
+scripts/trigger-evals.sh smoke startup
