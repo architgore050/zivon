@@ -56,6 +56,9 @@
         canonical_path: "/courses/" + cid + "/" + slug + "/"
       };
     }
+    if (parts[0] === "privacy" || document.querySelector(".zn-privacy")) {
+      return { screen: "SCR-PRIV-01", locale: locale, course_id: null, topic_slug: null, canonical_path: "/privacy/" };
+    }
     if (parts[0] === "404.html" || document.querySelector(".zn-404")) {
       return { screen: "SCR-404-01", locale: "en", course_id: null, topic_slug: null, canonical_path: "/404.html" };
     }
@@ -1024,6 +1027,312 @@
     getActiveBlockId: function () { return activeNarrationBlockId; }
   };
   window.ZivonReadAloud = ZivonReadAloud;
+
+  /* ---------------- §10.14 Consent gate & Privacy (F-XCT-CON-01) ------------
+     One-time consent sheet before the dock: explains what is recorded
+     (voice -> text), that audio is not kept, that Gnani processes speech, and
+     that the lesson works without voice. Continue (with guardian checkbox)
+     unlocks voice; Decline keeps reading/sims/typing and never re-nags.
+     Persisted device-local in localStorage["zivon.consent"]. */
+  var CONSENT_STORAGE_KEY = "zivon.consent";
+  var CONSENT_RECORD_KEY = "zivon.consent_record";
+  var CONSENT_VERSION = "v1";
+
+  function safeStorageRemove(key) {
+    try {
+      if (window.localStorage) window.localStorage.removeItem(key);
+    } catch (e) {}
+  }
+
+  function getConsentState() {
+    var val = safeStorageGet(CONSENT_STORAGE_KEY);
+    if (val === "granted" || val === "declined") return val;
+    return "missing";
+  }
+
+  function recordConsentDecision(action, guardianChecked) {
+    var act = action === "granted" ? "granted" : "declined";
+    var nowIso = new Date().toISOString();
+    var devId = getDevicePseudoId();
+    safeStorageSet(CONSENT_STORAGE_KEY, act);
+    safeStorageSet(CONSENT_RECORD_KEY, JSON.stringify({
+      device_pseudo_id: devId,
+      consent_version: CONSENT_VERSION,
+      guardian_flag: Boolean(guardianChecked),
+      action: act,
+      ts: nowIso
+    }));
+    if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+      window.ZivonEvents.emit("EVT-consent_recorded", { outcome: act });
+    }
+    /* Best-effort async sync to PUT /v1/consent (never blocks UI) */
+    sameOriginRequest("/v1/consent", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        device_pseudo_id: devId,
+        consent_version: CONSENT_VERSION,
+        notice_version: CONSENT_VERSION,
+        guardian_flag: Boolean(guardianChecked),
+        action: act,
+        source: "overlay",
+        ts: nowIso
+      })
+    }).catch(function () {});
+    return act;
+  }
+
+  function injectConsentGate() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false, state: getConsentState() };
+    var existing = lessonPage.querySelector('[data-element-id="EL-LES-01-057"], .zn-consent-sheet');
+    var cState = getConsentState();
+    if (existing) {
+      existing.hidden = cState === "granted" || cState === "declined";
+      return { mounted: true, element: existing, state: cState };
+    }
+    var card = document.createElement("section");
+    card.className = "zn-consent-sheet";
+    card.setAttribute("data-region", "SCR-LES-01.R10");
+    card.setAttribute("data-element-id", "EL-LES-01-057");
+    card.setAttribute("data-zn-mounted", "true");
+    card.setAttribute("data-ruled-skip", "true");
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "false");
+    card.setAttribute("aria-label", "Voice tutor privacy and consent notice");
+
+    var notice = document.createElement("p");
+    notice.className = "zn-consent-notice";
+    notice.setAttribute("data-element-id", "EL-LES-01-058");
+    notice.textContent = "Before using voice: when you press the mic, your speech is sent to Gnani AI (Prisma STT & Timbre TTS) to transcribe and speak the tutor's physics explanation. Raw voice audio is never kept; short text transcripts expire after 7 days. Reading, simulations, and checks work completely without voice.";
+
+    var guardianLabel = document.createElement("label");
+    guardianLabel.className = "zn-consent-guardian";
+    var guardianBox = document.createElement("input");
+    guardianBox.type = "checkbox";
+    guardianBox.className = "zn-consent-checkbox";
+    guardianBox.setAttribute("data-element-id", "EL-LES-01-059");
+    var guardianTxt = document.createElement("span");
+    guardianTxt.textContent = "I am a parent/guardian, or I have my parent/guardian's permission to use the voice tutor.";
+    guardianLabel.appendChild(guardianBox);
+    guardianLabel.appendChild(guardianTxt);
+
+    var actionsRow = document.createElement("div");
+    actionsRow.className = "zn-consent-actions";
+    var continueBtn = document.createElement("button");
+    continueBtn.type = "button";
+    continueBtn.className = "zn-consent-continue";
+    continueBtn.setAttribute("data-element-id", "EL-LES-01-060");
+    continueBtn.disabled = true;
+    continueBtn.textContent = "Continue with voice";
+
+    var declineBtn = document.createElement("button");
+    declineBtn.type = "button";
+    declineBtn.className = "zn-consent-decline";
+    declineBtn.setAttribute("data-element-id", "EL-LES-01-061");
+    declineBtn.textContent = "Decline (read page without voice)";
+
+    var privLink = document.createElement("a");
+    privLink.className = "zn-consent-privacy-link";
+    privLink.href = "/privacy/";
+    privLink.textContent = "Privacy summary & clear data";
+
+    actionsRow.appendChild(continueBtn);
+    actionsRow.appendChild(declineBtn);
+    actionsRow.appendChild(privLink);
+
+    card.appendChild(notice);
+    card.appendChild(guardianLabel);
+    card.appendChild(actionsRow);
+
+    guardianBox.addEventListener("change", function () {
+      continueBtn.disabled = !guardianBox.checked;
+    });
+
+    continueBtn.addEventListener("click", function () {
+      if (!guardianBox.checked) return;
+      recordConsentDecision("granted", true);
+      card.hidden = true;
+      var dockRes = ZivonVoiceDock.lazyMount();
+      if (dockRes && dockRes.region) {
+        var micBtn = dockRes.region.querySelector(".zn-dock-mic");
+        if (micBtn) {
+          try { micBtn.focus(); } catch (e) {}
+        }
+      }
+    });
+
+    declineBtn.addEventListener("click", function () {
+      recordConsentDecision("declined", false);
+      card.hidden = true;
+      var dockRegion = ensureVoiceDockRegion();
+      if (dockRegion) dockRegion.hidden = true;
+    });
+
+    card.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        declineBtn.click();
+      }
+    });
+
+    /* If already granted or declined on this device, keep hidden (no re-nag) */
+    card.hidden = cState === "granted" || cState === "declined";
+    lessonPage.appendChild(card);
+    return { mounted: true, element: card, state: cState };
+  }
+
+  var ZivonConsent = {
+    CONSENT_STORAGE_KEY: CONSENT_STORAGE_KEY,
+    CONSENT_VERSION: CONSENT_VERSION,
+    getState: getConsentState,
+    recordDecision: recordConsentDecision,
+    mount: injectConsentGate
+  };
+  window.ZivonConsent = ZivonConsent;
+
+  /* ---------------- SCR-PRIV-01 Privacy page & clear data ------------------- */
+  async function clearAllDeviceData() {
+    var devId = getDevicePseudoId();
+    /* Clear all Zivon localStorage keys */
+    [
+      "zivon.dock",
+      "zivon.consent",
+      "zivon.consent_record",
+      "zivon_locale",
+      "zivon.lang",
+      "zivon.captions",
+      "zivon.identity_seen",
+      "zivon.device_pseudo_id"
+    ].forEach(safeStorageRemove);
+    cachedDeviceId = null;
+
+    if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+      window.ZivonEvents.emit("EVT-data_cleared", { scope: "device" });
+    }
+
+    /* Call challenge -> DELETE /v1/data (supports both POST and GET on /v1/data/challenge) */
+    var serverWiped = false;
+    try {
+      var chalUrl = "/v1/data/challenge?device_pseudo_id=" + encodeURIComponent(devId);
+      var chalRes = await sameOriginRequest(chalUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_pseudo_id: devId })
+      });
+      if (!chalRes || !chalRes.ok) {
+        chalRes = await sameOriginRequest(chalUrl, { method: "GET" });
+      }
+      if (chalRes && chalRes.ok) {
+        var chalData = await chalRes.json();
+        var token = chalData && chalData.confirm_token ? chalData.confirm_token : "";
+        if (token) {
+          var delRes = await sameOriginRequest("/v1/data", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              device_pseudo_id: devId,
+              confirm_token: token,
+              scope: "device"
+            })
+          });
+          if (delRes && delRes.ok) serverWiped = true;
+        }
+      }
+    } catch (e) {}
+    return { local_cleared: true, server_wiped: serverWiped, device_pseudo_id: devId };
+  }
+
+  function wirePrivacyPage() {
+    var privMain = document.querySelector('[data-screen-id="SCR-PRIV-01"], .zn-privacy');
+    if (!privMain) return { mounted: false };
+    if (privMain.getAttribute("data-zn-mounted") === "true") return { mounted: true };
+    privMain.setAttribute("data-zn-mounted", "true");
+
+    var stampEl = document.getElementById("zn-privacy-consent-stamp");
+    if (stampEl) {
+      var rawRec = safeStorageGet(CONSENT_RECORD_KEY);
+      if (rawRec) {
+        try {
+          var rec = JSON.parse(rawRec);
+          stampEl.textContent = "Consent status: " + (rec.action || "recorded") + " (version " + (rec.consent_version || "v1") + ", " + (rec.ts || "") + ")";
+        } catch (e) {
+          stampEl.textContent = "Consent status: no consent record on this device.";
+        }
+      } else {
+        stampEl.textContent = "Consent status: no consent record on this device.";
+      }
+    }
+
+    var clearBtn = document.getElementById("zn-privacy-clear-btn") || privMain.querySelector('[data-element-id="EL-PRV-003"]');
+    var dialogEl = document.getElementById("zn-privacy-clear-dialog") || privMain.querySelector('[data-element-id="EL-PRV-004"]');
+    var confirmBtn = document.getElementById("zn-privacy-confirm-btn");
+    var cancelBtn = document.getElementById("zn-privacy-cancel-btn");
+    var statusEl = document.getElementById("zn-privacy-clear-status");
+
+    if (clearBtn && dialogEl) {
+      clearBtn.addEventListener("click", function () {
+        dialogEl.hidden = false;
+        if (confirmBtn) {
+          try { confirmBtn.focus(); } catch (e) {}
+        }
+      });
+    }
+    if (cancelBtn && dialogEl) {
+      cancelBtn.addEventListener("click", function () {
+        dialogEl.hidden = true;
+        if (clearBtn) {
+          try { clearBtn.focus(); } catch (e) {}
+        }
+      });
+    }
+    if (confirmBtn && dialogEl) {
+      confirmBtn.addEventListener("click", async function () {
+        confirmBtn.disabled = true;
+        var res = await clearAllDeviceData();
+        confirmBtn.disabled = false;
+        dialogEl.hidden = true;
+        if (stampEl) {
+          stampEl.textContent = "Consent status: no consent record on this device.";
+        }
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = res.server_wiped
+            ? "All local and server data for this device has been erased."
+            : "Local device data erased (server wipe queued or offline).";
+        }
+        if (clearBtn) {
+          try { clearBtn.focus(); } catch (e) {}
+        }
+      });
+    }
+    return { mounted: true };
+  }
+
+  function injectFooterPrivacyLink() {
+    var footer = document.querySelector(".zn-footer");
+    if (!footer) return { mounted: false };
+    if (footer.querySelector(".zn-footer-privacy-link")) {
+      return { mounted: true };
+    }
+    var p = document.createElement("p");
+    p.className = "zn-footer-links";
+    p.setAttribute("data-ruled-skip", "true");
+    var a = document.createElement("a");
+    a.className = "zn-footer-privacy-link";
+    a.href = "/privacy/";
+    a.textContent = "Privacy & data summary";
+    p.appendChild(a);
+    footer.appendChild(p);
+    return { mounted: true, link: a };
+  }
+
+  var ZivonPrivacy = {
+    wirePrivacyPage: wirePrivacyPage,
+    injectFooterPrivacyLink: injectFooterPrivacyLink,
+    clearAllDeviceData: clearAllDeviceData
+  };
+  window.ZivonPrivacy = ZivonPrivacy;
 
   /* ---------------- §10.12 Voice dock (bottom sheet, DCR-002) -------------- */
   var DOCK_STORAGE_KEY = "zivon.dock";

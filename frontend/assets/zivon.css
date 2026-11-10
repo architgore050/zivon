@@ -1018,3 +1018,122 @@ a { color: var(--pen-blue); }
 .zn-dock-retry[hidden] {
   display: none;
 }
+
+/* ---- §10.14 Consent gate sheet & SCR-PRIV-01 Privacy page ---- */
+.zn-consent-sheet {
+  position: relative;
+  background: var(--paper-light);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 1rem 1.125rem;
+  margin: var(--row) 0;
+  box-sizing: border-box;
+}
+.zn-consent-notice {
+  font-family: var(--notes);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+}
+.zn-consent-guardian {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.zn-consent-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--pen-blue);
+}
+.zn-consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.zn-consent-continue,
+.zn-consent-decline,
+.zn-privacy-clear-btn,
+.zn-privacy-confirm-btn,
+.zn-privacy-cancel-btn {
+  min-height: 44px;
+  padding: 0 1rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zn-consent-continue,
+.zn-privacy-confirm-btn {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+.zn-consent-continue:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.zn-consent-decline,
+.zn-privacy-clear-btn,
+.zn-privacy-cancel-btn {
+  background: var(--paper-light);
+  color: var(--ink);
+}
+.zn-consent-privacy-link,
+.zn-footer-privacy-link,
+.zn-privacy-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--pen-blue);
+}
+.zn-privacy-table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.zn-privacy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  background: var(--paper-light);
+}
+.zn-privacy-table th,
+.zn-privacy-table td {
+  border: 1px solid var(--ink);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.zn-privacy-table th {
+  font-weight: 700;
+}
+.zn-privacy-dialog {
+  background: var(--paper-light);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+.zn-privacy-dialog-title {
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+.zn-privacy-dialog-btns {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.zn-consent-sheet[hidden],
+.zn-privacy-dialog[hidden],
+.zn-privacy-status[hidden] {
+  display: none;
+}
