@@ -210,9 +210,13 @@ class LiveTimbreClient(TimbreClient):
             connect = self._ws_connect
         else:  # lazy import keeps the client testable without websockets
             try:
-                from websockets.asyncio.client import connect
+                import websockets.asyncio.client as _wsclient
+
+                connect = _wsclient.connect
             except ImportError:  # websockets < 13
-                from websockets import connect  # type: ignore[no-redef]
+                import websockets as _wslegacy
+
+                connect = _wslegacy.connect
 
         headers = {"X-API-Key-ID": self.env.timbre_api_key}
         cm: Any
