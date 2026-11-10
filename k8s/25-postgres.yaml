@@ -1,0 +1,164 @@
+# Hot database (U2, ADR-0001) + backend warm cache volume (U1):
+#   - zivon-db PVC (10Gi): PostgreSQL 16 data directory
+#   - zivon-cache PVC (5Gi): warm cache for narration audio + published bundles
+#   - ConfigMap zivon-db-config: non-secret PostgreSQL settings (incl. WAL archive_timeout=60s)
+#   - Deployment + ClusterIP Service `postgres`
+#
+# Credentials live ONLY in the runtime K8s Secret `zivon-db-env` (key
+# POSTGRES_PASSWORD) - never in manifests or git (AGENTS.md, GAP-001).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zivon-db
+  namespace: zivon
+  labels:
+    app: zivon-postgres
+    tier: hot-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zivon-cache
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    tier: warm-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zivon-db-config
+  namespace: zivon
+  labels:
+    app: zivon-postgres
+data:
+  POSTGRES_DB: "zivon"
+  POSTGRES_USER: "zivon"
+  PGDATA: "/var/lib/postgresql/data/pgdata"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: zivon
+  labels:
+    app: zivon-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: zivon-postgres
+  template:
+    metadata:
+      labels:
+        app: zivon-postgres
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: postgres
+          image: postgres:16.6-alpine
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-c"
+            - "archive_mode=on"
+            - "-c"
+            - "archive_timeout=60s"
+            - "-c"
+            - "archive_command=/bin/true"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          ports:
+            - name: postgres
+              containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: zivon-db-config
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-db-env
+                  key: POSTGRES_PASSWORD
+                  optional: true
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - zivon
+                - -d
+                - zivon
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - zivon
+                - -d
+                - zivon
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+            - name: run-postgres
+              mountPath: /var/run/postgresql
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: zivon-db
+        - name: run-postgres
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: zivon
+  labels:
+    app: zivon-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: zivon-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

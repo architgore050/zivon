@@ -1,0 +1,70 @@
+# Standalone Alembic migration Job (ADR-0016, GAP-017 reservation 26).
+# Applies linear revisions (0001 -> 0002) against the hot Postgres database
+# before the core-backend Deployment rolls out.
+#
+# Standalone Jobs carry `ttlSecondsAfterFinished` (required by kube-linter;
+# see docs/deployment/kubernetes.md gotcha 12).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-migrate
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: migrate
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: zivon-backend
+        task: backend-migrate
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: migrate
+          image: zivon-backend:0.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - -m
+            - db.migrate
+            - upgrade
+            - head
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          envFrom:
+            - configMapRef:
+                name: zivon-voice-config
+          env:
+            - name: ZIVON_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: zivon-voice-env
+                  key: ZIVON_DB_URL
+                  optional: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
