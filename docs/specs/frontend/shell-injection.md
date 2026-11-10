@@ -22,7 +22,9 @@ factory will generate after this wave.
 
 1. `<link rel="stylesheet" href="…/assets/zivon.css">` and
    `<script src="…/assets/zivon.js"></script>` on every lesson page.
-2. Stable block ids: `id="b-NN"` on every block element (already emitted).
+2. Stable block ids: `id="b-NN"` on **every** block element (guaranteed by a
+   factory unit test; the non-i18n text path used to omit it, which silently
+   cost those blocks their read-aloud control and their context anchor).
 3. `data-block-type`, `data-element-id` where the component inventory requires them.
 4. `manifest.json` in the topic directory. Narration availability is the
    `narration.blocks{block_id: {available, path, duration_ms}}` map written by

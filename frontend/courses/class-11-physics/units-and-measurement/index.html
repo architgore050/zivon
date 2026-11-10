@@ -32,7 +32,7 @@
       <li>After this lesson you can write dimensional formulae and use dimensional analysis to check equations and deduce relations.</li>
     </ul>
   </header>
-  <section class="zn-text">
+  <section class="zn-text" id="b-01">
     <p>You measure length with a scale and mass with a balance. Measurement means comparison with a standard. That standard is called a unit.</p>
     <p>The result of measurement is a number with a unit. For example, a length is written as a number in metres.</p>
     <p>Units for base quantities are base units. Units for other quantities are derived units. All of them together form a system of units.</p>
@@ -47,7 +47,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Measurement compares a quantity with a unit, so the result is a number with a unit.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-03">
     <p>Earlier systems were CGS, FPS and MKS. CGS used centimetre, gram and second. FPS used foot, pound and second. MKS used metre, kilogram and second.</p>
     <p>SI is now internationally accepted. It was developed by BIPM in 1971 and revised in November 2018. This book follows SI units.</p>
     <p>SI has seven base units. Plane angle has unit radian, rad. Solid angle has unit steradian, sr. Both are dimensionless. SI uses the decimal system.</p>
@@ -66,7 +66,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>MKS and SI use metre, kilogram and second for length, mass and time.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-06">
     <p>Significant figures are reliable digits plus the first uncertain digit. In 1.62 s, 1 and 6 are certain and 2 is uncertain, so there are three significant figures. In 287.5 cm there are four.</p>
     <p>All non-zero digits are significant. Zeros between two non-zero digits are significant. Zeros before the first non-zero digit in a number less than 1 are not significant.</p>
     <p>Trailing zeros without a decimal point are not significant. Trailing zeros with a decimal point are significant. Changing units does not change significant figures. Precision depends on the least count of the instrument.</p>
@@ -88,7 +88,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Leading zeros are not significant and the trailing zero with a decimal point is significant, so 2, 3, 7 and 0 give four. Similarly 0.007 m2 has 1, 2.64 × 1024 kg has 3, 6.320 J has 4, 6.032 N m-2 has 4 and 0.0006032 m2 has 4.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-09">
     <p>In multiplication or division, keep as many significant figures as the number with the least significant figures. Density 4.237 g divided by 2.51 cm3 is reported as 1.69 g cm-3, not to many decimal places.</p>
     <p>In addition or subtraction, keep as many decimal places as the number with the least decimal places. The sum 436.32 g, 227.2 g and 0.301 g is 663.8 g.</p>
     <p>The difference 0.307 m - 0.304 m is 0.003 m. Do not use the multiplication rule for addition and subtraction.</p>
@@ -127,7 +127,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Arithmetic sum is 663.821 g, but 227.2 g is correct to only one decimal place, so round to 663.8 g.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-14">
     <p>Uncertainty in a product combines. For a sheet 16.2 cm by 10.1 cm, each measurement is ± 0.1 cm, so area 163.62 cm2 has about 1.6% error and is quoted as 164 ± 3 cm2.</p>
     <p>Subtraction can reduce significant figures. 12.9 g - 7.06 g is 5.8 g, not 5.84 g, because decimal places matter.</p>
     <p>Relative error depends on the number itself. Keep one extra digit in intermediate steps of multi-step work.</p>
@@ -142,7 +142,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Relative error in 1.02 g is (±0.01/1.02) × 100% = ±1%. In 9.89 g it is (±0.01/9.89) × 100% = ±0.1%, so 9.89 g has smaller relative error.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-16">
     <p>Dimensions describe the nature of a quantity. Length is [L], mass is [M], time is [T], electric current is [A], temperature is [K], luminous intensity is [cd] and amount of substance is [mol].</p>
     <p>Volume is three lengths, so dimensions are [L3]. It has zero dimension in mass and time.</p>
     <p>Force is mass times acceleration, so dimensions are [M L T-2]. Magnitudes are not considered, so speed and velocity both have [L T-1].</p>
@@ -151,7 +151,7 @@
     <div class="zn-diagram-svg"><svg viewBox='0 0 400 150'><rect x='20' y='20' width='160' height='50' fill='#F6F0CF' stroke='#1C1B18' stroke-width='2'/><text x='100' y='42' fill='#1C1B18' font-size='13' text-anchor='middle'>Volume = L × L × L</text><text x='100' y='62' fill='#1F3A9E' font-size='13' text-anchor='middle'>[L3]</text><rect x='220' y='20' width='160' height='50' fill='#F6F0CF' stroke='#1C1B18' stroke-width='2'/><text x='300' y='42' fill='#1C1B18' font-size='13' text-anchor='middle'>Force = M × L / T2</text><text x='300' y='62' fill='#1F3A9E' font-size='13' text-anchor='middle'>[M L T-2]</text><line x1='100' y1='70' x2='100' y2='95' stroke='#5A5748' stroke-width='2' stroke-dasharray='4 3'/><line x1='300' y1='70' x2='300' y2='95' stroke='#5A5748' stroke-width='2' stroke-dasharray='4 3'/><text x='200' y='115' fill='#5A5748' font-size='12' text-anchor='middle'>Dimensions from base quantities [L], [M], [T]</text></svg></div>
     <figcaption>Volume and force expressed in base dimensions.</figcaption>
   </figure>
-  <section class="zn-text">
+  <section class="zn-text" id="b-18">
     <p>A dimensional formula shows how base quantities represent a quantity. Volume is [M0 L3 T0]. Speed is [M0 L T-1]. Acceleration is [M0 L T-2]. Mass density is [M L-3 T0].</p>
     <p>A dimensional equation equates a quantity with its formula. [V] = [M0 L3 T0], [v] = [M0 L T-1], [F] = [M L T-2] and [ρ] = [M L-3 T0].</p>
     <p>You get dimensional equations from relations between quantities by replacing each quantity with its dimensions.</p>
@@ -210,7 +210,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Only quantities with the same dimensions can be added or subtracted. Length plus length has the same dimension [L] on both sides.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-25">
     <p>Base quantities are length, mass, time, electric current, temperature, amount of substance and luminous intensity. Their units are metre, kilogram, second, ampere, kelvin, mole and candela.</p>
     <p>Derived units can have special names such as joule, newton and watt. Units in calculations are treated as algebraic quantities.</p>
     <p>Only proper significant figures should be retained. Dimensions check equations, but a dimensionally correct equation need not be exact and a dimensionally wrong equation must be wrong.</p>

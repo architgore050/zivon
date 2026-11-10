@@ -302,7 +302,10 @@ def _render_block(
                 f"{fallback_banner}{paras}\n  </section>"
             )
         paras = "\n".join(f"    <p>{_esc(p)}</p>" for p in spec.get("paragraphs", []))
-        return f'  <section class="zn-text">\n{paras}\n  </section>'
+        # Every rendered block element carries its stable block id: the shell
+        # kit keys read-aloud controls (§10.13), the context snapshot and the
+        # tutor highlight off it. The non-i18n path must not drop it.
+        return f'  <section class="zn-text" id="{bid}">\n{paras}\n  </section>'
 
     if t == "worked_example":
         if with_i18n_attrs:
