@@ -110,7 +110,7 @@ ZIVON_ADMIN_TOKEN=<secret> docker compose up -d dashboard    # admin dashboard v
 **Dev stack for the incoming Wave-E services** (opt-in profile — the default `compose up` commands above behave exactly as before):
 
 ```bash
-docker compose --profile dev-stack up -d    # dev Postgres (:5433) + evals runner; the dashboard keeps its own `docker compose up -d dashboard` (:8082)
+docker compose --profile dev-stack run --rm evals-runner  # deterministic eval smoke (profile-gated; backend+postgres run non-profiled: `docker compose up -d backend`); the dashboard keeps its own `docker compose up -d dashboard` (:8082)
 docker compose --profile backend up -d      # db + core-backend (:8090) — needs EX0's Dockerfile.backend
 docker compose run --rm evals-runner        # deterministic eval smoke (no model calls)
 ```
