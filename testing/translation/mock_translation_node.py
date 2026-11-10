@@ -542,9 +542,7 @@ def start_translation_mock() -> tuple[ThreadingHTTPServer, str, MockTranslationS
                 ]
                 if body.get("stream_options", {}).get("include_usage"):
                     # terminal usage-only chunk (choices must be empty)
-                    lines.append(
-                        sse_chunk({"usage": usage}, finish=None)
-                    )
+                    lines.append(sse_chunk({"usage": usage}, finish=None))
                 lines.append("data: [DONE]\n\n")
                 encoded = "".join(lines).encode("utf-8")
                 self.send_response(200)
