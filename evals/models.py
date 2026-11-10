@@ -270,6 +270,10 @@ GOLDEN_EXPECTED_SCHEMA: dict[str, Any] = {
                 "diagrams_max": {"type": "integer"},
             },
         },
+        "structure_bounds_note": {
+            "type": "string",
+            "description": "Why this golden's structure bounds differ from the spec defaults",
+        },
         "required_concepts_and_equations": {
             "type": "object",
             "required": ["key_terms_must_include", "equation_patterns_must_include"],

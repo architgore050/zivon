@@ -98,6 +98,10 @@ Generative outputs legitimately vary in prose wording across model runs. `expect
         "diagrams_max": { "type": "integer" }
       }
     },
+    "structure_bounds_note": {
+      "type": "string",
+      "description": "Optional: why this golden's structure bounds differ from the spec defaults"
+    },
     "required_concepts_and_equations": {
       "type": "object",
       "required": ["key_terms_must_include", "equation_patterns_must_include"],
@@ -179,7 +183,7 @@ Generative outputs legitimately vary in prose wording across model runs. `expect
     "checks_min": 10,
     "worked_examples_min": 4,
     "simulations_min": 2,
-    "diagrams_max": 0
+    "diagrams_max": 1
   },
   "required_concepts_and_equations": {
     "key_terms_must_include": [
@@ -218,6 +222,17 @@ Generative outputs legitimately vary in prose wording across model runs. `expect
   }
 }
 ```
+
+### 2.2 `diagrams_max` bound revision (`2026-11-10`)
+
+Main's visual-review tranche hand-corrected static illustration figures into the published golden pages, so the pinned bounds were reconciled with the **actual published manifests** (which the geometry check reads):
+
+| Golden | Published `block_counts.diagram` | `diagrams_max` | Rationale |
+|---|---|---|---|
+| `GT-01` `class-9-motion` | 2 (`b-03` net-force arrows, `b-13` walking friction) | 4 → **2** | Tightened to the published count |
+| `GT-02` `class-11-motion-in-a-straight-line` | 1 (`b-02` position-axis figure) | 0 → **1** | Relaxed to the published count |
+
+Both are physical illustrations, not computed coordinate graphs — the x-t/v-t routing rule (graphs must be `simulation` blocks) is unaffected and remains enforced by `DET-SYN01-GEOMETRY-ROUTING`. Each golden records the reason in its optional `structure_bounds_note`.
 
 ---
 

@@ -24,7 +24,7 @@
     "checks_min": 10,
     "worked_examples_min": 4,
     "simulations_min": 2,
-    "diagrams_max": 0
+    "diagrams_max": 1
   },
   "required_concepts_and_equations": {
     "key_terms_must_include": [
@@ -66,5 +66,6 @@
     "fps_min": 24,
     "load_budget_s": 6.0,
     "fcp_budget_s": 3.5
-  }
+  },
+  "structure_bounds_note": "diagrams_max 0->1 (2026-11-10): the refreshed published GT-02 page carries exactly 1 static illustration diagram (b-02 position-axis figure). It is a physical illustration, not a computed x-t/v-t graph, so the routing rule (graphs must be simulation blocks) is unaffected and remains enforced by the geometry check. GT-01 was separately tightened 4->2."
 }

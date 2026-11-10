@@ -23,7 +23,7 @@
     "checks_min": 3,
     "worked_examples_min": 1,
     "simulations_min": 1,
-    "diagrams_max": 4
+    "diagrams_max": 2
   },
   "required_concepts_and_equations": {
     "key_terms_must_include": [
@@ -64,5 +64,6 @@
     "fps_min": 24,
     "load_budget_s": 6.0,
     "fcp_budget_s": 3.5
-  }
+  },
+  "structure_bounds_note": "diagrams_max 4->2 (2026-11-10): the refreshed published GT-01 page carries exactly 2 static illustration diagrams (b-03 net-force arrows, b-13 walking friction). They are physical illustrations, not computed coordinate graphs, so the x-t/v-t routing rule (simulation-only) is unaffected and remains enforced by the geometry check. GT-02 was separately relaxed 0->1."
 }
