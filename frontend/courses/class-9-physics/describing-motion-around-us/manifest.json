@@ -28,5 +28,235 @@
     "worked_example": 8,
     "reveal": 4,
     "simulation": 3
+  },
+  "narration": {
+    "available": true,
+    "lang": "en",
+    "hash": "9f22e1398b0ca068",
+    "mode": "live",
+    "blocks": {
+      "b-00-meta": {
+        "available": true,
+        "path": "audio/class-9-physics/b-00-meta.en.d1e4a84df160ade2.opus",
+        "hash": "d1e4a84df160ade2",
+        "duration_ms": null
+      },
+      "b-01": {
+        "available": true,
+        "path": "audio/class-9-physics/b-01.en.44683ab4598537d7.opus",
+        "hash": "44683ab4598537d7",
+        "duration_ms": null
+      },
+      "b-03": {
+        "available": true,
+        "path": "audio/class-9-physics/b-03.en.aa619e045677b704.opus",
+        "hash": "aa619e045677b704",
+        "duration_ms": null
+      },
+      "b-04": {
+        "available": true,
+        "path": "audio/class-9-physics/b-04.en.1fc9c1154d38274d.opus",
+        "hash": "1fc9c1154d38274d",
+        "duration_ms": null
+      },
+      "b-05": {
+        "available": true,
+        "path": "audio/class-9-physics/b-05.en.9c6f9edcb1304eb9.opus",
+        "hash": "9c6f9edcb1304eb9",
+        "duration_ms": null
+      },
+      "b-06": {
+        "available": true,
+        "path": "audio/class-9-physics/b-06.en.65f0cf646dd8e812.opus",
+        "hash": "65f0cf646dd8e812",
+        "duration_ms": null
+      },
+      "b-07": {
+        "available": true,
+        "path": "audio/class-9-physics/b-07.en.9645c7be085a844e.opus",
+        "hash": "9645c7be085a844e",
+        "duration_ms": null
+      },
+      "b-08": {
+        "available": true,
+        "path": "audio/class-9-physics/b-08.en.e11912fb1db19527.opus",
+        "hash": "e11912fb1db19527",
+        "duration_ms": null
+      },
+      "b-09": {
+        "available": true,
+        "path": "audio/class-9-physics/b-09.en.6aaec262c1592fbb.opus",
+        "hash": "6aaec262c1592fbb",
+        "duration_ms": null
+      },
+      "b-10": {
+        "available": true,
+        "path": "audio/class-9-physics/b-10.en.29293a55564b8687.opus",
+        "hash": "29293a55564b8687",
+        "duration_ms": null
+      },
+      "b-11": {
+        "available": true,
+        "path": "audio/class-9-physics/b-11.en.b1b0ce998fb9eb25.opus",
+        "hash": "b1b0ce998fb9eb25",
+        "duration_ms": null
+      },
+      "b-12": {
+        "available": true,
+        "path": "audio/class-9-physics/b-12.en.7130364d2e8cc62f.opus",
+        "hash": "7130364d2e8cc62f",
+        "duration_ms": null
+      },
+      "b-13": {
+        "available": true,
+        "path": "audio/class-9-physics/b-13.en.66f66398b3ffee67.opus",
+        "hash": "66f66398b3ffee67",
+        "duration_ms": null
+      },
+      "b-14": {
+        "available": true,
+        "path": "audio/class-9-physics/b-14.en.a0653dab8350acf4.opus",
+        "hash": "a0653dab8350acf4",
+        "duration_ms": null
+      },
+      "b-15": {
+        "available": true,
+        "path": "audio/class-9-physics/b-15.en.f9a072a4869822f0.opus",
+        "hash": "f9a072a4869822f0",
+        "duration_ms": null
+      },
+      "b-16": {
+        "available": true,
+        "path": "audio/class-9-physics/b-16.en.9c1158f76ffc00b5.opus",
+        "hash": "9c1158f76ffc00b5",
+        "duration_ms": null
+      },
+      "b-18": {
+        "available": true,
+        "path": "audio/class-9-physics/b-18.en.f7c8f44be316d6a4.opus",
+        "hash": "f7c8f44be316d6a4",
+        "duration_ms": null
+      },
+      "b-19": {
+        "available": true,
+        "path": "audio/class-9-physics/b-19.en.ace0a9514bed13bc.opus",
+        "hash": "ace0a9514bed13bc",
+        "duration_ms": null
+      },
+      "b-20": {
+        "available": true,
+        "path": "audio/class-9-physics/b-20.en.7fcda0f1e3ac5b94.opus",
+        "hash": "7fcda0f1e3ac5b94",
+        "duration_ms": null
+      },
+      "b-21": {
+        "available": true,
+        "path": "audio/class-9-physics/b-21.en.15ff361af361c33d.opus",
+        "hash": "15ff361af361c33d",
+        "duration_ms": null
+      },
+      "b-22": {
+        "available": true,
+        "path": "audio/class-9-physics/b-22.en.f0cd799ed4c6b786.opus",
+        "hash": "f0cd799ed4c6b786",
+        "duration_ms": null
+      },
+      "b-24": {
+        "available": true,
+        "path": "audio/class-9-physics/b-24.en.da292eb4d9daf5c6.opus",
+        "hash": "da292eb4d9daf5c6",
+        "duration_ms": null
+      },
+      "b-25": {
+        "available": true,
+        "path": "audio/class-9-physics/b-25.en.01dd12d5dab245db.opus",
+        "hash": "01dd12d5dab245db",
+        "duration_ms": null
+      },
+      "b-27": {
+        "available": true,
+        "path": "audio/class-9-physics/b-27.en.25738ffcb70ae60e.opus",
+        "hash": "25738ffcb70ae60e",
+        "duration_ms": null
+      },
+      "b-29": {
+        "available": true,
+        "path": "audio/class-9-physics/b-29.en.9110bc324c9a26b7.opus",
+        "hash": "9110bc324c9a26b7",
+        "duration_ms": null
+      },
+      "b-30": {
+        "available": true,
+        "path": "audio/class-9-physics/b-30.en.352057de9b551a76.opus",
+        "hash": "352057de9b551a76",
+        "duration_ms": null
+      },
+      "b-31": {
+        "available": true,
+        "path": "audio/class-9-physics/b-31.en.544e1d7bbedc4f66.opus",
+        "hash": "544e1d7bbedc4f66",
+        "duration_ms": null
+      },
+      "b-33": {
+        "available": true,
+        "path": "audio/class-9-physics/b-33.en.3229b9c321473254.opus",
+        "hash": "3229b9c321473254",
+        "duration_ms": null
+      },
+      "b-34": {
+        "available": true,
+        "path": "audio/class-9-physics/b-34.en.2f06e14c5564025e.opus",
+        "hash": "2f06e14c5564025e",
+        "duration_ms": null
+      },
+      "b-35": {
+        "available": true,
+        "path": "audio/class-9-physics/b-35.en.ea89c1c50d075154.opus",
+        "hash": "ea89c1c50d075154",
+        "duration_ms": null
+      },
+      "b-36": {
+        "available": true,
+        "path": "audio/class-9-physics/b-36.en.408c93c0890cd9fa.opus",
+        "hash": "408c93c0890cd9fa",
+        "duration_ms": null
+      },
+      "b-37": {
+        "available": true,
+        "path": "audio/class-9-physics/b-37.en.f011d7e86d6c9bf8.opus",
+        "hash": "f011d7e86d6c9bf8",
+        "duration_ms": null
+      },
+      "b-38": {
+        "available": true,
+        "path": "audio/class-9-physics/b-38.en.5c2d0f86d6ceda72.opus",
+        "hash": "5c2d0f86d6ceda72",
+        "duration_ms": null
+      },
+      "b-39": {
+        "available": true,
+        "path": "audio/class-9-physics/b-39.en.b8ff5b8bcdc215e6.opus",
+        "hash": "b8ff5b8bcdc215e6",
+        "duration_ms": null
+      },
+      "b-40": {
+        "available": true,
+        "path": "audio/class-9-physics/b-40.en.860848c00add99f5.opus",
+        "hash": "860848c00add99f5",
+        "duration_ms": null
+      },
+      "b-41": {
+        "available": true,
+        "path": "audio/class-9-physics/b-41.en.8f136c46e75372ca.opus",
+        "hash": "8f136c46e75372ca",
+        "duration_ms": null
+      },
+      "b-42": {
+        "available": true,
+        "path": "audio/class-9-physics/b-42.en.9b45fb4906b5718f.opus",
+        "hash": "9b45fb4906b5718f",
+        "duration_ms": null
+      }
+    }
   }
 }

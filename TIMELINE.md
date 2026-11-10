@@ -443,3 +443,19 @@ Branch `fix/p0-voice-live` off `main` @ `51f03b6`.
   dashboard RBAC/edge, eval telemetry rows, eval site target, PyYAML/multipart pins,
   reconnect demo-profile fix, `.zn-sim-read` a11y, counsel questions.
 
+### 2026-11-10 (evening) — dock doctrine + live narration
+
+- **Voice dock doctrine adopted:** `design-doctrine.md` §10.12 (bottom sheet), §10.13
+  (read-aloud), §10.14 (consent gate); DCR-002 closed. `docs/specs/frontend/shell-injection.md`
+  makes product chrome a shell-kit responsibility on content-only pages. Merged PR #29.
+- **Timbre narration is live:** `factory/narration/timbre.py` gained the verified realtime WS
+  transport (`wss://api.vachana.ai/api/v1/tts`, `X-API-Key-ID`, base64 JSON audio); the old
+  REST shape 404s. Narration generated for **5 of 6 pages** (185 opus assets, ~1,525 build
+  credits, A-15 tranche raised to 3000 for the run): laws-of-motion 41/41,
+  motion-in-a-plane 35/35, motion-in-a-straight-line 38/38, describing-motion 37/37,
+  units-and-measurement 34/35 (one block degraded honestly). `how-forces-affect-motion` has
+  no surviving run artifacts, so it has no narration yet.
+- **Translation still blocked:** pipeline code is on `main`, but no locales were generated and
+  the local inference server (`:8080`) is down; `pipeline.py … --locales hi,hi-Latn` is the
+  run once a model endpoint is available. The language-switcher UI is in the EX5B wave.
+
