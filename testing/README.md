@@ -6,6 +6,7 @@
 | `frontend/` | the hand-maintained site shell: load contract, self-containment, course-list rendering, quiz + ZivonSim behaviour in real Chromium | `python -m unittest discover -s testing/frontend -t .` |
 | [`observability/`](observability/README.md) | the `logging_manager` contract harness + dashboard endpoint tests: redaction guarantees, JSON schema, correlation/headers, sinks + fallback, retention/store helpers, ADR-0026 auth flows, seeded-fixture views | `python -m unittest discover -s testing/observability -t .` |
 | `evals/` | unit and calibration tests for the `evals/` framework: EvalCard/Golden schemas, deterministic-first funnel, 19-sample seeded-defect reviewer calibration (`03-check` + `09-review`), regression diff engine, dual-write store + Alembic migration, and DPDP child-privacy guardrails | `python -m unittest discover -s testing/evals -t .` |
+| `voice/` | the voice loop (spec: `docs/specs/voice-agent/`): frame codec, chunker, brain/STT/TTS clients, session store + credit guard, WS state machine incl. failure modes F1–F8, latency-budget contract — all on mocks (`testing/voice/mocks/`), zero network, no keys | `python -m unittest discover -s testing/voice -t .` |
 
 Folder names use underscores (`content_factory`) because Python package names cannot contain hyphens; docs call it the content-factory test set.
 

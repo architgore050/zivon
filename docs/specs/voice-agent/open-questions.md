@@ -119,6 +119,14 @@ Owner: EX1-VOICE. Vehicle: console quota page + a 20-call burst probe. Deadline:
 Question: how programme credits map to Prisma audio-seconds and Timbre characters (per-minute?
 per-second? per-character bundles?), so ADR-0015's tranche math uses the vendor's own unit.
 Best current answer: brief says "Timbre tags bill as characters"; STT is per-audio-second/minute. [MODERATE]
+
+Implementation status (EX1-VOICE, 2026-11-10): the guard counts **credit points**, defined as
+`1 point = 30 s Prisma audio = 300 Timbre characters` (`ZIVON_VOICE_CREDIT_STT_SECONDS_PER_POINT`
+/ `ZIVON_VOICE_CREDIT_TTS_CHARS_PER_POINT`, `voice/config.py`). That makes the A-07 turn estimate
+≈ 3 points against the founder's 30/day per-user cap (~10 voice turns; ~33 under the 100-point
+demo session cap) instead of 615 raw units against 30 — the pre-fix default denied every turn.
+When the dashboard pins the real unit, only these two factors change; caps, reservations and
+actuals all share the unit already.
 Owner: founder (dashboard shows usage). Vehicle: read credit pricing on the Gnani dashboard
 (TIMELINE Day-0 item), then finalize `ZIVON_VOICE_CREDIT_*` defaults in spec.md §8.
 Deadline: before the credit guard is wired (EX1 day 3).
