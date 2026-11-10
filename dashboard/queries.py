@@ -27,14 +27,12 @@ CREDIT_BURN_BUDGET = 3000  # 40% demo reserve of the 10,000 total stays intact
 HOP_FIELDS = ("stt_final_ms", "llm_first_token_ms", "tts_first_audio_ms")
 
 # Run ids are factory slugify() output (factory/artifacts.py): lowercase
-# alphanumerics and hyphens, 63 chars max. Enforced at EVERY path
-# construction below so a route param can never carry path separators,
-# "..", or "..%2f"-decoded slashes outside runs/ (CodeQL py/path-injection).
-# The guard is spelled inline at each site as
-# re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id): CodeQL py/path-injection
-# recognizes the re.fullmatch module call with a literal pattern as a
-# sanitizer, but not a compiled-pattern .fullmatch() — keep the literal at
-# each call site for that reason.
+# alphanumerics and hyphens, 63 chars max. A route param can therefore never
+# carry path separators, "..", or "..%2f"-decoded slashes into the filesystem
+# lookups (CodeQL py/path-injection). No Path is ever constructed from the
+# user-supplied run_id: every run_id is only compared for equality against
+# the server-controlled entry names of the runs/ directory listing, with the
+# re.fullmatch slug guard as defense-in-depth (reject malformed ids early).
 
 
 def runs_dir() -> Path:
@@ -197,12 +195,13 @@ class LogStore:
             """,
             (run_id,),
         )
-        # Path guard (py/path-injection): early-return re.fullmatch guard
-        # BEFORE any Path use kills run_id taint — construction below runs
-        # only for slug-shaped ids. resolve() + is_relative_to is kept as
-        # defense-in-depth (a symlinked runs/<id> cannot escape the PVC
-        # mount). SQL above is parameterized and therefore safe; only the
-        # file read needs this guard, and invalid ids degrade to status=None.
+        # Path guard (py/path-injection): never construct a Path from the
+        # user-supplied run_id. The slug-shaped early-return check below stays
+        # as defense-in-depth (reject malformed ids early), and the directory
+        # join is done by iterating the trusted, server-controlled base_dir
+        # listing and matching entry.name == run_id by string equality —
+        # entry.name is server-controlled, run_id only participates in ==,
+        # so no user value ever enters Path construction.
         if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id):
             return {
                 "run_id": run_id,
@@ -212,12 +211,12 @@ class LogStore:
                 "status": None,
             }
         base_dir = runs_dir().resolve()
-        # codeql[py/path-injection] — false positive: run_id is validated to
-        # ^[a-z0-9][a-z0-9-]{0,62}$ by the early-return re.fullmatch guard
-        # above (no separators, no traversal possible) plus defense-in-depth
-        # resolve()/is_relative_to containment against symlink escape.
-        run_dir = (base_dir / run_id).resolve()
-        if not run_dir.is_relative_to(base_dir):
+        run_dir: Path | None = None
+        for entry in base_dir.iterdir():
+            if entry.name == run_id and entry.is_dir():
+                run_dir = entry
+                break
+        if run_dir is None:
             return {
                 "run_id": run_id,
                 "stages": stages,
@@ -227,13 +226,8 @@ class LogStore:
             }
         status_path = run_dir / "status.json"
         status: dict[str, Any] | None = None
-        # codeql[py/path-injection] — false positive (same validation as
-        # above: run_id slug-gated by early-return re.fullmatch, plus
-        # resolve()/is_relative_to containment).
         if status_path.is_file():
             try:
-                # codeql[py/path-injection] — false positive (same bar as
-                # above: slug-gated run_id + resolve()/is_relative_to).
                 status = json.loads(status_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 status = None
