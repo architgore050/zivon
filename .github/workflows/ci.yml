@@ -502,14 +502,29 @@ jobs:
           cache: pip
       - name: Install dependencies
         if: steps.guard.outputs.landed == 'true'
-        # requirements.txt first (the monolith's own pins); alembic + the DB
-        # driver come from it once EX0 lands the chain. Adjust this install
-        # with EX0's manifest if the migration env needs more.
-        run: pip install -r requirements.txt
+        # requirements.txt first (the monolith's own pins). EX0's seam: once
+        # the chain lands, alembic must be pinned in requirements.txt; until
+        # then the fallback below keeps a landed chain runnable instead of
+        # red-ing on a missing CLI. Extend this step with EX0's migration env
+        # (psycopg is already there) if the chain needs more.
+        run: |
+          pip install -r requirements.txt
+          python -c "import alembic" 2>/dev/null || pip install alembic
       - name: Upgrade from empty, twice (idempotent second run)
         if: steps.guard.outputs.landed == 'true'
         run: |
           cd "$(dirname "${{ steps.guard.outputs.alembic_ini }}")"
+          # A migration chain must be LINEAR: more than one head means two
+          # branches diverged (e.g. an orphan revision next to EX0's 0002
+          # baseline) and "upgrade head" is ambiguous. Fail loudly instead of
+          # letting Alembic pick. EX0's chain is expected to converge on the
+          # single 0002 head; EX2's translation revision must be wired into it.
+          heads=$(alembic heads | grep -c . || true)
+          if [ "$heads" -ne 1 ]; then
+            echo "::error::alembic reports $heads heads - the chain must be linear with exactly one head"
+            alembic heads
+            exit 1
+          fi
           alembic upgrade head
           alembic upgrade head      # second run must be a no-op (no drift)
           # Schema drift gate: alembic check exits nonzero when the models and
