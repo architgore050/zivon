@@ -232,10 +232,24 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertRegex(initial["devId"], uuid_re)
             self.assertEqual(initial["savedLang"], "en")
 
-            # Click Hindi chip -> aria-checked updates, localStorage['zivon_locale']
-            # becomes 'hi', documentElement.lang stays 'en' (v1 honest stub)
+            # Honest chip contract (EX5B): a locale with no generated bundle is
+            # aria-disabled and not clickable; injecting the bundle enables it.
             chips = page.query_selector_all(".zn-lang-row .zn-chip")
             self.assertEqual(len(chips), 3)
+            self.assertEqual(
+                chips[1].get_attribute("aria-disabled"),
+                "true",
+                "a locale with no bundle must be aria-disabled, never silently accepted",
+            )
+            page.evaluate(
+                """() => {
+                  window.ZIVON_I18N = window.ZIVON_I18N || {};
+                  window.ZIVON_I18N.hi = { strings: {}, ui_strings: {} };
+                  const chip = document.querySelectorAll('.zn-lang-row .zn-chip')[1];
+                  chip.removeAttribute('aria-disabled');
+                  chip.removeAttribute('title');
+                }"""
+            )
             chips[1].click()
             after_click = page.evaluate(
                 """() => {
@@ -251,7 +265,10 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(after_click["stored"], "hi")
             self.assertEqual(after_click["c0"], "false")
             self.assertEqual(after_click["c1"], "true")
-            self.assertEqual(after_click["docLang"], "en")
+            # With a bundle present the swap is real (EX5B): documentElement.lang
+            # follows the selected locale. Without a bundle the chip is
+            # aria-disabled and the page keeps reviewed English (asserted above).
+            self.assertEqual(after_click["docLang"], "hi")
 
             # Reload page -> Hindi chip is preselected from localStorage['zivon_locale']
             page.goto((Path(self._tmp.name) / "locale.html").resolve().as_uri())

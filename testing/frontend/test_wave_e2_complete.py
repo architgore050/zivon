@@ -26,6 +26,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,7 +34,7 @@ from typing import Any
 
 from playwright.sync_api import Page, sync_playwright
 
-import testing.frontend  # noqa: F401
+from testing.frontend import serve_static
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = REPO_ROOT / "frontend"
@@ -92,6 +93,9 @@ class TestWaveE2Complete(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
+        ctx = getattr(cls, "_serve_ctx", None)
+        if ctx is not None:
+            ctx.__exit__(None, None, None)
         cls._browser.close()
         cls._pw.stop()
         cls._tmp.cleanup()
@@ -106,6 +110,44 @@ class TestWaveE2Complete(unittest.TestCase):
         f = Path(self._tmp.name) / name
         f.write_text(html, encoding="utf-8")
         page.goto(f.resolve().as_uri())
+        return page, errors
+
+    def _open_html_served(
+        self, html: str, name: str = "served.html"
+    ) -> tuple[Page, list[str]]:
+        """Open a lesson page over HTTP (production path).
+
+        Network-touching surfaces (report, telemetry flush, consent sync,
+        privacy clear-my-data) only exercise their real wiring when the
+        document can fetch; a file:// page deliberately stays offline. Returns
+        the page with its error list already closed over the server lifetime,
+        so the caller must finish assertions before the returned page is closed.
+        """
+        web = tempfile.mkdtemp(prefix="zivon-e2-served-")
+        web_path = Path(web)
+        (web_path / "assets").symlink_to(FRONTEND / "assets", target_is_directory=True)
+        # The shell auto-fetches ./manifest.json on lesson pages; serve an empty
+        # one so a 404 never pollutes the console-error assertion.
+        (web_path / "manifest.json").write_text("{}", encoding="utf-8")
+        (web_path / name).write_text(
+            html.replace(ZIVON_JS_URI, "assets/zivon.js").replace(
+                ZIVON_CSS_URI, "assets/zivon.css"
+            ),
+            encoding="utf-8",
+        )
+        page = self._browser.new_page()
+        errors: list[str] = []
+        page.on(
+            "console", lambda m: errors.append(m.text) if m.type == "error" else None
+        )
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        # The server is kept alive by the test class so the page can keep
+        # fetching for the duration of the assertions.
+        if not hasattr(self.__class__, "_serve_ctx"):
+            self.__class__._serve_ctx = serve_static(web_path)
+            base_url = self.__class__._serve_ctx.__enter__()
+            self.__class__._serve_base = base_url
+        page.goto(f"{self.__class__._serve_base}/{name}")
         return page, errors
 
     def test_shell_injection_content_only_fixture_and_missing_manifest(self) -> None:
@@ -383,37 +425,42 @@ class TestWaveE2Complete(unittest.TestCase):
         )
         priv_page = self._browser.new_page()
         try:
-            priv_page.goto(PRIVACY_HTML.resolve().as_uri())
-            priv_res = priv_page.evaluate(
-                """async () => {
-                  localStorage.setItem('zivon.consent', 'granted');
-                  localStorage.setItem('zivon_locale', 'hi');
-                  const calls = [];
-                  window.fetch = async (url, opts) => {
-                    calls.push({ url, method: (opts && opts.method) || 'GET' });
-                    return {
-                      ok: true,
-                      json: async () => ({ confirm_token: 'tok-confirm-123', deleted: { sessions: 1 } })
-                    };
-                  };
-                  window.ZivonPrivacy.wirePrivacyPage();
-                  const hasTable = Boolean(document.querySelector('[data-element-id="EL-PRV-002"]'));
-                  const hasBack = Boolean(document.querySelector('[data-element-id="EL-PRV-005"]'));
-                  document.getElementById('zn-privacy-clear-btn').click();
-                  const dialogOpen = !document.getElementById('zn-privacy-clear-dialog').hidden;
-                  document.getElementById('zn-privacy-confirm-btn').click();
-                  await new Promise((r) => setTimeout(r, 40));
-                  return {
-                    hasTable,
-                    hasBack,
-                    dialogOpen,
-                    calls,
-                    consentAfter: localStorage.getItem('zivon.consent'),
-                    localeAfter: localStorage.getItem('zivon_locale'),
-                    statusText: document.getElementById('zn-privacy-clear-status').textContent
-                  };
-                }"""
-            )
+            # Served over HTTP like production: the privacy page's clear-my-data
+            # flow really calls /v1/data/challenge + DELETE /v1/data, and a
+            # file:// document has no server to answer (the client then stays
+            # offline by design), so the wiring is only observable over HTTP.
+            with serve_static(FRONTEND) as fe_url:
+                priv_page.goto(f"{fe_url}/privacy/index.html")
+                priv_res = priv_page.evaluate(
+                    """async () => {
+                      localStorage.setItem('zivon.consent', 'granted');
+                      localStorage.setItem('zivon_locale', 'hi');
+                      const calls = [];
+                      window.fetch = async (url, opts) => {
+                        calls.push({ url, method: (opts && opts.method) || 'GET' });
+                        return {
+                          ok: true,
+                          json: async () => ({ confirm_token: 'tok-confirm-123', deleted: { sessions: 1 } })
+                        };
+                      };
+                      window.ZivonPrivacy.wirePrivacyPage();
+                      const hasTable = Boolean(document.querySelector('[data-element-id="EL-PRV-002"]'));
+                      const hasBack = Boolean(document.querySelector('[data-element-id="EL-PRV-005"]'));
+                      document.getElementById('zn-privacy-clear-btn').click();
+                      const dialogOpen = !document.getElementById('zn-privacy-clear-dialog').hidden;
+                      document.getElementById('zn-privacy-confirm-btn').click();
+                      await new Promise((r) => setTimeout(r, 40));
+                      return {
+                        hasTable,
+                        hasBack,
+                        dialogOpen,
+                        calls,
+                        consentAfter: localStorage.getItem('zivon.consent'),
+                        localeAfter: localStorage.getItem('zivon_locale'),
+                        statusText: document.getElementById('zn-privacy-clear-status').textContent
+                      };
+                    }"""
+                )
             self.assertTrue(priv_res["hasTable"])
             self.assertTrue(priv_res["hasBack"])
             self.assertTrue(priv_res["dialogOpen"])
@@ -428,7 +475,7 @@ class TestWaveE2Complete(unittest.TestCase):
             priv_page.close()
 
         # 2. Test Provenance Report, Telemetry Flush, Credit Notices, and Language Bar on Lesson Page
-        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "surfaces.html")
+        page, errors = self._open_html_served(CONTENT_ONLY_LESSON_HTML, "surfaces.html")
         try:
             res = page.evaluate(
                 """async () => {
@@ -529,6 +576,79 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertEqual(errors, [])
         finally:
             page.close()
+
+    def test_manifest_autofetch_over_http_mounts_read_aloud_for_available_blocks(
+        self,
+    ) -> None:
+        """The production path: the shell fetches ./manifest.json itself.
+
+        Legacy file:// pages skip the fetch (a file:// document cannot fetch);
+        this test serves the page + a real manifest over HTTP, so the auto-fetch
+        branch that every deployed lesson page takes is covered end to end.
+        """
+        with tempfile.TemporaryDirectory(prefix="zivon-e2-http-") as web:
+            web_path = Path(web)
+            # Serve the repo's real assets (fonts included) so the page makes no
+            # 404 requests: the shell under test is the shipped one.
+            (web_path / "assets").symlink_to(
+                FRONTEND / "assets", target_is_directory=True
+            )
+            (web_path / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "course_id": "class-9-physics",
+                        "narration": {
+                            "available": True,
+                            "blocks": {
+                                "b-01": {
+                                    "available": True,
+                                    "path": "audio/b-01.opus",
+                                    "duration_ms": 1200,
+                                },
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            html = CONTENT_ONLY_LESSON_HTML.replace(
+                ZIVON_JS_URI, "assets/zivon.js"
+            ).replace(ZIVON_CSS_URI, "assets/zivon.css")
+            (web_path / "index.html").write_text(html, encoding="utf-8")
+
+            with serve_static(web_path) as base_url:
+                page = self._browser.new_page()
+                errors: list[str] = []
+                page.on(
+                    "console",
+                    lambda m: errors.append(m.text) if m.type == "error" else None,
+                )
+                page.on("pageerror", lambda e: errors.append(str(e)))
+                page.goto(f"{base_url}/index.html")
+                try:
+                    res = page.evaluate(
+                        """async () => {
+                          await new Promise((r) => setTimeout(r, 150));
+                          return {
+                            mounted: typeof window.__ZIVON_MANIFEST__ === 'object',
+                            readAloud: document.querySelectorAll('.zn-read-aloud-btn').length,
+                            preloadNone: Array.prototype.every.call(
+                              document.querySelectorAll('.zn-read-aloud-btn'),
+                              (b) => true),
+                          };
+                        }"""
+                    )
+                    self.assertTrue(
+                        res["mounted"], "manifest.json must be auto-fetched over HTTP"
+                    )
+                    self.assertEqual(
+                        res["readAloud"],
+                        1,
+                        "exactly the manifest-available block gets a read-aloud control",
+                    )
+                    self.assertEqual(errors, [])
+                finally:
+                    page.close()
 
 
 if __name__ == "__main__":

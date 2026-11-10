@@ -909,6 +909,20 @@
      static files) stays untouched while same-origin calls allowed by lesson
      CSP connect-src 'self' work cleanly. */
   function sameOriginRequest(url, options) {
+    /* A file:// document has no server to answer and Chromium logs a hard
+       console error for every attempted fetch. Local previews and the
+       browser tests that open a page straight off disk therefore resolve to
+       the same "server said no" shape every caller already handles; deployed
+       pages are always HTTP(S) and take the real path. */
+    if (typeof location !== "undefined" && location.protocol === "file:") {
+      return Promise.resolve({
+        ok: false,
+        status: 0,
+        json: function () {
+          return Promise.resolve({});
+        },
+      });
+    }
     var fn = typeof window !== "undefined" ? window["fet" + "ch"] : null;
     if (typeof fn !== "function") {
       return Promise.reject(new Error("http_unavailable"));
@@ -3841,6 +3855,15 @@
     }
     var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
     if (!lessonPage) return Promise.resolve(null);
+    /* A file:// document cannot fetch (Chromium blocks the scheme and logs a
+       console error), and production is HTTP(S) only. Local previews and the
+       browser tests that open a page straight off disk therefore run with no
+       narration rather than a spurious console error; an explicit manifest
+       (window.ZivonShell.mount({manifest}) or window.__ZIVON_MANIFEST__) is
+       still honoured above. */
+    if (typeof location !== "undefined" && location.protocol === "file:") {
+      return Promise.resolve(null);
+    }
     return sameOriginRequest("./manifest.json", { method: "GET" })
       .then(function (res) {
         if (!res || !res.ok) return null;
