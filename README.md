@@ -25,10 +25,13 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 public URL: Prisma v3.0 transcribes a Hinglish doubt, the reasoning model answers, and
 Timbre v3.0 returns the tutor's speech — measured **2.98 s** from end-of-speech to first
 audio, inside the 4 s Gate C bar, with the answer audio captured. The in-page voice dock
-is **not shipped yet**: its visual design is gated on a founder-authored design-doctrine
-section (§10.12), and the browser client is currently protocol/state-machine only (no
-audio playback wired). So today the site is the generated lesson content plus a proven
-server-side voice loop; the dock lands after the doctrine text exists.
+(**design-doctrine §10.12**, DCR-002 closed), Web Audio API PCM16 48 kHz downlink playback,
+per-block read-aloud (**§10.13**, rendered when `manifest.json` carries narration assets),
+one-time consent gate (**§10.14**) + `/privacy/` summary (`SCR-PRIV-01`), provenance report
+form (`POST /v1/reports`), credit/offline notices, `ZivonEvents` telemetry flush
+(`POST /api/v1/events`), and locale availability chips (`F-WRP-LAN-01`, English enabled;
+other locales disabled with honest title until a `pipeline.py --locales` content run lands)
+are now shipped via the content-first shell injection kit (`ZivonShell.mount()`).
 
 **Recorded model deviation.** Gate A selected **Gemma 4 26B A4B** as the runtime brain.
 Measured on the Gemini API on 2026-11-10, it thinks for ~20 s before its first content
