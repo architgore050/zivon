@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1
+# Zivon core backend monolith image (ADR-0005, ADR-0020):
+# FastAPI modular monolith (`backend/`, `db/`, `guard/`, `alembic/`) + mount
+# seam for `voice/` (EX1-VOICE).
+#
+#   Build:  docker build -f Dockerfile.backend -t zivon-backend:0.1.0 .
+#   Smoke:  docker run --rm zivon-backend:0.1.0 python -m backend --smoke
+#   Run:    docker run --rm -p 8000:8000 zivon-backend:0.1.0
+
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Freshen OS packages against frozen-index CVEs (same hardening pattern as
+# Dockerfile and Dockerfile.llm-manager; see docs/deployment/docker.md).
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies BEFORE copying application code for layer caching.
+COPY backend/requirements.txt ./backend/requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+# Copy only the backend monolith packages and Alembic migration assets.
+COPY alembic.ini ./alembic.ini
+COPY alembic ./alembic
+COPY db ./db
+COPY guard ./guard
+COPY backend ./backend
+COPY scripts/trigger-tests.sh ./scripts/trigger-tests.sh
+COPY scripts/trigger-factory-run.sh ./scripts/trigger-factory-run.sh
+COPY scripts/logs-factory-run.sh ./scripts/logs-factory-run.sh
+COPY scripts/publish-verify-hook.sh ./scripts/publish-verify-hook.sh
+
+# Non-root execution with numeric UID 1000 (kube-linter + hadolint DL3066).
+RUN useradd --create-home --uid 1000 app
+USER 1000
+
+EXPOSE 8000
+
+CMD ["python", "-m", "backend"]
