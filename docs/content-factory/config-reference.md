@@ -186,7 +186,22 @@ budget consumes a round and is fed back as the next round's assignment.
 |---|---|---|
 | `content_rounds` | int (1..20) | Safety cap on regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
 | `code_rounds` | int (1..20) | Safety cap on replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
-| `stall_rounds` | int (1..10) | Consecutive no-improvement rechecks/re-reviews/retests that declare a plateau and stop the catcher (with the full history + resume hint). Applies to 04-repair, 08-fixloop and 10-reviewfix. |
+| `translation_rounds` | int (1..20) | Safety cap on re-translate-flagged-units + recheck rounds for `10c-transrepair` (triggered by any `fatal`/`major` issue from `10b-transcheck`). Default `6`. |
+| `stall_rounds` | int (1..10) | Consecutive no-improvement rechecks/re-reviews/retests that declare a plateau and stop the catcher (with the full history + resume hint). Applies to 04-repair, 08-fixloop, 10-reviewfix, and 10c-transrepair. |
+
+## translation
+
+Configures the build-time localization sub-graph (`10a-translate` → `10b-transcheck` → `10c-transrepair` → `10d-transrender`, specified in `docs/specs/translation/` and `ADR-0021`..`0023`). Can also be enabled per run via `python pipeline.py "<chapter>" --class <N> --locales hi,hi-Latn`.
+
+| Key | Type | Meaning |
+|---|---|---|
+| `enabled` | bool | Default `false` (English-only runs stay unchanged unless `--locales` or `enabled: true` is set). |
+| `target_locales` | list[str] | Target BCP-47 locales to generate (default `["hi", "hi-Latn"]`; supported: `hi`, `hi-Latn`, `ta`, `te`, `mr`, `bn`, `gu`, `kn`, `ml`, `pa`). |
+| `optional_locales` | list[str] | Subset of `target_locales` allowed to fall back per block to English (`fallback_en`) if `10c-transrepair` plateaus, rather than failing the whole build (`FM-TRN-03`). |
+| `glossary_path` | str | Repo-relative path to the canonical Physics terminology glossary (`sources/glossary/physics_glossary.json`). |
+| `ui_strings_path` | str | Repo-relative path to the static shell UI strings table (`sources/glossary/ui_strings.json`). |
+| `prompt_version` | str | Translation prompt contract version included in the content-addressed `tm_key` (`ADR-0022`). |
+| `max_chars_neighbour_context` | int (100..4000) | Character budget for adjacent block excerpts passed as read-only context to `10a-translate`. |
 
 ## Resume and fingerprint (no config key — behaviour to know)
 
@@ -207,7 +222,7 @@ Object keyed by stage id, values `{temperature?}`, e.g.:
 
 Valid stage ids: 00-ingest, 01-locate, 02-generate, 03-check, 04-repair,
 05-interactive, 06-render, 07-perf, 08-fixloop, 09-review, 10-reviewfix,
-11-link.
+10a-translate, 10b-transcheck, 10c-transrepair, 10d-transrender, 11-link.
 
 Current committed value: `{}` — no per-stage overrides. History: the first
 cluster runs (graph v1 stage ids) died at 02-synth — first `structured output
