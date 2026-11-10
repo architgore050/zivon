@@ -26,7 +26,9 @@ from .ledger import issue_entry
 from .llm import LLMClient
 from .schemas import (
     BLOCKS,
-    LESSON,
+    LOCALIZED_LESSON_SCHEMA,
+    PLACEHOLDER_PATTERNS,
+    TEMPLATE_VAR_RE,
     TRANSLATION_REVIEW_CALL_REPORT,
 )
 
@@ -38,16 +40,6 @@ _REGIONAL_DIGIT_RE = re.compile(
 )
 _DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")
 _NUMERAL_RE = re.compile(r"\d+(?:\.\d+)?")
-_TEMPLATE_VAR_RE = re.compile(r"\{[a-zA-Z0-9_]+\}")
-
-_PLACEHOLDER_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\bTODO\b"), "TODO marker"),
-    (re.compile(r"\bTBD\b"), "TBD marker"),
-    (re.compile(r"\[\s*translate\s*\]", re.IGNORECASE), "[translate] placeholder"),
-    (re.compile(r"<\s*translate\s*>", re.IGNORECASE), "<translate> placeholder"),
-    (re.compile(r"\{\{|\}\}"), "mustache template braces {{ or }}"),
-    (re.compile(r"(?<![A-Za-z0-9_])undefined(?![A-Za-z0-9_])"), "'undefined' leak"),
-]
 
 # Multi-character SI unit expressions checked by literal/token presence, and
 # single-letter SI units checked when attached to numbers or parentheses.
@@ -163,50 +155,8 @@ def rule_trans_schema(
     """R1: Reassembled blocks validate against BLOCKS and meta validates against
     LESSON; block count, id sequence, and type sequence match English 1:1."""
     issues: list[dict[str, Any]] = []
-    localized_lesson_schema = {
-        **LESSON,
-        "properties": {
-            **LESSON["properties"],
-            "objectives": {
-                "type": "array",
-                "minItems": 2,
-                "items": {"type": "string", "minLength": 10},
-            },
-            "sections": {
-                "type": "array",
-                "minItems": 2,
-                "items": {
-                    "type": "object",
-                    "required": ["id", "title", "paragraphs"],
-                    "additionalProperties": False,
-                    "properties": {
-                        "id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
-                        "title": {"type": "string", "minLength": 2},
-                        "paragraphs": {
-                            "type": "array",
-                            "minItems": 1,
-                            "items": {"type": "string", "minLength": 20},
-                        },
-                    },
-                },
-            },
-            "glossary": {
-                "type": "array",
-                "minItems": 2,
-                "items": {
-                    "type": "object",
-                    "required": ["term", "definition"],
-                    "additionalProperties": False,
-                    "properties": {
-                        "term": {"type": "string", "minLength": 2},
-                        "definition": {"type": "string", "minLength": 8},
-                    },
-                },
-            },
-        },
-    }
     try:
-        jsonschema.Draft7Validator(localized_lesson_schema).validate(tr_meta)
+        jsonschema.Draft7Validator(LOCALIZED_LESSON_SCHEMA).validate(tr_meta)
     except jsonschema.ValidationError as exc:
         issues.append(
             _issue(
@@ -231,16 +181,25 @@ def rule_trans_schema(
             )
         )
 
-    try:
-        jsonschema.Draft7Validator(BLOCKS).validate({"blocks": tr_blocks})
-    except jsonschema.ValidationError as exc:
+    # Validate each translated block individually so a whole-array BLOCKS
+    # failure is attributed to the failing block's own id (falling back to
+    # "b-01" only when the failing block has no usable id).
+    block_validator = jsonschema.Draft7Validator(
+        BLOCKS["properties"]["blocks"]["items"]
+    )
+    for tr_b in tr_blocks:
+        errors = sorted(block_validator.iter_errors(tr_b), key=lambda e: e.path)
+        if not errors:
+            continue
+        bid = tr_b.get("id") if isinstance(tr_b, dict) else None
+        detail = "; ".join(e.message[:180] for e in errors)
         issues.append(
             _issue(
-                "b-01",
+                str(bid) if bid else "b-01",
                 "fatal",
                 "schema_integrity",
                 "R1",
-                f"translated blocks failed BLOCKS schema validation: {exc.message[:180]}",
+                f"block {bid or 'b-01'} failed BLOCKS schema validation: {detail}",
             )
         )
 
@@ -656,7 +615,7 @@ def rule_trans_placeholders(
     issues: list[dict[str, Any]] = []
     en_meta_joined = " ".join(_meta_strings(en_lesson))
     for text in _meta_strings(tr_meta):
-        for pat, desc in _PLACEHOLDER_PATTERNS:
+        for pat, desc in PLACEHOLDER_PATTERNS:
             if pat.search(text) and not pat.search(en_meta_joined):
                 issues.append(
                     _issue(
@@ -684,8 +643,8 @@ def rule_trans_placeholders(
                         )
                     )
                     continue
-                src_vars = set(_TEMPLATE_VAR_RE.findall(str(src_val)))
-                tr_vars = set(_TEMPLATE_VAR_RE.findall(str(tr_map[k])))
+                src_vars = set(TEMPLATE_VAR_RE.findall(str(src_val)))
+                tr_vars = set(TEMPLATE_VAR_RE.findall(str(tr_map[k])))
                 if src_vars != tr_vars:
                     issues.append(
                         _issue(
@@ -704,7 +663,7 @@ def rule_trans_placeholders(
         en_joined = " ".join(en_strs)
         en_has_ellipsis = any(s.rstrip().endswith("...") for s in en_strs)
         for text in _block_strings(tr_b):
-            for pat, desc in _PLACEHOLDER_PATTERNS:
+            for pat, desc in PLACEHOLDER_PATTERNS:
                 if pat.search(text) and not pat.search(en_joined):
                     issues.append(
                         _issue(
@@ -951,7 +910,7 @@ def build_reviewer_messages(
     """Build the calibrated Evon v3.3 reviewer prompt per reviewer-rubric.md §3.3."""
     loc_meta = translate.LOCALE_METADATA[locale]
     system = (
-        "[ZIVON STAGE: 10-transcheck] [STAGE_ID: 10b-transcheck] "
+        "[ZIVON STAGE: 10b-transcheck] [STAGE_ID: 10b-transcheck] "
         "You are the Physics Translation Reviewer for Zivon (Class 9-12 NCERT Physics).\n"
         "Your job is to verify that a localized lesson faithfully preserves the exact "
         "physics meaning, NCERT terminology, and learner clarity of the verified English "

@@ -17,6 +17,7 @@ generation graph). Design notes:
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 CITATION = {
@@ -208,6 +209,69 @@ LESSON: dict[str, Any] = {
 }
 
 BLOCK_TYPES = ["text", "worked_example", "check", "reveal", "diagram", "simulation"]
+
+# Translation-localized LESSON schema (factory/translate.py validates the
+# produced b-00-meta against it and factory/transcheck.py's R1 re-validates
+# it): the same shape as LESSON but with relaxed per-string minLengths so
+# compact Indic-script prose and short native labels are not rejected as
+# "too short" when they are correct. Single source of truth — do not copy
+# this block into a stage module.
+LOCALIZED_LESSON_SCHEMA: dict[str, Any] = {
+    **LESSON,
+    "properties": {
+        **LESSON["properties"],
+        "objectives": {
+            "type": "array",
+            "minItems": 2,
+            "items": {"type": "string", "minLength": 10},
+        },
+        "sections": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+                "type": "object",
+                "required": ["id", "title", "paragraphs"],
+                "additionalProperties": False,
+                "properties": {
+                    "id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
+                    "title": {"type": "string", "minLength": 2},
+                    "paragraphs": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {"type": "string", "minLength": 20},
+                    },
+                },
+            },
+        },
+        "glossary": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+                "type": "object",
+                "required": ["term", "definition"],
+                "additionalProperties": False,
+                "properties": {
+                    "term": {"type": "string", "minLength": 2},
+                    "definition": {"type": "string", "minLength": 8},
+                },
+            },
+        },
+    },
+}
+
+# Placeholder-leak detection shared by 10a-translate (pre-promotion sweep)
+# and 10b-transcheck (R-rules): a translated string must never carry an
+# unfinished-markup leak. Single source of truth for both call sites.
+PLACEHOLDER_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\bTODO\b"), "TODO marker"),
+    (re.compile(r"\bTBD\b"), "TBD marker"),
+    (re.compile(r"\[\s*translate\s*\]", re.IGNORECASE), "[translate] placeholder"),
+    (re.compile(r"<\s*translate\s*>", re.IGNORECASE), "<translate> placeholder"),
+    (re.compile(r"\{\{|\}\}"), "mustache template braces {{ or }}"),
+    (re.compile(r"(?<![A-Za-z0-9_])undefined(?![A-Za-z0-9_])"), "'undefined' leak"),
+]
+
+TEMPLATE_VAR_RE: re.Pattern[str] = re.compile(r"\{[a-zA-Z0-9_]+\}")
 
 BLOCKS: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",

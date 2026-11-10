@@ -17,14 +17,6 @@ ensure_test_dependencies()
 
 import jsonschema
 
-from logging_manager import (
-    Severity,
-    context_scope,
-    current_context,
-    delete_subject,
-    log_event,
-    sink,
-)
 from factory.checks import rule_diagram_svg
 from factory.translate import (
     check_unit_deterministic_invariants,
@@ -34,6 +26,14 @@ from factory.translate import (
     reassemble_translated_unit,
     reinject_diagram_svg,
     schema_for_unit,
+)
+from logging_manager import (
+    Severity,
+    context_scope,
+    current_context,
+    delete_subject,
+    log_event,
+    sink,
 )
 
 FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
@@ -269,9 +269,11 @@ class TestBlockContract(unittest.TestCase):
             sink._mark_degraded(dsn_set=False)
             collected: list[dict] = []
             original_stdout_writer = sink._write_stdout
-            sink._write_stdout = lambda line: collected.append(
-                parsed
-            ) if (parsed := sink.parse_line(line)) is not None else None
+            sink._write_stdout = lambda line: (
+                collected.append(parsed)
+                if (parsed := sink.parse_line(line)) is not None
+                else None
+            )
             try:
                 with context_scope(
                     run_id="r-123", session_id="s-999", request_id="req-1"

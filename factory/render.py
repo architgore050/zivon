@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from logging_manager import Severity, log_event
+
 from .artifacts import RunContext, slugify
 from .config import Config
 from .errors import LintError
@@ -1063,10 +1064,8 @@ def render_localized(
         f"window.ZIVON_I18N = {json.dumps(js_i18n_payload, indent=2, ensure_ascii=False)};\n"
         f"window.ZIVON_SIM_I18N = {json.dumps(js_sim_i18n, indent=2, ensure_ascii=False)};\n"
     )
-    i18n_js_body = (
-        i18n_js_body.replace("</script", "<\\/script")
-        .replace("http://", "http:\\/\\/")
-        .replace("https://", "https:\\/\\/")
+    i18n_js_body = i18n_js_body.replace("</script", "<\\/script").replace(
+        "<!--", "<\\!--"
     )
     i18n_js_hits = lint_js("i18n.js", i18n_js_body)
     if i18n_js_hits:

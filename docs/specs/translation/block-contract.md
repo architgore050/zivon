@@ -16,7 +16,7 @@ Following [`skills/prompting-and-agent-design/SKILL.md`](../../../skills/prompti
 2. **All Calls Route Through `LLMClient` (`factory/llm.py`) → `llm_manager`**:
    - Zero hand-rolled HTTP calls (`AGENTS.md`).
    - Every per-block call uses `llm.call(stage_id="10a-translate", messages=..., schema=..., schema_name=..., extra_validator=..., round_tag=f"{locale}/{unit_id}")`, which automatically writes `attempts/<locale>/<unit_id>/attempt-NN/{request,response,meta}.json` and appends to `calls_ledger.jsonl`.
-   - `LLMConfig` sets `max_tokens=4096` in code for the translator leg (`llm_manager/README.md` §Configuration) so a single block translation cannot ramble endlessly.
+   - The factory sends NO `max_tokens` (founder rule; a truncated JSON answer is caught downstream by reassembly + the deterministic invariant checks).
 
 ---
 

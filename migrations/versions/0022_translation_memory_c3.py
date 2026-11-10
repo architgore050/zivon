@@ -1,7 +1,9 @@
 """Class C3 translation memory, block translations, and glossary tables.
 
 Revision ID: 0022_translation_memory_c3
-Revises: None (chained onto EX0-BACKEND initial schema revision by merge agent)
+Revises: None (chain root until EX0-BACKEND's initial revision lands; merge
+agent asserts single alembic head in CI, and a follow-up welds this onto the
+EX0 initial revision)
 Create Date: 2026-11-09
 
 Traces to:
@@ -19,6 +21,9 @@ from __future__ import annotations
 from typing import Any
 
 revision: str = "0022_translation_memory_c3"
+# Chain root until EX0-BACKEND's initial revision lands; the merge agent
+# asserts single alembic head in CI. A follow-up change welds this onto the
+# EX0 initial revision once it exists on main.
 down_revision: str | None = None
 branch_labels: tuple[str, ...] | None = None
 depends_on: tuple[str, ...] | None = None

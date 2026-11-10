@@ -580,7 +580,7 @@ Reconciled with `skills/zivon-systems-design-skills/skills/zivon-systems-design/
 
 **Binding Constraint**: Build-time wall-clock latency when running sequentially against a single-slot inference server (`35 calls × ~8 s/call ≈ 4.6 min` per locale on cloud OpenRouter/vLLM; `~18 min` per locale on a 20 tok/s local quantized server). Mitigated by:
 1. Per-block checkpointing + Translation Memory (`ADR-0021`, `ADR-0022`), which cuts repeat runs to `< 30 s`.
-2. Setting `max_tokens = 4096` in `LLMConfig` constructor inside `factory/translate.py` (allowed per `llm_manager/README.md:110`: *"max_tokens is constructor-only by design... a future translator may [set it]; the factory never does"*) to bound any runaway per-block generation early alongside `ZIVON_CALL_DEADLINE_S=1800`.
+2. Relying on the deadline instead of a generation cap: the factory sends NO `max_tokens` (founder rule — the allowed-per-constructor note in `llm_manager/README.md:110` is overridden on main); truncated JSON answers are caught by reassembly + the deterministic invariant checks, and `ZIVON_CALL_DEADLINE_S=1800` bounds runaway wall-clock.
 
 ---
 

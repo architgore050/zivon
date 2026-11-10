@@ -10,7 +10,6 @@ Zero Gnani API credits are consumed (`ADR-0013`, `ADR-0015`, `ADR-0021`).
 from __future__ import annotations
 
 import copy
-import dataclasses
 import hashlib
 import json
 import os
@@ -25,15 +24,18 @@ from typing import Any
 
 import jsonschema
 
-from . import checks
 from logging_manager import ErrorClass, Severity, context_scope, log_event
+
+from . import checks
 from .artifacts import RunContext
 from .config import Config
 from .errors import ConfigError, FactoryError, SchemaError
 from .llm import LLMClient
 from .schemas import (
     BLOCKS,
-    LESSON,
+    LOCALIZED_LESSON_SCHEMA,
+    PLACEHOLDER_PATTERNS,
+    TEMPLATE_VAR_RE,
     TRANSLATED_CHECK_MCQ_PAYLOAD,
     TRANSLATED_CHECK_NUMERIC_PAYLOAD,
     TRANSLATED_DIAGRAM_PAYLOAD,
@@ -244,14 +246,6 @@ _REGIONAL_DIGIT_RE = re.compile(
 )
 _DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")
 _NUMERAL_RE = re.compile(r"\d+(?:\.\d+)?")
-_PLACEHOLDER_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\bTODO\b"), "TODO marker"),
-    (re.compile(r"\bTBD\b"), "TBD marker"),
-    (re.compile(r"\[\s*translate\s*\]", re.IGNORECASE), "[translate] placeholder"),
-    (re.compile(r"<\s*translate\s*>", re.IGNORECASE), "<translate> placeholder"),
-    (re.compile(r"\{\{|\}\}"), "mustache template braces {{ or }}"),
-]
-_TEMPLATE_VAR_RE = re.compile(r"\{[a-zA-Z0-9_]+\}")
 
 _PURE_SYMBOL_CHARS_RE = re.compile(r"^[\d\s.,+\-−=×÷/()^₀-₉⁰-⁹a-zA-ZΔθωλμ°%]+$")
 _SI_UNIT_WORDS = {
@@ -577,50 +571,7 @@ def reassemble_translated_unit(
             ],
         }
         # Validate against LESSON schema (relaxing only minLength if Indic script is compact)
-        jsonschema.Draft7Validator(
-            {
-                **LESSON,
-                "properties": {
-                    **LESSON["properties"],
-                    "objectives": {
-                        "type": "array",
-                        "minItems": 2,
-                        "items": {"type": "string", "minLength": 10},
-                    },
-                    "sections": {
-                        "type": "array",
-                        "minItems": 2,
-                        "items": {
-                            "type": "object",
-                            "required": ["id", "title", "paragraphs"],
-                            "additionalProperties": False,
-                            "properties": {
-                                "id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
-                                "title": {"type": "string", "minLength": 2},
-                                "paragraphs": {
-                                    "type": "array",
-                                    "minItems": 1,
-                                    "items": {"type": "string", "minLength": 20},
-                                },
-                            },
-                        },
-                    },
-                    "glossary": {
-                        "type": "array",
-                        "minItems": 2,
-                        "items": {
-                            "type": "object",
-                            "required": ["term", "definition"],
-                            "additionalProperties": False,
-                            "properties": {
-                                "term": {"type": "string", "minLength": 2},
-                                "definition": {"type": "string", "minLength": 8},
-                            },
-                        },
-                    },
-                },
-            }
-        ).validate(meta_out)
+        jsonschema.Draft7Validator(LOCALIZED_LESSON_SCHEMA).validate(meta_out)
         return meta_out
 
     block_out = copy.deepcopy(source_block_or_meta)
@@ -744,7 +695,7 @@ def check_unit_deterministic_invariants(
 
     # 3. Placeholder leak check (R7)
     for text in all_tr_strings:
-        for pat, desc in _PLACEHOLDER_PATTERNS:
+        for pat, desc in PLACEHOLDER_PATTERNS:
             if pat.search(text) and not pat.search(src_joined):
                 problems.append(
                     f"[R7 placeholder_leak] unit {unit_id}: contains untranslated {desc}"
@@ -808,8 +759,8 @@ def check_unit_deterministic_invariants(
                         f"[R7 placeholder_leak] b-00-meta sim_strings.{bid}.{k} missing"
                     )
                     continue
-                src_vars = set(_TEMPLATE_VAR_RE.findall(str(src_val)))
-                tr_vars = set(_TEMPLATE_VAR_RE.findall(str(tr_map[k])))
+                src_vars = set(TEMPLATE_VAR_RE.findall(str(src_val)))
+                tr_vars = set(TEMPLATE_VAR_RE.findall(str(tr_map[k])))
                 if src_vars != tr_vars:
                     problems.append(
                         f"[R7 placeholder_leak] b-00-meta sim_strings.{bid}.{k} "
@@ -1038,9 +989,9 @@ def build_translate_messages(
     block-contract.md §2.1 & §2.2."""
     loc_meta = LOCALE_METADATA[locale]
     stage_marker = (
-        "[ZIVON STAGE: 10-translate] [STAGE_ID: 10a-translate]"
+        "[ZIVON STAGE: 10a-translate] [STAGE_ID: 10a-translate]"
         if not repair_feedback
-        else "[ZIVON STAGE: 10-transrepair] [STAGE_ID: 10c-transrepair]"
+        else "[ZIVON STAGE: 10c-transrepair] [STAGE_ID: 10c-transrepair]"
     )
     system = (
         f"{stage_marker} You are the Physics Curriculum Translator (Evon v3.3) in "
@@ -1157,12 +1108,11 @@ def translate_single_unit(
     )
     stage_id = STAGE_ID if round_tag_prefix == "init" else "10c-transrepair"
 
-    # Use a translator-scoped shallow copy of LLMClient with max_tokens=4096
-    # set on LLMConfig (per block-contract.md §1.2 & llm_manager/README.md §Configuration).
-    translator_llm = copy.copy(llm)
-    translator_llm._llm_config = dataclasses.replace(llm._llm_config, max_tokens=4096)
-
-    translated_payload = translator_llm.call(
+    # The factory NEVER caps the model call — no max_tokens is sent (founder
+    # rule on main; LLMClient.call passes no per-call cap). A truncated JSON
+    # answer is caught by reassembly + the deterministic invariant checks as
+    # the validation backstop, not here.
+    translated_payload = llm.call(
         stage_id=stage_id,
         messages=messages,
         schema=schema,
@@ -1244,28 +1194,14 @@ def load_tm_entry(
     source_content_sha256: str | None = None,
 ) -> dict[str, Any] | None:
     """Lookup a verified entry in Tier 1 PVC cache (or Tier 2 DB store when present)."""
-    try:
-        from . import tm_store  # type: ignore[attr-defined]
+    from . import tm_store
 
-        store = tm_store.get_tm_store(cfg)
-        return store.lookup(
-            locale=locale,
-            tm_key=tm_key,
-            source_content_sha256=source_content_sha256,
-        )
-    except ImportError:
-        path = tm_cache_path(cfg, locale, tm_key)
-        if not path.exists():
-            return None
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            return None
-        if not isinstance(data, dict) or data.get("tm_key") != tm_key:
-            return None
-        if data.get("review_status") not in ("machine_verified", "human_approved"):
-            return None
-        return data
+    store = tm_store.get_tm_store(cfg)
+    return store.lookup(
+        locale=locale,
+        tm_key=tm_key,
+        source_content_sha256=source_content_sha256,
+    )
 
 
 def glossary_sha256(cfg: Config) -> str:
