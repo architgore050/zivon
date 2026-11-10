@@ -19,8 +19,12 @@ FROM python:3.12-slim
 
 # Kubectl version pinned like every other tool (a floating pin would let an
 # upstream release change the gate under us). args so the pin is visible and
-# overridable in one place.
-ARG KUBECTL_VERSION=v1.31.2
+# overridable in one place. Bumped v1.31.2 -> v1.37.2 on 2026-11-10: the old
+# binary's embedded Go stdlib carried fixable HIGH CVEs (net/http, crypto/tls,
+# html/template) that the trivy gate rejects; the current release ships a
+# patched Go. kubectl stays within +/-1 minor of the cluster version at apply
+# time - re-pin together with the cluster upgrade.
+ARG KUBECTL_VERSION=v1.37.2
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
