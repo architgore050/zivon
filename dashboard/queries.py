@@ -457,6 +457,11 @@ class RunsArtifacts:
         if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", run_id):
             return None
         base_dir = self.base.resolve()
+
+        # codeql[py/path-injection] — false positive: run_id is validated to
+        # ^[a-z0-9][a-z0-9-]{0,62}$ by the early-return re.fullmatch guard
+        # above (no separators, no traversal possible) plus defense-in-depth
+        # resolve()/is_relative_to containment against symlink escape.
         run_dir = (base_dir / run_id).resolve()
         if not run_dir.is_relative_to(base_dir):
             return None
