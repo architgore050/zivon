@@ -11,8 +11,8 @@
 # same pattern). replicas=1 on purpose: the upstream inference server is
 # single-slot - extra replicas would only multiply queued connections.
 #
-# Image: zivon-llm-manager:0.1.0 (Dockerfile.llm-manager) - slim, no torch.
-# `minikube image load zivon-llm-manager:0.1.0` after building locally
+# Image: zivon-llm-manager:0.1.2 (Dockerfile.llm-manager) - slim, no torch.
+# `minikube image load zivon-llm-manager:0.1.2` after building locally
 # (gotcha 2: minikube has its own image store).
 #
 # Config via envFrom (values live in k8s/infra.env, rendered by
@@ -48,7 +48,7 @@ spec:
         runAsUser: 1000          # numeric UID of the image's "app" user (gotcha 1)
       containers:
         - name: llm-manager
-          image: zivon-llm-manager:0.1.0
+          image: zivon-llm-manager:0.1.2
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true

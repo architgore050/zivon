@@ -7,6 +7,10 @@ lesson-page example (+ palette) to the model, apply its replacement
 contents (topic-local files ONLY: page.js, page.css; index.html is
 renderer-owned), re-lint, re-render the HTML shell, re-test.
 
+(Since 2026-11-09 the fix plan may also carry corrected block specs under
+"blocks" - content errors live in the specs and the renderer re-renders
+the page body from them.)
+
 Continuous improvement (founder decision 2026-11-06): the loop is
 progress-aware. It keeps fixing while the failure count drops and stops at a
 genuine plateau (repair.stall_rounds no-improvement rounds in a row) or the
@@ -72,13 +76,14 @@ def run(
         # Stage 07 just measured this exact page and it passed (or our own
         # standalone measurement passed): nothing to fix.
         _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
-        return {"rounds": 0, "history": history, "pass": True}
+        return {"rounds": 0, "history": history, "pass": True, "page": blocks}
 
     cap = cfg.perf["fix_rounds"]
     stall_limit = cfg.repair["stall_rounds"]
     best = len(report["failures"])
     stalls = 0
-    specs = _specs_text(blocks)
+    current_blocks = blocks
+    specs = _specs_text(current_blocks)
     attempts: list[str] = []
     round_no = 0
 
@@ -114,8 +119,11 @@ def run(
             run_ctx.stage_dir(STAGE_ID) / f"round-{round_no:02d}-plan.json", plan
         )
 
-        rejected = _apply_plan(topic_dir, plan)
-        _rebuild_html_if_needed(cfg, render_out, topic_dir)
+        rejected, merged = _apply_plan(topic_dir, plan, current_blocks)
+        if merged is not None:
+            current_blocks = merged
+            specs = _specs_text(current_blocks)
+        _rebuild_html_if_needed(cfg, render_out, topic_dir, current_blocks)
 
         # Re-lint everything that changed, plus the html that embeds them.
         html_text = (topic_dir / "index.html").read_text(encoding="utf-8")
@@ -136,8 +144,7 @@ def run(
             # prompt so the fixer repairs its own fix.
             if rejected:
                 attempts.append(
-                    f"round {round_no}: REJECTED - the fix tried to modify "
-                    f"renderer-owned file(s) {', '.join(rejected)}; only "
+                    f"round {round_no}: REJECTED - {'; '.join(rejected)}; only "
                     "page.js and page.css may change"
                 )
             if hits:
@@ -179,7 +186,12 @@ def run(
         )
         if report["pass"]:
             _finish(cfg, run_ctx, history, topic_dir, site, ok=True)
-            return {"rounds": round_no, "history": history, "pass": True}
+            return {
+                "rounds": round_no,
+                "history": history,
+                "pass": True,
+                "page": current_blocks,
+            }
 
     _finish(cfg, run_ctx, history, topic_dir, site, ok=False)
     log_event(
@@ -206,41 +218,106 @@ def run(
     )
 
 
-def _apply_plan(topic_dir: Path, plan: dict[str, Any]) -> list[str]:
+def _apply_plan(
+    topic_dir: Path, plan: dict[str, Any], blocks: dict[str, Any] | None = None
+) -> tuple[list[str], dict[str, Any] | None]:
     """Apply the plan's topic-local files; renderer-owned files are skipped
-    and reported back (the model is told next round, not killed now)."""
+    and reported back (the model is told next round, not killed now).
+    When the plan carries corrected block specs (content errors live in
+    specs, not in code), merge them into `blocks` by id — the harness
+    re-renders the page body from the merged specs, so index.html still has
+    exactly one writer — and return the merged draft for the model to
+    re-review against. Simulation blocks are excluded (their behavior is
+    page.js draw code, owned by 05; spec edits there would desync the page).
+
+    Returns (rejected_violations, merged_blocks_or_None). `rejected`
+    entries are complete violation sentences for the next round's feedback.
+    """
+    from .agents import merge_blocks  # same merge as 04-repair (by id)
+
+    rejected: list[str] = []
     files = dict(plan.get("files", {}))
-    rejected = sorted(set(files) - FIXABLE)
-    for name in rejected:
+    rejected_files = sorted(set(files) - FIXABLE)
+    for name in rejected_files:
         files.pop(name)
     for name, content in files.items():
         (topic_dir / name).write_text(content, encoding="utf-8")
-    return rejected
+    if rejected_files:
+        rejected.append(
+            f"your fix tried to modify renderer-owned file(s) {', '.join(rejected_files)}"
+            " - only page.js and page.css may change"
+        )
+    merged: dict[str, Any] | None = None
+    corrections = plan.get("blocks") or []
+    if corrections:
+        if blocks is None:
+            rejected.append(
+                "your fix returned corrected blocks but no draft blocks were "
+                "available to merge them into - resubmit as page.js/page.css"
+            )
+        else:
+            by_id = {b["id"]: b for b in blocks["blocks"]}
+            sim_ids = sorted(
+                {
+                    b["id"]
+                    for b in corrections
+                    if by_id.get(b["id"], {}).get("type") == "simulation"
+                }
+            )
+            accepted = [
+                b
+                for b in corrections
+                if b.get("type") != "simulation" and b["id"] not in sim_ids
+            ]
+            if sim_ids:
+                rejected.append(
+                    f"your fix re-specified simulation block(s) {', '.join(sim_ids)}"
+                    " - simulation specs are owned by 05-interactive; fix sims"
+                    " as page.js draw code"
+                )
+            if accepted:
+                merged = merge_blocks(blocks, accepted)
+    return rejected, merged
 
 
 def _rebuild_html_if_needed(
-    cfg: Config, render_out: dict[str, Any], topic_dir: Path
+    cfg: Config,
+    render_out: dict[str, Any],
+    topic_dir: Path,
+    blocks: dict[str, Any] | None = None,
 ) -> None:
     """index.html is renderer-owned; after a fix round, re-emit it so the
-    page.js/page.css script/link tags match the files that actually exist."""
-    from .render import _page_html  # renderer owns this template
+    page.js/page.css script/link tags match the files that actually exist.
+
+    When `blocks` is given, the page body is RE-RENDERED from the current
+    block specs (the same `_render_block` path 06-render used) instead of
+    re-extracting the old body: corrected diagram geometry comes from the
+    corrected specs, and re-wrapping the old body would carry the old
+    broken content forward forever (the certified 2026-11-09 plateau: the
+    fixer changed page.js but index.html kept the wrong SVGs, so the
+    reviewer never saw progress). When `blocks` is None the body is
+    re-extracted after first stripping every nested shell layer.
+    """
+    from .render import _page_html, _render_block  # renderer owns the template
 
     html_path = topic_dir / "index.html"
     old = html_path.read_text(encoding="utf-8")
     title = render_out["manifest"]["title"]
     course_id = render_out["manifest"]["course_id"]
-    # Re-extract the body between the known markers instead of re-rendering blocks.
-    # The extracted <main> content still contains the OLD page's header
-    # (objectives), glossary and footer - strip all three before re-wrapping,
-    # otherwise _page_html nests the shell inside itself (header/glossary/
-    # footer doubled in every fixloop round; seen in the wild 2026-11-09).
-    start = old.index('<main class="zn-page">') + len('<main class="zn-page">')
-    end = old.index("</main>")
-    inner = old[start:end]
-    head_start = inner.index('<header class="zn-header">')
-    head_end = inner.index("</header>", head_start) + len("</header>")
-    tail_start = inner.index('<section class="zn-glossary">')
-    body = inner[head_end:tail_start]
+    if blocks is not None:
+        body = "\n".join(_render_block(b) for b in blocks["blocks"])
+    else:
+        # Fallback (callers without blocks): re-extract the body and
+        # normalize any already-nested page first. A page rebuilt by
+        # older code carries the shell repeatedly (H H H.. BODY G..G F..F):
+        # the real body sits after the LAST header close and before the
+        # FIRST glossary, so this collapses every layer at once.
+        start = old.index('<main class="zn-page">') + len('<main class="zn-page">')
+        end = old.index("</main>")
+        inner = old[start:end]
+        head_end = inner.rindex("</header>") + len("</header>")
+        tail_start = inner.index('<section class="zn-glossary">')
+        body = inner[head_end:tail_start]
     has_js = (topic_dir / "page.js").exists()
     has_css = (topic_dir / "page.css").exists()
     new_html = _page_html(

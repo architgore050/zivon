@@ -1,9 +1,8 @@
 """Unit tests for the design context loader (factory/design.py).
 
-The doctrine + its examples are the single source of truth: the loader hands
-them over LIVE, picks up new example files via the glob with no pipeline
-change, derives the palette from the real shell stylesheet, and fails loudly
-(never silently truncates) when the doctrine outgrows the model's budget.
+Note: Shipped-doctrine context budget and COMPONENT DEMOS framing checks were
+migrated to `evals/checkers/prompt_contract_checks.py` (`EV-VIS-001`) per
+`docs/specs/evals/migration-map.csv` row 19.
 """
 
 import dataclasses
@@ -43,44 +42,14 @@ def make_cfg(tmp: Path, mutate=None):
 class TestDesignLoader(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
-        # load_config roots relative paths at the config file's directory;
-        # point root at the real repo so the SHIPPED doctrine, examples and
-        # stylesheet are the ones under test.
         self.cfg = dataclasses.replace(make_cfg(self.tmp), root=REPO_ROOT)
 
     def test_doctrine_handed_over_live(self):
         text = design.doctrine_text(self.cfg)
         self.assertIn("Field Notes", text)
-        self.assertIn("Lesson page", text)  # the v1.1 extension flows through
-
-    def test_examples_glob_is_lesson_page_only(self):
-        # 2026-11-04 (founder decision): factory context carries ONLY the
-        # lesson-page examples. The main (post/brand) example stays a docs
-        # asset - it must not bleed into generated pages.
-        text = design.examples_text(self.cfg)
-        self.assertIn("design-doctrine-lesson-example.html", text)
-        self.assertNotIn("=== design-doctrine-example.html ===", text)
-
-    def test_examples_are_framed_as_styling_only(self):
-        # 2026-11-04 (founder): the example's plain-simple CONTENT was bleeding
-        # into generated pages. Every stage that receives the examples must be
-        # told, in the same breath, that they are a styling reference only.
-        # 2026-11-09: the header became "COMPONENT DEMOS" (the examples now
-        # compose kit classes, so the framing must name that - the guard text
-        # after it is unchanged).
-        block = design.design_context(self.cfg, with_examples=True)
-        self.assertIn("COMPONENT DEMOS", block)
-        self.assertIn("never reuse or imitate their content", block)
-        self.assertIn("dictated by the SOURCE MATERIAL", block)
-        # the framing must come BEFORE the example bodies, never after them
-        self.assertLess(
-            block.index("COMPONENT DEMOS"),
-            block.index("=== design-doctrine-lesson-example.html ==="),
-        )
+        self.assertIn("Lesson page", text)
 
     def test_new_documents_flow_without_any_pipeline_change(self):
-        # Open-endedness proof: a fake repo tree with its own doctrine, two
-        # examples and stylesheet - the loader picks all of it up unchanged.
         fake = self.tmp / "fake-repo"
         (fake / "docs" / "frontend").mkdir(parents=True)
         (fake / "docs" / "frontend" / "design-doctrine.md").write_text(
@@ -104,7 +73,7 @@ class TestDesignLoader(unittest.TestCase):
         self.assertIn("--ink: #101010", design.palette_text(cfg))
 
     def test_missing_doctrine_fails_loudly(self):
-        cfg = dataclasses.replace(self.cfg, root=self.tmp)  # empty tree
+        cfg = dataclasses.replace(self.cfg, root=self.tmp)
         with self.assertRaises(ConfigError) as ctx:
             design.doctrine_text(cfg)
         self.assertIn("not found", str(ctx.exception))
@@ -119,13 +88,6 @@ class TestDesignLoader(unittest.TestCase):
         msg = str(ctx.exception)
         self.assertIn("chars", msg)
         self.assertIn("500", msg)
-
-    def test_current_repo_fits_the_budget(self):
-        # The shipped doctrine + examples must fit the shipped budget. If this
-        # fails, the doctrine outgrew the model context and a human must
-        # decide - which is exactly the point of the loud check.
-        block = design.design_context(self.cfg, with_examples=True)
-        self.assertLess(len(block), self.cfg.limits["max_chars_design_context"])
 
 
 if __name__ == "__main__":

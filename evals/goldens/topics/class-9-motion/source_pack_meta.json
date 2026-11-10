@@ -1,0 +1,14 @@
+{
+  "book_id": "ncert-science-9",
+  "chapter_title": "Motion",
+  "class_level": 9,
+  "pages": [
+    1,
+    22
+  ],
+  "matched_via": "title_line",
+  "supplements": [
+    "alt-open-physics#c0001"
+  ],
+  "ncert_text_sha256": "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90"
+}

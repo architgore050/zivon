@@ -5,19 +5,20 @@
 #
 # Order:
 #   1. namespace
-#   2. zivon-llm-manager-config ConfigMap <- the llm-manager NODE's upstream
-#      (ZIVON_BASE_URL = the inference router, model, streaming/deadline knobs)
-#      and zivon-factory-config ConfigMap <- the FACTORY's view (its
-#      ZIVON_BASE_URL = the llm-manager Service, ZIVON_LLM_MANAGER_URL below)
-#   3. manifests in dependency order (16 = the llm-manager Deployment+Service,
-#      applied before anything that talks to it). k8s/20 is deliberately NOT
+#   2. zivon-llm-manager-config, zivon-factory-config, and zivon-voice-config
+#      ConfigMaps rendered from k8s/infra.env
+#   3. manifests in dependency order (16 = llm-manager, 25 = postgres + PVCs,
+#      26 = backend-migrate Job, 27 = core-backend Deployment+Service,
+#      28 = backend config, 30/40 = frontend). k8s/20 is deliberately NOT
 #      applied: factory generation is manual-only
 #      (scripts/trigger-factory-run.sh).
 #   3b. the Wave-E reserved manifests (17-18, 21-29, 51-53 per the GAP-017
 #      map in docs/deployment/kubernetes.md) — each applied ONLY if the file
 #      has landed, so the apply flow works unchanged between Wave-E merges.
-#   4. the test CronJob rendered with TEST_CRON_SCHEDULE from infra.env
-#   5. one immediate full test run (scripts/trigger-tests.sh startup)
+#   4. the test CronJob (50), retention (51) and eval (52) CronJobs and the
+#      sync/backup CronJobs (53) rendered with schedules from infra.env
+#   5. one immediate full test run (scripts/trigger-tests.sh startup) and one
+#      smoke eval run (scripts/trigger-evals.sh smoke startup)
 #
 # ConfigMaps are read by pods ONLY at start: after the ConfigMaps are applied,
 # the llm-manager Deployment is rollout-restarted so an endpoint/model/knob
@@ -33,15 +34,18 @@ cd "$(dirname "$0")/.."
 source k8s/infra.env
 # export so envsubst (a child process) can see the values — sourced vars are
 # shell-local by default.
-export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
+export TEST_CRON_SCHEDULE EVAL_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
   ZIVON_CALL_DEADLINE_S ZIVON_STREAM ZIVON_STREAM_USAGE ZIVON_JSON_MODE \
-  ZIVON_MAX_ATTEMPTS \
+  ZIVON_MAX_ATTEMPTS ZIVON_EXTRA_HEADERS ZIVON_USER_AGENT \
+  ZIVON_REASONING_EFFORT \
   ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL \
   ZIVON_ENV ZIVON_LOG_LEVEL ZIVON_LOG_SYNC_SCHEDULE ZIVON_PUBLIC_BASE_URL \
   ZIVON_GRAFANA_URL ZIVON_NARRATION_ENABLED \
   EVAL_CRON_SCHEDULE ZIVON_EVAL_JUDGE_MODEL \
   ZIVON_VOICE_BRAIN_TRANSPORT ZIVON_VOICE_BRAIN_MODEL \
-  ZIVON_NARRATION_BUILD_BUDGET COLD_PROVIDER
+  ZIVON_NARRATION_BUILD_BUDGET COLD_PROVIDER \
+  COLD_BUCKET_PRIMARY COLD_BUCKET_SECONDARY \
+  TTL_VOICE_TURN_CRON_SCHEDULE SYNC_NIGHTLY_CRON_SCHEDULE BASE_BACKUP_CRON_SCHEDULE
 # ZIVON_LOG_DSN is intentionally absent: it carries DB credentials and lives
 # only in the runtime Secret (never exported from this file).
 
@@ -58,6 +62,9 @@ kubectl create configmap zivon-llm-manager-config -n zivon \
   --from-literal=ZIVON_STREAM_USAGE="$ZIVON_STREAM_USAGE" \
   --from-literal=ZIVON_JSON_MODE="$ZIVON_JSON_MODE" \
   --from-literal=ZIVON_MAX_ATTEMPTS="$ZIVON_MAX_ATTEMPTS" \
+  --from-literal=ZIVON_EXTRA_HEADERS="$ZIVON_EXTRA_HEADERS" \
+  --from-literal=ZIVON_USER_AGENT="$ZIVON_USER_AGENT" \
+  --from-literal=ZIVON_REASONING_EFFORT="$ZIVON_REASONING_EFFORT" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # The FACTORY's config: it talks OpenAI chat-completions to the llm-manager
@@ -72,17 +79,35 @@ kubectl create configmap zivon-factory-config -n zivon \
   --from-literal=ZIVON_NARRATION_ENABLED="$ZIVON_NARRATION_ENABLED" \
   --dry-run=client -o yaml | kubectl apply -f -
 
+kubectl apply -f k8s/28-backend-config.yaml
+kubectl create configmap zivon-voice-config -n zivon \
+  --from-literal=ZIVON_ENV="cluster" \
+  --from-literal=ZIVON_BACKEND_HOST="0.0.0.0" \
+  --from-literal=ZIVON_BACKEND_PORT="8000" \
+  --from-literal=ZIVON_RUNS_DIR="/app/runs" \
+  --from-literal=ZIVON_COLD_STAGING_DIR="/tmp/zivon-cold-staging" \
+  --from-literal=ZIVON_VOICE_BRAIN_TRANSPORT="$ZIVON_VOICE_BRAIN_TRANSPORT" \
+  --from-literal=ZIVON_VOICE_BRAIN_MODEL="$ZIVON_VOICE_BRAIN_MODEL" \
+  --from-literal=COLD_PROVIDER="$COLD_PROVIDER" \
+  --from-literal=COLD_BUCKET_PRIMARY="$COLD_BUCKET_PRIMARY" \
+  --from-literal=COLD_BUCKET_SECONDARY="$COLD_BUCKET_SECONDARY" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 kubectl delete job factory-smoke -n zivon --ignore-not-found
 kubectl apply -f k8s/10-factory-smoke-job.yaml
 kubectl apply -f k8s/12-hf-cache-pvc.yaml -f k8s/13-sources-pvc.yaml -f k8s/15-frontend-pvc.yaml
 kubectl apply -f k8s/16-llm-manager.yaml
-# The node reads its env (endpoint/model/knobs) ONLY at pod start: applying
-# an updated ConfigMap above does NOT restart the node, and the stale-env
-# node refuses requests naming the new model (found live 2026-11-08: the
-# 02-generate call asked for 'stealth/crouton-alpha' while the node pod,
-# started before the config change, still served the old local model).
 kubectl rollout restart deployment/llm-manager -n zivon
 kubectl rollout status deployment/llm-manager -n zivon
+
+kubectl apply -f k8s/25-postgres.yaml
+kubectl rollout status deployment/postgres -n zivon
+kubectl delete job backend-migrate -n zivon --ignore-not-found
+kubectl apply -f k8s/26-backend-migrate-job.yaml
+kubectl apply -f k8s/27-core-backend.yaml
+kubectl rollout restart deployment/core-backend -n zivon
+kubectl rollout status deployment/core-backend -n zivon
+
 kubectl apply -f k8s/30-frontend-deployment.yaml -f k8s/40-frontend-service.yaml
 
 # The admin DASHBOARD (k8s/23 + 24): its config is env-only (infra.env);
@@ -100,6 +125,8 @@ kubectl apply -f k8s/23-dashboard-deployment.yaml -f k8s/24-dashboard-service.ya
 envsubst '${ZIVON_LOG_SYNC_SCHEDULE}' < k8s/51-log-retention-cronjob.yaml | kubectl apply -f -
 
 envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
+envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -
+envsubst '${TTL_VOICE_TURN_CRON_SCHEDULE} ${SYNC_NIGHTLY_CRON_SCHEDULE} ${BASE_BACKUP_CRON_SCHEDULE}' < k8s/53-sync-cronjobs.yaml | kubectl apply -f -
 
 # ---------------------------------------------------------------------------
 # Wave-E reserved manifests (GAP-017 map: docs/deployment/kubernetes.md).
@@ -142,3 +169,7 @@ for dep in dashboard core-backend; do
 done
 
 scripts/trigger-tests.sh startup
+# One immediate smoke eval (0 model calls) so the apply is also an eval
+# health check; the full suite stays on the EVAL_CRON_SCHEDULE cadence
+# (OQ-EVAL-01).
+scripts/trigger-evals.sh smoke startup

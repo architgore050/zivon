@@ -36,12 +36,15 @@ updates:
 
   - package-ecosystem: pip
     directory: "/logging_manager/"
+
+  - package-ecosystem: pip
+    directory: "/backend/"       # the core-backend monolith's slim dependency set
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
 
   - package-ecosystem: docker
-    directory: "/"          # watches base image in Dockerfile
+    directory: "/"          # watches base images in Dockerfiles
     schedule:
       interval: weekly
 

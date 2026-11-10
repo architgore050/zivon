@@ -1,0 +1,32 @@
+{
+  "course_id": "class-9-physics",
+  "class": 9,
+  "topic_slug": "describing-motion-around-us",
+  "title": "Describing Motion Around Us",
+  "chapter": {
+    "query": "Motion in a Straight Line",
+    "title": "Grade",
+    "book": "Science - Textbook for Grade 9 (2025 edition)",
+    "pages": [
+      1,
+      24
+    ]
+  },
+  "sources": [
+    {
+      "id": "ncert-science-9",
+      "title": "Science - Textbook for Grade 9 (2025 edition)",
+      "license": "NCERT (free educational use)"
+    }
+  ],
+  "run_id": "motion-in-a-straight-line-c9",
+  "generated_at": "2026-11-09T15:31:18Z",
+  "block_counts": {
+    "text": 12,
+    "diagram": 2,
+    "check": 13,
+    "worked_example": 8,
+    "reveal": 4,
+    "simulation": 3
+  }
+}

@@ -58,7 +58,10 @@ _ALL_ENV_KEYS = (
     "ZIVON_STREAM",
     "ZIVON_STREAM_USAGE",
     "ZIVON_HEARTBEAT_S",
+    "ZIVON_EXTRA_HEADERS",
+    "ZIVON_USER_AGENT",
     "ZIVON_MAX_TOKENS",  # must stay ignored by from_env
+    "ZIVON_REASONING_EFFORT",
 )
 
 
@@ -329,6 +332,27 @@ class TestLLMConfigFromEnv(unittest.TestCase):
         self.assertFalse(cfg.stream)
         self.assertFalse(cfg.stream_usage)
         self.assertEqual(cfg.heartbeat_s, 30.0)
+
+    def test_extra_headers_and_user_agent_are_read_from_env(self):
+        # 2026-11-10: the OpenCode Go gateway needs a stable x-opencode-session
+        # header and asks clients to identify themselves.
+        self._set_required()
+        os.environ["ZIVON_EXTRA_HEADERS"] = '{"x-opencode-session": "zivon-factory"}'
+        os.environ["ZIVON_USER_AGENT"] = "zivon-factory/0.3.19"
+        os.environ["ZIVON_REASONING_EFFORT"] = "high"
+        cfg = LLMConfig.from_env()
+        self.assertEqual(cfg.extra_headers, {"x-opencode-session": "zivon-factory"})
+        self.assertEqual(cfg.user_agent, "zivon-factory/0.3.19")
+        self.assertEqual(cfg.reasoning_effort, "high")
+
+    def test_malformed_extra_headers_fails_loudly(self):
+        self._set_required()
+        os.environ["ZIVON_EXTRA_HEADERS"] = "not-json"
+        with self.assertRaises(LLMConfigError):
+            LLMConfig.from_env()
+        os.environ["ZIVON_EXTRA_HEADERS"] = '["x"]'
+        with self.assertRaises(LLMConfigError):
+            LLMConfig.from_env()
 
     def test_max_tokens_has_no_env_var(self):
         # The factory never sets a completion cap (founder decision

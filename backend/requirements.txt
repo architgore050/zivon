@@ -1,0 +1,13 @@
+# Zivon core backend monolith - Python dependencies (Dockerfile.backend).
+#
+# Deliberately SLIM: FastAPI + Uvicorn + PostgreSQL drivers + SQLAlchemy/Alembic.
+# No torch, no pdfplumber, no playwright.
+# Install:  pip install -r backend/requirements.txt
+
+fastapi==0.162.0
+uvicorn==0.54.0
+httpx==0.28.1
+sqlalchemy==2.0.36
+alembic==1.14.0
+asyncpg==0.30.0
+psycopg[binary]==3.2.3

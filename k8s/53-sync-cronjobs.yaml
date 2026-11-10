@@ -1,0 +1,461 @@
+# Retention, TTL, and Cold Sync CronJob bundle (GAP-005, GAP-017 reservation 53,
+# storage-tiering.md §6.3, ADR-0006).
+#
+# P0 CronJobs included in this bundle:
+#   1. ttl-voice-turn     — 7-day hard delete on `voice_turn` (A-02, C6)
+#   2. ttl-coverage       — 24-hour idle clear on `session.coverage` (C5)
+#   3. ttl-abuse-bucket   — 72-hour rolling expiry on `abuse_bucket` (A-12, C19)
+#   4. rollup-daily-stats — nightly roll-up into `daily_stats` + 30-d session delete (C20)
+#   5. ttl-telemetry      — 90-day delete on `telemetry_event` & resolved `problem_report` (C10/C17)
+#   6. sync-nightly       — SYNC-03 encrypted consent/audit/tombstone snapshot + SYNC-05 run mirror
+#   7. base-backup        — SYNC-02 daily DB base backup to cold storage (B2 primary + R2 secondary)
+#
+# Gotcha 12 compliance: cleanup uses `successfulJobsHistoryLimit` and
+# `failedJobsHistoryLimit` — NEVER `ttlSecondsAfterFinished` inside CronJob
+# `jobTemplate.spec`.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ttl-voice-turn
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: retention
+spec:
+  schedule: "${TTL_VOICE_TURN_CRON_SCHEDULE}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: ttl-voice-turn
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: ttl-voice-turn
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.privacy", "ttl-voice-turn"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ttl-coverage
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: retention
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: ttl-coverage
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: ttl-coverage
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.privacy", "ttl-coverage"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ttl-abuse-bucket
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: retention
+spec:
+  schedule: "15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: ttl-abuse-bucket
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: ttl-abuse-bucket
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.privacy", "ttl-abuse-bucket"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rollup-daily-stats
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: retention
+spec:
+  schedule: "0 20 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: rollup-daily-stats
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: rollup-daily-stats
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.privacy", "rollup-daily-stats"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ttl-telemetry
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: retention
+spec:
+  schedule: "30 20 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: ttl-telemetry
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: ttl-telemetry
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.privacy", "ttl-telemetry"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sync-nightly
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: cold-sync
+spec:
+  schedule: "${SYNC_NIGHTLY_CRON_SCHEDULE}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: sync-nightly
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: sync-nightly
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.sync", "sync-nightly"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+                - secretRef:
+                    name: zivon-cold-writer
+                    optional: true
+              volumeMounts:
+                - name: sources
+                  mountPath: /app/runs
+                  subPath: runs
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 150m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+          volumes:
+            - name: sources
+              persistentVolumeClaim:
+                claimName: zivon-sources
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: base-backup
+  namespace: zivon
+  labels:
+    app: zivon-backend
+    component: cold-sync
+spec:
+  schedule: "${BASE_BACKUP_CRON_SCHEDULE}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: zivon-backend
+            task: base-backup
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: base-backup
+              image: zivon-backend:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: ["python", "-m", "backend.sync", "base-backup"]
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              envFrom:
+                - configMapRef:
+                    name: zivon-voice-config
+                - secretRef:
+                    name: zivon-voice-env
+                    optional: true
+                - secretRef:
+                    name: zivon-cold-writer
+                    optional: true
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 150m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}

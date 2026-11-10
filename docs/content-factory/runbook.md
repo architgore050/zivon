@@ -23,11 +23,20 @@ see `docs/content-factory/config-reference.md` and `.env.example`):
    via `docker compose up -d llm-manager`; in the cluster the factory's
    ConfigMap already points at the llm-manager Service - see
    `docs/deployment/kubernetes.md`).
-2. If the server rejects `response_format` with a 400, set
+2. For a cloud gateway that needs extra headers/identity (2026-11-10, OpenCode
+   Go requires a stable `x-opencode-session`): `export
+   ZIVON_EXTRA_HEADERS='{"x-opencode-session":"zivon-factory-pipeline"}'` and
+   `export ZIVON_USER_AGENT=zivon-factory/<version>`. In the cluster both are
+   rendered into the llm-manager ConfigMap from `k8s/infra.env`. To set the
+   cluster's key: `kubectl create secret generic zivon-factory-env -n zivon
+   --from-literal=ZIVON_API_KEY='<key>' --dry-run=client -o yaml | kubectl
+   apply -f -` (never in a file; `scripts/apply-k8s.sh` then rollout-restarts
+   the node).
+3. If the server rejects `response_format` with a 400, set
    `ZIVON_JSON_MODE=false` (the pipeline tells you exactly this; it never
    downgrades on its own). If it rejects `stream_options` with a 400, set
    `ZIVON_STREAM_USAGE=false` (same policy).
-3. Optional: per-stage `temperature` under `stage_overrides`
+4. Optional: per-stage `temperature` under `stage_overrides`
    in `config.json` (the behaviour file: learner, retrieval, limits, paths,
    perf, repair live there).
 
@@ -268,3 +277,27 @@ in config.json at the gate you want. Standalone use:
 - Run the translation test suite (mocked `llm-manager` node, zero network/credits):
   `python3 -m unittest discover -s testing/translation -t . -v`
 - **`GAP-008` (`llm-manager` upstream fallback runbook)**: if the primary upstream inference endpoint configured in `k8s/infra.env` (`ZIVON_BASE_URL`) is unreachable during a build or translation run, switch the `llm-manager` node upstream between the local inference router (`http://192.168.49.1:18080/v1`) and OpenRouter (`https://openrouter.ai/api/v1`) in `k8s/infra.env`, re-apply via `scripts/apply-k8s.sh` (which automatically runs `kubectl rollout restart deployment/llm-manager -n zivon`), and re-trigger the factory command to resume from the exact failed block checkpoint.
+## Evals & Reviewer Calibration (`evals/`)
+
+Run from the repo root (or in-cluster via `scripts/trigger-evals.sh`):
+
+    # Fast deterministic PR smoke suite (0 model calls, no API keys required)
+    python -m evals run --suite smoke --mock
+
+    # Reviewer calibration against the 19-sample seeded-defect corpus (03-check + 09-review)
+    python -m evals calibrate --stage all --mock
+
+    # Full evaluation suite across all 9 Eval Cards (EV-CUR-001 .. EV-KID-001)
+    python -m evals run --suite full --mock
+
+    # Run-to-run regression diff (exits 2 if any blocking regression alert fires)
+    python -m evals diff --prev <baseline_run_id> --curr <current_run_id>
+
+    # Record human-edit diff (EV-E2E-001) and DPDP-validated kid comprehension session (EV-KID-001)
+    python -m evals record-edit --course class-9-physics --topic how-forces-affect-motion \
+        --baseline-dir runs/<id>/06-render/site/courses/class-9-physics/how-forces-affect-motion \
+        --published-dir frontend/courses/class-9-physics/how-forces-affect-motion
+    python -m evals record-kid-test --input session.json
+
+    # Idempotently backfill JSONL ledgers into PostgreSQL / relational store (ADR-0027)
+    python -m evals backfill-db --db-url "$ZIVON_DB_URL"

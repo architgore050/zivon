@@ -1,7 +1,8 @@
-"""Unit tests for 05-interactive: the Visual Builder must receive the
-ground-truth facts its simulation must obey, the LIVE design doctrine +
-examples + parsed palette, and lint violations must enter the retry
-transcript instead of killing the run after the model call.
+"""Unit tests for 05-interactive lint-feedback retry loop wiring.
+
+Note: 05-interactive prompt wording checks were migrated to
+`evals/checkers/prompt_contract_checks.py` (`EV-VIS-001`) per
+`docs/specs/evals/migration-map.csv` row 21.
 """
 
 import dataclasses
@@ -115,6 +116,17 @@ class TestInteractiveFacts(unittest.TestCase):
         self.assertIn("GRAPH SHAPE", user)
         self.assertIn("APPARATUS TOO", user)
         self.assertIn("PLAN THE GEOMETRY SYMBOLICALLY FIRST", user)
+
+    def test_prompt_pins_the_axis_follows_the_data_law(self):
+        # Founder report 2026-11-10: graphs were allowed to stay static while
+        # a control changed the axis/parameter - "that should not be allowed".
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        self.assertIn("AXES ARE DATA", user)
+        self.assertIn("recomputed from the current values EVERY frame", user)
+        self.assertIn("Compute tick values from the plot's own scale mapping", user)
+        self.assertIn("GRAPH CONTENT law", user)
+        self.assertIn("constant acceleration", user)
 
     def test_prompt_carries_live_doctrine_examples_and_palette(self):
         # The design context is injected, not held: the prompt must contain the

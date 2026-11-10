@@ -86,6 +86,42 @@ class TestCitations(unittest.TestCase):
         )
 
 
+class TestShapes(unittest.TestCase):
+    """Shape invariants the other rule checks silently depend on (found live
+    2026-11-10: nemotron emitted worked_example.steps as ONE dict; Python's
+    dict iteration handed bare strings to `step.get(...)` and the run died at
+    02-generate with an AttributeError instead of a fixable verdict)."""
+
+    def test_dict_steps_is_a_fatal_shape_issue_named_for_fixing(self):
+        b = json.loads(json.dumps(load("blocks.json")["blocks"][2]))  # worked_example
+        b["spec"]["steps"] = {"title": "one", "detail": "not a list"}
+        issues = checks.rule_shapes([b])
+        self.assertTrue(
+            any(i["severity"] == "fatal" and "steps" in i["message"] for i in issues)
+        )
+
+    def test_missing_steps_is_also_shape_fatal(self):
+        b = json.loads(json.dumps(load("blocks.json")["blocks"][2]))
+        del b["spec"]["steps"]
+        self.assertTrue(checks.rule_shapes([b]))
+
+    def test_run_all_rules_short_circuits_without_crashing(self):
+        # The regression itself: run_all_rules used to reach the step loop
+        # and raise AttributeError on this exact draft.
+        b = json.loads(json.dumps(load("blocks.json")["blocks"][2]))
+        b["spec"]["steps"] = {"title": "x", "detail": "y"}
+        report = checks.run_all_rules(
+            [b], {"title": "t", "sections": []}, {}, {"chapter": {}, "ncert_text": ""}
+        )
+        self.assertEqual(report["verdict"], "fail")
+        self.assertEqual(report["fatal_count"], 1)
+        self.assertTrue(all("steps" in i["message"] for i in report["rule_issues"]))
+
+    def test_proper_step_lists_pass(self):
+        blocks = load("blocks.json")["blocks"]
+        self.assertEqual(checks.rule_shapes(blocks), [])
+
+
 class TestSelfContainment(unittest.TestCase):
     def test_clean_lesson_passes(self):
         blocks = load("blocks.json")["blocks"]
