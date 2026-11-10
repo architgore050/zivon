@@ -488,6 +488,9 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: "1"                  # fail the PR on CRITICAL/HIGH with a fix available
           ignore-unfixed: true
+          # ONLY the vendored-module CVEs of the upstream kubectl binary;
+          # every entry is justified and dated in the file itself.
+          trivyignores: docker/.trivyignore-dashboard
 
   # ---- 7c. the migration chain (backend-spec §12: Alembic against a fresh DB)
   # Upgrade-from-empty proves the chain builds the schema with no hand steps.

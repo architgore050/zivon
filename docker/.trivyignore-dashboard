@@ -1,0 +1,20 @@
+# Trivy ignores for the DASHBOARD image only (ci.yml "Dashboard image" job).
+#
+# Scope rule: entries here are allowed ONLY when the vulnerable code is
+# shipped inside an upstream prebuilt binary we do not compile, and no
+# upstream release fixes it yet. Application/dependency CVEs are fixed by
+# upgrading - never ignored. Each entry states the binary, why we cannot fix
+# it, and the condition that removes it.
+#
+# kubectl v1.37.2 is the NEWEST upstream release (dl.k8s.io/release/stable.txt,
+# checked 2026-11-10). Its vendored Go modules predate the fixes, so the
+# vulnerabilities cannot be patched without a new kubectl release. The binary
+# is used for read-only job views and the two trigger buttons, behind admin
+# auth (ADR-0026), and the DoS classes below require hostile input to the
+# kubectl HTTP client - not a reachable surface for this dashboard.
+#
+# REMOVE each line when kubectl publishes a release built with the fixed
+# modules (the trivy table names the fixed versions).
+CVE-2026-78661  # golang.org/x/net/html - fixed in x/net 0.62.0 (kubectl has 0.57.0)
+CVE-2026-78669  # golang.org/x/net/http2 - fixed in x/net 0.60.0
+CVE-2026-56851  # golang.org/x/text - fixed in x/text 0.41.0 (kubectl has 0.40.0)
