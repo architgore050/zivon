@@ -161,7 +161,7 @@ GROUND_TRUTH = {
     },
 }
 
-LESSON = {
+LESSON: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "required": ["title", "objectives", "sections", "glossary"],

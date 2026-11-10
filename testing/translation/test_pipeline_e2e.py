@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -17,6 +18,10 @@ from testing.translation._test_env import (
     install_translation_env,
     restore_translation_env,
 )
+from testing.translation.mock_translation_node import (
+    MockTranslationState,
+    start_translation_mock,
+)
 
 ensure_test_dependencies()
 
@@ -25,12 +30,15 @@ from factory.artifacts import RunContext
 from factory.config import load_config
 from factory.lint import lint_generated, lint_js
 from factory.llm import LLMClient
-from testing.translation.mock_translation_node import start_translation_mock
 
 FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 class TestTranslationPipelineE2E(unittest.TestCase):
+    server: ThreadingHTTPServer
+    base_url: str
+    state: MockTranslationState
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.server, cls.base_url, cls.state = start_translation_mock()
@@ -277,13 +285,13 @@ class TestTranslationPipelineE2E(unittest.TestCase):
             "Motion",
             9,
             run_id=run_id,
-            only_stages={
+            only_stages=[
                 "10a-translate",
                 "10b-transcheck",
                 "10c-transrepair",
                 "10d-transrender",
                 "11-link",
-            },
+            ],
         )
         self.assertTrue(res["ok"])
         status = json.loads((run_ctx.dir / "status.json").read_text(encoding="utf-8"))

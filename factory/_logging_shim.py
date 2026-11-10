@@ -37,14 +37,14 @@ except ImportError:
     USING_SHIM = True
     LOG_SCHEMA_VERSION = 1
 
-    class Severity(str, Enum):
+    class Severity(str, Enum):  # type: ignore[no-redef]
         DEBUG = "DEBUG"
         INFO = "INFO"
         WARNING = "WARNING"
         ERROR = "ERROR"
         CRITICAL = "CRITICAL"
 
-    class ErrorClass(str, Enum):
+    class ErrorClass(str, Enum):  # type: ignore[no-redef]
         transport_error = "transport_error"
         validation_error = "validation_error"
         gate_fail = "gate_fail"

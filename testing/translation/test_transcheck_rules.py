@@ -13,6 +13,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
+from http.server import ThreadingHTTPServer
+
 from testing.translation._test_env import (
     ensure_test_dependencies,
     install_translation_env,
@@ -41,12 +43,19 @@ from factory.transcheck import (
 )
 from factory.translate import run as translate_run
 from factory.transrepair import run_one_round
-from testing.translation.mock_translation_node import start_translation_mock
+from testing.translation.mock_translation_node import (
+    MockTranslationState,
+    start_translation_mock,
+)
 
 FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 
 
 class TestTranscheckRulesAndRepair(unittest.TestCase):
+    server: ThreadingHTTPServer
+    base_url: str
+    state: MockTranslationState
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.server, cls.base_url, cls.state = start_translation_mock()

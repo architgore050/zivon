@@ -9,6 +9,7 @@ import sys
 import tempfile
 import types
 import unittest
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -29,13 +30,20 @@ from factory.tm_store import TranslationMemoryStore, can_evict_ssd_bundle
 from factory.transcheck import run as transcheck_run
 from factory.translate import compute_tm_keys
 from factory.translate import run as translate_run
-from testing.translation.mock_translation_node import start_translation_mock
+from testing.translation.mock_translation_node import (
+    MockTranslationState,
+    start_translation_mock,
+)
 
 FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 MIGRATION_PATH = REPO_ROOT / "migrations" / "versions" / "0022_translation_memory_c3.py"
 
 
 class TestTranslationMemoryAndResume(unittest.TestCase):
+    server: ThreadingHTTPServer
+    base_url: str
+    state: MockTranslationState
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.server, cls.base_url, cls.state = start_translation_mock()

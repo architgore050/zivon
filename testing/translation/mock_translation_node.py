@@ -473,7 +473,7 @@ def start_translation_mock() -> tuple[ThreadingHTTPServer, str, MockTranslationS
                 state.record({"stage": "10b-transcheck", "locale": locale})
                 queue = state.scripted_review_issues.get(locale, [])
                 issues = queue.pop(0) if queue else []
-                resp_payload = {"issues": issues}
+                resp_payload: dict[str, Any] = {"issues": issues}
             else:
                 stage = (
                     "10c-transrepair"
@@ -503,17 +503,69 @@ def start_translation_mock() -> tuple[ThreadingHTTPServer, str, MockTranslationS
                     if unit_type == "worked_example":
                         resp_payload["answer"] = "२ m/s2"
 
+            content = json.dumps(resp_payload, ensure_ascii=False)
+            model = body.get("model", "mock-evon-v3.3")
+
+            if body.get("stream"):
+                # Simulate the OpenAI-format SSE streaming that llm_manager's
+                # streaming client (openai>=2 / langchain streaming) consumes.
+                usage = {
+                    "prompt_tokens": 250,
+                    "completion_tokens": 120,
+                    "total_tokens": 370,
+                }
+
+                def sse_chunk(delta: dict[str, Any], finish: str | None) -> str:
+                    chunk = {
+                        "id": "chatcmpl-mock-trans",
+                        "object": "chat.completion.chunk",
+                        "model": model,
+                        "choices": [
+                            {
+                                "index": 0,
+                                "finish_reason": finish,
+                                "delta": delta,
+                            }
+                        ],
+                    }
+                    if "usage" in delta:
+                        chunk["usage"] = delta.pop("usage")
+                        chunk["choices"] = []
+                    return "data: " + json.dumps(chunk, ensure_ascii=False) + "\n\n"
+
+                lines = [
+                    sse_chunk(
+                        {"role": "assistant", "content": content},
+                        finish=None,
+                    ),
+                    sse_chunk({}, finish="stop"),
+                ]
+                if body.get("stream_options", {}).get("include_usage"):
+                    # terminal usage-only chunk (choices must be empty)
+                    lines.append(
+                        sse_chunk({"usage": usage}, finish=None)
+                    )
+                lines.append("data: [DONE]\n\n")
+                encoded = "".join(lines).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Content-Length", str(len(encoded)))
+                self.end_headers()
+                self.wfile.write(encoded)
+                return
+
             wire = {
                 "id": "chatcmpl-mock-trans",
                 "object": "chat.completion",
-                "model": body.get("model", "mock-evon-v3.3"),
+                "model": model,
                 "choices": [
                     {
                         "index": 0,
                         "finish_reason": "stop",
                         "message": {
                             "role": "assistant",
-                            "content": json.dumps(resp_payload, ensure_ascii=False),
+                            "content": content,
                             "reasoning_content": "Translated with glossary and invariant checks.",
                         },
                     }
@@ -535,4 +587,4 @@ def start_translation_mock() -> tuple[ThreadingHTTPServer, str, MockTranslationS
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     host, port = server.server_address[:2]
-    return server, f"http://{host}:{port}/v1", state
+    return server, f"http://{host!s}:{port}/v1", state

@@ -12,7 +12,7 @@ import sys
 import types
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -170,18 +170,21 @@ def _install_langchain_openai_shim() -> None:
             url = f"{self.base_url}/chat/completions"
             body = self._build_body(messages, stream=False)
             client = self.http_client or httpx.Client(timeout=self.timeout)
+            request = httpx.Request("POST", url)
             try:
                 resp = client.post(
                     url, json=body, headers=self._headers(), timeout=self.timeout
                 )
             except httpx.TimeoutException as exc:
-                raise openai.APITimeoutError() from exc
+                raise openai.APITimeoutError(request=cast("Any", request)) from exc
             except httpx.HTTPError as exc:
-                raise openai.APIConnectionError(message=str(exc)) from exc
+                raise openai.APIConnectionError(
+                    message=str(exc), request=cast("Any", request)
+                ) from exc
             if resp.status_code >= 400:
                 raise openai.APIStatusError(
                     f"Error code: {resp.status_code}",
-                    response=resp,
+                    response=cast("Any", resp),
                     body=resp.text,
                 )
             data = resp.json()
