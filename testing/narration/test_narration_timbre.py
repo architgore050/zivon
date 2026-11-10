@@ -6,8 +6,10 @@ keys; the retry/backoff discipline mirrors llm_manager's contract.
 
 from __future__ import annotations
 
+import base64
 import dataclasses
 import io
+import json
 import os
 import unittest
 import wave
@@ -254,6 +256,100 @@ class TestEnvParsing(unittest.TestCase):
         # Guard the mock's realism assumption: 14 chars/s ~ measured
         # narration pace; if someone changes it, change the comment too.
         self.assertTrue(10 <= MOCK_CHARS_PER_SEC <= 20)
+
+
+class _FakeWS:
+    def __init__(self, messages: list[Any]):
+        self.messages = list(messages)
+        self.sent: list[str] = []
+
+    async def send(self, data: str) -> None:
+        self.sent.append(data)
+
+    async def recv(self) -> str:
+        if not self.messages:
+            raise RuntimeError("mock: stream closed")
+        return self.messages.pop(0)
+
+
+class _FakeCM:
+    def __init__(self, ws: _FakeWS):
+        self.ws = ws
+
+    async def __aenter__(self) -> _FakeWS:
+        return self.ws
+
+    async def __aexit__(self, *exc: object) -> bool:
+        return False
+
+
+class TestLiveTimbreRealtimeWS(unittest.TestCase):
+    """The verified live contract: wss:// + X-API-Key-ID + base64 JSON audio."""
+
+    def _client(
+        self, messages: list[Any], captured: dict[str, Any]
+    ) -> LiveTimbreClient:
+        env = _env(
+            {
+                "timbre_base_url": "wss://timbre.example.test/api/v1/tts",
+                "timbre_api_key": "secret-key-do-not-leak",
+            }
+        )
+        ws = _FakeWS(messages)
+
+        def connect(url: str, **kwargs: Any) -> _FakeCM:
+            captured["url"] = url
+            captured["kwargs"] = kwargs
+            captured["ws"] = ws
+            return _FakeCM(ws)
+
+        return LiveTimbreClient(env, ws_connect=connect, sleep=lambda _s: None)
+
+    def test_ws_payload_audio_and_wav_wrap(self) -> None:
+        pcm = b"\x01\x00" * 480  # 480 samples = 10 ms at 48 kHz
+        messages = [
+            json.dumps({"type": "start", "request_id": "r1"}),
+            json.dumps(
+                {
+                    "type": "audio",
+                    "data": {
+                        "chunk_index": 1,
+                        "audio": base64.b64encode(pcm).decode(),
+                        "is_final": False,
+                    },
+                }
+            ),
+            json.dumps({"type": "complete", "data": {"audio": "", "is_final": True}}),
+        ]
+        captured: dict[str, Any] = {}
+        result = self._client(messages, captured).synthesize("Namaste", "en")
+        self.assertEqual(captured["url"], "wss://timbre.example.test/api/v1/tts")
+        self.assertEqual(
+            captured["kwargs"]["additional_headers"]["X-API-Key-ID"],
+            "secret-key-do-not-leak",
+        )
+        with wave.open(io.BytesIO(result.audio), "rb") as wav:
+            self.assertEqual(wav.getframerate(), 48000)
+            self.assertEqual(wav.getnchannels(), 1)
+            self.assertEqual(wav.getnframes(), 480)
+
+    def test_locale_maps_to_timbre_language_and_model(self) -> None:
+        captured: dict[str, Any] = {}
+        audio = json.dumps(
+            {
+                "type": "audio",
+                "data": {"audio": base64.b64encode(b"\x00\x00" * 16).decode()},
+            }
+        )
+        client = self._client([audio, json.dumps({"type": "complete"})], captured)
+        client.synthesize("नमस्ते", "hi-Latn")
+        ws = captured["ws"]
+        payload = json.loads(ws.sent[0])
+        self.assertEqual(payload["language"], "hi-en")
+        self.assertEqual(payload["model"], "timbre-v3.0")
+        self.assertEqual(payload["voice"], "Shivani")
+        self.assertEqual(payload["audio_config"]["container"], "raw")
+        self.assertEqual(payload["audio_config"]["sample_rate"], 48000)
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -1,0 +1,288 @@
+{
+  "lang": "en",
+  "voice": "Shivani",
+  "mode": "live",
+  "generated_at": "2026-11-10T12:26:23Z",
+  "blocks": [
+    {
+      "block_id": "b-00-meta",
+      "lang": "en",
+      "hash": "a40b7debd7f8f50d",
+      "chars": 416,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-00-meta.en.a40b7debd7f8f50d.opus"
+    },
+    {
+      "block_id": "b-01",
+      "lang": "en",
+      "hash": "9bba04eec62ace67",
+      "chars": 428,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-01.en.9bba04eec62ace67.opus"
+    },
+    {
+      "block_id": "b-02",
+      "lang": "en",
+      "hash": "6733e077fa5731ad",
+      "chars": 539,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-02.en.6733e077fa5731ad.opus"
+    },
+    {
+      "block_id": "b-04",
+      "lang": "en",
+      "hash": "ac024a2b7ce74048",
+      "chars": 170,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-04.en.ac024a2b7ce74048.opus"
+    },
+    {
+      "block_id": "b-05",
+      "lang": "en",
+      "hash": "48b21452a2911ac8",
+      "chars": 390,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-05.en.48b21452a2911ac8.opus"
+    },
+    {
+      "block_id": "b-07",
+      "lang": "en",
+      "hash": "a60782b4242f3f0c",
+      "chars": 346,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-07.en.a60782b4242f3f0c.opus"
+    },
+    {
+      "block_id": "b-08",
+      "lang": "en",
+      "hash": "2def58c5fe301940",
+      "chars": 791,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-08.en.2def58c5fe301940.opus"
+    },
+    {
+      "block_id": "b-09",
+      "lang": "en",
+      "hash": "263f95a16ec11946",
+      "chars": 283,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-09.en.263f95a16ec11946.opus"
+    },
+    {
+      "block_id": "b-10",
+      "lang": "en",
+      "hash": "511acec2cca7ce73",
+      "chars": 335,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-10.en.511acec2cca7ce73.opus"
+    },
+    {
+      "block_id": "b-12",
+      "lang": "en",
+      "hash": "31e19ee9f39a9275",
+      "chars": 339,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-12.en.31e19ee9f39a9275.opus"
+    },
+    {
+      "block_id": "b-13",
+      "lang": "en",
+      "hash": "5b38afd98950afa4",
+      "chars": 732,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-13.en.5b38afd98950afa4.opus"
+    },
+    {
+      "block_id": "b-14",
+      "lang": "en",
+      "hash": "11e2f42ad2c66614",
+      "chars": 867,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-14.en.11e2f42ad2c66614.opus"
+    },
+    {
+      "block_id": "b-15",
+      "lang": "en",
+      "hash": "e472436318030ca8",
+      "chars": 234,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-15.en.e472436318030ca8.opus"
+    },
+    {
+      "block_id": "b-16",
+      "lang": "en",
+      "hash": "67338cb1b4ee2074",
+      "chars": 363,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-16.en.67338cb1b4ee2074.opus"
+    },
+    {
+      "block_id": "b-19",
+      "lang": "en",
+      "hash": "b6860bffdda551d0",
+      "chars": 782,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-19.en.b6860bffdda551d0.opus"
+    },
+    {
+      "block_id": "b-20",
+      "lang": "en",
+      "hash": "c171de8ac26b1caf",
+      "chars": 376,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-20.en.c171de8ac26b1caf.opus"
+    },
+    {
+      "block_id": "b-21",
+      "lang": "en",
+      "hash": "459f4885b14aca2c",
+      "chars": 785,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-21.en.459f4885b14aca2c.opus"
+    },
+    {
+      "block_id": "b-22",
+      "lang": "en",
+      "hash": "f86428b04f2a7ef2",
+      "chars": 301,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-22.en.f86428b04f2a7ef2.opus"
+    },
+    {
+      "block_id": "b-23",
+      "lang": "en",
+      "hash": "95e6a3dfd7fbcc21",
+      "chars": 365,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-23.en.95e6a3dfd7fbcc21.opus"
+    },
+    {
+      "block_id": "b-24",
+      "lang": "en",
+      "hash": "8af0655a47a9228f",
+      "chars": 197,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-24.en.8af0655a47a9228f.opus"
+    },
+    {
+      "block_id": "b-26",
+      "lang": "en",
+      "hash": "6d2f97e81708febe",
+      "chars": 601,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-26.en.6d2f97e81708febe.opus"
+    },
+    {
+      "block_id": "b-27",
+      "lang": "en",
+      "hash": "6e6b961eb2c1ddf5",
+      "chars": 797,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-27.en.6e6b961eb2c1ddf5.opus"
+    },
+    {
+      "block_id": "b-28",
+      "lang": "en",
+      "hash": "0c376a2fbc0d46c1",
+      "chars": 679,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-28.en.0c376a2fbc0d46c1.opus"
+    },
+    {
+      "block_id": "b-29",
+      "lang": "en",
+      "hash": "5aaadd83fa929023",
+      "chars": 185,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-29.en.5aaadd83fa929023.opus"
+    },
+    {
+      "block_id": "b-30",
+      "lang": "en",
+      "hash": "5a6265a35dcbd9b5",
+      "chars": 322,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-30.en.5a6265a35dcbd9b5.opus"
+    },
+    {
+      "block_id": "b-33",
+      "lang": "en",
+      "hash": "ed296ae059738187",
+      "chars": 804,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-33.en.ed296ae059738187.opus"
+    },
+    {
+      "block_id": "b-34",
+      "lang": "en",
+      "hash": "720a8b1512ab6147",
+      "chars": 170,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-34.en.720a8b1512ab6147.opus"
+    },
+    {
+      "block_id": "b-35",
+      "lang": "en",
+      "hash": "b07300ddadfb66c5",
+      "chars": 227,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-35.en.b07300ddadfb66c5.opus"
+    },
+    {
+      "block_id": "b-36",
+      "lang": "en",
+      "hash": "bed07822f4b48695",
+      "chars": 534,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-36.en.bed07822f4b48695.opus"
+    },
+    {
+      "block_id": "b-37",
+      "lang": "en",
+      "hash": "e93fe32cd8e4092d",
+      "chars": 225,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-37.en.e93fe32cd8e4092d.opus"
+    },
+    {
+      "block_id": "b-38",
+      "lang": "en",
+      "hash": "c7ac5e5e44e2b25b",
+      "chars": 154,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-38.en.c7ac5e5e44e2b25b.opus"
+    },
+    {
+      "block_id": "b-39",
+      "lang": "en",
+      "hash": "bc6d0fa6a9d650aa",
+      "chars": 210,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-39.en.bc6d0fa6a9d650aa.opus"
+    },
+    {
+      "block_id": "b-40",
+      "lang": "en",
+      "hash": "d586edb7b04210fa",
+      "chars": 231,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-40.en.d586edb7b04210fa.opus"
+    },
+    {
+      "block_id": "b-41",
+      "lang": "en",
+      "hash": "4a49d4e8ba360a99",
+      "chars": 150,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-41.en.4a49d4e8ba360a99.opus"
+    },
+    {
+      "block_id": "b-42",
+      "lang": "en",
+      "hash": "2144cd337b54949f",
+      "chars": 196,
+      "duration_ms": null,
+      "path": "audio/class-11-physics/b-42.en.2144cd337b54949f.opus"
+    }
+  ]
+}
