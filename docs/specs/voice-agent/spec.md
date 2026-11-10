@@ -230,10 +230,23 @@ credits but logged per turn for cost observability). Daily tranche resets 00:00 
 on top; `demo` profile = separate tranche + stricter per-session cap for demo-day/judge traffic
 (`TIMELINE.md` Day-0 rule: reserve ~40% of programme credits for demo day).
 
+**Guard unit (EX1-VOICE, 2026-11-10, OQ-06 placeholder).** Every guard counter — tranches, caps,
+the H2 reservation and the H4 actual — is in **credit points**, never raw vendor units:
+
+- **1 point = 30 s Prisma audio** (`ZIVON_VOICE_CREDIT_STT_SECONDS_PER_POINT`),
+- **1 point = 300 Timbre characters**, tags included (`ZIVON_VOICE_CREDIT_TTS_CHARS_PER_POINT`).
+
+The A-07 estimate (≈ 15 s STT + 600 TTS chars) therefore reserves
+`ceil(15/30) + ceil(600/300) = 3` points per voice turn, and a typed turn (no STT) 2 points:
+~10 voice turns/day under the 30-point cap, ~33 under the 100-point demo session cap. H4 converts
+the measured `stt_audio_s` + `tts_chars` with the same factors (`session.credit_points`). When the
+Gnani dashboard pins the real unit, only those two factors change. (Before this conversion the
+estimate was 615 raw units against a 30-point cap — every shipped-default turn was denied.)
+
 | Hook | Site | Check | On breach |
 |---|---|---|---|
-| H1 | `ws_api` on `session.start` | remaining tranche (profile-aware) vs 0 | close with `error.over_credit` (profile normal) or auto-downgrade to `text_only` (profile demo: judge still gets text answers, never silence) |
-| H2 | `ws_api` after `stt.final`, before brain call | estimated turn cost (STT seconds already spent + expected TTS chars ≤ per-turn estimate) vs remaining | reply with the fixed over-credit line (TTS, ≤ 15 chars of speech), state `error.over_credit`, end turn |
+| H1 | `ws_api` on `session.start` | remaining tranche (profile-aware) vs 0 | close with `error.credit.over_daily` (profile normal) or auto-downgrade to `text_only` (profile demo: judge still gets text answers, never silence) |
+| H2 | `ws_api` after `stt.final`, before brain call | estimated turn cost (STT seconds already spent + expected TTS chars ≤ per-turn estimate) vs remaining | reply with the fixed over-credit line (TTS, ≤ 15 chars of speech), state `error.credit.over_daily`/`credit.over_session`, end turn |
 | H3 | `tts_client` before each outbound text chunk | per-turn TTS char cap (`ZIVON_VOICE_TTS_CHAR_CAP_TURN`, default 1200) and tag cap (≤ 1 tag / 2 sentences, ≤ 8/turn) | strip excess tags; truncate beyond cap with a fixed closing line — the cap is a harness guarantee, not prompt prose |
 | H4 | `session` on `turn.end` | write `voice_turn.credit_cost` + decrement counters | — |
 
@@ -250,7 +263,7 @@ The guard reads only these; no credit logic anywhere else.
 | F3 | Brain mid-turn inactivity (4 s) / wall-clock (45 s) | `brain_client` | partial answer already spoken stays; dock shows "answer cut short" + full partial text | `speaking` → `error` | no retry after speech started (§4); turn ends with partial + written remainder if any | per-usage |
 | F4 | TTS down / Timbre errors | `tts_client` error before/while streaming | reply text appears in dock immediately (transcript panel), no audio | `speaking_text` | text-only mode for the turn; browser SpeechSynthesis is **not** used (product story = Gnani voice; flagged as founder's demo-day contingency decision, consistent with the no-replacement rule) | no TTS spend |
 | F5 | WS drop mid-turn | `ws_api` disconnect | dock state `offline` ("connection thin thi — reconnecting…"), typed input kept client-side | `offline` | auto-reconnect (exp backoff ≤ 3 tries) → `session.start resume:true` with `session_token` + `last_turn_id`; server replays `agent.state` + continues or aborts turn honestly (F3 semantics) | per-usage (no double-bill: turn id idempotent in ledger) |
-| F6 | Over-credit (H1/H2) | guard hook | over-credit line spoken/typed once; text-only mode for the rest of the day (normal profile) or session (demo profile) | `error.over_credit` | text turns keep working (brain only) until brain budget line also hit | stops voice spend |
+| F6 | Over-credit (H1/H2) | guard hook | over-credit line spoken/typed once; text-only mode for the rest of the day (normal profile) or session (demo profile) | `error.credit.over_daily` / `credit.over_session` | text turns keep working (brain only) until brain budget line also hit | stops voice spend |
 | F7 | Page/context missing (stale page, no snapshot) | `anchoring` | tutor answers generically and says it cannot see the page ("page ka context nahi mil raha — page refresh karein") | normal | generic method answer, no page-specific claims (grounding law) | normal |
 | F8 | Interrupt storm (barge-in spam) | > 3 `interrupt`s / 10 s | dock shows listening state; tutor waits quietly | `listening` | ignore further interrupts until next `audio.start` | no new spend |
 
@@ -286,8 +299,11 @@ a client-asserted role.
   `ZIVON_VOICE_STT_URL`, `ZIVON_VOICE_TTS_URL`, `ZIVON_VOICE_TTS_VOICE`, `ZIVON_VOICE_TTS_TAG_MAX_PER_TURN`,
   `ZIVON_VOICE_TTS_CHAR_CAP_TURN`, `ZIVON_VOICE_THINKING_SUMMARIES` (`on|off`), `ZIVON_VOICE_FILLER_SILENCE_MS`,
   `ZIVON_VOICE_BRAIN_INACTIVITY_S`, `ZIVON_VOICE_BRAIN_FIRST_EVENT_S`, `ZIVON_VOICE_BRAIN_TURN_DEADLINE_S`,
-  `ZIVON_VOICE_CREDIT_*` (§8). Secrets (`GEMINI_API_KEY`, `GNANI_API_KEY`) are K8s Secrets, runtime
-  env only — never in code, manifests, or workflows; CI stays key-free.
+  `ZIVON_VOICE_CREDIT_*` (§8, including `ZIVON_VOICE_CREDIT_STT_SECONDS_PER_POINT` /
+  `ZIVON_VOICE_CREDIT_TTS_CHARS_PER_POINT`), `ZIVON_VOICE_WS_ALLOWED_ORIGINS` (empty = same-origin
+  only), `ZIVON_VOICE_WS_TRUSTED_PROXIES` (ingress/proxy CIDRs so the limiter keys on the real
+  client IP), `ZIVON_VOICE_WS_CONNECTS_PER_MIN`. Secrets (`GEMINI_API_KEY`, `GNANI_API_KEY`) are
+  K8s Secrets, runtime env only — never in code, manifests, or workflows; CI stays key-free.
 - **infra.env line-edits** (owner: core-backend agent; S1 proposes names only, matching the
   `ZIVON_*` family rule): the two `ZIVON_VOICE_*` lines that must render into the voice-backend
   ConfigMap. No image tags in infra.env (existing rule).

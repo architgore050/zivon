@@ -273,8 +273,10 @@ is the IP-hash bucket family (§8.3). All latency targets cite NFR-09/10.
 - **Credit cost:** 0. · **Failure UI:** dock shows system-error state, Core page untouched. · **Version:** v1.
 
 #### API-002 `WSS /v1/voice` — the voice channel
-Full contract in **§7**. Serves NEED-004 (+005/006/007/008 inside it). Auth: `session_token` at
-connect, re-validated at resume. Consent-gated. Rate limit: ws family. Credit cost: the only
+Full contract in **§7**, **as amended by ADR-0020** (implemented endpoint path `/voice/ws` on the
+monolith mount; the mount decision and the concrete framing live there). Serves NEED-004
+(+005/006/007/008 inside it). Auth: `session_token` at connect, re-validated at resume.
+Consent-gated. Rate limit: ws family. Credit cost: the only
 metered surface (Prisma s + Timbre chars + Gemma tokens).
 
 #### API-003 `PUT /v1/session/{session_id}/coverage` — coverage store
@@ -359,6 +361,11 @@ renders, same guards); CI parity test compares rendered manifests. Admin actions
 - **Endpoint:** `WSS /v1/voice?session_token=…` — opened after bootstrap + consent; one channel per
   lesson-page visit; closes on navigation. TLS at the edge only (repo rule). Origin check on
   upgrade. Max 1 concurrent channel per session; cluster cap 10 concurrent (A-07; NFR-13).
+  **As amended by ADR-0020:** the implemented route is `/voice/ws` (the same channel mounted on
+  the monolith); `/v1/voice` is superseded for the P0 mount. An upgrade whose `Origin` host differs
+  from the request `Host` (or from the configured allow-list) is rejected with **close 1008**;
+  rate-limit rejections close **1013** and key on the pseudonymous device + resolved client IP
+  (trusted-proxy aware, so an ingress peer does not collapse every client into one bucket).
 - **Envelope (JSON frames):** `{v:1, type, id, seq, ts, session_id, turn_seq?, payload}`;
   **binary frames** for audio with 8-byte header `{codec: opus, rate: 16000, seq}`.
 - **Ordering:** `turn_seq` monotonic per session (handoff §3); server-assigned down `seq` per
@@ -368,6 +375,10 @@ renders, same guards); CI parity test compares rendered manifests. Admin actions
   coalescing, never final messages**; client down-buffer ≤ 2 s audio → overflow drops chunks and
   shows transcript (text floor); client up-buffer > 1 s → stop mic, system-error + retry (context
   preserved). Max sizes: JSON ≤ 8 KB, `context.snapshot` ≤ 4 KB (NEED-005), audio frame ≤ 2 KB.
+  **Superseded by ADR-0020 / ws-contract §3 for the voice mount:** uplink audio frames are PCM16
+  mono 16 kHz at 100 ms = **3,200 bytes** (so the ingress bound is 3,200 B, not 2 KB), and the
+  server tolerates up to 2× that (6,400 B) before dropping a frame, with downlink Opus 20 ms
+  frames carrying the ADR-0020 8-byte header.
 - **Heartbeat:** `ping`/`pong` every 30 s; 2 missed → close (session row stays; resume allowed).
   Idle channel close after 10 min without frames `[ASSUMPTION]`.
 - **Barge-in (F-ADD-VOI-01 AC-3):** `interrupt` → server stops TTS consumption ≤ 300 ms (NFR-05),

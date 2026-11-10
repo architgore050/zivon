@@ -101,15 +101,19 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
   binding per backend-spec §4.3). Spec: `docs/specs/voice-agent/` — read `spec.md`,
   `ws-contract.md`, and `latency-budget.md` before touching it.
 - Integration is one symbol: the core-backend app calls `voice.mount_voice(app)` (route
-  `/voice/ws`, ADR-0020/0003). No separate image or k8s manifests in P0; `voice/requirements.txt`
+  `/voice/ws` — ADR-0020, which amends ADR-0003's `/v1/voice` endpoint name for the P0 mount). No
+  separate image or k8s manifests in P0; `voice/requirements.txt`
   is folded into the monolith image by the merge agent (see `docs/deployment/docker.md`).
 - Module layout is spec-pinned (`config`, `audio_io`, `stt_client`, `brain_client`, `chunker`,
   `tts_client`, `session`, `anchoring`, `ws_api`); only `brain_client.py` talks to a model API
   (Gemini/OpenRouter per ADR-0017 — the documented llm_manager seam). Reliability knobs are
   `ZIVON_VOICE_*` env vars; secrets runtime-only.
 - Tests: `python -m unittest discover -s testing/voice -t .` — mocks at every vendor seam
-  (`testing/voice/mocks/`), no network, no keys. Credit-guard unit defaults are placeholders
-  until OQ-06 pins the Gnani vendor unit.
+  (`testing/voice/mocks/`), no network, no keys. Credit-guard counters are **credit points**
+  (1 point = 30 s Prisma audio = 300 Timbre chars, OQ-06 placeholder) so caps and the per-turn
+  estimate share one unit; the two `ZIVON_VOICE_CREDIT_*_PER_POINT` factors change when the Gnani
+  dashboard pins the vendor unit. Live factories are the shipped defaults; `mock_mode` is a
+  test-only marker, not a runtime mode.
 
 ### Content factory (build-time)
 

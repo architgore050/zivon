@@ -26,7 +26,7 @@ Dir: C→S = client→server, S→C = server→client. Billable? = Gnani program
 | Type | Dir | Schema (JSON unless binary) | Ordering/seq | Idempotent? | On loss | Billable? | Consumer / notes |
 |---|---|---|---|---|---|---|---|
 | session.start | C→S | `{v, session_token, device, locale, capabilities{ptt,opus?}, resume?, last_turn_id?, anchor?}` | first (and on resume) | yes (resume-safe) | retry until session.ready | no | server: auth (4401), H1 guard, state store |
-| session.ready | S→C | `{v, session_id, profile, state, server_time}` | after start | — | client re-requests via resume | no | dock: enable mic UI; `profile` is **server-asserted** (spec.md §11) |
+| session.ready | S→C | `{v, session_id, profile, state, credit_state?, server_time}` — `state` is a §1 dock state (`idle`/`resumed`); `credit_state` is the guard verdict (`ok\|warn\|text_only`) | after start | — | client re-requests via resume | no | dock: enable mic UI; `profile` is **server-asserted** (spec.md §11) |
 | audio.start | C→S | `{turn_hint?}` | per PTT press | no (each press = new turn intent) | ignore (no press = no turn) | no | server: open mic stream, state listening |
 | audio.chunk | C→S | **binary** header+PCM16 (§3) | seq per mic stream, monotonic | n/a | drop old partials; STT tolerates gaps | yes (STT seconds) | stt_client feeds Prisma |
 | audio.end | C→S | `{}` | once per press (PTT release) or client-VAD EOS (P1) | no | resend once if no stt.final in 1 s | no | EOS trigger; L0 starts here |
@@ -100,8 +100,14 @@ audio skill happens at EX1 measurement time, not by default.
 
 `stt.unavailable` (F1) · `brain.first_event_timeout` (F2) · `brain.midturn_stall` / `brain.deadline`
 (F3) · `tts.unavailable` (F4) · `ws.reconnecting` (F5, client-side state) · `credit.over_daily` /
-`credit.over_session` (F6) · `context.stale` (F7) · `auth.invalid` (close 4401) · `version.mismatch`
-(close 4409).
+`credit.over_session` (F6) · `context.stale` (F7) · `auth.invalid` (close 4401; also the upgrade
+origin rejection, close **1008**) · `version.mismatch` (close 4409) · `E-RATE-LIMIT` (connect /
+device bucket, or a second concurrent channel, close **1013**) · `client_error` (client protocol
+violation: a second opener while a turn is in flight, `typed.doubt` text outside 1…1000 chars).
+
+Close codes: 1008 policy (origin), 1013 rate limited, 4401 auth, 4409 version. The server emits
+no error code outside this list; diagnostics (vendor text, exception classes) go to structured
+logs only.
 
 ## 7. Sequences (the three the dock must handle first)
 
