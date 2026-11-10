@@ -1,0 +1,49 @@
+card_id: EV-PERF-001
+version: 1
+title: Performance Engineer Weak-Android Budget and Fixloop Pedagogy Preservation
+stage: 07-perf..08-fixloop
+agent_role: Performance Engineer
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+  profiles:
+  - evals/goldens/profiles/weak-android.json
+  - evals/goldens/profiles/mid-laptop.json
+deterministic_checks:
+- id: DET-PERF01-BUDGET-GATE
+  entrypoint: evals.checkers.perf_harness:check_golden_perf_budgets
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.perf:run
+  description: Validates perf profiles and evaluates golden pages against RAM <= 750MB, FPS >= 24, overflow_px
+    <= 2, load_s <= 6.0, and fcp_s <= 3.5.
+- id: DET-PERF01-PEDAGOGY-GUARD
+  entrypoint: evals.checkers.perf_harness:check_fixloop_pedagogy_preservation
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.fixloop:run
+  description: Verifies renderer-owned files (index.html, manifest.json) are untouched and every simulation
+    registration remains intact.
+- id: DET-PERF01-PROMPT-CONTRACT
+  entrypoint: evals.checkers.prompt_contract_checks:check_08_fixloop_prompt_contract
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.fixloop:run
+  description: Verifies 08-fixloop prompt carries PAGE SPECS, teaching preservation guard, live design
+    doctrine, lesson example, and palette.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 16000
+  call_deadline_s: 1800

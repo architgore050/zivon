@@ -1,0 +1,33 @@
+card_id: EV-KID-001
+version: 1
+title: Gate B Kid-Comprehension Validation and Seeded-Defect Promotion Loop
+stage: post-11-link-gate-b
+agent_role: Kid-Comprehension Validator
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-KID01-GATE-B-COHORT
+  entrypoint: evals.checkers.prompt_contract_checks:check_kid_sessions_gate_b
+  severity_on_fail: fatal
+  reuses_factory_rule: null
+  description: Validates recorded eval_kid_session rows against KID_SESSION_SCHEMA, DPDP privacy rules,
+    >= 2/3 comprehension pass rate, >= 1 above-class pass, and defect promotion links.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60
