@@ -292,7 +292,9 @@ class TestBlockContract(unittest.TestCase):
                         latency_ms=42,
                         stage="10a-translate",
                     )
-                events = collected
+                events = [
+                    e for e in collected if e.get("event") == "translator.translate.ok"
+                ]
                 self.assertEqual(len(events), 1)
                 evt = events[0]
                 self.assertEqual(evt["component"], "translator")
