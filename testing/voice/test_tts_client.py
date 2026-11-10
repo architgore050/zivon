@@ -24,17 +24,18 @@ from voice.tts_client import (
 class FakeTimbreTransport:
     """In-memory TtsTransport: speaks back one segment_end per request."""
 
-    def __init__(self) -> None:
+    def __init__(self, auto_queue: bool = True) -> None:
         self.sent: list[str | bytes] = []
         self.replies: list[str | bytes] = []
         self.closed = False
+        self.auto_queue = auto_queue
 
     def queue_segment(self, frames: int = 2) -> None:
         self.replies.extend([b"\x00" * 40] * frames + ['{"type": "segment_end"}'])
 
     async def send(self, data: str | bytes) -> None:
         self.sent.append(data)
-        if isinstance(data, str) and '"type": "speak"' in data:
+        if self.auto_queue and isinstance(data, str) and '"type": "speak"' in data:
             # real Timbre pushes frames as they synthesize; the fake queues
             # replies eagerly so speak() can drain them
             self.queue_segment()
@@ -130,6 +131,41 @@ class CharCapTest(unittest.IsolatedAsyncioTestCase):
         prepared = client.prepare("Kuch bhi")
         self.assertEqual(prepared.text, "")
         self.assertEqual(prepared.chars_billed, 0)
+
+
+class BargeInDrainTest(unittest.IsolatedAsyncioTestCase):
+    """A cancelled segment's unread frames must never leak into the next turn."""
+
+    async def test_abort_drains_old_segment_before_next_turn(self) -> None:
+        settings = VoiceSettings(tts_url="wss://timbre.example", gnani_tts_api_key="k")
+        transport = FakeTimbreTransport(auto_queue=False)
+
+        async def connect() -> TtsTransport:
+            return transport
+
+        client = TtsClient(settings, connect)
+        await client.start_turn()
+        # segment 1 is mid-flight: one frame read, the rest still queued
+        transport.replies.extend([b"old-1", b"old-2", '{"type": "segment_end"}'])
+        iterator = client.speak("Purana jawab.", 1)
+        first = await anext(iterator)
+        self.assertEqual(first.data, b"old-1")
+        await iterator.aclose()  # what a cancelled turn leaves behind
+        self.assertEqual(len(transport.replies), 2)  # old tail still waiting
+        await client.abort()  # barge-in: drain to segment_end
+        self.assertEqual(transport.replies, [])
+        # the next turn starts clean: frames come from the new segment only
+        transport.auto_queue = True
+        await client.start_turn()
+        frames = [audio async for audio in client.speak("Naya jawab.", 2)]
+        self.assertEqual(frames[-1].final, True)
+        self.assertTrue(all(frame.data[:3] != b"old" for frame in frames if frame.data))
+
+    async def test_abort_without_frames_is_a_noop(self) -> None:
+        client, _transport = _client()
+        await client.abort()  # never connected: must not raise
+        await client.start_turn()
+        self.assertIsNotNone(client.meters)
 
 
 class AudioFlowTest(unittest.IsolatedAsyncioTestCase):

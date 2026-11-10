@@ -32,11 +32,12 @@ browser SpeechSynthesis is never used (product story = Gnani voice).
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import json
 import re
 import time
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -80,6 +81,10 @@ CLOSING_LINE = "<pauses>… theek hai, aage ka agle turn mein."
 
 _TAG_RX = re.compile(r"<([a-zA-Z ]+?)>")
 _SENTENCE_END = re.compile(r"[।.!?…]\s*")
+
+# Barge-in drain budget: Timbre's tail frames of a cancelled segment arrive
+# within ~a segment's synthesis time; past this the socket is reset instead.
+_ABORT_DRAIN_S = 0.75
 
 
 class TtsUnavailableError(RuntimeError):
@@ -181,7 +186,7 @@ class TtsClient:
 
     async def speak(
         self, text: str, segment_id: int, kind: str = "speech"
-    ) -> AsyncIterator[TtsAudio]:
+    ) -> AsyncGenerator[TtsAudio, None]:
         """Send one prepared chunk; yield audio frames as they arrive.
 
         Raises TtsUnavailableError on transport death (F4) — the caller
@@ -228,6 +233,44 @@ class TtsClient:
     async def close_turn(self) -> None:
         """End the turn; meters stay readable for the H4 ledger write."""
         self._turn_open = False
+
+    async def abort(self) -> None:
+        """Barge-in: discard the cancelled segment's unread frames.
+
+        One Timbre socket is shared across turns, so a cancelled ``speak()``
+        iterator leaves frames (and the segment's ``segment_end``) waiting in
+        the socket. Draining to ``segment_end`` here is what stops the next
+        turn from playing the previous answer's tail. If the drain cannot
+        finish within its small budget, the socket is closed and the next
+        ``start_turn`` reconnects — honesty over a stuck stream.
+        """
+        self._turn_open = False
+        ws = self._ws
+        if ws is None:
+            return
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + _ABORT_DRAIN_S
+        while True:
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                await self.close()  # could not reach segment_end: reconnect next
+                return
+            try:
+                raw = await asyncio.wait_for(ws.recv(), timeout=remaining)
+            except Exception:  # noqa: BLE001 — transport-agnostic seam
+                await self.close()
+                return
+            if not isinstance(raw, str):
+                continue  # an audio frame of the cancelled segment
+            try:
+                event = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            if event.get("type") == "segment_end":
+                return  # tail fully consumed; the socket is clean for the next turn
+            if event.get("type") == "error":
+                await self.close()
+                return
 
     async def close(self) -> None:
         self._turn_open = False

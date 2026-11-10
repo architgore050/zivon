@@ -36,6 +36,7 @@ class MockTimbre:
         self.segment_ids: list[int] = []
         self.kinds: list[str] = []
         self.closed = False
+        self.aborted = False
         self.chars_billed = 0
         # the real client exposes per-turn meters; the mock mirrors the shape
         self.meters = SimpleNamespace(chars_billed=self.chars_billed)
@@ -64,6 +65,10 @@ class MockTimbre:
 
     async def close(self) -> None:
         self.closed = True
+
+    async def abort(self) -> None:
+        """Barge-in seam (the real client drains the cancelled segment)."""
+        self.aborted = True
 
     def last_request(self) -> dict[str, object]:
         return {
