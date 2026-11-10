@@ -371,6 +371,22 @@ def _load_server_from_env() -> dict[str, Any]:
     heartbeat_s = _env_number("ZIVON_HEARTBEAT_S", 60.0, integer=False)
     if heartbeat_s < 1:
         raise ConfigError("ZIVON_HEARTBEAT_S must be >= 1 second")
+    # Gateway routing headers (2026-11-10 OpenCode Go: x-opencode-session).
+    # The node path already reads these; the factory path must forward them
+    # too, or every call to the Go gateway fails with MissingSessionID.
+    extra_headers: dict[str, str] = {}
+    raw_headers = _env_raw("ZIVON_EXTRA_HEADERS")
+    if raw_headers:
+        try:
+            parsed_headers = json.loads(raw_headers)
+        except json.JSONDecodeError as exc:
+            raise ConfigError(
+                "ZIVON_EXTRA_HEADERS must be a JSON object of header names to "
+                f"values, e.g. '{{\"x-opencode-session\": \"zivon-factory\"}}': {exc}"
+            ) from exc
+        if not isinstance(parsed_headers, dict):
+            raise ConfigError("ZIVON_EXTRA_HEADERS must be a JSON object")
+        extra_headers = {str(k): str(v) for k, v in parsed_headers.items()}
     return {
         "base_url": base_url,
         "api_key": _env_raw("ZIVON_API_KEY"),
@@ -386,6 +402,8 @@ def _load_server_from_env() -> dict[str, Any]:
         "backoff_base_s": backoff_base_s,
         "validation_rounds": validation_rounds,
         "heartbeat_s": heartbeat_s,
+        "extra_headers": extra_headers,
+        "user_agent": _env_raw("ZIVON_USER_AGENT") or "",
     }
 
 

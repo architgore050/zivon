@@ -215,6 +215,8 @@ class LLMConfig:
             "stream",
             "stream_usage",
             "heartbeat_s",
+            "extra_headers",
+            "user_agent",
         }
         unknown = set(server) - known
         if unknown:
