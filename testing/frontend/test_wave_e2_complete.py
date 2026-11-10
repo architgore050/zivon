@@ -201,7 +201,9 @@ class TestWaveE2Complete(unittest.TestCase):
         finally:
             page.close()
 
-    def test_consent_decline_no_renag_and_error_isolation_and_doctrine_gate(self) -> None:
+    def test_consent_decline_no_renag_and_error_isolation_and_doctrine_gate(
+        self,
+    ) -> None:
         page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "consent_flow.html")
         try:
             res = page.evaluate(
@@ -242,7 +244,9 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertTrue(res["visibleInitially"])
             self.assertTrue(res["hiddenAfterDecline"])
             self.assertIsNone(res["dockMountedAfterDecline"])
-            self.assertTrue(res["stillHiddenOnReload"], "declined consent must never re-nag")
+            self.assertTrue(
+                res["stillHiddenOnReload"], "declined consent must never re-nag"
+            )
             self.assertTrue(res["errStepCaptured"])
             self.assertEqual(res["titleReadable"], "Laws of Motion")
             self.assertFalse(res["gatedMounted"])
@@ -374,7 +378,9 @@ class TestWaveE2Complete(unittest.TestCase):
 
     def test_privacy_page_report_telemetry_credit_notices_and_locale_bar(self) -> None:
         # 1. Test SCR-PRIV-01 (/privacy/index.html)
-        self.assertTrue(PRIVACY_HTML.is_file(), "frontend/privacy/index.html must exist")
+        self.assertTrue(
+            PRIVACY_HTML.is_file(), "frontend/privacy/index.html must exist"
+        )
         priv_page = self._browser.new_page()
         try:
             priv_page.goto(PRIVACY_HTML.resolve().as_uri())
