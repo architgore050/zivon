@@ -17,4 +17,4 @@ uvicorn==0.54.0
 # validation.py validates stage JSON against the block schema - the node needs
 # it too (review fix 2026-11-07: it was imported but unlisted, so the node
 # image crashed at import; the factory image had it transitively and hid this).
-jsonschema>=4.21
+jsonschema>=4.26.0
