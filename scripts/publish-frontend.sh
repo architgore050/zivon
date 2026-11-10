@@ -74,6 +74,11 @@ if [[ -d frontend/courses ]] \
   exit 2
 fi
 
+# SYNC-01 publish gate (storage-tiering.md §3, ADR-0006): upload + read-back
+# checksum verify the bundle in cold storage BEFORE replacing the live repo
+# snapshot. Generic hook is shared with EX2-TRANS and EX8-NARRATION.
+scripts/publish-verify-hook.sh "$tmp/courses" C1
+
 rm -rf frontend/courses
 cp -a "$tmp/courses" frontend/courses
 cp -a "$tmp/courses.js" frontend/courses.js
