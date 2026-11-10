@@ -334,6 +334,8 @@
       if (empty) empty.hidden = false;
       return;
     }
+    if (empty) empty.hidden = window.ZIVON_COURSES.length > 0;
+    if (!window.ZIVON_COURSES.length) return;
     var byClass = {}, seenOrder = [];
     window.ZIVON_COURSES.forEach(function (course) {
       var cls = (course.class === undefined || course.class === null || course.class === "")

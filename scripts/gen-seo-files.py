@@ -124,9 +124,7 @@ def build_json_ld(
     }
 
 
-def generate_sitemap_xml(
-    frontend_dir: Path, base_url: str | None = None
-) -> str:
+def generate_sitemap_xml(frontend_dir: Path, base_url: str | None = None) -> str:
     base = get_base_url(base_url)
     entries = parse_courses_js(frontend_dir / "courses.js")
     url_blocks: list[str] = []
@@ -146,8 +144,7 @@ def generate_sitemap_xml(
         lastmod = str(
             manifest.get("generated_at") or item.get("generated_at") or ""
         ).strip()
-        if lastmod > latest_ts:
-            latest_ts = lastmod
+        latest_ts = max(latest_ts, lastmod)
         rel_path = normalize_topic_path(href)
         alts = discover_locale_alternates(frontend_dir, rel_path)
         if alts:
@@ -194,20 +191,13 @@ def generate_sitemap_xml(
         ns += ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f"<urlset {ns}>\n"
-        + "\n".join(url_blocks)
-        + "\n</urlset>\n"
+        f"<urlset {ns}>\n" + "\n".join(url_blocks) + "\n</urlset>\n"
     )
 
 
 def generate_robots_txt(base_url: str | None = None) -> str:
     base = get_base_url(base_url)
-    return (
-        "User-agent: *\n"
-        "Allow: /\n"
-        "Disallow: /healthz\n"
-        f"Sitemap: {base}/sitemap.xml\n"
-    )
+    return f"User-agent: *\nAllow: /\nDisallow: /healthz\nSitemap: {base}/sitemap.xml\n"
 
 
 def write_seo_files(
@@ -218,9 +208,7 @@ def write_seo_files(
     sitemap_path.write_text(
         generate_sitemap_xml(frontend_dir, base_url=base_url), encoding="utf-8"
     )
-    robots_path.write_text(
-        generate_robots_txt(base_url=base_url), encoding="utf-8"
-    )
+    robots_path.write_text(generate_robots_txt(base_url=base_url), encoding="utf-8")
     return sitemap_path, robots_path
 
 

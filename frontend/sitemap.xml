@@ -2,14 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://zivon.local/</loc>
-    <lastmod>2026-11-08T22:38:16Z</lastmod>
+    <lastmod>2026-11-09T13:57:47Z</lastmod>
   </url>
   <url>
     <loc>https://zivon.local/courses/class-9-physics/how-forces-affect-motion/</loc>
     <lastmod>2026-11-03T15:11:31Z</lastmod>
   </url>
   <url>
+    <loc>https://zivon.local/courses/class-11-physics/units-and-measurement/</loc>
+    <lastmod>2026-11-09T11:56:46Z</lastmod>
+  </url>
+  <url>
     <loc>https://zivon.local/courses/class-11-physics/motion-in-a-straight-line/</loc>
-    <lastmod>2026-11-08T22:38:16Z</lastmod>
+    <lastmod>2026-11-09T10:23:43Z</lastmod>
+  </url>
+  <url>
+    <loc>https://zivon.local/courses/class-11-physics/motion-in-a-plane/</loc>
+    <lastmod>2026-11-09T13:57:47Z</lastmod>
   </url>
 </urlset>

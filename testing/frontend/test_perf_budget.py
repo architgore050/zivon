@@ -31,6 +31,7 @@ from playwright.sync_api import sync_playwright
 
 import testing.frontend  # noqa: F401 - ensures Playwright/Chromium shim if needed
 from testing.content_factory.perf.harness import load_profile, run_profile
+from testing.frontend import serve_static
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = REPO_ROOT / "frontend"
@@ -107,20 +108,29 @@ class TestPerfBudget(unittest.TestCase):
     """Enforces the low-end Android performance budgets in CI."""
 
     _tmp: tempfile.TemporaryDirectory
+    _server: Any
+    _base_url: str
     _landing_report: dict[str, Any] | None = None
 
     @classmethod
     def setUpClass(cls) -> None:
         cls._tmp = tempfile.TemporaryDirectory(prefix="zivon-perf-")
+        # Serve frontend/ over HTTP: a file:// origin cannot load the woff2
+        # @font-face (CORS), and the font payload IS part of the budget.
+        cls._server = serve_static(FRONTEND)
+        cls._base_url = cls._server.__enter__()
 
     @classmethod
     def tearDownClass(cls) -> None:
+        cls._server.__exit__(None, None, None)
         cls._tmp.cleanup()
 
     @classmethod
     def _get_landing_report(cls) -> dict[str, Any]:
         if cls._landing_report is None:
-            cls._landing_report = run_profile(INDEX.resolve().as_uri(), WEAK_ANDROID)
+            cls._landing_report = run_profile(
+                f"{cls._base_url}/index.html", WEAK_ANDROID
+            )
         return cls._landing_report
 
     def test_landing_load_budget(self) -> None:
@@ -139,7 +149,8 @@ class TestPerfBudget(unittest.TestCase):
         if not pages:
             self.skipTest("courses/ contains no index.html pages")
         for page_path in pages:
-            report = run_profile(page_path.resolve().as_uri(), WEAK_ANDROID)
+            rel_url = "/" + str(page_path.relative_to(FRONTEND))
+            report = run_profile(f"{self._base_url}{rel_url}", WEAK_ANDROID)
             rel = page_path.relative_to(REPO_ROOT)
             self.assertTrue(
                 report["pass"],

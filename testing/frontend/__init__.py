@@ -9,7 +9,9 @@ against real Chromium in both CI and offline environments.
 
 from __future__ import annotations
 
+import contextlib
 import fnmatch
+import functools
 import http.server
 import os
 import socketserver
@@ -17,8 +19,9 @@ import sys
 import threading
 import time
 import types
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from urllib.parse import unquote, urlparse
 
 try:
@@ -58,7 +61,7 @@ except ModuleNotFoundError:
             parent = self
 
             class Handler(http.server.BaseHTTPRequestHandler):
-                def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
+                def log_message(self, format: str, *args: Any) -> None:
                     pass
 
                 def do_GET(self) -> None:
@@ -89,9 +92,7 @@ except ModuleNotFoundError:
                         rel_candidate = _REPO_ROOT / req_path.lstrip("/")
                         if rel_candidate.is_file():
                             fs_path = rel_candidate
-                        elif (
-                            _REPO_ROOT / "frontend" / req_path.lstrip("/")
-                        ).is_file():
+                        elif (_REPO_ROOT / "frontend" / req_path.lstrip("/")).is_file():
                             fs_path = _REPO_ROOT / "frontend" / req_path.lstrip("/")
 
                     if fs_path.is_dir():
@@ -153,9 +154,7 @@ except ModuleNotFoundError:
 
         def inner_text(self) -> str:
             return str(
-                self._driver.execute_script(
-                    "return arguments[0].innerText;", self._el
-                )
+                self._driver.execute_script("return arguments[0].innerText;", self._el)
                 or ""
             )
 
@@ -315,7 +314,7 @@ except ModuleNotFoundError:
                 for err_txt in errs:
                     for cb in self._listeners.get("pageerror", []):
                         cb(err_txt)
-            except Exception:
+            except Exception:  # noqa: BLE001, S110 — best-effort page-error drain; never fail a test on it
                 pass
 
         def goto(
@@ -486,7 +485,7 @@ except ModuleNotFoundError:
             if self._driver is not None:
                 try:
                     self._driver.quit()
-                except Exception:
+                except Exception:  # noqa: BLE001, S110 — quit already means discard the driver
                     pass
                 self._driver = None
             self._bridge.close()
@@ -505,10 +504,15 @@ except ModuleNotFoundError:
         def stop(self) -> None:
             pass
 
-        def __enter__(self) -> _PlaywrightContextManager:
+        def __enter__(self) -> Self:
             return self
 
-        def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc_val: BaseException | None,
+            exc_tb: types.TracebackType | None,
+        ) -> None:
             self.stop()
 
     def sync_playwright() -> _PlaywrightContextManager:
@@ -557,9 +561,7 @@ except ModuleNotFoundError:
             try:
                 raw = p.read_bytes()
                 return [
-                    s.decode("utf-8", errors="replace")
-                    for s in raw.split(b"\x00")
-                    if s
+                    s.decode("utf-8", errors="replace") for s in raw.split(b"\x00") if s
                 ]
             except OSError as exc:
                 raise _NoSuchProcess() from exc
@@ -596,7 +598,7 @@ except ModuleNotFoundError:
                         out.append(child)
                         if recursive:
                             out.extend(child.children(recursive=True))
-                except Exception:
+                except Exception:  # noqa: BLE001, S112 — a vanished /proc entry is expected, keep scanning
                     continue
             return out
 
@@ -625,3 +627,33 @@ except ModuleNotFoundError:
     _ps_mod.Process = _Proc  # type: ignore[attr-defined]
     _ps_mod.process_iter = _process_iter  # type: ignore[attr-defined]
     sys.modules["psutil"] = _ps_mod
+
+
+class _StaticHandler(http.server.SimpleHTTPRequestHandler):
+    """Quiet static handler for browser tests (no request logging)."""
+
+    def log_message(self, format: str, *args: Any) -> None:
+        pass
+
+
+@contextlib.contextmanager
+def serve_static(root: str | Path) -> Iterator[str]:
+    """Serve ``root`` over HTTP and yield its base URL.
+
+    Browser tests load the shell from ``file://`` by default, and Chromium
+    refuses ``@font-face``/``<link rel=preload crossorigin>`` fetches from an
+    opaque ``file://`` origin ("blocked by CORS policy"). Real deployments are
+    HTTP(S), so the font pipeline (and the perf budgets that measure it) is
+    only honest over HTTP: every browser test that asserts a clean console or
+    a load budget goes through this server.
+    """
+    handler = functools.partial(_StaticHandler, directory=str(root))
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{httpd.server_address[1]}"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        thread.join(timeout=10)
