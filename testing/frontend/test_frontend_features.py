@@ -464,9 +464,16 @@ class TestFrontendFeatures(unittest.TestCase):
                   };
                 }"""
             )
-            # DCR-002 standing guard: doctrine §10.12 absent -> dock does not render UI
+            # DCR-002 is now closed (doctrineReady = true); before consent is granted,
+            # lazyMount() gates on consent_required (§10.14), and with consent granted
+            # it mounts the §10.12 bottom sheet.
+            self.assertTrue(page.evaluate("window.ZivonVoiceDock.doctrineReady"))
             self.assertFalse(res["dockStatus"]["mounted"])
-            self.assertIn("DCR-002", res["dockStatus"]["reason"])
+            self.assertEqual(res["dockStatus"]["reason"], "consent_required")
+            mounted_after = page.evaluate(
+                "(() => { localStorage.setItem('zivon.consent', 'granted'); return window.ZivonVoiceDock.lazyMount().mounted; })()"
+            )
+            self.assertTrue(mounted_after)
             self.assertEqual(res["statesCount"], 10)
             self.assertTrue(res["offlineVisible"])
             self.assertTrue(res["quotaVisible"])

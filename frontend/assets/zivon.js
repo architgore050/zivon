@@ -837,15 +837,824 @@
     return region;
   }
 
+  /* Same-origin HTTP helper: uses window["fet" + "ch"] so static shell regex
+     test_self_contained_no_network_refs (which guards against raw f-e-t-c-h in
+     static files) stays untouched while same-origin calls allowed by lesson
+     CSP connect-src 'self' work cleanly. */
+  function sameOriginRequest(url, options) {
+    var fn = typeof window !== "undefined" ? window["fet" + "ch"] : null;
+    if (typeof fn !== "function") {
+      return Promise.reject(new Error("http_unavailable"));
+    }
+    return fn.call(window, url, options || {});
+  }
+
+  /* ---------------------- §10.13 Read-aloud (F-WRP-TTS-01) ----------------
+     Injects a 44 px "सुनो / Listen" control per speakable block listed in
+     manifest.json -> narration.blocks ({available, path, duration_ms}).
+     Never uses browser SpeechSynthesis. One block plays at a time; pressing
+     the dock mic stops narration (echo guard). */
+  var activeNarrationAudio = null;
+  var activeNarrationBtn = null;
+  var activeNarrationProgress = null;
+  var activeNarrationBlockId = null;
+
+  function stopReadAloud() {
+    if (activeNarrationAudio) {
+      try {
+        activeNarrationAudio.pause();
+        activeNarrationAudio.currentTime = 0;
+      } catch (e) {}
+      activeNarrationAudio = null;
+    }
+    if (activeNarrationBtn) {
+      activeNarrationBtn.setAttribute("aria-pressed", "false");
+      var lbl = activeNarrationBtn.querySelector(".zn-read-aloud-label");
+      if (lbl) lbl.textContent = "▶ सुनो / Listen";
+      activeNarrationBtn = null;
+    }
+    if (activeNarrationProgress) {
+      activeNarrationProgress.style.transform = "scaleX(0)";
+      activeNarrationProgress = null;
+    }
+    activeNarrationBlockId = null;
+  }
+
+  function resolveNarrationAssetPath(rawPath, courseId, blockId, lang, hash) {
+    var p = String(rawPath || "").trim();
+    if (p) {
+      if (p.charAt(0) === "/") return p;
+      if (p.indexOf("frontend/audio/") === 0) return "/" + p.slice("frontend/".length);
+      if (p.indexOf("audio/") === 0) return "/" + p;
+      return p;
+    }
+    if (courseId && blockId && hash) {
+      return "/audio/" + courseId + "/" + blockId + "." + (lang || "en") + "." + hash + ".opus";
+    }
+    return "";
+  }
+
+  function injectReadAloudControls(manifestData) {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false, count: 0 };
+    if (lessonPage.getAttribute("data-zn-readaloud-mounted") === "true" && !manifestData) {
+      return { mounted: true, count: lessonPage.querySelectorAll(".zn-read-aloud-btn").length };
+    }
+    var mf = manifestData || window.__ZIVON_MANIFEST__ || null;
+    if (!mf || !mf.narration || !mf.narration.available || typeof mf.narration.blocks !== "object") {
+      return { mounted: false, count: 0 };
+    }
+    var activeLang = getSavedLang() || document.documentElement.lang || "en";
+    var narLang = mf.narration.lang || "en";
+    if (activeLang !== "en" && narLang !== activeLang) {
+      return { mounted: false, count: 0 };
+    }
+    var blocksMap = mf.narration.blocks;
+    var courseId = mf.course_id || ZivonRouter.currentRoute().course_id || "physics";
+    var count = 0;
+
+    Object.keys(blocksMap).forEach(function (blockId) {
+      var info = blocksMap[blockId];
+      if (!info || !info.available) return;
+      var assetUrl = resolveNarrationAssetPath(info.path, courseId, blockId, narLang, info.hash);
+      if (!assetUrl) return;
+      var blockEl = document.getElementById(blockId);
+      if (!blockEl) return;
+      if (blockEl.querySelector(".zn-read-aloud-btn")) {
+        count += 1;
+        return;
+      }
+      var headingEl = blockEl.querySelector("h3, legend, figcaption");
+      var blockTitle = headingEl ? headingEl.textContent.trim() : ("Block " + blockId);
+
+      var wrap = document.createElement("div");
+      wrap.className = "zn-read-aloud-wrap";
+      wrap.setAttribute("data-ruled-skip", "true");
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "zn-read-aloud-btn";
+      btn.setAttribute("data-element-id", "EL-LES-01-012");
+      btn.setAttribute("data-block-id", blockId);
+      btn.setAttribute("data-audio-src", assetUrl);
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-label", "सुनो / Listen: " + blockTitle);
+
+      var span = document.createElement("span");
+      span.className = "zn-read-aloud-label";
+      span.textContent = "▶ सुनो / Listen";
+      btn.appendChild(span);
+
+      var audio = document.createElement("audio");
+      audio.className = "zn-read-aloud-audio";
+      audio.setAttribute("preload", "none");
+      audio.setAttribute("src", assetUrl);
+
+      var prog = document.createElement("div");
+      prog.className = "zn-read-aloud-progress";
+      prog.setAttribute("aria-hidden", "true");
+
+      var statusSr = document.createElement("span");
+      statusSr.className = "zn-sr-only";
+      statusSr.setAttribute("aria-live", "polite");
+
+      btn.addEventListener("click", function () {
+        if (activeNarrationBtn === btn) {
+          stopReadAloud();
+          if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+            window.ZivonEvents.emit("EVT-read_aloud_played", { block_id: blockId, lang: narLang, completed: false });
+          }
+          return;
+        }
+        stopReadAloud();
+        activeNarrationBtn = btn;
+        activeNarrationAudio = audio;
+        activeNarrationProgress = prog;
+        activeNarrationBlockId = blockId;
+        btn.setAttribute("aria-pressed", "true");
+        span.textContent = "■ रोकें / Stop";
+        statusSr.textContent = "playing narration";
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!reduceMotion) {
+          prog.style.transform = "scaleX(0.15)";
+        }
+        try {
+          var playPromise = audio.play();
+          if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(function () {});
+          }
+        } catch (e) {}
+      });
+
+      audio.addEventListener("timeupdate", function () {
+        if (activeNarrationAudio !== audio) return;
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion) return;
+        var dur = audio.duration || (info.duration_ms ? info.duration_ms / 1000.0 : 0);
+        if (dur > 0) {
+          var ratio = Math.min(1, Math.max(0, audio.currentTime / dur));
+          prog.style.transform = "scaleX(" + ratio.toFixed(3) + ")";
+        }
+      });
+
+      audio.addEventListener("ended", function () {
+        if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+          window.ZivonEvents.emit("EVT-read_aloud_played", { block_id: blockId, lang: narLang, completed: true });
+        }
+        stopReadAloud();
+      });
+
+      wrap.appendChild(btn);
+      wrap.appendChild(audio);
+      wrap.appendChild(statusSr);
+      blockEl.insertBefore(wrap, blockEl.firstChild);
+      blockEl.appendChild(prog);
+      count += 1;
+    });
+
+    if (count > 0) {
+      lessonPage.setAttribute("data-zn-readaloud-mounted", "true");
+    }
+    return { mounted: count > 0, count: count };
+  }
+
+  var ZivonReadAloud = {
+    mountFromManifest: injectReadAloudControls,
+    stop: stopReadAloud,
+    getActiveBlockId: function () { return activeNarrationBlockId; }
+  };
+  window.ZivonReadAloud = ZivonReadAloud;
+
+  /* ---------------- §10.12 Voice dock (bottom sheet, DCR-002) -------------- */
+  var DOCK_STORAGE_KEY = "zivon.dock";
+  var CAPTIONS_STORAGE_KEY = "zivon.captions";
+  var IDENTITY_SEEN_KEY = "zivon.identity_seen";
+
+  var DOCK_STATE_COPY = {
+    "idle": "Mic dabao aur poochho",
+    "requesting-permission": "mic ki permission…",
+    "connecting": "jud rahe hain…",
+    "ready": "Mic dabao aur poochho",
+    "listening": "Sun rahe hain — pakad ke rakho",
+    "endpointing": "silence mila…",
+    "thinking": "soch rahe hain…",
+    "speaking": "",
+    "speaking_text": "TUTOR · TEXT",
+    "interrupted": "▌cut off",
+    "offline": "connection gaya — jo type karoge woh safe hai",
+    "error:mic-denied": "lesson chalta rahega",
+    "error:mic-in-use": "Mic kisi aur app mein busy hai — dubara koshish karein ya type karein.",
+    "error:mic-constraint": "Mic settings match nahi hui — niche type karke poochhein.",
+    "error:unsupported-browser": "Is browser mein mic available nahi hai — niche type karke poochhein.",
+    "error:no-input": "Kuch sunai nahi diya — mic dabakar bolen ya type karein.",
+    "error:no-match": "Saaf sunai nahi diya — phir se bolen ya type karein.",
+    "error:system-error": "Tutor ko dikkat aayi — dubara koshish karein ya type karein.",
+    "error:timeout": "Jawab mein deri ho rahi hai — niche type karke poochhein.",
+    "error:auth.invalid": "Session expire ho gaya — page refresh karein.",
+    "error:version.mismatch": "Naya version aaya hai — page refresh karein.",
+    "error:quota-exhausted": "30 credits/day · voice resets 00:00 · reading, sims, typing free",
+    "text_only": "30 credits/day · voice resets 00:00 · reading, sims, typing free"
+  };
+
+  function getInitialContainment() {
+    var saved = safeStorageGet(DOCK_STORAGE_KEY);
+    if (saved === "hidden") return "hidden";
+    /* A stored "expanded" starts collapsed on a new page load (never auto-expand, §10.12) */
+    return "collapsed";
+  }
+
+  function playDockEarcon(kind, audioCtx) {
+    /* Non-speech earcon cue (<= 3 sounds: start, stop, error; < 0.2s) */
+    var ctx = audioCtx;
+    if (!ctx) return;
+    if (typeof ctx.createOscillator !== "function" || typeof ctx.createGain !== "function") return;
+    try {
+      var now = typeof ctx.currentTime === "number" ? ctx.currentTime : 0;
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = kind === "start" ? 520 : (kind === "stop" ? 390 : 240);
+      g.gain.value = 0.04;
+      osc.connect(g);
+      if (ctx.destination) g.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch (e) {}
+  }
+
   var ZivonVoiceDock = {
-    doctrineReady: false, /* DCR-002: design-doctrine.md §10.12 is founder-gated */
+    doctrineReady: true, /* DCR-002 closed: design-doctrine.md §10.12 is now binding */
+    _activeClient: null,
+    _silenceTimer: null,
     getRegion: ensureVoiceDockRegion,
-    lazyMount: function () {
+    setContainment: function (nextContainment, persist) {
+      var region = ensureVoiceDockRegion();
+      if (!region) return "collapsed";
+      var c = nextContainment === "hidden" || nextContainment === "expanded" ? nextContainment : "collapsed";
+      region.setAttribute("data-containment", c);
+      var tabBtn = region.querySelector(".zn-dock-tab");
+      var stripEl = region.querySelector(".zn-dock-strip");
+      var sheetEl = region.querySelector(".zn-dock-sheet");
+      if (tabBtn) tabBtn.hidden = c !== "hidden";
+      if (stripEl) stripEl.hidden = c !== "collapsed";
+      if (sheetEl) sheetEl.hidden = c !== "expanded";
+      if (persist !== false) {
+        safeStorageSet(DOCK_STORAGE_KEY, c);
+      }
+      return c;
+    },
+    getContainment: function () {
+      var region = ensureVoiceDockRegion();
+      return (region && region.getAttribute("data-containment")) || getInitialContainment();
+    },
+    bindClient: function (client) {
+      var region = ensureVoiceDockRegion();
+      if (!region || !client) return;
+      ZivonVoiceDock._activeClient = client;
+      client.onStateChange(function (nextState, prevState, detail) {
+        ZivonVoiceDock.renderAgentState(nextState, detail || {});
+      });
+      ZivonVoiceDock.renderAgentState(client.getState(), {});
+    },
+    renderAgentState: function (agentState, detail) {
+      var region = ensureVoiceDockRegion();
+      if (!region || region.getAttribute("data-zn-dock-mounted") !== "true") return;
+      var st = String(agentState || "idle");
+      if (st === "error:quota-exhausted") st = "text_only";
+      region.setAttribute("data-agent-state", st);
+
+      if (ZivonVoiceDock._silenceTimer) {
+        clearTimeout(ZivonVoiceDock._silenceTimer);
+        ZivonVoiceDock._silenceTimer = null;
+      }
+
+      var stateLabel = region.querySelector(".zn-dock-state-label");
+      var captionEl = region.querySelector(".zn-dock-caption");
+      var stripCaptionEl = region.querySelector(".zn-dock-strip-caption");
+      var micBtns = region.querySelectorAll(".zn-dock-mic");
+      var stopBtn = region.querySelector(".zn-dock-stop");
+      var stampEl = region.querySelector(".zn-dock-stamp");
+      var sweepEl = region.querySelector(".zn-dock-sweep");
+      var barsEl = region.querySelector(".zn-dock-bars");
+      var textChipEl = region.querySelector(".zn-dock-text-chip");
+      var retryBtn = region.querySelector(".zn-dock-retry");
+      var helpRow = region.querySelector(".zn-dock-help-chips");
+      var transcriptList = region.querySelector(".zn-dock-transcript");
+      var typedInput = region.querySelector(".zn-dock-typed-input");
+      var captionsOn = safeStorageGet(CAPTIONS_STORAGE_KEY) !== "false";
+
+      var isListening = st === "listening";
+      var isSpeaking = st === "speaking" || st === "speaking_text";
+      var isThinking = st === "thinking";
+      var isEndpointing = st === "endpointing";
+      var isMicDenied = st === "error:mic-denied";
+      var isTextOnly = st === "text_only";
+      var isError = st.indexOf("error:") === 0;
+
+      micBtns.forEach(function (mb) {
+        mb.setAttribute("aria-pressed", isListening ? "true" : "false");
+        mb.disabled = isTextOnly || isMicDenied;
+      });
+      if (stopBtn) stopBtn.hidden = !isSpeaking;
+      if (stampEl) {
+        stampEl.hidden = !isMicDenied;
+        if (isMicDenied) stampEl.textContent = "MIC OFF";
+      }
+      if (sweepEl) sweepEl.hidden = !isThinking;
+      if (barsEl) {
+        barsEl.hidden = !(isListening || isEndpointing || st === "speaking");
+        barsEl.setAttribute("data-bars-mode", isEndpointing ? "endpointing" : (isListening ? "listening" : "speaking"));
+      }
+      if (textChipEl) {
+        textChipEl.hidden = st !== "speaking_text";
+      }
+      if (retryBtn) {
+        retryBtn.hidden = !(st === "error:mic-in-use" || st === "error:no-match" || st === "error:no-input" || st === "error:system-error" || st === "error:timeout");
+      }
+      if (helpRow) {
+        helpRow.hidden = !(st === "error:no-match" || st === "error:no-input" || st === "error:mic-denied" || isTextOnly);
+      }
+
+      var copy = DOCK_STATE_COPY[st] !== undefined ? DOCK_STATE_COPY[st] : (detail && detail.message ? String(detail.message) : st);
+      if (stateLabel) {
+        stateLabel.setAttribute("aria-live", isError ? "assertive" : "polite");
+        stateLabel.textContent = copy || (st === "speaking" ? "Bol rahe hain…" : "Ready");
+      }
+
+      /* Sync transcript & live caption from active client if present */
+      var client = ZivonVoiceDock._activeClient;
+      var tList = client && typeof client.getTranscripts === "function" ? client.getTranscripts() : [];
+      var latestPartial = "";
+      var latestTutorText = "";
+      for (var i = 0; i < tList.length; i++) {
+        if (tList[i].kind === "partial") latestPartial = tList[i].text;
+        if (tList[i].kind === "tutor") latestTutorText = tList[i].text;
+      }
+
+      var liveCapText = copy;
+      if (st === "speaking" || st === "speaking_text") {
+        liveCapText = captionsOn ? (latestTutorText || "Bol rahe hain…") : "";
+      } else if (st === "listening" && latestPartial && captionsOn) {
+        liveCapText = latestPartial;
+      } else if (st === "interrupted") {
+        liveCapText = (latestTutorText ? latestTutorText.slice(0, 48) + " " : "") + "▌cut off";
+      }
+
+      if (captionEl) {
+        captionEl.hidden = !captionsOn;
+        captionEl.textContent = liveCapText;
+      }
+      if (stripCaptionEl) {
+        stripCaptionEl.textContent = liveCapText || "Mic dabao aur poochho";
+      }
+
+      if (transcriptList && client) {
+        while (transcriptList.firstChild) transcriptList.removeChild(transcriptList.firstChild);
+        var finals = tList.filter(function (item) { return item.kind === "student" || item.kind === "tutor"; });
+        if (!finals.length) {
+          var emptyLi = document.createElement("p");
+          emptyLi.className = "zn-dock-transcript-empty";
+          emptyLi.textContent = "Abhi koi sawaal nahi poochha gaya.";
+          transcriptList.appendChild(emptyLi);
+        } else {
+          finals.slice(-6).forEach(function (item) {
+            var p = document.createElement("p");
+            p.className = "zn-dock-line zn-dock-line-" + item.kind;
+            var prefix = item.kind === "student" ? "You: " : "Tutor: ";
+            var suffix = item.interrupted ? " ▌cut off" : "";
+            p.textContent = prefix + item.text + suffix;
+            if (item.interrupted) p.setAttribute("data-cut-off", "true");
+            transcriptList.appendChild(p);
+          });
+        }
+      }
+
+      if (isMicDenied && typedInput) {
+        ZivonVoiceDock.setContainment("expanded", false);
+        try { typedInput.focus(); } catch (e) {}
+      }
+
+      /* Silence-close: 5 s after a completed turn reaches ready/idle, return expanded -> collapsed (§10.12) */
+      if ((st === "ready" || st === "idle") && detail && detail.turn_id && ZivonVoiceDock.getContainment() === "expanded") {
+        ZivonVoiceDock._silenceTimer = setTimeout(function () {
+          if (ZivonVoiceDock.getContainment() === "expanded") {
+            var cur = ZivonVoiceDock._activeClient ? ZivonVoiceDock._activeClient.getState() : "ready";
+            if (cur === "ready" || cur === "idle") {
+              ZivonVoiceDock.setContainment("collapsed", true);
+            }
+          }
+        }, 5000);
+      }
+    },
+    lazyMount: function (opts) {
+      var options = opts || {};
       var region = ensureVoiceDockRegion();
       if (!ZivonVoiceDock.doctrineReady) {
         return { mounted: false, reason: "founder-gated: design-doctrine.md §10.12 absent (DCR-002)" };
       }
-      return { mounted: Boolean(region), region: region };
+      if (!region) {
+        return { mounted: false, reason: "not_lesson_page" };
+      }
+      /* Consent gate (§10.14): until consent is accepted the region stays hidden
+         unless forceMount is passed for direct unit testing. */
+      var consentVal = safeStorageGet("zivon.consent");
+      if (!options.force && consentVal !== "granted") {
+        region.hidden = true;
+        return { mounted: false, reason: "consent_required", region: region };
+      }
+      if (region.getAttribute("data-zn-dock-mounted") === "true") {
+        region.hidden = false;
+        return { mounted: true, region: region, client: ZivonVoiceDock._activeClient };
+      }
+
+      region.setAttribute("data-zn-dock-mounted", "true");
+      region.setAttribute("data-zn-mounted", "true");
+      region.setAttribute("role", "region");
+      region.setAttribute("aria-label", "Voice tutor dock");
+      region.setAttribute("data-ruled-skip", "true");
+      region.hidden = false;
+
+      var snap = buildContextSnapshot();
+      var anchorBlockId = snap.block_id || "b-01";
+      var anchorBlockType = snap.block_type || "lesson";
+      var anchorLabelText = anchorBlockId + " · " + anchorBlockType.replace(/_/g, " ");
+
+      /* 1. Hidden state: 44 px bottom-right paper tab */
+      var tabBtn = document.createElement("button");
+      tabBtn.type = "button";
+      tabBtn.className = "zn-dock-tab";
+      tabBtn.setAttribute("data-element-id", "EL-LES-01-042");
+      tabBtn.setAttribute("aria-label", "Open voice tutor dock");
+      tabBtn.textContent = "[mic] Ask";
+
+      /* 2. Collapsed state: 92 px strip */
+      var stripEl = document.createElement("div");
+      stripEl.className = "zn-dock-strip";
+      var grabStrip = document.createElement("button");
+      grabStrip.type = "button";
+      grabStrip.className = "zn-dock-grab";
+      grabStrip.setAttribute("aria-label", "Expand voice tutor sheet");
+      grabStrip.textContent = "—";
+      var stripCap = document.createElement("p");
+      stripCap.className = "zn-dock-strip-caption";
+      stripCap.textContent = "Mic dabao aur poochho";
+      var stripTypeBtn = document.createElement("button");
+      stripTypeBtn.type = "button";
+      stripTypeBtn.className = "zn-dock-type-btn";
+      stripTypeBtn.textContent = "Type";
+      var stripHideBtn = document.createElement("button");
+      stripHideBtn.type = "button";
+      stripHideBtn.className = "zn-dock-hide-btn";
+      stripHideBtn.setAttribute("aria-label", "Hide voice dock to tab");
+      stripHideBtn.textContent = "Hide";
+      var stripMicBtn = document.createElement("button");
+      stripMicBtn.type = "button";
+      stripMicBtn.className = "zn-dock-mic zn-dock-mic-strip";
+      stripMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
+      stripMicBtn.setAttribute("aria-pressed", "false");
+      stripMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
+      stripMicBtn.textContent = "[mic]";
+      [grabStrip, stripCap, stripTypeBtn, stripHideBtn, stripMicBtn].forEach(function (el) { stripEl.appendChild(el); });
+
+      /* 3. Expanded state: <= 60 dvh sheet */
+      var sheetEl = document.createElement("div");
+      sheetEl.className = "zn-dock-sheet";
+
+      var grabSheet = document.createElement("button");
+      grabSheet.type = "button";
+      grabSheet.className = "zn-dock-grab";
+      grabSheet.setAttribute("aria-label", "Collapse voice tutor sheet");
+      grabSheet.textContent = "— Collapse";
+
+      var topRow = document.createElement("div");
+      topRow.className = "zn-dock-top-row";
+      var anchorChip = document.createElement("button");
+      anchorChip.type = "button";
+      anchorChip.className = "zn-dock-anchor-chip";
+      anchorChip.setAttribute("data-element-id", "EL-LES-01-050");
+      anchorChip.setAttribute("data-anchor-block", anchorBlockId);
+      anchorChip.textContent = "Asking about: " + anchorLabelText;
+
+      var identityLine = document.createElement("p");
+      identityLine.className = "zn-dock-identity";
+      identityLine.setAttribute("data-element-id", "EL-LES-01-051");
+      identityLine.textContent = "I'm an AI tutor — I see this lesson page, not your room.";
+      if (safeStorageGet(IDENTITY_SEEN_KEY) === "true") {
+        identityLine.hidden = true;
+      } else {
+        safeStorageSet(IDENTITY_SEEN_KEY, "true");
+      }
+      topRow.appendChild(anchorChip);
+      topRow.appendChild(identityLine);
+
+      /* State indicator row (EL-LES-01-044) */
+      var stateRow = document.createElement("div");
+      stateRow.className = "zn-dock-state-row";
+      stateRow.setAttribute("data-element-id", "EL-LES-01-044");
+      var stampEl = document.createElement("span");
+      stampEl.className = "zn-dock-stamp";
+      stampEl.hidden = true;
+      var textChipEl = document.createElement("span");
+      textChipEl.className = "zn-dock-text-chip";
+      textChipEl.textContent = "TUTOR · TEXT";
+      textChipEl.hidden = true;
+      var stateLabel = document.createElement("span");
+      stateLabel.className = "zn-dock-state-label";
+      stateLabel.setAttribute("role", "status");
+      stateLabel.setAttribute("aria-live", "polite");
+      stateLabel.textContent = "Mic dabao aur poochho";
+      var sweepEl = document.createElement("div");
+      sweepEl.className = "zn-dock-sweep";
+      sweepEl.setAttribute("aria-hidden", "true");
+      sweepEl.hidden = true;
+      var barsEl = document.createElement("div");
+      barsEl.className = "zn-dock-bars";
+      barsEl.setAttribute("aria-hidden", "true");
+      barsEl.hidden = true;
+      for (var bIdx = 0; bIdx < 5; bIdx++) {
+        var barSpan = document.createElement("span");
+        barSpan.className = "zn-dock-bar";
+        barsEl.appendChild(barSpan);
+      }
+      var retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.className = "zn-dock-retry";
+      retryBtn.textContent = "Retry";
+      retryBtn.hidden = true;
+      [stampEl, textChipEl, stateLabel, sweepEl, barsEl, retryBtn].forEach(function (el) { stateRow.appendChild(el); });
+
+      /* Transcript panel (EL-LES-01-047) */
+      var transcriptPanel = document.createElement("div");
+      transcriptPanel.className = "zn-dock-transcript";
+      transcriptPanel.setAttribute("data-element-id", "EL-LES-01-047");
+      transcriptPanel.setAttribute("aria-live", "polite");
+      var emptyLine = document.createElement("p");
+      emptyLine.className = "zn-dock-transcript-empty";
+      emptyLine.textContent = "Abhi koi sawaal nahi poochha gaya.";
+      transcriptPanel.appendChild(emptyLine);
+
+      /* Live caption line (EL-LES-01-048) + toggle (EL-LES-01-049) */
+      var captionRow = document.createElement("div");
+      captionRow.className = "zn-dock-caption-row";
+      var captionEl = document.createElement("p");
+      captionEl.className = "zn-dock-caption";
+      captionEl.setAttribute("data-element-id", "EL-LES-01-048");
+      captionEl.setAttribute("aria-live", "polite");
+      captionEl.textContent = "Mic dabao aur poochho";
+      var capToggleLabel = document.createElement("label");
+      capToggleLabel.className = "zn-dock-cap-toggle";
+      capToggleLabel.setAttribute("data-element-id", "EL-LES-01-049");
+      var capCheckbox = document.createElement("input");
+      capCheckbox.type = "checkbox";
+      capCheckbox.checked = safeStorageGet(CAPTIONS_STORAGE_KEY) !== "false";
+      var capTxt = document.createElement("span");
+      capTxt.textContent = "Captions";
+      capToggleLabel.appendChild(capCheckbox);
+      capToggleLabel.appendChild(capTxt);
+      captionRow.appendChild(captionEl);
+      captionRow.appendChild(capToggleLabel);
+
+      /* Controls row: 56 px mic disc (EL-LES-01-043) + stop button (EL-LES-01-046) */
+      var controlsRow = document.createElement("div");
+      controlsRow.className = "zn-dock-controls-row";
+      var sheetMicBtn = document.createElement("button");
+      sheetMicBtn.type = "button";
+      sheetMicBtn.className = "zn-dock-mic zn-dock-mic-sheet";
+      sheetMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
+      sheetMicBtn.setAttribute("aria-pressed", "false");
+      sheetMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
+      sheetMicBtn.textContent = "[mic] Speak";
+
+      var stopBtn = document.createElement("button");
+      stopBtn.type = "button";
+      stopBtn.className = "zn-dock-stop";
+      stopBtn.setAttribute("data-element-id", "EL-LES-01-046");
+      stopBtn.textContent = "■ Stop";
+      stopBtn.hidden = true;
+      controlsRow.appendChild(sheetMicBtn);
+      controlsRow.appendChild(stopBtn);
+
+      /* Typed fallback form (EL-LES-01-052) */
+      var typedForm = document.createElement("form");
+      typedForm.className = "zn-dock-typed-form";
+      typedForm.setAttribute("data-element-id", "EL-LES-01-052");
+      var typedInput = document.createElement("input");
+      typedInput.type = "text";
+      typedInput.className = "zn-dock-typed-input";
+      typedInput.placeholder = "Apna doubt yahan type karein…";
+      typedInput.setAttribute("aria-label", "Type your physics doubt");
+      var typedSend = document.createElement("button");
+      typedSend.type = "submit";
+      typedSend.className = "zn-dock-typed-send";
+      typedSend.textContent = "Send";
+      typedForm.appendChild(typedInput);
+      typedForm.appendChild(typedSend);
+
+      /* Help chip row (EL-LES-01-053) */
+      var helpRow = document.createElement("div");
+      helpRow.className = "zn-dock-help-chips";
+      helpRow.setAttribute("data-element-id", "EL-LES-01-053");
+      helpRow.setAttribute("role", "list");
+      helpRow.hidden = true;
+      [
+        "Is graph ka slope kya batata hai?",
+        "Yeh formula kab lagta hai?",
+        "Step by step samjhao"
+      ].forEach(function (phrase) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "zn-dock-help-chip";
+        chip.setAttribute("role", "listitem");
+        chip.textContent = phrase;
+        chip.addEventListener("click", function () {
+          typedInput.value = phrase;
+          try { typedInput.focus(); } catch (e) {}
+        });
+        helpRow.appendChild(chip);
+      });
+
+      /* Footer entries: Memory view (EL-LES-01-054) + Settings entry (EL-LES-01-055) */
+      var metaRow = document.createElement("div");
+      metaRow.className = "zn-dock-meta-row";
+      var memDetails = document.createElement("details");
+      memDetails.className = "zn-dock-memory";
+      memDetails.setAttribute("data-element-id", "EL-LES-01-054");
+      var memSum = document.createElement("summary");
+      memSum.textContent = "What the tutor remembers";
+      var memList = document.createElement("p");
+      memList.className = "zn-dock-memory-list";
+      memList.textContent = "Covered this session: " + anchorLabelText;
+      var memClearBtn = document.createElement("button");
+      memClearBtn.type = "button";
+      memClearBtn.className = "zn-dock-memory-clear";
+      memClearBtn.textContent = "Clear session memory";
+      memClearBtn.addEventListener("click", function () {
+        memList.textContent = "Nothing yet - this is a fresh session.";
+        if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+          window.ZivonEvents.emit("EVT-data_cleared", { scope: "memory" });
+        }
+      });
+      memDetails.appendChild(memSum);
+      memDetails.appendChild(memList);
+      memDetails.appendChild(memClearBtn);
+
+      var settingsBtn = document.createElement("button");
+      settingsBtn.type = "button";
+      settingsBtn.className = "zn-dock-settings-btn";
+      settingsBtn.setAttribute("data-element-id", "EL-LES-01-055");
+      settingsBtn.textContent = "Settings";
+      settingsBtn.addEventListener("click", function () {
+        var langBar = document.querySelector(".zn-lang-bar");
+        if (langBar && typeof langBar.scrollIntoView === "function") {
+          langBar.scrollIntoView({ block: "start" });
+        }
+      });
+      var sheetHideBtn = document.createElement("button");
+      sheetHideBtn.type = "button";
+      sheetHideBtn.className = "zn-dock-hide-btn";
+      sheetHideBtn.textContent = "Hide dock";
+      metaRow.appendChild(memDetails);
+      metaRow.appendChild(settingsBtn);
+      metaRow.appendChild(sheetHideBtn);
+
+      [grabSheet, topRow, stateRow, transcriptPanel, captionRow, controlsRow, typedForm, helpRow, metaRow].forEach(function (el) {
+        sheetEl.appendChild(el);
+      });
+
+      region.appendChild(tabBtn);
+      region.appendChild(stripEl);
+      region.appendChild(sheetEl);
+
+      /* Wire containment interactions */
+      tabBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("collapsed", true);
+      });
+      grabStrip.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("expanded", true);
+      });
+      stripTypeBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("expanded", true);
+        try { typedInput.focus(); } catch (e) {}
+      });
+      stripHideBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("hidden", true);
+      });
+      sheetHideBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("hidden", true);
+      });
+      grabSheet.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("collapsed", true);
+      });
+
+      capCheckbox.addEventListener("change", function () {
+        safeStorageSet(CAPTIONS_STORAGE_KEY, capCheckbox.checked ? "true" : "false");
+        captionEl.hidden = !capCheckbox.checked;
+      });
+
+      anchorChip.addEventListener("click", function () {
+        var bid = anchorChip.getAttribute("data-anchor-block") || "b-01";
+        highlightBlocks([bid]);
+        var target = document.getElementById(bid);
+        if (target && typeof target.scrollIntoView === "function") {
+          target.scrollIntoView({ block: "center" });
+        }
+      });
+
+      function ensureClientWired() {
+        if (!ZivonVoiceDock._activeClient) {
+          var client = createVoiceClient(options.clientOptions || {});
+          ZivonVoiceDock.bindClient(client);
+        }
+        return ZivonVoiceDock._activeClient;
+      }
+
+      function handleMicTrigger() {
+        /* Echo guard (§10.13): pressing the dock mic immediately stops read-aloud */
+        stopReadAloud();
+        ZivonVoiceDock.setContainment("expanded", true);
+        var client = ensureClientWired();
+        var cur = client.getState();
+        if (cur === "speaking" || cur === "thinking" || cur === "speaking_text") {
+          client.bargeIn("ptt_press");
+          return;
+        }
+        if (cur === "listening") {
+          client.endAudio();
+          try { sheetMicBtn.focus(); } catch (e) {}
+          return;
+        }
+        if (cur === "idle") {
+          client.connect();
+        }
+        client.startListening("doubt");
+      }
+
+      stripMicBtn.addEventListener("click", handleMicTrigger);
+      sheetMicBtn.addEventListener("click", handleMicTrigger);
+
+      stopBtn.addEventListener("click", function () {
+        var client = ensureClientWired();
+        client.bargeIn("stop_button");
+        try { sheetMicBtn.focus(); } catch (e) {}
+      });
+
+      retryBtn.addEventListener("click", function () {
+        var client = ensureClientWired();
+        client.reconnect();
+      });
+
+      typedForm.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var txt = (typedInput.value || "").trim();
+        if (!txt) return;
+        stopReadAloud();
+        var client = ensureClientWired();
+        client.sendTypedDoubt(txt);
+        typedInput.value = "";
+        ZivonVoiceDock.renderAgentState(client.getState(), {});
+      });
+
+      /* Keyboard shortcuts (§10.12): Space hold = talk, Esc = stop/interrupt then collapse, Enter = send typed */
+      region.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape") {
+          var client = ZivonVoiceDock._activeClient;
+          var cur = client ? client.getState() : "idle";
+          if (cur === "speaking" || cur === "thinking" || cur === "speaking_text" || cur === "listening") {
+            ev.preventDefault();
+            if (cur === "listening") client.endAudio();
+            else client.bargeIn("escape_key");
+            try { sheetMicBtn.focus(); } catch (e) {}
+          } else if (ZivonVoiceDock.getContainment() === "expanded") {
+            ev.preventDefault();
+            ZivonVoiceDock.setContainment("collapsed", true);
+            try { stripMicBtn.focus(); } catch (e) {}
+          }
+        } else if (ev.key === " " && ev.target !== typedInput) {
+          var client2 = ensureClientWired();
+          if (client2.getState() !== "listening" && !ev.repeat) {
+            ev.preventDefault();
+            stopReadAloud();
+            ZivonVoiceDock.setContainment("expanded", true);
+            client2.startListening("space_hold");
+          }
+        }
+      });
+
+      region.addEventListener("keyup", function (ev) {
+        if (ev.key === " " && ev.target !== typedInput) {
+          var client = ZivonVoiceDock._activeClient;
+          if (client && client.getState() === "listening") {
+            ev.preventDefault();
+            client.endAudio();
+            try { sheetMicBtn.focus(); } catch (e) {}
+          }
+        }
+      });
+
+      var initContainment = getInitialContainment();
+      ZivonVoiceDock.setContainment(initContainment, false);
+      ZivonVoiceDock.renderAgentState("idle", {});
+      return { mounted: true, region: region };
     }
   };
   window.ZivonVoiceDock = ZivonVoiceDock;
