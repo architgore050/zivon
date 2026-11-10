@@ -30,7 +30,9 @@ def _make_review_env(cfg: EvalConfig, tmp: Path) -> tuple[Any, RunContext]:
     (tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
     env_patch = {
         "ZIVON_BASE_URL": cfg.judge_base_url or "http://127.0.0.1:8080/v1",
-        "ZIVON_MODEL": cfg.judge_model if cfg.judge_model != "unconfigured" else "eval-judge",
+        "ZIVON_MODEL": cfg.judge_model
+        if cfg.judge_model != "unconfigured"
+        else "eval-judge",
     }
     with mock.patch.dict("os.environ", env_patch):
         fcfg = dataclasses.replace(
@@ -192,9 +194,7 @@ def calibrate_09_review(
             if exp["expected_severity"] == "fatal":
                 fatal_expected += 1
                 is_tp = (
-                    actual_verdict == "fail"
-                    and actual_sev == "fatal"
-                    and block_matched
+                    actual_verdict == "fail" and actual_sev == "fatal" and block_matched
                 )
                 if is_tp:
                     fatal_caught += 1

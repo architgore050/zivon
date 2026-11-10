@@ -78,7 +78,9 @@ def check_title_provenance(
     pdfs_dir = (
         cfg.repo_root / "testing" / "content_factory" / "mocks" / "fixtures" / "pdfs"
     )
-    if (pdfs_dir / "kinem-ch02.pdf").exists() and (pdfs_dir / "kinem-ch04.pdf").exists():
+    if (pdfs_dir / "kinem-ch02.pdf").exists() and (
+        pdfs_dir / "kinem-ch04.pdf"
+    ).exists():
         with tempfile.TemporaryDirectory(prefix="zivon-eval-cur-") as td:
             tmp = Path(td)
             dest = tmp / "pdfs" / "fixture-kinem-9"
@@ -200,7 +202,9 @@ def check_table_and_glyph_extraction(
     if defects_dir.is_dir():
         for p in sorted(defects_dir.glob("*.json")):
             data = json.loads(p.read_text(encoding="utf-8"))
-            ncert_text = data.get("inputs", {}).get("source_pack", {}).get("ncert_text", "")
+            ncert_text = (
+                data.get("inputs", {}).get("source_pack", {}).get("ncert_text", "")
+            )
             if any(0xF000 <= ord(ch) <= 0xF0FF for ch in ncert_text):
                 issues.append(
                     IssueRecord(

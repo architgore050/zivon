@@ -861,7 +861,9 @@ def validate_schema(
     if errors:
         first = errors[0]
         path = "/".join(str(p) for p in first.absolute_path) or "(root)"
-        raise ValueError(f"{name} schema validation failed at '{path}': {first.message}")
+        raise ValueError(
+            f"{name} schema validation failed at '{path}': {first.message}"
+        )
 
 
 def load_card(path: Path) -> EvalCard:
@@ -869,7 +871,7 @@ def load_card(path: Path) -> EvalCard:
     text = path.read_text(encoding="utf-8")
     raw = yaml.safe_load(text) if path.suffix in (".yaml", ".yml") else json.loads(text)
     if not isinstance(raw, dict):
-        raise ValueError(f"eval card {path} must be a YAML/JSON mapping")
+        raise TypeError(f"eval card {path} must be a YAML/JSON mapping")
     validate_schema(raw, EVAL_CARD_SCHEMA, f"EvalCard({path.name})")
 
     det_specs = [

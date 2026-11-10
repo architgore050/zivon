@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from typing import Any
 
 from evals.checkers import run_deterministic_check
 from evals.checkers.visual_checks import check_security_defect_corpus
@@ -31,7 +32,7 @@ class TestDeterministicCheckers(unittest.TestCase):
         self.assertEqual(total_executed, 24)
 
     def test_seeded_security_defects_sd_sec_001_to_005_all_caught(self) -> None:
-        ctx: dict[str, object] = {}
+        ctx: dict[str, Any] = {}
         issues = check_security_defect_corpus(self.cfg, self.cards["EV-REV-002"], ctx)
         self.assertEqual(issues, [])
         metrics = ctx.get("metrics") or {}

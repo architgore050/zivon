@@ -22,14 +22,12 @@ import subprocess
 import tarfile
 import time
 import uuid
-from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from .config import EvalConfig
 from .models import (
-    HUMAN_EDIT_SCHEMA,
     KID_SESSION_SCHEMA,
     CardResult,
     DefectSampleResult,
@@ -82,7 +80,7 @@ def generate_uuid7(ts_ms: int | None = None) -> str:
 
 
 def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def validate_kid_session_dpdp(payload: dict[str, Any]) -> None:
@@ -101,9 +99,7 @@ def validate_kid_session_dpdp(payload: dict[str, Any]) -> None:
 
 
 def _card_Result_from_dict(d: dict[str, Any]) -> CardResult:
-    samples = [
-        DefectSampleResult(**s) for s in d.get("defect_samples", [])
-    ]
+    samples = [DefectSampleResult(**s) for s in d.get("defect_samples", [])]
     return CardResult(
         card_id=d["card_id"],
         stage=d["stage"],
@@ -538,7 +534,9 @@ class EvalStore:
     def backfill_db(self) -> dict[str, int]:
         """Idempotently replay all JSONL ledger rows into the relational store (`ADR-0027`)."""
         if not self.cfg.db_url:
-            raise ValueError("ZIVON_DB_URL / EVAL_DB_URL must be configured to run backfill-db")
+            raise ValueError(
+                "ZIVON_DB_URL / EVAL_DB_URL must be configured to run backfill-db"
+            )
 
         runs = self._read_jsonl(self.runs_ledger)
         edits = self._read_jsonl(self.human_edits_ledger)
@@ -608,7 +606,9 @@ class EvalStore:
                             (1 if k["followup_1_correct"] else 0)
                             + (1 if k["followup_2_correct"] else 0),
                             1,
-                            k["confusion_blocks"][0] if k.get("confusion_blocks") else None,
+                            k["confusion_blocks"][0]
+                            if k.get("confusion_blocks")
+                            else None,
                             k["recorded_at"],
                         ),
                     )
@@ -626,7 +626,9 @@ class EvalStore:
         """Load an `EvalRunReport` from a run directory, JSON file, or `eval_run_id`."""
         candidate = Path(run_id_or_path)
         if candidate.is_dir() and (candidate / "eval_report.json").is_file():
-            data = json.loads((candidate / "eval_report.json").read_text(encoding="utf-8"))
+            data = json.loads(
+                (candidate / "eval_report.json").read_text(encoding="utf-8")
+            )
             return eval_run_report_from_dict(data)
         if candidate.is_file():
             data = json.loads(candidate.read_text(encoding="utf-8"))
@@ -634,7 +636,9 @@ class EvalStore:
 
         run_dir = self.evals_runs_dir / str(run_id_or_path)
         if (run_dir / "eval_report.json").is_file():
-            data = json.loads((run_dir / "eval_report.json").read_text(encoding="utf-8"))
+            data = json.loads(
+                (run_dir / "eval_report.json").read_text(encoding="utf-8")
+            )
             return eval_run_report_from_dict(data)
 
         for row in reversed(self._read_jsonl(self.runs_ledger)):

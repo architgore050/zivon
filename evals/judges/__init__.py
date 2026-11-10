@@ -23,7 +23,9 @@ def run_judge(
 ) -> JudgeOutcome:
     """Resolve and invoke a `module.path:callable_name` judge entrypoint."""
     if ":" not in entrypoint:
-        raise ValueError(f"invalid judge entrypoint {entrypoint!r}; expected 'module:func'")
+        raise ValueError(
+            f"invalid judge entrypoint {entrypoint!r}; expected 'module:func'"
+        )
     mod_name, func_name = entrypoint.split(":", 1)
     mod = importlib.import_module(mod_name)
     fn = getattr(mod, func_name, None)

@@ -96,7 +96,9 @@ class TestCalibrationAndJudges(unittest.TestCase):
         self.assertEqual(out1.verdict, "fail")
         self.assertLess(out1.metrics["clean_specificity"], 1.0)
 
-    def test_deterministic_first_funnel_skips_judge_on_deterministic_failure(self) -> None:
+    def test_deterministic_first_funnel_skips_judge_on_deterministic_failure(
+        self,
+    ) -> None:
         """When a deterministic check fails, `run_single_card` must skip the LLM judge (`model_calls == 0`)."""
         base_card = self.cards["EV-CUR-001"]
         failing_spec = DeterministicCheckSpec(
@@ -109,9 +111,7 @@ class TestCalibrationAndJudges(unittest.TestCase):
             base_card, deterministic_checks=[failing_spec]
         )
         client = JudgeClient.mock(self.cfg)
-        res = run_single_card(
-            broken_card, self.cfg, client, execute_judge=True
-        )
+        res = run_single_card(broken_card, self.cfg, client, execute_judge=True)
         self.assertEqual(res.verdict, "fail")
         self.assertEqual(res.model_calls, 0)
         self.assertIsNone(res.judge_score)
@@ -127,7 +127,9 @@ class TestCalibrationAndJudges(unittest.TestCase):
         )
         self.assertFalse(verify_source_quote("", corpus))
         self.assertFalse(
-            verify_source_quote("Completely unrelated hallucination", corpus, ["kelvin"])
+            verify_source_quote(
+                "Completely unrelated hallucination", corpus, ["kelvin"]
+            )
         )
 
 

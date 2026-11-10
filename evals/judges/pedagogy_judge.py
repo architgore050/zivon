@@ -24,13 +24,17 @@ from ..models import DefectSampleResult, EvalCard, IssueRecord
 from .base import JudgeClient, JudgeOutcome, verify_source_quote
 
 
-def _make_run_env(cfg: EvalConfig, tmp: Path, class_level: int = 9) -> tuple[Any, RunContext]:
+def _make_run_env(
+    cfg: EvalConfig, tmp: Path, class_level: int = 9
+) -> tuple[Any, RunContext]:
     base = json.loads((cfg.repo_root / "config.json").read_text(encoding="utf-8"))
     base["paths"]["runs"] = str(tmp / "runs")
     (tmp / "config.json").write_text(json.dumps(base), encoding="utf-8")
     env_patch = {
         "ZIVON_BASE_URL": cfg.judge_base_url or "http://127.0.0.1:8080/v1",
-        "ZIVON_MODEL": cfg.judge_model if cfg.judge_model != "unconfigured" else "eval-judge",
+        "ZIVON_MODEL": cfg.judge_model
+        if cfg.judge_model != "unconfigured"
+        else "eval-judge",
     }
     with mock.patch.dict("os.environ", env_patch):
         fcfg = dataclasses.replace(
@@ -81,7 +85,11 @@ def evaluate_synthesizer_coverage_and_pedagogy(
     ]
     fatals = sum(1 for i in issues if i.severity == "fatal")
     majors = sum(1 for i in issues if i.severity == "major")
-    verdict = "fail" if fatals > 0 or majors > card.thresholds.get("major_issues_max", 0) else "pass"
+    verdict = (
+        "fail"
+        if fatals > 0 or majors > card.thresholds.get("major_issues_max", 0)
+        else "pass"
+    )
     return JudgeOutcome(
         score=1.0 if verdict == "pass" else 0.0,
         verdict=verdict,
@@ -171,9 +179,7 @@ def calibrate_03_check(
                 if ri.get("severity") == "fatal"
             ]
             source_quoted = any(
-                verify_source_quote(
-                    m, corpus, exp.get("expected_quote_substrings")
-                )
+                verify_source_quote(m, corpus, exp.get("expected_quote_substrings"))
                 for m in fatal_msgs
             )
         else:
@@ -193,10 +199,7 @@ def calibrate_03_check(
                     fatal_caught += 1
                     blocking_caught += 1
             else:
-                is_tp = (
-                    actual_sev in ("major", "fatal")
-                    and block_matched
-                )
+                is_tp = actual_sev in ("major", "fatal") and block_matched
                 if is_tp:
                     blocking_caught += 1
             outcome_class = "TP" if is_tp else "FN"

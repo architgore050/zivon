@@ -220,7 +220,9 @@ class EvalConfig:
             max_attempts=max_attempts,
             backoff_base_s=backoff_base_s,
             validation_rounds=validation_rounds,
-            stream=_parse_bool(_clean_env(env_map, "ZIVON_STREAM"), True, "ZIVON_STREAM"),
+            stream=_parse_bool(
+                _clean_env(env_map, "ZIVON_STREAM"), True, "ZIVON_STREAM"
+            ),
             stream_usage=_parse_bool(
                 _clean_env(env_map, "ZIVON_STREAM_USAGE"), True, "ZIVON_STREAM_USAGE"
             ),

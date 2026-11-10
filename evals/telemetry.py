@@ -55,8 +55,9 @@ EVAL_EVENT_MAP: dict[str, tuple[str, Severity]] = {
     "EVT-EVAL-KID-SESSION-LOGGED": ("factory.eval.kid_session_logged", Severity.INFO),
 }
 
-_CTX_VARS: contextvars.ContextVar[dict[str, str]] = contextvars.ContextVar(
-    "zivon_eval_log_ctx", default={}
+_CTX_VARS: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar(
+    "zivon_eval_log_ctx",
+    default=None,  # mutable {} default is unsafe (B039)
 )
 
 _DENYLIST_KEY_RE = re.compile(
@@ -100,11 +101,12 @@ def bind_context(**kwargs: str | None) -> None:
     try:
         import logging_manager  # type: ignore[import-not-found]
 
-        logging_manager.bind_context(**kwargs)
+        clean = {k: v for k, v in kwargs.items() if v is not None}
+        logging_manager.bind_context(**clean)  # type: ignore[arg-type]
         return
     except ImportError:
         pass
-    cur = dict(_CTX_VARS.get())
+    cur = dict(_CTX_VARS.get() or {})
     for k, v in kwargs.items():
         if v is not None:
             cur[k] = v
@@ -117,12 +119,13 @@ def context_scope(**kwargs: str | None) -> Iterator[None]:
     try:
         import logging_manager  # type: ignore[import-not-found]
 
-        with logging_manager.context_scope(**kwargs):
+        clean = {k: v for k, v in kwargs.items() if v is not None}
+        with logging_manager.context_scope(**clean):  # type: ignore[arg-type]
             yield
         return
     except ImportError:
         pass
-    prev = dict(_CTX_VARS.get())
+    prev = dict(_CTX_VARS.get() or {})
     merged = dict(prev)
     for k, v in kwargs.items():
         if v is not None:
@@ -141,7 +144,7 @@ def current_context() -> dict[str, str]:
 
         return dict(logging_manager.current_context())
     except ImportError:
-        return dict(_CTX_VARS.get())
+        return dict(_CTX_VARS.get() or {})
 
 
 def emit_eval_event(
@@ -168,11 +171,9 @@ def emit_eval_event(
         logging_manager.log_event(
             dot_event,
             redacted,
-            severity=getattr(logging_manager.Severity, eff_sev.value, eff_sev.value),
+            severity=logging_manager.Severity(eff_sev.value),
             error_class=(
-                getattr(logging_manager.ErrorClass, error_class.value, error_class.value)
-                if error_class
-                else None
+                logging_manager.ErrorClass(error_class.value) if error_class else None
             ),
             latency_ms=latency_ms,
             run_id=eff_run_id,
@@ -209,7 +210,9 @@ def emit_eval_event(
         day_str = datetime.now(UTC).strftime("%Y%m%d")
         log_file = logs_dir / f"{day_str}-evals.jsonl"
         with log_file.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(record, separators=(",", ":"), ensure_ascii=False) + "\n")
+            fh.write(
+                json.dumps(record, separators=(",", ":"), ensure_ascii=False) + "\n"
+            )
 
     return record
 

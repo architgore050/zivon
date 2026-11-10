@@ -22,7 +22,7 @@ import json
 import shutil
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -137,6 +137,7 @@ def run_single_card(
         and judge_client is not None
     ):
         from .judges.base import JudgeCallStats
+
         judge_client.stats = JudgeCallStats()
         j_out = run_judge(card.llm_judge.entrypoint, cfg, card, judge_client, context)
         judge_score = round(j_out.score, 4)
@@ -154,7 +155,15 @@ def run_single_card(
         unverified_count = sum(
             1 for i in det_issues if i.unverified or i.message.startswith("unverified:")
         )
-        verdict = "fail" if (j_out.verdict == "fail" or fatal_count > fatal_max or major_count > major_max) else "pass"
+        verdict = (
+            "fail"
+            if (
+                j_out.verdict == "fail"
+                or fatal_count > fatal_max
+                or major_count > major_max
+            )
+            else "pass"
+        )
     else:
         verdict = "fail" if det_failed else "pass"
 
@@ -203,11 +212,9 @@ def run_eval_suite(
             raise KeyError(f"Unknown EvalCard ID: {card_id!r}")
         selected_cards = [all_cards[card_id]]
     else:
-        selected_cards = [
-            c for c in all_cards.values() if suite in c.suites
-        ]
+        selected_cards = [c for c in all_cards.values() if suite in c.suites]
 
-    ts_slug = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    ts_slug = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     git_sha = _detect_git_sha(cfg.repo_root)
     eval_run_id = f"eval-{suite}-{ts_slug}-{git_sha[:7]}"
 
@@ -252,14 +259,10 @@ def run_eval_suite(
     e2e_card = next((c for c in cards_out if c.card_id == "EV-E2E-001"), None)
     kid_card = next((c for c in cards_out if c.card_id == "EV-KID-001"), None)
     human_edit_rate_rolling = (
-        float(e2e_card.metrics.get("human_edit_rate_rolling", 0.0))
-        if e2e_card
-        else 0.0
+        float(e2e_card.metrics.get("human_edit_rate_rolling", 0.0)) if e2e_card else 0.0
     )
     gate_b_comprehension_rate = (
-        float(kid_card.metrics.get("gate_b_pass_rate", 1.0))
-        if kid_card
-        else 1.0
+        float(kid_card.metrics.get("gate_b_pass_rate", 1.0)) if kid_card else 1.0
     )
 
     report = EvalRunReport(
@@ -345,12 +348,14 @@ def rotate_golden(
     if target_entry is None:
         raise KeyError(f"Golden topic {topic_id!r} not found in {manifest_path}")
 
-    dir_rel = target_entry.get("directory")
-    if dir_rel:
-        topic_dir = cfg.repo_root / dir_rel
-        slug = Path(dir_rel).name
+    dir_rel_entry = target_entry.get("directory")
+    if dir_rel_entry:
+        topic_dir = cfg.repo_root / dir_rel_entry
+        slug = Path(dir_rel_entry).name
     else:
-        slug = target_entry.get("slug") or target_entry.get("topic_slug")
+        slug = str(
+            target_entry.get("slug") or target_entry.get("topic_slug") or topic_id
+        )
         topic_dir = cfg.goldens_dir / "topics" / slug
 
     if source_dir is not None and not dry_run:

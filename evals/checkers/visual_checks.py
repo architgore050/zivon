@@ -21,7 +21,9 @@ from ..config import EvalConfig
 from ..models import EvalCard, IssueRecord
 
 
-def _resolve_topic_dir(cfg: EvalConfig, topic_rel: str) -> tuple[dict[str, Any], Path | None]:
+def _resolve_topic_dir(
+    cfg: EvalConfig, topic_rel: str
+) -> tuple[dict[str, Any], Path | None]:
     tdir = cfg.repo_root / topic_rel
     exp = json.loads((tdir / "expected.json").read_text(encoding="utf-8"))
     ref = json.loads((tdir / "artifact_ref.json").read_text(encoding="utf-8"))

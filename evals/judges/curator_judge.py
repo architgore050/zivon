@@ -33,7 +33,9 @@ def evaluate_curator_ground_truth(
 
     env_patch = {
         "ZIVON_BASE_URL": cfg.judge_base_url or "http://127.0.0.1:8080/v1",
-        "ZIVON_MODEL": cfg.judge_model if cfg.judge_model != "unconfigured" else "eval-judge",
+        "ZIVON_MODEL": cfg.judge_model
+        if cfg.judge_model != "unconfigured"
+        else "eval-judge",
     }
     with mock.patch.dict("os.environ", env_patch):
         fcfg = load_config(cfg.repo_root / "config.json")
@@ -87,7 +89,11 @@ def evaluate_curator_ground_truth(
 
     fatals = sum(1 for i in issues if i.severity == "fatal")
     majors = sum(1 for i in issues if i.severity == "major")
-    verdict = "fail" if fatals > 0 or majors > card.thresholds.get("major_issues_max", 0) else "pass"
+    verdict = (
+        "fail"
+        if fatals > 0 or majors > card.thresholds.get("major_issues_max", 0)
+        else "pass"
+    )
     score = 1.0 if verdict == "pass" else 0.0
     return JudgeOutcome(
         score=score,

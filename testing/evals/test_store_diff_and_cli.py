@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import importlib
 import json
 import sqlite3
 import tempfile
@@ -12,7 +13,7 @@ from pathlib import Path
 from evals.cli import main as cli_main
 from evals.config import EvalConfig
 from evals.diff import compute_run_diff
-import importlib
+
 mig_0001 = importlib.import_module("evals.migrations.versions.0001_eval_result_store")
 from evals.models import load_all_cards
 from evals.runner import run_eval_suite
@@ -61,7 +62,9 @@ class TestStoreDiffAndCli(unittest.TestCase):
 
         with sqlite3.connect(self.db_path) as conn:
             run_rows = conn.execute("SELECT COUNT(*) FROM eval_run").fetchone()[0]
-            card_rows = conn.execute("SELECT COUNT(*) FROM eval_card_result").fetchone()[0]
+            card_rows = conn.execute(
+                "SELECT COUNT(*) FROM eval_card_result"
+            ).fetchone()[0]
             sample_rows = conn.execute(
                 "SELECT COUNT(*) FROM eval_defect_sample_result"
             ).fetchone()[0]
@@ -69,7 +72,9 @@ class TestStoreDiffAndCli(unittest.TestCase):
         self.assertEqual(card_rows, 2)
         self.assertEqual(sample_rows, 14)
 
-    def test_store_degrades_to_jsonl_and_creates_outbox_when_db_unreachable(self) -> None:
+    def test_store_degrades_to_jsonl_and_creates_outbox_when_db_unreachable(
+        self,
+    ) -> None:
         bad_cfg = dataclasses.replace(
             self.cfg,
             db_url="postgresql://invalid-host:5432/nonexistent",
@@ -103,14 +108,14 @@ class TestStoreDiffAndCli(unittest.TestCase):
         bad_diff = compute_run_diff(base_run, regressed_run, cards)
         self.assertTrue(bad_diff.regression_detected)
         self.assertEqual(bad_diff.exit_code, 2)
-        self.assertTrue(
-            any("verdict flipped" in r for r in bad_diff.blocking_reasons)
-        )
+        self.assertTrue(any("verdict flipped" in r for r in bad_diff.blocking_reasons))
         self.assertTrue(
             any("fatal_recall dropped" in r for r in bad_diff.blocking_reasons)
         )
 
-    def test_dpdp_kid_session_guardrail_rejects_pii_and_accepts_anonymised(self) -> None:
+    def test_dpdp_kid_session_guardrail_rejects_pii_and_accepts_anonymised(
+        self,
+    ) -> None:
         valid_payload = {
             "session_code": "kid-r2-01",
             "topic_slug": "how-forces-affect-motion",
@@ -158,8 +163,12 @@ class TestStoreDiffAndCli(unittest.TestCase):
         pub_dir = self.tmp / "pub_dir"
         base_dir.mkdir()
         pub_dir.mkdir()
-        (base_dir / "index.html").write_text("line1\nline2\nline3\nline4\n", encoding="utf-8")
-        (pub_dir / "index.html").write_text("line1\nline2-edited\nline3\nline4\n", encoding="utf-8")
+        (base_dir / "index.html").write_text(
+            "line1\nline2\nline3\nline4\n", encoding="utf-8"
+        )
+        (pub_dir / "index.html").write_text(
+            "line1\nline2-edited\nline3\nline4\n", encoding="utf-8"
+        )
 
         store = EvalStore(self.cfg)
         rec = store.record_human_edit(

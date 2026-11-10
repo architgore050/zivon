@@ -41,7 +41,7 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: Mypy type check
-        run: mypy --ignore-missing-imports factory/ docker/ pipeline.py testing/
+        run: mypy --ignore-missing-imports factory/ docker/ pipeline.py testing/ evals/
 
   # ---- 2. the image: lint, build, prove it works, scan it ------------------
   docker:

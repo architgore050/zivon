@@ -16,9 +16,7 @@ from .models import DiffReport, EvalRunReport
 from .telemetry import format_prometheus_metrics
 
 
-def render_markdown_report(
-    run: EvalRunReport, diff: DiffReport | None = None
-) -> str:
+def render_markdown_report(run: EvalRunReport, diff: DiffReport | None = None) -> str:
     """Format an `EvalRunReport` (and optional `DiffReport`) as Markdown."""
     verdict_str = "PASS" if run.overall_pass else "FAIL"
     lines: list[str] = [
@@ -44,9 +42,7 @@ def render_markdown_report(
             f"| `{c.major_count}` | `{c.model_calls}` |"
         )
 
-    all_issues = [
-        (c.card_id, issue) for c in run.cards for issue in c.issues
-    ]
+    all_issues = [(c.card_id, issue) for c in run.cards for issue in c.issues]
     if all_issues:
         lines.extend(
             [

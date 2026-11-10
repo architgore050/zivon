@@ -114,9 +114,7 @@ def is_computed_graph_diagram(block: dict[str, Any]) -> bool:
     spec = block.get("spec") or {}
     caption = str(spec.get("caption", ""))
     svg = str(spec.get("svg", ""))
-    if _GRAPH_CAPTION_RE.search(caption) or _GRAPH_CAPTION_RE.search(svg):
-        return True
-    return False
+    return bool(_GRAPH_CAPTION_RE.search(caption) or _GRAPH_CAPTION_RE.search(svg))
 
 
 def check_computed_geometry_routing(
@@ -224,9 +222,7 @@ def check_readability_and_structure(
             )
         for sec in lesson.get("sections", []):
             for para in sec.get("paragraphs", []):
-                sentences = [
-                    s.strip() for s in re.split(r"[.!?]+", para) if s.strip()
-                ]
+                sentences = [s.strip() for s in re.split(r"[.!?]+", para) if s.strip()]
                 if len(sentences) > 6:
                     issues.append(
                         IssueRecord(

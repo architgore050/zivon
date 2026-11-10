@@ -14,7 +14,6 @@ Implements `docs/specs/evals/spec.md` §4.2 ("Regression Alert Rules"):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from .models import CardDiff, CardResult, DiffReport, EvalCard, EvalRunReport
 from .telemetry import ErrorClass, Severity, emit_eval_event
@@ -92,11 +91,14 @@ def compute_run_diff(
                             reasons.append(
                                 f"{cid}: {p_key} increased by {pct_rise * 100:.1f}% > 15%"
                             )
-                    if "long_tasks" in p_key and p_key in prev_num:
-                        if curr_num[p_key] - prev_num[p_key] > 0:
-                            reasons.append(
-                                f"{cid}: {p_key} increased from {prev_num[p_key]} to {curr_num[p_key]}"
-                            )
+                    if (
+                        "long_tasks" in p_key
+                        and p_key in prev_num
+                        and curr_num[p_key] > prev_num[p_key]
+                    ):
+                        reasons.append(
+                            f"{cid}: {p_key} increased from {prev_num[p_key]} to {curr_num[p_key]}"
+                        )
 
             card_spec = (cards_by_id or {}).get(cid)
             tol = (

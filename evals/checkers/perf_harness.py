@@ -439,9 +439,7 @@ def check_golden_perf_budgets(
         elif page_path and page_path.exists():
             # Static asset size & frame budget check when headless Chromium binary is absent
             total_bytes = sum(
-                f.stat().st_size
-                for f in page_path.parent.glob("*")
-                if f.is_file()
+                f.stat().st_size for f in page_path.parent.glob("*") if f.is_file()
             )
             measured_topics.append(
                 {

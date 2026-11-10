@@ -17,8 +17,8 @@ import argparse
 import dataclasses
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from .config import EvalConfig
 from .diff import compute_run_diff
@@ -87,7 +87,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compute regression diff between two runs (exits 2 on regression)",
     )
     p_diff.add_argument(
-        "--prev", "--baseline", dest="prev", required=True, help="Baseline run ID or path"
+        "--prev",
+        "--baseline",
+        dest="prev",
+        required=True,
+        help="Baseline run ID or path",
     )
     p_diff.add_argument(
         "--curr", "--current", dest="curr", required=True, help="Current run ID or path"
@@ -102,7 +106,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_edit.add_argument("--course", required=True, help="Course ID/slug")
     p_edit.add_argument("--topic", required=True, help="Topic slug")
-    p_edit.add_argument("--class-level", type=int, default=9, help="Class level (6..12)")
+    p_edit.add_argument(
+        "--class-level", type=int, default=9, help="Class level (6..12)"
+    )
     p_edit.add_argument(
         "--baseline-dir", required=True, help="Directory with raw pipeline output"
     )
@@ -140,7 +146,9 @@ def build_parser() -> argparse.ArgumentParser:
         "rotate-golden", help="Update golden topic SHA-256 digest in manifest.json"
     )
     p_rot.add_argument(
-        "--topic-id", required=True, help="Golden topic ID or slug (e.g. class-9-motion)"
+        "--topic-id",
+        required=True,
+        help="Golden topic ID or slug (e.g. class-9-motion)",
     )
     p_rot.add_argument(
         "--source-dir", default=None, help="Optional source directory to copy from"
@@ -242,11 +250,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             payload = json.loads(Path(inp).read_text(encoding="utf-8"))
         try:
-            rec = store.record_kid_session(payload)
+            kid_rec = store.record_kid_session(payload)
         except ValueError as exc:
             print(f"ERROR (DPDP Guardrail): {exc}", file=sys.stderr)
             return 1
-        print(json.dumps(rec.to_dict(), indent=2, ensure_ascii=False))
+        print(json.dumps(kid_rec.to_dict(), indent=2, ensure_ascii=False))
         return 0
 
     if args.subcommand == "report":
@@ -255,7 +263,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.format == "markdown":
             rendered = render_markdown_report(run_rec)
         elif args.format == "json":
-            rendered = json.dumps(run_rec.to_dict(), indent=2, ensure_ascii=False) + "\n"
+            rendered = (
+                json.dumps(run_rec.to_dict(), indent=2, ensure_ascii=False) + "\n"
+            )
         else:
             rendered = render_prometheus_metrics(
                 run_rec, human_edits=store._read_jsonl(store.human_edits_ledger)

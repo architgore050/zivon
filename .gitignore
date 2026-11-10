@@ -50,6 +50,9 @@ runs/
 sources/pdfs/
 sources/cache/
 
+# --- eval-suite local artifacts (evals_runs/ default dir; never commit) ---
+/evals_runs/
+
 # --- local tool binaries (installed via curl; real copies live in /usr/local/bin) ---
 kubectl
 minikube-linux-amd64
