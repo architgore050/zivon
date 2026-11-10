@@ -19,6 +19,12 @@ transport stack: raw WSS inside the FastAPI monolith vs LiveKit rooms + `livekit
 Raw FastAPI WebSocket endpoint `/v1/voice` inside the voice monolith, per §7 catalogue. Gnani
 clients are called server-side from `voice/gnani` (keys never client-side).
 
+> **Superseded in part by ADR-0020 (2026-11-09):** the transport choice (raw WSS, no media
+> server) stands unchanged; the concrete mount is `voice/ws_api.mount_voice(app)` on the
+> core-backend monolith at route **`/voice/ws`**, with the framing in
+> `docs/specs/voice-agent/ws-contract.md` §3. `/v1/voice` remains the backend-spec's catalogue
+> name; read it as `/voice/ws` for the P0 mount.
+
 ## Consequences
 Easier: one image, one Service, full control of ordering/backpressure rules; demo path is minimal.
 Harder: we implement heartbeat, resume window, and (later) server-side speech-start detection

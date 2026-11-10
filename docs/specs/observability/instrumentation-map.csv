@@ -34,6 +34,17 @@ voice,voice.turn.e2e_latency,INFO,session_id+turn_id,slowest_hop,e2e_ms,,L2,voic
 voice,voice.turn.error,ERROR,session_id+turn_id,hop;reason_code,no,transport_error,L2,voice backend (S2 agent contract),hop enum (stt;llm;tts;transport); turn-level terminal failure
 voice,voice.barge_in,INFO,session_id+turn_id,at_ms,no,,L2,voice backend (S2 agent contract),user interrupted playback
 voice,voice.events.ingest_rejected,WARNING,request_id,reasons_count,no,client_error,L1,voice backend (S2 agent contract),POST /api/v1/events validation rejects; sampled 1/10 (logging-api 10)
+voice,voice.brain.first_event_breach,WARNING,session_id+turn_id,attempt,no,transport_error,L2,voice backend (voice/ package),first brain event exceeded the first-event deadline; retries stay pre-audio only (ADR-0017)
+voice,voice.brain.transport_retry,WARNING,session_id+turn_id,attempt;error,no,transport_error,L2,voice backend (voice/ package),transport failure before the first brain event; retry budget <2 and none after audio
+voice,voice.stt.connect_retry,WARNING,session_id+turn_id,attempt,no,transport_error,L2,voice backend (voice/ package),Prisma connect/reconnect attempt with resume (OQ-02 shape assumption)
+voice,voice.tts.connect_retry,WARNING,session_id+turn_id,no,no,transport_error,L2,voice backend (voice/ package),Timbre connect retry for a turn (OQ-03 shape assumption)
+voice,voice.session.closed,INFO,session_id,turns,session_ms,,L2,voice backend (voice/ package),WS session teardown; turn count only and never transcript text
+voice,voice.snapshot.rejected,WARNING,session_id+turn_id,reason_code,no,client_error,L2,voice backend (voice/ package),page-context snapshot failed validation (shape or <=4 KB cap) — F7 stale fallback
+voice,voice.ws.oversized_frame,WARNING,session_id,bytes,no,client_error,L2,voice backend (voice/ package),control frame over the 8 KB cap dropped (backend-spec 7.1)
+voice,voice.ws.unknown_message,WARNING,session_id,mtype,no,client_error,L2,voice backend (voice/ package),unknown control message type ignored
+voice,voice.ws.heartbeat_lost,WARNING,session_id,misses,no,transport_error,L2,voice backend (voice/ package),two missed pongs -> keepalive close (ws-contract 2)
+voice,voice.ratelimit.unsalted,WARNING,no,no,no,auth_error,L2,voice backend (voice/ package),ZIVON_IP_HASH_SALT unset -> per-IP limiter fails open; loud ops action required
+voice,voice.turn.ledger_failed,ERROR,session_id+turn_id,no,no,store_error,L2,voice backend (voice/ package),voice_turn credit-ledger write failed (turn survives; H4 accounting lost)
 translator,translator.translate.ok,INFO,session_id+request_id,src_lang;tgt_lang,translate_ms,,L2,translator (S-series agent contract),future consumer of llm_manager node (llm_manager README)
 translator,translator.translate.fail,ERROR,session_id+request_id,reason_code;attempts,no,transport_error,L2,translator (S-series agent contract),exhausted transport or validation rounds
 frontend,frontend.page_view,INFO,client_session_id,topic;chapter;class_level,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F01; sendBeacon
