@@ -68,6 +68,9 @@ The weld is landed in `Dockerfile.backend` (EX6-CICD):
 - `COPY voice/requirements.txt` + `pip install -r backend/requirements.txt -r voice/requirements.txt`
   in one deps layer (deps before code), then `COPY voice ./voice`. `voice/` is a top-level
   package on `PYTHONPATH=/app`, so `from voice.ws_api import mount_voice` resolves in the image.
+  `logging_manager/` (EX3's shared event contract, imported by `voice/logging_surface.py` with no
+  local fallback) ships in the same COPY block — its JSONL path is stdlib-only and the Postgres
+  driver is already in `backend/requirements.txt`.
 - `backend/app.py` mounts the real router with `VoiceSettings.from_env()`; the session-token and
   IP-hash-salt secrets fall back to the backend's own config, so the backend-issued
   `session_token` (full HMAC-SHA256 hex digest) validates on the voice channel. The EX0

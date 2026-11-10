@@ -36,7 +36,8 @@ RUN pip install --no-cache-dir \
         -r backend/requirements.txt \
         -r voice/requirements.txt
 
-# Copy the backend monolith packages, the mounted voice package, and the
+# Copy the backend monolith packages, the mounted voice package (which also
+# imports the shared logging_manager contract — no local fallback), and the
 # Alembic migration assets (alembic.ini's version_locations spans both
 # alembic/versions and migrations/versions).
 COPY alembic.ini ./alembic.ini
@@ -44,6 +45,7 @@ COPY alembic ./alembic
 COPY migrations ./migrations
 COPY db ./db
 COPY guard ./guard
+COPY logging_manager ./logging_manager
 COPY backend ./backend
 COPY voice ./voice
 COPY scripts/trigger-tests.sh ./scripts/trigger-tests.sh
