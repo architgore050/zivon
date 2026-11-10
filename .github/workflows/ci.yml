@@ -35,7 +35,15 @@ jobs:
         # Python blocks in Markdown — and redden main with no repo change.
         # Bump deliberately, after a local `ruff check . && ruff format --check .`
         # on the same version. Dependabot rotates requirements.txt, not CI pins.
-        run: pip install ruff==0.17.4 mypy==2.4.1
+        run: pip install ruff==0.17.4 mypy==2.4.1 pyyaml==6.0.3
+      - name: Workflow checker self-test
+        # The checker's own rule fixtures run before the scan, so a rule
+        # cannot silently rot (scripts/check_workflows.py --self-test).
+        run: python3 scripts/check_workflows.py --self-test
+      - name: Workflow hardening checks
+        # YAML parse + SHA pins (step and reusable-workflow level) + no
+        # write-all / pull_request_target + no product secret references.
+        run: python3 scripts/check_workflows.py .
       - name: Ruff lint
         run: ruff check .
       - name: Ruff format check
@@ -63,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write      # only for uploading the SBOM artifact
+      actions: read       # only for uploading the SBOM artifact
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: Dockerfile lint (hadolint)
@@ -387,7 +395,8 @@ jobs:
         run: |
           docker/smoke_http_service.sh \
             --image zivon-backend:${{ github.sha }} \
-            --refuse-without-config
+            --refuse-without-config \
+            --config-error-pattern 'ZIVON_DB_URL|ZIVON_ENV|required|missing'
       - name: Image vulnerability scan (trivy)
         if: steps.guard.outputs.landed == 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
@@ -504,12 +513,13 @@ jobs:
         if: steps.guard.outputs.landed == 'true'
         # requirements.txt first (the monolith's own pins). EX0's seam: once
         # the chain lands, alembic must be pinned in requirements.txt; until
-        # then the fallback below keeps a landed chain runnable instead of
-        # red-ing on a missing CLI. Extend this step with EX0's migration env
-        # (psycopg is already there) if the chain needs more.
+        # then this fallback is pinned too (determinism — an unpinned CLI is
+        # the same gate-integrity defect as an unpinned ruff). Extend this
+        # step with EX0's migration env (psycopg is already there) if the
+        # chain needs more.
         run: |
           pip install -r requirements.txt
-          python -c "import alembic" 2>/dev/null || pip install alembic
+          python -c "import alembic" 2>/dev/null || pip install alembic==1.20.1
       - name: Upgrade from empty, twice (idempotent second run)
         if: steps.guard.outputs.landed == 'true'
         run: |
