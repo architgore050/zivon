@@ -19,6 +19,7 @@ from typing import Any
 from llm_manager import LLMManager, run_validation_rounds
 
 from ..config import EvalConfig
+from ..message_parts import message_text
 from ..models import DefectSampleResult, IssueRecord
 
 
@@ -51,9 +52,11 @@ def verify_source_quote(
     corpus_lower = source_corpus.lower()
     msg_lower = message.lower()
 
-    if expected_substrings:
-        if any(sub.lower() in msg_lower and sub.lower() in corpus_lower for sub in expected_substrings):
-            return True
+    if expected_substrings and any(
+        sub.lower() in msg_lower and sub.lower() in corpus_lower
+        for sub in expected_substrings
+    ):
+        return True
 
     # Check explicit bracket citations e.g. [ncert ...] or quoted substrings "..." / '...'
     if "[ncert" in msg_lower or "section " in msg_lower or "example " in msg_lower:
@@ -206,8 +209,12 @@ def calibrated_rubric_responder(
     equations, hand-drawn rectangle-under-sloped-line defects, off-curve tangent points,
     and empty `.zn-sim-read` readouts.
     """
-    user_text = next((m["content"] for m in messages if m.get("role") == "user"), "")
-    sys_text = next((m["content"] for m in messages if m.get("role") == "system"), "")
+    user_text = message_text(
+        next((m["content"] for m in messages if m.get("role") == "user"), "")
+    )
+    sys_text = message_text(
+        next((m["content"] for m in messages if m.get("role") == "system"), "")
+    )
     round_tag = str(meta.get("round_tag") or "")
 
     # 0. Curator ground-truth judge
@@ -229,7 +236,10 @@ def calibrated_rubric_responder(
         draft_section = user_text.split("\n\nTASK:")[0]
         issues: list[dict[str, Any]] = []
         # Check 1: Direct source contradiction (SI unit of speed is km/h / velocity is a scalar)
-        if "The SI unit of speed is km/h" in draft_section or "velocity is a scalar" in draft_section:
+        if (
+            "The SI unit of speed is km/h" in draft_section
+            or "velocity is a scalar" in draft_section
+        ):
             issues.append(
                 {
                     "block_id": "b-03",
@@ -253,7 +263,10 @@ def calibrated_rubric_responder(
                 }
             )
         # Check 3: Smuggled out-of-chapter concept (SHM pendulum period / F = ma in Kinematics)
-        if "simple harmonic" in user_text.lower() or "2*pi*sqrt(l/g)" in user_text.lower():
+        if (
+            "simple harmonic" in user_text.lower()
+            or "2*pi*sqrt(l/g)" in user_text.lower()
+        ):
             issues.append(
                 {
                     "block_id": "b-28",

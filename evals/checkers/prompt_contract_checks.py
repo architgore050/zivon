@@ -27,6 +27,7 @@ from factory.render import run as render_run
 from factory.schemas import BLOCKS
 
 from ..config import EvalConfig
+from ..message_parts import message_text
 from ..models import KID_SESSION_SCHEMA, EvalCard, IssueRecord, validate_schema
 
 
@@ -168,9 +169,9 @@ def check_02_generate_and_repair_prompt_contracts(
         agents.run_generate(fcfg, run_ctx, cast(LLMClient, stub), pack)
         user = next(m["content"] for m in stub.messages if m["role"] == "user")
         system = next(m["content"] for m in stub.messages if m["role"] == "system")
-        doctrine = (cfg.repo_root / "docs" / "frontend" / "design-doctrine.md").read_text(
-            encoding="utf-8"
-        )
+        doctrine = (
+            cfg.repo_root / "docs" / "frontend" / "design-doctrine.md"
+        ).read_text(encoding="utf-8")
 
         _require_substrings(
             user,
@@ -346,18 +347,17 @@ def check_05_interactive_and_design_prompt_contracts(
             "design.design_context",
             issues,
         )
-        if "COMPONENT DEMOS" in d_block and "=== design-doctrine-lesson-example.html ===" in d_block:
-            if d_block.index("COMPONENT DEMOS") >= d_block.index(
-                "=== design-doctrine-lesson-example.html ==="
-            ):
-                issues.append(
-                    IssueRecord(
-                        severity="fatal",
-                        check_id="DET-VIS01-PROMPT-CONTRACT",
-                        category="visual_language",
-                        message="COMPONENT DEMOS framing must precede example HTML body",
-                    )
+        if "COMPONENT DEMOS" in d_block and d_block.index(
+            "COMPONENT DEMOS"
+        ) >= d_block.index("=== design-doctrine-lesson-example.html ==="):
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-VIS01-PROMPT-CONTRACT",
+                    category="visual_language",
+                    message="COMPONENT DEMOS framing must precede example HTML body",
                 )
+            )
         if len(d_block) >= fcfg.limits["max_chars_design_context"]:
             issues.append(
                 IssueRecord(
@@ -380,13 +380,11 @@ def check_05_interactive_and_design_prompt_contracts(
         )
         user = next(m["content"] for m in stub.messages if m["role"] == "user")
         system = next(m["content"] for m in stub.messages if m["role"] == "system")
-        doctrine = (cfg.repo_root / "docs" / "frontend" / "design-doctrine.md").read_text(
-            encoding="utf-8"
-        )
+        doctrine = (
+            cfg.repo_root / "docs" / "frontend" / "design-doctrine.md"
+        ).read_text(encoding="utf-8")
         cited_stmts = [
-            c["statement"]
-            for c in gt["claims"]
-            if c["id"] in ("claim-03", "claim-04")
+            c["statement"] for c in gt["claims"] if c["id"] in ("claim-03", "claim-04")
         ]
         uncited_stmt = next(
             c["statement"] for c in gt["claims"] if c["id"] == "claim-01"
@@ -406,7 +404,7 @@ def check_05_interactive_and_design_prompt_contracts(
                 "COMPUTE, DO NOT DRAW BY HAND",
                 "computed in JS from the cited equations",
                 "Geometry is COMPUTED from the cited equations",
-                "SHAPE only",
+                "PLAN THE GEOMETRY SYMBOLICALLY FIRST",
                 "DESIGN DOCTRINE + EXAMPLES",
                 doctrine[:400],
                 "=== design-doctrine-lesson-example.html ===",
@@ -414,7 +412,9 @@ def check_05_interactive_and_design_prompt_contracts(
                 "never copy their",
             ],
             "DET-VIS01-PROMPT-CONTRACT",
-            "05-interactive user prompt",
+            "05-interactive user prompt (updated 2026-11-10: geometry-"
+            "mandate rewording on main replaced the pinned 'SHAPE only' "
+            "phrase)",
             issues,
             forbidden=[
                 uncited_stmt,
@@ -503,9 +503,7 @@ def check_09_review_prompt_contract(
         inter = {"b-06": _load_fixture(cfg.repo_root, "05-interactive.json")}
         gt = _load_fixture(cfg.repo_root, "gt.json")
 
-        render_out = render_run(
-            fcfg, run_ctx, "Motion", pack, lesson, blocks, inter
-        )
+        render_out = render_run(fcfg, run_ctx, "Motion", pack, lesson, blocks, inter)
         stub = _CaptureLLM({"issues": []})
         review.run(fcfg, run_ctx, cast(LLMClient, stub), blocks, render_out, gt)
 
@@ -522,15 +520,15 @@ def check_09_review_prompt_contract(
             )
             return issues
 
-        facts_user = next(
-            m["content"] for m in facts_call["messages"] if m["role"] == "user"
+        facts_user = message_text(
+            next(m["content"] for m in facts_call["messages"] if m["role"] == "user")
         )
-        design_user = next(
-            m["content"] for m in design_call["messages"] if m["role"] == "user"
+        design_user = message_text(
+            next(m["content"] for m in design_call["messages"] if m["role"] == "user")
         )
-        doctrine = (cfg.repo_root / "docs" / "frontend" / "design-doctrine.md").read_text(
-            encoding="utf-8"
-        )
+        doctrine = (
+            cfg.repo_root / "docs" / "frontend" / "design-doctrine.md"
+        ).read_text(encoding="utf-8")
 
         _require_substrings(
             facts_user,
@@ -629,9 +627,7 @@ def check_e2e_published_courses_and_edit_rate(
         )
         return issues
 
-    hrefs = re.findall(
-        r'"href":\s*"([^"]+)"', courses_js.read_text(encoding="utf-8")
-    )
+    hrefs = re.findall(r'"href":\s*"([^"]+)"', courses_js.read_text(encoding="utf-8"))
     if not hrefs:
         issues.append(
             IssueRecord(
@@ -766,7 +762,9 @@ def check_kid_sessions_gate_b(
     above_level_passed = False
     for s in sessions:
         try:
-            validate_schema(s, KID_SESSION_SCHEMA, f"KidSession({s.get('session_code')})")
+            validate_schema(
+                s, KID_SESSION_SCHEMA, f"KidSession({s.get('session_code')})"
+            )
         except ValueError as exc:
             issues.append(
                 IssueRecord(
