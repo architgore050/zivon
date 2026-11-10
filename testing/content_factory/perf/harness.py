@@ -8,6 +8,10 @@ Simulates a low-end Android phone on a real Chromium instance:
   browser is launched and throttled BEFORE the timer starts, so browser
   startup is never counted - but each page gets a fresh browser with a cold
   cache (first-visit reality, no warm-up)
+- pages load from file://; the browser gets --allow-file-access-from-files so
+  CORS-required subresources (font preloads, @font-face) load exactly as they
+  do over HTTP(S) in production (test-transport flag only - see
+  CHROMIUM_LAUNCH_ARGS)
 - FCP/LCP from PerformanceObserver (init script, buffered entries)
 - FPS sampled from requestAnimationFrame deltas during scripted interactions
   (scroll, click the first check button, run any canvas simulation)
@@ -49,6 +53,26 @@ REQUIRED_PROFILE_KEYS: dict[str, Any] = {
     "scroll": bool,
     "click_checks": bool,
 }
+
+
+# Chromium flags for the harness launch.
+#
+# The staged site and the shell are loaded from ``file://`` URLs (no server to
+# start in the perf stage). Chromium gives a ``file://`` document an opaque
+# origin, so CORS-required subresources - the shell's ``<link rel=preload
+# as=font crossorigin>`` hints, and any font fetched in CORS mode - are blocked
+# ("Cross origin requests are only supported for protocol schemes: chrome,
+# chrome-untrusted, data, http, https"). That is a property of the test
+# transport, not of the product: production serves the same files over HTTP(S),
+# where the preload and @font-face fetches succeed. This flag makes the
+# file:// document behave like an HTTP document for subresource access, so the
+# measured page (and its console) is the one real students get. TEST-ONLY.
+CHROMIUM_LAUNCH_ARGS = ["--allow-file-access-from-files"]
+
+
+def _launch(playwright: Any) -> Any:
+    """Launch headless Chromium with the file:// test-transport flags."""
+    return playwright.chromium.launch(headless=True, args=list(CHROMIUM_LAUNCH_ARGS))
 
 
 def load_profile(path: str | Path) -> dict[str, Any]:
@@ -143,7 +167,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
         # must measure the browser IT spawned, never a browser that happens
         # to be open on the machine (e.g. the developer's own Chrome).
         existing = _chromium_pids()
-        browser = p.chromium.launch(headless=True)
+        browser = _launch(p)
         try:
             browser_pid = _browser_pid(existing)
             rss = _TreeRSS(browser_pid) if browser_pid else None

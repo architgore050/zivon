@@ -48,7 +48,11 @@ def capture(topic_dir: Path, out_dir: Path) -> list[dict[str, Any]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     try:
         with sync_playwright() as pw:
-            browser = pw.chromium.launch()
+            # Same file:// test-transport flag as the perf harness: without it
+            # Chromium's opaque file:// origin CORS-blocks the shell's woff2
+            # font preloads, so reviewer screenshots would render fallback
+            # fonts instead of what HTTP(S) production serves.
+            browser = pw.chromium.launch(args=["--allow-file-access-from-files"])
             try:
                 for width in VIEWPORTS:
                     page = browser.new_page(

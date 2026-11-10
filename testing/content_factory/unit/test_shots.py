@@ -67,7 +67,7 @@ class _FakeChromium:
     def __init__(self, browser: _FakeBrowser) -> None:
         self._browser = browser
 
-    def launch(self) -> _FakeBrowser:
+    def launch(self, **kwargs: object) -> _FakeBrowser:
         return self._browser
 
 
