@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}login{% endblock %}
+{% block body %}
+<h1>Admin login</h1>
+{% if unconfigured %}
+<div class="banner warn">admin auth is not configured (ZIVON_ADMIN_TOKEN missing) — login is fail-closed.</div>
+{% endif %}
+{% if error %}<div class="banner alert">{{ error }}</div>{% endif %}
+<form method="post" action="/admin/login" class="login">
+  <input type="hidden" name="csrf" value="{{ login_csrf }}">
+  <label for="token">Admin token</label>
+  <input type="password" id="token" name="token" autocomplete="off" autofocus required>
+  <button type="submit">Sign in</button>
+</form>
+<p class="hint">Single-admin bearer secret (ADR-0026): 5 failures / 15 min trigger a 15-minute lockout; every attempt is audited.</p>
+{% endblock %}

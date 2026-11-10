@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}publish status{% endblock %}
+{% block body %}
+<h1>Publish status</h1>
+<p>The published page set per topic: <code>factory.publish.ok/fail</code> events
+(the publish script's rows) plus the latest completed runs' block counts. The
+repo's <code>frontend/</code> snapshot remains the standalone-deployable version.</p>
+{% if publish.events %}
+<table>
+  <thead><tr><th>ts</th><th>event</th><th>run</th><th>target</th><th>asset_count</th><th>reason_code</th></tr></thead>
+  <tbody>
+  {% for row in publish.events %}
+    <tr><td>{{ row.ts }}</td><td>{{ row.event }}</td>
+        <td>{% if row.run_id %}<a href="/admin/runs/{{ row.run_id }}">{{ row.run_id }}</a>{% else %}—{% endif %}</td>
+        <td>{{ row.target or "—" }}</td><td>{{ row.asset_count or "—" }}</td><td>{{ row.reason_code or "" }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No publish events yet — the publish script's rows land when its emitter is wired (integration note in the EX3-OBS manifest).</p>
+{% endif %}
+<h2>Latest completed runs</h2>
+{% if publish.completions %}
+<table>
+  <thead><tr><th>run</th><th>blocks_published</th><th>ts</th></tr></thead>
+  <tbody>
+  {% for row in publish.completions %}
+    <tr><td><a href="/admin/runs/{{ row.run_id }}">{{ row.run_id }}</a></td><td>{{ row.blocks_published or "—" }}</td><td>{{ row.ts }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No completed runs recorded yet.</p>
+{% endif %}
+{% endblock %}

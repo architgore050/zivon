@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}tests{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Test-suite results</h1>
+  <form method="post" action="/admin/actions/tests-now" class="inline">
+    <input type="hidden" name="csrf" value="{{ csrf_token }}">
+    <button type="submit">Run tests now</button>
+  </form>
+</div>
+<p>Scheduled cadence from <code>TEST_CRON_SCHEDULE</code> (<code>k8s/infra.env</code>) plus every
+<code>scripts/apply-k8s.sh</code> startup. Per-suite pass/fail events
+(<code>test.suite.*</code>) are declared for the test agent (OQ-4) — until those rows
+exist this view renders from Job status + log tail, honestly.</p>
+{% if jobs %}
+<table>
+  <thead><tr><th>Job</th><th>state</th><th>started</th><th>completed</th></tr></thead>
+  <tbody>
+  {% for job in jobs %}
+    <tr>
+      <td>{{ job.name }}</td>
+      <td>
+        {% if job.active %}<span class="state running">running</span>
+        {% elif job.failed %}<span class="state failed">failed</span>
+        {% elif job.succeeded %}<span class="state completed">passed</span>
+        {% else %}pending{% endif %}
+      </td>
+      <td>{{ job.start_time or "—" }}</td>
+      <td>{{ job.completion_time or "—" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% for name, tail in log_tails.items() %}
+<h2>Log tail — {{ name }}</h2>
+<pre>{{ tail }}</pre>
+{% endfor %}
+{% else %}
+<p class="empty">No test Jobs visible (cluster unavailable or none ran yet) — trigger one above or
+<code>scripts/trigger-tests.sh</code>.</p>
+{% endif %}
+{% endblock %}

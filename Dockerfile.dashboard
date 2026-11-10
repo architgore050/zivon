@@ -1,0 +1,82 @@
+# syntax=docker/dockerfile:1
+# Zivon admin dashboard image (Dockerfile.dashboard, EX3-OBS): the small
+# FastAPI app (dashboard/) + the logging_manager contract package it reads
+# through, plus the two trigger scripts and the k8s/20 Job template they
+# render — the buttons are the scripts (dashboard-spec.md §5: the dashboard
+# adds no third trigger path).
+#
+#   Build:  docker build -f Dockerfile.dashboard -t zivon-dashboard:0.1.0 .
+#   Run:    docker run --rm -p 8082:8000 -e ZIVON_ADMIN_TOKEN=<secret> \
+#             zivon-dashboard:0.1.0
+#   Probe:  curl -s http://127.0.0.1:8082/healthz
+#
+# Deliberately NOT the factory image: no torch, no pdfplumber, no playwright
+# (see dashboard/requirements.txt) — small, fast to start, an independent CVE
+# surface for the trivy gate. kubectl is baked in because the run/test views
+# and the two buttons talk to the cluster API (RBAC: integration note I-1).
+
+FROM python:3.12-slim
+
+# Kubectl version pinned like every other tool (a floating pin would let an
+# upstream release change the gate under us). args so the pin is visible and
+# overridable in one place.
+ARG KUBECTL_VERSION=v1.31.2
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Freshen the Debian layer under the floating python:3.12-slim base (the same
+# reasoning as Dockerfile.llm-manager: the base's frozen apt index hides
+# published fixes from trivy). curl + ca-certificates are needed only to
+# fetch kubectl below; tini-free (uvicorn handles its own signals).
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# kubectl: the architecture is resolved from dpkg (amd64 on the runners and
+# minikube hosts this repo ships on).
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    curl -fsSL -o /usr/local/bin/kubectl \
+      "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${arch}/kubectl"; \
+    chmod 0555 /usr/local/bin/kubectl; \
+    kubectl version --client=true --output=yaml | head -n 3
+
+# Install dependencies BEFORE copying code (layer cache: code edits do not
+# re-download the wheels).
+COPY dashboard/requirements.txt ./dashboard/requirements.txt
+COPY logging_manager/requirements.txt ./logging_manager/requirements.txt
+RUN pip install --no-cache-dir -r dashboard/requirements.txt \
+    -r logging_manager/requirements.txt
+
+# The app + the contract package it reads through, the trigger scripts, and
+# the k8s/20 template the factory-run button renders (topic-agnostic).
+COPY dashboard ./dashboard
+COPY logging_manager ./logging_manager
+# The instrumentation map's SINGLE copy ships at the path
+# events.default_map_path() resolves (docs/specs/observability/) so the
+# dashboard's severity/component lookups work in the image. It is not
+# duplicated inside the package: one copy, the docs tree is the source of
+# truth (a second in-package copy would drift from the CSV tests lint).
+COPY docs/specs/observability/instrumentation-map.csv \
+    ./docs/specs/observability/instrumentation-map.csv
+COPY scripts/trigger-tests.sh scripts/trigger-factory-run.sh ./scripts/
+COPY k8s/20-factory-run-job.yaml ./k8s/20-factory-run-job.yaml
+RUN chmod 0555 scripts/trigger-tests.sh scripts/trigger-factory-run.sh
+
+# Never run as root: fixed UID + numeric USER (gotcha 1, same as the other
+# images). Everything the pod writes goes to mounted volumes / tmp.
+RUN useradd --create-home --uid 1000 app
+USER 1000
+
+EXPOSE 8000
+
+# Config arrives env-only: ZIVON_ADMIN_TOKEN from the zivon-admin-auth
+# Secret, ZIVON_LOG_DSN / ZIVON_ENV / ZIVON_LOG_LEVEL from the rendered
+# ConfigMap (apply-k8s.sh). No secrets baked here, ever (AGENTS.md).
+CMD ["uvicorn", "dashboard.app:app", "--host", "0.0.0.0", "--port", "8000"]
