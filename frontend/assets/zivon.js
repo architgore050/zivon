@@ -904,30 +904,31 @@
     return region;
   }
 
-  /* Same-origin HTTP helper: uses window["fet" + "ch"] so static shell regex
-     test_self_contained_no_network_refs (which guards against raw f-e-t-c-h in
-     static files) stays untouched while same-origin calls allowed by lesson
-     CSP connect-src 'self' work cleanly. */
+  /* One network seam for every same-origin call. A file:// document has no
+     server to answer and Chromium logs a hard console error for every
+     attempted fetch, so offline previews get ONE typed failure: every caller
+     (report, consent sync, data wipe, telemetry flush, manifest load) handles
+     NoTransportError explicitly — no caller mistakes a synthetic "ok:false"
+     response for a real server answer, and no call is silently swallowed. */
+  function NoTransportError(message) {
+    this.name = "NoTransportError";
+    this.message = message || "No network transport in this document (file:// preview).";
+  }
+  NoTransportError.prototype = Object.create(Error.prototype);
+  NoTransportError.prototype.constructor = NoTransportError;
+
+  function hasNetworkTransport() {
+    return typeof location === "undefined" || location.protocol !== "file:";
+  }
+
   function sameOriginRequest(url, options) {
-    /* A file:// document has no server to answer and Chromium logs a hard
-       console error for every attempted fetch. Local previews and the
-       browser tests that open a page straight off disk therefore resolve to
-       the same "server said no" shape every caller already handles; deployed
-       pages are always HTTP(S) and take the real path. */
-    if (typeof location !== "undefined" && location.protocol === "file:") {
-      return Promise.resolve({
-        ok: false,
-        status: 0,
-        json: function () {
-          return Promise.resolve({});
-        },
-      });
+    if (!hasNetworkTransport()) {
+      return Promise.reject(new NoTransportError());
     }
-    var fn = typeof window !== "undefined" ? window["fet" + "ch"] : null;
-    if (typeof fn !== "function") {
+    if (typeof fetch !== "function") {
       return Promise.reject(new Error("http_unavailable"));
     }
-    return fn.call(window, url, options || {});
+    return fetch(url, options || {});
   }
 
   /* ---------------------- §10.13 Read-aloud (F-WRP-TTS-01) ----------------
@@ -1452,27 +1453,35 @@
   };
   window.ZivonConsent = ZivonConsent;
 
-  /* ---------------- SCR-PRIV-01 Privacy page & clear data ------------------- */
+  /* ---------------- SCR-PRIV-01 Privacy page & clear data -------------------
+     Device wipe order is binding (doctrine §10.14 "clearing data removes it"
+     + this wave's review finding): the server delete is attempted FIRST; the
+     device pseudonym is deleted LAST, and only after the server confirms.
+     If the server wipe fails, NOTHING local is deleted — the consent gate and
+     pseudonym stay, so the student can retry, and the UI says so honestly. */
+  var WIPE_LOCAL_KEYS = [
+    "zivon.dock",
+    "zivon.consent",
+    "zivon.consent_record",
+    "zivon_locale",
+    "zivon.lang",
+    "zivon.captions",
+    "zivon.identity_seen",
+    "zivon.evtdebug"
+  ];
+
   async function clearAllDeviceData() {
     var devId = getDevicePseudoId();
-    /* Clear all Zivon localStorage keys */
-    [
-      "zivon.dock",
-      "zivon.consent",
-      "zivon.consent_record",
-      "zivon_locale",
-      "zivon.lang",
-      "zivon.captions",
-      "zivon.identity_seen",
-      "zivon.device_pseudo_id"
-    ].forEach(safeStorageRemove);
-    cachedDeviceId = null;
-
-    if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
-      window.ZivonEvents.emit("EVT-data_cleared", { scope: "device" });
+    if (!hasNetworkTransport() || (typeof navigator !== "undefined" && navigator.onLine === false)) {
+      return {
+        local_cleared: false,
+        server_wiped: false,
+        device_pseudo_id: devId,
+        reason: "offline"
+      };
     }
 
-    /* Call challenge -> DELETE /v1/data (supports both POST and GET on /v1/data/challenge) */
+    /* challenge -> DELETE /v1/data (supports both POST and GET on /v1/data/challenge) */
     var serverWiped = false;
     try {
       var chalUrl = "/v1/data/challenge?device_pseudo_id=" + encodeURIComponent(devId);
@@ -1500,8 +1509,28 @@
           if (delRes && delRes.ok) serverWiped = true;
         }
       }
-    } catch (e) {}
-    return { local_cleared: true, server_wiped: serverWiped, device_pseudo_id: devId };
+    } catch (e) {
+      /* NoTransportError / network failure: server_wiped stays false and the
+         honest branch below keeps every local key (retry when online). */
+      serverWiped = false;
+    }
+
+    if (!serverWiped) {
+      return {
+        local_cleared: false,
+        server_wiped: false,
+        device_pseudo_id: devId,
+        reason: "server_unreachable"
+      };
+    }
+
+    /* No EVT-data_cleared here: the server just erased this pseudonym, and
+       emitting (or flushing) telemetry under it would re-create records the
+       student asked us to delete. Local prefs go first, the pseudonym LAST. */
+    WIPE_LOCAL_KEYS.forEach(safeStorageRemove);
+    cachedDeviceId = null;
+    safeStorageRemove(DEVICE_STORAGE_KEY);
+    return { local_cleared: true, server_wiped: true, device_pseudo_id: devId };
   }
 
   function wirePrivacyPage() {
@@ -1531,19 +1560,71 @@
     var cancelBtn = document.getElementById("zn-privacy-cancel-btn");
     var statusEl = document.getElementById("zn-privacy-clear-status");
 
+    /* Offline state is honest: a wipe that cannot reach the server is not
+       offered as if it worked (EL-PRV-003 `disabled-offline`). */
+    function syncWipeOffline() {
+      if (!clearBtn) return;
+      var isOff = typeof navigator !== "undefined" && navigator.onLine === false;
+      clearBtn.disabled = isOff;
+      if (isOff) {
+        clearBtn.title = "Offline - clearing data needs the server so it can erase your records too.";
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = "You are offline. Clear my data needs a connection so the server records are erased too.";
+        }
+      } else {
+        clearBtn.removeAttribute("title");
+      }
+    }
+    window.addEventListener("online", syncWipeOffline);
+    window.addEventListener("offline", syncWipeOffline);
+    syncWipeOffline();
+
+    function cancelDialog() {
+      if (!dialogEl) return;
+      dialogEl.hidden = true;
+      if (clearBtn) {
+        try { clearBtn.focus(); } catch (e) {}
+      }
+    }
+
     if (clearBtn && dialogEl) {
       clearBtn.addEventListener("click", function () {
+        if (clearBtn.disabled) return;
         dialogEl.hidden = false;
+        if (statusEl) {
+          statusEl.hidden = true;
+          statusEl.textContent = "";
+        }
         if (confirmBtn) {
           try { confirmBtn.focus(); } catch (e) {}
         }
       });
     }
     if (cancelBtn && dialogEl) {
-      cancelBtn.addEventListener("click", function () {
-        dialogEl.hidden = true;
-        if (clearBtn) {
-          try { clearBtn.focus(); } catch (e) {}
+      cancelBtn.addEventListener("click", cancelDialog);
+    }
+    if (dialogEl) {
+      /* Esc closes; Tab stays inside the modal dialog (aria-modal="true"). */
+      dialogEl.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          cancelDialog();
+          return;
+        }
+        if (ev.key !== "Tab") return;
+        var focusables = Array.prototype.slice.call(
+          dialogEl.querySelectorAll("button:not([disabled]), a[href], input, select, textarea")
+        );
+        if (!focusables.length) return;
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+        if (ev.shiftKey && document.activeElement === first) {
+          ev.preventDefault();
+          last.focus();
+        } else if (!ev.shiftKey && document.activeElement === last) {
+          ev.preventDefault();
+          first.focus();
         }
       });
     }
@@ -1552,15 +1633,23 @@
         confirmBtn.disabled = true;
         var res = await clearAllDeviceData();
         confirmBtn.disabled = false;
+        if (!res || !res.server_wiped) {
+          /* Honest failure: nothing was deleted, the pseudonym is kept and
+             the dialog stays open so "Confirm erase" is a real retry. */
+          if (statusEl) {
+            statusEl.hidden = false;
+            statusEl.textContent = "Could not reach the server — your data was NOT deleted; retry when online.";
+          }
+          try { confirmBtn.focus(); } catch (e) {}
+          return;
+        }
         dialogEl.hidden = true;
         if (stampEl) {
           stampEl.textContent = "Consent status: no consent record on this device.";
         }
         if (statusEl) {
           statusEl.hidden = false;
-          statusEl.textContent = res.server_wiped
-            ? "All local and server data for this device has been erased."
-            : "Local device data erased (server wipe queued or offline).";
+          statusEl.textContent = "All local and server data for this device has been erased.";
         }
         if (clearBtn) {
           try { clearBtn.focus(); } catch (e) {}
@@ -1571,6 +1660,11 @@
   }
 
   function injectFooterPrivacyLink() {
+    /* Never link the privacy page to itself. */
+    if (document.querySelector('[data-screen-id="SCR-PRIV-01"]') ||
+        /^\/privacy(\/|$)/.test((typeof location !== "undefined" && location.pathname) || "")) {
+      return { mounted: false, reason: "already_on_privacy_page" };
+    }
     var footer = document.querySelector(".zn-footer");
     if (!footer) return { mounted: false };
     if (footer.querySelector(".zn-footer-privacy-link")) {

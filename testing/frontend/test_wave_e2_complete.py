@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -435,9 +436,16 @@ class TestWaveE2Complete(unittest.TestCase):
                     """async () => {
                       localStorage.setItem('zivon.consent', 'granted');
                       localStorage.setItem('zivon_locale', 'hi');
+                      const pseudoBefore = window.ZivonLocale.getDevicePseudoId();
                       const calls = [];
+                      let pseudoAtDelete = null;
                       window.fetch = async (url, opts) => {
                         calls.push({ url, method: (opts && opts.method) || 'GET' });
+                        if (url === '/v1/data') {
+                          // The pseudonym must still exist while the wipe is
+                          // being confirmed; it is deleted only after the ack.
+                          pseudoAtDelete = localStorage.getItem('zivon.device_pseudo_id');
+                        }
                         return {
                           ok: true,
                           json: async () => ({ confirm_token: 'tok-confirm-123', deleted: { sessions: 1 } })
@@ -455,6 +463,9 @@ class TestWaveE2Complete(unittest.TestCase):
                         hasBack,
                         dialogOpen,
                         calls,
+                        pseudoBefore,
+                        pseudoAtDelete,
+                        pseudoAfter: localStorage.getItem('zivon.device_pseudo_id'),
                         consentAfter: localStorage.getItem('zivon.consent'),
                         localeAfter: localStorage.getItem('zivon_locale'),
                         statusText: document.getElementById('zn-privacy-clear-status').textContent
@@ -471,6 +482,16 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertEqual(priv_res["calls"][1]["url"], "/v1/data")
             self.assertEqual(priv_res["calls"][1]["method"], "DELETE")
             self.assertIn("erased", priv_res["statusText"])
+            self.assertIsNotNone(priv_res["pseudoBefore"])
+            self.assertEqual(
+                priv_res["pseudoAtDelete"],
+                priv_res["pseudoBefore"],
+                "the pseudonym must survive until the server confirms the wipe",
+            )
+            self.assertIsNone(
+                priv_res["pseudoAfter"],
+                "the pseudonym is deleted LAST, after the server ack",
+            )
         finally:
             priv_page.close()
 
@@ -576,6 +597,70 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertEqual(errors, [])
         finally:
             page.close()
+
+    def test_privacy_wipe_failure_is_honest_and_keeps_pseudonym(self) -> None:
+        """A wipe that cannot reach the server deletes NOTHING and says so.
+
+        The old UI said "server wipe queued" with no queue and had already
+        deleted the pseudonym, so the wipe could never be retried. The
+        doctrine (§10.14) only promises that clearing data removes it — so a
+        failed clear keeps consent, preferences and the retry key intact.
+        """
+        priv_page = self._browser.new_page()
+        try:
+            with serve_static(FRONTEND) as fe_url:
+                priv_page.goto(f"{fe_url}/privacy/index.html")
+                res = priv_page.evaluate(
+                    """async () => {
+                      localStorage.setItem('zivon.consent', 'granted');
+                      localStorage.setItem('zivon_locale', 'hi');
+                      const pseudoBefore = window.ZivonLocale.getDevicePseudoId();
+                      // Server unreachable: challenge never answers.
+                      window.fetch = async () => { throw new TypeError('Failed to fetch'); };
+                      window.ZivonPrivacy.wirePrivacyPage();
+                      document.getElementById('zn-privacy-clear-btn').click();
+                      document.getElementById('zn-privacy-confirm-btn').click();
+                      await new Promise((r) => setTimeout(r, 40));
+                      return {
+                        pseudoBefore,
+                        pseudoAfter: localStorage.getItem('zivon.device_pseudo_id'),
+                        consentAfter: localStorage.getItem('zivon.consent'),
+                        localeAfter: localStorage.getItem('zivon_locale'),
+                        dialogOpen: !document.getElementById('zn-privacy-clear-dialog').hidden,
+                        statusText: document.getElementById('zn-privacy-clear-status').textContent
+                      };
+                    }"""
+                )
+            self.assertEqual(res["pseudoAfter"], res["pseudoBefore"])
+            self.assertEqual(res["consentAfter"], "granted")
+            self.assertEqual(res["localeAfter"], "hi")
+            self.assertTrue(res["dialogOpen"], "the retry affordance stays open")
+            self.assertIn("NOT deleted", res["statusText"])
+            self.assertNotIn("queued", res["statusText"].lower())
+        finally:
+            priv_page.close()
+
+    def test_privacy_page_csp_relaxation_is_scoped(self) -> None:
+        nginx = (REPO_ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
+        privacy_block = re.search(
+            r"location \^~ /privacy/ \{(.*?)\n    \}", nginx, re.S
+        )
+        self.assertIsNotNone(
+            privacy_block, "/privacy/ needs its own connect-src 'self' block"
+        )
+        block = privacy_block.group(1)
+        self.assertIn("connect-src 'self'", block)
+        self.assertNotIn("media-src", block)
+        # Server default stays locked for every other non-lesson page.
+        self.assertIn(
+            "connect-src 'none'; base-uri 'none'\" always;", nginx
+        )
+        html = PRIVACY_HTML.read_text(encoding="utf-8")
+        meta = re.search(
+            r'<meta http-equiv="Content-Security-Policy" content="([^"]+)"', html
+        )
+        self.assertIsNotNone(meta, "privacy page meta CSP must mirror the header")
+        self.assertIn("connect-src 'self'", meta.group(1))
 
     def test_manifest_autofetch_over_http_mounts_read_aloud_for_available_blocks(
         self,

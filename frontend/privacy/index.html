@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Privacy &amp; Data Summary — Zivon</title>
 <meta name="description" content="Plain-language summary of what Zivon stores on your device and servers, retention limits, and one-click data deletion.">
+<!-- Mirrors the docker/nginx.conf `location ^~ /privacy/` header: this page
+     needs same-origin connect-src for the clear-my-data request; every other
+     non-lesson page stays locked to connect-src 'none'. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
 <link rel="stylesheet" href="../assets/zivon.css">
 </head>
 <body>
@@ -60,6 +64,12 @@
             <td>Static pre-generated lesson audio fetched per paragraph</td>
             <td>Zero student speech or personal data sent</td>
             <td>Static course asset</td>
+          </tr>
+          <tr>
+            <td>Interaction telemetry (consent only)</td>
+            <td>Anonymous event names, block IDs, coarse value buckets, device pseudonym — and only after voice consent is granted</td>
+            <td>No free text, no transcripts, no raw audio, no quiz option text, no behavioural profile; nothing is queued before consent</td>
+            <td>90 days (usage/telemetry class)</td>
           </tr>
         </tbody>
       </table>
