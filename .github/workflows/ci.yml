@@ -304,6 +304,33 @@ jobs:
           pip install --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu
           pip install -r requirements.txt
           python -m playwright install --with-deps chromium
+      - name: Install ffmpeg (stage 12 narration encodes Opus)
+        # The narration suite is not a mock of the encoder: it runs the real
+        # ffmpeg path (48 kHz mono WAV -> 24 kb/s Opus, `is_opus` verification)
+        # and the build suite FAILS loud when ffmpeg is absent (NarrationError,
+        # "total synthesis failure"). Do not rely on the runner image: the
+        # hosted `ubuntu-latest` image does not guarantee ffmpeg on PATH — it
+        # was missing on run 42765825432 while the factory image ships it
+        # (Dockerfile apt layer). Install it here so the tests job matches the
+        # environment narration actually runs in. ZIVON_FFMPEG_PATH stays
+        # unset: a PATH install is the documented default.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+      - name: Install Wave-E service deps (guarded — dashboard when it lands)
+        # testing/observability/test_dashboard.py imports the real FastAPI app,
+        # which needs dashboard/requirements.txt (python-multipart backs the
+        # /admin/login form dependency). The factory image installs that file
+        # too (Dockerfile.dashboard); the tests job must not be a weaker
+        # environment than the image it gates. Path-guarded like every other
+        # Wave-E seam: green before dashboard/ lands, active after.
+        run: |
+          if [ -f dashboard/requirements.txt ]; then
+            pip install -r dashboard/requirements.txt
+          else
+            echo "dashboard/requirements.txt not on this branch yet — reserved (path guard passes)"
+          fi
       - name: Content factory unit tests (fast, no network, no browser; embedder is a fixture)
         run: python -m unittest discover -s testing/content_factory/unit -t . -v
       - name: Content factory integration test (real orchestrator vs mock inference server + real headless Chromium)
