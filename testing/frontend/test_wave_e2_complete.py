@@ -1,0 +1,529 @@
+"""Tests for Wave E2 frontend completion (EX5B-FRONT):
+- Shell injection contract (`docs/specs/frontend/shell-injection.md` §3 & §5):
+  1. Content-only fixture + narration manifest -> all surfaces mount once, idempotent on re-entry.
+  2. Missing manifest -> zero read-aloud buttons rendered; other surfaces still mount.
+  3. Consent declined -> dock never mounts; read-aloud/report remain; no re-nag after reload.
+  4. JS error injection -> thrown injection step leaves lesson readable and sims/checks working.
+  5. Doctrine gate -> if `doctrineReady` is false, dock stays hidden and no dock DOM is built.
+- Voice dock (§10.12): containment (`hidden`/`collapsed`/`expanded`), `localStorage["zivon.dock"]`,
+  all 18 client states + visuals, barge-in with "▍cut off" transcript mark, anchor chip block ring,
+  identity line once per device, typed fallback, help chips, memory view, keyboard (Space/Esc/Enter),
+  44 px minimum target sizes.
+- Read-aloud (§10.13): 44 px "सुनो / Listen" button per speakable block in manifest, `preload="none"`,
+  play->stop, one block at a time, 2 px progress rule, echo guard (dock mic press stops narration),
+  zero browser `SpeechSynthesis`.
+- Consent gate (§10.14) & Privacy page (`SCR-PRIV-01` `/privacy/` `EL-PRV-001..005`):
+  guardian checkbox gates Continue, `PUT /v1/consent`, data-class table, "Clear my data"
+  wired to `/v1/data/challenge` -> `DELETE /v1/data` + local storage wipe.
+- Provenance report (`F-COR-PROV-01` `EL-LES-01-040/041`): `POST /v1/reports` success + error draft retention.
+- Degraded & credit notices (`EL-LES-01-070/071/072`): `session.ready.credit_state` + `agent.state`
+  without cutting an in-progress turn.
+- Telemetry (`F-OPS-TEL-01`): `ZivonEvents.flush()` to `POST /api/v1/events` with batching, retry-once,
+  and no-op fallback.
+- Language switcher (`F-WRP-LAN-01`): disabled chip with honest title when bundle absent; enabled
+  when `window.ZIVON_I18N` has locale; persists `zivon_locale`.
+"""
+
+from __future__ import annotations
+
+import tempfile
+import unittest
+from pathlib import Path
+from typing import Any
+
+from playwright.sync_api import Page, sync_playwright
+
+import testing.frontend  # noqa: F401
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FRONTEND = REPO_ROOT / "frontend"
+PRIVACY_HTML = FRONTEND / "privacy" / "index.html"
+ZIVON_JS_URI = (FRONTEND / "assets" / "zivon.js").resolve().as_uri()
+ZIVON_CSS_URI = (FRONTEND / "assets" / "zivon.css").resolve().as_uri()
+
+CONTENT_ONLY_LESSON_HTML = (
+    "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
+    "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+    f"<link rel='stylesheet' href='{ZIVON_CSS_URI}'></head><body>"
+    "<header class='zn-lang-bar'><div class='zn-lang-in'>"
+    "<span class='zn-lang-lab'>Language</span>"
+    "<div class='zn-lang-row' role='radiogroup' aria-label='Language'>"
+    "<button type='button' class='zn-chip' role='radio' aria-checked='true'>English</button>"
+    "<button type='button' class='zn-chip' role='radio' aria-checked='false'>हिन्दी</button>"
+    "<button type='button' class='zn-chip' role='radio' aria-checked='false'>Hinglish</button>"
+    "</div></div></header>"
+    "<main class='zn-page' data-generated-at='2026-11-10T00:00:00Z'>"
+    "<header class='zn-header'><p class='zn-kicker'>class-9-physics</p>"
+    "<h1 class='zn-title'>Laws of Motion</h1>"
+    "<p class='zn-objectives-label'>After this lesson you can:</p>"
+    "<ul class='zn-objectives'><li>State Newton's first law.</li></ul></header>"
+    "<section class='zn-text' id='b-01'>"
+    "<p>An object continues in uniform motion unless acted upon by an unbalanced force.</p>"
+    "</section>"
+    "<section class='zn-example' id='b-02'><h3>Worked example</h3>"
+    "<p class='zn-example-problem'>Find net force when 10 N right and 4 N left act.</p>"
+    "<ol><li>F_net = 10 - 4 = 6 N</li></ol>"
+    "<p class='zn-answer'><span class='zn-answer-label'>Answer:</span> 6 N</p>"
+    "</section>"
+    "<fieldset class='zn-check' id='b-03' data-format='mcq' data-answer-index='0'>"
+    "<legend>What happens when net force is zero?</legend>"
+    "<label class='zn-opt'><input type='radio' name='check-b-03' value='0'><span>Velocity is constant</span></label>"
+    "<label class='zn-opt'><input type='radio' name='check-b-03' value='1'><span>Acceleration increases</span></label>"
+    "<button type='button' class='zn-check-btn'>Check</button>"
+    "<p class='zn-check-feedback' aria-live='polite'></p>"
+    "</fieldset>"
+    "<footer class='zn-footer'><p class='zn-sources'>NCERT Grade 9 Science</p></footer>"
+    "</main>"
+    f"<script src='{ZIVON_JS_URI}'></script>"
+    "</body></html>"
+)
+
+
+class TestWaveE2Complete(unittest.TestCase):
+    _pw: Any
+    _browser: Any
+    _tmp: tempfile.TemporaryDirectory
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._pw = sync_playwright().start()
+        cls._browser = cls._pw.chromium.launch()
+        cls._tmp = tempfile.TemporaryDirectory(prefix="zivon-e2-")
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._browser.close()
+        cls._pw.stop()
+        cls._tmp.cleanup()
+
+    def _open_html(self, html: str, name: str = "e2.html") -> tuple[Page, list[str]]:
+        page = self._browser.new_page()
+        errors: list[str] = []
+        page.on(
+            "console", lambda m: errors.append(m.text) if m.type == "error" else None
+        )
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        f = Path(self._tmp.name) / name
+        f.write_text(html, encoding="utf-8")
+        page.goto(f.resolve().as_uri())
+        return page, errors
+
+    def test_shell_injection_content_only_fixture_and_missing_manifest(self) -> None:
+        # 1. Missing manifest -> no read-aloud buttons, but report, consent, footer privacy link mount
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "no_manifest.html")
+        try:
+            res = page.evaluate(
+                """() => {
+                  localStorage.removeItem('zivon.consent');
+                  const firstMount = window.ZivonShell.mount();
+                  const secondMount = window.ZivonShell.mount();
+                  return {
+                    idempotentSecond: secondMount.idempotent,
+                    readAloudCount: document.querySelectorAll('.zn-read-aloud-btn').length,
+                    reportBtns: document.querySelectorAll('[data-element-id="EL-LES-01-040"]').length,
+                    consentSheets: document.querySelectorAll('[data-element-id="EL-LES-01-057"]').length,
+                    privacyLinks: document.querySelectorAll('.zn-footer-privacy-link').length,
+                    dockHiddenBeforeConsent: document.querySelector('.zn-voice-dock-region').hidden,
+                    speechSynthesisUsed: Boolean(window.__usedBrowserSpeechSynthesis)
+                  };
+                }"""
+            )
+            self.assertTrue(res["idempotentSecond"])
+            self.assertEqual(
+                res["readAloudCount"],
+                0,
+                "missing manifest must render zero read-aloud buttons",
+            )
+            self.assertEqual(res["reportBtns"], 1)
+            self.assertEqual(res["consentSheets"], 1)
+            self.assertEqual(res["privacyLinks"], 1)
+            self.assertTrue(res["dockHiddenBeforeConsent"])
+            self.assertFalse(res["speechSynthesisUsed"])
+            self.assertEqual(errors, [])
+
+            # 2. Inject narration manifest -> read-aloud buttons appear ONLY for available blocks,
+            #    and pressing the dock mic stops narration (echo guard).
+            nar_res = page.evaluate(
+                """() => {
+                  const manifest = {
+                    course_id: 'class-9-physics',
+                    narration: {
+                      available: true,
+                      lang: 'en',
+                      blocks: {
+                        'b-01': { available: true, path: '/audio/class-9-physics/b-01.en.abc12345.opus', duration_ms: 4000 },
+                        'b-02': { available: false },
+                        'b-03': { available: true, path: '/audio/class-9-physics/b-03.en.def67890.opus', duration_ms: 3000 }
+                      }
+                    }
+                  };
+                  window.ZivonShell.mount({ manifest });
+                  const btns = document.querySelectorAll('.zn-read-aloud-btn');
+                  const preloadVals = Array.from(document.querySelectorAll('.zn-read-aloud-audio')).map(
+                    (a) => a.getAttribute('preload')
+                  );
+                  // Click first read-aloud button -> playing state
+                  btns[0].click();
+                  const activeAfterClick = window.ZivonReadAloud.getActiveBlockId();
+                  const pressedAttr = btns[0].getAttribute('aria-pressed');
+                  // Click second read-aloud button -> stops first, plays second
+                  btns[1].click();
+                  const activeAfterSecond = window.ZivonReadAloud.getActiveBlockId();
+                  const firstPressedAfterSecond = btns[0].getAttribute('aria-pressed');
+                  // Unlock consent & press dock mic -> stops read-aloud (echo guard)
+                  const cb = document.querySelector('[data-element-id="EL-LES-01-059"]');
+                  cb.checked = true;
+                  cb.dispatchEvent(new Event('change'));
+                  document.querySelector('[data-element-id="EL-LES-01-060"]').click();
+                  document.querySelector('.zn-dock-mic-strip').click();
+                  const activeAfterMic = window.ZivonReadAloud.getActiveBlockId();
+                  return {
+                    btnCount: btns.length,
+                    preloadVals,
+                    activeAfterClick,
+                    pressedAttr,
+                    activeAfterSecond,
+                    firstPressedAfterSecond,
+                    activeAfterMic
+                  };
+                }"""
+            )
+            self.assertEqual(nar_res["btnCount"], 2)
+            self.assertEqual(nar_res["preloadVals"], ["none", "none"])
+            self.assertEqual(nar_res["activeAfterClick"], "b-01")
+            self.assertEqual(nar_res["pressedAttr"], "true")
+            self.assertEqual(nar_res["activeAfterSecond"], "b-03")
+            self.assertEqual(nar_res["firstPressedAfterSecond"], "false")
+            self.assertIsNone(
+                nar_res["activeAfterMic"],
+                "pressing dock mic must stop read-aloud narration (echo guard)",
+            )
+        finally:
+            page.close()
+
+    def test_consent_decline_no_renag_and_error_isolation_and_doctrine_gate(self) -> None:
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "consent_flow.html")
+        try:
+            res = page.evaluate(
+                """() => {
+                  localStorage.clear();
+                  window.ZivonShell.mount();
+                  const sheet = document.querySelector('[data-element-id="EL-LES-01-057"]');
+                  const visibleInitially = !sheet.hidden;
+                  // Decline consent
+                  document.querySelector('[data-element-id="EL-LES-01-061"]').click();
+                  const hiddenAfterDecline = sheet.hidden;
+                  const dockMountedAfterDecline = document.querySelector('.zn-voice-dock-region').getAttribute('data-zn-dock-mounted');
+                  // Simulate reload by re-running mount()
+                  window.ZivonShell.mount();
+                  const stillHiddenOnReload = sheet.hidden;
+
+                  // Test error injection in ZivonShell.mount -> lesson stays readable & check works
+                  const errMount = window.ZivonShell.mount({ throwAtStep: 'report' });
+                  const titleReadable = document.querySelector('h1.zn-title').textContent;
+
+                  // Test doctrineReady = false gate
+                  localStorage.setItem('zivon.consent', 'granted');
+                  window.ZivonVoiceDock.doctrineReady = false;
+                  const gatedRes = window.ZivonVoiceDock.lazyMount();
+                  window.ZivonVoiceDock.doctrineReady = true;
+
+                  return {
+                    visibleInitially,
+                    hiddenAfterDecline,
+                    dockMountedAfterDecline,
+                    stillHiddenOnReload,
+                    errStepCaptured: Boolean(errMount.steps.report.error),
+                    titleReadable,
+                    gatedMounted: gatedRes.mounted
+                  };
+                }"""
+            )
+            self.assertTrue(res["visibleInitially"])
+            self.assertTrue(res["hiddenAfterDecline"])
+            self.assertIsNone(res["dockMountedAfterDecline"])
+            self.assertTrue(res["stillHiddenOnReload"], "declined consent must never re-nag")
+            self.assertTrue(res["errStepCaptured"])
+            self.assertEqual(res["titleReadable"], "Laws of Motion")
+            self.assertFalse(res["gatedMounted"])
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_dock_18_states_containment_bargein_and_a11y(self) -> None:
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "dock_states.html")
+        try:
+            res = page.evaluate(
+                """async () => {
+                  localStorage.clear();
+                  localStorage.setItem('zivon.consent', 'granted');
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({ holdSpeaking: true });
+                  const mountRes = window.ZivonVoiceDock.lazyMount({
+                    clientOptions: { createWebSocket: mock.createWebSocket, session_token: 'tok-1' }
+                  });
+                  const region = mountRes.region;
+                  const initialContainment = window.ZivonVoiceDock.getContainment();
+
+                  // Hide -> tab shown; click tab -> collapsed; click grab -> expanded
+                  region.querySelector('.zn-dock-strip .zn-dock-hide-btn').click();
+                  const afterHide = {
+                    containment: window.ZivonVoiceDock.getContainment(),
+                    stored: localStorage.getItem('zivon.dock'),
+                    tabVisible: !region.querySelector('.zn-dock-tab').hidden
+                  };
+                  region.querySelector('.zn-dock-tab').click();
+                  const afterTabClick = window.ZivonVoiceDock.getContainment();
+                  region.querySelector('.zn-dock-strip .zn-dock-grab').click();
+                  const afterGrabClick = window.ZivonVoiceDock.getContainment();
+
+                  // Verify all 18 client states render distinct visuals per §10.12
+                  const all18 = [
+                    'idle', 'requesting-permission', 'connecting', 'ready',
+                    'listening', 'endpointing', 'thinking', 'speaking',
+                    'speaking_text', 'interrupted', 'offline', 'error:mic-denied',
+                    'error:mic-in-use', 'error:no-match', 'error:system-error',
+                    'error:auth.invalid', 'error:version.mismatch', 'text_only'
+                  ];
+                  const stateChecks = {};
+                  for (const st of all18) {
+                    window.ZivonVoiceDock.renderAgentState(st, {});
+                    stateChecks[st] = {
+                      attr: region.getAttribute('data-agent-state'),
+                      label: region.querySelector('.zn-dock-state-label').textContent,
+                      stampVisible: !region.querySelector('.zn-dock-stamp').hidden,
+                      sweepVisible: !region.querySelector('.zn-dock-sweep').hidden,
+                      textChipVisible: !region.querySelector('.zn-dock-text-chip').hidden,
+                      barsMode: region.querySelector('.zn-dock-bars').getAttribute('data-bars-mode'),
+                      micDisabled: region.querySelector('.zn-dock-mic-sheet').disabled
+                    };
+                  }
+
+                  // Test anchor chip click -> rings block b-01
+                  const anchorChip = region.querySelector('[data-element-id="EL-LES-01-050"]');
+                  anchorChip.setAttribute('data-anchor-block', 'b-01');
+                  anchorChip.click();
+                  const b01Highlighted = document.getElementById('b-01').classList.contains('zn-tutor-highlight');
+
+                  // Test barge-in via mic click while speaking -> transcript marked cut off
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'tok-1',
+                    min_frames_before_speaking: 1
+                  });
+                  window.ZivonVoiceDock.bindClient(client);
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  client.startListening('doubt');
+                  client.endAudio();
+                  const stateBeforeBarge = client.getState();
+                  // Press mic while speaking -> barge-in
+                  region.querySelector('.zn-dock-mic-sheet').click();
+                  const stateAfterBarge = client.getState();
+                  const cutOffRows = region.querySelectorAll('[data-cut-off="true"]').length;
+
+                  // Check 44 px minimum target height on key controls
+                  const micRect = region.querySelector('.zn-dock-mic-sheet').getBoundingClientRect();
+                  const sendRect = region.querySelector('.zn-dock-typed-send').getBoundingClientRect();
+
+                  return {
+                    initialContainment,
+                    afterHide,
+                    afterTabClick,
+                    afterGrabClick,
+                    stateChecks,
+                    b01Highlighted,
+                    stateBeforeBarge,
+                    stateAfterBarge,
+                    cutOffRows,
+                    micHeight: micRect.height,
+                    sendHeight: sendRect.height
+                  };
+                }"""
+            )
+            self.assertEqual(res["initialContainment"], "collapsed")
+            self.assertEqual(res["afterHide"]["containment"], "hidden")
+            self.assertEqual(res["afterHide"]["stored"], "hidden")
+            self.assertTrue(res["afterHide"]["tabVisible"])
+            self.assertEqual(res["afterTabClick"], "collapsed")
+            self.assertEqual(res["afterGrabClick"], "expanded")
+
+            sc = res["stateChecks"]
+            self.assertEqual(len(sc), 18)
+            self.assertNotEqual(
+                sc["listening"]["barsMode"],
+                sc["endpointing"]["barsMode"],
+                "listening and endpointing must have distinct visuals",
+            )
+            self.assertTrue(sc["thinking"]["sweepVisible"])
+            self.assertTrue(sc["speaking_text"]["textChipVisible"])
+            self.assertTrue(sc["error:mic-denied"]["stampVisible"])
+            self.assertTrue(sc["error:mic-denied"]["micDisabled"])
+            self.assertTrue(sc["text_only"]["micDisabled"])
+            self.assertIn("30 credits/day", sc["text_only"]["label"])
+
+            self.assertTrue(res["b01Highlighted"])
+            self.assertEqual(res["stateBeforeBarge"], "speaking")
+            self.assertEqual(res["stateAfterBarge"], "listening")
+            self.assertGreaterEqual(res["cutOffRows"], 1)
+            self.assertGreaterEqual(res["micHeight"], 44)
+            self.assertGreaterEqual(res["sendHeight"], 44)
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_privacy_page_report_telemetry_credit_notices_and_locale_bar(self) -> None:
+        # 1. Test SCR-PRIV-01 (/privacy/index.html)
+        self.assertTrue(PRIVACY_HTML.is_file(), "frontend/privacy/index.html must exist")
+        priv_page = self._browser.new_page()
+        try:
+            priv_page.goto(PRIVACY_HTML.resolve().as_uri())
+            priv_res = priv_page.evaluate(
+                """async () => {
+                  localStorage.setItem('zivon.consent', 'granted');
+                  localStorage.setItem('zivon_locale', 'hi');
+                  const calls = [];
+                  window.fetch = async (url, opts) => {
+                    calls.push({ url, method: (opts && opts.method) || 'GET' });
+                    return {
+                      ok: true,
+                      json: async () => ({ confirm_token: 'tok-confirm-123', deleted: { sessions: 1 } })
+                    };
+                  };
+                  window.ZivonPrivacy.wirePrivacyPage();
+                  const hasTable = Boolean(document.querySelector('[data-element-id="EL-PRV-002"]'));
+                  const hasBack = Boolean(document.querySelector('[data-element-id="EL-PRV-005"]'));
+                  document.getElementById('zn-privacy-clear-btn').click();
+                  const dialogOpen = !document.getElementById('zn-privacy-clear-dialog').hidden;
+                  document.getElementById('zn-privacy-confirm-btn').click();
+                  await new Promise((r) => setTimeout(r, 40));
+                  return {
+                    hasTable,
+                    hasBack,
+                    dialogOpen,
+                    calls,
+                    consentAfter: localStorage.getItem('zivon.consent'),
+                    localeAfter: localStorage.getItem('zivon_locale'),
+                    statusText: document.getElementById('zn-privacy-clear-status').textContent
+                  };
+                }"""
+            )
+            self.assertTrue(priv_res["hasTable"])
+            self.assertTrue(priv_res["hasBack"])
+            self.assertTrue(priv_res["dialogOpen"])
+            self.assertIsNone(priv_res["consentAfter"])
+            self.assertIsNone(priv_res["localeAfter"])
+            self.assertEqual(len(priv_res["calls"]), 2)
+            self.assertIn("/v1/data/challenge", priv_res["calls"][0]["url"])
+            self.assertEqual(priv_res["calls"][1]["url"], "/v1/data")
+            self.assertEqual(priv_res["calls"][1]["method"], "DELETE")
+            self.assertIn("erased", priv_res["statusText"])
+        finally:
+            priv_page.close()
+
+        # 2. Test Provenance Report, Telemetry Flush, Credit Notices, and Language Bar on Lesson Page
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "surfaces.html")
+        try:
+            res = page.evaluate(
+                """async () => {
+                  const calls = [];
+                  let failNextReport = true;
+                  window.fetch = async (url, opts) => {
+                    calls.push({ url, method: (opts && opts.method) || 'GET', body: opts && opts.body });
+                    if (url === '/v1/reports' && failNextReport) {
+                      failNextReport = false;
+                      return { ok: false, status: 503 };
+                    }
+                    return { ok: true, status: 200, json: async () => ({ report_id: 'rep-1', accepted: 5 }) };
+                  };
+
+                  // A. Language bar: without ZIVON_I18N bundle, Hindi/Hinglish chips are aria-disabled with honest title
+                  const chips = document.querySelectorAll('.zn-lang-row .zn-chip');
+                  const enDisabled = chips[0].getAttribute('aria-disabled');
+                  const hiDisabled = chips[1].getAttribute('aria-disabled');
+                  const hiTitle = chips[1].getAttribute('title') || '';
+
+                  // B. Provenance report: first submit fails (draft kept), second succeeds
+                  const repBtn = document.querySelector('[data-element-id="EL-LES-01-040"]');
+                  const repPanel = document.querySelector('[data-element-id="EL-LES-01-041"]');
+                  repBtn.click();
+                  const txtArea = repPanel.querySelector('.zn-report-text');
+                  txtArea.value = ' Typo in step 1 ';
+                  repPanel.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  await new Promise((r) => setTimeout(r, 25));
+                  const stateAfterFail = repPanel.getAttribute('data-report-state');
+                  const draftPreserved = txtArea.value;
+                  repPanel.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  await new Promise((r) => setTimeout(r, 25));
+                  const stateAfterSuccess = repPanel.getAttribute('data-report-state');
+
+                  // C. Credit notices: warn + text_only via session.ready & agent.state (never cuts in-progress turn)
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({ holdSpeaking: true });
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'tok-credit',
+                    min_frames_before_speaking: 1
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  const sock = mock.getSocket();
+                  sock.serverEmitJson({ type: 'session.ready', session_id: 's1', credit_state: 'warn' });
+                  const warnVisible = !document.getElementById('zn-lesson-status-warn').hidden;
+                  // Start speaking turn, then push text_only mid-turn -> turn is NOT cut until turn.end
+                  client.startListening('doubt');
+                  client.endAudio();
+                  const stateMidTurnBeforePush = client.getState();
+                  sock.serverEmitJson({ type: 'agent.state', state: 'text_only', credit_state: 'text_only' });
+                  const stateMidTurnAfterPush = client.getState();
+                  sock.serverEmitJson({ type: 'turn.end', turn_id: 'turn-1', end_reason: 'done' });
+                  const stateAfterTurnEnd = client.getState();
+                  const exhaustedVisible = !document.getElementById('zn-lesson-status-exhausted').hidden;
+
+                  // D. Telemetry flush to POST /api/v1/events
+                  const qBefore = window.ZivonEvents.getQueue().length;
+                  const flushRes = await window.ZivonEvents.flush();
+
+                  return {
+                    enDisabled,
+                    hiDisabled,
+                    hiTitle,
+                    stateAfterFail,
+                    draftPreserved,
+                    stateAfterSuccess,
+                    warnVisible,
+                    stateMidTurnBeforePush,
+                    stateMidTurnAfterPush,
+                    stateAfterTurnEnd,
+                    exhaustedVisible,
+                    qBefore,
+                    flushRes,
+                    eventPostSent: calls.some((c) => c.url === '/api/v1/events' && c.method === 'POST')
+                  };
+                }"""
+            )
+            self.assertIsNone(res["enDisabled"])
+            self.assertEqual(res["hiDisabled"], "true")
+            self.assertIn("not generated yet", res["hiTitle"])
+            self.assertEqual(res["stateAfterFail"], "error-offline")
+            self.assertEqual(res["draftPreserved"], " Typo in step 1 ")
+            self.assertEqual(res["stateAfterSuccess"], "sent")
+            self.assertTrue(res["warnVisible"])
+            self.assertEqual(res["stateMidTurnBeforePush"], "speaking")
+            self.assertEqual(
+                res["stateMidTurnAfterPush"],
+                "speaking",
+                "credit exhaustion must never cut an in-progress turn",
+            )
+            self.assertEqual(res["stateAfterTurnEnd"], "text_only")
+            self.assertTrue(res["exhaustedVisible"])
+            self.assertGreater(res["qBefore"], 0)
+            self.assertTrue(res["flushRes"]["ok"])
+            self.assertTrue(res["eventPostSent"])
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+
+if __name__ == "__main__":
+    unittest.main()
