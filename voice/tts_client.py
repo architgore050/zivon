@@ -81,6 +81,17 @@ ALLOWED_TAGS = frozenset({"pauses", "slow", "excited", "whispers"})
 CLOSING_LINE = "<pauses>… theek hai, aage ka agle turn mein."
 
 _TAG_RX = re.compile(r"<([a-zA-Z ]+?)>")
+
+
+def strip_display_tags(text: str) -> str:
+    """Remove expressive Timbre tags from user-visible text.
+
+    Tags stay in the string handed to :meth:`TtsClient.prepare` (the pricing
+    and synthesis contract), but the transcript/panel must never show
+    ``<pauses>`` or any other cue to the student.
+    """
+    cleaned = _TAG_RX.sub("", text)
+    return re.sub(r"[ \t]{2,}", " ", cleaned).strip()
 _SENTENCE_END = re.compile(r"[।.!?…]\s*")
 
 

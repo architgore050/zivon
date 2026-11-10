@@ -39,6 +39,34 @@
     "reveal": 4,
     "simulation": 1
   },
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Motion in a Plane",
+    "hi": "एक समतल में गति (motion)",
+    "hi-Latn": "Plane mein Motion"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "i18n_hashes": {
+    "en": "2604b28d16970a0f93708c772244ea6352b29c315cf37c6c96c1d043d7372891",
+    "hi": "c04251206d5963a2a74f154b291dbb5536f8e227b29e6931ca18e9be6c535a7f",
+    "hi-Latn": "b5e8a47f189efe2c8468cdd7e608e047c7a06fee03a1655d81e50dd0d327fe7b"
+  },
   "narration": {
     "available": true,
     "lang": "en",

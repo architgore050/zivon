@@ -74,6 +74,10 @@
     if (!loc || loc === "en" || SUPPORTED_LOCALES.indexOf(loc) === -1) {
       return norm;
     }
+    if (norm.indexOf("/courses/") === 0) {
+      var base = norm.replace(/\/(hi|hi-Latn)\/?$/, "/");
+      return base.replace(/\/?$/, "/") + loc + "/";
+    }
     return "/" + loc + (norm === "/" ? "/" : norm);
   }
 
@@ -687,7 +691,11 @@
   function getSavedLang() {
     /* zivon_locale is the owner key; zivon.lang is read-only legacy (Q11). */
     var saved = safeStorageGet(LANG_STORAGE_KEY) || safeStorageGet(LEGACY_LANG_STORAGE_KEY);
-    if (!saved) return "en";
+    if (!saved) {
+      /* A direct visit to /<topic>/<locale>/ must start in that locale. */
+      var docLang = (document.documentElement && document.documentElement.lang) || "";
+      return AUTONYM_TO_CODE[docLang.toLowerCase()] || docLang || "en";
+    }
     var norm = AUTONYM_TO_CODE[saved.toLowerCase()] || saved;
     return norm;
   }
@@ -815,9 +823,14 @@
        persist a locale with no strings, run the untranslated-notice path and
        wrongly suppress read-aloud. Say so honestly and change nothing. */
     if (targetChip.getAttribute("aria-disabled") === "true") {
-      announceLangStatus(
-        "Not translated yet — showing reviewed English. This language will unlock when its bundle is generated."
-      );
+      var msg =
+        "इस भाषा में अभी अनुवाद नहीं है / not translated yet — showing reviewed English.";
+      announceLangStatus(msg);
+      var statusEl = row.querySelector(".zn-lang-status");
+      if (statusEl) {
+        statusEl.textContent = msg;
+        statusEl.classList.remove("zn-sr-only");
+      }
       return;
     }
     var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
@@ -4583,19 +4596,40 @@
       return Promise.resolve(window.__ZIVON_MANIFEST__ || null);
     }
     manifestFetchStarted = true;
-    return sameOriginRequest("./manifest.json", { method: "GET" })
+    var manifestPath = (window.location && window.location.pathname
+      ? window.location.pathname.replace(/\/(hi|hi-Latn)\/?$/, "/")
+      : "./") + "manifest.json";
+    return sameOriginRequest(manifestPath, { method: "GET" })
       .then(function (res) {
         if (!res || !res.ok) return null;
         return res.json();
       })
       .then(function (data) {
-        if (data && typeof data === "object") {
+        if (!data || typeof data !== "object") return data;
+        var locMatch = (window.location.pathname || "").match(/\/(hi|hi-Latn)\/?$/);
+        if (!locMatch) {
           window.__ZIVON_MANIFEST__ = data;
           injectReadAloudControls(data);
           var row3 = document.querySelector(".zn-lang-row");
           if (row3) syncLangBarBundleAvailability(row3);
+          return data;
         }
-        return data;
+        /* A localized page prefers its own narration bundle (pre-generated
+           audio in that language); the topic manifest stays the fallback. */
+        var locManifestPath = manifestPath.replace(/manifest\.json$/, locMatch[1] + "/manifest.json");
+        return sameOriginRequest(locManifestPath, { method: "GET" })
+          .then(function (res) { return res && res.ok ? res.json() : null; })
+          .catch(function () { return null; })
+          .then(function (locData) {
+            if (locData && locData.narration) {
+              data = Object.assign({}, data, { narration: locData.narration });
+            }
+            window.__ZIVON_MANIFEST__ = data;
+            injectReadAloudControls(data);
+            var row4 = document.querySelector(".zn-lang-row");
+            if (row4) syncLangBarBundleAvailability(row4);
+            return data;
+          });
       })
       .catch(function () { return null; });
   }

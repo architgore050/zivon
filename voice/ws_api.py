@@ -79,7 +79,7 @@ from .session import (
     turn_estimate,
 )
 from .stt_client import SttClient, SttUnavailableError
-from .tts_client import TtsClient, TtsUnavailableError
+from .tts_client import TtsClient, TtsUnavailableError, strip_display_tags
 
 __all__ = ["TUTOR_SYSTEM_PROMPT", "VoiceApp", "mount_voice"]
 
@@ -1326,7 +1326,7 @@ async def _speak_summary(
         "turn_id": turn.turn_id,
         "segment_id": 0,
         "kind": "summary",
-        "text": text,
+        "text": strip_display_tags(text),
     }
     over_budget = (
         already_voiced >= conn.settings.summaries_max_per_turn
@@ -1355,16 +1355,18 @@ async def _dispatch_chunk(
         turn.first_segment_at = now()
         turn.stamp("L4", turn.first_segment_at)
         turn.stamp("L5", turn.first_segment_at)  # chunker+whitelist handoff
-    turn.answer_text = (turn.answer_text + " " + chunk.text).strip()
-    await conn.send_json(
-        {
-            "type": "tts.text",
-            "turn_id": turn.turn_id,
-            "segment_id": chunk.segment_id,
-            "kind": chunk.kind,
-            "text": chunk.text,
-        }
-    )
+    display_text = strip_display_tags(chunk.text)
+    if display_text:
+        turn.answer_text = (turn.answer_text + " " + display_text).strip()
+        await conn.send_json(
+            {
+                "type": "tts.text",
+                "turn_id": turn.turn_id,
+                "segment_id": chunk.segment_id,
+                "kind": chunk.kind,
+                "text": display_text,
+            }
+        )
     await _speak_text(
         conn,
         turn,
