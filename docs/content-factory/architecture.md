@@ -39,8 +39,8 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
 | 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches; the post-fix index.html rebuild re-extracts the body and strips the old page shell first (idempotent; a shell-nesting rebuild fails loudly instead of shipping) | fixed topic files + history; rounds=0 (no model call) when 07 passed |
 | 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
-| 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css only) + history; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
-| 11 | link | factory/link.py | code | copy into frontend/, regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
+| 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css) **plus a spec-correction channel: corrected full block objects under `blocks`** (drawn-geometry/caption errors live in the block specs the renderer draws index.html from — the harness merges them by id, re-renders the page body from the merged specs, and threads the corrected draft back through 09-review, 06-render and resume); re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
+| 11 | link | factory/link.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter** (2026-11-10: the chapter owns exactly one page — a pre-fix model-titled duplicate is removed when its chapter is republished), regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
 
 Happy path costs 4 model calls + one per simulation (generate, check,
 review-facts, review-design). Catcher calls happen only when a gate finds
@@ -69,6 +69,26 @@ moved from prompt prose into harness code. The manifest is no longer sent to
 either call: it is mechanical page metadata whose traceability the static
 checks enforce; both calls get a 3-line identity header instead. Evidence:
 `skills/prompting-and-agent-design/references/sources-and-evidence.md`.
+
+**Why 10-reviewfix gained a spec-correction channel (2026-11-09, after the
+Laws-of-Motion plateau):** the reviewer gates the page the RENDERER drew
+(index.html), but the fixer may only write page.js/page.css — so a finding
+about block content (the wrong drawn geometry in a static SVG) had no path
+where the fixer's work could ever reach the reviewed artifact. The real run
+proved it: the fixer improved page.js for four rounds, the reviewer's fatal
+findings (ball at ground instead of the slope top; a vertical friction arrow
+where the physics says horizontal) read only index.html, and the loop
+plateaued at stall limit with the page never changing. And by coincidence the
+first lazy `index()` shell-strip fix had already shipped to images without
+the re-pin, so the doubly-nested shells it always produced were live too.
+Three harness fixes in one contract change (PIPELINE_VERSION 8):
+`_rebuild_html_if_needed` re-renders the body from the block specs by default
+(and collapses nested shells when extracting a body without specs), FIX_PLAN
+carries corrected full block objects (`blocks`), and the orchestrator adopts
+the corrected draft (`_preferred_blocks` prefers 10-reviewfix's page over
+01-repair's over the raw generate output — on resume as well). Simulation
+blocks are excluded from the channel (sim behaviour is page.js draw code,
+owned by the 05/10 boundary); a sim spec edit costs a round, not the run.
 
 ## Interface between stages
 
@@ -455,12 +475,24 @@ Run it against the host mirror: `scripts/publish-artifacts.sh` then
 - `PIPELINE_VERSION` (factory/stages.py) is part of the fingerprint. It is
   bumped whenever stage contracts change, so a run dir built under the old
   contract can never be resumed silently into new code — the guard refuses it
-  and says to pass `--fresh`. It is 7 since 2026-11-09 (the kit-refactor's
-  lint contract: `lint_page_css_scope` rejects model-authored page.css that
-  sizes the canvas or re-styles kit classes — and a completed 0.3.13-era run
-  resumable under v6 failed deep in 06-render on exactly that; first
-  `--fresh` on the cloud model re-proved the end-to-end loop). Version-6
-  dirs are therefore refused (re-trigger with `--fresh`).
+  and says to pass `--fresh`. It is **9** since 2026-11-10 (founder bug
+  reports after the first Go-model run: topic identity moved to the CHAPTER —
+  deterministic slug + display title, so a re-run REPLACES the chapter's
+  directory instead of publishing a duplicate page under a model-invented
+  tagline; 11-link prunes stale same-chapter duplicates; and the authoring /
+  review contracts changed: numeric-check answers are bare numbers, diagrams
+  carry the CONTENT law, simulations carry axis-follows-data, and the design
+  reviewer's in-figure-text and graph-content checks). Version-8
+  pages were named by the model's lesson headline — re-trigger with
+  `--fresh`. It was 8 since 2026-11-09 (the reviewfix spec-correction channel:
+  FIX_PLAN carries corrected block objects, pages re-render from block specs,
+  and resume prefers the corrected draft).
+  It was 7 for a few hours on 2026-11-09 (the kit-refactor's lint contract:
+  `lint_page_css_scope` rejects model-authored page.css that sizes the canvas
+  or re-styles kit classes) — and that release also carried the first
+  incomplete shell-strip fix to the 0.3.17 images without a re-pin, which is
+  why the order below matters. Version-6/7/8 dirs are refused (re-trigger
+  with `--fresh`).
 - The learner class is per-run input, never config (founder decision
   2026-11-06): `config.json` carries no `learner.class_level` at all - a
   config default for a per-run value is a hardcode. `--class` pre-sets the

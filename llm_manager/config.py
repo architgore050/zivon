@@ -23,8 +23,9 @@ This module is standalone: it imports nothing from factory/.
 
 from __future__ import annotations
 
+import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from .errors import LLMManagerError
@@ -43,6 +44,11 @@ class LLMConfig:
     api_key: str | None = None
     temperature: float = 0.2
     json_mode: bool = True
+    # Upstream reasoning/thinking effort (2026-11-10 founder decision: run the
+    # pipeline at the HIGHEST available setting - DeepSeek V4.1 Flash via the
+    # OpenCode Go gateway accepts low/medium/high and reports reasoning_tokens).
+    # None = send nothing (server default).
+    reasoning_effort: str | None = None
     # Max INACTIVITY between streamed chunks (read timeout when not streaming).
     # SEMANTIC CHANGE 2026-11-07 - see the module docstring before changing it.
     timeout_s: float = 3600.0
@@ -66,8 +72,15 @@ class LLMConfig:
     # Progress-print cadence for observers (was the constant HEARTBEAT_S in
     # the old factory/llm.py).
     heartbeat_s: float = 60.0
-    # Constructor-only: no env var on purpose (founder decision 2026-11-04).
-    # None = no completion cap is sent.
+    # Extra HTTP headers sent with every upstream request (2026-11-10: the
+    # OpenCode Go gateway requires a stable x-opencode-session per
+    # conversation plus an identifying user agent; generic so any future
+    # gateway can be fed from the environment). Empty = none.
+    extra_headers: dict[str, str] = field(default_factory=dict)
+    # Sent as User-Agent; empty = httpx/langchain's default.
+    user_agent: str = ""
+    # max_tokens intentionally NOT read from the environment (founder
+    # decision 2026-11-04): only code can set a completion cap.
     max_tokens: int | None = None
 
     # ------------------------------------------------------------------ env
@@ -152,12 +165,16 @@ class LLMConfig:
         if heartbeat_s < 1:
             raise LLMConfigError("ZIVON_HEARTBEAT_S must be >= 1 second")
 
+        extra_headers = _headers(raw("ZIVON_EXTRA_HEADERS"))
+        user_agent = raw("ZIVON_USER_AGENT") or ""
+
         return cls(
             base_url=base_url,
             model=model,
             api_key=raw("ZIVON_API_KEY"),
             temperature=temperature,
             json_mode=_bool(raw("ZIVON_JSON_MODE"), True, "ZIVON_JSON_MODE"),
+            reasoning_effort=raw("ZIVON_REASONING_EFFORT"),
             timeout_s=timeout_s,
             connect_timeout_s=connect_timeout_s,
             call_deadline_s=call_deadline_s,
@@ -167,6 +184,8 @@ class LLMConfig:
             stream=_bool(raw("ZIVON_STREAM"), True, "ZIVON_STREAM"),
             stream_usage=_bool(raw("ZIVON_STREAM_USAGE"), True, "ZIVON_STREAM_USAGE"),
             heartbeat_s=heartbeat_s,
+            extra_headers=extra_headers,
+            user_agent=user_agent,
             # max_tokens intentionally NOT read from the environment (founder
             # decision 2026-11-04): only code can set a completion cap.
         )
@@ -236,3 +255,25 @@ def _bool(raw: str | None, default: bool, name: str) -> bool:
     raise LLMConfigError(
         f"environment variable {name}={raw!r} must be true/false (or 1/0, yes/no)"
     )
+
+
+def _headers(raw: str | None) -> dict[str, str]:
+    """Parse ZIVON_EXTRA_HEADERS as a JSON object of header name -> value
+    (2026-11-10, OpenCode Go gateway: x-opencode-session + client user agent).
+    Empty/unset = no extra headers; malformed JSON fails loudly."""
+    if raw is None or not raw.strip():
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise LLMConfigError(
+            f"ZIVON_EXTRA_HEADERS must be a JSON object of header name -> value "
+            f'(e.g. \'{{"x-opencode-session": "zivon-factory"}}\'): {exc}'
+        ) from exc
+    if not isinstance(parsed, dict) or not all(
+        isinstance(k, str) and isinstance(v, str) for k, v in parsed.items()
+    ):
+        raise LLMConfigError(
+            "ZIVON_EXTRA_HEADERS must be a JSON object of string -> string pairs"
+        )
+    return parsed

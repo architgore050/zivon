@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Zivon content factory image.
-#   Build:  docker build -t zivon-factory:0.3.17 .
-#   Smoke:  docker run --rm zivon-factory:0.3.17
+#   Build:  docker build -t zivon-factory:0.3.22 .
+#   Smoke:  docker run --rm zivon-factory:0.3.22
 
 FROM python:3.12-slim
 
@@ -24,6 +24,11 @@ WORKDIR /app
 # drops old point revisions from the archive, so pins rot.
 RUN apt-get update \
     && apt-get upgrade -y --no-install-recommends \
+    # libatomic1: playwright >=1.65 (2026-11-10 drift) bundles a Node driver that
+    # links libatomic.so.1; slim lacks it and `playwright install --with-deps`
+    # must run the driver BEFORE it knows which deps to apt-install — explicit
+    # here breaks that chicken-and-egg at any playwright version.
+    && apt-get install -y --no-install-recommends libatomic1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -41,8 +46,12 @@ COPY requirements.txt .
 # runtime.
 RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.15.0+cpu \
     && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir setuptools==84.2.1 wheel==0.46.2 jaraco.context==6.1.0 \
-    && playwright install --with-deps chromium \
+    && pip install --no-cache-dir setuptools==84.2.1 wheel==0.46.2 jaraco.context==6.1.0
+
+# Separate layer: a playwright-side failure must not re-download pip's wheels
+# (the pip layer above stays cached when this one is re-run). Browsers land in
+# /opt/playwright via PLAYWRIGHT_BROWSERS_PATH.
+RUN playwright install --with-deps chromium \
     && chmod -R a+rX /opt/playwright
 
 # Copy the rest of the repo. .dockerignore decides what actually lands here.

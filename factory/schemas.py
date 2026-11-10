@@ -308,6 +308,20 @@ FIX_PLAN = {
             "additionalProperties": {"type": "string"},
             "description": "Full replacement content for the topic-local files being fixed.",
         },
+        # Spec-correction channel (2026-11-09): the reviewer gates the page
+        # the renderer drew (index.html) - errors in block CONTENT (wrong
+        # diagram geometry, wrong caption) live in the block specs, not in
+        # page.js. The fixer returns corrected FULL block objects here; the
+        # harness merges them by id and re-renders the page body from the
+        # corrected specs (renderer re-runs the blocks-to-body path, so
+        # index.html still has exactly one writer). Simulations are excluded
+        # (their behavior is page.js draw code, owned by 05/10 boundary).
+        # Optional; omit when the defect is code-only.
+        "blocks": {
+            "type": "array",
+            "minItems": 1,
+            "items": BLOCKS["properties"]["blocks"]["items"],
+        },
     },
 }
 

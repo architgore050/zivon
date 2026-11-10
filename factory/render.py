@@ -34,6 +34,48 @@ CSP = (
     "font-src 'self'; connect-src 'none'; base-uri 'none'"
 )
 
+_SMALL_WORDS = {
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "by",
+    "for",
+    "from",
+    "in",
+    "of",
+    "on",
+    "or",
+    "the",
+    "to",
+    "with",
+}
+
+
+def chapter_display_title(title: str) -> str:
+    """NCERT chapter titles are ALL CAPS ("LAWS OF MOTION"); the catalogue and
+    the page header want them readable ("Laws of Motion").
+
+    Deterministic on purpose. 2026-11-10 (founder bug report): the topic slug
+    and page title were derived from the MODEL'S lesson title, so every run
+    invented a fresh headline ("Laws of Motion: From Aristotle's Mistake to
+    Newton's Three Laws") and published a SECOND topic directory for the same
+    chapter - a tagline in the catalogue and a duplicate page next to the old
+    one. The chapter is the identity of a page; the model's headline is not.
+    """
+    words = [w for w in str(title).split() if w]
+    if not words:
+        return str(title).strip()
+    out: list[str] = []
+    for i, word in enumerate(words):
+        low = word.lower()
+        if 0 < i < len(words) - 1 and low in _SMALL_WORDS:
+            out.append(low)
+        else:
+            out.append(low[:1].upper() + low[1:])
+    return " ".join(out)
+
 
 def run(
     cfg: Config,
@@ -44,7 +86,13 @@ def run(
     blocks: dict[str, Any],
     interactive: dict[str, Any],
 ) -> dict[str, Any]:
-    slug = slugify(lesson["title"])
+    # The CHAPTER is the page's identity (2026-11-10): slug + display title are
+    # deterministic from the located chapter, so a re-run replaces the same
+    # topic directory instead of publishing a model-invented duplicate (the
+    # old lesson-title slug produced "laws-of-motion" AND
+    # "laws-of-motion-from-aristotle-s-mistake" for one chapter).
+    display_title = chapter_display_title(source_pack["chapter"]["title"])
+    slug = slugify(display_title)
     # The course folder follows the class of the chapter actually located -
     # the topic decides where it lives, never a config value (2026-11-06).
     course_id = f"class-{source_pack['chapter']['class']}-physics"
@@ -67,6 +115,7 @@ def run(
         body,
         slug,
         course_id,
+        display_title=display_title,
         has_page_js=bool(page_js.strip()),
         has_page_css=bool(page_css.strip()),
     )
@@ -103,7 +152,10 @@ def run(
         "course_id": course_id,
         "class": source_pack["chapter"]["class"],
         "topic_slug": slug,
-        "title": lesson["title"],
+        "title": display_title,
+        # Additive (2026-11-10): the model's own lesson headline stays on
+        # record, but it never names the page or the topic directory.
+        "lesson_title": lesson["title"],
         "chapter": {
             "query": chapter_query,
             "title": source_pack["chapter"]["title"],
@@ -243,7 +295,9 @@ def _page_html(
     course_id: str,
     has_page_js: bool,
     has_page_css: bool = False,
+    display_title: str | None = None,
 ) -> str:
+    title = display_title or lesson["title"]
     objectives = "\n".join(f"      <li>{_esc(o)}</li>" for o in lesson["objectives"])
     glossary = "\n".join(
         f"      <dt>{_esc(g['term'])}</dt><dd>{_esc(g['definition'])}</dd>"
@@ -270,7 +324,7 @@ def _page_html(
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
-<title>{_esc(lesson["title"])} - Zivon</title>
+<title>{_esc(title)} - Zivon</title>
 <link rel="stylesheet" href="../../../assets/zivon.css">
 {page_css_tag}
 </head>
@@ -279,7 +333,7 @@ def _page_html(
 <main class="zn-page">
   <header class="zn-header">
     <p class="zn-kicker">{_esc(course_id)}</p>
-    <h1 class="zn-title">{_esc(lesson["title"])}</h1>
+    <h1 class="zn-title">{_esc(title)}</h1>
     <p class="zn-objectives-label">After this lesson you can:</p>
     <ul class="zn-objectives">
 {objectives}

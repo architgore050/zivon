@@ -32,7 +32,8 @@ source k8s/infra.env
 # shell-local by default.
 export TEST_CRON_SCHEDULE ZIVON_BASE_URL ZIVON_MODEL ZIVON_TIMEOUT_S \
   ZIVON_CALL_DEADLINE_S ZIVON_STREAM ZIVON_STREAM_USAGE ZIVON_JSON_MODE \
-  ZIVON_MAX_ATTEMPTS \
+  ZIVON_MAX_ATTEMPTS ZIVON_EXTRA_HEADERS ZIVON_USER_AGENT \
+  ZIVON_REASONING_EFFORT \
   ZIVON_FACTORY_MAX_ATTEMPTS ZIVON_LLM_MANAGER_URL
 
 kubectl apply -f k8s/00-namespace.yaml
@@ -48,6 +49,9 @@ kubectl create configmap zivon-llm-manager-config -n zivon \
   --from-literal=ZIVON_STREAM_USAGE="$ZIVON_STREAM_USAGE" \
   --from-literal=ZIVON_JSON_MODE="$ZIVON_JSON_MODE" \
   --from-literal=ZIVON_MAX_ATTEMPTS="$ZIVON_MAX_ATTEMPTS" \
+  --from-literal=ZIVON_EXTRA_HEADERS="$ZIVON_EXTRA_HEADERS" \
+  --from-literal=ZIVON_USER_AGENT="$ZIVON_USER_AGENT" \
+  --from-literal=ZIVON_REASONING_EFFORT="$ZIVON_REASONING_EFFORT" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # The FACTORY's config: it talks OpenAI chat-completions to the llm-manager

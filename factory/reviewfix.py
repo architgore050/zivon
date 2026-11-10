@@ -4,11 +4,15 @@ Graph v2 routing: when 09-review fails, the run does NOT die and the
 pipeline is NOT re-run - the reviewer's fatal/major findings come here (the
 fixer paired with that gate). The model returns complete replacement
 contents for topic-local files ONLY (page.js, page.css; index.html is
-renderer-owned - same rule as 08-fixloop), and it receives the LIVE design
-doctrine + lesson-page example + palette so its fixes land on the page's
-visual language. After each round the stage re-lints everything, re-emits
-the index.html tags and re-measures perf (a code fix must not break the
-perf budget), and 09-review re-reviews.
+renderer-owned - same rule as 08-fixloop). Since 2026-11-09 it may also
+return corrected BLOCK specs under "blocks" (drawn-geometry errors live in
+the block specs, which the renderer re-renders index.html from); the
+harness merges them by id and threads the corrected draft back through
+09-review. The fixer receives the LIVE design doctrine + lesson-page
+example + palette so its fixes land on the page's visual language. After
+each round the stage re-lints everything, re-renders the HTML body from
+the current block specs, re-emits the index.html tags and re-measures perf
+(a code fix must not break the perf budget), and 09-review re-reviews.
 
 Continuous improvement (founder decision 2026-11-06): a fix that violates a
 hard lint, touches a renderer-owned file, or regresses the perf budget does
@@ -27,7 +31,7 @@ from typing import Any
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
-from .fixloop import FIXABLE, _rebuild_html_if_needed, _specs_text
+from .fixloop import FIXABLE, _apply_plan, _rebuild_html_if_needed, _specs_text
 from .lint import lint_generated
 from .llm import LLMClient
 from .perf import _harness
@@ -85,23 +89,19 @@ def run(
         round_tag=round_tag,
     )
 
-    files = dict(plan.get("files", {}))
-    rejected = sorted(set(files) - FIXABLE)
-    for name in rejected:
-        files.pop(name)  # renderer-owned files are untouchable, always
-    lint_hits = (
-        [
-            (
-                f"your fix tried to modify renderer-owned file(s): {', '.join(rejected)} "
-                "- only page.js and page.css may change"
-            )
-        ]
-        if rejected
-        else []
-    )
-    for name, content in files.items():
-        (topic_dir / name).write_text(content, encoding="utf-8")
-    _rebuild_html_if_needed(cfg, render_out, topic_dir)
+    rejected, merged_blocks = _apply_plan(topic_dir, plan, blocks)
+    lint_hits = [*rejected]
+    if merged_blocks is not None:
+        blocks = merged_blocks
+    _rebuild_html_if_needed(cfg, render_out, topic_dir, blocks)
+
+    # Files this plan wrote (renderer-owned names were dropped, same filter
+    # _apply_plan applies when writing).
+    files = {
+        name: content
+        for name, content in plan.get("files", {}).items()
+        if name in FIXABLE
+    }
 
     # Re-lint everything that changed, plus the html that embeds them.
     html_text = (topic_dir / "index.html").read_text(encoding="utf-8")
@@ -166,6 +166,11 @@ def run(
         "analysis": plan["analysis"],
         "lint_hits": lint_hits,
         "perf_after_fix": perf_after,
+        # Spec corrections merged during this run (2026-11-09): the
+        # orchestrator threads them back into the page draft (09-review's
+        # next round and 06-render see the corrected specs), and a resume
+        # loads them as the page. None when the fix was code-only.
+        "page": blocks,
     }
 
 
@@ -177,6 +182,12 @@ def _system() -> str:
         "RULES:\n- Return exactly ONE JSON object.\n"
         "- You may only replace page.js and page.css contents; never reference external "
         "resources; never use eval/Function/fetch/import.\n"
+        "- A defect in BLOCK CONTENT (wrong diagram geometry, a caption contradicting "
+        "its claim, wrong numbers/spec fields) cannot be fixed in code: return the "
+        'corrected FULL block objects under "blocks" (id, type, spec, citations '
+        "unchanged unless the finding says otherwise). The renderer will re-draw the "
+        "page body from your corrected specs. Do NOT re-specify simulation blocks - "
+        "simulation behaviour is page.js draw code, fix it there.\n"
         "- The page must still TEACH: every block spec stays implemented, every "
         "simulation keeps its learning_goal, default_behaviour and controls, and the "
         "drawn behaviour must keep matching the CITED FACTS.\n"
@@ -243,5 +254,6 @@ def _user_msg(
         + '\n\nReturn {"analysis": "what each flagged issue was and how your fix '
         'resolves it", "files": {"page.js": "<full new content>", "page.css": '
         '"<full new content>"}}. Omit files you do not change; contents must be '
-        "complete replacements."
+        "complete replacements. Only for BLOCK-CONTENT findings: add "
+        '"blocks": [<corrected full block objects>].'
     )

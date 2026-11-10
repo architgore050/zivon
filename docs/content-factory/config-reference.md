@@ -42,6 +42,9 @@ the cluster, or the server directly on a local host):
 | `ZIVON_BACKOFF_BASE_S` | no | `2.0` | Exponential backoff base (2 → 4 → 8 … seconds). |
 | `ZIVON_VALIDATION_ROUNDS` | no | `5` | The model's own repair budget per stage call: schema/JSON/length/rule failures are fed back (errors-as-context) and retried up to this many rounds, then SchemaError. Separate from the transport budget — the two never consume each other. |
 | `ZIVON_HEARTBEAT_S` | no | `60` | In-flight heartbeat cadence (`still waiting on the model (Ns, N chunks received...)`). |
+| `ZIVON_EXTRA_HEADERS` | no | — | Extra HTTP headers on every upstream request, as a JSON object of name → value (2026-11-10, the OpenCode Go gateway needs a stable `x-opencode-session` per conversation for routing/cache affinity). Malformed JSON fails loudly. Node-side only; rendered into the llm-manager ConfigMap from `k8s/infra.env`. |
+| `ZIVON_USER_AGENT` | no | — | Sent as the `User-Agent`. Gateways (Go) ask clients to identify themselves rather than spoof an SDK agent. Node-side only. |
+| `ZIVON_REASONING_EFFORT` | no | — | Upstream thinking effort (`low`/`medium`/`high` on DeepSeek V4.1 Flash via the Go gateway; founder decision 2026-11-10: pipeline runs use the highest available — `high`). Thinking tokens show up in usage (`reasoning_tokens`); more effort = longer calls, not faster ones. Node-side only. |
 
 **No completion cap (2026-11-04 founder decision, unchanged):** the factory
 sends no `max_tokens` at all. A measured `09-review` call spent 49,750

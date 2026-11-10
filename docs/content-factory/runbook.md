@@ -23,11 +23,20 @@ see `docs/content-factory/config-reference.md` and `.env.example`):
    via `docker compose up -d llm-manager`; in the cluster the factory's
    ConfigMap already points at the llm-manager Service - see
    `docs/deployment/kubernetes.md`).
-2. If the server rejects `response_format` with a 400, set
+2. For a cloud gateway that needs extra headers/identity (2026-11-10, OpenCode
+   Go requires a stable `x-opencode-session`): `export
+   ZIVON_EXTRA_HEADERS='{"x-opencode-session":"zivon-factory-pipeline"}'` and
+   `export ZIVON_USER_AGENT=zivon-factory/<version>`. In the cluster both are
+   rendered into the llm-manager ConfigMap from `k8s/infra.env`. To set the
+   cluster's key: `kubectl create secret generic zivon-factory-env -n zivon
+   --from-literal=ZIVON_API_KEY='<key>' --dry-run=client -o yaml | kubectl
+   apply -f -` (never in a file; `scripts/apply-k8s.sh` then rollout-restarts
+   the node).
+3. If the server rejects `response_format` with a 400, set
    `ZIVON_JSON_MODE=false` (the pipeline tells you exactly this; it never
    downgrades on its own). If it rejects `stream_options` with a 400, set
    `ZIVON_STREAM_USAGE=false` (same policy).
-3. Optional: per-stage `temperature` under `stage_overrides`
+4. Optional: per-stage `temperature` under `stage_overrides`
    in `config.json` (the behaviour file: learner, retrieval, limits, paths,
    perf, repair live there).
 

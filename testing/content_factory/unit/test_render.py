@@ -109,6 +109,45 @@ class TestRender(unittest.TestCase):
         self.assertEqual(manifest["course_id"], "class-9-physics")
         self.assertTrue(manifest["sources"])
 
+    def test_topic_identity_comes_from_the_chapter_not_the_lesson_title(self):
+        # 2026-11-10 founder bug report: re-runs published a SECOND topic dir
+        # for the same chapter because the slug/title came from the model's
+        # lesson headline ("Laws of Motion: From Aristotle's Mistake to
+        # Newton's Three Laws"). The chapter is the page's identity.
+        source_pack, lesson, blocks, interactive = minimal_inputs()
+        lesson = dict(lesson, title="Motion: A Tagline Sneaks In Here")
+        out = render_run(
+            self.cfg,
+            self.run_ctx,
+            "Motion",
+            source_pack,
+            lesson,
+            blocks,
+            interactive,
+        )
+        topic = Path(out["topic_dir"])
+        self.assertEqual(topic.name, "motion")
+        html = (topic / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<h1 class="zn-title">Motion</h1>', html)
+        self.assertIn("<title>Motion - Zivon</title>", html)
+        self.assertNotIn("A Tagline Sneaks In Here</h1>", html)
+        manifest = json.loads((topic / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["title"], "Motion")
+        # the model's own headline is kept on record, not used as identity
+        self.assertEqual(manifest["lesson_title"], "Motion: A Tagline Sneaks In Here")
+
+    def test_chapter_display_title_is_deterministic(self):
+        from factory.render import chapter_display_title
+
+        self.assertEqual(
+            chapter_display_title("MOTION IN A STRAIGHT LINE"),
+            "Motion in a Straight Line",
+        )
+        self.assertEqual(chapter_display_title("LAWS OF MOTION"), "Laws of Motion")
+        self.assertEqual(
+            chapter_display_title("UNITS AND MEASUREMENT"), "Units and Measurement"
+        )
+
     def test_lint_failure_blocks_render(self):
         source_pack, lesson, blocks, interactive = minimal_inputs()
         interactive["b-06"]["files"]["page.js"] = "eval('1')"
@@ -152,6 +191,75 @@ class TestRender(unittest.TestCase):
         self.assertIn('class="zn-lang-bar"', html)
         self.assertIn('aria-checked="true">English</button>', html)
         self.assertIn('<p class="zn-sim-read" aria-live="polite"></p>', html)
+
+    def test_publish_prunes_stale_duplicate_topic_for_the_same_chapter(self):
+        # 2026-11-10 founder bug report: two "Laws of Motion" cards on the
+        # landing page, same content - the pre-fix slug was model-authored, so
+        # each run left the previous directory behind. Publishing a chapter
+        # must leave exactly ONE topic dir for it.
+        from factory import link
+
+        source_pack, lesson, blocks, interactive = minimal_inputs()
+        out = render_run(
+            self.cfg,
+            self.run_ctx,
+            "Motion",
+            source_pack,
+            lesson,
+            blocks,
+            interactive,
+        )
+        # a superseded duplicate from the old lesson-title-slug era
+        stale = (
+            self.frontend
+            / "courses"
+            / "class-9-physics"
+            / "motion-a-tagline"
+            / "manifest.json"
+        )
+        stale.parent.mkdir(parents=True)
+        stale.write_text(
+            json.dumps(
+                {
+                    "course_id": "class-9-physics",
+                    "class": 9,
+                    "title": "Motion: A Tagline",
+                    "chapter": {"title": "Motion"},
+                    "generated_at": "2026-11-09T00:00:00Z",
+                }
+            ),
+            encoding="utf-8",
+        )
+        # an unrelated topic of the SAME course must survive the pruning
+        other = (
+            self.frontend / "courses" / "class-9-physics" / "forces" / "manifest.json"
+        )
+        other.parent.mkdir(parents=True)
+        other.write_text(
+            json.dumps(
+                {
+                    "course_id": "class-9-physics",
+                    "class": 9,
+                    "title": "How Forces Affect Motion",
+                    "chapter": {"title": "FORCES"},
+                    "generated_at": "2026-11-09T00:00:00Z",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (other.parent / "index.html").write_text("<html></html>", encoding="utf-8")
+        published = link.run(self.cfg, self.run_ctx, out)
+        self.assertEqual(published["pruned_stale_topics"], ["motion-a-tagline"])
+        self.assertFalse(stale.parent.exists())
+        self.assertTrue(other.parent.exists())
+        self.assertTrue(
+            (self.frontend / "courses" / "class-9-physics" / "motion").exists()
+        )
+        entries = published["courses"]
+        self.assertEqual(
+            [e["href"].split("/")[-2] for e in entries],
+            sorted(["motion", "forces"]),
+        )
 
     def test_courses_js_regeneration(self):
         frontend = self.frontend

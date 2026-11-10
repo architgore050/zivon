@@ -8,6 +8,7 @@ and smoke-tests that every course link resolves to a real file.
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 from typing import Any
@@ -31,6 +32,27 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     if topic_dst.exists():
         shutil.rmtree(topic_dst)
     shutil.copytree(topic_src, topic_dst)
+
+    # Stale-duplicate pruning (2026-11-10 founder bug report: two "Laws of
+    # Motion" pages, same content). Before the chapter-derived slug, each run
+    # named its directory after the MODEL's lesson headline, so a re-run
+    # published a new directory and left the old one listed next to it. A
+    # chapter owns exactly ONE topic directory: any sibling manifest for the
+    # same course + chapter title that is not this topic is a superseded copy.
+    pruned: list[str] = []
+    ours = json.loads((topic_dst / "manifest.json").read_text(encoding="utf-8"))
+    for mf in sorted(topic_dst.parent.glob("*/manifest.json")):
+        if mf.parent == topic_dst:
+            continue
+        try:
+            other = json.loads(mf.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if other.get("course_id") == ours.get("course_id") and other.get(
+            "chapter", {}
+        ).get("title") == ours.get("chapter", {}).get("title"):
+            shutil.rmtree(mf.parent)
+            pruned.append(mf.parent.name)
 
     entries = write_courses_js(frontend)
 
@@ -65,6 +87,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
 
     return {
         "published_to": str(topic_dst),
+        "pruned_stale_topics": pruned,
         "courses": entries,
         "course_count": len(entries),
     }
