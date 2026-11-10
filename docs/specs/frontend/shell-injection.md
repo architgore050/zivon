@@ -61,9 +61,17 @@ Rules:
 - **One conversation:** the dock and the page share `buildContextSnapshot()` / `highlightBlocks()`;
   the anchor chip and the pen-blue block ring are the same state.
 - **Same-origin only:** `fetch("./manifest.json")`, `POST /v1/reports`,
-  `POST /api/v1/events`, `wss://<origin>/voice/ws`. No external hosts; CSP unchanged.
-- **Storage:** only `zivon.dock`, `zivon.consent`, `zivon_locale`, `zivon.captions`,
-  `zivon.device_pseudo_id` (ADR-0007). No behavioural profile, no progress store.
+  `PUT /v1/consent`, `POST /v1/data/challenge` -> `DELETE /v1/data`,
+  `POST /api/v1/events`, `wss://<origin>/voice/ws`. No external hosts. Lesson
+  pages carry `connect-src 'self'`; `/privacy/` gets the same scoped relaxation
+  in `docker/nginx.conf` (it is the only non-lesson page that must reach the
+  server), and every other non-lesson location keeps `connect-src 'none'`.
+- **Storage:** only `zivon.dock`, `zivon.consent`, `zivon.consent_record` (the
+  local consent audit record written with the gate), `zivon_locale` (plus the
+  read-only legacy `zivon.lang`), `zivon.captions`, `zivon.identity_seen`
+  (identity line shown once per device), `zivon.evtdebug` (explicit debug flag
+  only) and `zivon.device_pseudo_id` (ADR-0007). No behavioural profile, no
+  progress store.
 
 ## 4. Why this keeps working for future factory runs
 

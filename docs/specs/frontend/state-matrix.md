@@ -63,7 +63,7 @@ Legend for code paths: `[shell]` = `frontend/index.html` / `404.html`;
 
 | Row | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | over-credit-budget |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `EL-PRV-001..005` privacy summary & clear data | `[shell]` / `[kit] ZivonPrivacy`: heading (`EL-PRV-001`), data-class retention table (`EL-PRV-002`), "Clear my data" button (`EL-PRV-003`), confirm dialog (`EL-PRV-004`), back link (`EL-PRV-005`) | confirm dialog `GET /v1/data/challenge` → `DELETE /v1/data` | shows "no consent record on this device" when cleared (`INF-076`) | local `localStorage` wiped even if server unreachable | server error message shown + local wipe confirmed | `EL-PRV-003` disabled for server wipe when offline (local clear still available) | n/a | n/a | English copy | n/a |
+| `EL-PRV-001..005` privacy summary & clear data | `[shell]` / `[kit] ZivonPrivacy`: heading (`EL-PRV-001`), data-class retention table (`EL-PRV-002`), "Clear my data" button (`EL-PRV-003`), confirm dialog (`EL-PRV-004`), back link (`EL-PRV-005`) | confirm dialog `GET /v1/data/challenge` → `DELETE /v1/data` | shows "no consent record on this device" when cleared (`INF-076`) | server-first wipe: local keys are wiped only AFTER the server ack; the device pseudonym is deleted LAST | failed wipe deletes nothing local, keeps the pseudonym and says "Could not reach the server — your data was NOT deleted; retry when online" | `EL-PRV-003` disabled offline with an explanatory title; dialog Esc + focus containment | n/a | n/a | English copy | n/a |
 
 ## SCR-404-01
 

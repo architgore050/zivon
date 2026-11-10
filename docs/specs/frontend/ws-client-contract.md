@@ -4,7 +4,7 @@ Agent: SP5-FRONT · Status: SPEC of the CLIENT side only.
 
 **Consumes / flags [WS1 RECONCILED]:**
 
-> **Canonical contract is SP1's `docs/specs/voice-agent/ws-contract.md` (server side).** This file is the client-side implementation view of that contract, not a competing protocol. Where names, paths, or codecs differ, SP1 wins and EX5-FRONT must implement SP1 names. Original SP5 proposal names (kept for traceability, do not implement): `session.init` ≡ `session.start`, `partial_transcript` ≡ `stt.partial`, `final_transcript` ≡ `stt.final`, `tutor.text` ≡ `tts.text`, `tts.chunk` ≡ `tts.audio`, `tts.start/tts.end` ≡ `agent.state`+`turn.end`, `client.endpoint` ≡ `audio.end`, `client.interrupt` ≡ `interrupt`, `client.text_input` ≡ text-fallback `audio.end` with typed transcript (SP1 §9 F1), `client.*` prefix dropped. Transport: `wss://<origin>/voice/ws` per SP1/ADR-0003 (not `/ws/tutor`); auth: `session.start.session_token` per API-001 (no anonymous session); audio C→S = PCM16 16 kHz 100 ms frames with 8-byte header per ADR-0020 §3 (not raw client Opus); S→C audio = Opus 20 ms frames with header; envelope is SP1's `type`-keyed WS text frames (not `{v,type,seq,ts,payload}`); client states mirror SP1 §1 (`idle→connecting→listening→thinking→speaking→idle`, `error`, `offline`). Sections 4–8 below (jitter buffer 60–120 ms, capture ladder, VAD/duck tuning, CSP request, latency logging) remain binding client behavior on top of SP1 names.
+> **Canonical contract is SP1's `docs/specs/voice-agent/ws-contract.md` (server side).** This file is the client-side implementation view of that contract, not a competing protocol. Where names, paths, or codecs differ, SP1 wins and EX5-FRONT must implement SP1 names. Original SP5 proposal names (kept for traceability, do not implement): `session.init` ≡ `session.start`, `partial_transcript` ≡ `stt.partial`, `final_transcript` ≡ `stt.final`, `tutor.text` ≡ `tts.text`, `tts.chunk` ≡ `tts.audio`, `tts.start/tts.end` ≡ `agent.state`+`turn.end`, `client.endpoint` ≡ `audio.end`, `client.interrupt` ≡ `interrupt`, `client.text_input` ≡ text-fallback `audio.end` with typed transcript (SP1 §9 F1), `client.*` prefix dropped. Transport: `wss://<origin>/voice/ws` per SP1/ADR-0003 (not `/ws/tutor`); auth: `session.start.session_token` per API-001 (no anonymous session); audio C→S = PCM16 16 kHz with 8-byte header per ADR-0020 §3 (server's nominal frame is 100 ms; the client sends 20 ms frames, inside the server's 2–200 ms tolerance; never raw client Opus); S→C audio = PCM16 48 kHz with the same header; envelope is SP1's `type`-keyed WS text frames (not `{v,type,seq,ts,payload}`); client states mirror SP1 §1 (`idle→connecting→listening→thinking→speaking→idle`, `error`, `offline`). Sections 4–8 below (jitter buffer 60–120 ms, capture ladder, VAD/duck tuning, CSP request, latency logging) remain binding client behavior on top of SP1 names.
 - `docs/backend/backend-spec.md` + ADR-0010 (ducking), ST-04 (range/transport), ADR-0015 (credit guards) — **now present** on merged main (W0); citations treated as contracts. ADR-0015 credit semantics map to SP1 hooks H1–H4; ST-04 narration transport is EX8-owned.
 - The voice backend itself (FastAPI/WebSockets Deployment + Service) is an open
   TIMELINE item — nothing can connect today, which is why the CSP in force
@@ -67,13 +67,13 @@ error → `error:system-error`. Unknown `type` on the client → ignored + count
 
 | Direction | Type | Payload (fields) | Notes |
 |---|---|---|---|
-| C→S | `session.init` | `locale`, `page_anchor{course_id, topic_slug, block_id?, lang}`, `capabilities{opus:true, webrtc_vad:true}` | first frame after open |
+| C→S | `session.start` (SP1 name; the old `session.init` row is kept only for traceability) | `session_token`, `locale`, `anchor{course_id, topic_slug, block_id, lang}`, `capabilities{ptt:true, opus:false, uplink_codec:"pcm16-16000", webrtc_vad:true}` | first frame after open. **`opus:false`**: this client sends PCM16 and decodes PCM16; it never encodes or decodes Opus |
 | S→C | `session.ready` | `session_id`, `limits{max_turn_s, daily_credit_hint?}` | acknowledges; `daily_credit_hint` [GAP: needs ADR-0015 territory] |
-| C→S | `audio.chunk` | *(binary frame, no JSON)* | 20 ms Opus; seq carried by WS ordering |
+| C→S | `audio.chunk` | *(binary frame, no JSON)* | 8-byte header (ADR-0020) + **little-endian PCM16 mono 16 kHz**; 20 ms frames = 320 samples / 640 bytes (server accepts 2–200 ms, 64–6400 payload bytes); seq carried by WS ordering |
 | S→C | `partial_transcript` | `text`, `confidence` | live, may be many |
 | S→C | `final_transcript` | `text` | ends `endpointing` |
 | S→C | `tutor.text` | `delta` or `final` | streamed tokens; rendered as text (visible tutor text = the honest default; founder may change) |
-| S→C | `tts.chunk` | *(binary)* | Opus, scheduled per §4 |
+| S→C | `tts.audio` (SP1 name; `tts.chunk` was the SP5 proposal) | *(binary)* | 8-byte header + little-endian PCM16 mono at 48 kHz (default), scheduled per §4 |
 | S→C | `tts.start` / `tts.end` | `{}` | playback boundaries for state machine |
 | C→S | `client.endpoint` | `{}` | VAD endpoint hint |
 | C→S | `client.interrupt` | `{}` | barge-in: stop generating + stop speaking |
@@ -88,12 +88,14 @@ signals (DPDP), codec bitrate/FEC settings per network profile.
 
 ## 4. Playback scheduling (jitter buffer) [V: audio skill §1]
 
-- Buffer ≥ 2–3 Opus frames before starting playback; target 60–120 ms buffered;
+- Buffer ≥ 2–3 **audio frames** before starting playback; target 60–120 ms buffered;
   top up per frame arrival; schedule off `AudioContext.currentTime`, never wall
   time. Never hard-schedule < 150 ms ahead (low-end Android output latency
   100–300 ms) [V: audio skill §4].
 - `speak.end`-to-`ready` transition requires the buffer drained, not the last
   frame received.
+- **Codec (P0):** uplink is PCM16 16 kHz (see §3); downlink is PCM16 48 kHz.
+  This client has no Opus encoder or decoder and does not claim one.
 - **Implementation status (Wave E2, 2026-11-10):** `frontend/assets/zivon.js`
   implements full Web Audio API downlink playback per `docs/specs/voice-agent/ws-contract.md` §3:
   the server sends an 8-byte header (`0xA5`, `v=1`, `segment_id`, `seq`, `flags`, `reserved=0`)
@@ -114,6 +116,12 @@ signals (DPDP), codec bitrate/FEC settings per network profile.
   never fail the session on a constraint.
 - Verify actual track settings via `getSettings()` (older Android WebViews
   downmix silently); log a mismatch as a `zivon.audio` console warning.
+- **Implementation status (EX5B review fix, 2026-11-10):** `frontend/assets/zivon.js`
+  captures with `MediaStreamSource -> ScriptProcessorNode -> muted GainNode`
+  (2048-frame blocks), resamples to 16 kHz, converts Float32 to PCM16 LE and
+  sends 20 ms frames while the mic is held; release/teardown stops the
+  processor **and** the track. No capture API -> `error:unsupported-browser`,
+  never a fake `listening` state.
 - Latency probe (founder-gated placement): play a tick, measure round-trip, use
   it only to tune the buffer — never shown as raw numbers to a student.
 
@@ -125,7 +133,7 @@ signals (DPDP), codec bitrate/FEC settings per network profile.
   speech energy is high; mic path ducked during agent playback. **Never
   `track.enabled = false` / mute — it breaks the AEC reference** [V: WebRTC AEC
   material].
-- On `client.interrupt`: client stops scheduling further `tts.chunk`s
+- On `interrupt`: client stops scheduling further `tts.audio` frames
   immediately and drops buffered frames.
 
 ## 7. Degraded fallback to text input
@@ -188,6 +196,7 @@ Every turn stamps: `t_endpoint` (client VAD), `t_final_transcript`,
 4. Quota/credit signaling shape (ADR-0015 territory).
 5. Transcript/audio retention signals the client must surface (DPDP flags,
    method reference 06 §4).
-6. Opus bitrate/FEC/DTX settings per network profile (audio skill §1 defaults:
-   20 ms frames, `useinbandfec=1`, `usedtx=1` for turn-taking).
+6. ~~Opus bitrate/FEC/DTX settings per network profile~~ — closed for P0: the
+   client sends PCM16 16 kHz and the server sends PCM16 48 kHz, so there is no
+   client-side Opus codec to tune (revisit only if the uplink switches to Opus).
 7. Subprotocol/version negotiation confirmation (`zivon-tutor.v1`).

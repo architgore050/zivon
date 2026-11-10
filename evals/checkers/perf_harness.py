@@ -212,8 +212,6 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
             page.goto(url, wait_until="load", timeout=60000)
             load_s = time.time() - t0
 
-
-
             overflow_px = page.evaluate(
                 "Math.max(0, document.documentElement.scrollWidth - window.innerWidth)"
             )

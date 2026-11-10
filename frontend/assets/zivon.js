@@ -2353,6 +2353,15 @@
       memClearBtn.className = "zn-dock-memory-clear";
       memClearBtn.textContent = "Clear session memory";
       memClearBtn.addEventListener("click", function () {
+        /* Two-step clear with an explicit confirm state (EL-LES-01-054
+           `cleared-confirm`), not a one-tap destructive action. */
+        if (memDetails.getAttribute("data-state") !== "confirm") {
+          memDetails.setAttribute("data-state", "confirm");
+          memClearBtn.textContent = "Tap again to confirm clear";
+          return;
+        }
+        memDetails.setAttribute("data-state", "cleared");
+        memClearBtn.textContent = "Clear session memory";
         memList.textContent = "Nothing yet - this is a fresh session.";
         if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
           window.ZivonEvents.emit("EVT-data_cleared", { scope: "memory" });

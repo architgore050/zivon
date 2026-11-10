@@ -85,6 +85,8 @@ class TestWaveE2Complete(unittest.TestCase):
     _pw: Any
     _browser: Any
     _tmp: tempfile.TemporaryDirectory
+    _serve_ctx: Any = None
+    _serve_base: str = ""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -160,7 +162,7 @@ class TestWaveE2Complete(unittest.TestCase):
             )
         # The server is kept alive by the test class so the page can keep
         # fetching for the duration of the assertions.
-        if not hasattr(self.__class__, "_serve_ctx"):
+        if getattr(self.__class__, "_serve_ctx", None) is None:
             self.__class__._serve_ctx = serve_static(web_path)
             base_url = self.__class__._serve_ctx.__enter__()
             self.__class__._serve_base = base_url
@@ -918,23 +920,21 @@ class TestWaveE2Complete(unittest.TestCase):
     def test_privacy_page_csp_relaxation_is_scoped(self) -> None:
         nginx = (REPO_ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
         privacy_block = re.search(
-            r"location \^~ /privacy/ \{(.*?)\n    \}", nginx, re.S
+            r"location \^~ /privacy/ \{(.*?)\n    \}", nginx, re.DOTALL
         )
-        self.assertIsNotNone(
-            privacy_block, "/privacy/ needs its own connect-src 'self' block"
+        assert privacy_block is not None, (
+            "/privacy/ needs its own connect-src 'self' block"
         )
         block = privacy_block.group(1)
         self.assertIn("connect-src 'self'", block)
         self.assertNotIn("media-src", block)
         # Server default stays locked for every other non-lesson page.
-        self.assertIn(
-            "connect-src 'none'; base-uri 'none'\" always;", nginx
-        )
+        self.assertIn("connect-src 'none'; base-uri 'none'\" always;", nginx)
         html = PRIVACY_HTML.read_text(encoding="utf-8")
         meta = re.search(
             r'<meta http-equiv="Content-Security-Policy" content="([^"]+)"', html
         )
-        self.assertIsNotNone(meta, "privacy page meta CSP must mirror the header")
+        assert meta is not None, "privacy page meta CSP must mirror the header"
         self.assertIn("connect-src 'self'", meta.group(1))
 
     def test_manifest_autofetch_over_http_mounts_read_aloud_for_available_blocks(
