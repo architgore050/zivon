@@ -56,6 +56,9 @@
         canonical_path: "/courses/" + cid + "/" + slug + "/"
       };
     }
+    if (parts[0] === "privacy" || document.querySelector(".zn-privacy")) {
+      return { screen: "SCR-PRIV-01", locale: locale, course_id: null, topic_slug: null, canonical_path: "/privacy/" };
+    }
     if (parts[0] === "404.html" || document.querySelector(".zn-404")) {
       return { screen: "SCR-404-01", locale: "en", course_id: null, topic_slug: null, canonical_path: "/404.html" };
     }
@@ -541,7 +544,7 @@
     const mo = new MutationObserver((records) => {
       const relevant = records.some((r) => {
         const el = r.target.nodeType === 1 ? r.target : r.target.parentElement;
-        return !el || !el.closest(".zn-sim-read, .zn-voice-dock-region");
+        return !el || !el.closest(".zn-sim-read, .zn-voice-dock-region, .zn-consent-sheet, .zn-report-wrap, .zn-read-aloud-wrap, .zn-read-aloud-progress, .zn-footer-links, .zn-status-chip");
       });
       if (relevant) refresh();
     });
@@ -727,18 +730,115 @@
     });
   }
 
+  function isLocaleBundleAvailable(loc) {
+    var code = String(loc || "en");
+    if (code === "en") return true;
+    var i18n = window.ZIVON_I18N;
+    if (i18n && typeof i18n === "object" && Object.prototype.hasOwnProperty.call(i18n, code)) {
+      return true;
+    }
+    var mf = window.__ZIVON_MANIFEST__;
+    if (mf && Array.isArray(mf.locales_available) && mf.locales_available.indexOf(code) !== -1) {
+      return true;
+    }
+    if (document.querySelector('link[rel="alternate"][hreflang="' + code + '"]')) {
+      return true;
+    }
+    return false;
+  }
+
+  function syncLangBarBundleAvailability(row) {
+    var bar = document.querySelector(".zn-lang-bar");
+    if (bar && !bar.getAttribute("data-element-id")) {
+      bar.setAttribute("data-element-id", "EL-LES-01-006");
+    }
+    if (!row) return;
+    var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
+    chips.forEach(function (c) {
+      var code = chipLocaleCode(c);
+      if (!c.getAttribute("data-lang")) c.setAttribute("data-lang", code);
+      if (!c.getAttribute("data-locale")) c.setAttribute("data-locale", code);
+      if (!c.getAttribute("data-element-id")) {
+        if (code === "en") c.setAttribute("data-element-id", "EL-LES-01-007");
+        else if (code === "hi") c.setAttribute("data-element-id", "EL-LES-01-008");
+        else if (code === "hi-Latn") c.setAttribute("data-element-id", "EL-LES-01-009");
+      }
+      var route = ZivonRouter.currentRoute();
+      if (!c.getAttribute("data-href") && route.canonical_path) {
+        c.setAttribute("data-href", ZivonRouter.buildLocalizedHref(route.canonical_path, code));
+      }
+      var hasBundle = isLocaleBundleAvailable(code);
+      if (!hasBundle && code !== "en") {
+        c.setAttribute("aria-disabled", "true");
+        c.setAttribute("title", "Translation bundle not generated yet for " + (c.textContent || code).trim() + " — showing reviewed English.");
+      } else {
+        c.removeAttribute("aria-disabled");
+        c.removeAttribute("title");
+      }
+    });
+  }
+
+  function applyClientBundleSwap(locale) {
+    var root = window.ZIVON_I18N;
+    if (!root || typeof root !== "object") return false;
+    var locData = root[locale];
+    if (!locData || typeof locData !== "object") return false;
+    document.documentElement.lang = locale;
+    var strings = locData.strings || {};
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n");
+      if (key && Object.prototype.hasOwnProperty.call(strings, key)) {
+        el.textContent = String(strings[key]);
+      }
+    });
+    return true;
+  }
+
+  function announceLangStatus(msg) {
+    var host = document.querySelector(".zn-lang-in") || document.querySelector(".zn-lang-bar");
+    if (!host) return;
+    var status = host.querySelector(".zn-lang-status");
+    if (!status) {
+      status = document.createElement("span");
+      status.className = "zn-lang-status zn-sr-only";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      host.appendChild(status);
+    }
+    status.textContent = msg || "";
+    return status;
+  }
+
   function selectLangChip(row, targetChip, persistAndEmit) {
     if (!row || !targetChip) return;
+    /* A chip with aria-disabled has no translation bundle: selecting it would
+       persist a locale with no strings, run the untranslated-notice path and
+       wrongly suppress read-aloud. Say so honestly and change nothing. */
+    if (targetChip.getAttribute("aria-disabled") === "true") {
+      announceLangStatus(
+        "Not translated yet — showing reviewed English. This language will unlock when its bundle is generated."
+      );
+      return;
+    }
     var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
     var prevChip = row.querySelector('.zn-chip[aria-checked="true"]');
     var fromCode = prevChip ? chipLocaleCode(prevChip) : "en";
     var toCode = chipLocaleCode(targetChip);
+    if (toCode !== "en") {
+      announceLangStatus("Language: " + (targetChip.textContent || toCode).trim());
+    } else {
+      announceLangStatus("Language: English");
+    }
 
     chips.forEach(function (c) {
       var isTarget = c === targetChip;
       c.setAttribute("aria-checked", String(isTarget));
       c.setAttribute("tabindex", isTarget ? "0" : "-1");
     });
+
+    if (isLocaleBundleAvailable(toCode) && toCode !== "en") {
+      applyClientBundleSwap(toCode);
+    }
 
     /* Untranslated notice (INF-087) from the real bundle shape. */
     if (toCode === "en") {
@@ -753,6 +853,9 @@
         window.ZivonEvents.recordLangSwitch(fromCode, toCode);
       }
     }
+    /* §10.13: read-aloud buttons follow the active locale; a locale with no
+       narration shows no buttons. Rebuild them on every switch. */
+    refreshReadAloudForLocale();
   }
 
   function wireLangChips() {
@@ -760,11 +863,7 @@
     if (!row) return;
     var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
     if (!chips.length) return;
-    chips.forEach(function (c) {
-      if (!c.getAttribute("data-lang")) {
-        c.setAttribute("data-lang", chipLocaleCode(c));
-      }
-    });
+    syncLangBarBundleAvailability(row);
 
     /* Preselect chip from localStorage["zivon.lang"] if present (spec C3) */
     var saved = getSavedLang();
@@ -798,6 +897,12 @@
       if (nextIdx !== -1) {
         event.preventDefault();
         var nextChip = chips[nextIdx];
+        /* Skip chips with no bundle when moving the roving selection: focus
+           may land on them, but the selected language must stay honest. */
+        if (nextChip.getAttribute("aria-disabled") === "true") {
+          nextChip.focus();
+          return;
+        }
         selectLangChip(row, nextChip, true);
         nextChip.focus();
       }
@@ -837,15 +942,1682 @@
     return region;
   }
 
+  /* One network seam for every same-origin call. A file:// document has no
+     server to answer and Chromium logs a hard console error for every
+     attempted fetch, so offline previews get ONE typed failure: every caller
+     (report, consent sync, data wipe, telemetry flush, manifest load) handles
+     NoTransportError explicitly — no caller mistakes a synthetic "ok:false"
+     response for a real server answer, and no call is silently swallowed. */
+  function NoTransportError(message) {
+    this.name = "NoTransportError";
+    this.message = message || "No network transport in this document (file:// preview).";
+  }
+  NoTransportError.prototype = Object.create(Error.prototype);
+  NoTransportError.prototype.constructor = NoTransportError;
+
+  function hasNetworkTransport() {
+    return typeof location === "undefined" || location.protocol !== "file:";
+  }
+
+  function sameOriginRequest(url, options) {
+    if (!hasNetworkTransport()) {
+      return Promise.reject(new NoTransportError());
+    }
+    if (typeof fetch !== "function") {
+      return Promise.reject(new Error("http_unavailable"));
+    }
+    return fetch(url, options || {});
+  }
+
+  /* ---------------------- §10.13 Read-aloud (F-WRP-TTS-01) ----------------
+     Injects a 44 px "सुनो / Listen" control per speakable block listed in
+     manifest.json -> narration.blocks ({available, path, duration_ms}).
+     Never uses browser SpeechSynthesis. One block plays at a time; pressing
+     the dock mic stops narration (echo guard). */
+  var activeNarrationAudio = null;
+  var activeNarrationBtn = null;
+  var activeNarrationProgress = null;
+  var activeNarrationBlockId = null;
+
+  function stopReadAloud() {
+    if (activeNarrationAudio) {
+      try {
+        activeNarrationAudio.pause();
+        activeNarrationAudio.currentTime = 0;
+      } catch (e) {}
+      activeNarrationAudio = null;
+    }
+    if (activeNarrationBtn) {
+      activeNarrationBtn.setAttribute("aria-pressed", "false");
+      var lbl = activeNarrationBtn.querySelector(".zn-read-aloud-label");
+      if (lbl) lbl.textContent = "▶ सुनो / Listen";
+      activeNarrationBtn = null;
+    }
+    if (activeNarrationProgress) {
+      activeNarrationProgress.style.transform = "scaleX(0)";
+      activeNarrationProgress = null;
+    }
+    activeNarrationBlockId = null;
+  }
+
+  function refreshReadAloudForLocale() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return;
+    stopReadAloud();
+    lessonPage.querySelectorAll(".zn-read-aloud-wrap, .zn-read-aloud-progress").forEach(function (el) {
+      el.remove();
+    });
+    lessonPage.removeAttribute("data-zn-readaloud-mounted");
+    injectReadAloudControls(window.__ZIVON_MANIFEST__ || null);
+  }
+
+  function resolveNarrationAssetPath(rawPath, courseId, blockId, lang, hash) {
+    var p = String(rawPath || "").trim();
+    if (p) {
+      if (p.charAt(0) === "/") return p;
+      if (p.indexOf("frontend/audio/") === 0) return "/" + p.slice("frontend/".length);
+      if (p.indexOf("audio/") === 0) return "/" + p;
+      return p;
+    }
+    if (courseId && blockId && hash) {
+      return "/audio/" + courseId + "/" + blockId + "." + (lang || "en") + "." + hash + ".opus";
+    }
+    return "";
+  }
+
+  function injectReadAloudControls(manifestData) {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false, count: 0 };
+    if (lessonPage.getAttribute("data-zn-readaloud-mounted") === "true" && !manifestData) {
+      return { mounted: true, count: lessonPage.querySelectorAll(".zn-read-aloud-btn").length };
+    }
+    var mf = manifestData || window.__ZIVON_MANIFEST__ || null;
+    if (!mf || !mf.narration || !mf.narration.available || typeof mf.narration.blocks !== "object") {
+      return { mounted: false, count: 0 };
+    }
+    var activeLang = getSavedLang() || document.documentElement.lang || "en";
+    var narLang = mf.narration.lang || "en";
+    if (activeLang !== "en" && narLang !== activeLang) {
+      return { mounted: false, count: 0 };
+    }
+    var blocksMap = mf.narration.blocks;
+    var courseId = mf.course_id || ZivonRouter.currentRoute().course_id || "physics";
+    var count = 0;
+
+    /* Offline gating (EL-LES-01-012 `disabled-offline`): narration is a
+       network fetch, so an offline page disables the control and says why
+       instead of offering a button that can only fail. */
+    function syncReadAloudOffline() {
+      var off = typeof navigator !== "undefined" && navigator.onLine === false;
+      lessonPage.querySelectorAll(".zn-read-aloud-btn").forEach(function (b) {
+        b.disabled = off;
+        if (off) {
+          b.title = "Offline — narration needs a connection.";
+          b.setAttribute("data-state", "disabled-offline");
+        } else if (b.getAttribute("data-state") === "disabled-offline") {
+          b.removeAttribute("title");
+          b.setAttribute("data-state", "default");
+        }
+      });
+      if (off) stopReadAloud();
+    }
+    if (lessonPage.getAttribute("data-zn-readaloud-netwired") !== "true") {
+      lessonPage.setAttribute("data-zn-readaloud-netwired", "true");
+      window.addEventListener("online", syncReadAloudOffline);
+      window.addEventListener("offline", syncReadAloudOffline);
+    }
+
+    Object.keys(blocksMap).forEach(function (blockId) {
+      var info = blocksMap[blockId];
+      if (!info || !info.available) return;
+      var assetUrl = resolveNarrationAssetPath(info.path, courseId, blockId, narLang, info.hash);
+      if (!assetUrl) return;
+      var blockEl = document.getElementById(blockId);
+      if (!blockEl) return;
+      if (blockEl.querySelector(".zn-read-aloud-btn")) {
+        count += 1;
+        return;
+      }
+      var headingEl = blockEl.querySelector("h3, legend, figcaption");
+      var blockTitle = headingEl ? headingEl.textContent.trim() : ("Block " + blockId);
+
+      var wrap = document.createElement("div");
+      wrap.className = "zn-read-aloud-wrap";
+      wrap.setAttribute("data-ruled-skip", "true");
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "zn-read-aloud-btn";
+      btn.setAttribute("data-element-id", "EL-LES-01-012");
+      btn.setAttribute("data-block-id", blockId);
+      btn.setAttribute("data-state", "default");
+      btn.setAttribute("aria-pressed", "false");
+      btn.setAttribute("aria-label", "सुनो / Listen: " + blockTitle);
+
+      var span = document.createElement("span");
+      span.className = "zn-read-aloud-label";
+      span.textContent = "▶ सुनो / Listen";
+      btn.appendChild(span);
+
+      var audio = document.createElement("audio");
+      audio.className = "zn-read-aloud-audio";
+      audio.setAttribute("preload", "none");
+      audio.setAttribute("src", assetUrl);
+
+      var prog = document.createElement("div");
+      prog.className = "zn-read-aloud-progress";
+      prog.setAttribute("aria-hidden", "true");
+
+      var statusSr = document.createElement("span");
+      statusSr.className = "zn-sr-only";
+      statusSr.setAttribute("aria-live", "polite");
+
+      function failNarration(message) {
+        /* Honest, recoverable failure: reset the control, announce once.
+           A 404/CSP/decode failure must never leave a dead "playing" pill.
+           Stale failures (the student already started another block) are
+           ignored so they cannot stop the live track. */
+        if (activeNarrationBtn !== btn && btn.getAttribute("aria-pressed") !== "true") return;
+        stopReadAloud();
+        btn.setAttribute("data-state", "error");
+        span.textContent = "▶ सुनो / Listen";
+        statusSr.textContent = message || "Audio could not be played.";
+      }
+
+      btn.addEventListener("click", function () {
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+          statusSr.textContent = "You are offline — narration needs a connection.";
+          return;
+        }
+        if (activeNarrationBtn === btn) {
+          stopReadAloud();
+          if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+            window.ZivonEvents.emit("EVT-read_aloud_played", { block_id: blockId, lang: narLang, completed: false });
+          }
+          return;
+        }
+        stopReadAloud();
+        activeNarrationBtn = btn;
+        activeNarrationAudio = audio;
+        activeNarrationProgress = prog;
+        activeNarrationBlockId = blockId;
+        btn.setAttribute("data-state", "loading");
+        btn.setAttribute("aria-pressed", "true");
+        span.textContent = "■ रोकें / Stop";
+        statusSr.textContent = "playing narration";
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!reduceMotion) {
+          prog.style.transform = "scaleX(0.15)";
+        }
+        try {
+          var playPromise = audio.play();
+          if (playPromise && typeof playPromise.then === "function") {
+            playPromise.then(function () {
+              btn.setAttribute("data-state", "playing");
+            }, function (err) {
+              /* CSP block, 404, autoplay refusal: handle, never swallow. */
+              failNarration(err && err.name === "NotAllowedError"
+                ? "Playback was blocked by the browser — press Listen again."
+                : "Narration could not be played. Check your connection and try again.");
+            });
+          }
+        } catch (err) {
+          failNarration("Narration could not be played. Check your connection and try again.");
+        }
+      });
+
+      audio.addEventListener("error", function () {
+        failNarration("Narration audio is unavailable right now — try again later.");
+      });
+
+      audio.addEventListener("timeupdate", function () {
+        if (activeNarrationAudio !== audio) return;
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion) return;
+        var dur = audio.duration || (info.duration_ms ? info.duration_ms / 1000.0 : 0);
+        if (dur > 0) {
+          var ratio = Math.min(1, Math.max(0, audio.currentTime / dur));
+          prog.style.transform = "scaleX(" + ratio.toFixed(3) + ")";
+        }
+      });
+
+      audio.addEventListener("ended", function () {
+        if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+          window.ZivonEvents.emit("EVT-read_aloud_played", { block_id: blockId, lang: narLang, completed: true });
+        }
+        stopReadAloud();
+      });
+
+      wrap.appendChild(btn);
+      wrap.appendChild(audio);
+      wrap.appendChild(statusSr);
+      blockEl.insertBefore(wrap, blockEl.firstChild);
+      blockEl.appendChild(prog);
+      count += 1;
+    });
+
+    syncReadAloudOffline();
+    if (count > 0) {
+      lessonPage.setAttribute("data-zn-readaloud-mounted", "true");
+    }
+    return { mounted: count > 0, count: count };
+  }
+
+  var ZivonReadAloud = {
+    mountFromManifest: injectReadAloudControls,
+    stop: stopReadAloud,
+    getActiveBlockId: function () { return activeNarrationBlockId; }
+  };
+  window.ZivonReadAloud = ZivonReadAloud;
+
+  /* ---------------- §2.5 Provenance Report (F-COR-PROV-01) ------------------
+     Injects report button (EL-LES-01-040) + form panel (EL-LES-01-041) into
+     the lesson footer (.zn-footer). Submits to POST /v1/reports with
+     course_id, block_id, category, optional text (<= 500 chars), and zero PII.
+     Honest success/error states; keeps draft on failure; never blocks reading. */
+  function injectReportSurface() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false };
+    var footer = lessonPage.querySelector(".zn-footer");
+    if (!footer) return { mounted: false };
+    var existingBtn = footer.querySelector('[data-element-id="EL-LES-01-040"]');
+    var existingPanel = footer.querySelector('[data-element-id="EL-LES-01-041"]');
+    if (existingBtn && existingPanel) {
+      return { mounted: true, button: existingBtn, panel: existingPanel };
+    }
+
+    var wrap = document.createElement("div");
+    wrap.className = "zn-report-wrap";
+    wrap.setAttribute("data-zn-mounted", "true");
+    wrap.setAttribute("data-ruled-skip", "true");
+
+    var reportBtn = document.createElement("button");
+    reportBtn.type = "button";
+    reportBtn.className = "zn-report-btn";
+    reportBtn.setAttribute("data-element-id", "EL-LES-01-040");
+    reportBtn.setAttribute("aria-expanded", "false");
+    reportBtn.textContent = "Report a problem";
+
+    var panel = document.createElement("form");
+    panel.className = "zn-report-panel";
+    panel.setAttribute("data-element-id", "EL-LES-01-041");
+    panel.setAttribute("data-report-state", "default");
+    panel.hidden = true;
+
+    var catLabel = document.createElement("label");
+    catLabel.className = "zn-report-field";
+    var catSpan = document.createElement("span");
+    catSpan.textContent = "What needs fixing?";
+    var catSelect = document.createElement("select");
+    catSelect.className = "zn-report-category";
+    catSelect.name = "category";
+    [
+      { value: "wrong_physics", label: "Wrong physics / calculation" },
+      { value: "bad_translation", label: "Bad translation" },
+      { value: "broken_sim", label: "Broken simulation or diagram" },
+      { value: "other", label: "Other issue" }
+    ].forEach(function (opt) {
+      var o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      catSelect.appendChild(o);
+    });
+    catLabel.appendChild(catSpan);
+    catLabel.appendChild(catSelect);
+
+    var txtLabel = document.createElement("label");
+    txtLabel.className = "zn-report-field";
+    var txtSpan = document.createElement("span");
+    txtSpan.textContent = "Short note (optional, do not include your name or contact info):";
+    var txtArea = document.createElement("textarea");
+    txtArea.className = "zn-report-text";
+    txtArea.name = "text";
+    txtArea.rows = 2;
+    txtArea.maxLength = 500;
+    txtArea.placeholder = "Describe the issue briefly…";
+    txtLabel.appendChild(txtSpan);
+    txtLabel.appendChild(txtArea);
+
+    var btnRow = document.createElement("div");
+    btnRow.className = "zn-report-actions";
+    var submitBtn = document.createElement("button");
+    submitBtn.type = "submit";
+    submitBtn.className = "zn-report-submit";
+    submitBtn.textContent = "Send report";
+    var cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "zn-report-cancel";
+    cancelBtn.textContent = "Cancel";
+    btnRow.appendChild(submitBtn);
+    btnRow.appendChild(cancelBtn);
+
+    var statusMsg = document.createElement("p");
+    statusMsg.className = "zn-report-status";
+    statusMsg.setAttribute("role", "status");
+    statusMsg.setAttribute("aria-live", "polite");
+    statusMsg.hidden = true;
+
+    [catLabel, txtLabel, btnRow, statusMsg].forEach(function (el) { panel.appendChild(el); });
+    wrap.appendChild(reportBtn);
+    wrap.appendChild(panel);
+    footer.appendChild(wrap);
+
+    function syncReportOffline() {
+      var isOff = typeof navigator !== "undefined" && navigator.onLine === false;
+      reportBtn.disabled = isOff;
+      if (isOff) {
+        reportBtn.title = "Offline - reports require a connection.";
+        panel.setAttribute("data-report-state", "error-offline");
+      } else {
+        reportBtn.removeAttribute("title");
+      }
+    }
+    window.addEventListener("online", syncReportOffline);
+    window.addEventListener("offline", syncReportOffline);
+    syncReportOffline();
+
+    reportBtn.addEventListener("click", function () {
+      var open = panel.hidden;
+      panel.hidden = !open;
+      reportBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        panel.setAttribute("data-report-state", "open");
+        try { catSelect.focus(); } catch (e) {}
+      }
+    });
+
+    cancelBtn.addEventListener("click", function () {
+      panel.hidden = true;
+      reportBtn.setAttribute("aria-expanded", "false");
+      try { reportBtn.focus(); } catch (e) {}
+    });
+
+    panel.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        panel.setAttribute("data-report-state", "error-offline");
+        statusMsg.hidden = false;
+        statusMsg.textContent = "Could not send while offline — your note is kept.";
+        return;
+      }
+      var snap = buildContextSnapshot();
+      var catVal = catSelect.value || "other";
+      var noteVal = (txtArea.value || "").trim().slice(0, 500);
+      panel.setAttribute("data-report-state", "sending");
+      submitBtn.disabled = true;
+      statusMsg.hidden = false;
+      statusMsg.textContent = "Sending…";
+      try {
+        var payload = {
+          course_id: snap.course_id || "physics",
+          class_level: snap.class || 9,
+          block_id: snap.block_id || "b-01",
+          category: catVal,
+          device_pseudo_id: getDevicePseudoId()
+        };
+        if (noteVal) payload.text = noteVal;
+        var res = await sameOriginRequest("/v1/reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res && res.ok) {
+          panel.setAttribute("data-report-state", "sent");
+          reportBtn.setAttribute("data-report-state", "sent");
+          statusMsg.textContent = "Sent — thank you.";
+          txtArea.value = "";
+          if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+            window.ZivonEvents.emit("EVT-report_submitted", {
+              page_id: payload.course_id,
+              block_id: payload.block_id,
+              category: payload.category
+            });
+          }
+        } else {
+          panel.setAttribute("data-report-state", "error-offline");
+          statusMsg.textContent = "Could not send — try again.";
+        }
+      } catch (err) {
+        panel.setAttribute("data-report-state", "error-offline");
+        statusMsg.textContent = "Could not send — try again.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    return { mounted: true, button: reportBtn, panel: panel };
+  }
+
+  var ZivonReport = {
+    mount: injectReportSurface
+  };
+  window.ZivonReport = ZivonReport;
+
+  /* ---------------- §10.14 Consent gate & Privacy (F-XCT-CON-01) ------------
+     One-time consent sheet before the dock: explains what is recorded
+     (voice -> text), that audio is not kept, that Gnani processes speech, and
+     that the lesson works without voice. Continue (with guardian checkbox)
+     unlocks voice; Decline keeps reading/sims/typing and never re-nags.
+     Persisted device-local in localStorage["zivon.consent"]. */
+  var CONSENT_STORAGE_KEY = "zivon.consent";
+  var CONSENT_RECORD_KEY = "zivon.consent_record";
+  var CONSENT_VERSION = "v1";
+
+  function safeStorageRemove(key) {
+    try {
+      if (window.localStorage) window.localStorage.removeItem(key);
+    } catch (e) {}
+  }
+
+  function getConsentState() {
+    var val = safeStorageGet(CONSENT_STORAGE_KEY);
+    if (val === "granted" || val === "declined") return val;
+    return "missing";
+  }
+
+  function recordConsentDecision(action, guardianChecked) {
+    var act = action === "granted" ? "granted" : "declined";
+    var nowIso = new Date().toISOString();
+    var devId = getDevicePseudoId();
+    safeStorageSet(CONSENT_STORAGE_KEY, act);
+    safeStorageSet(CONSENT_RECORD_KEY, JSON.stringify({
+      device_pseudo_id: devId,
+      consent_version: CONSENT_VERSION,
+      guardian_flag: Boolean(guardianChecked),
+      action: act,
+      ts: nowIso
+    }));
+    if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+      window.ZivonEvents.emit("EVT-consent_recorded", { outcome: act });
+    }
+    /* Best-effort async sync to PUT /v1/consent (never blocks UI) */
+    sameOriginRequest("/v1/consent", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        device_pseudo_id: devId,
+        consent_version: CONSENT_VERSION,
+        notice_version: CONSENT_VERSION,
+        guardian_flag: Boolean(guardianChecked),
+        action: act,
+        source: "overlay",
+        ts: nowIso
+      })
+    }).catch(function () {});
+    return act;
+  }
+
+  function injectConsentGate() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false, state: getConsentState() };
+    var existing = lessonPage.querySelector('[data-element-id="EL-LES-01-057"], .zn-consent-sheet');
+    var cState = getConsentState();
+    if (existing) {
+      existing.hidden = cState === "granted" || cState === "declined";
+      return { mounted: true, element: existing, state: cState };
+    }
+    var card = document.createElement("section");
+    card.className = "zn-consent-sheet";
+    card.setAttribute("data-region", "SCR-LES-01.R10");
+    card.setAttribute("data-element-id", "EL-LES-01-057");
+    card.setAttribute("data-zn-mounted", "true");
+    card.setAttribute("data-ruled-skip", "true");
+    /* §10.14: a one-time CONSENT SHEET. As an in-flow card at the bottom of a
+       long lesson it was never seen, so voice was undiscoverable on first
+       visit. It is a bottom sheet (fixed), modal while open, with focus
+       containment; declining still never re-nags. */
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    card.setAttribute("data-consent-presentation", "sheet");
+    card.setAttribute("aria-labelledby", "zn-consent-title");
+    var sheetTitle = document.createElement("h2");
+    sheetTitle.className = "zn-consent-title";
+    sheetTitle.id = "zn-consent-title";
+    sheetTitle.textContent = "Voice tutor: before we start";
+
+    var notice = document.createElement("p");
+    notice.className = "zn-consent-notice";
+    notice.setAttribute("data-element-id", "EL-LES-01-058");
+    notice.textContent = "Before using voice: when you press the mic, your speech is sent to Gnani AI (Prisma STT & Timbre TTS) to transcribe and speak the tutor's physics explanation. Raw voice audio is never kept; short text transcripts expire after 7 days. Reading, simulations, and checks work completely without voice.";
+
+    var guardianLabel = document.createElement("label");
+    guardianLabel.className = "zn-consent-guardian";
+    var guardianBox = document.createElement("input");
+    guardianBox.type = "checkbox";
+    guardianBox.className = "zn-consent-checkbox";
+    guardianBox.setAttribute("data-element-id", "EL-LES-01-059");
+    var guardianTxt = document.createElement("span");
+    guardianTxt.textContent = "I am a parent/guardian, or I have my parent/guardian's permission to use the voice tutor.";
+    guardianLabel.appendChild(guardianBox);
+    guardianLabel.appendChild(guardianTxt);
+
+    var actionsRow = document.createElement("div");
+    actionsRow.className = "zn-consent-actions";
+    var continueBtn = document.createElement("button");
+    continueBtn.type = "button";
+    continueBtn.className = "zn-consent-continue";
+    continueBtn.setAttribute("data-element-id", "EL-LES-01-060");
+    continueBtn.disabled = true;
+    continueBtn.textContent = "Continue with voice";
+
+    var declineBtn = document.createElement("button");
+    declineBtn.type = "button";
+    declineBtn.className = "zn-consent-decline";
+    declineBtn.setAttribute("data-element-id", "EL-LES-01-061");
+    declineBtn.textContent = "Decline (read page without voice)";
+
+    var privLink = document.createElement("a");
+    privLink.className = "zn-consent-privacy-link";
+    privLink.href = "/privacy/";
+    privLink.textContent = "Privacy summary & clear data";
+
+    actionsRow.appendChild(continueBtn);
+    actionsRow.appendChild(declineBtn);
+    actionsRow.appendChild(privLink);
+
+    card.appendChild(sheetTitle);
+    card.appendChild(notice);
+    card.appendChild(guardianLabel);
+    card.appendChild(actionsRow);
+
+    guardianBox.addEventListener("change", function () {
+      continueBtn.disabled = !guardianBox.checked;
+    });
+
+    continueBtn.addEventListener("click", function () {
+      if (!guardianBox.checked) return;
+      recordConsentDecision("granted", true);
+      card.hidden = true;
+      var dockRes = ZivonVoiceDock.lazyMount();
+      if (dockRes && dockRes.region) {
+        var micBtn = dockRes.region.querySelector(".zn-dock-mic");
+        if (micBtn) {
+          try { micBtn.focus(); } catch (e) {}
+        }
+      }
+    });
+
+    declineBtn.addEventListener("click", function () {
+      recordConsentDecision("declined", false);
+      card.hidden = true;
+      var dockRegion = ensureVoiceDockRegion();
+      if (dockRegion) dockRegion.hidden = true;
+    });
+
+    card.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        declineBtn.click();
+        return;
+      }
+      if (ev.key !== "Tab") return;
+      /* Focus stays inside the modal sheet. */
+      var focusables = Array.prototype.slice.call(
+        card.querySelectorAll("button:not([disabled]), input, a[href]")
+      );
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      if (ev.shiftKey && document.activeElement === first) {
+        ev.preventDefault();
+        last.focus();
+      } else if (!ev.shiftKey && document.activeElement === last) {
+        ev.preventDefault();
+        first.focus();
+      }
+    });
+
+    /* If already granted or declined on this device, keep hidden (no re-nag) */
+    card.hidden = cState === "granted" || cState === "declined";
+    lessonPage.appendChild(card);
+    if (!card.hidden) {
+      /* First visit: move focus into the sheet so keyboard/screen-reader
+         users meet the gate instead of the page scrolling past it. */
+      try { guardianBox.focus(); } catch (e) {}
+    }
+    return { mounted: true, element: card, state: cState };
+  }
+
+  var ZivonConsent = {
+    CONSENT_STORAGE_KEY: CONSENT_STORAGE_KEY,
+    CONSENT_VERSION: CONSENT_VERSION,
+    getState: getConsentState,
+    recordDecision: recordConsentDecision,
+    mount: injectConsentGate
+  };
+  window.ZivonConsent = ZivonConsent;
+
+  /* ---------------- SCR-PRIV-01 Privacy page & clear data -------------------
+     Device wipe order is binding (doctrine §10.14 "clearing data removes it"
+     + this wave's review finding): the server delete is attempted FIRST; the
+     device pseudonym is deleted LAST, and only after the server confirms.
+     If the server wipe fails, NOTHING local is deleted — the consent gate and
+     pseudonym stay, so the student can retry, and the UI says so honestly. */
+  var WIPE_LOCAL_KEYS = [
+    "zivon.dock",
+    "zivon.consent",
+    "zivon.consent_record",
+    "zivon_locale",
+    "zivon.lang",
+    "zivon.captions",
+    "zivon.identity_seen",
+    "zivon.evtdebug"
+  ];
+
+  async function clearAllDeviceData() {
+    var devId = getDevicePseudoId();
+    if (!hasNetworkTransport() || (typeof navigator !== "undefined" && navigator.onLine === false)) {
+      return {
+        local_cleared: false,
+        server_wiped: false,
+        device_pseudo_id: devId,
+        reason: "offline"
+      };
+    }
+
+    /* challenge -> DELETE /v1/data (supports both POST and GET on /v1/data/challenge) */
+    var serverWiped = false;
+    try {
+      var chalUrl = "/v1/data/challenge?device_pseudo_id=" + encodeURIComponent(devId);
+      var chalRes = await sameOriginRequest(chalUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_pseudo_id: devId })
+      });
+      if (!chalRes || !chalRes.ok) {
+        chalRes = await sameOriginRequest(chalUrl, { method: "GET" });
+      }
+      if (chalRes && chalRes.ok) {
+        var chalData = await chalRes.json();
+        var token = chalData && chalData.confirm_token ? chalData.confirm_token : "";
+        if (token) {
+          var delRes = await sameOriginRequest("/v1/data", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              device_pseudo_id: devId,
+              confirm_token: token,
+              scope: "device"
+            })
+          });
+          if (delRes && delRes.ok) serverWiped = true;
+        }
+      }
+    } catch (e) {
+      /* NoTransportError / network failure: server_wiped stays false and the
+         honest branch below keeps every local key (retry when online). */
+      serverWiped = false;
+    }
+
+    if (!serverWiped) {
+      return {
+        local_cleared: false,
+        server_wiped: false,
+        device_pseudo_id: devId,
+        reason: "server_unreachable"
+      };
+    }
+
+    /* No EVT-data_cleared here: the server just erased this pseudonym, and
+       emitting (or flushing) telemetry under it would re-create records the
+       student asked us to delete. Local prefs go first, the pseudonym LAST. */
+    WIPE_LOCAL_KEYS.forEach(safeStorageRemove);
+    cachedDeviceId = null;
+    safeStorageRemove(DEVICE_STORAGE_KEY);
+    return { local_cleared: true, server_wiped: true, device_pseudo_id: devId };
+  }
+
+  function wirePrivacyPage() {
+    var privMain = document.querySelector('[data-screen-id="SCR-PRIV-01"], .zn-privacy');
+    if (!privMain) return { mounted: false };
+    if (privMain.getAttribute("data-zn-mounted") === "true") return { mounted: true };
+    privMain.setAttribute("data-zn-mounted", "true");
+
+    var stampEl = document.getElementById("zn-privacy-consent-stamp");
+    if (stampEl) {
+      var rawRec = safeStorageGet(CONSENT_RECORD_KEY);
+      if (rawRec) {
+        try {
+          var rec = JSON.parse(rawRec);
+          stampEl.textContent = "Consent status: " + (rec.action || "recorded") + " (version " + (rec.consent_version || "v1") + ", " + (rec.ts || "") + ")";
+        } catch (e) {
+          stampEl.textContent = "Consent status: no consent record on this device.";
+        }
+      } else {
+        stampEl.textContent = "Consent status: no consent record on this device.";
+      }
+    }
+
+    var clearBtn = document.getElementById("zn-privacy-clear-btn") || privMain.querySelector('[data-element-id="EL-PRV-003"]');
+    var dialogEl = document.getElementById("zn-privacy-clear-dialog") || privMain.querySelector('[data-element-id="EL-PRV-004"]');
+    var confirmBtn = document.getElementById("zn-privacy-confirm-btn");
+    var cancelBtn = document.getElementById("zn-privacy-cancel-btn");
+    var statusEl = document.getElementById("zn-privacy-clear-status");
+
+    /* Offline state is honest: a wipe that cannot reach the server is not
+       offered as if it worked (EL-PRV-003 `disabled-offline`). */
+    function syncWipeOffline() {
+      if (!clearBtn) return;
+      var isOff = typeof navigator !== "undefined" && navigator.onLine === false;
+      clearBtn.disabled = isOff;
+      if (isOff) {
+        clearBtn.title = "Offline - clearing data needs the server so it can erase your records too.";
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = "You are offline. Clear my data needs a connection so the server records are erased too.";
+        }
+      } else {
+        clearBtn.removeAttribute("title");
+      }
+    }
+    window.addEventListener("online", syncWipeOffline);
+    window.addEventListener("offline", syncWipeOffline);
+    syncWipeOffline();
+
+    function cancelDialog() {
+      if (!dialogEl) return;
+      dialogEl.hidden = true;
+      if (clearBtn) {
+        try { clearBtn.focus(); } catch (e) {}
+      }
+    }
+
+    if (clearBtn && dialogEl) {
+      clearBtn.addEventListener("click", function () {
+        if (clearBtn.disabled) return;
+        dialogEl.hidden = false;
+        if (statusEl) {
+          statusEl.hidden = true;
+          statusEl.textContent = "";
+        }
+        if (confirmBtn) {
+          try { confirmBtn.focus(); } catch (e) {}
+        }
+      });
+    }
+    if (cancelBtn && dialogEl) {
+      cancelBtn.addEventListener("click", cancelDialog);
+    }
+    if (dialogEl) {
+      /* Esc closes; Tab stays inside the modal dialog (aria-modal="true"). */
+      dialogEl.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          cancelDialog();
+          return;
+        }
+        if (ev.key !== "Tab") return;
+        var focusables = Array.prototype.slice.call(
+          dialogEl.querySelectorAll("button:not([disabled]), a[href], input, select, textarea")
+        );
+        if (!focusables.length) return;
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+        if (ev.shiftKey && document.activeElement === first) {
+          ev.preventDefault();
+          last.focus();
+        } else if (!ev.shiftKey && document.activeElement === last) {
+          ev.preventDefault();
+          first.focus();
+        }
+      });
+    }
+    if (confirmBtn && dialogEl) {
+      confirmBtn.addEventListener("click", async function () {
+        confirmBtn.disabled = true;
+        var res = await clearAllDeviceData();
+        confirmBtn.disabled = false;
+        if (!res || !res.server_wiped) {
+          /* Honest failure: nothing was deleted, the pseudonym is kept and
+             the dialog stays open so "Confirm erase" is a real retry. */
+          if (statusEl) {
+            statusEl.hidden = false;
+            statusEl.textContent = "Could not reach the server — your data was NOT deleted; retry when online.";
+          }
+          try { confirmBtn.focus(); } catch (e) {}
+          return;
+        }
+        dialogEl.hidden = true;
+        if (stampEl) {
+          stampEl.textContent = "Consent status: no consent record on this device.";
+        }
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = "All local and server data for this device has been erased.";
+        }
+        if (clearBtn) {
+          try { clearBtn.focus(); } catch (e) {}
+        }
+      });
+    }
+    return { mounted: true };
+  }
+
+  function injectFooterPrivacyLink() {
+    /* Never link the privacy page to itself. */
+    if (document.querySelector('[data-screen-id="SCR-PRIV-01"]') ||
+        /^\/privacy(\/|$)/.test((typeof location !== "undefined" && location.pathname) || "")) {
+      return { mounted: false, reason: "already_on_privacy_page" };
+    }
+    var footer = document.querySelector(".zn-footer");
+    if (!footer) return { mounted: false };
+    if (footer.querySelector(".zn-footer-privacy-link")) {
+      return { mounted: true };
+    }
+    var p = document.createElement("p");
+    p.className = "zn-footer-links";
+    p.setAttribute("data-ruled-skip", "true");
+    var a = document.createElement("a");
+    a.className = "zn-footer-privacy-link";
+    a.href = "/privacy/";
+    a.textContent = "Privacy & data summary";
+    p.appendChild(a);
+    footer.appendChild(p);
+    return { mounted: true, link: a };
+  }
+
+  var ZivonPrivacy = {
+    wirePrivacyPage: wirePrivacyPage,
+    injectFooterPrivacyLink: injectFooterPrivacyLink,
+    clearAllDeviceData: clearAllDeviceData
+  };
+  window.ZivonPrivacy = ZivonPrivacy;
+
+  /* ---------------- §10.12 Voice dock (bottom sheet, DCR-002) -------------- */
+  var DOCK_STORAGE_KEY = "zivon.dock";
+  var CAPTIONS_STORAGE_KEY = "zivon.captions";
+  var IDENTITY_SEEN_KEY = "zivon.identity_seen";
+
+  var DOCK_STATE_COPY = {
+    "idle": "Mic dabao aur poochho",
+    "requesting-permission": "mic ki permission…",
+    "connecting": "jud rahe hain…",
+    "ready": "Mic dabao aur poochho",
+    "listening": "Sun rahe hain — pakad ke rakho",
+    "endpointing": "silence mila…",
+    "thinking": "soch rahe hain…",
+    "speaking": "",
+    "speaking_text": "TUTOR · TEXT",
+    "interrupted": "▍cut off",
+    "offline": "connection gaya — jo type karoge woh safe hai",
+    "error:mic-denied": "lesson chalta rahega",
+    "error:mic-in-use": "Mic kisi aur app mein busy hai — dubara koshish karein ya type karein.",
+    "error:mic-constraint": "Mic settings match nahi hui — niche type karke poochhein.",
+    "error:unsupported-browser": "Is browser mein mic available nahi hai — niche type karke poochhein.",
+    "error:no-input": "Kuch sunai nahi diya — mic dabakar bolen ya type karein.",
+    "error:no-match": "Saaf sunai nahi diya — phir se bolen ya type karein.",
+    "error:system-error": "Tutor ko dikkat aayi — dubara koshish karein ya type karein.",
+    "error:timeout": "Jawab mein deri ho rahi hai — niche type karke poochhein.",
+    "error:auth.invalid": "Session expire ho gaya — page refresh karein.",
+    "error:version.mismatch": "Naya version aaya hai — page refresh karein.",
+    "error:quota-exhausted": "30 credits/day · voice resets 00:00 · reading, sims, typing free",
+    "text_only": "30 credits/day · voice resets 00:00 · reading, sims, typing free"
+  };
+
+  function getInitialContainment() {
+    var saved = safeStorageGet(DOCK_STORAGE_KEY);
+    if (saved === "hidden") return "hidden";
+    /* A stored "expanded" starts collapsed on a new page load (never auto-expand, §10.12) */
+    return "collapsed";
+  }
+
+  /* Inline mic glyph (§10.12: never a literal "[mic]" string). Decorative
+     only — the accessible name lives on the button. */
+  function makeMicIcon() {
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "20");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    var body = document.createElementNS(ns, "rect");
+    body.setAttribute("x", "9");
+    body.setAttribute("y", "3");
+    body.setAttribute("width", "6");
+    body.setAttribute("height", "11");
+    body.setAttribute("rx", "3");
+    body.setAttribute("fill", "none");
+    body.setAttribute("stroke", "currentColor");
+    body.setAttribute("stroke-width", "2");
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("d", "M5 11a7 7 0 0 0 14 0M12 18v3");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "currentColor");
+    arc.setAttribute("stroke-width", "2");
+    arc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(body);
+    svg.appendChild(arc);
+    return svg;
+  }
+
+  var dockEarconCtx = null;
+  function playDockEarconOnce(kind) {
+    /* Created lazily inside a user gesture (dock open / mic press). */
+    try {
+      if (!dockEarconCtx) {
+        var Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) return;
+        dockEarconCtx = new Ctor();
+      }
+      if (dockEarconCtx.state === "suspended" && typeof dockEarconCtx.resume === "function") {
+        dockEarconCtx.resume();
+      }
+      playDockEarcon(kind, dockEarconCtx);
+    } catch (e) {}
+  }
+
+  function playDockEarcon(kind, audioCtx) {
+    /* Non-speech earcon cue (<= 3 sounds: start, stop, error; < 0.2s) */
+    var ctx = audioCtx;
+    if (!ctx) return;
+    if (typeof ctx.createOscillator !== "function" || typeof ctx.createGain !== "function") return;
+    try {
+      var now = typeof ctx.currentTime === "number" ? ctx.currentTime : 0;
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = kind === "start" ? 520 : (kind === "stop" ? 390 : 240);
+      g.gain.value = 0.04;
+      osc.connect(g);
+      if (ctx.destination) g.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch (e) {}
+  }
+
   var ZivonVoiceDock = {
-    doctrineReady: false, /* DCR-002: design-doctrine.md §10.12 is founder-gated */
+    doctrineReady: true, /* DCR-002 closed: design-doctrine.md §10.12 is now binding */
+    _activeClient: null,
+    _silenceTimer: null,
     getRegion: ensureVoiceDockRegion,
-    lazyMount: function () {
+    setContainment: function (nextContainment, persist) {
+      var region = ensureVoiceDockRegion();
+      if (!region) return "collapsed";
+      var c = nextContainment === "hidden" || nextContainment === "expanded" ? nextContainment : "collapsed";
+      region.setAttribute("data-containment", c);
+      var tabBtn = region.querySelector(".zn-dock-tab");
+      var stripEl = region.querySelector(".zn-dock-strip");
+      var sheetEl = region.querySelector(".zn-dock-sheet");
+      if (tabBtn) tabBtn.hidden = c !== "hidden";
+      if (stripEl) stripEl.hidden = c !== "collapsed";
+      if (sheetEl) sheetEl.hidden = c !== "expanded";
+      if (persist !== false) {
+        safeStorageSet(DOCK_STORAGE_KEY, c);
+      }
+      if (typeof document !== "undefined" && document.body) {
+        document.body.classList.toggle("zn-dock-present", c !== "hidden");
+        document.body.setAttribute("data-dock-containment", c);
+      }
+      /* EL-LES-01-051 identity line is "seen" only once the student has
+         actually expanded the sheet and could read it. */
+      var identity = region.querySelector(".zn-dock-identity");
+      if (identity && c === "expanded" && !identity.hidden) {
+        safeStorageSet(IDENTITY_SEEN_KEY, "true");
+      }
+      return c;
+    },
+    getContainment: function () {
+      var region = ensureVoiceDockRegion();
+      return (region && region.getAttribute("data-containment")) || getInitialContainment();
+    },
+    bindClient: function (client) {
+      var region = ensureVoiceDockRegion();
+      if (!region || !client) return;
+      ZivonVoiceDock._activeClient = client;
+      client.onStateChange(function (nextState, prevState, detail) {
+        ZivonVoiceDock.renderAgentState(nextState, detail || {});
+      });
+      ZivonVoiceDock.renderAgentState(client.getState(), {});
+    },
+    renderAgentState: function (agentState, detail) {
+      var region = ensureVoiceDockRegion();
+      if (!region || region.getAttribute("data-zn-dock-mounted") !== "true") return;
+      var st = String(agentState || "idle");
+      if (st === "error:quota-exhausted") st = "text_only";
+      region.setAttribute("data-agent-state", st);
+
+      if (ZivonVoiceDock._silenceTimer) {
+        clearTimeout(ZivonVoiceDock._silenceTimer);
+        ZivonVoiceDock._silenceTimer = null;
+      }
+
+      var stateLabel = region.querySelector(".zn-dock-state-label");
+      var captionEl = region.querySelector(".zn-dock-caption");
+      var stripCaptionEl = region.querySelector(".zn-dock-strip-caption");
+      var micBtns = region.querySelectorAll(".zn-dock-mic");
+      var stopBtn = region.querySelector(".zn-dock-stop");
+      var stampEl = region.querySelector(".zn-dock-stamp");
+      var sweepEl = region.querySelector(".zn-dock-sweep");
+      var barsEl = region.querySelector(".zn-dock-bars");
+      var textChipEl = region.querySelector(".zn-dock-text-chip");
+      var retryBtn = region.querySelector(".zn-dock-retry");
+      var helpRow = region.querySelector(".zn-dock-help-chips");
+      var transcriptList = region.querySelector(".zn-dock-transcript");
+      var typedInput = region.querySelector(".zn-dock-typed-input");
+      var captionsOn = safeStorageGet(CAPTIONS_STORAGE_KEY) !== "false";
+
+      var isListening = st === "listening";
+      var isSpeaking = st === "speaking" || st === "speaking_text";
+      var isThinking = st === "thinking";
+      var isEndpointing = st === "endpointing";
+      var isMicDenied = st === "error:mic-denied";
+      var isTextOnly = st === "text_only";
+      var isError = st.indexOf("error:") === 0;
+
+      micBtns.forEach(function (mb) {
+        mb.setAttribute("aria-pressed", isListening ? "true" : "false");
+        mb.disabled = isTextOnly || isMicDenied;
+      });
+      if (stopBtn) stopBtn.hidden = !isSpeaking;
+      if (stampEl) {
+        stampEl.hidden = !isMicDenied;
+        if (isMicDenied) stampEl.textContent = "MIC OFF";
+      }
+      if (sweepEl) sweepEl.hidden = !isThinking;
+      if (barsEl) {
+        barsEl.hidden = !(isListening || isEndpointing || st === "speaking");
+        barsEl.setAttribute("data-bars-mode", isEndpointing ? "endpointing" : (isListening ? "listening" : "speaking"));
+      }
+      if (textChipEl) {
+        textChipEl.hidden = st !== "speaking_text";
+      }
+      if (retryBtn) {
+        retryBtn.hidden = !(st === "error:mic-in-use" || st === "error:no-match" || st === "error:no-input" || st === "error:system-error" || st === "error:timeout");
+      }
+      if (helpRow) {
+        helpRow.hidden = !(st === "error:no-match" || st === "error:no-input" || st === "error:mic-denied" || isTextOnly);
+      }
+
+      var copy = DOCK_STATE_COPY[st] !== undefined ? DOCK_STATE_COPY[st] : (detail && detail.message ? String(detail.message) : st);
+      if (stateLabel) {
+        stateLabel.setAttribute("aria-live", isError ? "assertive" : "polite");
+        stateLabel.textContent = copy || (st === "speaking" ? "Bol rahe hain…" : "Ready");
+      }
+
+      /* Sync transcript & live caption from active client if present */
+      var client = ZivonVoiceDock._activeClient;
+      var tList = client && typeof client.getTranscripts === "function" ? client.getTranscripts() : [];
+      var latestPartial = "";
+      var latestTutorText = "";
+      for (var i = 0; i < tList.length; i++) {
+        if (tList[i].kind === "partial") latestPartial = tList[i].text;
+        if (tList[i].kind === "tutor") latestTutorText = tList[i].text;
+      }
+
+      var liveCapText = copy;
+      if (st === "speaking" || st === "speaking_text") {
+        liveCapText = captionsOn ? (latestTutorText || "Bol rahe hain…") : "";
+      } else if (st === "listening" && latestPartial && captionsOn) {
+        liveCapText = latestPartial;
+      } else if (st === "interrupted") {
+        liveCapText = (latestTutorText ? latestTutorText.slice(0, 48) + " " : "") + "▍cut off";
+      }
+
+      if (captionEl) {
+        captionEl.hidden = !captionsOn;
+        captionEl.textContent = liveCapText;
+      }
+      if (stripCaptionEl) {
+        stripCaptionEl.textContent = liveCapText || "Mic dabao aur poochho";
+      }
+
+      if (transcriptList && client) {
+        while (transcriptList.firstChild) transcriptList.removeChild(transcriptList.firstChild);
+        var finals = tList.filter(function (item) { return item.kind === "student" || item.kind === "tutor"; });
+        if (!finals.length) {
+          var emptyLi = document.createElement("p");
+          emptyLi.className = "zn-dock-transcript-empty";
+          emptyLi.textContent = "Abhi koi sawaal nahi poochha gaya.";
+          transcriptList.appendChild(emptyLi);
+        } else {
+          finals.slice(-6).forEach(function (item) {
+            var p = document.createElement("p");
+            p.className = "zn-dock-line zn-dock-line-" + item.kind;
+            var prefix = item.kind === "student" ? "You: " : "Tutor: ";
+            var suffix = item.interrupted ? " ▍cut off" : "";
+            p.textContent = prefix + item.text + suffix;
+            if (item.interrupted) p.setAttribute("data-cut-off", "true");
+            transcriptList.appendChild(p);
+          });
+        }
+      }
+
+      if (isMicDenied && typedInput) {
+        ZivonVoiceDock.setContainment("expanded", false);
+        try { typedInput.focus(); } catch (e) {}
+      }
+
+      /* Silence-close: 5 s after a completed turn reaches ready/idle, return expanded -> collapsed (§10.12) */
+      if ((st === "ready" || st === "idle") && detail && detail.turn_id && ZivonVoiceDock.getContainment() === "expanded") {
+        ZivonVoiceDock._silenceTimer = setTimeout(function () {
+          if (ZivonVoiceDock.getContainment() === "expanded") {
+            var cur = ZivonVoiceDock._activeClient ? ZivonVoiceDock._activeClient.getState() : "ready";
+            if (cur === "ready" || cur === "idle") {
+              ZivonVoiceDock.setContainment("collapsed", true);
+            }
+          }
+        }, 5000);
+      }
+    },
+    lazyMount: function (opts) {
+      var options = opts || {};
       var region = ensureVoiceDockRegion();
       if (!ZivonVoiceDock.doctrineReady) {
         return { mounted: false, reason: "founder-gated: design-doctrine.md §10.12 absent (DCR-002)" };
       }
-      return { mounted: Boolean(region), region: region };
+      if (!region) {
+        return { mounted: false, reason: "not_lesson_page" };
+      }
+      /* Consent gate (§10.14): until consent is accepted the region stays hidden
+         unless forceMount is passed for direct unit testing. */
+      var consentVal = safeStorageGet("zivon.consent");
+      if (!options.force && consentVal !== "granted") {
+        region.hidden = true;
+        return { mounted: false, reason: "consent_required", region: region };
+      }
+      if (region.getAttribute("data-zn-dock-mounted") === "true") {
+        region.hidden = false;
+        return { mounted: true, region: region, client: ZivonVoiceDock._activeClient };
+      }
+
+      region.setAttribute("data-zn-dock-mounted", "true");
+      region.setAttribute("data-zn-mounted", "true");
+      region.setAttribute("role", "region");
+      region.setAttribute("aria-label", "Voice tutor dock");
+      region.setAttribute("data-ruled-skip", "true");
+      region.hidden = false;
+
+      var snap = buildContextSnapshot();
+      var anchorBlockId = snap.block_id || "b-01";
+      var anchorBlockType = snap.block_type || "lesson";
+      var anchorLabelText = anchorBlockId + " · " + anchorBlockType.replace(/_/g, " ");
+
+      /* 1. Hidden state: 44 px bottom-right paper tab */
+      var tabBtn = document.createElement("button");
+      tabBtn.type = "button";
+      tabBtn.className = "zn-dock-tab";
+      tabBtn.setAttribute("data-element-id", "EL-LES-01-042");
+      tabBtn.setAttribute("aria-label", "Open voice tutor dock");
+      tabBtn.appendChild(makeMicIcon());
+      var tabWord = document.createElement("span");
+      tabWord.textContent = "Ask";
+      tabBtn.appendChild(tabWord);
+
+      /* 2. Collapsed state: 92 px strip */
+      var stripEl = document.createElement("div");
+      stripEl.className = "zn-dock-strip";
+      var grabStrip = document.createElement("button");
+      grabStrip.type = "button";
+      grabStrip.className = "zn-dock-grab";
+      grabStrip.setAttribute("aria-label", "Expand voice tutor sheet");
+      grabStrip.textContent = "—";
+      var stripCap = document.createElement("p");
+      stripCap.className = "zn-dock-strip-caption";
+      stripCap.textContent = "Mic dabao aur poochho";
+      var stripTypeBtn = document.createElement("button");
+      stripTypeBtn.type = "button";
+      stripTypeBtn.className = "zn-dock-type-btn";
+      stripTypeBtn.textContent = "Type";
+      var stripHideBtn = document.createElement("button");
+      stripHideBtn.type = "button";
+      stripHideBtn.className = "zn-dock-hide-btn";
+      stripHideBtn.setAttribute("aria-label", "Hide voice dock to tab");
+      stripHideBtn.textContent = "Hide";
+      var stripMicBtn = document.createElement("button");
+      stripMicBtn.type = "button";
+      stripMicBtn.className = "zn-dock-mic zn-dock-mic-strip";
+      stripMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
+      stripMicBtn.setAttribute("aria-pressed", "false");
+      stripMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
+      stripMicBtn.appendChild(makeMicIcon());
+      var stripMicWord = document.createElement("span");
+      stripMicWord.className = "zn-sr-only";
+      stripMicWord.textContent = "Speak";
+      stripMicBtn.appendChild(stripMicWord);
+      [grabStrip, stripCap, stripTypeBtn, stripHideBtn, stripMicBtn].forEach(function (el) { stripEl.appendChild(el); });
+
+      /* 3. Expanded state: <= 60 dvh sheet */
+      var sheetEl = document.createElement("div");
+      sheetEl.className = "zn-dock-sheet";
+
+      var grabSheet = document.createElement("button");
+      grabSheet.type = "button";
+      grabSheet.className = "zn-dock-grab";
+      grabSheet.setAttribute("aria-label", "Collapse voice tutor sheet");
+      grabSheet.textContent = "— Collapse";
+
+      var topRow = document.createElement("div");
+      topRow.className = "zn-dock-top-row";
+      var anchorChip = document.createElement("button");
+      anchorChip.type = "button";
+      anchorChip.className = "zn-dock-anchor-chip";
+      anchorChip.setAttribute("data-element-id", "EL-LES-01-050");
+      anchorChip.setAttribute("data-anchor-block", anchorBlockId);
+      anchorChip.textContent = "Asking about: " + anchorLabelText;
+
+      var identityLine = document.createElement("p");
+      identityLine.className = "zn-dock-identity";
+      identityLine.setAttribute("data-element-id", "EL-LES-01-051");
+      identityLine.textContent = "I'm an AI tutor — I see this lesson page, not your room.";
+      /* Marked seen only when the sheet is actually expanded (setContainment),
+         not merely mounted behind a collapsed strip. */
+      if (safeStorageGet(IDENTITY_SEEN_KEY) === "true") {
+        identityLine.hidden = true;
+      }
+      topRow.appendChild(anchorChip);
+      topRow.appendChild(identityLine);
+
+      /* State indicator row (EL-LES-01-044) */
+      var stateRow = document.createElement("div");
+      stateRow.className = "zn-dock-state-row";
+      stateRow.setAttribute("data-element-id", "EL-LES-01-044");
+      var stampEl = document.createElement("span");
+      stampEl.className = "zn-dock-stamp";
+      stampEl.hidden = true;
+      var textChipEl = document.createElement("span");
+      textChipEl.className = "zn-dock-text-chip";
+      textChipEl.textContent = "TUTOR · TEXT";
+      textChipEl.hidden = true;
+      var stateLabel = document.createElement("span");
+      stateLabel.className = "zn-dock-state-label";
+      stateLabel.setAttribute("role", "status");
+      stateLabel.setAttribute("aria-live", "polite");
+      stateLabel.textContent = "Mic dabao aur poochho";
+      var sweepEl = document.createElement("div");
+      sweepEl.className = "zn-dock-sweep";
+      sweepEl.setAttribute("aria-hidden", "true");
+      sweepEl.hidden = true;
+      var barsEl = document.createElement("div");
+      barsEl.className = "zn-dock-bars";
+      barsEl.setAttribute("aria-hidden", "true");
+      barsEl.hidden = true;
+      for (var bIdx = 0; bIdx < 5; bIdx++) {
+        var barSpan = document.createElement("span");
+        barSpan.className = "zn-dock-bar";
+        barsEl.appendChild(barSpan);
+      }
+      var retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.className = "zn-dock-retry";
+      retryBtn.textContent = "Retry";
+      retryBtn.hidden = true;
+      [stampEl, textChipEl, stateLabel, sweepEl, barsEl, retryBtn].forEach(function (el) { stateRow.appendChild(el); });
+
+      /* Transcript panel (EL-LES-01-047) */
+      var transcriptPanel = document.createElement("div");
+      transcriptPanel.className = "zn-dock-transcript";
+      transcriptPanel.setAttribute("data-element-id", "EL-LES-01-047");
+      transcriptPanel.setAttribute("aria-live", "polite");
+      var emptyLine = document.createElement("p");
+      emptyLine.className = "zn-dock-transcript-empty";
+      emptyLine.textContent = "Abhi koi sawaal nahi poochha gaya.";
+      transcriptPanel.appendChild(emptyLine);
+
+      /* Live caption line (EL-LES-01-048) + toggle (EL-LES-01-049) */
+      var captionRow = document.createElement("div");
+      captionRow.className = "zn-dock-caption-row";
+      var captionEl = document.createElement("p");
+      captionEl.className = "zn-dock-caption";
+      captionEl.setAttribute("data-element-id", "EL-LES-01-048");
+      captionEl.setAttribute("aria-live", "polite");
+      captionEl.textContent = "Mic dabao aur poochho";
+      var capToggleLabel = document.createElement("label");
+      capToggleLabel.className = "zn-dock-cap-toggle";
+      capToggleLabel.setAttribute("data-element-id", "EL-LES-01-049");
+      var capCheckbox = document.createElement("input");
+      capCheckbox.type = "checkbox";
+      capCheckbox.checked = safeStorageGet(CAPTIONS_STORAGE_KEY) !== "false";
+      var capTxt = document.createElement("span");
+      capTxt.textContent = "Captions";
+      capToggleLabel.appendChild(capCheckbox);
+      capToggleLabel.appendChild(capTxt);
+      captionRow.appendChild(captionEl);
+      captionRow.appendChild(capToggleLabel);
+
+      /* Controls row: 56 px mic disc (EL-LES-01-043) + stop button (EL-LES-01-046) */
+      var controlsRow = document.createElement("div");
+      controlsRow.className = "zn-dock-controls-row";
+      var sheetMicBtn = document.createElement("button");
+      sheetMicBtn.type = "button";
+      sheetMicBtn.className = "zn-dock-mic zn-dock-mic-sheet";
+      sheetMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
+      sheetMicBtn.setAttribute("aria-pressed", "false");
+      sheetMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
+      sheetMicBtn.appendChild(makeMicIcon());
+      var sheetMicWord = document.createElement("span");
+      sheetMicWord.textContent = "Speak";
+      sheetMicBtn.appendChild(sheetMicWord);
+
+      var stopBtn = document.createElement("button");
+      stopBtn.type = "button";
+      stopBtn.className = "zn-dock-stop";
+      stopBtn.setAttribute("data-element-id", "EL-LES-01-046");
+      stopBtn.textContent = "■ Stop";
+      stopBtn.hidden = true;
+      controlsRow.appendChild(sheetMicBtn);
+      controlsRow.appendChild(stopBtn);
+
+      /* Typed fallback form (EL-LES-01-052) */
+      var typedForm = document.createElement("form");
+      typedForm.className = "zn-dock-typed-form";
+      typedForm.setAttribute("data-element-id", "EL-LES-01-052");
+      var typedInput = document.createElement("input");
+      typedInput.type = "text";
+      typedInput.className = "zn-dock-typed-input";
+      typedInput.placeholder = "Apna doubt yahan type karein…";
+      typedInput.setAttribute("aria-label", "Type your physics doubt");
+      var typedSend = document.createElement("button");
+      typedSend.type = "submit";
+      typedSend.className = "zn-dock-typed-send";
+      typedSend.textContent = "Send";
+      typedForm.appendChild(typedInput);
+      typedForm.appendChild(typedSend);
+
+      /* Help chip row (EL-LES-01-053) */
+      var helpRow = document.createElement("div");
+      helpRow.className = "zn-dock-help-chips";
+      helpRow.setAttribute("data-element-id", "EL-LES-01-053");
+      helpRow.setAttribute("role", "list");
+      helpRow.hidden = true;
+      [
+        "Is graph ka slope kya batata hai?",
+        "Yeh formula kab lagta hai?",
+        "Step by step samjhao"
+      ].forEach(function (phrase) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "zn-dock-help-chip";
+        chip.setAttribute("role", "listitem");
+        chip.textContent = phrase;
+        chip.addEventListener("click", function () {
+          typedInput.value = phrase;
+          try { typedInput.focus(); } catch (e) {}
+        });
+        helpRow.appendChild(chip);
+      });
+
+      /* Footer entries: Memory view (EL-LES-01-054) + Settings entry (EL-LES-01-055) */
+      var metaRow = document.createElement("div");
+      metaRow.className = "zn-dock-meta-row";
+      var memDetails = document.createElement("details");
+      memDetails.className = "zn-dock-memory";
+      memDetails.setAttribute("data-element-id", "EL-LES-01-054");
+      var memSum = document.createElement("summary");
+      memSum.textContent = "What the tutor remembers";
+      var memList = document.createElement("p");
+      memList.className = "zn-dock-memory-list";
+      memList.textContent = "Covered this session: " + anchorLabelText;
+      var memClearBtn = document.createElement("button");
+      memClearBtn.type = "button";
+      memClearBtn.className = "zn-dock-memory-clear";
+      memClearBtn.textContent = "Clear session memory";
+      memClearBtn.addEventListener("click", function () {
+        /* Two-step clear with an explicit confirm state (EL-LES-01-054
+           `cleared-confirm`), not a one-tap destructive action. */
+        if (memDetails.getAttribute("data-state") !== "confirm") {
+          memDetails.setAttribute("data-state", "confirm");
+          memClearBtn.textContent = "Tap again to confirm clear";
+          return;
+        }
+        memDetails.setAttribute("data-state", "cleared");
+        memClearBtn.textContent = "Clear session memory";
+        memList.textContent = "Nothing yet - this is a fresh session.";
+        if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+          window.ZivonEvents.emit("EVT-data_cleared", { scope: "memory" });
+        }
+      });
+      memDetails.appendChild(memSum);
+      memDetails.appendChild(memList);
+      memDetails.appendChild(memClearBtn);
+
+      var settingsBtn = document.createElement("button");
+      settingsBtn.type = "button";
+      settingsBtn.className = "zn-dock-settings-btn";
+      settingsBtn.setAttribute("data-element-id", "EL-LES-01-055");
+      /* No settings sheet exists: the control scrolls to the page language bar,
+      so it is labelled for what it does (EL-LES-01-055). */
+      settingsBtn.textContent = "Language";
+      settingsBtn.addEventListener("click", function () {
+        var langBar = document.querySelector(".zn-lang-bar");
+        if (langBar && typeof langBar.scrollIntoView === "function") {
+          langBar.scrollIntoView({ block: "start" });
+        }
+      });
+      var sheetHideBtn = document.createElement("button");
+      sheetHideBtn.type = "button";
+      sheetHideBtn.className = "zn-dock-hide-btn";
+      sheetHideBtn.textContent = "Hide dock";
+      metaRow.appendChild(memDetails);
+      metaRow.appendChild(settingsBtn);
+      metaRow.appendChild(sheetHideBtn);
+
+      [grabSheet, topRow, stateRow, transcriptPanel, captionRow, controlsRow, typedForm, helpRow, metaRow].forEach(function (el) {
+        sheetEl.appendChild(el);
+      });
+
+      region.appendChild(tabBtn);
+      region.appendChild(stripEl);
+      region.appendChild(sheetEl);
+
+      /* Wire containment interactions */
+      tabBtn.addEventListener("click", function () {
+        playDockEarconOnce("start");
+        ZivonVoiceDock.setContainment("collapsed", true);
+      });
+      grabStrip.addEventListener("click", function () {
+        playDockEarconOnce("start");
+        ZivonVoiceDock.setContainment("expanded", true);
+      });
+      stripTypeBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("expanded", true);
+        try { typedInput.focus(); } catch (e) {}
+      });
+      stripHideBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("hidden", true);
+      });
+      sheetHideBtn.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("hidden", true);
+      });
+      grabSheet.addEventListener("click", function () {
+        ZivonVoiceDock.setContainment("collapsed", true);
+      });
+
+      capCheckbox.addEventListener("change", function () {
+        safeStorageSet(CAPTIONS_STORAGE_KEY, capCheckbox.checked ? "true" : "false");
+        captionEl.hidden = !capCheckbox.checked;
+      });
+
+      anchorChip.addEventListener("click", function () {
+        var bid = anchorChip.getAttribute("data-anchor-block") || "b-01";
+        highlightBlocks([bid]);
+        var target = document.getElementById(bid);
+        if (target && typeof target.scrollIntoView === "function") {
+          target.scrollIntoView({ block: "center" });
+        }
+      });
+
+      function ensureClientWired() {
+        if (!ZivonVoiceDock._activeClient) {
+          var client = createVoiceClient(options.clientOptions || {});
+          ZivonVoiceDock.bindClient(client);
+        }
+        return ZivonVoiceDock._activeClient;
+      }
+
+      function handleMicTrigger() {
+        /* Echo guard (§10.13): pressing the dock mic immediately stops read-aloud */
+        stopReadAloud();
+        ZivonVoiceDock.setContainment("expanded", true);
+        playDockEarconOnce("start");
+        var client = ensureClientWired();
+        var cur = client.getState();
+        if (cur === "speaking" || cur === "thinking" || cur === "speaking_text") {
+          client.bargeIn("ptt_press");
+          return;
+        }
+        if (cur === "listening") {
+          client.endAudio();
+          try { sheetMicBtn.focus(); } catch (e) {}
+          return;
+        }
+        /* Press-and-hold capture path: permission FIRST (user gesture), then
+           connect, then queue the turn behind session.ready (M2). Denied or
+           unsupported browsers land in an honest error state with the typed
+           field open — never a fake "listening". */
+        var startTurn = function () {
+          var viaPointer = pointerHeld;
+          if (!client.hasMicrophone() && typeof client.requestMicPermission === "function") {
+            client.requestMicPermission().then(function (res) {
+              if (!res || !res.ok) return; /* state machine shows the reason */
+              /* The student released while the permission prompt was open:
+                 do not start recording after the fact. */
+              if (viaPointer && !pointerHeld) return;
+              if (client.getState() === "idle" || client.getState() === "offline") {
+                client.connect();
+              }
+              client.startListening("doubt");
+            });
+            return;
+          }
+          if (client.getState() === "idle" || client.getState() === "offline") {
+            client.connect();
+          }
+          client.startListening("doubt");
+        };
+        startTurn();
+      }
+
+      /* Hold-to-talk is the default (ADR-0018): pointerdown starts, release
+         ends. The synthetic click path stays for click/keyboard activation;
+         a real pointer sequence suppresses the trailing click. */
+      var suppressMicClick = false;
+      var pointerHeld = false;
+      function micPointerDown(ev) {
+        if (ev.button !== undefined && ev.button !== 0) return;
+        suppressMicClick = true;
+        pointerHeld = true;
+        handleMicTrigger();
+      }
+      function micPointerUp() {
+        pointerHeld = false;
+        var client = ZivonVoiceDock._activeClient;
+        if (client && client.getState() === "listening") client.endAudio();
+      }
+      [stripMicBtn, sheetMicBtn].forEach(function (btn) {
+        btn.addEventListener("pointerdown", micPointerDown);
+        btn.addEventListener("pointerup", micPointerUp);
+        btn.addEventListener("pointercancel", micPointerUp);
+        btn.addEventListener("pointerleave", function () {
+          if (suppressMicClick) micPointerUp();
+        });
+      });
+      function micClick(ev) {
+        if (suppressMicClick) {
+          suppressMicClick = false;
+          return;
+        }
+        handleMicTrigger();
+      }
+      stripMicBtn.addEventListener("click", micClick);
+      sheetMicBtn.addEventListener("click", micClick);
+
+      stopBtn.addEventListener("click", function () {
+        playDockEarconOnce("stop");
+        var client = ensureClientWired();
+        client.bargeIn("stop_button");
+        try { sheetMicBtn.focus(); } catch (e) {}
+      });
+
+      retryBtn.addEventListener("click", function () {
+        var client = ensureClientWired();
+        client.reconnect();
+      });
+
+      typedForm.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var txt = (typedInput.value || "").trim();
+        if (!txt) return;
+        stopReadAloud();
+        var client = ensureClientWired();
+        client.sendTypedDoubt(txt);
+        typedInput.value = "";
+        ZivonVoiceDock.renderAgentState(client.getState(), {});
+      });
+
+      /* Space is a page-wide talk key ONLY when focus is not on a control:
+         hijacking Space inside buttons/inputs/links would make those controls
+         unusable (§10.12 keyboard rule + normal browser behaviour). */
+      function isInteractiveTarget(target) {
+        if (!target || typeof target.closest !== "function") return false;
+        return Boolean(
+          target.closest(
+            "button, input, select, textarea, a, summary, [contenteditable], [role='textbox'], [role='button']"
+          )
+        );
+      }
+
+      /* Keyboard shortcuts (§10.12): Space hold = talk, Esc = stop/interrupt then collapse, Enter = send typed */
+      region.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape") {
+          var client = ZivonVoiceDock._activeClient;
+          var cur = client ? client.getState() : "idle";
+          if (cur === "speaking" || cur === "thinking" || cur === "speaking_text" || cur === "listening") {
+            ev.preventDefault();
+            if (cur === "listening") client.endAudio();
+            else client.bargeIn("escape_key");
+            try { sheetMicBtn.focus(); } catch (e) {}
+          } else if (ZivonVoiceDock.getContainment() === "expanded") {
+            ev.preventDefault();
+            ZivonVoiceDock.setContainment("collapsed", true);
+            try { stripMicBtn.focus(); } catch (e) {}
+          }
+        } else if (ev.key === " " && !isInteractiveTarget(ev.target)) {
+          var client2 = ensureClientWired();
+          if (client2.getState() !== "listening" && !ev.repeat) {
+            ev.preventDefault();
+            stopReadAloud();
+            ZivonVoiceDock.setContainment("expanded", true);
+            client2.startListening("space_hold");
+          }
+        }
+      });
+
+      region.addEventListener("keyup", function (ev) {
+        if (ev.key === " " && !isInteractiveTarget(ev.target)) {
+          var client = ZivonVoiceDock._activeClient;
+          if (client && client.getState() === "listening") {
+            ev.preventDefault();
+            client.endAudio();
+            try { sheetMicBtn.focus(); } catch (e) {}
+          }
+        }
+      });
+
+      /* The anchor chip and the context snapshot follow the block nearest the
+         viewport centre, so "Asking about" matches what the student is
+         actually reading (§10.12 interaction 3 / F-ADD-VOI-01). */
+      var anchorRafTimer = null;
+      function updateAnchorChip() {
+        var snapshot = buildContextSnapshot();
+        var bid = snapshot.block_id || "b-01";
+        anchorChip.setAttribute("data-anchor-block", bid);
+        anchorChip.textContent = "Asking about: " + bid + " · " +
+          String(snapshot.block_type || "text").replace(/_/g, " ");
+      }
+      window.addEventListener("scroll", function () {
+        if (anchorRafTimer) return;
+        anchorRafTimer = setTimeout(function () {
+          anchorRafTimer = null;
+          updateAnchorChip();
+        }, 150);
+      }, { passive: true });
+      updateAnchorChip();
+
+      var initContainment = getInitialContainment();
+      ZivonVoiceDock.setContainment(initContainment, false);
+      ZivonVoiceDock.renderAgentState("idle", {});
+      return { mounted: true, region: region };
     }
   };
   window.ZivonVoiceDock = ZivonVoiceDock;
@@ -857,6 +2629,11 @@
     var checkedChip = document.querySelector('.zn-lang-row .zn-chip[aria-checked="true"]');
     var langPref = checkedChip ? (checkedChip.getAttribute("data-lang") || checkedChip.textContent.trim()) : (document.documentElement.lang || "en");
     var visibleBlocks = [];
+    var blockTypes = {};
+    var viewportCentre = (typeof window !== "undefined" && window.innerHeight ? window.innerHeight : 800) / 2;
+    var bestBlockId = null;
+    var bestBlockType = "text";
+    var bestDistance = Infinity;
     document.querySelectorAll(".zn-page [id]").forEach(function (el) {
       if (visibleBlocks.length >= 12) return;
       /* SVG/MathML elements expose className as an SVGAnimatedString, not a
@@ -874,11 +2651,24 @@
       else if (tag.indexOf("zn-example") !== -1) bType = "worked_example";
       else if (tag.indexOf("zn-reveal") !== -1) bType = "reveal";
       var h = el.querySelector("h3, legend, figcaption");
+      blockTypes[el.id] = bType;
       visibleBlocks.push({
         id: el.id,
         type: bType,
         title: h ? h.textContent.trim().slice(0, 80) : el.id
       });
+      /* Anchor = the block nearest the viewport centre (§10.12 "the block
+         being discussed"), not simply the first block on the page. */
+      if (typeof el.getBoundingClientRect === "function") {
+        var rect = el.getBoundingClientRect();
+        var centre = rect.top + rect.height / 2;
+        var dist = Math.abs(centre - viewportCentre);
+        if (dist < bestDistance) {
+          bestDistance = dist;
+          bestBlockId = el.id;
+          bestBlockType = bType;
+        }
+      }
     });
 
     var simStates = [];
@@ -899,8 +2689,10 @@
     var docEl = document.documentElement;
     var maxScroll = Math.max(1, (docEl.scrollHeight || 1) - (window.innerHeight || 1));
     var scrollPct = Math.min(100, Math.max(0, Math.round(((window.scrollY || 0) / maxScroll) * 100)));
-    var activeBlock = explicitBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
+    var activeBlock = explicitBlockId || bestBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
+    var activeBlockType = blockTypes[activeBlock] || bestBlockType || "text";
     var firstSim = simStates[0] || null;
+    var activeSim = simStates.filter(function (s) { return s.block_id === activeBlock; })[0] || firstSim;
 
     var snap = {
       topic_id: route.topic_slug || (titleEl ? titleEl.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : "topic"),
@@ -908,9 +2700,9 @@
       class: parseInt(String(route.course_id || "9").replace(/\D+/g, ""), 10) || 9,
       chapter: titleEl ? titleEl.textContent.trim().slice(0, 120) : "",
       block_id: activeBlock,
-      block_type: firstSim && activeBlock === firstSim.block_id ? "simulation" : "text",
-      sim_id: firstSim ? firstSim.block_id : null,
-      sim_vars: firstSim ? firstSim.controls : {},
+      block_type: activeBlockType,
+      sim_id: activeSim ? activeSim.block_id : null,
+      sim_vars: activeSim ? activeSim.controls : {},
       visible_blocks: visibleBlocks,
       sim_states: simStates,
       last_check: lastCheckState,
@@ -1027,13 +2819,12 @@
      - Capture constraint ladder (16 kHz mono + AEC/NS/AGC -> drop sampleRate ->
        drop channelCount) and GainNode ducking values (never track.enabled=false)
        per skills/zivon-audio-engineering-skills/ & ADR-0010.
-     - PROTOCOL/STATE-MACHINE HARNESS ONLY. Received audio frames are parsed
-       and counted (segment/sequence bookkeeping, "speaking" entered once a
-       small frame count arrives) but this client does NOT decode Opus or
-       schedule playback, and the gain nodes are bookkeeping values that are
-       NOT connected to an output graph. Audible playback + wired ducking is a
-       follow-up when the voice backend and a decode path exist; the TIMELINE
-       entry says the same (no jitter-buffer/ducking-playback claim).
+     - WEB AUDIO API PLAYBACK (ws-contract.md §3): server downlink is 8-byte
+       header + little-endian PCM16 mono at ZIVON_VOICE_TTS_SAMPLE_RATE (48 kHz
+       default). Client decodes PCM16 to Float32, buffers toward 60-120 ms
+       (never hard-scheduling < 150 ms ahead on first chunk), schedules
+       AudioBufferSourceNodes through agentGainNode -> audioCtx.destination,
+       and ramps gain down ~50 ms + stops sources on interrupt/barge-in/offline.
      - Reconnect: capped exponential backoff with jitter after an unexpected
        close; a pong timeout closes the socket before reporting offline.
      - Degraded text fallback (typed transcript via audio.end) & turn latency
@@ -1084,6 +2875,21 @@
     };
   }
 
+  function decodePcm16ToFloat32(payloadBytes) {
+    var bytes = payloadBytes instanceof Uint8Array
+      ? payloadBytes
+      : new Uint8Array(payloadBytes || 0);
+    var sampleCount = Math.floor(bytes.byteLength / 2);
+    var out = new Float32Array(sampleCount);
+    if (!sampleCount) return out;
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, sampleCount * 2);
+    for (var i = 0; i < sampleCount; i++) {
+      var s = dv.getInt16(i * 2, true); /* little-endian PCM16 */
+      out[i] = s < 0 ? s / 32768.0 : s / 32767.0;
+    }
+    return out;
+  }
+
   function mapServerErrorToCode(code) {
     var c = String(code || "system-error");
     if (c === "credit.over_daily" || c === "credit.over_session" || c === "quota-exhausted") {
@@ -1130,11 +2936,31 @@
     var micSeq = 0;
     var expectedTtsSeq = {};
     var pendingFrames = [];
+    var pcmJitterQueue = [];
+    var jitterBufferedMs = 0;
+    var jitterTargetMs = opts.jitter_target_ms || 80;
+    var minLeadTimeS = (opts.min_lead_ms !== undefined ? opts.min_lead_ms : 150) / 1000.0;
+    var ttsSampleRate = opts.tts_sample_rate || (typeof window !== "undefined" && window.ZIVON_VOICE_TTS_SAMPLE_RATE) || 48000;
+    var nextPlayTimeS = 0;
+    var activeSources = [];
+    var scheduledChunksCount = 0;
     var minFramesBeforeSpeaking = opts.min_frames_before_speaking || opts.min_buffer_frames || 3;
     var audioCtx = opts.audioContext || null;
     var micGainNode = null;
     var agentGainNode = null;
+    var agentGainConnected = false;
     var mediaStream = null;
+    /* Capture path: MediaStreamSource -> ScriptProcessorNode -> muted gain ->
+       destination. Never enabled unless a real MediaStream exists. */
+    var captureProcessor = null;
+    var captureSource = null;
+    var captureSink = null;
+    var captureResidual = [];
+    var captureFramesSent = 0;
+    /* A mic press during `connecting` must start once session.ready lands
+       (first-visit race: connect() then startListening() used to hit offline). */
+    var pendingStartHint = null;
+    var creditState = "ok";
     var pingTimer = null;
     var reconnectTimer = null;
     var reconnectAttempts = 0;
@@ -1157,6 +2983,14 @@
          ducked at 0.2 forever. */
       if (nextState === "offline" || nextState === "interrupted" ||
           nextState === "error" || String(nextState).indexOf("error:") === 0) {
+        if (nextState === "offline" || nextState === "interrupted") {
+          stopPlaybackImmediately();
+        }
+        /* Any terminal state stops capture: never leave a live processor
+           running while the dock shows an error or offline. `interrupted`
+           keeps the stream because barge-in transitions straight back to
+           listening; everything else also stops the track. */
+        stopCapture(nextState !== "interrupted");
         setDucking("normal");
       }
       if (nextState === "offline") {
@@ -1198,7 +3032,102 @@
           agentGainNode = audioCtx.createGain();
           agentGainNode.gain.value = 1.0;
         }
+        if (agentGainNode && !agentGainConnected && audioCtx.destination && typeof agentGainNode.connect === "function") {
+          try {
+            agentGainNode.connect(audioCtx.destination);
+            agentGainConnected = true;
+          } catch (e) {}
+        }
       }
+    }
+
+    function scheduleJitterBuffer(forceFlush) {
+      if (!pcmJitterQueue.length) return;
+      ensureAudioGraph();
+      if (!audioCtx || typeof audioCtx.createBuffer !== "function" || typeof audioCtx.createBufferSource !== "function") {
+        pcmJitterQueue = [];
+        jitterBufferedMs = 0;
+        return;
+      }
+      if (!forceFlush && nextPlayTimeS === 0 && jitterBufferedMs < 60 && pcmJitterQueue.length < minFramesBeforeSpeaking) {
+        return;
+      }
+      var nowS = typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : 0;
+      if (nextPlayTimeS < nowS + minLeadTimeS) {
+        /* Never hard-schedule < 150 ms ahead on initial/underrun start (ws-contract.md §2/§3) */
+        nextPlayTimeS = nowS + Math.max(minLeadTimeS, jitterTargetMs / 1000.0);
+      }
+      if (agentGainNode && agentGainNode.gain) {
+        agentGainNode.gain.value = 1.0;
+      }
+      while (pcmJitterQueue.length > 0) {
+        var chunk = pcmJitterQueue.shift();
+        var samples = chunk.samples;
+        if (!samples || !samples.length) continue;
+        try {
+          var buf = audioCtx.createBuffer(1, samples.length, ttsSampleRate);
+          if (typeof buf.copyToChannel === "function") {
+            buf.copyToChannel(samples, 0);
+          } else if (typeof buf.getChannelData === "function") {
+            var ch = buf.getChannelData(0);
+            if (ch && typeof ch.set === "function") ch.set(samples);
+          }
+          var src = audioCtx.createBufferSource();
+          src.buffer = buf;
+          if (agentGainNode && typeof src.connect === "function") {
+            src.connect(agentGainNode);
+          } else if (audioCtx.destination && typeof src.connect === "function") {
+            src.connect(audioCtx.destination);
+          }
+          var startAt = nextPlayTimeS;
+          var durS = samples.length / ttsSampleRate;
+          nextPlayTimeS = startAt + durS;
+          activeSources.push(src);
+          scheduledChunksCount += 1;
+          src.onended = (function (s) {
+            return function () {
+              var idx = activeSources.indexOf(s);
+              if (idx !== -1) activeSources.splice(idx, 1);
+            };
+          })(src);
+          if (typeof src.start === "function") {
+            src.start(startAt);
+          }
+        } catch (e) {}
+      }
+      jitterBufferedMs = 0;
+    }
+
+    function stopPlaybackImmediately() {
+      pcmJitterQueue = [];
+      jitterBufferedMs = 0;
+      nextPlayTimeS = 0;
+      if (audioCtx && agentGainNode && agentGainNode.gain) {
+        var nowS = typeof audioCtx.currentTime === "number" ? audioCtx.currentTime : 0;
+        try {
+          if (typeof agentGainNode.gain.cancelScheduledValues === "function") {
+            agentGainNode.gain.cancelScheduledValues(nowS);
+          }
+          if (typeof agentGainNode.gain.setValueAtTime === "function") {
+            agentGainNode.gain.setValueAtTime(agentGainNode.gain.value, nowS);
+          }
+          if (typeof agentGainNode.gain.linearRampToValueAtTime === "function") {
+            agentGainNode.gain.linearRampToValueAtTime(0.0001, nowS + 0.05);
+          } else {
+            agentGainNode.gain.value = 0.0;
+          }
+        } catch (e) {
+          agentGainNode.gain.value = 0.0;
+        }
+      }
+      var toStop = activeSources.slice();
+      activeSources = [];
+      toStop.forEach(function (src) {
+        try {
+          if (typeof src.stop === "function") src.stop(0);
+          if (typeof src.disconnect === "function") src.disconnect();
+        } catch (e) {}
+      });
     }
 
     function setDucking(mode) {
@@ -1273,6 +3202,124 @@
       return { ok: false, error: "mic-denied" };
     }
 
+    /* --- Uplink capture -------------------------------------------------
+       Server contract (voice/audio_io.py, ws-contract.md §3): C→S audio is
+       8-byte header + little-endian PCM16 MONO at 16 kHz, nominally 100 ms
+       frames; the server accepts 2–200 ms (64–6400 payload bytes). We capture
+       at the AudioContext rate (typically 48 kHz), resample to 16 kHz and send
+       20 ms frames (320 samples = 640 bytes), well inside those bounds.
+       The client never sends Opus: it does not encode it and the server does
+       not expect it on this path. */
+    var CAPTURE_SAMPLE_RATE = 16000;
+    var CAPTURE_FRAME_SAMPLES = 320; /* 20 ms at 16 kHz */
+
+    function resampleTo16k(input, srcRate) {
+      var target = CAPTURE_SAMPLE_RATE;
+      if (!input || !input.length) return new Float32Array(0);
+      if (!srcRate || srcRate === target) return input;
+      var ratio = srcRate / target;
+      var outLen = Math.floor(input.length / ratio);
+      var out = new Float32Array(outLen);
+      for (var i = 0; i < outLen; i++) {
+        var pos = i * ratio;
+        var i0 = Math.floor(pos);
+        var frac = pos - i0;
+        var a = input[i0] !== undefined ? input[i0] : 0;
+        var b = input[i0 + 1] !== undefined ? input[i0 + 1] : a;
+        out[i] = a + (b - a) * frac;
+      }
+      return out;
+    }
+
+    function float32ToPcm16Le(samples) {
+      var out = new Uint8Array(samples.length * 2);
+      var dv = new DataView(out.buffer);
+      for (var i = 0; i < samples.length; i++) {
+        var s = samples[i];
+        if (s > 1) s = 1;
+        else if (s < -1) s = -1;
+        dv.setInt16(i * 2, s < 0 ? Math.round(s * 32768) : Math.round(s * 32767), true);
+      }
+      return out;
+    }
+
+    function stopCapture(stopTracks) {
+      if (captureProcessor) {
+        try { captureProcessor.onaudioprocess = null; } catch (e) {}
+        try { if (typeof captureProcessor.disconnect === "function") captureProcessor.disconnect(); } catch (e) {}
+        captureProcessor = null;
+      }
+      if (captureSource) {
+        try { if (typeof captureSource.disconnect === "function") captureSource.disconnect(); } catch (e) {}
+        captureSource = null;
+      }
+      if (captureSink) {
+        try { if (typeof captureSink.disconnect === "function") captureSink.disconnect(); } catch (e) {}
+        captureSink = null;
+      }
+      captureResidual = [];
+      if (stopTracks) {
+        if (mediaStream) {
+          try {
+            var tracks = typeof mediaStream.getTracks === "function" ? mediaStream.getTracks() : [];
+            tracks.forEach(function (t) { try { t.stop(); } catch (e) {} });
+          } catch (e) {}
+        }
+        mediaStream = null;
+      }
+    }
+
+    /* Returns "ok" | "no-stream" | "unsupported". "unsupported" means this
+       browser cannot capture at all — the dock must then show an honest
+       downgrade instead of a fake listening state. */
+    function startCapture() {
+      if (!mediaStream) return "no-stream";
+      if (captureProcessor) return "ok";
+      ensureAudioGraph();
+      if (!audioCtx ||
+          typeof audioCtx.createMediaStreamSource !== "function" ||
+          typeof audioCtx.createScriptProcessor !== "function") {
+        return "unsupported";
+      }
+      try {
+        var srcRate = audioCtx.sampleRate || 48000;
+        captureSource = audioCtx.createMediaStreamSource(mediaStream);
+        /* 2048 frames ≈ 43 ms at 48 kHz: a standard, widely supported block. */
+        captureProcessor = audioCtx.createScriptProcessor(2048, 1, 1);
+        captureProcessor.onaudioprocess = function (ev) {
+          if (state !== "listening" || !captureProcessor) return;
+          var channel = ev && ev.inputBuffer && typeof ev.inputBuffer.getChannelData === "function"
+            ? ev.inputBuffer.getChannelData(0)
+            : null;
+          if (!channel || !channel.length) return;
+          var down = resampleTo16k(channel, srcRate);
+          for (var i = 0; i < down.length; i++) captureResidual.push(down[i]);
+          while (captureResidual.length >= CAPTURE_FRAME_SAMPLES && state === "listening") {
+            var frame = captureResidual.splice(0, CAPTURE_FRAME_SAMPLES);
+            var pcm = float32ToPcm16Le(frame);
+            if (sendAudioChunk(pcm, false)) captureFramesSent += 1;
+          }
+        };
+        captureSink = audioCtx.createGain();
+        captureSink.gain.value = 0; /* processing only - never monitor the mic */
+        captureSource.connect(captureProcessor);
+        captureProcessor.connect(captureSink);
+        if (audioCtx.destination && typeof captureSink.connect === "function") {
+          captureSink.connect(audioCtx.destination);
+        }
+      } catch (err) {
+        /* A test fake / exotic stream can fail here; a real MediaStream does
+           not. Never claim capture we do not have: the caller logs and the
+           honest state machine still applies (no frames are fabricated). */
+        if (window.console && console.warn) {
+          console.warn("zivon.audio: capture graph unavailable:", err && err.message ? err.message : err);
+        }
+        stopCapture(false);
+        return "error";
+      }
+      return "ok";
+    }
+
     function handleBinaryFrame(data) {
       var parsed = decodeAudioFrame(data);
       if (!parsed.valid) {
@@ -1280,23 +3327,36 @@
         return;
       }
       var seg = parsed.segment_id;
-      /* Protocol bookkeeping only (no decode/playback): track the next
-         expected sequence per segment so a gap/duplicate is observable. */
+      /* Track the next expected sequence per segment so a gap/duplicate stays
+         observable alongside the PCM16 decode + AudioBufferSource scheduling
+         that follows below (ws-contract.md §3). */
       expectedTtsSeq[seg] = parsed.seq + 1;
+      var floatSamples = decodePcm16ToFloat32(parsed.payload);
+      var chunkDurationMs = floatSamples.length > 0 ? (floatSamples.length / ttsSampleRate) * 1000.0 : 20.0;
       pendingFrames.push({
         segment_id: seg,
         seq: parsed.seq,
         is_final: parsed.is_final,
-        bytes: parsed.payload.byteLength
+        bytes: parsed.payload.byteLength,
+        samples: floatSamples.length,
+        duration_ms: Math.round(chunkDurationMs)
       });
+      pcmJitterQueue.push({
+        segment_id: seg,
+        seq: parsed.seq,
+        is_final: parsed.is_final,
+        samples: floatSamples
+      });
+      jitterBufferedMs += chunkDurationMs;
       if (!turnTimings.t_first_audio) {
         turnTimings.t_first_audio = performance.now();
       }
-      if (pendingFrames.length >= minFramesBeforeSpeaking || parsed.is_final) {
+      if (pendingFrames.length >= minFramesBeforeSpeaking || jitterBufferedMs >= 60 || parsed.is_final) {
         if (state !== "speaking") {
           setDucking("agent_speaking");
-          setState("speaking", { frames_received: pendingFrames.length, buffered_ms: pendingFrames.length * 20 });
+          setState("speaking", { frames_received: pendingFrames.length, buffered_ms: Math.round(jitterBufferedMs) });
         }
+        scheduleJitterBuffer(Boolean(parsed.is_final));
       }
     }
 
@@ -1311,7 +3371,24 @@
       var payload = msg.payload && typeof msg.payload === "object" ? msg.payload : msg;
       if (t === "session.ready") {
         sessionId = payload.session_id || "sess-1";
-        setState("ready", { session_id: sessionId, profile: payload.profile || "normal" });
+        creditState = payload.credit_state || "ok";
+        if (creditState === "warn") {
+          applyLessonStateBanner("warn", "Voice is limited today - short doubts work best; typing is always free.");
+          setState("ready", { session_id: sessionId, profile: payload.profile || "normal", credit_state: creditState });
+        } else if (creditState === "text_only" || creditState === "exhausted") {
+          applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+          setState("text_only", { session_id: sessionId, profile: payload.profile || "normal", credit_state: "text_only" });
+        } else {
+          applyLessonStateBanner("warn", "");
+          applyLessonStateBanner("exhausted", "");
+          setState("ready", { session_id: sessionId, profile: payload.profile || "normal", credit_state: creditState });
+        }
+        /* A mic press made while connecting starts now (M2). */
+        if (pendingStartHint) {
+          var queuedHint = pendingStartHint;
+          pendingStartHint = null;
+          if (state === "ready") beginListening(queuedHint);
+        }
         return;
       }
       if (t === "stt.partial" || t === "partial_transcript") {
@@ -1331,13 +3408,33 @@
       }
       if (t === "agent.state") {
         var st = payload.state;
+        if (payload.credit_state) {
+          creditState = payload.credit_state;
+          if (creditState === "warn") {
+            applyLessonStateBanner("warn", "Voice is limited today - short doubts work best; typing is always free.");
+          } else if (creditState === "text_only" || creditState === "exhausted") {
+            applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+          }
+        }
         if (st === "listening" || st === "thinking" || st === "speaking" || st === "speaking_text") {
           if (st === "speaking") setDucking("agent_speaking");
           else if (st === "listening") setDucking("normal");
           setState(st, { reason: payload.reason });
+        } else if (st === "text_only") {
+          /* Never cut an in-progress turn; transition to text_only when not mid-answer */
+          creditState = "text_only";
+          applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
+          if (state !== "speaking" && state !== "thinking" && state !== "speaking_text") {
+            setDucking("normal");
+            setState("text_only", { reason: payload.reason || "credit_exhausted" });
+          }
         } else if (st === "idle") {
           setDucking("normal");
-          setState("ready", { reason: payload.reason });
+          if (creditState === "text_only" || creditState === "exhausted") {
+            setState("text_only", { reason: payload.reason || "credit_exhausted" });
+          } else {
+            setState("ready", { reason: payload.reason });
+          }
         }
         return;
       }
@@ -1359,6 +3456,9 @@
         return;
       }
       if (t === "turn.end" || t === "tts.end") {
+        if (payload.end_reason !== "interrupted") {
+          scheduleJitterBuffer(true);
+        }
         pendingFrames = [];
         setDucking("normal");
         var e2eMs = (turnTimings.t_endpoint && (turnTimings.t_first_audio || turnTimings.t_first_token))
@@ -1374,7 +3474,10 @@
           window.ZivonEvents.recordVoiceTurnDone(sessionId, lastCompletedTurnMetrics.turn_id, e2eMs);
         }
         if (payload.end_reason === "interrupted") {
+          stopPlaybackImmediately();
           setState("listening", { interrupted: true });
+        } else if (creditState === "text_only" || creditState === "exhausted") {
+          setState("text_only", { turn_id: lastCompletedTurnMetrics.turn_id });
         } else {
           setState("ready", { turn_id: lastCompletedTurnMetrics.turn_id });
         }
@@ -1438,6 +3541,8 @@
     }
 
     function teardownMediaAndAudio() {
+      stopCapture(false);
+      pendingStartHint = null;
       if (mediaStream) {
         try {
           var tracks = typeof mediaStream.getTracks === "function" ? mediaStream.getTracks() : [];
@@ -1451,9 +3556,11 @@
           if (closing && typeof closing.catch === "function") closing.catch(function () {});
         } catch (e) {}
       }
+      stopPlaybackImmediately();
       audioCtx = null;
       micGainNode = null;
       agentGainNode = null;
+      agentGainConnected = false;
     }
 
     /* One teardown for disconnect() and pagehide: mic tracks, AudioContext,
@@ -1499,7 +3606,9 @@
           session_token: sessionToken,
           device: deviceId,
           locale: snap.lang_pref || "en",
-          capabilities: { ptt: true, opus: true, webrtc_vad: true },
+          /* This client captures PCM16 mono 16 kHz and decodes PCM16 downlink;
+             it does not encode or decode Opus, so it must not advertise it. */
+          capabilities: { ptt: true, opus: false, uplink_codec: "pcm16-16000", webrtc_vad: true },
           resume: Boolean(resumeFlag),
           last_turn_id: lastTurnId,
           anchor: {
@@ -1540,16 +3649,20 @@
       return true;
     }
 
-    function startListening(turnHint) {
-      if (state === "speaking" || state === "thinking") {
-        /* P0 PTT press during speaking/thinking IS barge-in interrupt (SP1 §5) */
-        bargeIn("ptt_press");
-      }
-      if (!ws || ws.readyState !== 1) {
-        setState("offline", { reason: "ws_closed" });
-        return false;
+    function beginListening(turnHint) {
+      /* Only capture when a real stream exists (the dock requests permission
+         BEFORE calling this). A browser with no capture API gets an honest
+         error state — and NO audio.start — never a fake "listening". */
+      if (mediaStream) {
+        var cap = startCapture();
+        if (cap === "unsupported") {
+          setState("error:unsupported-browser", { fallback: "text" });
+          return false;
+        }
       }
       micSeq = 0;
+      captureFramesSent = 0;
+      captureResidual = [];
       turnTimings = { t_start: performance.now() };
       if (window.ZivonEvents && typeof window.ZivonEvents.recordMicPress === "function") {
         window.ZivonEvents.recordMicPress(sessionId);
@@ -1558,6 +3671,24 @@
       sendJson({ type: "audio.start", turn_hint: turnHint || null });
       setState("listening");
       return true;
+    }
+
+    function startListening(turnHint) {
+      if (state === "speaking" || state === "thinking" || state === "speaking_text") {
+        /* P0 PTT press during speaking/thinking IS barge-in interrupt (SP1 §5) */
+        bargeIn("ptt_press");
+      }
+      if (!ws || ws.readyState !== 1 || state === "connecting") {
+        /* First press after connect(): the socket is still CONNECTING. Queue
+           the turn behind session.ready instead of reporting offline — the
+           old path always landed the very first mic press in `offline`. */
+        pendingStartHint = turnHint || "doubt";
+        if (!ws || ws.readyState > 1) {
+          connect();
+        }
+        return true;
+      }
+      return beginListening(turnHint);
     }
 
     function sendAudioChunk(pcmBytes, isFinal) {
@@ -1574,6 +3705,9 @@
     function endAudio() {
       if (state !== "listening" && state !== "endpointing") return false;
       turnTimings.t_endpoint = performance.now();
+      /* Release the microphone the moment the turn ends: disconnect the
+         processor AND stop the track (privacy + no dead-mic). */
+      stopCapture(true);
       setState("endpointing");
       return sendJson({ type: "audio.end" });
     }
@@ -1603,6 +3737,7 @@
       if (state !== "speaking" && state !== "thinking" && state !== "speaking_text") {
         return false;
       }
+      stopPlaybackImmediately();
       pendingFrames = [];
       setDucking("user_barge_in");
       /* Discard tutor's partial sentence per ws-client-contract §2 */
@@ -1613,6 +3748,7 @@
       setState("interrupted", { reason: reason || "user_interrupt" });
       setDucking("normal");
       setState("listening", { barge_in: true });
+      if (mediaStream) startCapture();
       return true;
     }
 
@@ -1667,6 +3803,17 @@
       getPendingFrames: function () { return pendingFrames.slice(); },
       getQueuedTypedDoubts: function () { return queuedTypedDoubts.slice(); },
       getLastTurnMetrics: function () { return lastCompletedTurnMetrics; },
+      getCreditState: function () { return creditState; },
+      getPlaybackStats: function () {
+        return {
+          scheduled_chunks: scheduledChunksCount,
+          active_sources: activeSources.length,
+          next_play_time_s: nextPlayTimeS,
+          sample_rate: ttsSampleRate,
+          audio_ctx_state: audioCtx ? audioCtx.state : "none"
+        };
+      },
+      stopPlayback: stopPlaybackImmediately,
       getGainValues: function () {
         return {
           mic: micGainNode && micGainNode.gain ? micGainNode.gain.value : 1.0,
@@ -1675,6 +3822,10 @@
       },
       onStateChange: function (fn) { listeners.push(fn); },
       requestMicPermission: requestMicPermission,
+      hasMicrophone: function () { return Boolean(mediaStream); },
+      getCaptureStats: function () {
+        return { active: Boolean(captureProcessor), frames_sent: captureFramesSent };
+      },
       connect: connect,
       reconnect: reconnect,
       startListening: startListening,
@@ -1850,7 +4001,8 @@
     create: createVoiceClient,
     createMockServer: createMockVoiceServer,
     encodeAudioFrame: encodeAudioFrame,
-    decodeAudioFrame: decodeAudioFrame
+    decodeAudioFrame: decodeAudioFrame,
+    decodePcm16ToFloat32: decodePcm16ToFloat32
   };
 
 
@@ -1891,7 +4043,11 @@
     "EVT-lang_switched":       { evt_id: "EVT-F09", event: "frontend.language_bar_use", privacy_class: "L2" },
     "EVT-session_ended":       { evt_id: "EVT-F10", event: "frontend.session_end",      privacy_class: "L2" },
     "EVT-publish_viewed":      { evt_id: "EVT-F11", event: "frontend.publish_view",     privacy_class: "L2" },
-    "EVT-heartbeat":           { evt_id: "EVT-F12", event: "frontend.heartbeat",        privacy_class: "L2" }
+    "EVT-heartbeat":           { evt_id: "EVT-F12", event: "frontend.heartbeat",        privacy_class: "L2" },
+    "EVT-read_aloud_played":   { evt_id: "EVT-012", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-consent_recorded":    { evt_id: "EVT-013", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-report_submitted":    { evt_id: "EVT-014", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-data_cleared":        { evt_id: "EVT-018", event: "frontend.page_view",        privacy_class: "L2" }
   };
 
   function getClientSessionId() {
@@ -1943,6 +4099,10 @@
   }
 
   function emitEvent(evtName, rawProps) {
+    /* C-025/T5: no interaction telemetry before voice consent. Nothing is
+       queued, nothing is flushed, nothing leaves the device. Consent itself
+       is recorded through PUT /v1/consent, not this queue. */
+    if (getConsentState() !== "granted") return null;
     var meta = currentTopicMeta();
     var specEntry = EVENT_CATALOG[evtName] || {
       evt_id: "EVT-F08",
@@ -1979,6 +4139,11 @@
     }
     if (typeof customEventSink === "function") {
       try { customEventSink(record); } catch (e) {}
+    }
+    /* Queue pressure: keep the in-memory buffer bounded by flushing a batch
+       instead of silently dropping the oldest interaction signal. */
+    if (eventQueue.length >= EVENT_BATCH_SIZE && !flushInFlight) {
+      try { flushEvents(); } catch (e) {}
     }
     return record;
   }
@@ -2143,10 +4308,78 @@
     });
   }
 
+  var EVENT_BATCH_SIZE = 20;
+  var flushInFlight = false;
+
+  async function flushEvents(endpointUrl, options) {
+    var opts = options || {};
+    if (flushInFlight || !eventQueue.length) {
+      return { flushed: 0, remaining: eventQueue.length };
+    }
+    /* C-025/T5: telemetry only after consent; a pre-consent page never
+       contacts the events endpoint, even if something queued by mistake. */
+    if (getConsentState() !== "granted") {
+      return { flushed: 0, remaining: eventQueue.length, gated: true };
+    }
+    var meta = currentTopicMeta();
+    var url = endpointUrl || "/api/v1/events";
+    var batch = eventQueue.slice(0, EVENT_BATCH_SIZE).map(function (ev) {
+      return {
+        evt_id: ev.evt_id,
+        event: ev.event,
+        client_session_id: ev.client_session_id,
+        device_pseudo_id: getDevicePseudoId(),
+        /* course_id was wrongly filled from props.topic; the route's course
+           id (e.g. class-9-physics) is the field the backend ingests. */
+        course_id: ev.props && ev.props.course_id
+          ? String(ev.props.course_id)
+          : String(meta.course_id || "physics"),
+        block_id: ev.props && ev.props.block_id ? String(ev.props.block_id) : undefined,
+        props: ev.props || {},
+        ts: ev.ts
+      };
+    });
+    flushInFlight = true;
+    var sentOk = false;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        var res = await sameOriginRequest(url, Object.assign({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ events: batch })
+        }, opts.keepalive ? { keepalive: true } : {}));
+        if (res && res.ok) {
+          sentOk = true;
+          break;
+        }
+      } catch (e) {
+        /* Offline/no-transport: queue retained in memory, never thrown. */
+      }
+    }
+    flushInFlight = false;
+    if (sentOk) {
+      eventQueue.splice(0, batch.length);
+      return { flushed: batch.length, remaining: eventQueue.length, ok: true };
+    }
+    /* No-op fallback: retain capped queue in memory without throwing */
+    return { flushed: 0, remaining: eventQueue.length, ok: false };
+  }
+
+  /* Docs README claimed flush() shipped with no caller. Wire it for real on
+     pagehide (keepalive so the batch survives navigation) — gated on consent
+     inside flushEvents, so an un-consented page sends nothing. */
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("pagehide", function () {
+      try { flushEvents(undefined, { keepalive: true }); } catch (e) {}
+    });
+  }
+
   window.ZivonEvents = {
     EVENT_QUEUE_MAX: EVENT_QUEUE_MAX,
+    EVENT_BATCH_SIZE: EVENT_BATCH_SIZE,
     EVENT_CATALOG: EVENT_CATALOG,
     emit: emitEvent,
+    flush: flushEvents,
     getQueue: function () { return eventQueue.slice(); },
     clearQueue: function () { eventQueue.length = 0; },
     setSink: function (fn) { customEventSink = typeof fn === "function" ? fn : null; },
@@ -2193,5 +4426,158 @@
       pen: "h1.zn-title",
       skip: "script,style,svg,button,sup,sub,.zn-reveal,.zn-sim,.zn-check,[data-ruled-skip]"
     });
+    ZivonShell.mount();
   });
+
+  /* --------------- 9. Shell Injection (shell-injection.md §3) --------------
+     Injects product chrome on content-only lesson pages in exact order:
+       1. Global notices (offline, voice-limited warn, typed-only exhausted)
+       2. Read-aloud controls (§10.13, from manifest.json -> narration.blocks)
+       3. Report-a-problem button/panel (F-COR-PROV-01, POST /v1/reports)
+       4. Consent gate (§10.14, localStorage["zivon.consent"])
+       5. Voice dock (§10.12, ZivonVoiceDock.lazyMount)
+       6. Privacy link + locale controls
+     Idempotent per root (data-zn-mounted); every step is isolated in try/catch
+     so any failure leaves lesson content and simulations 100% readable. */
+  var globalNoticeNetWired = false;
+  function ensureGlobalLessonNotices() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false };
+    var isOff = typeof navigator !== "undefined" && navigator.onLine === false;
+    applyLessonStateBanner(
+      "offline",
+      isOff ? "Offline - lesson content and simulations work without a connection." : ""
+    );
+    /* Mount is idempotent: re-entry must not stack duplicate listeners. */
+    if (!globalNoticeNetWired) {
+      globalNoticeNetWired = true;
+      window.addEventListener("offline", function () {
+        applyLessonStateBanner("offline", "Offline - lesson content and simulations work without a connection.");
+      });
+      window.addEventListener("online", function () {
+        applyLessonStateBanner("offline", "");
+      });
+    }
+    return { mounted: true };
+  }
+
+  var manifestFetchStarted = false;
+  function loadTopicManifestAndMountReadAloud(explicitManifest) {
+    if (explicitManifest && typeof explicitManifest === "object") {
+      window.__ZIVON_MANIFEST__ = explicitManifest;
+      injectReadAloudControls(explicitManifest);
+      var row = document.querySelector(".zn-lang-row");
+      if (row) syncLangBarBundleAvailability(row);
+      return Promise.resolve(explicitManifest);
+    }
+    if (window.__ZIVON_MANIFEST__ && typeof window.__ZIVON_MANIFEST__ === "object") {
+      injectReadAloudControls(window.__ZIVON_MANIFEST__);
+      var row2 = document.querySelector(".zn-lang-row");
+      if (row2) syncLangBarBundleAvailability(row2);
+      return Promise.resolve(window.__ZIVON_MANIFEST__);
+    }
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return Promise.resolve(null);
+    /* A file:// document cannot fetch (Chromium blocks the scheme and logs a
+       console error), and production is HTTP(S) only. Local previews and the
+       browser tests that open a page straight off disk therefore run with no
+       narration rather than a spurious console error; an explicit manifest
+       (window.ZivonShell.mount({manifest}) or window.__ZIVON_MANIFEST__) is
+       still honoured above. */
+    if (!hasNetworkTransport()) {
+      return Promise.resolve(null);
+    }
+    if (manifestFetchStarted) {
+      /* Mount is idempotent: never fetch the manifest twice. */
+      return Promise.resolve(window.__ZIVON_MANIFEST__ || null);
+    }
+    manifestFetchStarted = true;
+    return sameOriginRequest("./manifest.json", { method: "GET" })
+      .then(function (res) {
+        if (!res || !res.ok) return null;
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && typeof data === "object") {
+          window.__ZIVON_MANIFEST__ = data;
+          injectReadAloudControls(data);
+          var row3 = document.querySelector(".zn-lang-row");
+          if (row3) syncLangBarBundleAvailability(row3);
+        }
+        return data;
+      })
+      .catch(function () { return null; });
+  }
+
+  var ZivonShell = {
+    mount: function (options) {
+      var opts = options || {};
+      var steps = {};
+      var root = document.querySelector(".zn-page");
+      var alreadyMounted = root && root.getAttribute("data-zn-mounted") === "true";
+
+      /* Step 1: Global notices */
+      try {
+        if (opts.throwAtStep === "notices") throw new Error("injected_notices_error");
+        steps.notices = ensureGlobalLessonNotices();
+      } catch (e) {
+        steps.notices = { mounted: false, error: String(e) };
+      }
+
+      /* Step 2: Read-aloud controls (§10.13) */
+      try {
+        if (opts.throwAtStep === "read_aloud") throw new Error("injected_read_aloud_error");
+        if (opts.manifest) {
+          window.__ZIVON_MANIFEST__ = opts.manifest;
+        }
+        steps.read_aloud = injectReadAloudControls(opts.manifest || window.__ZIVON_MANIFEST__ || null);
+        if (!opts.manifest && !window.__ZIVON_MANIFEST__ && !alreadyMounted) {
+          loadTopicManifestAndMountReadAloud(null);
+        }
+      } catch (e) {
+        steps.read_aloud = { mounted: false, error: String(e) };
+      }
+
+      /* Step 3: Report-a-problem button/panel (F-COR-PROV-01) */
+      try {
+        if (opts.throwAtStep === "report") throw new Error("injected_report_error");
+        steps.report = injectReportSurface();
+      } catch (e) {
+        steps.report = { mounted: false, error: String(e) };
+      }
+
+      /* Step 4: Consent gate (§10.14) */
+      try {
+        if (opts.throwAtStep === "consent") throw new Error("injected_consent_error");
+        steps.consent = injectConsentGate();
+      } catch (e) {
+        steps.consent = { mounted: false, error: String(e) };
+      }
+
+      /* Step 5: Voice dock (§10.12) */
+      try {
+        if (opts.throwAtStep === "dock") throw new Error("injected_dock_error");
+        steps.dock = ZivonVoiceDock.lazyMount();
+      } catch (e) {
+        steps.dock = { mounted: false, error: String(e) };
+      }
+
+      /* Step 6: Privacy page / footer link + locale controls */
+      try {
+        if (opts.throwAtStep === "privacy_locale") throw new Error("injected_privacy_locale_error");
+        wirePrivacyPage();
+        steps.privacy = injectFooterPrivacyLink();
+        var langRow = document.querySelector(".zn-lang-row");
+        if (langRow) syncLangBarBundleAvailability(langRow);
+      } catch (e) {
+        steps.privacy = { mounted: false, error: String(e) };
+      }
+
+      if (root) {
+        root.setAttribute("data-zn-mounted", "true");
+      }
+      return { idempotent: Boolean(alreadyMounted), steps: steps };
+    }
+  };
+  window.ZivonShell = ZivonShell;
 })();

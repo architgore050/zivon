@@ -139,13 +139,21 @@ class TestFrontendFeatures(unittest.TestCase):
         cls._pw.stop()
         cls._tmp.cleanup()
 
-    def _open_html(self, html: str, name: str = "test.html") -> tuple[Page, list[str]]:
+    def _open_html(
+        self, html: str, name: str = "test.html", *, consent: bool = False
+    ) -> tuple[Page, list[str]]:
         page = self._browser.new_page()
         errors: list[str] = []
         page.on(
             "console", lambda m: errors.append(m.text) if m.type == "error" else None
         )
         page.on("pageerror", lambda e: errors.append(str(e)))
+        if consent:
+            # Telemetry is gated on consent (C-025/T5); a test that asserts
+            # queued events must start from a consented device.
+            page.add_init_script(
+                "try { localStorage.setItem('zivon.consent', 'granted'); } catch (e) {}"
+            )
         f = Path(self._tmp.name) / name
         f.write_text(html, encoding="utf-8")
         page.goto(f.resolve().as_uri())
@@ -232,10 +240,24 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertRegex(initial["devId"], uuid_re)
             self.assertEqual(initial["savedLang"], "en")
 
-            # Click Hindi chip -> aria-checked updates, localStorage['zivon_locale']
-            # becomes 'hi', documentElement.lang stays 'en' (v1 honest stub)
+            # Honest chip contract (EX5B): a locale with no generated bundle is
+            # aria-disabled and not clickable; injecting the bundle enables it.
             chips = page.query_selector_all(".zn-lang-row .zn-chip")
             self.assertEqual(len(chips), 3)
+            self.assertEqual(
+                chips[1].get_attribute("aria-disabled"),
+                "true",
+                "a locale with no bundle must be aria-disabled, never silently accepted",
+            )
+            page.evaluate(
+                """() => {
+                  window.ZIVON_I18N = window.ZIVON_I18N || {};
+                  window.ZIVON_I18N.hi = { strings: {}, ui_strings: {} };
+                  const chip = document.querySelectorAll('.zn-lang-row .zn-chip')[1];
+                  chip.removeAttribute('aria-disabled');
+                  chip.removeAttribute('title');
+                }"""
+            )
             chips[1].click()
             after_click = page.evaluate(
                 """() => {
@@ -251,14 +273,28 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(after_click["stored"], "hi")
             self.assertEqual(after_click["c0"], "false")
             self.assertEqual(after_click["c1"], "true")
-            self.assertEqual(after_click["docLang"], "en")
+            # With a bundle present the swap is real (EX5B): documentElement.lang
+            # follows the selected locale. Without a bundle the chip is
+            # aria-disabled and the page keeps reviewed English (asserted above).
+            self.assertEqual(after_click["docLang"], "hi")
 
-            # Reload page -> Hindi chip is preselected from localStorage['zivon_locale']
+            # Reload page: the saved locale SURVIVES but its bundle does not
+            # (window.ZIVON_I18N is injected per load). A chip with no bundle is
+            # aria-disabled, so the honest state is English selected and the
+            # saved preference untouched — never a disabled chip shown selected.
             page.goto((Path(self._tmp.name) / "locale.html").resolve().as_uri())
             preselected = page.evaluate(
-                "document.querySelectorAll('.zn-chip')[1].getAttribute('aria-checked')"
+                """() => ({
+                  hiDisabled: document.querySelectorAll('.zn-chip')[1].getAttribute('aria-disabled'),
+                  hiChecked: document.querySelectorAll('.zn-chip')[1].getAttribute('aria-checked'),
+                  enChecked: document.querySelectorAll('.zn-chip')[0].getAttribute('aria-checked'),
+                  stored: localStorage.getItem('zivon_locale')
+                })"""
             )
-            self.assertEqual(preselected, "true")
+            self.assertEqual(preselected["hiDisabled"], "true")
+            self.assertEqual(preselected["hiChecked"], "false")
+            self.assertEqual(preselected["enChecked"], "true")
+            self.assertEqual(preselected["stored"], "hi")
 
             # Q11 migration: the legacy key alone still preselects a chip, and
             # the next explicit activation writes ONLY the owner key.
@@ -271,11 +307,17 @@ class TestFrontendFeatures(unittest.TestCase):
             page.goto((Path(self._tmp.name) / "locale.html").resolve().as_uri())
             legacy = page.evaluate(
                 """() => ({
+                  hinglishDisabled: document.querySelectorAll('.zn-chip')[2].getAttribute('aria-disabled'),
                   hinglish: document.querySelectorAll('.zn-chip')[2].getAttribute('aria-checked'),
+                  english: document.querySelectorAll('.zn-chip')[0].getAttribute('aria-checked'),
                   ownerKey: localStorage.getItem('zivon_locale')
                 })"""
             )
-            self.assertEqual(legacy["hinglish"], "true")
+            # Same rule: a legacy hi-Latn preference with no bundle is read but
+            # never shown as a selected language that cannot render.
+            self.assertEqual(legacy["hinglishDisabled"], "true")
+            self.assertEqual(legacy["hinglish"], "false")
+            self.assertEqual(legacy["english"], "true")
             self.assertIsNone(legacy["ownerKey"])
             page.query_selector_all(".zn-lang-row .zn-chip")[0].click()
             rewritten = page.evaluate(
@@ -303,12 +345,16 @@ class TestFrontendFeatures(unittest.TestCase):
                   const cs = document.querySelectorAll('.zn-chip');
                   return {
                     stored: localStorage.getItem('zivon_locale'),
+                    c0: cs[0].getAttribute('aria-checked'),
                     c2: cs[2].getAttribute('aria-checked')
                   };
                 }"""
             )
-            self.assertEqual(after_key["stored"], "hi-Latn")
-            self.assertEqual(after_key["c2"], "true")
+            # ArrowRight focused the disabled Hinglish chip but did not select
+            # or persist it: English stays the honest selected language.
+            self.assertEqual(after_key["stored"], "en")
+            self.assertEqual(after_key["c0"], "true")
+            self.assertEqual(after_key["c2"], "false")
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -351,7 +397,9 @@ class TestFrontendFeatures(unittest.TestCase):
             page.close()
 
     def test_events_instrumentation_and_privacy_rules(self) -> None:
-        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "events.html")
+        page, errors = self._open_html(
+            LESSON_SYNTHETIC_HTML, "events.html", consent=True
+        )
         try:
             # EVT-F03 fires on VIEW, not load: bring the sim into the viewport
             # and let the IntersectionObserver deliver before asserting.
@@ -464,9 +512,16 @@ class TestFrontendFeatures(unittest.TestCase):
                   };
                 }"""
             )
-            # DCR-002 standing guard: doctrine §10.12 absent -> dock does not render UI
+            # DCR-002 is now closed (doctrineReady = true); before consent is granted,
+            # lazyMount() gates on consent_required (§10.14), and with consent granted
+            # it mounts the §10.12 bottom sheet.
+            self.assertTrue(page.evaluate("window.ZivonVoiceDock.doctrineReady"))
             self.assertFalse(res["dockStatus"]["mounted"])
-            self.assertIn("DCR-002", res["dockStatus"]["reason"])
+            self.assertEqual(res["dockStatus"]["reason"], "consent_required")
+            mounted_after = page.evaluate(
+                "(() => { localStorage.setItem('zivon.consent', 'granted'); return window.ZivonVoiceDock.lazyMount().mounted; })()"
+            )
+            self.assertTrue(mounted_after)
             self.assertEqual(res["statesCount"], 10)
             self.assertTrue(res["offlineVisible"])
             self.assertTrue(res["quotaVisible"])
@@ -791,6 +846,96 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertAlmostEqual(result["speaking2"]["mic"], 0.2)
             self.assertEqual(result["afterEnd"]["state"], "ready")
             self.assertEqual(result["afterEnd"]["gains"], {"mic": 1.0, "agent": 1.0})
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_pcm16_playback_jitter_buffer_and_barge_in_stop(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "pcm_playback.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  // 1. Verify little-endian PCM16 -> Float32 decoding
+                  const pcmBytes = new Uint8Array([0x00, 0x00, 0xFF, 0x7F, 0x00, 0x80]);
+                  const floats = VC.decodePcm16ToFloat32(pcmBytes);
+
+                  // 2. Verify Web Audio scheduling + 150ms minimum lead + barge-in stop
+                  const scheduled = [];
+                  const stopped = [];
+                  const fakeGain = {
+                    gain: {
+                      value: 1.0,
+                      cancelScheduledValues: () => {},
+                      setValueAtTime: () => {},
+                      linearRampToValueAtTime: (v) => { fakeGain.gain.value = v; }
+                    },
+                    connect: () => {}
+                  };
+                  const fakeCtx = {
+                    state: 'suspended',
+                    currentTime: 10.0,
+                    destination: {},
+                    resumeCalled: 0,
+                    resume: function () { this.resumeCalled += 1; this.state = 'running'; return Promise.resolve(); },
+                    createGain: () => fakeGain,
+                    createBuffer: (ch, len, sr) => ({
+                      length: len,
+                      sampleRate: sr,
+                      copyToChannel: () => {}
+                    }),
+                    createBufferSource: () => {
+                      const src = {
+                        buffer: null,
+                        onended: null,
+                        connect: () => {},
+                        start: (when) => scheduled.push(when),
+                        stop: () => stopped.push(true),
+                        disconnect: () => {}
+                      };
+                      return src;
+                    },
+                    close: () => Promise.resolve()
+                  };
+                  const mock = VC.createMockServer({ holdSpeaking: true });
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    audioContext: fakeCtx,
+                    session_token: 'test-token',
+                    min_frames_before_speaking: 2
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  client.startListening();
+                  client.endAudio();
+                  const statsWhileSpeaking = client.getPlaybackStats();
+                  const firstScheduledAt = scheduled[0] || 0;
+                  client.bargeIn('user_ptt');
+                  const statsAfterBargeIn = client.getPlaybackStats();
+                  return {
+                    floats: Array.from(floats),
+                    resumeCalled: fakeCtx.resumeCalled,
+                    scheduledCount: scheduled.length,
+                    firstLeadMs: Math.round((firstScheduledAt - 10.0) * 1000),
+                    stoppedCount: stopped.length,
+                    statsWhileSpeaking,
+                    statsAfterBargeIn
+                  };
+                }"""
+            )
+            self.assertEqual(len(result["floats"]), 3)
+            self.assertAlmostEqual(result["floats"][0], 0.0, places=4)
+            self.assertAlmostEqual(result["floats"][1], 1.0, places=4)
+            self.assertAlmostEqual(result["floats"][2], -1.0, places=4)
+            self.assertGreaterEqual(result["resumeCalled"], 1)
+            self.assertEqual(result["scheduledCount"], 3)
+            self.assertGreaterEqual(
+                result["firstLeadMs"],
+                150,
+                "jitter buffer must never hard-schedule < 150 ms ahead",
+            )
+            self.assertEqual(result["stoppedCount"], 3)
+            self.assertEqual(result["statsAfterBargeIn"]["active_sources"], 0)
             self.assertEqual(errors, [])
         finally:
             page.close()

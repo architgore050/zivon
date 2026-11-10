@@ -46,12 +46,16 @@ TRANSRENDER_STAGE_ID = "10d-transrender"
 # dock dials the same-origin `wss://<origin>/voice/ws` (ADR-0020 / EX5 client).
 # `connect-src 'self'` is the scoped relaxation authorised at P0 wire-up
 # (docs/specs/frontend/ws-client-contract.md §8, TIMELINE founder gate 1.2).
+# `media-src 'self'` is the same shape of scoped relaxation for §10.13
+# read-aloud: narration <audio> files are same-origin build artifacts under
+# /audio/<course>/ (C-051 pre-generated), so lesson pages must be allowed to
+# load media from their own origin or every narration asset is CSP-blocked.
 # Everything else stays locked (`default-src 'none'`, `base-uri 'none'`); the
 # nginx server-level header keeps `connect-src 'none'` for every non-lesson
 # location, so the relaxation is per-page, not site-wide.
 CSP = (
     "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; "
-    "font-src 'self'; connect-src 'self'; base-uri 'none'"
+    "font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'"
 )
 
 _SMALL_WORDS = {
@@ -298,7 +302,10 @@ def _render_block(
                 f"{fallback_banner}{paras}\n  </section>"
             )
         paras = "\n".join(f"    <p>{_esc(p)}</p>" for p in spec.get("paragraphs", []))
-        return f'  <section class="zn-text">\n{paras}\n  </section>'
+        # Every rendered block element carries its stable block id: the shell
+        # kit keys read-aloud controls (§10.13), the context snapshot and the
+        # tutor highlight off it. The non-i18n path must not drop it.
+        return f'  <section class="zn-text" id="{bid}">\n{paras}\n  </section>'
 
     if t == "worked_example":
         if with_i18n_attrs:

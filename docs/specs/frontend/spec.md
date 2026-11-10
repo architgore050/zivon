@@ -84,11 +84,13 @@ v1.6 doctrine's building-blocks directive.
 
 ### 2.3 Screens that exist today (the full list — nothing else is in scope)
 
-| Screen id (provisional) | Route | Files |
+| Screen id (canonical / alias) | Route | Files |
 |---|---|---|
-| `SCR-HOME-01` — course catalogue / landing | `/` (`index.html`) | shell only |
-| `SCR-LES-01` — lesson page | `/courses/<course_id>/<topic_slug>/` (`index.html`) | generated page + kit |
-| `SCR-404-01` — not found | any unmatched URL | nginx `=404` today (unbranded; §6 specifies the branded page) |
+| `SCR-HUB-01` (alias `SCR-HOME-01`) — course catalogue / hub | `/` (`frontend/index.html`) | shell only |
+| `SCR-LES-01` — lesson page | `/courses/<course_id>/<topic_slug>/` (`index.html`) | generated page + kit + shell injection (`shell-injection.md`) |
+| `SCR-PRIV-01` — privacy summary & data wipe | `/privacy/` (`frontend/privacy/` or shell-injected view) | shell + `GET /v1/data/challenge` -> `DELETE /v1/data` |
+| `SCR-ADM-01` — admin dashboard v0 | `:8082` (`dashboard/`) | staff-only container (EX3-OBS, out of student shell scope) |
+| `SCR-404-01` — branded not found | `/404.html` (any unmatched URL) | shell (`frontend/404.html`) |
 
 Non-page surfaces owned by the shell today: none (no toasts, no dialogs, no
 consent flow — the voice add-on introduces the first ones; §7).
@@ -139,23 +141,32 @@ agent can build it without re-working anything:
 
 ---
 
-## 4. Screen & region list (provisional)
+## 4. Screen & region list (canonical — reconciled per `open-questions.md` §R)
 
-Regions follow the method's `SCR-<AREA>-NN.R<n>` scheme; they define the
-walk-through order for the inventory (top-left → bottom-right, every state).
+Regions follow `docs/product/features.md` §4 and `ui-element-inventory.csv` (97 canonical `EL-` rows, plus retained provisional shell aliases for backward compatibility).
 
-| Screen | Region | Contents (element ids in `component-inventory.csv`) |
+| Screen | Region | Canonical `EL-` ids (provisional aliases in parentheses) |
 |---|---|---|
-| `SCR-HOME-01` | `.R1` document head | `EL-HOME-01-001` |
-| `SCR-HOME-01` | `.R2` header | `EL-HOME-01-002..004` |
-| `SCR-HOME-01` | `.R3` course list | `EL-HOME-01-005..007` |
-| `SCR-HOME-01` | `.R4` footer | `EL-HOME-01-008` |
-| `SCR-LES-01` | `.R1` language bar | `EL-LES-01-001..004` |
-| `SCR-LES-01` | `.R2` page header | `EL-LES-01-005..008` |
-| `SCR-LES-01` | `.R3` block stream (repeats per block) | `EL-LES-01-010..060` (one family per block type) |
-| `SCR-LES-01` | `.R4` page footer / sources | `EL-LES-01-070` |
-| `SCR-LES-01` | `.R9` reserved: voice dock region | `EL-LES-01-090` (founder-gated, empty today) |
-| `SCR-404-01` | `.R1..R2` | `EL-404-01-001..003` |
+| `SCR-HUB-01` (`SCR-HOME-01`) | `.R1` header | `EL-HUB-001`, `EL-HUB-002`, `EL-HUB-003` (`EL-HOME-01-001`, `EL-HOME-01-002`, `EL-HOME-01-003`, `EL-HOME-01-004`) |
+| `SCR-HUB-01` (`SCR-HOME-01`) | `.R2` class-grouped catalogue | `EL-HUB-004`, `EL-HUB-005`, `EL-HUB-006` (`EL-HOME-01-005`, `EL-HOME-01-006`, `EL-HOME-01-007`) |
+| `SCR-HUB-01` (`SCR-HOME-01`) | `.R3` footer | `EL-HUB-007` (`EL-HOME-01-008`) |
+| `SCR-HUB-01` (`SCR-HOME-01`) | `global` status | `EL-HUB-008` |
+| `SCR-LES-01` | `.R1` lesson header | `EL-LES-01-001`, `EL-LES-01-002`, `EL-LES-01-003`, `EL-LES-01-004`, `EL-LES-01-005` (`EL-LES-01-081` pen underline) |
+| `SCR-LES-01` | `.R2` language bar | `EL-LES-01-006`, `EL-LES-01-007`, `EL-LES-01-008`, `EL-LES-01-009` (`EL-LES-01-001..004` provisional bar/chips) |
+| `SCR-LES-01` | `.R3` text blocks + read-aloud + anchor | `EL-LES-01-010`, `EL-LES-01-011`, `EL-LES-01-012`, `EL-LES-01-013` (`EL-LES-01-080` ruled lines) |
+| `SCR-LES-01` | `.R4` diagrams | `EL-LES-01-014`, `EL-LES-01-015`, `EL-LES-01-016`, `EL-LES-01-017` (`EL-LES-01-050`) |
+| `SCR-LES-01` | `.R5` interactive simulations | `EL-LES-01-018`, `EL-LES-01-019`, `EL-LES-01-020`, `EL-LES-01-021`, `EL-LES-01-022`, `EL-LES-01-023`, `EL-LES-01-024` (`EL-LES-01-060`, `EL-LES-01-061`) |
+| `SCR-LES-01` | `.R6` comprehension checks | `EL-LES-01-025`, `EL-LES-01-026`, `EL-LES-01-027`, `EL-LES-01-028`, `EL-LES-01-029`, `EL-LES-01-030`, `EL-LES-01-031` (`EL-LES-01-030..033`) |
+| `SCR-LES-01` | `.R7` worked examples, reveals, glossary | `EL-LES-01-032`, `EL-LES-01-033`, `EL-LES-01-034`, `EL-LES-01-035`, `EL-LES-01-036` (`EL-LES-01-020`, `EL-LES-01-040`) |
+| `SCR-LES-01` | `.R8` sources footer & problem report | `EL-LES-01-037`, `EL-LES-01-038`, `EL-LES-01-039`, `EL-LES-01-040`, `EL-LES-01-041` (`EL-LES-01-070` provisional sources) |
+| `SCR-LES-01` | `.R9` voice dock (bottom sheet, §10.12) | `EL-LES-01-042` (`EL-LES-01-090` region), `EL-LES-01-043`, `EL-LES-01-044`, `EL-LES-01-045`, `EL-LES-01-046`, `EL-LES-01-047`, `EL-LES-01-048`, `EL-LES-01-049`, `EL-LES-01-050`, `EL-LES-01-051`, `EL-LES-01-052`, `EL-LES-01-053`, `EL-LES-01-054`, `EL-LES-01-055`, `EL-LES-01-056` |
+| `SCR-LES-01` | `.R10` consent gate overlay (§10.14) | `EL-LES-01-057`, `EL-LES-01-058`, `EL-LES-01-059`, `EL-LES-01-060`, `EL-LES-01-061` |
+| `SCR-LES-01` | `.R11` student settings sheet (P1 deferred) | `EL-LES-01-062`, `EL-LES-01-063`, `EL-LES-01-064`, `EL-LES-01-065`, `EL-LES-01-066`, `EL-LES-01-067` |
+| `SCR-LES-01` | `.R12` first-use onboarding hints (P1 deferred) | `EL-LES-01-068`, `EL-LES-01-069` |
+| `SCR-LES-01` | `global` degraded & credit notices | `EL-LES-01-070`, `EL-LES-01-071`, `EL-LES-01-072` |
+| `SCR-PRIV-01` | `.R1..R3` privacy summary & clear data | `EL-PRV-001`, `EL-PRV-002`, `EL-PRV-003`, `EL-PRV-004`, `EL-PRV-005` |
+| `SCR-ADM-01` | `.R0..R5` admin dashboard v0 (`dashboard/`) | `EL-ADM-001..012` (`EL-ADM-001`, `EL-ADM-002`, `EL-ADM-003`, `EL-ADM-004`, `EL-ADM-005`, `EL-ADM-006`, `EL-ADM-007`, `EL-ADM-008`, `EL-ADM-009`, `EL-ADM-010`, `EL-ADM-011`, `EL-ADM-012`) |
+| `SCR-404-01` | `.R1..R2` branded 404 | `EL-404-01-001`, `EL-404-01-002`, `EL-404-01-003` |
 
 ---
 
@@ -396,45 +407,145 @@ Core Web Vitals riding the existing budget — all under the child-privacy
 guardrail (no third-party SEO tools, trackers, or hosts; CSP-safe by
 construction).
 
-## 14. Traceability: provisional registers
+## 14. Traceability: canonical registers (reconciled per `open-questions.md` §R)
 
-### 14.1 Information items (INF-, provisional)
+### 14.1 Information items (INF-, canonical — reconciled against `docs/product/information-inventory.csv`)
 
-| id | Name | Source (real file/field) | Shown in | Nullability & fallback | Localization |
+| id | Name | Source (canonical / real field) | Shown in | Nullability & fallback | Localization |
 |---|---|---|---|---|---|
-| `INF-001` | Lesson title | `courses/<…>/manifest.json:.title` | `EL-LES-01-006`, card title, `<title>` | required (publish smoke requires manifest) | translate at build time |
-| `INF-002` | Course id | `manifest.json:.course_id` | kicker, card meta | required | never |
-| `INF-003` | Class level | `manifest.json:.class` | card meta, JSON-LD | required | numerals per §8 |
-| `INF-004` | Chapter name | `manifest.json:.chapter.title` | card chapter line | required | translate at build time |
-| `INF-005` | Generated-at timestamp | `manifest.json:.generated_at` (ISO 8601) | card meta | required | ISO, never translated |
-| `INF-006` | Sources + licenses | `manifest.json:.sources[]` | page footer/sources line | required | license names never translated |
-| `INF-007` | Learning objectives | rendered `.zn-objectives` list | `EL-LES-01-008` | optional (renderer emits when authored) | translate |
-| `INF-008` | Block stream (typed content) | `manifest.json:.block_counts` + rendered blocks | `.R3` | required ≥1 block | translate; units/symbols never |
-| `INF-009` | Sim live state | `page.js` computation | `.zn-sim-read`, `output`s | live; error → painter | numerals; units never |
-| `INF-010` | Catalogue entries | `frontend/courses.js` (generated) | `EL-HOME-01-006/007` | empty → empty state | per-field as above |
+| `INF-001` | `hub_kicker` | shell static | EL-HUB-001 | required | translate chrome |
+| `INF-002` | `hub_title` | shell static | EL-HUB-002 EL-HUB-005 | required | translate chrome |
+| `INF-003` | `hub_sub` | shell static | EL-HUB-003 | required | translate chrome |
+| `INF-004` | `class_group_heading` | derived from courses.js class field | EL-HUB-004 | absent when <2 classes -> no headings | heading word translate |
+| `INF-005` | `card_title` | ENT?-PageMeta.title | EL-HUB-005 | required | translate when bundle exists; else English |
+| `INF-006` | `card_meta` | ENT?-PageMeta | EL-HUB-005 | required | labels translate; numerals per locale |
+| `INF-007` | `hub_empty_copy` | shell static | EL-HUB-006 | shown only when catalogue empty | translate chrome |
+| `INF-008` | `hub_attribution` | shell static | EL-HUB-007 | required | translate chrome; model names untranslated |
+| `INF-009` | `lesson_kicker` | ENT?-PageMeta.course_id | EL-LES-01-001 | required | id string never translated |
+| `INF-010` | `lesson_title` | ENT?-PageMeta.title | EL-LES-01-002 | required | translate; else English |
+| `INF-011` | `lesson_meta` | ENT?-PageMeta | EL-LES-01-003 | required | labels translate; numerals per locale |
+| `INF-012` | `objectives_label` | shell static | EL-LES-01-004 | shown only when objectives exist | translate chrome |
+| `INF-013` | `objective_items` | factory block spec (objectives) | EL-LES-01-005 | optional block -> section absent | translate; exam-standard terms kept + gloss |
+| `INF-014` | `lang_bar_label` | shell static | EL-LES-01-006 | required on lesson pages | translate chrome |
+| `INF-015` | `chip_en` | shell static | EL-LES-01-007 | required | autonym fixed - never translated |
+| `INF-016` | `chip_hi` | shell static | EL-LES-01-008 | required; disabled until bundle exists | autonym fixed |
+| `INF-017` | `chip_hinglish` | shell static | EL-LES-01-009 | required | autonym fixed (house style) |
+| `INF-018` | `paragraph_text` | factory block spec (text) | EL-LES-01-010 | required per block | translate per block; untranslated -> English + INF-087 marker |
+| `INF-019` | `highlighted_statement` | factory block spec (highlighted_statement) | EL-LES-01-011 | required one per page (doctrine) | translate; pen underline unchanged |
+| `INF-020` | `read_aloud_label` | shell static | EL-LES-01-012 | required | translate chrome |
+| `INF-021` | `ask_about_this_label` | shell static | EL-LES-01-013 | hidden when voice unavailable | translate chrome |
+| `INF-022` | `diagram_svg` | factory block spec (diagram SVG) | EL-LES-01-014 | required | labels via INF-024; geometry unchanged |
+| `INF-023` | `diagram_caption` | factory block spec | EL-LES-01-015 | required | translate |
+| `INF-024` | `diagram_labels` | factory block spec | EL-LES-01-016 | required | translate (SC-01); symbols fixed |
+| `INF-025` | `diagram_aria_label` | derived from INF-022 | EL-LES-01-014 | required (a11y gate) | build from translated labels |
+| `INF-026` | `diagram_longdesc` | factory block spec (P1) | EL-LES-01-017 | optional -> details absent | translate |
+| `INF-027` | `sim_title` | factory block spec (simulation) | EL-LES-01-019 | required | translate |
+| `INF-028` | `sim_description` | factory block spec | EL-LES-01-019 | required | translate |
+| `INF-029` | `control_label` | factory block spec (controls) | EL-LES-01-020 | required per control | translate (SC-02); keep exam term in glossary |
+| `INF-030` | `control_value` | computed from simulation state | EL-LES-01-020 | required; numerals per locale | show raw value while loading |
+| `INF-031` | `unit_symbols` | factory block spec (unit field SC-02) | EL-LES-01-020 | required per control | NEVER translated (INF rule) |
+| `INF-032` | `sim_state_mirror` | factory template (SC-02 state_text_template) + live values | EL-LES-01-022 | required (a11y + tutor reading) | translate template |
+| `INF-033` | `default_behaviour` | factory block spec | EL-LES-01-021 | required | translate (for mirror) |
+| `INF-034` | `reset_label` | shell static | EL-LES-01-023 | required when reset exists | translate chrome |
+| `INF-035` | `sim_error_text` | shell static | EL-LES-01-024 | shown only on sim failure | translate chrome |
+| `INF-036` | `check_question` | factory block spec (check) | EL-LES-01-025 | required | translate (answer key language-independent) |
+| `INF-037` | `check_option_text` | factory block spec | EL-LES-01-026 | required per option | translate |
+| `INF-038` | `check_button_label` | shell static | EL-LES-01-028 | required | translate chrome |
+| `INF-039` | `check_feedback` | factory block spec (feedback) | EL-LES-01-029 | required; generic sentence if missing | translate |
+| `INF-040` | `option_feedback` | factory block spec (SC-03 P1) | EL-LES-01-030 | optional -> INF-039 used | translate |
+| `INF-041` | `check_explanation` | factory block spec (explanation) | EL-LES-01-031 | required | translate |
+| `INF-042` | `numeric_hint` | shell static | EL-LES-01-027 | required for numeric checks | translate chrome; number format per locale |
+| `INF-043` | `we_problem` | factory block spec (worked_example) | EL-LES-01-032 | required | translate prose; numbers verbatim |
+| `INF-044` | `we_step` | factory block spec | EL-LES-01-033 | required per step | translate |
+| `INF-045` | `we_answer` | factory block spec | EL-LES-01-034 | required | translate prose; value+unit fixed |
+| `INF-046` | `reveal_content` | factory block spec (reveal) | EL-LES-01-035 | required | translate |
+| `INF-047` | `glossary_term` | factory block spec (glossary) | EL-LES-01-036 | required per pair | term NOT translated (exam standard) |
+| `INF-048` | `glossary_definition` | factory block spec | EL-LES-01-036 | required per pair | translate |
+| `INF-049` | `term_gloss` | factory translation pass (SC-01) | EL-LES-01-036 | optional -> term shown bare + flagged for review | exists only for translated pages |
+| `INF-050` | `sources_lead` | shell static | EL-LES-01-037 | required | translate chrome |
+| `INF-051` | `source_entries` | ENT?-PageMeta.sources (manifest) | EL-LES-01-038 | required >=1 (fact gate) | name+license NOT translated |
+| `INF-052` | `generated_at` | ENT?-PageMeta.generated_at | EL-LES-01-039 | required | numerals per locale |
+| `INF-053` | `report_label` | shell static | EL-LES-01-040 | required | translate chrome |
+| `INF-054` | `report_categories` | shell static | EL-LES-01-041 | required fixed set | translate labels; codes fixed |
+| `INF-055` | `report_confirmation` | shell static | EL-LES-01-041 | required | translate chrome |
+| `INF-056` | `mic_label` | shell static | EL-LES-01-043 | required | translate chrome |
+| `INF-057` | `dock_state_labels` | shell static | EL-LES-01-044 | required per state (no state without copy) | translate chrome; every language gets every state's copy |
+| `INF-058` | `earcon_sounds` | shell static audio assets | EL-LES-01-045 | required (paired to states) | n/a - non-linguistic |
+| `INF-059` | `stop_label` | shell static | EL-LES-01-046 | required while speaking | translate chrome |
+| `INF-060` | `final_transcript` | Prisma STT via NEED-006 | EL-LES-01-047 | low-confidence -> no-match state instead of showing garbled text | shown as heard (no cleanup) |
+| `INF-061` | `tutor_reply` | Evon via NEED-007 | EL-LES-01-047 | required per turn | in student's language mix (mirroring) |
+| `INF-062` | `partial_transcript` | Prisma partials via NEED-006 | EL-LES-01-048 | off by default (opt-in) | shown as heard |
+| `INF-063` | `caption_toggle_label` | shell static | EL-LES-01-049 | required | translate chrome |
+| `INF-064` | `anchor_chip_text` | derived from page context (NEED-005) | EL-LES-01-050 EL-LES-01-056 | whole-page fallback when nothing focused | template translate; block title per page language |
+| `INF-065` | `identity_line` | shell static | EL-LES-01-051 | shown once per device | translate chrome |
+| `INF-066` | `typed_fallback_copy` | shell static | EL-LES-01-052 | required | translate chrome |
+| `INF-067` | `help_phrases` | shell static (curated per topic family) | EL-LES-01-053 | required per failure type | phrases in the student's language; physics terms kept |
+| `INF-068` | `failure_copy` | shell static | EL-LES-01-044 EL-LES-01-052 | required - every state has exits + copy | translate chrome; same tone all languages |
+| `INF-069` | `memory_list` | ENT?-Session.coverage (NEED-011) | EL-LES-01-054 | empty -> ""Nothing yet - this is a fresh session\" | Titles per page language |
+| `INF-070` | `memory_clear_copy` | shell static | EL-LES-01-054 | required | translate chrome |
+| `INF-071` | `settings_label` | shell static | EL-LES-01-055 EL-LES-01-062 | required | translate chrome |
+| `INF-072` | `consent_notice` | shell static (legal-reviewed copy) | EL-LES-01-058 | required before first voice | P0 English; P1 all 3 languages |
+| `INF-073` | `guardian_checkbox_label` | shell static | EL-LES-01-059 | required | translate chrome |
+| `INF-074` | `consent_continue_label` | shell static | EL-LES-01-060 | required | translate chrome |
+| `INF-075` | `consent_decline_label` | shell static | EL-LES-01-061 | required | translate chrome |
+| `INF-076` | `consent_version_stamp` | ENT?-ConsentRecord | EL-PRV-002 | absent -> show ""no consent record on this device\" | numerals per locale |
+| `INF-077` | `lang_setting_label` | shell static | EL-LES-01-063 | required | translate chrome |
+| `INF-078` | `pace_options` | shell static | EL-LES-01-064 | required | label translate; numerals fixed |
+| `INF-079` | `guide_tell_labels` | shell static | EL-LES-01-065 | required | translate chrome |
+| `INF-080` | `data_saver_label` | shell static | EL-LES-01-066 | required | translate chrome |
+| `INF-081` | `memory_row_label` | shell static | EL-LES-01-067 | required | translate chrome |
+| `INF-082` | `mic_hint` | shell static | EL-LES-01-068 | shown once per device | translate chrome |
+| `INF-083` | `wiggle_hint` | shell static | EL-LES-01-069 | shown once per device | translate chrome |
+| `INF-084` | `offline_copy` | shell static | EL-LES-01-070 EL-HUB-008 | required | translate chrome |
+| `INF-085` | `voice_warn_copy` | shell static | EL-LES-01-071 | shown on guard warn state | translate chrome |
+| `INF-086` | `typed_only_copy` | shell static | EL-LES-01-072 | shown on guard exhausted state | translate chrome |
+| `INF-087` | `untranslated_marker` | shell static | EL-LES-01-010 (state) | shown per untranslated block | translate chrome |
+| `INF-088` | `mt_flag_copy` | ENT?-LanguageBundle.mt_flag | EL-LES-01-007..009 (state) | shown once per page+language when mt_flag true | translate chrome |
+| `INF-089` | `read_aloud_unavailable` | shell static | EL-LES-01-012 (state) | required | translate chrome |
+| `INF-090` | `privacy_title` | shell static | EL-PRV-001 | required | translate chrome |
+| `INF-091` | `data_class_rows` | shell static (mirrors handoff §4 privacy classes) | EL-PRV-002 | required | translate; retention values per locale |
+| `INF-092` | `retention_values` | derived from retention policy | EL-PRV-002 | required per row; numerals per locale | numerals per locale |
+| `INF-093` | `clear_label` | shell static | EL-PRV-003 | required | translate chrome |
+| `INF-094` | `clear_confirmation` | shell static | EL-PRV-004 | required | translate chrome |
+| `INF-095` | `admin_sessions_count` | NEED-015 aggregate | EL-ADM-001 | zero -> empty state copy | staff UI English only |
+| `INF-096` | `admin_session_rows` | NEED-015 from ENT?-Session | EL-ADM-002 | empty state | n/a |
+| `INF-097` | `credit_burn_figures` | NEED-009 ledger | EL-ADM-003 | zero -> 0 shown | n/a |
+| `INF-098` | `guard_state_value` | NEED-009 | EL-ADM-004 | required | n/a |
+| `INF-099` | `engagement_metrics` | NEED-015 from ENT?-TelemetryEvent | EL-ADM-005 | empty state | n/a |
+| `INF-100` | `run_status_rows` | ENT?-RunStatus (runs/ evidence) | EL-ADM-006 | empty -> ""no runs yet\" | n/a |
+| `INF-101` | `stage_durations` | run_report.json evidence | EL-ADM-006 | absent for in-progress run -> live marker | n/a |
+| `INF-102` | `trigger_labels` | shell static (staff) | EL-ADM-007..009 | required | n/a |
+| `INF-103` | `run_log_stream` | kubectl logs by label (NEED-015) | EL-ADM-009 | empty -> waiting copy | n/a |
+| `INF-104` | `report_rows` | ENT?-ProblemReport | EL-ADM-010 | empty state | n/a |
+| `INF-105` | `report_status_options` | shell static (staff) | EL-ADM-011 | required | n/a |
 
-### 14.2 Backend needs (NEED-, provisional — the static site needs almost nothing)
+### 14.2 Backend needs (NEED-001…018, canonical — reconciled against `docs/product/backend-handoff.md`)
 
 | id | Capability sentence | Caller | Status |
 |---|---|---|---|
-| `NEED-001` | Retrieve the lesson bundle for topic T (served statically as `manifest.json` + rendered page) | lesson page | SATISFIED by the publish flow; no runtime API |
-| `NEED-002` | Realtime tutor channel (streaming STT → reasoning → TTS over WS) | voice dock (founder-gated) | ABSENT — `ws-client-contract.md` defines the client expectation; backend open (TIMELINE ⬜) |
-| `NEED-003` | Same-origin event sink accepting batched `ZivonEvents` payloads (pseudonymous, no child free-text) | `ZivonEvents` | ABSENT — blocked on founder CSP decision + Phase-3 telemetry; queue design keeps the UI honest meanwhile |
+| `NEED-001` | Static delivery of shell + generated pages (nginx image + `zivon-frontend` PVC) | browser | SATISFIED by publish flow |
+| `NEED-002` | Course catalogue (`frontend/courses.js`, generated) | browser (hub) | SATISFIED by stage 11-link |
+| `NEED-003` | Session bootstrap + feature flags (`POST /v1/session`) | browser (lesson page) | SATISFIED (`backend/routes/student.py`) |
+| `NEED-004` | Voice conversation channel (`WSS /voice/ws`) | browser voice dock | SATISFIED (`voice/` + `ZivonVoiceClient`) |
+| `NEED-005` | Page-context payload composition (`context.snapshot` <= 4 KB) | browser -> voice backend | SATISFIED (`buildContextSnapshot`) |
+| `NEED-006` | Prisma v3.0 streaming STT | voice backend | SATISFIED (`voice/stt_client.py`) |
+| `NEED-007` | Tutor turn generation (Gemma 4 26B A4B via Gemini API) | voice backend | SATISFIED (`voice/brain_client.py`) |
+| `NEED-008` | Timbre v3.0 streaming TTS (PCM16 48 kHz downlink) | voice backend | SATISFIED (`voice/tts_client.py`) |
+| `NEED-009` | Credit metering + budget guard (`ok` / `warn` / `exhausted` / `reserved_mode`) | voice backend + dock notices | SATISFIED (`guard/` + `EL-LES-01-071/072`) |
+| `NEED-010` | Telemetry ingestion (`POST /api/v1/events` & `POST /v1/events`) | `ZivonEvents` batched flush | SATISFIED (`backend/routes/student.py` + `ZivonEvents.flush`) |
+| `NEED-011` | Session coverage store (`PUT /v1/session/{id}/coverage`) | browser at turn boundaries | SATISFIED (`backend/routes/student.py` + dock memory view) |
+| `NEED-012` | Consent record store (`PUT /v1/consent`) | consent gate overlay | SATISFIED (`backend/routes/student.py` + `ZivonConsent`) |
+| `NEED-013` | Data deletion endpoint (`GET /v1/data/challenge` -> `DELETE /v1/data`) | privacy page (`/privacy/`) | SATISFIED (`backend/routes/student.py` + `ZivonPrivacy`) |
+| `NEED-014` | Problem-report submission (`POST /v1/reports`) | lesson report form (`EL-LES-01-040/041`) | SATISFIED (`backend/routes/student.py` + `ZivonReport`) |
+| `NEED-015` | Admin data + trigger API | admin dashboard (`dashboard/`) | SATISFIED (EX3-OBS) |
+| `NEED-016` | Language bundle delivery (`i18n.js` / `window.ZIVON_I18N`) | lesson language bar (`EL-LES-01-006..009`) | SATISFIED (stage 10d-transrender + `ZivonLocale`) |
+| `NEED-017` | Block read-aloud narration (`/audio/{course_id}/{block_id}.{lang}.{hash}.opus`) | read-aloud control (`EL-LES-01-012`) | SATISFIED (stage 12-narration + `ZivonReadAloud`) |
+| `NEED-018` | Student settings persistence (`localStorage` device-local) | dock/page controls | SATISFIED (client-local primary) |
 
-### 14.3 Event register
+### 14.3 Event register (canonical EVT-001…018 + SP3 EVT-F01…F12 + SP5 triggers)
 
-See §9's table — that table IS the register (provisional until SP3's contract
-lands; alignment debt recorded in `open-questions.md` Q5).
+Canonical product events (`EVT-001`..`EVT-018` in `docs/product/backend-handoff.md` §4) and SP3 observability events (`EVT-F01`..`EVT-F12` in `docs/specs/observability/instrumentation-map.csv`) map to the client triggers in §9 (`EVT-lesson_viewed`, `EVT-lesson_opened`, `EVT-section_viewed`, `EVT-reveal_opened`, `EVT-sim_opened`, `EVT-sim_control_changed`, `EVT-check_answered`, `EVT-check_retried`, `EVT-mic_pressed`, `EVT-tutor_turn_completed`, `EVT-sim_error`, `EVT-client_error`, `EVT-lang_switched`, `EVT-session_ended`, `EVT-publish_viewed`, `EVT-heartbeat`, `EVT-read_aloud_played`, `EVT-consent_recorded`, `EVT-report_submitted`, `EVT-data_cleared`).
 
-### 14.4 Walk-through test (the brief's done-criterion)
+### 14.4 Walk-through test (reconciled)
 
-Any pixel/word/sound a student can perceive on a spec'd screen traces as follows:
-element row in `component-inventory.csv` (EL- id, component, file, states) →
-`source_ref` names the binding artifact it comes from (doctrine §, kit file,
-blocks-schema, nginx config) → data reads point at an INF- register row →
-events point at §9 → every state the row lists has a cell in `state-matrix.md`.
-Limitation, recorded honestly: the first hop (EL → feature F- id) cannot close
-until the features doc exists — the inventory's `feature_id` column carries
-`UNRESOLVED(features.md)` and `open-questions.md` Q2 defines the mechanical
-remap. Every component's failure state is specified (G4) — including the ones
-that are deliberately `n/a (reason)`.
+Every perceivable element on `SCR-HUB-01`, `SCR-LES-01`, `SCR-PRIV-01`, `SCR-ADM-01`, and `SCR-404-01` traces from its canonical `EL-` id in `component-inventory.csv` to its feature card (`F-COR-*`, `F-WRP-*`, `F-ADD-*`, `F-XCT-*`, `F-OPS-*`) in `docs/product/features.md`, its `INF-` row in §14.1, its `NEED-` row in §14.2, and its state row in `state-matrix.md`.

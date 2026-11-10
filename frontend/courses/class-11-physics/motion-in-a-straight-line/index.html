@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
 <title>Motion in a Straight Line - Zivon</title>
 <link rel="stylesheet" href="../../../assets/zivon.css">
 
@@ -22,7 +22,7 @@
       <li>After this lesson you can distinguish average speed from magnitude of average velocity and explain relative motion with a frame of reference.</li>
     </ul>
   </header>
-  <section class="zn-text">
+  <section class="zn-text" id="b-01">
     <p>You see motion all around you. You walk, you run, and you ride a bicycle. Leaves fall from trees and water flows down a dam.</p>
     <p>Motion means change in position of an object with time. To describe it, you first choose an origin. Position to the right of the origin is taken as positive and to the left as negative.</p>
     <p>In this lesson we study motion along a straight line. This is called rectilinear motion. We treat objects as point objects when their size is much smaller than the distance they move.</p>
@@ -42,7 +42,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>An object can be treated as a point object when its size is much smaller than the distance it moves in a reasonable time.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-04">
     <p>Average velocity tells you how fast an object moved over a whole interval. It does not tell you how fast it moved at one instant.</p>
     <p>Instantaneous velocity is the limit of average velocity as the time interval becomes infinitesimally small. In symbols, v = dx/dt.</p>
     <p>On a position-time graph, velocity at an instant is the slope of the tangent at that point. Smaller intervals make the joining line approach the tangent.</p>
@@ -68,11 +68,11 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> Velocity at t = 0 s is 0 m s-1, at t = 2.0 s is 10 m s-1, and average velocity between 2.0 s and 4.0 s is 15 m s-1.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-07">
     <p>Speed is the magnitude of velocity. A velocity of +24.0 m s-1 and a velocity of -24.0 m s-1 both have a speed of 24.0 m s-1.</p>
     <p>Average speed over a finite interval is greater than or equal to the magnitude of average velocity. But instantaneous speed at an instant is equal to the magnitude of instantaneous velocity at that instant.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-08">
     <p>Velocity changes during motion. We describe this change as rate of change of velocity with time. This rate is acceleration.</p>
     <p>Average acceleration is a = (v2 - v1)/(t2 - t1), with SI unit m s-2. Instantaneous acceleration is a = dv/dt, the slope of the tangent to the velocity-time curve.</p>
     <p>Acceleration can be positive, negative or zero. It can come from a change in speed, a change in direction, or both.</p>
@@ -88,11 +88,11 @@
     <p class="zn-sim-read" aria-live="polite"></p>
     <p class="zn-sim-desc">Shows a velocity-time line for constant acceleration and shades the area under it. The shaded area equals displacement.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-10">
     <p>If a particle is speeding up, acceleration is in the direction of velocity. If its speed is decreasing, acceleration is in the direction opposite to velocity.</p>
     <p>This is true whatever origin and positive direction you choose. The sign of acceleration alone does not tell you if speed is increasing or decreasing.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-11">
     <p>For constant acceleration, average acceleration equals the constant value during the interval. If velocity is v0 at t = 0 and v at time t, then v = v0 + a t.</p>
     <p>The area under the velocity-time graph is a triangle plus a rectangle. This area equals displacement.</p>
     <p>This gives x = ((v0 + v)/2) t, so average velocity is the arithmetic average of initial and final velocities.</p>
@@ -122,7 +122,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> (a) The ball rises 20 m above the launch point, 45 m from the ground. (b) It hits the ground after 5 s.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-15">
     <p>Free fall is motion under gravity with air resistance neglected. Near the earth&#x27;s surface g is constant at 9.8 m s-2 when the height is small compared to the earth&#x27;s radius.</p>
     <p>Take upward as positive. Then acceleration due to gravity is a = -g = -9.8 m s-2.</p>
     <p>For an object released from rest at y = 0, the kinematic equations give v = -9.8 t, y = -4.9 t^2 and v^2 = -19.6 y.</p>
@@ -169,7 +169,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> Reaction time is about 0.21 s.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-20">
     <p>For uniform motion, acceleration is zero. The x-t graph is a straight line inclined to the time axis and the v-t graph is a straight line parallel to the time axis.</p>
     <p>For uniform acceleration, the x-t graph is a parabola and the v-t graph is a straight line inclined to the time axis.</p>
     <p>Choose the origin and positive direction before assigning signs. The sign of acceleration alone does not tell whether speed increases or decreases.</p>
@@ -287,7 +287,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>An x-t graph is not a trajectory in space. For one-dimensional motion the particle moves on a straight line; a parabolic x-t graph indicates constant acceleration.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-32">
     <p>Motion is always measured with respect to a fixed point. This fixed point is called a frame of reference.</p>
     <p>The choice of point is arbitrary and all frames of reference are equally valid. A passenger in a moving car is not moving with respect to the driver.</p>
     <p>Both passenger and driver are moving for a person on the sidewalk. Relative velocity compares motion seen from different frames.</p>
@@ -353,7 +353,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Average acceleration is slope of speed-time graph, so steepest slope gives greatest magnitude. Average speed is average height of the graph over the interval, so the interval with highest speed level gives greatest average speed. With positive direction as motion direction, velocity is positive in all intervals and acceleration is positive, zero, then negative.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-39">
     <p>Remember the three kinematic equations: v = v0 + a t, x = v0 t + (1/2) a t^2, and v^2 = v0^2 + 2 a x.</p>
     <p>Use (x - x0) if the particle starts at x0. Substitute values with proper signs after choosing origin and positive direction.</p>
     <p>For free fall with upward positive, use a = -9.8 m s-2. For stopping, remember distance grows as the square of initial velocity.</p>

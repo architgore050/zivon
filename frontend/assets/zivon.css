@@ -674,3 +674,578 @@ a { color: var(--pen-blue); }
 .zn-voice-dock-region:empty {
   display: none;
 }
+
+/* ==========================================================================
+   Wave E2 (§10.12 Voice Dock, §10.13 Read-Aloud, §10.14 Consent, Privacy, Report)
+   Doctrine rules: flat --paper / --paper-light, 1-2px --ink borders, no shadow,
+   no blur, no gradients, >= 44px touch targets, transform/opacity only.
+   ========================================================================== */
+
+.zn-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- §10.13 Read-aloud per-block control ---- */
+.zn-read-aloud-wrap {
+  margin: 0 0 calc(var(--row) / 2);
+}
+.zn-read-aloud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zn-read-aloud-btn[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+.zn-read-aloud-progress {
+  width: 100%;
+  height: 2px;
+  background: var(--ink);
+  transform-origin: left center;
+  transform: scaleX(0);
+  margin-top: 4px;
+}
+
+/* ---- §10.12 Voice dock (bottom sheet) ---- */
+.zn-voice-dock-region {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--paper);
+  border-top: 2px solid var(--ink);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
+@media (min-width: 900px) {
+  .zn-voice-dock-region {
+    left: auto;
+    width: 100%;
+    max-width: 560px;
+    border-left: 1px solid var(--ink);
+  }
+}
+/* While the dock is on screen it covers the bottom of the page; give the
+   lesson column room so the last block is never trapped behind the strip. */
+body.zn-dock-present .zn-page:not(.zn-home) {
+  padding-bottom: calc(var(--row) * 5);
+}
+body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
+  padding-bottom: 60dvh;
+}
+.zn-voice-dock-region[data-containment="hidden"] {
+  background: transparent;
+  border: 0;
+  width: auto;
+  left: auto;
+  right: 1rem;
+  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+.zn-dock-tab {
+  min-height: 44px;
+  min-width: 84px;
+  padding: 0 1rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zn-dock-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 92px;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+}
+.zn-dock-strip-caption {
+  flex: 1;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--ink);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.zn-dock-sheet {
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: 0.5rem 1rem 1rem;
+  box-sizing: border-box;
+}
+.zn-dock-grab,
+.zn-dock-type-btn,
+.zn-dock-hide-btn,
+.zn-dock-retry,
+.zn-dock-stop,
+.zn-dock-typed-send,
+.zn-dock-help-chip,
+.zn-dock-memory-clear,
+.zn-dock-settings-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zn-dock-mic {
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0 0.875rem;
+  border-radius: 28px;
+  border: 2px solid var(--ink);
+  background: var(--paper-light);
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.zn-dock-mic[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+.zn-dock-mic:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.zn-dock-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.zn-dock-anchor-chip {
+  position: relative;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+/* Single tape corner at -3deg on the anchor chip only (§10.12) */
+.zn-dock-anchor-chip::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 8px;
+  width: 28px;
+  height: 10px;
+  background: rgba(196, 174, 104, 0.5);
+  transform: rotate(-3deg);
+}
+.zn-dock-identity {
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+  margin: 0;
+}
+.zn-dock-state-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  min-height: 36px;
+}
+.zn-dock-stamp {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--pencil-red);
+  border: 2px solid var(--pencil-red);
+  padding: 2px 6px;
+  transform: rotate(-2deg);
+}
+.zn-dock-text-chip {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 2px 6px;
+}
+.zn-dock-state-label {
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+.zn-voice-dock-region[data-agent-state="connecting"] .zn-dock-state-row {
+  border-bottom: 2px dotted var(--ink);
+}
+.zn-voice-dock-region[data-agent-state="endpointing"] .zn-dock-state-row {
+  border-bottom: 1px dashed var(--graphite);
+}
+.zn-dock-sweep {
+  width: 72px;
+  height: 2px;
+  background: var(--pen-blue);
+}
+.zn-dock-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+.zn-dock-bar {
+  width: 3px;
+  height: 12px;
+  background: var(--ink);
+}
+.zn-dock-bars[data-bars-mode="endpointing"] .zn-dock-bar {
+  transform: scaleY(0.15);
+}
+.zn-dock-transcript {
+  max-height: 34dvh;
+  overflow-y: auto;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  font-family: var(--notes);
+  font-size: 0.9375rem;
+}
+.zn-dock-line {
+  margin: 0.25rem 0;
+}
+.zn-dock-caption-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.zn-dock-caption {
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--ink);
+  margin: 0;
+}
+.zn-dock-cap-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.zn-dock-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.zn-dock-typed-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.zn-dock-typed-input {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+}
+.zn-dock-help-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.zn-dock-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.zn-dock-memory summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+}
+.zn-dock-strip[hidden],
+.zn-dock-sheet[hidden],
+.zn-dock-tab[hidden],
+.zn-dock-help-chips[hidden],
+.zn-dock-bars[hidden],
+.zn-dock-sweep[hidden],
+.zn-dock-stamp[hidden],
+.zn-dock-text-chip[hidden],
+.zn-dock-stop[hidden],
+.zn-dock-retry[hidden] {
+  display: none;
+}
+
+/* ---- §10.14 Consent gate sheet & SCR-PRIV-01 Privacy page ---- */
+.zn-consent-sheet {
+  position: relative;
+  background: var(--paper-light);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 1rem 1.125rem;
+  margin: var(--row) 0;
+  box-sizing: border-box;
+}
+/* §10.14 consent sheet: bottom sheet on first visit, never an in-flow card
+   buried under a long lesson. Flat paper, ink rule, no shadow (§10.6). */
+.zn-consent-sheet[data-consent-presentation="sheet"] {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  margin: 0;
+  max-height: 85dvh;
+  overflow-y: auto;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 900px) {
+  .zn-consent-sheet[data-consent-presentation="sheet"] {
+    left: auto;
+    right: 1rem;
+    bottom: 1rem;
+    width: 100%;
+    max-width: 560px;
+    border-left: 2px solid var(--ink);
+    border-right: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+}
+.zn-consent-title {
+  font-family: var(--hand);
+  font-size: 1.375rem;
+  margin: 0 0 0.5rem;
+}
+.zn-lang-status:empty {
+  display: none;
+}
+.zn-consent-notice {
+  font-family: var(--notes);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+}
+.zn-consent-guardian {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.zn-consent-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--pen-blue);
+}
+.zn-consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.zn-consent-continue,
+.zn-consent-decline,
+.zn-privacy-clear-btn,
+.zn-privacy-confirm-btn,
+.zn-privacy-cancel-btn {
+  min-height: 44px;
+  padding: 0 1rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zn-consent-continue,
+.zn-privacy-confirm-btn {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+.zn-consent-continue:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.zn-consent-decline,
+.zn-privacy-clear-btn,
+.zn-privacy-cancel-btn {
+  background: var(--paper-light);
+  color: var(--ink);
+}
+.zn-consent-privacy-link,
+.zn-footer-privacy-link,
+.zn-privacy-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--pen-blue);
+}
+.zn-privacy-table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.zn-privacy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  background: var(--paper-light);
+}
+.zn-privacy-table th,
+.zn-privacy-table td {
+  border: 1px solid var(--ink);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.zn-privacy-table th {
+  font-weight: 700;
+}
+.zn-privacy-dialog {
+  background: var(--paper-light);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+.zn-privacy-dialog-title {
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+.zn-privacy-dialog-btns {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.zn-consent-sheet[hidden],
+.zn-privacy-dialog[hidden],
+.zn-privacy-status[hidden] {
+  display: none;
+}
+
+/* ---- §2.5 Provenance Report (EL-LES-01-040/041) & disabled lang chips ---- */
+.zn-chip[aria-disabled="true"] {
+  opacity: 0.6;
+  border-style: dashed;
+}
+.zn-report-wrap {
+  margin-top: 0.75rem;
+}
+.zn-report-btn,
+.zn-report-submit,
+.zn-report-cancel {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zn-report-submit {
+  background: var(--ink);
+  color: var(--paper-light);
+  font-weight: 700;
+}
+.zn-report-panel {
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 0.875rem;
+  margin-top: 0.5rem;
+}
+.zn-report-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.625rem;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+}
+.zn-report-category,
+.zn-report-text {
+  min-height: 44px;
+  padding: 0.375rem 0.625rem;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+}
+.zn-report-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.zn-report-status {
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0;
+}
+.zn-report-panel[hidden],
+.zn-report-status[hidden] {
+  display: none;
+}

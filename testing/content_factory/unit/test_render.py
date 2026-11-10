@@ -1,6 +1,7 @@
 """Unit tests for stage 06-render and courses.js generation."""
 
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -110,6 +111,35 @@ class TestRender(unittest.TestCase):
         manifest = json.loads((topic / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["course_id"], "class-9-physics")
         self.assertTrue(manifest["sources"])
+
+    def test_every_block_element_carries_its_block_id(self):
+        # Shell contract (docs/specs/frontend/shell-injection.md §2):
+        # id="b-NN" on EVERY block element. The read-aloud control (§10.13),
+        # the context snapshot and the tutor highlight all key off it; the
+        # non-i18n text path used to drop the id and 13 of 41 speakable
+        # blocks on the published pages had no control and no anchor.
+        source_pack, lesson, blocks, interactive = minimal_inputs()
+        out = render_run(
+            self.cfg,
+            self.run_ctx,
+            "Motion",
+            source_pack,
+            lesson,
+            blocks,
+            interactive,
+        )
+        html = (Path(out["topic_dir"]) / "index.html").read_text(encoding="utf-8")
+        block_tags = re.findall(
+            r"<(?:section|figure|fieldset)\b[^>]*class=\"[^\"]*\bzn-(?:text|example|reveal|diagram|check|sim)\b[^\"]*\"[^>]*>",
+            html,
+        )
+        self.assertTrue(block_tags, "expected rendered block elements")
+        for tag in block_tags:
+            self.assertRegex(
+                tag,
+                r'\bid="b-\d+"',
+                f"block element is missing its stable block id: {tag}",
+            )
 
     def test_topic_identity_comes_from_the_chapter_not_the_lesson_title(self):
         # 2026-11-10 founder bug report: re-runs published a SECOND topic dir

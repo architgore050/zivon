@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
 <title>Motion in a Plane - Zivon</title>
 <link rel="stylesheet" href="../../../assets/zivon.css">
 
@@ -21,11 +21,11 @@
       <li>After this lesson you can solve constant-acceleration, projectile and uniform circular motion problems using the equations of this chapter.</li>
     </ul>
   </header>
-  <section class="zn-text">
+  <section class="zn-text" id="b-01">
     <p>You throw a ball and it moves sideways and up at the same time. A plus or minus sign cannot describe that sideways-plus-up direction. You need vectors, quantities that carry both magnitude and direction.</p>
     <p>In this lesson you will learn the language of vectors, then use it for position, velocity and acceleration in a plane. You will then solve constant-acceleration motion, projectile motion and uniform circular motion.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-02">
     <p>A scalar has magnitude only and is given by a number with a unit. Distance, mass, temperature and time are scalars. A vector has magnitude and direction and obeys triangle or parallelogram addition. Displacement, velocity, acceleration and force are vectors.</p>
     <p>Choose origin O. The position vector OP equals r points from O to P. If the object moves from P to P prime, displacement PP prime is the straight line joining start and finish. It does not depend on the actual path, and its magnitude is less than or equal to path length.</p>
   </section>
@@ -43,7 +43,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Displacement, velocity and acceleration have magnitude and direction and obey vector addition. The other lists are scalars.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-05">
     <p>Multiplying A by positive lambda gives magnitude lambda times |A| in the same direction. Multiplying by -lambda reverses direction. Multiplying a velocity by a time gives a displacement.</p>
     <p>Two vectors are equal only if magnitude and direction match. Shifting parallel to itself leaves a free vector unchanged. A null vector has zero magnitude and no direction, and A plus 0 equals A.</p>
   </section>
@@ -51,7 +51,7 @@
     <div class="zn-diagram-svg"><svg viewBox='0 0 400 220'><line x1='50' y1='180' x2='190' y2='150' stroke='#1C1B18' stroke-width='2.6'/><line x1='50' y1='180' x2='130' y2='90' stroke='#1C1B18' stroke-width='2.6'/><line x1='190' y1='150' x2='270' y2='120' stroke='#5A5748' stroke-width='2' stroke-dasharray='6 4'/><line x1='130' y1='90' x2='270' y2='120' stroke='#5A5748' stroke-width='2' stroke-dasharray='6 4'/><line x1='50' y1='180' x2='270' y2='120' stroke='#1F3A9E' stroke-width='3'/><polygon points='270,120 254,124 260,110' fill='#1F3A9E'/><text x='40' y='200' fill='#1C1B18' font-size='20'>O</text><text x='195' y='145' fill='#1C1B18' font-size='20'>A</text><text x='120' y='85' fill='#1C1B18' font-size='20'>B</text><text x='275' y='115' fill='#1F3A9E' font-size='20'>R = A+B</text></svg></div>
     <figcaption>Parallelogram method: A and B from common origin O, resultant R along diagonal OS. Dashed lines are construction lines.</figcaption>
   </figure>
-  <section class="zn-text">
+  <section class="zn-text" id="b-07">
     <p>Head-to-tail method: place tail of B at head of A, join tail of A to head of B to get R. Parallelogram method: bring tails to common origin and complete the parallelogram; R is the diagonal. Both give the same R.</p>
     <p>Addition is commutative and associative. Subtraction is A minus B equals A plus (-B). Adding A and -A gives the null vector.</p>
   </section>
@@ -75,7 +75,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>A vector multiplied by a scalar is a vector with scaled magnitude. Adding scalar to vector, or scalars of different units, is not meaningful.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-10">
     <p>A vector A in a plane can be resolved along two non-parallel directions. Using rectangular axes, unit vectors i, j, k have magnitude 1 and point along x, y, z axes.</p>
     <p>Write A equals Ax i plus Ay j. Ax and Ay are scalars; Ax i and Ay j are vectors. In three dimensions add Az k. Position vector is r equals x i plus y j plus z k.</p>
   </section>
@@ -85,7 +85,7 @@
       <details class="zn-reveal-step"><summary>Given Ax and Ay</summary><p>A = sqrt(Ax squared + Ay squared) by Pythagoras, and tan theta = Ay / Ax.</p></details>
       <details class="zn-reveal-step"><summary>Signs</summary><p>A component can be positive, negative or zero depending on theta, because cos and sin change sign by quadrant.</p></details>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-12">
     <p>Analytical addition: write A equals Ax i plus Ay j and B equals Bx i plus By j. Then R equals (Ax plus Bx) i plus (Ay plus By) j. Each resultant component is the sum of corresponding components.</p>
     <p>In three dimensions add z components the same way. This extends to any number of vectors, with subtraction as addition of the negative.</p>
   </section>
@@ -119,7 +119,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Geometrically the triangle inequality becomes equality only when vectors are collinear in the same direction. If a+b+c+d = 0 then |a+c| = |b+d| because a+c = -(b+d).</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-16">
     <p>Position r equals x i plus y j. Displacement delta r equals r prime minus r equals delta x i plus delta y j. Average velocity is delta r over delta t.</p>
     <p>Instantaneous velocity v equals dr over dt, tangent to the path. Acceleration a equals dv over dt. Components are vx equals dx over dt, vy equals dy over dt, ax equals dvx over dt, ay equals dvy over dt.</p>
   </section>
@@ -143,7 +143,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> a = 4.0 m s-2 along y-direction; at 1.0 s, speed 5.0 m/s at 53 degrees with x-axis.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-20">
     <p>With constant acceleration, average acceleration equals that constant. From v0 at t=0 to v at t, v equals v0 plus a t. Position is r equals r0 plus v0 t plus one half a t squared.</p>
     <p>Write x and y separately: vx equals vox plus ax t, x equals x0 plus vox t plus one half ax t squared, and similarly for y. Treat the two perpendicular motions independently.</p>
   </section>
@@ -167,7 +167,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Average velocity is defined as displacement over time interval. The other forms hold only for constant acceleration, and a average = [v(t2)-v(t1)]/(t2-t1) is the definition for acceleration.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-23">
     <p>A projectile is in flight after being thrown, such as a ball. Its motion is two simultaneous components: horizontal without acceleration and vertical with constant g downward. Air resistance is neglected.</p>
     <p>Choose x horizontal and y vertical up. Then ax equals 0 and ay equals -g. Initial components are vox equals v0 cos theta0 and voy equals v0 sin theta0.</p>
   </section>
@@ -228,7 +228,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Rmax = v0 squared / g = 100 m, so v0 squared = 100 g. Maximum height for same v0 is v0 squared / (2g) = 50 m. A ceiling limits height in the same way by limiting vertical component.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-30">
     <p>Uniform circular motion means following a circle at constant speed. Velocity direction changes continuously, so acceleration exists and points towards the centre.</p>
     <p>Magnitude is ac equals v squared over R. Direction changes at every point, so acceleration is not a constant vector even though magnitude is constant.</p>
   </section>
@@ -269,7 +269,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>900 km/h = 250 m/s; ac = v squared / R = 250 squared / 1000 = 62.5 m/s squared; divided by 9.8 gives about 6.4 g.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-36">
     <p>Path length depends on actual path; displacement depends only on end points. They are equal only if direction does not change. Average speed is therefore greater than or equal to magnitude of average velocity.</p>
     <p>Vector equations for constant acceleration do not need a choice of axes, but you may resolve them along any two independent axes. Trajectory depends on initial position and velocity as well as acceleration. Resultant velocity is v1 plus v2, while relative velocity v12 is v1 minus v2 with respect to a common frame.</p>
   </section>

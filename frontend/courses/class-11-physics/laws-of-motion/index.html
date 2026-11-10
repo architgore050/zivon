@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
 <title>Laws of Motion - Zivon</title>
 <link rel="stylesheet" href="../../../assets/zivon.css">
 
@@ -22,7 +22,7 @@
       <li>After this lesson you can analyse circular motion on a level road and on a banked road and draw free-body diagrams.</li>
     </ul>
   </header>
-  <section class="zn-text">
+  <section class="zn-text" id="b-01">
     <p>To move a football at rest, someone must kick it. To stop a rolling ball, you must apply a force against its motion. A breeze makes branches swing, and a strong wind can move heavy objects. In each case an external agency supplies a force.</p>
     <p>The agency may touch the body, like your hand on a ball, or act from a distance. A stone released from a building accelerates downward because of the earth&#x27;s gravitational pull. A bar magnet can attract an iron nail without touching it.</p>
     <p>Aristotle held that an external force is required to keep a body in motion. That feels natural: a child must keep pulling a toy car, and the car stops when the string is released. The flaw is friction. The floor exerts friction opposite to the car&#x27;s motion, and the child&#x27;s pull only balances that friction.</p>
@@ -38,14 +38,14 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>The car slows because friction acts opposite to its motion. If friction were absent, the car would keep moving uniformly with no net force.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-03">
     <p>Galileo studied motion on inclined planes. A body moving down an inclined plane accelerates, and a body moving up retards. Motion on a horizontal plane is the intermediate case.</p>
     <p>Galileo concluded that an object on a frictionless horizontal plane must neither accelerate nor retard. It should move with constant velocity.</p>
     <p>In a double inclined plane experiment, a ball released from rest on one plane rolls down and climbs the other. If the planes are smooth, the ball reaches nearly the same height, never greater. In the ideal frictionless case, the final height equals the initial height.</p>
     <p>If the second slope is made smaller, the ball travels a longer distance to reach the same height. When the second slope is zero, the ball would travel an infinite distance and its motion would never cease. In practice friction stops it.</p>
     <p>The state of rest and the state of uniform linear motion are equivalent: in both cases the net external force is zero. This property is called inertia, which means resistance to change.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-04">
     <p>Newton formulated Galileo&#x27;s law of inertia as the first law: Every body continues to be in its state of rest or of uniform motion in a straight line unless compelled by some external force to act otherwise.</p>
     <p>In simple terms, if the net external force on a body is zero, its acceleration is zero. Acceleration can be non-zero only if there is a net external force on the body.</p>
     <p>There are two useful ways to apply this law. If you know the net external force is zero, you can conclude the acceleration is zero. A spaceship far in interstellar space, with its rockets off, has no net external force, so its acceleration is zero.</p>
@@ -72,7 +72,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> The acceleration of the astronaut is zero.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-07">
     <p>Momentum of a body is the product of its mass and velocity, p = m v. Momentum is a vector. It is useful because the effect of a force depends on both mass and velocity.</p>
     <p>A greater force is needed to push a loaded truck than a small car to the same speed in the same time. A bullet fired with high speed can pierce tissue, while the same bullet at moderate speed causes less damage. A seasoned cricketer catches a fast ball easily by drawing his hands backward, giving more time for the ball to stop.</p>
     <p>These observations lead to Newton&#x27;s second law: the rate of change of momentum of a body is directly proportional to the applied force and takes place in the direction of the force.</p>
@@ -115,7 +115,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> The average resistive force is 270 N.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-12">
     <p>Sometimes a large force acts for a very short time and produces a finite change in momentum. A ball hitting a wall and bouncing back is an example. The force is large, the time is short, and the product of force and time remains measurable.</p>
     <p>This product is called impulse: Impulse = Force × time duration = Change in momentum. A large force acting for a short time to produce a finite momentum change is called an impulsive force. Newtonian mechanics does not treat impulsive force as a separate kind of force; it is large and short-lived.</p>
     <p>When a batsman hits a ball straight back, the ball&#x27;s momentum reverses. The change in momentum gives the impulse even if the force and contact time are difficult to know separately.</p>
@@ -137,7 +137,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>For one ball, the velocity reverses from +6 m s^-1 to -6 m s^-1. Change in momentum = 0.05 × (-6) - 0.05 × (6) = -0.6 N s. The magnitude of impulse is 0.6 N s.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-15">
     <p>The second law tells how an external force changes motion, but where does the force come from? In Newtonian mechanics, the external force on a body arises due to some other body. Force is a mutual interaction between two bodies, and forces always occur in pairs.</p>
     <p>Newton&#x27;s third law states: To every action, there is always an equal and opposite reaction. More clearly, the force on body A by body B is equal and opposite to the force on body B by A.</p>
     <p>The words action and reaction simply mean force. They do not imply that action comes before reaction; the two forces act at the same instant, and either may be called action. Action and reaction act on different bodies, so they cannot cancel each other for the motion of one body. Internal forces between parts of a system do cancel in pairs.</p>
@@ -163,7 +163,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> (i) The force on the wall is normal to the wall in both cases. (ii) The ratio of the magnitudes of impulses is 2/√3 ≈ 1.2.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-18">
     <p>The second and third laws together give an important result: the law of conservation of momentum. When a bullet is fired from a gun, the gun exerts a force on the bullet and the bullet exerts an equal and opposite force on the gun. The two forces act for the same time.</p>
     <p>The change in momentum of the bullet is F Δt, and the change in momentum of the gun is -F Δt. Since both start from rest, the final momentum of the gun is equal and opposite to the final momentum of the bullet. The total momentum of the bullet plus gun system is conserved.</p>
     <p>In an isolated system, mutual forces can change the momentum of individual particles, but the changes cancel in pairs. The total momentum remains unchanged.</p>
@@ -176,7 +176,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>By conservation of momentum, 0.020 × 80 = 100 × v. So v = 1.6/100 = 0.016 m s^-1.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-20">
     <p>Equilibrium of a particle means the net external force on it is zero. By the first law, the particle is then at rest or in uniform motion.</p>
     <p>If two forces act on a particle, equilibrium requires F1 = -F2, so the two forces must be equal and opposite. If three concurrent forces act, their vector sum must be zero: F1 + F2 + F3 = 0.</p>
     <p>The resultant of any two forces must be equal and opposite to the third force. The three forces can be represented by the sides of a triangle with arrows in the same sense. For any number of forces, equilibrium means the forces can be represented by the sides of a closed polygon with arrows in the same sense.</p>
@@ -203,7 +203,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>For equilibrium under concurrent forces, the vector sum of all forces must be zero; equivalently, each component sum is zero.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-23">
     <p>Gravity is a non-contact force that acts on every object on the earth. Most other common forces in mechanics are contact forces, because they arise when one object touches another solid or fluid.</p>
     <p>The component of contact force normal to the surfaces is the normal reaction. The component parallel to the surfaces is friction. A solid immersed in a fluid experiences an upward buoyant force, and viscous force and air resistance are also contact forces.</p>
     <p>A spring compressed or extended by an external force produces a restoring force F = -k x, where x is displacement and k is the force constant. The negative sign means the force is opposite to the displacement from the unstretched state. Tension is the restoring force in a string.</p>
@@ -252,7 +252,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>The box has no motion relative to the train, so static friction opposes the impending relative motion and provides the box&#x27;s acceleration.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-28">
     <p>A body moving in a circle of radius R with uniform speed v has an acceleration v^2/R directed towards the centre. The force providing this acceleration is the centripetal force, f_c = m v^2 / R.</p>
     <p>For a stone rotated by a string, the centripetal force is the tension. For a planet around the sun, it is the gravitational force. For a car on a level road, it is friction.</p>
     <p>On a level road the vertical forces balance: N = mg. Friction provides the centripetal force, and static friction cannot exceed μ_s N. This gives the maximum speed v_max = sqrt(μ_s R g) for a car on a level road without slipping. The result is independent of the mass of the car.</p>
@@ -274,7 +274,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> The cyclist will slip while taking the circular turn.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-31">
     <p>On a banked road, the normal force has a horizontal component that helps provide centripetal force. The equilibrium equations are N cos θ = mg + f sin θ and N sin θ + f cos θ = m v^2 / R.</p>
     <p>At the limiting friction, these give v_max = sqrt(R g (tan θ + μ_s)/(1 - μ_s tan θ)). This is greater than the maximum speed on a flat road.</p>
     <p>The optimum speed is v_o = sqrt(R g tan θ). At this speed friction is not needed, so there is little wear and tear of tyres. For v &lt; v_o, friction acts up the slope, and a car can be parked only if tan θ ≤ μ_s.</p>
@@ -311,7 +311,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>When the string breaks, the inward force disappears. By inertia, the stone continues with the velocity it had at that instant, which is along the tangent to the circle.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-35">
     <p>A typical mechanics problem involves several bodies exerting forces on one another. You may choose any part of the assembly as your system, provided you include all forces on that part due to the rest of the assembly. The remaining part is the environment.</p>
     <p>Draw a diagram showing the parts, links, and supports. Choose a convenient system. Then draw a free-body diagram: show the system and all forces on it by the environment and other agencies. Do not show forces exerted by the system on the environment.</p>
     <p>Include forces whose magnitudes and directions are known or sure, such as the direction of tension along a string. Treat the rest as unknowns to be found using the laws of motion. If you then choose another system, use Newton&#x27;s third law: if the force on A by B is F, the force on B by A is -F.</p>
@@ -380,7 +380,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>A momentary velocity of zero does not mean force or acceleration is zero. At the highest point the only force is weight mg, so acceleration is g.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-44">
     <p>Some mechanics problems give you a graph of position against time instead of a list of forces. Consider such a problem for a particle of mass 4 kg in one-dimensional motion: it asks for the force on the particle for t &lt; 0, for 0 &lt; t &lt; 4 s and for t &gt; 4 s, and for the impulse at t = 0 and at t = 4 s.</p>
     <p>To handle this, recall how position, velocity and acceleration are related (as in Example 4.3). Velocity is the rate of change of the position coordinate, and acceleration is the rate of change of velocity. In the graph, a stretch where the position does not change at all means the particle is at rest there, and a stretch where the position changes at a steady rate means the particle is in uniform motion there.</p>
     <p>In both kinds of stretch the acceleration is zero. By the first law, zero acceleration means the net external force on the particle is zero. So the force asked for during those intervals is zero, whatever the mass of the particle is.</p>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
 <title>Describing Motion Around Us - Zivon</title>
 <link rel="stylesheet" href="../../../assets/zivon.css">
 
@@ -21,7 +21,7 @@
       <li>After this lesson you can use the kinematic equations for constant acceleration and explain uniform circular motion.</li>
     </ul>
   </header>
-  <section class="zn-text">
+  <section class="zn-text" id="b-01">
     <p>Everything around us is in motion, from butterflies and horses to clouds and tides. To study this variety simply, scientists first study idealised forms such as linear motion.</p>
     <p>Linear motion is motion in a straight line. It is the simplest kind of motion. Examples are a ball falling vertically, a car on a straight highway and a train on a straight track.</p>
   </section>
@@ -29,7 +29,7 @@
     <div class="zn-diagram-svg"><svg viewBox='0 0 600 180'><line x1='40' y1='100' x2='560' y2='100' stroke='#1C1B18' stroke-width='3'/><line x1='80' y1='90' x2='80' y2='110' stroke='#1C1B18' stroke-width='2'/><line x1='240' y1='90' x2='240' y2='110' stroke='#1C1B18' stroke-width='2'/><line x1='440' y1='90' x2='440' y2='110' stroke='#1C1B18' stroke-width='2'/><circle cx='80' cy='100' r='8' fill='#F6F0CF' stroke='#1C1B18' stroke-width='2'/><circle cx='240' cy='100' r='8' fill='#F6F0CF' stroke='#1C1B18' stroke-width='2'/><circle cx='440' cy='100' r='8' fill='#F6F0CF' stroke='#1C1B18' stroke-width='2'/><text x='70' y='140' font-size='20' fill='#1C1B18'>O 0 m</text><text x='220' y='140' font-size='20' fill='#1C1B18'>B 40 m</text><text x='420' y='140' font-size='20' fill='#1C1B18'>A 100 m</text><text x='480' y='80' font-size='20' fill='#1F3A9E'>positive</text></svg></div>
     <figcaption>Reference point O and positions B and A on a straight line. Right of O is positive.</figcaption>
   </figure>
-  <section class="zn-text">
+  <section class="zn-text" id="b-03">
     <p>To describe position we first fix a reference point. The distance and direction from that point at any instant describe the position.</p>
     <p>If position changes with time, the object is in motion. If position does not change with time, the object is at rest. On a straight line, right of O is positive and left of O is negative.</p>
   </section>
@@ -43,7 +43,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Motion is judged by change of position with respect to a reference point, not by speed alone. Distance and direction together describe position.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-05">
     <p>An athlete starts at O, reaches B, then A, then runs back to B. Total distance travelled is OA + AB = 100 m + 60 m = 160 m.</p>
     <p>Displacement between start and stop is OB = 40 m in the positive direction. Total distance and magnitude of displacement are not equal when the object turns back.</p>
     <p>Displacement needs direction and magnitude. Total distance needs only a number. Both have SI unit metre.</p>
@@ -58,7 +58,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>When the ball returns to O displacement is zero while total distance is not zero. Magnitude of displacement can never exceed total distance, and it equals total distance only when moving in one direction.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-07">
     <p>Average speed is total distance travelled divided by the time interval. It tells how fast an object moves and has no direction.</p>
     <p>Equal distances in equal intervals means uniform motion at constant speed. Unequal distances mean non-uniform motion with increasing or decreasing speed.</p>
   </section>
@@ -72,7 +72,7 @@
     </ol>
     <p class="zn-answer"><span class="zn-answer-label">Answer</span> They meet after 15 days.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-09">
     <p>Average velocity is displacement divided by the time interval. It is written as v_av = s/t.</p>
     <p>Its direction is the same as displacement and is shown by plus or minus sign. Its SI unit is m s-1, also measured in km h-1. It is the average rate of change of position with time.</p>
   </section>
@@ -97,7 +97,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Total distance = 400 km. Total time = 5 h. Average speed = 400 / 5 = 80 km h-1. Displacement is zero, so average velocity is zero.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-12">
     <p>Average acceleration is change in velocity divided by the time interval. It is (v - u) / (t2 - t1) with SI unit m s-2.</p>
     <p>If magnitude of velocity increases, acceleration is in the direction of velocity. If magnitude decreases, acceleration is opposite to velocity.</p>
     <p>Acceleration can come from change in magnitude, change in direction, or both.</p>
@@ -132,7 +132,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>Acceleration occurs when velocity changes in magnitude or direction or both. In circular motion speed is constant but direction changes, so acceleration is non-zero.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-16">
     <p>Graphs show how position, velocity or acceleration changes with time. They help compare motions and find quantities.</p>
     <p>To plot, draw X and Y axes from origin O, choose time on X-axis and position on Y-axis, choose a suitable scale, mark points and join them.</p>
   </section>
@@ -162,7 +162,7 @@
     <p class="zn-sim-read" aria-live="polite"></p>
     <p class="zn-sim-desc">A position-time graph is drawn from the equation position = velocity x time for constant velocity. Changing the velocity changes the steepness of the line.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-20">
     <p>A straight line position-time graph means constant velocity. A curved graph means velocity is not constant.</p>
     <p>A line parallel to the time axis means position is not changing, so the object is at rest. A steeper line means higher velocity.</p>
   </section>
@@ -190,7 +190,7 @@
       <details class="zn-reveal-step"><summary>Identify sides</summary><p>BC is change in position s2 - s1. CA is change in time t2 - t1.</p></details>
       <details class="zn-reveal-step"><summary>Divide</summary><p>Velocity = BC / CA = (s2 - s1)/(t2 - t1). Example (80 - 40)/(4 - 2) = 20 m s-1.</p></details>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-24">
     <p>A velocity-time graph shows change in velocity with time. Constant velocity gives a line parallel to X-axis and zero acceleration.</p>
     <p>Increasing velocity with a straight line gives constant acceleration in the direction of velocity. Decreasing velocity gives constant acceleration opposite to velocity.</p>
   </section>
@@ -210,7 +210,7 @@
       <details class="zn-reveal-step"><summary>Area for displacement, constant velocity</summary><p>Area of rectangle = velocity x time. 20 m s-1 x 6 s = 120 m.</p></details>
       <details class="zn-reveal-step"><summary>Area for displacement, changing velocity</summary><p>Between 10 s and 20 s area = rectangle + triangle = 50 m + 25 m = 75 m.</p></details>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-27">
     <p>Kinematic equations describe motion with constant acceleration. Acceleration at each instant equals average acceleration.</p>
     <p>The five quantities are displacement s, time t, initial velocity u, final velocity v and acceleration a. Choose the equation that fits the known quantities.</p>
   </section>
@@ -240,7 +240,7 @@
     <p class="zn-check-feedback" aria-live="polite"></p>
     <details class="zn-check-why"><summary>Why?</summary><p>The second equation comes from area of a trapezium under the velocity-time graph, giving s = (u + v)/2 t. The first follows by substitution.</p></details>
   </fieldset>
-  <section class="zn-text">
+  <section class="zn-text" id="b-31">
     <p>Motion in a plane is motion in two dimensions. Examples are a kicked ball, a satellite and a vehicle overtaking another.</p>
     <p>Uniform circular motion is motion in a circular path with constant speed. One revolution distance is the circumference, displacement is zero, average speed is 2 pi R / T and average velocity is zero.</p>
   </section>
@@ -258,7 +258,7 @@
     <p class="zn-sim-read" aria-live="polite"></p>
     <p class="zn-sim-desc">A point moves on a circle at constant speed. Its velocity arrow is always along the tangent and changes direction continuously.</p>
   </section>
-  <section class="zn-text">
+  <section class="zn-text" id="b-34">
     <p>Velocity at a point is along the tangent to the circle in the direction of motion. A tangent meets the circle at only one point.</p>
     <p>When a marble moving inside a ring is released, it moves in a straight line in the direction at the instant of release.</p>
     <p>Uniform circular motion is an idealised model. It is useful for planets around the Sun and vehicles making circular turns.</p>

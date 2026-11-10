@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy &amp; Data Summary — Zivon</title>
+<meta name="description" content="Plain-language summary of what Zivon stores on your device and servers, retention limits, and one-click data deletion.">
+<!-- Mirrors the docker/nginx.conf `location ^~ /privacy/` header: this page
+     needs same-origin connect-src for the clear-my-data request; every other
+     non-lesson page stays locked to connect-src 'none'. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
+<link rel="stylesheet" href="../assets/zivon.css">
+</head>
+<body>
+<main class="zn-page zn-home zn-privacy" data-screen-id="SCR-PRIV-01">
+  <header class="zn-header" data-region="SCR-PRIV-01.R1">
+    <p class="zn-kicker">Zivon · Field Notes · Privacy</p>
+    <h1 class="zn-title" id="zn-privacy-title" data-element-id="EL-PRV-001">Privacy &amp; Data Summary</h1>
+    <p class="zn-sub">Built for students and guardians: private by default, no accounts, no raw audio kept, and you can erase everything from this device anytime.</p>
+    <p class="zn-privacy-back-wrap">
+      <a class="zn-privacy-back" href="../index.html" data-element-id="EL-PRV-005">← Back to courses</a>
+    </p>
+  </header>
+
+  <section class="zn-privacy-section" data-region="SCR-PRIV-01.R2">
+    <p id="zn-privacy-consent-stamp" class="zn-privacy-stamp">Consent status: no consent record on this device.</p>
+    <div class="zn-privacy-table-wrap">
+      <table class="zn-privacy-table" data-element-id="EL-PRV-002" aria-label="Data classes and retention">
+        <thead>
+          <tr>
+            <th scope="col">Data class</th>
+            <th scope="col">What is collected</th>
+            <th scope="col">What is never collected</th>
+            <th scope="col">Retention</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Voice audio</td>
+            <td>Streamed transiently to Gnani Prisma STT only while you press the mic</td>
+            <td>Raw voice recordings are never stored on Zivon servers or disk</td>
+            <td>0 days (transient buffer only)</td>
+          </tr>
+          <tr>
+            <td>Voice transcripts &amp; typed doubts</td>
+            <td>Short text of your Physics doubt and the tutor's answer</td>
+            <td>Personal names, phone numbers, emails, or off-topic chat</td>
+            <td>7 days server TTL; cleared on page close or wipe</td>
+          </tr>
+          <tr>
+            <td>Session coverage memory</td>
+            <td>Block IDs viewed or checked during your current study sitting</td>
+            <td>No behavioural profiling, difficulty score, or cross-session tracking</td>
+            <td>24 hours idle TTL; clearable anytime</td>
+          </tr>
+          <tr>
+            <td>Consent &amp; device preferences</td>
+            <td>Random device pseudonym (UUIDv4), language choice, consent timestamp</td>
+            <td>No login account, no hardware fingerprint, no third-party cookies</td>
+            <td>Until you press Clear my data</td>
+          </tr>
+          <tr>
+            <td>Read-aloud narration</td>
+            <td>Static pre-generated lesson audio fetched per paragraph</td>
+            <td>Zero student speech or personal data sent</td>
+            <td>Static course asset</td>
+          </tr>
+          <tr>
+            <td>Interaction telemetry (consent only)</td>
+            <td>Anonymous event names, block IDs, coarse value buckets, device pseudonym — and only after voice consent is granted</td>
+            <td>No free text, no transcripts, no raw audio, no quiz option text, no behavioural profile; nothing is queued before consent</td>
+            <td>90 days (usage/telemetry class)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="zn-privacy-actions" data-region="SCR-PRIV-01.R3">
+    <button type="button" id="zn-privacy-clear-btn" class="zn-privacy-clear-btn" data-element-id="EL-PRV-003">
+      Clear my data
+    </button>
+    <div id="zn-privacy-clear-dialog" class="zn-privacy-dialog" role="dialog" aria-modal="true" aria-labelledby="zn-privacy-dialog-title" data-element-id="EL-PRV-004" hidden>
+      <p id="zn-privacy-dialog-title" class="zn-privacy-dialog-title">Erase all Zivon data for this device?</p>
+      <p class="zn-privacy-dialog-desc">This clears your local preferences, consent record, and requests immediate server-side deletion of any session or transcript records tied to this device pseudonym.</p>
+      <div class="zn-privacy-dialog-btns">
+        <button type="button" id="zn-privacy-confirm-btn" class="zn-privacy-confirm-btn">Confirm erase</button>
+        <button type="button" id="zn-privacy-cancel-btn" class="zn-privacy-cancel-btn">Cancel</button>
+      </div>
+    </div>
+    <p id="zn-privacy-clear-status" class="zn-privacy-status" role="status" aria-live="polite" hidden></p>
+  </section>
+
+  <footer class="zn-footer">
+    <p class="zn-sources">Built in public for the Great Indian AI Internship Challenge. Content is paraphrased from NCERT (free educational use) and openly licensed sources.</p>
+  </footer>
+</main>
+<script src="../assets/zivon.js"></script>
+</body>
+</html>
