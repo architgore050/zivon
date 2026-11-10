@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 from db.engine import DatabaseEngine
+from db.schema import ALL_TABLES
 from db.uuid7 import uuid7_str
 
 from .config import BackendConfig, normalize_locale
@@ -412,8 +413,10 @@ class ColdStorageSync:
         now_iso = _fmt_iso(now)
 
         tables_dump: dict[str, list[dict[str, Any]]] = {}
+        allowed_tables = set(ALL_TABLES) | {"alembic_version"}
         for tbl in self.db.list_tables():
-            tables_dump[tbl] = self.db.fetchall(f"SELECT * FROM {tbl}")
+            if tbl in allowed_tables:
+                tables_dump[tbl] = self.db.fetchall(f"SELECT * FROM {tbl}")
 
         raw_json = json.dumps(
             {"backup_date": day_str, "ts": now_iso, "tables": tables_dump},

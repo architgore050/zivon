@@ -245,5 +245,29 @@ class TestConsentAndWipeCascade(unittest.TestCase):
         )
 
 
+
+        # Re-registering new data for dev_id and replaying the ALREADY-CONSUMED confirm_token must fail (one-time challenge)
+        self.client.put(
+            "/v1/consent",
+            json={
+                "device_pseudo_id": dev_id,
+                "consent_version": "v1",
+                "guardian_flag": True,
+                "action": "granted",
+            },
+        )
+        r_replay = self.client.request(
+            "DELETE",
+            "/v1/data",
+            json={
+                "device_pseudo_id": dev_id,
+                "confirm_token": chal,
+                "scope": "device",
+            },
+        )
+        self.assertEqual(r_replay.status_code, 400)
+        self.assertEqual(r_replay.json()["code"], "E-CONFIRM-REQUIRED")
+
+
 if __name__ == "__main__":
     unittest.main()

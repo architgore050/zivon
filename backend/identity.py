@@ -3,7 +3,7 @@
 Implements:
 - Client-generated `device_pseudo_id` UUID validation (no fingerprinting, T5/T6)
 - HMAC-SHA256 `session_token` (`{session_id, device_pseudo_id, iat, exp}`, 12 h TTL)
-- Server-issued confirm challenge token for `DELETE /v1/data` (API-007)
+- Server-issued one-time confirm challenge token for `DELETE /v1/data` (API-007)
 - Server-side consent gate (`E-CONSENT-REQUIRED`, `E-CONSENT-STALE`)
 """
 
@@ -49,6 +49,7 @@ class IdentityManager:
     def __init__(self, config: BackendConfig, db: Any = None) -> None:
         self.config = config
         self.db = db
+        self._consumed_confirm_nonces: set[str] = set()
 
     def _sign(self, payload_b64: str) -> str:
         return hmac.new(
@@ -147,7 +148,13 @@ class IdentityManager:
         *,
         now_ts: int | None = None,
     ) -> bool:
-        """Verify that `token` is a valid, un-expired challenge for `device_pseudo_id`."""
+        """Verify that `token` is a valid, un-expired challenge for `device_pseudo_id`.
+
+        Enforces one-time challenge semantics: once a nonce is consumed to wipe
+        live device data, that nonce cannot be replayed if the device later
+        registers new data (while still permitting idempotent retries when the
+        device remains in the wiped state per API-007).
+        """
         if not token or "." not in token:
             return False
         norm_dev = validate_device_pseudo_id(device_pseudo_id)
@@ -166,15 +173,23 @@ class IdentityManager:
         now = int(now_ts if now_ts is not None else time.time())
         if int(payload.get("exp", 0)) < now:
             return False
+
+        nonce = str(payload.get("nonce") or "")
+        if nonce in self._consumed_confirm_nonces:
+            # Allow idempotent retry ONLY if the device still has no live row
+            if self.db is not None:
+                live_dev = self.db.fetchone(
+                    "SELECT device_pseudo_id FROM device WHERE device_pseudo_id = ?",
+                    (norm_dev,),
+                )
+                if live_dev is not None:
+                    return False
+        elif nonce:
+            self._consumed_confirm_nonces.add(nonce)
         return True
 
     def check_consent_gate(self, device_pseudo_id: str) -> dict[str, Any]:
-        """Enforce server-side consent gate (§8.2).
-
-        Raises:
-            APIError('E-CONSENT-REQUIRED', 403) when no granted record exists.
-            APIError('E-CONSENT-STALE', 403) when notice_version is outdated.
-        """
+        """Enforce server-side consent gate (§8.2)."""
         norm_dev = validate_device_pseudo_id(device_pseudo_id)
         if self.db is None:
             raise APIError("E-CONSENT-REQUIRED", status_code=403)
