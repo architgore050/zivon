@@ -14,9 +14,11 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 
 🚧 **In active build.** Deadline: **10 November 2026, 11:59 PM IST**.
 
-- **Live demo (P0):** <https://pads-caught-colours-ballot.trycloudflare.com> — a
-  demo-grade Cloudflare tunnel in front of the container stack (it dies if the host or
-  tunnel process stops; a durable VM + domain is the next step, see `TIMELINE.md`).
+- **Live demo (P0):** <https://advertisers-sunshine-rendered-sheet.trycloudflare.com> — a
+  demo-grade Cloudflare quick tunnel in front of the container stack, run as the
+  user service `zivon-tunnel` (survives this shell session). A quick-tunnel URL
+  changes if that service restarts, so pin the current URL before recording the
+  video; a durable VM + domain is the next step (see `TIMELINE.md`).
 - Day-by-day build plan: [`TIMELINE.md`](TIMELINE.md)
 
 **Honest status of the voice loop (2026-11-10).** The full loop has been run live on the

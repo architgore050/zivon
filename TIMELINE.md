@@ -403,7 +403,7 @@ Constraints carried forward: cron granularity is minutes (sub-minute loops = run
 Branch `fix/p0-voice-live` off `main` @ `51f03b6`.
 
 **Done**
-- **Public link live (Tier 0):** `https://pads-caught-colours-ballot.trycloudflare.com` —
+- **Public link live (Tier 0):** `https://advertisers-sunshine-rendered-sheet.trycloudflare.com` —
   a Cloudflare quick tunnel in front of the compose stack (`postgres` + `core-backend` +
   nginx `web`). Serves the 6 generated pages, `courses.js`, 200 on `/` and every page.
   SEO regenerated with `ZIVON_PUBLIC_BASE_URL`; no `zivon.local` left in `frontend/`.
