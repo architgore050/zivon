@@ -46,7 +46,9 @@ Run from the repo root:
 
 ## What is NOT tested here
 
-The quality of your real model's outputs. The mock proves the wiring, schemas,
-rules, rendering, perf gate and linking; it cannot prove Qwen writes good
-Physics. That is what stage 03-check, stage 09-review and the human edit rate
-are for.
+The quality of your real model's outputs and prompt/reviewer calibration.
+Per `docs/specs/evals/migration-map.csv`, deterministic code mechanics live in
+`testing/`, while prompt-contract checks, golden-topic grading, reviewer
+calibration (`SD-CHK-001..008`, `SD-SEC-001..005`, `SD-REV-001..006`), and
+human-edit / Gate-B outcome tracking live in the top-level `evals/` package
+(`python -m evals run --suite smoke|full|calibrate`).

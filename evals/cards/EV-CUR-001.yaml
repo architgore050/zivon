@@ -1,0 +1,80 @@
+card_id: EV-CUR-001
+version: 1
+title: Curator Citation Integrity, Title-Line Provenance, and Verbatim Numeral Grounding
+stage: 00-ingest..02-generate.ground_truth
+agent_role: Curator
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  - evals/goldens/topics/class-10-light-reflection-and-refraction
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-CUR01-PROVENANCE
+  entrypoint: evals.checkers.curator_checks:check_title_provenance
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.locate:run
+  description: Verifies matched_via == 'title_line' for canonical chapter queries and tests the kinem-ch02/ch04
+    body-phrase contamination trap.
+- id: DET-CUR01-TABLE-GLYPHS
+  entrypoint: evals.checkers.curator_checks:check_table_and_glyph_extraction
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.ingest:_extract_pages
+  description: Verifies zero private-use U+F0XX glyphs survive extraction and ruled tables become explicit
+    [table] pipe rows.
+- id: DET-CUR01-CITATIONS
+  entrypoint: evals.checkers.curator_checks:check_ground_truth_citations
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:rule_citations
+  description: Validates GROUND_TRUTH schema and verifies every claim, key_term, equation, and misconception
+    cites an allowed source_id.
+- id: DET-CUR01-NUMBERS
+  entrypoint: evals.checkers.curator_checks:check_verbatim_numbers_in_claims
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:_number_in_corpus
+  description: Verifies numerals in ground_truth claims match the source pack corpus with boundary-aware
+    regex.
+llm_judge:
+  enabled_in_suites:
+  - full
+  entrypoint: evals.judges.curator_judge:evaluate_curator_ground_truth
+  reuses_prompt_from: factory.agents:GLOBAL_RULES + run_check item-1 severity ladder (prompt assembled in evals/judges/curator_judge.py; not a verbatim factory prompt)
+  severity_ladder:
+    fatal: A claim or equation contradicts the cited source passage, or cites a passage that does not
+      support the claim. Must quote the exact source text.
+    major: A claim smuggles in a Physics concept from outside the source pack.
+    minor: Wording/formatting or unverifiable suspicion prefixed 'unverified:'.
+  way_out_rule: Report unverifiable suspicions as severity='minor' with message starting 'unverified:'
+    — never as fatal or major.
+  anchor_examples:
+  - label: Fatal — Contradicted Constant in Claim
+    input_summary: claim-04 states acceleration due to gravity is 10 m/s² while source pack [ncert page
+      102] states 9.8 m s-2.
+    expected_issue:
+      claim_id: claim-04
+      severity: fatal
+      message: Claim states acceleration due to gravity is 10 m/s²; source pack [ncert page 102] states
+        9.8 m s-2.
+  - label: Major — Smuggled Concept in Claim
+    input_summary: claim-11 defines kinetic energy (1/2 mv²) inside a kinematics-only chapter pack.
+    expected_issue:
+      claim_id: claim-11
+      severity: major
+      message: Claim defines kinetic energy (1/2 mv²), which appears nowhere in the Motion in a Straight
+        Line source pack.
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 1
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 16000
+  call_deadline_s: 1800

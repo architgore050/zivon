@@ -1,0 +1,379 @@
+{
+  "sample_id": "SD-REV-001",
+  "stage": "09-review",
+  "origin_incident": "Run 180935 b-31 plateau (2026-11-08)",
+  "defect_class": "HTML-vs-JS value inconsistency",
+  "planted_mutation": "index.html displays quiz explanation \"t = 49 s\" while page.js mutates #b-31 DOM text to \"t = 37 s\" at runtime.",
+  "target_call": "09-review-facts",
+  "inputs": {
+    "files": {
+      "index.html": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'\">\n<title>Motion in a Straight Line — Zivon</title>\n<link rel=\"stylesheet\" href=\"../../../assets/zivon.css\">\n<link rel=\"stylesheet\" href=\"page.css\">\n</head>\n<body>\n<main class=\"zn-page\">\n  <nav class=\"zn-lang-bar\" role=\"radiogroup\" aria-label=\"Lesson language\">\n    <button type=\"button\" class=\"zn-lang-chip\" role=\"radio\" aria-checked=\"true\" data-lang=\"en\">English</button>\n  </nav>\n  <section id=\"b-04\" class=\"zn-sim zn-sim-b-04\" data-sim-id=\"b-04\">\n    <canvas class=\"zn-sim-canvas\" width=\"480\" height=\"320\" aria-label=\"Position-time graph\"></canvas>\n    <p class=\"zn-sim-read\" aria-live=\"polite\">t = 4.0 s, x = 5.12 m, v = 3.84 m/s</p>\n  </section>\n  <section id=\"b-08\" class=\"zn-sim zn-sim-b-08\" data-sim-id=\"b-08\">\n    <canvas class=\"zn-sim-canvas\" width=\"480\" height=\"320\" aria-label=\"Velocity-time graph\"></canvas>\n    <p class=\"zn-sim-read\" aria-live=\"polite\">t = 2.0 s, v = 9.0 m/s, displacement = 14.0 m</p>\n  </section>\n  <fieldset class=\"zn-check\" id=\"b-31\" data-format=\"numeric\" data-answer=\"37\">\n    <legend>How long does the train take to overtake?</legend>\n    <p class=\"zn-check-explanation\">Using relative velocity, time t = 49 s.</p>\n  </fieldset>\n</main>\n<script src=\"../../../assets/zivon.js\"></script>\n<script src=\"page.js\"></script>\n</body>\n</html>\n",
+      "page.js": "ZivonSim.register(\"b-04\", {\n  init: function (ctx) { ctx.t0 = 4; },\n  draw: function (ctx) {\n    var g = ctx.g;\n    for (var t = 0; t <= 6; t += 0.1) {\n      var x = 0.08 * t * t * t;\n      if (t === 0) g.moveTo(t * 60, 280 - x * 10);\n      else g.lineTo(t * 60, 280 - x * 10);\n    }\n    var readEl = ctx.canvas && ctx.canvas.parentElement && ctx.canvas.parentElement.querySelector(\".zn-sim-read\");\n    if (readEl) readEl.textContent = \"t = 4.0 s, x = 5.12 m, v = 3.84 m/s\";\n  }\n});\nZivonSim.register(\"b-08\", {\n  init: function (ctx) { ctx.v0 = 5; ctx.a = 2; },\n  draw: function (ctx) {\n    var g = ctx.g;\n    for (var t = 0; t <= 4; t += 0.1) {\n      var v = 5 + 2 * t;\n      if (t === 0) g.moveTo(t * 80, 260 - v * 6);\n      else g.lineTo(t * 80, 260 - v * 6);\n    }\n    var readEl = ctx.canvas && ctx.canvas.parentElement && ctx.canvas.parentElement.querySelector(\".zn-sim-read\");\n    if (readEl) readEl.textContent = \"t = 2.0 s, v = 9.0 m/s, displacement = 14.0 m\";\n  }\n});\n\ndocument.getElementById(\"b-31\").textContent = \"t = 37 s\";\n",
+      "page.css": ".zn-sim-b-04 .zn-sim-note { color: var(--ink); }\n.zn-sim-b-08 .zn-sim-note { color: var(--pen-blue); }\n",
+      "manifest.json": {
+        "course_id": "class-11-physics",
+        "class": 11,
+        "topic_slug": "motion-in-a-straight-line",
+        "title": "Motion in a Straight Line",
+        "chapter": {
+          "title": "MOTION IN A STRAIGHT LINE",
+          "pages": [
+            1,
+            14
+          ]
+        },
+        "sources": [
+          {
+            "id": "ncert-physics-11-part1",
+            "title": "Physics Part I - Textbook for Class XI",
+            "license": "NCERT"
+          }
+        ]
+      }
+    },
+    "blocks": {
+      "blocks": [
+        {
+          "id": "b-01",
+          "type": "text",
+          "spec": {
+            "paragraphs": [
+              "You are in motion when your position changes with time. A bus moving down a road is in motion, and so is a fan blade going around. To say that something moved, we compare its position now with its position a moment ago.",
+              "To describe motion clearly we use a few measured quantities. Each one answers a different question: how far, how fast, and speeding up or slowing down."
+            ]
+          },
+          "citations": [
+            {
+              "claim_id": "claim-01"
+            }
+          ]
+        },
+        {
+          "id": "b-02",
+          "type": "text",
+          "spec": {
+            "paragraphs": [
+              "Distance is the total length of the path travelled, and it has only a size. Displacement is the shortest straight line from the starting point to the ending point, with its direction. They are equal only when the path is one straight line with no turning back.",
+              "Speed is distance divided by time, and velocity is speed with a direction. Acceleration is the rate of change of velocity, and its SI unit is m/s2."
+            ]
+          },
+          "citations": [
+            {
+              "claim_id": "claim-02"
+            },
+            {
+              "claim_id": "claim-03"
+            },
+            {
+              "claim_id": "claim-07"
+            }
+          ]
+        },
+        {
+          "id": "b-03",
+          "type": "worked_example",
+          "spec": {
+            "problem": "A body starts from rest and accelerates steadily. It gains a speed of 10 m/s in 5 s. What is its acceleration?",
+            "steps": [
+              {
+                "title": "Write what you know",
+                "detail": "Starting velocity u = 0 because the body starts from rest, final velocity v = 10 m/s, time t = 5 s."
+              },
+              {
+                "title": "Choose the relation",
+                "detail": "Use v = u + a*t, which connects velocity change to acceleration and time."
+              },
+              {
+                "title": "Rearrange for acceleration",
+                "detail": "a = (v - u) / t."
+              },
+              {
+                "title": "Put in the numbers",
+                "detail": "a = (10 - 0) / 5."
+              }
+            ],
+            "answer": "2 m/s2"
+          },
+          "citations": [
+            {
+              "claim_id": "claim-04"
+            },
+            {
+              "claim_id": "claim-03"
+            }
+          ]
+        },
+        {
+          "id": "b-04",
+          "type": "check",
+          "spec": {
+            "question": "Which quantity is defined as the rate of change of velocity?",
+            "format": "mcq",
+            "options": [
+              "Speed",
+              "Acceleration",
+              "Distance",
+              "Force"
+            ],
+            "answer_index": 1,
+            "answer": "Acceleration",
+            "explanation": "Acceleration is the rate of change of velocity with time; its SI unit is m/s2.",
+            "expected_understanding": "The learner can name acceleration as the quantity that measures changing velocity."
+          },
+          "citations": [
+            {
+              "claim_id": "claim-03"
+            }
+          ]
+        },
+        {
+          "id": "b-05",
+          "type": "diagram",
+          "spec": {
+            "svg": "<svg viewBox=\"0 0 320 220\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"0\" y=\"0\" width=\"320\" height=\"220\" fill=\"#EFE6B8\"/><line x1=\"40\" y1=\"180\" x2=\"300\" y2=\"180\" stroke=\"#1C1B18\" stroke-width=\"2\"/><line x1=\"40\" y1=\"180\" x2=\"40\" y2=\"20\" stroke=\"#1C1B18\" stroke-width=\"2\"/><line x1=\"40\" y1=\"180\" x2=\"280\" y2=\"50\" stroke=\"#1F3A9E\" stroke-width=\"2\"/><text x=\"150\" y=\"205\" fill=\"#1C1B18\" font-size=\"12\">time</text><text x=\"8\" y=\"110\" fill=\"#1C1B18\" font-size=\"12\" transform=\"rotate(-90 20 110)\">distance</text><text x=\"150\" y=\"70\" fill=\"#1F3A9E\" font-size=\"12\">steady speed: straight line</text></svg>",
+            "caption": "A distance-time graph for steady motion is a straight line; its slope is the speed."
+          },
+          "citations": [
+            {
+              "claim_id": "claim-06"
+            }
+          ]
+        },
+        {
+          "id": "b-06",
+          "type": "simulation",
+          "spec": {
+            "title": "Motion with steady acceleration",
+            "description": "A dot starts at rest and speeds up. Increase or decrease the acceleration and watch how the dot covers distance.",
+            "learning_goal": "Connect the size of acceleration to how quickly the dot crosses the canvas.",
+            "controls": [
+              {
+                "id": "a",
+                "label": "acceleration m/s2",
+                "min": -5,
+                "max": 5,
+                "step": 0.5,
+                "initial": 2
+              }
+            ],
+            "default_behaviour": "The dot starts from rest and drifts faster to the right while the acceleration is positive."
+          },
+          "citations": [
+            {
+              "claim_id": "claim-03"
+            },
+            {
+              "claim_id": "claim-04"
+            }
+          ]
+        },
+        {
+          "id": "b-07",
+          "type": "check",
+          "spec": {
+            "question": "A cycle covers 100 m in 20 s. What is its average speed in m/s?",
+            "format": "numeric",
+            "answer": "5",
+            "explanation": "Average speed is total distance divided by total time: 100 / 20.",
+            "expected_understanding": "The learner can compute average speed from distance and time."
+          },
+          "citations": [
+            {
+              "claim_id": "claim-05"
+            }
+          ]
+        },
+        {
+          "id": "b-08",
+          "type": "check",
+          "spec": {
+            "question": "Which of these is a vector quantity?",
+            "format": "mcq",
+            "options": [
+              "Distance",
+              "Displacement",
+              "Mass",
+              "Time"
+            ],
+            "answer_index": 1,
+            "answer": "Displacement",
+            "explanation": "Displacement carries a direction from start to end, so it is a vector; distance, mass and time have only size.",
+            "expected_understanding": "The learner can tell scalars and vectors apart for the quantities on this page."
+          },
+          "citations": [
+            {
+              "claim_id": "claim-02"
+            },
+            {
+              "claim_id": "claim-07"
+            }
+          ]
+        }
+      ]
+    },
+    "ground_truth": {
+      "topic": "Motion",
+      "summary": "Motion means an object changes its position over time. We describe motion using distance, displacement, speed, velocity and acceleration. Distance and speed are scalars; displacement, velocity and acceleration are vectors, which means they carry direction. Motion can be uniform or accelerated, and graphs of distance against time make these quantities easy to read. This page builds each idea slowly with small examples.",
+      "claims": [
+        {
+          "id": "claim-01",
+          "statement": "Motion is the change in position of an object with time.",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 97"
+            }
+          ]
+        },
+        {
+          "id": "claim-02",
+          "statement": "Distance is the total path length and is a scalar; displacement is the shortest straight-line change from start to end and is a vector.",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 98"
+            }
+          ]
+        },
+        {
+          "id": "claim-03",
+          "statement": "Acceleration is the rate of change of velocity and its SI unit is m/s2.",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 100"
+            }
+          ]
+        },
+        {
+          "id": "claim-04",
+          "statement": "If a body starts from rest and gains a speed of 10 m/s in 5 s, its acceleration is 2 m/s2.",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 100"
+            }
+          ]
+        },
+        {
+          "id": "claim-05",
+          "statement": "Average speed is total distance divided by total time; for example 100 m covered in 20 s gives an average speed of 5 m/s.",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 99"
+            }
+          ]
+        },
+        {
+          "id": "claim-06",
+          "statement": "The slope of a distance-time graph gives the speed of the object.",
+          "citations": [
+            {
+              "source_id": "alt-open-physics#c0001",
+              "locator": "pages 2-3"
+            }
+          ]
+        },
+        {
+          "id": "claim-07",
+          "statement": "Displacement and velocity are vector quantities because they carry direction.",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 98"
+            }
+          ]
+        }
+      ],
+      "key_terms": [
+        {
+          "term": "displacement",
+          "definition": "the shortest straight-line distance from the starting point to the final point, together with its direction",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 98"
+            }
+          ]
+        },
+        {
+          "term": "velocity",
+          "definition": "speed in a particular direction; the rate of change of displacement",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 99"
+            }
+          ]
+        },
+        {
+          "term": "acceleration",
+          "definition": "the rate of change of velocity with time",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 100"
+            }
+          ]
+        },
+        {
+          "term": "uniform motion",
+          "definition": "motion in which the object covers equal distances in equal intervals of time",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 97"
+            }
+          ]
+        }
+      ],
+      "equations": [
+        {
+          "id": "eq-01",
+          "expression": "v = u + a*t",
+          "description": "final velocity from initial velocity u, acceleration a and time t",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 100"
+            }
+          ]
+        },
+        {
+          "id": "eq-02",
+          "expression": "s = u*t + (1/2)*a*t^2",
+          "description": "distance covered under constant acceleration",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 101"
+            }
+          ]
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "mis-01",
+          "wrong_belief": "distance and displacement are always equal",
+          "correction": "they are equal only when the path is a straight line with no turning back",
+          "citations": [
+            {
+              "source_id": "ncert",
+              "locator": "page 98"
+            }
+          ]
+        }
+      ],
+      "uncertain": []
+    }
+  },
+  "expected": {
+    "outcome_type": "positive_defect",
+    "expected_verdict": "fail",
+    "expected_severity": "fatal",
+    "expected_category": "inconsistency",
+    "expected_block_id": "b-31",
+    "must_quote_source": false
+  }
+}

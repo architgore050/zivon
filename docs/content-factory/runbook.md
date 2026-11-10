@@ -273,3 +273,27 @@ do not pass this yourself (see `CHROMIUM_LAUNCH_ARGS` in
 - Run the translation test suite (mocked `llm-manager` node, zero network/credits):
   `python3 -m unittest discover -s testing/translation -t . -v`
 - **`GAP-008` (`llm-manager` upstream fallback runbook)**: if the primary upstream inference endpoint configured in `k8s/infra.env` (`ZIVON_BASE_URL`) is unreachable during a build or translation run, switch the `llm-manager` node upstream between the local inference router (`http://192.168.49.1:18080/v1`) and OpenRouter (`https://openrouter.ai/api/v1`) in `k8s/infra.env`, re-apply via `scripts/apply-k8s.sh` (which automatically runs `kubectl rollout restart deployment/llm-manager -n zivon`), and re-trigger the factory command to resume from the exact failed block checkpoint.
+## Evals & Reviewer Calibration (`evals/`)
+
+Run from the repo root (or in-cluster via `scripts/trigger-evals.sh`):
+
+    # Fast deterministic PR smoke suite (0 model calls, no API keys required)
+    python -m evals run --suite smoke --mock
+
+    # Reviewer calibration against the 19-sample seeded-defect corpus (03-check + 09-review)
+    python -m evals calibrate --stage all --mock
+
+    # Full evaluation suite across all 9 Eval Cards (EV-CUR-001 .. EV-KID-001)
+    python -m evals run --suite full --mock
+
+    # Run-to-run regression diff (exits 2 if any blocking regression alert fires)
+    python -m evals diff --prev <baseline_run_id> --curr <current_run_id>
+
+    # Record human-edit diff (EV-E2E-001) and DPDP-validated kid comprehension session (EV-KID-001)
+    python -m evals record-edit --course class-9-physics --topic how-forces-affect-motion \
+        --baseline-dir runs/<id>/06-render/site/courses/class-9-physics/how-forces-affect-motion \
+        --published-dir frontend/courses/class-9-physics/how-forces-affect-motion
+    python -m evals record-kid-test --input session.json
+
+    # Idempotently backfill JSONL ledgers into PostgreSQL / relational store (ADR-0027)
+    python -m evals backfill-db --db-url "$ZIVON_DB_URL"

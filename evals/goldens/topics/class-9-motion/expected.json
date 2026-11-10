@@ -1,0 +1,69 @@
+{
+  "golden_id": "GT-01",
+  "topic_slug": "how-forces-affect-motion",
+  "course_id": "class-9-physics",
+  "class_level": 9,
+  "pipeline_version_min": 3,
+  "source_provenance": {
+    "primary_book_id": "ncert-science-9",
+    "chapter_title_normalized": "motion",
+    "matched_via": "title_line",
+    "forbidden_smuggled_terms": [
+      "simple harmonic motion",
+      "schrodinger",
+      "lorentz transformation"
+    ]
+  },
+  "structure_bounds": {
+    "sections_min": 3,
+    "claims_min": 6,
+    "claims_max": 40,
+    "blocks_min": 8,
+    "blocks_max": 45,
+    "checks_min": 3,
+    "worked_examples_min": 1,
+    "simulations_min": 1,
+    "diagrams_max": 2
+  },
+  "required_concepts_and_equations": {
+    "key_terms_must_include": [
+      "force",
+      "balanced",
+      "unbalanced",
+      "friction",
+      "newton"
+    ],
+    "equation_patterns_must_include": [
+      "net force",
+      "N"
+    ]
+  },
+  "canonical_numerical_anchors": [
+    {
+      "source_label": "NCERT Class 9 opposing forces box example (10 N right, 6 N left)",
+      "problem_numbers": [
+        "10",
+        "6"
+      ],
+      "expected_answer_values": [
+        4.0,
+        16.0
+      ],
+      "tolerance_rel": 0.02
+    }
+  ],
+  "visual_and_kit_invariants": {
+    "requires_lang_bar": false,
+    "requires_sim_readout_populated": false,
+    "computed_graphs_as_simulations": true,
+    "max_overflow_px": 2
+  },
+  "perf_budgets": {
+    "profile": "evals/goldens/profiles/weak-android.json",
+    "ram_budget_mb": 750,
+    "fps_min": 24,
+    "load_budget_s": 6.0,
+    "fcp_budget_s": 3.5
+  },
+  "structure_bounds_note": "diagrams_max 4->2 (2026-11-10): the refreshed published GT-01 page carries exactly 2 static illustration diagrams (b-03 net-force arrows, b-13 walking friction). They are physical illustrations, not computed coordinate graphs, so the x-t/v-t routing rule (simulation-only) is unaffected and remains enforced by the geometry check. GT-02 was separately relaxed 0->1."
+}

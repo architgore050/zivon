@@ -14,7 +14,7 @@ from unittest import mock
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-from testing.content_factory.perf import harness
+from evals.checkers import perf_harness as harness
 
 
 class FakeProc:
@@ -62,9 +62,9 @@ class TestBrowserPid(unittest.TestCase):
 
     def test_ignores_preexisting_developer_chrome(self):
         procs = [
-            FakeProc(100, "chrome", ["chrome"]),  # the developer's browser
-            FakeProc(500, "chrome", CHROME_MAIN),  # ours: main process
-            FakeProc(501, "chrome", CHROME_RENDERER),  # ours: renderer child
+            FakeProc(100, "chrome", ["chrome"]),
+            FakeProc(500, "chrome", CHROME_MAIN),
+            FakeProc(501, "chrome", CHROME_RENDERER),
         ]
         with self._patch(procs):
             self.assertEqual(harness._browser_pid({100}), 500)
@@ -82,14 +82,10 @@ class TestBrowserPid(unittest.TestCase):
 
     def test_non_browser_processes_are_filtered(self):
         procs = [
-            FakeProc(
-                300, "chromebox", ["chromebox"]
-            ),  # name does not count? it does - prefix match
+            FakeProc(300, "chromebox", ["chromebox"]),
             FakeProc(301, "firefox", ["firefox"]),
         ]
         with self._patch(procs):
-            # 'chromebox' starts with 'chrome' and is pre-existing -> excluded;
-            # firefox is filtered by name. Nothing new -> None.
             self.assertIsNone(harness._browser_pid({300}))
 
     def test_no_new_process_returns_none(self):
@@ -106,7 +102,6 @@ class TestBrowserPid(unittest.TestCase):
             self.assertEqual(harness._browser_pid(set()), 605)
 
     def test_no_psutil_returns_none(self):
-        # _chromium_pids must degrade to None (RSS measurement is skipped)
         with mock.patch.dict(sys.modules, {"psutil": None}):
             self.assertIsNone(harness._chromium_pids())
             self.assertIsNone(harness._browser_pid(None))

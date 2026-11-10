@@ -1,10 +1,8 @@
 """Unit tests for stage 07-perf routing and stage 08-fixloop behaviour.
 
-The perf harness is faked (no Chromium here); the integration test exercises
-the real one. What we prove: a topic-page miss is routed to the fix loop,
-an unfixable miss stops the run, and the fix loop repairs, re-lints, retests,
-feeds a failed fix back into the next round, and stops progress-aware (a
-plateau or the generous cap) - loudly, with the full history.
+Note: `test_fix_prompt_carries_specs_and_teaching_guard` was migrated to
+`evals/checkers/prompt_contract_checks.py` (`EV-PERF-001`) per
+`docs/specs/evals/migration-map.csv` row 29.
 """
 
 import dataclasses
@@ -343,33 +341,6 @@ class TestFixloopStage(unittest.TestCase):
             )
         self.assertEqual(llm.calls, 2, "stopped at the plateau, not at the cap")
         self.assertIn("progress plateaued", str(ctx.exception))
-
-    def test_fix_prompt_carries_specs_and_teaching_guard(self):
-        # A perf fix must not be allowed to gut the page: the model sees the
-        # sim specs it must preserve, the measurement context, and the budgets.
-        cfg = make_cfg(self.tmp, fix_rounds=1)
-        llm = StubLLM()
-        with self.assertRaises(BudgetError):
-            self._run(
-                cfg,
-                fake_report(False, ["FPS 12 < 24"]),
-                [fake_report(False, ["FPS 12 < 24"])],
-                llm,
-            )
-        system = next(m["content"] for m in llm.messages[0] if m["role"] == "system")
-        user = next(m["content"] for m in llm.messages[0] if m["role"] == "user")
-        self.assertIn("must still TEACH", system)
-        self.assertIn("low-end Android", system)
-        self.assertIn("PAGE SPECS", user)
-        self.assertIn("Connect the size of acceleration", user)  # the sim's goal
-        self.assertIn("budgets", user)
-        # 2026-11-04: a perf fixer edits page code, so it must see the design
-        # language it is preserving - doctrine + the lesson-page example + palette.
-        self.assertIn("DESIGN DOCTRINE + LESSON-PAGE EXAMPLE", user)
-        self.assertIn("design-doctrine-lesson-example.html", user)
-        self.assertNotIn("=== design-doctrine-example.html ===", user)
-        self.assertIn("PALETTE", user)
-        self.assertIn("--ink:", user)
 
     def test_second_round_sees_previous_attempts(self):
         # Without the attempt history the model repeats a failed fix unchanged.
