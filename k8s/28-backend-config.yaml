@@ -26,18 +26,28 @@ data:
   # voice mean "not configured yet": the loop degrades honestly (F1/F4:
   # text path, no mic) instead of guessing a vendor endpoint. API keys are
   # NOT here — they live only in Secret zivon-voice-env.
+  ZIVON_VOICE_PROFILE: "demo"
   ZIVON_VOICE_BRAIN_TRANSPORT: "gemini-direct"
-  ZIVON_VOICE_BRAIN_MODEL: "gemma-4-26b-a4b-it"
-  ZIVON_VOICE_STT_URL: ""
-  ZIVON_VOICE_TTS_URL: ""
-  ZIVON_VOICE_TTS_VOICE: ""
+  # Gate A chose Gemma 4 26B A4B; measured 2026-11-10 it thinks ~20 s before
+  # its first content token on the Gemini API, so the P0 demo runs a fast
+  # Gemini model with thinking disabled (first content ~1.6 s). Gemma 4 stays
+  # the code default and a one-env-var switch; deviation recorded in TIMELINE.
+  ZIVON_VOICE_BRAIN_MODEL: "gemini-2.5-flash"
+  ZIVON_VOICE_BRAIN_THINKING_BUDGET: "0"
+  ZIVON_VOICE_STT_URL: "wss://api.vachana.ai/stt/v3/stream"
+  ZIVON_VOICE_STT_MODEL: "prisma-v3.0"
+  ZIVON_VOICE_STT_LANGUAGE: "indic-auto"
+  ZIVON_VOICE_TTS_URL: "wss://api.vachana.ai/api/v1/tts"
+  ZIVON_VOICE_TTS_MODEL: "timbre-v3.0"
+  ZIVON_VOICE_TTS_LANGUAGE: "hi-en"
+  ZIVON_VOICE_TTS_VOICE: "Shivani"
   ZIVON_VOICE_TTS_TAG_MAX_PER_TURN: "8"
   ZIVON_VOICE_TTS_CHAR_CAP_TURN: "1200"
   ZIVON_VOICE_THINKING_SUMMARIES: "off"
   ZIVON_VOICE_BRAIN_INACTIVITY_S: "4"
-  ZIVON_VOICE_BRAIN_FIRST_EVENT_S: "3"
-  ZIVON_VOICE_BRAIN_TURN_DEADLINE_S: "45"
+  ZIVON_VOICE_BRAIN_FIRST_EVENT_S: "6"
+  ZIVON_VOICE_BRAIN_TURN_DEADLINE_S: "30"
   ZIVON_VOICE_CREDIT_DAILY_TRANCHE: "1000"
   ZIVON_VOICE_CREDIT_PER_USER_CAP: "30"
-  ZIVON_VOICE_CREDIT_DEMO_TRANCHE: ""
-  ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP: ""
+  ZIVON_VOICE_CREDIT_DEMO_TRANCHE: "1000"
+  ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP: "100"

@@ -142,27 +142,29 @@ flagged Q6:
    offline state; typed input is queued ONLY in memory and cleared with an
    honest message on unload — nothing pretends to have sent.
 
-## 8. CSP change request (gated — founder)
+## 8. CSP relaxation (GRANTED 2026-11-10 — applied at P0 wire-up)
 
-Today's locked CSP (`connect-src 'none'`, `docs/deployment/README.md`) forbids
-the WebSocket. Request, scoped to the page hosting the dock:
+The locked CSP (`connect-src 'none'`) forbade the WebSocket. The founder
+authorised the scoped relaxation at P0 wire-up, and it is now APPLIED:
 
 ```text
 connect-src 'self'          (was: connect-src 'none')
 ```
 
 - Core pages (no dock) KEEP `'none'` — the relaxation is opt-in per page, which
-  keeps G5 mechanically enforced. Generated lesson pages get the dock only when
-  the founder's §10.12 directive says so; until then NOTHING changes.
-- **Wire-up requirement (2026-11-10):** `window.ZivonVoiceClient.create()` is
-  the call site that opens the WebSocket, and it is inert while CSP says
-  `connect-src 'none'`. The moment a page enables the dock (or the
-  `ZivonEvents` sink), that page is NOT functional until `connect-src 'self'`
-  is live — the header cannot be relaxed from a meta tag and the shell must not
-  pretend otherwise. This is recorded at the `create()` call site (zivon.js
-  §7 header), in `docker/nginx.conf` next to the header, and in `TIMELINE.md`.
-- The request is recorded in the manifest's `integration_notes`; it is NOT
-  applied by this patch series.
+  keeps G5 mechanically enforced. Only generated lesson pages opt in.
+- **Applied in two places, both narrow:** `factory/render.py` emits
+  `connect-src 'self'` in the lesson-page `<meta>` CSP, and `docker/nginx.conf`
+  repeats the full header set for the `location ^~ /courses/` block. Every
+  other location inherits the server-level `connect-src 'none'`, so the
+  landing page, catalogue, and 404 stay locked. `default-src 'none'` /
+  `base-uri 'none'` are unchanged in the page meta.
+- **Proxy:** the same-origin dial `wss://<origin>/voice/ws` is proxied by
+  `location /voice/` to `core-backend:8000` (identical upstream name in compose
+  and cluster; compose network alias `core-backend`). Upgrade headers and a
+  600 s read timeout are set; buffering is off.
+- The call site that opens the socket is `window.ZivonVoiceClient.create()`
+  (zivon.js §7 header notes the granted CSP).
 
 ## 9. Latency measurement (Gate C: end-of-speech → first audio < ~4 s)
 

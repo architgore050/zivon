@@ -12,8 +12,8 @@ class VoiceSettingsTest(unittest.TestCase):
         s = VoiceSettings()
         self.assertEqual(s.brain_model, "gemma-4-26b-a4b-it")
         self.assertEqual(s.brain_transport, "gemini-direct")
-        self.assertEqual(s.brain_inactivity_s, 4.0)
-        self.assertEqual(s.brain_first_event_s, 3.0)
+        self.assertEqual(s.brain_inactivity_s, 8.0)
+        self.assertEqual(s.brain_first_event_s, 12.0)
         self.assertEqual(s.brain_turn_deadline_s, 45.0)
         self.assertEqual(s.brain_max_retries, 2)
         self.assertFalse(s.thinking_summaries)  # ADR-0018: off until falsification
@@ -72,7 +72,7 @@ class VoiceSettingsTest(unittest.TestCase):
             }
         )
         self.assertEqual(s.brain_transport, "gemini-direct")
-        self.assertEqual(s.brain_inactivity_s, 4.0)
+        self.assertEqual(s.brain_inactivity_s, 8.0)
 
     def test_secret_fallback_names_gap_register_first(self) -> None:
         s = VoiceSettings.from_env(
@@ -118,7 +118,7 @@ class VoiceSettingsTest(unittest.TestCase):
     def test_secrets_do_not_render_in_repr(self) -> None:
         s = VoiceSettings(gemini_api_key="super-secret", session_token_key="tok")
         self.assertNotIn("super-secret", repr(s))
-        self.assertNotIn("tok", repr(s))
+        self.assertNotIn("tok", repr(s).replace("tokens", ""))
 
 
 if __name__ == "__main__":

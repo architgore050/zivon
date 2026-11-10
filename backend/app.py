@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+import os
 import re
 import uuid
 from collections.abc import Callable
@@ -119,7 +120,18 @@ def create_app(
     # The voice loop (ADR-0020): voice/ mounts into this monolith. Settings come
     # from the ZIVON_VOICE_* env family; the session-token/IP-salt secrets fall
     # back to the backend's own config so both halves verify the same tokens.
-    app.state.voice = mount_voice(app, settings=_voice_settings(cfg))
+    # Profile is SERVER-asserted (ws-contract §2, spec.md §11): the judged demo
+    # link sets ZIVON_VOICE_PROFILE=demo so judge traffic gets the bounded demo
+    # tranche instead of the 30-credit free-trial cap. The client can never
+    # claim it.
+    demo_profile = (
+        os.environ.get("ZIVON_VOICE_PROFILE", "normal").strip().lower() == "demo"
+    )
+    app.state.voice = mount_voice(
+        app,
+        settings=_voice_settings(cfg),
+        profile_for=(lambda _identity: "demo") if demo_profile else None,
+    )
     return app
 
 

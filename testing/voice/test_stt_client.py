@@ -62,7 +62,7 @@ class SttClientTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(final.lang, "hi-en")
         self.assertEqual(final.confidence, 0.91)
 
-    async def test_config_and_eos_sent_upstream(self) -> None:
+    async def test_commit_is_the_eos_and_no_inband_config(self) -> None:
         transport = FakeTransport([])
         client = SttClient(
             _settings(), connect_factory=lambda: asyncio.sleep(0, result=transport)
@@ -71,11 +71,29 @@ class SttClientTest(unittest.IsolatedAsyncioTestCase):
         await client.send_audio(b"\x00\x00" * 1600)
         await client.finish()
         kinds = [s for s in transport.sent if isinstance(s, str)]
-        self.assertIn('"type": "config"', kinds[0])  # json.dumps default spacing
-        self.assertTrue(any("audio_end" in s for s in kinds))
+        # Prisma v3.0 realtime: config travels in upgrade headers, EOS is
+        # `commit` (verified against docs.gnani.ai 2026-11-10).
+        self.assertFalse(any('"type": "config"' in s for s in kinds))
+        self.assertEqual(kinds, ['{"type": "commit"}'])
         # mic audio crosses upstream as binary PCM frames (ws-contract.md §3)
         self.assertEqual(sum(isinstance(s, bytes) for s in transport.sent), 1)
         await client.close()
+
+    async def test_transcript_event_maps_to_final(self) -> None:
+        transport = FakeTransport(
+            [
+                '{"type":"transcript","text":"Impulse aur momentum same kyun?","detected_language_code":"hi-IN","segment_id":"seg_1","latency":320}',
+            ]
+        )
+        client = SttClient(
+            _settings(), connect_factory=lambda: asyncio.sleep(0, result=transport)
+        )
+        await client.start()
+        event = await client.next_event()
+        assert event is not None
+        self.assertEqual(event.kind, "final")
+        self.assertEqual(event.text, "Impulse aur momentum same kyun?")
+        self.assertEqual(event.lang, "hi-IN")
 
     async def test_garbage_events_tolerated_never_crash(self) -> None:
         transport = FakeTransport(
@@ -109,10 +127,8 @@ class SttClientTest(unittest.IsolatedAsyncioTestCase):
         assert final is not None
         self.assertEqual(final.text, "after resume")
         self.assertEqual(client.reconnects, 1)
-        resume_cfg = [
-            s for s in live.sent if isinstance(s, str) and '"resume": true' in s
-        ]
-        self.assertEqual(len(resume_cfg), 1)
+        # config is header-carried; a reconnect sends no in-band resume frame
+        self.assertFalse(any(isinstance(s, str) and s for s in live.sent))
 
     async def test_stream_death_past_budget_returns_none(self) -> None:
         transport = FakeTransport([])

@@ -40,6 +40,32 @@ shape (prompt contract: first sentence short) → L3 thinking scope (ADR-0018 fa
 founder-signed only) → L1 STT session pre-open (open the Prisma stream on `audio.start`, not on
 `audio.end` — costs nothing, hides connect time).
 
+## Measured baseline — live turns (2026-11-10, public tunnel URL)
+
+Two real turns against the live vendors, no mocks: a Hinglish clip synthesised with Timbre,
+fed through Prisma, the tutor answered, and Timbre audio was captured. The second turn went
+through the **public Cloudflare tunnel + nginx `/voice/` proxy**, so it includes the real
+demo path:
+
+| Hop | Budget (ms) | Measured (ms) | Note |
+|---|---|---|---|
+| L1 STT final after EOS | 250 | **267** | Prisma commit→transcript, warm public path |
+| L2 auth/guard/context (cumulative) | 50 | 267 | not separately stamped in P0 |
+| L3 brain first content event | 900 | **2,208** | `gemini-2.5-flash`, thinking disabled (OQ-04) |
+| L4 first speakable segment | 200 | 2,209 (cumulative) | |
+| L5 chunker handoff | 5 | 2,209 (cumulative) | in-process |
+| L6 Timbre first audio byte | 200 | **305** (2,514 − 2,209) | inside budget |
+| **Σ server-side to first audio** | 1,955 | **2,514** | **inside the 4,000 ms bar** |
+| L7/L8 delivery + playback | 330 | not measured | no browser in the driver path |
+
+End-to-end observed first-audio-after-EOS was **2.98 s** on the public URL. First-turn warm-up
+was slower (4.34 s, L1 1,382 / L3 2,745) — n is small; treat the spread as real. Honest status:
+**L6 is [MEASURED] and comfortably inside budget**; L1/L3 are measured but above their assumed
+budget and dominate the loop. Gemma 4 26B A4B was measured separately at ~20 s to first content
+on the full tutor prompt, i.e. unusable for a real-time turn today (OQ-04), so the P0 demo runs
+`gemini-2.5-flash` with thinking disabled. L7/L8 and the P95 across ≥20 turns on real hardware
+remain open (OQ-07); the numbers above are n=2.
+
 ## R — the revisit trigger (measurable)
 
 If pinned L1+L3 > 2,500 ms for a week of real traffic, revisit calling the brain on **partials +

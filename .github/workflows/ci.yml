@@ -184,7 +184,11 @@ jobs:
           # seeded with the same no-clobber glob copy the initContainer uses (gotcha 6).
           # Without this the bare image serves nginx's default page and the shell checks
           # can never pass.
+          # `--add-host core-backend` stands in for the Service/compose alias:
+          # nginx resolves proxy_pass upstreams at start-up, and this smoke
+          # runs the image standalone (the backend is not on its network).
           docker run -d --name zivon-web -p 8080:8080 \
+            --add-host core-backend:127.0.0.1 \
             --tmpfs /usr/share/nginx/html:rw,exec,uid=101,gid=101 \
             zivon-frontend:${{ github.sha }}
           for i in $(seq 1 15); do curl -sf http://127.0.0.1:8080/healthz >/dev/null && break; sleep 1; done

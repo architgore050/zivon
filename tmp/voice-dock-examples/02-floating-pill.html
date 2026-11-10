@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dock mockup 02 · floating pill (throwaway)</title>
+<!--
+  ============================================================================
+  THROWAWAY MOCKUP 02 - "floating pill -> taped paper card"
+  ----------------------------------------------------------------------------
+  INERT AND VISUAL-ONLY: no WebSocket, no fetch, no CDN, no getUserMedia, no
+  storage. Every string and timing is fake (_dock.js). NOT design-doctrine
+  §10.12 - §10.12 does not exist (founder-gated, DCR-002); this file reuses
+  only the existing §3-§6 / §10.1-§10.11 tokens. Backdrop = the real generated
+  lesson page in an iframe, unmodified.
+  Open question this variant poses to the founder: a 36 px capsule in the
+  collapsed state is a departure from §6 "corners square or 4 px".
+  ============================================================================
+-->
+<link rel="stylesheet" href="_dock.css">
+<style>
+  /* ---- variant 02 layout: 72 px capsule bottom-right, expands into a
+         paper card with one tape strip (-3 deg) at the top edge ---------- */
+  .dk {
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: min(360px, calc(100vw - 24px));
+    max-height: min(70dvh, 560px);
+    display: flex;
+    flex-direction: column;
+    padding-top: 2px;
+  }
+  .dk-top { padding: 0.7rem 0.7rem 0.55rem; }
+  .dk-live { padding-top: 2px; }
+  .dk-cap { max-height: 6.75em; overflow: hidden; }
+  .dk-tr { order: 3; max-height: 10.5rem; }
+  .dk-note { order: 2; }
+  .dk-text { order: 4; }
+
+  /* the handwritten annotation label = the ONE pen mark on this screen */
+  .dk-hand {
+    margin: 0 0 7px;
+    font-family: var(--hand);
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1.1;
+    color: var(--pen-blue);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dk-hand .ul { position: relative; display: inline-block; }
+  .dk-hand .pen-ul {
+    position: absolute;
+    left: -1px;
+    right: -3px;
+    bottom: -5px;
+    width: auto;
+    height: 7px;
+  }
+
+  /* ---- collapsed: 72 px capsule, mic + one live line ---------------- */
+  .dk.is-collapsed {
+    width: min(72vw, 330px);
+    height: 72px;
+    max-height: 72px;
+    border-radius: 36px;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 6px 0 0;
+    overflow: hidden;
+  }
+  .dk.is-collapsed .tape,
+  .dk.is-collapsed .dk-chip,
+  .dk.is-collapsed .dk-doc,
+  .dk.is-collapsed .dk-hand,
+  .dk.is-collapsed .dk-tr,
+  .dk.is-collapsed .dk-note,
+  .dk.is-collapsed .dk-text,
+  .dk.is-collapsed .dk-wait,
+  .dk.is-collapsed .dk-think,
+  .dk.is-collapsed [data-texttoggle] { display: none; }
+  .dk.is-collapsed .dk-top { flex: 1 1 auto; align-items: center; padding: 0; gap: .5rem; }
+  .dk.is-collapsed .dk-mic {
+    width: 60px; height: 60px; border-radius: 34px; border-width: 0;
+    background: var(--ink); color: var(--paper-light);
+  }
+  .dk.is-collapsed .dk-mic[aria-pressed="true"] { background: var(--pen-blue); }
+  .dk.is-collapsed .dk-cap {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-height: 0; font-size: 0.9375rem;
+  }
+  .dk.is-collapsed .dk-tools { padding-right: 2px; }
+  .dk.is-collapsed [data-collapse] { border: 0; min-width: 40px; }
+  .dk.is-collapsed [data-collapse] svg { transform: rotate(180deg); }
+
+  @media (max-width: 420px) {
+    .dk { right: 12px; left: 12px; width: auto; max-height: 64dvh; }
+    .dk.is-collapsed { left: auto; right: 12px; }
+    .dk-cap { font-size: 1rem; }
+  }
+</style>
+</head>
+<body data-variant="02-floating-pill">
+
+<iframe class="stage"
+        src="../../frontend/courses/class-11-physics/laws-of-motion/index.html#b-13"
+        title="Laws of Motion - the real generated lesson page, anchored at block b-13"
+        loading="eager"></iframe>
+
+<aside class="dk" id="dock" data-state="idle" aria-label="Voice tutor dock">
+  <span class="tape" aria-hidden="true"></span>
+  <div class="dk-top">
+    <button class="dk-mic" data-mic type="button" aria-pressed="false" aria-label="Hold to talk">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2.5" width="6" height="11" rx="3"></rect>
+        <path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"></path>
+      </svg>
+    </button>
+    <div class="dk-live">
+      <p class="dk-hand dk-doc" aria-hidden="true">
+        <span class="ul">tutor, aapke page par
+          <svg class="pen-ul" viewBox="0 0 72 7" preserveAspectRatio="none" aria-hidden="true"><path d="M1 5.2c8-2.1 17-2.4 26-2.2 7 .2 14 1.1 21 0 6-.9 12-1.6 22-1.4" stroke-width="2.1"></path></svg>
+        </span>
+      </p>
+      <p class="dk-chip">
+        <span class="dk-mark" aria-hidden="true"></span>
+        <span data-chip>Mic idle</span>
+        <span class="dk-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      </p>
+      <p class="dk-cap" data-caption aria-live="polite" aria-atomic="true">Hold the mic and speak your doubt.</p>
+      <div class="dk-wait" aria-hidden="true"></div>
+      <div class="dk-think" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="dk-tools">
+      <button class="dk-btn" type="button" data-texttoggle aria-expanded="false" aria-controls="dk-text">Type</button>
+      <button class="dk-btn" type="button" data-collapse aria-expanded="true" aria-label="Collapse the dock (mic stays available)">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"></path></svg>
+        <span class="vh">Shrink dock</span>
+      </button>
+    </div>
+  </div>
+
+  <p class="dk-note" data-note></p>
+
+  <div class="dk-text" id="dk-text" data-textpanel>
+    <form class="dk-form" data-form>
+      <input class="dk-in" data-input type="text" placeholder="Apna doubt type karo…" aria-label="Type your Physics doubt" autocomplete="off">
+      <button class="dk-send" type="submit">Send</button>
+    </form>
+  </div>
+
+  <ol class="dk-tr" data-transcript role="log" aria-live="polite" aria-label="Conversation"></ol>
+</aside>
+
+<script src="_dock.js"></script>
+</body>
+</html>

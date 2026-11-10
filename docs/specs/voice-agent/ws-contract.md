@@ -61,10 +61,11 @@ message, its consumer row must be removed in the same PR.
 | 7 | reserved | 0 | 0 |
 
 Payload: C→S = PCM16 mono 16 kHz, 100 ms (3,200 bytes) per frame — simplest correct thing; cellular
-uplink carries 256 kbps, so no codec tax on the client for P0. S→C = Opus 20 ms frames (RFC 6716)
-at Timbre's output rate [ASSUMPTION: pin format/rate from OQ-03; if Timbre streams PCM, the rate is
-pinned and Opus encoding happens server-side only if bandwidth demands it]. FEC/DTX tuning per the
-audio skill happens at EX1 measurement time, not by default.
+uplink carries 256 kbps, so no codec tax on the client for P0. S→C = **PCM16 mono at
+`ZIVON_VOICE_TTS_SAMPLE_RATE` (48 kHz default)** — verified 2026-11-10: Timbre v3.0 realtime
+returns base64 PCM inside JSON (`audio_config.container=raw`, `encoding=linear_pcm`), and the
+server re-frames it into the 8-byte-header binary downlink. The client plays it as raw PCM (no
+Opus decode).
 
 ## 4. State machine (server-enforced truth)
 

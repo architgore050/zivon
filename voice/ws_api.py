@@ -1094,6 +1094,19 @@ async def _run_audio_turn(conn: _Connection, turn: _Turn) -> None:
         turn.stt_final_at = now()
         turn.stamp("L1", turn.stt_final_at)
         turn.stt_seconds = conn.stt_uplink.audio_seconds
+        # ws-contract §2: stt.final freezes the dock's live transcript line
+        # before the answer streams. The mock server already emits it, so a
+        # live server that stayed silent was a mock/live divergence (dock stuck
+        # in "listening"). Emit once per turn, before the brain call.
+        final = {
+            "type": "stt.final",
+            "turn_id": turn.turn_id,
+            "text": turn.transcript,
+            "lang": turn.lang,
+        }
+        if turn.confidence is not None:
+            final["confidence"] = turn.confidence
+        await conn.send_json(final)
         await _run_brain_turn(conn, turn, typed=False)
     except SttUnavailableError:
         # F1-adjacent: EOS arrived but no final — honest error turn. The dock

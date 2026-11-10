@@ -39,6 +39,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# --- throwaway local scratch (mockups, one-off review pages) ---
+/tmp/
+
 # --- demo/recording scratch ---
 recordings/
 *.mp4

@@ -14,8 +14,32 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 
 🚧 **In active build.** Deadline: **10 November 2026, 11:59 PM IST**.
 
-- Live demo: *coming soon* (link will be pinned here)
+- **Live demo (P0):** <https://pads-caught-colours-ballot.trycloudflare.com> — a
+  demo-grade Cloudflare tunnel in front of the container stack (it dies if the host or
+  tunnel process stops; a durable VM + domain is the next step, see `TIMELINE.md`).
 - Day-by-day build plan: [`TIMELINE.md`](TIMELINE.md)
+
+**Honest status of the voice loop (2026-11-10).** The full loop has been run live on the
+public URL: Prisma v3.0 transcribes a Hinglish doubt, the reasoning model answers, and
+Timbre v3.0 returns the tutor's speech — measured **2.98 s** from end-of-speech to first
+audio, inside the 4 s Gate C bar, with the answer audio captured. The in-page voice dock
+is **not shipped yet**: its visual design is gated on a founder-authored design-doctrine
+section (§10.12), and the browser client is currently protocol/state-machine only (no
+audio playback wired). So today the site is the generated lesson content plus a proven
+server-side voice loop; the dock lands after the doctrine text exists.
+
+**Recorded model deviation.** Gate A selected **Gemma 4 26B A4B** as the runtime brain.
+Measured on the Gemini API on 2026-11-10, it thinks for ~20 s before its first content
+token and rejects `thinking_budget`/`thinking_level`, so it cannot meet a real-time voice
+turn today. The P0 demo therefore runs **`gemini-2.5-flash` with thinking disabled** via
+deployment config; Gemma 4 remains the code default and a one-env-var switch. This is a
+documented deviation, not a silent swap (`docs/specs/voice-agent/open-questions.md` OQ-04).
+
+**Data handling, stated plainly.** Audio is not retained by Zivon; transcripts are
+short-lived (7-day TTL). Gnani-side audio retention for Prisma/Timbre is **not yet
+confirmed** (counsel question Q-V1), and the device pseudonym is created before an explicit
+consent gesture (DPDP review pending). Cold backup is **simulated** — RPO is the last base
+backup, not a continuously replicated store.
 
 ---
 

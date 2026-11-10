@@ -83,11 +83,21 @@ class VoiceSettings:
     brain_model: str = "gemma-4-26b-a4b-it"
     brain_transport: str = "gemini-direct"  # | openrouter
     brain_openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    brain_inactivity_s: float = 4.0  # [ASSUMPTION] between stream events
-    brain_first_event_s: float = 3.0  # [ASSUMPTION] to first stream event
+    brain_inactivity_s: float = 8.0  # Gemma 4 thinking gaps (measured 2026-11-10)
+    brain_first_event_s: float = 12.0  # Gemma 4 thinks first (measured 2026-11-10)
     brain_turn_deadline_s: float = 45.0  # hard close mid-stream
     brain_max_retries: int = 2  # only before any audio reached the client
     brain_first_event_retries: int = 1  # F2: initial attempt + one retry
+    # Gemma 4 26B A4B on the Gemini API thinks unconditionally (2026-11-10
+    # probe: thought parts arrive before the answer and consumed the default
+    # budget, leaving truncated replies). The budget must cover thinking +
+    # answer; 2048 was verified sufficient for a several-sentence tutor turn.
+    brain_max_output_tokens: int = 8192
+    brain_temperature: float = 0.4
+    # Gemini thinking budget (-1 = don't send it, the model default). Set 0 on
+    # a Gemini model for a real-time first content event; Gemma 4 rejects
+    # thinking_config (measured 2026-11-10), so it is only sent when configured.
+    brain_thinking_budget: int = -1
 
     # --- thinking out loud (ADR-0018) ---------------------------------------
     thinking_summaries: bool = False  # flag default OFF until OQ-04 + falsification
@@ -96,17 +106,24 @@ class VoiceSettings:
     summaries_max_per_turn: int = 2
     summary_max_chars: int = 120
 
-    # --- STT (Prisma v3.0, OQ-02 contract verified at build) ----------------
+    # --- STT (Prisma v3.0, OQ-02 — LIVE contract verified 2026-11-10) ------
     stt_url: str = ""  # empty = not configured → F1 degraded path, honest
+    stt_model: str = "prisma-v3.0"  # realtime: `model` upgrade header
+    stt_language: str = "indic-auto"  # code-mixed Hinglish auto-detect
     stt_sample_rate: int = 16000
     stt_frame_ms: int = 100
     stt_languages: tuple[str, ...] = ("hi", "en")
     echo_guard_ms: int = 200  # drop STT events within 200 ms of playback stop
-    stt_final_timeout_s: float = 2.0  # NFR-02 ceiling 1.5 s + grace (F1/F3 path)
+    stt_final_timeout_s: float = (
+        8.0  # Prisma commit->transcript can exceed 2 s (measured 2026-11-10)
+    )
 
-    # --- TTS (Timbre v3.0 realtime, OQ-03) ----------------------------------
+    # --- TTS (Timbre v3.0 realtime, OQ-03 — LIVE contract verified 2026-11-10)
     tts_url: str = ""  # empty = not configured → F4 degraded path, honest
-    tts_voice: str = ""  # founder picks by ear (OQ-03)
+    tts_model: str = "timbre-v3.0"
+    tts_language: str = "hi-en"  # Hinglish; "auto" also valid
+    tts_sample_rate: int = 48000  # Timbre realtime audio_config.sample_rate
+    tts_voice: str = "Shivani"  # Timbre v3.0 default; founder may re-pick (OQ-03)
     tts_char_cap_turn: int = 1200  # H3 per-turn char cap (tags bill as chars)
     tts_tag_max_per_turn: int = 8  # H3 tag cap (≤ 1 tag / 2 sentences)
     tts_tag_sentences_ratio: int = 2
@@ -153,7 +170,7 @@ class VoiceSettings:
     history_turns_max: int = 6  # brain sees last ≤ 6 turns of text
     turn_ttl_days: int = 7  # A-02 hard delete, purged by voice.purge_expired
     snapshot_max_bytes: int = 4096  # ADR-0014 bound
-    snapshot_stale_s: float = 2.0  # resend when older (spec.md §7)
+    snapshot_stale_s: float = 10.0  # turn-length window; client resends at turn start
     context_block_text_max: int = 600  # prompt context bound (spec.md §7)
 
     # --- secrets (runtime env only; never logged, never in manifests) -------
@@ -188,18 +205,28 @@ class VoiceSettings:
             brain_openrouter_base_url=e.get(
                 "ZIVON_VOICE_OPENROUTER_URL", "https://openrouter.ai/api/v1"
             ),
-            brain_inactivity_s=_env_float(e, "ZIVON_VOICE_BRAIN_INACTIVITY_S", 4.0),
-            brain_first_event_s=_env_float(e, "ZIVON_VOICE_BRAIN_FIRST_EVENT_S", 3.0),
+            brain_inactivity_s=_env_float(e, "ZIVON_VOICE_BRAIN_INACTIVITY_S", 8.0),
+            brain_first_event_s=_env_float(e, "ZIVON_VOICE_BRAIN_FIRST_EVENT_S", 12.0),
             brain_turn_deadline_s=_env_float(
                 e, "ZIVON_VOICE_BRAIN_TURN_DEADLINE_S", 45.0
             ),
             brain_max_retries=_env_int(e, "ZIVON_VOICE_BRAIN_MAX_RETRIES", 2),
+            brain_max_output_tokens=_env_int(
+                e, "ZIVON_VOICE_BRAIN_MAX_OUTPUT_TOKENS", 8192
+            ),
+            brain_temperature=_env_float(e, "ZIVON_VOICE_BRAIN_TEMPERATURE", 0.4),
+            brain_thinking_budget=_env_int(e, "ZIVON_VOICE_BRAIN_THINKING_BUDGET", -1),
             thinking_summaries=thinking in ("1", "true", "on", "yes"),
             filler_silence_ms=_env_int(e, "ZIVON_VOICE_FILLER_SILENCE_MS", 2000),
             stt_url=e.get("ZIVON_VOICE_STT_URL", ""),
+            stt_model=e.get("ZIVON_VOICE_STT_MODEL", "prisma-v3.0"),
+            stt_language=e.get("ZIVON_VOICE_STT_LANGUAGE", "indic-auto"),
             stt_sample_rate=_env_int(e, "ZIVON_VOICE_STT_SAMPLE_RATE", 16000),
             tts_url=e.get("ZIVON_VOICE_TTS_URL", ""),
-            tts_voice=e.get("ZIVON_VOICE_TTS_VOICE", ""),
+            tts_model=e.get("ZIVON_VOICE_TTS_MODEL", "timbre-v3.0"),
+            tts_language=e.get("ZIVON_VOICE_TTS_LANGUAGE", "hi-en"),
+            tts_sample_rate=_env_int(e, "ZIVON_VOICE_TTS_SAMPLE_RATE", 48000),
+            tts_voice=e.get("ZIVON_VOICE_TTS_VOICE", "Shivani"),
             tts_char_cap_turn=_env_int(e, "ZIVON_VOICE_TTS_CHAR_CAP_TURN", 1200),
             tts_tag_max_per_turn=_env_int(e, "ZIVON_VOICE_TTS_TAG_MAX_PER_TURN", 8),
             credit_daily_tranche=_env_int(e, "ZIVON_VOICE_CREDIT_DAILY_TRANCHE", 1000),
