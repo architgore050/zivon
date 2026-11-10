@@ -66,7 +66,13 @@ def rule_answer_keys(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 float(str(answer).strip())
             except (TypeError, ValueError):
                 issues.append(
-                    _issue(b, "fatal", f"numeric answer {answer!r} is not a number")
+                    _issue(
+                        b,
+                        "fatal",
+                        f"numeric answer {answer!r} is not a number - the answer "
+                        'field must be the bare number only (e.g. "6"), with the '
+                        "unit moved into the question",
+                    )
                 )
         else:
             issues.append(_issue(b, "fatal", f"unknown check format {fmt!r}"))
@@ -253,14 +259,51 @@ def rule_diagram_svg(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return issues
 
 
+def rule_shapes(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Shape invariants the run's other rule checks silently depend on
+    (founding rule: guarantees live in the harness, not in prompt prose). A
+    nemotron-class model emitted `worked_example.steps` as one dict - Python's
+    dict iteration then handed bare strings to every `step.get(...)` and the
+    run died with an AttributeError instead of telling the model what was
+    wrong. Shapes are therefore checked FIRST: run_all_rules short-circuits
+    on them so the retry transcript lands the fix instruction."""
+    issues: list[dict[str, Any]] = []
+    for b in blocks:
+        if b["type"] in ("worked_example", "reveal"):
+            steps = b["spec"].get("steps")
+            if not isinstance(steps, list) or not all(
+                isinstance(s, dict) for s in steps
+            ):
+                issues.append(
+                    _issue(
+                        b,
+                        "fatal",
+                        f'{b["type"]} "steps" must be a list of '
+                        '{"title","detail"} objects (a dict or string is not a '
+                        "step sequence)",
+                    )
+                )
+    return issues
+
+
 def run_all_rules(
     blocks: list[dict[str, Any]],
     lesson: dict[str, Any],
     ground_truth: dict[str, Any],
     source_pack: dict[str, Any],
 ) -> dict[str, Any]:
+    shape_issues = rule_shapes(blocks)
+    if any(i["severity"] == "fatal" for i in shape_issues):
+        # Short-circuit: the later rules iterate steps the same way this run
+        # died doing - the shape verdict IS the report for this round.
+        return {
+            "rule_issues": shape_issues,
+            "fatal_count": len(shape_issues),
+            "verdict": "fail",
+        }
     issues = (
-        rule_answer_keys(blocks)
+        shape_issues
+        + rule_answer_keys(blocks)
         + rule_citations(blocks, ground_truth, source_pack)
         + rule_self_containment(blocks, lesson)
         + rule_numbers(blocks, ground_truth, source_pack)

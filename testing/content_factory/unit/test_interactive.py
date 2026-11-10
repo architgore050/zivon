@@ -73,6 +73,81 @@ class TestInteractiveFacts(unittest.TestCase):
             load("gt.json"),
         )
 
+    def _messages(self, stub: StubLLM) -> tuple[str, str]:
+        self._run(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        system = next(m["content"] for m in stub.messages if m["role"] == "system")
+        return user, system
+
+    def test_sim_prompt_carries_cited_claims_and_equations(self):
+        # The fixture sim block b-06 cites claim-03 and claim-04: their exact
+        # statements must be in the prompt; uncited claims must not flood it.
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        gt = load("gt.json")
+        cited = [c for c in gt["claims"] if c["id"] in ("claim-03", "claim-04")]
+        uncited = next(c for c in gt["claims"] if c["id"] == "claim-01")
+        self.assertTrue(cited)
+        for c in cited:
+            self.assertIn(c["statement"], user)
+        self.assertNotIn(uncited["statement"], user)
+        for e in gt["equations"]:
+            self.assertIn(e["expression"], user)
+
+    def test_prompt_pins_physics_and_legibility_contract(self):
+        stub = StubLLM()
+        user, system = self._messages(stub)
+        self.assertIn("FACTS THE SIMULATION MUST OBEY", user)
+        self.assertIn("PHYSICS CONTRACT", user)
+        self.assertIn("Never invent physics", user)
+        self.assertIn("canvas buffer is fixed 480x320", user)
+        self.assertIn("Clean geometry on canvas too", user)
+        self.assertIn("Never invent physics facts", system)
+
+    def test_prompt_requires_geometry_computed_in_js(self):
+        # Founder call 2026-11-09: graphs must be computed from equations in
+        # JS, never drawn from hand-placed coordinates. Two anchors: the
+        # contract law (05 prompt) and the SHAPE line in the sim skeleton.
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        self.assertIn("COMPUTE, DO NOT DRAW BY HAND", user)
+        self.assertIn("computed in JS from the cited equations", user)
+        self.assertIn("Geometry is COMPUTED from the cited equations", user)
+        self.assertIn("GRAPH SHAPE", user)
+        self.assertIn("APPARATUS TOO", user)
+        self.assertIn("PLAN THE GEOMETRY SYMBOLICALLY FIRST", user)
+
+    def test_prompt_pins_the_axis_follows_the_data_law(self):
+        # Founder report 2026-11-10: graphs were allowed to stay static while
+        # a control changed the axis/parameter - "that should not be allowed".
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        self.assertIn("AXES ARE DATA", user)
+        self.assertIn("recomputed from the current values EVERY frame", user)
+        self.assertIn("Compute tick values from the plot's own scale mapping", user)
+        self.assertIn("GRAPH CONTENT law", user)
+        self.assertIn("constant acceleration", user)
+
+    def test_prompt_carries_live_doctrine_examples_and_palette(self):
+        # The design context is injected, not held: the prompt must contain the
+        # live doctrine document, every example the glob finds, and the exact
+        # palette values parsed from zivon.css. The old hand-held token list
+        # and the inert "Reference: <path>" line must be gone.
+        stub = StubLLM()
+        user, _ = self._messages(stub)
+        self.assertIn("DESIGN DOCTRINE + EXAMPLES", user)
+        doctrine = (REPO_ROOT / "docs" / "frontend" / "design-doctrine.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(doctrine[:400], user)  # the live document, not an excerpt
+        self.assertIn(
+            "=== design-doctrine-lesson-example.html ===", user
+        )  # example content injected, not just named
+        self.assertIn("#1F3A9E", user)  # pen-blue, parsed from the stylesheet
+        self.assertIn("never copy their", user)  # the medium bridge
+        self.assertNotIn("var(--ink), var(--paper), var(--graphite)", user)
+        self.assertNotIn("Reference: ", user)
+
     def test_lint_violations_feed_the_retry_loop(self):
         stub = StubLLM()
         out = self._run(stub)  # {block_id: model output} - the sim is under "b-06"

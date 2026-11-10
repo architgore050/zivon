@@ -473,7 +473,7 @@ spec:
             fsGroup: 1000
           containers:
             - name: evals
-              image: zivon-factory:0.3.17
+              image: zivon-factory:0.3.19
               imagePullPolicy: IfNotPresent
               command:
                 - python
@@ -607,7 +607,7 @@ Every execution of `python -m evals run` writes two artifacts into `evals_runs/<
   "eval_run_id": "eval-full-20261109-143000",
   "suite": "full",
   "pipeline_version": 7,
-  "factory_image_tag": "0.3.17",
+  "factory_image_tag": "0.3.19",
   "git_sha": "0a43d9535749a22714804f2387efc8f2fe4e9252",
   "prompt_bundle_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "generator_model": "stealth/crouton-alpha",

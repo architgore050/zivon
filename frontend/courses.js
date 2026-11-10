@@ -4,39 +4,57 @@
    then title - so the class-grouped catalogue renders deterministically. */
 window.ZIVON_COURSES = [
   {
+    "href": "courses/class-9-physics/describing-motion-around-us/index.html",
+    "course_id": "class-9-physics",
+    "class": 9,
+    "chapter_number": null,
+    "title": "Describing Motion Around Us",
+    "chapter": "Grade",
+    "generated_at": "2026-11-09T15:31:18Z"
+  },
+  {
     "href": "courses/class-9-physics/how-forces-affect-motion/index.html",
     "course_id": "class-9-physics",
     "class": 9,
-    "chapter_number": 6,
+    "chapter_number": null,
     "title": "How Forces Affect Motion",
     "chapter": "Motion",
     "generated_at": "2026-11-03T15:11:31Z"
   },
   {
-    "href": "courses/class-11-physics/units-and-measurement/index.html",
+    "href": "courses/class-11-physics/laws-of-motion/index.html",
     "course_id": "class-11-physics",
     "class": 11,
-    "chapter_number": 1,
-    "title": "Units and Measurement",
-    "chapter": "UNITS AND MEASUREMENT",
-    "generated_at": "2026-11-09T11:56:46Z"
-  },
-  {
-    "href": "courses/class-11-physics/motion-in-a-straight-line/index.html",
-    "course_id": "class-11-physics",
-    "class": 11,
-    "chapter_number": 2,
-    "title": "Motion in a Straight Line",
-    "chapter": "MOTION IN A STRAIGHT LINE",
-    "generated_at": "2026-11-09T10:23:43Z"
+    "chapter_number": 4,
+    "title": "Laws of Motion",
+    "chapter": "LAWS OF MOTION",
+    "generated_at": "2026-11-10T06:01:22Z"
   },
   {
     "href": "courses/class-11-physics/motion-in-a-plane/index.html",
     "course_id": "class-11-physics",
     "class": 11,
-    "chapter_number": 3,
+    "chapter_number": null,
     "title": "Motion in a Plane",
     "chapter": "MOTION IN A PLANE",
     "generated_at": "2026-11-09T13:57:47Z"
+  },
+  {
+    "href": "courses/class-11-physics/motion-in-a-straight-line/index.html",
+    "course_id": "class-11-physics",
+    "class": 11,
+    "chapter_number": null,
+    "title": "Motion in a Straight Line",
+    "chapter": "MOTION IN A STRAIGHT LINE",
+    "generated_at": "2026-11-09T10:23:43Z"
+  },
+  {
+    "href": "courses/class-11-physics/units-and-measurement/index.html",
+    "course_id": "class-11-physics",
+    "class": 11,
+    "chapter_number": null,
+    "title": "Units and Measurement",
+    "chapter": "UNITS AND MEASUREMENT",
+    "generated_at": "2026-11-09T11:56:46Z"
   }
 ];

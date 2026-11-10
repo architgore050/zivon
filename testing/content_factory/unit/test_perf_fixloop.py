@@ -371,5 +371,88 @@ class TestFixloopStage(unittest.TestCase):
         self.assertEqual(glossary[0]["term"], "Speed & direction")
 
 
+class TestSpecCorrectionChannel(unittest.TestCase):
+    """2026-11-09 (this repo's own failed run): review findings about block
+    CONTENT are unfixable in page code - the fix plan gained a "blocks"
+    channel. The harness merges corrections by id and re-renders the page
+    body from the merged specs, so index.html has exactly one writer."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.cfg = make_cfg(self.tmp)
+        self.site, self.topic, self.render_out = make_page(self.tmp)
+        self.blocks = load("blocks.json")
+
+    def _apply(self, plan, blocks=None):
+        return fixloop_mod._apply_plan(self.topic, plan, blocks)
+
+    def test_corrected_blocks_merge_by_id_and_keep_others(self):
+        corrected = json.loads(json.dumps(self.blocks["blocks"][4]))  # b-05 diagram
+        corrected["spec"] = dict(corrected["spec"], caption="fixed caption")
+        rejected, merged = self._apply(
+            {"analysis": "x" * 30, "files": {}, "blocks": [corrected]}, self.blocks
+        )
+        self.assertEqual(rejected, [])
+        assert merged is not None
+        by_id = {b["id"]: b for b in merged["blocks"]}
+        self.assertEqual(by_id["b-05"]["spec"]["caption"], "fixed caption")
+        self.assertEqual(len(merged["blocks"]), len(self.blocks["blocks"]))
+        self.assertEqual(by_id["b-01"], self.blocks["blocks"][0])
+
+    def test_simulation_spec_edits_are_rejected_with_feedback(self):
+        corrected = json.loads(json.dumps(self.blocks["blocks"][5]))  # b-06 sim
+        rejected, merged = self._apply(
+            {"analysis": "x" * 30, "files": {}, "blocks": [corrected]}, self.blocks
+        )
+        self.assertTrue(any("simulation block(s) b-06" in r for r in rejected))
+        self.assertIsNone(merged, "rejected corrections must not reach the draft")
+
+    def test_renderer_file_in_plan_is_a_rejection_sentence(self):
+        rejected, merged = self._apply(
+            {"analysis": "x" * 30, "files": {"index.html": "<html></html>"}},
+            self.blocks,
+        )
+        self.assertTrue(any("renderer-owned" in r for r in rejected))
+        self.assertIsNone(merged)
+        self.assertNotIn("<html></html>", (self.topic / "index.html").read_text())
+
+    def test_rebuild_from_blocks_writes_corrected_geometry_without_nesting(self):
+        # spelling guard on the method name below (lowercase w caught by lint)
+        corrected = json.loads(json.dumps(self.blocks["blocks"][4]))
+        corrected["spec"] = dict(corrected["spec"], caption="fixed caption")
+        _, merged = self._apply(
+            {"analysis": "x" * 30, "files": {}, "blocks": [corrected]}, self.blocks
+        )
+        assert merged is not None
+        fixloop_mod._rebuild_html_if_needed(
+            self.cfg, self.render_out, self.topic, merged
+        )
+        html = (self.topic / "index.html").read_text(encoding="utf-8")
+        self.assertIn("fixed caption", html)
+        for marker in (
+            '<header class="zn-lang-bar">',
+            '<header class="zn-header">',
+            '<section class="zn-glossary">',
+            '<footer class="zn-footer">',
+        ):
+            self.assertEqual(html.count(marker), 1, marker)
+        # idempotent: a second rebuild from the same specs changes nothing
+        fixloop_mod._rebuild_html_if_needed(
+            self.cfg, self.render_out, self.topic, merged
+        )
+        self.assertIn("fixed caption", (self.topic / "index.html").read_text())
+
+    def test_rebuild_without_blocks_still_collapses_nested_shells(self):
+        # A page left poisoned by an older runner (shells nested; seen in the
+        # wild 2026-11-09) must be normalized, not joined again.
+        _, topic, render_out = make_page(self.tmp / "poison")
+        good = (topic / "index.html").read_text(encoding="utf-8")
+        (topic / "index.html").write_text(good + good, encoding="utf-8")
+        fixloop_mod._rebuild_html_if_needed(self.cfg, render_out, topic)
+        html = (topic / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(html.count('<header class="zn-header">'), 1)
+        self.assertEqual(html.count('<section class="zn-glossary">'), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
