@@ -95,6 +95,26 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
   - Page-context anchoring (what the student is reading/interacting with)
   - Usage / session logging (simple is fine)
 
+### Voice backend (`voice/` package)
+
+- The vocal tutor runtime lives in the top-level `voice/` package (sibling of `factory/`; name is
+  binding per backend-spec §4.3). Spec: `docs/specs/voice-agent/` — read `spec.md`,
+  `ws-contract.md`, and `latency-budget.md` before touching it.
+- Integration is one symbol: the core-backend app calls `voice.mount_voice(app)` (route
+  `/voice/ws` — ADR-0020, which amends ADR-0003's `/v1/voice` endpoint name for the P0 mount). No
+  separate image or k8s manifests in P0; `voice/requirements.txt`
+  is folded into the monolith image by the merge agent (see `docs/deployment/docker.md`).
+- Module layout is spec-pinned (`config`, `audio_io`, `stt_client`, `brain_client`, `chunker`,
+  `tts_client`, `session`, `anchoring`, `ws_api`); only `brain_client.py` talks to a model API
+  (Gemini/OpenRouter per ADR-0017 — the documented llm_manager seam). Reliability knobs are
+  `ZIVON_VOICE_*` env vars; secrets runtime-only.
+- Tests: `python -m unittest discover -s testing/voice -t .` — mocks at every vendor seam
+  (`testing/voice/mocks/`), no network, no keys. Credit-guard counters are **credit points**
+  (1 point = 30 s Prisma audio = 300 Timbre chars, OQ-06 placeholder) so caps and the per-turn
+  estimate share one unit; the two `ZIVON_VOICE_CREDIT_*_PER_POINT` factors change when the Gnani
+  dashboard pins the vendor unit. Live factories are the shipped defaults; `mock_mode` is a
+  test-only marker, not a runtime mode.
+
 ### Content factory (build-time)
 
 - **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/content_factory/` (pipeline), `testing/translation/` (10a..10d localization pipeline + TM store), `testing/narration/` (stage 12), and `testing/frontend/` (site shell). Stage **12-narration** (`factory/narration/`, opt-in via `ZIVON_NARRATION_ENABLED`) pre-generates per-block read-aloud audio with Gnani Timbre v3.0 at build time (C-051: zero runtime credits; A-15-bounded; GAP-015 contract) - see the architecture doc's narration section.
