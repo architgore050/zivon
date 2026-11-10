@@ -169,8 +169,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if cmd == "downgrade":
         target = args[1] if len(args) > 1 else "base"
-        rev = downgrade_db(engine, target)
-        print(f"[migrate] downgraded to {rev or 'base'}")
+        # downgrade_db may return None (no revision left) — keep it in its own
+        # variable so the upgrade branch's `rev: str` is not widened.
+        downgraded = downgrade_db(engine, target)
+        print(f"[migrate] downgraded to {downgraded or 'base'}")
         return 0
 
     print(f"Unknown command: {cmd}", file=sys.stderr)

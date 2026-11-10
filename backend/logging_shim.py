@@ -45,7 +45,7 @@ class ErrorClass(str, enum.Enum):
     STORE_ERROR = "store_error"
 
 
-_CTX_VAR: contextvars.ContextVar[dict[str, str]] = contextvars.ContextVar(
+_CTX_VAR: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar(
     "zivon_log_context", default=None
 )
 
@@ -460,8 +460,11 @@ try:
     LOG_SCHEMA_VERSION = _REAL_SCHEMA_VERSION
     Severity = _RealSeverity  # type: ignore[misc,assignment]
     ErrorClass = _RealErrorClass  # type: ignore[misc,assignment]
-    bind_context = _real_bind_context
-    context_scope = _real_context_scope
+    # The real package's signatures are narrower/keyword-only in places; the
+    # contract (docs/specs/observability/logging-api.md) is what callers see,
+    # and the shim type is the compatible superset, so rebinding is deliberate.
+    bind_context = _real_bind_context  # type: ignore[assignment]
+    context_scope = _real_context_scope  # type: ignore[assignment]
     current_context = _real_current_context
 
     def log_event(
@@ -481,5 +484,5 @@ try:
         return _shim_delete_subject(session_id)
 
 except ImportError:
-    log_event = _shim_log_event
+    log_event = _shim_log_event  # type: ignore[assignment]
     delete_subject = _shim_delete_subject
