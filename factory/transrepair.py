@@ -81,7 +81,9 @@ def run_one_round(
             if unit_id not in units_map:
                 continue
             unit_issues = units_map[unit_id]
-            unit_type = "meta" if unit_id == "b-00-meta" else str(en_by_id[unit_id]["type"])
+            unit_type = (
+                "meta" if unit_id == "b-00-meta" else str(en_by_id[unit_id]["type"])
+            )
             src_unit = en_lesson if unit_id == "b-00-meta" else en_by_id[unit_id]
             rejected_unit = (
                 loc_state["meta"]
@@ -185,7 +187,9 @@ def run_one_round(
                 loc_state["sim_strings"] = dict(tr_payload.get("sim_strings", {}))
             else:
                 tr_blocks_by_id[unit_id] = reassembled
-            loc_state.setdefault("unit_status", {})[unit_id] = f"repaired-r{round_no:02d}"
+            loc_state.setdefault("unit_status", {})[unit_id] = (
+                f"repaired-r{round_no:02d}"
+            )
             repaired_set.add(unit_id)
             repaired_list.append(unit_id)
 

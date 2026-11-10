@@ -441,7 +441,10 @@ def load_config(path: Path | None = None) -> Config:
     # construct minimal config dicts without the translation section.
     if "translation" not in data:
         data["translation"] = json.loads(json.dumps(_DEFAULT_TRANSLATION))
-    if isinstance(data.get("repair"), dict) and "translation_rounds" not in data["repair"]:
+    if (
+        isinstance(data.get("repair"), dict)
+        and "translation_rounds" not in data["repair"]
+    ):
         data["repair"]["translation_rounds"] = 6
 
     _validate(data, _SPEC, cfg_path)

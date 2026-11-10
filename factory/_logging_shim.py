@@ -172,8 +172,7 @@ except ImportError:
                 clean[str(k)] = _scrub_string(v)
             elif isinstance(v, list):
                 clean[str(k)] = [
-                    _scrub_string(item) if isinstance(item, str) else item
-                    for item in v
+                    _scrub_string(item) if isinstance(item, str) else item for item in v
                 ]
             elif isinstance(v, dict):
                 clean[str(k)] = _redact_payload(v)
@@ -293,10 +292,10 @@ def clear_recorded_events() -> None:
 
 
 __all__ = [
-    "ErrorClass",
     "LOG_SCHEMA_VERSION",
-    "Severity",
     "USING_SHIM",
+    "ErrorClass",
+    "Severity",
     "bind_context",
     "clear_recorded_events",
     "context_scope",

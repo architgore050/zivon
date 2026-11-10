@@ -72,9 +72,7 @@ DEFAULT_UI_STRINGS_EN: dict[str, str] = {
 }
 
 
-def _ui_for_locale(
-    all_ui: dict[str, dict[str, str]], locale: str
-) -> dict[str, str]:
+def _ui_for_locale(all_ui: dict[str, dict[str, str]], locale: str) -> dict[str, str]:
     out = dict(DEFAULT_UI_STRINGS_EN)
     for copy_key, by_loc in all_ui.items():
         if isinstance(by_loc, dict):
@@ -223,7 +221,7 @@ def _render_block(
     fallback_attr = ' lang="en" data-fallback-en="true"' if is_fallback_en else ""
     fallback_banner = (
         f'    <p class="zn-untranslated-notice" data-i18n="ui.untranslated_block_notice">'
-        f'{_esc(ui["lesson.untranslated.block_notice"])}</p>\n'
+        f"{_esc(ui['lesson.untranslated.block_notice'])}</p>\n"
         if is_fallback_en
         else ""
     )
@@ -255,7 +253,7 @@ def _render_block(
                 f'    <p class="zn-example-problem" data-i18n="{bid}.problem">{_esc(spec.get("problem", ""))}</p>\n'
                 f"    <ol>\n{steps}\n    </ol>\n"
                 f'    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">'
-                f'{_esc(ui["lesson.answer.label"])}</span> '
+                f"{_esc(ui['lesson.answer.label'])}</span> "
                 f'<span data-i18n="{bid}.answer">{_esc(spec.get("answer", ""))}</span></p>\n'
                 "  </section>"
             )
@@ -377,10 +375,10 @@ def _render_check(
             f"{fallback_banner}"
             f'    <legend data-i18n="{qid}.question">{q}</legend>\n{inputs}\n'
             f'    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">'
-            f'{_esc(ui_map["lesson.check.submit"])}</button>\n'
+            f"{_esc(ui_map['lesson.check.submit'])}</button>\n"
             f'    <p class="zn-check-feedback" aria-live="polite"></p>\n'
             f'    <details class="zn-check-why"><summary data-i18n="ui.check_why">'
-            f'{_esc(ui_map["lesson.check.why"])}</summary>'
+            f"{_esc(ui_map['lesson.check.why'])}</summary>"
             f'<p data-i18n="{qid}.explanation">{explanation}</p></details>\n'
             "  </fieldset>"
         )
@@ -407,7 +405,7 @@ def _render_simulation(
         controls = "\n".join(
             f'      <label class="zn-sim-control">'
             f'<span data-i18n="{sid}.controls.{_esc(c.get("id"))}.label">'
-            f'{_esc(c.get("label", c.get("id")))}</span>'
+            f"{_esc(c.get('label', c.get('id')))}</span>"
             f'<input type="range" data-control="{_esc(c.get("id"))}" min="{_esc(c.get("min", 0))}" '
             f'max="{_esc(c.get("max", 100))}" step="{_esc(c.get("step", 1))}" value="{_esc(c.get("initial", 0))}">'
             f"<output>{_esc(c.get('initial', 0))}</output></label>"
@@ -549,13 +547,17 @@ def _page_html(
             for i, g in enumerate(lesson["glossary"])
         )
     else:
-        objectives = "\n".join(f"      <li>{_esc(o)}</li>" for o in lesson["objectives"])
+        objectives = "\n".join(
+            f"      <li>{_esc(o)}</li>" for o in lesson["objectives"]
+        )
         glossary = "\n".join(
             f"      <dt>{_esc(g['term'])}</dt><dd>{_esc(g['definition'])}</dd>"
             for g in lesson["glossary"]
         )
 
-    page_js_tag = f'<script src="{local_prefix}page.js"></script>' if has_page_js else ""
+    page_js_tag = (
+        f'<script src="{local_prefix}page.js"></script>' if has_page_js else ""
+    )
     page_css_tag = (
         f'<link rel="stylesheet" href="{local_prefix}page.css">' if has_page_css else ""
     )
@@ -587,9 +589,8 @@ def _page_html(
                 f'<link rel="alternate" hreflang="{_esc(alt_loc)}" href="{_esc(alt_href)}">'
             )
         canonical_href = "../index.html" if is_subroute else "index.html"
-        seo_links = (
-            f'<link rel="canonical" href="{canonical_href}">\n'
-            + ("\n".join(alt_links) + "\n" if alt_links else "")
+        seo_links = f'<link rel="canonical" href="{canonical_href}">\n' + (
+            "\n".join(alt_links) + "\n" if alt_links else ""
         )
         title_attr = ' data-i18n="b-00-meta.title"'
         obj_lbl_attr = ' data-i18n="ui.objectives_heading"'
@@ -878,7 +879,9 @@ def render_localized(
     page_js_path = topic_dir / "page.js"
     page_css_path = topic_dir / "page.css"
     page_js = page_js_path.read_text(encoding="utf-8") if page_js_path.exists() else ""
-    page_css = page_css_path.read_text(encoding="utf-8") if page_css_path.exists() else ""
+    page_css = (
+        page_css_path.read_text(encoding="utf-8") if page_css_path.exists() else ""
+    )
     has_page_js = bool(page_js.strip())
     has_page_css = bool(page_css.strip())
 
@@ -943,7 +946,7 @@ def render_localized(
 
         fallback_set = set(loc_data.get("fallback_blocks", []))
         tc_loc = (transcheck_out or {}).get("locales", {}).get(locale, {})
-        for bi in (tc_loc.get("model_issues", []) + tc_loc.get("rule_issues", [])):
+        for bi in tc_loc.get("model_issues", []) + tc_loc.get("rule_issues", []):
             if bi.get("severity") in ("fatal", "major"):
                 bid = bi.get("block_id")
                 if bid and bid != "b-00-meta":

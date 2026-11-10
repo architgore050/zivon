@@ -253,9 +253,7 @@ _PLACEHOLDER_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 ]
 _TEMPLATE_VAR_RE = re.compile(r"\{[a-zA-Z0-9_]+\}")
 
-_PURE_SYMBOL_CHARS_RE = re.compile(
-    r"^[\d\s.,+\-−=×÷/()^₀-₉⁰-⁹a-zA-ZΔθωλμ°%]+$"
-)
+_PURE_SYMBOL_CHARS_RE = re.compile(r"^[\d\s.,+\-−=×÷/()^₀-₉⁰-⁹a-zA-ZΔθωλμ°%]+$")
 _SI_UNIT_WORDS = {
     "m",
     "s",
@@ -371,9 +369,7 @@ def reinject_diagram_svg(
     for src_item, tr_item in zip(source_extracted["svg_texts"], got_items, strict=True):
         tr_text = str(tr_item.get("text", "")).strip()
         if not tr_text:
-            raise ValueError(
-                f"diagram {block_id} svg_texts[{src_item['id']}] is empty"
-            )
+            raise ValueError(f"diagram {block_id} svg_texts[{src_item['id']}] is empty")
         if "<" in tr_text or ">" in tr_text:
             raise ValueError(
                 f"diagram {block_id} svg_texts[{src_item['id']}] contains forbidden '<' or '>'"
@@ -387,9 +383,8 @@ def reinject_diagram_svg(
         )
 
     root = ET.fromstring(source_svg)
-    if aria_label or "aria-label" in root.attrib:
-        if aria_label:
-            root.set("aria-label", aria_label)
+    if aria_label:
+        root.set("aria-label", aria_label)
 
     idx = 0
     for elem in root.iter():
@@ -403,7 +398,13 @@ def reinject_diagram_svg(
 
     serialized = ET.tostring(root, encoding="unicode")
     svg_issues = checks.rule_diagram_svg(
-        [{"id": block_id, "type": "diagram", "spec": {"svg": serialized, "caption": ""}}]
+        [
+            {
+                "id": block_id,
+                "type": "diagram",
+                "spec": {"svg": serialized, "caption": ""},
+            }
+        ]
     )
     if svg_issues:
         raise ValueError(
@@ -774,9 +775,7 @@ def check_unit_deterministic_invariants(
                         f"[R1 schema_integrity] b-00-meta: section id mismatch "
                         f"expected {s_sec.get('id')!r}, got {t_sec.get('id')!r}"
                     )
-                if len(t_sec.get("paragraphs", [])) != len(
-                    s_sec.get("paragraphs", [])
-                ):
+                if len(t_sec.get("paragraphs", [])) != len(s_sec.get("paragraphs", [])):
                     problems.append(
                         f"[R1 schema_integrity] b-00-meta section {s_sec.get('id')}: "
                         f"expected {len(s_sec.get('paragraphs', []))} paragraphs, "
@@ -836,7 +835,9 @@ def check_unit_deterministic_invariants(
                 f"{len(source_payload.get('steps', []))} steps, got "
                 f"{len(translated_payload.get('steps', []))}"
             )
-        src_prob_nums = Counter(_NUMERAL_RE.findall(str(source_payload.get("problem", ""))))
+        src_prob_nums = Counter(
+            _NUMERAL_RE.findall(str(source_payload.get("problem", "")))
+        )
         tr_prob_nums = Counter(
             _NUMERAL_RE.findall(str(translated_payload.get("problem", "")))
         )
@@ -845,7 +846,9 @@ def check_unit_deterministic_invariants(
                 f"[R3 number_mismatch] unit {unit_id}: worked_example problem numerals "
                 f"must match source 100% (expected {dict(src_prob_nums)}, got {dict(tr_prob_nums)})"
             )
-        src_ans_nums = Counter(_NUMERAL_RE.findall(str(source_payload.get("answer", ""))))
+        src_ans_nums = Counter(
+            _NUMERAL_RE.findall(str(source_payload.get("answer", "")))
+        )
         tr_ans_nums = Counter(
             _NUMERAL_RE.findall(str(translated_payload.get("answer", "")))
         )
@@ -856,7 +859,9 @@ def check_unit_deterministic_invariants(
             )
 
     elif unit_type == "check":
-        src_q_nums = Counter(_NUMERAL_RE.findall(str(source_payload.get("question", ""))))
+        src_q_nums = Counter(
+            _NUMERAL_RE.findall(str(source_payload.get("question", "")))
+        )
         tr_q_nums = Counter(
             _NUMERAL_RE.findall(str(translated_payload.get("question", "")))
         )
@@ -1115,7 +1120,8 @@ def translate_single_unit(
     class_level = cfg.learner.get("class_level") or 9
     messages = build_translate_messages(
         locale=locale,
-        chapter_title=chapter_title or str(source_block_or_meta.get("title", "Physics")),
+        chapter_title=chapter_title
+        or str(source_block_or_meta.get("title", "Physics")),
         class_level=int(class_level),
         unit_id=unit_id,
         unit_type=unit_type,
@@ -1154,9 +1160,7 @@ def translate_single_unit(
     # Use a translator-scoped shallow copy of LLMClient with max_tokens=4096
     # set on LLMConfig (per block-contract.md §1.2 & llm_manager/README.md §Configuration).
     translator_llm = copy.copy(llm)
-    translator_llm._llm_config = dataclasses.replace(
-        llm._llm_config, max_tokens=4096
-    )
+    translator_llm._llm_config = dataclasses.replace(llm._llm_config, max_tokens=4096)
 
     translated_payload = translator_llm.call(
         stage_id=stage_id,
@@ -1406,9 +1410,7 @@ def run(
                         tm_key=tm_key,
                         glossary_version=glossary_version,
                         prompt_version=prompt_version,
-                        model_id=str(
-                            tm_entry.get("model_id", cfg.server["model"])
-                        ),
+                        model_id=str(tm_entry.get("model_id", cfg.server["model"])),
                         source_payload=src_payload,
                         translated_payload=tr_payload,
                         reassembled_block=reassembled,
@@ -1432,7 +1434,9 @@ def run(
                         chapter_glossary=lesson.get("glossary"),
                     )
                     t_call = time.monotonic()
-                    with context_scope(request_id=f"{run_ctx.run_id}-{locale}-{unit_id}"):
+                    with context_scope(
+                        request_id=f"{run_ctx.run_id}-{locale}-{unit_id}"
+                    ):
                         try:
                             src_payload, tr_payload, reassembled = (
                                 translate_single_unit(

@@ -50,8 +50,12 @@ class TestTranslationPipelineE2E(unittest.TestCase):
         self.frontend = self.tmp / "frontend"
         self.frontend.mkdir()
         shutil.copytree(REPO_ROOT / "frontend" / "assets", self.frontend / "assets")
-        shutil.copy2(REPO_ROOT / "frontend" / "index.html", self.frontend / "index.html")
-        shutil.copy2(REPO_ROOT / "frontend" / "courses.js", self.frontend / "courses.js")
+        shutil.copy2(
+            REPO_ROOT / "frontend" / "index.html", self.frontend / "index.html"
+        )
+        shutil.copy2(
+            REPO_ROOT / "frontend" / "courses.js", self.frontend / "courses.js"
+        )
 
         base = json.loads((REPO_ROOT / "config.json").read_text(encoding="utf-8"))
         base["paths"]["runs"] = str(self.tmp / "runs")
@@ -61,12 +65,8 @@ class TestTranslationPipelineE2E(unittest.TestCase):
         cfg_path.write_text(json.dumps(base), encoding="utf-8")
         self.cfg = load_config(cfg_path).with_locales(["hi", "hi-Latn"])
 
-        self.lesson = json.loads(
-            (FIXTURES / "lesson.json").read_text(encoding="utf-8")
-        )
-        self.blocks = json.loads(
-            (FIXTURES / "blocks.json").read_text(encoding="utf-8")
-        )
+        self.lesson = json.loads((FIXTURES / "lesson.json").read_text(encoding="utf-8"))
+        self.blocks = json.loads((FIXTURES / "blocks.json").read_text(encoding="utf-8"))
         self.ground_truth = json.loads(
             (FIXTURES / "gt.json").read_text(encoding="utf-8")
         )
@@ -169,16 +169,12 @@ class TestTranslationPipelineE2E(unittest.TestCase):
             transcheck_out,
         )
         self.assertTrue(transrender_out["manifest_updated"])
-        self.assertEqual(
-            transrender_out["locales_available"], ["en", "hi", "hi-Latn"]
-        )
+        self.assertEqual(transrender_out["locales_available"], ["en", "hi", "hi-Latn"])
 
         # Stage 11-link (publishes into self.frontend)
         link_out = link.run(self.cfg, run_ctx, render_out)
         self.assertEqual(link_out["course_count"], 1)
-        self.assertEqual(
-            set(link_out["published_locale_hubs"]), {"hi", "hi-Latn"}
-        )
+        self.assertEqual(set(link_out["published_locale_hubs"]), {"hi", "hi-Latn"})
 
         pub_topic = Path(link_out["published_to"])
         self.assertTrue((pub_topic / "index.html").is_file())
@@ -218,23 +214,15 @@ class TestTranslationPipelineE2E(unittest.TestCase):
         self.assertIn("window.ZIVON_I18N =", i18n_js)
 
         # Verify CP-TRN-004 metadata in manifest.json and courses.js
-        manifest = json.loads(
-            (pub_topic / "manifest.json").read_text(encoding="utf-8")
-        )
+        manifest = json.loads((pub_topic / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["default_locale"], "en")
         self.assertEqual(manifest["locales_available"], ["en", "hi", "hi-Latn"])
         self.assertIn("hi", manifest["titles_by_locale"])
-        self.assertEqual(
-            manifest["translation_status"]["hi"]["status"], "verified"
-        )
+        self.assertEqual(manifest["translation_status"]["hi"]["status"], "verified")
 
         courses_entry = link_out["courses"][0]
-        self.assertEqual(
-            courses_entry["locales_available"], ["en", "hi", "hi-Latn"]
-        )
+        self.assertEqual(courses_entry["locales_available"], ["en", "hi", "hi-Latn"])
         self.assertIn("hi-Latn", courses_entry["titles_by_locale"])
-
-
 
     def test_stages_orchestrator_runs_10a_to_11_link_and_handles_optional_fallback(
         self,

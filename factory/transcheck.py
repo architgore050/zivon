@@ -9,6 +9,7 @@ units to `10c-transrepair` (`ADR-0021`, `ADR-0022`, `reviewer-rubric.md`).
 from __future__ import annotations
 
 import json
+import logging
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -17,6 +18,8 @@ from typing import Any
 import jsonschema
 
 from . import checks, tm_store, translate
+
+logger = logging.getLogger(__name__)
 from .artifacts import RunContext
 from .config import Config
 from .ledger import issue_entry
@@ -49,9 +52,7 @@ _PLACEHOLDER_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 # Multi-character SI unit expressions checked by literal/token presence, and
 # single-letter SI units checked when attached to numbers or parentheses.
 _COMPOUND_SI_UNITS = ("m/s²", "m/s2", "m/s", "km/h", "kg", "Pa", "Hz", "Ω")
-_SINGLE_LETTER_SI_RE = re.compile(
-    r"(?:\b\d+(?:\.\d+)?\s*(N|J|W)\b|\(\s*(N|J|W)\s*\))"
-)
+_SINGLE_LETTER_SI_RE = re.compile(r"(?:\b\d+(?:\.\d+)?\s*(N|J|W)\b|\(\s*(N|J|W)\s*\))")
 
 _SVG_GEOMETRY_ATTRS = (
     "viewBox",
@@ -124,8 +125,8 @@ def _block_strings(block: dict[str, Any]) -> list[str]:
                 out.append(str(payload["svg_aria_label"]))
             for item in payload.get("svg_texts", []):
                 out.append(str(item.get("source", "")))
-        except Exception:  # noqa: BLE001 — SVG validity is checked by R8
-            pass
+        except Exception:
+            logger.debug("R9 pre-scan: failed to extract diagram texts", exc_info=True)
         return out
     if btype == "simulation":
         out = [
@@ -436,7 +437,9 @@ def rule_trans_units_and_symbols(
 
         for m in _SINGLE_LETTER_SI_RE.finditer(en_text):
             u_tok = m.group(1) or m.group(2)
-            if u_tok and not re.search(rf"(?<![A-Za-z]){re.escape(u_tok)}(?![A-Za-z])", tr_text):
+            if u_tok and not re.search(
+                rf"(?<![A-Za-z]){re.escape(u_tok)}(?![A-Za-z])", tr_text
+            ):
                 issues.append(
                     _issue(
                         bid,
@@ -513,32 +516,37 @@ def rule_trans_mcq_integrity(
                         f"block {bid} MCQ options must be non-empty and distinct: {tr_opts!r}",
                     )
                 )
-            if isinstance(tr_idx, int) and 0 <= tr_idx < len(tr_opts):
-                if str(tr_spec.get("answer", "")).strip() != str(tr_opts[tr_idx]).strip():
-                    issues.append(
-                        _issue(
-                            bid,
-                            "fatal",
-                            "answer_key",
-                            "R5",
-                            f"block {bid} MCQ answer {tr_spec.get('answer')!r} != "
-                            f"options[{tr_idx}] {tr_opts[tr_idx]!r}",
-                        )
-                    )
-        elif fmt == "numeric":
-            if str(tr_spec.get("answer", "")).strip() != str(
-                en_spec.get("answer", "")
-            ).strip():
+            if (
+                isinstance(tr_idx, int)
+                and 0 <= tr_idx < len(tr_opts)
+                and str(tr_spec.get("answer", "")).strip()
+                != str(tr_opts[tr_idx]).strip()
+            ):
                 issues.append(
                     _issue(
                         bid,
                         "fatal",
                         "answer_key",
                         "R5",
-                        f"block {bid} numeric answer changed from "
-                        f"{en_spec.get('answer')!r} to {tr_spec.get('answer')!r}",
+                        f"block {bid} MCQ answer {tr_spec.get('answer')!r} != "
+                        f"options[{tr_idx}] {tr_opts[tr_idx]!r}",
                     )
                 )
+        elif (
+            fmt == "numeric"
+            and str(tr_spec.get("answer", "")).strip()
+            != str(en_spec.get("answer", "")).strip()
+        ):
+            issues.append(
+                _issue(
+                    bid,
+                    "fatal",
+                    "answer_key",
+                    "R5",
+                    f"block {bid} numeric answer changed from "
+                    f"{en_spec.get('answer')!r} to {tr_spec.get('answer')!r}",
+                )
+            )
     return issues
 
 
@@ -879,8 +887,10 @@ def rule_trans_length_budget(
                                 f"chars (exceeds max_chars={max_c})",
                             )
                         )
-            except Exception:  # noqa: BLE001
-                pass
+            except Exception:
+                logger.debug(
+                    "R9: failed to map SVG texts for block %s", bid, exc_info=True
+                )
 
         elif btype == "reveal":
             en_rt = str(en_spec.get("title", ""))
@@ -1185,9 +1195,7 @@ def run(
                 issue_entry(STAGE_ID, f"reviewer-{locale}", round_tag, i)
             )
         for i in rule_issues:
-            ledger_lines.append(
-                issue_entry(STAGE_ID, f"rules-{locale}", round_tag, i)
-            )
+            ledger_lines.append(issue_entry(STAGE_ID, f"rules-{locale}", round_tag, i))
 
     if ledger_lines:
         run_ctx.append_ledger("issues_ledger", ledger_lines)

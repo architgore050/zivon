@@ -16,6 +16,8 @@ from testing.translation._test_env import ensure_test_dependencies
 
 ensure_test_dependencies()
 
+import jsonschema
+
 from factory._logging_shim import (
     Severity,
     clear_recorded_events,
@@ -26,7 +28,6 @@ from factory._logging_shim import (
     log_event,
 )
 from factory.checks import rule_diagram_svg
-import jsonschema
 from factory.translate import (
     check_unit_deterministic_invariants,
     extract_diagram_payload,
@@ -42,9 +43,7 @@ FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
 
 class TestBlockContract(unittest.TestCase):
     def setUp(self) -> None:
-        self.lesson = json.loads(
-            (FIXTURES / "lesson.json").read_text(encoding="utf-8")
-        )
+        self.lesson = json.loads((FIXTURES / "lesson.json").read_text(encoding="utf-8"))
         self.blocks = json.loads(
             (FIXTURES / "blocks.json").read_text(encoding="utf-8")
         )["blocks"]
@@ -168,7 +167,9 @@ class TestBlockContract(unittest.TestCase):
         self.assertEqual(rule_diagram_svg([reassembled]), [])
 
     def test_diagram_svg_rejects_angle_bracket_injection(self) -> None:
-        svg = '<svg viewBox="0 0 100 100"><text x="10" y="20">Uniform motion</text></svg>'
+        svg = (
+            '<svg viewBox="0 0 100 100"><text x="10" y="20">Uniform motion</text></svg>'
+        )
         block = {
             "id": "b-05",
             "type": "diagram",
@@ -207,9 +208,7 @@ class TestBlockContract(unittest.TestCase):
             "b-04", "check", mcq_block, mcq_trans
         )
         self.assertEqual(reassembled_mcq["spec"]["answer_index"], 1)
-        self.assertEqual(
-            reassembled_mcq["spec"]["answer"], "त्वरण (Acceleration)"
-        )
+        self.assertEqual(reassembled_mcq["spec"]["answer"], "त्वरण (Acceleration)")
         self.assertEqual(reassembled_mcq["citations"], mcq_block["citations"])
 
         num_block = next(b for b in self.blocks if b["id"] == "b-07")
@@ -227,9 +226,7 @@ class TestBlockContract(unittest.TestCase):
 
     def test_simulation_control_label_budget_and_numeric_locks(self) -> None:
         sim_block = next(b for b in self.blocks if b["id"] == "b-06")
-        sim_payload = extract_translatable_payload(
-            "b-06", "simulation", sim_block
-        )
+        sim_payload = extract_translatable_payload("b-06", "simulation", sim_block)
         overlong = {
             "title": "एकसमान त्वरण के साथ गति",
             "description": "त्वरण बदलें और देखें कि बिंदु कैसे चलता है।",

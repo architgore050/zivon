@@ -922,9 +922,10 @@ def run_pipeline(
         if wanted("10d-transrender"):
             if translate_out is None:
                 translate_out = run_ctx.load_stage_output("10a-translate")
-            if transcheck_out is None and (
-                run_ctx.stage_dir("10b-transcheck") / "output.json"
-            ).exists():
+            if (
+                transcheck_out is None
+                and (run_ctx.stage_dir("10b-transcheck") / "output.json").exists()
+            ):
                 transcheck_out = run_ctx.load_stage_output("10b-transcheck")
             if render_out is None:
                 render_out = run_ctx.load_stage_output("06-render")

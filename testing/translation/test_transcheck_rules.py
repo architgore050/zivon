@@ -35,6 +35,8 @@ from factory.transcheck import (
     rule_trans_script_purity,
     rule_trans_svg_safety,
     rule_trans_units_and_symbols,
+)
+from factory.transcheck import (
     run as transcheck_run,
 )
 from factory.translate import run as translate_run
@@ -69,12 +71,8 @@ class TestTranscheckRulesAndRepair(unittest.TestCase):
         cfg_path = self.tmp / "config.json"
         cfg_path.write_text(json.dumps(base), encoding="utf-8")
         self.cfg = load_config(cfg_path)
-        self.lesson = json.loads(
-            (FIXTURES / "lesson.json").read_text(encoding="utf-8")
-        )
-        self.blocks = json.loads(
-            (FIXTURES / "blocks.json").read_text(encoding="utf-8")
-        )
+        self.lesson = json.loads((FIXTURES / "lesson.json").read_text(encoding="utf-8"))
+        self.blocks = json.loads((FIXTURES / "blocks.json").read_text(encoding="utf-8"))
         self.ground_truth = json.loads(
             (FIXTURES / "gt.json").read_text(encoding="utf-8")
         )
@@ -108,17 +106,13 @@ class TestTranscheckRulesAndRepair(unittest.TestCase):
         # R3: rule_trans_numbers (Devanagari numeral + altered number)
         bad_num = copy.deepcopy(b_ex)
         bad_num["spec"]["problem"] = "एक वस्तु ५ s में 99 m/s की चाल प्राप्त करती है।"
-        issues_r3 = rule_trans_numbers(
-            self.lesson, [b_ex], self.lesson, [bad_num]
-        )
+        issues_r3 = rule_trans_numbers(self.lesson, [b_ex], self.lesson, [bad_num])
         self.assertGreaterEqual(len(issues_r3), 2)
 
         # R4: rule_trans_units_and_symbols (dropped equation / SI unit)
         bad_unit = copy.deepcopy(b_ex)
         bad_unit["spec"]["steps"][1]["detail"] = "यहाँ सूत्र हटा दिया गया है।"
-        issues_r4 = rule_trans_units_and_symbols(
-            self.ground_truth, [b_ex], [bad_unit]
-        )
+        issues_r4 = rule_trans_units_and_symbols(self.ground_truth, [b_ex], [bad_unit])
         self.assertTrue(issues_r4)
 
         # R5: rule_trans_mcq_integrity (answer string does not match options[answer_index])
@@ -131,9 +125,7 @@ class TestTranscheckRulesAndRepair(unittest.TestCase):
         # R6: rule_trans_script_purity (Devanagari in hi-Latn and English echo in hi)
         bad_hinglish = copy.deepcopy(b_text)
         bad_hinglish["spec"]["paragraphs"][0] = "Yeh गति hai."
-        issues_r6a = rule_trans_script_purity(
-            "hi-Latn", self.lesson, [bad_hinglish]
-        )
+        issues_r6a = rule_trans_script_purity("hi-Latn", self.lesson, [bad_hinglish])
         self.assertTrue(any(i["severity"] == "fatal" for i in issues_r6a))
 
         echo_hi = copy.deepcopy(b_text)
@@ -150,9 +142,7 @@ class TestTranscheckRulesAndRepair(unittest.TestCase):
 
         # R8: rule_trans_svg_safety (altered geometry attribute)
         bad_svg = copy.deepcopy(b_diag)
-        bad_svg["spec"]["svg"] = bad_svg["spec"]["svg"].replace(
-            'x1="40"', 'x1="99"'
-        )
+        bad_svg["spec"]["svg"] = bad_svg["spec"]["svg"].replace('x1="40"', 'x1="99"')
         issues_r8 = rule_trans_svg_safety([b_diag], [bad_svg])
         self.assertTrue(issues_r8)
 
@@ -181,9 +171,7 @@ class TestTranscheckRulesAndRepair(unittest.TestCase):
     def test_transrepair_recovers_flagged_block_without_rerunning_other_blocks(
         self,
     ) -> None:
-        run_ctx = RunContext(
-            self.cfg.repo_path(self.cfg.paths["runs"]), "t-repair-ok"
-        )
+        run_ctx = RunContext(self.cfg.repo_path(self.cfg.paths["runs"]), "t-repair-ok")
         llm = LLMClient(self.cfg, run_ctx)
         trans_out = translate_run(
             self.cfg,

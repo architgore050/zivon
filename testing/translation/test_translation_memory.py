@@ -27,7 +27,8 @@ from factory.config import load_config
 from factory.llm import LLMClient
 from factory.tm_store import TranslationMemoryStore, can_evict_ssd_bundle
 from factory.transcheck import run as transcheck_run
-from factory.translate import compute_tm_keys, run as translate_run
+from factory.translate import compute_tm_keys
+from factory.translate import run as translate_run
 from testing.translation.mock_translation_node import start_translation_mock
 
 FIXTURES = REPO_ROOT / "testing" / "content_factory" / "mocks" / "fixtures"
@@ -57,12 +58,8 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
         cfg_path = self.tmp / "config.json"
         cfg_path.write_text(json.dumps(base), encoding="utf-8")
         self.cfg = load_config(cfg_path)
-        self.lesson = json.loads(
-            (FIXTURES / "lesson.json").read_text(encoding="utf-8")
-        )
-        self.blocks = json.loads(
-            (FIXTURES / "blocks.json").read_text(encoding="utf-8")
-        )
+        self.lesson = json.loads((FIXTURES / "lesson.json").read_text(encoding="utf-8"))
+        self.blocks = json.loads((FIXTURES / "blocks.json").read_text(encoding="utf-8"))
         self.ground_truth = json.loads(
             (FIXTURES / "gt.json").read_text(encoding="utf-8")
         )
@@ -74,13 +71,9 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
     def test_tm_store_verified_only_write_gate_and_human_override_retention(
         self,
     ) -> None:
-        store = TranslationMemoryStore(
-            self.tmp / "tm", db_path=self.tmp / "tm.sqlite3"
-        )
+        store = TranslationMemoryStore(self.tmp / "tm", db_path=self.tmp / "tm.sqlite3")
         src_payload = {"paragraphs": ["Distance is the total path length."]}
-        src_sha, tm_key_v1 = compute_tm_keys(
-            "b-01", src_payload, "hi", "1.0.0", "1"
-        )
+        src_sha, tm_key_v1 = compute_tm_keys("b-01", src_payload, "hi", "1.0.0", "1")
 
         # Unverified draft must be rejected by the write gate
         with self.assertRaises(ValueError):
@@ -107,9 +100,7 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
             "translation_source": "human",
             "review_status": "human_approved",
             "source_payload": src_payload,
-            "translated_payload": {
-                "paragraphs": ["मानव-सत्यापित अनुवाद: दूरी कुल पथ है।"]
-            },
+            "translated_payload": {"paragraphs": ["मानव-सत्यापित अनुवाद: दूरी कुल पथ है।"]},
             "reassembled_block": {
                 "id": "b-01",
                 "type": "text",
@@ -121,13 +112,9 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
 
         # Bump glossary_version to 2.0.0 -> tm_key changes, but human_approved override
         # must still be returned via source_content_sha256 lookup!
-        _, tm_key_v2 = compute_tm_keys(
-            "b-01", src_payload, "hi", "2.0.0", "1"
-        )
+        _, tm_key_v2 = compute_tm_keys("b-01", src_payload, "hi", "2.0.0", "1")
         self.assertNotEqual(tm_key_v1, tm_key_v2)
-        hit = store.lookup(
-            locale="hi", tm_key=tm_key_v2, source_content_sha256=src_sha
-        )
+        hit = store.lookup(locale="hi", tm_key=tm_key_v2, source_content_sha256=src_sha)
         self.assertIsNotNone(hit)
         assert hit is not None
         self.assertEqual(hit["review_status"], "human_approved")
@@ -163,12 +150,8 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
             self.blocks,
             None,
         )
-        self.assertEqual(
-            out1_resumed["locales"]["hi"]["stats"]["resumed_in_run"], 9
-        )
-        self.assertEqual(
-            out1_resumed["locales"]["hi"]["stats"]["model_calls"], 0
-        )
+        self.assertEqual(out1_resumed["locales"]["hi"]["stats"]["resumed_in_run"], 9)
+        self.assertEqual(out1_resumed["locales"]["hi"]["stats"]["model_calls"], 0)
         self.assertEqual(len(self.state.calls), calls_after_run1)
 
         # Run 10b-transcheck on run1 so verified units are promoted into Translation Memory
@@ -201,9 +184,7 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
         self.assertEqual(len(self.state.calls), calls_before_run2)
 
     def test_storage_tiering_sync_outbox_and_ssd_eviction_guard(self) -> None:
-        store = TranslationMemoryStore(
-            self.tmp / "tm", db_path=self.tmp / "tm.sqlite3"
-        )
+        store = TranslationMemoryStore(self.tmp / "tm", db_path=self.tmp / "tm.sqlite3")
         job = store.record_bundle_publish_sync(
             topic_slug="motion",
             class_level=9,
@@ -225,9 +206,7 @@ class TestTranslationMemoryAndResume(unittest.TestCase):
         )
 
     def test_alembic_migration_0022_upgrade_and_downgrade(self) -> None:
-        spec = importlib.util.spec_from_file_location(
-            "mig_0022", str(MIGRATION_PATH)
-        )
+        spec = importlib.util.spec_from_file_location("mig_0022", str(MIGRATION_PATH))
         assert spec is not None and spec.loader is not None
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
