@@ -206,13 +206,13 @@ only, no way back). Spec:
 
 ---
 
-## 7. Voice dock integration (the seam — UI is founder-gated)
+## 7. Voice dock integration (seam + §10.12 design)
 
-**Standing guard (DCR-002): `design-doctrine.md` v1.6 contains NO §10.12 voice
-dock directive** (§10 ends at 10.11; verified against the file). Therefore: the
-dock's visual design, placement, and copy are **founder-authored, founder-gated
-work — this spec does not design them**. What the frontend CAN specify today is
-the integration seam a dock plugs into:
+**Status 2026-11-10: DCR-002 closed.** `design-doctrine.md` now contains §10.12
+(voice dock, bottom-sheet), §10.13 (read-aloud) and §10.14 (consent gate); the
+dock's visual design is no longer founder-gated. This section specifies the
+implementation seam; §10.12 is the visual authority. For history, the original
+guard read: `design-doctrine.md` v1.6 contained no §10.12. The seam:
 
 1. **Reserved region**: `.R9` at the end of the lesson page body (after the
    footer, inside `.zn-page` so the kit's rules/observers own it when it

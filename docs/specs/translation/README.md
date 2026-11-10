@@ -1,5 +1,21 @@
 # Translation Pipeline Specification (`docs/specs/translation/`)
 
+> **Implementation status (2026-11-10).** The pipeline **code landed** (EX2-TRANS, PR #16):
+> stages `10a`–`10d`, the two-tier TM store, TransCheck/repair, the glossary, the
+> `--locales` flag, and the `i18n.js` emit path are on `main`. **No localized content has
+> been generated yet** — there is no `i18n.js` under `frontend/courses/` and no `/{locale}/`
+> tree, so the site is English-only. The locale **switcher UI** was P1 and was not built; the
+> client only persists a preference and shows “untranslated” notices. Making languages work
+> is therefore two steps, not a code fix:
+>
+> 1. **Generate:** `python pipeline.py "<chapter>" --class <N> --locales hi,hi-Latn`
+>    (goes through `llm_manager`; no Gnani credits; resumable per `(locale, block_id)`).
+>    A translation run is a **content** action with a cost, not a hotfix.
+> 2. **Select:** build the language bar (`F-WRP-LAN-01`, R2 chips) that routes to
+>    `/{locale}/…` and hides/disables chips for locales without a bundle.
+>
+> Until both happen, the honest UI is “English only”, not a switcher that silently does nothing.
+
 This directory contains the build-ready architecture and implementation specification for Zivon's **build-time lesson translation pipeline** and **runtime locale contract** (Wave S1 — `SP2-TRANS`, consumed by `EX2-TRANS` and `EX5-FRONT`).
 
 ## Governing Decisions & Non-Negotiables
