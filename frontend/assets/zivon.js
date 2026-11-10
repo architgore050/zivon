@@ -3490,6 +3490,11 @@
         var tagOnly = /^\s*(?:<[^>]+>\s*)+$/.test(String(txt));
         if (!tagOnly) {
           transcripts.push({ kind: "tutor", subkind: payload.kind || "speech", text: String(txt), turn_id: payload.turn_id || lastTurnId });
+          /* Streaming text must reach the DOM now, not only on the next state
+             change: the dock rebuilds its transcript from getTranscripts(). */
+          if (window.ZivonVoiceDock && typeof window.ZivonVoiceDock.syncTranscript === "function") {
+            window.ZivonVoiceDock.syncTranscript();
+          }
         }
         return;
       }
@@ -3623,7 +3628,8 @@
       clearPingTimer();
       detachSocket();
       setState("connecting");
-      if ((!sessionToken || sessionToken === "dev-session-token") && !sessionBootstrapPending) {
+      var mockTransport = typeof opts.createWebSocket === "function";
+      if (!mockTransport && (!sessionToken || sessionToken === "dev-session-token") && !sessionBootstrapPending) {
         sessionBootstrapPending = true;
         bootstrapSessionToken().then(function (tok) {
           sessionBootstrapPending = false;

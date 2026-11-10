@@ -382,7 +382,7 @@ def _load_server_from_env() -> dict[str, Any]:
         except json.JSONDecodeError as exc:
             raise ConfigError(
                 "ZIVON_EXTRA_HEADERS must be a JSON object of header names to "
-                f"values, e.g. '{{\"x-opencode-session\": \"zivon-factory\"}}': {exc}"
+                f'values, e.g. \'{{"x-opencode-session": "zivon-factory"}}\': {exc}'
             ) from exc
         if not isinstance(parsed_headers, dict):
             raise ConfigError("ZIVON_EXTRA_HEADERS must be a JSON object")
