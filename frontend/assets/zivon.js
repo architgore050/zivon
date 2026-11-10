@@ -3650,6 +3650,16 @@
     }
 
     function beginListening(turnHint) {
+      /* Only capture when a real stream exists (the dock requests permission
+         BEFORE calling this). A browser with no capture API gets an honest
+         error state — and NO audio.start — never a fake "listening". */
+      if (mediaStream) {
+        var cap = startCapture();
+        if (cap === "unsupported") {
+          setState("error:unsupported-browser", { fallback: "text" });
+          return false;
+        }
+      }
       micSeq = 0;
       captureFramesSent = 0;
       captureResidual = [];
@@ -3660,16 +3670,6 @@
       sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
       sendJson({ type: "audio.start", turn_hint: turnHint || null });
       setState("listening");
-      /* Only start capture when a real stream exists (the dock requests
-         permission BEFORE calling this). A browser with no capture API gets
-         an honest error state, never a fake "listening". */
-      if (mediaStream) {
-        var cap = startCapture();
-        if (cap === "unsupported") {
-          setState("error:unsupported-browser", { fallback: "text" });
-          return false;
-        }
-      }
       return true;
     }
 

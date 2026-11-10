@@ -476,6 +476,8 @@ class TestWaveE2Complete(unittest.TestCase):
                     }
                   };
                   window.ZivonShell.mount({ manifest });
+                  // Idempotent re-entry must not duplicate chrome/listeners.
+                  window.ZivonShell.mount({ manifest });
                   const btns = document.querySelectorAll('.zn-read-aloud-btn');
                   const preloadVals = Array.from(document.querySelectorAll('.zn-read-aloud-audio')).map(
                     (a) => a.getAttribute('preload')
