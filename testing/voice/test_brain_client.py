@@ -122,8 +122,46 @@ class StreamParsingTest(unittest.IsolatedAsyncioTestCase):
         client = BrainClient(_settings(), factory)  # type: ignore[arg-type]
         events = await collect(client, BrainRequest(system="s", transcript="q"))
         self.assertEqual(
-            "".join(e.text for e in events if e.kind == "content"), "hello \n"
+            "".join(e.text for e in events if e.kind == "content"), "hello "
         )
+
+    async def test_content_streams_before_newline(self) -> None:
+        # The realistic transport yields content deltas WITHOUT the newline
+        # (the newline arrives later, if at all). Waiting for "\n" starved the
+        # chunker and collapsed first-audio latency — content must surface on
+        # the first delta.
+        first_delta_seen = asyncio.Event()
+
+        async def factory(messages: list[BrainMessage]) -> AsyncIterator[RawChunk]:
+            first_delta_seen.set()
+            yield RawChunk(content="Pehla ")
+            await asyncio.sleep(0.2)
+            yield RawChunk(content="sentence.\n")
+            await asyncio.sleep(0.2)
+
+        client = BrainClient(_settings(), factory)  # type: ignore[arg-type]
+        agen = client.stream(BrainRequest(system="s", transcript="q"))
+        first = await asyncio.wait_for(agen.__anext__(), timeout=0.1)
+        self.assertTrue(first_delta_seen.is_set())
+        self.assertEqual(first.kind, "content")
+        self.assertEqual(first.text, "Pehla ")  # emitted before the newline
+        rest = [event async for event in agen]
+        self.assertIn("sentence.", "".join(e.text for e in rest if e.kind == "content"))
+        await agen.aclose()
+
+    async def test_ref_line_split_across_deltas_still_parsed(self) -> None:
+        async def factory(messages: list[BrainMessage]) -> AsyncIterator[RawChunk]:
+            for part in ("RE", "F: b-1,b-2", "\n", "Jawab.", " Doosra."):
+                yield RawChunk(content=part)
+
+        client = BrainClient(_settings(), factory)  # type: ignore[arg-type]
+        events = await collect(client, BrainRequest(system="s", transcript="q"))
+        refs = [e for e in events if e.kind == "ref"]
+        self.assertEqual(len(refs), 1)
+        self.assertEqual(refs[0].ref_ids, ("b-1", "b-2"))
+        contents = "".join(e.text for e in events if e.kind == "content")
+        self.assertNotIn("REF", contents)
+        self.assertIn("Jawab. Doosra.", contents)
 
 
 class ReliabilityBudgetTest(unittest.IsolatedAsyncioTestCase):

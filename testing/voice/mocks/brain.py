@@ -33,6 +33,14 @@ from voice.brain_client import (
 __all__ = ["MockBrain"]
 
 
+def _word_deltas(line: str) -> list[str]:
+    """Split a scripted line into transport-sized deltas (words + spaces)."""
+    if not line:
+        return []
+    parts = line.split(" ")
+    return [part + " " for part in parts[:-1]] + [parts[-1]]
+
+
 @dataclass
 class MockBrain:
     content: str = ""
@@ -87,9 +95,18 @@ class MockBrain:
                         await asyncio.sleep(3600)  # inactivity budget must fire
                         return
                     self.yield_log.append(f"content:{line}")
-                    yield RawChunk(content=line + "\n")
-                    if self.chunk_delay_s:
-                        await asyncio.sleep(self.chunk_delay_s)
+                    # realistic transport shape (Gemini/OpenRouter): the words
+                    # of a line arrive as deltas with NO newline; the newline
+                    # is a separate chunk after the line. A parser that waits
+                    # for "\n" therefore starves the chunker (first-audio bug).
+                    for token in _word_deltas(line):
+                        yield RawChunk(content=token)
+                        if self.chunk_delay_s:
+                            await asyncio.sleep(self.chunk_delay_s)
+                    if index < len(lines) - 1:
+                        yield RawChunk(content="\n")
+                        if self.chunk_delay_s:
+                            await asyncio.sleep(self.chunk_delay_s)
                 if self.usage is not None:
                     yield RawChunk(usage=self.usage)
             except (asyncio.CancelledError, GeneratorExit):

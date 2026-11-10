@@ -37,7 +37,7 @@ import contextlib
 import json
 import re
 import time
-from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -167,13 +167,29 @@ def build_messages(request: BrainRequest) -> list[BrainMessage]:
 
 
 def gemini_stream_factory(settings: VoiceSettings) -> StreamFactory:
-    """Gemini API direct (ADR-0017 option 1) via the google-genai SDK."""
+    """Gemini API direct (ADR-0017 option 1) via the google-genai SDK.
 
-    async def factory(messages: list[BrainMessage]) -> AsyncGenerator[RawChunk, None]:
-        from google import genai  # imported lazily: keeps tests key-free
-        from google.genai import types
+    One SDK client per ``BrainClient`` (not per transport attempt): the lazy
+    import + client construction happen once, off the event loop, and
+    :meth:`BrainClient.aclose` releases the client at session teardown. A
+    per-attempt client leaked sockets and blocked the loop on import.
+    """
+    return _GeminiStreamFactory(settings)
 
-        client = genai.Client(api_key=settings.gemini_api_key)
+
+class _GeminiStreamFactory:
+    """Reusable gemini transport: lazily builds one client, closes on aclose."""
+
+    def __init__(self, settings: VoiceSettings) -> None:
+        self._settings = settings
+        self._client: Any = None
+        self._types: Any = None
+
+    async def __call__(
+        self, messages: list[BrainMessage]
+    ) -> AsyncGenerator[RawChunk, None]:
+        client, types = await self._ensure_client()
+        settings = self._settings
         config: dict[str, Any] = {}
         if settings.thinking_summaries:
             # OQ-04 [ASSUMPTION]: whether Gemma surfaces thought summaries in
@@ -223,7 +239,25 @@ def gemini_stream_factory(settings: VoiceSettings) -> StreamFactory:
                     usage=usage,
                 )
 
-    return factory
+    async def _ensure_client(self) -> tuple[Any, Any]:
+        if self._client is None:
+            self._client, self._types = await asyncio.to_thread(self._build_client)
+        return self._client, self._types
+
+    def _build_client(self) -> tuple[Any, Any]:
+        from google import genai  # imported lazily: keeps tests key-free
+        from google.genai import types
+
+        return genai.Client(api_key=self._settings.gemini_api_key), types
+
+    async def aclose(self) -> None:
+        client, self._client = self._client, None
+        if client is None:
+            return
+        with contextlib.suppress(Exception):
+            await client.aio.aclose()  # google-genai async surface
+        with contextlib.suppress(Exception):
+            client.close()
 
 
 def openrouter_stream_factory(settings: VoiceSettings) -> StreamFactory:
@@ -346,7 +380,7 @@ class BrainClient:
         self.retries_used = 0
         self.last_first_event_s: float | None = None
 
-    async def stream(self, request: BrainRequest) -> AsyncIterator[BrainEvent]:
+    async def stream(self, request: BrainRequest) -> AsyncGenerator[BrainEvent, None]:
         messages = build_messages(request)
         deadline_ts = self._clock() + self._settings.brain_turn_deadline_s
         first_event_breaches = 0
@@ -402,6 +436,8 @@ class BrainClient:
 
         Cancels any in-flight ``__anext__`` first (the generator must not be
         running when ``aclose`` throws GeneratorExit into it), then closes.
+        The shared SDK client survives: a barge-in ends the turn, not the
+        session (``aclose`` releases it at session teardown).
         """
         task, self._pending_task = self._pending_task, None
         if task is not None and not task.done():
@@ -413,6 +449,14 @@ class BrainClient:
             return
         with contextlib.suppress(Exception):
             await inner.aclose()
+
+    async def aclose(self) -> None:
+        """Session teardown: abort the stream and release the transport client."""
+        await self.abort()
+        closer = getattr(self._stream_factory, "aclose", None)
+        if closer is not None:
+            with contextlib.suppress(Exception):
+                await closer()
 
     # --- internals ------------------------------------------------------------
 
@@ -482,19 +526,26 @@ class BrainClient:
 class _StreamParser:
     """Splits the content stream into ref / summary / content events.
 
-    - the FIRST line may be ``REF: id[,id]`` → one ``ref`` event, stripped
-      from speech (spec.md §7);
-    - any ``>> ``-prefixed line → a ``summary`` event, stripped from speech
-      (ADR-0018's mechanical marker; the harness whitelist in ws_api decides
-      whether it is voiced);
-    - everything else flows as ``content`` events, one per source line;
-    - ``usage`` is emitted on change (Gemini reports cumulative counts on
-      every chunk — emitting per chunk would flood the turn record).
+    Streaming-first: content deltas are yielded AS THEY ARRIVE (the one-stream
+    law — a parser that waits for a newline starves the chunker and collapses
+    first-audio latency). Only two things are buffered:
+
+    - the head of the answer, until it is known whether the first line is a
+      ``REF: id[,id]`` line (spec.md §7) — buffered only while the accumulated
+      prefix could still become one;
+    - the first characters of any later line, until it is known whether the
+      line starts with the ``>> `` summary marker (ADR-0018).
+
+    A resolved line is emitted as ``summary``/``ref``/``content``; content is
+    emitted with its trailing newline when the boundary is already known, else
+    as a raw delta. ``usage`` is emitted on change (Gemini reports cumulative
+    counts on every chunk — emitting per chunk would flood the turn record).
     """
 
     def __init__(self) -> None:
         self._pending = ""
-        self._first_line_done = False
+        self._first_line = True  # next line may be REF: — not yet decided
+        self._at_line_start = True  # line prefix (">> "?) not yet decided
         self._last_usage: TokenUsage | None = None
 
     def feed(self, chunk: RawChunk) -> list[BrainEvent]:
@@ -506,27 +557,92 @@ class _StreamParser:
             events.append(BrainEvent(kind="thought", text=chunk.thought))
         if chunk.content:
             self._pending += chunk.content
-            while "\n" in self._pending:
-                line, self._pending = self._pending.split("\n", 1)
-                event = self._take_line(line)
-                if event is not None:
-                    events.append(event)
+            events.extend(self._drain(final=False))
         return events
 
     def flush(self) -> list[BrainEvent]:
-        if not self._pending:
-            return []
-        event = self._take_line(self._pending)
-        self._pending = ""
-        return [event] if event is not None else []
+        return self._drain(final=True)
 
-    def _take_line(self, line: str) -> BrainEvent | None:
-        if not self._first_line_done:
-            self._first_line_done = True
-            match = _REF_LINE.match(line)
-            if match:
-                ids = tuple(i.strip() for i in match.group(1).split(",") if i.strip())
-                return BrainEvent(kind="ref", text=match.group(1), ref_ids=ids)
-        if line.startswith(_SUMMARY_MARKER):
-            return BrainEvent(kind="summary", text=line[len(_SUMMARY_MARKER) :].strip())
-        return BrainEvent(kind="content", text=line + "\n") if line else None
+    # --- internals ------------------------------------------------------------
+
+    def _drain(self, *, final: bool) -> list[BrainEvent]:
+        events: list[BrainEvent] = []
+        while True:
+            if self._at_line_start:
+                if not self._pending:
+                    break
+                if self._first_line:
+                    newline = self._pending.find("\n")
+                    if newline >= 0:
+                        line, self._pending = (
+                            self._pending[:newline],
+                            self._pending[newline + 1 :],
+                        )
+                        self._first_line = False
+                        event = self._take_ref_line(line)
+                        if event is not None:
+                            events.append(event)
+                        elif line.strip():
+                            events.append(BrainEvent(kind="content", text=line + "\n"))
+                        continue
+                    if not final and self._could_be_ref(self._pending):
+                        break  # still undecidable: wait for more stream
+                    self._first_line = False
+                    event = self._take_ref_line(self._pending)
+                    if event is not None:
+                        self._pending = ""
+                        events.append(event)
+                        continue
+                    # not a REF line: fall through to the marker/content rules
+                if (
+                    not final
+                    and len(self._pending) < len(_SUMMARY_MARKER)
+                    and _SUMMARY_MARKER.startswith(self._pending)
+                ):
+                    break  # could still become ">> "
+                if self._pending.startswith(_SUMMARY_MARKER):
+                    newline = self._pending.find("\n")
+                    if newline < 0 and not final:
+                        break  # the summary line is not complete yet
+                    line = self._pending[:newline] if newline >= 0 else self._pending
+                    self._pending = self._pending[newline + 1 :] if newline >= 0 else ""
+                    events.append(
+                        BrainEvent(
+                            kind="summary", text=line[len(_SUMMARY_MARKER) :].strip()
+                        )
+                    )
+                    continue
+                self._at_line_start = False
+                continue
+            # content mode: the line prefix is settled — stream the deltas.
+            newline = self._pending.find("\n")
+            if newline >= 0:
+                line, self._pending = (
+                    self._pending[:newline],
+                    self._pending[newline + 1 :],
+                )
+                if line:
+                    events.append(BrainEvent(kind="content", text=line + "\n"))
+                self._at_line_start = True
+                continue
+            if self._pending:
+                events.append(BrainEvent(kind="content", text=self._pending))
+                self._pending = ""
+            break
+        return events
+
+    @staticmethod
+    def _could_be_ref(buffer: str) -> bool:
+        """True while ``buffer`` may still grow into a ``REF:`` first line."""
+        lead = buffer.lstrip()
+        if not lead:
+            return True
+        return "REF:".startswith(lead[:4].upper())
+
+    @staticmethod
+    def _take_ref_line(line: str) -> BrainEvent | None:
+        match = _REF_LINE.match(line)
+        if not match:
+            return None
+        ids = tuple(i.strip() for i in match.group(1).split(",") if i.strip())
+        return BrainEvent(kind="ref", text=match.group(1), ref_ids=ids)
