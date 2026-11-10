@@ -139,7 +139,10 @@ DOWNGRADE_SQL: tuple[str, ...] = (
 def upgrade(op: Any | None = None) -> None:
     """Execute DDL statements for the 5 Eval Result Store tables."""
     if op is None:
-        from alembic import op as alembic_op  # type: ignore[import-not-found]
+        # attr-defined: the repo's top-level alembic/ migrations directory
+        # shadows the installed package for mypy (namespace package with no
+        # `op`); import-not-found: alembic is not installed in the lint job.
+        from alembic import op as alembic_op  # type: ignore[import-not-found, attr-defined]
 
         op = alembic_op
     for stmt in UPGRADE_SQL:
@@ -149,7 +152,10 @@ def upgrade(op: Any | None = None) -> None:
 def downgrade(op: Any | None = None) -> None:
     """Drop the 5 Eval Result Store tables in reverse dependency order."""
     if op is None:
-        from alembic import op as alembic_op  # type: ignore[import-not-found]
+        # attr-defined: the repo's top-level alembic/ migrations directory
+        # shadows the installed package for mypy (namespace package with no
+        # `op`); import-not-found: alembic is not installed in the lint job.
+        from alembic import op as alembic_op  # type: ignore[import-not-found, attr-defined]
 
         op = alembic_op
     for stmt in DOWNGRADE_SQL:
