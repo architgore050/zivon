@@ -29,6 +29,10 @@ VIEWPORT_HEIGHT = 900
 
 # Content-bearing selectors, in page order. The header strip comes first so
 # the reviewer sees title/objectives/lang-bar rendered, not just code.
+# Body prose is deliberately NOT captured (2026-11-10 founder correction: body
+# text was fine; the jumbling was inside the visual elements - labels within
+# diagrams, sims and graphs - so imaging flowing prose only burned image
+# tokens for nothing).
 _REGIONS = (".zn-header", "figure.zn-diagram", "section.zn-sim", "section.zn-check")
 
 

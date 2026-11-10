@@ -1,7 +1,9 @@
-# Local dev runner for the content factory container.
+# Local dev runner for the content factory, core backend monolith, Postgres,
+# and static frontend containers.
 #
 #   docker compose run --rm factory                                  # smoke test (default CMD)
 #   docker compose run --rm factory python pipeline.py "Motion" --class 9
+#   docker compose up -d postgres backend                            # boot core backend + Postgres 16
 #   docker compose up web                                            # serve frontend/ on :8081
 #
 # Host port 8081 (not 8080): the dev machine's OpenAI-format inference server
@@ -15,46 +17,28 @@ services:
   # system - the factory talks OpenAI chat-completions to THIS and this is
   # the only caller of the inference server:
   #   factory -> llm-manager -> (inference-router) -> host server
-  # Two upstreams, two variables (one variable would make the node call
-  # ITSELF when the factory is pointed at it):
-  #   ZIVON_NODE_UPSTREAM_URL  what the NODE calls (the host server/router)
-  #   ZIVON_BASE_URL           what the FACTORY calls
-  # Default path (no node in between): set only ZIVON_BASE_URL=<server>; the
-  # node, if started, defaults its upstream to the same address.
-  # Node path: set ZIVON_NODE_UPSTREAM_URL=<server> AND point the factory at
-  # the node with ZIVON_BASE_URL=http://llm-manager:8000/v1 (compose DNS);
-  # also set ZIVON_MAX_ATTEMPTS=1 on the factory side - the node owns
-  # transport retries, and factory x node attempts multiply calls to a
-  # single-slot server (the cluster enforces this split via ConfigMaps).
   llm-manager:
     build:
       context: .
       dockerfile: Dockerfile.llm-manager
     image: zivon-llm-manager:0.1.0
     environment:
-      # The node's UPSTREAM (what IT calls): the host's OpenAI-format server.
       - ZIVON_BASE_URL=${ZIVON_NODE_UPSTREAM_URL:-${ZIVON_BASE_URL:-}}
       - ZIVON_MODEL=${ZIVON_MODEL:-}
       - ZIVON_API_KEY=${ZIVON_API_KEY:-}
     ports:
-      # Host-side reachability for curl checks and for host-run consumers.
-      # 18090: distinct from the router's 18080 and the site's 8081.
       - "127.0.0.1:18090:8000"
     restart: unless-stopped
 
   factory:
     build: .
-    image: zivon-factory:0.3.17
+    image: zivon-factory:0.3.22
     environment:
-      # Server settings are env-only (docs/content-factory/config-reference.md).
-      # Export them in your shell (see .env.example) before `compose run`.
       - ZIVON_BASE_URL=${ZIVON_BASE_URL:-}
       - ZIVON_MODEL=${ZIVON_MODEL:-}
       - ZIVON_API_KEY=${ZIVON_API_KEY:-}
       - ZIVON_MAX_ATTEMPTS=${ZIVON_MAX_ATTEMPTS:-3}
     extra_hosts:
-      # Lets the container reach an OpenAI-format server running on the host
-      # (bind the host server to 0.0.0.0, then use http://host.docker.internal:PORT/v1).
       - "host.docker.internal:host-gateway"
     volumes:
       - ./runs:/app/runs
@@ -88,10 +72,7 @@ services:
 
   # Dev-only inference router (docker/inference-router.Dockerfile): makes the
   # host's loopback-only OpenAI-format server reachable from containers and
-  # minikube pods WITHOUT touching it. network_mode: host means its 127.0.0.1
-  # IS the host loopback. Listens only on minikube's bridge IP (not the LAN).
-  # Start: docker compose up -d inference-router
-  # Then every path uses: ZIVON_BASE_URL=http://192.168.49.1:18080/v1
+  # minikube pods WITHOUT touching it.
   inference-router:
     build:
       context: .
@@ -100,10 +81,55 @@ services:
     network_mode: host
     restart: unless-stopped
 
+  # Hot database (U2, ADR-0001): PostgreSQL 16 for the core backend monolith.
+  # Password passed from shell environment at runtime (never hardcoded).
+  postgres:
+    image: postgres:16.6-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-zivon}
+      - POSTGRES_USER=${POSTGRES_USER:-zivon}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-}
+      - POSTGRES_HOST_AUTH_METHOD=${POSTGRES_HOST_AUTH_METHOD:-trust}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - zivon-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-zivon} -d $${POSTGRES_DB:-zivon}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Core backend monolith (ADR-0005, Dockerfile.backend): FastAPI REST surface
+  # (/v1/*, /v1/admin/*), credit guard, consent/identity, and voice mount seam.
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: zivon-backend:0.1.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ZIVON_ENV=${ZIVON_ENV:-dev}
+      - ZIVON_DB_URL=${ZIVON_DB_URL:-postgresql://zivon@postgres:5432/zivon}
+      - ZIVON_SESSION_TOKEN_KEY=${ZIVON_SESSION_TOKEN_KEY:-}
+      - ZIVON_IP_HASH_SALT=${ZIVON_IP_HASH_SALT:-}
+      - ZIVON_ADMIN_TOKEN=${ZIVON_ADMIN_TOKEN:-}
+      - ZIVON_VOICE_BRAIN_TRANSPORT=${ZIVON_VOICE_BRAIN_TRANSPORT:-gemini-direct}
+      - ZIVON_VOICE_BRAIN_MODEL=${ZIVON_VOICE_BRAIN_MODEL:-gemma-4-26b-a4b-it}
+      - ZIVON_VOICE_GEMINI_API_KEY=${ZIVON_VOICE_GEMINI_API_KEY:-}
+      - GNANI_PRISMA_API_KEY=${GNANI_PRISMA_API_KEY:-}
+      - GNANI_TIMBRE_API_KEY=${GNANI_TIMBRE_API_KEY:-}
+    ports:
+      - "127.0.0.1:18085:8000"
+    volumes:
+      - ./runs:/app/runs:ro
+    restart: unless-stopped
+
   # Static frontend hosting: nginx serving ./frontend (hand-maintained shell
-  # + generated pages the factory writes into the same volume). Reachable
-  # from a phone on the same network (http://<host-ip>:8081) - that is how
-  # kid testers get the pages during validation.
+  # + generated pages the factory writes into the same volume).
   web:
     build:
       context: .
@@ -113,3 +139,6 @@ services:
       - "8081:8080"
     volumes:
       - ./frontend:/usr/share/nginx/html
+
+volumes:
+  zivon-db-data:

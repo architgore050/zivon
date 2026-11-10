@@ -86,7 +86,24 @@ from .llm import LLMClient
 # detection, founder decision: the pipeline is continuous improvement, not a
 # one-shot exam) and a fix that breaks lint/perf now costs a round instead of
 # the run. Version-5 dirs are refused; re-trigger with --fresh.
-PIPELINE_VERSION = "7"
+# 7 (2026-11-09): the kit-refactor's lint contract (lint_page_css_scope) and
+# the computed-geometry routing for graphs.
+# 8 (2026-11-09, this repo's own run failed this way): 10-reviewfix (and 08)
+# can now return corrected BLOCK specs (spec-correction channel in FIX_PLAN);
+# index.html's body is re-rendered from the page's block specs and the
+# corrected draft is threaded through re-review, render and resume
+# (_preferred_blocks). Version-7 runs whose fixers never converged carry a
+# draft that can no longer be resumed faithfully into this contract -
+# re-trigger with --fresh.
+# 9 (2026-11-10, founder bug reports): topic identity comes from the CHAPTER
+# (deterministic slug + display title; the model's lesson headline no longer
+# names the page, so a re-run REPLACES the chapter's directory instead of
+# publishing a duplicate with a tagline), 11-link prunes stale same-chapter
+# duplicate directories, and the authoring/review contracts changed
+# (numeric-check answer = bare number; diagram CONTENT law; axis-follows-data
+# and graph-content review; in-figure-label legibility). Version-8 pages were
+# titled and slugged by the model's headline - re-trigger with --fresh.
+PIPELINE_VERSION = "9"
 
 STAGE_ORDER = [
     "00-ingest",
@@ -200,6 +217,21 @@ def _severity_score(issues: list[dict[str, Any]]) -> int:
     return sum(2 if i["severity"] == "fatal" else 1 for i in issues)
 
 
+def _preferred_blocks(run_ctx: RunContext, fallback: dict[str, Any]) -> dict[str, Any]:
+    """The page blocks are the LATEST corrected draft, never a stale one:
+    04-repair's merged page (03-check's catcher) on top of 02-generate,
+    then any 10-reviewfix spec corrections on top of that (2026-11-09 - a
+    resume after a reviewfix plateau must re-render from the corrected
+    specs, not the raw draft)."""
+    if run_ctx.stage_ok("04-repair"):
+        fallback = run_ctx.load_stage_output("04-repair")["page"]
+    if run_ctx.stage_ok("10-reviewfix"):
+        fix_out = run_ctx.load_stage_output("10-reviewfix")
+        if fix_out.get("page"):
+            fallback = fix_out["page"]
+    return fallback
+
+
 def _trans_blocking_issues(
     transcheck_out: dict[str, Any],
     exclude_locales: set[str] | None = None,
@@ -281,6 +313,17 @@ def run_pipeline(
             )
         resume = True
         print(f"[resume] run '{run_id}' found: completed stages will be reused")
+        if only_stages is None and all(run_ctx.stage_ok(s) for s in STAGE_ORDER):
+            # Founder confusion 2026-11-10: "triggering motion in a straight
+            # line did not rewrite the existing run's output". A completed
+            # run dir is reused wholesale - that is the resume contract,
+            # not a bug. Say so loudly and name the escape hatch.
+            print(
+                f"[resume] '{run_id}' is ALREADY COMPLETE - every stage is "
+                "reused, so NOTHING is regenerated and the published page is "
+                "left untouched. To generate the page again pass --fresh "
+                "(wipes the run dir)."
+            )
     run_ctx.set_fingerprint(fingerprint)
     resumed_count = sum(1 for stage in STAGE_ORDER if run_ctx.stage_ok(stage))
     log_event(
@@ -371,7 +414,12 @@ def run_pipeline(
             generated = run_ctx.load_stage_output("02-generate")
             ground_truth = generated["ground_truth"]
             lesson = generated["lesson"]
-            blocks = generated["blocks"]
+            # Resume correctness: prefer a corrected draft (04-repair merge,
+            # then 10-reviewfix spec corrections) over the raw generate
+            # output - never re-derive a page from a superseded draft.
+            blocks = _preferred_blocks(
+                run_ctx, blocks if blocks is not None else generated["blocks"]
+            )
 
         # ---- 03-check + 04-repair: the fact gate and its catcher -----------
         def run_check_once(round_tag: str | None) -> dict[str, Any]:
@@ -429,7 +477,7 @@ def run_pipeline(
                 generated = run_ctx.load_stage_output("02-generate")
                 ground_truth = generated["ground_truth"]
                 lesson = generated["lesson"]
-                blocks = generated["blocks"]
+                blocks = _preferred_blocks(run_ctx, generated["blocks"])
             if resumed("03-check"):
                 # The validated unit already passed; pick up repaired blocks if any.
                 if run_ctx.stage_ok("04-repair"):
@@ -545,7 +593,7 @@ def run_pipeline(
             if blocks is None:
                 generated = run_ctx.load_stage_output("02-generate")
                 ground_truth = generated["ground_truth"]
-                blocks = generated["blocks"]
+                blocks = _preferred_blocks(run_ctx, generated["blocks"])
             assert ground_truth is not None, "05-interactive requires the ground truth"
             if not resumed("05-interactive"):
                 run_ctx.mark_stage("05-interactive", "running")
@@ -564,7 +612,7 @@ def run_pipeline(
             if blocks is None:
                 generated = run_ctx.load_stage_output("02-generate")
                 lesson = generated["lesson"]
-                blocks = generated["blocks"]
+                blocks = _preferred_blocks(run_ctx, generated["blocks"])
             if lesson is None:
                 lesson = run_ctx.load_stage_output("02-generate")["lesson"]
             if source_pack is None:
@@ -618,7 +666,9 @@ def run_pipeline(
             if render_out is None:
                 render_out = run_ctx.load_stage_output("06-render")
             if blocks is None:
-                blocks = run_ctx.load_stage_output("02-generate")["blocks"]
+                blocks = _preferred_blocks(
+                    run_ctx, run_ctx.load_stage_output("02-generate")["blocks"]
+                )
             if not resumed("08-fixloop"):
                 run_ctx.mark_stage("08-fixloop", "running")
                 fix_out = fixloop.run(
@@ -695,6 +745,12 @@ def run_pipeline(
                 )
                 fix_feedback = []
                 run_ctx.save_stage_output("10-reviewfix", fix_out)
+                if fix_out.get("page"):
+                    # Spec corrections adopted (2026-11-09): the corrected
+                    # draft IS the page from here on - the next re-review
+                    # judges the corrected specs, and a resume re-renders
+                    # from them instead of the superseded draft.
+                    blocks = fix_out["page"]
                 run_ctx.mark_stage(
                     "10-reviewfix",
                     "ok",
@@ -736,9 +792,10 @@ def run_pipeline(
                     best, stalls = now, 0
                 else:
                     stalls += 1
+                corrected = "blocks-corrected " if fix_out.get("page") else ""
                 print(
-                    f"[10-reviewfix] round {rounds}/{max_rounds}: review issue "
-                    f"score {prev} -> {now} (best {best}; no-progress streak "
+                    f"[10-reviewfix] round {rounds}/{max_rounds}: {corrected}review "
+                    f"issue score {prev} -> {now} (best {best}; no-progress streak "
                     f"{stalls}/{stall_limit})"
                 )
             if report["verdict"] == "fail" or fix_feedback:

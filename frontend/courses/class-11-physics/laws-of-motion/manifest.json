@@ -1,0 +1,44 @@
+{
+  "course_id": "class-11-physics",
+  "class": 11,
+  "topic_slug": "laws-of-motion",
+  "title": "Laws of Motion",
+  "lesson_title": "Laws of Motion: Force, Inertia, Momentum, and Circular Motion",
+  "chapter": {
+    "query": "Laws of Motion",
+    "title": "LAWS OF MOTION",
+    "book": "Physics Part I - Textbook for Class XI",
+    "pages": [
+      1,
+      22
+    ],
+    "number": 4
+  },
+  "sources": [
+    {
+      "id": "ncert-physics-11-part1",
+      "title": "Physics Part I - Textbook for Class XI",
+      "license": "NCERT (free educational use)"
+    },
+    {
+      "id": "openstax-hs-physics",
+      "title": "OpenStax High School Physics",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-physics-11-part2",
+      "title": "Physics Part II - Textbook for Class XI",
+      "license": "see sources catalog"
+    }
+  ],
+  "run_id": "laws-of-motion-c11",
+  "generated_at": "2026-11-10T06:01:22Z",
+  "block_counts": {
+    "text": 13,
+    "check": 17,
+    "worked_example": 12,
+    "reveal": 2,
+    "simulation": 1,
+    "diagram": 1
+  }
+}

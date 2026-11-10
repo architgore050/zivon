@@ -76,7 +76,7 @@ class TestLearnerClassDerivation(unittest.TestCase):
         # dirs precede the kit-contract lint (0.3.14+) under which old
         # page.css (canvas sizing) fails lint. Any of those changed the stage
         # artifacts' contracts, so resume must refuse them (--fresh).
-        self.assertEqual(PIPELINE_VERSION, "7")
+        self.assertEqual(PIPELINE_VERSION, "9")
         chapter = "Motion in a Straight Line"
         self.assertNotEqual(
             run_fingerprint(self.cfg, chapter, 11),

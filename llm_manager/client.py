@@ -493,8 +493,18 @@ class LLMManager:
                 read=self.config.timeout_s,
                 write=10.0,
                 pool=10.0,
-            )
+            ),
+            headers=self._request_headers(),
         )
+
+    def _request_headers(self) -> dict[str, str]:
+        """Extra gateway headers + an identifying User-Agent (2026-11-10:
+        OpenCode Go requires a stable x-opencode-session per conversation and
+        asks clients to name themselves rather than spoof an SDK)."""
+        headers = dict(self.config.extra_headers)
+        if self.config.user_agent:
+            headers["User-Agent"] = self.config.user_agent
+        return headers
 
     def _build_chat(
         self,
@@ -528,10 +538,16 @@ class LLMManager:
             "http_client": http_client,
             "timeout": timeout,
         }
-        if self.default_headers:
-            kwargs["default_headers"] = dict(self.default_headers)
+        headers = {**self._request_headers(), **(self.default_headers or {})}
+        if headers:
+            kwargs["default_headers"] = headers
+        model_kwargs: dict[str, Any] = {}
         if self.config.json_mode:
-            kwargs["model_kwargs"] = {"response_format": {"type": "json_object"}}
+            model_kwargs["response_format"] = {"type": "json_object"}
+        if self.config.reasoning_effort:
+            model_kwargs["reasoning_effort"] = self.config.reasoning_effort
+        if model_kwargs:
+            kwargs["model_kwargs"] = model_kwargs
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         return ChatOpenAI(**kwargs)

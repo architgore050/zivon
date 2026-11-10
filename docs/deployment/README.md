@@ -8,6 +8,8 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 | [`kubernetes.md`](kubernetes.md) | Running containers on a cluster: object model, our manifests, local minikube workflow |
 | [`cicd.md`](cicd.md) | GitHub Actions pipelines: the merge gate, security scans, Dependabot, hardening rules, pending setup steps |
 | [`observability.md`](observability.md) | Operator view of the EX3-OBS stack: `logging_manager`, the `log_events` store + retention CronJob, the admin dashboard (image, manifests 23/24, auth, troubleshooting) |
+| [`restore-drill.md`](restore-drill.md) | Timed cold-storage DB + content restore drill procedure (`RB-12`, `DRILL-01`, `GAP-004`, `REDEL-01`) |
+| [`deletion-runbook.md`](deletion-runbook.md) | DPDP guardian/device erasure pipeline (`NEED-013`, `GAP-007`), TTL CronJobs (`GAP-005`), and breach response (`RB-11`) |
 
 Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task list**. No separate TODO files in this folder.
 
@@ -27,6 +29,7 @@ Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task
 | Voice backend image (FastAPI/WebSockets) + Deployment + Service | ⬜ comes with the voice loop (Phase 2) |
 | Observability: `logging_manager` + log-retention CronJob (`k8s/51`) + admin dashboard (`Dockerfile.dashboard`, `k8s/23`+`k8s/24`) | ✅ built (EX3-OBS, 2026-11-09): the module lands with its 109-test harness (`testing/observability/`), factory/node instrumentation emits the map's rows, retention/sync is one CronJob in the factory image, the dashboard ships the six views + two script-semantics buttons behind ADR-0026 auth. **Open:** CI jobs for the new image + mypy paths (EX3-OBS manifest I-2), dashboard RBAC (I-1), rebuild + `minikube image load` + re-apply |
 | Dashboard RBAC (ServiceAccount Role for Job views + buttons) | ⬜ infra-agent wiring per EX3-OBS integration note I-1 |
+| Core backend monolith (`Dockerfile.backend`, `k8s/25–28`, `k8s/53`, Postgres 16 + Alembic + CreditGuard + Sync) | ✅ `zivon-backend:0.1.0` implements REST API-001..009 + Admin API-A1..A10, 32 Postgres/Alembic tables (core 20 + C3 translation + C4 evals + `log_events`), transactional CreditGuard, HMAC IP rate limiter, 8-step deletion cascade, TTL/sync CronJobs (`k8s/53`), and `voice/` mount seam |
 
 ## Decisions locked here
 

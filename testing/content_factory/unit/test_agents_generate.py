@@ -106,6 +106,32 @@ class TestGenerateRuleWiring(unittest.TestCase):
         jsonschema.validate(instance=generated, schema=GENERATED)
         self.assertEqual(self._run_generate(StubLLM()), generated)
 
+    def test_diagram_content_law_is_in_the_prompt(self):
+        # Founder report 2026-11-10: diagrams carried basic CONTENT mistakes
+        # (label on the wrong element, force not perpendicular to the drawn
+        # surface, an angle named but never drawn).
+        stub = StubLLM()
+        self._run_generate(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn("Diagram CONTENT law", user)
+        self.assertIn("Anchor every label to the element it names", user)
+        self.assertIn("normal perpendicular to the drawn surface", user)
+        self.assertIn("must be DRAWN", user)
+
+    def test_numeric_check_answer_is_a_bare_number_in_the_prompt(self):
+        # 2026-11-10 (founder): every model kept writing "6 s" / "0.6 N s" as a
+        # numeric check's answer, which the answer-key rule rejects as fatal.
+        # The prompt told the model the answer was "text" - that contract is
+        # the bug: numeric answers must be the bare number, units go in the
+        # question.
+        stub = StubLLM()
+        self._run_generate(stub)
+        user = next(m["content"] for m in stub.messages if m["role"] == "user")
+        self.assertIn("must be the bare ", user)
+        self.assertIn('"answer": "6"', user)
+        self.assertIn("never a unit", user)
+        self.assertNotIn('"answer": "text" (numeric)', user)
+
     def test_validator_is_wired_into_the_call(self):
         stub = StubLLM()
         out = self._run_generate(stub)

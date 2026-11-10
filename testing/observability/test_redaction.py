@@ -93,6 +93,14 @@ class ValueRegexTests(ObservabilityTest):
             "contact [REDACTED:email] for access",
         )
 
+    def test_emails_are_scrubbed_after_pathological_prefix(self) -> None:
+        # The email pattern is linear-time (possessive/atomic groups) because it
+        # runs over arbitrary logged values: CodeQL flagged the previous naive
+        # pattern as polynomial on inputs full of '%'. An address later in such
+        # a value must still be found and redacted.
+        scrubbed = redact_text("%" * 1000 + " mail a.b@email.in")
+        self.assertTrue(scrubbed.endswith("[REDACTED:email]"), scrubbed[-40:])
+
     def test_indian_phone_numbers_are_scrubbed(self) -> None:
         self.assertEqual(redact_text("call +919876543210"), "call [REDACTED:phone]")
         self.assertEqual(

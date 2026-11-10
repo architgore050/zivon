@@ -31,3 +31,18 @@ WS message, and event cites a `NEED-`/`INF-`/`ENT?-`/`EVT-` ID from Stage 1, or 
 Related repo docs: `docs/deployment/` (infra stack, locked decisions — respected, not
 reshaped), `docs/content-factory/architecture.md` (run evidence + publish flow),
 `TIMELINE.md` (gates, scope ladder, infra TODO), `docs/product/backend-handoff.md` (input).
+
+## Manifest / CI integration notes (EX0-BACKEND, 2026-11-10)
+
+- Backend image: `Dockerfile.backend` → `zivon-backend:0.1.0`; k8s `25` (postgres+cache
+  PVCs) → `26` (migrate Job) → `27` (core-backend Deployment) → `28` (config) + `53` (TTL
+  CronJobs). Secrets: runtime `zivon-voice-env` / `zivon-admin-secret` / `zivon-db-env`.
+- **CI request (recorded on the merge path — EX0 does not edit `.github/workflows/ci.yml`,
+  which EX6 owns):** add a job that (1) builds the backend image, (2) runs the
+  `testing/backend/` suite (25 unit/contract tests), and (3) smoke-tests
+  `python -m db.migrate heads == 0002` against a throwaway DB. Weld note for the EX6/merge
+  agent; consistent row in `TIMELINE.md` (Core backend line).
+- Honest backup/restore state: `SYNC-02`/`-03` are **simulated staging only** (no real
+  object storage wired; no WAL/PITR — DB RPO = last base backup, ≤ 24 h). Restore path =
+  `python -m backend.sync decrypt` + manual upload; see `docs/deployment/restore-drill.md`
+  and the SIMULATED annotations in `storage-tiering.md` / `sync-policy.csv`.
