@@ -30,8 +30,14 @@ from typing import Any
 from db.engine import DatabaseEngine
 from db.uuid7 import uuid7_str
 
+from . import logging_shim as _logging_shim
 from .config import BackendConfig
-from .logging_shim import delete_subject
+from .logging_shim import (
+    ErrorClass,
+    Severity,
+    delete_subject,
+    log_event,
+)
 
 
 def _utc_now() -> datetime.datetime:
@@ -209,35 +215,67 @@ class DeletionAndRetentionService:
                     ),
                 )
 
-        # Step 5 & 6: Scrub log_events (DB + JSONL fallback) per session_id
-        for sid in session_ids:
-            delete_subject(sid)
-
-        # Step 7 & 8: Mark deletion_request completed + append audit_log
+        # Step 5-8: DB scrub, stamp 'completed', and audit — any failure must
+        # stamp the tombstone 'failed' and log CRITICAL privacy.delete_failed
+        # instead of completing. Deletion never silently half-completes.
         completed_iso = _fmt_iso(_utc_now())
-        with self.db.transaction() as tx:
-            tx.execute(
-                """
-                UPDATE deletion_request
-                SET status = 'completed', counts = ?, completed_at = ?
-                WHERE request_id = ?
-                """,
-                (json.dumps(counts), completed_iso, request_id),
+        try:
+            for sid in session_ids:
+                delete_subject(sid)
+            with self.db.transaction() as tx:
+                tx.execute(
+                    """
+                    UPDATE deletion_request
+                    SET status = 'completed', counts = ?, completed_at = ?
+                    WHERE request_id = ?
+                    """,
+                    (json.dumps(counts), completed_iso, request_id),
+                )
+                tx.execute(
+                    """
+                    INSERT INTO audit_log (audit_id, actor, action, target, before_hash, after_hash, at)
+                    VALUES (?, 'system', 'deletion.complete', ?, NULL, ?, ?)
+                    """,
+                    (
+                        uuid7_str(),
+                        request_id,
+                        json.dumps(counts, sort_keys=True),
+                        completed_iso,
+                    ),
+                )
+        except Exception:
+            try:
+                with self.db.transaction() as tx:
+                    tx.execute(
+                        "UPDATE deletion_request SET status = 'failed' WHERE request_id = ?",
+                        (request_id,),
+                    )
+            except Exception:  # noqa: BLE001
+                log_event(
+                    "privacy.delete_failed.stamp_error",
+                    {"tombstone_id": request_id, "reason_code": "stamp_tx_failed"},
+                    severity=Severity.CRITICAL,
+                    error_class=ErrorClass.STORE_ERROR,
+                )
+            log_event(
+                "privacy.delete_failed",
+                {
+                    "tombstone_id": request_id,
+                    "target": norm_dev,
+                    "reason_code": "scrub_or_stamp_failed",
+                    "counts_before_failure": counts,
+                },
+                severity=Severity.CRITICAL,
+                error_class=ErrorClass.PRIVACY_VIOLATION,
             )
-            tx.execute(
-                """
-                INSERT INTO audit_log (audit_id, actor, action, target, before_hash, after_hash, at)
-                VALUES (?, 'system', 'deletion.complete', ?, NULL, ?, ?)
-                """,
-                (
-                    uuid7_str(),
-                    request_id,
-                    json.dumps(counts, sort_keys=True),
-                    completed_iso,
-                ),
-            )
+            raise
 
-        return {"deleted": counts, "tombstone_id": request_id}
+        scrub_unreadable = list(_logging_shim.LAST_SCRUB_UNREADABLE)
+        return {
+            "deleted": counts,
+            "tombstone_id": request_id,
+            "unreadable_log_files": len(scrub_unreadable),
+        }
 
     def purge_expired_voice_turns(
         self, *, now_dt: datetime.datetime | None = None, ttl_days: int = 7

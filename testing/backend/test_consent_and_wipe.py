@@ -267,5 +267,67 @@ class TestConsentAndWipeCascade(unittest.TestCase):
         self.assertEqual(r_replay.json()["code"], "E-CONFIRM-REQUIRED")
 
 
+class TestDeletionFailLoud(unittest.TestCase):
+    """Deletion must fail loud: DB-hook failure -> tombstone 'failed' + CRITICAL event."""
+
+    def setUp(self) -> None:
+        self.cfg = BackendConfig(
+            db_url="sqlite:///:memory:",
+            current_notice_version="zivon-voice-notice-v1",
+        )
+        self.app = create_app(self.cfg)
+        self.client = TestClient(self.app)
+        self.db = self.app.state.db
+
+    def test_privacy_delete_hook_failure_marks_tombstone_failed(self) -> None:
+        dev_id = str(uuid.uuid4())
+        s_res = self.client.post(
+            "/v1/session", json={"device_pseudo_id": dev_id, "lang": "en-IN"}
+        ).json()
+        sid = s_res["session_id"]
+        self.client.get("/v1/data/challenge", params={"device_pseudo_id": dev_id})
+
+        from backend import logging_shim
+        from backend.privacy import DeletionAndRetentionService
+
+        original = logging_shim._DB_DELETE_SUBJECT_HOOK
+
+        def failing_hook(_session_id: str) -> int:
+            raise RuntimeError("simulated DB sink outage")
+
+        logging_shim.register_db_sink(logging_shim._DB_WRITER_HOOK, failing_hook)
+        try:
+            with self.assertRaises(RuntimeError):
+                DeletionAndRetentionService(self.db).wipe_device(dev_id)
+        finally:
+            logging_shim.register_db_sink(logging_shim._DB_WRITER_HOOK, original)
+
+        # Tombstone stamped 'failed', NOT 'completed'
+        row = self.db.fetchone(
+            "SELECT status FROM deletion_request WHERE device_pseudo_id = ?",
+            (dev_id,),
+        )
+        self.assertIsNotNone(row)
+        self.assertEqual(row["status"], "failed")
+
+        # CRITICAL privacy.delete_failed emitted
+        crit = [
+            ev
+            for ev in logging_shim.get_emitted_events()
+            if ev.get("event") == "privacy.delete_failed"
+            and ev.get("fields", {}).get("tombstone_id")
+        ]
+        self.assertEqual(len(crit), 1)
+        self.assertEqual(crit[0]["severity"], "CRITICAL")
+
+        # Step 2 already deleted rows, but the tombstone must NOT claim completion
+        self.assertIsNone(
+            self.db.fetchone(
+                "SELECT session_id FROM session WHERE session_id = ?", (sid,)
+            )
+        )
+        self.assertEqual(row["status"], "failed")
+
+
 if __name__ == "__main__":
     unittest.main()

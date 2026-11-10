@@ -11,6 +11,7 @@ from __future__ import annotations
 import datetime
 import hmac
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -327,7 +328,13 @@ def _sync_runs_from_filesystem(db: Any, runs_dir: Path) -> None:
                     _utc_now_iso(),
                 ),
             )
-        except Exception:  # noqa: BLE001, S112
+        except Exception:  # noqa: BLE001
+            log_event(
+                "factory.admin.run_status_unreadable",
+                {"artifact_path": str(status_file), "reason_code": "unreadable"},
+                severity=Severity.WARNING,
+                error_class=ErrorClass.STORE_ERROR,
+            )
             continue
 
 
@@ -592,6 +599,9 @@ async def admin_trigger_generate_topic(
     )
 
 
+_RUN_ID_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
+
+
 @router.get("/actions/watch-run/{run_id}/logs")
 def admin_watch_run_logs(
     run_id: str,
@@ -600,6 +610,9 @@ def admin_watch_run_logs(
 ) -> JSONResponse:
     """API-A9: Wrap `scripts/logs-factory-run.sh` semantics (label `task=factory-run`)."""
     cfg: BackendConfig = request.app.state.config
+    if not _RUN_ID_SLUG_RE.match(run_id):
+        # run_id is interpolated into filesystem paths — allowlist the slug form only
+        raise APIError("E-VALIDATION", status_code=422)
     run_dir = Path(cfg.runs_dir) / run_id
     lines: list[str] = []
     status_file = run_dir / "status.json"

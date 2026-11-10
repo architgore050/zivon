@@ -6,7 +6,14 @@ Enforces:
 - Warn threshold: 15% of daily tranche remaining (`A-06`)
 - Hard total programme ceiling: 10,000 total credits with 40% (`4,000`) demo
   reserve (`normal` ceiling = 6,000; `demo` ceiling = 10,000) (`A-05`)
-- Atomic SQL check-and-decrement inside a single transaction (zero TOCTOU race)
+- Atomic SQL check-and-decrement: each dimension (global tranche /
+  per-device cap) is enforced inside a single serializable transaction, so it
+  has no check/use race *within itself*. Note that the two dimensions are
+  committed as SEPARATE transactions — advisory locks could coalesce them so
+  a caller never exceeds either cap's own ceiling, but the SUM of two calls
+  from concurrent callers can still transiently touch both caps before the
+  next caller sees the updated state (a separate-SUM ceiling, not a total
+  budget lock).
 - State push callbacks for open WebSocket voice sessions (`<= 5 s`, NFR-14)
 """
 

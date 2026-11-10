@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 import datetime
-import hashlib
-import hmac
 import json
 import re
-import time
 import uuid
 from typing import Any, Final
 
@@ -116,49 +113,6 @@ def _validate_device_id(device_pseudo_id: str) -> str:
     return cleaned
 
 
-def _fallback_issue_session_token(
-    cfg: BackendConfig, session_id: str, device_pseudo_id: str
-) -> str:
-    now = int(time.time())
-    payload = {
-        "session_id": session_id,
-        "device_pseudo_id": device_pseudo_id,
-        "iat": now,
-        "exp": now + cfg.session_ttl_seconds,
-    }
-    raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    import base64
-
-    b64 = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
-    sig = hmac.new(
-        cfg.session_token_key.encode("utf-8"), b64.encode("ascii"), hashlib.sha256
-    ).hexdigest()
-    return f"{b64}.{sig}"
-
-
-def _fallback_verify_session_token(
-    cfg: BackendConfig, token: str
-) -> dict[str, Any] | None:
-    if not token or "." not in token:
-        return None
-    b64, sig = token.rsplit(".", 1)
-    expected = hmac.new(
-        cfg.session_token_key.encode("utf-8"), b64.encode("ascii"), hashlib.sha256
-    ).hexdigest()
-    if not hmac.compare_digest(sig, expected):
-        return None
-    import base64
-
-    pad = "=" * ((4 - len(b64) % 4) % 4)
-    try:
-        data = json.loads(base64.urlsafe_b64decode(b64 + pad).decode("utf-8"))
-    except Exception:  # noqa: BLE001
-        return None
-    if int(data.get("exp", 0)) < int(time.time()):
-        return None
-    return dict(data)
-
-
 def _extract_session_token(
     request: Request,
     authorization: str | None,
@@ -176,12 +130,12 @@ def _extract_session_token(
 
 
 def _verify_token(request: Request, token: str) -> dict[str, Any]:
+    """Verify via the single identity service — there is deliberately NO weaker
+    parallel fallback: without `app.state.identity` the route is unavailable."""
     identity = getattr(request.app.state, "identity", None)
-    if identity is not None:
-        claims = identity.verify_session_token(token)
-    else:
-        cfg: BackendConfig = request.app.state.config
-        claims = _fallback_verify_session_token(cfg, token)
+    if identity is None:
+        raise APIError("E-SERVICE-UNAVAILABLE", status_code=503, retryable=False)
+    claims = identity.verify_session_token(token)
     if claims is None:
         raise APIError("E-SESSION-EXPIRED", status_code=401, retryable=False)
     return dict(claims)
@@ -233,7 +187,6 @@ class SessionBootstrapRequest(BaseModel):
 @router.post("/v1/session")
 def bootstrap_session(body: SessionBootstrapRequest, request: Request) -> JSONResponse:
     """API-001: Bootstrap a pseudonymous lesson-page session and compute flags."""
-    cfg: BackendConfig = request.app.state.config
     db = request.app.state.db
     device_id = _validate_device_id(body.device_pseudo_id)
     try:
@@ -285,10 +238,9 @@ def bootstrap_session(body: SessionBootstrapRequest, request: Request) -> JSONRe
     )
 
     identity = getattr(request.app.state, "identity", None)
-    if identity is not None:
-        session_token = identity.issue_session_token(session_id, device_id)
-    else:
-        session_token = _fallback_issue_session_token(cfg, session_id, device_id)
+    if identity is None:
+        raise APIError("E-SERVICE-UNAVAILABLE", status_code=503, retryable=False)
+    session_token = identity.issue_session_token(session_id, device_id)
 
     log_event(
         "voice.session.started",
@@ -643,15 +595,9 @@ def get_deletion_challenge(
     """Issue a server confirm_token challenge for API-007 (backend-spec §6.1)."""
     device_id = _validate_device_id(device_pseudo_id)
     identity = getattr(request.app.state, "identity", None)
-    if identity is not None:
-        token = identity.issue_confirm_token(device_id)
-    else:
-        cfg: BackendConfig = request.app.state.config
-        token = hmac.new(
-            cfg.session_token_key.encode("utf-8"),
-            f"confirm:{device_id}".encode(),
-            hashlib.sha256,
-        ).hexdigest()
+    if identity is None:
+        raise APIError("E-SERVICE-UNAVAILABLE", status_code=503, retryable=False)
+    token = identity.issue_confirm_token(device_id)
     return JSONResponse(content={"device_pseudo_id": device_id, "confirm_token": token})
 
 
@@ -678,74 +624,20 @@ async def delete_device_data(request: Request) -> JSONResponse:
         raise APIError("E-CONFIRM-REQUIRED", status_code=400)
 
     identity = getattr(request.app.state, "identity", None)
-    if identity is not None:
-        valid = identity.verify_confirm_token(device_id, confirm_token)
-    else:
-        cfg: BackendConfig = request.app.state.config
-        expected = hmac.new(
-            cfg.session_token_key.encode("utf-8"),
-            f"confirm:{device_id}".encode(),
-            hashlib.sha256,
-        ).hexdigest()
-        valid = hmac.compare_digest(confirm_token, expected)
+    if identity is None:
+        raise APIError("E-SERVICE-UNAVAILABLE", status_code=503, retryable=False)
+    valid = identity.verify_confirm_token(device_id, confirm_token)
 
     if not valid:
         raise APIError("E-CONFIRM-REQUIRED", status_code=400)
 
     privacy_pipeline = getattr(request.app.state, "privacy", None)
-    if privacy_pipeline is not None:
-        result = privacy_pipeline.wipe_device(device_id)
-        return JSONResponse(content=result)
-
-    # Inline fallback wipe before backend/privacy.py is wired
-    db = request.app.state.db
-    with db.transaction() as tx:
-        turns = tx.fetchone(
-            """
-            SELECT COUNT(*) AS cnt FROM voice_turn
-            WHERE session_id IN (SELECT session_id FROM session WHERE device_pseudo_id = ?)
-            """,
-            (device_id,),
-        )
-        sessions = tx.fetchone(
-            "SELECT COUNT(*) AS cnt FROM session WHERE device_pseudo_id = ?",
-            (device_id,),
-        )
-        consents = tx.fetchone(
-            "SELECT COUNT(*) AS cnt FROM consent_record WHERE device_pseudo_id = ?",
-            (device_id,),
-        )
-        events = tx.fetchone(
-            "SELECT COUNT(*) AS cnt FROM telemetry_event WHERE device_pseudo_id = ?",
-            (device_id,),
-        )
-        reports = tx.fetchone(
-            "SELECT COUNT(*) AS cnt FROM problem_report WHERE device_pseudo_id = ?",
-            (device_id,),
-        )
-        counts = {
-            "sessions": int(sessions["cnt"]) if sessions else 0,
-            "consents": int(consents["cnt"]) if consents else 0,
-            "events": int(events["cnt"]) if events else 0,
-            "turns": int(turns["cnt"]) if turns else 0,
-            "reports": int(reports["cnt"]) if reports else 0,
-        }
-        req_id = uuid7_str()
-        now = _utc_now_iso()
-        tx.execute(
-            """
-            INSERT INTO deletion_request (
-                request_id, device_pseudo_id, scope, status, counts, requested_at, completed_at
-            ) VALUES (?, ?, 'device', 'completed', ?, ?, ?)
-            """,
-            (req_id, device_id, json.dumps(counts), now, now),
-        )
-        tx.execute(
-            "DELETE FROM problem_report WHERE device_pseudo_id = ?",
-            (device_id,),
-        )
-        tx.execute("DELETE FROM device WHERE device_pseudo_id = ?", (device_id,))
-    return JSONResponse(content={"deleted": counts, "tombstone_id": req_id})
+    if privacy_pipeline is None:
+        # Deletion must never run a weaker parallel implementation inline —
+        # without the full 8-step pipeline the request is simply unavailable.
+        raise APIError("E-SERVICE-UNAVAILABLE", status_code=503, retryable=False)
+    result = privacy_pipeline.wipe_device(device_id)
+    return JSONResponse(content=result)
 
 
 @router.get("/v1/health")

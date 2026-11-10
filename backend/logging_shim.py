@@ -345,13 +345,20 @@ def _shim_log_event(
 
 
 def _shim_delete_subject(session_id: str) -> int:
-    """Purge log events for a pseudonymous session_id across DB and JSONL fallback."""
+    """Purge log events for a pseudonymous session_id across DB and JSONL fallback.
+
+    Deleting a subject must FAIL LOUD: a DB-hook error is re-raised (never
+    swallowed), so the caller can stamp the tombstone `failed`. Unreadable
+    JSONL fallback files are logged at WARNING with their path; they are NOT
+    silently dropped — they are counted in the `privacy.subject_deleted`
+    event fields (`unreadable_files`) and exposed via the module-level
+    `LAST_SCRUB_UNREADABLE` list.
+    """
     deleted = 0
+    unreadable: list[str] = []
     if _DB_DELETE_SUBJECT_HOOK is not None:
-        try:
-            deleted += _DB_DELETE_SUBJECT_HOOK(session_id)
-        except Exception:  # noqa: BLE001, S110
-            pass
+        # Propagate DB-hook failures — deletion must never quietly half-complete.
+        deleted += _DB_DELETE_SUBJECT_HOOK(session_id)
 
     # Scrub in-memory buffer
     before = len(_EMITTED_EVENTS_BUFFER)
@@ -374,6 +381,11 @@ def _shim_delete_subject(session_id: str) -> int:
                     try:
                         parsed = json.loads(raw)
                     except Exception:  # noqa: BLE001
+                        # Unparseable lines may still contain subject-bearing
+                        # records: keep them and count the file as
+                        # scrub-incomplete (once per file).
+                        if str(path) not in unreadable:
+                            unreadable.append(str(path))
                         kept.append(raw)
                         continue
                     if parsed.get("session_id") == session_id:
@@ -383,16 +395,39 @@ def _shim_delete_subject(session_id: str) -> int:
                 path.write_text(
                     "\n".join(kept) + ("\n" if kept else ""), encoding="utf-8"
                 )
-            except Exception:  # noqa: BLE001, S112
+            except Exception as exc:  # noqa: BLE001
+                unreadable.append(str(path))
+                log_event(
+                    "privacy.log_scrub_failed",
+                    {"artifact_path": str(path), "reason_code": "unreadable"},
+                    severity=Severity.WARNING,
+                    error_class=ErrorClass.STORE_ERROR,
+                    session_id=session_id,
+                )
+                if os.environ.get("ZIVON_LOG_LEVEL", "INFO").upper() == "DEBUG":
+                    print(
+                        f"[logging_shim] jsonl scrub failed {path}: {exc}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
                 continue
 
+    globals()["LAST_SCRUB_UNREADABLE"] = unreadable
     _shim_log_event(
         "privacy.subject_deleted",
-        {"session_count": 1, "stores_touched": 2},
+        {
+            "session_count": 1,
+            "stores_touched": 2,
+            "unreadable_files": len(unreadable),
+        },
         severity=Severity.INFO,
         session_id=session_id,
     )
     return deleted
+
+
+# Populated by _shim_delete_subject after each scrub (inspectable for wipe result)
+LAST_SCRUB_UNREADABLE: list[str] = []
 
 
 try:

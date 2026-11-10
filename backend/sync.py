@@ -118,8 +118,14 @@ def _decrypt_envelope(envelope: bytes, secret_key: str) -> bytes:
     try:
         obj = json.loads(envelope.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SyncVerificationError(f"Not a Zivon envelope (JSON parse failed): {exc}") from exc
-    if not isinstance(obj, dict) or obj.get("v") != 1 or obj.get("alg") != "ZIVON-HMAC-CTR-SHA256":
+        raise SyncVerificationError(
+            f"Not a Zivon envelope (JSON parse failed): {exc}"
+        ) from exc
+    if (
+        not isinstance(obj, dict)
+        or obj.get("v") != 1
+        or obj.get("alg") != "ZIVON-HMAC-CTR-SHA256"
+    ):
         raise SyncVerificationError(
             f"Unsupported envelope format: v={obj.get('v')!r} alg={obj.get('alg')!r}"
         )
@@ -127,7 +133,9 @@ def _decrypt_envelope(envelope: bytes, secret_key: str) -> bytes:
         nonce = base64.b64decode(obj["nonce"], validate=True)
         ciphertext = base64.b64decode(obj["ciphertext"], validate=True)
     except (KeyError, ValueError) as exc:
-        raise SyncVerificationError("Envelope is missing or has invalid base64 fields") from exc
+        raise SyncVerificationError(
+            "Envelope is missing or has invalid base64 fields"
+        ) from exc
     key_bytes = hashlib.sha256(secret_key.encode("utf-8")).digest()
     expected_mac = hmac.new(key_bytes, nonce + ciphertext, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expected_mac, str(obj.get("mac", ""))):
@@ -592,7 +600,7 @@ class ColdStorageSync:
                 run_dir = status_file.parent
                 try:
                     st_data = json.loads(status_file.read_text(encoding="utf-8"))
-                except Exception as exc:  # noqa: BLE001
+                except Exception:  # noqa: BLE001
                     log_event(
                         "factory.sync.run_status_unreadable",
                         {
