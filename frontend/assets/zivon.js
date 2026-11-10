@@ -544,7 +544,7 @@
     const mo = new MutationObserver((records) => {
       const relevant = records.some((r) => {
         const el = r.target.nodeType === 1 ? r.target : r.target.parentElement;
-        return !el || !el.closest(".zn-sim-read, .zn-voice-dock-region");
+        return !el || !el.closest(".zn-sim-read, .zn-voice-dock-region, .zn-consent-sheet, .zn-report-wrap, .zn-read-aloud-wrap, .zn-read-aloud-progress, .zn-footer-links, .zn-status-chip");
       });
       if (relevant) refresh();
     });
@@ -730,6 +730,70 @@
     });
   }
 
+  function isLocaleBundleAvailable(loc) {
+    var code = String(loc || "en");
+    if (code === "en") return true;
+    var i18n = window.ZIVON_I18N;
+    if (i18n && typeof i18n === "object" && Object.prototype.hasOwnProperty.call(i18n, code)) {
+      return true;
+    }
+    var mf = window.__ZIVON_MANIFEST__;
+    if (mf && Array.isArray(mf.locales_available) && mf.locales_available.indexOf(code) !== -1) {
+      return true;
+    }
+    if (document.querySelector('link[rel="alternate"][hreflang="' + code + '"]')) {
+      return true;
+    }
+    return false;
+  }
+
+  function syncLangBarBundleAvailability(row) {
+    var bar = document.querySelector(".zn-lang-bar");
+    if (bar && !bar.getAttribute("data-element-id")) {
+      bar.setAttribute("data-element-id", "EL-LES-01-006");
+    }
+    if (!row) return;
+    var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
+    chips.forEach(function (c) {
+      var code = chipLocaleCode(c);
+      if (!c.getAttribute("data-lang")) c.setAttribute("data-lang", code);
+      if (!c.getAttribute("data-locale")) c.setAttribute("data-locale", code);
+      if (!c.getAttribute("data-element-id")) {
+        if (code === "en") c.setAttribute("data-element-id", "EL-LES-01-007");
+        else if (code === "hi") c.setAttribute("data-element-id", "EL-LES-01-008");
+        else if (code === "hi-Latn") c.setAttribute("data-element-id", "EL-LES-01-009");
+      }
+      var route = ZivonRouter.currentRoute();
+      if (!c.getAttribute("data-href") && route.canonical_path) {
+        c.setAttribute("data-href", ZivonRouter.buildLocalizedHref(route.canonical_path, code));
+      }
+      var hasBundle = isLocaleBundleAvailable(code);
+      if (!hasBundle && code !== "en") {
+        c.setAttribute("aria-disabled", "true");
+        c.setAttribute("title", "Translation bundle not generated yet for " + (c.textContent || code).trim() + " — showing reviewed English.");
+      } else {
+        c.removeAttribute("aria-disabled");
+        c.removeAttribute("title");
+      }
+    });
+  }
+
+  function applyClientBundleSwap(locale) {
+    var root = window.ZIVON_I18N;
+    if (!root || typeof root !== "object") return false;
+    var locData = root[locale];
+    if (!locData || typeof locData !== "object") return false;
+    document.documentElement.lang = locale;
+    var strings = locData.strings || {};
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n");
+      if (key && Object.prototype.hasOwnProperty.call(strings, key)) {
+        el.textContent = String(strings[key]);
+      }
+    });
+    return true;
+  }
+
   function selectLangChip(row, targetChip, persistAndEmit) {
     if (!row || !targetChip) return;
     var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
@@ -742,6 +806,10 @@
       c.setAttribute("aria-checked", String(isTarget));
       c.setAttribute("tabindex", isTarget ? "0" : "-1");
     });
+
+    if (isLocaleBundleAvailable(toCode) && toCode !== "en") {
+      applyClientBundleSwap(toCode);
+    }
 
     /* Untranslated notice (INF-087) from the real bundle shape. */
     if (toCode === "en") {
@@ -763,11 +831,7 @@
     if (!row) return;
     var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
     if (!chips.length) return;
-    chips.forEach(function (c) {
-      if (!c.getAttribute("data-lang")) {
-        c.setAttribute("data-lang", chipLocaleCode(c));
-      }
-    });
+    syncLangBarBundleAvailability(row);
 
     /* Preselect chip from localStorage["zivon.lang"] if present (spec C3) */
     var saved = getSavedLang();
@@ -1027,6 +1091,189 @@
     getActiveBlockId: function () { return activeNarrationBlockId; }
   };
   window.ZivonReadAloud = ZivonReadAloud;
+
+  /* ---------------- §2.5 Provenance Report (F-COR-PROV-01) ------------------
+     Injects report button (EL-LES-01-040) + form panel (EL-LES-01-041) into
+     the lesson footer (.zn-footer). Submits to POST /v1/reports with
+     course_id, block_id, category, optional text (<= 500 chars), and zero PII.
+     Honest success/error states; keeps draft on failure; never blocks reading. */
+  function injectReportSurface() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false };
+    var footer = lessonPage.querySelector(".zn-footer");
+    if (!footer) return { mounted: false };
+    var existingBtn = footer.querySelector('[data-element-id="EL-LES-01-040"]');
+    var existingPanel = footer.querySelector('[data-element-id="EL-LES-01-041"]');
+    if (existingBtn && existingPanel) {
+      return { mounted: true, button: existingBtn, panel: existingPanel };
+    }
+
+    var wrap = document.createElement("div");
+    wrap.className = "zn-report-wrap";
+    wrap.setAttribute("data-zn-mounted", "true");
+    wrap.setAttribute("data-ruled-skip", "true");
+
+    var reportBtn = document.createElement("button");
+    reportBtn.type = "button";
+    reportBtn.className = "zn-report-btn";
+    reportBtn.setAttribute("data-element-id", "EL-LES-01-040");
+    reportBtn.setAttribute("aria-expanded", "false");
+    reportBtn.textContent = "Report a problem";
+
+    var panel = document.createElement("form");
+    panel.className = "zn-report-panel";
+    panel.setAttribute("data-element-id", "EL-LES-01-041");
+    panel.setAttribute("data-report-state", "default");
+    panel.hidden = true;
+
+    var catLabel = document.createElement("label");
+    catLabel.className = "zn-report-field";
+    var catSpan = document.createElement("span");
+    catSpan.textContent = "What needs fixing?";
+    var catSelect = document.createElement("select");
+    catSelect.className = "zn-report-category";
+    catSelect.name = "category";
+    [
+      { value: "wrong_physics", label: "Wrong physics / calculation" },
+      { value: "bad_translation", label: "Bad translation" },
+      { value: "broken_sim", label: "Broken simulation or diagram" },
+      { value: "other", label: "Other issue" }
+    ].forEach(function (opt) {
+      var o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      catSelect.appendChild(o);
+    });
+    catLabel.appendChild(catSpan);
+    catLabel.appendChild(catSelect);
+
+    var txtLabel = document.createElement("label");
+    txtLabel.className = "zn-report-field";
+    var txtSpan = document.createElement("span");
+    txtSpan.textContent = "Short note (optional, do not include your name or contact info):";
+    var txtArea = document.createElement("textarea");
+    txtArea.className = "zn-report-text";
+    txtArea.name = "text";
+    txtArea.rows = 2;
+    txtArea.maxLength = 500;
+    txtArea.placeholder = "Describe the issue briefly…";
+    txtLabel.appendChild(txtSpan);
+    txtLabel.appendChild(txtArea);
+
+    var btnRow = document.createElement("div");
+    btnRow.className = "zn-report-actions";
+    var submitBtn = document.createElement("button");
+    submitBtn.type = "submit";
+    submitBtn.className = "zn-report-submit";
+    submitBtn.textContent = "Send report";
+    var cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "zn-report-cancel";
+    cancelBtn.textContent = "Cancel";
+    btnRow.appendChild(submitBtn);
+    btnRow.appendChild(cancelBtn);
+
+    var statusMsg = document.createElement("p");
+    statusMsg.className = "zn-report-status";
+    statusMsg.setAttribute("role", "status");
+    statusMsg.setAttribute("aria-live", "polite");
+    statusMsg.hidden = true;
+
+    [catLabel, txtLabel, btnRow, statusMsg].forEach(function (el) { panel.appendChild(el); });
+    wrap.appendChild(reportBtn);
+    wrap.appendChild(panel);
+    footer.appendChild(wrap);
+
+    function syncReportOffline() {
+      var isOff = typeof navigator !== "undefined" && navigator.onLine === false;
+      reportBtn.disabled = isOff;
+      if (isOff) {
+        reportBtn.title = "Offline - reports require a connection.";
+        panel.setAttribute("data-report-state", "error-offline");
+      } else {
+        reportBtn.removeAttribute("title");
+      }
+    }
+    window.addEventListener("online", syncReportOffline);
+    window.addEventListener("offline", syncReportOffline);
+    syncReportOffline();
+
+    reportBtn.addEventListener("click", function () {
+      var open = panel.hidden;
+      panel.hidden = !open;
+      reportBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        panel.setAttribute("data-report-state", "open");
+        try { catSelect.focus(); } catch (e) {}
+      }
+    });
+
+    cancelBtn.addEventListener("click", function () {
+      panel.hidden = true;
+      reportBtn.setAttribute("aria-expanded", "false");
+      try { reportBtn.focus(); } catch (e) {}
+    });
+
+    panel.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        panel.setAttribute("data-report-state", "error-offline");
+        statusMsg.hidden = false;
+        statusMsg.textContent = "Could not send while offline — your note is kept.";
+        return;
+      }
+      var snap = buildContextSnapshot();
+      var catVal = catSelect.value || "other";
+      var noteVal = (txtArea.value || "").trim().slice(0, 500);
+      panel.setAttribute("data-report-state", "sending");
+      submitBtn.disabled = true;
+      statusMsg.hidden = false;
+      statusMsg.textContent = "Sending…";
+      try {
+        var payload = {
+          course_id: snap.course_id || "physics",
+          class_level: snap.class || 9,
+          block_id: snap.block_id || "b-01",
+          category: catVal,
+          device_pseudo_id: getDevicePseudoId()
+        };
+        if (noteVal) payload.text = noteVal;
+        var res = await sameOriginRequest("/v1/reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (res && res.ok) {
+          panel.setAttribute("data-report-state", "sent");
+          reportBtn.setAttribute("data-report-state", "sent");
+          statusMsg.textContent = "Sent — thank you.";
+          txtArea.value = "";
+          if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+            window.ZivonEvents.emit("EVT-report_submitted", {
+              page_id: payload.course_id,
+              block_id: payload.block_id,
+              category: payload.category
+            });
+          }
+        } else {
+          panel.setAttribute("data-report-state", "error-offline");
+          statusMsg.textContent = "Could not send — try again.";
+        }
+      } catch (err) {
+        panel.setAttribute("data-report-state", "error-offline");
+        statusMsg.textContent = "Could not send — try again.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    return { mounted: true, button: reportBtn, panel: panel };
+  }
+
+  var ZivonReport = {
+    mount: injectReportSurface
+  };
+  window.ZivonReport = ZivonReport;
 
   /* ---------------- §10.14 Consent gate & Privacy (F-XCT-CON-01) ------------
      One-time consent sheet before the dock: explains what is recorded
@@ -3195,7 +3442,11 @@
     "EVT-lang_switched":       { evt_id: "EVT-F09", event: "frontend.language_bar_use", privacy_class: "L2" },
     "EVT-session_ended":       { evt_id: "EVT-F10", event: "frontend.session_end",      privacy_class: "L2" },
     "EVT-publish_viewed":      { evt_id: "EVT-F11", event: "frontend.publish_view",     privacy_class: "L2" },
-    "EVT-heartbeat":           { evt_id: "EVT-F12", event: "frontend.heartbeat",        privacy_class: "L2" }
+    "EVT-heartbeat":           { evt_id: "EVT-F12", event: "frontend.heartbeat",        privacy_class: "L2" },
+    "EVT-read_aloud_played":   { evt_id: "EVT-012", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-consent_recorded":    { evt_id: "EVT-013", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-report_submitted":    { evt_id: "EVT-014", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-data_cleared":        { evt_id: "EVT-018", event: "frontend.page_view",        privacy_class: "L2" }
   };
 
   function getClientSessionId() {
@@ -3447,10 +3698,57 @@
     });
   }
 
+  var EVENT_BATCH_SIZE = 20;
+  var flushInFlight = false;
+
+  async function flushEvents(endpointUrl) {
+    if (flushInFlight || !eventQueue.length) {
+      return { flushed: 0, remaining: eventQueue.length };
+    }
+    /* Only flush on lesson/privacy pages or when explicitly called; never block UI */
+    var url = endpointUrl || "/api/v1/events";
+    var batch = eventQueue.slice(0, EVENT_BATCH_SIZE).map(function (ev) {
+      return {
+        evt_id: ev.evt_id,
+        event: ev.event,
+        client_session_id: ev.client_session_id,
+        device_pseudo_id: getDevicePseudoId(),
+        course_id: ev.props && ev.props.topic ? String(ev.props.topic) : "physics",
+        block_id: ev.props && ev.props.block_id ? String(ev.props.block_id) : undefined,
+        props: ev.props || {},
+        ts: ev.ts
+      };
+    });
+    flushInFlight = true;
+    var sentOk = false;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        var res = await sameOriginRequest(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ events: batch })
+        });
+        if (res && res.ok) {
+          sentOk = true;
+          break;
+        }
+      } catch (e) {}
+    }
+    flushInFlight = false;
+    if (sentOk) {
+      eventQueue.splice(0, batch.length);
+      return { flushed: batch.length, remaining: eventQueue.length, ok: true };
+    }
+    /* No-op fallback: retain capped queue in memory without throwing */
+    return { flushed: 0, remaining: eventQueue.length, ok: false };
+  }
+
   window.ZivonEvents = {
     EVENT_QUEUE_MAX: EVENT_QUEUE_MAX,
+    EVENT_BATCH_SIZE: EVENT_BATCH_SIZE,
     EVENT_CATALOG: EVENT_CATALOG,
     emit: emitEvent,
+    flush: flushEvents,
     getQueue: function () { return eventQueue.slice(); },
     clearQueue: function () { eventQueue.length = 0; },
     setSink: function (fn) { customEventSink = typeof fn === "function" ? fn : null; },
@@ -3497,5 +3795,138 @@
       pen: "h1.zn-title",
       skip: "script,style,svg,button,sup,sub,.zn-reveal,.zn-sim,.zn-check,[data-ruled-skip]"
     });
+    ZivonShell.mount();
   });
+
+  /* --------------- 9. Shell Injection (shell-injection.md §3) --------------
+     Injects product chrome on content-only lesson pages in exact order:
+       1. Global notices (offline, voice-limited warn, typed-only exhausted)
+       2. Read-aloud controls (§10.13, from manifest.json -> narration.blocks)
+       3. Report-a-problem button/panel (F-COR-PROV-01, POST /v1/reports)
+       4. Consent gate (§10.14, localStorage["zivon.consent"])
+       5. Voice dock (§10.12, ZivonVoiceDock.lazyMount)
+       6. Privacy link + locale controls
+     Idempotent per root (data-zn-mounted); every step is isolated in try/catch
+     so any failure leaves lesson content and simulations 100% readable. */
+  function ensureGlobalLessonNotices() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return { mounted: false };
+    var isOff = typeof navigator !== "undefined" && navigator.onLine === false;
+    applyLessonStateBanner(
+      "offline",
+      isOff ? "Offline - lesson content and simulations work without a connection." : ""
+    );
+    window.addEventListener("offline", function () {
+      applyLessonStateBanner("offline", "Offline - lesson content and simulations work without a connection.");
+    });
+    window.addEventListener("online", function () {
+      applyLessonStateBanner("offline", "");
+    });
+    return { mounted: true };
+  }
+
+  function loadTopicManifestAndMountReadAloud(explicitManifest) {
+    if (explicitManifest && typeof explicitManifest === "object") {
+      window.__ZIVON_MANIFEST__ = explicitManifest;
+      injectReadAloudControls(explicitManifest);
+      var row = document.querySelector(".zn-lang-row");
+      if (row) syncLangBarBundleAvailability(row);
+      return Promise.resolve(explicitManifest);
+    }
+    if (window.__ZIVON_MANIFEST__ && typeof window.__ZIVON_MANIFEST__ === "object") {
+      injectReadAloudControls(window.__ZIVON_MANIFEST__);
+      var row2 = document.querySelector(".zn-lang-row");
+      if (row2) syncLangBarBundleAvailability(row2);
+      return Promise.resolve(window.__ZIVON_MANIFEST__);
+    }
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return Promise.resolve(null);
+    return sameOriginRequest("./manifest.json", { method: "GET" })
+      .then(function (res) {
+        if (!res || !res.ok) return null;
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && typeof data === "object") {
+          window.__ZIVON_MANIFEST__ = data;
+          injectReadAloudControls(data);
+          var row3 = document.querySelector(".zn-lang-row");
+          if (row3) syncLangBarBundleAvailability(row3);
+        }
+        return data;
+      })
+      .catch(function () { return null; });
+  }
+
+  var ZivonShell = {
+    mount: function (options) {
+      var opts = options || {};
+      var steps = {};
+      var root = document.querySelector(".zn-page");
+      var alreadyMounted = root && root.getAttribute("data-zn-mounted") === "true";
+
+      /* Step 1: Global notices */
+      try {
+        if (opts.throwAtStep === "notices") throw new Error("injected_notices_error");
+        steps.notices = ensureGlobalLessonNotices();
+      } catch (e) {
+        steps.notices = { mounted: false, error: String(e) };
+      }
+
+      /* Step 2: Read-aloud controls (§10.13) */
+      try {
+        if (opts.throwAtStep === "read_aloud") throw new Error("injected_read_aloud_error");
+        if (opts.manifest) {
+          window.__ZIVON_MANIFEST__ = opts.manifest;
+        }
+        steps.read_aloud = injectReadAloudControls(opts.manifest || window.__ZIVON_MANIFEST__ || null);
+        if (!opts.manifest && !window.__ZIVON_MANIFEST__ && !alreadyMounted) {
+          loadTopicManifestAndMountReadAloud(null);
+        }
+      } catch (e) {
+        steps.read_aloud = { mounted: false, error: String(e) };
+      }
+
+      /* Step 3: Report-a-problem button/panel (F-COR-PROV-01) */
+      try {
+        if (opts.throwAtStep === "report") throw new Error("injected_report_error");
+        steps.report = injectReportSurface();
+      } catch (e) {
+        steps.report = { mounted: false, error: String(e) };
+      }
+
+      /* Step 4: Consent gate (§10.14) */
+      try {
+        if (opts.throwAtStep === "consent") throw new Error("injected_consent_error");
+        steps.consent = injectConsentGate();
+      } catch (e) {
+        steps.consent = { mounted: false, error: String(e) };
+      }
+
+      /* Step 5: Voice dock (§10.12) */
+      try {
+        if (opts.throwAtStep === "dock") throw new Error("injected_dock_error");
+        steps.dock = ZivonVoiceDock.lazyMount();
+      } catch (e) {
+        steps.dock = { mounted: false, error: String(e) };
+      }
+
+      /* Step 6: Privacy page / footer link + locale controls */
+      try {
+        if (opts.throwAtStep === "privacy_locale") throw new Error("injected_privacy_locale_error");
+        wirePrivacyPage();
+        steps.privacy = injectFooterPrivacyLink();
+        var langRow = document.querySelector(".zn-lang-row");
+        if (langRow) syncLangBarBundleAvailability(langRow);
+      } catch (e) {
+        steps.privacy = { mounted: false, error: String(e) };
+      }
+
+      if (root) {
+        root.setAttribute("data-zn-mounted", "true");
+      }
+      return { idempotent: Boolean(alreadyMounted), steps: steps };
+    }
+  };
+  window.ZivonShell = ZivonShell;
 })();
