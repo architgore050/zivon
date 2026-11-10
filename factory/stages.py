@@ -1,7 +1,7 @@
 """Stage registry and orchestrator: the singular pipeline.
 
 Run everything with one command:
-    python pipeline.py "Motion" [--class 9]
+    python pipeline.py "Motion" [--class 9] [--locales hi,hi-Latn]
 
 Graph v2 (2026-11-03), founder decision after the first measured runs:
 - The reasoning layer is ONE giant call (02-generate: ground truth + lesson +
@@ -18,17 +18,32 @@ Graph v2 (2026-11-03), founder decision after the first measured runs:
   its own failure fed back and repairs its own fix. A downstream failure NEVER
   re-runs upstream stages, and the run process never dies just because a gate
   complained.
+- Localization sub-graph (10a-translate -> 10b-transcheck <-> 10c-transrepair
+  -> 10d-transrender, ADR-0013 / ADR-0021): runs after 09-review / 10-reviewfix
+  and before 11-link when `config.translation.enabled` is true (or `--locales`
+  is passed). Translates one unit at a time via `llm_manager`, checkpoints per
+  `(locale, unit_id)`, caches verified blocks in Translation Memory (ADR-0022),
+  and routes reviewer rejections to the bounded `10c-transrepair` catcher.
 - Resume: run ids are deterministic per (chapter, class). A re-triggered run
   (after an infra kill) skips every stage already marked ok and loads its
   output from disk; a fingerprint guard refuses to mix old-graph artifacts.
 Every stage's evidence lives in runs/<run_id>/<NN-stage>/.
+
+Stage 12-narration (2026-11-09, C-051 adopted) is appended AFTER the review
+gates and 11-link: build-time Timbre v3.0 pre-generation of per-block
+read-aloud audio, opt-in via ZIVON_NARRATION_ENABLED (credit-bounded per
+backend-spec A-15; see factory/narration/ and gap-register.md GAP-015).
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import os
+import time
 from typing import Any
+
+from logging_manager import ErrorClass, Severity, bind_context, log_event
 
 from . import (
     agents,
@@ -38,14 +53,24 @@ from . import (
     interactive,
     link,
     locate,
+    narration,
     perf,
     render,
     review,
     reviewfix,
+    transcheck,
+    translate,
+    transrepair,
 )
 from .artifacts import RunContext, slugify, wipe_run
 from .config import Config
-from .errors import BudgetError, ConfigError, FactoryError, StageError
+from .errors import (
+    BudgetError,
+    ConfigError,
+    FactoryError,
+    MissingArtifactError,
+    StageError,
+)
 from .llm import LLMClient
 
 # Bump when the stage graph or stage contracts change: old run dirs then
@@ -92,8 +117,20 @@ STAGE_ORDER = [
     "08-fixloop",
     "09-review",
     "10-reviewfix",
+    "10a-translate",
+    "10b-transcheck",
+    "10c-transrepair",
+    "10d-transrender",
     "11-link",
+    "12-narration",
 ]
+
+_TRANSLATION_STAGES = (
+    "10a-translate",
+    "10b-transcheck",
+    "10c-transrepair",
+    "10d-transrender",
+)
 
 
 def make_run_id(chapter: str, class_filter: int | None) -> str:
@@ -113,8 +150,12 @@ def run_fingerprint(cfg: Config, chapter: str, class_filter: int | None) -> str:
     Repair round caps are deliberately NOT in the payload (2026-11-06): they
     are runtime policy, not artifact semantics - a draft repaired in 2 rounds
     is just as valid under a more generous catcher. Tuning the caps must not
-    invalidate good generated work."""
-    payload = {
+    invalidate good generated work.
+
+    Per SP2-TRANS §1.3: when `translation.enabled` is false, the `translation`
+    payload is omitted so existing PIPELINE_VERSION = "7" English-only run
+    directories remain 100% resumable without --fresh."""
+    payload: dict[str, Any] = {
         "pipeline_version": PIPELINE_VERSION,
         "chapter": chapter,
         "class": class_filter,
@@ -123,9 +164,39 @@ def run_fingerprint(cfg: Config, chapter: str, class_filter: int | None) -> str:
         "retrieval": cfg.retrieval,
         "learner": cfg.learner,
     }
+    if cfg.translation.get("enabled"):
+        payload["translation"] = {
+            "target_locales": cfg.translation["target_locales"],
+            "optional_locales": cfg.translation["optional_locales"],
+            "prompt_version": cfg.translation["prompt_version"],
+            "glossary_sha256": translate.glossary_sha256(cfg),
+        }
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True).encode("utf-8")
     ).hexdigest()[:16]
+
+
+def _error_class_for(exc: FactoryError) -> ErrorClass | None:
+    """The failure-shape of a terminal factory error (spec.md §7 taxonomy).
+    The map pins repair_exhausted as factory.run.failed's default; the
+    classes below are the honest overrides for non-catcher failures."""
+    if isinstance(exc, ConfigError):
+        return ErrorClass.VALIDATION_ERROR
+    if isinstance(exc, MissingArtifactError):
+        return ErrorClass.INFRA_ERROR
+    return None
+
+
+def _reason_code_for(exc: FactoryError) -> str:
+    """A short, content-free failure code for events (never the message
+    text — page content must not ride the error feed, spec §4)."""
+    if isinstance(exc, ConfigError):
+        return "config_mismatch"
+    if isinstance(exc, BudgetError):
+        return "budget_unfixable" if not exc.fixable else "budget_fixable"
+    if isinstance(exc, StageError):
+        return "catcher_exhausted"
+    return type(exc).__name__
 
 
 def _blocking_issues(combined: dict[str, Any]) -> list[dict[str, Any]]:
@@ -159,6 +230,22 @@ def _preferred_blocks(run_ctx: RunContext, fallback: dict[str, Any]) -> dict[str
         if fix_out.get("page"):
             fallback = fix_out["page"]
     return fallback
+
+
+def _trans_blocking_issues(
+    transcheck_out: dict[str, Any],
+    exclude_locales: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Collect all fatal/major translation issues across target locales."""
+    excluded = exclude_locales or set()
+    blocking: list[dict[str, Any]] = []
+    for loc, report in transcheck_out.get("locales", {}).items():
+        if loc in excluded:
+            continue
+        for issue in report.get("model_issues", []) + report.get("rule_issues", []):
+            if issue.get("severity") in ("fatal", "major"):
+                blocking.append({**issue, "locale": loc})
+    return blocking
 
 
 def _sync_learner_to_chapter(cfg: Config, source_pack: dict[str, Any]) -> Config:
@@ -200,7 +287,13 @@ def run_pipeline(
     if class_filter is not None:
         cfg = cfg.with_class_level(class_filter)
     runs_dir = cfg.repo_path(cfg.paths["runs"])
+    # Correlation edge (spec.md §3): the run_id is born here — deterministic
+    # per (chapter, class), --run-id overrides for parallel attempts, and the
+    # cluster Job may pass ZIVON_RUN_ID for pod-level joins (the env var is
+    # honored only when it agrees with a fresh id being made anyway).
+    run_id = run_id or os.environ.get("ZIVON_RUN_ID", "").strip() or None
     run_id = run_id or make_run_id(chapter, class_filter)
+    bind_context(run_id=run_id)
     if fresh and wipe_run(runs_dir, run_id):
         print(f"[resume] --fresh: previous run '{run_id}' wiped; generating clean")
     run_ctx = RunContext(runs_dir, run_id)
@@ -232,6 +325,19 @@ def run_pipeline(
                 "(wipes the run dir)."
             )
     run_ctx.set_fingerprint(fingerprint)
+    resumed_count = sum(1 for stage in STAGE_ORDER if run_ctx.stage_ok(stage))
+    log_event(
+        "factory.run.started",
+        {
+            "chapter": chapter,
+            "class_level": cfg.learner.get("class_level"),
+            "fresh": fresh,
+            "resumed": resume,
+        },
+    )
+    if resume and resumed_count:
+        log_event("factory.run.resumed", {"resumed_stages_count": resumed_count})
+    run_t0 = time.monotonic()
 
     # In-memory handoffs; also persisted to each stage dir for inspection.
     source_pack: dict[str, Any] | None = None
@@ -239,8 +345,17 @@ def run_pipeline(
     lesson: dict[str, Any] | None = None
     blocks: dict[str, Any] | None = None
     render_out: dict[str, Any] | None = None
+    translate_out: dict[str, Any] | None = None
+    transcheck_out: dict[str, Any] | None = None
+
+    translation_active = bool(cfg.translation.get("enabled")) or (
+        only_stages is not None
+        and any(stage in only_stages for stage in _TRANSLATION_STAGES)
+    )
 
     def wanted(stage: str) -> bool:
+        if stage in _TRANSLATION_STAGES and not translation_active:
+            return False
         return only_stages is None or stage in only_stages
 
     def resumed(stage: str) -> bool:
@@ -271,6 +386,10 @@ def run_pipeline(
             or wanted("03-check")
             or wanted("04-repair")
             or wanted("09-review")
+            or wanted("10a-translate")
+            or wanted("10b-transcheck")
+            or wanted("10c-transrepair")
+            or wanted("10d-transrender")
         ) and source_pack is None:
             source_pack = run_ctx.load_stage_output("01-locate")
             cfg = _sync_learner_to_chapter(cfg, source_pack)
@@ -290,6 +409,7 @@ def run_pipeline(
                         f"claims={len(generated['ground_truth']['claims'])} "
                         f"blocks={len(generated['blocks']['blocks'])}"
                     ),
+                    blocks=len(generated["blocks"]["blocks"]),
                 )
             generated = run_ctx.load_stage_output("02-generate")
             ground_truth = generated["ground_truth"]
@@ -346,6 +466,9 @@ def run_pipeline(
                     f"model={model_report['verdict']} rules={rule_report['verdict']} "
                     f"blocking={len(blocking)}"
                 ),
+                blocks=len(blocks["blocks"]) if blocks else 0,
+                reason_code=None if not blocking else "check_blocking",
+                error_class=ErrorClass.GATE_FAIL if blocking else None,
             )
             return combined
 
@@ -415,7 +538,9 @@ def run_pipeline(
                     run_ctx.save_stage_output(
                         "04-repair", {"page": blocks, "history": history}
                     )
-                    run_ctx.mark_stage("04-repair", "ok", detail=f"rounds={rounds}")
+                    run_ctx.mark_stage(
+                        "04-repair", "ok", detail=f"rounds={rounds}", attempts=rounds
+                    )
                     combined = run_check_once(tag)
                     now = _severity_score(_blocking_issues(combined))
                     if now < best:
@@ -433,6 +558,15 @@ def run_pipeline(
                         f"no improvement (best blocking score {best})"
                         if stalls >= stall_limit
                         else f"repair-round cap {max_rounds} reached"
+                    )
+                    log_event(
+                        "factory.repair.exhausted",
+                        {
+                            "plateau": stalls >= stall_limit,
+                            "cap_hit": rounds >= max_rounds,
+                        },
+                        stage="03-check",
+                        error_class=ErrorClass.REPAIR_EXHAUSTED,
                     )
                     raise StageError(
                         "03-check",
@@ -468,7 +602,10 @@ def run_pipeline(
                 )
                 run_ctx.save_stage_output("05-interactive", interactive_out)
                 run_ctx.mark_stage(
-                    "05-interactive", "ok", detail=f"built={len(interactive_out)}"
+                    "05-interactive",
+                    "ok",
+                    detail=f"built={len(interactive_out)}",
+                    blocks=len(interactive_out),
                 )
 
         if wanted("06-render"):
@@ -515,7 +652,13 @@ def run_pipeline(
                     # Engineer's repair loop) instead of killing the run.
                     # Unfixable misses (e.g. the landing page) stop immediately.
                     perf_report = exc.report
-                    run_ctx.mark_stage("07-perf", "failed", detail=str(exc))
+                    run_ctx.mark_stage(
+                        "07-perf",
+                        "failed",
+                        detail=str(exc),
+                        reason_code="budget_fail",
+                        error_class=ErrorClass.GATE_FAIL,
+                    )
                     if not (exc.fixable and wanted("08-fixloop")):
                         raise
 
@@ -533,7 +676,10 @@ def run_pipeline(
                 )
                 run_ctx.save_stage_output("08-fixloop", fix_out)
                 run_ctx.mark_stage(
-                    "08-fixloop", "ok", detail=f"rounds={fix_out['rounds']}"
+                    "08-fixloop",
+                    "ok",
+                    detail=f"rounds={fix_out['rounds']}",
+                    attempts=fix_out["rounds"],
                 )
 
         # ---- 09-review + 10-reviewfix: the code gate and its catcher -------
@@ -551,6 +697,10 @@ def run_pipeline(
                 "09-review",
                 "ok" if report["verdict"] == "pass" else "failed",
                 detail=f"verdict={report['verdict']} issues={len(report['issues'])}",
+                reason_code=None if report["verdict"] == "pass" else "review_blocking",
+                error_class=(
+                    ErrorClass.GATE_FAIL if report["verdict"] != "pass" else None
+                ),
             )
             return report
 
@@ -602,7 +752,10 @@ def run_pipeline(
                     # from them instead of the superseded draft.
                     blocks = fix_out["page"]
                 run_ctx.mark_stage(
-                    "10-reviewfix", "ok", detail=f"rounds={fix_out['rounds']}"
+                    "10-reviewfix",
+                    "ok",
+                    detail=f"rounds={fix_out['rounds']}",
+                    attempts=fix_out["rounds"],
                 )
                 if fix_out["lint_hits"]:
                     # The fix itself broke a hard lint: the NEXT round repairs
@@ -652,6 +805,12 @@ def run_pipeline(
                     if stalls >= stall_limit
                     else f"fix-round cap {max_rounds} reached"
                 )
+                log_event(
+                    "factory.repair.exhausted",
+                    {"plateau": stalls >= stall_limit, "cap_hit": rounds >= max_rounds},
+                    stage="09-review",
+                    error_class=ErrorClass.REPAIR_EXHAUSTED,
+                )
                 raise StageError(
                     "09-review",
                     f"code review still failing after {rounds} fix round(s) - "
@@ -667,6 +826,288 @@ def run_pipeline(
                     artifacts_dir=str(run_ctx.stage_dir("09-review")),
                 )
 
+        # ---- 10a..10d: build-time localization sub-graph (ADR-0021) --------
+        if (
+            wanted("10a-translate")
+            or wanted("10b-transcheck")
+            or wanted("10c-transrepair")
+            or wanted("10d-transrender")
+        ):
+            if blocks is None or lesson is None or ground_truth is None:
+                generated = run_ctx.load_stage_output("02-generate")
+                ground_truth = generated["ground_truth"]
+                lesson = generated["lesson"]
+                blocks = (
+                    run_ctx.load_stage_output("04-repair")["page"]
+                    if run_ctx.stage_ok("04-repair")
+                    else generated["blocks"]
+                )
+            if render_out is None and (
+                (run_ctx.stage_dir("06-render") / "output.json").exists()
+                or wanted("10d-transrender")
+            ):
+                render_out = run_ctx.load_stage_output("06-render")
+
+        if wanted("10a-translate"):
+            assert (
+                ground_truth is not None and lesson is not None and blocks is not None
+            ), "10a-translate requires 02-generate outputs"
+            if not resumed("10a-translate"):
+                run_ctx.mark_stage("10a-translate", "running")
+                log_event(
+                    "factory.stage.start",
+                    {},
+                    severity=Severity.INFO,
+                    run_id=run_ctx.run_id,
+                    stage="10a-translate",
+                )
+                translate_out = translate.run(
+                    cfg, run_ctx, llm, ground_truth, lesson, blocks, render_out
+                )
+                run_ctx.save_stage_output("10a-translate", translate_out)
+                run_ctx.mark_stage(
+                    "10a-translate",
+                    "ok",
+                    detail=f"locales={list(translate_out['locales'])}",
+                )
+                log_event(
+                    "factory.stage.ok",
+                    {
+                        "blocks": len(blocks["blocks"]),
+                        "attempts": sum(
+                            loc_data.get("stats", {}).get("model_calls", 0)
+                            for loc_data in translate_out["locales"].values()
+                        ),
+                    },
+                    severity=Severity.INFO,
+                    run_id=run_ctx.run_id,
+                    stage="10a-translate",
+                )
+            else:
+                translate_out = run_ctx.load_stage_output("10a-translate")
+
+        def run_transcheck_once(
+            round_tag: str | None,
+            only_units_by_locale: dict[str, set[str]] | None = None,
+        ) -> dict[str, Any]:
+            assert (
+                ground_truth is not None
+                and lesson is not None
+                and blocks is not None
+                and translate_out is not None
+            ), "10b-transcheck requires 10a-translate output"
+            run_ctx.mark_stage("10b-transcheck", "running")
+            t_report = transcheck.run(
+                cfg,
+                run_ctx,
+                llm,
+                ground_truth,
+                lesson,
+                blocks,
+                translate_out,
+                round_tag=round_tag,
+                only_units_by_locale=only_units_by_locale,
+            )
+            run_ctx.save_stage_output("10b-transcheck", t_report)
+            if round_tag:
+                run_ctx.write_json(
+                    run_ctx.stage_dir("10b-transcheck") / f"combined-{round_tag}.json",
+                    t_report,
+                )
+            blocking = _trans_blocking_issues(t_report)
+            run_ctx.mark_stage(
+                "10b-transcheck",
+                "ok" if not blocking else "failed",
+                detail=f"verdict={t_report['verdict']} blocking={len(blocking)}",
+            )
+            return t_report
+
+        if wanted("10b-transcheck") or wanted("10c-transrepair"):
+            if translate_out is None:
+                translate_out = run_ctx.load_stage_output("10a-translate")
+            if resumed("10b-transcheck"):
+                if run_ctx.stage_ok("10c-transrepair"):
+                    repair_saved = run_ctx.load_stage_output("10c-transrepair")
+                    for loc, loc_state in repair_saved.get("locales", {}).items():
+                        if "page" in loc_state:
+                            translate_out["locales"][loc] = loc_state["page"]
+                transcheck_out = run_ctx.load_stage_output("10b-transcheck")
+            else:
+                if run_ctx.stage_ok("10c-transrepair"):
+                    repair_saved = run_ctx.load_stage_output("10c-transrepair")
+                    for loc, loc_state in repair_saved.get("locales", {}).items():
+                        if "page" in loc_state:
+                            translate_out["locales"][loc] = loc_state["page"]
+                transcheck_out = run_transcheck_once(None)
+                rounds = 0
+                max_rounds = cfg.repair["translation_rounds"]
+                stall_limit = cfg.repair["stall_rounds"]
+                best = _severity_score(_trans_blocking_issues(transcheck_out))
+                stalls = 0
+                history_by_locale: dict[str, list[dict[str, Any]]] = {
+                    loc: [] for loc in translate_out.get("locales", {})
+                }
+                while (
+                    _trans_blocking_issues(transcheck_out)
+                    and rounds < max_rounds
+                    and stalls < stall_limit
+                    and wanted("10c-transrepair")
+                ):
+                    blocking = _trans_blocking_issues(transcheck_out)
+                    prev = _severity_score(blocking)
+                    rounds += 1
+                    tag = f"round-{rounds:02d}"
+                    assert (
+                        ground_truth is not None
+                        and lesson is not None
+                        and blocks is not None
+                    )
+                    run_ctx.mark_stage("10c-transrepair", "running")
+                    log_event(
+                        "factory.repair.round",
+                        {"round": rounds, "issues_count": len(blocking)},
+                        severity=Severity.INFO,
+                        run_id=run_ctx.run_id,
+                        stage="10c-transrepair",
+                    )
+                    translate_out, repaired_units, round_hist = (
+                        transrepair.run_one_round(
+                            cfg,
+                            run_ctx,
+                            llm,
+                            ground_truth,
+                            lesson,
+                            blocks,
+                            translate_out,
+                            transcheck_out,
+                            rounds,
+                        )
+                    )
+                    for loc, entries in round_hist.items():
+                        history_by_locale.setdefault(loc, []).extend(entries)
+                    run_ctx.save_stage_output(
+                        "10c-transrepair",
+                        {
+                            "locales": {
+                                loc: {
+                                    "page": translate_out["locales"][loc],
+                                    "history": history_by_locale.get(loc, []),
+                                }
+                                for loc in translate_out["locales"]
+                            },
+                            "rounds": rounds,
+                        },
+                    )
+                    run_ctx.mark_stage("10a-translate", "ok", detail="updated by 10c")
+                    run_ctx.save_stage_output("10a-translate", translate_out)
+                    run_ctx.mark_stage(
+                        "10c-transrepair", "ok", detail=f"rounds={rounds}"
+                    )
+                    transcheck_out = run_transcheck_once(
+                        tag, only_units_by_locale=repaired_units
+                    )
+                    now = _severity_score(_trans_blocking_issues(transcheck_out))
+                    if now < best:
+                        best, stalls = now, 0
+                    else:
+                        stalls += 1
+                    print(
+                        f"[10c-transrepair] round {rounds}/{max_rounds}: blocking "
+                        f"score {prev} -> {now} (best {best}; no-progress streak "
+                        f"{stalls}/{stall_limit})"
+                    )
+
+                optional_set = set(cfg.translation.get("optional_locales", []))
+                remaining_required = _trans_blocking_issues(
+                    transcheck_out, exclude_locales=optional_set
+                )
+                remaining_optional = [
+                    i
+                    for i in _trans_blocking_issues(transcheck_out)
+                    if i.get("locale") in optional_set
+                ]
+                if remaining_optional and not remaining_required:
+                    for issue in remaining_optional:
+                        loc = str(issue["locale"])
+                        bid = str(issue.get("block_id") or "")
+                        fb_list = translate_out["locales"][loc].setdefault(
+                            "fallback_blocks", []
+                        )
+                        if bid and bid not in fb_list:
+                            fb_list.append(bid)
+                    run_ctx.save_stage_output("10a-translate", translate_out)
+                    run_ctx.mark_stage(
+                        "10b-transcheck",
+                        "ok",
+                        detail="optional locale fallback_en applied",
+                    )
+                elif remaining_required:
+                    log_event(
+                        "factory.repair.exhausted",
+                        {
+                            "plateau": stalls >= stall_limit,
+                            "cap_hit": rounds >= max_rounds,
+                        },
+                        severity=Severity.ERROR,
+                        error_class=ErrorClass.REPAIR_EXHAUSTED,
+                        run_id=run_ctx.run_id,
+                        stage="10b-transcheck",
+                    )
+                    reason = (
+                        f"progress plateaued: {stalls} consecutive recheck(s) with "
+                        f"no improvement (best blocking score {best})"
+                        if stalls >= stall_limit
+                        else f"repair-round cap {max_rounds} reached"
+                    )
+                    raise StageError(
+                        "10b-transcheck",
+                        f"translation review still failing after {rounds} repair "
+                        f"round(s) - {reason}: "
+                        + "; ".join(
+                            f"[{i.get('locale')}/{i.get('block_id')}] {i['message'][:180]}"
+                            for i in remaining_required
+                        )
+                        + " - passing block checkpoints are kept in runs/ and "
+                        "sources/cache/tm/: re-trigger the same chapter+class to "
+                        "RESUME solely the failed block(s) with a fresh repair budget",
+                        artifacts_dir=str(run_ctx.stage_dir("10b-transcheck")),
+                    )
+
+        if wanted("10d-transrender"):
+            if translate_out is None:
+                translate_out = run_ctx.load_stage_output("10a-translate")
+            if (
+                transcheck_out is None
+                and (run_ctx.stage_dir("10b-transcheck") / "output.json").exists()
+            ):
+                transcheck_out = run_ctx.load_stage_output("10b-transcheck")
+            if render_out is None:
+                render_out = run_ctx.load_stage_output("06-render")
+            if source_pack is None:
+                source_pack = run_ctx.load_stage_output("01-locate")
+            assert (
+                source_pack is not None and lesson is not None and blocks is not None
+            ), "10d-transrender requires 01-locate and 02-generate outputs"
+            if not resumed("10d-transrender"):
+                run_ctx.mark_stage("10d-transrender", "running")
+                transrender_out = render.render_localized(
+                    cfg,
+                    run_ctx,
+                    chapter,
+                    source_pack,
+                    lesson,
+                    blocks,
+                    render_out,
+                    translate_out,
+                    transcheck_out or {"locales": {}, "verdict": "pass"},
+                )
+                run_ctx.save_stage_output("10d-transrender", transrender_out)
+                run_ctx.mark_stage(
+                    "10d-transrender",
+                    "ok",
+                    detail=f"locales={list(transrender_out['locales'])}",
+                )
+
         if wanted("11-link"):
             if render_out is None:
                 render_out = run_ctx.load_stage_output("06-render")
@@ -680,12 +1121,56 @@ def run_pipeline(
                     detail=f"{link_out['course_count']} course(s) listed",
                 )
 
+        # ---- 12-narration: build-time read-aloud audio (C-051, GAP-015) ----
+        # Runs only when ZIVON_NARRATION_ENABLED=true: narration is a bounded
+        # credit spend (A-15), so it is opt-in per environment, never a
+        # default side effect of generating a page. A per-block failure
+        # degrades read-aloud to the INF-089 disabled copy - it never fails
+        # the page that already passed every gate.
+        if wanted("12-narration") and not resumed("12-narration"):
+            run_ctx.mark_stage("12-narration", "running")
+            narr_out = narration.run(cfg, run_ctx)
+            run_ctx.save_stage_output("12-narration", narr_out)
+            detail = (
+                f"mode={narr_out['mode']} narrated={narr_out['narrated']} "
+                f"failed={len(narr_out['failed'])} "
+                f"credits={narr_out['credits']:.2f}"
+                if narr_out.get("enabled")
+                else "disabled"
+            )
+            run_ctx.mark_stage("12-narration", "ok", detail=detail)
+
         run_ctx.finish(ok=True, detail="pipeline complete")
+        # `blocks` is the 02-generate handoff dict ({"blocks": [...]}); count
+        # the actual block list, not the dict's keys.
+        block_list = (
+            blocks.get("blocks", []) if isinstance(blocks, dict) else (blocks or [])
+        )
+        log_event(
+            "factory.run.completed",
+            {
+                "stage_durations_present": bool(run_ctx.stage_durations()),
+                "blocks_published": len(block_list),
+            },
+            latency_ms=int((time.monotonic() - run_t0) * 1000),
+        )
         return {"run_id": run_ctx.run_id, "ok": True}
 
     except FactoryError as exc:
         run_ctx.mark_stage(
-            getattr(exc, "stage_id", "pipeline"), "failed", detail=str(exc)
+            getattr(exc, "stage_id", "pipeline"),
+            "failed",
+            detail=str(exc),
+            reason_code=_reason_code_for(exc),
+            error_class=_error_class_for(exc),
         )
         run_ctx.finish(ok=False, detail=str(exc))
+        log_event(
+            "factory.run.failed",
+            {
+                "failed_stage": getattr(exc, "stage_id", "pipeline"),
+                "reason_code": _reason_code_for(exc),
+            },
+            error_class=_error_class_for(exc),
+        )
         raise

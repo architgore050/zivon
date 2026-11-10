@@ -14,6 +14,13 @@
 # Deliberately NOT the factory image: no torch, no pdfplumber, no playwright
 # (see llm_manager/requirements.txt) - small, fast to start, and an
 # independent CVE surface for the trivy gate.
+#
+# logging_manager ships in this image too (EX3-OBS): the node emits node.*
+# events through it (llm_manager/service/app.py imports it lazily); without
+# the package the node silently emits nothing. The instrumentation map's
+# single copy ships at the path events.default_map_path() resolves
+# (docs/specs/observability/ — the source of truth, baked into the image so
+# severity/component lookups work; not duplicated inside the package).
 
 FROM python:3.12-slim
 
@@ -40,10 +47,16 @@ RUN apt-get update \
 # Install dependencies BEFORE copying code (layer cache: code edits do not
 # re-download the wheels).
 COPY llm_manager/requirements.txt ./llm_manager/requirements.txt
-RUN pip install --no-cache-dir -r llm_manager/requirements.txt
+COPY logging_manager/requirements.txt ./logging_manager/requirements.txt
+RUN pip install --no-cache-dir -r llm_manager/requirements.txt \
+    -r logging_manager/requirements.txt
 
-# Copy ONLY the standalone package - the image has no factory code at all.
+# Copy ONLY the standalone package + the logging contract it emits through -
+# the image has no factory code at all.
 COPY llm_manager ./llm_manager
+COPY logging_manager ./logging_manager
+COPY docs/specs/observability/instrumentation-map.csv \
+    ./docs/specs/observability/instrumentation-map.csv
 
 # Never run as root: fixed UID + numeric USER (kubelet-verifiable, hadolint
 # DL3066 - the same convention as the factory image).

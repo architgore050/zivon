@@ -100,6 +100,11 @@ class LLMObserver:
     def on_progress(self, elapsed_s: float, chunks_received: int) -> None:
         pass
 
+    def on_retry(self, attempt: int, reason: str) -> None:
+        """One transport retry is about to sleep (EX3-OBS): attempt is the
+        attempt number that just failed, reason is the map's enum
+        (inactivity | status_5xx | rate_limited)."""
+
     def on_call_end(self, result: ChatResult) -> None:
         pass
 
@@ -166,9 +171,18 @@ class LLMManager:
     """Transport, streaming, retries, deadline. The only model-handling path:
     no other module may hand-roll HTTP calls to an inference server."""
 
-    def __init__(self, config: LLMConfig, observer: LLMObserver | None = None):
+    def __init__(
+        self,
+        config: LLMConfig,
+        observer: LLMObserver | None = None,
+        default_headers: dict[str, str] | None = None,
+    ):
         self.config = config
         self.observer: LLMObserver = observer or LLMObserver()
+        # Cross-process correlation (logging-api.md §7): X-Request-Id /
+        # X-Zivon-Run-Id, supplied by the caller's edge (the factory adapter
+        # passes correlation_headers()). None = no extra headers.
+        self.default_headers = default_headers
 
     # ------------------------------------------------------------- public API
     def complete(
@@ -248,14 +262,17 @@ class LLMManager:
                         raise self._partial_stream_failure(exc, state) from exc
                     if attempt == self.config.max_attempts:
                         raise self._unreachable(exc, attempt) from exc
-                    self._sleep_backoff(attempt)
+                    self._sleep_backoff(attempt, "inactivity")
                 except openai.APIStatusError as exc:
                     if emitted:
                         raise self._partial_stream_failure(exc, state) from exc
                     if exc.status_code in RETRYABLE_STATUS:
                         if attempt == self.config.max_attempts:
                             raise self._status_exhausted(exc, attempt) from exc
-                        self._sleep_backoff(attempt)
+                        self._sleep_backoff(
+                            attempt,
+                            "rate_limited" if exc.status_code == 429 else "status_5xx",
+                        )
                     else:
                         raise self._non_retryable(exc) from exc
                 except openai.APIError as exc:
@@ -295,13 +312,16 @@ class LLMManager:
                 last_transport = exc
                 if attempt == self.config.max_attempts:
                     raise self._unreachable(exc, attempt) from exc
-                self._sleep_backoff(attempt)
+                self._sleep_backoff(attempt, "inactivity")
             except openai.APIStatusError as exc:
                 if exc.status_code in RETRYABLE_STATUS:
                     last_transport = exc
                     if attempt == self.config.max_attempts:
                         raise self._status_exhausted(exc, attempt) from exc
-                    self._sleep_backoff(attempt)
+                    self._sleep_backoff(
+                        attempt,
+                        "rate_limited" if exc.status_code == 429 else "status_5xx",
+                    )
                 else:
                     raise self._non_retryable(exc) from exc
             except openai.APIError as exc:
@@ -518,7 +538,7 @@ class LLMManager:
             "http_client": http_client,
             "timeout": timeout,
         }
-        headers = self._request_headers()
+        headers = {**self._request_headers(), **(self.default_headers or {})}
         if headers:
             kwargs["default_headers"] = headers
         model_kwargs: dict[str, Any] = {}
@@ -532,7 +552,11 @@ class LLMManager:
             kwargs["max_tokens"] = max_tokens
         return ChatOpenAI(**kwargs)
 
-    def _sleep_backoff(self, attempt: int) -> None:
+    def _sleep_backoff(self, attempt: int, reason: str = "inactivity") -> None:
+        # EX3-OBS: one hook per retry attempt BEFORE the sleep, so the node's
+        # adapter can emit node.call.transport_retry with the map's reason
+        # enum (inactivity | status_5xx | rate_limited).
+        self.observer.on_retry(attempt, reason)
         time.sleep(self.config.backoff_base_s * (2 ** (attempt - 1)))
 
     def _unreachable(self, exc: Exception, tries: int) -> TransportError:
@@ -563,9 +587,12 @@ class LLMManager:
         when there is one. Terminal: retrying cannot un-fail what the server
         says it failed."""
         detail = exc.message or str(exc.body or "no detail")[:500]
-        return TransportError(
+        error = TransportError(
             f"the inference server reported an error mid-call: {detail}"
         )
+        # EX3-OBS marker: HTTP 200 + an SSE error payload (node.upstream_sse_error).
+        error.server_reported = True  # type: ignore[attr-defined]
+        return error
 
     def _non_retryable(self, exc: openai.APIStatusError) -> NonRetryableHTTPError:
         body = _error_body(exc)
@@ -584,11 +611,17 @@ class LLMManager:
 
     def _deadline_abort(self, chunks: int, state: _CallState) -> TransportError:
         elapsed = round(time.monotonic() - state.t0, 1)
-        return TransportError(
+        error = TransportError(
             f"model call exceeded call_deadline_s={self.config.call_deadline_s:g}s "
             f"after {chunks} chunks ({elapsed}s elapsed) - aborted so the server "
             "stops generating"
         )
+        # EX3-OBS markers: the node's log adapter maps these onto
+        # node.call.deadline_abort without parsing the message text.
+        error.deadline_abort = True  # type: ignore[attr-defined]
+        error.deadline_s = self.config.call_deadline_s  # type: ignore[attr-defined]
+        error.chunks_received = chunks  # type: ignore[attr-defined]
+        return error
 
     def _partial_stream_failure(
         self, exc: Exception, state: _CallState

@@ -1,0 +1,74 @@
+card_id: EV-SYN-002
+version: 1
+title: Synthesizer Pedagogy, Teach-Before-Test Ordering, and Mathematical Recomputation
+stage: 02-generate.lesson..02-generate.blocks
+agent_role: Synthesizer
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-SYN02-SELF-CONTAINMENT
+  entrypoint: evals.checkers.synthesizer_checks:check_self_containment
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:rule_self_containment
+  description: Verifies 0 external textbook/chapter/figure/URL references in lesson and blocks.
+- id: DET-SYN02-ANSWER-KEYS
+  entrypoint: evals.checkers.synthesizer_checks:check_answer_key_consistency
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:rule_answer_keys
+  description: Verifies MCQ answer_index bounds/string match and numeric answer float parsing.
+- id: DET-SYN02-READABILITY
+  entrypoint: evals.checkers.synthesizer_checks:check_readability_and_structure
+  severity_on_fail: major
+  reuses_factory_rule: factory.schemas:LESSON
+  description: Verifies objectives count (2..4), glossary count (>=3), paragraph sentence bounds, and
+    worked_example step completeness.
+llm_judge:
+  enabled_in_suites:
+  - full
+  entrypoint: evals.judges.pedagogy_judge:evaluate_synthesizer_coverage_and_pedagogy
+  reuses_prompt_from: factory.agents:run_check (items 1-6 recompute + teach-before-test)
+  severity_ladder:
+    fatal: A worked_example's computed answer or check's answer key is mathematically wrong when recomputed
+      from the problem numbers.
+    major: A check block tests an expected_understanding before the preceding lesson sections teach it.
+    minor: Minor phrasing or age-calibration suggestions.
+  way_out_rule: Report unverifiable suspicions as severity='minor' with message starting 'unverified:'
+    — never as fatal or major.
+  anchor_examples:
+  - label: Fatal — Wrong Recomputation (from run 000509 b-21)
+    input_summary: u = 126 km/h (35 m/s), v = 0, s = 200 m; worked_example b-21 states a = -3.94 m/s²
+      and t = 8.9 s.
+    expected_issue:
+      block_id: b-21
+      severity: fatal
+      category: answer_key
+      message: Problem states u = 35 m/s, v = 0, s = 200 m; v² - u² = 2as gives a = -3.06 m/s² and t =
+        11.4 s, not 3.94 m/s² and 8.9 s.
+  - label: Major — Teach-Before-Test Gap (from run 040410 b-19)
+    input_summary: Check b-19 requires stopping-distance scaling (s ∝ u²) before any lesson section derives
+      it.
+    expected_issue:
+      block_id: b-19
+      severity: major
+      category: content
+      message: Check b-19 requires kinematic stopping-distance scaling (s ∝ u²), which is not taught in
+        the lesson preceding b-19.
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 1
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 35000
+  call_deadline_s: 1800

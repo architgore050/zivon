@@ -28,6 +28,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from logging_manager import log_event
+
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
@@ -89,14 +91,42 @@ def run(
         round_tag=round_tag,
     )
 
+    log_event(
+        "factory.repair.round",
+        {
+            "round": int(round_tag.rsplit("-", 1)[-1]) if round_tag else 0,
+            "issues_count": len(review_report["issues"]),
+        },
+        run_id=run_ctx.run_id,
+        stage=STAGE_ID,
+    )
+
+    files = dict(plan.get("files", {}))
+    rejected = sorted(set(files) - FIXABLE)
+    for name in rejected:
+        files.pop(name)  # renderer-owned files are untouchable, always
+    lint_hits = (
+        [
+            (
+                f"your fix tried to modify renderer-owned file(s): {', '.join(rejected)} "
+                "- only page.js and page.css may change"
+            )
+        ]
+        if rejected
+        else []
+    )
+    for name, content in files.items():
+        (topic_dir / name).write_text(content, encoding="utf-8")
+    _rebuild_html_if_needed(cfg, render_out, topic_dir)
+
     rejected, merged_blocks = _apply_plan(topic_dir, plan, blocks)
     lint_hits = [*rejected]
     if merged_blocks is not None:
         blocks = merged_blocks
     _rebuild_html_if_needed(cfg, render_out, topic_dir, blocks)
 
-    # Files this plan wrote (renderer-owned names were dropped, same filter
-    # _apply_plan applies when writing).
+    # Files this plan wrote (renderer-owned names were dropped by _apply_plan,
+    # same filter as before); used for the history's files_changed.
     files = {
         name: content
         for name, content in plan.get("files", {}).items()

@@ -7,6 +7,7 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 | [`docker.md`](docker.md) | Containerizing the content factory: image design, build/run workflow, decisions and gotchas |
 | [`kubernetes.md`](kubernetes.md) | Running containers on a cluster: object model, our manifests, local minikube workflow |
 | [`cicd.md`](cicd.md) | GitHub Actions pipelines: the merge gate, security scans, Dependabot, hardening rules, pending setup steps |
+| [`observability.md`](observability.md) | Operator view of the EX3-OBS stack: `logging_manager`, the `log_events` store + retention CronJob, the admin dashboard (image, manifests 23/24, auth, troubleshooting) |
 
 Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task list**. No separate TODO files in this folder.
 
@@ -24,6 +25,8 @@ Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task
 | Publish pipeline (merge → build → push to `ghcr.io`) | ⬜ next piece of CD |
 | Deploy pipeline + cluster hosting decision | ⬜ partially closed: frontend hosting pattern decided (PVC + nginx Deployment); real-cluster choice + public domain still open; HTTPS posture LOCKED 2026-11-04 (edge TLS only — see Decisions locked) |
 | Voice backend image (FastAPI/WebSockets) + Deployment + Service | ⬜ comes with the voice loop (Phase 2) |
+| Observability: `logging_manager` + log-retention CronJob (`k8s/51`) + admin dashboard (`Dockerfile.dashboard`, `k8s/23`+`k8s/24`) | ✅ built (EX3-OBS, 2026-11-09): the module lands with its 109-test harness (`testing/observability/`), factory/node instrumentation emits the map's rows, retention/sync is one CronJob in the factory image, the dashboard ships the six views + two script-semantics buttons behind ADR-0026 auth. **Open:** CI jobs for the new image + mypy paths (EX3-OBS manifest I-2), dashboard RBAC (I-1), rebuild + `minikube image load` + re-apply |
+| Dashboard RBAC (ServiceAccount Role for Job views + buttons) | ⬜ infra-agent wiring per EX3-OBS integration note I-1 |
 
 ## Decisions locked here
 

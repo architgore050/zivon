@@ -52,6 +52,7 @@ is correct end to end and the only remaining variable is your real model.
 ## Generate a topic
 
     python pipeline.py "Motion" --class 9
+    python pipeline.py "Motion" --class 9 --locales hi,hi-Latn   # also run 10a..10d build-time translation
 
 - The chapter name is searched by title inside every cached NCERT chapter PDF.
   Ambiguity is an error listing the candidates - pass `--class` to resolve.
@@ -78,6 +79,67 @@ is correct end to end and the only remaining variable is your real model.
 - On a local ~20 tok/s model a full happy-path run costs roughly 3 big model
   calls (generate / check / review) plus one per simulation - budget tens of
   minutes. Catchers (04, 08, 10) only add time when a gate finds something.
+
+## Narration builds (read-aloud audio, stage 12)
+
+Narration is OPT-IN (it is a bounded credit spend - backend-spec A-15):
+
+    export ZIVON_NARRATION_ENABLED=true
+    python pipeline.py "Motion" --class 9 --stages 11-link,12-narration
+
+- A full run narrates automatically when the env is set; the `--stages`
+  subset above narrates an already-built topic without touching the model
+  stages.
+- **Mock vs live**: with no `ZIVON_TIMBRE_BASE_URL` (or
+  `ZIVON_NARRATION_MODE=mock`) the stage produces REAL opus files whose
+  audio is silence - pipeline proof, zero credits, loudly printed and
+  labelled `mode: "mock"` in the manifests. Never publish mock audio to the
+  live site. Live mode needs `ZIVON_TIMBRE_BASE_URL` +
+  `ZIVON_TIMBRE_API_KEY` (runtime secrets, never files) and ffmpeg on PATH
+  (see the Infra TODO in `TIMELINE.md`).
+- **Budget**: the A-15 tranche defaults to 1,500 credits
+  `[ASSUMPTION]` at 0.0167 credits/char (capacity-model default; real
+  prices = A-01, founder reads them off the Gnani dashboard). The
+  guard is a real-money cap: it accrues and refuses LIVE spend only
+  (mock builds spend nothing and are never refused; their per-block
+  estimates ride the ledger mode-tagged for rehearsal). It refuses
+  BEFORE a call that would exceed the tranche, narrates the
+  deterministic prefix that fits, and says exactly what to do: founder
+  approval, then raise `ZIVON_NARRATION_BUDGET_CREDITS` and re-trigger the
+  same topic - completed blocks are skipped by content hash, so only the
+  remainder synthesizes. Cross-run spend lives in
+  `runs/narration-budget.json`; per-block usage in
+  `runs/<run_id>/narration_usage.jsonl` (reconcile the live total
+  against the Gnani dashboard; mock rows are estimates, not spend -
+  see `docs/backend/capacity-and-cost.md`).
+- **Failures**: per-block TTS/encode failures are retried by the bounded
+  repair catcher (`ZIVON_NARRATION_REPAIR_ROUNDS`, default 2); blocks that
+  still fail degrade read-aloud to the INF-089 disabled copy and the run
+  stays green (loud summary). A pass where NOTHING succeeded raises - fix
+  the endpoint/ffmpeg and re-trigger (resume skips everything already
+  done).
+- **What lands where**: `frontend/audio/{course_id}/` holds the opus
+  assets; the topic's `manifest.json` gains the `narration` availability
+  flag and a `narration-manifest.json` catalogue sits next to it. The
+  client shows the disabled copy when a block's flag is false - never probe
+  blindly.
+- **Publishing**: `scripts/publish-frontend.sh` mirrors `audio/` from the
+  PVC. Note the script's staleness guard compares courses/ against the
+  repo snapshot: a narration-ONLY re-publish (pages unchanged) exits
+  2 before reaching the audio mirror - re-trigger the topic instead
+  if you want a fresh snapshot. It
+  PVC additively (content-hash names are immutable; old versions stay
+  addressable) and runs the SYNC-01 cold gate (upload + sha256 read-back)
+  when `ZIVON_COLDSTORE_UPLOAD_CMD` / `ZIVON_COLDSTORE_READBACK_CMD` are
+  configured; without them the gate reports a loud SKIP (PVC-only serving).
+  Standalone verify: `python -m factory.narration.publish --root
+  frontend/audio --cold`.
+- **nginx**: `/audio/` is served immutable (`max-age=31536000`) with a
+  per-IP audio rate limit (`docker/nginx.conf`). Compose check:
+  `docker compose up web` then
+  `curl -I localhost:8081/audio/<course_id>/<any asset name>` - expect
+  `HTTP 200`, `Content-Type: audio/opus`,
+  `Cache-Control: public, max-age=31536000, immutable`.
 
 ## Re-runs, failures and debugging
 
@@ -207,3 +269,35 @@ in config.json at the gate you want. Standalone use:
 
     python -m testing.content_factory.perf.harness --url file:///path/to/page.html \
         --profile testing/content_factory/perf/profiles/weak-android.json
+
+## Build-time translation & localization (`10a`..`10d`) and `llm-manager` upstream fallback (`GAP-008`)
+
+- Pass `--locales hi,hi-Latn` (or set `"translation": {"enabled": true}` in `config.json`) to run stages `10a-translate` → `10b-transcheck` → `10c-transrepair` → `10d-transrender` after `09-review` / `10-reviewfix` and before `11-link`.
+- Every unit (`b-00-meta`, `b-01`..`b-NN`) is checkpointed on disk under `runs/<run_id>/10a-translate/blocks/<locale>/<unit_id>.json` and promoted to the persistent Translation Memory (`sources/cache/tm/<locale>/<tm_key[:2]>/<tm_key>.json` + Class C3 DB tables in `migrations/versions/0022_translation_memory_c3.py`) only after passing the 9 deterministic rules (`R1`..`R9`) and the `10b-transcheck` reviewer gate.
+- Run the translation test suite (mocked `llm-manager` node, zero network/credits):
+  `python3 -m unittest discover -s testing/translation -t . -v`
+- **`GAP-008` (`llm-manager` upstream fallback runbook)**: if the primary upstream inference endpoint configured in `k8s/infra.env` (`ZIVON_BASE_URL`) is unreachable during a build or translation run, switch the `llm-manager` node upstream between the local inference router (`http://192.168.49.1:18080/v1`) and OpenRouter (`https://openrouter.ai/api/v1`) in `k8s/infra.env`, re-apply via `scripts/apply-k8s.sh` (which automatically runs `kubectl rollout restart deployment/llm-manager -n zivon`), and re-trigger the factory command to resume from the exact failed block checkpoint.
+## Evals & Reviewer Calibration (`evals/`)
+
+Run from the repo root (or in-cluster via `scripts/trigger-evals.sh`):
+
+    # Fast deterministic PR smoke suite (0 model calls, no API keys required)
+    python -m evals run --suite smoke --mock
+
+    # Reviewer calibration against the 19-sample seeded-defect corpus (03-check + 09-review)
+    python -m evals calibrate --stage all --mock
+
+    # Full evaluation suite across all 9 Eval Cards (EV-CUR-001 .. EV-KID-001)
+    python -m evals run --suite full --mock
+
+    # Run-to-run regression diff (exits 2 if any blocking regression alert fires)
+    python -m evals diff --prev <baseline_run_id> --curr <current_run_id>
+
+    # Record human-edit diff (EV-E2E-001) and DPDP-validated kid comprehension session (EV-KID-001)
+    python -m evals record-edit --course class-9-physics --topic how-forces-affect-motion \
+        --baseline-dir runs/<id>/06-render/site/courses/class-9-physics/how-forces-affect-motion \
+        --published-dir frontend/courses/class-9-physics/how-forces-affect-motion
+    python -m evals record-kid-test --input session.json
+
+    # Idempotently backfill JSONL ledgers into PostgreSQL / relational store (ADR-0027)
+    python -m evals backfill-db --db-url "$ZIVON_DB_URL"

@@ -1,0 +1,23 @@
+# Cluster-internal address for the admin dashboard (k8s/23): reached via
+# `kubectl port-forward svc/dashboard 8082:80 -n zivon`, or the edge route
+# when ZIVON_PUBLIC_BASE_URL is set (that decision belongs to the founder —
+# dashboard-spec.md §6: no default public exposure).
+#
+# Deliberately ClusterIP (NOT NodePort): the dashboard exposes run/error
+# detail and two cluster-triggering buttons; it sits behind the admin gate
+# AND the cluster boundary (defense-in-depth, ADR-0026).
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: zivon
+  labels:
+    app: zivon-dashboard
+spec:
+  type: ClusterIP
+  selector:
+    app: zivon-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

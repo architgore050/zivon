@@ -7,9 +7,12 @@ config.perf.profile. A miss is fatal for the stage; stage 08 owns fixing.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any
+
+from logging_manager import ErrorClass, log_event
 
 from .artifacts import RunContext
 from .config import Config
@@ -32,6 +35,44 @@ def _harness():
             "`python -m playwright install chromium` once.",
         ) from exc
     return run_profile
+
+
+_TIME_BUDGET = re.compile(
+    r"^(?P<name>\w+) (?P<measured>[\d.]+)s > budget (?P<limit>[\d.]+)s"
+)
+_SCORE_BUDGET = re.compile(
+    r"^(?P<name>\w+) (?P<measured>[\d.]+) < minimum (?P<limit>[\d.]+)"
+)
+
+
+def _emit_budget_fails(run_ctx: RunContext, report: dict[str, Any]) -> None:
+    """One factory.perf.budget_fail event per missed budget (the map row:
+    {budget_name, measured_ms, limit_ms}, latency=measured_ms). The harness
+    report's failure strings are the measured record; numbers are parsed
+    back out so the dashboard can gate on them."""
+    for failure in report.get("failures", []):
+        text = str(failure)
+        fields: dict[str, Any] = {"budget_name": text.split(" ", 1)[0]}
+        latency_ms: int | None = None
+        match = _TIME_BUDGET.match(text)
+        if match:
+            measured_ms = int(float(match.group("measured")) * 1000)
+            fields["measured_ms"] = measured_ms
+            fields["limit_ms"] = int(float(match.group("limit")) * 1000)
+            latency_ms = measured_ms
+        else:
+            score = _SCORE_BUDGET.match(text)
+            if score:
+                fields["measured"] = float(score.group("measured"))
+                fields["limit"] = float(score.group("limit"))
+        log_event(
+            "factory.perf.budget_fail",
+            fields,
+            latency_ms=latency_ms,
+            run_id=run_ctx.run_id,
+            stage=STAGE_ID,
+            error_class=ErrorClass.GATE_FAIL,
+        )
 
 
 def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[str, Any]:
@@ -63,6 +104,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     run_ctx.save_stage_output(STAGE_ID, results)
 
     if not landing_report["pass"]:
+        _emit_budget_fails(run_ctx, landing_report)
         raise BudgetError(
             STAGE_ID,
             "landing page budgets missed: "
@@ -73,6 +115,7 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
             fixable=False,
         )
     if not topic_report["pass"]:
+        _emit_budget_fails(run_ctx, topic_report)
         raise BudgetError(
             STAGE_ID,
             "topic page budgets missed: "

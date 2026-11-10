@@ -1,0 +1,60 @@
+{
+  "sample_id": "SD-SEC-003",
+  "stage": "09-review",
+  "origin_incident": "CodeQL round 2 (2026-11-05, image 0.3.7)",
+  "defect_class": "Unclosed/inline <script> & SVG handler",
+  "planted_mutation": "Injects <script>window.x=1 in index.html and <svg onload=\"alert(1)\">.",
+  "target_call": "deterministic",
+  "inputs": {
+    "files": {
+      "index.html": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'\">\n<title>Motion in a Straight Line — Zivon</title>\n<link rel=\"stylesheet\" href=\"../../../assets/zivon.css\">\n<link rel=\"stylesheet\" href=\"page.css\">\n</head>\n<body>\n<main class=\"zn-page\">\n  <nav class=\"zn-lang-bar\" role=\"radiogroup\" aria-label=\"Lesson language\">\n    <button type=\"button\" class=\"zn-lang-chip\" role=\"radio\" aria-checked=\"true\" data-lang=\"en\">English</button>\n  </nav>\n  <section id=\"b-04\" class=\"zn-sim zn-sim-b-04\" data-sim-id=\"b-04\">\n    <canvas class=\"zn-sim-canvas\" width=\"480\" height=\"320\" aria-label=\"Position-time graph\"></canvas>\n    <p class=\"zn-sim-read\" aria-live=\"polite\">t = 4.0 s, x = 5.12 m, v = 3.84 m/s</p>\n  </section>\n  <section id=\"b-08\" class=\"zn-sim zn-sim-b-08\" data-sim-id=\"b-08\">\n    <canvas class=\"zn-sim-canvas\" width=\"480\" height=\"320\" aria-label=\"Velocity-time graph\"></canvas>\n    <p class=\"zn-sim-read\" aria-live=\"polite\">t = 2.0 s, v = 9.0 m/s, displacement = 14.0 m</p>\n  </section>\n  <fieldset class=\"zn-check\" id=\"b-31\" data-format=\"numeric\" data-answer=\"37\">\n    <legend>How long does the train take to overtake?</legend>\n    <p class=\"zn-check-explanation\">Using relative velocity, time t = 37 s.</p>\n  </fieldset>\n<script>window.x=1</script></main>\n<script src=\"../../../assets/zivon.js\"></script>\n<script src=\"page.js\"></script>\n</body>\n</html>\n",
+      "page.js": "ZivonSim.register(\"b-04\", {\n  init: function (ctx) { ctx.t0 = 4; },\n  draw: function (ctx) {\n    var g = ctx.g;\n    for (var t = 0; t <= 6; t += 0.1) {\n      var x = 0.08 * t * t * t;\n      if (t === 0) g.moveTo(t * 60, 280 - x * 10);\n      else g.lineTo(t * 60, 280 - x * 10);\n    }\n    var readEl = ctx.canvas && ctx.canvas.parentElement && ctx.canvas.parentElement.querySelector(\".zn-sim-read\");\n    if (readEl) readEl.textContent = \"t = 4.0 s, x = 5.12 m, v = 3.84 m/s\";\n  }\n});\nZivonSim.register(\"b-08\", {\n  init: function (ctx) { ctx.v0 = 5; ctx.a = 2; },\n  draw: function (ctx) {\n    var g = ctx.g;\n    for (var t = 0; t <= 4; t += 0.1) {\n      var v = 5 + 2 * t;\n      if (t === 0) g.moveTo(t * 80, 260 - v * 6);\n      else g.lineTo(t * 80, 260 - v * 6);\n    }\n    var readEl = ctx.canvas && ctx.canvas.parentElement && ctx.canvas.parentElement.querySelector(\".zn-sim-read\");\n    if (readEl) readEl.textContent = \"t = 2.0 s, v = 9.0 m/s, displacement = 14.0 m\";\n  }\n});\n",
+      "page.css": ".zn-sim-b-04 .zn-sim-note { color: var(--ink); }\n.zn-sim-b-08 .zn-sim-note { color: var(--pen-blue); }\n",
+      "manifest.json": {
+        "course_id": "class-11-physics",
+        "class": 11,
+        "topic_slug": "motion-in-a-straight-line",
+        "title": "Motion in a Straight Line",
+        "chapter": {
+          "title": "MOTION IN A STRAIGHT LINE",
+          "pages": [
+            1,
+            14
+          ]
+        },
+        "sources": [
+          {
+            "id": "ncert-physics-11-part1",
+            "title": "Physics Part I - Textbook for Class XI",
+            "license": "NCERT"
+          }
+        ]
+      }
+    },
+    "blocks": {
+      "blocks": [
+        {
+          "id": "b-05",
+          "type": "diagram",
+          "spec": {
+            "svg": "<svg viewBox=\"0 0 100 100\" onload=\"alert(1)\"><rect x=\"0\" y=\"0\" width=\"50\" height=\"50\"/></svg>",
+            "caption": "Inline onload handler"
+          },
+          "citations": [
+            {
+              "claim_id": "claim-01"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expected": {
+    "outcome_type": "positive_defect",
+    "expected_verdict": "fail",
+    "expected_severity": "fatal",
+    "expected_category": "security",
+    "expected_block_id": "b-05",
+    "must_quote_source": false
+  }
+}

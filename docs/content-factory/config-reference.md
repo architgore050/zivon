@@ -72,6 +72,45 @@ already retries the upstream leg. If the factory also retried, one dead
 upstream would fan out into node-attempts x factory-attempts calls. Local
 runs that bypass the node keep the default `3`.
 
+## Narration & Timbre (environment variables)
+
+Stage 12-narration (build-time read-aloud, C-051) configures an external
+PAID API and a money cap, so its knobs are environment-only like the server
+variables. Full behaviour: `factory/narration/`, the architecture doc and
+the runbook's "Narration builds" section.
+
+| Variable | Required | Default | Meaning |
+|---|---|---|---|
+| `ZIVON_NARRATION_ENABLED` | no | `false` | Master switch. Off = the stage is a clean no-op (read-aloud stays unbuilt). In-cluster default ships `false` via `k8s/infra.env`. |
+| `ZIVON_NARRATION_MODE` | no | `auto` | `auto` = live when a Timbre endpoint is configured, else mock (deterministic silence assets, labelled, never for the live site). `mock`/`live` force a mode. |
+| `ZIVON_NARRATION_LANGS` | no | `en` | Comma-separated locales, validated against the ADR-0009 enum (10 Gnani codes + `hinglish`). **Single-locale v1:** exactly one locale may be named - more than one is a hard `NarrationError` before any synthesis (an `en,hi` run narrates nothing and spends nothing; per-locale audio needs translated blocks, EX2). Challenge-window builds narrate English; per-locale expansion is a post-challenge tranche decision. |
+| `ZIVON_NARRATION_BUDGET_CREDITS` | no | `1500` | The A-15 one-time tranche `[ASSUMPTION]`, enforced refuse-before-exceed in LIVE mode against the cross-run ledger `runs/narration-budget.json` (the cumulative accrues LIVE Gnani spend only; mock builds are free and never refused). Raising it requires founder approval (A-15). |
+| `ZIVON_NARRATION_REPAIR_ROUNDS` | no | `2` | Bounded repair-catcher rounds for failed blocks (0..5). Residual failures degrade read-aloud to the INF-089 disabled copy - they never fail the run. |
+| `ZIVON_TIMBRE_BASE_URL` | for live | unset | Gnani Timbre v3.0 endpoint. Unset = mock mode under `auto`. |
+| `ZIVON_TIMBRE_API_KEY` | for live | unset | The key itself - runtime secret, never written to files/artifacts. |
+| `ZIVON_TIMBRE_TTS_PATH` | no | `/v1/tts` | Appended to the base URL. `[ASSUMPTION]`: the exact Gnani contract is a founder calibration item (like A-01) before the first live run. |
+| `ZIVON_TIMBRE_VOICE` | no | provider default | Optional voice id. The ADR-0009/A-04 locale->language map (`en` -> `en-IN`, `hinglish` -> `hi-IN`, ...) is code; the voice choice is a calibration item. |
+| `ZIVON_TIMBRE_CREDITS_PER_CHAR` | no | `1500/90000` (~0.0167) | Price estimate from the capacity model (90k chars ~ 1,500 credits). Tags bill as characters. Replace with dashboard prices when A-01 lands. |
+| `ZIVON_TIMBRE_TIMEOUT_S` / `ZIVON_TIMBRE_CONNECT_TIMEOUT_S` | no | `120` / `10` | Read / connect timeouts for one synthesis call. |
+| `ZIVON_TIMBRE_MAX_ATTEMPTS` / `ZIVON_TIMBRE_BACKOFF_BASE_S` | no | `3` / `2.0` | Transport retry budget + exponential backoff base (mirrors the server-call discipline; 429/5xx/transport retry, permanent 4xx raises immediately). |
+| `ZIVON_FFMPEG_PATH` | no | PATH lookup | ffmpeg binary for the 24 kbps Opus encode (opus input passes through untouched). Missing ffmpeg = loud NarrationError. |
+| `ZIVON_COLDSTORE_UPLOAD_CMD` / `ZIVON_COLDSTORE_READBACK_CMD` | for cold gate | unset | Operator command templates for the SYNC-01 P0 gate (`rclone copyto {src} b2:bucket/{dst}` style; `{src}`/`{dst}` are shell-quoted). Unset = the gate reports a loud SKIP. |
+| `ZIVON_COLDSTORE_PREFIX` / `ZIVON_COLDSTORE_TIMEOUT_S` | no | `narration` / `120` | Cold key prefix / per-file command timeout. |
+
+**Spoken form (no new knobs).** The spoken text is built deterministically in
+`factory/narration/select.py`: LaTeX, math notation and Unicode symbols are
+verbalized into words ("x squared plus one", "3.06 metres per second squared",
+"the integral of velocity with respect to time") and wrapped in the whitelisted
+Timbre v3.0 tags (`<pauses>` `<slow>` `<excited>` `<whispers>` — the SP1
+Appendix A subset of the 13-tag catalog), at most one cue per two sentences
+and at most 8 per block. This text layer stands in for the factory's future
+equation-rendering upgrade; no LLM (hence no OpenRouter key) is involved. If
+an LLM verbalization fallback is ever added it must go through `llm_manager`
+(`ZIVON_BASE_URL` / `ZIVON_MODEL` / `ZIVON_API_KEY`, K8s Secret
+`zivon-factory-env` — the exact key variable and Secret the factory uses);
+never introduce a second OpenRouter key variable and never POST to OpenRouter
+directly (see `llm_manager/README.md` and `k8s/infra.env`).
+
 ## learner
 
 | Key | Type | Meaning |
@@ -150,7 +189,22 @@ budget consumes a round and is fed back as the next round's assignment.
 |---|---|---|
 | `content_rounds` | int (1..20) | Safety cap on regenerate-flagged-blocks + recheck rounds for 04-repair (triggered by any fatal/major issue from 03-check's model or rules). Minor issues never trigger a repair. |
 | `code_rounds` | int (1..20) | Safety cap on replace-files + re-lint + re-perf + re-review rounds for 10-reviewfix (triggered by a 09-review fail verdict). Only topic-local files may change (page.js / page.css). |
-| `stall_rounds` | int (1..10) | Consecutive no-improvement rechecks/re-reviews/retests that declare a plateau and stop the catcher (with the full history + resume hint). Applies to 04-repair, 08-fixloop and 10-reviewfix. |
+| `translation_rounds` | int (1..20) | Safety cap on re-translate-flagged-units + recheck rounds for `10c-transrepair` (triggered by any `fatal`/`major` issue from `10b-transcheck`). Default `6`. |
+| `stall_rounds` | int (1..10) | Consecutive no-improvement rechecks/re-reviews/retests that declare a plateau and stop the catcher (with the full history + resume hint). Applies to 04-repair, 08-fixloop, 10-reviewfix, and 10c-transrepair. |
+
+## translation
+
+Configures the build-time localization sub-graph (`10a-translate` → `10b-transcheck` → `10c-transrepair` → `10d-transrender`, specified in `docs/specs/translation/` and `ADR-0021`..`0023`). Can also be enabled per run via `python pipeline.py "<chapter>" --class <N> --locales hi,hi-Latn`.
+
+| Key | Type | Meaning |
+|---|---|---|
+| `enabled` | bool | Default `false` (English-only runs stay unchanged unless `--locales` or `enabled: true` is set). |
+| `target_locales` | list[str] | Target BCP-47 locales to generate (default `["hi", "hi-Latn"]`; supported: `hi`, `hi-Latn`, `ta`, `te`, `mr`, `bn`, `gu`, `kn`, `ml`, `pa`). |
+| `optional_locales` | list[str] | Subset of `target_locales` allowed to fall back per block to English (`fallback_en`) if `10c-transrepair` plateaus, rather than failing the whole build (`FM-TRN-03`). |
+| `glossary_path` | str | Repo-relative path to the canonical Physics terminology glossary (`sources/glossary/physics_glossary.json`). |
+| `ui_strings_path` | str | Repo-relative path to the static shell UI strings table (`sources/glossary/ui_strings.json`). |
+| `prompt_version` | str | Translation prompt contract version included in the content-addressed `tm_key` (`ADR-0022`). |
+| `max_chars_neighbour_context` | int (100..4000) | Character budget for adjacent block excerpts passed as read-only context to `10a-translate`. |
 
 ## Resume and fingerprint (no config key — behaviour to know)
 
@@ -171,7 +225,7 @@ Object keyed by stage id, values `{temperature?}`, e.g.:
 
 Valid stage ids: 00-ingest, 01-locate, 02-generate, 03-check, 04-repair,
 05-interactive, 06-render, 07-perf, 08-fixloop, 09-review, 10-reviewfix,
-11-link.
+10a-translate, 10b-transcheck, 10c-transrepair, 10d-transrender, 11-link.
 
 Current committed value: `{}` — no per-stage overrides. History: the first
 cluster runs (graph v1 stage ids) died at 02-synth — first `structured output

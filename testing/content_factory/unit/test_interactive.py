@@ -1,7 +1,8 @@
-"""Unit tests for 05-interactive: the Visual Builder must receive the
-ground-truth facts its simulation must obey, the LIVE design doctrine +
-examples + parsed palette, and lint violations must enter the retry
-transcript instead of killing the run after the model call.
+"""Unit tests for 05-interactive lint-feedback retry loop wiring.
+
+Note: 05-interactive prompt wording checks were migrated to
+`evals/checkers/prompt_contract_checks.py` (`EV-VIS-001`) per
+`docs/specs/evals/migration-map.csv` row 21.
 """
 
 import dataclasses

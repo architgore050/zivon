@@ -31,7 +31,20 @@
   "repair": {
     "content_rounds": 8,
     "code_rounds": 6,
+    "translation_rounds": 6,
     "stall_rounds": 3
+  },
+  "translation": {
+    "enabled": false,
+    "target_locales": [
+      "hi",
+      "hi-Latn"
+    ],
+    "optional_locales": [],
+    "glossary_path": "sources/glossary/physics_glossary.json",
+    "ui_strings_path": "sources/glossary/ui_strings.json",
+    "prompt_version": "1",
+    "max_chars_neighbour_context": 600
   },
   "stage_overrides": {}
 }

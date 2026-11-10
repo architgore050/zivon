@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}run {{ detail.run_id }}{% endblock %}
+{% block body %}
+<h1>Run {{ detail.run_id }}</h1>
+<p><a href="/admin/runs">← all runs</a>
+{% if artifact_exists %} · artifacts on the PVC: <code>runs/{{ detail.run_id }}/</code>{% else %} · no artifacts dir on this mount{% endif %}</p>
+
+<h2>Stage timeline</h2>
+{% if detail.stages %}
+<table>
+  <thead><tr><th>stage</th><th>event</th><th>severity</th><th>ts</th><th>latency_ms</th><th>blocks</th><th>attempts</th><th>reason_code</th></tr></thead>
+  <tbody>
+  {% for row in detail.stages %}
+    <tr><td>{{ row.stage }}</td><td>{{ row.event }}</td><td>{{ row.severity }}</td><td>{{ row.ts }}</td>
+        <td>{{ row.latency_ms if row.latency_ms is not none else "—" }}</td>
+        <td>{{ row.blocks if row.blocks else "—" }}</td>
+        <td>{{ row.attempts if row.attempts else "—" }}</td>
+        <td>{{ row.reason_code or "" }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No stage events in the store for this run.</p>{% endif %}
+
+<h2>Repair-catcher rounds</h2>
+<p class="hint">Failures never re-run the whole pipeline (founder rule): each catcher engagement is a bounded round.</p>
+{% if detail.repairs %}
+<table>
+  <thead><tr><th>stage</th><th>event</th><th>round</th><th>issues</th><th>plateau</th><th>cap hit</th><th>ts</th></tr></thead>
+  <tbody>
+  {% for row in detail.repairs %}
+    <tr><td>{{ row.stage }}</td><td>{{ row.event }}</td><td>{{ row.round or "—" }}</td><td>{{ row.issues_count or "—" }}</td>
+        <td>{{ row.plateau or "" }}</td><td>{{ row.cap_hit or "" }}</td><td>{{ row.ts }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No catcher rounds — gates passed first try (or no events yet).</p>{% endif %}
+
+<h2>Model calls (latest 50)</h2>
+{% if detail.calls %}
+<table>
+  <thead><tr><th>event</th><th>intent</th><th>latency_ms</th><th>error_class</th><th>ts</th></tr></thead>
+  <tbody>
+  {% for row in detail.calls %}
+    <tr><td>{{ row.event }}</td><td>{{ row.call_intent or "—" }}</td>
+        <td>{{ row.latency_ms if row.latency_ms is not none else "—" }}</td>
+        <td>{{ row.error_class or "" }}</td><td>{{ row.ts }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No model-call events in the store.</p>{% endif %}
+
+{% if report %}
+<h2>Run report (runs/{{ detail.run_id }}/run_report.json)</h2>
+<pre>{{ report | tojson(indent=2) }}</pre>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}credits{% endblock %}
+{% block body %}
+<h1>Credit usage vs tranche / cap</h1>
+<p>Cumulative counters per profile (<code>credit.counter_update</code>, ADR-0015). The
+burn-budget line is <strong>{{ credits.burn_budget }}</strong> — the 40% (2,000-credit)
+demo reserve of the 10,000 total must stay intact. Credits apply to the voice agent only.</p>
+{% if credits.latest %}
+<table>
+  <thead><tr><th>profile</th><th>used</th><th>cap</th><th>vs burn budget</th><th>updated</th></tr></thead>
+  <tbody>
+  {% for row in credits.latest %}
+    <tr>
+      <td>{{ row.profile }}</td>
+      <td>{{ row.used }}</td>
+      <td>{{ row.cap }}</td>
+      <td class="{{ 'breach' if row.used and row.used > credits.burn_budget else 'ok' }}">
+        {{ "%.0f" | format((row.used / credits.burn_budget) * 100) if row.used else 0 }}%</td>
+      <td>{{ row.ts }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No credit counters yet — the guard's events arrive with the voice backend (F-OPS-MET-01).</p>
+{% endif %}
+<h2>Guard refusals (credit.guard_blocked)</h2>
+{% if credits.guard_blocked %}
+<table>
+  <thead><tr><th>ts</th><th>profile</th><th>requested</th><th>remaining</th></tr></thead>
+  <tbody>
+  {% for row in credits.guard_blocked %}
+    <tr><td>{{ row.ts }}</td><td>{{ row.profile or "—" }}</td><td>{{ row.requested or "—" }}</td><td>{{ row.remaining or "—" }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No refusals recorded — the guard has not blocked a call.</p>
+{% endif %}
+{% endblock %}

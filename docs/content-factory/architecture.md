@@ -40,7 +40,62 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches; the post-fix index.html rebuild re-extracts the body and strips the old page shell first (idempotent; a shell-nesting rebuild fails loudly instead of shipping) | fixed topic files + history; rounds=0 (no model call) when 07 passed |
 | 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
 | 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css) **plus a spec-correction channel: corrected full block objects under `blocks`** (drawn-geometry/caption errors live in the block specs the renderer draws index.html from — the harness merges them by id, re-renders the page body from the merged specs, and threads the corrected draft back through 09-review, 06-render and resume); re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
+| 10a | translate | factory/translate.py + factory/tm_store.py | model (Evon v3.3 via `llm_manager`, 1 call per unit per locale when `translation.enabled` or `--locales` is set); per-block disk checkpoints + two-tier Translation Memory (`ADR-0021`, `ADR-0022`) | localized `b-00-meta` + `b-01..b-NN` blocks + per-unit checkpoints under `10a-translate/blocks/<locale>/<unit_id>.json` |
+| 10b | transcheck | factory/transcheck.py | model + code; 9 deterministic rules (`R1`..`R9`) + 1 calibrated Evon v3.3 reviewer call per locale (`TRANSLATION_REVIEW_CALL_REPORT`); passing units promoted to `sources/cache/tm/` | per-locale verdict + issues (`issues_ledger.jsonl`); blocking (`fatal`/`major`) routes to `10c-transrepair` |
+| 10c | transrepair | factory/transrepair.py (catcher) | model, progress-aware per-block loop (`repair.translation_rounds` cap, `repair.stall_rounds` plateau); re-translates ONLY flagged `(locale, unit_id)` items | replacement localized units merged by `unit_id` + recheck per round |
+| 10d | transrender | factory/render.py (`render_localized`) | code | `<locale>/index.html`, `i18n/<locale>.json`, `i18n/en.json`, `i18n.js`, locale hub pages, and `CP-TRN-004` manifest metadata |
 | 11 | link | factory/link.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter** (2026-11-10: the chapter owns exactly one page — a pre-fix model-titled duplicate is removed when its chapter is republished), regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
+| 12 | narration | factory/narration/ (stage.py + select/spoken/timbre/audio/budget/publish) | code + **Gnani Timbre v3.0** (build-time TTS, opt-in via `ZIVON_NARRATION_ENABLED`; never an LLM call) | opus assets under `frontend/audio/{course_id}/` (ST-04 content-hash names), `narration` availability flag in the topic manifest + `narration-manifest.json`, A-15 budget ledger (`runs/narration-budget.json`) + `narration_usage.jsonl` |
+
+### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
+
+Decision C-051: lesson narration is PRE-GENERATED at build time with Gnani
+Timbre v3.0 and served statically - read-aloud (features.md F-WRP-TTS-01)
+consumes ZERO runtime credits and never meters a student. The stage is
+opt-in (`ZIVON_NARRATION_ENABLED=true`) because it is a bounded credit
+spend: backend-spec A-15 caps it at a one-time tranche (default 1,500
+credits `[ASSUMPTION]`, enforced refuse-before-exceed by
+`factory/narration/budget.py` in LIVE mode against a cross-run ledger
+at `runs/narration-budget.json` - the cumulative accrues LIVE Gnani
+spend only, because mock builds spend zero credits and are never
+refused; their would-be estimates ride the ledger mode-tagged). It
+runs AFTER the review gates so credits are
+only ever spent on a page that passed every gate, and after 11-link so the
+audio lands directly in the served tree.
+
+- **Speakable rules** (gap-register GAP-015, coded in `factory/narration/select.py`):
+  text -> full prose; worked_example -> problem + steps + answer; check ->
+  question + options (never the answer/explanation); simulation/animation ->
+  title + description + page.js readout strings (never JS code); diagram ->
+  `svg_texts` only (none in English v1, so diagrams are not narrated);
+  `b-00-meta` -> lesson title + objectives; reveal -> not speakable. Parts
+  are wrapped in the whitelisted Timbre v3.0 tags `<pauses>` / `<slow>` /
+  `<excited>` / `<whispers>` (the SP1 Appendix A subset of the 13-tag
+  catalog; `<whispers>` is whitelisted but never auto-emitted in v1 - `<slow>`
+  cues a verbalized equation, `<excited>` cues the worked-example answer,
+  `<pauses>` separates parts), capped at one cue per two sentences and at
+  most 8 cues per block with delivery cues funded before breathing pauses,
+  and unit-pronunciation rules apply (m/s2 -> "metres per second squared").
+- **Assets**: `audio/{course_id}/{block_id}.{lang}.{content-hash}.opus`
+  (backend-spec ST-04; the hash is a TEXT hash of lang|voice|spoken-form, so
+  a re-run finds its completed work and spends nothing, while changed text
+  bumps the hash and the old asset stays addressable). 24 kbps mono Opus via
+  ffmpeg (opus input passes through untouched). The topic manifest gains the
+  `narration` availability flag and a `narration-manifest.json` catalogue
+  `{block_id, lang, hash, chars, duration_ms, path}` lands next to it.
+- **Resumability + failures**: per-block resume like every stage
+  (content-addressed); synthesis failures route to a bounded repair catcher
+  (`ZIVON_NARRATION_REPAIR_ROUNDS`, default 2) and degrade read-aloud to the
+  INF-089 disabled copy for that block - a narration failure never fails the
+  page. Only a pass where attempts were made but NOTHING succeeded raises.
+- **Mock mode**: no Timbre endpoint configured -> deterministic silence
+  assets, clearly labelled `mode: "mock"` in the manifests (proof of
+  pipeline, never for the live site).
+- **Publish**: `scripts/publish-frontend.sh` mirrors `audio/` additively and
+  runs the SYNC-01 P0 cold gate (sha256 read-back via
+  `factory/narration/publish.py`). nginx serves `/audio/` immutable with an
+  audio-family per-IP rate limit.
+### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
 
 Happy path costs 4 model calls + one per simulation (generate, check,
 review-facts, review-design). Catcher calls happen only when a gate finds

@@ -1,12 +1,10 @@
-"""Unit tests for 09-review (two-call split, 2026-11-08).
+"""Unit tests for 09-review harness verdict and issues_ledger mechanics.
 
-The Code Reviewer is now two bounded calls - facts (truth) and design (visual
-usability) - each carrying only the context its checks need, each outputting
-issues only; the verdict is computed by the harness from severities. These
-tests pin: the context split, both bounded procedures (incl. the general
-rendering sweep), the manifest decision (identity header, no manifest dump),
-the harness verdict rule, the honest framing + 'unverified:' way-out, and the
-issues_ledger entries every finding must land in.
+Note: Context-split and bounded-procedure prompt calibration tests were migrated
+to `evals/checkers/prompt_contract_checks.py` (`EV-REV-002`) per
+`docs/specs/evals/migration-map.csv` row 31. The screenshot/vision-fallback
+mechanics tests added in the visual-review refactor stay here (harness behaviour,
+not prompt calibration).
 """
 
 import dataclasses
@@ -154,85 +152,6 @@ class TestReviewCalls(unittest.TestCase):
         self.assertIn("[ZIVON STAGE: 09-review-facts]", stub.system("facts"))
         self.assertIn("[ZIVON STAGE: 09-review-design]", stub.system("design"))
 
-    def test_facts_call_gets_specs_facts_files_not_doctrine(self):
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("facts")
-        self.assertIn("BLOCK SPECS", user)
-        self.assertIn("CITED FACTS", user)
-        self.assertIn("FINAL PAGE FILES", user)
-        for c in load("gt.json")["claims"]:
-            self.assertIn(c["statement"], user)
-        for e in load("gt.json")["equations"]:
-            self.assertIn(e["expression"], user)
-        # the truth call carries no visual-language context
-        self.assertNotIn("DESIGN DOCTRINE", user)
-
-    def test_design_call_gets_inventory_files_doctrine_not_specs_or_facts(self):
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("design")
-        self.assertIn("BLOCK INVENTORY", user)
-        self.assertIn("FINAL PAGE FILES", user)
-        self.assertIn("DESIGN DOCTRINE", user)
-        self.assertIn("=== design-doctrine-lesson-example.html ===", user)
-        self.assertNotIn("=== design-doctrine-example.html ===", user)
-        # the visual call re-reads neither the full specs nor the facts list
-        self.assertNotIn("CITED FACTS", user)
-        self.assertNotIn("BLOCK SPECS (what the page must implement)", user)
-        # inventory is compact: one line per block with id + type
-        for b in self.blocks["blocks"]:
-            self.assertIn(f"- {b['id']} [{b['type']}]", user)
-
-    def test_manifest_dump_replaced_by_identity_header(self):
-        # The manifest is mechanical page metadata; its traceability is a
-        # static check. Both calls get a 3-line identity header instead.
-        stub = StubLLM()
-        self._review(stub)
-        for which in ("facts", "design"):
-            self.assertIn("PAGE UNDER REVIEW", stub.user(which))
-            self.assertNotIn("MANIFEST:", stub.user(which))
-
-    # ------------------------------------------------- the bounded procedures
-    def test_facts_call_is_a_bounded_truth_procedure(self):
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("facts")
-        self.assertIn("EXACTLY ONCE", user)
-        self.assertIn("Commit to this procedure", user)
-        self.assertIn("one check per item", user)
-        for step in range(1, 6):
-            self.assertIn(f"STEP {step} -", user)
-        self.assertIn("Answer keys", user)
-        self.assertIn("Facts sweep", user)
-        self.assertIn("DRAWN behaviour", user)
-        self.assertIn("physically wrong behaviour is a fatal issue", user)
-        # the b-31 pathology from the live plateau: HTML vs JS value drift
-        self.assertIn("Consistency sweep", user)
-        self.assertIn("49 s", user)
-        self.assertNotIn("Hunt for REAL defects", user)
-
-    def test_design_call_includes_the_general_rendering_sweep(self):
-        # Founder requirement (2026-11-08): design correctness must not be
-        # only doctrine-example comparison - the model must also identify
-        # rendering errors on its own terms.
-        stub = StubLLM()
-        self._review(stub)
-        user = stub.user("design")
-        self.assertIn("EXACTLY ONCE", user)
-        self.assertIn("Commit to this procedure", user)
-        for step in range(1, 6):
-            self.assertIn(f"STEP {step} -", user)
-        self.assertIn("The page follows the DESIGN DOCTRINE", user)
-        doctrine = (REPO_ROOT / "docs" / "frontend" / "design-doctrine.md").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(doctrine[:400], user)  # the live document, verbatim
-        self.assertIn("Rendering sweep", user)
-        self.assertIn("as a learner would, not against the doctrine", user)
-        self.assertIn("empty or broken canvases", user)
-        self.assertIn("contradict their caption", user)
-
     def test_design_call_carries_screenshots_when_capture_produces_them(self):
         # The design reviewer sees the rendered page: screenshots captured
         # by factory/shots.py arrive below the text as vision parts.
@@ -358,20 +277,6 @@ class TestReviewCalls(unittest.TestCase):
         # and the contract each call must return is issues-only
         for c in stub.calls:
             self.assertEqual(list(c["schema"]["required"]), ["issues"])
-
-    # ------------------------------------------------------ honesty + way-out
-    def test_reviewer_framing_is_honest_not_adversarial(self):
-        # "Assume the page contains at least one defect" manufactured
-        # trivia-failures (same lesson graph v2 learned for 03-check). Both
-        # calls also keep the way out: unverifiable suspicions are
-        # 'unverified:' minor.
-        stub = StubLLM()
-        self._review(stub)
-        for which in ("facts", "design"):
-            user = stub.user(which)
-            self.assertNotIn("Assume the page contains at least one defect", user)
-            self.assertIn("do not invent problems", user)
-            self.assertIn("starting 'unverified:'", user)
 
     # ------------------------------------------------- harness verdict + save
     def test_clean_page_passes_and_report_is_saved(self):

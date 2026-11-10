@@ -61,7 +61,7 @@ evals/
 │   ├── __init__.py
 │   ├── curator_checks.py       # Source pack integrity, title-line provenance, citation & number traceability
 │   ├── synthesizer_checks.py   # Schema, block budget (4-45), teach-order structure, computed-geometry routing
-│   ├── visual_checks.py        # JS/CSS/HTML/SVG lints, kit scope, ZivonSim skeleton, Chromium DOM/a11y/bbox probe
+│   ├── visual_checks.py        # JS/CSS/HTML/SVG lints, kit scope, ZivonSim skeleton, static DOM/a11y probe
 │   ├── perf_harness.py         # Migrated from testing/content_factory/perf/harness.py (CDP throttle, RSS, FPS, overflow)
 │   └── prompt_contract_checks.py # Prompt-contract invariants migrated from unit/test_agents_generate.py & test_review.py
 ├── judges/                     # LLM-as-judge graders via llm_manager/ (ADR-0028)
@@ -110,7 +110,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 | `EV-CUR-001` | `00-ingest`, `01-locate`, `02-generate.ground_truth` | Curator citation integrity & source provenance | `curator_checks.py` (`matched_via`, `rule_citations`, `rule_numbers`) | `curator_judge.py` (`1` call/topic: quote fidelity + zero smuggled priors) | Yes (det. only) | Yes |
 | `EV-SYN-001` | `02-generate.blocks`, `04-repair` | Synthesizer block-schema validity, coverage & geometry routing | `synthesizer_checks.py` (`GENERATED` schema, 4–45 blocks, `run_all_rules`, 0 graph SVGs) | `pedagogy_judge.py` (`1` call/topic shared with `EV-SYN-002`: chapter inventory coverage) | Yes (det. only) | Yes |
 | `EV-SYN-002` | `02-generate.lesson`, `02-generate.blocks` | Synthesizer pedagogy, teach-before-test & numerical recomputation | `synthesizer_checks.py` (`rule_self_containment`, `rule_answer_keys`, glossary/section density) | `pedagogy_judge.py` (reuses `03-check` prompt: teach-before-test + arithmetic recompute) | Yes (det. only) | Yes |
-| `EV-VIS-001` | `05-interactive`, `06-render` | Visual Builder renderability, kit scope, a11y & computed sims | `visual_checks.py` (`lint_js/css/html`, `lint_page_css_scope`, Chromium 0-error load, DOM/a11y/bbox) | `code_design_judge.py` (`2` calls/topic: reuses `09-review-facts` Step 3 + `09-review-design`) | Yes (det. + DOM) | Yes |
+| `EV-VIS-001` | `05-interactive`, `06-render` | Visual Builder renderability, kit scope, a11y & computed sims | `visual_checks.py` (`lint_js/css/html`, `lint_page_css_scope`, static DOM/a11y probe) + `perf_harness.py` Chromium load for `EV-PERF-001` | `code_design_judge.py` (`2` calls: reuses `09-review-facts` Step 3 + `09-review-design`, run once on the clean golden `SD-REV-006`) | Yes (det. + DOM) | Yes |
 | `EV-PERF-001` | `07-perf`, `08-fixloop` | Performance Engineer weak-Android budget & fixloop preservation | `perf_harness.py` (`weak-android.json`: RSS, FPS, load, FCP, `overflow_px <= 2`, pedagogy diff guard) | `0` calls (or `1` call if `08-fixloop` modified `page.js` to audit physics preservation) | Yes (`mid-laptop`) | Yes (`weak-android`) |
 | `EV-REV-001` | `03-check` | Comprehension & Fact Reviewer calibration (seeded defects + clean goldens) | `curator_checks.py` + `synthesizer_checks.py` on seeded corpus | Runs `factory.agents.run_check` on `8` calibration samples (`8` calls) | No (mocked schema only) | Yes |
 | `EV-REV-002` | `09-review` (`facts`, `design`, `static`, `lint`) | Code Reviewer security, consistency & rendering calibration | `lint.py` + `_static_review_findings` on `5` security/scope defect samples (`0` calls) | Runs `factory.review.run` on `6` truth/rendering samples (`12` calls) | Yes (det. security defects) | Yes |
@@ -131,7 +131,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
   3. `check_ground_truth_citations`: Runs `factory/checks.py::rule_citations` and `factory/schemas.py::GROUND_TRUTH` validation — every claim (`12..40`), key term (`>= 4`), equation, and misconception has `>= 1` citation whose `source_id` is in `{"ncert"} | {s["source_id"] for s in source_pack["supplements"]}`.
   4. `check_verbatim_numbers_in_claims`: Verifies every numeral in `ground_truth.claims[*].statement` satisfies `factory/checks.py::_number_in_corpus` against `source_pack["ncert_text"]` + supplement texts (no unit conversion or invented constants in `ground_truth`).
 - **LLM-Judge Rubric (`evals/judges/curator_judge.py`)**:
-  - **Prompt Contract**: Given `SOURCE MATERIAL` and `GROUND TRUTH`, verify each `claim-NN` and `eq-NN` in one pass.
+  - **Prompt Contract**: Given `SOURCE MATERIAL` and `GROUND TRUTH`, verify each `claim-NN` and `eq-NN` in one pass. This prompt is assembled in `curator_judge.py` over `factory.agents.GLOBAL_RULES` and reuses the `03-check` severity ladder + `CHECK_REPORT` schema; it is not a verbatim `factory.agents.run_check` call (that reviewer also recomputes worked examples and audits coverage).
   - **Severity Ladder** (reused from `03-check`):
     - `fatal`: A claim or equation contradicts the cited source passage, or cites a passage that does not support the claim. Must quote the exact source text.
     - `major`: A claim smuggles in a Physics concept from outside the source pack (e.g., introducing `F = ma` or momentum inside a kinematics-only chapter pack).
@@ -141,7 +141,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
     - *Anchor 2 (Major — Smuggled Concept)*: `{"claim_id": "claim-11", "severity": "major", "message": "Claim defines kinetic energy (1/2 mv²), which appears nowhere in the Motion in a Straight Line source pack."}`
 - **Pass Thresholds**:
   - Deterministic checks: `100%` pass (`0` fatal, `0` major).
-  - Judge checks: `0` fatal issues, `0` major smuggled-concept issues, `claim_quote_precision >= 0.98`.
+  - Judge checks: `0` fatal issues, `0` major smuggled-concept issues, `claim_quote_grounding_ok == 1.0` (quote-grounding gate, not a precision estimate).
 - **Cost in Model Calls**: `0` calls (smoke) / `1` call per topic (full).
 
 #### Card `EV-SYN-001`: Synthesizer Block-Schema Validity, Coverage & Computed-Geometry Routing
@@ -160,7 +160,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
   - Schema & deterministic rules: `100%` pass (`0` violations).
   - Computed-geometry routing: `0` static graph diagrams (`100%` routed to `simulation`).
   - Chapter section & exercise-type coverage: `1.00` (`0` omitted chapter sections or exercise types).
-- **Cost in Model Calls**: `0` calls (smoke) / `1` call per topic shared with `EV-SYN-002` (full).
+- **Cost in Model Calls**: `0` calls (smoke) / `1` call per full-suite invocation (full). `EV-SYN-001` and `EV-SYN-002` currently each run one `03-check` call on the same clean golden (`SD-CHK-007`), so a full suite costs `2` calls in total for the pair; the `full_model_calls_per_topic` card field is the per-invocation budget, not a per-topic multiplier.
 
 #### Card `EV-SYN-002`: Synthesizer Pedagogy, Teach-Before-Test & Mathematical Recomputation
 - **Stage**: `02-generate` (`lesson` + `blocks` layers).
@@ -181,7 +181,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
   - Numerical recomputation accuracy: `1.00` (`0` wrong answers or steps).
   - Teach-before-test compliance: `1.00` (`0` untaught checks).
   - Self-containment: `0` external references.
-- **Cost in Model Calls**: `0` calls (smoke) / `1` call per topic shared with `EV-SYN-001` (full).
+- **Cost in Model Calls**: `0` calls (smoke) / `1` call per full-suite invocation (full; see the `EV-SYN-001` cost note).
 
 #### Card `EV-VIS-001`: Visual Builder Renderability, Kit Scope, Accessibility & Computed Sims
 - **Stage**: `05-interactive` + `06-render`.
@@ -189,11 +189,11 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 - **Deterministic Checks (`evals/checkers/visual_checks.py`)**:
   1. `check_hard_lints_and_kit_scope`: Runs `lint_html`, `lint_js`, `lint_css`, and `lint_page_css_scope` (`0` hits; every selector in `page.css` scoped under `.zn-sim-<id>`; zero canvas width/height/aspect-ratio overrides; palette hex/var compliance).
   2. `check_computed_sim_loop`: Static AST/regex scan of each `ZivonSim.register("<id>", ...)` in `page.js` confirming `draw(ctx)` computes curves via loop/equation evaluation (`for`/`while` over domain) with `0` sequences of `>= 4` hard-coded `moveTo`/`lineTo` literal coordinate pairs.
-  3. `check_chromium_render_and_a11y`: Launches headless Chromium against `file://.../index.html`:
-     - `0` `console.error` and `0` `pageerror` events on load and after interacting with every range slider and `.zn-check-btn`.
-     - Kit chrome present: `.zn-lang-bar` with `aria-checked="true"`, every `.zn-sim` has `<p class="zn-sim-read" aria-live="polite">` and `page.js` populates non-empty text into `.zn-sim-read` after `init`/`draw` (catching the run `040410` unpopulated `.zn-sim-read` defect deterministically!).
-     - Every `<svg>` has `viewBox`, no fixed `width`/`height` attributes, and accessible label/caption.
-     - Card geometry check (from `test_behaviour_layer.py::test_long_question_stays_inside_the_card`): for every `.zn-check` fieldset, `legend.top >= card.top - 1` and `firstOption.top >= legend.bottom - 1`.
+  3. `check_dom_and_a11y_invariants`: Static DOM/CSS probe of the rendered files (no browser in smoke):
+     - Kit chrome present: `.zn-lang-bar` marker in `index.html`.
+     - Every `<svg>` has `viewBox` and no fixed `width`/`height` attributes.
+     - `frontend/assets/zivon.css` carries the `.zn-check` float-legend geometry rule.
+     - Browser-level behaviour (clean Chromium load, `.zn-sim-read` population after `init`/`draw`, `.zn-check` bounding-box containment) is measured by the Chromium CDP harness under `EV-PERF-001`; `EV-VIS-001` does not launch a browser.
 - **LLM-Judge Rubric (`evals/judges/code_design_judge.py`)**:
   - Reuses the two bounded `09-review` procedures (`_FACTS_TASK` Step 3 `drawn_behaviour` + `_DESIGN_TASK` Steps 1–4 `visual_language`, `frame`, `accessibility`, `rendering` in `factory/review.py`).
   - **Anchor Examples**:
@@ -202,7 +202,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 - **Pass Thresholds**:
   - Deterministic lint, kit scope, `.zn-sim-read` population, & Chromium geometry: `100%` pass.
   - Judge verdict: `0` fatals (`verdict == "pass"`), `<= 1` major rendering/accessibility finding per page.
-- **Cost in Model Calls**: `0` calls (smoke, incl. headless Chromium checks) / `2` calls per topic (full: `facts` + `design`).
+- **Cost in Model Calls**: `0` calls (smoke; static DOM/CSS probe) / `2` calls per full-suite invocation (full: `facts` + `design` on the clean golden `SD-REV-006`; planted-defect recall is measured by `EV-REV-002`).
 
 #### Card `EV-PERF-001`: Performance Engineer Weak-Android Budget & Fixloop Audit
 - **Stage**: `07-perf` + `08-fixloop`.
@@ -293,6 +293,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
   - `pipeline_completed_ok == True`
   - `length_cuts == 0`
   - `human_edits_count == 0` (alert if `> 0`)
+- **Absent data**: when there is no `runs/<run_id>/` ledger to audit (e.g. smoke over committed golden pages), `pipeline_completed_ok`, `length_cuts`, and `human_edit_rate_rolling` are reported as `null` (`pipeline_metrics_status: "skipped_no_run_ledgers"`), never coerced to `True`/`0`/`0.0`.
 - **Cost in Model Calls**: `0` additional calls (aggregates stage card outputs + run ledgers).
 
 #### Card `EV-KID-001`: Gate B Kid-Comprehension & Defect Promotion Loop
@@ -332,7 +333,7 @@ The golden dataset is organized into three versioned layers under `evals/goldens
 Following [`skills/zivon-systems-design-skills/`](../../../skills/zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) (`references/02-data-classification-and-tiering.md` and `references/03-database-spec-method.md`), eval artifacts and relational records are phased so P0 works with zero database dependencies while Phase B/production persists into PostgreSQL and cold object storage:
 
 - **Phase A (P0 / Build-Time / Offline Cluster)**:
-  - `evals/store.py` writes append-only JSONL ledgers (`evals_runs/eval_runs_ledger.jsonl`, `evals_runs/eval_cards_ledger.jsonl`, `evals_runs/human_edits_ledger.jsonl`, `evals_runs/kid_sessions_ledger.jsonl`) and per-run directories (`evals_runs/<eval_run_id>/eval_report.json`, `diff_report.json`, `eval_summary.md`) onto the `zivon-sources` PVC (`subPath: evals`, alongside `subPath: runs`).
+  - `evals/store.py` writes append-only JSONL ledgers (`evals_runs/eval_runs_ledger.jsonl`, `evals_runs/human_edits_ledger.jsonl`, `evals_runs/kid_sessions_ledger.jsonl`) and per-run directories (`evals_runs/<eval_run_id>/eval_report.json`, `eval_summary.md`, `eval_metrics.prom`, plus `eval_diff.json` when a diff is written) onto the `zivon-sources` PVC (`subPath: evals`, alongside `subPath: runs`). Card-level results live inside each run's `eval_report.json` and, in Phase B, the `eval_card_result` table — there is no separate `eval_cards_ledger.jsonl`.
   - `scripts/publish-artifacts.sh` mirrors `evals/` alongside `runs/` to the host for offline inspection.
 - **Phase B (PostgreSQL + Cold Storage Tiering — `db-spec.md` & `storage-tiering.md` Alignment)**:
   - When `ZIVON_DB_URL` is configured, `evals/store.py` dual-writes into five PostgreSQL tables using **UUIDv7** primary keys, `timestamptz` UTC timestamps, and JSONB payload columns validated by `evals/models.py`:
@@ -350,7 +351,7 @@ Following [`skills/zivon-systems-design-skills/`](../../../skills/zivon-systems-
 
 ### 4.2 Run-to-Run Diff Reports & Regression Alerting (`evals/diff.py`)
 
-Every `evals run` automatically compares its results against the **pinned baseline run** (by default, the most recent passing `full` eval run on `main` or the previous `PIPELINE_VERSION` baseline):
+`python -m evals run --fail-on-regression` (the CI/CronJob form) compares the new run against the most recent same-suite run in the JSONL ledger and exits `2` on regression; `python -m evals diff --baseline <id> --current <id>` performs the same comparison explicitly between any two runs (default baseline for release gating: the most recent passing `full` eval run on `main` or the previous `PIPELINE_VERSION` baseline):
 
 1. **Diff Dimensions Computed**:
    - **Stage Score Delta ($\Delta S_{\text{card}}$)**: Change in deterministic and judge pass rates per card (`EV-CUR-001`..`EV-E2E-001`).
@@ -373,7 +374,12 @@ To make `TIMELINE.md`'s primary metric (**human edit rate per generated topic**)
 1. When stage `11-link` finishes in `factory/link.py`, it writes the SHA-256 and line count of each generated file (`index.html`, `page.js`, `page.css`) into `manifest.json` under `"generation_fingerprints": {"index.html": {"sha256": "...", "lines": 412}, ...}`.
 2. When `scripts/publish-frontend.sh` mirrors the topic to `frontend/courses/<course>/<slug>/` or after any human hotfix commit to `frontend/courses/`, running:
    ```bash
-   python -m evals record-edit --topic class-11-physics/motion-in-a-straight-line [--notes "0 lines edited; published raw from run 040410"]
+   python -m evals record-edit \
+     --course class-11-physics \
+     --topic motion-in-a-straight-line \
+     --baseline-dir runs/040410/11-link/motion-in-a-straight-line \
+     --published-dir frontend/courses/class-11-physics/motion-in-a-straight-line \
+     --notes "0 lines edited; published raw from run 040410"
    ```
    diffs the committed files in `frontend/courses/` against the run's stage `11-link` (or `06-render`/`10-reviewfix`) snapshot in `runs/<run_id>/`, computes `manual_added_lines`, `manual_deleted_lines`, and `human_edit_rate`, and appends the record to `evals_runs/human_edits_ledger.jsonl` (and `eval_human_edit` in Postgres).
 
@@ -421,11 +427,11 @@ Also update the `quality` job's `mypy` command in `.github/workflows/ci.yml` to 
 ### 5.2 Scheduled Full Eval Suite (`k8s/52-eval-cronjob.yaml`)
 
 Full eval runs (which invoke LLM judges and reviewer calibration via the in-cluster `llm-manager` Service and run the `weak-android.json` perf profile) execute on a Kubernetes `CronJob` at manifest number **`52`** (`k8s/52-eval-cronjob.yaml`), reusing the exact hardening and kube-linter patterns from `k8s/50-test-cronjob.yaml`:
-- **Cadence Config**: `EVAL_CRON_SCHEDULE="0 */6 * * *"` (every 6 hours by default; configurable in `k8s/infra.env` and rendered via `envsubst` in `scripts/apply-k8s.sh` — never hardcoded in the YAML).
+- **Cadence Config**: `EVAL_CRON_SCHEDULE="0 2 * * *"` (daily, 02:00 UTC — the value shipped in `k8s/infra.env`; `k8s/infra.env` is the single source of truth and the CronJob renders it via `envsubst` in `scripts/apply-k8s.sh`, never hardcoded in the YAML). The earlier `0 */6 * * *` figure was superseded — see `open-questions.md` `A-EVAL-02`.
 - **Kube-Linter Compliance (Gotcha 12)**: No `ttlSecondsAfterFinished` on the CronJob's `jobTemplate.spec`; cleanup uses `successfulJobsHistoryLimit: 3` and `failedJobsHistoryLimit: 3`.
 - **Security Context (Gotchas 1 & 17)**: `automountServiceAccountToken: false`, `runAsNonRoot: true`, `runAsUser: 1000`, `allowPrivilegeEscalation: false`, `capabilities.drop: ["ALL"]`, `readOnlyRootFilesystem: true`.
 - **Model Routing**: Uses `envFrom: configMapRef: zivon-factory-config` (so `ZIVON_BASE_URL` points at `http://llm-manager.zivon.svc.cluster.local:80/v1`, never hand-rolling HTTP to the inference server) and optional `ZIVON_API_KEY` from `secretKeyRef: zivon-factory-env`.
-- **Volumes**: Mounts `zivon-sources` PVC (`subPath: evals` at `/app/evals_runs` and `subPath: runs` read-only at `/app/runs/factory` so evals persist across pod deaths), `zivon-hf-cache` at `/app/.cache/huggingface` with `HF_HUB_OFFLINE=1` (Gotcha 15b), and `/tmp` as `emptyDir`.
+- **Volumes**: Mounts `zivon-sources` PVC (`subPath: evals` at `/app/evals_runs`, `subPath: runs` read-only at `/app/runs`, and the read-only `pdfs`/`cache` subPaths under `/app/sources/`), `zivon-frontend` read-only at `/app/frontend`, `zivon-hf-cache` at `/app/.cache/huggingface` with `HF_HUB_OFFLINE=1` (Gotcha 15b), and `/tmp` as `emptyDir`. `fsGroup: 1000` makes the PVC-backed `evals_runs/` writable by the non-root user. Evidence retention is the point of the PVC mount: an `emptyDir` would discard every eval report when the pod exits.
 
 #### `k8s/52-eval-cronjob.yaml` Specification
 
@@ -487,15 +493,14 @@ spec:
               envFrom:
                 - configMapRef:
                     name: zivon-factory-config
+                - secretRef:
+                    name: zivon-factory-env
+                    optional: true
               env:
                 - name: HF_HUB_OFFLINE
                   value: "1"
-                - name: ZIVON_API_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      name: zivon-factory-env
-                      key: ZIVON_API_KEY
-                      optional: true
+                - name: ZIVON_EVAL_RUNS_DIR
+                  value: "/app/evals_runs"
               volumeMounts:
                 - name: sources
                   mountPath: /app/evals_runs
@@ -560,8 +565,8 @@ case "${1:-full}" in
     suffix="${2:-manual}"
     ;;
   *)
-    suite="smoke"
-    suffix="$1"
+    echo "usage: $0 [smoke|full|calibrate] [suffix]" >&2
+    exit 2
     ;;
 esac
 job="eval-${suite}-${suffix}-$(date +%H%M%S)"
@@ -585,8 +590,8 @@ echo "watch it: kubectl logs -f job/$job -n zivon"
 ```
 
 Line-edits required in `k8s/infra.env` and `scripts/apply-k8s.sh` when the execution agent builds `evals/`:
-- `k8s/infra.env`: Add `EVAL_CRON_SCHEDULE="0 */6 * * *"` and optional `ZIVON_EVAL_JUDGE_MODEL` (defaults to `ZIVON_MODEL` if unset; see [`ADR-0028`](../../backend/adr/0028-eval-judge-model-and-calibration.md)).
-- `scripts/apply-k8s.sh`: Export `EVAL_CRON_SCHEDULE` and apply `envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -`.
+- `k8s/infra.env`: `EVAL_CRON_SCHEDULE="0 2 * * *"` (shipped) and optional `ZIVON_EVAL_JUDGE_MODEL` (defaults to `ZIVON_MODEL` if unset; see [`ADR-0028`](../../backend/adr/0028-eval-judge-model-and-calibration.md)).
+- `scripts/apply-k8s.sh`: Export `EVAL_CRON_SCHEDULE`, apply `envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -`, and trigger one startup smoke run (`scripts/trigger-evals.sh smoke startup`) — implemented, see `open-questions.md` `OQ-EVAL-01`.
 
 ---
 
@@ -681,7 +686,7 @@ Because `SP3` (observability / admin dashboard spec) runs in parallel in Wave S1
    - `zivon_eval_reviewer_recall{card_id, severity}` (gauge, `0.0–1.0`)
    - `zivon_eval_reviewer_specificity{card_id}` (gauge, `0.0–1.0`)
    - `zivon_eval_human_edit_rate{topic_slug, class_level}` (gauge, `0.0–1.0`)
-   - `zivon_eval_gate_b_pass_rate{round}` (gauge, `0.0–1.0`)
+   - `zivon_eval_gate_b_pass_rate{round}` (gauge, `0.0–1.0`; the sample is **omitted** with an explicit `absent` comment when no kid sessions have been recorded — it is never exported as a fabricated `1.0`)
    - `zivon_eval_run_duration_seconds{suite}` (histogram)
 
 3. **Admin Dashboard v0 Endpoints (`TIMELINE.md` Day 8 "Admin trigger commands")**:

@@ -206,6 +206,11 @@ class TestEndToEnd(unittest.TestCase):
                 "08-fixloop",
                 "09-review",
                 "11-link",
+                # 12-narration (2026-11-09): present in every run's status;
+                # it is a clean no-op unless ZIVON_NARRATION_ENABLED=true
+                # (the integration env does not enable it - narration has its
+                # own suite under testing/narration/).
+                "12-narration",
             },
         )
         for stage, entry in status["stages"].items():

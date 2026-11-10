@@ -1,0 +1,65 @@
+{
+  "golden_id": "GT-03",
+  "topic_slug": "class-9-forces-reference-kit",
+  "course_id": "class-9-physics",
+  "class_level": 9,
+  "pipeline_version_min": 7,
+  "source_provenance": {
+    "primary_book_id": "ncert-science-9",
+    "chapter_title_normalized": "howforcesaffectmotion",
+    "matched_via": "title_line",
+    "forbidden_smuggled_terms": [
+      "relativity",
+      "quantum"
+    ]
+  },
+  "structure_bounds": {
+    "sections_min": 5,
+    "claims_min": 12,
+    "claims_max": 40,
+    "blocks_min": 15,
+    "blocks_max": 45,
+    "checks_min": 8,
+    "worked_examples_min": 4,
+    "simulations_min": 2,
+    "diagrams_max": 6
+  },
+  "required_concepts_and_equations": {
+    "key_terms_must_include": [
+      "force",
+      "friction",
+      "weight",
+      "mass"
+    ],
+    "equation_patterns_must_include": [
+      "W = m",
+      "N"
+    ]
+  },
+  "canonical_numerical_anchors": [
+    {
+      "source_label": "NCERT Class 9 Ch. 6 weight on Earth and Moon",
+      "problem_numbers": [
+        "10",
+        "9.8"
+      ],
+      "expected_answer_values": [
+        98.0
+      ],
+      "tolerance_rel": 0.02
+    }
+  ],
+  "visual_and_kit_invariants": {
+    "requires_lang_bar": true,
+    "requires_sim_readout_populated": true,
+    "computed_graphs_as_simulations": true,
+    "max_overflow_px": 2
+  },
+  "perf_budgets": {
+    "profile": "evals/goldens/profiles/weak-android.json",
+    "ram_budget_mb": 750,
+    "fps_min": 24,
+    "load_budget_s": 6.0,
+    "fcp_budget_s": 3.5
+  }
+}

@@ -1,0 +1,80 @@
+card_id: EV-SYN-001
+version: 1
+title: Synthesizer Block-Schema Validity, Chapter Coverage, and Computed-Geometry Routing
+stage: 02-generate.blocks..04-repair
+agent_role: Synthesizer
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-SYN01-SCHEMA
+  entrypoint: evals.checkers.synthesizer_checks:check_generated_schema
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.schemas:GENERATED
+  description: Validates GENERATED and BLOCKS wrapper schema (4..45 blocks, b-NN IDs).
+- id: DET-SYN01-ORDER-AND-RULES
+  entrypoint: evals.checkers.synthesizer_checks:check_block_ordering_and_citations
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:run_all_rules
+  description: Verifies first block is text, last block is check, and run_all_rules passes with 0 fatal/major
+    violations.
+- id: DET-SYN01-GEOMETRY-ROUTING
+  entrypoint: evals.checkers.synthesizer_checks:check_computed_geometry_routing
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.agents:run_generate
+  description: Verifies equation-fixed coordinate graphs (x-t, v-t, a-t, area-under-curve) are routed
+    to simulation blocks rather than static SVG diagrams.
+- id: DET-SYN01-PROMPT-CONTRACT
+  entrypoint: evals.checkers.prompt_contract_checks:check_02_generate_and_repair_prompt_contracts
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.agents:run_generate
+  description: Verifies 02-generate and 04-repair prompt contracts (verbatim problem data, coverage contract,
+    4-45 budget, grounding law, doctrine/palette injection, computed-geometry routing, repair omission
+    rule).
+llm_judge:
+  enabled_in_suites:
+  - full
+  entrypoint: evals.judges.pedagogy_judge:evaluate_synthesizer_coverage_and_pedagogy
+  reuses_prompt_from: factory.agents:run_check (item 7 COVERAGE)
+  severity_ladder:
+    fatal: The page omits a chapter section or a distinct exercise TYPE that the source material itself
+      teaches. Must quote the omitted chapter item.
+    major: A block smuggles in a Physics concept not explained in the source pack.
+    minor: Repetitive drills folded into a single representative block or minor wording notes.
+  way_out_rule: Report unverifiable suspicions as severity='minor' with message starting 'unverified:'
+    — never as fatal or major.
+  anchor_examples:
+  - label: Fatal — Omitted Chapter Section and Exercise Type
+    input_summary: Draft omits Section 2.6 Relative Velocity and all relative-velocity numerical exercises
+      from NCERT Ch. 2.
+    expected_issue:
+      block_id: null
+      severity: fatal
+      category: content
+      message: Page omits Section 2.6 'Relative Velocity' and Exercise 2.14 from NCERT Ch. 2 [ncert pages
+        23-25].
+  - label: Minor — Folded Repetitive Drill
+    input_summary: Three identical unit-conversion drills are represented by one check block b-04.
+    expected_issue:
+      block_id: b-04
+      severity: minor
+      category: content
+      message: 'unverified: Repetitive unit-conversion drills folded into representative check b-04.'
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 1
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 35000
+  call_deadline_s: 1800

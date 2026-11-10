@@ -97,7 +97,7 @@ Do not start Phase 3/4 perfection work before their scheduled days or before ear
 
 ### Content factory (build-time)
 
-- **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/content_factory/` (pipeline) and `testing/frontend/` (site shell).
+- **Reference implementation lives in this repo**: `pipeline.py` (single entry) + `factory/` (stage modules). Read [`docs/content-factory/architecture.md`](docs/content-factory/architecture.md) before changing the pipeline; the block handoff schema is in [`docs/content-factory/blocks-schema.md`](docs/content-factory/blocks-schema.md); test sets are in `testing/content_factory/` (pipeline), `testing/translation/` (10a..10d localization pipeline + TM store), `testing/narration/` (stage 12), and `testing/frontend/` (site shell). Stage **12-narration** (`factory/narration/`, opt-in via `ZIVON_NARRATION_ENABLED`) pre-generates per-block read-aloud audio with Gnani Timbre v3.0 at build time (C-051: zero runtime credits; A-15-bounded; GAP-015 contract) - see the architecture doc's narration section.
 - **All model calls go through `llm_manager/`** — the shared, standalone model-call module (streaming transport, inactivity timeout, per-call wall-clock deadline, transport retries, validation rounds). `factory/llm.py` is a thin adapter over it; NO other module may hand-roll HTTP calls to an inference server. The same package also runs as the isolated llm-manager node (`llm_manager/service/`, own image, k8s/16) that the factory and every future consumer (translator) talk to; the voice agent is out of scope there (voice streaming is a different domain). See `llm_manager/README.md`.
 - **Prompt writing follows `skills/prompting-and-agent-design/`**: read it before
   writing, reviewing, or refactoring any stage prompt or agent-graph decision
@@ -114,12 +114,14 @@ Decided stack: **Docker + Kubernetes + GitHub Actions + GHCR** — do not evalua
 
 Where the code lives:
 
+- `evals/` — the model/prompt evaluation framework (`python -m evals`): eval cards (`evals/cards/`), golden topics + seeded defects (`evals/goldens/`), deterministic checkers (`evals/checkers/`), `llm_manager`-routed judges (`evals/judges/`), dual-write result store (`evals/store.py`), and regression diff (`evals/diff.py`); its unit/calibration tests live in `testing/evals/`
 - `Dockerfile`, `.dockerignore`, `docker/smoke_test.py`, `docker-compose.yml` — the content factory container
 - `Dockerfile.llm-manager` — the llm-manager NODE image (slim: `llm_manager/` + fastapi only, no torch/pdfplumber/playwright); the isolated model-access node every consumer talks to
+- `Dockerfile.dashboard` — the admin DASHBOARD image (slim: `dashboard/` + `logging_manager/` + fastapi/jinja2/psycopg, + pinned kubectl for the Job views and the two trigger buttons); config env-only, secrets runtime-only
 - `Dockerfile.frontend`, `docker/nginx.conf` — the frontend nginx image (static-site hosting; bakes only the hand-maintained shell, never generated pages)
 - `docker/inference-router.Dockerfile` — dev-only router (compose service `inference-router`): bridges the host's loopback-only OpenAI-format inference server to containers/cluster pods; the llm-manager node is its only client; not a product image, not in CI
 - `k8s/` — cluster manifests (numeric prefix = apply order) + `k8s/infra.env` (single source of truth for cluster config values: `TEST_CRON_SCHEDULE`, `ZIVON_BASE_URL` (the router, the node's upstream), `ZIVON_LLM_MANAGER_URL` (the node's Service, the factory's upstream), `ZIVON_MODEL`, `ZIVON_TIMEOUT_S`, `ZIVON_CALL_DEADLINE_S` — no secrets, no image tags); `k8s/16-llm-manager.yaml` = the llm-manager Deployment + ClusterIP Service; factory is a **Job**; llm-manager and any long-running service (frontend, voice backend) is **Deployment + Service**
-- `scripts/apply-k8s.sh` (apply the whole stack from `infra.env` + startup test run), `scripts/trigger-tests.sh` and `scripts/trigger-factory-run.sh` (the two admin "buttons", Day-8 dashboard stand-ins — see TIMELINE.md), `scripts/publish-frontend.sh` (founder-run bridge: mirrors the cluster-built generated site into the repo's `frontend/` folder — the versioned, standalone-deployable snapshot, git history as the version rotation), `scripts/publish-artifacts.sh` (read-only evidence bridge: mirrors `runs/` from the `zivon-sources` PVC into the host's gitignored `runs/` for human inspection)
+- `scripts/apply-k8s.sh` (apply the whole stack from `infra.env` + startup test run + startup smoke eval), `scripts/trigger-tests.sh`, `scripts/trigger-evals.sh` (suite CronJob button) and `scripts/trigger-factory-run.sh` (the admin "buttons", Day-8 dashboard stand-ins — see TIMELINE.md), `scripts/publish-frontend.sh` (founder-run bridge: mirrors the cluster-built generated site into the repo's `frontend/` folder — the versioned, standalone-deployable snapshot, git history as the version rotation), `scripts/publish-artifacts.sh` (read-only evidence bridge: mirrors `runs/` from the `zivon-sources` PVC into the host's gitignored `runs/` for human inspection)
 - `.github/workflows/ci.yml` + `.github/workflows/codeql.yml`, `.github/dependabot.yml` — the merge gate, code scanning, dependency monitoring
 
 Consult `docs/deployment/` and touch infra when you:
@@ -130,6 +132,7 @@ Consult `docs/deployment/` and touch infra when you:
 - edit workflow files — third-party actions stay pinned to commit SHAs, `permissions: {}` + per-job grants only, no product secrets in CI runs
 - handle pipeline output — `runs/` and `frontend/` are volume-mounted in compose; in cluster Jobs `runs/` lives on the `zivon-sources` PVC (subPath `runs`) so stage artifacts and evidence survive pod death and a re-triggered run RESUMES from completed stages, while `frontend/` lands on the `zivon-frontend` PVC that the frontend Deployment serves. For deployment, `scripts/publish-frontend.sh` mirrors the generated output (`courses/`, `courses.js`) from that PVC into the repo's `frontend/` (the hand-maintained shell stays repo-owned; a re-publish wholesale-replaces a topic's previous version, which survives in git history); the committed `frontend/` is the standalone-deployable snapshot — volume-mounted, and generated pages are never baked into an image
 - run or trigger tests in-cluster — the `test-suite` CronJob (`k8s/50-test-cronjob.yaml`) runs the full suite on the cadence from `TEST_CRON_SCHEDULE` (`k8s/infra.env`, rendered by `scripts/apply-k8s.sh`, which also triggers one suite run on startup); the on-demand trigger (the standing "button" until the Day-8 dashboard) is `scripts/trigger-tests.sh`
+- run evals in-cluster — the `eval-suite` CronJob (`k8s/52-eval-cronjob.yaml`) runs `python -m evals run --suite full --fail-on-regression` on the `EVAL_CRON_SCHEDULE` cadence (daily 02:00 UTC in `infra.env`), persisting evidence to the `zivon-sources` PVC (`subPath: evals`); the on-demand button is `scripts/trigger-evals.sh [smoke|full|calibrate]`
 - start a content generation run — **manual only, never scheduled**: `scripts/trigger-factory-run.sh "<chapter>" [class 6-12] [--fresh]` renders the topic-agnostic `k8s/20` Job template (name + chapter placeholders) and applies it; re-triggering the same chapter+class RESUMES the previous attempt (the Job's `backoffLimit: 0` — a whole-pipeline re-run is never sanctioned), `--fresh` forces clean generation; the factory Job must never run on its own
 
 Non-negotiable: secrets never enter images, manifests, or workflows — runtime only, via env vars / K8s Secrets. CI must pass key-free.
@@ -188,6 +191,15 @@ Key design-method principles (shared by the two bundles; apply to every spec in 
 - **Specs are handoffs.** A reader with no access to the author must be able to build from them; prefer tables with stable IDs over prose.
 
 Content-creation non-negotiables: interview before drafting (Depth Gate), never fabricate facts, never post on the user's behalf without explicit approval, and **Kinocut MCP (video) and GIMP MCP (image editing) are the decided editing tools** — do not evaluate or propose other editing tools.
+
+---
+
+## Testing vs Evals (`testing/` vs `evals/`)
+
+- **`testing/` holds deterministic code tests** (unit mechanics, schema validation, mock-server stage orchestration, and static shell contracts). They must pass 100% key-free and offline.
+- **`evals/` holds model & prompt evaluations** (`EV-CUR-001`, `EV-SYN-001..002`, `EV-VIS-001`, `EV-PERF-001`, `EV-REV-001..002`, `EV-E2E-001`, `EV-KID-001`), Golden Topic contracts (`evals/goldens/topics/`), the 19-sample Seeded-Defect Reviewer Calibration corpus (`evals/goldens/defects/`), and the Dual-Write Eval Result Store (`ADR-0027`, `ADR-0028`).
+- Every eval card runs a **deterministic-first funnel**: zero-cost code checkers (`evals/checkers/`) execute first and short-circuit before any `llm_manager` judge call (`evals/judges/`).
+- Run fast PR smoke evals key-free via `python -m evals run --suite smoke --mock` and full/calibration suites via `python -m evals run --suite full` or `python -m evals calibrate --stage all`.
 
 ---
 
