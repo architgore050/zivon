@@ -121,16 +121,26 @@ services:
   # ---------------------------------------------------------------------------
   # Wave-E dev stack (EX6-CICD work item 4) — dev-only, OPT-IN.
   #
-  #   docker compose --profile dev-stack up -d     # db + backend
-  #   docker compose run --rm evals-runner         # deterministic eval smoke
+  #   docker compose --profile dev-stack up -d     # dev db (:5433) + evals runner
+  #   docker compose --profile dev-stack run --rm evals-runner  # deterministic eval smoke
+  #   docker compose --profile backend up -d       # db + core-backend (:8090) — needs Dockerfile.backend
   #
-  # Every service below carries `profiles: ["dev-stack"]`, so the default
-  # `docker compose up` / `compose run factory` behave EXACTLY as before the
-  # Wave-E work: profiled services build/start only when the profile is
-  # enabled. Host ports stay out of the occupied range (8081 site, 18080
-  # router, 18090 node): db 5433, backend 8090, bound to loopback only. The
-  # dashboard is NOT in the profile — it keeps its existing non-profiled
-  # service above (:8082), so both documented commands stay true.
+  # Every service below carries a profile, so the default `docker compose up`
+  # / `compose run factory` behave EXACTLY as before the Wave-E work: profiled
+  # services build/start only when their profile is enabled.
+  #
+  # `backend` deliberately has its OWN `backend` profile instead of riding
+  # `dev-stack`: EX0's `Dockerfile.backend` has not landed yet, so including it
+  # in `dev-stack` would make `--profile dev-stack up` fail at build time
+  # today. `dev-stack` thus stays usable (db + evals-runner) while the backend
+  # stack is an explicit opt-in that starts failing only for whoever asks for
+  # it — and works the day the Dockerfile lands. The `db` service joins both
+  # profiles because both consumers need it.
+  #
+  # Host ports stay out of the occupied range (8081 site, 18080 router, 18090
+  # node): db 5433, backend 8090, bound to loopback only. The dashboard is NOT
+  # profiled — it keeps its existing non-profiled service above (:8082), so
+  # both documented commands stay true.
   #
   # Mock/dev posture: the backend boots on CONFIG-ONLY env (no product
   # secrets in compose — repo rule; real keys come from the shell at runtime,
@@ -140,9 +150,10 @@ services:
   # not a talking tutor.
   db:
     # Dev Postgres 16 (backend-spec §12 — same major the cluster runs).
-    # Profiled: the factory/llm-manager/web stack never touches it.
+    # Profiled: the factory/llm-manager/web stack never touches it; shared by
+    # the dev-stack (evals) and backend profiles.
     image: postgres:16-alpine
-    profiles: ["dev-stack"]
+    profiles: ["dev-stack", "backend"]
     environment:
       - POSTGRES_USER=${DEV_DB_USER:-zivon}
       - POSTGRES_PASSWORD=${DEV_DB_PASSWORD:-zivon}
@@ -159,14 +170,14 @@ services:
     restart: unless-stopped
 
   # The core-backend monolith (voice/ mounts into it, ADR-0020 — no separate
-  # voice service or image). Builds from EX0's Dockerfile.backend; until that
-  # lands, enabling this profile errors ONLY when this service is targeted.
+  # voice service or image). Builds from EX0's Dockerfile.backend; own
+  # `backend` profile until that lands (see the section comment above).
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     image: zivon-backend:0.1.0
-    profiles: ["dev-stack"]
+    profiles: ["backend"]
     environment:
       # Dev DB: the compose `db` service (credentials are throwaway dev values).
       - ZIVON_DB_URL=postgresql://${DEV_DB_USER:-zivon}:${DEV_DB_PASSWORD:-zivon}@db:5432/${DEV_DB_NAME:-zivon}

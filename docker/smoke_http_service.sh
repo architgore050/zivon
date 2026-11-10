@@ -10,9 +10,14 @@
 #      runs the image with its config env, polls the health endpoint until it
 #      answers; dumps the container log and fails otherwise.
 #   2. refuses-without-config (--refuse-without-config):
-#        docker/smoke_http_service.sh --image IMG --refuse-without-config
+#        docker/smoke_http_service.sh --image IMG --refuse-without-config \
+#            [--config-error-pattern REGEX]
 #      runs the image with NO config env and expects a loud nonzero exit
-#      INSIDE the timeout. Repo rule: config via env, no silent defaults.
+#      INSIDE the timeout — AND that the output names the missing config.
+#      A nonzero exit alone proves nothing (a crashed importer also exits 1);
+#      the container's stdout+stderr must match the config-error pattern
+#      (default: config|required|missing|not set|must be set|ZIVON_).
+#      Repo rule: config via env, no silent defaults.
 #      Note this is stricter than the llm-manager job's original inline check:
 #      a container that hangs without config exits 124 from `timeout` and is
 #      treated as a FAILURE here (a hang is not a refusal).
@@ -33,9 +38,11 @@ HEALTHZ="/healthz"
 TIMEOUT=30
 REFUSE=false
 BOOT_ENVS=()
+# A refusal must NAME the missing config, not merely exit nonzero.
+CONFIG_ERROR_PATTERN='config|required|missing|not set|must be set|ZIVON_'
 
 usage() {
-  sed -n '2,30p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
+  sed -n '2,31p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
   exit 2
 }
 
@@ -47,6 +54,7 @@ while [ $# -gt 0 ]; do
     --healthz) HEALTHZ="${2:?--healthz needs a path}"; shift 2 ;;
     --timeout) TIMEOUT="${2:?--timeout needs seconds}"; shift 2 ;;
     --refuse-without-config) REFUSE=true; shift ;;
+    --config-error-pattern) CONFIG_ERROR_PATTERN="${2:?--config-error-pattern needs a regex}"; shift 2 ;;
     --boot-env) BOOT_ENVS+=("${2:?--boot-env needs VAR=VAL}"); shift 2 ;;
     -h|--help) usage ;;
     *) echo "unknown argument: $1" >&2; usage ;;
@@ -61,9 +69,11 @@ fi
 # ---- refuses-without-config -------------------------------------------------
 if [ "$REFUSE" = true ]; then
   echo "refuse-without-config: running $IMAGE with no config env (timeout ${TIMEOUT}s)"
+  out=$(mktemp)
+  trap 'rm -f "$out"' EXIT
   started=$(date +%s)
   set +e
-  timeout "$TIMEOUT" docker run --rm "$IMAGE"
+  timeout "$TIMEOUT" docker run --rm "$IMAGE" >"$out" 2>&1
   rc=$?
   set -e
   elapsed=$(( $(date +%s) - started ))
@@ -76,7 +86,14 @@ if [ "$REFUSE" = true ]; then
     echo "ERROR: $IMAGE exited 0 without config — silent defaults are forbidden (config via env only)." >&2
     exit 1
   fi
-  echo "OK: refused without config (exit $rc after ${elapsed}s)"
+  if ! grep -Eiq -- "$CONFIG_ERROR_PATTERN" "$out"; then
+    echo "ERROR: $IMAGE exited $rc but its output carries no config-error marker." >&2
+    echo "Expected a match for: $CONFIG_ERROR_PATTERN" >&2
+    echo "A bare nonzero exit can be a crash, not a refusal — captured output:" >&2
+    cat "$out" >&2
+    exit 1
+  fi
+  echo "OK: refused without config (exit $rc after ${elapsed}s; output names the config error)"
   exit 0
 fi
 
