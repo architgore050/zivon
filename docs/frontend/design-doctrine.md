@@ -358,3 +358,133 @@ ratios.
   and Courier Prime into the page folder (no external calls).
 - Hindi/Hinglish strings in the example were model-drafted, not reviewed by a native reader. Several
   highlighted statements per screen and multi-line statements are untested.
+
+### 10.12 Voice dock (DCR-002 — adopted 2026-11-10)
+
+**Shape: the bottom sheet.** Of the six candidates reviewed, the thumb-first sheet was chosen because
+the dock is used for ~20 seconds inside a lesson, and a sheet keeps the tutor one thumb-reach away
+without permanently taking the page. It reads as a **paper slip laid on the notebook**, not a chat app.
+This section is binding; the mockups in `tmp/voice-dock-examples/` are throwaway.
+
+**Placement.** One region, `aside.zn-voice-dock-region` (`SCR-LES-01.R9`, `EL-LES-01-090`) at the end
+of `.zn-page`. The dock is `position: fixed`, bottom-aligned, full width below 900 px, `max-width: 560px`
+and right-aligned at ≥900 px. It never overlays the language bar. It respects
+`env(safe-area-inset-bottom)`. The page above the sheet stays scrollable; the sheet never locks scroll.
+
+#### Containment states (independent of the agent state)
+
+| State | What the student sees | How it changes |
+|---|---|---|
+| `hidden` | a 44 px paper **tab** at the bottom-right, mic glyph + the word “Ask” (never a bare icon) | press the tab → `collapsed`; set only by the student |
+| `collapsed` | a 92 px strip: grab rule, one-line live caption, 56 px mic at the thumb corner, “Type” affordance | grab/drag or mic press → `expanded`; Esc or drag-down → `collapsed` |
+| `expanded` | sheet up to 60 dvh: grab handle (30 px), transcript panel (≤34 dvh), anchor chip, identity line, caption, mic, stop, typed input, help chips, settings + memory entries | Esc / drag-down → `collapsed` |
+
+- **First visit:** `collapsed`, but the **consent gate comes first** (§10.14): until consent is
+  accepted the region stays hidden and no microphone affordance is shown.
+- **Persist per device:** `localStorage["zivon.dock"]` = `"hidden" | "collapsed" | "expanded"`.
+  Default `collapsed`. A stored `expanded` starts collapsed on a new page load (never auto-expand).
+- **Silence-close:** after a turn reaches `idle`, the sheet stays **expanded** for 5 s, then returns to
+  `collapsed` (never `hidden`, never blinks out). The transcript survives collapse.
+- **Hide is always reversible:** the 44 px tab is the permanent affordance; there is no way to remove
+  the dock entirely, and hiding never changes the lesson's readability.
+- **No re-nag:** after the student hides the dock, one passive tab is the only reminder. No coach marks,
+  no badges, no pulse.
+
+#### Visual rules (inherits §3–§6 and §10.1–§10.11 unchanged)
+
+- Paper `--paper` surface, 2 px ink top rule, a **single** tape corner at −3° on the anchor chip only.
+  **No** gradients, drop shadows, blur, glass, card rotation, or grain. Red/green keep their meanings.
+- Transcript text is Courier Prime on the ruled rhythm; labels/handwriting accents are Caveat/Kalam.
+  The transcript is the **final** tutor line by default (T1); the live partial line is the one-line
+  `caption` above the mic and may be turned off with the captions toggle (persisted per device).
+- Mic button: 56 px paper disc, ink mic glyph, `aria-pressed` while held. Pressed = filled ink;
+  released = outline. Hold-to-talk is the default (ADR-0018).
+- States use **shape and words**, never hue alone (colour-blind/sunlight rule):
+
+| Agent state | Dock visual |
+|---|---|
+| `idle` | mic outline, caption “Mic dabao aur poochho” |
+| `requesting-permission` | tab microcopy “mic ki permission…”, no spinner |
+| `connecting` | a 2 px dotted rule breathing once, “jud rahe hain…” |
+| `ready` | same as idle, caption cleared |
+| `listening` | mic filled, 5 level bars, “Sun rahe hain — pakad ke rakho” |
+| `endpointing` | mic outline, bars at 15 %, dashed hairline, “silence mila…” — **never** a spinner |
+| `thinking` | one 2 px indeterminate sweep, **no timer, no percentage** |
+| `speaking` | caption grows phrase by phrase + caret + level bars |
+| `speaking_text` | same text, **no bars, no caret**, chip “TUTOR · TEXT” |
+| `interrupted` | frozen half-word, transcript row marked “▍cut off” |
+| `offline` | “connection gaya — jo type karoge woh safe hai”, text path open |
+| `error:mic-denied` | `MIC OFF` stamp, one sentence (“lesson chalta rahega”), typed field open + focused — **never** a red toast |
+| `error:mic-in-use` / `error:no-match` / `error:system-error` | one plain sentence + retry affordance + text path; no stack traces |
+| `error:auth.invalid` / `error:version.mismatch` | one sentence + “page refresh karein”; dock degrades to text |
+| `text_only` | mic disabled with the ledger line (“30 credits/day · voice resets 00:00 · reading, sims, typing free”), typed input active |
+
+#### Interaction
+
+1. **Barge-in:** pressing the mic while `speaking`/`thinking` **is** the interrupt. Playback ramps down
+   in ~50 ms, the caption freezes mid-word, an `interrupt` frame goes to the server, and the dock moves
+   to `listening`. The cut turn is kept in the transcript with the `cut off` mark.
+2. **Text fallback from every state:** the typed input is reachable in `expanded` (and via “Type” in
+   `collapsed`); errors and `text_only` never remove it. The lesson is never blocked by voice failure.
+3. **Anchor:** an anchor chip shows the block being discussed (`b-13 · worked example`) and pressing it
+   scrolls to and rings that block with the pen-blue highlight (`EL-LES-01-056`). The tutor's
+   `highlight` frame does the same. The page and the dock must visibly be one conversation.
+4. **Keyboard:** Space (hold) = talk, Esc = stop/interrupt, then Esc = collapse, Enter = send typed.
+   Focus rings are always visible; focus returns to the mic after a turn.
+5. **a11y:** `role="region"` + `aria-label`; caption `aria-live="polite"`; transcript `aria-live="polite"`
+   but not on every growth tick (throttled); mic `aria-pressed`; every control 44 px minimum.
+6. **Reduced motion:** caption growth becomes instant text; no bars animate; the sweep becomes a static
+   “soch rahe hain…” line.
+7. **Perf:** transform/opacity only, no filters/backdrop-blur, ≤ ~90 DOM nodes idle, ≤ ~140 at six turns;
+   must hold 60 fps on a 2 GB Android Go and fit the `weak-android` budget.
+
+#### Seams (binding)
+
+- Mount is `window.ZivonVoiceDock.lazyMount()`; the client is `window.ZivonVoiceClient.create()`.
+- `doctrineReady = true` **only** while this section exists; `lazyMount()` builds the sheet shell,
+  then `create()` wires the socket. Mount is idempotent (`data-zn-dock-mounted`).
+- Context comes from `buildContextSnapshot()`; highlight from `highlightBlocks()`.
+- Same-origin `wss://<origin>/voice/ws`; `connect-src 'self'` is already granted on lesson pages.
+- The dock never autoplays audio and never opens the mic without a user gesture.
+
+#### Not allowed
+
+- No floating dark chat bubble, no rounded “assistant” card, no glow, no full-screen takeover.
+- No second conversation surface; one dock, one transcript.
+- No progress bar, streak, gamification, or timer in the dock.
+- No invented copy where the F-table (spec.md §9) already defines a state.
+
+### 10.13 Read-aloud of lesson text (F-WRP-TTS-01)
+
+Static lesson text gets a **TTS control per speakable block**, so a student can hear the page without
+talking to the tutor. It uses **pre-generated Timbre v3.0 audio** (build-time, C-051); browser
+`SpeechSynthesis` is never used.
+
+- **Affordance:** a 44 px paper pill at the block's left margin, label “सुनो”/“Listen”, play glyph.
+  While playing it becomes stop; a 2 px ink progress rule sits under the block. One block plays at a
+  time; starting another stops the first.
+- **Source of truth:** the topic `manifest.json` `narration.blocks[block_id]` map
+  (`{available, path, duration_ms}`), or `narration-manifest.json`. The asset URL is the ST-04
+  content-hash path `/audio/{course_id}/{block_id}.{lang}.{hash}.opus`.
+- **Absent audio:** if a block has no asset (or the manifest is missing), **render no button** — never a
+  dead control. A page-level “Listen” index is not added; the affordance is per block.
+- **Language:** buttons follow the active locale; if a locale has no narration, no buttons.
+- **Voice interaction:** pressing the dock mic stops narration (echo guard); narration and the tutor
+  never speak over each other.
+- **a11y:** `aria-pressed`, accessible name includes the block title, keyboard-operable, status text
+  announced once (“playing narration”); reduced motion does not remove audio, only the progress
+  animation.
+- **Perf:** audio is lazy (`preload="none"`), fetched on first press; the progress rule is CSS
+  transform only.
+- **Injection:** the shell kit adds the control to every block listed in the manifest, so
+  content-only generated pages get it with no per-page markup (see
+  `docs/specs/frontend/shell-injection.md`).
+
+### 10.14 Consent gate (F-XCT-CON-01, binding wiring)
+
+Before the dock or read-aloud is usable on a lesson page, a one-time consent sheet explains: what is
+recorded (voice → text), that audio is not kept, that Gnani processes the speech, and that the lesson
+works without voice. **Continue** (with the guardian checkbox where required) unlocks voice for this
+device; **Decline** keeps reading/sims/typing and never re-nags. The privacy-summary page
+(`SCR-PRIV-01`) is linked from the sheet and the footer. The gate is device-local
+(`localStorage`), no accounts, and clearing data removes it.

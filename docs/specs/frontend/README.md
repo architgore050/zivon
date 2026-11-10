@@ -20,7 +20,7 @@ This spec therefore keys to what IS binding in the repo today:
 
 | Source | What it binds for this spec |
 |---|---|
-| `docs/frontend/design-doctrine.md` (Field Notes v1.6) | every visual rule, the kit contract (§10.2), language bar (§10.5), a11y validation (§10.8). **§10 ends at 10.11 — there is no §10.12 voice dock directive**, so dock UI is founder-gated (the brief's DCR-002 standing guard) |
+| `docs/frontend/design-doctrine.md` (Field Notes v1.6) | every visual rule, the kit contract (§10.2), language bar (§10.5), a11y validation (§10.8). **UPDATE 2026-11-10:** §10.12 (voice dock, bottom-sheet shape), §10.13 (read-aloud) and §10.14 (consent gate) now exist. The dock is no longer founder-gated; DCR-002 is closed. §10.12 was self-reviewed against the five candidates and adopted with founder authorisation. |
 | `frontend/assets/zivon.css` + `zivon.js` component catalog | the renderer-emitted markup contracts every page composes from |
 | `docs/content-factory/blocks-schema.md` (v1, frozen) | the block types a lesson page renders |
 | `docs/deployment/*`, `Dockerfile.frontend`, `docker/nginx.conf`, `scripts/publish-frontend.sh` | build/deploy/cache truth |
@@ -46,6 +46,7 @@ features are specified** — only surfaces the shell and doctrine already show.
 | [`state-matrix.md`](state-matrix.md) | implementation view of the screen-state matrix: rows = screens/regions, columns = the ten canonical states, cells = what the student perceives and which code path renders it |
 | [`perf-budget-tests.md`](perf-budget-tests.md) | how CI enforces the page-load / fps / RAM budgets on low-end Android (extends `testing/frontend/`), both budget eras, reduced-motion tests |
 | [`seo-plan.md`](seo-plan.md) | static multilingual SEO: meta + hreflang, sitemap/robots generation, JSON-LD, Open Graph, canonical URLs, the child-privacy guardrails that constrain all of it |
+| [`shell-injection.md`](shell-injection.md) | binding contract for injecting product chrome (consent, dock, read-aloud, report, notices) into content-only generated pages from the shell kit |
 | [`open-questions.md`](open-questions.md) | every unresolved upstream reference, the decision needed, and the reconciliation procedure for provisional ids |
 
 ## Binding ground rules (inherited — restated because every section depends on them)
@@ -82,9 +83,10 @@ features are specified** — only surfaces the shell and doctrine already show.
   + the per-area files; each work item cites its source_ref and flags.
 - The merge agent reads `open-questions.md` first: it lists every place this spec
   had to stand in for an absent upstream artifact.
-- The founder owns the three founder-gated items: the voice-dock UI (doctrine
-  §10.12), the CSP `connect-src` relaxation for the voice WS, and the localized
-  route scheme (ADR-0009 territory).
+- Status of the three formerly gated items: the voice-dock UI is now specified
+  (doctrine §10.12–§10.14, 2026-11-10); the CSP `connect-src 'self'` relaxation
+  for lesson pages is implemented; the localized route scheme (ADR-0009) remains
+  a hook only and is P1.
 
 ## Docs sanity pass (the "tests" for this docs-only change, per protocol §4)
 
