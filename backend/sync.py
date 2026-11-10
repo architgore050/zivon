@@ -1,13 +1,25 @@
 """Cold-storage sync, base backup, eviction guard, and publish verification hook.
 
-Implements `docs/backend/storage-tiering.md` §3–§6 and `sync-policy.csv`:
-- `SYNC-01`: Publish-time synchronous upload + SHA-256 read-back verification +
+Implements `docs/backend/storage-tiering.md` §3–§6 and `sync-policy.csv`.
+**SIMULATED STORE (honest state, 2026-11-10):** `COLD_BUCKET_*` object
+storage is NOT wired — `_write_cold_object` only stages to the local
+cold-staging directory (`ZIVON_COLD_STAGING_DIR`). SYNC-02/-03 "upload to B2/R2"
+means "stage locally + SHA-256 read-back verify"; getting bytes into real
+object storage is a manual copy of the staged files (restore path =
+`python -m backend.sync decrypt` + manual upload, see
+`docs/deployment/restore-drill.md`).
+
+- `SYNC-01`: Publish-time synchronous "upload" + SHA-256 read-back verification +
   `cold_verified_at` stamp before flipping `live_pointer` (`NFR-18`). Generic
   hook shared by `scripts/publish-frontend.sh`, EX2-TRANS, and EX8-NARRATION.
-- `SYNC-02`: Daily DB base backup (`base/{YYYY-MM-DD}.zst.enc`) + WAL archive
-  verification (`C14`) to primary (`B2`) and secondary (`R2`) cold targets.
-- `SYNC-03`: Nightly client-side envelope-encrypted snapshot of `consent_record`
-  (`C9`), `audit_log` (`C13`), and `deletion_request` (`C18`) to `B2` + `R2`.
+- `SYNC-02` (simulated staging): Daily DB base backup
+  (`base/{YYYY-MM-DD}.enc`, HMAC-CTR envelope-encrypted) + read-back
+  verification (`C14`). **No WAL archiving / PITR is implemented** — the
+  effective RPO is the last base backup (<= 24 h), not the `<= 5 min` target
+  in `backend-spec.md` NFR-17.
+- `SYNC-03` (simulated staging): Nightly client-side envelope-encrypted snapshot
+  of `consent_record` (`C9`), `audit_log` (`C13`), and `deletion_request`
+  (`C18`).
 - `SYNC-05`: Nightly archive of completed factory runs (`C4`) with manifest and
   read-back checksum verification.
 - `EVICT-01`: Hard eviction invariant (`cold_verified_at IS NOT NULL AND NOT pinned`
@@ -64,23 +76,32 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _encrypt_envelope(plaintext: bytes, secret_key: str) -> bytes:
-    """Client-side authenticated envelope encryption for child-adjacent archives (A-13)."""
-    compressed = zlib.compress(plaintext, level=6)
-    nonce = os.urandom(16)
-    key_bytes = hashlib.sha256(secret_key.encode("utf-8")).digest()
-    # Counter-mode keystream derived via HMAC-SHA256 + authentication tag
-    stream = bytearray(len(compressed))
-    block_count = (len(compressed) + 31) // 32
+def _keystream_xor(key_bytes: bytes, nonce: bytes, data: bytes) -> bytes:
+    """XOR `data` with the ordered HMAC-SHA256(nonce+counter) keystream (both directions)."""
+    stream = bytearray(data)
+    block_count = (len(data) + 31) // 32
     for idx in range(block_count):
         blk = hmac.new(
             key_bytes, nonce + idx.to_bytes(4, "big"), hashlib.sha256
         ).digest()
         start = idx * 32
-        end = min(start + 32, len(compressed))
+        end = min(start + 32, len(data))
         for j in range(start, end):
-            stream[j] = compressed[j] ^ blk[j - start]
-    ciphertext = bytes(stream)
+            stream[j] = data[j] ^ blk[j - start]
+    return bytes(stream)
+
+
+def _encrypt_envelope(plaintext: bytes, secret_key: str) -> bytes:
+    """Client-side authenticated envelope encryption for child-adjacent archives (A-13).
+
+    Reversible via the `decrypt` CLI subcommand below; the key source
+    (`ZIVON_SESSION_TOKEN_KEY`, ref `k8s:zivon-voice-env`) is the same one that
+    encrypted — see `docs/deployment/restore-drill.md` §2.
+    """
+    compressed = zlib.compress(plaintext, level=6)
+    nonce = os.urandom(16)
+    key_bytes = hashlib.sha256(secret_key.encode("utf-8")).digest()
+    ciphertext = _keystream_xor(key_bytes, nonce, compressed)
     mac = hmac.new(key_bytes, nonce + ciphertext, hashlib.sha256).hexdigest()
     envelope = {
         "v": 1,
@@ -90,6 +111,30 @@ def _encrypt_envelope(plaintext: bytes, secret_key: str) -> bytes:
         "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
     }
     return json.dumps(envelope, separators=(",", ":"), sort_keys=True).encode("utf-8")
+
+
+def _decrypt_envelope(envelope: bytes, secret_key: str) -> bytes:
+    """Reverse of `_encrypt_envelope`: verify the MAC, undo the keystream, decompress."""
+    try:
+        obj = json.loads(envelope.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SyncVerificationError(f"Not a Zivon envelope (JSON parse failed): {exc}") from exc
+    if not isinstance(obj, dict) or obj.get("v") != 1 or obj.get("alg") != "ZIVON-HMAC-CTR-SHA256":
+        raise SyncVerificationError(
+            f"Unsupported envelope format: v={obj.get('v')!r} alg={obj.get('alg')!r}"
+        )
+    try:
+        nonce = base64.b64decode(obj["nonce"], validate=True)
+        ciphertext = base64.b64decode(obj["ciphertext"], validate=True)
+    except (KeyError, ValueError) as exc:
+        raise SyncVerificationError("Envelope is missing or has invalid base64 fields") from exc
+    key_bytes = hashlib.sha256(secret_key.encode("utf-8")).digest()
+    expected_mac = hmac.new(key_bytes, nonce + ciphertext, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected_mac, str(obj.get("mac", ""))):
+        raise SyncVerificationError(
+            "Envelope MAC mismatch — wrong key or tampered ciphertext"
+        )
+    return zlib.decompress(_keystream_xor(key_bytes, nonce, ciphertext))
 
 
 def _bundle_path_bytes(target_path: Path) -> tuple[bytes, str, int]:
@@ -419,7 +464,7 @@ class ColdStorageSync:
         ).encode("utf-8")
         encrypted = _encrypt_envelope(raw_json, self.config.session_token_key)
         sha256 = _sha256_bytes(encrypted)
-        cold_key = f"base/{day_str}.zst.enc"
+        cold_key = f"base/{day_str}.enc"
         obj_key = f"c14/base/{day_str}/{sha256[:16]}"
 
         # Upload to primary (B2) and secondary (R2) per ADR-0004
@@ -500,7 +545,7 @@ class ColdStorageSync:
         ).encode("utf-8")
         encrypted = _encrypt_envelope(raw_bytes, self.config.session_token_key)
         sha256 = _sha256_bytes(encrypted)
-        cold_key = f"consent-snap/{day_str}.jsonl.zst.enc"
+        cold_key = f"consent-snap/{day_str}.jsonl.enc"
         obj_key = f"c9/consent-snap/{day_str}/{sha256[:16]}"
 
         self._write_cold_object(self.config.cold_provider, cold_key, encrypted)
@@ -547,7 +592,16 @@ class ColdStorageSync:
                 run_dir = status_file.parent
                 try:
                     st_data = json.loads(status_file.read_text(encoding="utf-8"))
-                except Exception:  # noqa: BLE001, S112
+                except Exception as exc:  # noqa: BLE001
+                    log_event(
+                        "factory.sync.run_status_unreadable",
+                        {
+                            "artifact_path": str(status_file),
+                            "reason_code": "unreadable",
+                        },
+                        severity=Severity.WARNING,
+                        error_class=ErrorClass.STORE_ERROR,
+                    )
                     continue
                 if not st_data.get("completed_at"):
                     continue
@@ -704,6 +758,34 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "redelete-restore":
         res = sync.apply_redelete_on_restore()
         print(f"[redelete-restore] ok {json.dumps(res)}")
+        return 0
+
+    if cmd == "decrypt":
+        if len(args) < 2:
+            print(
+                "usage: python -m backend.sync decrypt <path> [--out FILE]",
+                file=sys.stderr,
+            )
+            return 2
+        enc_path = Path(args[1])
+        out_path: Path | None = None
+        if "--out" in args:
+            idx = args.index("--out")
+            if idx + 1 < len(args):
+                out_path = Path(args[idx + 1])
+        # Key source: ZIVON_SESSION_TOKEN_KEY (config.session_token_key) — the
+        # same secret that encrypted the archive (A-13, ref `k8s:zivon-voice-env`).
+        key = cfg.session_token_key
+        try:
+            plaintext = _decrypt_envelope(enc_path.read_bytes(), key)
+        except SyncVerificationError as exc:
+            print(f"[decrypt] FAILED: {exc}", file=sys.stderr)
+            return 1
+        if out_path is not None:
+            out_path.write_bytes(plaintext)
+            print(f"[decrypt] ok wrote {len(plaintext)} bytes -> {out_path}")
+        else:
+            sys.stdout.buffer.write(plaintext + b"\n")
         return 0
 
     print(f"Unknown sync command: {cmd}", file=sys.stderr)
