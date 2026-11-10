@@ -17,6 +17,7 @@ the FOUNDER creates the objects themselves and holds the values.
 |---|---|---|---|
 | `zivon-factory-env` (exists) | `ZIVON_API_KEY` (OpenRouter key, shared by the node + factory) | founder | factory Job (`k8s/20`, `50`), llm-manager node (`k8s/16`), evals CronJob (`k8s/52`) |
 | `zivon-voice-env` | `GNANI_PRISMA_API_KEY`, `GNANI_TIMBRE_API_KEY`, `ZIVON_VOICE_GEMINI_API_KEY`, `ZIVON_DB_URL`, `ZIVON_SESSION_TOKEN_KEY`, `ZIVON_IP_HASH_SALT` | founder (values); EX0 (manifest reference) | core-backend monolith incl. `voice/` (`k8s/25–28`) |
+| `zivon-backend-env` | `ZIVON_LOG_DSN` (backend DB DSN for the `log_events` store) | founder (values); EX0 (manifest reference) | admin dashboard (`k8s/23`) + log-retention CronJob (`k8s/51`); the backend's own runtime config (OQ-7) |
 | `zivon-db-env` | `POSTGRES_PASSWORD` | founder (values); EX0 (manifest reference) | Postgres (`k8s/25`) + core-backend monolith |
 | `zivon-cold-writer` | B2/R2 application key — upload+read only, **no delete** (storage-tiering §5) | founder (values); EX0 (manifest reference) | sync worker (`k8s/51/53` bundle) |
 | `zivon-cold-deleter` | B2/R2 application key — delete-capable identity | founder (values); EX0 (manifest reference) | deletion pipeline jobs |
@@ -31,12 +32,16 @@ nobody "fixes" around them):
   never compose defaults. kube-linter's `unsecrets` check is deliberately
   exempted in `.kube-linter.yaml` because env injection IS the intended pattern.
 - `k8s/infra.env` is config values only — no secret keys, no placeholder values
-  that invite real ones. `ZIVON_DB_URL` in `zivon-voice-env` is the one DSN-shaped
-  entry and it is a Secret because the password is inside it.
+  that invite real ones. **Both DSN-shaped values are Secret-only**: the voice
+  session DB URL (`ZIVON_DB_URL`) lives in `zivon-voice-env`, the log-store
+  DSN (`ZIVON_LOG_DSN`) lives in `zivon-backend-env` — never in `infra.env`
+  (see `docs/deployment/observability.md`), because each carries a password.
 - The three cold identities preserve the least-privilege split: the writer cannot
   delete, the deleter does not read data, the restorer only reads.
 - CI never sees any of these (the merge gate + promotion gate run key-free;
-  `docs/deployment/cicd.md` security posture table).
+  `docs/deployment/cicd.md` security posture table). The `PROMOTION_TOKEN`
+  above is a GitHub-issued CI credential, not a product secret — it grants no
+  access to any Zivon runtime.
 
 ## Creating the objects (founder runbook — names/keys only, values stay in the terminal)
 
@@ -58,6 +63,10 @@ kubectl create secret generic zivon-voice-env -n zivon \
 kubectl create secret generic zivon-db-env -n zivon \
   --from-literal=POSTGRES_PASSWORD='<db-password>'
 
+# backend log store (EX0 owns the backend DB; dashboard + retention read it)
+kubectl create secret generic zivon-backend-env -n zivon \
+  --from-literal=ZIVON_LOG_DSN='postgresql://zivon:<db-password>@postgres.zivon.svc.cluster.local:5432/zivon'
+
 # cold provider identities (least-privilege split, storage-tiering §5)
 kubectl create secret generic zivon-cold-writer -n zivon \
   --from-literal=B2_APPLICATION_KEY_ID='<key id>' \
@@ -73,6 +82,16 @@ kubectl create secret generic zivon-cold-restore -n zivon \
 kubectl create secret generic zivon-admin-auth -n zivon \
   --from-literal=ZIVON_ADMIN_TOKEN='<long random token>'
 ```
+
+## CI/CD token — a GitHub repo secret, not a K8s object
+
+| Repo secret | Used by | Why |
+|---|---|---|
+| `PROMOTION_TOKEN` | `promotion.yml` `promote` job (opens the `main → prod` PR) | A PR opened with `GITHUB_TOKEN` triggers no `pull_request` workflows, so its checks would never run. The PAT's actor is what makes the promotion PR a real gate. Fine-grained, this repo only: contents write + pull-requests write. The workflow fails loudly when it is absent. |
+
+Value is created by the founder in **Settings → Secrets and variables →
+Actions** and never recorded here. Rotate it like any PAT (on suspicion or at
+expiry); the next promotion run picks the new value up automatically.
 
 ## Rotation (gotcha 18 — keys are read at pod start)
 
@@ -90,6 +109,7 @@ kubectl create secret generic zivon-admin-auth -n zivon \
 | Google Gemini API key | per Google AI Studio guidance | 90 d |
 | OpenRouter key (`ZIVON_API_KEY`) | suspected leak / key visible in a log | 90 d |
 | `POSTGRES_PASSWORD` | with any DB restore drill | quarterly |
+| `ZIVON_LOG_DSN` | with any DB restore drill / password rotation | quarterly |
 | `ZIVON_SESSION_TOKEN_KEY` / `ZIVON_IP_HASH_SALT` | leak only — rotating invalidates sessions / breaks abuse-counter continuity | on compromise |
 | B2/R2 application keys | least-privilege re-review | 180 d |
 | `ZIVON_ADMIN_TOKEN` | admin-adjacent incident | 90 d |

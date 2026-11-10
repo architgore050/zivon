@@ -8,7 +8,7 @@ Triggers: PR → `main`, push → `main`, manual dispatch. Twelve parallel jobs 
 
 | Job | Checks |
 |---|---|
-| `quality` | `ruff check`, `ruff format --check` (config in `ruff.toml`: vendored third-party skill trees under `skills/*/vendored/` are out of scope — they are other projects' code and docs, kept verbatim with their licences), `mypy --ignore-missing-imports`. Tools pinned (`ruff==0.17.4`, `mypy==2.4.1`) — see Gate integrity below |
+| `quality` | `ruff check`, `ruff format --check` (config in `ruff.toml`: vendored third-party skill trees under `skills/*/vendored/` are out of scope — they are other projects' code and docs, kept verbatim with their licences), `mypy --ignore-missing-imports`, then `scripts/check_workflows.py --self-test` + `scripts/check_workflows.py .` (YAML parse, SHA pins at step and reusable-workflow level, no `write-all`/`pull_request_target`, no product-secret references). Tools pinned (`ruff==0.17.4`, `mypy==2.4.1`, `pyyaml==6.0.3`) — see Gate integrity below |
 | `docker` | hadolint (Dockerfile lint) → build with GHA layer cache (`type=gha`) → **smoke test** (`docker run --rm`) → trivy image scan (fails on CRITICAL/HIGH with fix available) → SBOM (CycloneDX) uploaded as build artifact |
 | `llm-manager-image` | the model-call node (`Dockerfile.llm-manager`): hadolint → build → smoke (**boots with config, `/healthz` answers with a dead upstream; refuses to boot without config** — the original of the `docker/smoke_http_service.sh` pattern) → trivy scan |
 | `frontend-image` | hadolint (`Dockerfile.frontend`) → build → **serve smoke test** (container up on :8080 with the html root seeded from the baked `/opt/zivon-shell` staging path — the cluster serving path, see `docker.md`; `/healthz` answers, landing page renders, shared assets resolve, CSP/nosniff/no-store headers present) → trivy scan |
@@ -86,34 +86,56 @@ Rules this postmortem leaves behind (they extend the Hardening rules below):
 
 `main` → `prod` goes ONLY through `.github/workflows/promotion.yml` (AGENTS.md
 repo process; GAP-002). Triggers: manual dispatch or a `v*` release tag.
-Two jobs:
+Three jobs:
 
-1. **`security-gate`** — the release-time security pass at the promotion ref:
-   gitleaks over full history, pip-audit, kubeconform + kube-linter (same
-   loud-download pattern as the merge gate), CodeQL triage, and a build +
-   trivy scan (CRITICAL/HIGH with a fix available fails) of every image that
-   ships: factory, llm-manager, frontend always; backend and dashboard behind
-   the same path guards as the merge gate, so the scan set grows automatically
-   as the Wave-E services land.
+0. **`resolve`** — pins the ONE commit this run promotes (`github.sha`, the
+   tag's commit or the dispatched branch's tip) and proves it is an ancestor
+   of `main`. Both later jobs check out that exact SHA and re-verify
+   `HEAD == sha`, so a tag push can no longer gate one commit and promote
+   another.
+1. **`security-gate`** — the release-time security pass at that commit:
+   gitleaks over full history, pip-audit, kubeconform + kube-linter, and a
+   build + trivy scan (CRITICAL/HIGH with a fix available fails) of every
+   image that ships: factory, llm-manager, frontend always; backend and
+   dashboard behind the same path guards as the merge gate, so the scan set
+   grows automatically as the Wave-E services land.
+1b. **`codeql`** — CodeQL at the same commit, with `security-events: write`
+   confined to this job exactly like `codeql.yml`; the image-build job keeps
+   `contents: read`.
 2. **`promote`** — opens a promotion PR `main → prod` from a
-   `promotion/main-to-prod-<run_id>` branch. **The founder approves by
-   reviewing and merging that PR — the PR is the manual-approval gate.** The
-   workflow never pushes `prod` directly; it no-ops when prod is already at
-   main and stays idempotent when a promotion PR is already open.
+   commit-derived `promotion/main-to-prod-<sha12>` branch, still at the gated
+   SHA. **The founder approves by reviewing and merging that PR — the PR is
+   the manual-approval gate.** The workflow never pushes `prod` directly; it
+   no-ops when prod is already at the gated commit, and a re-run on the same
+   commit reuses its branch and PR (idempotent). A different commit gets a
+   different branch, so no two promotions can be confused.
+
+**Token model (why the PR needs `PROMOTION_TOKEN`):** a PR opened with
+`GITHUB_TOKEN` does not trigger `pull_request` workflows, so its checks would
+silently never run. The promotion PR is therefore opened with the repo secret
+`PROMOTION_TOKEN` (a fine-grained PAT; registry entry in
+[`secrets.md`](secrets.md) § CI/CD token) and the job fails loudly when it is
+absent rather than opening an unchecked PR. `prod` branch protection should
+require the checks the merge gate requires; the promotion PR runs them under
+the token's actor.
 
 Rollback: `prod` deploys only from the promotion tag — rollback = redeploy the
 previous tag (image + `apply-k8s.sh` ritual per the docker.md rules). Secrets
-never enter the pipeline: the whole gate runs key-free (GITHUB_TOKEN only).
+never enter the pipeline: the gate runs key-free (its only secret is the
+PR-creating token above).
 
 ## Smoke pattern for service images — `docker/smoke_http_service.sh`
 
 The llm-manager CI job's inline check (boot-with-config → poll `/healthz` →
 refuses-without-config) is extracted into one audited script the Wave-E image
-jobs call with per-image arguments. One deliberate strictness fix over the
+jobs call with per-image arguments. Two deliberate strictness fixes over the
 original inline: in the refuse phase, a container that HANGS without config
 exits 124 from the `timeout` wrapper and is a FAILURE — a hang is not a
-refusal; the service must exit loudly and fast. The existing llm-manager job
-keeps its inline check; new image jobs use the script.
+refusal; and a bare nonzero exit is not enough either — the captured
+stdout/stderr must match a config-error marker (`--config-error-pattern`,
+default `config|required|missing|not set|must be set|ZIVON_`), so a crashed
+importer cannot masquerade as a refusal. The existing llm-manager job keeps
+its inline check; new image jobs use the script.
 
 ## In-cluster test runs (scheduled + startup + the "button" stand-in)
 
@@ -177,11 +199,12 @@ Known limitation: all scanners catch **published** CVEs only. Unknown vulnerabil
 5. Pin the tools a gate installs (`ruff==0.17.4`, `mypy==2.4.1`) and mirror the pin in the tool's own config (`required-version`) — an unpinned tool lets an upstream release silently change what the gate covers.
 6. Every tool download writes to a file with `-f` + `--retry 5 --retry-all-errors` before being unpacked — never `curl -sL <url> | tar xz`, which turns a network blip into a fake product failure.
 7. Vendored third-party code (`skills/*/vendored/`) is out of the lint/format gates; it is kept verbatim with its licence.
+8. Workflows are themselves gated: `scripts/check_workflows.py .` (run in `quality`, with its `--self-test` rule fixtures first) parses every `.github/workflows/*.yml|*.yaml` and `.github/actions/**/action.yml|yaml`, enforces the SHA-pin rule at step AND reusable-workflow level, rejects `permissions: write-all` and `pull_request_target`, and catches product-secret references in both `secrets.NAME` and `secrets['NAME']` form.
 
 ## Pending setup (GitHub UI, before the first merge)
 
 - **Branch protection on `main`** (Settings → Branches → Add rule): require PR before merging; require the checks above by name; forbid force pushes.
-- **Branch protection on `prod`** the same way (the promotion PR is the only writer once it is on) — and optionally a GitHub **environment** with a required reviewer for prod deploys, layered on top of the promotion PR review.
+- **Branch protection on `prod`** the same way — the promotion PR is the only writer once it is on. Because a promotion PR opened by `GITHUB_TOKEN` would trigger no checks, the repo secret **`PROMOTION_TOKEN`** (fine-grained PAT: contents write + pull-requests write, scoped to this repo) must exist before the first promotion run; the workflow fails loudly without it. Registry entry (name only): [`secrets.md`](secrets.md) § CI/CD token. Optionally add a GitHub **environment** with a required reviewer for prod deploys, layered on top of the promotion PR review.
 - **Secret scanning + push protection** and **Dependency review** (Settings → Advanced Security — free on public repos; make dependency review a required check).
 - **Publish pipeline (CD)**: the promotion workflow is the release train — its registry push (build and push `ghcr.io/architgore050/zivon-*:<git-sha>` + attach SBOM on the promotion tag) is the remaining piece.
 - **Deploy pipeline**: blocked on the cluster hosting decision (see kubernetes.md).
