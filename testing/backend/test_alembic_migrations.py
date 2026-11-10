@@ -90,7 +90,7 @@ class TestAlembicMigrations(unittest.TestCase):
         )
 
         # T11 schema constraint: voice_turn.audio_retained CHECK (audio_retained = false / 0)
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception):  # noqa: B017
             eng.execute(
                 """
                 INSERT INTO voice_turn (
@@ -101,10 +101,8 @@ class TestAlembicMigrations(unittest.TestCase):
             )
 
         # Singleton constraint: guard_profile id CHECK (id = 1)
-        with self.assertRaises(Exception):
-            eng.execute(
-                "INSERT INTO guard_profile (id, mode) VALUES (2, 'normal')"
-            )
+        with self.assertRaises(Exception):  # noqa: B017
+            eng.execute("INSERT INTO guard_profile (id, mode) VALUES (2, 'normal')")
 
 
 if __name__ == "__main__":

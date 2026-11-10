@@ -24,7 +24,9 @@ class TestAbuseHmacAndRateLimiting(unittest.TestCase):
 
         self.assertEqual(len(day1), 64)
         self.assertEqual(day1, day1_again)
-        self.assertNotEqual(day1, day2, "Daily rotation must change digest across UTC days")
+        self.assertNotEqual(
+            day1, day2, "Daily rotation must change digest across UTC days"
+        )
         self.assertNotEqual(day1, other_ip)
         self.assertNotIn(raw_ip, day1)
 
@@ -36,9 +38,7 @@ class TestAbuseHmacAndRateLimiting(unittest.TestCase):
             rate_limit_delete_per_min=3,
         )
         limiter = AbuseRateLimiter(cfg, db)
-        now = datetime.datetime(
-            2026, 11, 9, 14, 25, 10, tzinfo=datetime.timezone.utc
-        )
+        now = datetime.datetime(2026, 11, 9, 14, 25, 10, tzinfo=datetime.UTC)
 
         # First 3 requests in the 60s window are allowed; 4th is blocked
         for i in range(1, 4):

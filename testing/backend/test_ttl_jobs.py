@@ -7,7 +7,8 @@ import json
 import unittest
 import uuid
 
-from backend.privacy import DeletionAndRetentionService, main as privacy_cli_main
+from backend.privacy import DeletionAndRetentionService
+from backend.privacy import main as privacy_cli_main
 from db import DatabaseEngine
 from db.uuid7 import uuid7_str
 
@@ -16,9 +17,7 @@ class TestTTLRetentionJobs(unittest.TestCase):
     def setUp(self) -> None:
         self.db = DatabaseEngine.from_url("sqlite:///:memory:")
         self.svc = DeletionAndRetentionService(self.db)
-        self.now = datetime.datetime(
-            2026, 11, 9, 12, 0, 0, tzinfo=datetime.timezone.utc
-        )
+        self.now = datetime.datetime(2026, 11, 9, 12, 0, 0, tzinfo=datetime.UTC)
 
     def test_ttl_voice_turn_7_day_hard_delete(self) -> None:
         dev_id = str(uuid.uuid4())
@@ -66,7 +65,11 @@ class TestTTLRetentionJobs(unittest.TestCase):
                 coverage, coverage_updated_at, coverage_synced, started_at
             ) VALUES (?, ?, 'en-IN', 'guide', '{}', ?, '2026-11-08T00:00:00.000Z', 1, '2026-11-08T00:00:00.000Z')
             """,
-            (sid, dev_id, json.dumps([{"block_id": "b-01", "type": "text", "status": "read"}])),
+            (
+                sid,
+                dev_id,
+                json.dumps([{"block_id": "b-01", "type": "text", "status": "read"}]),
+            ),
         )
         cleared = self.svc.purge_idle_coverage(now_dt=self.now, ttl_hours=24)
         self.assertEqual(cleared, 1)
@@ -111,9 +114,7 @@ class TestTTLRetentionJobs(unittest.TestCase):
         )
         roll_res = self.svc.rollup_daily_stats_and_prune_sessions(now_dt=self.now)
         self.assertEqual(roll_res["pruned_sessions"], 1)
-        stat = self.db.fetchone(
-            "SELECT * FROM daily_stats WHERE day = '2026-09-25'"
-        )
+        stat = self.db.fetchone("SELECT * FROM daily_stats WHERE day = '2026-09-25'")
         assert stat is not None
         self.assertEqual(int(stat["sessions"]), 1)
         self.assertEqual(int(stat["turns"]), 4)

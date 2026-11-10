@@ -92,17 +92,13 @@ class TestCreditGuardConcurrency(unittest.TestCase):
 
         dev_id = str(uuid.uuid4())
         # In normal mode, ceiling is 6,000 -> blocked by total_ceiling_exhausted
-        d_norm = self.guard.check_and_reserve(
-            dev_id, 10.0, period="2026-11-09"
-        )
+        d_norm = self.guard.check_and_reserve(dev_id, 10.0, period="2026-11-09")
         self.assertFalse(d_norm.allowed)
         self.assertEqual(d_norm.reason, "total_ceiling_exhausted")
 
         # Flip to demo mode -> ceiling is 10,000 -> allowed!
         self.guard.set_profile_mode("demo", actor="founder")
-        d_demo = self.guard.check_and_reserve(
-            dev_id, 10.0, period="2026-11-09"
-        )
+        d_demo = self.guard.check_and_reserve(dev_id, 10.0, period="2026-11-09")
         self.assertTrue(d_demo.allowed)
         self.assertEqual(d_demo.status.total_programme_used, 6010.0)
 

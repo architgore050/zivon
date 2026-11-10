@@ -69,9 +69,7 @@ class IdentityManager:
         """Issue an HMAC-signed 12-hour `session_token` (§8.1)."""
         iat = int(now_ts if now_ts is not None else time.time())
         ttl = (
-            ttl_seconds
-            if ttl_seconds is not None
-            else self.config.session_ttl_seconds
+            ttl_seconds if ttl_seconds is not None else self.config.session_ttl_seconds
         )
         payload = {
             "typ": "session",
@@ -80,9 +78,7 @@ class IdentityManager:
             "iat": iat,
             "exp": iat + ttl,
         }
-        raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode(
-            "utf-8"
-        )
+        raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
         b64 = _b64url_encode(raw)
         sig = self._sign(b64)
         return f"{b64}.{sig}"
@@ -99,7 +95,7 @@ class IdentityManager:
             return None
         try:
             payload = json.loads(_b64url_decode(b64).decode("utf-8"))
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
         if not isinstance(payload, dict):
             return None
@@ -134,9 +130,7 @@ class IdentityManager:
             "iat": iat,
             "exp": iat + ttl,
         }
-        raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode(
-            "utf-8"
-        )
+        raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
         b64 = _b64url_encode(raw)
         sig = self._sign(b64)
         return f"{b64}.{sig}"
@@ -164,7 +158,7 @@ class IdentityManager:
             return False
         try:
             payload = json.loads(_b64url_decode(b64).decode("utf-8"))
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
         if not isinstance(payload, dict) or payload.get("typ") != "confirm":
             return False

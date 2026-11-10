@@ -9,8 +9,9 @@ direct execution via `python -m db.migrate` against PostgreSQL or SQLite.
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, Final
+from typing import TYPE_CHECKING, Final
 
 from .schema import (
     get_revision_0001_down_sql,
@@ -78,7 +79,7 @@ def get_current_revision(engine: DatabaseEngine) -> str | None:
         if not rows:
             return None
         return str(rows[0]["version_num"])
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 

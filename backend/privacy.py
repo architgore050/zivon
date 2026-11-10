@@ -35,14 +35,14 @@ from .logging_shim import delete_subject
 
 
 def _utc_now() -> datetime.datetime:
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(datetime.UTC)
 
 
 def _fmt_iso(dt: datetime.datetime) -> str:
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        dt = dt.replace(tzinfo=datetime.UTC)
     else:
-        dt = dt.astimezone(datetime.timezone.utc)
+        dt = dt.astimezone(datetime.UTC)
     return dt.strftime("%Y-%m-%dT%H:%M:%S.") + f"{dt.microsecond // 1000:03d}Z"
 
 

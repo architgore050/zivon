@@ -244,8 +244,6 @@ class TestConsentAndWipeCascade(unittest.TestCase):
             )
         )
 
-
-
         # Re-registering new data for dev_id and replaying the ALREADY-CONSUMED confirm_token must fail (one-time challenge)
         self.client.put(
             "/v1/consent",

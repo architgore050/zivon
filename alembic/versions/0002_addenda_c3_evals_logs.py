@@ -21,7 +21,7 @@ def _dialect_name() -> str:
 
         bind = op.get_bind()
         return str(bind.dialect.name)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return "postgresql"
 
 

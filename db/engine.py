@@ -13,15 +13,16 @@ import datetime
 import json
 import sqlite3
 import threading
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from .migrate import get_current_revision, upgrade_db
 from .uuid7 import uuid7_str
 
 
 def _utc_now_iso() -> str:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
@@ -43,9 +44,7 @@ class _TransactionCursor:
         cur.execute(adapted, params)
         return cur
 
-    def fetchone(
-        self, sql: str, params: tuple[Any, ...] = ()
-    ) -> dict[str, Any] | None:
+    def fetchone(self, sql: str, params: tuple[Any, ...] = ()) -> dict[str, Any] | None:
         cur = self.execute(sql, params)
         row = cur.fetchone()
         if row is None:
@@ -57,9 +56,7 @@ class _TransactionCursor:
             return dict(zip(cols, row))
         return dict(row)
 
-    def fetchall(
-        self, sql: str, params: tuple[Any, ...] = ()
-    ) -> list[dict[str, Any]]:
+    def fetchall(self, sql: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
         cur = self.execute(sql, params)
         rows = cur.fetchall()
         if not rows:
@@ -87,9 +84,7 @@ class DatabaseEngine:
         self.dialect = dialect
         self._conn_factory = conn_factory
         self._lock = threading.RLock()
-        self._shared_conn: Any | None = (
-            conn_factory() if dialect == "sqlite" else None
-        )
+        self._shared_conn: Any | None = conn_factory() if dialect == "sqlite" else None
         if auto_migrate:
             upgrade_db(self, "head")
 
@@ -168,12 +163,12 @@ class DatabaseEngine:
                 if self.dialect == "sqlite":
                     try:
                         conn.execute("ROLLBACK")
-                    except Exception:
+                    except Exception:  # noqa: BLE001, S110
                         pass
                 else:
                     try:
                         conn.rollback()
-                    except Exception:
+                    except Exception:  # noqa: BLE001, S110
                         pass
                 raise
             finally:
@@ -184,15 +179,11 @@ class DatabaseEngine:
         with self.transaction() as tx:
             tx.execute(sql, params)
 
-    def fetchone(
-        self, sql: str, params: tuple[Any, ...] = ()
-    ) -> dict[str, Any] | None:
+    def fetchone(self, sql: str, params: tuple[Any, ...] = ()) -> dict[str, Any] | None:
         with self.transaction() as tx:
             return tx.fetchone(sql, params)
 
-    def fetchall(
-        self, sql: str, params: tuple[Any, ...] = ()
-    ) -> list[dict[str, Any]]:
+    def fetchall(self, sql: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
         with self.transaction() as tx:
             return tx.fetchall(sql, params)
 
@@ -200,7 +191,7 @@ class DatabaseEngine:
         try:
             row = self.fetchone("SELECT 1 AS ok")
             return bool(row and int(row["ok"]) == 1)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def schema_version(self) -> str:
@@ -278,9 +269,7 @@ class DatabaseEngine:
             (device_pseudo_id, now, now, locale),
         )
 
-    def get_latest_consent(
-        self, device_pseudo_id: str
-    ) -> dict[str, Any] | None:
+    def get_latest_consent(self, device_pseudo_id: str) -> dict[str, Any] | None:
         """Fetch latest derived consent record for a device (db-spec §4.4, AP-01/10)."""
         return self.fetchone(
             """
@@ -306,11 +295,9 @@ class DatabaseEngine:
         recorded_at: str | None = None,
     ) -> str:
         """Append a consent event with 60s same-action deduplication (API-004)."""
-        now_dt = datetime.datetime.now(datetime.timezone.utc)
+        now_dt = datetime.datetime.now(datetime.UTC)
         ts = recorded_at or _utc_now_iso()
-        cutoff = (now_dt - datetime.timedelta(seconds=60)).strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )
+        cutoff = (now_dt - datetime.timedelta(seconds=60)).strftime("%Y-%m-%dT%H:%M:%S")
         with self.transaction() as tx:
             tx.execute(
                 """

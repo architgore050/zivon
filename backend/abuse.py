@@ -58,16 +58,14 @@ def compute_ip_hmac(
     """
     cleaned_ip = (raw_ip or "127.0.0.1").strip().lower()
     if utc_date is None:
-        day_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+        day_str = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
     elif isinstance(utc_date, datetime.date):
         day_str = utc_date.strftime("%Y-%m-%d")
     else:
         day_str = str(utc_date).strip()
 
-    daily_key = f"{salt}:{day_str}".encode("utf-8")
-    return hmac.new(
-        daily_key, cleaned_ip.encode("utf-8"), hashlib.sha256
-    ).hexdigest()
+    daily_key = f"{salt}:{day_str}".encode()
+    return hmac.new(daily_key, cleaned_ip.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 def classify_endpoint_family(method: str, path: str) -> str | None:
@@ -84,7 +82,7 @@ def classify_endpoint_family(method: str, path: str) -> str | None:
         return "delete"
     if path.startswith("/audio/"):
         return "audio"
-    if path.startswith("/courses/") or path == "/courses.js" or path.startswith("/bundles/"):
+    if path.startswith(("/courses/", "/bundles/")) or path == "/courses.js":
         return "static"
     if path in ("/v1/voice", "/voice/ws"):
         return "ws"
@@ -133,14 +131,12 @@ class AbuseRateLimiter:
         now_dt: datetime.datetime | None = None,
     ) -> RateLimitDecision:
         """Increment the 60s window counter for `(ip_hmac, family)` and check limit."""
-        now = now_dt or datetime.datetime.now(datetime.timezone.utc)
+        now = now_dt or datetime.datetime.now(datetime.UTC)
         if now.tzinfo is None:
-            now = now.replace(tzinfo=datetime.timezone.utc)
+            now = now.replace(tzinfo=datetime.UTC)
 
         day_str = now.strftime("%Y-%m-%d")
-        bucket_key = compute_ip_hmac(
-            raw_ip, self.config.ip_hash_salt, utc_date=day_str
-        )
+        bucket_key = compute_ip_hmac(raw_ip, self.config.ip_hash_salt, utc_date=day_str)
         window_dt = now.replace(second=0, microsecond=0)
         window_start = window_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         expires_dt = window_dt + datetime.timedelta(hours=ABUSE_BUCKET_TTL_HOURS)

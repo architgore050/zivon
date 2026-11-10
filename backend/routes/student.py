@@ -105,7 +105,7 @@ FORBIDDEN_REPORT_PII_KEYS: Final[frozenset[str]] = frozenset(
 
 
 def _utc_now_iso() -> str:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
@@ -152,7 +152,7 @@ def _fallback_verify_session_token(
     pad = "=" * ((4 - len(b64) % 4) % 4)
     try:
         data = json.loads(base64.urlsafe_b64decode(b64 + pad).decode("utf-8"))
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     if int(data.get("exp", 0)) < int(time.time()):
         return None
@@ -231,9 +231,7 @@ class SessionBootstrapRequest(BaseModel):
 
 
 @router.post("/v1/session")
-def bootstrap_session(
-    body: SessionBootstrapRequest, request: Request
-) -> JSONResponse:
+def bootstrap_session(body: SessionBootstrapRequest, request: Request) -> JSONResponse:
     """API-001: Bootstrap a pseudonymous lesson-page session and compute flags."""
     cfg: BackendConfig = request.app.state.config
     db = request.app.state.db
@@ -367,9 +365,7 @@ def update_session_coverage(
         """,
         (json.dumps(body.covered), new_rev, now, session_id),
     )
-    return JSONResponse(
-        content={"ok": True, "coverage_synced": True, "rev": new_rev}
-    )
+    return JSONResponse(content={"ok": True, "coverage_synced": True, "rev": new_rev})
 
 
 class ConsentUpdateRequest(BaseModel):
@@ -580,9 +576,7 @@ async def submit_problem_report(request: Request) -> JSONResponse:
         if key.lower() in FORBIDDEN_REPORT_PII_KEYS:
             raise APIError("E-VALIDATION", status_code=422)
 
-    course_id = str(
-        raw_body.get("course_id") or raw_body.get("page_id") or ""
-    ).strip()
+    course_id = str(raw_body.get("course_id") or raw_body.get("page_id") or "").strip()
     if not course_id:
         raise APIError("E-VALIDATION", status_code=422)
 
@@ -601,9 +595,8 @@ async def submit_problem_report(request: Request) -> JSONResponse:
             raise APIError("E-VALIDATION", status_code=422)
 
     text_val = raw_body.get("text")
-    if text_val is not None:
-        if not isinstance(text_val, str) or len(text_val) > 500:
-            raise APIError("E-VALIDATION", status_code=422)
+    if text_val is not None and (not isinstance(text_val, str) or len(text_val) > 500):
+        raise APIError("E-VALIDATION", status_code=422)
 
     device_id: str | None = None
     if raw_body.get("device_pseudo_id"):
@@ -617,9 +610,7 @@ async def submit_problem_report(request: Request) -> JSONResponse:
             (str(report_nonce),),
         )
         if existing is not None:
-            return JSONResponse(
-                content={"report_id": str(existing["report_id"])}
-            )
+            return JSONResponse(content={"report_id": str(existing["report_id"])})
 
     report_id = uuid7_str()
     db.execute(
@@ -658,12 +649,10 @@ def get_deletion_challenge(
         cfg: BackendConfig = request.app.state.config
         token = hmac.new(
             cfg.session_token_key.encode("utf-8"),
-            f"confirm:{device_id}".encode("utf-8"),
+            f"confirm:{device_id}".encode(),
             hashlib.sha256,
         ).hexdigest()
-    return JSONResponse(
-        content={"device_pseudo_id": device_id, "confirm_token": token}
-    )
+    return JSONResponse(content={"device_pseudo_id": device_id, "confirm_token": token})
 
 
 class DeleteDataRequest(BaseModel):
@@ -695,7 +684,7 @@ async def delete_device_data(request: Request) -> JSONResponse:
         cfg: BackendConfig = request.app.state.config
         expected = hmac.new(
             cfg.session_token_key.encode("utf-8"),
-            f"confirm:{device_id}".encode("utf-8"),
+            f"confirm:{device_id}".encode(),
             hashlib.sha256,
         ).hexdigest()
         valid = hmac.compare_digest(confirm_token, expected)
@@ -820,7 +809,7 @@ def get_session_resume(
     if isinstance(raw_cov, str):
         try:
             coverage = json.loads(raw_cov)
-        except Exception:
+        except Exception:  # noqa: BLE001
             coverage = []
     elif isinstance(raw_cov, list):
         coverage = raw_cov

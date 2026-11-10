@@ -38,9 +38,7 @@ class TestSyncAndPublishHook(unittest.TestCase):
         (lesson_dir / "index.html").write_text("<html>Motion</html>", encoding="utf-8")
 
         # 1. Corrupt read-back -> quarantined, live_pointer NOT flipped (RB-06, NFR-18)
-        corrupt_sync = ColdStorageSync(
-            self.db, self.cfg, corrupt_readback=True
-        )
+        corrupt_sync = ColdStorageSync(self.db, self.cfg, corrupt_readback=True)
         with self.assertRaises(SyncVerificationError):
             corrupt_sync.publish_and_verify_artifact(
                 lesson_dir,
@@ -95,9 +93,7 @@ class TestSyncAndPublishHook(unittest.TestCase):
             version="v1-good",
             pinned=False,
         )
-        offline_sync = ColdStorageSync(
-            self.db, self.cfg, cold_reachable=False
-        )
+        offline_sync = ColdStorageSync(self.db, self.cfg, cold_reachable=False)
         with self.assertRaises(EvictionInvariantError):
             offline_sync.evict_hot_object(res_c2["key"])
 

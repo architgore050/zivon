@@ -21,17 +21,11 @@ class GuardProfileConfig:
 
     @property
     def active_global_cap(self) -> float:
-        return (
-            self.demo_global_tranche
-            if self.mode == "demo"
-            else self.global_tranche
-        )
+        return self.demo_global_tranche if self.mode == "demo" else self.global_tranche
 
     @property
     def active_device_cap(self) -> float:
-        return (
-            self.demo_per_user_cap if self.mode == "demo" else self.per_user_cap
-        )
+        return self.demo_per_user_cap if self.mode == "demo" else self.per_user_cap
 
     @property
     def normal_ceiling_credits(self) -> float:

@@ -86,9 +86,7 @@ REPORT_CATEGORIES: Final[frozenset[str]] = frozenset(
     {"wrong_physics", "bad_translation", "broken_sim", "other"}
 )
 
-CONSENT_ACTIONS: Final[frozenset[str]] = frozenset(
-    {"granted", "declined", "withdrawn"}
-)
+CONSENT_ACTIONS: Final[frozenset[str]] = frozenset({"granted", "declined", "withdrawn"})
 
 DEFAULT_NOTICE_VERSION: Final[str] = "zivon-voice-notice-v1"
 DEFAULT_CONSENT_VERSION: Final[str] = "v1"

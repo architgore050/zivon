@@ -59,10 +59,13 @@ def mount_voice_channel(app: FastAPI) -> str:
                 await websocket.close(code=4401)
                 return
             active_session_id = str(claims.get("session_id") or "")
-            if rate_limiter is not None and active_session_id:
-                if not rate_limiter.try_acquire_ws_slot(active_session_id):
-                    await websocket.close(code=1013)
-                    return
+            if (
+                rate_limiter is not None
+                and active_session_id
+                and not rate_limiter.try_acquire_ws_slot(active_session_id)
+            ):
+                await websocket.close(code=1013)
+                return
 
         await websocket.accept()
         try:
@@ -94,9 +97,7 @@ def mount_voice_channel(app: FastAPI) -> str:
                         return
                     if claims is not None and identity is not None:
                         try:
-                            identity.check_consent_gate(
-                                str(claims["device_pseudo_id"])
-                            )
+                            identity.check_consent_gate(str(claims["device_pseudo_id"]))
                         except APIError as exc:
                             await websocket.send_json(
                                 {

@@ -17,8 +17,9 @@ import json
 import os
 import re
 import sys
+from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any
 
 LOG_SCHEMA_VERSION: int = 1
 
@@ -45,7 +46,7 @@ class ErrorClass(str, enum.Enum):
 
 
 _CTX_VAR: contextvars.ContextVar[dict[str, str]] = contextvars.ContextVar(
-    "zivon_log_context", default={}
+    "zivon_log_context", default=None
 )
 
 _DENYLIST_PREFIXES: tuple[str, ...] = (
@@ -177,7 +178,7 @@ def bind_context(
     request_id: str | None = None,
 ) -> None:
     """Bind correlation IDs into the current async/thread context."""
-    updated = dict(_CTX_VAR.get())
+    updated = dict(_CTX_VAR.get() or {})
     if run_id is not None:
         updated["run_id"] = run_id
     if session_id is not None:
@@ -198,7 +199,7 @@ def context_scope(
     request_id: str | None = None,
 ) -> Iterator[None]:
     """Scoped correlation ID override (async-safe and task-local)."""
-    updated = dict(_CTX_VAR.get())
+    updated = dict(_CTX_VAR.get() or {})
     if run_id is not None:
         updated["run_id"] = run_id
     if session_id is not None:
@@ -216,7 +217,7 @@ def context_scope(
 
 def current_context() -> dict[str, str]:
     """Return a read-only snapshot of current correlation IDs."""
-    return dict(_CTX_VAR.get())
+    return dict(_CTX_VAR.get() or {})
 
 
 def _infer_component(event: str) -> str:
@@ -273,9 +274,9 @@ def _shim_log_event(
     ):
         return
 
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     ts_str = now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
-    ctx = _CTX_VAR.get()
+    ctx = _CTX_VAR.get() or {}
     eff_run_id = run_id if run_id is not None else ctx.get("run_id")
     eff_session_id = session_id if session_id is not None else ctx.get("session_id")
     eff_turn_id = turn_id if turn_id is not None else ctx.get("turn_id")
@@ -322,7 +323,7 @@ def _shim_log_event(
         if os.environ.get("ZIVON_LOG_STDOUT", "false").lower() == "true":
             sys.stdout.write(line + "\n")
             sys.stdout.flush()
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
 
     wrote_db = False
@@ -330,7 +331,7 @@ def _shim_log_event(
         try:
             _DB_WRITER_HOOK(record)
             wrote_db = True
-        except Exception:
+        except Exception:  # noqa: BLE001
             wrote_db = False
 
     if not wrote_db:
@@ -339,7 +340,7 @@ def _shim_log_event(
             path = _fallback_log_file(component, day_str)
             with path.open("a", encoding="utf-8") as fh:
                 fh.write(line + "\n")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
 
@@ -349,7 +350,7 @@ def _shim_delete_subject(session_id: str) -> int:
     if _DB_DELETE_SUBJECT_HOOK is not None:
         try:
             deleted += _DB_DELETE_SUBJECT_HOOK(session_id)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
     # Scrub in-memory buffer
@@ -372,7 +373,7 @@ def _shim_delete_subject(session_id: str) -> int:
                         continue
                     try:
                         parsed = json.loads(raw)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         kept.append(raw)
                         continue
                     if parsed.get("session_id") == session_id:
@@ -382,7 +383,7 @@ def _shim_delete_subject(session_id: str) -> int:
                 path.write_text(
                     "\n".join(kept) + ("\n" if kept else ""), encoding="utf-8"
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001, S112
                 continue
 
     _shim_log_event(
@@ -398,12 +399,26 @@ try:
     # Prefer the real EX3-OBS logging_manager package when merged on PYTHONPATH
     from logging_manager import (  # type: ignore[import-not-found]
         LOG_SCHEMA_VERSION as _REAL_SCHEMA_VERSION,
+    )
+    from logging_manager import (
         ErrorClass as _RealErrorClass,
+    )
+    from logging_manager import (
         Severity as _RealSeverity,
+    )
+    from logging_manager import (
         bind_context as _real_bind_context,
+    )
+    from logging_manager import (
         context_scope as _real_context_scope,
+    )
+    from logging_manager import (
         current_context as _real_current_context,
+    )
+    from logging_manager import (
         delete_subject as _real_delete_subject,
+    )
+    from logging_manager import (
         log_event as _real_log_event,
     )
 
@@ -423,7 +438,7 @@ try:
         if _DB_WRITER_HOOK is not None:
             try:
                 _shim_log_event(event, fields, **kwargs)
-            except Exception:
+            except Exception:  # noqa: BLE001, S110
                 pass
 
     def delete_subject(session_id: str) -> int:

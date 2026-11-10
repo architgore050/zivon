@@ -388,7 +388,14 @@ class TestBackendEndpoints(unittest.TestCase):
         run_dir = self.runs_dir / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
         (run_dir / "status.json").write_text(
-            json.dumps({"chapter": "Motion", "class_level": 9, "current_stage": "02-generate", "ok": True}),
+            json.dumps(
+                {
+                    "chapter": "Motion",
+                    "class_level": 9,
+                    "current_stage": "02-generate",
+                    "ok": True,
+                }
+            ),
             encoding="utf-8",
         )
         ra5_list = self.client.get("/v1/admin/runs", headers=headers)

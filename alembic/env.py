@@ -24,7 +24,7 @@ def get_database_url() -> str:
         cfg_url = context.config.get_main_option("sqlalchemy.url")
         if cfg_url:
             return str(cfg_url)
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
     return "sqlite:///:memory:"
 
@@ -33,8 +33,9 @@ def run_migrations_online() -> None:
     """Run migrations against the configured database URL."""
     url = get_database_url()
     try:
-        from alembic import context  # type: ignore[import-not-found]
         from sqlalchemy import create_engine  # type: ignore[import-not-found]
+
+        from alembic import context  # type: ignore[import-not-found]
 
         sa_url = url.replace("postgresql+asyncpg://", "postgresql://")
         connectable = create_engine(sa_url)
@@ -55,5 +56,5 @@ try:
         run_migrations_online()
     else:
         run_migrations_online()
-except Exception:
+except Exception:  # noqa: BLE001, S110
     pass

@@ -18,9 +18,9 @@ if TYPE_CHECKING:
     )
 
 __all__ = [
-    "DatabaseEngine",
     "LATEST_REVISION",
     "REVISION_CHAIN",
+    "DatabaseEngine",
     "downgrade_db",
     "get_current_revision",
     "get_heads",

@@ -174,7 +174,7 @@ def get_revision_0001_up_sql(dialect: str = "postgresql") -> list[str]:
             updated_by TEXT NOT NULL DEFAULT 'system'
         )
         """,
-        f"""
+        """
         INSERT INTO guard_profile (
             id, mode, global_tranche, per_user_cap,
             demo_global_tranche, demo_per_user_cap, warn_threshold_pct,
@@ -380,7 +380,7 @@ def get_revision_0001_up_sql(dialect: str = "postgresql") -> list[str]:
         )
         """,
         "CREATE INDEX IF NOT EXISTS idx_deletion_request_device ON deletion_request(device_pseudo_id)",
-        f"""
+        """
         CREATE TABLE IF NOT EXISTS daily_stats (
             day TEXT PRIMARY KEY,
             sessions INTEGER NOT NULL DEFAULT 0,
@@ -623,7 +623,7 @@ def get_revision_0002_up_sql(dialect: str = "postgresql") -> list[str]:
         )
         """,
         "CREATE INDEX IF NOT EXISTS idx_eval_card_topic_created ON eval_card_result(card_id, topic_slug, created_at DESC)",
-        f"""
+        """
         CREATE TABLE IF NOT EXISTS eval_defect_sample_result (
             id TEXT PRIMARY KEY,
             eval_card_result_id TEXT NOT NULL REFERENCES eval_card_result(id) ON DELETE CASCADE,

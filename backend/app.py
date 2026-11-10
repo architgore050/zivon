@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -53,9 +54,7 @@ def create_app(
     ) -> Response:
         inbound_req_id = request.headers.get("X-Request-Id", "").strip()
         trace_id = (
-            inbound_req_id
-            if _UUID_RE.match(inbound_req_id)
-            else str(uuid.uuid4())
+            inbound_req_id if _UUID_RE.match(inbound_req_id) else str(uuid.uuid4())
         )
         request.state.trace_id = trace_id
 
@@ -87,15 +86,12 @@ def create_app(
     def readiness_probe() -> JSONResponse:
         """Readiness probe checking database connectivity when configured."""
         db = getattr(app.state, "db", None)
-        if db is not None and hasattr(db, "ping"):
-            if not db.ping():
-                return JSONResponse(
-                    status_code=503,
-                    content={"ok": False, "status": "degraded", "db": "unreachable"},
-                )
-        return JSONResponse(
-            content={"ok": True, "status": "ok", "db": "ok"}
-        )
+        if db is not None and hasattr(db, "ping") and not db.ping():
+            return JSONResponse(
+                status_code=503,
+                content={"ok": False, "status": "degraded", "db": "unreachable"},
+            )
+        return JSONResponse(content={"ok": True, "status": "ok", "db": "ok"})
 
     _wire_components(app, cfg, db_engine=db_engine, credit_guard=credit_guard)
 
@@ -166,6 +162,7 @@ def _wire_components(
 
         register_routes(app)
     except ImportError:
+
         @app.get("/v1/health")
         def fallback_v1_health() -> JSONResponse:
             return JSONResponse(

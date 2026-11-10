@@ -28,12 +28,12 @@ router = APIRouter(prefix="/v1/admin")
 
 
 def _utc_now_iso() -> str:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
 def _today_str() -> str:
-    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
 
 
 def require_admin_auth(
@@ -327,7 +327,7 @@ def _sync_runs_from_filesystem(db: Any, runs_dir: Path) -> None:
                     _utc_now_iso(),
                 ),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001, S112
             continue
 
 
@@ -383,9 +383,7 @@ def admin_get_run(
         raise APIError("E-NOT-FOUND", status_code=404)
     raw_dur = r.get("stage_durations")
     durations = (
-        json.loads(raw_dur)
-        if isinstance(raw_dur, str) and raw_dur
-        else (raw_dur or {})
+        json.loads(raw_dur) if isinstance(raw_dur, str) and raw_dur else (raw_dur or {})
     )
     return JSONResponse(
         content={
@@ -453,7 +451,9 @@ def admin_patch_report(
     if existing is None:
         raise APIError("E-NOT-FOUND", status_code=404)
 
-    resolved_at = _utc_now_iso() if new_status in ("fixed", "shipped_next_run") else None
+    resolved_at = (
+        _utc_now_iso() if new_status in ("fixed", "shipped_next_run") else None
+    )
     db.execute(
         "UPDATE problem_report SET status = ?, resolved_at = ? WHERE report_id = ?",
         (new_status, resolved_at, report_id),

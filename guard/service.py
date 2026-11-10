@@ -13,7 +13,8 @@ Enforces:
 from __future__ import annotations
 
 import datetime
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from backend.logging_shim import ErrorClass, Severity, log_event
 from db.engine import DatabaseEngine
@@ -23,12 +24,12 @@ from .models import GuardDecision, GuardProfileConfig, GuardStatus
 
 
 def _utc_now_iso() -> str:
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
 def _today_period() -> str:
-    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
 
 
 def _compute_counter_state(
@@ -76,7 +77,7 @@ class CreditGuard:
         for cb in list(self._listeners):
             try:
                 cb(status)
-            except Exception:
+            except Exception:  # noqa: BLE001, S112
                 continue
 
     def _load_profile_tx(self, tx: Any) -> GuardProfileConfig:
@@ -233,9 +234,7 @@ class CreditGuard:
             d_row = self._ensure_counter_row_tx(
                 tx, eff_period, "device", device_pseudo_id, profile.mode
             )
-            prev_eff_state = _combine_states(
-                str(g_row["state"]), str(d_row["state"])
-            )
+            prev_eff_state = _combine_states(str(g_row["state"]), str(d_row["state"]))
 
             g_cap = profile.active_global_cap
             d_cap = profile.active_device_cap
@@ -499,9 +498,7 @@ class CreditGuard:
         ts = created_at or _utc_now_iso()
         with self.db.transaction() as tx:
             profile = self._load_profile_tx(tx)
-            eff_bucket = bucket or (
-                "reserved" if profile.mode == "demo" else "daily"
-            )
+            eff_bucket = bucket or ("reserved" if profile.mode == "demo" else "daily")
             tx.execute(
                 """
                 INSERT INTO credit_ledger (
@@ -607,9 +604,7 @@ class CreditGuard:
                 drift_pct = 0.0
             else:
                 denom = max(counter_used, ledger_used, 1.0)
-                drift_pct = round(
-                    abs(counter_used - ledger_used) / denom * 100.0, 2
-                )
+                drift_pct = round(abs(counter_used - ledger_used) / denom * 100.0, 2)
 
             return {
                 "period": eff_period,

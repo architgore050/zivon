@@ -49,14 +49,14 @@ class EvictionInvariantError(RuntimeError):
 
 
 def _utc_now() -> datetime.datetime:
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(datetime.UTC)
 
 
 def _fmt_iso(dt: datetime.datetime) -> str:
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        dt = dt.replace(tzinfo=datetime.UTC)
     else:
-        dt = dt.astimezone(datetime.timezone.utc)
+        dt = dt.astimezone(datetime.UTC)
     return dt.strftime("%Y-%m-%dT%H:%M:%S.") + f"{dt.microsecond // 1000:03d}Z"
 
 
@@ -89,9 +89,7 @@ def _encrypt_envelope(plaintext: bytes, secret_key: str) -> bytes:
         "mac": mac,
         "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
     }
-    return json.dumps(envelope, separators=(",", ":"), sort_keys=True).encode(
-        "utf-8"
-    )
+    return json.dumps(envelope, separators=(",", ":"), sort_keys=True).encode("utf-8")
 
 
 def _bundle_path_bytes(target_path: Path) -> tuple[bytes, str, int]:
@@ -193,9 +191,7 @@ class ColdStorageSync:
         eff_version = version or sha256[:12]
         eff_course = course_id or path.name
 
-        obj_key = (
-            f"{class_id.lower()}/{eff_course}/{class_level or 0}/{norm_locale}/{eff_version}/{sha256}"
-        )
+        obj_key = f"{class_id.lower()}/{eff_course}/{class_level or 0}/{norm_locale}/{eff_version}/{sha256}"
         cold_key = f"{obj_key}.bundle"
         now_iso = _fmt_iso(_utc_now())
 
@@ -312,9 +308,7 @@ class ColdStorageSync:
 
         # 2. Upload to cold provider and read-back verify SHA-256
         try:
-            self._write_cold_object(
-                self.config.cold_provider, cold_key, payload_bytes
-            )
+            self._write_cold_object(self.config.cold_provider, cold_key, payload_bytes)
             verified = self._readback_verify(
                 self.config.cold_provider, cold_key, sha256
             )
@@ -553,11 +547,11 @@ class ColdStorageSync:
                 run_dir = status_file.parent
                 try:
                     st_data = json.loads(status_file.read_text(encoding="utf-8"))
-                except Exception:
+                except Exception:  # noqa: BLE001, S112
                     continue
                 if not st_data.get("completed_at"):
                     continue
-                run_bytes, ctype, fcount = _bundle_path_bytes(run_dir)
+                run_bytes, ctype, _fcount = _bundle_path_bytes(run_dir)
                 r_sha = _sha256_bytes(run_bytes)
                 r_cold_key = f"c4/runs/{run_dir.name}/{r_sha}.tar.gz"
                 r_obj_key = f"c4/runs/{run_dir.name}/{r_sha[:16]}"
