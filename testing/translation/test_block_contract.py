@@ -1,9 +1,8 @@
-"""Unit tests for the Per-Block Translation Contract (CP-TRN-001..003) and Logging Shim."""
+"""Unit tests for the Per-Block Translation Contract (CP-TRN-001..003) and logging_manager."""
 
 from __future__ import annotations
 
 import json
-import os
 import sys
 import tempfile
 import unittest
@@ -18,14 +17,13 @@ ensure_test_dependencies()
 
 import jsonschema
 
-from factory._logging_shim import (
+from logging_manager import (
     Severity,
-    clear_recorded_events,
     context_scope,
     current_context,
     delete_subject,
-    get_recorded_events,
     log_event,
+    sink,
 )
 from factory.checks import rule_diagram_svg
 from factory.translate import (
@@ -261,10 +259,19 @@ class TestBlockContract(unittest.TestCase):
         self.assertEqual(ctrl["initial"], 2)
 
     def test_logging_shim_json_schema_v1_and_redaction(self) -> None:
+        # The real logging_manager contract (EX3-OBS) exercised from a
+        # translator call site: schema v1 JSON line, contextvars correlation,
+        # redaction, and the guardian delete_subject path. Events are captured
+        # by swapping the sink's stdout writer (the sink module seam); the
+        # JSONL fallback is pinned to a temp runs dir.
         with tempfile.TemporaryDirectory() as tmp:
-            old_log_dir = os.environ.get("ZIVON_LOG_DIR")
-            os.environ["ZIVON_LOG_DIR"] = tmp
-            clear_recorded_events()
+            sink.reset_for_tests(runs_dir=tmp)
+            sink._mark_degraded(dsn_set=False)
+            collected: list[dict] = []
+            original_stdout_writer = sink._write_stdout
+            sink._write_stdout = lambda line: collected.append(
+                parsed
+            ) if (parsed := sink.parse_line(line)) is not None else None
             try:
                 with context_scope(
                     run_id="r-123", session_id="s-999", request_id="req-1"
@@ -283,7 +290,7 @@ class TestBlockContract(unittest.TestCase):
                         latency_ms=42,
                         stage="10a-translate",
                     )
-                events = get_recorded_events()
+                events = collected
                 self.assertEqual(len(events), 1)
                 evt = events[0]
                 self.assertEqual(evt["component"], "translator")
@@ -296,12 +303,11 @@ class TestBlockContract(unittest.TestCase):
                 self.assertIn("[REDACTED:api_key]", evt["fields"]["note"])
 
                 del_res = delete_subject("s-999")
-                self.assertEqual(del_res["deleted"], 1)
+                self.assertEqual(del_res["session_count"], 1)
+                self.assertTrue(del_res["ok"])
             finally:
-                if old_log_dir is None:
-                    os.environ.pop("ZIVON_LOG_DIR", None)
-                else:
-                    os.environ["ZIVON_LOG_DIR"] = old_log_dir
+                sink._write_stdout = original_stdout_writer
+                sink.reset_for_tests()
 
 
 if __name__ == "__main__":

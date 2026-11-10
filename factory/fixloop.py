@@ -29,6 +29,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from logging_manager import ErrorClass, log_event
+
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
@@ -161,6 +163,12 @@ def run(
             best, stalls = now, 0
         else:
             stalls += 1
+        log_event(
+            "factory.repair.round",
+            {"round": round_no, "issues_count": now},
+            run_id=run_ctx.run_id,
+            stage=STAGE_ID,
+        )
         attempts.append(
             f"round {round_no}: {plan['analysis'][:240]} -> "
             + ("pass" if report["pass"] else "; ".join(report["failures"])[:240])
@@ -174,6 +182,13 @@ def run(
             return {"rounds": round_no, "history": history, "pass": True}
 
     _finish(cfg, run_ctx, history, topic_dir, site, ok=False)
+    log_event(
+        "factory.repair.exhausted",
+        {"plateau": stalls >= stall_limit, "cap_hit": round_no >= cap},
+        run_id=run_ctx.run_id,
+        stage=STAGE_ID,
+        error_class=ErrorClass.REPAIR_EXHAUSTED,
+    )
     reason = (
         f"progress plateaued: {stalls} consecutive retest(s) with no improvement "
         f"(best {best} failure(s) standing)"

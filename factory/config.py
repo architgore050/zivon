@@ -70,6 +70,7 @@ _STAGE_IDS = [
     "10c-transrepair",
     "10d-transrender",
     "11-link",
+    "12-narration",
 ]
 
 SUPPORTED_TARGET_LOCALES = {

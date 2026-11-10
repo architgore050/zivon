@@ -26,7 +26,7 @@ from typing import Any
 import jsonschema
 
 from . import checks
-from ._logging_shim import ErrorClass, Severity, context_scope, log_event
+from logging_manager import ErrorClass, Severity, context_scope, log_event
 from .artifacts import RunContext
 from .config import Config
 from .errors import ConfigError, FactoryError, SchemaError
@@ -1471,7 +1471,7 @@ def run(
                                     "attempts": cfg.server["max_attempts"],
                                 },
                                 severity=Severity.ERROR,
-                                error_class=ErrorClass.transport_error,
+                                error_class=ErrorClass.TRANSPORT_ERROR,
                                 run_id=run_ctx.run_id,
                                 stage=STAGE_ID,
                             )

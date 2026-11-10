@@ -63,6 +63,29 @@ services:
       - ./sources/cache:/app/sources/cache
       - ./hf-cache:/app/.cache/huggingface
 
+  # The admin DASHBOARD v0 (EX3-OBS): small FastAPI app over the log store +
+  # runs/ artifacts, with the two trigger buttons (the same scripts). The
+  # admin token is env-only (zivon-admin-auth Secret in-cluster); here it
+  # comes from your shell. No DSN locally -> the JSONL fallback is the store
+  # and the views say so honestly.
+  #   docker compose up -d dashboard   # http://127.0.0.1:8082
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    image: zivon-dashboard:0.1.0
+    environment:
+      - ZIVON_ADMIN_TOKEN=${ZIVON_ADMIN_TOKEN:-}
+      - ZIVON_LOG_DSN=${ZIVON_LOG_DSN:-}
+      - ZIVON_ENV=${ZIVON_ENV:-dev}
+      - ZIVON_LOG_LEVEL=${ZIVON_LOG_LEVEL:-INFO}
+    ports:
+      # 8082: distinct from the site's 8081 and the node's 18090.
+      - "127.0.0.1:8082:8000"
+    volumes:
+      - ./runs:/app/runs:ro          # the dashboard never writes artifacts
+    restart: unless-stopped
+
   # Dev-only inference router (docker/inference-router.Dockerfile): makes the
   # host's loopback-only OpenAI-format server reachable from containers and
   # minikube pods WITHOUT touching it. network_mode: host means its 127.0.0.1

@@ -24,6 +24,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from logging_manager import log_event
+
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
@@ -83,6 +85,16 @@ def run(
         FIX_PLAN,
         "review_fix_plan",
         round_tag=round_tag,
+    )
+
+    log_event(
+        "factory.repair.round",
+        {
+            "round": int(round_tag.rsplit("-", 1)[-1]) if round_tag else 0,
+            "issues_count": len(review_report["issues"]),
+        },
+        run_id=run_ctx.run_id,
+        stage=STAGE_ID,
     )
 
     files = dict(plan.get("files", {}))

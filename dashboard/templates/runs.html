@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}runs{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Factory runs</h1>
+  <form method="post" action="/admin/actions/factory-run" class="inline">
+    <input type="hidden" name="csrf" value="{{ csrf_token }}">
+    <input type="text" name="topic" placeholder="chapter" required>
+    <select name="class_level">
+      <option value="">class: locate decides</option>
+      {% for c in [6,7,8,9,10,11,12] %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+    <label><input type="checkbox" name="fresh" value="1" checked> --fresh</label>
+    <button type="submit">Generate a topic</button>
+  </form>
+</div>
+<p>Generation is <strong>manual-only</strong>: a run is "running" only while its
+<code>factory-run-*</code> Job is active in the cluster ({{ "Job active now" if manual_running else "no Job active" }}).
+Re-triggering the same topic+class RESUMES; --fresh wipes. <code>backoffLimit: 0</code> — a failed run is never auto-retried.</p>
+{% if runs %}
+<table>
+  <thead><tr><th>run_id</th><th>state</th><th>chapter</th><th>class</th><th>last event</th><th>reason_code</th></tr></thead>
+  <tbody>
+  {% for run in runs %}
+    <tr>
+      <td><a href="/admin/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
+      <td><span class="state {{ run.state }}">{{ run.state }}</span></td>
+      <td>{{ run.chapter or "—" }}</td>
+      <td>{{ run.class_level or "—" }}</td>
+      <td>{{ run.last_event }}</td>
+      <td>{{ run.reason_code or "" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No factory run events yet — trigger one above or with <code>scripts/trigger-factory-run.sh "Motion" 9</code>.</p>
+{% endif %}
+{% endblock %}

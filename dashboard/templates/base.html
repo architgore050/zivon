@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zivon admin — {% block title %}overview{% endblock %}</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+<header>
+  <nav>
+    <a href="/admin" class="brand">Zivon admin</a>
+    <a href="/admin/runs">Runs</a>
+    <a href="/admin/tests">Tests</a>
+    <a href="/admin/voice">Voice</a>
+    <a href="/admin/credits">Credits</a>
+    <a href="/admin/errors">Errors</a>
+    <a href="/admin/publish">Publish</a>
+    {% if grafana_url %}<a href="{{ grafana_url }}" rel="noopener">Grafana ↗</a>{% endif %}
+    <form method="post" action="/admin/logout" class="logout">
+      <button type="submit">Log out</button>
+    </form>
+  </nav>
+  {% if store_error %}<div class="banner warn">log store unreachable — views show what they can; fix the DSN. ({{ store_error }})</div>{% endif %}
+  {% if not cluster_up %}<div class="banner warn">cluster API unavailable — Job views are empty (kubectl)</div>{% endif %}
+  {% for alert in alerts %}
+  <div class="banner alert">
+    <strong>{{ alert.name }}</strong> — {{ alert.detail }}
+    <code>{{ alert.query }}</code>
+    {% if alert.runs %}{% for run in alert.runs %}<a href="/admin/runs/{{ run }}">{{ run }}</a> {% endfor %}{% endif %}
+  </div>
+  {% endfor %}
+</header>
+<main>
+{% block body %}{% endblock %}
+</main>
+<footer><small>request {{ request_id or "-" }} · Zivon observability (EX3-OBS) · infra plane: Grafana</small></footer>
+</body>
+</html>

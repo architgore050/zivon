@@ -60,6 +60,16 @@ python pipeline.py "Motion" --class 9 --locales hi,hi-Latn   # optional: build H
 
 Model calls are streaming by default: `ZIVON_TIMEOUT_S` bounds INACTIVITY between chunks (a dead server is caught honestly) and `ZIVON_CALL_DEADLINE_S` is a total per-call wall-clock cap that aborts a runaway generation mid-stream. Locally you can also run the model path through the isolated **llm-manager node** (`docker compose up -d llm-manager`, then `ZIVON_BASE_URL=http://127.0.0.1:18090/v1`) — the same service the cluster runs at `http://llm-manager.zivon.svc.cluster.local/v1`.
 
+Read-aloud narration (stage 12) is **opt-in** build-time TTS: `export
+ZIVON_NARRATION_ENABLED=true` before a run (or
+`python pipeline.py "Motion" --class 9 --stages 11-link,12-narration` on a
+finished topic). Without a Timbre endpoint it produces silent mock assets
+(credited `mode: "mock"` in the manifests, zero credits); with
+`ZIVON_TIMBRE_BASE_URL`/`ZIVON_TIMBRE_API_KEY` it pre-generates real audio
+with Gnani Timbre v3.0 under the A-15 credit tranche (refuse-before-exceed;
+see `docs/content-factory/runbook.md`, "Narration builds"). ffmpeg must be
+on PATH for the Opus encode.
+
 Run ids are deterministic per (chapter, class): re-running the same command **resumes** the previous attempt — completed stages load from `runs/` instead of re-calling the model; pass `--fresh` to wipe the attempt and generate clean.
 
 Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) AND the llm-manager node (`docker compose up -d llm-manager`), then point the factory at the node: in compose set `ZIVON_BASE_URL=http://llm-manager:8000/v1` **and** `ZIVON_NODE_UPSTREAM_URL=<server address>` (the node's own upstream — one variable for both would make the node call itself), plus `ZIVON_MAX_ATTEMPTS=1` on the factory side (the node owns transport retries). In the cluster the ConfigMaps already encode this split (factory → llm-manager Service → router). See [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md).
@@ -84,10 +94,12 @@ The content factory ships as a container image (`Dockerfile` at the repo root):
 ```bash
 docker build -t zivon-factory:0.3.17 .
 docker build -f Dockerfile.llm-manager -t zivon-llm-manager:0.1.0 .   # the model-call node (slim, no torch)
+docker build -f Dockerfile.dashboard -t zivon-dashboard:0.1.0 .       # the admin dashboard (slim + kubectl)
 docker run --rm zivon-factory:0.3.17                          # environment smoke test
 docker compose up -d llm-manager                              # the isolated model-access node (factory -> node -> server)
 docker compose run --rm factory python pipeline.py "Motion" --class 9   # full pipeline run
 docker compose up web                                        # serve frontend/ on http://localhost:8081
+ZIVON_ADMIN_TOKEN=<secret> docker compose up -d dashboard    # admin dashboard v0 on http://127.0.0.1:8082
 ```
 
 - API keys are passed via environment variables (`ZIVON_API_KEY`) — never baked into the image.
@@ -137,7 +149,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | [`docs/backend/`](docs/backend/) | Stage-2 systems specs (2026-11-07): backend spec (APIs, voice WebSocket contract, guard), database spec (Postgres schema), storage-tiering spec (cache / hot DB / cold provider), capacity & cost model, 16 ADRs |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
-| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `translation/` (10a..10d localization + TM + reviewer rules), and `frontend/` (site shell + behaviour in Chromium) |
+| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `translation/` (10a..10d localization + TM + reviewer rules), `frontend/` (site shell + behaviour in Chromium) and `observability/` (the logging_manager contract harness + dashboard tests) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 | [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
 | [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |
@@ -145,7 +157,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`skills/zivon-systems-design-skills/`](skills/zivon-systems-design-skills/) | Backend/DB/storage-tiering spec method (original skill + vendored engineering skills); see the folder README |
 | [`docs/specs/voice-agent/`](docs/specs/voice-agent/README.md) | Voice-tutor agent architecture spec (wave S1): pipeline, WebSocket contract, latency budget vs Gate C, ADRs 0017–0020, open questions |
 | [`docs/specs/translation/`](docs/specs/translation/) | Build-time translation pipeline spec, per-block contracts, reviewer rubric, and translation ADRs (`0021`–`0023`); see the folder README |
-| [`docs/specs/observability/`](docs/specs/observability/) | System specs: observability (`logging_manager` API contract, instrumentation map, admin dashboard v0) with ADRs `0024`–`0026` under `docs/backend/adr/` |
+| [`docs/specs/observability/`](docs/specs/observability/) | System specs: observability (`logging_manager` API contract, instrumentation map, admin dashboard v0) with ADRs `0024`–`0026` under `docs/backend/adr/`; the implementation lives in `logging_manager/` + `dashboard/`, ops in [`docs/deployment/observability.md`](docs/deployment/observability.md) |
 | [`docs/specs/evals/`](docs/specs/evals/) | Evaluation framework spec (`evals/` package, test-to-eval migration map, stage & E2E eval cards, golden sets, regression tracking) |
 | [`docs/backend/adr/`](docs/backend/adr/) | Backend and evaluation Architecture Decision Records (ADRs) |
 | [`docs/specs/frontend/`](docs/specs/frontend/) | Frontend implementation spec (wave S1): component inventory, state matrix, WS client contract, perf-budget tests, SEO plan |

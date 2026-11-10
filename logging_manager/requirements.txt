@@ -1,0 +1,9 @@
+# logging_manager — dependencies.
+#
+# Deliberately minimal (logging-api.md §1): the JSON event path (stdout +
+# PVC JSONL fallback) is STDLIB-ONLY. The only dependency is the Postgres
+# driver for the ZIVON_LOG_DSN hot-store path (ADR-0025); it is imported
+# lazily, so a deployment that never sets the DSN never needs it.
+#
+# Install:  pip install -r logging_manager/requirements.txt
+psycopg[binary]>=3.2

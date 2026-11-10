@@ -4,6 +4,7 @@
 |---|---|---|
 | [`content_factory/`](content_factory/README.md) | the whole build-time pipeline: unit sets, end-to-end vs the mock inference server, and `perf/` - the weak-hardware harness (a TOOL imported by stage 08, not a test) | `python -m unittest discover -s testing/content_factory/unit -t .` |
 | `frontend/` | the hand-maintained site shell: load contract, self-containment, course-list rendering, quiz + ZivonSim behaviour in real Chromium | `python -m unittest discover -s testing/frontend -t .` |
+| [`observability/`](observability/README.md) | the `logging_manager` contract harness + dashboard endpoint tests: redaction guarantees, JSON schema, correlation/headers, sinks + fallback, retention/store helpers, ADR-0026 auth flows, seeded-fixture views | `python -m unittest discover -s testing/observability -t .` |
 
 Folder names use underscores (`content_factory`) because Python package names cannot contain hyphens; docs call it the content-factory test set.
 

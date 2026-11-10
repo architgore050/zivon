@@ -24,7 +24,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
-from ._logging_shim import Severity, log_event
+from logging_manager import Severity, log_event
 from .artifacts import RunContext, slugify
 from .config import Config
 from .errors import LintError
