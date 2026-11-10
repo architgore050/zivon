@@ -14,7 +14,8 @@
 #      applied: factory generation is manual-only
 #      (scripts/trigger-factory-run.sh).
 #   4. the test CronJob rendered with TEST_CRON_SCHEDULE from infra.env
-#   5. one immediate full test run (scripts/trigger-tests.sh startup)
+#   5. one immediate full test run (scripts/trigger-tests.sh startup) and one
+#      smoke eval run (scripts/trigger-evals.sh smoke startup)
 #
 # ConfigMaps are read by pods ONLY at start: after the ConfigMaps are applied,
 # the llm-manager Deployment is rollout-restarted so an endpoint/model/knob
@@ -95,3 +96,7 @@ envsubst '${TEST_CRON_SCHEDULE}' < k8s/50-test-cronjob.yaml | kubectl apply -f -
 envsubst '${EVAL_CRON_SCHEDULE}' < k8s/52-eval-cronjob.yaml | kubectl apply -f -
 
 scripts/trigger-tests.sh startup
+# One immediate smoke eval (0 model calls) so the apply is also an eval
+# health check; the full suite stays on the EVAL_CRON_SCHEDULE cadence
+# (OQ-EVAL-01).
+scripts/trigger-evals.sh smoke startup
