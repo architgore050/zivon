@@ -97,7 +97,6 @@ def create_app(
             content={"ok": True, "status": "ok", "db": "ok"}
         )
 
-    # Wire modular services if available (db, guard, identity/abuse, REST routers)
     _wire_components(app, cfg, db_engine=db_engine, credit_guard=credit_guard)
 
     app.state.voice_mount_mode = mount_voice_channel(app)
@@ -111,7 +110,7 @@ def _wire_components(
     db_engine: Any | None = None,
     credit_guard: Any | None = None,
 ) -> None:
-    """Lazy-wire database, guard, abuse limiter, and routers as modules land."""
+    """Lazy-wire database, guard, privacy, abuse limiter, and routers."""
     if db_engine is None:
         try:
             from db.engine import DatabaseEngine
@@ -138,6 +137,14 @@ def _wire_components(
         except ImportError:
             pass
 
+    if app.state.db is not None:
+        try:
+            from .privacy import DeletionAndRetentionService
+
+            app.state.privacy = DeletionAndRetentionService(app.state.db)
+        except ImportError:
+            pass
+
     try:
         from .identity import IdentityManager
 
@@ -159,7 +166,6 @@ def _wire_components(
 
         register_routes(app)
     except ImportError:
-        # Provide fallback /v1/health before routes package is added
         @app.get("/v1/health")
         def fallback_v1_health() -> JSONResponse:
             return JSONResponse(
