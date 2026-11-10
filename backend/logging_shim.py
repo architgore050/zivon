@@ -88,7 +88,14 @@ _ALLOWED_REFERENCE_KEYS: frozenset[str] = frozenset(
     }
 )
 
-_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Possessive quantifiers + the atomic domain group keep this linear-time on
+# adversarial input (CodeQL py/polynomial-redos): the local-part run and each
+# domain label are consumed without backtracking, so a value made of thousands
+# of '%' or '.' characters cannot trigger super-linear rescanning. Matches the
+# same shapes as the naive pattern for real values.
+_EMAIL_RE = re.compile(
+    r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]++@(?>[A-Za-z0-9-]+\.)+[A-Za-z]{2,}"
+)
 _PHONE_RE = re.compile(r"(?:\+91[\s-]?)?[6-9]\d{9}\b")
 _API_KEY_RE = re.compile(r"\b(?:sk-[A-Za-z0-9_-]{8,}|ZIVON_[A-Za-z0-9_]{8,})\b")
 _BEARER_RE = re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]+\b", re.IGNORECASE)
