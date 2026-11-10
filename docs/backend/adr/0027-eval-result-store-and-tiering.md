@@ -36,11 +36,10 @@ We adopt **Option 4 (Dual-Mode Store)**:
 
 1. **Always-On Local/PVC Ledger (`Phase A` — P0 & CI)**:
    - Every `evals` invocation writes to `/app/evals_runs/` (mounted from PVC `zivon-sources`, `subPath: evals` in `k8s/52-eval-cronjob.yaml` — separate from `subPath: runs` so `pipeline.py --fresh` never wipes eval history):
-     - `evals_runs/eval_runs_ledger.jsonl` (one summary JSON line per suite run)
-     - `evals_runs/eval_cards_ledger.jsonl` (one line per `(eval_run_id, card_id, topic_slug)`)
+     - `evals_runs/eval_runs_ledger.jsonl` (one summary JSON line per suite run, including its card results)
      - `evals_runs/human_edits_ledger.jsonl` (one line per `evals record-edit`)
      - `evals_runs/kid_sessions_ledger.jsonl` (one line per `evals record-kid-test`)
-     - `evals_runs/<eval_run_id>/{eval_report.json,diff_report.json,eval_summary.md}`
+     - `evals_runs/<eval_run_id>/{eval_report.json,eval_summary.md,eval_metrics.prom}` (plus `eval_diff.json` when a diff is written)
 2. **Relational Persistence (`Phase B` — `db-spec.md` Alignment)**:
    - When `ZIVON_DB_URL` is present in the environment, `evals/store.py` dual-writes to five tables in PostgreSQL (schemas defined in [`docs/specs/evals/spec.md`](../../specs/evals/spec.md) §4.1):
      - `eval_run` (UUIDv7 PK, indexed on `(suite, pipeline_version, started_at DESC)`)
