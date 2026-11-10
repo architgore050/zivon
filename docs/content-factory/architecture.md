@@ -647,6 +647,14 @@ founder's spec, 4x CPU throttling, 2 cores). The harness measures
 Navigation Timing, FCP/LCP, peak Chromium-tree RSS via psutil, and rAF FPS,
 and fails on any console/page error.
 
+The staged pages are loaded from `file://` (no server in the perf stage), which
+gives the document an opaque origin and CORS-blocks the shell's woff2 font
+preloads - a test-transport artifact, not a product defect (production serves
+the same files over HTTP(S)). The harness therefore launches Chromium with
+`--allow-file-access-from-files` (`CHROMIUM_LAUNCH_ARGS` in
+`testing/content_factory/perf/harness.py`); 06-render's screenshot pass uses
+the same flag so reviewer captures render with real fonts. Test-only.
+
 **Loosened 2026-11-04 (founder decision):** the gate's load/FCP budgets are
 raised (load 2.0 → 6.0 s, FCP 1.2 → 3.5 s) while the pipeline's first real
 generation runs are being diagnosed - no generated page has yet been measured

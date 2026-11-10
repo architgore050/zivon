@@ -140,3 +140,8 @@ python -m testing.content_factory.perf.harness \
     --profile testing/content_factory/perf/profiles/weak-android.json \
     --out /tmp/perf-report.json            # exit 0 = pass; JSON report names every failure
 ```
+
+The harness launches Chromium with `--allow-file-access-from-files` itself, so
+the `file://` URL loads its woff2 font preloads exactly as an HTTP(S) document
+does. That flag is test-transport-only: production serves the shell over
+HTTP(S), where no flag is needed.
