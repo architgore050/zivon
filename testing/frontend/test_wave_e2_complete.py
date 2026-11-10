@@ -108,13 +108,25 @@ class TestWaveE2Complete(unittest.TestCase):
             "console", lambda m: errors.append(m.text) if m.type == "error" else None
         )
         page.on("pageerror", lambda e: errors.append(str(e)))
+        page.add_init_script(
+            """try {
+              window.__usedBrowserSpeechSynthesis = false;
+              if (window.speechSynthesis && window.speechSynthesis.speak) {
+                var origSpeak = window.speechSynthesis.speak.bind(window.speechSynthesis);
+                window.speechSynthesis.speak = function () {
+                  window.__usedBrowserSpeechSynthesis = true;
+                  return origSpeak.apply(null, arguments);
+                };
+              }
+            } catch (e) {}"""
+        )
         f = Path(self._tmp.name) / name
         f.write_text(html, encoding="utf-8")
         page.goto(f.resolve().as_uri())
         return page, errors
 
     def _open_html_served(
-        self, html: str, name: str = "served.html"
+        self, html: str, name: str = "served.html", *, consent: bool = False
     ) -> tuple[Page, list[str]]:
         """Open a lesson page over HTTP (production path).
 
@@ -142,6 +154,10 @@ class TestWaveE2Complete(unittest.TestCase):
             "console", lambda m: errors.append(m.text) if m.type == "error" else None
         )
         page.on("pageerror", lambda e: errors.append(str(e)))
+        if consent:
+            page.add_init_script(
+                "try { localStorage.setItem('zivon.consent', 'granted'); } catch (e) {}"
+            )
         # The server is kept alive by the test class so the page can keep
         # fetching for the duration of the assertions.
         if not hasattr(self.__class__, "_serve_ctx"):
@@ -150,6 +166,263 @@ class TestWaveE2Complete(unittest.TestCase):
             self.__class__._serve_base = base_url
         page.goto(f"{self.__class__._serve_base}/{name}")
         return page, errors
+
+    # A browser-realistic capture seam: getUserMedia resolves a fake stream and
+    # AudioContext exposes a ScriptProcessor whose audio callback the test can
+    # fire. This proves the press-and-hold path actually captures and sends
+    # frames — it is not a stub of the code under test.
+    FAKE_CAPTURE_SCRIPT = """
+      (() => {
+        window.__captureProcessors = [];
+        window.__micTracksStopped = 0;
+        const track = {
+          getSettings: () => ({ sampleRate: 48000, channelCount: 1 }),
+          stop: () => { window.__micTracksStopped += 1; }
+        };
+        const stream = {
+          getTracks: () => [track],
+          getAudioTracks: () => [track]
+        };
+        Object.defineProperty(navigator, 'mediaDevices', {
+          configurable: true,
+          value: { getUserMedia: async () => stream }
+        });
+        class FakeGain {
+          constructor() { this.gain = { value: 1 }; }
+          connect() {}
+          disconnect() {}
+        }
+        class FakeSource { connect() {} disconnect() {} }
+        class FakeProcessor extends FakeSource {
+          constructor() { super(); this.onaudioprocess = null; window.__captureProcessors.push(this); }
+        }
+        class FakeAudioContext {
+          constructor() {
+            this.state = 'running';
+            this.sampleRate = 48000;
+            this.currentTime = 0;
+            this.destination = {};
+          }
+          resume() { this.state = 'running'; }
+          close() { return Promise.resolve(); }
+          createGain() { return new FakeGain(); }
+          createMediaStreamSource() { return new FakeSource(); }
+          createScriptProcessor() { return new FakeProcessor(); }
+        }
+        window.AudioContext = FakeAudioContext;
+        window.webkitAudioContext = FakeAudioContext;
+      })();
+    """
+
+    def test_mic_capture_sends_pcm16_frames_and_first_press_is_queued(self) -> None:
+        page = self._browser.new_page()
+        errors: list[str] = []
+        page.on(
+            "console", lambda m: errors.append(m.text) if m.type == "error" else None
+        )
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.add_init_script(self.FAKE_CAPTURE_SCRIPT)
+        f = Path(self._tmp.name) / "capture.html"
+        f.write_text(CONTENT_ONLY_LESSON_HTML, encoding="utf-8")
+        page.goto(f.resolve().as_uri())
+        try:
+            res = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  // --- M2: a start while CONNECTING is queued, never offline.
+                  const mockFirst = VC.createMockServer({});
+                  const c = VC.create({
+                    createWebSocket: mockFirst.createWebSocket,
+                    session_token: 'tok-first'
+                  });
+                  const states = [];
+                  c.onStateChange((s) => states.push(s));
+                  c.connect();
+                  c.startListening('doubt'); // socket is still CONNECTING
+                  await new Promise((r) => setTimeout(r, 40));
+                  const firstPressState = c.getState();
+                  const firstPressTypes = mockFirst.getSentMessages().map((m) => m.type);
+
+                  // --- B1: press the dock mic -> permission -> connect ->
+                  // capture -> frames on the wire -> release -> audio.end.
+                  localStorage.setItem('zivon.consent', 'granted');
+                  const mock = VC.createMockServer({});
+                  const mount = window.ZivonVoiceDock.lazyMount({
+                    clientOptions: { createWebSocket: mock.createWebSocket, session_token: 'tok-mic' }
+                  });
+                  const mic = mount.region.querySelector('.zn-dock-mic-strip');
+                  mic.click();
+                  await new Promise((r) => setTimeout(r, 80));
+                  const dockClient = window.ZivonVoiceDock._activeClient;
+                  const stateWhileHeld = dockClient.getState();
+                  const captureActive = dockClient.getCaptureStats().active;
+                  const processor = window.__captureProcessors[0];
+                  // One 2048-frame block at 48 kHz -> resampled 16 kHz -> two
+                  // full 20 ms frames (320 samples / 640 payload bytes each).
+                  processor.onaudioprocess({
+                    inputBuffer: { getChannelData: () => new Float32Array(2048).fill(0.5) }
+                  });
+                  const frames = mock.getBinaryFrames();
+                  const frameStats = frames.map((fr) => ({
+                    valid: fr.valid,
+                    seq: fr.seq,
+                    payload: fr.payload.length
+                  }));
+                  mic.click(); // release / stop
+                  await new Promise((r) => setTimeout(r, 40));
+                  const sentTypes = mock.getSentMessages().map((m) => m.type);
+                  return {
+                    firstPressState,
+                    firstPressTypes,
+                    stateWhileHeld,
+                    captureActive,
+                    captureFramesSent: dockClient.getCaptureStats().frames_sent,
+                    frameStats,
+                    sentTypes,
+                    tracksStopped: window.__micTracksStopped
+                  };
+                }"""
+            )
+            # M2: queued behind session.ready, never `offline`.
+            self.assertEqual(res["firstPressState"], "listening")
+            self.assertIn("session.start", res["firstPressTypes"])
+            self.assertIn("audio.start", res["firstPressTypes"])
+            # B1: the capture path was exercised for real.
+            self.assertEqual(res["stateWhileHeld"], "listening")
+            self.assertTrue(res["captureActive"])
+            self.assertEqual(res["captureFramesSent"], 2)
+            self.assertEqual(len(res["frameStats"]), 2)
+            self.assertTrue(all(f["valid"] for f in res["frameStats"]))
+            self.assertEqual([f["seq"] for f in res["frameStats"]], [0, 1])
+            self.assertTrue(all(f["payload"] == 640 for f in res["frameStats"]))
+            self.assertIn("audio.end", res["sentTypes"])
+            self.assertGreaterEqual(res["tracksStopped"], 1)
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_first_press_never_reports_offline(self) -> None:
+        """M2 regression guard on its own (state history, not just end state)."""
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "first_press.html")
+        try:
+            res = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const c = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'tok-first'
+                  });
+                  const states = [];
+                  c.onStateChange((s) => states.push(s));
+                  c.connect();
+                  c.startListening('doubt');
+                  await new Promise((r) => setTimeout(r, 40));
+                  return { states, state: c.getState() };
+                }"""
+            )
+            self.assertNotIn("offline", res["states"])
+            self.assertEqual(res["state"], "listening")
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_disabled_lang_chip_is_a_no_op_and_bundle_swap_works(self) -> None:
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "lang_chip.html")
+        try:
+            res = page.evaluate(
+                """() => {
+                  localStorage.clear();
+                  window.ZivonShell.mount();
+                  const chips = Array.prototype.slice.call(
+                    document.querySelectorAll('.zn-lang-row .zn-chip')
+                  );
+                  const hi = chips[1];
+                  const langBefore = document.documentElement.lang;
+                  hi.click();
+                  const afterDisabled = {
+                    enChecked: chips[0].getAttribute('aria-checked'),
+                    hiChecked: hi.getAttribute('aria-checked'),
+                    stored: localStorage.getItem('zivon_locale'),
+                    lang: document.documentElement.lang,
+                    status: (document.querySelector('.zn-lang-status') || {}).textContent || ''
+                  };
+                  // Bundle appears -> the same chip now really switches.
+                  window.ZIVON_I18N = { hi: { strings: {}, ui_strings: {}, fallback_blocks: [] } };
+                  window.ZivonShell.mount({ manifest: {} });
+                  hi.click();
+                  return {
+                    afterDisabled,
+                    langBefore,
+                    afterEnabled: {
+                      enChecked: chips[0].getAttribute('aria-checked'),
+                      hiChecked: hi.getAttribute('aria-checked'),
+                      stored: localStorage.getItem('zivon_locale'),
+                      lang: document.documentElement.lang
+                    }
+                  };
+                }"""
+            )
+            dis = res["afterDisabled"]
+            self.assertEqual(dis["enChecked"], "true")
+            self.assertEqual(dis["hiChecked"], "false")
+            self.assertIsNone(dis["stored"], "a disabled chip must never persist")
+            self.assertEqual(dis["lang"], res["langBefore"])
+            self.assertIn("Not translated yet", dis["status"])
+            en = res["afterEnabled"]
+            self.assertEqual(en["hiChecked"], "true")
+            self.assertEqual(en["enChecked"], "false")
+            self.assertEqual(en["stored"], "hi")
+            self.assertEqual(en["lang"], "hi")
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_space_does_not_hijack_controls_and_anchor_follows_viewport(self) -> None:
+        page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "dock_keys.html")
+        try:
+            res = page.evaluate(
+                """async () => {
+                  localStorage.setItem('zivon.consent', 'granted');
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const mount = window.ZivonVoiceDock.lazyMount({
+                    clientOptions: { createWebSocket: mock.createWebSocket, session_token: 'tok-k' }
+                  });
+                  const region = mount.region;
+                  const typed = region.querySelector('.zn-dock-typed-input');
+                  const space = () => new KeyboardEvent('keydown', { key: ' ', bubbles: true });
+                  typed.focus();
+                  typed.dispatchEvent(space());
+                  await new Promise((r) => setTimeout(r, 30));
+                  const stateAfterInputSpace = window.ZivonVoiceDock._activeClient
+                    ? window.ZivonVoiceDock._activeClient.getState()
+                    : 'no-client';
+
+                  // Anchor: the block nearest the viewport centre wins.
+                  const b03 = document.getElementById('b-03');
+                  b03.style.marginTop = '1600px';
+                  b03.scrollIntoView({ block: 'center' });
+                  await new Promise((r) => setTimeout(r, 250));
+                  const snap = window.ZivonStateMatrix.buildContextSnapshot();
+                  const chip = region.querySelector('[data-element-id="EL-LES-01-050"]');
+                  return {
+                    stateAfterInputSpace,
+                    snapBlock: snap.block_id,
+                    chipBlock: chip.getAttribute('data-anchor-block')
+                  };
+                }"""
+            )
+            self.assertIn(
+                res["stateAfterInputSpace"],
+                {"idle", "no-client"},
+                "Space inside the typed input must not start the microphone",
+            )
+            self.assertEqual(res["snapBlock"], "b-03")
+            self.assertEqual(res["chipBlock"], "b-03")
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
 
     def test_shell_injection_content_only_fixture_and_missing_manifest(self) -> None:
         # 1. Missing manifest -> no read-aloud buttons, but report, consent, footer privacy link mount
@@ -496,7 +769,9 @@ class TestWaveE2Complete(unittest.TestCase):
             priv_page.close()
 
         # 2. Test Provenance Report, Telemetry Flush, Credit Notices, and Language Bar on Lesson Page
-        page, errors = self._open_html_served(CONTENT_ONLY_LESSON_HTML, "surfaces.html")
+        page, errors = self._open_html_served(
+            CONTENT_ONLY_LESSON_HTML, "surfaces.html", consent=True
+        )
         try:
             res = page.evaluate(
                 """async () => {
@@ -717,9 +992,10 @@ class TestWaveE2Complete(unittest.TestCase):
                           return {
                             mounted: typeof window.__ZIVON_MANIFEST__ === 'object',
                             readAloud: document.querySelectorAll('.zn-read-aloud-btn').length,
-                            preloadNone: Array.prototype.every.call(
-                              document.querySelectorAll('.zn-read-aloud-btn'),
-                              (b) => true),
+                            preloads: Array.prototype.map.call(
+                              document.querySelectorAll('.zn-read-aloud-audio'),
+                              (a) => a.getAttribute('preload')),
+                            speechUsed: Boolean(window.__usedBrowserSpeechSynthesis)
                           };
                         }"""
                     )
@@ -730,6 +1006,15 @@ class TestWaveE2Complete(unittest.TestCase):
                         res["readAloud"],
                         1,
                         "exactly the manifest-available block gets a read-aloud control",
+                    )
+                    self.assertEqual(
+                        res["preloads"],
+                        ["none"],
+                        "narration is lazy: never preload the audio on mount",
+                    )
+                    self.assertFalse(
+                        res["speechUsed"],
+                        "browser SpeechSynthesis must never be used (§10.13)",
                     )
                     self.assertEqual(errors, [])
                 finally:

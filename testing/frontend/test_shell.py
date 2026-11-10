@@ -37,9 +37,13 @@ class TestShellContract(unittest.TestCase):
     """Static checks on the shell source: no browser needed."""
 
     def test_self_contained_no_network_refs(self) -> None:
-        # The repo rule: generated AND hand-maintained pages make no external calls.
+        # The repo rule: generated AND hand-maintained pages make no EXTERNAL
+        # calls. Same-origin requests (fetch("/v1/..."), ./manifest.json,
+        # wss://<same origin>/voice/ws) are allowed and covered by the CSP
+        # tests; a blanket `fetch(` ban hid real same-origin wiring.
         bad = re.compile(
-            r"""(?:src|href)\s*=\s*["']https?://|url\(\s*["']?https?://|fetch\(|XMLHttpRequest"""
+            r"""(?:src|href)\s*=\s*["']https?://|url\(\s*["']?https?://"""
+            r"""|(?:fetch|WebSocket)\(\s*["']https?://"""
         )
         files = list(CODE_FILES)
         if (FRONTEND / "courses").is_dir():

@@ -185,6 +185,12 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 proc = psutil.Process(browser_pid)
                 _pin_browser_cores(psutil, proc, list(range(profile["pin_cores"])))
 
+            # First-visit consent (§10.14) is chrome, not lesson content, and
+            # its "declined" state is the pure-reading budget target. Set it
+            # before load so no gate/PUT request pollutes the measurement.
+            page.add_init_script(
+                "try { localStorage.setItem('zivon.consent', 'declined'); } catch (e) {}"
+            )
             page.add_init_script("""
                 window.__zivonPerf = {fcp: null, lcp: null};
                 try {
@@ -205,6 +211,8 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
             t0 = time.time()
             page.goto(url, wait_until="load", timeout=60000)
             load_s = time.time() - t0
+
+
 
             overflow_px = page.evaluate(
                 "Math.max(0, document.documentElement.scrollWidth - window.innerWidth)"

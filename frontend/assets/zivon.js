@@ -794,12 +794,41 @@
     return true;
   }
 
+  function announceLangStatus(msg) {
+    var host = document.querySelector(".zn-lang-in") || document.querySelector(".zn-lang-bar");
+    if (!host) return;
+    var status = host.querySelector(".zn-lang-status");
+    if (!status) {
+      status = document.createElement("span");
+      status.className = "zn-lang-status zn-sr-only";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      host.appendChild(status);
+    }
+    status.textContent = msg || "";
+    return status;
+  }
+
   function selectLangChip(row, targetChip, persistAndEmit) {
     if (!row || !targetChip) return;
+    /* A chip with aria-disabled has no translation bundle: selecting it would
+       persist a locale with no strings, run the untranslated-notice path and
+       wrongly suppress read-aloud. Say so honestly and change nothing. */
+    if (targetChip.getAttribute("aria-disabled") === "true") {
+      announceLangStatus(
+        "Not translated yet — showing reviewed English. This language will unlock when its bundle is generated."
+      );
+      return;
+    }
     var chips = Array.prototype.slice.call(row.querySelectorAll(".zn-chip"));
     var prevChip = row.querySelector('.zn-chip[aria-checked="true"]');
     var fromCode = prevChip ? chipLocaleCode(prevChip) : "en";
     var toCode = chipLocaleCode(targetChip);
+    if (toCode !== "en") {
+      announceLangStatus("Language: " + (targetChip.textContent || toCode).trim());
+    } else {
+      announceLangStatus("Language: English");
+    }
 
     chips.forEach(function (c) {
       var isTarget = c === targetChip;
@@ -824,6 +853,9 @@
         window.ZivonEvents.recordLangSwitch(fromCode, toCode);
       }
     }
+    /* §10.13: read-aloud buttons follow the active locale; a locale with no
+       narration shows no buttons. Rebuild them on every switch. */
+    refreshReadAloudForLocale();
   }
 
   function wireLangChips() {
@@ -865,6 +897,12 @@
       if (nextIdx !== -1) {
         event.preventDefault();
         var nextChip = chips[nextIdx];
+        /* Skip chips with no bundle when moving the roving selection: focus
+           may land on them, but the selected language must stay honest. */
+        if (nextChip.getAttribute("aria-disabled") === "true") {
+          nextChip.focus();
+          return;
+        }
         selectLangChip(row, nextChip, true);
         nextChip.focus();
       }
@@ -962,6 +1000,17 @@
     activeNarrationBlockId = null;
   }
 
+  function refreshReadAloudForLocale() {
+    var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
+    if (!lessonPage) return;
+    stopReadAloud();
+    lessonPage.querySelectorAll(".zn-read-aloud-wrap, .zn-read-aloud-progress").forEach(function (el) {
+      el.remove();
+    });
+    lessonPage.removeAttribute("data-zn-readaloud-mounted");
+    injectReadAloudControls(window.__ZIVON_MANIFEST__ || null);
+  }
+
   function resolveNarrationAssetPath(rawPath, courseId, blockId, lang, hash) {
     var p = String(rawPath || "").trim();
     if (p) {
@@ -995,6 +1044,29 @@
     var courseId = mf.course_id || ZivonRouter.currentRoute().course_id || "physics";
     var count = 0;
 
+    /* Offline gating (EL-LES-01-012 `disabled-offline`): narration is a
+       network fetch, so an offline page disables the control and says why
+       instead of offering a button that can only fail. */
+    function syncReadAloudOffline() {
+      var off = typeof navigator !== "undefined" && navigator.onLine === false;
+      lessonPage.querySelectorAll(".zn-read-aloud-btn").forEach(function (b) {
+        b.disabled = off;
+        if (off) {
+          b.title = "Offline — narration needs a connection.";
+          b.setAttribute("data-state", "disabled-offline");
+        } else if (b.getAttribute("data-state") === "disabled-offline") {
+          b.removeAttribute("title");
+          b.setAttribute("data-state", "default");
+        }
+      });
+      if (off) stopReadAloud();
+    }
+    if (lessonPage.getAttribute("data-zn-readaloud-netwired") !== "true") {
+      lessonPage.setAttribute("data-zn-readaloud-netwired", "true");
+      window.addEventListener("online", syncReadAloudOffline);
+      window.addEventListener("offline", syncReadAloudOffline);
+    }
+
     Object.keys(blocksMap).forEach(function (blockId) {
       var info = blocksMap[blockId];
       if (!info || !info.available) return;
@@ -1018,7 +1090,7 @@
       btn.className = "zn-read-aloud-btn";
       btn.setAttribute("data-element-id", "EL-LES-01-012");
       btn.setAttribute("data-block-id", blockId);
-      btn.setAttribute("data-audio-src", assetUrl);
+      btn.setAttribute("data-state", "default");
       btn.setAttribute("aria-pressed", "false");
       btn.setAttribute("aria-label", "सुनो / Listen: " + blockTitle);
 
@@ -1040,7 +1112,23 @@
       statusSr.className = "zn-sr-only";
       statusSr.setAttribute("aria-live", "polite");
 
+      function failNarration(message) {
+        /* Honest, recoverable failure: reset the control, announce once.
+           A 404/CSP/decode failure must never leave a dead "playing" pill.
+           Stale failures (the student already started another block) are
+           ignored so they cannot stop the live track. */
+        if (activeNarrationBtn !== btn && btn.getAttribute("aria-pressed") !== "true") return;
+        stopReadAloud();
+        btn.setAttribute("data-state", "error");
+        span.textContent = "▶ सुनो / Listen";
+        statusSr.textContent = message || "Audio could not be played.";
+      }
+
       btn.addEventListener("click", function () {
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+          statusSr.textContent = "You are offline — narration needs a connection.";
+          return;
+        }
         if (activeNarrationBtn === btn) {
           stopReadAloud();
           if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
@@ -1053,6 +1141,7 @@
         activeNarrationAudio = audio;
         activeNarrationProgress = prog;
         activeNarrationBlockId = blockId;
+        btn.setAttribute("data-state", "loading");
         btn.setAttribute("aria-pressed", "true");
         span.textContent = "■ रोकें / Stop";
         statusSr.textContent = "playing narration";
@@ -1062,10 +1151,23 @@
         }
         try {
           var playPromise = audio.play();
-          if (playPromise && typeof playPromise.catch === "function") {
-            playPromise.catch(function () {});
+          if (playPromise && typeof playPromise.then === "function") {
+            playPromise.then(function () {
+              btn.setAttribute("data-state", "playing");
+            }, function (err) {
+              /* CSP block, 404, autoplay refusal: handle, never swallow. */
+              failNarration(err && err.name === "NotAllowedError"
+                ? "Playback was blocked by the browser — press Listen again."
+                : "Narration could not be played. Check your connection and try again.");
+            });
           }
-        } catch (e) {}
+        } catch (err) {
+          failNarration("Narration could not be played. Check your connection and try again.");
+        }
+      });
+
+      audio.addEventListener("error", function () {
+        failNarration("Narration audio is unavailable right now — try again later.");
       });
 
       audio.addEventListener("timeupdate", function () {
@@ -1094,6 +1196,7 @@
       count += 1;
     });
 
+    syncReadAloudOffline();
     if (count > 0) {
       lessonPage.setAttribute("data-zn-readaloud-mounted", "true");
     }
@@ -1359,9 +1462,18 @@
     card.setAttribute("data-element-id", "EL-LES-01-057");
     card.setAttribute("data-zn-mounted", "true");
     card.setAttribute("data-ruled-skip", "true");
+    /* §10.14: a one-time CONSENT SHEET. As an in-flow card at the bottom of a
+       long lesson it was never seen, so voice was undiscoverable on first
+       visit. It is a bottom sheet (fixed), modal while open, with focus
+       containment; declining still never re-nags. */
     card.setAttribute("role", "dialog");
-    card.setAttribute("aria-modal", "false");
-    card.setAttribute("aria-label", "Voice tutor privacy and consent notice");
+    card.setAttribute("aria-modal", "true");
+    card.setAttribute("data-consent-presentation", "sheet");
+    card.setAttribute("aria-labelledby", "zn-consent-title");
+    var sheetTitle = document.createElement("h2");
+    sheetTitle.className = "zn-consent-title";
+    sheetTitle.id = "zn-consent-title";
+    sheetTitle.textContent = "Voice tutor: before we start";
 
     var notice = document.createElement("p");
     notice.className = "zn-consent-notice";
@@ -1403,6 +1515,7 @@
     actionsRow.appendChild(declineBtn);
     actionsRow.appendChild(privLink);
 
+    card.appendChild(sheetTitle);
     card.appendChild(notice);
     card.appendChild(guardianLabel);
     card.appendChild(actionsRow);
@@ -1435,12 +1548,33 @@
       if (ev.key === "Escape") {
         ev.preventDefault();
         declineBtn.click();
+        return;
+      }
+      if (ev.key !== "Tab") return;
+      /* Focus stays inside the modal sheet. */
+      var focusables = Array.prototype.slice.call(
+        card.querySelectorAll("button:not([disabled]), input, a[href]")
+      );
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      if (ev.shiftKey && document.activeElement === first) {
+        ev.preventDefault();
+        last.focus();
+      } else if (!ev.shiftKey && document.activeElement === last) {
+        ev.preventDefault();
+        first.focus();
       }
     });
 
     /* If already granted or declined on this device, keep hidden (no re-nag) */
     card.hidden = cState === "granted" || cState === "declined";
     lessonPage.appendChild(card);
+    if (!card.hidden) {
+      /* First visit: move focus into the sheet so keyboard/screen-reader
+         users meet the gate instead of the page scrolling past it. */
+      try { guardianBox.focus(); } catch (e) {}
+    }
     return { mounted: true, element: card, state: cState };
   }
 
@@ -1704,7 +1838,7 @@
     "thinking": "soch rahe hain…",
     "speaking": "",
     "speaking_text": "TUTOR · TEXT",
-    "interrupted": "▌cut off",
+    "interrupted": "▍cut off",
     "offline": "connection gaya — jo type karoge woh safe hai",
     "error:mic-denied": "lesson chalta rahega",
     "error:mic-in-use": "Mic kisi aur app mein busy hai — dubara koshish karein ya type karein.",
@@ -1725,6 +1859,52 @@
     if (saved === "hidden") return "hidden";
     /* A stored "expanded" starts collapsed on a new page load (never auto-expand, §10.12) */
     return "collapsed";
+  }
+
+  /* Inline mic glyph (§10.12: never a literal "[mic]" string). Decorative
+     only — the accessible name lives on the button. */
+  function makeMicIcon() {
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "20");
+    svg.setAttribute("height", "20");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    var body = document.createElementNS(ns, "rect");
+    body.setAttribute("x", "9");
+    body.setAttribute("y", "3");
+    body.setAttribute("width", "6");
+    body.setAttribute("height", "11");
+    body.setAttribute("rx", "3");
+    body.setAttribute("fill", "none");
+    body.setAttribute("stroke", "currentColor");
+    body.setAttribute("stroke-width", "2");
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("d", "M5 11a7 7 0 0 0 14 0M12 18v3");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "currentColor");
+    arc.setAttribute("stroke-width", "2");
+    arc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(body);
+    svg.appendChild(arc);
+    return svg;
+  }
+
+  var dockEarconCtx = null;
+  function playDockEarconOnce(kind) {
+    /* Created lazily inside a user gesture (dock open / mic press). */
+    try {
+      if (!dockEarconCtx) {
+        var Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) return;
+        dockEarconCtx = new Ctor();
+      }
+      if (dockEarconCtx.state === "suspended" && typeof dockEarconCtx.resume === "function") {
+        dockEarconCtx.resume();
+      }
+      playDockEarcon(kind, dockEarconCtx);
+    } catch (e) {}
   }
 
   function playDockEarcon(kind, audioCtx) {
@@ -1764,6 +1944,16 @@
       if (sheetEl) sheetEl.hidden = c !== "expanded";
       if (persist !== false) {
         safeStorageSet(DOCK_STORAGE_KEY, c);
+      }
+      if (typeof document !== "undefined" && document.body) {
+        document.body.classList.toggle("zn-dock-present", c !== "hidden");
+        document.body.setAttribute("data-dock-containment", c);
+      }
+      /* EL-LES-01-051 identity line is "seen" only once the student has
+         actually expanded the sheet and could read it. */
+      var identity = region.querySelector(".zn-dock-identity");
+      if (identity && c === "expanded" && !identity.hidden) {
+        safeStorageSet(IDENTITY_SEEN_KEY, "true");
       }
       return c;
     },
@@ -1861,7 +2051,7 @@
       } else if (st === "listening" && latestPartial && captionsOn) {
         liveCapText = latestPartial;
       } else if (st === "interrupted") {
-        liveCapText = (latestTutorText ? latestTutorText.slice(0, 48) + " " : "") + "▌cut off";
+        liveCapText = (latestTutorText ? latestTutorText.slice(0, 48) + " " : "") + "▍cut off";
       }
 
       if (captionEl) {
@@ -1885,7 +2075,7 @@
             var p = document.createElement("p");
             p.className = "zn-dock-line zn-dock-line-" + item.kind;
             var prefix = item.kind === "student" ? "You: " : "Tutor: ";
-            var suffix = item.interrupted ? " ▌cut off" : "";
+            var suffix = item.interrupted ? " ▍cut off" : "";
             p.textContent = prefix + item.text + suffix;
             if (item.interrupted) p.setAttribute("data-cut-off", "true");
             transcriptList.appendChild(p);
@@ -1949,7 +2139,10 @@
       tabBtn.className = "zn-dock-tab";
       tabBtn.setAttribute("data-element-id", "EL-LES-01-042");
       tabBtn.setAttribute("aria-label", "Open voice tutor dock");
-      tabBtn.textContent = "[mic] Ask";
+      tabBtn.appendChild(makeMicIcon());
+      var tabWord = document.createElement("span");
+      tabWord.textContent = "Ask";
+      tabBtn.appendChild(tabWord);
 
       /* 2. Collapsed state: 92 px strip */
       var stripEl = document.createElement("div");
@@ -1977,7 +2170,11 @@
       stripMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
       stripMicBtn.setAttribute("aria-pressed", "false");
       stripMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
-      stripMicBtn.textContent = "[mic]";
+      stripMicBtn.appendChild(makeMicIcon());
+      var stripMicWord = document.createElement("span");
+      stripMicWord.className = "zn-sr-only";
+      stripMicWord.textContent = "Speak";
+      stripMicBtn.appendChild(stripMicWord);
       [grabStrip, stripCap, stripTypeBtn, stripHideBtn, stripMicBtn].forEach(function (el) { stripEl.appendChild(el); });
 
       /* 3. Expanded state: <= 60 dvh sheet */
@@ -2003,10 +2200,10 @@
       identityLine.className = "zn-dock-identity";
       identityLine.setAttribute("data-element-id", "EL-LES-01-051");
       identityLine.textContent = "I'm an AI tutor — I see this lesson page, not your room.";
+      /* Marked seen only when the sheet is actually expanded (setContainment),
+         not merely mounted behind a collapsed strip. */
       if (safeStorageGet(IDENTITY_SEEN_KEY) === "true") {
         identityLine.hidden = true;
-      } else {
-        safeStorageSet(IDENTITY_SEEN_KEY, "true");
       }
       topRow.appendChild(anchorChip);
       topRow.appendChild(identityLine);
@@ -2087,7 +2284,10 @@
       sheetMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
       sheetMicBtn.setAttribute("aria-pressed", "false");
       sheetMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
-      sheetMicBtn.textContent = "[mic] Speak";
+      sheetMicBtn.appendChild(makeMicIcon());
+      var sheetMicWord = document.createElement("span");
+      sheetMicWord.textContent = "Speak";
+      sheetMicBtn.appendChild(sheetMicWord);
 
       var stopBtn = document.createElement("button");
       stopBtn.type = "button";
@@ -2166,7 +2366,9 @@
       settingsBtn.type = "button";
       settingsBtn.className = "zn-dock-settings-btn";
       settingsBtn.setAttribute("data-element-id", "EL-LES-01-055");
-      settingsBtn.textContent = "Settings";
+      /* No settings sheet exists: the control scrolls to the page language bar,
+      so it is labelled for what it does (EL-LES-01-055). */
+      settingsBtn.textContent = "Language";
       settingsBtn.addEventListener("click", function () {
         var langBar = document.querySelector(".zn-lang-bar");
         if (langBar && typeof langBar.scrollIntoView === "function") {
@@ -2191,9 +2393,11 @@
 
       /* Wire containment interactions */
       tabBtn.addEventListener("click", function () {
+        playDockEarconOnce("start");
         ZivonVoiceDock.setContainment("collapsed", true);
       });
       grabStrip.addEventListener("click", function () {
+        playDockEarconOnce("start");
         ZivonVoiceDock.setContainment("expanded", true);
       });
       stripTypeBtn.addEventListener("click", function () {
@@ -2236,6 +2440,7 @@
         /* Echo guard (§10.13): pressing the dock mic immediately stops read-aloud */
         stopReadAloud();
         ZivonVoiceDock.setContainment("expanded", true);
+        playDockEarconOnce("start");
         var client = ensureClientWired();
         var cur = client.getState();
         if (cur === "speaking" || cur === "thinking" || cur === "speaking_text") {
@@ -2247,16 +2452,69 @@
           try { sheetMicBtn.focus(); } catch (e) {}
           return;
         }
-        if (cur === "idle") {
-          client.connect();
-        }
-        client.startListening("doubt");
+        /* Press-and-hold capture path: permission FIRST (user gesture), then
+           connect, then queue the turn behind session.ready (M2). Denied or
+           unsupported browsers land in an honest error state with the typed
+           field open — never a fake "listening". */
+        var startTurn = function () {
+          var viaPointer = pointerHeld;
+          if (!client.hasMicrophone() && typeof client.requestMicPermission === "function") {
+            client.requestMicPermission().then(function (res) {
+              if (!res || !res.ok) return; /* state machine shows the reason */
+              /* The student released while the permission prompt was open:
+                 do not start recording after the fact. */
+              if (viaPointer && !pointerHeld) return;
+              if (client.getState() === "idle" || client.getState() === "offline") {
+                client.connect();
+              }
+              client.startListening("doubt");
+            });
+            return;
+          }
+          if (client.getState() === "idle" || client.getState() === "offline") {
+            client.connect();
+          }
+          client.startListening("doubt");
+        };
+        startTurn();
       }
 
-      stripMicBtn.addEventListener("click", handleMicTrigger);
-      sheetMicBtn.addEventListener("click", handleMicTrigger);
+      /* Hold-to-talk is the default (ADR-0018): pointerdown starts, release
+         ends. The synthetic click path stays for click/keyboard activation;
+         a real pointer sequence suppresses the trailing click. */
+      var suppressMicClick = false;
+      var pointerHeld = false;
+      function micPointerDown(ev) {
+        if (ev.button !== undefined && ev.button !== 0) return;
+        suppressMicClick = true;
+        pointerHeld = true;
+        handleMicTrigger();
+      }
+      function micPointerUp() {
+        pointerHeld = false;
+        var client = ZivonVoiceDock._activeClient;
+        if (client && client.getState() === "listening") client.endAudio();
+      }
+      [stripMicBtn, sheetMicBtn].forEach(function (btn) {
+        btn.addEventListener("pointerdown", micPointerDown);
+        btn.addEventListener("pointerup", micPointerUp);
+        btn.addEventListener("pointercancel", micPointerUp);
+        btn.addEventListener("pointerleave", function () {
+          if (suppressMicClick) micPointerUp();
+        });
+      });
+      function micClick(ev) {
+        if (suppressMicClick) {
+          suppressMicClick = false;
+          return;
+        }
+        handleMicTrigger();
+      }
+      stripMicBtn.addEventListener("click", micClick);
+      sheetMicBtn.addEventListener("click", micClick);
 
       stopBtn.addEventListener("click", function () {
+        playDockEarconOnce("stop");
         var client = ensureClientWired();
         client.bargeIn("stop_button");
         try { sheetMicBtn.focus(); } catch (e) {}
@@ -2278,6 +2536,18 @@
         ZivonVoiceDock.renderAgentState(client.getState(), {});
       });
 
+      /* Space is a page-wide talk key ONLY when focus is not on a control:
+         hijacking Space inside buttons/inputs/links would make those controls
+         unusable (§10.12 keyboard rule + normal browser behaviour). */
+      function isInteractiveTarget(target) {
+        if (!target || typeof target.closest !== "function") return false;
+        return Boolean(
+          target.closest(
+            "button, input, select, textarea, a, summary, [contenteditable], [role='textbox'], [role='button']"
+          )
+        );
+      }
+
       /* Keyboard shortcuts (§10.12): Space hold = talk, Esc = stop/interrupt then collapse, Enter = send typed */
       region.addEventListener("keydown", function (ev) {
         if (ev.key === "Escape") {
@@ -2293,7 +2563,7 @@
             ZivonVoiceDock.setContainment("collapsed", true);
             try { stripMicBtn.focus(); } catch (e) {}
           }
-        } else if (ev.key === " " && ev.target !== typedInput) {
+        } else if (ev.key === " " && !isInteractiveTarget(ev.target)) {
           var client2 = ensureClientWired();
           if (client2.getState() !== "listening" && !ev.repeat) {
             ev.preventDefault();
@@ -2305,7 +2575,7 @@
       });
 
       region.addEventListener("keyup", function (ev) {
-        if (ev.key === " " && ev.target !== typedInput) {
+        if (ev.key === " " && !isInteractiveTarget(ev.target)) {
           var client = ZivonVoiceDock._activeClient;
           if (client && client.getState() === "listening") {
             ev.preventDefault();
@@ -2314,6 +2584,26 @@
           }
         }
       });
+
+      /* The anchor chip and the context snapshot follow the block nearest the
+         viewport centre, so "Asking about" matches what the student is
+         actually reading (§10.12 interaction 3 / F-ADD-VOI-01). */
+      var anchorRafTimer = null;
+      function updateAnchorChip() {
+        var snapshot = buildContextSnapshot();
+        var bid = snapshot.block_id || "b-01";
+        anchorChip.setAttribute("data-anchor-block", bid);
+        anchorChip.textContent = "Asking about: " + bid + " · " +
+          String(snapshot.block_type || "text").replace(/_/g, " ");
+      }
+      window.addEventListener("scroll", function () {
+        if (anchorRafTimer) return;
+        anchorRafTimer = setTimeout(function () {
+          anchorRafTimer = null;
+          updateAnchorChip();
+        }, 150);
+      }, { passive: true });
+      updateAnchorChip();
 
       var initContainment = getInitialContainment();
       ZivonVoiceDock.setContainment(initContainment, false);
@@ -2330,6 +2620,11 @@
     var checkedChip = document.querySelector('.zn-lang-row .zn-chip[aria-checked="true"]');
     var langPref = checkedChip ? (checkedChip.getAttribute("data-lang") || checkedChip.textContent.trim()) : (document.documentElement.lang || "en");
     var visibleBlocks = [];
+    var blockTypes = {};
+    var viewportCentre = (typeof window !== "undefined" && window.innerHeight ? window.innerHeight : 800) / 2;
+    var bestBlockId = null;
+    var bestBlockType = "text";
+    var bestDistance = Infinity;
     document.querySelectorAll(".zn-page [id]").forEach(function (el) {
       if (visibleBlocks.length >= 12) return;
       /* SVG/MathML elements expose className as an SVGAnimatedString, not a
@@ -2347,11 +2642,24 @@
       else if (tag.indexOf("zn-example") !== -1) bType = "worked_example";
       else if (tag.indexOf("zn-reveal") !== -1) bType = "reveal";
       var h = el.querySelector("h3, legend, figcaption");
+      blockTypes[el.id] = bType;
       visibleBlocks.push({
         id: el.id,
         type: bType,
         title: h ? h.textContent.trim().slice(0, 80) : el.id
       });
+      /* Anchor = the block nearest the viewport centre (§10.12 "the block
+         being discussed"), not simply the first block on the page. */
+      if (typeof el.getBoundingClientRect === "function") {
+        var rect = el.getBoundingClientRect();
+        var centre = rect.top + rect.height / 2;
+        var dist = Math.abs(centre - viewportCentre);
+        if (dist < bestDistance) {
+          bestDistance = dist;
+          bestBlockId = el.id;
+          bestBlockType = bType;
+        }
+      }
     });
 
     var simStates = [];
@@ -2372,8 +2680,10 @@
     var docEl = document.documentElement;
     var maxScroll = Math.max(1, (docEl.scrollHeight || 1) - (window.innerHeight || 1));
     var scrollPct = Math.min(100, Math.max(0, Math.round(((window.scrollY || 0) / maxScroll) * 100)));
-    var activeBlock = explicitBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
+    var activeBlock = explicitBlockId || bestBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
+    var activeBlockType = blockTypes[activeBlock] || bestBlockType || "text";
     var firstSim = simStates[0] || null;
+    var activeSim = simStates.filter(function (s) { return s.block_id === activeBlock; })[0] || firstSim;
 
     var snap = {
       topic_id: route.topic_slug || (titleEl ? titleEl.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") : "topic"),
@@ -2381,9 +2691,9 @@
       class: parseInt(String(route.course_id || "9").replace(/\D+/g, ""), 10) || 9,
       chapter: titleEl ? titleEl.textContent.trim().slice(0, 120) : "",
       block_id: activeBlock,
-      block_type: firstSim && activeBlock === firstSim.block_id ? "simulation" : "text",
-      sim_id: firstSim ? firstSim.block_id : null,
-      sim_vars: firstSim ? firstSim.controls : {},
+      block_type: activeBlockType,
+      sim_id: activeSim ? activeSim.block_id : null,
+      sim_vars: activeSim ? activeSim.controls : {},
       visible_blocks: visibleBlocks,
       sim_states: simStates,
       last_check: lastCheckState,
@@ -2631,6 +2941,16 @@
     var agentGainNode = null;
     var agentGainConnected = false;
     var mediaStream = null;
+    /* Capture path: MediaStreamSource -> ScriptProcessorNode -> muted gain ->
+       destination. Never enabled unless a real MediaStream exists. */
+    var captureProcessor = null;
+    var captureSource = null;
+    var captureSink = null;
+    var captureResidual = [];
+    var captureFramesSent = 0;
+    /* A mic press during `connecting` must start once session.ready lands
+       (first-visit race: connect() then startListening() used to hit offline). */
+    var pendingStartHint = null;
     var creditState = "ok";
     var pingTimer = null;
     var reconnectTimer = null;
@@ -2657,6 +2977,11 @@
         if (nextState === "offline" || nextState === "interrupted") {
           stopPlaybackImmediately();
         }
+        /* Any terminal state stops capture: never leave a live processor
+           running while the dock shows an error or offline. `interrupted`
+           keeps the stream because barge-in transitions straight back to
+           listening; everything else also stops the track. */
+        stopCapture(nextState !== "interrupted");
         setDucking("normal");
       }
       if (nextState === "offline") {
@@ -2868,6 +3193,124 @@
       return { ok: false, error: "mic-denied" };
     }
 
+    /* --- Uplink capture -------------------------------------------------
+       Server contract (voice/audio_io.py, ws-contract.md §3): C→S audio is
+       8-byte header + little-endian PCM16 MONO at 16 kHz, nominally 100 ms
+       frames; the server accepts 2–200 ms (64–6400 payload bytes). We capture
+       at the AudioContext rate (typically 48 kHz), resample to 16 kHz and send
+       20 ms frames (320 samples = 640 bytes), well inside those bounds.
+       The client never sends Opus: it does not encode it and the server does
+       not expect it on this path. */
+    var CAPTURE_SAMPLE_RATE = 16000;
+    var CAPTURE_FRAME_SAMPLES = 320; /* 20 ms at 16 kHz */
+
+    function resampleTo16k(input, srcRate) {
+      var target = CAPTURE_SAMPLE_RATE;
+      if (!input || !input.length) return new Float32Array(0);
+      if (!srcRate || srcRate === target) return input;
+      var ratio = srcRate / target;
+      var outLen = Math.floor(input.length / ratio);
+      var out = new Float32Array(outLen);
+      for (var i = 0; i < outLen; i++) {
+        var pos = i * ratio;
+        var i0 = Math.floor(pos);
+        var frac = pos - i0;
+        var a = input[i0] !== undefined ? input[i0] : 0;
+        var b = input[i0 + 1] !== undefined ? input[i0 + 1] : a;
+        out[i] = a + (b - a) * frac;
+      }
+      return out;
+    }
+
+    function float32ToPcm16Le(samples) {
+      var out = new Uint8Array(samples.length * 2);
+      var dv = new DataView(out.buffer);
+      for (var i = 0; i < samples.length; i++) {
+        var s = samples[i];
+        if (s > 1) s = 1;
+        else if (s < -1) s = -1;
+        dv.setInt16(i * 2, s < 0 ? Math.round(s * 32768) : Math.round(s * 32767), true);
+      }
+      return out;
+    }
+
+    function stopCapture(stopTracks) {
+      if (captureProcessor) {
+        try { captureProcessor.onaudioprocess = null; } catch (e) {}
+        try { if (typeof captureProcessor.disconnect === "function") captureProcessor.disconnect(); } catch (e) {}
+        captureProcessor = null;
+      }
+      if (captureSource) {
+        try { if (typeof captureSource.disconnect === "function") captureSource.disconnect(); } catch (e) {}
+        captureSource = null;
+      }
+      if (captureSink) {
+        try { if (typeof captureSink.disconnect === "function") captureSink.disconnect(); } catch (e) {}
+        captureSink = null;
+      }
+      captureResidual = [];
+      if (stopTracks) {
+        if (mediaStream) {
+          try {
+            var tracks = typeof mediaStream.getTracks === "function" ? mediaStream.getTracks() : [];
+            tracks.forEach(function (t) { try { t.stop(); } catch (e) {} });
+          } catch (e) {}
+        }
+        mediaStream = null;
+      }
+    }
+
+    /* Returns "ok" | "no-stream" | "unsupported". "unsupported" means this
+       browser cannot capture at all — the dock must then show an honest
+       downgrade instead of a fake listening state. */
+    function startCapture() {
+      if (!mediaStream) return "no-stream";
+      if (captureProcessor) return "ok";
+      ensureAudioGraph();
+      if (!audioCtx ||
+          typeof audioCtx.createMediaStreamSource !== "function" ||
+          typeof audioCtx.createScriptProcessor !== "function") {
+        return "unsupported";
+      }
+      try {
+        var srcRate = audioCtx.sampleRate || 48000;
+        captureSource = audioCtx.createMediaStreamSource(mediaStream);
+        /* 2048 frames ≈ 43 ms at 48 kHz: a standard, widely supported block. */
+        captureProcessor = audioCtx.createScriptProcessor(2048, 1, 1);
+        captureProcessor.onaudioprocess = function (ev) {
+          if (state !== "listening" || !captureProcessor) return;
+          var channel = ev && ev.inputBuffer && typeof ev.inputBuffer.getChannelData === "function"
+            ? ev.inputBuffer.getChannelData(0)
+            : null;
+          if (!channel || !channel.length) return;
+          var down = resampleTo16k(channel, srcRate);
+          for (var i = 0; i < down.length; i++) captureResidual.push(down[i]);
+          while (captureResidual.length >= CAPTURE_FRAME_SAMPLES && state === "listening") {
+            var frame = captureResidual.splice(0, CAPTURE_FRAME_SAMPLES);
+            var pcm = float32ToPcm16Le(frame);
+            if (sendAudioChunk(pcm, false)) captureFramesSent += 1;
+          }
+        };
+        captureSink = audioCtx.createGain();
+        captureSink.gain.value = 0; /* processing only - never monitor the mic */
+        captureSource.connect(captureProcessor);
+        captureProcessor.connect(captureSink);
+        if (audioCtx.destination && typeof captureSink.connect === "function") {
+          captureSink.connect(audioCtx.destination);
+        }
+      } catch (err) {
+        /* A test fake / exotic stream can fail here; a real MediaStream does
+           not. Never claim capture we do not have: the caller logs and the
+           honest state machine still applies (no frames are fabricated). */
+        if (window.console && console.warn) {
+          console.warn("zivon.audio: capture graph unavailable:", err && err.message ? err.message : err);
+        }
+        stopCapture(false);
+        return "error";
+      }
+      return "ok";
+    }
+
     function handleBinaryFrame(data) {
       var parsed = decodeAudioFrame(data);
       if (!parsed.valid) {
@@ -2875,8 +3318,9 @@
         return;
       }
       var seg = parsed.segment_id;
-      /* Protocol bookkeeping only (no decode/playback): track the next
-         expected sequence per segment so a gap/duplicate is observable. */
+      /* Track the next expected sequence per segment so a gap/duplicate stays
+         observable alongside the PCM16 decode + AudioBufferSource scheduling
+         that follows below (ws-contract.md §3). */
       expectedTtsSeq[seg] = parsed.seq + 1;
       var floatSamples = decodePcm16ToFloat32(parsed.payload);
       var chunkDurationMs = floatSamples.length > 0 ? (floatSamples.length / ttsSampleRate) * 1000.0 : 20.0;
@@ -2929,6 +3373,12 @@
           applyLessonStateBanner("warn", "");
           applyLessonStateBanner("exhausted", "");
           setState("ready", { session_id: sessionId, profile: payload.profile || "normal", credit_state: creditState });
+        }
+        /* A mic press made while connecting starts now (M2). */
+        if (pendingStartHint) {
+          var queuedHint = pendingStartHint;
+          pendingStartHint = null;
+          if (state === "ready") beginListening(queuedHint);
         }
         return;
       }
@@ -3082,6 +3532,8 @@
     }
 
     function teardownMediaAndAudio() {
+      stopCapture(false);
+      pendingStartHint = null;
       if (mediaStream) {
         try {
           var tracks = typeof mediaStream.getTracks === "function" ? mediaStream.getTracks() : [];
@@ -3145,7 +3597,9 @@
           session_token: sessionToken,
           device: deviceId,
           locale: snap.lang_pref || "en",
-          capabilities: { ptt: true, opus: true, webrtc_vad: true },
+          /* This client captures PCM16 mono 16 kHz and decodes PCM16 downlink;
+             it does not encode or decode Opus, so it must not advertise it. */
+          capabilities: { ptt: true, opus: false, uplink_codec: "pcm16-16000", webrtc_vad: true },
           resume: Boolean(resumeFlag),
           last_turn_id: lastTurnId,
           anchor: {
@@ -3186,16 +3640,10 @@
       return true;
     }
 
-    function startListening(turnHint) {
-      if (state === "speaking" || state === "thinking") {
-        /* P0 PTT press during speaking/thinking IS barge-in interrupt (SP1 §5) */
-        bargeIn("ptt_press");
-      }
-      if (!ws || ws.readyState !== 1) {
-        setState("offline", { reason: "ws_closed" });
-        return false;
-      }
+    function beginListening(turnHint) {
       micSeq = 0;
+      captureFramesSent = 0;
+      captureResidual = [];
       turnTimings = { t_start: performance.now() };
       if (window.ZivonEvents && typeof window.ZivonEvents.recordMicPress === "function") {
         window.ZivonEvents.recordMicPress(sessionId);
@@ -3203,7 +3651,35 @@
       sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
       sendJson({ type: "audio.start", turn_hint: turnHint || null });
       setState("listening");
+      /* Only start capture when a real stream exists (the dock requests
+         permission BEFORE calling this). A browser with no capture API gets
+         an honest error state, never a fake "listening". */
+      if (mediaStream) {
+        var cap = startCapture();
+        if (cap === "unsupported") {
+          setState("error:unsupported-browser", { fallback: "text" });
+          return false;
+        }
+      }
       return true;
+    }
+
+    function startListening(turnHint) {
+      if (state === "speaking" || state === "thinking" || state === "speaking_text") {
+        /* P0 PTT press during speaking/thinking IS barge-in interrupt (SP1 §5) */
+        bargeIn("ptt_press");
+      }
+      if (!ws || ws.readyState !== 1 || state === "connecting") {
+        /* First press after connect(): the socket is still CONNECTING. Queue
+           the turn behind session.ready instead of reporting offline — the
+           old path always landed the very first mic press in `offline`. */
+        pendingStartHint = turnHint || "doubt";
+        if (!ws || ws.readyState > 1) {
+          connect();
+        }
+        return true;
+      }
+      return beginListening(turnHint);
     }
 
     function sendAudioChunk(pcmBytes, isFinal) {
@@ -3220,6 +3696,9 @@
     function endAudio() {
       if (state !== "listening" && state !== "endpointing") return false;
       turnTimings.t_endpoint = performance.now();
+      /* Release the microphone the moment the turn ends: disconnect the
+         processor AND stop the track (privacy + no dead-mic). */
+      stopCapture(true);
       setState("endpointing");
       return sendJson({ type: "audio.end" });
     }
@@ -3260,6 +3739,7 @@
       setState("interrupted", { reason: reason || "user_interrupt" });
       setDucking("normal");
       setState("listening", { barge_in: true });
+      if (mediaStream) startCapture();
       return true;
     }
 
@@ -3333,6 +3813,10 @@
       },
       onStateChange: function (fn) { listeners.push(fn); },
       requestMicPermission: requestMicPermission,
+      hasMicrophone: function () { return Boolean(mediaStream); },
+      getCaptureStats: function () {
+        return { active: Boolean(captureProcessor), frames_sent: captureFramesSent };
+      },
       connect: connect,
       reconnect: reconnect,
       startListening: startListening,
@@ -3606,6 +4090,10 @@
   }
 
   function emitEvent(evtName, rawProps) {
+    /* C-025/T5: no interaction telemetry before voice consent. Nothing is
+       queued, nothing is flushed, nothing leaves the device. Consent itself
+       is recorded through PUT /v1/consent, not this queue. */
+    if (getConsentState() !== "granted") return null;
     var meta = currentTopicMeta();
     var specEntry = EVENT_CATALOG[evtName] || {
       evt_id: "EVT-F08",
@@ -3642,6 +4130,11 @@
     }
     if (typeof customEventSink === "function") {
       try { customEventSink(record); } catch (e) {}
+    }
+    /* Queue pressure: keep the in-memory buffer bounded by flushing a batch
+       instead of silently dropping the oldest interaction signal. */
+    if (eventQueue.length >= EVENT_BATCH_SIZE && !flushInFlight) {
+      try { flushEvents(); } catch (e) {}
     }
     return record;
   }
@@ -3809,11 +4302,17 @@
   var EVENT_BATCH_SIZE = 20;
   var flushInFlight = false;
 
-  async function flushEvents(endpointUrl) {
+  async function flushEvents(endpointUrl, options) {
+    var opts = options || {};
     if (flushInFlight || !eventQueue.length) {
       return { flushed: 0, remaining: eventQueue.length };
     }
-    /* Only flush on lesson/privacy pages or when explicitly called; never block UI */
+    /* C-025/T5: telemetry only after consent; a pre-consent page never
+       contacts the events endpoint, even if something queued by mistake. */
+    if (getConsentState() !== "granted") {
+      return { flushed: 0, remaining: eventQueue.length, gated: true };
+    }
+    var meta = currentTopicMeta();
     var url = endpointUrl || "/api/v1/events";
     var batch = eventQueue.slice(0, EVENT_BATCH_SIZE).map(function (ev) {
       return {
@@ -3821,7 +4320,11 @@
         event: ev.event,
         client_session_id: ev.client_session_id,
         device_pseudo_id: getDevicePseudoId(),
-        course_id: ev.props && ev.props.topic ? String(ev.props.topic) : "physics",
+        /* course_id was wrongly filled from props.topic; the route's course
+           id (e.g. class-9-physics) is the field the backend ingests. */
+        course_id: ev.props && ev.props.course_id
+          ? String(ev.props.course_id)
+          : String(meta.course_id || "physics"),
         block_id: ev.props && ev.props.block_id ? String(ev.props.block_id) : undefined,
         props: ev.props || {},
         ts: ev.ts
@@ -3831,16 +4334,18 @@
     var sentOk = false;
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        var res = await sameOriginRequest(url, {
+        var res = await sameOriginRequest(url, Object.assign({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ events: batch })
-        });
+        }, opts.keepalive ? { keepalive: true } : {}));
         if (res && res.ok) {
           sentOk = true;
           break;
         }
-      } catch (e) {}
+      } catch (e) {
+        /* Offline/no-transport: queue retained in memory, never thrown. */
+      }
     }
     flushInFlight = false;
     if (sentOk) {
@@ -3849,6 +4354,15 @@
     }
     /* No-op fallback: retain capped queue in memory without throwing */
     return { flushed: 0, remaining: eventQueue.length, ok: false };
+  }
+
+  /* Docs README claimed flush() shipped with no caller. Wire it for real on
+     pagehide (keepalive so the batch survives navigation) — gated on consent
+     inside flushEvents, so an un-consented page sends nothing. */
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+    window.addEventListener("pagehide", function () {
+      try { flushEvents(undefined, { keepalive: true }); } catch (e) {}
+    });
   }
 
   window.ZivonEvents = {
@@ -3916,6 +4430,7 @@
        6. Privacy link + locale controls
      Idempotent per root (data-zn-mounted); every step is isolated in try/catch
      so any failure leaves lesson content and simulations 100% readable. */
+  var globalNoticeNetWired = false;
   function ensureGlobalLessonNotices() {
     var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
     if (!lessonPage) return { mounted: false };
@@ -3924,15 +4439,20 @@
       "offline",
       isOff ? "Offline - lesson content and simulations work without a connection." : ""
     );
-    window.addEventListener("offline", function () {
-      applyLessonStateBanner("offline", "Offline - lesson content and simulations work without a connection.");
-    });
-    window.addEventListener("online", function () {
-      applyLessonStateBanner("offline", "");
-    });
+    /* Mount is idempotent: re-entry must not stack duplicate listeners. */
+    if (!globalNoticeNetWired) {
+      globalNoticeNetWired = true;
+      window.addEventListener("offline", function () {
+        applyLessonStateBanner("offline", "Offline - lesson content and simulations work without a connection.");
+      });
+      window.addEventListener("online", function () {
+        applyLessonStateBanner("offline", "");
+      });
+    }
     return { mounted: true };
   }
 
+  var manifestFetchStarted = false;
   function loadTopicManifestAndMountReadAloud(explicitManifest) {
     if (explicitManifest && typeof explicitManifest === "object") {
       window.__ZIVON_MANIFEST__ = explicitManifest;
@@ -3955,9 +4475,14 @@
        narration rather than a spurious console error; an explicit manifest
        (window.ZivonShell.mount({manifest}) or window.__ZIVON_MANIFEST__) is
        still honoured above. */
-    if (typeof location !== "undefined" && location.protocol === "file:") {
+    if (!hasNetworkTransport()) {
       return Promise.resolve(null);
     }
+    if (manifestFetchStarted) {
+      /* Mount is idempotent: never fetch the manifest twice. */
+      return Promise.resolve(window.__ZIVON_MANIFEST__ || null);
+    }
+    manifestFetchStarted = true;
     return sameOriginRequest("./manifest.json", { method: "GET" })
       .then(function (res) {
         if (!res || !res.ok) return null;

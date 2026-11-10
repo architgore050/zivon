@@ -746,6 +746,14 @@ a { color: var(--pen-blue); }
     border-left: 1px solid var(--ink);
   }
 }
+/* While the dock is on screen it covers the bottom of the page; give the
+   lesson column room so the last block is never trapped behind the strip. */
+body.zn-dock-present .zn-page:not(.zn-home) {
+  padding-bottom: calc(var(--row) * 5);
+}
+body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
+  padding-bottom: 60dvh;
+}
 .zn-voice-dock-region[data-containment="hidden"] {
   background: transparent;
   border: 0;
@@ -1028,6 +1036,42 @@ a { color: var(--pen-blue); }
   padding: 1rem 1.125rem;
   margin: var(--row) 0;
   box-sizing: border-box;
+}
+/* §10.14 consent sheet: bottom sheet on first visit, never an in-flow card
+   buried under a long lesson. Flat paper, ink rule, no shadow (§10.6). */
+.zn-consent-sheet[data-consent-presentation="sheet"] {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  margin: 0;
+  max-height: 85dvh;
+  overflow-y: auto;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 900px) {
+  .zn-consent-sheet[data-consent-presentation="sheet"] {
+    left: auto;
+    right: 1rem;
+    bottom: 1rem;
+    width: 100%;
+    max-width: 560px;
+    border-left: 2px solid var(--ink);
+    border-right: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+}
+.zn-consent-title {
+  font-family: var(--hand);
+  font-size: 1.375rem;
+  margin: 0 0 0.5rem;
+}
+.zn-lang-status:empty {
+  display: none;
 }
 .zn-consent-notice {
   font-family: var(--notes);

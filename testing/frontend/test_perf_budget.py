@@ -205,6 +205,12 @@ class TestPerfBudget(unittest.TestCase):
                     is_mobile=True,
                 )
                 page = ctx.new_page()
+                # Consent is chrome, not lesson content: measure the reading
+                # path (declined) so the first-visit sheet never covers the
+                # controls under test.
+                page.add_init_script(
+                    "try { localStorage.setItem('zivon.consent', 'declined'); } catch (e) {}"
+                )
                 page.add_init_script(
                     """
                     window.__zivonLongTasks = [];
