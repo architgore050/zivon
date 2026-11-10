@@ -67,7 +67,11 @@ services:
   # runs/ artifacts, with the two trigger buttons (the same scripts). The
   # admin token is env-only (zivon-admin-auth Secret in-cluster); here it
   # comes from your shell. No DSN locally -> the JSONL fallback is the store
-  # and the views say so honestly.
+  # and the views say so honestly — it boots WITHOUT the admin secret and
+  # WITHOUT the log store and still answers /healthz (fail-closed happens per
+  # request: admin routes 503 + dashboard.auth_unconfigured). That is the
+  # spec'd dev posture, not a bug. Deliberately NOT behind the dev-stack
+  # profile: `docker compose up -d dashboard` keeps working exactly as before.
   #   docker compose up -d dashboard   # http://127.0.0.1:8082
   dashboard:
     build:
@@ -117,15 +121,16 @@ services:
   # ---------------------------------------------------------------------------
   # Wave-E dev stack (EX6-CICD work item 4) — dev-only, OPT-IN.
   #
-  #   docker compose --profile dev-stack up -d     # db + backend + dashboard
+  #   docker compose --profile dev-stack up -d     # db + backend
   #   docker compose run --rm evals-runner         # deterministic eval smoke
   #
   # Every service below carries `profiles: ["dev-stack"]`, so the default
   # `docker compose up` / `compose run factory` behave EXACTLY as before the
   # Wave-E work: profiled services build/start only when the profile is
   # enabled. Host ports stay out of the occupied range (8081 site, 18080
-  # router, 18090 node): db 5433, backend 8090, dashboard 8091, bound to
-  # loopback only.
+  # router, 18090 node): db 5433, backend 8090, bound to loopback only. The
+  # dashboard is NOT in the profile — it keeps its existing non-profiled
+  # service above (:8082), so both documented commands stay true.
   #
   # Mock/dev posture: the backend boots on CONFIG-ONLY env (no product
   # secrets in compose — repo rule; real keys come from the shell at runtime,
@@ -177,23 +182,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
-
-  # Admin dashboard v0 (dashboard-spec §1): boots WITHOUT the admin secret and
-  # WITHOUT the log store — /healthz answers via the fallback path (fail-closed
-  # happens per request: admin routes 503 + dashboard.auth_unconfigured). That
-  # is the spec'd dev posture, not a bug.
-  dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile.dashboard
-    image: zivon-dashboard:0.1.0
-    profiles: ["dev-stack"]
-    environment:
-      - ZIVON_ENV=dev
-      - ZIVON_LOG_DSN=${ZIVON_LOG_DSN:-}
-    ports:
-      - "127.0.0.1:8091:8000"
     restart: unless-stopped
 
   # Evals runner (EX4, spec §5): same factory image (evals rides in it —

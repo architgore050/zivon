@@ -46,10 +46,13 @@ jobs:
           # the gate only once its directory exists, so a service landing
           # mid-wave cannot red the gate before its code exists — and needs
           # no further yml edit once it does (see cicd.md, path-guard rule).
-          # The merge agent appends EX0's monolith package names (from its
-          # manifest) to the candidate list below.
+          # The candidate list now carries EX0's monolith package names
+          # (backend, db, guard) as well as the Wave-E services, so the
+          # monolith joins the type gate the day its code lands; the merge
+          # agent appends any further EX0 package name here (one line).
           paths=(factory docker pipeline.py testing)
-          for candidate in voice logging_manager dashboard evals narration backend; do
+          for candidate in voice logging_manager dashboard evals narration \
+                           backend db guard; do
             if [ -e "$candidate" ]; then paths+=("$candidate"); fi
           done
           mypy --ignore-missing-imports "${paths[@]}"
