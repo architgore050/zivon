@@ -52,6 +52,25 @@ def _fmt_iso(dt: datetime.datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%S.") + f"{dt.microsecond // 1000:03d}Z"
 
 
+def _day_window(day: str) -> tuple[str, str]:
+    """`(start, end)` ISO bounds of a UTC day, dialect-portable.
+
+    The TTL rollup must work on both SQLite (ISO TEXT columns; lexical compare)
+    and Postgres (timestamptz). `substr(col, 1, 10)` is SQLite-only and
+    `MAX(a, b)` is SQLite-only scalar-vs-aggregate overloading, so the rollup
+    filters with range comparisons on the timestamp column and does the day
+    bucketing in Python. Both dialects accept the ISO strings as parameters.
+    """
+    start = datetime.datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=datetime.UTC)
+    end = start + datetime.timedelta(days=1)
+    return _fmt_iso(start), _fmt_iso(end)
+
+
+def _day_of(value: object) -> str:
+    """UTC day (`YYYY-MM-DD`) of a DB timestamp value (str in SQLite, datetime in PG)."""
+    return str(value)[:10]
+
+
 class DeletionAndRetentionService:
     """Orchestrates NEED-013 erasure cascade and storage-tiering §6.3 TTL jobs."""
 
@@ -353,80 +372,92 @@ class DeletionAndRetentionService:
 
         with self.db.transaction() as tx:
             days_rows = tx.fetchall(
-                "SELECT DISTINCT substr(started_at, 1, 10) AS day FROM session WHERE started_at IS NOT NULL"
+                "SELECT started_at FROM session WHERE started_at IS NOT NULL"
             )
-            days = {str(r["day"]) for r in days_rows if r.get("day")}
+            days = {_day_of(r["started_at"]) for r in days_rows if r.get("started_at")}
             days.add(today_str)
 
             for day in sorted(days):
+                day_start, day_end = _day_window(day)
                 s_agg = tx.fetchone(
                     """
                     SELECT COUNT(*) AS sessions,
                            COALESCE(SUM(turn_count), 0) AS turns
-                    FROM session WHERE substr(started_at, 1, 10) = ?
+                    FROM session WHERE started_at >= ? AND started_at < ?
                     """,
-                    (day,),
+                    (day_start, day_end),
                 )
                 v_agg = tx.fetchone(
                     """
                     SELECT COUNT(DISTINCT session_id) AS voice_sessions
                     FROM voice_turn
-                    WHERE modality = 'voice' AND substr(created_at, 1, 10) = ?
+                    WHERE modality = 'voice' AND created_at >= ? AND created_at < ?
                     """,
-                    (day,),
+                    (day_start, day_end),
                 )
                 t_agg = tx.fetchone(
                     """
                     SELECT COUNT(DISTINCT session_id) AS typed_sessions
                     FROM voice_turn
-                    WHERE modality = 'typed' AND substr(created_at, 1, 10) = ?
+                    WHERE modality = 'typed' AND created_at >= ? AND created_at < ?
                     """,
-                    (day,),
+                    (day_start, day_end),
                 )
                 e_agg = tx.fetchone(
-                    "SELECT COUNT(*) AS events FROM telemetry_event WHERE substr(ts, 1, 10) = ?",
-                    (day,),
+                    "SELECT COUNT(*) AS events FROM telemetry_event WHERE ts >= ? AND ts < ?",
+                    (day_start, day_end),
                 )
                 stt_agg = tx.fetchone(
-                    "SELECT COALESCE(SUM(amount), 0) AS total FROM credit_ledger WHERE model = 'prisma' AND substr(created_at, 1, 10) = ?",
-                    (day,),
+                    "SELECT COALESCE(SUM(amount), 0) AS total FROM credit_ledger WHERE model = 'prisma' AND created_at >= ? AND created_at < ?",
+                    (day_start, day_end),
                 )
                 tts_agg = tx.fetchone(
-                    "SELECT COALESCE(SUM(amount), 0) AS total FROM credit_ledger WHERE model = 'timbre' AND substr(created_at, 1, 10) = ?",
-                    (day,),
+                    "SELECT COALESCE(SUM(amount), 0) AS total FROM credit_ledger WHERE model = 'timbre' AND created_at >= ? AND created_at < ?",
+                    (day_start, day_end),
                 )
                 llm_agg = tx.fetchone(
-                    "SELECT COALESCE(SUM(amount), 0) AS total FROM credit_ledger WHERE model = 'gemma_gpu' AND substr(created_at, 1, 10) = ?",
+                    "SELECT COALESCE(SUM(amount), 0) AS total FROM credit_ledger WHERE model = 'gemma_gpu' AND created_at >= ? AND created_at < ?",
+                    (day_start, day_end),
+                )
+                # Portable monotonic upsert: `ON CONFLICT ... MAX(a, b)` is
+                # SQLite-only (Postgres needs GREATEST and would reject the
+                # two-arg MAX as an aggregate over excluded). Read the existing
+                # row and write the max explicitly in Python.
+                new_vals = {
+                    "sessions": int(s_agg["sessions"]) if s_agg else 0,
+                    "voice_sessions": int(v_agg["voice_sessions"]) if v_agg else 0,
+                    "typed_sessions": int(t_agg["typed_sessions"]) if t_agg else 0,
+                    "turns": int(s_agg["turns"]) if s_agg else 0,
+                    "events": int(e_agg["events"]) if e_agg else 0,
+                    "stt_seconds": float(stt_agg["total"]) if stt_agg else 0.0,
+                    "tts_chars": float(tts_agg["total"]) if tts_agg else 0.0,
+                    "llm_tokens": float(llm_agg["total"]) if llm_agg else 0.0,
+                }
+                cols = list(new_vals)
+                existing = tx.fetchone(
+                    "SELECT " + ", ".join(cols) + " FROM daily_stats WHERE day = ?",
                     (day,),
                 )
-                tx.execute(
-                    """
-                    INSERT INTO daily_stats (
-                        day, sessions, voice_sessions, typed_sessions,
-                        turns, events, stt_seconds, tts_chars, llm_tokens
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT (day) DO UPDATE SET
-                        sessions = MAX(daily_stats.sessions, excluded.sessions),
-                        voice_sessions = MAX(daily_stats.voice_sessions, excluded.voice_sessions),
-                        typed_sessions = MAX(daily_stats.typed_sessions, excluded.typed_sessions),
-                        turns = MAX(daily_stats.turns, excluded.turns),
-                        events = MAX(daily_stats.events, excluded.events),
-                        stt_seconds = MAX(daily_stats.stt_seconds, excluded.stt_seconds),
-                        tts_chars = MAX(daily_stats.tts_chars, excluded.tts_chars),
-                        llm_tokens = MAX(daily_stats.llm_tokens, excluded.llm_tokens)
-                    """,
-                    (
-                        day,
-                        int(s_agg["sessions"]) if s_agg else 0,
-                        int(v_agg["voice_sessions"]) if v_agg else 0,
-                        int(t_agg["typed_sessions"]) if t_agg else 0,
-                        int(s_agg["turns"]) if s_agg else 0,
-                        int(e_agg["events"]) if e_agg else 0,
-                        float(stt_agg["total"]) if stt_agg else 0.0,
-                        float(tts_agg["total"]) if tts_agg else 0.0,
-                        float(llm_agg["total"]) if llm_agg else 0.0,
-                    ),
-                )
+                if existing is None:
+                    tx.execute(
+                        "INSERT INTO daily_stats (day, "
+                        + ", ".join(cols)
+                        + ") VALUES (?, "
+                        + ", ".join("?" for _ in cols)
+                        + ")",
+                        (day, *(new_vals[c] for c in cols)),
+                    )
+                else:
+                    merged = {
+                        c: max(float(existing[c] or 0), float(new_vals[c]))
+                        for c in cols
+                    }
+                    tx.execute(
+                        "UPDATE daily_stats SET "
+                        + ", ".join(f"{c} = ?" for c in cols)
+                        + " WHERE day = ?",
+                        (*(merged[c] for c in cols), day),
+                    )
 
             old_sess = tx.fetchone(
                 "SELECT COUNT(*) AS cnt FROM session WHERE started_at < ?",
