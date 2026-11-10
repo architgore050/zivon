@@ -22,7 +22,9 @@ WORKDIR /app
 # zlib1g 1:1.3.dfsg+really1.3.1-1+b1 — trivy HIGH, fixes out (CVE-2026-85091
 # heap overflow in gz_vacate, CVE-2026-76844). Whole-tree and unpinned: Debian
 # drops old point revisions from the archive, so pins rot.
+# hadolint ignore=DL3008
 RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg \
     && apt-get upgrade -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

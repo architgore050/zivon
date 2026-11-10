@@ -22,6 +22,11 @@ Graph v2 (2026-11-03), founder decision after the first measured runs:
   (after an infra kill) skips every stage already marked ok and loads its
   output from disk; a fingerprint guard refuses to mix old-graph artifacts.
 Every stage's evidence lives in runs/<run_id>/<NN-stage>/.
+
+Stage 12-narration (2026-11-09, C-051 adopted) is appended AFTER the review
+gates and 11-link: build-time Timbre v3.0 pre-generation of per-block
+read-aloud audio, opt-in via ZIVON_NARRATION_ENABLED (credit-bounded per
+backend-spec A-15; see factory/narration/ and gap-register.md GAP-015).
 """
 
 from __future__ import annotations
@@ -42,6 +47,7 @@ from . import (
     interactive,
     link,
     locate,
+    narration,
     perf,
     render,
     review,
@@ -86,6 +92,7 @@ STAGE_ORDER = [
     "09-review",
     "10-reviewfix",
     "11-link",
+    "12-narration",
 ]
 
 
@@ -714,6 +721,25 @@ def run_pipeline(
                     "ok",
                     detail=f"{link_out['course_count']} course(s) listed",
                 )
+
+        # ---- 12-narration: build-time read-aloud audio (C-051, GAP-015) ----
+        # Runs only when ZIVON_NARRATION_ENABLED=true: narration is a bounded
+        # credit spend (A-15), so it is opt-in per environment, never a
+        # default side effect of generating a page. A per-block failure
+        # degrades read-aloud to the INF-089 disabled copy - it never fails
+        # the page that already passed every gate.
+        if wanted("12-narration") and not resumed("12-narration"):
+            run_ctx.mark_stage("12-narration", "running")
+            narr_out = narration.run(cfg, run_ctx)
+            run_ctx.save_stage_output("12-narration", narr_out)
+            detail = (
+                f"mode={narr_out['mode']} narrated={narr_out['narrated']} "
+                f"failed={len(narr_out['failed'])} "
+                f"credits={narr_out['credits']:.2f}"
+                if narr_out.get("enabled")
+                else "disabled"
+            )
+            run_ctx.mark_stage("12-narration", "ok", detail=detail)
 
         run_ctx.finish(ok=True, detail="pipeline complete")
         # `blocks` is the 02-generate handoff dict ({"blocks": [...]}); count
