@@ -2,24 +2,31 @@
 
 Operable procedure for executing a timed cold-storage database and content
 restore drill into an isolated scratch namespace (`zivon-drill`), verifying
-`NFR-17` (`RPO <= 5 min`), `NFR-19` (`RTO <= 4 h`), and `REDEL-01`
-(re-delete-on-restore tombstone enforcement).
+`NFR-19` (`RTO <= 4 h`) and `REDEL-01` (re-delete-on-restore tombstone
+enforcement).
 
 - **Cadence**: One timed drill before Gate D / submission (`DRILL-01`, P0),
   then monthly (`RB-12`, P1).
 - **Owners**: Founder + Ops (`EX0-BACKEND`).
 - **Gate rule**: Failure of the drill blocks Phase 3 done, never the live demo
   (the drill executes strictly inside `zivon-drill`).
+- **Honest RPO (2026-11-10)**: The `NFR-17` `RPO <= 5 min` WAL/PITR target is
+  **NOT implemented** — no real object storage is wired (`SYNC-02`/-03 stage to
+  local cold staging only) and there is no WAL shipping
+  (`archive_command` removed, see `k8s/25-postgres.yaml`). The **effective RPO
+  for the DB is the last verified base backup (<= 24 h)**. The vault/loop
+  tables (`C9`/`C13`/`C18` snapshots) RPO is likewise the last nightly
+  snapshot. Do not sign the drill off as meeting `NFR-17`.
 
 ---
 
 ## 1. Preconditions
 
 1. At least one verified base backup (`c14/base/...`) and nightly consent/tombstone
-   snapshot (`c9/consent-snap/...`) exist in cold storage (`cold_verified_at IS NOT NULL`
-   in `object_catalog`).
-2. Read-only restore credentials (`zivon-cold-restore` Secret, `storage-tiering.md` §5)
-   are available locally or mounted into the scratch namespace.
+   snapshot (`c9/consent-snap/...`) exist in the cold-staging tree on the node
+   (`cold_verified_at IS NOT NULL` in `object_catalog`).
+2. `ZIVON_SESSION_TOKEN_KEY` (the envelope key, ref `k8s:zivon-voice-env`)
+   is available for the `decrypt` step below.
 
 ---
 
@@ -45,10 +52,16 @@ sed 's/namespace: zivon/namespace: zivon-drill/g' k8s/25-postgres.yaml | kubectl
 kubectl rollout status deployment/postgres -n zivon-drill
 ```
 
-Fetch the latest verified base backup (`base/<YYYY-MM-DD>.zst.enc`) and replay WAL
-segments up to `recovery_target_time`, then apply linear Alembic migrations:
+Fetch the latest verified base backup (`base/<YYYY-MM-DD>.enc`) from the
+cold-staging tree, decrypt it with the `decrypt` utility, and load it into the
+fresh Postgres (**no WAL replay — PITR is not implemented; state comes from the
+last backup**), then apply linear Alembic migrations:
 
 ```bash
+python -m backend.sync decrypt "$STAGING_ZIVON/b2/base/<YYYY-MM-DD>.enc" \
+  --out /tmp/base-<YYYY-MM-DD>.json
+# Host-side: apply the decrypted table dump into the drill Postgres, e.g.
+#   psql -h postgres.zivon-drill -U zivon -d zivon -f /tmp/base-<YYYY-MM-DD>.json   [ASSUMPTION — loader to be finalized at first drill]
 sed 's/namespace: zivon/namespace: zivon-drill/g' k8s/28-backend-config.yaml | kubectl apply -f -
 sed 's/namespace: zivon/namespace: zivon-drill/g' k8s/26-backend-migrate-job.yaml | kubectl apply -f -
 kubectl wait --for=condition=complete job/backend-migrate -n zivon-drill --timeout=120s

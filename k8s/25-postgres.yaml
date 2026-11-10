@@ -1,7 +1,13 @@
 # Hot database (U2, ADR-0001) + backend warm cache volume (U1):
 #   - zivon-db PVC (10Gi): PostgreSQL 16 data directory
 #   - zivon-cache PVC (5Gi): warm cache for narration audio + published bundles
-#   - ConfigMap zivon-db-config: non-secret PostgreSQL settings (incl. WAL archive_timeout=60s)
+#   - ConfigMap zivon-db-config: non-secret PostgreSQL settings
+#   NOTE (2026-11-10, honest state): WAL archiving/PITR is NOT implemented —
+#   no real object storage is wired and there is no archive destination, so
+#   `archive_mode` is explicitly OFF. There is therefore NO `RPO <= 5 min` WAL
+#   guarantee; the effective DB RPO is the last `backend.sync base-backup`
+#   (<= 24 h), see `docs/deployment/restore-drill.md`. If WAL shipping is wired
+#   later, turn `archive_mode` back ON with a real `archive_command`.
 #   - Deployment + ClusterIP Service `postgres`
 #
 # Credentials live ONLY in the runtime K8s Secret `zivon-db-env` (key
@@ -79,11 +85,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - "-c"
-            - "archive_mode=on"
-            - "-c"
-            - "archive_timeout=60s"
-            - "-c"
-            - "archive_command=/bin/true"
+            - "archive_mode=off"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000

@@ -235,7 +235,7 @@ Fixed-by-Stage-1 numbers are inherited, not re-derived. `[ASSUMPTION]` until mea
 | NFR-14 | Guard | credit counting overhead per call; guard-state push to open sessions | < 5 ms `[FIXED]` NEED-009; ≤ 5 s `[FIXED]` NEED-009 | per-call timers; EVT-008 lag | F-OPS-MET-01 | voice backend |
 | NFR-15 | Telemetry | client batching; local queue | ≤ 20 events / ≤ 5 s batch; queue ≤ 200, drop-oldest | `[FIXED]` NEED-010 | client tests | F-OPS-TEL-01 | frontend |
 | NFR-16 | Durability | lesson bundles, consent ledger, DB backups | ≥ 2 independent copies in ≥ 2 failure domains | `[FIXED]` method rule | restore drill evidence | storage-tiering §5 | ops |
-| NFR-17 | RPO | hot Postgres (U2) | ≤ 5 min (WAL `archive_timeout = 60 s` + archive lag metric) | `[ASSUMPTION]` | archive lag metric | db-spec §7 | ops |
+| NFR-17 | RPO | hot Postgres (U2) | ≤ 5 min (WAL `archive_timeout = 60 s` + archive lag metric) | `[ASSUMPTION]` | archive lag metric | db-spec §7 | ops. **P0 SIMULATED (2026-11-10): no WAL shipping implemented — effective RPO = last `backend.sync` base backup (≤ 24 h); target not yet met** |
 | NFR-18 | RPO | immutable published artifacts (bundles, narration) | 0 once published — the publish flip waits for a cold-verified copy | `[FIXED]` method rule (P0: synchronous publish-time verify) | catalogue state | storage-tiering SYNC-01 | factory/publish flow |
 | NFR-19 | RTO | full service restore from cold (DB PITR + PVC mirrors re-seeded) | ≤ 4 h | `[ASSUMPTION]` | monthly drill timing | storage-tiering §6 | ops |
 | NFR-20 | Integrity | cold copies checksum-verified on write; periodic scrub | 100 % verified on write; scrub 1–5 %/day sample | `[ASSUMPTION]` | scrub job report | storage-tiering §4 | sync worker |
