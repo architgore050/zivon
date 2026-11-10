@@ -148,7 +148,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
 
     with sync_playwright() as p:
         existing = _chromium_pids()
-        browser = p.chromium.launch(headless=True, args=CHROMIUM_LAUNCH_ARGS)
+        browser = _launch(p)
         try:
             browser_pid = _browser_pid(existing)
             rss = _TreeRSS(browser_pid) if browser_pid else None
@@ -236,6 +236,15 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
 
     _judge(report)
     return report
+
+
+def _launch(playwright: Any) -> Any:
+    """Launch Chromium with the perf stage's file-access args (see above).
+
+    The args list is copied: Playwright may retain and even mutate the list,
+    which must never leak back into the module constant.
+    """
+    return playwright.chromium.launch(headless=True, args=list(CHROMIUM_LAUNCH_ARGS))
 
 
 def _chromium_pids() -> set[int] | None:

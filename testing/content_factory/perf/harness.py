@@ -15,6 +15,7 @@ from evals.checkers.perf_harness import (  # noqa: F401
     _browser_pid,
     _chromium_pids,
     _judge,
+    _launch,
     _pin_browser_cores,
     _sample_fps,
     _TreeRSS,
