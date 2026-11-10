@@ -2,8 +2,22 @@
 
 Maintains linear migration history (`0001` -> `0002`) per
 `skills/zivon-backend-engineering-skills/README.md` §1 (`alembic heads` returns
-a single head `0002`). Works with both the Alembic CLI (when installed) and
-direct execution via `python -m db.migrate` against PostgreSQL or SQLite.
+a single head). Works with both the Alembic CLI (when installed) and direct
+execution via `python -m db.migrate` against PostgreSQL or SQLite.
+
+Relationship to Alembic's graph (EX6 weld, 2026-11-10): this runtime chain is
+what the cluster's migrate Job runs (`k8s/26` -> `python -m db.migrate upgrade
+head`), and it deliberately stops at `0002` because `0002` is a schema superset
+(and SQLite-portable — `0022`'s PostgreSQL-only DDL would not run on the SQLite
+path used by local dev/tests). Alembic's CLI graph extends it with EX2's
+`0022_translation_memory_c3` (down_revision `0002`, in `migrations/versions`,
+listed in alembic.ini's `version_locations`). On PostgreSQL, 0022 is a
+defensive no-op after 0002 (`CREATE TABLE IF NOT EXISTS` / seed `ON CONFLICT DO
+NOTHING`), so both tools converge on the same schema; only the recorded
+`alembic_version` value differs (`0002` here, `0022_translation_memory_c3`
+after an Alembic run). Any future revision chained onto 0022 must therefore
+also be reachable from this chain — or the cluster path switched to the
+Alembic CLI.
 """
 
 from __future__ import annotations
