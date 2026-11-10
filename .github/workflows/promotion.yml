@@ -1,13 +1,25 @@
 # Promotion pipeline: main -> prod — the ONLY sanctioned path to prod
 # (AGENTS.md repo process; GAP-002). Triggers: manual dispatch or a v* tag.
 #
-# Flow: security gate FIRST (gitleaks over full history, pip-audit, manifest
-# lint, CodeQL, and a build + trivy scan of every image that ships — the two
-# always-present images plus the path-guarded Wave-E images), then a
-# promotion PR is opened main -> prod. The founder approves by reviewing and
-# merging that PR — the PR is the manual-approval gate; this workflow never
-# pushes to prod directly, and `prod` must carry branch protection (see
-# docs/deployment/cicd.md § Promotion pipeline).
+# Flow: resolve ONE commit (must be on main) -> security gate at that exact
+# commit (gitleaks over full history, pip-audit, manifest lint, CodeQL in its
+# own job, and a build + trivy scan of every image that ships — the two
+# always-present images plus the path-guarded Wave-E images) -> a promotion PR
+# is opened main -> prod from a commit-derived branch. The founder approves by
+# reviewing and merging that PR — the PR is the manual-approval gate; this
+# workflow never pushes to prod directly, and `prod` must carry branch
+# protection (see docs/deployment/cicd.md § Promotion pipeline).
+#
+# Commit pinning (review fix 2026-11-10): both the gate and the promote job
+# check out the SAME resolved SHA — a tag push and a dispatch can no longer
+# gate one commit and promote another. Each job re-verifies HEAD == the
+# resolved SHA after checkout.
+#
+# Token model: the promotion PR is opened with the repo secret
+# PROMOTION_TOKEN (a fine-grained PAT), never GITHUB_TOKEN. A PR opened with
+# GITHUB_TOKEN does NOT trigger `pull_request` workflows, so its checks would
+# silently never run; PROMOTION_TOKEN is therefore required and its absence
+# fails the job loudly (docs/deployment/secrets.md § CI/CD token).
 #
 # Rollback: prod deploys only from the promotion tag — rollback = redeploy
 # the previous tag (documented in docs/deployment/cicd.md).
@@ -28,17 +40,44 @@ on:
 permissions: {}
 
 jobs:
-  # ---- 1. security gate at the promotion ref --------------------------------
-  security-gate:
-    name: Security gate (secrets + deps + images + manifests + CodeQL)
+  # ---- 0. the ONE commit every later job acts on ---------------------------
+  resolve:
+    name: Resolve promotion commit (must be on main)
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write   # CodeQL results upload — the only writer
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
+          fetch-depth: 0                  # full history for the ancestry proof
+      - id: sha
+        name: Pin the commit and prove it is on main
+        run: |
+          sha="$(git rev-parse HEAD)"
+          git fetch origin main --quiet
+          if ! git merge-base --is-ancestor "$sha" origin/main; then
+            echo "::error::$sha is not on main — promotions may only ship commits that are on main"
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "::notice::promotion commit = $sha"
+
+  # ---- 1. security gate at the promotion ref --------------------------------
+  security-gate:
+    name: Security gate (secrets + deps + images + manifests)
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}   # the one resolved commit
           fetch-depth: 0                  # full history for gitleaks
+      - name: Verify checkout is the resolved commit
+        run: test "$(git rev-parse HEAD)" = "${{ needs.resolve.outputs.sha }}"
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.12"
@@ -182,8 +221,24 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
 
-      - name: CodeQL triage (security scan of our Python)
-        uses: github/codeql-action/init@0fda7a646fd14a20daf520829ca1ae8847000819  # codeql-bundle-v2.27.3
+  # ---- 1b. CodeQL at the same promotion commit ----------------------------
+  # Split out of the build job (review fix 2026-11-10): security-events: write
+  # now lives only here, exactly like codeql.yml, so the image-build job keeps
+  # `contents: read`.
+  codeql:
+    name: CodeQL triage at the promotion commit
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # CodeQL results upload — the only writer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}   # the one resolved commit
+      - name: Verify checkout is the resolved commit
+        run: test "$(git rev-parse HEAD)" = "${{ needs.resolve.outputs.sha }}"
+      - uses: github/codeql-action/init@0fda7a646fd14a20daf520829ca1ae8847000819  # codeql-bundle-v2.27.3
         with:
           languages: python
       - uses: github/codeql-action/autobuild@0fda7a646fd14a20daf520829ca1ae8847000819  # codeql-bundle-v2.27.3
@@ -192,44 +247,67 @@ jobs:
   # ---- 2. the manual-approval gate: a PR the founder reviews and merges ------
   promote:
     name: Open promotion PR (founder approves by merging)
-    needs: security-gate
+    needs: [resolve, security-gate, codeql]
     runs-on: ubuntu-latest
     permissions:
       contents: write          # push the promotion branch (never prod itself)
-      pull-requests: write     # open the promotion PR
+      # pull-requests is NOT granted: the PR is opened with PROMOTION_TOKEN,
+      # whose own scopes cover it (a GITHUB_TOKEN PR would trigger no checks).
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: main                       # always promote main (tags must be cut on main)
+          ref: ${{ needs.resolve.outputs.sha }}   # promote the GATED commit
           fetch-depth: 0
+      - name: Verify checkout is the resolved (gated) commit
+        run: test "$(git rev-parse HEAD)" = "${{ needs.resolve.outputs.sha }}"
 
       - name: Find or skip — is there anything to promote?
         id: delta
         run: |
-          git fetch origin prod --quiet
-          if git rev-parse --verify origin/prod >/dev/null 2>&1; then
-            count=$(git rev-list --count origin/prod..origin/main)
+          # `git fetch origin prod` exits nonzero while prod does not exist yet,
+          # which would abort this step under `set -e` (GitHub's bash). Probe
+          # the remote ref first, then fetch only if it exists.
+          if git ls-remote --exit-code --heads origin prod >/dev/null 2>&1; then
+            git fetch origin prod --quiet
+            count=$(git rev-list --count origin/prod..HEAD)
           else
             count=$(git rev-list --count HEAD)   # prod branch absent: everything is the delta
           fi
           echo "count=$count" >> "$GITHUB_OUTPUT"
           if [ "$count" -eq 0 ]; then
-            echo "::notice::prod is already at main - nothing to promote"
+            echo "::notice::prod is already at the gated commit - nothing to promote"
           fi
 
-      - name: Push promotion branch
+      - name: Require PROMOTION_TOKEN (a GITHUB_TOKEN PR would run no checks)
+        if: steps.delta.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
+        run: |
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::repo secret PROMOTION_TOKEN is required: a PR opened with GITHUB_TOKEN does not trigger pull_request checks. Create the fine-grained PAT documented in docs/deployment/secrets.md § CI/CD token, then re-run."
+            exit 1
+          fi
+
+      - id: push_branch
+        name: Push promotion branch (at the gated commit)
         if: steps.delta.outputs.count != '0'
         run: |
-          branch="promotion/main-to-prod-${{ github.run_id }}"
-          git push origin "refs/heads/main:refs/heads/${branch}"
+          # Commit-derived name: a re-run on the same commit reuses the branch
+          # and its PR (idempotent); a new commit gets a new branch.
+          branch="promotion/main-to-prod-$(git rev-parse --short=12 HEAD)"
+          git push origin "HEAD:refs/heads/${branch}"
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
 
       - name: Open the promotion PR (the approval gate)
         if: steps.delta.outputs.count != '0'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
         run: |
-          branch="${{ steps.delta.outputs.branch }}"
+          branch="${{ steps.push_branch.outputs.branch }}"
+          if [ -z "$branch" ]; then
+            echo "::error::push step produced no branch name"
+            exit 1
+          fi
           if gh pr view "$branch" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "::notice::promotion PR for $branch already open - leaving it as is"
             exit 0
@@ -238,7 +316,7 @@ jobs:
             --base prod \
             --head "$branch" \
             --title "Promotion: main -> prod (run ${{ github.run_id }})" \
-            --body "Automated promotion PR. **The founder approves this promotion by reviewing and merging** — the workflow never pushes to \`prod\` directly.
+            --body "Automated promotion PR at commit \`${{ needs.resolve.outputs.sha }}\`. **The founder approves this promotion by reviewing and merging** — the workflow never pushes to \`prod\` directly.
 
           Security gate run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (gitleaks full-history, pip-audit, kubeconform + kube-linter, CodeQL, build + trivy on every shipping image — CRITICAL/HIGH with a fix available fail the gate).
 
