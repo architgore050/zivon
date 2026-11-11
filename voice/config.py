@@ -100,6 +100,7 @@ class VoiceSettings:
     brain_inactivity_s: float = 8.0  # Gemma 4 thinking gaps (measured 2026-11-10)
     brain_first_event_s: float = 12.0  # Gemma 4 thinks first (measured 2026-11-10)
     brain_turn_deadline_s: float = 45.0  # hard close mid-stream
+    brain_connect_timeout_s: float = 10.0  # TCP/TLS connect to the model API
     brain_max_retries: int = 2  # only before any audio reached the client
     brain_first_event_retries: int = 1  # F2: initial attempt + one retry
     # Gemma 4 26B A4B on the Gemini API thinks unconditionally (2026-11-10
@@ -135,10 +136,11 @@ class VoiceSettings:
     stt_language: str = "indic-auto"  # code-mixed Hinglish auto-detect
     stt_sample_rate: int = 16000
     stt_frame_ms: int = 100
+    stt_connect_timeout_s: float = 10.0  # websockets handshake budget
     stt_languages: tuple[str, ...] = ("hi", "en")
     echo_guard_ms: int = 200  # drop STT events within 200 ms of playback stop
     stt_final_timeout_s: float = (
-        8.0  # Prisma commit->transcript can exceed 2 s (measured 2026-11-10)
+        12.0  # Prisma commit->transcript; 8 s was tight on 2G vendor hops
     )
 
     # --- TTS (Timbre v3.0 realtime, OQ-03 — LIVE contract verified 2026-11-10)
@@ -147,6 +149,7 @@ class VoiceSettings:
     tts_language: str = "hi-en"  # Hinglish; "auto" also valid
     tts_sample_rate: int = 48000  # Timbre realtime audio_config.sample_rate
     tts_voice: str = "Shivani"  # Timbre v3.0 default; founder may re-pick (OQ-03)
+    tts_connect_timeout_s: float = 10.0  # websockets handshake budget
     tts_char_cap_turn: int = 1200  # H3 per-turn char cap (tags bill as chars)
     tts_tag_max_per_turn: int = 8  # H3 tag cap (≤ 1 tag / 2 sentences)
     tts_tag_sentences_ratio: int = 2
@@ -183,7 +186,9 @@ class VoiceSettings:
     # the last untrusted hop in ``X-Forwarded-For`` instead.
     ws_trusted_proxies: tuple[str, ...] = ()
     ws_ping_interval_s: float = 15.0
-    ws_ping_miss_max: int = 2
+    # 3 missed pongs @15 s = ~45 s before a dead NAT is reaped. Two misses
+    # (30 s) was tight for 2G/3G handovers and tore down live sessions.
+    ws_ping_miss_max: int = 3
     resume_window_s: float = 60.0  # ADR-0002 final-message replay window
     interrupt_storm_window_s: float = 10.0  # F8: > 3 interrupts / 10 s
     interrupt_storm_max: int = 3
@@ -233,7 +238,13 @@ class VoiceSettings:
             brain_turn_deadline_s=_env_float(
                 e, "ZIVON_VOICE_BRAIN_TURN_DEADLINE_S", 45.0
             ),
+            brain_connect_timeout_s=_env_float(
+                e, "ZIVON_VOICE_BRAIN_CONNECT_TIMEOUT_S", 10.0
+            ),
             brain_max_retries=_env_int(e, "ZIVON_VOICE_BRAIN_MAX_RETRIES", 2),
+            brain_first_event_retries=_env_int(
+                e, "ZIVON_VOICE_BRAIN_FIRST_EVENT_RETRIES", 1
+            ),
             brain_fallback_model=e.get("ZIVON_VOICE_BRAIN_FALLBACK_MODEL", ""),
             brain_fallback_transport=e.get(
                 "ZIVON_VOICE_BRAIN_FALLBACK_TRANSPORT", "gemini-direct"
@@ -254,11 +265,24 @@ class VoiceSettings:
             stt_model=e.get("ZIVON_VOICE_STT_MODEL", "prisma-v3.0"),
             stt_language=e.get("ZIVON_VOICE_STT_LANGUAGE", "indic-auto"),
             stt_sample_rate=_env_int(e, "ZIVON_VOICE_STT_SAMPLE_RATE", 16000),
+            stt_connect_timeout_s=_env_float(
+                e, "ZIVON_VOICE_STT_CONNECT_TIMEOUT_S", 10.0
+            ),
+            stt_final_timeout_s=_env_float(
+                e, "ZIVON_VOICE_STT_FINAL_TIMEOUT_S", 12.0
+            ),
+            echo_guard_ms=_env_int(e, "ZIVON_VOICE_ECHO_GUARD_MS", 200),
             tts_url=e.get("ZIVON_VOICE_TTS_URL", ""),
             tts_model=e.get("ZIVON_VOICE_TTS_MODEL", "timbre-v3.0"),
             tts_language=e.get("ZIVON_VOICE_TTS_LANGUAGE", "hi-en"),
             tts_sample_rate=_env_int(e, "ZIVON_VOICE_TTS_SAMPLE_RATE", 48000),
             tts_voice=e.get("ZIVON_VOICE_TTS_VOICE", "Shivani"),
+            tts_connect_timeout_s=_env_float(
+                e, "ZIVON_VOICE_TTS_CONNECT_TIMEOUT_S", 10.0
+            ),
+            tts_first_audio_budget_ms=_env_int(
+                e, "ZIVON_VOICE_TTS_FIRST_AUDIO_BUDGET_MS", 200
+            ),
             tts_char_cap_turn=_env_int(e, "ZIVON_VOICE_TTS_CHAR_CAP_TURN", 1200),
             tts_tag_max_per_turn=_env_int(e, "ZIVON_VOICE_TTS_TAG_MAX_PER_TURN", 8),
             credit_daily_tranche=_env_int(e, "ZIVON_VOICE_CREDIT_DAILY_TRANCHE", 1000),
@@ -279,6 +303,8 @@ class VoiceSettings:
             ws_allowed_origins=_env_list(e, "ZIVON_VOICE_WS_ALLOWED_ORIGINS"),
             ws_trusted_proxies=_env_list(e, "ZIVON_VOICE_WS_TRUSTED_PROXIES"),
             ws_ping_interval_s=_env_float(e, "ZIVON_VOICE_PING_INTERVAL_S", 15.0),
+            ws_ping_miss_max=_env_int(e, "ZIVON_VOICE_PING_MISS_MAX", 3),
+            resume_window_s=_env_float(e, "ZIVON_VOICE_RESUME_WINDOW_S", 60.0),
             gemini_api_key=_env(e, "ZIVON_VOICE_GEMINI_API_KEY", "GEMINI_API_KEY"),
             gnani_stt_api_key=_env(e, "GNANI_PRISMA_API_KEY", "GNANI_API_KEY"),
             gnani_tts_api_key=_env(e, "GNANI_TIMBRE_API_KEY", "GNANI_API_KEY"),

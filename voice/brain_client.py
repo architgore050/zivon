@@ -290,7 +290,7 @@ def openrouter_stream_factory(settings: VoiceSettings) -> StreamFactory:
         }
         # read=None: this client's own deadlines govern — a dead upstream is
         # caught honestly by the inactivity budget, not by a read timeout.
-        timeout = httpx.Timeout(connect=10.0, read=None, write=10.0, pool=10.0)
+        timeout = httpx.Timeout(connect=settings.brain_connect_timeout_s, read=None, write=10.0, pool=10.0)
         async with (
             httpx.AsyncClient(timeout=timeout) as http,
             http.stream(

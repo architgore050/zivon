@@ -64,6 +64,31 @@ class VoiceSettingsTest(unittest.TestCase):
         self.assertEqual(s.ws_connects_per_min, 4)
         self.assertEqual(s.credit_tts_chars_per_point, 50)
 
+    def test_env_parses_weak_network_timeout_knobs(self) -> None:
+        """Every timeout that can decide a turn's fate is configurable."""
+        s = VoiceSettings.from_env(
+            {
+                "ZIVON_VOICE_BRAIN_CONNECT_TIMEOUT_S": "18",
+                "ZIVON_VOICE_BRAIN_FIRST_EVENT_RETRIES": "2",
+                "ZIVON_VOICE_STT_CONNECT_TIMEOUT_S": "14",
+                "ZIVON_VOICE_STT_FINAL_TIMEOUT_S": "20",
+                "ZIVON_VOICE_TTS_CONNECT_TIMEOUT_S": "16",
+                "ZIVON_VOICE_TTS_FIRST_AUDIO_BUDGET_MS": "350",
+                "ZIVON_VOICE_PING_MISS_MAX": "4",
+                "ZIVON_VOICE_RESUME_WINDOW_S": "120",
+                "ZIVON_VOICE_ECHO_GUARD_MS": "150",
+            }
+        )
+        self.assertEqual(s.brain_connect_timeout_s, 18.0)
+        self.assertEqual(s.brain_first_event_retries, 2)
+        self.assertEqual(s.stt_connect_timeout_s, 14.0)
+        self.assertEqual(s.stt_final_timeout_s, 20.0)
+        self.assertEqual(s.tts_connect_timeout_s, 16.0)
+        self.assertEqual(s.tts_first_audio_budget_ms, 350)
+        self.assertEqual(s.ws_ping_miss_max, 4)
+        self.assertEqual(s.resume_window_s, 120.0)
+        self.assertEqual(s.echo_guard_ms, 150)
+
     def test_bad_transport_and_numbers_fall_back_to_defaults(self) -> None:
         s = VoiceSettings.from_env(
             {

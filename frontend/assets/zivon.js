@@ -1864,6 +1864,7 @@
     "speaking": "",
     "speaking_text": "TUTOR · TEXT",
     "interrupted": "▍cut off",
+    "reconnecting": "phir se jud rahe hain… lesson chalta rahega",
     "offline": "connection gaya — jo type karoge woh safe hai",
     "error:mic-denied": "lesson chalta rahega",
     "error:mic-in-use": "Mic kisi aur app mein busy hai — dubara koshish karein ya type karein.",
@@ -2048,7 +2049,7 @@
         textChipEl.hidden = st !== "speaking_text";
       }
       if (retryBtn) {
-        retryBtn.hidden = !(st === "error:mic-in-use" || st === "error:no-match" || st === "error:no-input" || st === "error:system-error" || st === "error:timeout");
+        retryBtn.hidden = !(st === "reconnecting" || st === "offline" || st === "error:mic-in-use" || st === "error:no-match" || st === "error:no-input" || st === "error:system-error" || st === "error:timeout");
       }
       if (helpRow) {
         helpRow.hidden = !(st === "error:no-match" || st === "error:no-input" || st === "error:mic-denied" || isTextOnly);
@@ -2504,14 +2505,14 @@
               /* The student released while the permission prompt was open:
                  do not start recording after the fact. */
               if (viaPointer && !pointerHeld) return;
-              if (client.getState() === "idle" || client.getState() === "offline") {
+              if (client.getState() === "idle" || client.getState() === "offline" || client.getState() === "reconnecting") {
                 client.connect();
               }
               client.startListening("doubt");
             });
             return;
           }
-          if (client.getState() === "idle" || client.getState() === "offline") {
+          if (client.getState() === "idle" || client.getState() === "offline" || client.getState() === "reconnecting") {
             client.connect();
           }
           client.startListening("doubt");
@@ -2857,7 +2858,12 @@
        AudioBufferSourceNodes through agentGainNode -> audioCtx.destination,
        and ramps gain down ~50 ms + stops sources on interrupt/barge-in/offline.
      - Reconnect: capped exponential backoff with jitter after an unexpected
-       close; a pong timeout closes the socket before reporting offline.
+       close. A transient drop is the `reconnecting` state, never `offline`:
+       the dock only says offline for a genuine `navigator.onLine === false`
+       or after the retry budget is exhausted. A pong timeout (only when a
+       ping on a live socket goes unanswered) closes the socket first.
+       Connect/session-ready/keepalive budgets are generous by default and
+       overridable via `createVoiceClient` options (weak 2G/3G links).
      - Degraded text fallback (typed transcript via audio.end) & turn latency
        stamps (t_endpoint, t_final_transcript, t_first_token, t_first_audio).
      CSP NOTE: createVoiceClient() opens a same-origin WebSocket. Lesson pages
@@ -2978,9 +2984,17 @@
       var snap = buildContextSnapshot();
       var locale = snap.lang_pref || "en";
       var lang = locale === "hi" ? "hi-IN" : (locale === "hi-Latn" ? "hi-en" : "en-IN");
+      var ctrl = typeof AbortController === "function" ? new AbortController() : null;
+      var abortTimer = ctrl ? setTimeout(function () {
+        try { ctrl.abort(); } catch (e) {}
+      }, bootstrapTimeoutMs) : null;
+      function clearAbort() {
+        if (abortTimer) { clearTimeout(abortTimer); abortTimer = null; }
+      }
       return sameOriginRequest("/v1/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: ctrl ? ctrl.signal : undefined,
         body: JSON.stringify({
           device_pseudo_id: deviceId,
           lang: lang,
@@ -2990,9 +3004,10 @@
       })
         .then(function (res) { return res && res.ok ? res.json() : null; })
         .then(function (data) {
+          clearAbort();
           return data && data.session_token ? data.session_token : null;
         })
-        .catch(function () { return null; });
+        .catch(function () { clearAbort(); return null; });
     }
     var jitterBufferedMs = 0;
     var jitterTargetMs = opts.jitter_target_ms || 180;
@@ -3021,10 +3036,33 @@
     var pingTimer = null;
     var reconnectTimer = null;
     var reconnectAttempts = 0;
-    var maxReconnectAttempts = opts.max_reconnect_attempts !== undefined ? opts.max_reconnect_attempts : 6;
-    var reconnectBaseMs = opts.reconnect_base_ms !== undefined ? opts.reconnect_base_ms : 500;
-    var reconnectMaxMs = opts.reconnect_max_ms !== undefined ? opts.reconnect_max_ms : 15000;
+    /* Weak-network policy (2G/3G): retry for minutes, never call a transient
+       drop "offline". 8 attempts with a 1 s base and a 30 s cap is ~2.5 min of
+       patience before the dock offers typed-only mode; the retry button is
+       always one tap away. All values are overridable from the dock. */
+    var maxReconnectAttempts = opts.max_reconnect_attempts !== undefined ? opts.max_reconnect_attempts : 8;
+    var reconnectBaseMs = opts.reconnect_base_ms !== undefined ? opts.reconnect_base_ms : 1000;
+    var reconnectMaxMs = opts.reconnect_max_ms !== undefined ? opts.reconnect_max_ms : 30000;
+    /* The browser exposes no handshake timeout: on a stalled 2G dial the WS
+       can sit in CONNECTING forever. This closes it and retries. */
+    var connectTimeoutMs = opts.connect_timeout_ms !== undefined ? opts.connect_timeout_ms : 30000;
+    /* A slow link can open the socket but take a long time to deliver
+       session.ready; treat that as a retry, not as a dead tutor. */
+    var sessionReadyTimeoutMs = opts.session_ready_timeout_ms !== undefined ? opts.session_ready_timeout_ms : 30000;
+    /* The pseudonymous-session bootstrap is a plain fetch before the WS even
+       dials; on a stalled link it needs its own ceiling or the dock waits on
+       an abandoned request. */
+    var bootstrapTimeoutMs = opts.bootstrap_timeout_ms !== undefined ? opts.bootstrap_timeout_ms : 30000;
+    /* Keepalive: ping every 15 s, but only judge the link dead when a ping
+       sent on a live socket goes unanswered for this long (mobile browsers
+       throttle timers, so the old absolute 30 s "last pong" clock could
+       declare offline after a long listening turn). */
+    var pingIntervalMs = opts.ping_interval_ms !== undefined ? opts.ping_interval_ms : 15000;
+    var pongTimeoutMs = opts.pong_timeout_ms !== undefined ? opts.pong_timeout_ms : 60000;
+    var connectTimer = null;
+    var sessionReadyTimer = null;
     var lastPongTs = 0;
+    var lastPingSentTs = 0;
     var consecutiveVadTriggers = 0;
     var lastVadTriggerTs = 0;
     var queuedTypedDoubts = [];
@@ -3032,26 +3070,57 @@
     var turnTimings = {};
     var lastCompletedTurnMetrics = null;
 
+    /* Genuine connectivity events are the only signals allowed to say
+       "offline" without waiting for retries. Reconnecting on `online` makes
+       the retry budget last through a tunnel/radio drop instead of burning
+       attempts against a dead interface. */
+    function onBrowserOffline() {
+      if (state !== "idle") setState("offline", { reason: "navigator_offline" });
+    }
+    function onBrowserOnline() {
+      if (state === "offline" || state === "reconnecting") {
+        reconnectAttempts = 0;
+        connect(true);
+      }
+    }
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+      window.addEventListener("offline", onBrowserOffline);
+      window.addEventListener("online", onBrowserOnline);
+    }
+
     function setState(nextState, detail) {
       var prev = state;
       state = nextState;
       /* Terminal / non-speaking states restore the bookkeeping gains: a turn
-         that ends in error, interrupt or offline must not leave the mic path
-         ducked at 0.2 forever. */
-      if (nextState === "offline" || nextState === "interrupted" ||
+         that ends in error, interrupt or a dropped link must not leave the
+         mic path ducked at 0.2 forever. */
+      if (nextState === "offline" || nextState === "reconnecting" ||
+          nextState === "interrupted" ||
           nextState === "error" || String(nextState).indexOf("error:") === 0) {
-        if (nextState === "offline" || nextState === "interrupted") {
+        if (nextState === "offline" || nextState === "reconnecting" || nextState === "interrupted") {
           stopPlaybackImmediately();
         }
         /* Any terminal state stops capture: never leave a live processor
-           running while the dock shows an error or offline. `interrupted`
-           keeps the stream because barge-in transitions straight back to
-           listening; everything else also stops the track. */
-        stopCapture(nextState !== "interrupted");
+           running while the dock shows an error or a dropped link.
+           `interrupted` keeps the stream because barge-in transitions straight
+           back to listening; `reconnecting` keeps the stream too (no second
+           permission prompt) but stops the processor; everything else also
+           stops the track. */
+        stopCapture(nextState !== "interrupted" && nextState !== "reconnecting");
         setDucking("normal");
       }
-      if (nextState === "offline") {
+      if (nextState === "reconnecting") {
+        /* A transient drop is NOT "offline": the lesson stays usable and the
+           tutor is still trying. The offline wording is reserved for a real
+           browser-offline event or exhausted retries. */
+        applyLessonStateBanner("reconnecting", "Reconnecting - voice tutor is retrying; lesson and simulations stay active.");
+      } else if (nextState === "offline") {
         applyLessonStateBanner("offline", "Offline - voice tutor paused; lesson and simulations stay active.");
+      } else if (nextState === "ready" || nextState === "listening" ||
+                 nextState === "thinking" || nextState === "speaking" ||
+                 nextState === "speaking_text" || nextState === "text_only") {
+        applyLessonStateBanner("reconnecting", "");
+        applyLessonStateBanner("offline", "");
       } else if (nextState === "error:quota-exhausted") {
         applyLessonStateBanner("exhausted", "Voice is resting (daily limit). Type your doubt.");
       }
@@ -3063,11 +3132,31 @@
     function sendJson(msg) {
       var payload = Object.assign({ v: VOICE_VERSION }, msg);
       if (!ws || ws.readyState !== 1) {
-        setState("offline", { reason: "ws_not_open" });
+        noteTransportLoss("ws_not_open");
         return false;
       }
       ws.send(JSON.stringify(payload));
       return true;
+    }
+
+    function isBrowserOffline() {
+      return typeof navigator !== "undefined" && navigator.onLine === false;
+    }
+
+    /* One place decides what a lost socket means. A transient drop (mobile
+       network handover, slow 2G, NAT reaping) becomes `reconnecting` and is
+       retried with backoff; only a genuine browser-offline signal or an
+       exhausted retry budget degrades to `offline`. */
+    function noteTransportLoss(reason) {
+      if (state === "idle") return;
+      if (state !== "reconnecting" && state !== "offline") {
+        if (isBrowserOffline()) {
+          setState("offline", { reason: reason || "navigator_offline" });
+          return;
+        }
+        setState("reconnecting", { reason: reason || "transport_lost", attempt: reconnectAttempts + 1 });
+      }
+      scheduleReconnect();
     }
 
     function ensureAudioGraph() {
@@ -3427,6 +3516,8 @@
       var t = msg.type;
       var payload = msg.payload && typeof msg.payload === "object" ? msg.payload : msg;
       if (t === "session.ready") {
+        clearSessionReadyTimer();
+        reconnectAttempts = 0;
         sessionId = payload.session_id || "sess-1";
         creditState = payload.credit_state || "ok";
         if (creditState === "warn") {
@@ -3564,9 +3655,12 @@
       }
       if (t === "pong") {
         lastPongTs = Date.now();
+        lastPingSentTs = 0;
         return;
       }
       if (t === "ping") {
+        /* A server ping is also proof the link is alive. */
+        lastPongTs = Date.now();
         sendJson({ type: "pong", t: Date.now() });
         return;
       }
@@ -3593,6 +3687,14 @@
       if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
     }
 
+    function clearConnectTimer() {
+      if (connectTimer) { clearTimeout(connectTimer); connectTimer = null; }
+    }
+
+    function clearSessionReadyTimer() {
+      if (sessionReadyTimer) { clearTimeout(sessionReadyTimer); sessionReadyTimer = null; }
+    }
+
     function detachSocket() {
       if (!ws) return;
       /* Detach BEFORE closing: a stale socket's close must never mark the live
@@ -3608,13 +3710,25 @@
     }
 
     function scheduleReconnect() {
-      if (reconnectTimer || reconnectAttempts >= maxReconnectAttempts) return false;
+      if (reconnectTimer) return true;
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        if (state !== "offline") {
+          setState("offline", { reason: "reconnect_attempts_exhausted", attempts: reconnectAttempts });
+        }
+        return false;
+      }
       var capped = Math.min(reconnectMaxMs, reconnectBaseMs * Math.pow(2, reconnectAttempts));
       var delay = Math.max(1, Math.round(capped * (0.5 + Math.random() * 0.5))); /* jitter */
       reconnectAttempts += 1;
       reconnectTimer = setTimeout(function () {
         reconnectTimer = null;
-        if (state === "offline") connect(true);
+        if (isBrowserOffline()) {
+          /* Stay honest while the radio is down; the `online` listener below
+             resumes the retry loop instead of burning attempts. */
+          setState("offline", { reason: "navigator_offline" });
+          return;
+        }
+        if (state === "offline" || state === "reconnecting") connect(true);
       }, delay);
       return true;
     }
@@ -3648,8 +3762,14 @@
     function cleanup() {
       clearPingTimer();
       clearReconnectTimer();
+      clearConnectTimer();
+      clearSessionReadyTimer();
       queuedTypedDoubts = [];
       pendingFrames = [];
+      if (typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+        window.removeEventListener("offline", onBrowserOffline);
+        window.removeEventListener("online", onBrowserOnline);
+      }
       teardownMediaAndAudio();
     }
     voiceClientCleanups.push(cleanup);
@@ -3657,8 +3777,12 @@
     function connect(resumeFlag) {
       clearReconnectTimer();
       clearPingTimer();
+      clearConnectTimer();
+      clearSessionReadyTimer();
       detachSocket();
-      setState("connecting");
+      /* A retry keeps the "reconnecting" chrome: flipping back to "connecting"
+         on every attempt would look like a fresh dial and hide the retry. */
+      if (state !== "reconnecting") setState("connecting");
       var mockTransport = typeof opts.createWebSocket === "function";
       if (!mockTransport && (!sessionToken || sessionToken === "dev-session-token") && !sessionBootstrapPending) {
         sessionBootstrapPending = true;
@@ -3668,8 +3792,7 @@
             sessionToken = tok;
             connect(resumeFlag);
           } else {
-            setState("offline", { reason: "session_bootstrap_failed" });
-            scheduleReconnect();
+            noteTransportLoss("session_bootstrap_failed");
           }
         });
         return false;
@@ -3680,20 +3803,45 @@
       try {
         ws = factory(url);
       } catch (err) {
-        setState("offline", { error: String(err) });
-        scheduleReconnect();
+        noteTransportLoss("connect_failed: " + String(err));
         return false;
       }
       ws.binaryType = "arraybuffer";
+      var connectAttemptSocket = ws;
+      connectTimer = setTimeout(function () {
+        connectTimer = null;
+        /* Only this attempt's socket may be failed by this timer. */
+        if (ws === connectAttemptSocket && ws && ws.readyState !== 1) {
+          detachSocket();
+          noteTransportLoss("connect_timeout");
+        }
+      }, connectTimeoutMs);
       ws.onopen = function () {
-        reconnectAttempts = 0;
+        clearConnectTimer();
+        /* Do NOT reset the retry budget here: the handshake is not proof of a
+           usable session. session.ready (below) is. A server that accepts and
+           instantly closes must still exhaust the budget instead of looping
+           forever at the base delay. */
         lastPongTs = Date.now();
+        lastPingSentTs = 0;
         clearPingTimer();
         pingTimer = setInterval(function () {
-          if (state === "ready" || state === "thinking" || state === "idle") {
+          if (state === "ready" || state === "thinking" || state === "idle" ||
+              state === "listening" || state === "endpointing" ||
+              state === "speaking" || state === "speaking_text") {
             checkKeepalive(Date.now());
           }
-        }, 15000);
+        }, pingIntervalMs);
+        /* A slow 2G link can open the socket and then stall before
+           session.ready; retry instead of leaving the dock in `connecting`. */
+        clearSessionReadyTimer();
+        sessionReadyTimer = setTimeout(function () {
+          sessionReadyTimer = null;
+          if (state === "connecting" || state === "reconnecting") {
+            detachSocket();
+            noteTransportLoss("session_ready_timeout");
+          }
+        }, sessionReadyTimeoutMs);
         var snap = buildContextSnapshot();
         sendJson({
           type: "session.start",
@@ -3731,13 +3879,14 @@
       };
       ws.onclose = function (ev) {
         clearPingTimer();
+        clearConnectTimer();
+        clearSessionReadyTimer();
         if (ev && ev.code === 4401) {
           setState("error:auth.invalid", { code: 4401 });
         } else if (ev && ev.code === 4409) {
           setState("error:version.mismatch", { code: 4409 });
         } else if (state !== "idle") {
-          setState("offline", { code: ev ? ev.code : 1006 });
-          scheduleReconnect();
+          noteTransportLoss("ws_closed:" + (ev ? ev.code : 1006));
         }
       };
       return true;
@@ -3772,7 +3921,7 @@
         /* P0 PTT press during speaking/thinking IS barge-in interrupt (SP1 §5) */
         bargeIn("ptt_press");
       }
-      if (!ws || ws.readyState !== 1 || state === "connecting") {
+      if (!ws || ws.readyState !== 1 || state === "connecting" || state === "reconnecting") {
         /* First press after connect(): the socket is still CONNECTING. Queue
            the turn behind session.ready instead of reporting offline — the
            old path always landed the very first mic press in `offline`. */
@@ -3788,7 +3937,7 @@
     function sendAudioChunk(pcmBytes, isFinal) {
       if (state !== "listening") return false;
       if (!ws || ws.readyState !== 1) {
-        setState("offline");
+        noteTransportLoss("audio_send_ws_closed");
         return false;
       }
       var frame = encodeAudioFrame(pcmBytes, 1, micSeq++, Boolean(isFinal));
@@ -3859,34 +4008,42 @@
            queue. */
         if (state === "idle" || state === "offline") {
           connect();
-        } else {
-          setState(state === "connecting" ? "connecting" : "offline", {
-            queued_typed: queuedTypedDoubts.length
-          });
+        } else if (state !== "connecting" && state !== "reconnecting") {
+          noteTransportLoss("typed_send_ws_closed");
         }
         return true;
       }
       sendJson(Object.assign({ type: "context.snapshot" }, buildContextSnapshot()));
-      sendJson({ type: "typed.doubt", text: clean });
+      /* If the link dies between the two frames, keep the student's text —
+         it is flushed on the next session.ready, never silently dropped. */
+      if (!sendJson({ type: "typed.doubt", text: clean })) {
+        queuedTypedDoubts.push(clean);
+        return true;
+      }
       setState("thinking", { typed: true, text: clean });
       return true;
     }
 
     function reconnect() {
+      reconnectAttempts = 0;
+      clearReconnectTimer();
       return connect(true);
     }
 
     function checkKeepalive(nowMs) {
       var now = nowMs || Date.now();
-      if (lastPongTs && (now - lastPongTs > 30000)) {
-        /* Close the stale socket FIRST, then report offline: the UI must never
-           show a live-looking connection while the keepalive says it is dead. */
+      /* Only an unanswered ping proves a dead link. A long listening turn, a
+         throttled background tab, or a slow radio used to age `lastPongTs`
+         past a 30 s absolute window and declare offline while the socket was
+         perfectly alive. */
+      if (lastPingSentTs && now - lastPingSentTs > pongTimeoutMs && lastPongTs < lastPingSentTs) {
         clearPingTimer();
         detachSocket();
-        setState("offline", { reason: "pong_timeout" });
-        scheduleReconnect();
+        noteTransportLoss("pong_timeout");
         return false;
       }
+      if (!ws || ws.readyState !== 1) return false;
+      lastPingSentTs = now;
       return sendJson({ type: "ping", t: now });
     }
 

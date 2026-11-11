@@ -385,6 +385,25 @@ class HappyPathTest(unittest.IsolatedAsyncioTestCase):
         first_text = types.index("tts.text")
         self.assertLess(first_text, len(types) - 1)  # speech flowed before end
 
+    async def test_slow_first_token_within_generous_deadline_works(self) -> None:
+        """A slow (2G-class) first token is not a failure: the first-event
+        deadline is the cut-off, and a generous value lets the turn finish."""
+        brain = MockBrain(content="Der se aaya jawab.", delay_before_first_s=0.25)
+        harness = Harness(
+            _settings(brain_first_event_s=2.0),
+            prisma=MockPrisma(final_text="q"),
+            brain=brain,
+        )
+        await _open(harness)
+        await harness.send({"type": "typed.doubt", "text": "sawaal"})
+        end = await harness.finish_turn()
+        await harness.disconnect()
+        self.assertEqual(end["end_reason"], "done")  # type: ignore[index]
+        self.assertEqual(harness.brain.opens, 1)  # no retry, no fallback
+        codes = [e["code"] for e in harness.ws.outbox.of_type("error")]
+        self.assertNotIn("brain.first_event_timeout", codes)
+        self.assertNotIn("brain.deadline", codes)
+
     async def test_typed_doubt_text_path(self) -> None:
         harness = Harness(
             _settings(),

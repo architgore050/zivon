@@ -1514,13 +1514,16 @@ async def _brain_error_turn(
         code = "brain.midturn_stall"
     # F3: whatever was already spoken stays; the unspoken remainder is written
     for chunk in chunker.flush():
+        display_text = strip_display_tags(chunk.text)
+        if not display_text:
+            continue
         await conn.send_json(
             {
                 "type": "tts.text",
                 "turn_id": turn.turn_id,
                 "segment_id": chunk.segment_id,
                 "kind": "speech",
-                "text": chunk.text,
+                "text": display_text,
             }
         )
     await _send_error(

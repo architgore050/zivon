@@ -15,9 +15,11 @@ snapshot message implements ADR-0014.
 
 ## 1. Client states (dock-visible via `agent.state`)
 
-`idle → connecting → listening → thinking → speaking` (or `speaking_text`) `→ idle`; `error` and
-`offline` are entered from any state; `connecting` covers WS handshake + auth. The dock renders
-state, never interprets raw events. `speaking_text` = answer visible as text without audio (F2/F4).
+`idle → connecting → listening → thinking → speaking` (or `speaking_text`) `→ idle`; `error`,
+`reconnecting` (client-side transient transport loss) and `offline` (genuine browser-offline or
+retry budget exhausted) are entered from any state; `connecting` covers WS handshake + auth. The
+dock renders state, never interprets raw events. `speaking_text` = answer visible as text without
+audio (F2/F4).
 
 ## 2. Message catalogue
 
@@ -40,7 +42,7 @@ Dir: C→S = client→server, S→C = server→client. Billable? = Gnani program
 | interrupt | C→S | `{turn_id?}` | anytime while speaking/thinking | yes (repeat = same intent) | server may have finished; reply is harmless no-op | no | server: barge-in (§5) |
 | turn.end | S→C | `{turn_id, end_reason: done\|interrupted\|error, latency_ms{L0..L8}, usage{stt_audio_s, tts_chars, brain_prompt_tokens, brain_completion_tokens, retries}}` | once per turn | — | resume sends it if missed | no | dock resets; server wrote ledger (H4) |
 | error | S→C | `{code, message, recoverable}` | anytime | — | logged; codes are stable ids | no | dock: F1–F8 rendering; codes listed in §6 |
-| ping / pong | both | `{t}` | keepalive 15 s | — | 2 missed → offline state | no | NAT/idle timeouts |
+| ping / pong | both | `{t}` | keepalive 15 s | — | an unanswered ping (60 s client budget; `ws_ping_miss_max` server side) → reconnecting | no | NAT/idle timeouts |
 
 Notes: `audio.chunk` loss is tolerated (STT streams; gaps degrade accuracy, never crash);
 `tts.audio` gaps are bridged by skipping (jitter buffer logic per the audio skill — never
@@ -79,7 +81,7 @@ Opus decode).
 | thinking/speaking | interrupt | listening | §5 barge-in |
 | speaking | F4 | speaking_text | text-only continuation |
 | any | error (recoverable) | error → prior state | §9 F-table in spec.md |
-| any | WS closed | offline | client backoff-reconnect; resume |
+| any | WS closed | reconnecting | client backoff-reconnect; resume; `offline` only when retries are exhausted |
 
 ## 5. Interruption / barge-in (ADR-0010) and the echo path
 

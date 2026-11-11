@@ -30,8 +30,11 @@ SP1/founder must fill it.
 - Binary frames: Opus audio [V: RFC 6716]; text frames: JSON (§3). Client sends
   audio as raw Opus frames (20 ms) — **MediaRecorder is not used for the loop**
   (per-platform container unpredictability) [V: audio skill §2]; capture path §5.
-- Keepalive: `ping`/`pong` JSON every 15 s in idle/thinking; a missed pong for
-  30 s moves the machine to `offline` (§7).
+- Keepalive: `ping`/`pong` JSON every 15 s on an open socket. Only an
+  unanswered ping on a live socket (60 s default) counts as a dead link; the
+  old absolute 30 s "last pong" clock could declare a long listening turn or a
+  throttled background tab offline. The resulting drop is `reconnecting`
+  (below), not `offline`.
 
 ## 2. Client state machine
 
@@ -50,7 +53,8 @@ without an exit is a bug.
 | `speaking` | playback scheduled | §4 playback scheduling; **duck mic gain, do not mute** (§6); barge-in armed | → `interrupted` / `ready` (tts.end) / `error:*` |
 | `interrupted` (barge-in) | user speech over playback (VAD over agent) OR explicit stop | `client.interrupt` sent; agent stream dropped mid-flight; ducking reversed; tutor's partial sentence is discarded, not resumed (restart-the-turn semantics [GAP: resume-vs-restart is SP1's to confirm]) | → `listening` (capture continues) |
 | `error:<code>` | see codes below | copy + recovery path is founder-gated; client guarantees: no silent death, retry never loses session context | → `ready` (recoverable) / `idle` (terminal) |
-| `offline` | WS drop / send failure | automatic reconnect §7; lesson stays fully usable (layer independence G5) | → `ready` (reconnected) / `idle` (user gives up) |
+| `reconnecting` | WS drop / send failure / connect·session-ready timeout (transient) | automatic reconnect with capped exponential backoff + jitter; session token and `last_turn_id` kept, typed text queued in memory; lesson stays fully usable (G5) | → `ready` (reconnected) / `offline` (retry budget exhausted or `navigator.onLine === false`) / `idle` (user gives up) |
+| `offline` | genuine browser-offline signal, or retry budget exhausted | no automatic retry while the radio is down; the `online` event resumes reconnects; lesson stays fully usable (layer independence G5) | → `reconnecting` (`online`) / `idle` |
 
 Error codes (client-side, emitted as `error:{code}`): `mic-denied`,
 `mic-in-use`, `unsupported-browser`, `no-input` (silence timeout 8 s),
@@ -150,9 +154,11 @@ flagged Q6:
    "type instead" affordance (founder-gated copy).
 3. Never destroys context: the page anchor and session survive; the transcript
    of the failed turn is preserved read-only.
-4. Offline: the lesson itself is unaffected (static page); the dock shows the
-   offline state; typed input is queued ONLY in memory and cleared with an
-   honest message on unload — nothing pretends to have sent.
+4. Offline: the lesson itself is unaffected (static page); a transient drop
+   shows `reconnecting` while the client retries (session + targeted turn
+   kept), and only a genuine browser-offline signal or an exhausted retry
+   budget shows `offline`; typed input is queued ONLY in memory and cleared
+   with an honest message on unload — nothing pretends to have sent.
 
 ## 8. CSP relaxation (GRANTED 2026-11-10 — applied at P0 wire-up)
 
