@@ -35,6 +35,7 @@ class MockTimbre:
         self.spoken: list[str] = []
         self.segment_ids: list[int] = []
         self.kinds: list[str] = []
+        self.languages: list[str | None] = []  # per-segment reply language
         self.closed = False
         self.aborted = False
         self.chars_billed = 0
@@ -46,13 +47,18 @@ class MockTimbre:
             raise TtsUnavailableError("mock: Timbre unreachable")
 
     async def speak(
-        self, text: str, segment_id: int, kind: str = "speech"
+        self,
+        text: str,
+        segment_id: int,
+        kind: str = "speech",
+        language: str | None = None,
     ) -> AsyncIterator[TtsAudio]:
         if self.fail:
             raise TtsUnavailableError("mock: Timbre unreachable")
         self.spoken.append(text)
         self.segment_ids.append(segment_id)
         self.kinds.append(kind)
+        self.languages.append(language)
         self.chars_billed += len(text)
         self.meters.chars_billed = self.chars_billed
         for index in range(self.frames_per_segment):

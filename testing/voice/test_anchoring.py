@@ -13,6 +13,7 @@ from voice.anchoring import (
     SnapshotError,
     build_prompt_context,
     parse_snapshot,
+    resolve_refs,
     validate_ref_ids,
 )
 from voice.config import VoiceSettings
@@ -75,18 +76,52 @@ class PromptContextTest(unittest.TestCase):
     def test_bounded_context_includes_essentials(self) -> None:
         snap = parse_snapshot(_PAYLOAD)
         block = build_prompt_context(snap, VoiceSettings(), stale=False)
-        self.assertIn("topic: Motion — 9", block)
-        self.assertIn("[b-03] simulation", block)
+        self.assertIn("page: Motion · Class 9", block)
+        self.assertIn("section the student is looking at: Velocity-time graph", block)
+        self.assertIn("The graph shows uniform acceleration.", block)
         self.assertIn("v=12", block)
-        self.assertIn("block ids on page (REF targets): b-01, b-03", block)
+        self.assertIn("other parts visible on this page: Intro; Graph sim", block)
+
+    def test_prompt_context_has_no_machine_ids(self) -> None:
+        # Founder requirement 2026-11-11: the model never sees b-NN /
+        # block_id / block_type — only human-readable content.
+        snap = parse_snapshot(_PAYLOAD)
+        block = build_prompt_context(snap, VoiceSettings(), stale=False)
+        self.assertNotIn("b-03", block)
+        self.assertNotIn("b-01", block)
+        self.assertNotIn("block_id", block)
+        self.assertNotIn("block_type", block)
+        self.assertNotIn("topic_id", block)
+        self.assertNotRegex(block, r"\bb-\d+\b")
+
+    def test_unknown_block_type_never_echoed_raw(self) -> None:
+        snap = parse_snapshot({**_PAYLOAD, "block_type": "vendor_magic_type"})
+        block = build_prompt_context(snap, VoiceSettings(), stale=False)
+        self.assertNotIn("vendor_magic_type", block)
+
+    def test_context_without_text_or_title_never_emits_an_id(self) -> None:
+        snap = parse_snapshot(
+            {
+                **_PAYLOAD,
+                "block_text": "",
+                "block_title": "",
+                "visible_blocks": ["b-01"],
+            }
+        )
+        block = build_prompt_context(snap, VoiceSettings(), stale=False)
+        self.assertIn("the part of the page the student is currently reading", block)
+        self.assertNotIn("b-03", block)
 
     def test_block_text_capped_at_600_chars(self) -> None:
         snap = parse_snapshot({**_PAYLOAD, "block_text": "w" * 900})
         block = build_prompt_context(snap, VoiceSettings(), stale=False)
         text_line = next(
-            line for line in block.splitlines() if line.startswith("block text:")
+            line
+            for line in block.splitlines()
+            if line.startswith("what is on screen now (")
         )
-        self.assertLessEqual(len(text_line) - len("block text: "), 600)
+        prefix = text_line.split(": ", 1)[0] + ": "
+        self.assertLessEqual(len(text_line) - len(prefix), 600)
 
     def test_stale_snapshot_carries_honest_note(self) -> None:
         snap = parse_snapshot(_PAYLOAD)
@@ -103,6 +138,20 @@ class RefValidationTest(unittest.TestCase):
     def test_valid_ids_pass(self) -> None:
         snap = parse_snapshot(_PAYLOAD)
         self.assertEqual(validate_ref_ids(("b-01", "b-03"), snap), ("b-01", "b-03"))
+
+    def test_human_part_names_resolve_to_ids(self) -> None:
+        # The prompt asks for names; the page JS still receives ids.
+        snap = parse_snapshot(_PAYLOAD)
+        self.assertEqual(
+            validate_ref_ids(("Velocity-time graph", "Intro"), snap),
+            ("b-03", "b-01"),
+        )
+
+    def test_name_matching_is_case_insensitive(self) -> None:
+        snap = parse_snapshot(_PAYLOAD)
+        self.assertEqual(
+            resolve_refs(("  velocity-time GRAPH  ",), snap), ("b-03",)
+        )
 
     def test_unknown_ids_dropped(self) -> None:
         snap = parse_snapshot(_PAYLOAD)

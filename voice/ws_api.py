@@ -50,7 +50,7 @@ from urllib.parse import urlsplit
 
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from . import anchoring
+from . import anchoring, language
 from .audio_io import UplinkStream, pack_downlink
 from .brain_client import (
     BrainClient,
@@ -93,7 +93,7 @@ TUTOR_SYSTEM_PROMPT = """You are Zivon, a patient Physics tutor for a Class 9–
 The student hears you; they may be reading the page you are anchored to.
 
 Goal: the student leaves this turn able to explain the idea in their own words — clear,
-encouraging, step-by-step, in the student's language (Hindi, English, or the mix they used).
+encouraging, step-by-step, in the language they are using.
 
 The page context below is the universe of this answer: teach from what is on the page. If a step
 needs physics beyond the page, use generic method ("energy is conserved") and say the page will
@@ -101,15 +101,17 @@ cover it — never introduce a new claim or number you cannot see verified. If y
 step is right, say what you are checking instead of asserting it.
 
 Spoken contract (the harness enforces parts of this mechanically):
-- First line, only if you refer to page elements: `REF: <block_id>,<block_id>` using ids from the
-  context's block list. Never put REF anywhere else; never mention it.
+- Reply in the language and mix named by the REPLY LANGUAGE line: the same English, Hindi, or
+  Hinglish the student used. Keep proper nouns and technical terms in English.
+- First line, only if you refer to parts of the page: `REF: <part name>,<part name>` using the
+  names shown in the page context. Never put REF anywhere else; never say, spell, or mention an
+  internal id.
 - Plain spoken words: no markdown, no LaTeX, no code blocks. Say formulas in words and numbers
   as digits ("x squared plus one", "3.06 metre per second squared").
 - Short sentences — one idea each, ≤ ~15 words. Prefer 4–8 sentences per turn; end with ONE short
   Socratic follow-up question when the student is close to a step, not every turn.
 - Where delivery helps, use at most these cues inline: <pauses> <slow> <excited> <whispers>.
-  Nothing else; at most one cue per two sentences.
-Match the student's language mix; keep proper nouns and technical terms in English."""
+  Nothing else; at most one cue per two sentences."""
 
 # ADR-0018 option A: fixed safe fillers, randomized without repetition across
 # the last 3 turns, max 1/turn — the always-armed dead-air fallback.
@@ -270,7 +272,8 @@ class _Turn:
     turn_idx: int
     kind: str  # audio | typed
     transcript: str = ""
-    lang: str = ""
+    lang: str = ""  # raw STT-detected tag, as the dock receives it (stt.final)
+    reply_locale: str = ""  # product locale for prompt + TTS (language.py)
     confidence: float | None = None
     started_at: float = 0.0
     audio_end_at: float | None = None  # L0 anchor (end-of-speech at the server)
@@ -512,7 +515,11 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
         session = app.sessions.create(
             identity,
             profile=app.profile_for(identity),
-            locale=str(first.get("locale") or "hi-en"),
+            # session.start locale is the precedence fallback behind the latest
+            # Prisma detection (voice/language.py), normalised to a product
+            # locale so "hi-en" and "hi-Latn" cannot disagree downstream.
+            locale=language.normalize_locale(first.get("locale"))
+            or app.settings.reply_locale_default,
         )
     # profile is SERVER-asserted (spec.md §11); the server-side seam is the
     # ``profile_for`` dependency — the client can never claim it.
@@ -550,6 +557,9 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
                 # dock never interprets guard words as agent states.
                 "state": "idle",
                 "credit_state": "text_only" if session.text_only else decision.state,
+                # additive field: the dock can style itself before the first
+                # language.detected (resume has no replay of it).
+                "reply_locale": session.reply_locale or session.locale,
                 "server_time": int(now() * 1000),
             }
         )
@@ -635,6 +645,7 @@ async def _replay(conn: _Connection, session: VoiceSession, last_turn_id: str) -
                 "profile": session.profile,
                 "state": "resumed",
                 "credit_state": credit_state,
+                "reply_locale": session.reply_locale or session.locale,
                 "server_time": int(app._clock() * 1000),
             }
         )
@@ -657,6 +668,7 @@ async def _replay(conn: _Connection, session: VoiceSession, last_turn_id: str) -
             "profile": session.profile,
             "state": "resumed",
             "credit_state": credit_state,
+            "reply_locale": session.reply_locale or session.locale,
             "server_time": int(app._clock() * 1000),
         }
     )
@@ -1107,6 +1119,7 @@ async def _run_audio_turn(conn: _Connection, turn: _Turn) -> None:
         if turn.confidence is not None:
             final["confidence"] = turn.confidence
         await conn.send_json(final)
+        await _apply_reply_language(conn, turn, detected=turn.lang)
         await _run_brain_turn(conn, turn, typed=False)
     except SttUnavailableError:
         # F1-adjacent: EOS arrived but no final — honest error turn. The dock
@@ -1126,6 +1139,42 @@ async def _run_audio_turn(conn: _Connection, turn: _Turn) -> None:
         raise
 
 
+async def _apply_reply_language(
+    conn: _Connection, turn: _Turn, *, detected: str = ""
+) -> None:
+    """Resolve + announce the reply language (voice/language.py precedence).
+
+    Latest Prisma detection > session.start locale > product default. The
+    dock hears ``language.detected`` only when the resolved locale CHANGES
+    (ws-contract.md §2): a stable Hinglish session gets exactly one message,
+    not one per turn. ``confidence`` is the STT transcript confidence — the
+    only confidence the vendor reports — and is omitted when unknown.
+    """
+    session = conn.session
+    assert session is not None
+    locale_detected = language.normalize_locale(detected)
+    if locale_detected:
+        session.detected_locale = locale_detected
+    locale = language.resolve_reply_locale(
+        detected=session.detected_locale,
+        session_locale=session.locale,
+        default=conn.settings.reply_locale_default,
+    )
+    turn.reply_locale = locale
+    session.reply_locale = locale
+    if session.announced_locale == locale:
+        return
+    session.announced_locale = locale
+    message: dict[str, Any] = {
+        "type": "language.detected",
+        "locale": locale,
+        "script": language.locale_script(locale),
+    }
+    if turn.confidence is not None:
+        message["confidence"] = round(float(turn.confidence), 3)
+    await conn.send_json(message)
+
+
 async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> None:
     """Shared turn core: H2 → context → brain stream → chunker → TTS."""
     session = conn.session
@@ -1134,6 +1183,10 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
     now = app._clock
     settings = app.settings
     await _send_state(conn, "thinking")  # NFR-06: cue ≤ 300 ms after EOS
+    if not turn.reply_locale:
+        # typed turn (or a resume before any audio turn): precedence still
+        # applies — last detected locale, else session.start, else default.
+        await _apply_reply_language(conn, turn)
     session.turn_idx = turn.turn_idx
     conn.current_turn = turn
 
@@ -1179,6 +1232,7 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
         context_block=context_block,
         history=messages,
         transcript=turn.transcript,
+        language_hint=language.reply_language_line(turn.reply_locale),
     )
     turn.brain_called_at = now()
     turn.stamp("L2", turn.brain_called_at)
@@ -1429,8 +1483,13 @@ async def _speak_text(
         return  # text already on the panel
     tts = _ensure_tts(conn)
     seg = segment_id if segment_id is not None else 0
+    # Timbre speaks in the reply language resolved for this turn (English /
+    # Hindi / Hinglish), not whatever the session default happened to be.
+    tts_language = language.tts_language_for(
+        turn.reply_locale, conn.settings.tts_language
+    )
     try:
-        async for audio in tts.speak(text, seg, kind=kind):
+        async for audio in tts.speak(text, seg, kind=kind, language=tts_language):
             if audio.final:
                 break
             if turn.first_audio_at is None:
@@ -1479,7 +1538,12 @@ async def _over_credit_turn(conn: _Connection, turn: _Turn, reason_code: str) ->
         if await _ensure_tts_turn(conn):
             try:
                 tts = _ensure_tts(conn)
-                async for audio in tts.speak(line, 1, kind="speech"):
+                tts_language = language.tts_language_for(
+                    turn.reply_locale, conn.settings.tts_language
+                )
+                async for audio in tts.speak(
+                    line, 1, kind="speech", language=tts_language
+                ):
                     if audio.final:
                         break
                     await conn.send_bytes(

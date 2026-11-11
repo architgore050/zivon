@@ -7,6 +7,7 @@ flow, F4 failure path.
 
 from __future__ import annotations
 
+import json
 import unittest
 from typing import Any
 
@@ -232,3 +233,21 @@ class AudioFlowTest(unittest.IsolatedAsyncioTestCase):
         await client.close_turn()
         self.assertEqual(client.meters.chars_billed, len("Ek. Do."))
         await client.close()
+
+
+class ReplyLanguageTtsTest(unittest.IsolatedAsyncioTestCase):
+    """The Timbre request follows the turn's reply language (language.py)."""
+
+    async def test_explicit_language_overrides_config(self) -> None:
+        client, transport = _client()
+        await client.start_turn()
+        [audio async for audio in client.speak("Namaste.", 1, language="hi")]
+        request = json.loads(next(s for s in transport.sent if isinstance(s, str)))
+        self.assertEqual(request["language"], "hi")
+
+    async def test_default_language_when_none(self) -> None:
+        client, transport = _client(tts_language="hi-en")
+        await client.start_turn()
+        [audio async for audio in client.speak("Namaste.", 1)]
+        request = json.loads(next(s for s in transport.sent if isinstance(s, str)))
+        self.assertEqual(request["language"], "hi-en")

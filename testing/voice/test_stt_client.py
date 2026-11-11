@@ -183,6 +183,34 @@ class SttClientTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(SttUnavailableError):
             await wait_for_final(mock, timeout_s=0.01)
 
+    async def test_transcript_detected_language_alias_and_confidence(self) -> None:
+        transport = FakeTransport(
+            [
+                '{"type":"transcript","text":"impulse kya hai","detected_language":"hi-Latn","confidence":"0.88"}',
+            ]
+        )
+        client = SttClient(
+            _settings(), connect_factory=lambda: asyncio.sleep(0, result=transport)
+        )
+        await client.start()
+        event = await client.next_event()
+        assert event is not None
+        self.assertEqual(event.kind, "final")
+        self.assertEqual(event.lang, "hi-Latn")
+        self.assertAlmostEqual(event.confidence or 0.0, 0.88)
+
+    async def test_transcript_bad_confidence_is_tolerated(self) -> None:
+        transport = FakeTransport(
+            ['{"type":"transcript","text":"q","confidence":"high"}']
+        )
+        client = SttClient(
+            _settings(), connect_factory=lambda: asyncio.sleep(0, result=transport)
+        )
+        await client.start()
+        event = await client.next_event()
+        assert event is not None
+        self.assertIsNone(event.confidence)
+
 
 if __name__ == "__main__":
     unittest.main()

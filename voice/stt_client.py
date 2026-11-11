@@ -94,6 +94,16 @@ class SttEvent:
     confidence: float | None = None
 
 
+def _confidence(raw: object) -> float | None:
+    """Parse an optional vendor confidence without letting a string crash us."""
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        return float(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
 class SttClient:
     """Streaming STT session: send mic PCM, yield partial/final events.
 
@@ -215,9 +225,12 @@ class SttClient:
                 text=text,
                 seq=self._seq - 1,
                 lang=str(
-                    payload.get("detected_language_code") or payload.get("lang") or ""
+                    payload.get("detected_language_code")
+                    or payload.get("detected_language")
+                    or payload.get("lang")
+                    or ""
                 ),
-                confidence=None,
+                confidence=_confidence(payload.get("confidence")),
             )
         text = payload.get("text")
         if kind not in ("partial", "final") or not isinstance(text, str):

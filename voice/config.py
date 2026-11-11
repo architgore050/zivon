@@ -147,6 +147,9 @@ class VoiceSettings:
     tts_url: str = ""  # empty = not configured → F4 degraded path, honest
     tts_model: str = "timbre-v3.0"
     tts_language: str = "hi-en"  # Hinglish; "auto" also valid
+    # Reply-language default when neither Prisma nor session.start gave one
+    # (voice/language.py precedence). Product default = the Hinglish mix.
+    reply_locale_default: str = "hi-Latn"
     tts_sample_rate: int = 48000  # Timbre realtime audio_config.sample_rate
     tts_voice: str = "Shivani"  # Timbre v3.0 default; founder may re-pick (OQ-03)
     tts_connect_timeout_s: float = 10.0  # websockets handshake budget
@@ -275,6 +278,9 @@ class VoiceSettings:
             tts_url=e.get("ZIVON_VOICE_TTS_URL", ""),
             tts_model=e.get("ZIVON_VOICE_TTS_MODEL", "timbre-v3.0"),
             tts_language=e.get("ZIVON_VOICE_TTS_LANGUAGE", "hi-en"),
+            reply_locale_default=e.get(
+                "ZIVON_VOICE_REPLY_LOCALE_DEFAULT", "hi-Latn"
+            ),
             tts_sample_rate=_env_int(e, "ZIVON_VOICE_TTS_SAMPLE_RATE", 48000),
             tts_voice=e.get("ZIVON_VOICE_TTS_VOICE", "Shivani"),
             tts_connect_timeout_s=_env_float(

@@ -212,9 +212,17 @@ class TtsClient:
         self.meters = _TurnMeters()
 
     async def speak(
-        self, text: str, segment_id: int, kind: str = "speech"
+        self,
+        text: str,
+        segment_id: int,
+        kind: str = "speech",
+        language: str | None = None,
     ) -> AsyncGenerator[TtsAudio, None]:
         """Send one prepared chunk; yield audio frames as they arrive.
+
+        ``language`` overrides ``ZIVON_VOICE_TTS_LANGUAGE`` for this segment —
+        the reply language follows the student's latest detected language
+        (voice/language.py). ``None`` keeps the configured default.
 
         Raises TtsUnavailableError on transport death (F4) — the caller
         degrades to text-only; meters keep what was already spoken.
@@ -233,7 +241,7 @@ class TtsClient:
             "text": prepared.text,
             "voice": self._settings.tts_voice,
             "model": self._settings.tts_model,
-            "language": self._settings.tts_language,
+            "language": language or self._settings.tts_language,
             "speed": 1.0,
             "audio_config": {
                 "sample_rate": self._settings.tts_sample_rate,

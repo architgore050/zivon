@@ -1220,5 +1220,160 @@ class ClassifierFixtureTest(unittest.TestCase):
             self.assertFalse(ws.is_procedural_summary(line), line)
 
 
+class ReplyLanguageAndContextTest(unittest.IsolatedAsyncioTestCase):
+    """Founder requirements 2026-11-11: id-free context, reply language."""
+
+    _SNAPSHOT = {
+        "type": "context.snapshot",
+        "topic_id": "motion",
+        "class": "9",
+        "chapter": "Motion",
+        "topic_title": "Motion — Chapter 8",
+        "block_id": "b-13",
+        "block_type": "simulation",
+        "sim_id": "zivon-sim-1",
+        "sim_vars": {"v": "12", "t": "3"},
+        "block_title": "Velocity-time graph",
+        "block_text": "The graph shows uniform acceleration of the cart.",
+        "visible_blocks": [
+            {"id": "b-11", "type": "text", "title": "Intro to motion"},
+            {"id": "b-13", "type": "simulation", "title": "Velocity-time graph"},
+        ],
+        "scroll_pct": 35,
+        "lang_pref": "hi-en",
+        "ts": 1.0,
+    }
+
+    async def _run_audio_turn(self, harness: Harness) -> None:
+        before = len(harness.ws.outbox.of_type("turn.end"))
+        await harness.send({"type": "audio.start"})
+        await harness.send(_audio_frame(0))
+        await harness.send({"type": "audio.end"})
+        async with asyncio.timeout(5.0):
+            while len(harness.ws.outbox.of_type("turn.end")) == before:
+                await asyncio.sleep(0.005)
+        async with asyncio.timeout(5.0):
+            while harness.ws.outbox.of_type("agent.state")[-1]["state"] != "idle":
+                await asyncio.sleep(0.005)
+        await asyncio.sleep(0.02)  # task teardown before the next press
+
+    async def test_prompt_has_no_machine_ids_but_keeps_content(self) -> None:
+        brain = MockBrain(content="Jawab ek. Jawab do.")
+        harness = Harness(
+            _settings(), prisma=MockPrisma(final_text="graph samjhao"), brain=brain
+        )
+        await _open(harness)
+        await harness.send(self._SNAPSHOT)
+        await asyncio.sleep(0.02)
+        await self._run_audio_turn(harness)
+        await harness.disconnect()
+
+        prompt = "\n".join(m.content for m in brain.last_messages)
+        self.assertIn("The graph shows uniform acceleration", prompt)
+        self.assertIn("Velocity-time graph", prompt)
+        self.assertIn("page: Motion — Chapter 8", prompt)
+        self.assertNotIn("b-13", prompt)
+        self.assertNotIn("b-11", prompt)
+        self.assertNotRegex(prompt, r"\bb-\d+\b")
+        self.assertNotIn("block_id", prompt)
+        self.assertNotIn("block_type", prompt)
+        self.assertNotIn("topic_id", prompt)
+        # the static prompt carries the label-based REF contract, no ids
+        self.assertIn("REF: <part name>", ws.TUTOR_SYSTEM_PROMPT)
+        self.assertNotIn("block_id", ws.TUTOR_SYSTEM_PROMPT)
+
+    async def test_language_detected_emitted_and_followed(self) -> None:
+        # session.start says English; Prisma detects Hindi → Hindi wins.
+        tts = MockTimbre(_settings())
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="graph samjhao", final_lang="hi-IN"),
+            brain=MockBrain(content="Ek jawab. Doosra jawab."),
+            tts=tts,
+        )
+        await _open(harness, locale="en")
+        await self._run_audio_turn(harness)
+        await harness.disconnect()
+
+        outbox = harness.ws.outbox
+        detected = outbox.of_type("language.detected")
+        self.assertEqual(len(detected), 1)
+        self.assertEqual(detected[0]["locale"], "hi")
+        self.assertEqual(detected[0]["script"], "Deva")
+        self.assertEqual(detected[0]["confidence"], 0.93)
+        # order: the frozen transcript, then the language note, then speech
+        types = outbox.types()
+        self.assertLess(types.index("stt.final"), types.index("language.detected"))
+        # stt.final keeps the raw vendor tag (contract stability)
+        self.assertEqual(outbox.first("stt.final")["lang"], "hi-IN")  # type: ignore[index]
+        # TTS speaks Hindi, not the configured Hinglish default
+        self.assertEqual(set(tts.languages), {"hi"})
+
+    async def test_language_detected_only_on_change(self) -> None:
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(
+                final_text="sawaal",
+                final_langs=["hi-IN", "hi-IN", "en-IN"],
+            ),
+            brain=MockBrain(content="Ek jawab."),
+        )
+        await _open(harness, locale="hi-IN")
+        for _ in range(3):
+            await self._run_audio_turn(harness)
+        await harness.disconnect()
+
+        detected = harness.ws.outbox.of_type("language.detected")
+        self.assertEqual([d["locale"] for d in detected], ["hi", "en"])
+        self.assertEqual([d["script"] for d in detected], ["Deva", "Latn"])
+
+    async def test_typed_turn_uses_last_detected_language(self) -> None:
+        tts = MockTimbre(_settings())
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="sawaal", final_lang="en-IN"),
+            brain=MockBrain(content="Ek jawab."),
+            tts=tts,
+        )
+        await _open(harness, locale="hi")
+        await self._run_audio_turn(harness)
+        await harness.send({"type": "typed.doubt", "text": "why acceleration?"})
+        async with asyncio.timeout(5.0):
+            while len(harness.ws.outbox.of_type("turn.end")) < 2:
+                await asyncio.sleep(0.005)
+        await harness.disconnect()
+
+        # one announcement (hi → en on the audio turn); typing cannot flip it
+        detected = harness.ws.outbox.of_type("language.detected")
+        self.assertEqual([d["locale"] for d in detected], ["en"])
+        self.assertTrue(all(lang == "en" for lang in tts.languages if lang))
+        session = harness.app.sessions.get("sess-1")
+        assert session is not None
+        self.assertEqual(session.reply_locale, "en")
+
+    async def test_highlight_still_uses_internal_ids(self) -> None:
+        # The model names a part; the dock gets the id for the border.
+        harness = Harness(
+            _settings(),
+            prisma=MockPrisma(final_text="graph samjhao", final_lang="hi-IN"),
+            brain=MockBrain(content="REF: Velocity-time graph\nPehla. Doosra."),
+        )
+        await _open(harness)
+        await harness.send(self._SNAPSHOT)
+        await asyncio.sleep(0.02)
+        await self._run_audio_turn(harness)
+        await harness.disconnect()
+
+        outbox = harness.ws.outbox
+        highlight = outbox.first("highlight")
+        assert highlight is not None
+        self.assertEqual(highlight["block_ids"], ["b-13"])
+        spoken = " ".join(
+            str(t["text"]) for t in outbox.of_type("tts.text")
+        )
+        self.assertNotIn("b-13", spoken)  # ids are never spoken or shown
+        self.assertNotIn("REF", spoken)
+
+
 if __name__ == "__main__":
     unittest.main()
