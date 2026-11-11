@@ -39,6 +39,34 @@
     "worked_example": 11,
     "reveal": 2
   },
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Motion in a Straight Line",
+    "hi": "सरल रेखा में गति (motion)",
+    "hi-Latn": "Seedhi Rekha mein Motion"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "i18n_hashes": {
+    "en": "746dfcd914d6fd9c6e905e45dd7ad20836b8265e4931136850be94dbac931c59",
+    "hi": "7731b3a46a0cd9ee3c96cb0505166e9146f2f966cd73b59412d760c780ca747a",
+    "hi-Latn": "8374d3dc843435c35eff7bc81b27670209de24d3d687ab716c60012bd5bb2943"
+  },
   "narration": {
     "available": true,
     "lang": "en",

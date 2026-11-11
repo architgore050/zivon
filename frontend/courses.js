@@ -10,7 +10,30 @@ window.ZIVON_COURSES = [
     "chapter_number": null,
     "title": "Describing Motion Around Us",
     "chapter": "Grade",
-    "generated_at": "2026-11-09T15:31:18Z"
+    "generated_at": "2026-11-09T15:31:18Z",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "Describing Motion Around Us",
+      "hi": "हमारे चारों ओर गति (motion) का वर्णन",
+      "hi-Latn": "Hamare Aas-Paas ki Motion ka Varnan"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    }
   },
   {
     "href": "courses/class-9-physics/how-forces-affect-motion/index.html",
@@ -22,13 +45,68 @@ window.ZIVON_COURSES = [
     "generated_at": "2026-11-03T15:11:31Z"
   },
   {
+    "href": "courses/class-9-physics/motion/index.html",
+    "course_id": "class-9-physics",
+    "class": 9,
+    "chapter_number": null,
+    "title": "Motion",
+    "chapter": "Motion",
+    "generated_at": "2026-11-10T20:59:21Z",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "How Forces Affect Motion: Force, Friction and Newton's Three Laws",
+      "hi": "बल (force) गति (motion) को कैसे प्रभावित करते हैं: बल, घर्षण और न्यूटन के तीन नियम",
+      "hi-Latn": "Force (bal) Motion (gati) ko Kaise Affect Karte Hain: Force, Friction aur Newton ke Teen Laws"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    }
+  },
+  {
     "href": "courses/class-11-physics/laws-of-motion/index.html",
     "course_id": "class-11-physics",
     "class": 11,
     "chapter_number": 4,
     "title": "Laws of Motion",
     "chapter": "LAWS OF MOTION",
-    "generated_at": "2026-11-10T06:01:22Z"
+    "generated_at": "2026-11-10T21:02:19Z",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "Laws of Motion",
+      "hi": "गति के नियम",
+      "hi-Latn": "Laws of Motion (Gati ke Niyam)"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    }
   },
   {
     "href": "courses/class-11-physics/motion-in-a-plane/index.html",
@@ -37,7 +115,30 @@ window.ZIVON_COURSES = [
     "chapter_number": null,
     "title": "Motion in a Plane",
     "chapter": "MOTION IN A PLANE",
-    "generated_at": "2026-11-09T13:57:47Z"
+    "generated_at": "2026-11-09T13:57:47Z",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "Motion in a Plane",
+      "hi": "एक समतल में गति (motion)",
+      "hi-Latn": "Plane mein Motion"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    }
   },
   {
     "href": "courses/class-11-physics/motion-in-a-straight-line/index.html",
@@ -46,7 +147,30 @@ window.ZIVON_COURSES = [
     "chapter_number": null,
     "title": "Motion in a Straight Line",
     "chapter": "MOTION IN A STRAIGHT LINE",
-    "generated_at": "2026-11-09T10:23:43Z"
+    "generated_at": "2026-11-09T10:23:43Z",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "Motion in a Straight Line",
+      "hi": "सरल रेखा में गति (motion)",
+      "hi-Latn": "Seedhi Rekha mein Motion"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    }
   },
   {
     "href": "courses/class-11-physics/units-and-measurement/index.html",
@@ -55,6 +179,29 @@ window.ZIVON_COURSES = [
     "chapter_number": null,
     "title": "Units and Measurement",
     "chapter": "UNITS AND MEASUREMENT",
-    "generated_at": "2026-11-09T11:56:46Z"
+    "generated_at": "2026-11-09T11:56:46Z",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "Units and Measurement",
+      "hi": "मात्रक (unit) और मापन",
+      "hi-Latn": "Units aur Measurement"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    }
   }
 ];

@@ -1,0 +1,236 @@
+{
+  "course_id": "class-9-physics",
+  "topic_slug": "describing-motion-around-us",
+  "locale": "hi-Latn",
+  "narration": {
+    "available": true,
+    "lang": "hi-Latn",
+    "hash": "d8dee29af39facc1",
+    "mode": "live",
+    "blocks": {
+      "b-00-meta": {
+        "available": true,
+        "path": "audio/class-9-physics/b-00-meta.hi-Latn.a0f044eda2085b50.opus",
+        "hash": "a0f044eda2085b50",
+        "duration_ms": null
+      },
+      "b-01": {
+        "available": true,
+        "path": "audio/class-9-physics/b-01.hi-Latn.2e33eb7b8149c334.opus",
+        "hash": "2e33eb7b8149c334",
+        "duration_ms": null
+      },
+      "b-03": {
+        "available": true,
+        "path": "audio/class-9-physics/b-03.hi-Latn.f75ee0b5b48b8b6d.opus",
+        "hash": "f75ee0b5b48b8b6d",
+        "duration_ms": null
+      },
+      "b-04": {
+        "available": true,
+        "path": "audio/class-9-physics/b-04.hi-Latn.4ca82cd4e33cf47e.opus",
+        "hash": "4ca82cd4e33cf47e",
+        "duration_ms": null
+      },
+      "b-05": {
+        "available": true,
+        "path": "audio/class-9-physics/b-05.hi-Latn.ba65fa8a8318bdf9.opus",
+        "hash": "ba65fa8a8318bdf9",
+        "duration_ms": null
+      },
+      "b-06": {
+        "available": true,
+        "path": "audio/class-9-physics/b-06.hi-Latn.aff43b72190d2eea.opus",
+        "hash": "aff43b72190d2eea",
+        "duration_ms": null
+      },
+      "b-07": {
+        "available": true,
+        "path": "audio/class-9-physics/b-07.hi-Latn.823e753885eb8a82.opus",
+        "hash": "823e753885eb8a82",
+        "duration_ms": null
+      },
+      "b-08": {
+        "available": true,
+        "path": "audio/class-9-physics/b-08.hi-Latn.68f593e43fd24e97.opus",
+        "hash": "68f593e43fd24e97",
+        "duration_ms": null
+      },
+      "b-09": {
+        "available": true,
+        "path": "audio/class-9-physics/b-09.hi-Latn.45868e65bb79fc52.opus",
+        "hash": "45868e65bb79fc52",
+        "duration_ms": null
+      },
+      "b-10": {
+        "available": true,
+        "path": "audio/class-9-physics/b-10.hi-Latn.a478aaca884aa622.opus",
+        "hash": "a478aaca884aa622",
+        "duration_ms": null
+      },
+      "b-11": {
+        "available": true,
+        "path": "audio/class-9-physics/b-11.hi-Latn.15375779213aade9.opus",
+        "hash": "15375779213aade9",
+        "duration_ms": null
+      },
+      "b-12": {
+        "available": true,
+        "path": "audio/class-9-physics/b-12.hi-Latn.ca8fa758038a1c40.opus",
+        "hash": "ca8fa758038a1c40",
+        "duration_ms": null
+      },
+      "b-13": {
+        "available": true,
+        "path": "audio/class-9-physics/b-13.hi-Latn.d3b4faf2f8e2260f.opus",
+        "hash": "d3b4faf2f8e2260f",
+        "duration_ms": null
+      },
+      "b-14": {
+        "available": true,
+        "path": "audio/class-9-physics/b-14.hi-Latn.d98bfda67f0b61ec.opus",
+        "hash": "d98bfda67f0b61ec",
+        "duration_ms": null
+      },
+      "b-15": {
+        "available": true,
+        "path": "audio/class-9-physics/b-15.hi-Latn.905f84161f772c54.opus",
+        "hash": "905f84161f772c54",
+        "duration_ms": null
+      },
+      "b-16": {
+        "available": true,
+        "path": "audio/class-9-physics/b-16.hi-Latn.1d39a444e6ad9a78.opus",
+        "hash": "1d39a444e6ad9a78",
+        "duration_ms": null
+      },
+      "b-18": {
+        "available": true,
+        "path": "audio/class-9-physics/b-18.hi-Latn.323bcf479264b6ff.opus",
+        "hash": "323bcf479264b6ff",
+        "duration_ms": null
+      },
+      "b-19": {
+        "available": true,
+        "path": "audio/class-9-physics/b-19.hi-Latn.4c28722a2b56a99b.opus",
+        "hash": "4c28722a2b56a99b",
+        "duration_ms": null
+      },
+      "b-20": {
+        "available": true,
+        "path": "audio/class-9-physics/b-20.hi-Latn.f70d52fea5f4c40a.opus",
+        "hash": "f70d52fea5f4c40a",
+        "duration_ms": null
+      },
+      "b-21": {
+        "available": true,
+        "path": "audio/class-9-physics/b-21.hi-Latn.3e21232ba6d313da.opus",
+        "hash": "3e21232ba6d313da",
+        "duration_ms": null
+      },
+      "b-22": {
+        "available": true,
+        "path": "audio/class-9-physics/b-22.hi-Latn.3cd1400eb516ced3.opus",
+        "hash": "3cd1400eb516ced3",
+        "duration_ms": null
+      },
+      "b-24": {
+        "available": true,
+        "path": "audio/class-9-physics/b-24.hi-Latn.415498acb919d987.opus",
+        "hash": "415498acb919d987",
+        "duration_ms": null
+      },
+      "b-25": {
+        "available": true,
+        "path": "audio/class-9-physics/b-25.hi-Latn.6b4e54f9342b1a13.opus",
+        "hash": "6b4e54f9342b1a13",
+        "duration_ms": null
+      },
+      "b-27": {
+        "available": true,
+        "path": "audio/class-9-physics/b-27.hi-Latn.fde69b5c9344fa53.opus",
+        "hash": "fde69b5c9344fa53",
+        "duration_ms": null
+      },
+      "b-29": {
+        "available": true,
+        "path": "audio/class-9-physics/b-29.hi-Latn.33aa2f6232f7297f.opus",
+        "hash": "33aa2f6232f7297f",
+        "duration_ms": null
+      },
+      "b-30": {
+        "available": true,
+        "path": "audio/class-9-physics/b-30.hi-Latn.139ee90b68a882f0.opus",
+        "hash": "139ee90b68a882f0",
+        "duration_ms": null
+      },
+      "b-31": {
+        "available": true,
+        "path": "audio/class-9-physics/b-31.hi-Latn.7a4606879745e85e.opus",
+        "hash": "7a4606879745e85e",
+        "duration_ms": null
+      },
+      "b-33": {
+        "available": true,
+        "path": "audio/class-9-physics/b-33.hi-Latn.f95f5a85e111ac3a.opus",
+        "hash": "f95f5a85e111ac3a",
+        "duration_ms": null
+      },
+      "b-34": {
+        "available": true,
+        "path": "audio/class-9-physics/b-34.hi-Latn.8ba635681f4b003f.opus",
+        "hash": "8ba635681f4b003f",
+        "duration_ms": null
+      },
+      "b-35": {
+        "available": true,
+        "path": "audio/class-9-physics/b-35.hi-Latn.391fd8bff74d81ff.opus",
+        "hash": "391fd8bff74d81ff",
+        "duration_ms": null
+      },
+      "b-36": {
+        "available": true,
+        "path": "audio/class-9-physics/b-36.hi-Latn.26339d3a588cfdbd.opus",
+        "hash": "26339d3a588cfdbd",
+        "duration_ms": null
+      },
+      "b-37": {
+        "available": true,
+        "path": "audio/class-9-physics/b-37.hi-Latn.0e7d6de752e5d260.opus",
+        "hash": "0e7d6de752e5d260",
+        "duration_ms": null
+      },
+      "b-38": {
+        "available": true,
+        "path": "audio/class-9-physics/b-38.hi-Latn.9fe810925db7b44b.opus",
+        "hash": "9fe810925db7b44b",
+        "duration_ms": null
+      },
+      "b-39": {
+        "available": true,
+        "path": "audio/class-9-physics/b-39.hi-Latn.6b7ddd5dcab1b90c.opus",
+        "hash": "6b7ddd5dcab1b90c",
+        "duration_ms": null
+      },
+      "b-40": {
+        "available": true,
+        "path": "audio/class-9-physics/b-40.hi-Latn.3910481b9484d8fc.opus",
+        "hash": "3910481b9484d8fc",
+        "duration_ms": null
+      },
+      "b-41": {
+        "available": true,
+        "path": "audio/class-9-physics/b-41.hi-Latn.27d0e3bd179f9eff.opus",
+        "hash": "27d0e3bd179f9eff",
+        "duration_ms": null
+      },
+      "b-42": {
+        "available": true,
+        "path": "audio/class-9-physics/b-42.hi-Latn.aac6a970f1a6295f.opus",
+        "hash": "aac6a970f1a6295f",
+        "duration_ms": null
+      }
+    }
+  },
+  "generated_at": "2026-11-11T05:42:42Z"
+}

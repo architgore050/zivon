@@ -1,429 +1,483 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-script="Latn">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
 <title>Laws of Motion - Zivon</title>
+<link rel="canonical" href="index.html">
+<link rel="alternate" hreflang="en" href="index.html">
+<link rel="alternate" hreflang="hi" href="hi/index.html">
+<link rel="alternate" hreflang="hi-Latn" href="hi-Latn/index.html">
 <link rel="stylesheet" href="../../../assets/zivon.css">
 
 </head>
 <body>
-<header class="zn-lang-bar"><div class="zn-lang-in"><span class="zn-lang-lab">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" aria-checked="true">English</button><button type="button" class="zn-chip" role="radio" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" aria-checked="false">Hinglish</button></div></div></header>
+<header class="zn-lang-bar" data-current-locale="en"><div class="zn-lang-in"><span class="zn-lang-lab" data-i18n="ui.lang_label">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" data-locale="en" data-href="index.html" aria-checked="true">English</button><button type="button" class="zn-chip" role="radio" data-locale="hi" data-href="hi/index.html" lang="hi" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" data-locale="hi-Latn" data-href="hi-Latn/index.html" lang="hi-Latn" aria-checked="false">Hinglish</button></div><span class="zn-trans-badge" data-i18n="ui.trans_badge" hidden>Original English</span></div></header>
 <main class="zn-page">
   <header class="zn-header">
     <p class="zn-kicker">class-11-physics</p>
-    <h1 class="zn-title">Laws of Motion</h1>
-    <p class="zn-objectives-label">After this lesson you can:</p>
+    <h1 class="zn-title" data-i18n="b-00-meta.title">Laws of Motion</h1>
+    <p class="zn-objectives-label" data-i18n="ui.objectives_heading">After this lesson you can:</p>
     <ul class="zn-objectives">
-      <li>After this lesson you can explain why Aristotle&#x27;s view of motion was wrong and how Galileo&#x27;s law of inertia corrected it.</li>
-      <li>After this lesson you can state and apply Newton&#x27;s three laws of motion to simple numerical problems.</li>
-      <li>After this lesson you can use momentum, impulse, conservation of momentum, friction laws, and equilibrium conditions.</li>
-      <li>After this lesson you can analyse circular motion on a level road and on a banked road and draw free-body diagrams.</li>
+      <li data-i18n="b-00-meta.objectives.0">After this lesson you can explain why Aristotle&#x27;s idea that a force is needed to keep a body moving is wrong, and state Galileo&#x27;s law of inertia.</li>
+      <li data-i18n="b-00-meta.objectives.1">After this lesson you can state and apply Newton&#x27;s three laws of motion, including momentum, impulse and the conservation of momentum.</li>
+      <li data-i18n="b-00-meta.objectives.2">After this lesson you can analyse equilibrium, friction on level and inclined surfaces, and the circular motion of a car on level and banked roads.</li>
+      <li data-i18n="b-00-meta.objectives.3">After this lesson you can draw a free-body diagram and solve multi-body problems with the laws of motion.</li>
     </ul>
   </header>
   <section class="zn-text" id="b-01">
-    <p>To move a football at rest, someone must kick it. To stop a rolling ball, you must apply a force against its motion. A breeze makes branches swing, and a strong wind can move heavy objects. In each case an external agency supplies a force.</p>
-    <p>The agency may touch the body, like your hand on a ball, or act from a distance. A stone released from a building accelerates downward because of the earth&#x27;s gravitational pull. A bar magnet can attract an iron nail without touching it.</p>
-    <p>Aristotle held that an external force is required to keep a body in motion. That feels natural: a child must keep pulling a toy car, and the car stops when the string is released. The flaw is friction. The floor exerts friction opposite to the car&#x27;s motion, and the child&#x27;s pull only balances that friction.</p>
-    <p>If there were no friction, no force would be needed to keep the toy car in uniform motion. Galileo imagined this frictionless world and found the true law of motion.</p>
+    <p data-i18n="b-01.paragraphs.0">Imagine a football lying still on the ground. To make it move, someone has to kick it. To send a stone upward, someone has to push it up. A breeze makes the branches of a tree swing, and a strong wind can even move heavy objects. In every one of these cases some outside agency supplies a force.</p>
+    <p data-i18n="b-01.paragraphs.1">Sometimes the agency touches the body, as your hand touches the ball or a flowing stream pushes a boat. This is not always necessary. A stone released from the top of a building speeds up downward because of the gravitational pull of the earth, and a bar magnet can attract an iron nail from a distance. So an external agency may act in contact or from a distance.</p>
+    <p data-i18n="b-01.paragraphs.2">Force is needed to stop motion too: you can stop a ball rolling down an inclined plane by pushing it against the direction of its motion.</p>
+    <p data-i18n="b-01.paragraphs.3">Now a sharper question. Suppose a body is already moving uniformly - a skater moving straight with constant speed on a horizontal ice slab. Is an external force required to keep it in uniform motion? This question looks simple, but it took ages to answer.</p>
   </section>
-  <fieldset class="zn-check" id="b-02" data-format="mcq" data-answer-index="1">
-    <legend>A child stops pulling a toy car on a floor, and the car comes to rest. What is the correct explanation?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-02" value="0"> <span>A force is always needed to keep a body moving, so Aristotle was right.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-02" value="1"> <span>Friction opposes the car&#x27;s motion, and the child&#x27;s pull was needed only to counter friction.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-02" value="2"> <span>The car stops because the air behind it stops pushing.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-02" value="3"> <span>The car stops because its inertia disappears.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>The car slows because friction acts opposite to its motion. If friction were absent, the car would keep moving uniformly with no net force.</p></details>
-  </fieldset>
+  <section class="zn-text" id="b-02">
+    <p data-i18n="b-02.paragraphs.0">Aristotle (384 B.C. - 322 B.C.) held that if a body is moving, something external is required to keep it moving. On this view an arrow shot from a bow keeps flying because the air behind it keeps pushing it. Put as a law: an external force is required to keep a body in motion.</p>
+    <p data-i18n="b-02.paragraphs.1">This feels natural from daily experience. A small child dragging a toy-car knows that the string must be pulled all the time; release it and the car comes to rest. Left to themselves, all bodies on the earth seem to stop.</p>
+    <p data-i18n="b-02.paragraphs.2">The flaw is friction. The moving toy-car stops because the floor exerts a force of friction on it, opposite to its motion. To keep the car going, the child must pull forward with an equal force, so that the net external force on the car is zero. If there were no friction, no force at all would be needed to keep the car moving uniformly.</p>
+    <p data-i18n="b-02.paragraphs.3">Opposing forces such as friction between solids, and viscous forces in fluids, are always present in the natural world. That is why we normally have to push things to keep them moving. To find the true law of nature, Galileo imagined a world with no friction at all.</p>
+  </section>
   <section class="zn-text" id="b-03">
-    <p>Galileo studied motion on inclined planes. A body moving down an inclined plane accelerates, and a body moving up retards. Motion on a horizontal plane is the intermediate case.</p>
-    <p>Galileo concluded that an object on a frictionless horizontal plane must neither accelerate nor retard. It should move with constant velocity.</p>
-    <p>In a double inclined plane experiment, a ball released from rest on one plane rolls down and climbs the other. If the planes are smooth, the ball reaches nearly the same height, never greater. In the ideal frictionless case, the final height equals the initial height.</p>
-    <p>If the second slope is made smaller, the ball travels a longer distance to reach the same height. When the second slope is zero, the ball would travel an infinite distance and its motion would never cease. In practice friction stops it.</p>
-    <p>The state of rest and the state of uniform linear motion are equivalent: in both cases the net external force is zero. This property is called inertia, which means resistance to change.</p>
+    <p data-i18n="b-03.paragraphs.0">Galileo studied the motion of objects on inclined planes. An object moving down an inclined plane accelerates; an object moving up it retards. Motion on a horizontal plane is the in-between case. Galileo concluded that an object moving on a frictionless horizontal plane must neither accelerate nor retard: it moves with constant velocity.</p>
+    <p data-i18n="b-03.paragraphs.1">His second experiment used a double inclined plane. A ball released from rest on one plane rolls down and climbs the other. If the planes are smooth, the ball reaches nearly the same height as it started from - a little less, never more. With friction absent, the final height would equal the starting height.</p>
+    <p data-i18n="b-03.paragraphs.2">Make the second plane flatter and repeat: the ball still climbs to the same height, so it must travel farther. In the limiting case the second plane is horizontal and the ball travels an infinite distance - its motion never ceases.</p>
+    <p data-i18n="b-03.paragraphs.3">In practice the ball does stop after a finite distance, because friction can never be totally removed. Galileo&#x27;s insight was that the state of rest and the state of uniform linear motion are equivalent: in both cases there is no net force on the body. The property a body has of resisting a change in its state of rest or uniform motion is called inertia. Inertia means &#x27;resistance to change&#x27;.</p>
   </section>
-  <section class="zn-text" id="b-04">
-    <p>Newton formulated Galileo&#x27;s law of inertia as the first law: Every body continues to be in its state of rest or of uniform motion in a straight line unless compelled by some external force to act otherwise.</p>
-    <p>In simple terms, if the net external force on a body is zero, its acceleration is zero. Acceleration can be non-zero only if there is a net external force on the body.</p>
-    <p>There are two useful ways to apply this law. If you know the net external force is zero, you can conclude the acceleration is zero. A spaceship far in interstellar space, with its rockets off, has no net external force, so its acceleration is zero.</p>
-    <p>More often you know the object is unaccelerated, either at rest or in uniform linear motion. Then you infer that the net external force is zero. A book at rest on a table has weight W downward and normal force R upward. Because the book is observed at rest, the net force must be zero, so R equals W. It is wrong to say that W = R is the reason the book is at rest.</p>
-    <p>Inertia is felt in a bus. When the bus starts suddenly, your feet are carried forward by friction but the rest of your body tends to stay where it was, so you are thrown backward relative to the bus. When the bus stops suddenly, your feet stop but the rest of your body continues forward, so you are thrown forward.</p>
-  </section>
-  <fieldset class="zn-check" id="b-05" data-format="mcq" data-answer-index="0">
-    <legend>A drop of rain falls down with a constant speed. What is the net force acting on the drop?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-05" value="0"> <span>Zero</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-05" value="1"> <span>A net downward force equal to its weight</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-05" value="2"> <span>A net upward force equal to its weight</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-05" value="3"> <span>A net force equal to its mass times its speed</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+  <fieldset class="zn-check" id="b-04" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-04.question">A child drags a toy-car by a string along a floor. The car moves in a straight line with constant speed. Which statement is correct?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="0"> <span data-i18n="b-04.options.0">An external force is needed to keep the car moving, so the net force on it is not zero.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="1"> <span data-i18n="b-04.options.1">The force by the child is balanced by the force of friction by the floor, so the net external force on the car is zero.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="2"> <span data-i18n="b-04.options.2">The car has no inertia because it is moving.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="3"> <span data-i18n="b-04.options.3">The car would speed up if the string were released.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Constant velocity means zero acceleration. By the first law, zero acceleration means the net external force is zero.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-04.explanation">Constant velocity means zero acceleration, so by the first law the net external force must be zero. The child&#x27;s pull and friction are equal and opposite. With no friction, no pull would be needed at all - which is exactly where Aristotle went wrong.</p></details>
   </fieldset>
-  <section class="zn-example" id="b-06">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">An astronaut accidentally gets separated out of his small spaceship accelerating in interstellar space at a constant rate of 100 m s^-2. What is the acceleration of the astronaut the instant after he is outside the spaceship? Assume that there are no nearby stars to exert gravitational force on him.</p>
-    <ol>
-      <li><strong>Identify the forces</strong> The only possible forces on the astronaut would come from the spaceship or nearby stars. The spaceship&#x27;s gravitational attraction is negligible, and there are no nearby stars.</li>
-      <li><strong>Find the net force</strong> Once the astronaut is outside the spaceship, the net external force on him is zero.</li>
-      <li><strong>Apply the first law</strong> If the net external force is zero, the acceleration is zero.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The acceleration of the astronaut is zero.</p>
-  </section>
+  <fieldset class="zn-check" id="b-05" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-05.question">In Galileo&#x27;s double inclined plane experiment the planes are smooth. What happens as the slope of the second plane is made flatter and flatter?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="0"> <span data-i18n="b-05.options.0">The ball climbs to a greater height than the height it started from.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="1"> <span data-i18n="b-05.options.1">The ball reaches the same height but travels a longer distance, and with a horizontal second plane it would travel for ever.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="2"> <span data-i18n="b-05.options.2">The ball stops on the second plane after a fixed distance, whatever the slope.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="3"> <span data-i18n="b-05.options.3">The ball rolls back down the first plane.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-05.explanation">The ball always climbs back to nearly its starting height. A flatter plane means it needs more distance to reach that height, and on a horizontal plane the required distance is infinite - the idealised motion never ceases.</p></details>
+  </fieldset>
+  <figure class="zn-diagram" id="b-06">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 240" role="img" aria-label="A book resting on a table on the left; on the right a free-body diagram of the book with its weight W pointing down and the normal reaction R pointing up, drawn equal in length"><line x1="20" y1="180" x2="195" y2="180" stroke="#1C1B18" stroke-width="3" /><rect x="60" y="140" width="90" height="40" fill="none" stroke="#1C1B18" stroke-width="2.6" /><text x="30" y="215" font-family="Caveat, cursive" font-size="22" fill="#5A5748" data-i18n="b-06.svg_texts.t-0">book at rest on a table</text><circle cx="310" cy="120" r="4" fill="#1C1B18" /><line x1="310" y1="120" x2="310" y2="196" stroke="#1F3A9E" stroke-width="3" /><polygon points="310,200 304,188 316,188" fill="#1F3A9E" /><line x1="310" y1="120" x2="310" y2="44" stroke="#1F3A9E" stroke-width="3" /><polygon points="310,40 304,52 316,52" fill="#1F3A9E" /><text x="282" y="80" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">R</text><text x="282" y="196" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">W</text><text x="230" y="225" font-family="Caveat, cursive" font-size="20" fill="#5A5748" data-i18n="b-06.svg_texts.t-1">forces on the book</text></svg></div>
+    <figcaption data-i18n="b-06.caption">A book at rest on a table (left). The two forces on the book are its weight W, acting vertically downward, and the normal reaction R of the table, acting vertically upward. They are drawn equal in length because, with the book at rest, R must equal W. Directions only; the arrows show the two forces, not a measured scale.</figcaption>
+  </figure>
   <section class="zn-text" id="b-07">
-    <p>Momentum of a body is the product of its mass and velocity, p = m v. Momentum is a vector. It is useful because the effect of a force depends on both mass and velocity.</p>
-    <p>A greater force is needed to push a loaded truck than a small car to the same speed in the same time. A bullet fired with high speed can pierce tissue, while the same bullet at moderate speed causes less damage. A seasoned cricketer catches a fast ball easily by drawing his hands backward, giving more time for the ball to stop.</p>
-    <p>These observations lead to Newton&#x27;s second law: the rate of change of momentum of a body is directly proportional to the applied force and takes place in the direction of the force.</p>
-    <p>For a body of fixed mass, the rate of change of momentum is m a, so F = m a when the constant is chosen as 1. The SI unit of force is the newton: 1 N = 1 kg m s^-2.</p>
-    <p>The second law is a vector law and gives three component equations. It is also local: force here and now determines acceleration here and now, not from history. It applies to a particle and also to a system if F is the total external force and a is the acceleration of the system as a whole; internal forces are not included in F.</p>
+    <p data-i18n="b-07.paragraphs.0">Newton built on Galileo&#x27;s ideas and laid the foundation of mechanics in three laws of motion. Galileo&#x27;s law of inertia became the first law: every body continues to be in its state of rest or of uniform motion in a straight line unless compelled by some external force to act otherwise.</p>
+    <p data-i18n="b-07.paragraphs.1">Rest and uniform motion in a straight line both mean zero acceleration. So the first law can be said in one line: if the net external force on a body is zero, its acceleration is zero. Acceleration can be non-zero only if there is a net external force on the body.</p>
+    <p data-i18n="b-07.paragraphs.2">Two kinds of situation arise. Sometimes we know the net force is zero - for example a spaceship far from all other objects with all its rockets turned off; then its acceleration must be zero, and if it is moving it keeps a uniform velocity. More often we do not know all the forces, but we can see that the object is at rest or in uniform motion; the first law then tells us that the net external force on it must be zero.</p>
+    <p data-i18n="b-07.paragraphs.3">Take a book at rest on a table. Two forces act on it: its weight W downward and the normal force R of the table upward. The correct reasoning is not &#x27;since W = R the forces cancel and the book stays at rest&#x27;. The correct reasoning is: the book is observed to be at rest, so by the first law the net external force on it must be zero, and therefore R must be equal and opposite to W. Gravity is everywhere and friction is common, so on the earth an object at rest or in uniform motion has forces on it that add up to zero - not no forces at all.</p>
+    <p data-i18n="b-07.paragraphs.4">You feel the first law in a bus. When the bus starts suddenly you are thrown backward: your feet move with the floor because of friction, while the rest of your body tends to stay where it was, because of inertia. When the bus stops suddenly your feet stop and the rest of your body keeps moving forward, so you are thrown forward.</p>
   </section>
-  <section class="zn-reveal" id="b-08">
-    <h3>From momentum to F = m a</h3>
-      <details class="zn-reveal-step"><summary>Start with momentum</summary><p>For a body of mass m and velocity v, momentum is p = m v.</p></details>
-      <details class="zn-reveal-step"><summary>Change in momentum</summary><p>If the velocity changes from v to v + Δv in time Δt, the momentum changes by Δp = m Δv because the mass is fixed.</p></details>
-      <details class="zn-reveal-step"><summary>Write the second law</summary><p>The rate of change of momentum is proportional to the force: Δp/Δt is proportional to F.</p></details>
-      <details class="zn-reveal-step"><summary>Take the limit</summary><p>As Δt goes to zero, Δp/Δt becomes dp/dt. With a constant k, F = k dp/dt.</p></details>
-      <details class="zn-reveal-step"><summary>Use fixed mass</summary><p>For fixed mass, dp/dt = m dv/dt = m a. So F = k m a.</p></details>
-      <details class="zn-reveal-step"><summary>Choose the unit</summary><p>Choose k = 1 so that F = m a. Then 1 N is the force that gives 1 kg an acceleration of 1 m s^-2.</p></details>
-  </section>
-  <section class="zn-example" id="b-09">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">The motion of a particle of mass m is described by y = u t + (1/2) g t^2. Find the force acting on the particle.</p>
-    <ol>
-      <li><strong>Differentiate position to get velocity</strong> y = u t + (1/2) g t^2, so v = dy/dt = u + g t.</li>
-      <li><strong>Differentiate velocity to get acceleration</strong> a = dv/dt = g.</li>
-      <li><strong>Apply the second law</strong> F = m a = m g.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The force is F = m g, so the motion is under acceleration due to gravity.</p>
-  </section>
-  <fieldset class="zn-check" id="b-10" data-format="numeric" data-answer="6">
-    <legend>A constant retarding force of 50 N is applied to a body of mass 20 kg moving initially with a speed of 15 m s^-1. How long does the body take to stop? Give the answer in seconds.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-10-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
+  <fieldset class="zn-check" id="b-08" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-08.question">A drop of rain is falling vertically downward with a constant speed. What is the net external force on the drop?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="0"> <span data-i18n="b-08.options.0">Zero.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="1"> <span data-i18n="b-08.options.1">Its weight mg, directed downward.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="2"> <span data-i18n="b-08.options.2">Its weight mg, directed upward.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="3"> <span data-i18n="b-08.options.3">More than mg, directed downward.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>The retardation is a = F/m = 50/20 = 2.5 m s^-2. Using v = u + a t with final v = 0 gives 0 = 15 - 2.5 t, so t = 6 s.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-08.explanation">Constant speed in a straight line means zero acceleration, so by the first law the net external force must be zero. The weight is balanced by the upward drag of the air. The forces are not individually zero - they cancel.</p></details>
   </fieldset>
-  <section class="zn-example" id="b-11">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A bullet of mass 0.04 kg moving with a speed of 90 m s^-1 enters a heavy wooden block and is stopped after a distance of 60 cm. What is the average resistive force exerted by the block on the bullet?</p>
-    <ol>
-      <li><strong>Convert distance</strong> 60 cm = 0.6 m.</li>
-      <li><strong>Find the retardation</strong> Using v^2 = u^2 + 2 a s with final v = 0: 0 = (90)^2 + 2 a (0.6). So a = -90^2/(2 × 0.6) = -6750 m s^-2.</li>
-      <li><strong>Apply the second law</strong> The magnitude of the retarding force is F = m |a| = 0.04 kg × 6750 m s^-2 = 270 N.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The average resistive force is 270 N.</p>
+  <section class="zn-text" id="b-09">
+    <p data-i18n="b-09.paragraphs.0">The second law relates the net external force on a body to its acceleration, and it is stated in terms of momentum. The momentum of a body is defined as the product of its mass m and its velocity v, written p = m v. Momentum is a vector quantity; it points along the velocity.</p>
+    <p data-i18n="b-09.paragraphs.1">Why this product? A loaded truck needs a much greater force than a small car to reach the same speed in the same time, and a greater opposing force to stop in the same time at the same speed. A heavy stone is harder to catch than a light one dropped from the same height. A bullet fired at high speed can pierce tissue, while the same bullet at moderate speed does little damage. Mass alone, or speed alone, is not enough - the product m v is the quantity that matters.</p>
+    <p data-i18n="b-09.paragraphs.2">If a fixed force acts for a certain interval of time on two bodies of different masses, initially at rest, the lighter body picks up the greater speed; but at the end of that time each body has acquired the same momentum. The same force for the same time causes the same change in momentum for different bodies.</p>
+    <p data-i18n="b-09.paragraphs.3">Direction matters too. A stone whirled in a horizontal circle at constant speed has a momentum of fixed magnitude whose direction keeps changing, and a force is needed to produce that change. Your hand must pull harder if you whirl the stone faster or in a smaller circle. So the greater the rate of change of the momentum vector, the greater the force.</p>
   </section>
-  <section class="zn-text" id="b-12">
-    <p>Sometimes a large force acts for a very short time and produces a finite change in momentum. A ball hitting a wall and bouncing back is an example. The force is large, the time is short, and the product of force and time remains measurable.</p>
-    <p>This product is called impulse: Impulse = Force × time duration = Change in momentum. A large force acting for a short time to produce a finite momentum change is called an impulsive force. Newtonian mechanics does not treat impulsive force as a separate kind of force; it is large and short-lived.</p>
-    <p>When a batsman hits a ball straight back, the ball&#x27;s momentum reverses. The change in momentum gives the impulse even if the force and contact time are difficult to know separately.</p>
+  <section class="zn-reveal" id="b-10">
+    <h3 data-i18n="b-10.title">From momentum to F = m a</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.0.title">Step 1: momentum</summary><p data-i18n="b-10.steps.0.detail">For a body of mass m moving with velocity v, the momentum is p = m v.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.1.title">Step 2: the law in words</summary><p data-i18n="b-10.steps.1.detail">The rate of change of momentum of a body is directly proportional to the applied force and takes place in the direction in which the force acts.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.2.title">Step 3: write it in symbols</summary><p data-i18n="b-10.steps.2.detail">If a force F acts for a time interval Δt and the velocity changes from v to v + Δv, the momentum changes by Δp = m Δv. The law gives F ∝ Δp/Δt, that is F = k Δp/Δt with k a constant of proportionality.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.3.title">Step 4: take the limit</summary><p data-i18n="b-10.steps.3.detail">Let Δt become very small. Then Δp/Δt becomes the derivative dp/dt, so F = k dp/dt.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.4.title">Step 5: fixed mass</summary><p data-i18n="b-10.steps.4.detail">For a body of fixed mass, dp/dt = d(m v)/dt = m dv/dt = m a. So F = k m a.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.5.title">Step 6: choose k = 1</summary><p data-i18n="b-10.steps.5.detail">The unit of force has not been defined yet, so we are free to choose k = 1. Then F = dp/dt = m a. In SI units the force that gives a mass of 1 kg an acceleration of 1 m s-2 is one newton, so 1 N = 1 kg m s-2.</p></details>
+  </section>
+  <section class="zn-text" id="b-11">
+    <p data-i18n="b-11.paragraphs.0">Four points about the second law. First, putting F = 0 gives a = 0, so the second law agrees with the first. Second, it is a vector law: it is three equations, one for each component (F_x = dp_x/dt = m a_x, and similarly for y and z). A force not parallel to the velocity changes only the component of velocity along the force; the component perpendicular to the force stays unchanged - which is why a projectile under vertical gravity keeps its horizontal velocity component.</p>
+    <p data-i18n="b-11.paragraphs.1">Third, the law applies to a single point particle, and in the same form to a rigid body or a system of particles; then F is the total external force on the system and a is the acceleration of the system as a whole, with internal forces left out. Fourth, the law is a local relation: the force at a point at an instant determines the acceleration at that point at that instant. A stone dropped out of an accelerating train has, the moment after release, no horizontal force and no horizontal acceleration - it carries no memory of the train&#x27;s acceleration.</p>
+    <p data-i18n="b-11.paragraphs.2">Remember also what F means. In F = m a, F is the net force due to all material agencies external to the body, and a is the effect of that force. The product m a is not one more force to be added to the list.</p>
+  </section>
+  <section class="zn-example" id="b-12">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-12.problem">An astronaut accidentally gets separated out of his small spaceship accelerating in interstellar space at a constant rate of 100 m s-2. What is the acceleration of the astronaut the instant after he is outside the spaceship? (Assume that there are no nearby stars to exert gravitational force on him.)</p>
+    <ol>
+      <li><strong data-i18n="b-12.steps.0.title">List the forces</strong> <span data-i18n="b-12.steps.0.detail">There are no nearby stars to pull him, and the small spaceship exerts negligible gravitational attraction on him.</span></li>
+      <li><strong data-i18n="b-12.steps.1.title">Net force</strong> <span data-i18n="b-12.steps.1.detail">So the net external force on the astronaut, once he is out of the spaceship, is zero.</span></li>
+      <li><strong data-i18n="b-12.steps.2.title">Apply the first law</strong> <span data-i18n="b-12.steps.2.detail">If the net external force on a body is zero, its acceleration is zero.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-12.answer">The acceleration of the astronaut is zero. He does not keep the spaceship&#x27;s 100 m s-2 acceleration, because force is not &#x27;carried&#x27; by a body from its earlier motion.</span></p>
   </section>
   <section class="zn-example" id="b-13">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A batsman hits back a ball straight in the direction of the bowler without changing its initial speed of 12 m s^-1. If the mass of the ball is 0.15 kg, determine the impulse imparted to the ball. Assume linear motion of the ball.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-13.problem">A bullet of mass 0.04 kg moving with a speed of 90 m s-1 enters a heavy wooden block and is stopped after a distance of 60 cm. What is the average resistive force exerted by the block on the bullet?</p>
     <ol>
-      <li><strong>Choose the direction</strong> Take the initial direction from the bowler to the batsman as positive. The initial velocity is +12 m s^-1, and the final velocity is -12 m s^-1.</li>
-      <li><strong>Find the change in momentum</strong> Δp = m v_final - m v_initial = 0.15 × (-12) - 0.15 × (12) = -1.8 - 1.8 = -3.6 N s.</li>
-      <li><strong>Interpret the impulse</strong> The magnitude of the impulse is 3.6 N s. The negative sign means the impulse is in the direction from the batsman to the bowler.</li>
+      <li><strong data-i18n="b-13.steps.0.title">Find the retardation</strong> <span data-i18n="b-13.steps.0.detail">Assume the retardation a is constant. From the speed u = 90 m s-1 and the stopping distance s = 60 cm = 0.6 m, a = u²/(2s) = (90 × 90)/(2 × 0.6) m s-2 = 6750 m s-2.</span></li>
+      <li><strong data-i18n="b-13.steps.1.title">Apply the second law</strong> <span data-i18n="b-13.steps.1.detail">The retarding force is F = m a = 0.04 kg × 6750 m s-2.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The impulse is 3.6 N s, in the direction from the batsman to the bowler.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-13.answer">F = 270 N. The actual resistive force, and therefore the retardation, may not be uniform, so this answer only indicates the average resistive force.</span></p>
   </section>
-  <fieldset class="zn-check" id="b-14" data-format="numeric" data-answer="0.6">
-    <legend>Two billiard balls each of mass 0.05 kg moving in opposite directions with speed 6 m s^-1 collide and rebound with the same speed. What is the magnitude of the impulse imparted to each ball due to the other? Give the answer in N s.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-14-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>For one ball, the velocity reverses from +6 m s^-1 to -6 m s^-1. Change in momentum = 0.05 × (-6) - 0.05 × (6) = -0.6 N s. The magnitude of impulse is 0.6 N s.</p></details>
-  </fieldset>
+  <section class="zn-example" id="b-14">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-14.problem">The motion of a particle of mass m is described by y = u t + ½ g t². Find the force acting on the particle.</p>
+    <ol>
+      <li><strong data-i18n="b-14.steps.0.title">Velocity</strong> <span data-i18n="b-14.steps.0.detail">Differentiate the position with respect to time: v = dy/dt = u + g t.</span></li>
+      <li><strong data-i18n="b-14.steps.1.title">Acceleration</strong> <span data-i18n="b-14.steps.1.detail">Differentiate again: a = dv/dt = g.</span></li>
+      <li><strong data-i18n="b-14.steps.2.title">Force</strong> <span data-i18n="b-14.steps.2.detail">Apply the second law: F = m a = m g.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-14.answer">F = m g. The equation describes a particle moving under the acceleration due to gravity, with y the position coordinate measured in the direction of g.</span></p>
+  </section>
   <section class="zn-text" id="b-15">
-    <p>The second law tells how an external force changes motion, but where does the force come from? In Newtonian mechanics, the external force on a body arises due to some other body. Force is a mutual interaction between two bodies, and forces always occur in pairs.</p>
-    <p>Newton&#x27;s third law states: To every action, there is always an equal and opposite reaction. More clearly, the force on body A by body B is equal and opposite to the force on body B by A.</p>
-    <p>The words action and reaction simply mean force. They do not imply that action comes before reaction; the two forces act at the same instant, and either may be called action. Action and reaction act on different bodies, so they cannot cancel each other for the motion of one body. Internal forces between parts of a system do cancel in pairs.</p>
+    <p data-i18n="b-15.paragraphs.0">Some forces act for a very short time but are large enough to change momentum a lot - a ball hitting a wall and bouncing back, for example. The force on the ball acts only while ball and wall are in contact, and the force and the contact time are hard to measure separately. Their product is not hard: it is the change in momentum.</p>
+    <p data-i18n="b-15.paragraphs.1">That product is called impulse: impulse = force × time duration = change in momentum. A large force acting for a short time to produce a finite change in momentum is called an impulsive force. In Newtonian mechanics an impulsive force is not a separate kind of force - it is simply large and short-lived.</p>
+    <p data-i18n="b-15.paragraphs.2">This explains a familiar skill. A seasoned cricketer draws his hands backward while catching, so the ball takes a longer time to stop. The same change of momentum spread over a longer time needs a smaller force, so his hands are not hurt. A novice who holds his hands fixed must stop the ball almost instantly, needs a much larger force, and gets hurt.</p>
   </section>
-  <fieldset class="zn-check" id="b-16" data-format="mcq" data-answer-index="2">
-    <legend>Which statement about action and reaction forces is correct?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-16" value="0"> <span>They act on the same body and cancel each other.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-16" value="1"> <span>Action always comes before reaction.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-16" value="2"> <span>They act on different bodies and act at the same instant.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-16" value="3"> <span>They act on different bodies, but reaction always comes after action.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Action and reaction are simultaneous mutual forces between two bodies. They are not two forces on the same body, so they do not cancel for one body&#x27;s motion.</p></details>
-  </fieldset>
-  <section class="zn-example" id="b-17">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Two identical billiard balls strike a rigid wall with the same speed but at different angles, and get reflected without any change in speed. In case (a) the ball strikes normally. In case (b) the ball strikes at 30° to the normal and reflects at 30° to the normal on the other side. What is (i) the direction of the force on the wall due to each ball? (ii) the ratio of the magnitudes of impulses imparted to the balls by the wall?</p>
+  <section class="zn-example" id="b-16">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-16.problem">A batsman hits back a ball straight in the direction of the bowler without changing its initial speed of 12 m s-1. If the mass of the ball is 0.15 kg, determine the impulse imparted to the ball. (Assume linear motion of the ball.)</p>
     <ol>
-      <li><strong>Case (a): momentum change</strong> Let the initial speed be u and mass be m. Taking the normal direction as x, initial p_x = m u, final p_x = -m u, and p_y = 0 throughout. The x-component of impulse is -2 m u, and the y-component is 0.</li>
-      <li><strong>Case (b): momentum change</strong> Initial p_x = m u cos 30°, final p_x = -m u cos 30°. The y-component does not change sign. The x-component of impulse is -2 m u cos 30°, and the y-component is 0.</li>
-      <li><strong>Direction of force on the wall</strong> In both cases the impulse on the ball is along the negative x-direction, normal to the wall. By the third law, the force on the wall is normal to the wall along the positive x-direction in both cases.</li>
-      <li><strong>Ratio of impulses</strong> Ratio = (2 m u)/(2 m u cos 30°) = 1/cos 30° = 2/√3 ≈ 1.2.</li>
+      <li><strong data-i18n="b-16.steps.0.title">Choose a positive direction</strong> <span data-i18n="b-16.steps.0.detail">Take the direction from the bowler to the batsman as positive. Initial momentum = 0.15 × 12 = 1.8 kg m s-1.</span></li>
+      <li><strong data-i18n="b-16.steps.1.title">Final momentum</strong> <span data-i18n="b-16.steps.1.detail">After the hit the ball moves back with the same speed, so its final momentum is −1.8 kg m s-1.</span></li>
+      <li><strong data-i18n="b-16.steps.2.title">Change in momentum</strong> <span data-i18n="b-16.steps.2.detail">Change in momentum = 0.15 × 12 − (−0.15 × 12) = 3.6 N s, and impulse equals this change.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> (i) The force on the wall is normal to the wall in both cases. (ii) The ratio of the magnitudes of impulses is 2/√3 ≈ 1.2.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-16.answer">Impulse = 3.6 N s, directed from the batsman to the bowler. The force on the ball and the time of contact are hard to know here, but the impulse is easy to calculate.</span></p>
   </section>
+  <fieldset class="zn-check" id="b-17" data-format="numeric" data-answer="6">
+    <legend data-i18n="b-17.question">A constant retarding force of 50 N is applied to a body of mass 20 kg moving initially with a speed of 15 m s-1. How long does the body take to stop? Give the answer in seconds.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-17-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-17.explanation">The retardation is a = F/m = 50/20 = 2.5 m s-2. That means the body loses 2.5 m s-1 of speed every second, so its 15 m s-1 is used up in 15/2.5 = 6 s.</p></details>
+  </fieldset>
   <section class="zn-text" id="b-18">
-    <p>The second and third laws together give an important result: the law of conservation of momentum. When a bullet is fired from a gun, the gun exerts a force on the bullet and the bullet exerts an equal and opposite force on the gun. The two forces act for the same time.</p>
-    <p>The change in momentum of the bullet is F Δt, and the change in momentum of the gun is -F Δt. Since both start from rest, the final momentum of the gun is equal and opposite to the final momentum of the bullet. The total momentum of the bullet plus gun system is conserved.</p>
-    <p>In an isolated system, mutual forces can change the momentum of individual particles, but the changes cancel in pairs. The total momentum remains unchanged.</p>
-    <p>For a collision between two bodies A and B, the final total momentum equals the initial total momentum. This is true whether the collision is elastic or inelastic. In an elastic collision there is the additional condition that total kinetic energy is also conserved.</p>
+    <p data-i18n="b-18.paragraphs.0">The second law tells you what an external force does; the third law tells you where such a force comes from. In Newtonian mechanics the external force on a body always arises from some other body. Press a coiled spring and the spring pushes back on your hand. The earth pulls a stone down, and the stone pulls the earth up with an equal and opposite force, which we do not notice because the earth is so massive.</p>
+    <p data-i18n="b-18.paragraphs.1">So force never occurs singly: force is a mutual interaction between two bodies, and forces always occur in pairs. Newton stated it as: to every action there is always an equal and opposite reaction. In symbols, the force on A by B equals minus the force on B by A: F_AB = −F_BA.</p>
+    <p data-i18n="b-18.paragraphs.2">Three warnings. The words action and reaction mean nothing more than &#x27;force&#x27;. There is no cause-and-effect order in them - the two forces act at the same instant, and either may be called action. And the two forces act on different bodies, so if you are studying the motion of one body, only one of the pair is relevant; adding them and claiming the net force is zero is an error. Only when both bodies are treated as one system do the pair become internal forces and cancel.</p>
   </section>
-  <fieldset class="zn-check" id="b-19" data-format="numeric" data-answer="0.016">
-    <legend>A shell of mass 0.020 kg is fired by a gun of mass 100 kg. If the muzzle speed of the shell is 80 m s^-1, what is the recoil speed of the gun? Give the magnitude in m s^-1.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-19-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>By conservation of momentum, 0.020 × 80 = 100 × v. So v = 1.6/100 = 0.016 m s^-1.</p></details>
-  </fieldset>
-  <section class="zn-text" id="b-20">
-    <p>Equilibrium of a particle means the net external force on it is zero. By the first law, the particle is then at rest or in uniform motion.</p>
-    <p>If two forces act on a particle, equilibrium requires F1 = -F2, so the two forces must be equal and opposite. If three concurrent forces act, their vector sum must be zero: F1 + F2 + F3 = 0.</p>
-    <p>The resultant of any two forces must be equal and opposite to the third force. The three forces can be represented by the sides of a triangle with arrows in the same sense. For any number of forces, equilibrium means the forces can be represented by the sides of a closed polygon with arrows in the same sense.</p>
-    <p>Equation F1 + F2 + F3 = 0 also means that the x, y, and z components of the forces separately add to zero.</p>
-  </section>
-  <section class="zn-example" id="b-21">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A mass of 6 kg is suspended by a rope of length 2 m from the ceiling. A force of 50 N in the horizontal direction is applied at the mid-point P of the rope. What is the angle the rope makes with the vertical in equilibrium? Take g = 10 m s^-2. Neglect the mass of the rope.</p>
+  <section class="zn-example" id="b-19">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-19.problem">Two identical billiard balls strike a rigid wall with the same speed but at different angles, and get reflected without any change in speed. In case (a) a ball strikes the wall normally and bounces straight back. In case (b) a ball strikes the wall with its velocity at 30° to the normal and is reflected at 30° to the normal on the other side. What is (i) the direction of the force on the wall due to each ball, and (ii) the ratio of the magnitudes of the impulses imparted to the balls by the wall?</p>
     <ol>
-      <li><strong>Find the tension supporting the weight</strong> The lower part of the rope supports the 6 kg mass. Its tension is T2 = 6 × 10 = 60 N.</li>
-      <li><strong>Resolve forces at point P</strong> At P, three forces act: T1 along the upper rope, T2 = 60 N along the lower rope, and the horizontal force 50 N. For equilibrium, horizontal and vertical components must vanish separately.</li>
-      <li><strong>Write the component equations</strong> Vertical: T1 cos θ = T2 = 60 N. Horizontal: T1 sin θ = 50 N.</li>
-      <li><strong>Solve for the angle</strong> Divide the horizontal equation by the vertical equation: tan θ = 50/60 = 5/6. So θ = tan^-1(5/6), approximately 40°.</li>
+      <li><strong data-i18n="b-19.steps.0.title">Set up axes</strong> <span data-i18n="b-19.steps.0.detail">Let u be the speed of each ball before and after the collision and m its mass. Take x along the normal to the wall, away from the wall as negative, and y along the wall.</span></li>
+      <li><strong data-i18n="b-19.steps.1.title">Case (a): normal hit</strong> <span data-i18n="b-19.steps.1.detail">Initial p_x = m u, p_y = 0; final p_x = −m u, p_y = 0. So the x-component of impulse is −2 m u and the y-component is 0.</span></li>
+      <li><strong data-i18n="b-19.steps.2.title">Case (b): hit at 30° to the normal</strong> <span data-i18n="b-19.steps.2.detail">Initial p_x = m u cos 30°, p_y = −m u sin 30°; final p_x = −m u cos 30°, p_y = −m u sin 30°. Only p_x changes sign, so the x-component of impulse is −2 m u cos 30° and the y-component is 0.</span></li>
+      <li><strong data-i18n="b-19.steps.3.title">Use the third law</strong> <span data-i18n="b-19.steps.3.detail">Impulse and force are in the same direction. In both cases the impulse on the ball is normal to the wall; by the third law the force on the wall due to the ball is normal to the wall, in both cases.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The rope makes an angle θ with the vertical where tan θ = 5/6, so θ is about 40°. The answer does not depend on the length of the rope or on the point where the horizontal force is applied.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-19.answer">The force on the wall is normal to the wall in both cases. The ratio of the impulse magnitudes is 2 m u /(2 m u cos 30°) = 2/√3, about 1.2. The magnitude of the force cannot be found, because the small contact time is not given.</span></p>
   </section>
-  <fieldset class="zn-check" id="b-22" data-format="mcq" data-answer-index="0">
-    <legend>A particle is in equilibrium under three concurrent forces F1, F2, and F3. Which condition must hold?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="0"> <span>F1 + F2 + F3 = 0</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="1"> <span>F1 = F2 = F3 in magnitude only</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="2"> <span>F1 + F2 = F3</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="3"> <span>The three forces must be perpendicular to one another</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+  <fieldset class="zn-check" id="b-20" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-20.question">A book rests on a table. Which of the following is an action-reaction pair in the sense of Newton&#x27;s third law?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="0"> <span data-i18n="b-20.options.0">The weight of the book and the normal force of the table on the book.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="1"> <span data-i18n="b-20.options.1">The force of gravity on the book by the earth, and the force of gravity on the earth by the book.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="2"> <span data-i18n="b-20.options.2">The normal force of the table on the book and the weight of the table.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="3"> <span data-i18n="b-20.options.3">The weight of the book and the weight of the table.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>For equilibrium under concurrent forces, the vector sum of all forces must be zero; equivalently, each component sum is zero.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-20.explanation">An action-reaction pair is the two mutual forces between the same two bodies - here the book and the earth. The weight of the book and the normal force on it are two forces on the same body; they happen to be equal and opposite because the book is at rest, but they are not a third-law pair.</p></details>
   </fieldset>
-  <section class="zn-text" id="b-23">
-    <p>Gravity is a non-contact force that acts on every object on the earth. Most other common forces in mechanics are contact forces, because they arise when one object touches another solid or fluid.</p>
-    <p>The component of contact force normal to the surfaces is the normal reaction. The component parallel to the surfaces is friction. A solid immersed in a fluid experiences an upward buoyant force, and viscous force and air resistance are also contact forces.</p>
-    <p>A spring compressed or extended by an external force produces a restoring force F = -k x, where x is displacement and k is the force constant. The negative sign means the force is opposite to the displacement from the unstretched state. Tension is the restoring force in a string.</p>
-    <p>Static friction opposes impending relative motion and is self-adjusting up to a maximum. It satisfies f_s ≤ μ_s N, where μ_s is the coefficient of static friction. The limiting value (f_s)_max = μ_s N is independent of the area of contact.</p>
-    <p>Once relative motion starts, kinetic friction acts and satisfies f_k = μ_k N. The coefficient μ_k is less than μ_s, and kinetic friction is independent of the area of contact and nearly independent of velocity. Friction opposes relative motion, not motion itself.</p>
-    <p>On an inclined plane, a block just begins to slide at angle θ_max given by tan θ_max = μ_s. This angle is independent of the mass of the block. Rolling friction is much smaller than static or sliding friction, even by 2 or 3 orders of magnitude.</p>
+  <section class="zn-text" id="b-21">
+    <p data-i18n="b-21.paragraphs.0">The second and third laws together give the law of conservation of momentum. Fire a bullet from a gun. The force on the bullet by the gun is F; by the third law the force on the gun by the bullet is −F; both act for the same time interval. So the change in momentum of the bullet is F times that interval, and that of the gun is the opposite. Both start from rest, so their final momenta are equal and opposite, and the total momentum of the (bullet + gun) system stays zero.</p>
+    <p data-i18n="b-21.paragraphs.1">In an isolated system - one with no external force - the mutual forces between pairs of particles change the momentum of individual particles, but for each pair the changes are equal and opposite and cancel. So the total momentum remains unchanged. The law of conservation of momentum states: the total momentum of an isolated system of interacting particles is conserved.</p>
+    <p data-i18n="b-21.paragraphs.2">Collisions are the standard example. Two bodies A and B with initial momenta p_A and p_B collide and separate with momenta p′_A and p′_B. By the second law, using a common time of contact, F_AB times that time = p′_A − p_A and F_BA times that time = p′_B − p_B. Since F_AB = −F_BA, we get p′_A + p′_B = p_A + p_B: the final total momentum equals the initial total momentum. This is true whether the collision is elastic or inelastic.</p>
   </section>
-  <section class="zn-example" id="b-24">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Determine the maximum acceleration of a train in which a box lying on its floor will remain stationary, given that the coefficient of static friction between the box and the train&#x27;s floor is 0.15. Take g = 10 m s^-2.</p>
+  <section class="zn-example" id="b-22">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-22.problem">A shell of mass 0.020 kg is fired by a gun of mass 100 kg. If the muzzle speed of the shell is 80 m s-1, what is the recoil speed of the gun?</p>
     <ol>
-      <li><strong>Identify the force accelerating the box</strong> The box is stationary relative to the train, so it accelerates with the train. The horizontal force causing this is static friction.</li>
-      <li><strong>Write the friction limit</strong> m a = f_s ≤ μ_s N = μ_s m g.</li>
-      <li><strong>Cancel mass and solve</strong> a ≤ μ_s g. Therefore a_max = 0.15 × 10 = 1.5 m s^-2.</li>
+      <li><strong data-i18n="b-22.steps.0.title">Before firing</strong> <span data-i18n="b-22.steps.0.detail">Shell and gun are both at rest, so the total momentum of the system is zero.</span></li>
+      <li><strong data-i18n="b-22.steps.1.title">Conservation of momentum</strong> <span data-i18n="b-22.steps.1.detail">There is no external force along the barrel, so the total momentum stays zero: mass of shell × speed of shell + mass of gun × speed of gun = 0.</span></li>
+      <li><strong data-i18n="b-22.steps.2.title">Solve</strong> <span data-i18n="b-22.steps.2.detail">0.020 × 80 = 100 × v_gun, so v_gun = 1.6/100.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The maximum acceleration is 1.5 m s^-2.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-22.answer">The gun recoils with a speed of 0.016 m s-1, in the direction opposite to the shell.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-23" data-format="numeric" data-answer="0.6">
+    <legend data-i18n="b-23.question">Two billiard balls, each of mass 0.05 kg, move in opposite directions with speed 6 m s-1, collide and rebound with the same speed. What is the magnitude of the impulse imparted to each ball due to the other? Give the answer in N s.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-23-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-23.explanation">Take one ball&#x27;s initial direction as positive. Its momentum changes from 0.05 × 6 = 0.3 kg m s-1 to −0.3 kg m s-1. The change is 0.6 kg m s-1, so the impulse is 0.6 N s, directed opposite to that ball&#x27;s original motion.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-24">
+    <p data-i18n="b-24.paragraphs.0">A particle is in equilibrium in mechanics when the net external force on it is zero. By the first law, that means the particle is either at rest or in uniform motion.</p>
+    <p data-i18n="b-24.paragraphs.1">Under two forces F1 and F2, equilibrium requires F1 = −F2: the two forces must be equal and opposite. Under three concurrent forces F1, F2 and F3, equilibrium requires F1 + F2 + F3 = 0. The resultant of any two of them, found by the parallelogram law, must be equal and opposite to the third; the three forces can be drawn as the sides of a triangle with the arrows taken in the same sense.</p>
+    <p data-i18n="b-24.paragraphs.2">The result generalises to any number of forces: they keep a particle in equilibrium if they can be represented by the sides of a closed n-sided polygon with arrows in the same sense. In components, each of the x, y and z sums must vanish separately.</p>
   </section>
   <section class="zn-example" id="b-25">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A mass of 4 kg rests on a horizontal plane. The plane is gradually inclined until at an angle θ = 15° with the horizontal, the mass just begins to slide. What is the coefficient of static friction between the block and the surface?</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-25.problem">A mass of 6 kg is suspended by a rope of length 2 m from the ceiling. A force of 50 N in the horizontal direction is applied at the mid-point P of the rope. What is the angle the rope makes with the vertical in equilibrium? (Take g = 10 m s-2.) Neglect the mass of the rope.</p>
     <ol>
-      <li><strong>Resolve the weight</strong> Along the incline, the component of weight is mg sin θ. Perpendicular to the incline, the normal force is N = mg cos θ.</li>
-      <li><strong>Use the just-sliding condition</strong> At the angle of just sliding, static friction reaches its maximum: mg sin θ = μ_s N = μ_s mg cos θ.</li>
-      <li><strong>Solve for μ_s</strong> Cancel mg: sin θ = μ_s cos θ, so μ_s = tan θ. For θ = 15°, μ_s = tan 15° = 0.27.</li>
+      <li><strong data-i18n="b-25.steps.0.title">Look at the suspended weight</strong> <span data-i18n="b-25.steps.0.detail">The weight is in equilibrium under its own weight and the tension T2 in the lower part of the rope, so T2 = 6 × 10 = 60 N.</span></li>
+      <li><strong data-i18n="b-25.steps.1.title">Look at point P</strong> <span data-i18n="b-25.steps.1.detail">Three forces act on P: the tension T1 along the upper part of the rope, the tension T2 = 60 N along the lower part (vertically down), and the horizontal force of 50 N.</span></li>
+      <li><strong data-i18n="b-25.steps.2.title">Resolve at P</strong> <span data-i18n="b-25.steps.2.detail">The vertical components must cancel: T1 cos θ = T2 = 60 N. The horizontal components must cancel: T1 sin θ = 50 N.</span></li>
+      <li><strong data-i18n="b-25.steps.3.title">Solve</strong> <span data-i18n="b-25.steps.3.detail">Divide the two equations: tan θ = 50/60 = 0.83, so θ is about 40°. Then T1 = √(60² + 50²) ≈ 78 N.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The coefficient of static friction is μ_s = tan 15° = 0.27. It does not depend on the mass of the block.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-25.answer">The rope makes an angle of about 40° with the vertical. The answer does not depend on the length of the rope (assumed massless) or on the point at which the horizontal force is applied.</span></p>
   </section>
-  <section class="zn-example" id="b-26">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A 3 kg block and a 20 kg trolley are connected by a string over a smooth pulley. The coefficient of kinetic friction between the trolley and the surface is 0.04. What is the acceleration of the system and the tension in the string? Take g = 10 m s^-2. Neglect the mass of the string.</p>
-    <ol>
-      <li><strong>Find the friction on the trolley</strong> The normal force on the trolley is N = 20 × 10 = 200 N. Kinetic friction f_k = μ_k N = 0.04 × 200 = 8 N.</li>
-      <li><strong>Write equations for both bodies</strong> For the 3 kg block: 30 - T = 3a. For the 20 kg trolley: T - 8 = 20a. The same acceleration a applies to both because the string is inextensible and the pulley is smooth.</li>
-      <li><strong>Solve the equations</strong> Add the equations: 30 - 8 = 23a, so 22 = 23a and a = 22/23 = 0.96 m s^-2.</li>
-      <li><strong>Find the tension</strong> T = 30 - 3a = 30 - 3 × (22/23) = 27.1 N.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The acceleration is 22/23 m s^-2 ≈ 0.96 m s^-2, and the tension is 27.1 N.</p>
-  </section>
-  <fieldset class="zn-check" id="b-27" data-format="mcq" data-answer-index="1">
-    <legend>A box lies on the floor of a train. The train accelerates, and the box remains stationary relative to the train. Which force accelerates the box along with the train?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-27" value="0"> <span>The normal force from the floor</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-27" value="1"> <span>Static friction from the floor</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-27" value="2"> <span>Kinetic friction from the floor</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-27" value="3"> <span>The weight of the box</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+  <fieldset class="zn-check" id="b-26" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-26.question">Three concurrent forces act on a particle that is in equilibrium. Which statement must be true?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="0"> <span data-i18n="b-26.options.0">Each force is equal in magnitude to the sum of the other two.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="1"> <span data-i18n="b-26.options.1">The vector sum of the three forces is zero, and they can be drawn as the sides of a triangle with the arrows taken in the same sense.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="2"> <span data-i18n="b-26.options.2">The three forces must be mutually perpendicular.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="3"> <span data-i18n="b-26.options.3">The particle must be at rest, not moving.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>The box has no motion relative to the train, so static friction opposes the impending relative motion and provides the box&#x27;s acceleration.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-26.explanation">Equilibrium of a particle means zero net external force, so F1 + F2 + F3 = 0, and each component sum vanishes separately. The particle may also be in uniform motion, not necessarily at rest.</p></details>
   </fieldset>
+  <section class="zn-text" id="b-27">
+    <p data-i18n="b-27.paragraphs.0">Several kinds of force appear again and again in mechanics. The gravitational force is pervasive: every object on the earth feels the earth&#x27;s pull, and gravity also governs the motion of celestial bodies. It acts at a distance, without any medium in between.</p>
+    <p data-i18n="b-27.paragraphs.1">All the other common forces are contact forces, arising when an object touches another object, solid or fluid. When two bodies are in contact there are mutual contact forces satisfying the third law. The component of the contact force normal to the surfaces in contact is called the normal reaction; the component parallel to the surfaces is called friction.</p>
+    <p data-i18n="b-27.paragraphs.2">Contact forces also arise between a solid and a fluid: a solid immersed in a fluid feels an upward buoyant force equal to the weight of the fluid displaced, and viscous force and air resistance are contact forces too. Tension in a string and the force of a spring are further examples. A spring compressed or stretched by an amount x exerts a restoring force F = −k x, where k is the force constant; the minus sign says the force is opposite to the displacement from the unstretched state.</p>
+    <p data-i18n="b-27.paragraphs.3">For an inextensible string the force constant is very high and the restoring force is called tension. For a string of negligible mass the tension T may be taken as the same throughout the string. At the microscopic level all these contact forces come from electrical forces between the charged constituents of the bodies, but their detailed origin is complex, so in mechanics they are treated as separate kinds of force whose properties are found by experiment.</p>
+  </section>
   <section class="zn-text" id="b-28">
-    <p>A body moving in a circle of radius R with uniform speed v has an acceleration v^2/R directed towards the centre. The force providing this acceleration is the centripetal force, f_c = m v^2 / R.</p>
-    <p>For a stone rotated by a string, the centripetal force is the tension. For a planet around the sun, it is the gravitational force. For a car on a level road, it is friction.</p>
-    <p>On a level road the vertical forces balance: N = mg. Friction provides the centripetal force, and static friction cannot exceed μ_s N. This gives the maximum speed v_max = sqrt(μ_s R g) for a car on a level road without slipping. The result is independent of the mass of the car.</p>
+    <p data-i18n="b-28.paragraphs.0">Put a block on a horizontal table. Gravity mg is cancelled by the normal reaction N. Now apply a small horizontal force F. The block may not move at all - yet if F were the only horizontal force it would have to accelerate. So another horizontal force must oppose F, keeping the net force zero. That force, parallel to the surface, is friction.</p>
+    <p data-i18n="b-28.paragraphs.1">While the block stays at rest, the friction is static friction f_s. It does not exist by itself: it appears the moment an applied force appears, and it grows to stay equal and opposite to the applied force. Static friction opposes impending motion - motion that would take place if friction were absent.</p>
+    <p data-i18n="b-28.paragraphs.2">Static friction has a limit. Experiment shows that the limiting value (f_s)max is independent of the area of contact and varies with the normal force as (f_s)max = µ_s N, where µ_s is the coefficient of static friction, a constant depending only on the nature of the two surfaces. So f_s ≤ µ_s N. When the applied force exceeds (f_s)max the block begins to slide, and the friction drops to a smaller value: kinetic (sliding) friction f_k = µ_k N, again independent of the area of contact and nearly independent of velocity, with µ_k less than µ_s.</p>
+    <p data-i18n="b-28.paragraphs.3">While sliding, the acceleration of the block is (F − f_k)/m; at constant velocity F = f_k exactly; remove the applied force and the acceleration is − f_k/m until the block stops. Notice that friction opposes relative motion, not motion: a box lying in the floor of an accelerating train is accelerated forward by static friction, and stays at rest relative to the train.</p>
+    <p data-i18n="b-28.paragraphs.4">A ring or sphere rolling without slipping would in principle feel no friction at all, since its single point of contact has no relative motion with the plane. In practice some rolling friction occurs, and for the same weight it is much smaller than static or sliding friction, even by 2 or 3 orders of magnitude - which is why the wheel has been such a milestone. Lubricants, ball bearings and a thin cushion of air reduce friction, but friction is also essential: brakes use kinetic friction to stop machines and vehicles, and we can walk only because of friction.</p>
   </section>
-  <section class="zn-reveal" id="b-29">
-    <h3>Maximum speed on a level circular road</h3>
-      <details class="zn-reveal-step"><summary>Vertical balance</summary><p>There is no vertical acceleration, so N - mg = 0 and N = mg.</p></details>
-      <details class="zn-reveal-step"><summary>Friction provides centripetal force</summary><p>The required centripetal force is m v^2 / R, and on a level road it is provided by static friction f_s.</p></details>
-      <details class="zn-reveal-step"><summary>Use the static friction limit</summary><p>Static friction cannot exceed μ_s N = μ_s mg, so m v^2 / R ≤ μ_s mg.</p></details>
-      <details class="zn-reveal-step"><summary>Solve for maximum speed</summary><p>Cancel m: v^2 / R ≤ μ_s g, so v ≤ sqrt(μ_s R g). Thus v_max = sqrt(μ_s R g).</p></details>
-  </section>
-  <section class="zn-example" id="b-30">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A cyclist speeding at 18 km/h on a level road takes a sharp circular turn of radius 3 m without reducing the speed. The coefficient of static friction between the tyres and the road is 0.1. Will the cyclist slip while taking the turn? Take g = 9.8 m s^-2.</p>
-    <ol>
-      <li><strong>Convert the speed</strong> 18 km/h = 5 m s^-1, so v^2 = 25 m^2 s^-2.</li>
-      <li><strong>Find the friction limit</strong> For no slipping, v^2 ≤ μ_s R g. Here μ_s R g = 0.1 × 3 × 9.8 = 2.94 m^2 s^-2.</li>
-      <li><strong>Compare</strong> v^2 = 25 m^2 s^-2 is much greater than 2.94 m^2 s^-2, so the condition is not obeyed.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> The cyclist will slip while taking the circular turn.</p>
-  </section>
-  <section class="zn-text" id="b-31">
-    <p>On a banked road, the normal force has a horizontal component that helps provide centripetal force. The equilibrium equations are N cos θ = mg + f sin θ and N sin θ + f cos θ = m v^2 / R.</p>
-    <p>At the limiting friction, these give v_max = sqrt(R g (tan θ + μ_s)/(1 - μ_s tan θ)). This is greater than the maximum speed on a flat road.</p>
-    <p>The optimum speed is v_o = sqrt(R g tan θ). At this speed friction is not needed, so there is little wear and tear of tyres. For v &lt; v_o, friction acts up the slope, and a car can be parked only if tan θ ≤ μ_s.</p>
-  </section>
-  <section class="zn-sim zn-sim-b-32" id="b-32" data-sim-id="b-32" aria-label="Banked road: optimum and maximum speed">
-    <h3>Banked road: optimum and maximum speed</h3>
-    <div class="zn-sim-controls">
-      <label class="zn-sim-control"><span>Coefficient of static friction μ_s</span><input type="range" data-control="mu_s" min="0" max="1" step="0.05" value="0.2"><output>0.2</output></label>
-      <label class="zn-sim-control"><span>Radius R (m)</span><input type="range" data-control="R" min="50" max="500" step="10" value="300"><output>300</output></label>
-      <label class="zn-sim-control"><span>Bank angle θ (degrees)</span><input type="range" data-control="theta" min="0" max="45" step="1" value="15"><output>15</output></label>
-    </div>
-    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="Banked road: optimum and maximum speed drawing"></canvas></div>
-    <p class="zn-sim-read" aria-live="polite"></p>
-    <p class="zn-sim-desc">This simulation computes the optimum speed and the maximum speed of a car on a banked circular road. Change the coefficient of static friction, the radius, and the banking angle to see how the two speeds change.</p>
-  </section>
-  <section class="zn-example" id="b-33">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A circular racetrack of radius 300 m is banked at an angle of 15°. If the coefficient of friction between the wheels of a race-car and the road is 0.2, what is the (a) optimum speed of the race-car to avoid wear and tear on its tyres, and (b) maximum permissible speed to avoid slipping? Take g = 9.8 m s^-2.</p>
-    <ol>
-      <li><strong>Find the optimum speed</strong> v_o = sqrt(R g tan θ) = sqrt(300 × 9.8 × tan 15°). Using tan 15° = 0.2679 gives v_o = 28.1 m s^-1.</li>
-      <li><strong>Write the maximum speed formula</strong> v_max = sqrt(R g (tan θ + μ_s)/(1 - μ_s tan θ)).</li>
-      <li><strong>Substitute the values</strong> R g = 300 × 9.8 = 2940 m^2 s^-2. tan θ + μ_s = 0.2679 + 0.2 = 0.4679. 1 - μ_s tan θ = 1 - 0.2 × 0.2679 = 0.9464.</li>
-      <li><strong>Compute the maximum speed</strong> v_max = sqrt(2940 × 0.4679 / 0.9464) = sqrt(1453.5) ≈ 38.1 m s^-1.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> (a) The optimum speed is about 28.1 m s^-1. (b) The maximum permissible speed is about 38.1 m s^-1.</p>
-  </section>
-  <fieldset class="zn-check" id="b-34" data-format="mcq" data-answer-index="1">
-    <legend>A stone tied to a string is whirled in a circle. The string breaks suddenly. Which trajectory does the stone follow immediately after the string breaks?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-34" value="0"> <span>It moves radially outwards from the centre.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-34" value="1"> <span>It flies off tangentially from the instant the string breaks.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-34" value="2"> <span>It flies off at an angle with the tangent whose magnitude depends on the speed.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-34" value="3"> <span>It continues in the same circle.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>When the string breaks, the inward force disappears. By inertia, the stone continues with the velocity it had at that instant, which is along the tangent to the circle.</p></details>
-  </fieldset>
-  <section class="zn-text" id="b-35">
-    <p>A typical mechanics problem involves several bodies exerting forces on one another. You may choose any part of the assembly as your system, provided you include all forces on that part due to the rest of the assembly. The remaining part is the environment.</p>
-    <p>Draw a diagram showing the parts, links, and supports. Choose a convenient system. Then draw a free-body diagram: show the system and all forces on it by the environment and other agencies. Do not show forces exerted by the system on the environment.</p>
-    <p>Include forces whose magnitudes and directions are known or sure, such as the direction of tension along a string. Treat the rest as unknowns to be found using the laws of motion. If you then choose another system, use Newton&#x27;s third law: if the force on A by B is F, the force on B by A is -F.</p>
-    <p>An action-reaction pair consists of mutual forces between two bodies. Two equal and opposite forces on the same body are not an action-reaction pair. This rule helps you avoid mistakes when you identify forces.</p>
-  </section>
-  <section class="zn-example" id="b-36">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A wooden block of mass 2 kg rests on a soft horizontal floor. When an iron cylinder of mass 25 kg is placed on top of the block, the floor yields steadily and the block and the cylinder together go down with an acceleration of 0.1 m s^-2. What is the action of the block on the floor (a) before and (b) after the floor yields? Take g = 10 m s^-2. Identify the action-reaction pairs in the problem.</p>
-    <ol>
-      <li><strong>Before the floor yields</strong> The block is at rest. Its free-body diagram has weight 2 × 10 = 20 N downward and normal force R upward. By the first law, R = 20 N. By the third law, the block pushes the floor downward with 20 N.</li>
-      <li><strong>After the floor yields: choose the system</strong> Choose the block plus cylinder as the system. Its total mass is 27 kg, so its weight is 270 N. The floor exerts normal force R&#x27; upward. Internal forces between block and cylinder are not shown.</li>
-      <li><strong>Apply the second law</strong> The system accelerates downward at 0.1 m s^-2. Taking downward as positive: 270 - R&#x27; = 27 × 0.1 = 2.7 N. So R&#x27; = 267.3 N.</li>
-      <li><strong>Use the third law</strong> The system pushes the floor downward with 267.3 N. Action-reaction pairs include the earth-system gravitational pair, the floor-system normal pair, and the block-cylinder mutual forces.</li>
-    </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> (a) The block pushes the floor down with 20 N. (b) The block plus cylinder pushes the floor down with 267.3 N.</p>
-  </section>
-  <figure class="zn-diagram" id="b-37">
-    <div class="zn-diagram-svg"><svg viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Free-body diagram of a block on an inclined plane showing weight mg downward, normal N perpendicular to the plane, and static friction f_s up the plane"><line x1="80" y1="330" x2="560" y2="330" stroke="#1C1B18" stroke-width="3"/><line x1="80" y1="330" x2="520" y2="125" stroke="#1C1B18" stroke-width="3"/><path d="M 130 330 A 50 50 0 0 0 125.3 308.9" fill="none" stroke="#5A5748" stroke-width="2"/><text x="140" y="318" font-family="Courier Prime, monospace" font-size="20" fill="#1C1B18">θ</text><polygon points="346.4,232.3 326.1,188.8 253.6,222.8 273.9,266.3" fill="#F6F0CF" stroke="#1C1B18" stroke-width="2.6"/><line x1="300" y1="227.5" x2="300" y2="307.5" stroke="#1C1B18" stroke-width="3"/><polygon points="300,307.5 295,297.5 305,297.5" fill="#1C1B18"/><text x="310" y="300" font-family="Caveat, cursive" font-size="24" fill="#1C1B18">mg</text><line x1="300" y1="227.5" x2="270.4" y2="164.1" stroke="#1C1B18" stroke-width="3"/><polygon points="270.4,164.1 280.4,169.1 275.4,179.1" fill="#1C1B18"/><text x="225" y="160" font-family="Caveat, cursive" font-size="24" fill="#1C1B18">N</text><line x1="300" y1="227.5" x2="354.4" y2="202.1" stroke="#1F3A9E" stroke-width="3"/><polygon points="354.4,202.1 344.4,197.1 349.4,187.1" fill="#1F3A9E"/><text x="360" y="195" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">f_s</text><text x="90" y="370" font-family="Courier Prime, monospace" font-size="16" fill="#5A5748">Forces shown from the block's centre; lengths are directions only.</text></svg></div>
-    <figcaption>A free-body diagram of a block at rest on an inclined plane. The weight mg acts vertically downward, the normal reaction N is perpendicular to the plane, and static friction f_s acts up the plane to oppose impending sliding.</figcaption>
+  <figure class="zn-diagram" id="b-29">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" role="img" aria-label="A block resting on an inclined plane making an angle theta with the horizontal; the weight mg points vertically down, the normal reaction N is perpendicular to the slope, and static friction fs points up the slope"><line x1="50" y1="200" x2="290" y2="61.4" stroke="#1C1B18" stroke-width="3" /><line x1="50" y1="200" x2="180" y2="200" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 5" /><path d="M 100 200 A 50 50 0 0 0 93.3 175" fill="none" stroke="#5A5748" stroke-width="2" /><text x="104" y="195" font-family="Caveat, cursive" font-size="22" fill="#1C1B18">θ</text><polygon points="124,157.3 176,127.3 146,75.3 94,105.3" fill="none" stroke="#1C1B18" stroke-width="2.6" /><line x1="135" y1="116.3" x2="135" y2="186.3" stroke="#1F3A9E" stroke-width="3" /><polygon points="135,190.3 129,178.3 141,178.3" fill="#1F3A9E" /><line x1="135" y1="116.3" x2="102.5" y2="60" stroke="#1F3A9E" stroke-width="3" /><polygon points="100.8,56.5 100.3,69.1 111.6,63.2" fill="#1F3A9E" /><line x1="135" y1="116.3" x2="182.6" y2="88.8" stroke="#1F3A9E" stroke-width="3" /><polygon points="186.2,87 174.6,83.3 177.9,95.2" fill="#1F3A9E" /><text x="143" y="192" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E" data-i18n="b-29.svg_texts.t-0">mg</text><text x="72" y="58" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">N</text><text x="192" y="84" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E" data-i18n="b-29.svg_texts.t-1">fs</text></svg></div>
+    <figcaption data-i18n="b-29.caption">A block at rest on an inclined plane whose surface makes an angle θ with the horizontal (marked by the dashed horizontal line and the arc). Three forces act on the block: the weight mg vertically downward, the normal reaction N perpendicular to the sloped surface, and static friction fs up the slope, opposing the impending motion down the slope. Directions only; the arrows are not to a measured scale.</figcaption>
   </figure>
-  <fieldset class="zn-check" id="b-38" data-format="numeric" data-answer="350">
-    <legend>A man of mass 70 kg stands on a weighing scale in a lift moving downwards with a uniform acceleration of 5 m s^-2. Take g = 10 m s^-2. What is the reading of the scale in newtons?</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-38-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Taking downward as positive: mg - R = m a, so R = m(g - a) = 70 × (10 - 5) = 350 N.</p></details>
-  </fieldset>
-  <fieldset class="zn-check" id="b-39" data-format="numeric" data-answer="2">
-    <legend>A body of mass 5 kg is acted upon by two perpendicular forces 8 N and 6 N. What is the magnitude of its acceleration in m s^-2?</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-39-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>The resultant force is sqrt(8^2 + 6^2) = 10 N. Then a = F/m = 10/5 = 2 m s^-2.</p></details>
-  </fieldset>
-  <fieldset class="zn-check" id="b-40" data-format="numeric" data-answer="300000">
-    <legend>A rocket with a lift-off mass of 20,000 kg is blasted upwards with an initial acceleration of 5.0 m s^-2. Calculate the initial thrust of the blast. Take g = 10 m s^-2. Give the answer in newtons.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-40-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Taking upward as positive: thrust - mg = ma, so thrust = m(g + a) = 20,000 × (10 + 5) = 300,000 N.</p></details>
-  </fieldset>
-  <fieldset class="zn-check" id="b-41" data-format="numeric" data-answer="2">
-    <legend>Two masses 8 kg and 12 kg are connected at the two ends of a light inextensible string that goes over a frictionless pulley. Find the acceleration of the masses when they are released. Take g = 10 m s^-2. Give the answer in m s^-2.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-41-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>For an Atwood machine, a = (m2 - m1)g/(m1 + m2) = (12 - 8) × 10/(8 + 12) = 40/20 = 2 m s^-2.</p></details>
-  </fieldset>
-  <fieldset class="zn-check" id="b-42" data-format="mcq" data-answer-index="0">
-    <legend>Passengers are thrown forward from their seats when a speeding bus stops suddenly. Why?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-42" value="0"> <span>The lower part of the body stops with the bus, but the upper part continues forward due to inertia.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-42" value="1"> <span>A forward force from the bus pushes the passengers.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-42" value="2"> <span>The passengers lose their inertia when the bus stops.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-42" value="3"> <span>The normal force from the seat becomes zero.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>When the bus stops, friction stops the feet, but the rest of the body tends to keep moving forward because of inertia.</p></details>
-  </fieldset>
-  <fieldset class="zn-check" id="b-43" data-format="mcq" data-answer-index="2">
-    <legend>A pebble is thrown vertically upwards. Ignore air resistance. At the highest point, its velocity is momentarily zero. What is true about the force and acceleration at that instant?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-43" value="0"> <span>Both force and acceleration are zero.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-43" value="1"> <span>The force is zero but acceleration is g.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-43" value="2"> <span>The force is its weight mg downward and acceleration is g downward.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-43" value="3"> <span>The force is mg upward and acceleration is g upward.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
-    <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>A momentary velocity of zero does not mean force or acceleration is zero. At the highest point the only force is weight mg, so acceleration is g.</p></details>
-  </fieldset>
-  <section class="zn-text" id="b-44">
-    <p>Some mechanics problems give you a graph of position against time instead of a list of forces. Consider such a problem for a particle of mass 4 kg in one-dimensional motion: it asks for the force on the particle for t &lt; 0, for 0 &lt; t &lt; 4 s and for t &gt; 4 s, and for the impulse at t = 0 and at t = 4 s.</p>
-    <p>To handle this, recall how position, velocity and acceleration are related (as in Example 4.3). Velocity is the rate of change of the position coordinate, and acceleration is the rate of change of velocity. In the graph, a stretch where the position does not change at all means the particle is at rest there, and a stretch where the position changes at a steady rate means the particle is in uniform motion there.</p>
-    <p>In both kinds of stretch the acceleration is zero. By the first law, zero acceleration means the net external force on the particle is zero. So the force asked for during those intervals is zero, whatever the mass of the particle is.</p>
-    <p>A net force is needed only where the velocity changes, that is, at the instants where the steady rate of change of position alters. At such an instant the second law gives F = m a, with m = 4 kg taken from the problem.</p>
-    <p>The force at such an instant acts for a very short time, so the measurable quantity is the impulse. Impulse = Force × time duration = change in momentum, and the change in momentum is found from the velocity just before and the velocity just after that instant.</p>
+  <section class="zn-example" id="b-30">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-30.problem">A mass of 4 kg rests on a horizontal plane. The plane is gradually inclined until at an angle θ = 15° with the horizontal the mass just begins to slide. What is the coefficient of static friction between the block and the surface?</p>
+    <ol>
+      <li><strong data-i18n="b-30.steps.0.title">Forces on the block</strong> <span data-i18n="b-30.steps.0.detail">Its weight mg acting vertically downward, the normal force N of the plane, and the static frictional force f_s opposing the impending motion.</span></li>
+      <li><strong data-i18n="b-30.steps.1.title">Resolve the weight</strong> <span data-i18n="b-30.steps.1.detail">Along the slope the weight component is mg sin θ; perpendicular to the slope it is mg cos θ. In equilibrium mg sin θ = f_s and mg cos θ = N.</span></li>
+      <li><strong data-i18n="b-30.steps.2.title">At the point of sliding</strong> <span data-i18n="b-30.steps.2.detail">As θ increases, the self-adjusting f_s increases until at θ_max it reaches its maximum value µ_s N. Then mg sin θ_max = µ_s mg cos θ_max.</span></li>
+      <li><strong data-i18n="b-30.steps.3.title">The friction law for an incline</strong> <span data-i18n="b-30.steps.3.detail">Dividing gives tan θ_max = µ_s, and θ_max depends only on µ_s, not on the mass of the block.</span></li>
+      <li><strong data-i18n="b-30.steps.4.title">Insert the numbers</strong> <span data-i18n="b-30.steps.4.detail">For θ_max = 15°, µ_s = tan 15° = 0.27.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-30.answer">µ_s = 0.27. Slightly beyond 15°, the small net force down the slope makes the block begin to slide.</span></p>
   </section>
-  <fieldset class="zn-check" id="b-45" data-format="mcq" data-answer-index="0">
-    <legend>The position-time graph of a particle of mass 4 kg is flat over an interval — the position does not change at all during that interval. What is the net external force on the particle during that interval?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-45" value="0"> <span>Zero, because the particle is at rest there and so its acceleration is zero, which by the first law means the net external force is zero.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-45" value="1"> <span>A non-zero force, because the particle has a mass of 4 kg.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-45" value="2"> <span>A force equal to 4 kg multiplied by the position shown on the graph.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-45" value="3"> <span>A force that cannot be decided, because the mass of the particle is not needed.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+  <section class="zn-example" id="b-31">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-31.problem">A box lies on the floor of a train. The coefficient of static friction between the box and the floor is 0.15. Determine the maximum acceleration of the train for which the box will remain stationary. (Take g = 10 m s-2.)</p>
+    <ol>
+      <li><strong data-i18n="b-31.steps.0.title">Which force accelerates the box?</strong> <span data-i18n="b-31.steps.0.detail">If the box is stationary relative to the train, it accelerates along with the train, and the only horizontal force available to do this is static friction.</span></li>
+      <li><strong data-i18n="b-31.steps.1.title">Second law for the box</strong> <span data-i18n="b-31.steps.1.detail">m a = f_s, and static friction cannot exceed µ_s N = µ_s m g.</span></li>
+      <li><strong data-i18n="b-31.steps.2.title">Inequality</strong> <span data-i18n="b-31.steps.2.detail">So m a ≤ µ_s m g, that is a ≤ µ_s g.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-31.answer">a_max = µ_s g = 0.15 × 10 m s-2 = 1.5 m s-2.</span></p>
+  </section>
+  <section class="zn-example" id="b-32">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-32.problem">A 3 kg block hangs from a string that passes over a smooth pulley and is tied to a 20 kg trolley standing on a horizontal surface. The coefficient of kinetic friction between the trolley and the surface is 0.04. Find the acceleration of the system and the tension in the string. (Take g = 10 m s-2. Neglect the mass of the string.)</p>
+    <ol>
+      <li><strong data-i18n="b-32.steps.0.title">One acceleration</strong> <span data-i18n="b-32.steps.0.detail">The string is inextensible and the pulley smooth, so the 3 kg block and the 20 kg trolley have the same magnitude of acceleration a.</span></li>
+      <li><strong data-i18n="b-32.steps.1.title">Equation for the block</strong> <span data-i18n="b-32.steps.1.detail">The block weighs 30 N and moves down: 30 − T = 3a.</span></li>
+      <li><strong data-i18n="b-32.steps.2.title">Equation for the trolley</strong> <span data-i18n="b-32.steps.2.detail">T − f_k = 20a, with f_k = µ_k N = 0.04 × (20 × 10) = 8 N. So T − 8 = 20a.</span></li>
+      <li><strong data-i18n="b-32.steps.3.title">Add and solve</strong> <span data-i18n="b-32.steps.3.detail">Adding the two equations: 30 − 8 = 23a, so a = 22/23 m s-2.</span></li>
+      <li><strong data-i18n="b-32.steps.4.title">Tension</strong> <span data-i18n="b-32.steps.4.detail">T = 8 + 20a = 27.1 N.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-32.answer">a = 22/23 m s-2 ≈ 0.96 m s-2, and T ≈ 27.1 N.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-33" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-33.question">You push a block lying on a rough horizontal table with a small horizontal force. The block does not move. What is the friction force on the block at that instant?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="0"> <span data-i18n="b-33.options.0">It is equal to µ_s N, whatever the size of your push.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="1"> <span data-i18n="b-33.options.1">It is equal and opposite to your push, and smaller than µ_s N.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="2"> <span data-i18n="b-33.options.2">It is zero, because the block is not moving.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="3"> <span data-i18n="b-33.options.3">It is equal to µ_k N.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>If the position does not change, the particle is at rest. Its velocity is zero and stays zero, so its acceleration is zero. The first law then says the net external force must be zero.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-33.explanation">Static friction is self-adjusting: it grows to match the applied force, up to the limit µ_s N. Only when the block is just about to slide does f_s equal µ_s N. Kinetic friction acts only after sliding has begun.</p></details>
   </fieldset>
-  <fieldset class="zn-check" id="b-46" data-format="mcq" data-answer-index="0">
-    <legend>In a position-time graph problem, the steady rate of change of position alters suddenly at t = 4 s. Which statement about that instant is correct?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-46" value="0"> <span>The impulse at that instant equals the change in momentum, found from the velocity just before and the velocity just after that instant.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-46" value="1"> <span>The impulse equals the force divided by the time duration.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-46" value="2"> <span>The impulse is zero, because the particle&#x27;s position does not change exactly at that instant.</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-46" value="3"> <span>The impulse equals the mass of the particle multiplied by the time duration.</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+  <section class="zn-text" id="b-34">
+    <p data-i18n="b-34.paragraphs.0">A body moving in a circle of radius R with uniform speed v has an acceleration v²/R directed towards the centre. By the second law, the force providing this acceleration is f_c = m v²/R, also directed towards the centre. This force is called the centripetal force.</p>
+    <p data-i18n="b-34.paragraphs.1">Centripetal force is not a new kind of force. It is only a name for whichever real force happens to point towards the centre: for a stone whirled on a string it is the tension in the string, for a planet going round the sun it is the gravitational pull of the sun, and for a car turning on a horizontal road it is the friction between the tyres and the road.</p>
+  </section>
+  <section class="zn-reveal" id="b-35">
+    <h3 data-i18n="b-35.title">Maximum speed of a car on a level road</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.0.title">Step 1: the three forces</summary><p data-i18n="b-35.steps.0.detail">Three forces act on the car: its weight mg, the normal reaction N, and friction f.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.1.title">Step 2: no vertical acceleration</summary><p data-i18n="b-35.steps.1.detail">N − mg = 0, so N = mg.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.2.title">Step 3: who supplies the centripetal force?</summary><p data-i18n="b-35.steps.2.detail">The centripetal force must act along the road, towards the centre of the turn. The only horizontal force available is friction, so f = m v²/R.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.3.title">Step 4: friction has a limit</summary><p data-i18n="b-35.steps.3.detail">Static friction satisfies f ≤ µ_s N = µ_s m g.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.4.title">Step 5: combine</summary><p data-i18n="b-35.steps.4.detail">m v²/R ≤ µ_s m g gives v² ≤ µ_s R g. The mass cancels, so the answer is independent of the mass of the car.</p></details>
+  </section>
+  <section class="zn-sim zn-sim-b-36" id="b-36" data-sim-id="b-36" aria-label="Maximum safe speed on a level circular turn">
+    <h3 data-i18n="b-36.title">Maximum safe speed on a level circular turn</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span data-i18n="b-36.controls.mus.label">Coefficient of static friction µ_s</span><input type="range" data-control="mus" min="0.05" max="0.9" step="0.05" value="0.5"><output>0.5</output></label>
+      <label class="zn-sim-control"><span data-i18n="b-36.controls.radius.label">Turn radius R (m)</span><input type="range" data-control="radius" min="5" max="120" step="5" value="30"><output>30</output></label>
+    </div>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="Maximum safe speed on a level circular turn drawing"></canvas></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
+    <p class="zn-sim-desc" data-i18n="b-36.description">On a level (unbanked) road friction alone supplies the centripetal force, so the maximum safe speed is v_max = √(µ_s R g). The plot draws this curve of v_max against the turn radius R for the coefficient of static friction you choose, and prints the value at your chosen radius. Take g = 10 m s-2.</p>
+  </section>
+  <section class="zn-text" id="b-37">
+    <p data-i18n="b-37.paragraphs.0">On a banked road the outer edge of the turn is raised, so the road surface makes an angle θ with the horizontal. The normal reaction then has a horizontal component pointing towards the centre, and friction has less work to do.</p>
+    <p data-i18n="b-37.paragraphs.1">There is still no acceleration in the vertical direction, so the vertical forces must cancel: N cos θ = mg + f sin θ. The centripetal force is supplied by the horizontal components of N and f together: N sin θ + f cos θ = m v²/R.</p>
+    <p data-i18n="b-37.paragraphs.2">To find the maximum permissible speed, put friction at its limit, f = µ_s N, and solve these two equations together.</p>
+  </section>
+  <section class="zn-reveal" id="b-38">
+    <h3 data-i18n="b-38.title">Maximum and optimum speed on a banked road</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.0.title">Step 1: put f at its limit</summary><p data-i18n="b-38.steps.0.detail">Set f = µ_s N in the two banked-road equations: N cos θ = mg + µ_s N sin θ, and N sin θ + µ_s N cos θ = m v²/R.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.1.title">Step 2: find N</summary><p data-i18n="b-38.steps.1.detail">From the first equation, N = mg/(cos θ − µ_s sin θ).</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.2.title">Step 3: substitute</summary><p data-i18n="b-38.steps.2.detail">Putting this N into the second equation and simplifying gives v²_max = R g (tan θ + µ_s)/(1 − µ_s tan θ).</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.3.title">Step 4: compare with the level road</summary><p data-i18n="b-38.steps.3.detail">The maximum possible speed of a car on a banked road is greater than that on a flat road.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.4.title">Step 5: switch friction off</summary><p data-i18n="b-38.steps.4.detail">With µ_s = 0 the result becomes v_o = √(R g tan θ). At this optimum speed friction is not needed at all, so driving at it causes little wear and tear of the tyres. For v &lt; v_o friction acts up the slope, and a car can be parked only if tan θ ≤ µ_s.</p></details>
+  </section>
+  <section class="zn-example" id="b-39">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-39.problem">A cyclist speeding at 18 km/h on a level road takes a sharp circular turn of radius 3 m without reducing the speed. The coefficient of static friction between the tyres and the road is 0.1. Will the cyclist slip while taking the turn? (Take g = 9.8 m s-2.)</p>
+    <ol>
+      <li><strong data-i18n="b-39.steps.0.title">The condition for not slipping</strong> <span data-i18n="b-39.steps.0.detail">On an unbanked road friction alone supplies the centripetal force, so the cyclist does not slip only if v² ≤ µ_s R g.</span></li>
+      <li><strong data-i18n="b-39.steps.1.title">Convert the speed</strong> <span data-i18n="b-39.steps.1.detail">18 km/h = 5 m s-1, so v² = 25 m2 s-2.</span></li>
+      <li><strong data-i18n="b-39.steps.2.title">Compute the limit</strong> <span data-i18n="b-39.steps.2.detail">µ_s R g = 0.1 × 3 × 9.8 = 2.94 m2 s-2.</span></li>
+      <li><strong data-i18n="b-39.steps.3.title">Compare</strong> <span data-i18n="b-39.steps.3.detail">25 m2 s-2 is much greater than 2.94 m2 s-2, so the condition is not obeyed.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-39.answer">The cyclist will slip. The speed is too large, or the turn too sharp, for friction to supply the needed centripetal force.</span></p>
+  </section>
+  <section class="zn-example" id="b-40">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-40.problem">A circular racetrack of radius 300 m is banked at an angle of 15°. If the coefficient of friction between the wheels of a race-car and the road is 0.2, what is (a) the optimum speed of the race-car to avoid wear and tear on its tyres, and (b) the maximum permissible speed to avoid slipping? (Take g = 9.8 m s-2.)</p>
+    <ol>
+      <li><strong data-i18n="b-40.steps.0.title">(a) Optimum speed</strong> <span data-i18n="b-40.steps.0.detail">At the optimum speed the horizontal component of the normal reaction alone provides the centripetal force and friction is not needed: v_o = √(R g tan θ).</span></li>
+      <li><strong data-i18n="b-40.steps.1.title">Insert numbers</strong> <span data-i18n="b-40.steps.1.detail">v_o = √(300 × 9.8 × tan 15°) = √(300 × 9.8 × 0.268) ≈ 28.1 m s-1.</span></li>
+      <li><strong data-i18n="b-40.steps.2.title">(b) Maximum speed</strong> <span data-i18n="b-40.steps.2.detail">Use v_max = √(R g (tan θ + µ_s)/(1 − µ_s tan θ)).</span></li>
+      <li><strong data-i18n="b-40.steps.3.title">Insert numbers</strong> <span data-i18n="b-40.steps.3.detail">With tan 15° = 0.268 and µ_s = 0.2: (0.268 + 0.2)/(1 − 0.2 × 0.268) = 0.468/0.946 ≈ 0.494. Then v_max = √(300 × 9.8 × 0.494) ≈ 38.1 m s-1.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-40.answer">(a) Optimum speed ≈ 28.1 m s-1. (b) Maximum permissible speed ≈ 38.1 m s-1.</span></p>
+  </section>
+  <section class="zn-text" id="b-41">
+    <p data-i18n="b-41.paragraphs.0">Most real problems involve several bodies pushing and pulling on one another, and every one of them also feels gravity. The working method is always the same: choose any part of the assembly as your system and apply the laws of motion to it, provided you include all forces on that part due to the remaining parts of the assembly.</p>
+    <p data-i18n="b-41.paragraphs.1">Step by step: (i) draw a diagram of the assembly, showing the links and supports; (ii) choose a convenient part of the assembly as the system; (iii) draw a separate diagram of that system showing all the forces on it by the rest of the assembly and by other agencies, but not the forces it exerts on the environment. A diagram of this type is called a free-body diagram - and it does not imply that the system has no net force.</p>
+    <p data-i18n="b-41.paragraphs.2">(iv) On the free-body diagram, write in the forces whose magnitudes and directions are given or are certain, such as the direction of a tension along its length; treat the rest as unknowns to be found from the laws of motion. (v) If you need a second system, repeat the procedure and use the third law: if the force on A due to B is F in A&#x27;s diagram, the force on B due to A is −F in B&#x27;s diagram.</p>
+  </section>
+  <section class="zn-example" id="b-42">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-42.problem">A wooden block of mass 2 kg rests on a soft horizontal floor. When an iron cylinder of mass 25 kg is placed on top of the block, the floor yields steadily and the block and the cylinder together go down with an acceleration of 0.1 m s-2. What is the action of the block on the floor (a) before and (b) after the floor yields? Take g = 10 m s-2. Identify the action-reaction pairs in the problem.</p>
+    <ol>
+      <li><strong data-i18n="b-42.steps.0.title">(a) Before: free-body diagram of the block</strong> <span data-i18n="b-42.steps.0.detail">Two forces act on the block: gravity 2 × 10 = 20 N downward, and the normal force R of the floor upward. The block is at rest, so by the first law R = 20 N.</span></li>
+      <li><strong data-i18n="b-42.steps.1.title">(a) Third law</strong> <span data-i18n="b-42.steps.1.detail">The action of the block on the floor is 20 N vertically downward.</span></li>
+      <li><strong data-i18n="b-42.steps.2.title">(b) Choose the system block + cylinder</strong> <span data-i18n="b-42.steps.2.detail">Its mass is 27 kg, so its weight is 270 N. The free-body diagram shows the weight 270 N downward and the normal force R′ of the floor upward; the internal forces between block and cylinder are not shown.</span></li>
+      <li><strong data-i18n="b-42.steps.3.title">(b) Second law</strong> <span data-i18n="b-42.steps.3.detail">The system accelerates downward at 0.1 m s-2, so 270 − R′ = 27 × 0.1 = 2.7 N, giving R′ = 267.3 N.</span></li>
+      <li><strong data-i18n="b-42.steps.4.title">(b) Third law and the pairs</strong> <span data-i18n="b-42.steps.4.detail">The action of the system on the floor is 267.3 N vertically downward. The pairs are: the pull of the earth on the block (or system) and the pull of the block (or system) on the earth; the push of the block (or system) on the floor and the push of the floor on the block (or system); and, after the floor yields, the force of the cylinder on the block and the force of the block on the cylinder.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-42.answer">(a) 20 N vertically downward; (b) 267.3 N vertically downward. The weight and the normal force are not an action-reaction pair: they act on the same body, and after the floor yields they are not even equal (270 N and 267.3 N).</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-43" data-format="numeric" data-answer="350">
+    <legend data-i18n="b-43.question">A man of mass 70 kg stands on a weighing scale in a lift that is moving downwards with a uniform acceleration of 5 m s-2. What is the reading on the scale? (Take g = 10 m s-2.) Give the answer in newtons.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-43-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Impulse = Force × time duration = change in momentum. A large force acting for a very short time changes the momentum, and the change is computed from the velocities just before and just after the instant.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-43.explanation">The scale reads the normal force N it exerts on the man. Taking downward as positive, the net downward force is mg − N = m a, so N = m(g − a) = 70 × (10 − 5) = 350 N. If the lift fell freely under gravity, a would equal g and the reading would be zero.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-44" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-44.question">A stone tied to a string is whirled round in a horizontal circle. The speed is increased beyond the maximum the string can bear, and the string breaks suddenly. Which describes the path of the stone from that instant?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="0"> <span data-i18n="b-44.options.0">It moves radially outwards, away from the centre.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="1"> <span data-i18n="b-44.options.1">It flies off along the tangent to the circle at the instant the string breaks.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="2"> <span data-i18n="b-44.options.2">It flies off at an angle to the tangent, the angle depending on the speed.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="3"> <span data-i18n="b-44.options.3">It continues round the same circle with a smaller speed.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-44.explanation">The tension of the string was the force changing the direction of the stone&#x27;s momentum. The moment the string breaks, no horizontal force acts (neglecting air resistance), so by the first law the stone continues with the velocity it had at that instant - which is along the tangent - in a straight line.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-45" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-45.question">Why can a horse not pull a cart and run in empty space?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="0"> <span data-i18n="b-45.options.0">Because there is no air in empty space to push against.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="1"> <span data-i18n="b-45.options.1">Because the horse pushes the ground backward and the ground pushes the horse and cart forward; in empty space there is no ground to push against, so no external forward force can act on the system.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="2"> <span data-i18n="b-45.options.2">Because the mass of the horse is too small compared with the cart.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="3"> <span data-i18n="b-45.options.3">Because friction between the cart and the ground would be too large in empty space.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-45.explanation">The forward force on the horse-and-cart system must come from outside that system. On the ground it is the friction between the horse&#x27;s hooves and the ground: the horse pushes the ground backward, the ground pushes it forward. Without ground there is no such external force, and the mutual forces inside the system cannot accelerate it.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-46">
+    <p data-i18n="b-46.paragraphs.0">Some mechanics problems give you a graph of position against time instead of a list of forces. You can still find the force, and the impulse, because everything follows from what the graph&#x27;s slope is doing.</p>
+    <p data-i18n="b-46.paragraphs.1">For a particle, the velocity is the rate of change of position with time, v = dy/dt (take y as the position coordinate). On a position-time graph, this is the slope of the graph. The acceleration is the rate of change of velocity, a = dv/dt, that is, how fast the slope itself is changing.</p>
+    <p data-i18n="b-46.paragraphs.2">Read the graph in three steps. If a stretch of the graph is a straight line, the velocity is constant there, so the acceleration is zero and, by the second law, the force on the particle during that interval is zero. If the slope changes steadily, the velocity is changing, so there is an acceleration and a force F = m a. If the slope changes abruptly at one instant - a kink in the graph - the velocity changes by a definite amount in almost no time, so the momentum changes abruptly: that change in momentum is the impulse delivered at that instant.</p>
+    <p data-i18n="b-46.paragraphs.3">The mass comes in twice: to turn the acceleration into a force, F = m a, and to turn a change of velocity into an impulse, impulse = change in momentum = m times the change in velocity. The force at any instant is fixed by the situation at that instant; a particle carries no memory of its earlier motion.</p>
+  </section>
+  <section class="zn-example" id="b-47">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-47.problem">A stone of mass 0.25 kg tied to the end of a string is whirled round in a circle of radius 1.5 m with a speed of 40 rev./min in a horizontal plane. What is the tension in the string? What is the maximum speed with which the stone can be whirled around if the string can withstand a maximum tension of 200 N?</p>
+    <ol>
+      <li><strong data-i18n="b-47.steps.0.title">Who supplies the centripetal force?</strong> <span data-i18n="b-47.steps.0.detail">The stone moves in a circle at uniform speed, so it needs a force m v^2/R directed towards the centre. The only force acting towards the centre here is the tension in the string, so the tension is the centripetal force: T = m v^2/R.</span></li>
+      <li><strong data-i18n="b-47.steps.1.title">Convert the speed to m s-1</strong> <span data-i18n="b-47.steps.1.detail">In one revolution the stone travels the circumference 2 pi R = 2 pi times 1.5, about 9.42 m. At 40 revolutions per minute it makes 40/60 of a revolution each second, so v = 9.42 times 40/60, about 6.28 m s-1.</span></li>
+      <li><strong data-i18n="b-47.steps.2.title">Tension in the string</strong> <span data-i18n="b-47.steps.2.detail">T = m v^2/R = 0.25 times (6.28)^2 / 1.5, which is about 6.6 N.</span></li>
+      <li><strong data-i18n="b-47.steps.3.title">Maximum speed from the maximum tension</strong> <span data-i18n="b-47.steps.3.detail">The string can give at most 200 N, so m v^2/R = 200 gives v = square root of (200 times 1.5 / 0.25) = square root of 1200, about 34.6 m s-1.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-47.answer">The tension is about 6.6 N. The maximum speed with which the stone can be whirled is about 34.6 m s-1; beyond that the string must supply more than 200 N and it breaks.</span></p>
+  </section>
+  <section class="zn-example" id="b-48">
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-48.problem">A pebble of mass 0.05 kg is thrown vertically upwards. Ignoring air resistance, give the magnitude and direction of the net force on the pebble (a) during its upward motion, (b) during its downward motion, and (c) at the highest point where it is momentarily at rest. (Take g = 10 m s-2.)</p>
+    <ol>
+      <li><strong data-i18n="b-48.steps.0.title">What forces act?</strong> <span data-i18n="b-48.steps.0.detail">Air resistance is neglected, so the only force on the pebble at any instant is its weight, mg, directed vertically downward. The earth is still pulling it whether it goes up, comes down, or hangs still for an instant.</span></li>
+      <li><strong data-i18n="b-48.steps.1.title">Compute the weight</strong> <span data-i18n="b-48.steps.1.detail">mg = 0.05 times 10 = 0.5 N, downward.</span></li>
+      <li><strong data-i18n="b-48.steps.2.title">The highest point</strong> <span data-i18n="b-48.steps.2.detail">At the highest point the velocity is momentarily zero, but that does not make the force zero. Force and acceleration are fixed by the situation at the location of the body at that instant, not by how fast it happens to be moving: the force is still its weight mg and the acceleration is still g, downward.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-48.answer">(a) 0.5 N downward, (b) 0.5 N downward, (c) 0.5 N downward. The answer is the same in all three cases: a body momentarily at rest can still have a non-zero force and a non-zero acceleration.</span></p>
+  </section>
+  <section class="zn-text" id="b-49">
+    <p data-i18n="b-49.paragraphs.0">Why is it easier to pull a lawn mower than to push it? The answer comes from the two things you already know: the normal reaction and friction.</p>
+    <p data-i18n="b-49.paragraphs.1">When two surfaces are in contact, the contact force has a component normal to the surfaces, the normal reaction N, and a component parallel to them, friction. The laws of friction say that sliding friction is f_k = mu_k N (and static friction can rise at most to mu_s N). So the friction you must fight is proportional to the normal reaction: make N smaller and friction becomes smaller too.</p>
+    <p data-i18n="b-49.paragraphs.2">Pull the mower by a handle that slants upward, and your pull has an upward component. That upward component partly supports the mower, so the floor has to push up less: the normal reaction N becomes smaller, and with it the friction the mower has to overcome. Push the same mower with a handle slanting downward, and your push has a downward component that presses the mower harder into the ground: N becomes larger, and the friction is larger too. Same mower, same ground - only the direction of your force at the handle has changed, and with it the normal reaction and the friction.</p>
+  </section>
+  <fieldset class="zn-check" id="b-50" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-50.question">A particle of mass 4 kg has a position-time graph that is a straight line from t = 0 to t = 4 s, and a straight line of a different slope after t = 4 s. What is the force on the particle during the interval from t = 0 to t = 4 s?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="0"> <span data-i18n="b-50.options.0">Zero, because the graph is a straight line there, so the velocity is constant and the acceleration is zero.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="1"> <span data-i18n="b-50.options.1">4 N, because the mass of the particle is 4 kg.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="2"> <span data-i18n="b-50.options.2">Non-zero, because the particle is moving.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="3"> <span data-i18n="b-50.options.3">It cannot be found without knowing the force after t = 4 s.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-50.explanation">A straight position-time graph means the velocity is not changing, so the acceleration is zero and by the second law the net force is zero. The force at any instant depends only on that instant, not on what happens after t = 4 s. At t = 4 s the slope changes abruptly, so the velocity changes suddenly and an impulse equal to that change in momentum is delivered there.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-51" data-format="numeric" data-answer="34.6">
+    <legend data-i18n="b-51.question">A stone of mass 0.25 kg tied to a string of length 1.5 m is whirled round in a horizontal circle. If the string can withstand a maximum tension of 200 N, what is the maximum speed with which the stone can be whirled? Give the answer in m s-1, to one decimal place.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-51-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-51.explanation">The tension is the centripetal force, so m v^2/R = T gives v = square root of (T R / m) = square root of (200 times 1.5 / 0.25) = square root of 1200, about 34.6 m s-1. Beyond this speed the required centripetal force would exceed 200 N and the string would break.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-52" data-format="numeric" data-answer="0.5">
+    <legend data-i18n="b-52.question">A pebble of mass 0.05 kg is thrown vertically upwards and, at the highest point of its path, is momentarily at rest. Ignoring air resistance and taking g = 10 m s-2, what is the magnitude of the net force on it at that instant, in newtons?</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-52-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-52.explanation">The only force is the weight mg = 0.05 times 10 = 0.5 N, directed downward, and it is the same at the highest point as anywhere else. Being momentarily at rest makes the velocity zero, not the force: the acceleration there is g, downward.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-53" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-53.question">Why is it easier to pull a lawn mower than to push it?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="0"> <span data-i18n="b-53.options.0">Because pulling always needs a smaller force than pushing, whatever the angle.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="1"> <span data-i18n="b-53.options.1">Because a pull on an upward-slanting handle reduces the normal reaction, and friction is proportional to the normal reaction, so there is less friction to overcome; a downward-slanting push increases both.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="2"> <span data-i18n="b-53.options.2">Because the mower has less inertia when it is pulled.</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="3"> <span data-i18n="b-53.options.3">Because friction acts only when a body is pushed.</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-53.explanation">Friction is the component of the contact force parallel to the surfaces, and its magnitude is proportional to the normal reaction N. An upward-slanting pull partly supports the mower, lowering N and hence friction; a downward-slanting push presses the mower into the ground, raising N and hence friction.</p></details>
   </fieldset>
   <section class="zn-glossary">
-    <h2>Glossary</h2>
+    <h2 data-i18n="ui.glossary_heading">Glossary</h2>
     <dl>
-      <dt>force</dt><dd>A push or pull exerted on a body by some external agency, which may touch the body or act from a distance.</dd>
-      <dt>inertia</dt><dd>A body&#x27;s resistance to any change in its state of rest or uniform motion.</dd>
-      <dt>momentum</dt><dd>The product of mass and velocity of a body; a vector quantity.</dd>
-      <dt>impulse</dt><dd>Force multiplied by the time for which it acts; equal to the change in momentum.</dd>
-      <dt>equilibrium</dt><dd>The state in which the net external force on a particle is zero.</dd>
-      <dt>friction</dt><dd>The part of the contact force parallel to two surfaces that opposes impending or actual relative motion.</dd>
-      <dt>normal reaction</dt><dd>The part of the contact force perpendicular to the surfaces in contact.</dd>
-      <dt>centripetal force</dt><dd>The inward force that provides the acceleration for circular motion; it is a name for a material force such as tension, gravity, or friction.</dd>
+      <dt data-i18n="b-00-meta.glossary.0.term">Inertia</dt><dd data-i18n="b-00-meta.glossary.0.definition">A body&#x27;s resistance to any change in its state of rest or uniform motion.</dd>
+      <dt data-i18n="b-00-meta.glossary.1.term">Momentum</dt><dd data-i18n="b-00-meta.glossary.1.definition">Mass times velocity, p = m v; a vector pointing along the velocity.</dd>
+      <dt data-i18n="b-00-meta.glossary.2.term">Impulse</dt><dd data-i18n="b-00-meta.glossary.2.definition">Force multiplied by the time it acts; it equals the change in momentum.</dd>
+      <dt data-i18n="b-00-meta.glossary.3.term">Equilibrium</dt><dd data-i18n="b-00-meta.glossary.3.definition">The state of a particle when the net external force on it is zero.</dd>
+      <dt data-i18n="b-00-meta.glossary.4.term">Normal reaction</dt><dd data-i18n="b-00-meta.glossary.4.definition">The part of a contact force that is perpendicular to the surfaces in contact.</dd>
+      <dt data-i18n="b-00-meta.glossary.5.term">Static friction</dt><dd data-i18n="b-00-meta.glossary.5.definition">Self-adjusting friction that keeps a body at rest, up to the limit µ_s N.</dd>
+      <dt data-i18n="b-00-meta.glossary.6.term">Kinetic friction</dt><dd data-i18n="b-00-meta.glossary.6.definition">Friction that opposes actual sliding, equal to µ_k N.</dd>
+      <dt data-i18n="b-00-meta.glossary.7.term">Centripetal force</dt><dd data-i18n="b-00-meta.glossary.7.definition">The name for whatever real force points towards the centre and provides the acceleration v²/R.</dd>
+      <dt data-i18n="b-00-meta.glossary.8.term">Free-body diagram</dt><dd data-i18n="b-00-meta.glossary.8.definition">A diagram of one chosen system showing only the forces acting on it from outside.</dd>
+      <dt data-i18n="b-00-meta.glossary.9.term">Optimum speed (banked road)</dt><dd data-i18n="b-00-meta.glossary.9.definition">The speed √(R g tan θ) at which no friction is needed on a banked turn.</dd>
     </dl>
   </section>
   <footer class="zn-footer">
-    <p class="zn-sources">Generated by the Zivon content factory. Sources are listed in the course index.</p>
+    <p class="zn-sources" data-i18n="ui.sources_footer">Generated by the Zivon content factory. Sources are listed in the course index.</p>
   </footer>
 </main>
+<script src="i18n.js"></script>
 <script src="../../../assets/zivon.js"></script>
 <script src="page.js"></script>
 </body>
