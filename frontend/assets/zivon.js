@@ -1848,25 +1848,48 @@
   };
   window.ZivonPrivacy = ZivonPrivacy;
 
-  /* ---------------- §10.12 Voice dock (bottom sheet, DCR-002) -------------- */
+  /* ---------------- §10.12 Voice dock (ledger sheet) ----------------------
+     Direction B — Ledger (founder review, 2026-11-11). The sheet is a page
+     from the notebook: a handwritten role + time margin, an answer body in
+     Courier Prime, one small tape on the top edge.
+     Binding rules implemented here:
+     - two-column ledger, no bubbles; the transcript takes the sheet's
+       remaining height and sticks to the bottom while the student is there;
+     - append-only rendering: a state change never rebuilds the transcript,
+       so scroll position and screen-reader position survive every tick;
+     - at most ONE conditional status line, and only where it changes what
+       the student can do next;
+     - no anchor chip, no block ids, no block-type words, no copy button, no
+       captions toggle, no global retry, no memory/clear, no silence-close,
+       no separate Stop (the mic is the stop/interrupt target);
+     - one icon-only panel open/close control, one language dropdown;
+     - a single tape at the sheet's top edge, clipped to that edge.
+     ----------------------------------------------------------------------- */
   var DOCK_STORAGE_KEY = "zivon.dock";
-  var CAPTIONS_STORAGE_KEY = "zivon.captions";
   var IDENTITY_SEEN_KEY = "zivon.identity_seen";
+  var DOCK_MAX_MESSAGES = 24;
+  var DOCK_RETRY_LABEL = "Phir se koshish karo — retry the last answer";
+
+  var DOCK_LANG_OPTIONS = [
+    { code: "en", label: "English" },
+    { code: "hi", label: "हिन्दी" },
+    { code: "hi-Latn", label: "Hinglish" }
+  ];
 
   var DOCK_STATE_COPY = {
-    "idle": "Mic dabao aur poochho",
-    "requesting-permission": "mic ki permission…",
-    "connecting": "jud rahe hain…",
-    "ready": "Mic dabao aur poochho",
-    "listening": "Sun rahe hain — pakad ke rakho",
-    "endpointing": "silence mila…",
-    "thinking": "soch rahe hain…",
+    "idle": "",
+    "requesting-permission": "",
+    "connecting": "",
+    "ready": "",
+    "listening": "Sun rahe hain — band karne ke liye mic dabao.",
+    "endpointing": "",
+    "thinking": "Soch rahe hain…",
     "speaking": "",
-    "speaking_text": "TUTOR · TEXT",
-    "interrupted": "▍cut off",
-    "reconnecting": "phir se jud rahe hain… lesson chalta rahega",
-    "offline": "connection gaya — jo type karoge woh safe hai",
-    "error:mic-denied": "lesson chalta rahega",
+    "speaking_text": "",
+    "interrupted": "",
+    "reconnecting": "Phir se jud rahe hain — jo type karoge woh queue mein rahega.",
+    "offline": "Connection gaya — type karo, message queue ho jayega. Lesson padhta rahega.",
+    "error:mic-denied": "Lesson chalta rahega — type karke poochho.",
     "error:mic-in-use": "Mic kisi aur app mein busy hai — dubara koshish karein ya type karein.",
     "error:mic-constraint": "Mic settings match nahi hui — niche type karke poochhein.",
     "error:unsupported-browser": "Is browser mein mic available nahi hai — niche type karke poochhein.",
@@ -1879,6 +1902,47 @@
     "error:quota-exhausted": "30 credits/day · voice resets 00:00 · reading, sims, typing free",
     "text_only": "30 credits/day · voice resets 00:00 · reading, sims, typing free"
   };
+
+  function normalizeDockLocale(value) {
+    var raw = String(value == null ? "" : value).trim();
+    if (!raw) return null;
+    var lower = raw.toLowerCase();
+    if (lower === "hi-latn" || lower === "hinglish") return "hi-Latn";
+    if (lower === "hi" || lower === "hindi" || raw === "हिन्दी") return "hi";
+    if (lower === "en" || lower === "english") return "en";
+    return AUTONYM_TO_CODE[lower] || null;
+  }
+
+  /* Exactly one conditional line. Empty string => no line at all. */
+  function dockStatusFor(st, detail) {
+    if (st === "error:mic-denied") {
+      return { stamp: "MIC OFF", text: DOCK_STATE_COPY["error:mic-denied"] };
+    }
+    if (st.indexOf("error:") === 0) {
+      var msg = DOCK_STATE_COPY[st] || (detail && detail.message ? String(detail.message) : "");
+      return msg ? { text: msg } : null;
+    }
+    var copy = DOCK_STATE_COPY[st];
+    return copy ? { text: copy } : null;
+  }
+
+  function dockRetryStateFor(st) {
+    return (
+      st === "reconnecting" ||
+      st === "offline" ||
+      st === "error:mic-in-use" ||
+      st === "error:mic-constraint" ||
+      st === "error:no-input" ||
+      st === "error:no-match" ||
+      st === "error:system-error" ||
+      st === "error:timeout"
+    );
+  }
+
+  function dockClockNow() {
+    var d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
 
   function getInitialContainment() {
     var saved = safeStorageGet(DOCK_STORAGE_KEY);
@@ -1915,6 +1979,63 @@
     svg.appendChild(body);
     svg.appendChild(arc);
     return svg;
+  }
+
+  function makeChevronIcon(direction) {
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "22");
+    svg.setAttribute("height", "22");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    var path = document.createElementNS(ns, "path");
+    path.setAttribute("d", direction === "up" ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "currentColor");
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(path);
+    return svg;
+  }
+
+  function makeRetryIcon() {
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", "18");
+    svg.setAttribute("height", "18");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("d", "M20 11a8 8 0 1 0-2.3 5.7");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "currentColor");
+    arc.setAttribute("stroke-width", "1.8");
+    arc.setAttribute("stroke-linecap", "round");
+    var head = document.createElementNS(ns, "path");
+    head.setAttribute("d", "M20 5v6h-6");
+    head.setAttribute("fill", "none");
+    head.setAttribute("stroke", "currentColor");
+    head.setAttribute("stroke-width", "1.8");
+    head.setAttribute("stroke-linecap", "round");
+    head.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(arc);
+    svg.appendChild(head);
+    return svg;
+  }
+
+  function makeDockBars() {
+    var wrap = document.createElement("span");
+    wrap.className = "zn-dock-bars";
+    wrap.setAttribute("aria-hidden", "true");
+    for (var i = 0; i < 5; i++) {
+      var bar = document.createElement("span");
+      bar.className = "zn-dock-bar";
+      wrap.appendChild(bar);
+    }
+    return wrap;
   }
 
   var dockEarconCtx = null;
@@ -1955,12 +2076,16 @@
   var ZivonVoiceDock = {
     doctrineReady: true, /* DCR-002 closed: design-doctrine.md §10.12 is now binding */
     _activeClient: null,
-    _silenceTimer: null,
+    _view: null,
+    _locale: null,
     getRegion: ensureVoiceDockRegion,
     setContainment: function (nextContainment, persist) {
       var region = ensureVoiceDockRegion();
       if (!region) return "collapsed";
       var c = nextContainment === "hidden" || nextContainment === "expanded" ? nextContainment : "collapsed";
+      var prev = region.getAttribute("data-containment") || getInitialContainment();
+      var activeEl = document.activeElement;
+      var activeInRegion = Boolean(activeEl && region.contains(activeEl));
       region.setAttribute("data-containment", c);
       var tabBtn = region.querySelector(".zn-dock-tab");
       var stripEl = region.querySelector(".zn-dock-strip");
@@ -1968,6 +2093,9 @@
       if (tabBtn) tabBtn.hidden = c !== "hidden";
       if (stripEl) stripEl.hidden = c !== "collapsed";
       if (sheetEl) sheetEl.hidden = c !== "expanded";
+      region.querySelectorAll(".zn-dock-panel-toggle").forEach(function (btn) {
+        btn.setAttribute("aria-expanded", c === "expanded" ? "true" : "false");
+      });
       if (persist !== false) {
         safeStorageSet(DOCK_STORAGE_KEY, c);
       }
@@ -1975,11 +2103,23 @@
         document.body.classList.toggle("zn-dock-present", c !== "hidden");
         document.body.setAttribute("data-dock-containment", c);
       }
-      /* EL-LES-01-051 identity line is "seen" only once the student has
+      /* EL-LES-01-051 identity disclosure is "seen" once the student has
          actually expanded the sheet and could read it. */
-      var identity = region.querySelector(".zn-dock-identity");
+      var identity = region.querySelector(".zn-dock-disclosure");
       if (identity && c === "expanded" && !identity.hidden) {
         safeStorageSet(IDENTITY_SEEN_KEY, "true");
+      }
+      if (prev !== c && activeInRegion) {
+        /* The control the student was on just disappeared (hidden subtree):
+           hand focus to the control that is now visible, never to a
+           display:none node. offsetParent is null once an ancestor hides. */
+        var focusTarget = null;
+        if (c === "expanded") focusTarget = region.querySelector(".zn-dock-panel-toggle-sheet");
+        else if (c === "collapsed") focusTarget = region.querySelector(".zn-dock-panel-toggle-strip");
+        else focusTarget = region.querySelector(".zn-dock-tab");
+        if (focusTarget && (!activeEl || activeEl.offsetParent === null)) {
+          try { focusTarget.focus({ preventScroll: true }); } catch (e) { try { focusTarget.focus(); } catch (e2) {} }
+        }
       }
       return c;
     },
@@ -1996,141 +2136,276 @@
       });
       ZivonVoiceDock.renderAgentState(client.getState(), {});
     },
-    renderAgentState: function (agentState, detail) {
-      var region = ensureVoiceDockRegion();
-      if (!region || region.getAttribute("data-zn-dock-mounted") !== "true") return;
-      var st = String(agentState || "idle");
-      if (st === "error:quota-exhausted") st = "text_only";
-      region.setAttribute("data-agent-state", st);
-
-      if (ZivonVoiceDock._silenceTimer) {
-        clearTimeout(ZivonVoiceDock._silenceTimer);
-        ZivonVoiceDock._silenceTimer = null;
+    getLocale: function () {
+      return ZivonVoiceDock._locale || getSavedLang();
+    },
+    /* A `language.detected` server event reflects what the student actually
+       spoke. It updates the dropdown label, <html lang> and (when a bundle
+       exists) the client strings. It never navigates: the turn in flight and
+       the lesson position survive. Tolerates the event being absent. */
+    applyDetectedLocale: function (locale) {
+      var norm = normalizeDockLocale(locale);
+      if (!norm) return false;
+      if (norm === ZivonVoiceDock.getLocale()) return false;
+      ZivonVoiceDock._locale = norm;
+      safeStorageSet(LANG_STORAGE_KEY, norm);
+      if (document && document.documentElement) document.documentElement.lang = norm;
+      if (norm === "en") {
+        document.querySelectorAll(".zn-untranslated-notice").forEach(function (n) { n.remove(); });
+      } else if (isLocaleBundleAvailable(norm)) {
+        applyClientBundleSwap(norm);
+        renderUntranslatedNotices(norm);
+        if (typeof refreshReadAloudForLocale === "function") refreshReadAloudForLocale();
       }
-
-      var stateLabel = region.querySelector(".zn-dock-state-label");
-      var captionEl = region.querySelector(".zn-dock-caption");
-      var stripCaptionEl = region.querySelector(".zn-dock-strip-caption");
-      var micBtns = region.querySelectorAll(".zn-dock-mic");
-      var stopBtn = region.querySelector(".zn-dock-stop");
-      var stampEl = region.querySelector(".zn-dock-stamp");
-      var sweepEl = region.querySelector(".zn-dock-sweep");
-      var barsEl = region.querySelector(".zn-dock-bars");
-      var textChipEl = region.querySelector(".zn-dock-text-chip");
-      var retryBtn = region.querySelector(".zn-dock-retry");
-      var helpRow = region.querySelector(".zn-dock-help-chips");
-      var transcriptList = region.querySelector(".zn-dock-transcript");
-      var typedInput = region.querySelector(".zn-dock-typed-input");
-      var captionsOn = safeStorageGet(CAPTIONS_STORAGE_KEY) !== "false";
-
-      var isListening = st === "listening";
-      var isSpeaking = st === "speaking" || st === "speaking_text";
-      var isThinking = st === "thinking";
-      var isEndpointing = st === "endpointing";
-      var isMicDenied = st === "error:mic-denied";
-      var isTextOnly = st === "text_only";
-      var isError = st.indexOf("error:") === 0;
-
-      micBtns.forEach(function (mb) {
-        mb.setAttribute("aria-pressed", isListening ? "true" : "false");
-        mb.disabled = isTextOnly || isMicDenied;
+      ZivonVoiceDock.updateLanguageLabel();
+      return true;
+    },
+    updateLanguageLabel: function () {
+      var view = ZivonVoiceDock._view;
+      if (!view || !view.langLabel) return;
+      var code = ZivonVoiceDock.getLocale();
+      var label = code;
+      DOCK_LANG_OPTIONS.forEach(function (o) { if (o.code === code) label = o.label; });
+      view.langLabel.textContent = label;
+      view.langLabel.setAttribute(
+        "lang",
+        code === "hi" ? "hi" : (code === "hi-Latn" ? "hi-Latn" : "en")
+      );
+      view.langBtn.setAttribute("aria-label", "Language: " + label + " — change language");
+      view.langOptions.forEach(function (o) {
+        o.btn.setAttribute("aria-selected", o.code === code ? "true" : "false");
       });
-      if (stopBtn) stopBtn.hidden = !isSpeaking;
-      if (stampEl) {
-        stampEl.hidden = !isMicDenied;
-        if (isMicDenied) stampEl.textContent = "MIC OFF";
-      }
-      if (sweepEl) sweepEl.hidden = !isThinking;
-      if (barsEl) {
-        barsEl.hidden = !(isListening || isEndpointing || st === "speaking");
-        barsEl.setAttribute("data-bars-mode", isEndpointing ? "endpointing" : (isListening ? "listening" : "speaking"));
-      }
-      if (textChipEl) {
-        textChipEl.hidden = st !== "speaking_text";
-      }
-      if (retryBtn) {
-        retryBtn.hidden = !(st === "reconnecting" || st === "offline" || st === "error:mic-in-use" || st === "error:no-match" || st === "error:no-input" || st === "error:system-error" || st === "error:timeout");
-      }
-      if (helpRow) {
-        helpRow.hidden = !(st === "error:no-match" || st === "error:no-input" || st === "error:mic-denied" || isTextOnly);
-      }
-
-      var copy = DOCK_STATE_COPY[st] !== undefined ? DOCK_STATE_COPY[st] : (detail && detail.message ? String(detail.message) : st);
-      if (stateLabel) {
-        stateLabel.setAttribute("aria-live", isError ? "assertive" : "polite");
-        stateLabel.textContent = copy || (st === "speaking" ? "Bol rahe hain…" : "Ready");
-      }
-
-      /* Sync transcript & live caption from active client if present */
-      var client = ZivonVoiceDock._activeClient;
-      var tList = client && typeof client.getTranscripts === "function" ? client.getTranscripts() : [];
-      var latestPartial = "";
-      var latestTutorText = "";
-      for (var i = 0; i < tList.length; i++) {
-        if (tList[i].kind === "partial") latestPartial = tList[i].text;
-        if (tList[i].kind === "tutor") latestTutorText = tList[i].text;
-      }
-
-      var liveCapText = copy;
-      if (st === "speaking" || st === "speaking_text") {
-        liveCapText = captionsOn ? (latestTutorText || "Bol rahe hain…") : "";
-      } else if (st === "listening" && latestPartial && captionsOn) {
-        liveCapText = latestPartial;
-      } else if (st === "interrupted") {
-        liveCapText = (latestTutorText ? latestTutorText.slice(0, 48) + " " : "") + "▍cut off";
-      }
-
-      if (captionEl) {
-        captionEl.hidden = !captionsOn;
-        captionEl.textContent = liveCapText;
-      }
-      if (stripCaptionEl) {
-        stripCaptionEl.textContent = liveCapText || "Mic dabao aur poochho";
-      }
-
-      if (transcriptList && client) {
-        while (transcriptList.firstChild) transcriptList.removeChild(transcriptList.firstChild);
-        var finals = tList.filter(function (item) { return item.kind === "student" || item.kind === "tutor"; });
-        if (!finals.length) {
-          var emptyLi = document.createElement("p");
-          emptyLi.className = "zn-dock-transcript-empty";
-          emptyLi.textContent = "Abhi koi sawaal nahi poochha gaya.";
-          transcriptList.appendChild(emptyLi);
-        } else {
-          finals.slice(-6).forEach(function (item) {
-            var p = document.createElement("p");
-            p.className = "zn-dock-line zn-dock-line-" + item.kind;
-            var prefix = item.kind === "student" ? "You: " : "Tutor: ";
-            var suffix = item.interrupted ? " ▍cut off" : "";
-            p.textContent = prefix + item.text + suffix;
-            if (item.interrupted) p.setAttribute("data-cut-off", "true");
-            transcriptList.appendChild(p);
-          });
-        }
-      }
-
-      if (isMicDenied && typedInput) {
-        ZivonVoiceDock.setContainment("expanded", false);
-        try { typedInput.focus(); } catch (e) {}
-      }
-
-      /* Silence-close: 5 s after a completed turn reaches ready/idle, return expanded -> collapsed (§10.12) */
-      if ((st === "ready" || st === "idle") && detail && detail.turn_id && ZivonVoiceDock.getContainment() === "expanded") {
-        ZivonVoiceDock._silenceTimer = setTimeout(function () {
-          if (ZivonVoiceDock.getContainment() === "expanded") {
-            var cur = ZivonVoiceDock._activeClient ? ZivonVoiceDock._activeClient.getState() : "ready";
-            if (cur === "ready" || cur === "idle") {
-              ZivonVoiceDock.setContainment("collapsed", true);
-            }
-          }
-        }, 5000);
-      }
     },
     syncTranscript: function () {
       if (!ZivonVoiceDock._activeClient) return;
       var region = ensureVoiceDockRegion();
       if (!region || region.getAttribute("data-zn-dock-mounted") !== "true") return;
-      ZivonVoiceDock.renderAgentState(ZivonVoiceDock._activeClient.getState(), {});
+      ZivonVoiceDock.syncMessages();
+    },
+    syncMessages: function () {
+      var view = ZivonVoiceDock._view;
+      if (!view) return;
+      var client = ZivonVoiceDock._activeClient;
+      var list = client && typeof client.getTranscripts === "function" ? client.getTranscripts() : [];
+      var msgs = ZivonVoiceDock._buildMessages(list);
+      var host = view.transcript;
+      var prev = view.messages;
+      var stick = view.stick;
+      var next = [];
+
+      for (var i = 0; i < msgs.length; i++) {
+        var m = msgs[i];
+        var old = prev[i];
+        if (old && old.key === m.key) {
+          if (old.text !== m.text) {
+            old.textEl.textContent = m.text;
+            old.text = m.text;
+          }
+          var isDraft = Boolean(m.draft);
+          if (old.draft !== isDraft) {
+            old.el.classList.toggle("is-draft", isDraft);
+            old.draft = isDraft;
+          }
+          var isCut = Boolean(m.interrupted);
+          if (old.interrupted !== isCut) {
+            ZivonVoiceDock._setCutOff(old, isCut);
+            old.interrupted = isCut;
+          }
+          next.push(old);
+          continue;
+        }
+        if (old && old.el.parentNode) old.el.parentNode.removeChild(old.el);
+        var row = ZivonVoiceDock._buildRow(m);
+        var anchor = prev[i + 1] && prev[i + 1].el && prev[i + 1].el.parentNode === host
+          ? prev[i + 1].el
+          : null;
+        host.insertBefore(row.el, anchor);
+        next.push(row);
+      }
+      for (var j = msgs.length; j < prev.length; j++) {
+        if (prev[j].el.parentNode) prev[j].el.parentNode.removeChild(prev[j].el);
+      }
+      /* A ledger page is finite; keep the newest turns and drop the oldest
+         from the top (never a rebuild, never a scroll jump at the bottom). */
+      while (next.length > DOCK_MAX_MESSAGES) {
+        var dead = next.shift();
+        if (dead.el.parentNode) dead.el.parentNode.removeChild(dead.el);
+      }
+      view.messages = next;
+
+      var hasMessages = next.length > 0;
+      if (view.empty) view.empty.hidden = hasMessages;
+
+      /* The retry control belongs to the newest ANSWER. Moving the same node
+         is not a rebuild: listeners and focus survive. */
+      var newest = null;
+      for (var k = next.length - 1; k >= 0; k--) {
+        if (next[k].role === "tutor") { newest = next[k]; break; }
+      }
+      if (newest) {
+        newest.bodyEl.appendChild(view.retryBtn);
+      } else if (view.retryBtn.parentNode !== view.statusHost) {
+        view.statusHost.appendChild(view.retryBtn);
+      }
+
+      if (view.stripLine) {
+        var strip = ZivonVoiceDock._stripFor(view.region.getAttribute("data-agent-state") || "idle", next);
+        view.stripLine.textContent = strip.text;
+        if (view.stripWho) view.stripWho.textContent = strip.who;
+        if (view.stripLineBtn) {
+          /* WCAG 2.5.3: the accessible name contains the visible label. */
+          view.stripLineBtn.setAttribute(
+            "aria-label",
+            "Open the tutor panel: " + strip.who + " " + strip.text
+          );
+        }
+      }
+      if (stick && hasMessages) {
+        host.scrollTop = host.scrollHeight;
+        view.stick = true;
+      }
+      ZivonVoiceDock._placeRetry();
+    },
+    _stripFor: function (st, messages) {
+      if (st === "listening") return { who: "You", text: "Sun rahe hain…" };
+      if (st === "thinking") return { who: "Tutor", text: "Soch rahe hain…" };
+      if (st === "offline") return { who: "Tutor", text: "Offline — type karo, queue ho jayega" };
+      if (st === "reconnecting") return { who: "Tutor", text: "Phir se jud rahe hain…" };
+      var last = messages.length ? messages[messages.length - 1] : null;
+      if (!last) return { who: "Tutor", text: "Poochho kuch bhi is page se" };
+      return { who: last.role === "you" ? "You" : "Tutor", text: last.text || "…" };
+    },
+    _buildMessages: function (list) {
+      var out = [];
+      var last = null;
+      for (var i = 0; i < list.length; i++) {
+        var item = list[i] || {};
+        var kind = item.kind;
+        if (kind === "partial") {
+          /* A live partial is only a draft while it is the newest line; once
+             stt.final lands it is superseded, so it is never duplicated. */
+          if (i === list.length - 1 && String(item.text || "")) {
+            out.push({ key: "partial", role: "you", text: String(item.text), draft: true });
+          }
+          continue;
+        }
+        if (kind !== "student" && kind !== "tutor") continue;
+        var role = kind === "tutor" ? "tutor" : "you";
+        var key = role === "tutor" ? "t" + (item.turn_id || ("x" + i)) : "s" + i;
+        if (role === "tutor" && last && last.role === "tutor" && last.key === key) {
+          /* Streamed tutor deltas are one answer, not one line per chunk. */
+          last.text += String(item.text || "");
+          last.interrupted = last.interrupted || Boolean(item.interrupted);
+          continue;
+        }
+        last = {
+          key: key,
+          role: role,
+          text: String(item.text || ""),
+          draft: false,
+          interrupted: Boolean(item.interrupted)
+        };
+        out.push(last);
+      }
+      return out;
+    },
+    _buildRow: function (m) {
+      var row = document.createElement("div");
+      row.className = "zn-dock-row zn-dock-row-" + m.role + (m.draft ? " is-draft" : "");
+      row.setAttribute("data-row-key", m.key);
+
+      var margin = document.createElement("div");
+      margin.className = "zn-dock-row-margin";
+      var who = document.createElement("span");
+      who.className = "zn-dock-who";
+      who.textContent = m.role === "tutor" ? "Tutor" : "You";
+      var time = document.createElement("time");
+      time.className = "zn-dock-time";
+      time.textContent = dockClockNow();
+      margin.appendChild(who);
+      margin.appendChild(time);
+
+      var body = document.createElement("p");
+      body.className = "zn-dock-said";
+      var textEl = document.createElement("span");
+      textEl.className = "zn-dock-said-text";
+      textEl.textContent = m.text;
+      body.appendChild(textEl);
+
+      row.appendChild(margin);
+      row.appendChild(body);
+
+      var built = {
+        key: m.key,
+        role: m.role,
+        text: m.text,
+        draft: Boolean(m.draft),
+        interrupted: false,
+        el: row,
+        bodyEl: body,
+        textEl: textEl
+      };
+      if (m.interrupted) ZivonVoiceDock._setCutOff(built, true);
+      return built;
+    },
+    _setCutOff: function (row, on) {
+      var mark = row.bodyEl.querySelector(".zn-dock-cut");
+      if (on && !mark) {
+        mark = document.createElement("span");
+        mark.className = "zn-dock-cut";
+        mark.setAttribute("data-cut-off", "true");
+        mark.textContent = "▍cut off";
+        row.bodyEl.appendChild(mark);
+        row.interrupted = true;
+      } else if (!on && mark) {
+        mark.remove();
+        row.interrupted = false;
+      }
+    },
+    _placeRetry: function () {
+      var view = ZivonVoiceDock._view;
+      if (!view) return;
+      view.retryBtn.hidden = ZivonVoiceDock._retryVisible !== true;
+    },
+    renderAgentState: function (agentState, detail) {
+      var region = ensureVoiceDockRegion();
+      if (!region || region.getAttribute("data-zn-dock-mounted") !== "true") return;
+      var view = ZivonVoiceDock._view;
+      if (!view) return;
+      var st = String(agentState || "idle");
+      if (st === "error:quota-exhausted") st = "text_only";
+      region.setAttribute("data-agent-state", st);
+
+      var d = detail || {};
+      var isListening = st === "listening";
+      var isTextOnly = st === "text_only";
+      var isMicDenied = st === "error:mic-denied";
+      var micBlocked = isTextOnly || isMicDenied || st === "offline" || st === "reconnecting";
+
+      view.mics.forEach(function (mb) {
+        mb.setAttribute("aria-pressed", isListening ? "true" : "false");
+        mb.setAttribute("aria-label", isListening ? "Stop listening" : "Start listening");
+        mb.disabled = micBlocked;
+      });
+      /* The pressed mic shows the level bars instead of the glyph (CSS). */
+
+      /* At most one conditional line. Never for idle/ready/connecting/
+         endpointing/speaking: those change nothing the student can do, and
+         the mic itself is the stop/interrupt target. */
+      var status = dockStatusFor(st, d);
+      view.status.hidden = !status;
+      view.statusStamp.hidden = !status || !status.stamp;
+      view.statusStamp.textContent = status && status.stamp ? status.stamp : "MIC OFF";
+      view.statusText.textContent = status ? status.text : "";
+      view.status.setAttribute("aria-live", st.indexOf("error:") === 0 ? "assertive" : "polite");
+
+      ZivonVoiceDock._retryVisible = dockRetryStateFor(st);
+      ZivonVoiceDock.syncMessages();
+
+      if (isMicDenied) {
+        ZivonVoiceDock.setContainment("expanded", false);
+        try { view.typedInput.focus(); } catch (e) {}
+      }
     },
     lazyMount: function (opts) {
       var options = opts || {};
@@ -2160,271 +2435,249 @@
       region.setAttribute("data-ruled-skip", "true");
       region.hidden = false;
 
-      var snap = buildContextSnapshot();
-      var anchorBlockId = snap.block_id || "b-01";
-      var anchorBlockType = snap.block_type || "lesson";
-      var anchorLabelText = anchorBlockId + " · " + anchorBlockType.replace(/_/g, " ");
+      var view = {
+        region: region,
+        messages: [],
+        stick: true,
+        mics: [],
+        langOptions: [],
+        retryVisible: false
+      };
+      ZivonVoiceDock._view = view;
 
-      /* 1. Hidden state: 44 px bottom-right paper tab */
+      /* 1. Hidden state: 44 px paper tab (mic glyph + the word "Ask"; a bare
+         icon is never the only affordance for a student who cannot hear). */
       var tabBtn = document.createElement("button");
       tabBtn.type = "button";
       tabBtn.className = "zn-dock-tab";
       tabBtn.setAttribute("data-element-id", "EL-LES-01-042");
-      tabBtn.setAttribute("aria-label", "Open voice tutor dock");
+      tabBtn.setAttribute("aria-label", "Ask the tutor");
       tabBtn.appendChild(makeMicIcon());
       var tabWord = document.createElement("span");
       tabWord.textContent = "Ask";
       tabBtn.appendChild(tabWord);
 
-      /* 2. Collapsed state: 92 px strip */
+      /* 2. Collapsed state: one-line strip, panel-open control, mic toggle. */
       var stripEl = document.createElement("div");
       stripEl.className = "zn-dock-strip";
-      var grabStrip = document.createElement("button");
-      grabStrip.type = "button";
-      grabStrip.className = "zn-dock-grab";
-      grabStrip.setAttribute("aria-label", "Expand voice tutor sheet");
-      grabStrip.textContent = "—";
-      var stripCap = document.createElement("p");
-      stripCap.className = "zn-dock-strip-caption";
-      stripCap.textContent = "Mic dabao aur poochho";
-      var stripTypeBtn = document.createElement("button");
-      stripTypeBtn.type = "button";
-      stripTypeBtn.className = "zn-dock-type-btn";
-      stripTypeBtn.textContent = "Type";
-      var stripHideBtn = document.createElement("button");
-      stripHideBtn.type = "button";
-      stripHideBtn.className = "zn-dock-hide-btn";
-      stripHideBtn.setAttribute("aria-label", "Hide voice dock to tab");
-      stripHideBtn.textContent = "Hide";
+      var stripLineBtn = document.createElement("button");
+      stripLineBtn.type = "button";
+      stripLineBtn.className = "zn-dock-strip-line-btn";
+      stripLineBtn.setAttribute("aria-label", "Open the tutor panel");
+      var stripWho = document.createElement("span");
+      stripWho.className = "zn-dock-strip-who";
+      stripWho.textContent = "Tutor";
+      stripWho.setAttribute("lang", "en");
+      var stripLine = document.createElement("span");
+      stripLine.className = "zn-dock-strip-line";
+      stripLine.setAttribute("lang", "hi-Latn");
+      stripLine.textContent = "Poochho kuch bhi is page se";
+      stripLineBtn.appendChild(stripWho);
+      stripLineBtn.appendChild(stripLine);
+
+      var stripToggle = document.createElement("button");
+      stripToggle.type = "button";
+      stripToggle.className = "zn-dock-panel-toggle zn-dock-panel-toggle-strip";
+      stripToggle.setAttribute("aria-label", "Open the tutor panel");
+      stripToggle.setAttribute("aria-expanded", "false");
+      stripToggle.appendChild(makeChevronIcon("up"));
+
       var stripMicBtn = document.createElement("button");
       stripMicBtn.type = "button";
       stripMicBtn.className = "zn-dock-mic zn-dock-mic-strip";
       stripMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
       stripMicBtn.setAttribute("aria-pressed", "false");
-      stripMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
+      stripMicBtn.setAttribute("aria-label", "Start listening");
       stripMicBtn.appendChild(makeMicIcon());
-      var stripMicWord = document.createElement("span");
-      stripMicWord.className = "zn-sr-only";
-      stripMicWord.textContent = "Speak";
-      stripMicBtn.appendChild(stripMicWord);
-      [grabStrip, stripCap, stripTypeBtn, stripHideBtn, stripMicBtn].forEach(function (el) { stripEl.appendChild(el); });
+      var stripMicBars = makeDockBars();
+      stripMicBtn.appendChild(stripMicBars);
 
-      /* 3. Expanded state: <= 60 dvh sheet */
-      var sheetEl = document.createElement("div");
+      [stripLineBtn, stripToggle, stripMicBtn].forEach(function (el) {
+        stripEl.appendChild(el);
+      });
+
+      /* 3. Expanded state: the ledger sheet. */
+      var sheetEl = document.createElement("section");
       sheetEl.className = "zn-dock-sheet";
 
-      var grabSheet = document.createElement("button");
-      grabSheet.type = "button";
-      grabSheet.className = "zn-dock-grab";
-      grabSheet.setAttribute("aria-label", "Collapse voice tutor sheet");
-      grabSheet.textContent = "— Collapse";
+      /* ONE tape at the sheet's top edge (doctrine §10.12 / B-AUDIT §1.3):
+         92×27, -3°, the kit's torn-end clip, clipped by an 18 px band so
+         nothing floats over the lesson and the ink rule is never painted
+         over. There is no tape in the hidden/tab state (no sheet edge). */
+      var tapeClip = document.createElement("span");
+      tapeClip.className = "zn-dock-tape-clip";
+      tapeClip.setAttribute("aria-hidden", "true");
+      var tape = document.createElement("span");
+      tape.className = "zn-dock-tape";
+      tapeClip.appendChild(tape);
 
-      var topRow = document.createElement("div");
-      topRow.className = "zn-dock-top-row";
-      var anchorChip = document.createElement("button");
-      anchorChip.type = "button";
-      anchorChip.className = "zn-dock-anchor-chip";
-      anchorChip.setAttribute("data-element-id", "EL-LES-01-050");
-      anchorChip.setAttribute("data-anchor-block", anchorBlockId);
-      anchorChip.textContent = "Asking about: " + anchorLabelText;
+      /* Sheet grip rule: a paper-slip cue inside the sheet only. The panel
+         toggle above is the real control; this is not a button. */
+      var grip = document.createElement("span");
+      grip.className = "zn-dock-grip";
+      grip.setAttribute("aria-hidden", "true");
 
-      var identityLine = document.createElement("p");
-      identityLine.className = "zn-dock-identity";
-      identityLine.setAttribute("data-element-id", "EL-LES-01-051");
-      identityLine.textContent = "I'm an AI tutor — I see this lesson page, not your room.";
-      /* Marked seen only when the sheet is actually expanded (setContainment),
-         not merely mounted behind a collapsed strip. */
-      if (safeStorageGet(IDENTITY_SEEN_KEY) === "true") {
-        identityLine.hidden = true;
-      }
-      topRow.appendChild(anchorChip);
-      topRow.appendChild(identityLine);
+      var head = document.createElement("header");
+      head.className = "zn-dock-head";
 
-      /* State indicator row (EL-LES-01-044) */
-      var stateRow = document.createElement("div");
-      stateRow.className = "zn-dock-state-row";
-      stateRow.setAttribute("data-element-id", "EL-LES-01-044");
-      var stampEl = document.createElement("span");
-      stampEl.className = "zn-dock-stamp";
-      stampEl.hidden = true;
-      var textChipEl = document.createElement("span");
-      textChipEl.className = "zn-dock-text-chip";
-      textChipEl.textContent = "TUTOR · TEXT";
-      textChipEl.hidden = true;
-      var stateLabel = document.createElement("span");
-      stateLabel.className = "zn-dock-state-label";
-      stateLabel.setAttribute("role", "status");
-      stateLabel.setAttribute("aria-live", "polite");
-      stateLabel.textContent = "Mic dabao aur poochho";
-      var sweepEl = document.createElement("div");
-      sweepEl.className = "zn-dock-sweep";
-      sweepEl.setAttribute("aria-hidden", "true");
-      sweepEl.hidden = true;
-      var barsEl = document.createElement("div");
-      barsEl.className = "zn-dock-bars";
-      barsEl.setAttribute("aria-hidden", "true");
-      barsEl.hidden = true;
-      for (var bIdx = 0; bIdx < 5; bIdx++) {
-        var barSpan = document.createElement("span");
-        barSpan.className = "zn-dock-bar";
-        barsEl.appendChild(barSpan);
-      }
-      var retryBtn = document.createElement("button");
-      retryBtn.type = "button";
-      retryBtn.className = "zn-dock-retry";
-      retryBtn.textContent = "Retry";
-      retryBtn.hidden = true;
-      [stampEl, textChipEl, stateLabel, sweepEl, barsEl, retryBtn].forEach(function (el) { stateRow.appendChild(el); });
+      /* Contract: the box shows the current language + a chevron inside it;
+         the whole box opens the menu. Tapping the label never switches the
+         language — only choosing an option does. */
+      var langWrap = document.createElement("div");
+      langWrap.className = "zn-dock-lang";
+      var langBtn = document.createElement("button");
+      langBtn.type = "button";
+      langBtn.className = "zn-dock-lang-btn";
+      langBtn.setAttribute("aria-haspopup", "listbox");
+      langBtn.setAttribute("aria-expanded", "false");
+      var langLabel = document.createElement("span");
+      langLabel.className = "zn-dock-lang-label";
+      langLabel.textContent = "English";
+      var langChevron = makeChevronIcon("down");
+      langChevron.setAttribute("class", "zn-dock-lang-chevron");
+      langBtn.appendChild(langLabel);
+      langBtn.appendChild(langChevron);
 
-      /* Transcript panel (EL-LES-01-047) */
+      var langMenu = document.createElement("ul");
+      langMenu.className = "zn-dock-lang-menu";
+      langMenu.setAttribute("role", "listbox");
+      langMenu.setAttribute("aria-label", "Lesson language");
+      langMenu.hidden = true;
+      DOCK_LANG_OPTIONS.forEach(function (opt) {
+        var li = document.createElement("li");
+        li.setAttribute("role", "none");
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "zn-dock-lang-option";
+        btn.setAttribute("role", "option");
+        btn.setAttribute("data-locale", opt.code);
+        btn.setAttribute("aria-selected", "false");
+        var txt = document.createElement("span");
+        txt.className = "zn-dock-lang-option-label";
+        if (opt.code === "hi") txt.setAttribute("lang", "hi");
+        else if (opt.code === "hi-Latn") txt.setAttribute("lang", "hi-Latn");
+        else txt.setAttribute("lang", "en");
+        txt.textContent = opt.label;
+        var note = document.createElement("span");
+        note.className = "zn-dock-lang-option-note";
+        note.textContent = "not ready";
+        note.hidden = true;
+        btn.appendChild(txt);
+        btn.appendChild(note);
+        li.appendChild(btn);
+        langMenu.appendChild(li);
+        view.langOptions.push({ code: opt.code, btn: btn, note: note });
+      });
+      langWrap.appendChild(langBtn);
+      langWrap.appendChild(langMenu);
+
+      var sheetToggle = document.createElement("button");
+      sheetToggle.type = "button";
+      sheetToggle.className = "zn-dock-panel-toggle zn-dock-panel-toggle-sheet";
+      sheetToggle.setAttribute("aria-label", "Close the tutor panel");
+      sheetToggle.setAttribute("aria-expanded", "true");
+      sheetToggle.appendChild(makeChevronIcon("down"));
+
+      head.appendChild(langWrap);
+      head.appendChild(sheetToggle);
+
       var transcriptPanel = document.createElement("div");
       transcriptPanel.className = "zn-dock-transcript";
       transcriptPanel.setAttribute("data-element-id", "EL-LES-01-047");
+      transcriptPanel.setAttribute("role", "log");
       transcriptPanel.setAttribute("aria-live", "polite");
+      transcriptPanel.setAttribute("aria-relevant", "additions text");
+
+      var emptyEl = document.createElement("div");
+      emptyEl.className = "zn-dock-empty";
       var emptyLine = document.createElement("p");
-      emptyLine.className = "zn-dock-transcript-empty";
-      emptyLine.textContent = "Abhi koi sawaal nahi poochha gaya.";
-      transcriptPanel.appendChild(emptyLine);
+      emptyLine.className = "zn-dock-empty-line";
+      emptyLine.setAttribute("lang", "hi-Latn");
+      emptyLine.textContent = "Poochho kuch bhi is page se — mic dabao ya type karo.";
+      var disclosure = document.createElement("p");
+      disclosure.className = "zn-dock-disclosure";
+      disclosure.setAttribute("data-element-id", "EL-LES-01-051");
+      disclosure.setAttribute("lang", "en");
+      disclosure.textContent = "AI tutor — it sees this lesson page, not your room. Voice is transcribed; audio is not kept.";
+      if (safeStorageGet(IDENTITY_SEEN_KEY) === "true") disclosure.hidden = true;
+      var hints = document.createElement("div");
+      hints.className = "zn-dock-hints";
+      hints.setAttribute("role", "list");
+      ["Yeh formula kab lagta hai?", "Step by step samjhao"].forEach(function (phrase) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "zn-dock-hint";
+        chip.setAttribute("role", "listitem");
+        chip.setAttribute("lang", "hi-Latn");
+        chip.textContent = phrase;
+        hints.appendChild(chip);
+      });
+      emptyEl.appendChild(emptyLine);
+      emptyEl.appendChild(disclosure);
+      emptyEl.appendChild(hints);
+      transcriptPanel.appendChild(emptyEl);
 
-      /* Live caption line (EL-LES-01-048) + toggle (EL-LES-01-049) */
-      var captionRow = document.createElement("div");
-      captionRow.className = "zn-dock-caption-row";
-      var captionEl = document.createElement("p");
-      captionEl.className = "zn-dock-caption";
-      captionEl.setAttribute("data-element-id", "EL-LES-01-048");
-      captionEl.setAttribute("aria-live", "polite");
-      captionEl.textContent = "Mic dabao aur poochho";
-      var capToggleLabel = document.createElement("label");
-      capToggleLabel.className = "zn-dock-cap-toggle";
-      capToggleLabel.setAttribute("data-element-id", "EL-LES-01-049");
-      var capCheckbox = document.createElement("input");
-      capCheckbox.type = "checkbox";
-      capCheckbox.checked = safeStorageGet(CAPTIONS_STORAGE_KEY) !== "false";
-      var capTxt = document.createElement("span");
-      capTxt.textContent = "Captions";
-      capToggleLabel.appendChild(capCheckbox);
-      capToggleLabel.appendChild(capTxt);
-      captionRow.appendChild(captionEl);
-      captionRow.appendChild(capToggleLabel);
+      var statusHost = document.createElement("div");
+      statusHost.className = "zn-dock-status-host";
+      var statusEl = document.createElement("p");
+      statusEl.className = "zn-dock-status";
+      statusEl.setAttribute("role", "status");
+      statusEl.setAttribute("aria-live", "polite");
+      statusEl.hidden = true;
+      var statusStamp = document.createElement("span");
+      statusStamp.className = "zn-dock-stamp";
+      statusStamp.hidden = true;
+      statusStamp.textContent = "MIC OFF";
+      var statusText = document.createElement("span");
+      statusText.className = "zn-dock-status-text";
+      statusText.setAttribute("lang", "hi-Latn");
+      statusEl.appendChild(statusStamp);
+      statusEl.appendChild(statusText);
 
-      /* Controls row: 56 px mic disc (EL-LES-01-043) + stop button (EL-LES-01-046) */
-      var controlsRow = document.createElement("div");
-      controlsRow.className = "zn-dock-controls-row";
+      var retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.className = "zn-dock-retry";
+      retryBtn.setAttribute("aria-label", DOCK_RETRY_LABEL);
+      retryBtn.title = DOCK_RETRY_LABEL;
+      retryBtn.hidden = true;
+      retryBtn.appendChild(makeRetryIcon());
+
+      statusHost.appendChild(statusEl);
+
+      var composer = document.createElement("form");
+      composer.className = "zn-dock-composer";
+      composer.setAttribute("autocomplete", "off");
+
       var sheetMicBtn = document.createElement("button");
       sheetMicBtn.type = "button";
       sheetMicBtn.className = "zn-dock-mic zn-dock-mic-sheet";
       sheetMicBtn.setAttribute("data-element-id", "EL-LES-01-043");
       sheetMicBtn.setAttribute("aria-pressed", "false");
-      sheetMicBtn.setAttribute("aria-label", "Hold or press to speak doubt");
+      sheetMicBtn.setAttribute("aria-label", "Start listening");
       sheetMicBtn.appendChild(makeMicIcon());
-      var sheetMicWord = document.createElement("span");
-      sheetMicWord.textContent = "Speak";
-      sheetMicBtn.appendChild(sheetMicWord);
+      var sheetMicBars = makeDockBars();
+      sheetMicBtn.appendChild(sheetMicBars);
 
-      var stopBtn = document.createElement("button");
-      stopBtn.type = "button";
-      stopBtn.className = "zn-dock-stop";
-      stopBtn.setAttribute("data-element-id", "EL-LES-01-046");
-      stopBtn.textContent = "■ Stop";
-      stopBtn.hidden = true;
-      controlsRow.appendChild(sheetMicBtn);
-      controlsRow.appendChild(stopBtn);
-
-      /* Typed fallback form (EL-LES-01-052) */
-      var typedForm = document.createElement("form");
-      typedForm.className = "zn-dock-typed-form";
-      typedForm.setAttribute("data-element-id", "EL-LES-01-052");
       var typedInput = document.createElement("input");
       typedInput.type = "text";
       typedInput.className = "zn-dock-typed-input";
-      typedInput.placeholder = "Apna doubt yahan type karein…";
+      typedInput.setAttribute("data-element-id", "EL-LES-01-052");
       typedInput.setAttribute("aria-label", "Type your physics doubt");
+      typedInput.placeholder = "Apna doubt yahan type karein…";
+      typedInput.setAttribute("lang", "hi-Latn");
+      typedInput.autocomplete = "off";
+
       var typedSend = document.createElement("button");
       typedSend.type = "submit";
       typedSend.className = "zn-dock-typed-send";
+      typedSend.setAttribute("lang", "en");
       typedSend.textContent = "Send";
-      typedForm.appendChild(typedInput);
-      typedForm.appendChild(typedSend);
 
-      /* Help chip row (EL-LES-01-053) */
-      var helpRow = document.createElement("div");
-      helpRow.className = "zn-dock-help-chips";
-      helpRow.setAttribute("data-element-id", "EL-LES-01-053");
-      helpRow.setAttribute("role", "list");
-      helpRow.hidden = true;
-      [
-        "Is graph ka slope kya batata hai?",
-        "Yeh formula kab lagta hai?",
-        "Step by step samjhao"
-      ].forEach(function (phrase) {
-        var chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "zn-dock-help-chip";
-        chip.setAttribute("role", "listitem");
-        chip.textContent = phrase;
-        chip.addEventListener("click", function () {
-          typedInput.value = phrase;
-          try { typedInput.focus(); } catch (e) {}
-        });
-        helpRow.appendChild(chip);
-      });
+      composer.appendChild(sheetMicBtn);
+      composer.appendChild(typedInput);
+      composer.appendChild(typedSend);
 
-      /* Footer entries: Memory view (EL-LES-01-054) + Settings entry (EL-LES-01-055) */
-      var metaRow = document.createElement("div");
-      metaRow.className = "zn-dock-meta-row";
-      var memDetails = document.createElement("details");
-      memDetails.className = "zn-dock-memory";
-      memDetails.setAttribute("data-element-id", "EL-LES-01-054");
-      var memSum = document.createElement("summary");
-      memSum.textContent = "What the tutor remembers";
-      var memList = document.createElement("p");
-      memList.className = "zn-dock-memory-list";
-      memList.textContent = "Covered this session: " + anchorLabelText;
-      var memClearBtn = document.createElement("button");
-      memClearBtn.type = "button";
-      memClearBtn.className = "zn-dock-memory-clear";
-      memClearBtn.textContent = "Clear session memory";
-      memClearBtn.addEventListener("click", function () {
-        /* Two-step clear with an explicit confirm state (EL-LES-01-054
-           `cleared-confirm`), not a one-tap destructive action. */
-        if (memDetails.getAttribute("data-state") !== "confirm") {
-          memDetails.setAttribute("data-state", "confirm");
-          memClearBtn.textContent = "Tap again to confirm clear";
-          return;
-        }
-        memDetails.setAttribute("data-state", "cleared");
-        memClearBtn.textContent = "Clear session memory";
-        memList.textContent = "Nothing yet - this is a fresh session.";
-        if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
-          window.ZivonEvents.emit("EVT-data_cleared", { scope: "memory" });
-        }
-      });
-      memDetails.appendChild(memSum);
-      memDetails.appendChild(memList);
-      memDetails.appendChild(memClearBtn);
-
-      var settingsBtn = document.createElement("button");
-      settingsBtn.type = "button";
-      settingsBtn.className = "zn-dock-settings-btn";
-      settingsBtn.setAttribute("data-element-id", "EL-LES-01-055");
-      /* No settings sheet exists: the control scrolls to the page language bar,
-      so it is labelled for what it does (EL-LES-01-055). */
-      settingsBtn.textContent = "Language";
-      settingsBtn.addEventListener("click", function () {
-        var langBar = document.querySelector(".zn-lang-bar");
-        if (langBar && typeof langBar.scrollIntoView === "function") {
-          langBar.scrollIntoView({ block: "start" });
-        }
-      });
-      var sheetHideBtn = document.createElement("button");
-      sheetHideBtn.type = "button";
-      sheetHideBtn.className = "zn-dock-hide-btn";
-      sheetHideBtn.textContent = "Hide dock";
-      metaRow.appendChild(memDetails);
-      metaRow.appendChild(settingsBtn);
-      metaRow.appendChild(sheetHideBtn);
-
-      [grabSheet, topRow, stateRow, transcriptPanel, captionRow, controlsRow, typedForm, helpRow, metaRow].forEach(function (el) {
+      [tapeClip, grip, head, transcriptPanel, statusHost, composer].forEach(function (el) {
         sheetEl.appendChild(el);
       });
 
@@ -2432,41 +2685,152 @@
       region.appendChild(stripEl);
       region.appendChild(sheetEl);
 
-      /* Wire containment interactions */
+      view.transcript = transcriptPanel;
+      view.empty = emptyEl;
+      view.hints = hints;
+      view.disclosure = disclosure;
+      view.status = statusEl;
+      view.statusStamp = statusStamp;
+      view.statusText = statusText;
+      view.statusHost = statusHost;
+      view.stripLine = stripLine;
+      view.stripLineBtn = stripLineBtn;
+      view.stripWho = stripWho;
+      view.retryBtn = retryBtn;
+      view.typedInput = typedInput;
+      view.langWrap = langWrap;
+      view.langBtn = langBtn;
+      view.langLabel = langLabel;
+      view.langMenu = langMenu;
+      view.mics = [stripMicBtn, sheetMicBtn];
+      view.micBars = [stripMicBars, sheetMicBars];
+      ZivonVoiceDock._locale = getSavedLang();
+
+      function refreshLangAvailability() {
+        var current = ZivonVoiceDock.getLocale();
+        view.langOptions.forEach(function (o) {
+          var available = o.code === "en" || isLocaleBundleAvailable(o.code);
+          o.available = available;
+          o.btn.setAttribute("aria-disabled", available ? "false" : "true");
+          o.note.hidden = available;
+          if (available) {
+            o.btn.removeAttribute("title");
+          } else {
+            o.btn.setAttribute("title", "Translation bundle not generated yet — showing reviewed English.");
+          }
+          o.btn.setAttribute("aria-selected", o.code === current ? "true" : "false");
+        });
+        ZivonVoiceDock.updateLanguageLabel();
+      }
+
+      function closeLangMenu(focusBack) {
+        if (view.langMenu.hidden) return;
+        view.langMenu.hidden = true;
+        view.langBtn.setAttribute("aria-expanded", "false");
+        if (focusBack) { try { view.langBtn.focus(); } catch (e) {} }
+      }
+
+      function openLangMenu() {
+        refreshLangAvailability();
+        view.langMenu.hidden = false;
+        view.langBtn.setAttribute("aria-expanded", "true");
+      }
+
+      /* The one place a language is actually switched from the dock: the
+         existing routing/persistence path, so the page bar, storage, route
+         and bundle swap cannot drift apart. */
+      function selectDockLocale(code) {
+        var norm = normalizeDockLocale(code);
+        if (!norm) return false;
+        if (norm !== "en" && !isLocaleBundleAvailable(norm)) return false;
+        var from = ZivonVoiceDock.getLocale();
+        if (norm === from) { closeLangMenu(true); return true; }
+        ZivonVoiceDock._locale = norm;
+        if (document && document.documentElement) document.documentElement.lang = norm;
+        safeStorageSet(LANG_STORAGE_KEY, norm);
+        if (window.ZivonEvents && typeof window.ZivonEvents.recordLangSwitch === "function") {
+          window.ZivonEvents.recordLangSwitch(from, norm);
+        }
+        var row = document.querySelector(".zn-lang-row");
+        var chip = null;
+        if (row) {
+          /* The bundle set can arrive after first mount (localized page,
+             late manifest). Re-sync honesty before delegating. */
+          syncLangBarBundleAvailability(row);
+          Array.prototype.slice.call(row.querySelectorAll(".zn-chip")).forEach(function (c) {
+            if (!chip && chipLocaleCode(c) === norm) chip = c;
+          });
+        }
+        if (chip) {
+          selectLangChip(row, chip, true);
+        } else {
+          if (norm === "en") {
+            document.querySelectorAll(".zn-untranslated-notice").forEach(function (n) { n.remove(); });
+          } else {
+            applyClientBundleSwap(norm);
+            renderUntranslatedNotices(norm);
+          }
+          /* §10.13: read-aloud buttons follow the active locale. */
+          if (typeof refreshReadAloudForLocale === "function") refreshReadAloudForLocale();
+        }
+        ZivonVoiceDock.updateLanguageLabel();
+        closeLangMenu(true);
+        return true;
+      }
+
+      view.langBtn.addEventListener("click", function () {
+        if (view.langMenu.hidden) openLangMenu();
+        else closeLangMenu(false);
+      });
+      view.langBtn.addEventListener("keydown", function (ev) {
+        if (ev.key === "ArrowDown" || ev.key === "Enter" || ev.key === " ") {
+          if (!view.langMenu.hidden) return;
+          ev.preventDefault();
+          openLangMenu();
+          var first = view.langOptions[0];
+          if (first) { try { first.btn.focus(); } catch (e) {} }
+        }
+      });
+      view.langOptions.forEach(function (o) {
+        o.btn.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          if (!selectDockLocale(o.code)) return;
+        });
+        o.btn.addEventListener("keydown", function (ev) {
+          var idx = view.langOptions.indexOf(o);
+          if (ev.key === "ArrowDown") {
+            ev.preventDefault();
+            view.langOptions[(idx + 1) % view.langOptions.length].btn.focus();
+          } else if (ev.key === "ArrowUp") {
+            ev.preventDefault();
+            view.langOptions[(idx - 1 + view.langOptions.length) % view.langOptions.length].btn.focus();
+          } else if (ev.key === "Escape") {
+            ev.preventDefault();
+            closeLangMenu(true);
+          }
+        });
+      });
+      function onDocumentClick(ev) {
+        if (!view.langMenu.hidden && !langWrap.contains(ev.target)) closeLangMenu(false);
+      }
+      document.addEventListener("click", onDocumentClick);
+
+      /* Containment interactions: one icon control opens (strip) and one
+         closes (sheet); the strip line itself is also a target. */
       tabBtn.addEventListener("click", function () {
         playDockEarconOnce("start");
         ZivonVoiceDock.setContainment("collapsed", true);
       });
-      grabStrip.addEventListener("click", function () {
+      stripLineBtn.addEventListener("click", function () {
         playDockEarconOnce("start");
         ZivonVoiceDock.setContainment("expanded", true);
       });
-      stripTypeBtn.addEventListener("click", function () {
+      stripToggle.addEventListener("click", function () {
+        playDockEarconOnce("start");
         ZivonVoiceDock.setContainment("expanded", true);
-        try { typedInput.focus(); } catch (e) {}
       });
-      stripHideBtn.addEventListener("click", function () {
-        ZivonVoiceDock.setContainment("hidden", true);
-      });
-      sheetHideBtn.addEventListener("click", function () {
-        ZivonVoiceDock.setContainment("hidden", true);
-      });
-      grabSheet.addEventListener("click", function () {
+      sheetToggle.addEventListener("click", function () {
         ZivonVoiceDock.setContainment("collapsed", true);
-      });
-
-      capCheckbox.addEventListener("change", function () {
-        safeStorageSet(CAPTIONS_STORAGE_KEY, capCheckbox.checked ? "true" : "false");
-        captionEl.hidden = !capCheckbox.checked;
-      });
-
-      anchorChip.addEventListener("click", function () {
-        var bid = anchorChip.getAttribute("data-anchor-block") || "b-01";
-        highlightBlocks([bid]);
-        var target = document.getElementById(bid);
-        if (target && typeof target.scrollIntoView === "function") {
-          target.scrollIntoView({ block: "center" });
-        }
       });
 
       function ensureClientWired() {
@@ -2481,92 +2845,58 @@
         /* Echo guard (§10.13): pressing the dock mic immediately stops read-aloud */
         stopReadAloud();
         ZivonVoiceDock.setContainment("expanded", true);
-        playDockEarconOnce("start");
         var client = ensureClientWired();
         var cur = client.getState();
         if (cur === "speaking" || cur === "thinking" || cur === "speaking_text") {
+          playDockEarconOnce("stop");
           client.bargeIn("ptt_press");
           return;
         }
         if (cur === "listening") {
+          playDockEarconOnce("stop");
           client.endAudio();
-          try { sheetMicBtn.focus(); } catch (e) {}
           return;
         }
-        /* Press-and-hold capture path: permission FIRST (user gesture), then
-           connect, then queue the turn behind session.ready (M2). Denied or
-           unsupported browsers land in an honest error state with the typed
-           field open — never a fake "listening". */
-        var startTurn = function () {
-          var viaPointer = pointerHeld;
-          if (!client.hasMicrophone() && typeof client.requestMicPermission === "function") {
-            client.requestMicPermission().then(function (res) {
-              if (!res || !res.ok) return; /* state machine shows the reason */
-              /* The student released while the permission prompt was open:
-                 do not start recording after the fact. */
-              if (viaPointer && !pointerHeld) return;
-              if (client.getState() === "idle" || client.getState() === "offline" || client.getState() === "reconnecting") {
-                client.connect();
-              }
-              client.startListening("doubt");
-            });
-            return;
-          }
-          if (client.getState() === "idle" || client.getState() === "offline" || client.getState() === "reconnecting") {
-            client.connect();
-          }
-          client.startListening("doubt");
-        };
-        startTurn();
-      }
-
-      /* Hold-to-talk is the default (ADR-0018): pointerdown starts, release
-         ends. The synthetic click path stays for click/keyboard activation;
-         a real pointer sequence suppresses the trailing click. */
-      var suppressMicClick = false;
-      var pointerHeld = false;
-      function micPointerDown(ev) {
-        if (ev.button !== undefined && ev.button !== 0) return;
-        suppressMicClick = true;
-        pointerHeld = true;
-        handleMicTrigger();
-      }
-      function micPointerUp() {
-        pointerHeld = false;
-        var client = ZivonVoiceDock._activeClient;
-        if (client && client.getState() === "listening") client.endAudio();
-      }
-      [stripMicBtn, sheetMicBtn].forEach(function (btn) {
-        btn.addEventListener("pointerdown", micPointerDown);
-        btn.addEventListener("pointerup", micPointerUp);
-        btn.addEventListener("pointercancel", micPointerUp);
-        btn.addEventListener("pointerleave", function () {
-          if (suppressMicClick) micPointerUp();
-        });
-      });
-      function micClick(ev) {
-        if (suppressMicClick) {
-          suppressMicClick = false;
+        playDockEarconOnce("start");
+        /* Permission FIRST (user gesture), then connect, then queue the turn
+           behind session.ready (M2). Denied or unsupported browsers land in
+           an honest error state with the typed field open — never a fake
+           "listening". Tap once to start, tap again to stop: no hold timing
+           to lose while the permission prompt is open. */
+        if (!client.hasMicrophone() && typeof client.requestMicPermission === "function") {
+          client.requestMicPermission().then(function (res) {
+            if (!res || !res.ok) return; /* state machine shows the reason */
+            if (client.getState() === "idle" || client.getState() === "offline" || client.getState() === "reconnecting") {
+              client.connect();
+            }
+            client.startListening("doubt");
+          });
           return;
         }
-        handleMicTrigger();
+        if (client.getState() === "idle" || client.getState() === "offline" || client.getState() === "reconnecting") {
+          client.connect();
+        }
+        client.startListening("doubt");
       }
-      stripMicBtn.addEventListener("click", micClick);
-      sheetMicBtn.addEventListener("click", micClick);
 
-      stopBtn.addEventListener("click", function () {
-        playDockEarconOnce("stop");
-        var client = ensureClientWired();
-        client.bargeIn("stop_button");
-        try { sheetMicBtn.focus(); } catch (e) {}
+      view.mics.forEach(function (btn) {
+        btn.addEventListener("click", function () { handleMicTrigger(); });
       });
 
       retryBtn.addEventListener("click", function () {
         var client = ensureClientWired();
         client.reconnect();
+        try { sheetMicBtn.focus(); } catch (e) {}
       });
 
-      typedForm.addEventListener("submit", function (ev) {
+      hints.querySelectorAll(".zn-dock-hint").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          typedInput.value = chip.textContent.trim();
+          try { typedInput.focus(); } catch (e) {}
+        });
+      });
+
+      composer.addEventListener("submit", function (ev) {
         ev.preventDefault();
         var txt = (typedInput.value || "").trim();
         if (!txt) return;
@@ -2589,7 +2919,8 @@
         );
       }
 
-      /* Keyboard shortcuts (§10.12): Space hold = talk, Esc = stop/interrupt then collapse, Enter = send typed */
+      /* Keyboard (§10.12): Space toggles listening, Esc stops/interrupts then
+         collapses, Enter sends the typed doubt (the form handles it). */
       region.addEventListener("keydown", function (ev) {
         if (ev.key === "Escape") {
           var client = ZivonVoiceDock._activeClient;
@@ -2602,57 +2933,59 @@
           } else if (ZivonVoiceDock.getContainment() === "expanded") {
             ev.preventDefault();
             ZivonVoiceDock.setContainment("collapsed", true);
-            try { stripMicBtn.focus(); } catch (e) {}
           }
-        } else if (ev.key === " " && !isInteractiveTarget(ev.target)) {
+        } else if (ev.key === " " && !ev.repeat && !isInteractiveTarget(ev.target)) {
           var client2 = ensureClientWired();
-          if (client2.getState() !== "listening" && !ev.repeat) {
-            ev.preventDefault();
-            stopReadAloud();
-            ZivonVoiceDock.setContainment("expanded", true);
-            client2.startListening("space_hold");
-          }
+          ev.preventDefault();
+          stopReadAloud();
+          ZivonVoiceDock.setContainment("expanded", true);
+          if (client2.getState() === "listening") client2.endAudio();
+          else handleMicTrigger();
         }
       });
 
-      region.addEventListener("keyup", function (ev) {
-        if (ev.key === " " && !isInteractiveTarget(ev.target)) {
-          var client = ZivonVoiceDock._activeClient;
-          if (client && client.getState() === "listening") {
-            ev.preventDefault();
-            client.endAudio();
-            try { sheetMicBtn.focus(); } catch (e) {}
-          }
-        }
-      });
-
-      /* The anchor chip and the context snapshot follow the block nearest the
-         viewport centre, so "Asking about" matches what the student is
-         actually reading (§10.12 interaction 3 / F-ADD-VOI-01). */
-      var anchorRafTimer = null;
-      function updateAnchorChip() {
-        var snapshot = buildContextSnapshot();
-        var bid = snapshot.block_id || "b-01";
-        anchorChip.setAttribute("data-anchor-block", bid);
-        anchorChip.textContent = "Asking about: " + bid + " · " +
-          String(snapshot.block_type || "text").replace(/_/g, " ");
-      }
-      window.addEventListener("scroll", function () {
-        if (anchorRafTimer) return;
-        anchorRafTimer = setTimeout(function () {
-          anchorRafTimer = null;
-          updateAnchorChip();
-        }, 150);
+      /* Stick-to-bottom: follow new text only while the student is at the
+         bottom; scrolling up to re-read stops the page from yanking away. */
+      transcriptPanel.addEventListener("scroll", function () {
+        var gap = transcriptPanel.scrollHeight - transcriptPanel.scrollTop - transcriptPanel.clientHeight;
+        view.stick = gap < 32;
       }, { passive: true });
-      updateAnchorChip();
 
-      var initContainment = getInitialContainment();
-      ZivonVoiceDock.setContainment(initContainment, false);
+      refreshLangAvailability();
+      ZivonVoiceDock.setContainment(getInitialContainment(), false);
       ZivonVoiceDock.renderAgentState("idle", {});
       return { mounted: true, region: region };
     }
   };
   window.ZivonVoiceDock = ZivonVoiceDock;
+
+  /* A block's human label for the tutor prompt and the visible_blocks list.
+     Never the DOM id, never the internal type word: the model receives a
+     page description, not protocol. */
+  var BLOCK_TYPE_HUMAN = {
+    text: "Lesson text",
+    simulation: "Simulation",
+    check: "Check question",
+    diagram: "Diagram",
+    worked_example: "Worked example",
+    reveal: "Reveal"
+  };
+
+  function blockTextExcerpt(el) {
+    if (!el) return "";
+    var raw = typeof el.innerText === "string" && el.innerText
+      ? el.innerText
+      : (el.textContent || "");
+    return String(raw).replace(/\s+/g, " ").trim().slice(0, 400);
+  }
+
+  function humanBlockTitle(el, headingEl, bType) {
+    var heading = headingEl ? String(headingEl.textContent || "").replace(/\s+/g, " ").trim() : "";
+    if (heading) return heading.slice(0, 80);
+    var excerpt = blockTextExcerpt(el);
+    if (excerpt) return excerpt.slice(0, 60);
+    return BLOCK_TYPE_HUMAN[bType] || "Lesson content";
+  }
 
   function buildContextSnapshot(explicitBlockId) {
     var route = ZivonRouter.currentRoute();
@@ -2662,6 +2995,8 @@
     var langPref = checkedChip ? (checkedChip.getAttribute("data-lang") || checkedChip.textContent.trim()) : (document.documentElement.lang || "en");
     var visibleBlocks = [];
     var blockTypes = {};
+    var blockTitles = {};
+    var blockTexts = {};
     var viewportCentre = (typeof window !== "undefined" && window.innerHeight ? window.innerHeight : 800) / 2;
     var bestBlockId = null;
     var bestBlockType = "text";
@@ -2684,10 +3019,15 @@
       else if (tag.indexOf("zn-reveal") !== -1) bType = "reveal";
       var h = el.querySelector("h3, legend, figcaption");
       blockTypes[el.id] = bType;
+      var blockTitle = humanBlockTitle(el, h, bType);
+      blockTitles[el.id] = blockTitle;
+      blockTexts[el.id] = blockTextExcerpt(el);
       visibleBlocks.push({
         id: el.id,
         type: bType,
-        title: h ? h.textContent.trim().slice(0, 80) : el.id
+        /* `title` is the human label the tutor prompt may quote; it is never
+           the DOM id or the internal block type. */
+        title: blockTitle
       });
       /* Anchor = the block nearest the viewport centre (§10.12 "the block
          being discussed"), not simply the first block on the page. */
@@ -2731,8 +3071,13 @@
       course_id: route.course_id || (kicker ? kicker.textContent.trim() : "physics"),
       class: parseInt(String(route.course_id || "9").replace(/\D+/g, ""), 10) || 9,
       chapter: titleEl ? titleEl.textContent.trim().slice(0, 120) : "",
+      topic_title: titleEl ? titleEl.textContent.trim().slice(0, 120) : "",
       block_id: activeBlock,
       block_type: activeBlockType,
+      /* Human-readable anchor for the tutor prompt: what the student is
+         looking at + a concise excerpt of it. Ids stay internal. */
+      block_title: blockTitles[activeBlock] || BLOCK_TYPE_HUMAN[activeBlockType] || "Lesson content",
+      block_text: blockTexts[activeBlock] || "",
       sim_id: activeSim ? activeSim.block_id : null,
       sim_vars: activeSim ? activeSim.controls : {},
       visible_blocks: visibleBlocks,
@@ -2747,6 +3092,7 @@
     if (json.length > 4096) {
       snap.visible_blocks = snap.visible_blocks.slice(0, 4);
       snap.sim_states = snap.sim_states.slice(0, 2);
+      snap.block_text = String(snap.block_text || "").slice(0, 200);
     }
     return snap;
   }
@@ -3595,6 +3941,18 @@
           } else {
             setState("ready", { reason: payload.reason });
           }
+        }
+        return;
+      }
+      if (t === "language.detected") {
+        /* The server tells us which language the student actually spoke.
+           Reflect it (label, <html lang>, client strings when a bundle
+           exists) without navigating away from the turn. The event is
+           optional: an older server simply never sends it. */
+        if (window.ZivonVoiceDock && typeof window.ZivonVoiceDock.applyDetectedLocale === "function") {
+          window.ZivonVoiceDock.applyDetectedLocale(
+            payload.locale || payload.lang || payload.language
+          );
         }
         return;
       }

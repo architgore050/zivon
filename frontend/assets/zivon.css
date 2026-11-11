@@ -85,6 +85,7 @@
   --notes: "Courier Prime", "Courier New", monospace;
   --hand: Caveat, "Segoe Print", "Bradley Hand", cursive;
   --rule: rgba(90, 87, 72, 0.4); /* doctrine: graphite at 40%, 2 px (kit fill + landing gradient) */
+  --tape: rgba(196, 174, 104, 0.5); /* §3 extension: masking-tape tone (one token for card + dock tape) */
   --row: 2.25rem;                /* one ruled line (36 px at default size); rem so user font size scales the grid */
   --gutter: 1.5rem;
   --page-w: 47rem;               /* THE content width token (doctrine v1.5): header, text, cards and diagrams all stop here; wider screens get equal side margins. Single column until the Day-9 grid pairs blocks into 22rem columns */
@@ -257,7 +258,7 @@ a { color: var(--pen-blue); }
   left: calc(50% - 2.875rem);
   width: 5.75rem;
   height: 1.6875rem;
-  background: rgba(196, 174, 104, 0.5);
+  background: var(--tape);
   transform: rotate(-3deg);
   clip-path: polygon(
     0 0, 100% 0, 96% 12%, 100% 25%, 96% 37%, 100% 50%, 96% 62%, 100% 75%, 96% 87%, 100% 100%,
@@ -722,8 +723,21 @@ a { color: var(--pen-blue); }
   margin-top: 4px;
 }
 
-/* ---- §10.12 Voice dock (bottom sheet) ---- */
+/* ---- §10.12 Voice dock: Direction B — Ledger (founder review 2026-11-11) ----
+   Two-column ledger (handwritten role + time margin, answer body), no bubbles,
+   one conditional status line, one tape on the sheet's top edge, no block ids,
+   no copy, no captions toggle, no global retry. Type scale: tutor 14/1.45
+   (15/1.5 >=600px), student 13, role 16 Caveat, meta 11-12. 4/8 px rhythm
+   inside messages; 44 px minimum targets; no gradients, shadows, blur or glow.
+   Hover is colour/opacity only — never an underline. Pen-blue is reserved for
+   the two dock jobs the doctrine allows (live state, page anchor ring) and the
+   global focus ring; hover never spends it. */
 .zn-voice-dock-region {
+  --dock-gutter: 12px;
+  --dock-step: 8px;
+  --dock-tape-band: 18px;
+  --dock-mic-sheet: 48px;
+  --dock-mic-strip: 56px;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -731,6 +745,7 @@ a { color: var(--pen-blue); }
   z-index: 20;
   background: var(--paper);
   border-top: 2px solid var(--ink);
+  /* Safe area is counted ONCE, here, for every containment state. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
 }
@@ -743,12 +758,19 @@ a { color: var(--pen-blue); }
   }
 }
 /* While the dock is on screen it covers the bottom of the page; give the
-   lesson column room so the last block is never trapped behind the strip. */
+   lesson column room so the last block is never trapped behind the sheet. */
 body.zn-dock-present .zn-page:not(.zn-home) {
-  padding-bottom: calc(var(--row) * 5);
+  padding-bottom: calc(var(--row) * 3);
 }
 body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
   padding-bottom: 60dvh;
+}
+/* At >=900 the dock is a right-hand column, so the lesson column keeps a right
+   gutter wider than the dock instead of sitting under it. */
+@media (min-width: 900px) {
+  body.zn-dock-present .zn-page:not(.zn-home) {
+    padding-right: max(calc(560px + 1.5rem), calc((100% - var(--page-w)) / 2), 1.5rem);
+  }
 }
 .zn-voice-dock-region[data-containment="hidden"] {
   background: transparent;
@@ -758,7 +780,12 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
   right: 1rem;
   bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
+
+/* hidden state: 44 px paper tab; no tape (there is no sheet edge to tape) */
 .zn-dock-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 44px;
   min-width: 84px;
   padding: 0 1rem;
@@ -767,158 +794,417 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
   font-size: 0.9375rem;
   color: var(--ink);
   background: var(--paper-light);
-  border: 2px solid var(--ink);
+  border: 1px solid var(--ink);
   border-radius: 2px;
   cursor: pointer;
 }
+.zn-dock-tab:hover {
+  color: var(--graphite);
+}
+
+/* collapsed state: one-line last answer + panel toggle + 56 px mic */
 .zn-dock-strip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  min-height: 92px;
-  padding: 0.5rem 1rem;
+  gap: var(--dock-step);
+  min-height: calc(var(--dock-mic-strip) + 16px);
+  padding: 8px var(--dock-gutter);
   box-sizing: border-box;
 }
-.zn-dock-strip-caption {
-  flex: 1;
-  font-family: var(--notes);
-  font-size: 0.875rem;
+.zn-dock-strip-line-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: baseline;
+  gap: var(--dock-step);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
   color: var(--ink);
-  margin: 0;
+}
+.zn-dock-strip-who {
+  flex: 0 0 auto;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+}
+.zn-dock-strip-line {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--notes);
+  font-size: 12px;
+  line-height: 1.3;
 }
+.zn-dock-strip-line-btn:hover .zn-dock-strip-line {
+  color: var(--graphite);
+}
+.zn-dock-panel-toggle {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.zn-dock-panel-toggle:hover {
+  color: var(--graphite);
+}
+
+/* expanded state: the ledger sheet */
 .zn-dock-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* The tape band is a flow spacer, so nothing (tape, grip) can sit on the
+     header's first pixel: 18 band + 10 head padding = 28 px clearance. */
+  padding-top: var(--dock-tape-band);
   max-height: 60dvh;
-  overflow-y: auto;
-  padding: 0.5rem 1rem 1rem;
-  box-sizing: border-box;
 }
-.zn-dock-grab,
-.zn-dock-type-btn,
-.zn-dock-hide-btn,
-.zn-dock-retry,
-.zn-dock-stop,
-.zn-dock-typed-send,
-.zn-dock-help-chip,
-.zn-dock-memory-clear,
-.zn-dock-settings-btn {
+/* §10.12 — THE one tape, on the sheet's own top edge. Geometry is the
+   doctrine's card tape (92 × 27, -3°, same token, same jagged ends); the
+   18 px band clips the part above the edge so nothing floats over the lesson
+   and the 2 px ink top rule is never painted over. */
+.zn-dock-tape-clip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--dock-tape-band);
+  overflow: hidden;
+  pointer-events: none;
+}
+.zn-dock-tape {
+  position: absolute;
+  top: -15px;
+  left: calc(50% - 46px);
+  width: 92px;
+  height: 27px;
+  background: var(--tape);
+  transform: rotate(-3deg);
+  transform-origin: 50% 50%;
+  clip-path: polygon(
+    0 0, 100% 0, 96% 12%, 100% 25%, 96% 37%, 100% 50%, 96% 62%, 100% 75%,
+    96% 87%, 100% 100%, 0 100%, 4% 87%, 0 75%, 4% 62%, 0 50%, 4% 37%, 0 25%,
+    4% 12%);
+}
+/* the sheet's grip rule (a paper-slip cue, not a control: the panel toggle
+   above is the affordance) */
+.zn-dock-grip {
+  position: absolute;
+  top: calc(var(--dock-tape-band) + 2px);
+  left: calc(50% - 18px);
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  pointer-events: none;
+}
+.zn-dock-head {
+  display: flex;
+  align-items: center;
+  gap: var(--dock-step);
+  min-height: 56px;
+  padding: 10px var(--dock-gutter) 4px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+/* language: one dropdown box; the whole box is the hit target, the label
+   alone only opens the menu and never switches the language */
+.zn-dock-lang {
+  position: relative;
+  margin-right: auto;
+  min-width: 0;
+}
+.zn-dock-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 44px;
-  min-width: 44px;
-  padding: 0 0.75rem;
-  font-family: var(--display);
-  font-weight: 500;
-  font-size: 0.875rem;
+  padding: 0 8px 0 10px;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 13px;
   color: var(--ink);
   background: var(--paper-light);
   border: 1px solid var(--ink);
   border-radius: 2px;
   cursor: pointer;
 }
+.zn-dock-lang-btn:hover {
+  color: var(--graphite);
+}
+.zn-dock-lang-chevron {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+.zn-dock-lang-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 3;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+}
+.zn-dock-lang-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  font-family: var(--notes);
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.zn-dock-lang li:first-child .zn-dock-lang-option {
+  border-top: 0;
+}
+.zn-dock-lang-option[aria-selected="true"] {
+  font-weight: 700;
+}
+.zn-dock-lang-option:hover {
+  color: var(--graphite);
+}
+.zn-dock-lang-option[aria-disabled="true"] {
+  color: var(--graphite);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.zn-dock-lang-option-note {
+  font-size: 11px;
+  color: var(--graphite);
+}
+
+/* transcript: the sheet's remaining height, capped at 34 dvh (§10.12) */
+.zn-dock-transcript {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 34dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px var(--dock-gutter);
+  font-family: var(--notes);
+}
+.zn-dock-empty {
+  padding: 0 0 var(--dock-step);
+}
+.zn-dock-empty-line {
+  margin: 0 0 var(--dock-step);
+  font-family: var(--notes);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.zn-dock-disclosure {
+  margin: 0 0 var(--dock-step);
+  font-family: var(--notes);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--graphite);
+}
+.zn-dock-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.zn-dock-hint {
+  min-height: 44px;
+  padding: 0 10px;
+  font-family: var(--notes);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--paper-light);
+  border: 1px dashed var(--ink);
+  border-radius: 2px;
+  text-align: left;
+  cursor: pointer;
+}
+.zn-dock-hint:hover {
+  color: var(--graphite);
+}
+
+/* ledger rows: one 12 px gutter, one 8 px step, one text edge per role */
+.zn-dock-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  column-gap: var(--dock-step);
+  align-items: baseline;
+  padding: 4px 0;
+}
+@media (min-width: 600px) {
+  .zn-dock-row {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+}
+.zn-dock-row-margin {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.zn-dock-who {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.zn-dock-row-you .zn-dock-who {
+  color: var(--graphite);
+}
+.zn-dock-time {
+  font-family: var(--notes);
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--graphite);
+}
+/* the 3 px rule lives inside the 8 px inset, so BOTH roles' text starts on the
+   same x and the student's rule marks the line without moving it */
+.zn-dock-said {
+  margin: 0;
+  padding: 0 0 0 5px;
+  border-left: 3px solid transparent;
+  font-family: var(--notes);
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+@media (min-width: 600px) {
+  .zn-dock-said {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}
+.zn-dock-row-you .zn-dock-said {
+  font-size: 13px;
+  border-left-color: var(--ink);
+}
+.zn-dock-row-you.is-draft .zn-dock-said {
+  border-left-color: var(--graphite);
+  color: var(--graphite);
+}
+.zn-dock-cut {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--graphite);
+}
+
+/* retry: one icon, with the newest answer, no text */
+.zn-dock-retry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 2px 0 0 -8px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--graphite);
+  cursor: pointer;
+}
+.zn-dock-retry:hover {
+  color: var(--ink);
+}
+
+/* at most one conditional status line */
+.zn-dock-status-host {
+  flex: 0 0 auto;
+  padding: 0 var(--dock-gutter);
+}
+.zn-dock-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 0 4px;
+  font-family: var(--notes);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.zn-dock-stamp {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--pencil-red);
+  border: 2px solid var(--pencil-red);
+  padding: 1px 5px;
+  transform: rotate(-2deg);
+}
+
+/* composer: the mic is the toggle; the typed path is always present */
+.zn-dock-composer {
+  display: flex;
+  align-items: center;
+  gap: var(--dock-step);
+  flex: 0 0 auto;
+  padding: 8px var(--dock-gutter) 10px;
+  border-top: 1px solid var(--rule);
+}
 .zn-dock-mic {
-  min-width: 56px;
-  min-height: 56px;
-  padding: 0 0.875rem;
-  border-radius: 28px;
-  border: 2px solid var(--ink);
+  position: relative;
+  width: var(--dock-mic-sheet);
+  height: var(--dock-mic-sheet);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
   background: var(--paper-light);
   color: var(--ink);
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 0.9375rem;
   cursor: pointer;
+}
+.zn-dock-mic-strip {
+  width: var(--dock-mic-strip);
+  height: var(--dock-mic-strip);
 }
 .zn-dock-mic[aria-pressed="true"] {
   background: var(--ink);
   color: var(--paper-light);
 }
 .zn-dock-mic:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
-.zn-dock-top-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.zn-dock-mic .zn-dock-bars {
+  display: none;
 }
-.zn-dock-anchor-chip {
-  position: relative;
-  min-height: 44px;
-  padding: 0 0.75rem;
-  font-family: var(--notes);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--ink);
-  background: var(--paper-light);
-  border: 1px solid var(--ink);
-  border-radius: 2px;
-  cursor: pointer;
+.zn-dock-mic[aria-pressed="true"] > svg {
+  display: none;
 }
-/* Single tape corner at -3deg on the anchor chip only (§10.12) */
-.zn-dock-anchor-chip::before {
-  content: "";
-  position: absolute;
-  top: -6px;
-  left: 8px;
-  width: 28px;
-  height: 10px;
-  background: rgba(196, 174, 104, 0.5);
-  transform: rotate(-3deg);
-}
-.zn-dock-identity {
-  font-family: var(--notes);
-  font-size: 0.8125rem;
-  color: var(--graphite);
-  margin: 0;
-}
-.zn-dock-state-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  min-height: 36px;
-}
-.zn-dock-stamp {
-  font-family: var(--notes);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--pencil-red);
-  border: 2px solid var(--pencil-red);
-  padding: 2px 6px;
-  transform: rotate(-2deg);
-}
-.zn-dock-text-chip {
-  font-family: var(--notes);
-  font-weight: 700;
-  font-size: 0.75rem;
-  color: var(--ink);
-  border: 1px solid var(--ink);
-  padding: 2px 6px;
-}
-.zn-dock-state-label {
-  font-family: var(--notes);
-  font-size: 0.875rem;
-  color: var(--ink);
-}
-.zn-voice-dock-region[data-agent-state="connecting"] .zn-dock-state-row {
-  border-bottom: 2px dotted var(--ink);
-}
-.zn-voice-dock-region[data-agent-state="endpointing"] .zn-dock-state-row {
-  border-bottom: 1px dashed var(--graphite);
-}
-.zn-dock-sweep {
-  width: 72px;
-  height: 2px;
-  background: var(--pen-blue);
+.zn-dock-mic[aria-pressed="true"] .zn-dock-bars {
+  display: inline-flex;
 }
 .zn-dock-bars {
-  display: inline-flex;
   align-items: flex-end;
   gap: 3px;
   height: 16px;
@@ -926,100 +1212,74 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
 .zn-dock-bar {
   width: 3px;
   height: 12px;
-  background: var(--ink);
+  background: currentColor;
+  transform-origin: bottom center;
+  animation: zn-dock-bar 900ms ease-in-out infinite;
 }
-.zn-dock-bars[data-bars-mode="endpointing"] .zn-dock-bar {
-  transform: scaleY(0.15);
+.zn-dock-bar:nth-child(2) {
+  animation-delay: 120ms;
 }
-.zn-dock-transcript {
-  max-height: 34dvh;
-  overflow-y: auto;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  padding: 0.5rem 0;
-  margin-top: 0.5rem;
-  font-family: var(--notes);
-  font-size: 0.9375rem;
+.zn-dock-bar:nth-child(3) {
+  animation-delay: 240ms;
 }
-.zn-dock-line {
-  margin: 0.25rem 0;
+.zn-dock-bar:nth-child(4) {
+  animation-delay: 360ms;
 }
-.zn-dock-caption-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.zn-dock-bar:nth-child(5) {
+  animation-delay: 480ms;
 }
-.zn-dock-caption {
-  font-family: var(--notes);
-  font-size: 0.875rem;
-  color: var(--ink);
-  margin: 0;
-}
-.zn-dock-cap-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  min-height: 44px;
-  font-family: var(--notes);
-  font-size: 0.8125rem;
-  cursor: pointer;
-}
-.zn-dock-controls-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-.zn-dock-typed-form {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+@keyframes zn-dock-bar {
+  0%, 100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
 }
 .zn-dock-typed-input {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 44px;
-  padding: 0 0.75rem;
-  font-family: var(--display);
-  font-size: 0.9375rem;
+  padding: 0 10px;
+  font-family: var(--notes);
+  font-size: 14px;
   color: var(--ink);
   background: var(--paper-light);
   border: 1px solid var(--ink);
   border-radius: 2px;
+  box-sizing: border-box;
 }
-.zn-dock-help-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.zn-dock-typed-input::placeholder {
+  color: var(--graphite);
+  opacity: 1;
 }
-.zn-dock-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-.zn-dock-memory summary {
+.zn-dock-typed-send {
   min-height: 44px;
-  display: inline-flex;
-  align-items: center;
+  padding: 0 12px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--paper-light);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
   cursor: pointer;
-  font-family: var(--notes);
-  font-size: 0.8125rem;
 }
+.zn-dock-typed-send:hover {
+  opacity: 0.85;
+}
+
+.zn-dock-tab[hidden],
 .zn-dock-strip[hidden],
 .zn-dock-sheet[hidden],
-.zn-dock-tab[hidden],
-.zn-dock-help-chips[hidden],
-.zn-dock-bars[hidden],
-.zn-dock-sweep[hidden],
+.zn-dock-status[hidden],
+.zn-dock-status-host[hidden],
+.zn-dock-retry[hidden],
 .zn-dock-stamp[hidden],
-.zn-dock-text-chip[hidden],
-.zn-dock-stop[hidden],
-.zn-dock-retry[hidden] {
+.zn-dock-lang-menu[hidden],
+.zn-dock-empty[hidden],
+.zn-dock-disclosure[hidden],
+.zn-dock-lang-option-note[hidden] {
   display: none;
 }
 

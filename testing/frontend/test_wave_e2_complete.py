@@ -401,17 +401,22 @@ class TestWaveE2Complete(unittest.TestCase):
                     ? window.ZivonVoiceDock._activeClient.getState()
                     : 'no-client';
 
-                  // Anchor: the block nearest the viewport centre wins.
+                  // Context: the block nearest the viewport centre wins, and
+                  // the tutor's highlight frame rings that block by its
+                  // internal id — the dock itself never prints the id.
                   const b03 = document.getElementById('b-03');
                   b03.style.marginTop = '1600px';
                   b03.scrollIntoView({ block: 'center' });
                   await new Promise((r) => setTimeout(r, 250));
                   const snap = window.ZivonStateMatrix.buildContextSnapshot();
-                  const chip = region.querySelector('[data-element-id="EL-LES-01-050"]');
+                  window.ZivonStateMatrix.highlightBlocks([snap.block_id]);
                   return {
                     stateAfterInputSpace,
                     snapBlock: snap.block_id,
-                    chipBlock: chip.getAttribute('data-anchor-block')
+                    snapTitle: snap.block_title,
+                    snapText: snap.block_text,
+                    ringed: b03.classList.contains('zn-tutor-highlight'),
+                    dockText: region.innerText
                   };
                 }"""
             )
@@ -421,7 +426,11 @@ class TestWaveE2Complete(unittest.TestCase):
                 "Space inside the typed input must not start the microphone",
             )
             self.assertEqual(res["snapBlock"], "b-03")
-            self.assertEqual(res["chipBlock"], "b-03")
+            self.assertTrue(res["ringed"], "the highlight frame rings the block itself")
+            self.assertNotIn("b-03", res["dockText"])
+            self.assertNotIn("b-03", res["snapTitle"])
+            self.assertNotRegex(res["snapTitle"], r"b-\d")
+            self.assertTrue(res["snapText"])
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -574,7 +583,7 @@ class TestWaveE2Complete(unittest.TestCase):
         finally:
             page.close()
 
-    def test_voice_dock_18_states_containment_bargein_and_a11y(self) -> None:
+    def test_voice_dock_containment_states_bargein_and_a11y(self) -> None:
         page, errors = self._open_html(CONTENT_ONLY_LESSON_HTML, "dock_states.html")
         try:
             res = page.evaluate(
@@ -589,8 +598,30 @@ class TestWaveE2Complete(unittest.TestCase):
                   const region = mountRes.region;
                   const initialContainment = window.ZivonVoiceDock.getContainment();
 
-                  // Hide -> tab shown; click tab -> collapsed; click grab -> expanded
-                  region.querySelector('.zn-dock-strip .zn-dock-hide-btn').click();
+                  // One icon-only panel control: the strip opens, the sheet
+                  // header closes. No text, no second "Hide" row.
+                  const stripToggle = region.querySelector('.zn-dock-panel-toggle-strip');
+                  const sheetToggle = region.querySelector('.zn-dock-panel-toggle-sheet');
+                  const stripRect = stripToggle.getBoundingClientRect();
+                  stripToggle.click();
+                  const sheetRect = sheetToggle.getBoundingClientRect();
+                  const afterOpen = {
+                    containment: window.ZivonVoiceDock.getContainment(),
+                    stored: localStorage.getItem('zivon.dock'),
+                    expanded: sheetToggle.getAttribute('aria-expanded'),
+                    toggleText: sheetToggle.textContent.trim(),
+                    hasSvg: Boolean(sheetToggle.querySelector('svg')),
+                    width: sheetRect.width,
+                    height: sheetRect.height
+                  };
+                  sheetToggle.click();
+                  const afterClose = {
+                    containment: window.ZivonVoiceDock.getContainment(),
+                    stored: localStorage.getItem('zivon.dock'),
+                    expanded: stripToggle.getAttribute('aria-expanded')
+                  };
+                  // The hidden tab remains reachable (stored state / older devices)
+                  window.ZivonVoiceDock.setContainment('hidden', true);
                   const afterHide = {
                     containment: window.ZivonVoiceDock.getContainment(),
                     stored: localStorage.getItem('zivon.dock'),
@@ -598,38 +629,36 @@ class TestWaveE2Complete(unittest.TestCase):
                   };
                   region.querySelector('.zn-dock-tab').click();
                   const afterTabClick = window.ZivonVoiceDock.getContainment();
-                  region.querySelector('.zn-dock-strip .zn-dock-grab').click();
-                  const afterGrabClick = window.ZivonVoiceDock.getContainment();
 
-                  // Verify all 18 client states render distinct visuals per §10.12
-                  const all18 = [
+                  // All 18 client states share ONE conditional status line.
+                  // Every state the client can emit (18 canonical + the
+                  // reconnect + error variants the F-table adds).
+                  const allStates = [
                     'idle', 'requesting-permission', 'connecting', 'ready',
                     'listening', 'endpointing', 'thinking', 'speaking',
-                    'speaking_text', 'interrupted', 'offline', 'error:mic-denied',
-                    'error:mic-in-use', 'error:no-match', 'error:system-error',
-                    'error:auth.invalid', 'error:version.mismatch', 'text_only'
+                    'speaking_text', 'interrupted', 'reconnecting', 'offline',
+                    'error:mic-denied', 'error:mic-in-use', 'error:mic-constraint',
+                    'error:unsupported-browser', 'error:no-input',
+                    'error:no-match', 'error:system-error', 'error:timeout',
+                    'error:auth.invalid', 'error:version.mismatch',
+                    'error:quota-exhausted', 'text_only'
                   ];
+                  const statusCount = region.querySelectorAll('.zn-dock-status').length;
                   const stateChecks = {};
-                  for (const st of all18) {
+                  for (const st of allStates) {
                     window.ZivonVoiceDock.renderAgentState(st, {});
+                    const statusEl = region.querySelector('.zn-dock-status');
                     stateChecks[st] = {
                       attr: region.getAttribute('data-agent-state'),
-                      label: region.querySelector('.zn-dock-state-label').textContent,
-                      stampVisible: !region.querySelector('.zn-dock-stamp').hidden,
-                      sweepVisible: !region.querySelector('.zn-dock-sweep').hidden,
-                      textChipVisible: !region.querySelector('.zn-dock-text-chip').hidden,
-                      barsMode: region.querySelector('.zn-dock-bars').getAttribute('data-bars-mode'),
-                      micDisabled: region.querySelector('.zn-dock-mic-sheet').disabled
+                      statusHidden: statusEl.hidden,
+                      statusText: statusEl.innerText.replace(/\\s+/g, ' ').trim(),
+                      micDisabled: region.querySelector('.zn-dock-mic-sheet').disabled,
+                      micPressed: region.querySelector('.zn-dock-mic-sheet').getAttribute('aria-pressed'),
+                      retryHidden: region.querySelector('.zn-dock-retry').hidden
                     };
                   }
 
-                  // Test anchor chip click -> rings block b-01
-                  const anchorChip = region.querySelector('[data-element-id="EL-LES-01-050"]');
-                  anchorChip.setAttribute('data-anchor-block', 'b-01');
-                  anchorChip.click();
-                  const b01Highlighted = document.getElementById('b-01').classList.contains('zn-tutor-highlight');
-
-                  // Test barge-in via mic click while speaking -> transcript marked cut off
+                  // Barge-in: the mic is the single stop target.
                   const client = VC.create({
                     createWebSocket: mock.createWebSocket,
                     session_token: 'tok-1',
@@ -641,57 +670,105 @@ class TestWaveE2Complete(unittest.TestCase):
                   client.startListening('doubt');
                   client.endAudio();
                   const stateBeforeBarge = client.getState();
-                  // Press mic while speaking -> barge-in
                   region.querySelector('.zn-dock-mic-sheet').click();
                   const stateAfterBarge = client.getState();
                   const cutOffRows = region.querySelectorAll('[data-cut-off="true"]').length;
 
-                  // Check 44 px minimum target height on key controls
+                  // 44 px minimum targets on the controls that survived.
+                  window.ZivonVoiceDock.renderAgentState('error:no-match', {});
                   const micRect = region.querySelector('.zn-dock-mic-sheet').getBoundingClientRect();
                   const sendRect = region.querySelector('.zn-dock-typed-send').getBoundingClientRect();
+                  const retryRect = region.querySelector('.zn-dock-retry').getBoundingClientRect();
+                  const langRect = region.querySelector('.zn-dock-lang-btn').getBoundingClientRect();
 
                   return {
                     initialContainment,
+                    afterOpen,
+                    afterClose,
                     afterHide,
                     afterTabClick,
-                    afterGrabClick,
+                    statusCount,
                     stateChecks,
-                    b01Highlighted,
                     stateBeforeBarge,
                     stateAfterBarge,
                     cutOffRows,
+                    stripHeight: stripRect.height,
                     micHeight: micRect.height,
-                    sendHeight: sendRect.height
+                    sendHeight: sendRect.height,
+                    retryHeight: retryRect.height,
+                    langHeight: langRect.height,
+                    dockText: region.innerText
                   };
                 }"""
             )
             self.assertEqual(res["initialContainment"], "collapsed")
+            self.assertEqual(res["afterOpen"]["containment"], "expanded")
+            self.assertEqual(res["afterOpen"]["stored"], "expanded")
+            self.assertEqual(res["afterOpen"]["expanded"], "true")
+            self.assertEqual(res["afterOpen"]["toggleText"], "", "no text on the panel control")
+            self.assertTrue(res["afterOpen"]["hasSvg"])
+            self.assertGreaterEqual(res["afterOpen"]["width"], 44)
+            self.assertGreaterEqual(res["afterOpen"]["height"], 44)
+            self.assertEqual(res["afterClose"]["containment"], "collapsed")
+            self.assertEqual(res["afterClose"]["stored"], "collapsed")
+            self.assertEqual(res["afterClose"]["expanded"], "false")
             self.assertEqual(res["afterHide"]["containment"], "hidden")
             self.assertEqual(res["afterHide"]["stored"], "hidden")
             self.assertTrue(res["afterHide"]["tabVisible"])
             self.assertEqual(res["afterTabClick"], "collapsed")
-            self.assertEqual(res["afterGrabClick"], "expanded")
 
+            self.assertEqual(res["statusCount"], 1, "one status line, never a status row")
             sc = res["stateChecks"]
-            self.assertEqual(len(sc), 18)
-            self.assertNotEqual(
-                sc["listening"]["barsMode"],
-                sc["endpointing"]["barsMode"],
-                "listening and endpointing must have distinct visuals",
+            self.assertEqual(len(sc), 24)
+            self.assertEqual(
+                sc["error:quota-exhausted"]["attr"],
+                "text_only",
+                "quota-exhausted is the same student-facing state as text_only",
             )
-            self.assertTrue(sc["thinking"]["sweepVisible"])
-            self.assertTrue(sc["speaking_text"]["textChipVisible"])
-            self.assertTrue(sc["error:mic-denied"]["stampVisible"])
-            self.assertTrue(sc["error:mic-denied"]["micDisabled"])
+            for quiet in (
+                "idle",
+                "requesting-permission",
+                "connecting",
+                "ready",
+                "endpointing",
+                "speaking",
+                "speaking_text",
+                "interrupted",
+            ):
+                self.assertTrue(
+                    sc[quiet]["statusHidden"],
+                    f"{quiet} must not show a status line (nothing changes for the student)",
+                )
+            self.assertIn("Sun rahe hain", sc["listening"]["statusText"])
+            self.assertEqual(sc["listening"]["micPressed"], "true")
+            self.assertIn("Soch rahe hain", sc["thinking"]["statusText"])
+            self.assertIn("type karo", sc["offline"]["statusText"])
+            self.assertIn("jud", sc["reconnecting"]["statusText"])
+            self.assertIn("30 credits/day", sc["text_only"]["statusText"])
             self.assertTrue(sc["text_only"]["micDisabled"])
-            self.assertIn("30 credits/day", sc["text_only"]["label"])
+            self.assertTrue(sc["error:mic-denied"]["micDisabled"])
+            for err in (
+                "error:mic-in-use", "error:mic-constraint", "error:unsupported-browser",
+                "error:no-input", "error:no-match", "error:system-error",
+                "error:timeout", "error:auth.invalid", "error:version.mismatch",
+            ):
+                self.assertFalse(
+                    sc[err]["statusHidden"], f"{err} must explain itself in one line"
+                )
+                self.assertTrue(sc[err]["statusText"], f"{err} needs words, not a bare icon")
+            self.assertIn("Saaf sunai nahi diya", sc["error:no-match"]["statusText"])
+            self.assertFalse(sc["error:no-match"]["retryHidden"])
+            self.assertTrue(sc["idle"]["retryHidden"])
+            self.assertNotRegex(res["dockText"], r"b-0\d")
 
-            self.assertTrue(res["b01Highlighted"])
             self.assertEqual(res["stateBeforeBarge"], "speaking")
             self.assertEqual(res["stateAfterBarge"], "listening")
             self.assertGreaterEqual(res["cutOffRows"], 1)
             self.assertGreaterEqual(res["micHeight"], 44)
             self.assertGreaterEqual(res["sendHeight"], 44)
+            self.assertGreaterEqual(res["retryHeight"], 44)
+            self.assertGreaterEqual(res["langHeight"], 44)
+            self.assertGreaterEqual(res["stripHeight"], 44)
             self.assertEqual(errors, [])
         finally:
             page.close()
