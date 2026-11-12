@@ -41,6 +41,9 @@
     var locale = "en";
     if (parts.length > 0 && SUPPORTED_LOCALES.indexOf(parts[0]) !== -1) {
       locale = parts.shift();
+    } else if (parts.length > 1 && SUPPORTED_LOCALES.indexOf(parts[parts.length - 1]) !== -1) {
+      /* Shipped layout is <topic>/<locale>/ (optionally /index.html). */
+      locale = parts.pop();
     }
     if (parts.length === 0) {
       return { screen: "SCR-HOME-01", locale: locale, course_id: null, topic_slug: null, canonical_path: "/" };
@@ -72,7 +75,7 @@
     var loc = String(targetLocale || "en");
     if (loc === "hinglish") loc = "hi-Latn";
     if (!loc || loc === "en" || SUPPORTED_LOCALES.indexOf(loc) === -1) {
-      return norm;
+      return loc === "en" ? norm.replace(/\/(hi|hi-Latn)\/?$/, "/") : norm;
     }
     if (norm.indexOf("/courses/") === 0) {
       var base = norm.replace(/\/(hi|hi-Latn)\/?$/, "/");
@@ -5105,6 +5108,14 @@
     }
     var lessonPage = document.querySelector(".zn-page:not(.zn-home)");
     if (!lessonPage) return Promise.resolve(null);
+    /* Only a lesson topic has a manifest; privacy/404/home must not probe. */
+    var route = ZivonRouter.currentRoute();
+    if (route && route.screen === "SCR-PRIV-01") {
+      return Promise.resolve(null);
+    }
+    if (route && route.screen === "SCR-404-01" && document.querySelector(".zn-404")) {
+      return Promise.resolve(null);
+    }
     /* A file:// document cannot fetch (Chromium blocks the scheme and logs a
        console error), and production is HTTP(S) only. Local previews and the
        browser tests that open a page straight off disk therefore run with no
@@ -5119,9 +5130,13 @@
       return Promise.resolve(window.__ZIVON_MANIFEST__ || null);
     }
     manifestFetchStarted = true;
-    var manifestPath = (window.location && window.location.pathname
-      ? window.location.pathname.replace(/\/(hi|hi-Latn)\/?$/, "/")
-      : "./") + "manifest.json";
+    /* Directory URLs and catalogue links (…/index.html) must both build
+       …/manifest.json; never append to "index.html" itself. */
+    var pathname = (window.location && window.location.pathname) || "/";
+    var normalizedPath = pathname.replace(/\/[^/]*\.html?$/i, "/");
+    var locMatch = normalizedPath.match(/\/(hi|hi-Latn)\/?$/);
+    var basePath = normalizedPath.replace(/\/(hi|hi-Latn)\/?$/, "/");
+    var manifestPath = basePath + "manifest.json";
     return sameOriginRequest(manifestPath, { method: "GET" })
       .then(function (res) {
         if (!res || !res.ok) return null;
@@ -5129,7 +5144,6 @@
       })
       .then(function (data) {
         if (!data || typeof data !== "object") return data;
-        var locMatch = (window.location.pathname || "").match(/\/(hi|hi-Latn)\/?$/);
         if (!locMatch) {
           window.__ZIVON_MANIFEST__ = data;
           injectReadAloudControls(data);
@@ -5139,7 +5153,7 @@
         }
         /* A localized page prefers its own narration bundle (pre-generated
            audio in that language); the topic manifest stays the fallback. */
-        var locManifestPath = manifestPath.replace(/manifest\.json$/, locMatch[1] + "/manifest.json");
+        var locManifestPath = basePath + locMatch[1] + "/manifest.json";
         return sameOriginRequest(locManifestPath, { method: "GET" })
           .then(function (res) { return res && res.ok ? res.json() : null; })
           .catch(function () { return null; })

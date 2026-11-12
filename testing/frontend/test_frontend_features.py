@@ -195,6 +195,8 @@ class TestFrontendFeatures(unittest.TestCase):
                     lessonEn: R.parseRoute(p + 'index.html'),
                     lessonHi: R.parseRoute('/hi' + p),
                     lessonHinglish: R.parseRoute('/hi-Latn' + p),
+                    lessonHiSuffix: R.parseRoute(p + 'hi/index.html'),
+                    lessonHiSuffixDir: R.parseRoute(p + 'hi/'),
                     missing: R.parseRoute('/unknown/path'),
                     builtHi: R.buildLocalizedHref(p, 'hi'),
                     builtHinglish: R.buildLocalizedHref(p, 'hinglish'),
@@ -210,9 +212,16 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(res["lessonHi"]["locale"], "hi")
             self.assertEqual(res["lessonHi"]["canonical_path"], canon)
             self.assertEqual(res["lessonHinglish"]["locale"], "hi-Latn")
+            # v1 localized pages live at <topic>/<locale>/ (the prefix form is
+            # kept as the legacy hook, not the shipped layout).
+            self.assertEqual(res["lessonHiSuffix"]["screen"], "SCR-LES-01")
+            self.assertEqual(res["lessonHiSuffix"]["course_id"], "class-9-physics")
+            self.assertEqual(res["lessonHiSuffix"]["topic_slug"], "motion")
+            self.assertEqual(res["lessonHiSuffix"]["canonical_path"], canon)
+            self.assertEqual(res["lessonHiSuffixDir"]["canonical_path"], canon)
             self.assertEqual(res["missing"]["screen"], "SCR-404-01")
-            self.assertEqual(res["builtHi"], "/hi" + canon)
-            self.assertEqual(res["builtHinglish"], "/hi-Latn" + canon)
+            self.assertEqual(res["builtHi"], canon + "hi/")
+            self.assertEqual(res["builtHinglish"], canon + "hi-Latn/")
             self.assertEqual(res["builtEn"], canon)
             self.assertEqual(errors, [])
         finally:

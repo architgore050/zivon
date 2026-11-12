@@ -68,10 +68,51 @@ class TestShellContract(unittest.TestCase):
         local = [r for r in refs if not r.startswith(("http:", "https:", "mailto:"))]
         self.assertTrue(local, "expected local asset references in index.html")
         for ref in local:
+            # Cache-busted references (`assets/zivon.js?v=20261111b`) address
+            # the file before the query string; the query is a cache key, not
+            # part of the path. Strip it (and any fragment) before resolving.
+            path = ref.split("?", 1)[0].split("#", 1)[0]
             self.assertTrue(
-                (FRONTEND / ref).exists(),
+                (FRONTEND / path).exists(),
                 f"index.html references missing file: {ref}",
             )
+
+    def test_cache_busted_asset_refs_still_resolve(self) -> None:
+        # The shipped shell cache-busts its JS/CSS (`?v=<build>`), so a stale
+        # zivon.js can never pin an old page. The rewrite must not turn into a
+        # broken path: every local ref on every shipped HTML page (shell and
+        # published snapshot alike) resolves once the query string is removed.
+        pages = [INDEX, FRONTEND / "privacy" / "index.html", FRONTEND / "404.html"]
+        if (FRONTEND / "courses").is_dir():
+            pages += sorted((FRONTEND / "courses").rglob("*.html"))
+        pages = [p for p in pages if p.is_file()]
+        self.assertIn(
+            "?v=",
+            INDEX.read_text(encoding="utf-8"),
+            "the shell should cache-bust its assets",
+        )
+        checked = 0
+        for page in pages:
+            html = page.read_text(encoding="utf-8")
+            refs = re.findall(r"""(?:src|href)\s*=\s*["']([^"'#]+)["']""", html)
+            for ref in refs:
+                if ref.startswith(("http:", "https:", "mailto:", "//")):
+                    continue
+                path = ref.split("?", 1)[0].split("#", 1)[0]
+                if not path:
+                    continue
+                if path.startswith("/"):
+                    target = (FRONTEND / path.lstrip("/")).resolve()
+                else:
+                    target = (page.parent / path).resolve()
+                if target.is_dir():
+                    target = target / "index.html"
+                self.assertTrue(
+                    target.is_file(),
+                    f"{page.relative_to(REPO_ROOT)} references missing file: {ref}",
+                )
+                checked += 1
+        self.assertGreater(checked, 0, "expected local references on shipped pages")
 
     def test_published_catalogue_entries_resolve(self) -> None:
         # Publish-flow contract (scripts/publish-frontend.sh): the repo copy of
@@ -79,6 +120,11 @@ class TestShellContract(unittest.TestCase):
         # index.html with a manifest.json beside it (traceability), and every
         # topic directory on disk must be listed (a wholesale replacement never
         # leaves unlisted pages behind). Mirrors stage 11-link's publish smoke.
+        #
+        # Localized pages are variants, not catalogue entries: they live at
+        # `<topic>/<locale>/index.html` (the v1 route layout), carry their own
+        # locale manifest.json, and must belong to a listed topic. They do not
+        # need their own courses.js entry.
         if not (FRONTEND / "courses").is_dir():
             self.skipTest("no published catalogue in this checkout")
         entries = re.findall(
@@ -86,6 +132,7 @@ class TestShellContract(unittest.TestCase):
             (FRONTEND / "courses.js").read_text(encoding="utf-8"),
         )
         self.assertTrue(entries, "courses/ exists but courses.js lists no entries")
+        locale_dirs = {"hi", "hi-Latn"}
         for href in entries:
             index = FRONTEND / href
             self.assertTrue(
@@ -96,10 +143,26 @@ class TestShellContract(unittest.TestCase):
                 f"published page has no manifest.json: {index.parent}",
             )
         listed = {str((FRONTEND / e).parent) for e in entries}
-        on_disk = {str(p.parent) for p in (FRONTEND / "courses").rglob("index.html")}
+        on_disk: set[str] = set()
+        localized: list[Path] = []
+        for p in (FRONTEND / "courses").rglob("index.html"):
+            if p.parent.name in locale_dirs:
+                localized.append(p.parent)
+            else:
+                on_disk.add(str(p.parent))
         self.assertEqual(
             on_disk - listed, set(), "published topic not listed in courses.js"
         )
+        for topic in localized:
+            self.assertIn(
+                str(topic.parent),
+                listed,
+                f"localized page for an unlisted topic: {topic}",
+            )
+            self.assertTrue(
+                (topic / "manifest.json").is_file(),
+                f"localized page has no locale manifest.json: {topic}",
+            )
 
     def test_fonts_are_shipped_with_license(self) -> None:
         self.assertTrue(

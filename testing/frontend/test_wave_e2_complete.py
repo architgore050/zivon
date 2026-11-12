@@ -370,7 +370,9 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertEqual(dis["hiChecked"], "false")
             self.assertIsNone(dis["stored"], "a disabled chip must never persist")
             self.assertEqual(dis["lang"], res["langBefore"])
-            self.assertIn("Not translated yet", dis["status"])
+            # The status is bilingual now (Hindi first, English after the
+            # slash); assert the meaning, not the exact capitalisation.
+            self.assertIn("not translated yet", dis["status"].lower())
             en = res["afterEnabled"]
             self.assertEqual(en["hiChecked"], "true")
             self.assertEqual(en["enChecked"], "false")
@@ -1096,6 +1098,126 @@ class TestWaveE2Complete(unittest.TestCase):
                         "browser SpeechSynthesis must never be used (§10.13)",
                     )
                     self.assertEqual(errors, [])
+                finally:
+                    page.close()
+
+    def test_localized_page_uses_its_own_manifest_without_404(self) -> None:
+        """A localized page fetches its own locale manifest, with no 404.
+
+        The shipped layout puts a localized page at
+        `<topic>/<locale>/index.html` and gives it a locale `manifest.json`
+        (the topic manifest stays the fallback). courses.js links pages by
+        their `index.html`, so the auto-fetch must resolve the manifest next to
+        the page, not append `manifest.json` to the file name.
+        """
+        with tempfile.TemporaryDirectory(prefix="zivon-e2-locale-") as web:
+            web_path = Path(web)
+            (web_path / "assets").symlink_to(
+                FRONTEND / "assets", target_is_directory=True
+            )
+            topic = web_path / "courses" / "class-9-physics" / "motion"
+            locale_dir = topic / "hi"
+            locale_dir.mkdir(parents=True)
+            (topic / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "course_id": "class-9-physics",
+                        "topic_slug": "motion",
+                        "narration": {
+                            "available": True,
+                            "blocks": {
+                                "b-01": {
+                                    "available": True,
+                                    "path": "audio/b-01.en.opus",
+                                    "duration_ms": 1000,
+                                },
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (locale_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "course_id": "class-9-physics",
+                        "topic_slug": "motion",
+                        "locale": "hi",
+                        "narration": {
+                            "available": True,
+                            "lang": "hi",
+                            "blocks": {
+                                "b-02": {
+                                    "available": True,
+                                    "path": "audio/b-02.hi.opus",
+                                    "duration_ms": 900,
+                                },
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            html = (
+                CONTENT_ONLY_LESSON_HTML.replace(
+                    ZIVON_JS_URI, "../../../../assets/zivon.js"
+                ).replace(ZIVON_CSS_URI, "../../../../assets/zivon.css")
+            )
+            # The localized page is a variant of the same lesson: keep the
+            # fixture markup but declare the Hindi locale.
+            html = html.replace("<html lang='en'>", "<html lang='hi'>")
+            (locale_dir / "index.html").write_text(html, encoding="utf-8")
+
+            with serve_static(web_path) as base_url:
+                page = self._browser.new_page()
+                errors: list[str] = []
+                missing: list[str] = []
+                page.on(
+                    "console",
+                    lambda m: errors.append(m.text) if m.type == "error" else None,
+                )
+                page.on("pageerror", lambda e: errors.append(str(e)))
+                page.on(
+                    "response",
+                    lambda r: missing.append(f"{r.status} {r.url}")
+                    if r.status >= 400
+                    else None,
+                )
+                page.goto(
+                    f"{base_url}/courses/class-9-physics/motion/hi/index.html"
+                )
+                try:
+                    res = page.evaluate(
+                        """async () => {
+                          await new Promise((r) => setTimeout(r, 200));
+                          return {
+                            mounted: typeof window.__ZIVON_MANIFEST__ === 'object',
+                            blocks: Array.prototype.map.call(
+                              document.querySelectorAll('.zn-read-aloud-btn'),
+                              (b) => b.getAttribute('data-block-id')
+                            )
+                          };
+                        }"""
+                    )
+                    self.assertEqual(
+                        missing,
+                        [],
+                        "a localized page must not 404 while resolving its manifest",
+                    )
+                    self.assertTrue(
+                        res["mounted"],
+                        "the localized page must fetch a manifest next to the page",
+                    )
+                    self.assertEqual(
+                        res["blocks"],
+                        ["b-02"],
+                        "the localized page must prefer the block list of its own "
+                        "locale manifest (b-02 exists only there)",
+                    )
+                    self.assertFalse(
+                        any("404" in e for e in errors),
+                        f"localized page logged a missing-resource error: {errors}",
+                    )
                 finally:
                     page.close()
 
