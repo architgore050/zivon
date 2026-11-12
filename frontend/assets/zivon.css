@@ -882,12 +882,14 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
   left: 0;
   right: 0;
   height: var(--dock-tape-band);
-  overflow: hidden;
+  /* The tape straddles the sheet edge: clipping it at the band cut the torn
+     top half off. Keep the whole strip visible (it is pointer-transparent). */
+  overflow: visible;
   pointer-events: none;
 }
 .zn-dock-tape {
   position: absolute;
-  top: -15px;
+  top: -13px;
   left: calc(50% - 46px);
   width: 92px;
   height: 27px;

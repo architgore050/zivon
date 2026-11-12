@@ -872,7 +872,9 @@
          renderer writes it next to its bundle). English is the bare topic
          path. Only navigate when the target differs from where we are. */
       if (/\/courses\//.test(window.location.pathname)) {
-        var basePath = window.location.pathname.replace(/\/(hi|hi-Latn)\/?$/, "/");
+        /* Catalogue links end in index.html; never append a locale to it. */
+        var cleanPath = window.location.pathname.replace(/\/[^/]*\.html?$/i, "/");
+        var basePath = cleanPath.replace(/\/(hi|hi-Latn)\/?$/, "/");
         var targetPath =
           toCode === "en" ? basePath : basePath.replace(/\/$/, "/") + toCode + "/";
         if (targetPath !== window.location.pathname) {
