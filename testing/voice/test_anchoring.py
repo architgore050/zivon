@@ -149,9 +149,7 @@ class RefValidationTest(unittest.TestCase):
 
     def test_name_matching_is_case_insensitive(self) -> None:
         snap = parse_snapshot(_PAYLOAD)
-        self.assertEqual(
-            resolve_refs(("  velocity-time GRAPH  ",), snap), ("b-03",)
-        )
+        self.assertEqual(resolve_refs(("  velocity-time GRAPH  ",), snap), ("b-03",))
 
     def test_unknown_ids_dropped(self) -> None:
         snap = parse_snapshot(_PAYLOAD)

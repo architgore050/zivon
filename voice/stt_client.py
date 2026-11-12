@@ -76,9 +76,17 @@ def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[SttTransp
             "x-sample-rate": str(settings.stt_sample_rate),
         }
         try:
-            return await ws_connect(settings.stt_url, additional_headers=headers, open_timeout=settings.stt_connect_timeout_s)  # type: ignore[no-untyped-call]
+            return await ws_connect(
+                settings.stt_url,
+                additional_headers=headers,
+                open_timeout=settings.stt_connect_timeout_s,
+            )  # type: ignore[no-untyped-call]
         except TypeError:  # websockets < 14 named the option extra_headers
-            return await ws_connect(settings.stt_url, extra_headers=headers, open_timeout=settings.stt_connect_timeout_s)  # type: ignore[no-untyped-call,no-redef]
+            return await ws_connect(
+                settings.stt_url,
+                extra_headers=headers,
+                open_timeout=settings.stt_connect_timeout_s,
+            )  # type: ignore[no-untyped-call,no-redef]
 
     return _connect
 

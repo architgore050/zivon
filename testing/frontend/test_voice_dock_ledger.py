@@ -81,7 +81,9 @@ class TestVoiceDockLedger(unittest.TestCase):
     def _open(self, *, consent: bool = True) -> tuple[Page, list[str]]:
         page = self._browser.new_page()
         errors: list[str] = []
-        page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+        page.on(
+            "console", lambda m: errors.append(m.text) if m.type == "error" else None
+        )
         page.on("pageerror", lambda e: errors.append(str(e)))
         if consent:
             page.add_init_script(
@@ -186,7 +188,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             )
             self.assertEqual(res["before"]["label"], "English")
             self.assertIsNone(res["before"]["locale"])
-            self.assertTrue(res["afterLabelTap"]["menuOpen"], "the label tap opens the menu")
+            self.assertTrue(
+                res["afterLabelTap"]["menuOpen"], "the label tap opens the menu"
+            )
             self.assertEqual(res["afterLabelTap"]["expanded"], "true")
             self.assertEqual(res["afterLabelTap"]["label"], "English")
             self.assertIsNone(
@@ -216,7 +220,9 @@ class TestVoiceDockLedger(unittest.TestCase):
                   localStorage.removeItem('zivon_locale');
                   localStorage.setItem('zivon.consent', 'granted');
                   window.__noReload = true;
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const sock = window.__mock.getSocket();
                   sock.serverEmitJson({ type: 'language.detected', locale: 'hi-Latn', confidence: 0.86 });
                   await new Promise((r) => setTimeout(r, 20));
@@ -249,7 +255,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   const btn = region.querySelector('.zn-dock-retry');
                   const visibleWhileSpeaking = !btn.hidden;
@@ -280,12 +288,16 @@ class TestVoiceDockLedger(unittest.TestCase):
                 }"""
             )
             self.assertTrue(res["seed"]["mounted"])
-            self.assertFalse(res["visibleWhileSpeaking"], "retry only exists when the turn failed")
+            self.assertFalse(
+                res["visibleWhileSpeaking"], "retry only exists when the turn failed"
+            )
             self.assertTrue(res["visibleInError"])
             self.assertTrue(res["inNewestRow"], "retry belongs to the newest answer")
             self.assertTrue(res["label"])
             self.assertEqual(res["title"], res["label"])
-            self.assertEqual(res["text"], "", "the retry control is an icon, not a word")
+            self.assertEqual(
+                res["text"], "", "the retry control is an icon, not a word"
+            )
             self.assertTrue(res["hasSvg"])
             self.assertGreaterEqual(res["width"], 44)
             self.assertGreaterEqual(res["height"], 44)
@@ -302,7 +314,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   window.__mock.getSocket().serverEmitJson({
                     type: 'highlight', turn_id: 'turn-1', block_ids: ['b-02']
@@ -340,7 +354,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             self.assertFalse(res["hasIdText"], "the dock must never render a block id")
             self.assertFalse(res["hasTypeText"])
             self.assertFalse(res["hasAnchorChip"])
-            self.assertTrue(res["highlighted"], "the highlight frame still rings the block itself")
+            self.assertTrue(
+                res["highlighted"], "the highlight frame still rings the block itself"
+            )
             self.assertRegex(res["blockId"], r"^b-0\d$")
             self.assertNotRegex(res["blockTitle"], r"b-\d")
             self.assertRegex(res["blockTitle"], r"Worked example")
@@ -423,7 +439,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   const rowsBefore = Array.from(region.querySelectorAll('.zn-dock-row'));
                   rowsBefore.forEach((r, i) => { r.setAttribute('data-probe', 'row-' + i); });
@@ -455,7 +473,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             )
             self.assertTrue(res["seed"]["mounted"])
             self.assertEqual(res["rowCountBefore"], 2)
-            self.assertTrue(res["sameNodes"], "state ticks must not rebuild transcript rows")
+            self.assertTrue(
+                res["sameNodes"], "state ticks must not rebuild transcript rows"
+            )
             self.assertTrue(res["firstStillFirst"])
             self.assertTrue(res["probeSurvived"])
             self.assertTrue(res["grew"])
@@ -470,7 +490,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   const statuses = region.querySelectorAll('.zn-dock-status');
                   const out = {};
@@ -489,7 +511,9 @@ class TestVoiceDockLedger(unittest.TestCase):
                   return { seed, count: statuses.length, out };
                 }"""
             )
-            self.assertEqual(res["count"], 1, "there is exactly one status line, not a row")
+            self.assertEqual(
+                res["count"], 1, "there is exactly one status line, not a row"
+            )
             out = res["out"]
             for quiet in (
                 "idle",
@@ -501,7 +525,9 @@ class TestVoiceDockLedger(unittest.TestCase):
                 "speaking_text",
                 "interrupted",
             ):
-                self.assertTrue(out[quiet]["hidden"], f"{quiet} must not show a status line")
+                self.assertTrue(
+                    out[quiet]["hidden"], f"{quiet} must not show a status line"
+                )
             self.assertIn("Sun rahe hain", out["listening"]["text"])
             self.assertIn("Soch rahe hain", out["thinking"]["text"])
             self.assertIn("jud", out["reconnecting"]["text"])
@@ -532,7 +558,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   const mic = region.querySelector('.zn-dock-mic-sheet');
                   const bars = mic.querySelector('.zn-dock-bars');
@@ -573,7 +601,9 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   const tapes = region.querySelectorAll('.zn-dock-tape');
                   const tape = tapes[0];
@@ -622,10 +652,18 @@ class TestVoiceDockLedger(unittest.TestCase):
             self.assertLess(res["visibleBand"], 20)
             self.assertGreaterEqual(res["tapeWidth"], 90)
             self.assertLessEqual(res["tapeWidth"], 97)
-            self.assertEqual(res["clipClipsOverflow"], "visible", "the whole torn tape must stay visible, not cut in half")
-            self.assertGreaterEqual(res["headClearance"], 22, "tape band never covers the header")
+            self.assertEqual(
+                res["clipClipsOverflow"],
+                "visible",
+                "the whole torn tape must stay visible, not cut in half",
+            )
+            self.assertGreaterEqual(
+                res["headClearance"], 22, "tape band never covers the header"
+            )
             self.assertEqual(res["gripCount"], 1)
-            self.assertTrue(res["gripInSheet"], "the grip rule exists only in the sheet")
+            self.assertTrue(
+                res["gripInSheet"], "the grip rule exists only in the sheet"
+            )
             self.assertFalse(res["stripHasGrab"], "no grab band in the collapsed strip")
             self.assertTrue(res["hiddenSheet"], "the hidden tab carries no tape")
             self.assertEqual(errors, [])
@@ -638,12 +676,18 @@ class TestVoiceDockLedger(unittest.TestCase):
             res = page.evaluate(
                 """async () => {
                   localStorage.setItem('zivon.consent', 'granted');
-                  const seed = await """ + self.MOUNT_AND_SEED + """;
+                  const seed = await """
+                + self.MOUNT_AND_SEED
+                + """;
                   const region = document.querySelector('.zn-voice-dock-region');
                   return { seed, nodes: region.querySelectorAll('*').length };
                 }"""
             )
-            self.assertLessEqual(res["nodes"], 96, "dock DOM budget at rest incl. the reading key (§10.12 ~90)")
+            self.assertLessEqual(
+                res["nodes"],
+                96,
+                "dock DOM budget at rest incl. the reading key (§10.12 ~90)",
+            )
             self.assertEqual(errors, [])
         finally:
             page.close()

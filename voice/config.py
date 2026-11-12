@@ -252,11 +252,11 @@ class VoiceSettings:
             brain_fallback_transport=e.get(
                 "ZIVON_VOICE_BRAIN_FALLBACK_TRANSPORT", "gemini-direct"
             ),
-            brain_fallback_base_url=e.get(
-                "ZIVON_VOICE_BRAIN_FALLBACK_BASE_URL", ""
-            ),
+            brain_fallback_base_url=e.get("ZIVON_VOICE_BRAIN_FALLBACK_BASE_URL", ""),
             brain_fallback_api_key=_env(e, "ZIVON_VOICE_BRAIN_FALLBACK_API_KEY"),
-            brain_extra_headers=_json_headers(e.get("ZIVON_VOICE_BRAIN_EXTRA_HEADERS", "")),
+            brain_extra_headers=_json_headers(
+                e.get("ZIVON_VOICE_BRAIN_EXTRA_HEADERS", "")
+            ),
             brain_max_output_tokens=_env_int(
                 e, "ZIVON_VOICE_BRAIN_MAX_OUTPUT_TOKENS", 8192
             ),
@@ -271,16 +271,12 @@ class VoiceSettings:
             stt_connect_timeout_s=_env_float(
                 e, "ZIVON_VOICE_STT_CONNECT_TIMEOUT_S", 10.0
             ),
-            stt_final_timeout_s=_env_float(
-                e, "ZIVON_VOICE_STT_FINAL_TIMEOUT_S", 12.0
-            ),
+            stt_final_timeout_s=_env_float(e, "ZIVON_VOICE_STT_FINAL_TIMEOUT_S", 12.0),
             echo_guard_ms=_env_int(e, "ZIVON_VOICE_ECHO_GUARD_MS", 200),
             tts_url=e.get("ZIVON_VOICE_TTS_URL", ""),
             tts_model=e.get("ZIVON_VOICE_TTS_MODEL", "timbre-v3.0"),
             tts_language=e.get("ZIVON_VOICE_TTS_LANGUAGE", "hi-en"),
-            reply_locale_default=e.get(
-                "ZIVON_VOICE_REPLY_LOCALE_DEFAULT", "hi-Latn"
-            ),
+            reply_locale_default=e.get("ZIVON_VOICE_REPLY_LOCALE_DEFAULT", "hi-Latn"),
             tts_sample_rate=_env_int(e, "ZIVON_VOICE_TTS_SAMPLE_RATE", 48000),
             tts_voice=e.get("ZIVON_VOICE_TTS_VOICE", "Shivani"),
             tts_connect_timeout_s=_env_float(

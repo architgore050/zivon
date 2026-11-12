@@ -92,6 +92,8 @@ def strip_display_tags(text: str) -> str:
     """
     cleaned = _TAG_RX.sub("", text)
     return re.sub(r"[ \t]{2,}", " ", cleaned).strip()
+
+
 _SENTENCE_END = re.compile(r"[।.!?…]\s*")
 
 
@@ -142,9 +144,17 @@ def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[TtsTransp
 
         headers = {"X-API-Key-ID": settings.gnani_tts_api_key}
         try:
-            return await ws_connect(settings.tts_url, additional_headers=headers, open_timeout=settings.tts_connect_timeout_s)  # type: ignore[no-untyped-call]
+            return await ws_connect(
+                settings.tts_url,
+                additional_headers=headers,
+                open_timeout=settings.tts_connect_timeout_s,
+            )  # type: ignore[no-untyped-call]
         except TypeError:  # websockets < 14 named the option extra_headers
-            return await ws_connect(settings.tts_url, extra_headers=headers, open_timeout=settings.tts_connect_timeout_s)  # type: ignore[no-untyped-call,no-redef]
+            return await ws_connect(
+                settings.tts_url,
+                extra_headers=headers,
+                open_timeout=settings.tts_connect_timeout_s,
+            )  # type: ignore[no-untyped-call,no-redef]
 
     return _connect
 

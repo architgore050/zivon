@@ -15,6 +15,7 @@ import json
 import time
 import unittest
 from types import SimpleNamespace
+from typing import ClassVar
 
 from starlette.websockets import Message, WebSocket
 
@@ -1223,7 +1224,7 @@ class ClassifierFixtureTest(unittest.TestCase):
 class ReplyLanguageAndContextTest(unittest.IsolatedAsyncioTestCase):
     """Founder requirements 2026-11-11: id-free context, reply language."""
 
-    _SNAPSHOT = {
+    _SNAPSHOT: ClassVar[dict[str, object]] = {
         "type": "context.snapshot",
         "topic_id": "motion",
         "class": "9",
@@ -1368,9 +1369,7 @@ class ReplyLanguageAndContextTest(unittest.IsolatedAsyncioTestCase):
         highlight = outbox.first("highlight")
         assert highlight is not None
         self.assertEqual(highlight["block_ids"], ["b-13"])
-        spoken = " ".join(
-            str(t["text"]) for t in outbox.of_type("tts.text")
-        )
+        spoken = " ".join(str(t["text"]) for t in outbox.of_type("tts.text"))
         self.assertNotIn("b-13", spoken)  # ids are never spoken or shown
         self.assertNotIn("REF", spoken)
 

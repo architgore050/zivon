@@ -707,7 +707,9 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertEqual(res["afterOpen"]["containment"], "expanded")
             self.assertEqual(res["afterOpen"]["stored"], "expanded")
             self.assertEqual(res["afterOpen"]["expanded"], "true")
-            self.assertEqual(res["afterOpen"]["toggleText"], "", "no text on the panel control")
+            self.assertEqual(
+                res["afterOpen"]["toggleText"], "", "no text on the panel control"
+            )
             self.assertTrue(res["afterOpen"]["hasSvg"])
             self.assertGreaterEqual(res["afterOpen"]["width"], 44)
             self.assertGreaterEqual(res["afterOpen"]["height"], 44)
@@ -719,7 +721,9 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertTrue(res["afterHide"]["tabVisible"])
             self.assertEqual(res["afterTabClick"], "collapsed")
 
-            self.assertEqual(res["statusCount"], 1, "one status line, never a status row")
+            self.assertEqual(
+                res["statusCount"], 1, "one status line, never a status row"
+            )
             sc = res["stateChecks"]
             self.assertEqual(len(sc), 24)
             self.assertEqual(
@@ -750,14 +754,22 @@ class TestWaveE2Complete(unittest.TestCase):
             self.assertTrue(sc["text_only"]["micDisabled"])
             self.assertTrue(sc["error:mic-denied"]["micDisabled"])
             for err in (
-                "error:mic-in-use", "error:mic-constraint", "error:unsupported-browser",
-                "error:no-input", "error:no-match", "error:system-error",
-                "error:timeout", "error:auth.invalid", "error:version.mismatch",
+                "error:mic-in-use",
+                "error:mic-constraint",
+                "error:unsupported-browser",
+                "error:no-input",
+                "error:no-match",
+                "error:system-error",
+                "error:timeout",
+                "error:auth.invalid",
+                "error:version.mismatch",
             ):
                 self.assertFalse(
                     sc[err]["statusHidden"], f"{err} must explain itself in one line"
                 )
-                self.assertTrue(sc[err]["statusText"], f"{err} needs words, not a bare icon")
+                self.assertTrue(
+                    sc[err]["statusText"], f"{err} needs words, not a bare icon"
+                )
             self.assertIn("Saaf sunai nahi diya", sc["error:no-match"]["statusText"])
             self.assertFalse(sc["error:no-match"]["retryHidden"])
             self.assertTrue(sc["idle"]["retryHidden"])
@@ -1158,11 +1170,9 @@ class TestWaveE2Complete(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            html = (
-                CONTENT_ONLY_LESSON_HTML.replace(
-                    ZIVON_JS_URI, "../../../../assets/zivon.js"
-                ).replace(ZIVON_CSS_URI, "../../../../assets/zivon.css")
-            )
+            html = CONTENT_ONLY_LESSON_HTML.replace(
+                ZIVON_JS_URI, "../../../../assets/zivon.js"
+            ).replace(ZIVON_CSS_URI, "../../../../assets/zivon.css")
             # The localized page is a variant of the same lesson: keep the
             # fixture markup but declare the Hindi locale.
             html = html.replace("<html lang='en'>", "<html lang='hi'>")
@@ -1179,13 +1189,13 @@ class TestWaveE2Complete(unittest.TestCase):
                 page.on("pageerror", lambda e: errors.append(str(e)))
                 page.on(
                     "response",
-                    lambda r: missing.append(f"{r.status} {r.url}")
-                    if r.status >= 400
-                    else None,
+                    lambda r: (
+                        missing.append(f"{r.status} {r.url}")
+                        if r.status >= 400
+                        else None
+                    ),
                 )
-                page.goto(
-                    f"{base_url}/courses/class-9-physics/motion/hi/index.html"
-                )
+                page.goto(f"{base_url}/courses/class-9-physics/motion/hi/index.html")
                 try:
                     res = page.evaluate(
                         """async () => {

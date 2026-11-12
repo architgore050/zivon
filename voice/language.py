@@ -66,12 +66,8 @@ _ALIASES = {
 }
 
 _INSTRUCTION = {
-    "en": (
-        "answer in English — the student is speaking English"
-    ),
-    "hi": (
-        "answer in Hindi — the student is speaking Hindi"
-    ),
+    "en": ("answer in English — the student is speaking English"),
+    "hi": ("answer in Hindi — the student is speaking Hindi"),
     "hi-Latn": (
         "answer in Hinglish — the same Hindi-English mix the student used, "
         "keeping technical terms and proper nouns in English"

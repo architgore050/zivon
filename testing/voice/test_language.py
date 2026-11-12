@@ -47,12 +47,12 @@ class PrecedenceTest(unittest.TestCase):
         )
 
     def test_session_locale_used_when_no_detection(self) -> None:
-        self.assertEqual(
-            resolve_reply_locale(detected="", session_locale="hi"), "hi"
-        )
+        self.assertEqual(resolve_reply_locale(detected="", session_locale="hi"), "hi")
 
     def test_default_when_both_missing(self) -> None:
-        self.assertEqual(resolve_reply_locale(detected=None, session_locale=None), "hi-Latn")
+        self.assertEqual(
+            resolve_reply_locale(detected=None, session_locale=None), "hi-Latn"
+        )
 
     def test_default_is_hinglish(self) -> None:
         self.assertEqual(DEFAULT_LOCALE, "hi-Latn")
