@@ -81,6 +81,19 @@ ALLOWED_TAGS = frozenset({"pauses", "slow", "excited", "whispers"})
 CLOSING_LINE = "<pauses>… theek hai, aage ka agle turn mein."
 
 _TAG_RX = re.compile(r"<([a-zA-Z ]+?)>")
+
+
+def strip_display_tags(text: str) -> str:
+    """Remove expressive Timbre tags from user-visible text.
+
+    Tags stay in the string handed to :meth:`TtsClient.prepare` (the pricing
+    and synthesis contract), but the transcript/panel must never show
+    ``<pauses>`` or any other cue to the student.
+    """
+    cleaned = _TAG_RX.sub("", text)
+    return re.sub(r"[ \t]{2,}", " ", cleaned).strip()
+
+
 _SENTENCE_END = re.compile(r"[।.!?…]\s*")
 
 
@@ -131,9 +144,17 @@ def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[TtsTransp
 
         headers = {"X-API-Key-ID": settings.gnani_tts_api_key}
         try:
-            return await ws_connect(settings.tts_url, additional_headers=headers)  # type: ignore[no-untyped-call]
+            return await ws_connect(
+                settings.tts_url,
+                additional_headers=headers,
+                open_timeout=settings.tts_connect_timeout_s,
+            )  # type: ignore[no-untyped-call]
         except TypeError:  # websockets < 14 named the option extra_headers
-            return await ws_connect(settings.tts_url, extra_headers=headers)  # type: ignore[no-untyped-call,no-redef]
+            return await ws_connect(
+                settings.tts_url,
+                extra_headers=headers,
+                open_timeout=settings.tts_connect_timeout_s,
+            )  # type: ignore[no-untyped-call,no-redef]
 
     return _connect
 
@@ -201,9 +222,17 @@ class TtsClient:
         self.meters = _TurnMeters()
 
     async def speak(
-        self, text: str, segment_id: int, kind: str = "speech"
+        self,
+        text: str,
+        segment_id: int,
+        kind: str = "speech",
+        language: str | None = None,
     ) -> AsyncGenerator[TtsAudio, None]:
         """Send one prepared chunk; yield audio frames as they arrive.
+
+        ``language`` overrides ``ZIVON_VOICE_TTS_LANGUAGE`` for this segment —
+        the reply language follows the student's latest detected language
+        (voice/language.py). ``None`` keeps the configured default.
 
         Raises TtsUnavailableError on transport death (F4) — the caller
         degrades to text-only; meters keep what was already spoken.
@@ -222,7 +251,7 @@ class TtsClient:
             "text": prepared.text,
             "voice": self._settings.tts_voice,
             "model": self._settings.tts_model,
-            "language": self._settings.tts_language,
+            "language": language or self._settings.tts_language,
             "speed": 1.0,
             "audio_config": {
                 "sample_rate": self._settings.tts_sample_rate,

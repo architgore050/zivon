@@ -15,9 +15,11 @@ snapshot message implements ADR-0014.
 
 ## 1. Client states (dock-visible via `agent.state`)
 
-`idle → connecting → listening → thinking → speaking` (or `speaking_text`) `→ idle`; `error` and
-`offline` are entered from any state; `connecting` covers WS handshake + auth. The dock renders
-state, never interprets raw events. `speaking_text` = answer visible as text without audio (F2/F4).
+`idle → connecting → listening → thinking → speaking` (or `speaking_text`) `→ idle`; `error`,
+`reconnecting` (client-side transient transport loss) and `offline` (genuine browser-offline or
+retry budget exhausted) are entered from any state; `connecting` covers WS handshake + auth. The
+dock renders state, never interprets raw events. `speaking_text` = answer visible as text without
+audio (F2/F4).
 
 ## 2. Message catalogue
 
@@ -26,13 +28,14 @@ Dir: C→S = client→server, S→C = server→client. Billable? = Gnani program
 | Type | Dir | Schema (JSON unless binary) | Ordering/seq | Idempotent? | On loss | Billable? | Consumer / notes |
 |---|---|---|---|---|---|---|---|
 | session.start | C→S | `{v, session_token, device, locale, capabilities{ptt,opus?}, resume?, last_turn_id?, anchor?}` | first (and on resume) | yes (resume-safe) | retry until session.ready | no | server: auth (4401), H1 guard, state store |
-| session.ready | S→C | `{v, session_id, profile, state, credit_state?, server_time}` — `state` is a §1 dock state (`idle`/`resumed`); `credit_state` is the guard verdict (`ok\|warn\|text_only`) | after start | — | client re-requests via resume | no | dock: enable mic UI; `profile` is **server-asserted** (spec.md §11) |
+| session.ready | S→C | `{v, session_id, profile, state, credit_state?, reply_locale?, server_time}` — `state` is a §1 dock state (`idle`/`resumed`); `credit_state` is the guard verdict (`ok\|warn\|text_only`); `reply_locale` (additive, optional) is the current reply locale so a resumed dock can style itself before the next `language.detected` | after start | — | client re-requests via resume | no | dock: enable mic UI; `profile` is **server-asserted** (spec.md §11) |
 | audio.start | C→S | `{turn_hint?}` | per PTT press | no (each press = new turn intent) | ignore (no press = no turn) | no | server: open mic stream, state listening |
 | audio.chunk | C→S | **binary** header+PCM16 (§3) | seq per mic stream, monotonic | n/a | drop old partials; STT tolerates gaps | yes (STT seconds) | stt_client feeds Prisma |
 | audio.end | C→S | `{}` | once per press (PTT release) or client-VAD EOS (P1) | no | resend once if no stt.final in 1 s | no | EOS trigger; L0 starts here |
 | stt.partial | S→C | `{turn_id, seq, text}` | seq per turn | — | client renders latest only | no | dock: live transcript line |
-| stt.final | S→C | `{turn_id, text, lang, confidence?}` | once per turn | — | re-request on resume | no | dock: freeze transcript; server: proceed |
-| context.snapshot | C→S | `{topic_id, class, chapter, block_id, block_type, sim_id?, sim_vars?, scroll_pct, lang_pref, ts}` | latest-wins | yes (replace) | stale snapshot → F7 generic answer | no | anchoring: prompt context + REF validation |
+| stt.final | S→C | `{turn_id, text, lang, confidence?}` — `lang` is the vendor's raw detected tag (e.g. `hi-IN`), unchanged from v1 | once per turn | — | re-request on resume | no | dock: freeze transcript; server: proceed |
+| language.detected | S→C | `{locale: en\|hi\|hi-Latn, script: Latn\|Deva, confidence?}` — the resolved **reply** locale, emitted **only when it changes** (first turn, and whenever Prisma's detection or the session locale moves it) | after `stt.final`, before `tts.text` | — | dock keeps its last locale | no | dock: label/typography + captions; server: same value drives the answer-language prompt line and the Timbre `language`. Precedence: latest Prisma detection > `session.start.locale` > `ZIVON_VOICE_REPLY_LOCALE_DEFAULT` (`hi-Latn`). A typed turn has no new detection and inherits the last one. `confidence` is the STT transcript confidence (the only one the vendor reports), omitted when unknown |
+| context.snapshot | C→S | `{topic_id, class, chapter, topic_title?, block_id, block_type, block_title?, block_text?, sim_id?, sim_vars?, visible_blocks[{id,type,title}]?, scroll_pct, lang_pref, ts}` | latest-wins | yes (replace) | stale snapshot → F7 generic answer | no | anchoring: prompt context + REF validation. **Ids are internal protocol**: the prompt context the model receives is human-readable only (page/section/content/part names); `block_id`/`block_type`/`visible_blocks` never enter it. `visible_blocks[].title` is what lets the model's `REF: <part name>` resolve back to an id for `highlight`. |
 | agent.state | S→C | `{state, reason?}` | on every transition | — | resume replays current | no | dock: state chrome |
 | tts.text | S→C | `{turn_id, segment_id, kind: speech\|summary\|filler, text}` | per segment, order of speech | — | text panel skips | no | dock transcript panel; caption sync |
 | highlight | S→C | `{turn_id, block_ids[]}` | once per turn, **before/with first tts.audio** (T7) | — | highlight may be missed (visual only) | no | page JS: highlight blocks (ADR-0012) |
@@ -40,7 +43,7 @@ Dir: C→S = client→server, S→C = server→client. Billable? = Gnani program
 | interrupt | C→S | `{turn_id?}` | anytime while speaking/thinking | yes (repeat = same intent) | server may have finished; reply is harmless no-op | no | server: barge-in (§5) |
 | turn.end | S→C | `{turn_id, end_reason: done\|interrupted\|error, latency_ms{L0..L8}, usage{stt_audio_s, tts_chars, brain_prompt_tokens, brain_completion_tokens, retries}}` | once per turn | — | resume sends it if missed | no | dock resets; server wrote ledger (H4) |
 | error | S→C | `{code, message, recoverable}` | anytime | — | logged; codes are stable ids | no | dock: F1–F8 rendering; codes listed in §6 |
-| ping / pong | both | `{t}` | keepalive 15 s | — | 2 missed → offline state | no | NAT/idle timeouts |
+| ping / pong | both | `{t}` | keepalive 15 s | — | an unanswered ping (60 s client budget; `ws_ping_miss_max` server side) → reconnecting | no | NAT/idle timeouts |
 
 Notes: `audio.chunk` loss is tolerated (STT streams; gaps degrade accuracy, never crash);
 `tts.audio` gaps are bridged by skipping (jitter buffer logic per the audio skill — never
@@ -79,7 +82,7 @@ Opus decode).
 | thinking/speaking | interrupt | listening | §5 barge-in |
 | speaking | F4 | speaking_text | text-only continuation |
 | any | error (recoverable) | error → prior state | §9 F-table in spec.md |
-| any | WS closed | offline | client backoff-reconnect; resume |
+| any | WS closed | reconnecting | client backoff-reconnect; resume; `offline` only when retries are exhausted |
 
 ## 5. Interruption / barge-in (ADR-0010) and the echo path
 
@@ -113,7 +116,8 @@ logs only.
 ## 7. Sequences (the three the dock must handle first)
 
 - **Happy path (PTT):** start/ready → press: audio.start → chunks → release: audio.end →
-  stt.partial* → stt.final → (highlight · tts.text · tts.audio* — highlight first) → turn.end.
+  stt.partial* → stt.final → language.detected (first turn / on change) → (highlight ·
+  tts.text · tts.audio* — highlight first) → turn.end.
 - **Barge-in:** … tts.audio* → press → interrupt → agent.state listening → turn.end{interrupted}
   → new audio.start.
 - **Reconnect:** drop → dock offline → session.start{resume, last_turn_id} → session.ready (state

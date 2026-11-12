@@ -335,7 +335,7 @@ class DeletionAndRetentionService:
                 tx.execute(
                     """
                     UPDATE session
-                    SET coverage = '[]', coverage_synced = 0
+                    SET coverage = '[]', coverage_synced = FALSE
                     WHERE coverage != '[]'
                       AND COALESCE(coverage_updated_at, started_at) < ?
                     """,

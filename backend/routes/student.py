@@ -222,7 +222,7 @@ def bootstrap_session(body: SessionBootstrapRequest, request: Request) -> JSONRe
             session_id, device_pseudo_id, course_id, class_level,
             lang, mode, consent_ref, guardian_ref, flags,
             coverage, coverage_rev, started_at, turn_count, coverage_synced
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, '[]', 0, ?, 0, 0)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, '[]', 0, ?, 0, FALSE)
         """,
         (
             session_id,
@@ -312,7 +312,7 @@ def update_session_coverage(
     db.execute(
         """
         UPDATE session
-        SET coverage = ?, coverage_rev = ?, coverage_updated_at = ?, coverage_synced = 1
+        SET coverage = ?, coverage_rev = ?, coverage_updated_at = ?, coverage_synced = TRUE
         WHERE session_id = ?
         """,
         (json.dumps(body.covered), new_rev, now, session_id),

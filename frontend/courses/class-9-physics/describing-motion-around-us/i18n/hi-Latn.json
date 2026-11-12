@@ -1,0 +1,1371 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Hamare Aas-Paas ki Motion ka Varnan",
+    "b-00-meta.objectives.0": "Is paath ke baad aap ek seedhi line mein chalne wale object ki position, distance (doori) aur displacement (visthapan) describe kar sakte hain.",
+    "b-00-meta.objectives.1": "Is paath ke baad aap average speed (chaal), average velocity aur average acceleration calculate kar sakte hain aur unhe graphs se find kar sakte hain.",
+    "b-00-meta.objectives.2": "Is paath ke baad aap constant acceleration ke liye kinematic equations use kar sakte hain aur uniform circular motion ko explain kar sakte hain.",
+    "b-00-meta.glossary.0.term": "displacement",
+    "b-00-meta.glossary.0.definition": "Do instants ke beech position mein net change, jisme magnitude aur direction dono hote hain.",
+    "b-00-meta.glossary.1.term": "average velocity",
+    "b-00-meta.glossary.1.definition": "Displacement ko time interval se divide karke nikalte hain.",
+    "b-00-meta.glossary.2.term": "average acceleration",
+    "b-00-meta.glossary.2.definition": "Velocity ke change ko time interval se divide karke nikalte hain.",
+    "b-00-meta.glossary.3.term": "slope",
+    "b-00-meta.glossary.3.definition": "Graph line ki steepness, jo rate of change deti hai.",
+    "b-00-meta.glossary.4.term": "uniform circular motion",
+    "b-00-meta.glossary.4.definition": "Circle mein constant speed ke saath motion, jisme velocity ki direction change hoti rehti hai.",
+    "b-00-meta.glossary.5.term": "tangent",
+    "b-00-meta.glossary.5.definition": "Ek line jo circle ko sirf ek point par touch karti hai.",
+    "b-01.paragraphs.0": "Hamare aas-paas sab kuch motion (gati) mein hai, butterflies aur horses se lekar clouds aur tides tak. Is variety ko simply study karne ke liye, scientists pehle idealised forms jaise linear motion ka study karte hain.",
+    "b-01.paragraphs.1": "Linear motion seedhi line mein motion hai. Yah sabse simple kind ka motion hai. Examples hain: vertically girta hua ball, seedhi highway par car, aur seedhi track par train.",
+    "b-02.caption": "Reference point O aur ek straight line par positions B aur A. O ke right side positive hai.",
+    "b-02.svg_texts.t-0": "positive",
+    "b-03.paragraphs.0": "Position ko describe karne ke liye hum pehle ek reference point fix karte hain. Us point se distance (doori) aur direction, kisi bhi instant par, position ko describe karte hain.",
+    "b-03.paragraphs.1": "Agar position time ke saath badalti hai, to object motion (gati) mein hai. Agar position time ke saath nahi badalti, to object rest par hai. Ek straight line par, O ke right positive hai aur O ke left negative hai.",
+    "b-04.question": "Ek object ko motion (gati) mein kaha jata hai jab uska position reference point ke respect mein time ke saath change hota hai. Aapke aage chal rahe truck ke liye iska kya matlab hai?",
+    "b-04.options.0": "Agar woh door hai toh woh rest mein hai",
+    "b-04.options.1": "Agar uska position time ke saath change hota hai toh woh motion mein hai",
+    "b-04.options.2": "Woh sirf tabhi motion mein hai jab woh fast hai",
+    "b-04.options.3": "Sirf distance (doori) hi position describe karne ke liye kaafi hai",
+    "b-04.explanation": "Motion ka judgement position ke change se hota hai reference point ke respect mein, sirf speed (chaal) se nahi. Distance aur direction milke position ko describe karte hain.",
+    "b-05.paragraphs.0": "Ek athlete O se start karta hai, B tak pahunchta hai, phir A tak, phir B tak wapas daudta hai. Total distance (doori) travelled OA + AB = 100 m + 60 m = 160 m hai.",
+    "b-05.paragraphs.1": "Start aur stop ke beech displacement (visthapan) OB = 40 m positive direction mein hai. Jab object wapas palat jata hai, tab total distance aur magnitude of displacement barabar nahi hote.",
+    "b-05.paragraphs.2": "Displacement ko direction aur magnitude dono chahiye. Total distance ko sirf ek number chahiye. Dono ka SI unit metre hai.",
+    "b-06.question": "Ek ball ko O se vertically upwards throw kiya jata hai, wo B tak jaati hai aur wapas O par gir jaati hai. Displacement (visthapan) ke baare mein kaun sa statement true hai?",
+    "b-06.options.0": "Yeh kabhi zero nahi hota",
+    "b-06.options.1": "Iska magnitude total distance travelled se zyada ho sakta hai",
+    "b-06.options.2": "Iska magnitude total distance travelled se less than ya equal to hota hai",
+    "b-06.options.3": "Sabhi cases mein iska magnitude total distance travelled se less than hota hai",
+    "b-06.explanation": "Jab ball wapas O par aati hai, displacement (visthapan) zero hota hai jabki total distance zero nahi hota. Displacement ka magnitude kabhi bhi total distance se zyada nahi ho sakta, aur yeh total distance ke equal tabhi hota hai jab motion sirf ek direction mein ho.",
+    "b-07.paragraphs.0": "Average speed total distance (doori) travelled divided by time interval hoti hai. Yeh batati hai ki object kitni speed se move karta hai aur iski koi direction nahi hoti.",
+    "b-07.paragraphs.1": "Equal distances in equal intervals ka matlab hai uniform motion (eksamaan gati) at constant speed. Unequal distances ka matlab hai non-uniform motion with increasing ya decreasing speed.",
+    "b-08.problem": "Do postmen 210 yojanas ki distance (doori) se ek dusre ki taraf chalna shuru karte hain. Ek 9 yojanas per day chalta hai aur dusra 5 yojanas per day cover karta hai. Ve kitne days mein milenge?",
+    "b-08.steps.0.title": "Ek din mein saath mein cover ki gayi distance",
+    "b-08.steps.0.detail": "9 yojanas + 5 yojanas = 14 yojanas per day.",
+    "b-08.steps.1.title": "210 yojanas cover karne ka time",
+    "b-08.steps.1.detail": "210 / 14 = 15 days.",
+    "b-08.steps.2.title": "Distances check karo",
+    "b-08.steps.2.detail": "Pehla postman 9 x 15 = 135 yojanas. Dusra postman 5 x 15 = 75 yojanas. Total 210 yojanas.",
+    "b-08.answer": "Ve 15 days ke baad milenge.",
+    "b-09.paragraphs.0": "Average velocity displacement (visthapan) ko time interval se divide karke milti hai. Ise v_av = s/t ke roop mein likha jata hai.",
+    "b-09.paragraphs.1": "Iski direction displacement ke same hoti hai aur plus ya minus sign se dikhayi jati hai. Iski SI unit m s-1 hai, aur ise km h-1 mein bhi measure kiya jata hai. Yeh time ke saath position ke change ka average rate hai.",
+    "b-10.problem": "Sarang ko swimming pool mein ek end se doosre end tak swim karke wapas aane mein 50 seconds lagte hain. 50 s mein uska average speed (ausat chaal) aur average velocity (ausat veg) nikaalo.",
+    "b-10.steps.0.title": "Total distance (kul doori)",
+    "b-10.steps.0.detail": "Tay ki gayi total distance = 50 m.",
+    "b-10.steps.1.title": "Displacement (visthapan)",
+    "b-10.steps.1.detail": "Wah start point par wapas aa jata hai, isliye displacement = 0 m.",
+    "b-10.steps.2.title": "Average speed (ausat chaal)",
+    "b-10.steps.2.detail": "50 m / 50 s = 1 m s-1.",
+    "b-10.steps.3.title": "Average velocity (ausat veg)",
+    "b-10.steps.3.detail": "0 m / 50 s = 0 m s-1.",
+    "b-10.answer": "Average speed 1 m s-1, average velocity 0 m s-1.",
+    "b-11.question": "Aap teen ghante mein 200 km north drive karte hain, phir do ghante mein 200 km south. Poore trip ke liye average speed kya hai?",
+    "b-11.options.0": "40 km h-1",
+    "b-11.options.1": "80 km h-1",
+    "b-11.options.2": "0 km h-1",
+    "b-11.options.3": "100 km h-1",
+    "b-11.explanation": "Total distance (doori) = 400 km. Total time = 5 h. Average speed (ausat chaal) = 400 / 5 = 80 km h-1. Displacement (visthapan) zero hai, isliye average velocity (ausat veg) zero hai.",
+    "b-12.paragraphs.0": "Average acceleration velocity (veg) ke change ko time interval se divide karke nikaala jaata hai. Yeh (v - u) / (t2 - t1) hai aur iska SI unit m s-2 hai.",
+    "b-12.paragraphs.1": "Agar velocity ka magnitude badhta hai, to acceleration (tvaran) velocity ki direction mein hota hai. Agar magnitude ghatta hai, to acceleration velocity ke opposite hota hai.",
+    "b-12.paragraphs.2": "Acceleration magnitude mein change, direction mein change, ya dono se aa sakta hai.",
+    "b-13.problem": "Ek bus velocity (veg) 36 km h-1 se chalti hai. Driver 10 s tak accelerator dabata hai aur velocity badhkar 54 km h-1 ho jaati hai. Phir brakes dabane par bus 5 s mein ruk jaati hai. Dono intervals mein average acceleration nikaalo.",
+    "b-13.steps.0.title": "Velocities ko convert karo",
+    "b-13.steps.0.detail": "36 km h-1 = 10 m s-1. 54 km h-1 = 15 m s-1.",
+    "b-13.steps.1.title": "Accelerator interval",
+    "b-13.steps.1.detail": "a = (15 - 10) / 10 = 0.5 m s-2 velocity ki direction mein.",
+    "b-13.steps.2.title": "Brake interval",
+    "b-13.steps.2.detail": "a = (0 - 15) / 5 = -3 m s-2. Minus sign ka matlab velocity ke opposite.",
+    "b-13.answer": "(i) 0.5 m s-2 velocity ki direction mein. (ii) -3 m s-2 velocity ke opposite.",
+    "b-14.problem": "Ek object ko height se drop kiya jaata hai; uski velocities 0 s par 0 m s-1, 1 s par 9.8 m s-1, 2 s par 19.6 m s-1, 3 s par 29.4 m s-1 aur 4 s par 39.2 m s-1 hain. Har 1 s interval mein average acceleration (ausat tvaran) nikaalo.",
+    "b-14.steps.0.title": "0 s se 1 s",
+    "b-14.steps.0.detail": "(9.8 - 0) / 1 = 9.8 m s-2.",
+    "b-14.steps.1.title": "1 s se 2 s, 2 s se 3 s, 3 s se 4 s",
+    "b-14.steps.1.detail": "Har interval se (19.6-9.8)/1, (29.4-19.6)/1 aur (39.2-29.4)/1 = 9.8 m s-2 milta hai.",
+    "b-14.steps.2.title": "Nishkarsh",
+    "b-14.steps.2.detail": "Acceleration motion ki direction mein constant 9.8 m s-2 hai. Yah g hai, acceleration due to gravity.",
+    "b-14.answer": "Motion ki direction mein constant average acceleration 9.8 m s-2.",
+    "b-15.question": "Ek scooter ka speedometer reading constant hai. Kya scooter phir bhi accelerating ho sakta hai?",
+    "b-15.options.0": "Nahi, constant speed ka matlab hai acceleration nahi",
+    "b-15.options.1": "Haan, agar velocity (veg) ki direction badalti hai",
+    "b-15.options.2": "Haan, agar yeh tez chal raha hai",
+    "b-15.options.3": "Nahi, acceleration (tvaran) ke liye sirf speed mein change chahiye",
+    "b-15.explanation": "Acceleration (tvaran) tab hota hai jab velocity (veg) ka magnitude ya direction ya dono badalte hain. Circular motion mein speed constant hoti hai lekin direction badalti hai, isliye acceleration non-zero hota hai.",
+    "b-16.paragraphs.0": "Graphs dikhate hain ki position (sthan), velocity (veg) ya acceleration (tvaran) time ke saath kaise badalte hain. Ye motions ko compare karne aur quantities nikalne mein madad karte hain.",
+    "b-16.paragraphs.1": "Plot karne ke liye, origin O se X aur Y axes draw karein, X-axis par time aur Y-axis par position chunein, ek suitable scale chunein, points mark karein aur unhe join karein.",
+    "b-17.title": "Position-time graph plot karna",
+    "b-17.steps.0.title": "Axes draw karo",
+    "b-17.steps.0.detail": "Graph paper par perpendicular lines OX aur OY draw karo jo origin O par milti hain.",
+    "b-17.steps.1.title": "Scale chuno",
+    "b-17.steps.1.detail": "Table 4.3 ke liye X-axis par 5 divisions = 1 s aur Y-axis par 5 divisions = 20 m use karo.",
+    "b-17.steps.2.title": "Points mark karo",
+    "b-17.steps.2.detail": "0 s par position 0 m origin hai. 1 s par position 20 m, 2 s par 40 m, aur isi tarah 6 s par 120 m tak.",
+    "b-17.steps.3.title": "Points join karo",
+    "b-17.steps.3.detail": "Points ko join karne se constant velocity (veg) data ke liye straight line milti hai.",
+    "b-18.problem": "Ek vehicle ke liye jo rest se start karke speed up ho raha hai, positions 0 m at 0 s, 1 m at 2 s, 4 m at 4 s, 9 m at 6 s, 16 m at 8 s, 25 m at 10 s aur 36 m at 12 s hain. Position-time graph plot karein.",
+    "b-18.steps.0.title": "Scale chunein",
+    "b-18.steps.0.detail": "X-axis: 5 divisions = 2 s, Y-axis: 5 divisions = 5 m.",
+    "b-18.steps.1.title": "Points mark karein",
+    "b-18.steps.1.detail": "Table se har time-position pair ko mark karein.",
+    "b-18.steps.2.title": "Points ko join karein",
+    "b-18.steps.2.detail": "Points ek straight line par nahi aate. Curve se join karein.",
+    "b-18.answer": "Graph ek curve hai, jo dikhata hai ki velocity (veg) badh rahi hai.",
+    "b-19.title": "Position-time graph aur velocity",
+    "b-19.description": "Constant velocity ke liye position = velocity x time equation se position-time graph banaya jata hai. Velocity badalne se line ki steepness badalti hai.",
+    "b-19.controls.velocity.label": "Velocity (m/s)",
+    "b-20.paragraphs.0": "Ek seedhi line wala position-time graph constant velocity (veg) ko darshata hai. Ek curved graph ka matlab hai ki velocity constant nahi hai.",
+    "b-20.paragraphs.1": "Time axis ke parallel ek line ka matlab hai ki position nahi badal rahi, isliye object rest par hai. Ek steeper line ka matlab hai higher velocity.",
+    "b-21.problem": "Ek position-time graph dikhata hai ki ek vehicle origin se 40 m par hai aur uska position time ke saath change nahi ho raha. Yah kya darshata hai?",
+    "b-21.steps.0.title": "Position padho",
+    "b-21.steps.0.detail": "Position har time par 40 m par hi rehti hai.",
+    "b-21.steps.1.title": "Line interpret karo",
+    "b-21.steps.1.detail": "Line time axis ke parallel hai.",
+    "b-21.answer": "Vehicle origin se 40 m par rest (viram) mein hai.",
+    "b-22.problem": "Do objects A aur B ke position-time graphs diye gaye hain. Kis object ki average velocity ka magnitude zyada hai?",
+    "b-22.steps.0.title": "Same time mein displacement (visthapan) compare karo",
+    "b-22.steps.0.detail": "Same time interval ke liye axes ke parallel lines draw karo.",
+    "b-22.steps.1.title": "Slope compare karo",
+    "b-22.steps.1.detail": "Same time mein B ka displacement A se zyada hai, isliye B ka slope steeper hai.",
+    "b-22.answer": "B ki velocity A ki velocity se zyada hai.",
+    "b-23.title": "Position-time slope (dhaal) se velocity (veg)",
+    "b-23.steps.0.title": "Graph ka part AB lo",
+    "b-23.steps.0.detail": "A aur B se axes ke parallel lines kheencho taaki triangle ABC bane.",
+    "b-23.steps.1.title": "Sides identify karo",
+    "b-23.steps.1.detail": "BC position mein change s2 - s1 hai. CA time mein change t2 - t1 hai.",
+    "b-23.steps.2.title": "Divide karo",
+    "b-23.steps.2.detail": "Velocity = BC / CA = (s2 - s1)/(t2 - t1). Example (80 - 40)/(4 - 2) = 20 m s-1.",
+    "b-24.paragraphs.0": "Velocity-time graph samay ke saath velocity (veg) mein change dikhata hai. Constant velocity X-axis ke parallel ek line deti hai aur zero acceleration (tvaran) deti hai.",
+    "b-24.paragraphs.1": "Straight line ke saath velocity badhne par velocity ki direction mein constant acceleration milta hai. Velocity ghatne par velocity ke opposite constant acceleration milta hai.",
+    "b-25.title": "Velocity-time graph ka slope (dhaal) aur area",
+    "b-25.description": "Velocity-time graph initial velocity (veg) aur constant acceleration (tvaran) se compute hota hai. Slope acceleration deta hai aur line ke neeche area displacement (visthapan) deta hai.",
+    "b-25.controls.initial_velocity.label": "Initial velocity (m/s)",
+    "b-25.controls.acceleration.label": "Acceleration (m/s2)",
+    "b-26.title": "Velocity (veg)-time graph se slope (dhaal) aur area",
+    "b-26.steps.0.title": "Acceleration (tvaran) ke liye slope",
+    "b-26.steps.0.detail": "Acceleration = velocity mein change / time mein change. 10 s aur 20 s ke beech, (10 - 5)/10 = 0.5 m s-2. Decreasing graph ke liye ye -0.5 m s-2 hota hai.",
+    "b-26.steps.1.title": "Displacement (visthapan) ke liye area, constant velocity",
+    "b-26.steps.1.detail": "Rectangle ka area = velocity x time. 20 m s-1 x 6 s = 120 m.",
+    "b-26.steps.2.title": "Displacement ke liye area, changing velocity",
+    "b-26.steps.2.detail": "10 s aur 20 s ke beech area = rectangle + triangle = 50 m + 25 m = 75 m.",
+    "b-27.paragraphs.0": "Kinematic equations constant acceleration (tvaran) ke saath motion (gati) ko describe karte hain. Har instant par acceleration average acceleration ke barabar hota hai.",
+    "b-27.paragraphs.1": "Paanch quantities hain: displacement (visthapan) s, time (samay) t, initial velocity (prarambhik veg) u, final velocity (antim veg) v aur acceleration a. Known quantities ke liye fit hone wala equation choose karein.",
+    "b-28.title": "Kinematic equations derive karna",
+    "b-28.steps.0.title": "Velocity (veg) equation",
+    "b-28.steps.0.detail": "a = (v - u)/t se hume at = v - u milta hai, isliye v = u + at.",
+    "b-28.steps.1.title": "Displacement (visthapan) equation",
+    "b-28.steps.1.detail": "Displacement velocity-time graph ke neeche area hota hai: rectangle + triangle se s = ut + 1/2 at^2 milta hai.",
+    "b-28.steps.2.title": "Velocity squared equation",
+    "b-28.steps.2.detail": "Dono equations ke beech t eliminate karke v^2 = u^2 + 2as milta hai.",
+    "b-29.problem": "Ek car acceleration (tvaran) -4 m s-2 ke saath brake karti hai. Rukne se pehle kitni distance (doori) tay karegi agar woh (i) 54 km h-1 aur (ii) 108 km h-1 se chal rahi thi?",
+    "b-29.steps.0.title": "Velocities ko convert karo",
+    "b-29.steps.0.detail": "(i) 54 km h-1 = 15 m s-1. (ii) 108 km h-1 = 30 m s-1. Final velocity (antim veg) v = 0.",
+    "b-29.steps.1.title": "v^2 = u^2 + 2as use karo",
+    "b-29.steps.1.detail": "0 = u^2 + 2 x (-4) x s, isliye s = u^2 / 8.",
+    "b-29.steps.2.title": "Calculate karo",
+    "b-29.steps.2.detail": "(i) 225/8 = 28.1 m. (ii) 900/8 = 112.5 m.",
+    "b-29.answer": "(i) 28.1 m (ii) 112.5 m. Zyada initial speed (chaal) ke liye kaafi zyada stopping distance (doori) chahiye.",
+    "b-30.question": "Kaun sa pair remaining two kinematic equations ko v = u + at aur s = ut + 1/2 at^2 se derive karta hai?",
+    "b-30.options.0": "s = vt - 1/2 at^2 aur s = (u + v)/2 t",
+    "b-30.options.1": "v = u - at aur s = ut - at^2",
+    "b-30.options.2": "s = vt + 1/2 at^2 aur v^2 = u^2 - 2as",
+    "b-30.options.3": "a = (u - v)/t aur s = (u - v) t",
+    "b-30.explanation": "Dusra equation velocity-time graph ke neeche trapezium ke area se aata hai, jo s = (u + v)/2 t deta hai. Pehla substitution se follow hota hai.",
+    "b-31.paragraphs.0": "Motion (gati) in a plane do dimensions mein motion hai. Iske examples hain: ek kicked ball, ek satellite, aur ek vehicle jo dusre ko overtake kar raha hai.",
+    "b-31.paragraphs.1": "Uniform circular motion ek circular path mein constant speed (chaal) ke saath motion hai. Ek revolution mein distance (doori) circumference hota hai, displacement (visthapan) zero hota hai, average speed 2 pi R / T hoti hai aur average velocity zero hoti hai.",
+    "b-32.caption": "Circular path A se B se C tak. B par velocity (veg) motion (gati) ki direction mein tangent ke along hai.",
+    "b-32.svg_texts.t-0": "B par tangent",
+    "b-32.svg_texts.t-1": "centre",
+    "b-33.title": "Uniform circular motion",
+    "b-33.description": "Ek point circle par constant speed (chaal) se move karta hai. Uska velocity (veg) arrow hamesha tangent ke along hota hai aur direction continuously badalta rehta hai.",
+    "b-33.controls.radius.label": "Radius (m)",
+    "b-33.controls.period.label": "Ek revolution ka time (s)",
+    "b-34.paragraphs.0": "Kisi point par velocity (veg) circle ke tangent ke along hoti hai, motion ki direction mein. Ek tangent circle se sirf ek hi point par milta hai.",
+    "b-34.paragraphs.1": "Jab ek ring ke andar moving marble ko release kiya jata hai, toh woh release ke instant par ki direction mein straight line mein move karta hai.",
+    "b-34.paragraphs.2": "Uniform circular motion ek idealised model hai. Yeh Sun ke around planets aur circular turns lene wale vehicles ke liye useful hai.",
+    "b-35.question": "Ek aadmi ghar se 250 m door ek dukaan tak jaata hai, ghar laut aata hai, phir dukaan jaata hai aur ghar laut aata hai. Ghar se total distance (doori) aur displacement (visthapan) kya hai?",
+    "b-35.options.0": "Total distance 250 m, displacement 250 m",
+    "b-35.options.1": "Total distance 1000 m, displacement 0 m",
+    "b-35.options.2": "Total distance 500 m, displacement 250 m",
+    "b-35.options.3": "Total distance 0 m, displacement 1000 m",
+    "b-35.explanation": "250 m ki chaar yatraein total distance 1000 m deti hain. Woh ghar par hi khatam hota hai, isliye position mein net change 0 hai.",
+    "b-36.question": "Ek car rest se start hoti hai aur uski velocity 6 s mein 24 m s-1 tak pahunchti hai. Average acceleration aur 6 s mein tay ki gayi distance (doori) nikaalo.",
+    "b-36.options.0": "4 m s-2 aur 72 m",
+    "b-36.options.1": "2 m s-2 aur 36 m",
+    "b-36.options.2": "6 m s-2 aur 108 m",
+    "b-36.options.3": "4 m s-2 aur 36 m",
+    "b-36.explanation": "a = (24 - 0)/6 = 4 m s-2. s = ut + 1/2 at^2 = 0 + 0.5 x 4 x 36 = 72 m.",
+    "b-37.question": "Ek motorbike initial velocity (veg) 28 m s-1 aur constant acceleration (tvaran) ke saath move kar rahi hai aur 98 m travel karne ke baad ruk jaati hai. Acceleration aur rukne ka time nikaalo.",
+    "b-37.options.0": "-4 m s-2 aur 7 s",
+    "b-37.options.1": "-2 m s-2 aur 14 s",
+    "b-37.options.2": "-7 m s-2 aur 4 s",
+    "b-37.options.3": "4 m s-2 aur 7 s",
+    "b-37.explanation": "0 = 28^2 + 2 x a x 98 se a = -4 m s-2 milta hai. Time = (0 - 28)/(-4) = 7 s.",
+    "b-38.question": "Ek truck 54 km h-1 se 36 km h-1 tak 36 s mein constant acceleration (tvaran) ke saath slow hota hai. Yeh kitna distance (doori) travel karta hai?",
+    "b-38.options.0": "360 m",
+    "b-38.options.1": "450 m",
+    "b-38.options.2": "540 m",
+    "b-38.options.3": "720 m",
+    "b-38.explanation": "15 m s-1 aur 10 m s-1 mein convert karo. Average velocity = 12.5 m s-1. Distance (doori) = 12.5 x 36 = 450 m.",
+    "b-39.question": "Ek car rest se uniformly accelerate karke 5 s mein 20 m s-1 tak pahunchti hai, phir 10 s tak 20 m s-1 se travel karti hai, uske baad uniformly brake karke 6 s mein stop hoti hai. Total distance (doori) nikaalo.",
+    "b-39.options.0": "310 m",
+    "b-39.options.1": "250 m",
+    "b-39.options.2": "360 m",
+    "b-39.options.3": "200 m",
+    "b-39.explanation": "Phase 1: a = 4 m s-2, s = 50 m. Phase 2: s = 200 m. Phase 3: a = -3.33 m s-2, s = 60 m. Total distance = 310 m.",
+    "b-40.question": "Velocity (veg)-time graph par, graph aur time axis ke beech ka area kya represent karta hai?",
+    "b-40.options.0": "Acceleration (tvaran)",
+    "b-40.options.1": "Displacement (visthapan)",
+    "b-40.options.2": "Kisi instant par velocity",
+    "b-40.options.3": "Total distance (doori) sabhi cases mein",
+    "b-40.explanation": "Area = velocity x time constant velocity ke liye, aur badalti velocity ke liye shape ka area. Dono us time interval mein displacement dete hain.",
+    "b-41.question": "Earth Sun ke around move karti hai. Kya Earth par rakha koi object rest mein mana ja sakta hai?",
+    "b-41.options.0": "Nahi, Earth par koi bhi cheez kabhi rest mein nahi ho sakti",
+    "b-41.options.1": "Haan, Earth ko reference point maan kar uski position change nahi hoti",
+    "b-41.options.2": "Haan, kyunki Earth move nahi karti",
+    "b-41.options.3": "Nahi, kyunki Earth par displacement (visthapan) hamesha zero hota hai",
+    "b-41.explanation": "Rest aur motion (gati) reference point par depend karte hain. Earth ke respect mein object rest mein hai, chahe Earth Sun ke around move karti hai.",
+    "b-42.question": "Do objects ke position-time graphs par 10 s mein initial aur final positions same hain. 10 s ke over unki average velocity (ausat veg) ke baare mein aap kya keh sakte hain?",
+    "b-42.options.0": "Average velocities equal hain kyunki displacement (visthapan) aur time equal hain",
+    "b-42.options.1": "Average speeds hamesha equal hoti hain",
+    "b-42.options.2": "Curved graph ki average velocity hamesha higher hoti hai",
+    "b-42.options.3": "Koi conclusion possible nahi hai",
+    "b-42.explanation": "Average velocity = displacement / time. Same initial aur final positions same displacement dete hain, aur time bhi same hai, isliye average velocities equal hain. Average speed total distance par depend karti hai, jo alag ho sakta hai."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Hamare Aas-Paas ki Motion ka Varnan",
+    "objectives": [
+      "Is paath ke baad aap ek seedhi line mein chalne wale object ki position, distance (doori) aur displacement (visthapan) describe kar sakte hain.",
+      "Is paath ke baad aap average speed (chaal), average velocity aur average acceleration calculate kar sakte hain aur unhe graphs se find kar sakte hain.",
+      "Is paath ke baad aap constant acceleration ke liye kinematic equations use kar sakte hain aur uniform circular motion ko explain kar sakte hain."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Seedhi line mein position ka varnan",
+        "paragraphs": [
+          "Apne aas-paas dekho. Titliyan udti hain, saanp chalte hain, gaadiyan daudti hain aur baadal ikathte hain. Ye sab motion (gati) mein hain. Motion ko simply study karne ke liye, hum pehle seedhi line mein motion study karte hain. Isse linear motion kehte hain.",
+          "Kisi object ki position describe karne ke liye, hum ek fixed point choose karte hain jise reference point kehte hain. Phir hum us point se object ki distance (doori) aur direction batate hain. Isse humein us instant par object ki position pata chalti hai.",
+          "Agar position time ke saath change hoti hai, toh object motion mein hai. Agar position time ke saath change nahi hoti, toh object rest mein hai. Seedhi line par hum do directions ke liye plus aur minus signs use karte hain."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "Distance travelled aur displacement",
+        "paragraphs": [
+          "Socho ek athlete jo aage daudta hai aur phir usi track par wapas daudta hai. Total distance travelled poore path ki length hoti hai. Ise journey ke har part ko add karke find kiya jata hai.",
+          "Displacement alag hota hai. Ye do instants ke beech position mein net change hai. Isme magnitude aur direction dono chahiye. Iska magnitude starting aur finishing positions ke beech ki seedhi distance hoti hai.",
+          "Jo quantity sirf ek number se describe ho, use scalar (adish) kehte hain. Jo quantity ke liye number aur direction dono chahiye, use vector (sadish) kehte hain. Distance scalar hai aur displacement vector hai. Dono ka SI unit metre hai."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Average speed aur average velocity",
+        "paragraphs": [
+          "Average speed batati hai ki object kitni tezi se move karta hai. Ye total distance travelled ko time interval se divide karke nikalte hain. Iski koi direction nahi hoti.",
+          "Agar koi object equal time intervals mein equal distances travel karta hai, toh wo constant speed par uniform motion (eksamaan gati) mein hai. Agar distances unequal hain, toh ye non-uniform motion hai.",
+          "Average velocity batati hai ki position kitni tezi se change hoti hai aur kis direction mein. Ye displacement ko time interval se divide karke nikalte hain. Iski direction displacement ke same hoti hai. Iska SI unit metre per second hai."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Average acceleration",
+        "paragraphs": [
+          "Jab koi vehicle suddenly start hota hai ya suddenly rukta hai, toh aapko jhatka lagta hai. Ye isliye hota hai kyunki velocity change hoti hai. Average acceleration velocity ke change ko time interval se divide karke nikalte hain.",
+          "Agar velocity ka magnitude badhta hai, toh acceleration velocity ki direction mein hota hai. Agar magnitude kam hota hai, toh acceleration velocity ke opposite hota hai. Iska SI unit metre per second squared hai.",
+          "Ek object bahut tez move kar sakta hai aur phir bhi zero acceleration ho sakta hai agar uski velocity constant hai. Acceleration is baat par depend karta hai ki velocity kitni jaldi change hoti hai, sirf speed par nahi."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Position-time graphs",
+        "paragraphs": [
+          "Graph dikhata hai ki ek quantity time ke saath kaise change hoti hai. Position-time graph ke liye, time X-axis par hota hai aur position Y-axis par. Hum ek scale choose karte hain aur har point ko carefully plot karte hain.",
+          "Seedhi line wala position-time graph constant velocity ko darshata hai. Curved graph ka matlab hai velocity change ho rahi hai aur motion accelerated hai. Time axis ke parallel line ka matlab hai object rest mein hai.",
+          "Position-time graph ka slope (dhaal) velocity deta hai. Slope position ke change ko time ke change se divide karke nikalte hain. Zyada steep line ka matlab higher velocity hai."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Velocity-time graphs",
+        "paragraphs": [
+          "Velocity-time graph dikhata hai ki velocity time ke saath kaise change hoti hai. X-axis ke parallel line ka matlab constant velocity aur zero acceleration hai. Upar jaati seedhi line ka matlab velocity ki direction mein constant acceleration hai.",
+          "Neeche jaati seedhi line ka matlab velocity ke opposite constant acceleration hai. Velocity-time graph ka slope acceleration deta hai. Slope velocity ke change ko time ke change se divide karke nikalte hain.",
+          "Graph aur time axis ke beech ka area displacement deta hai. Constant velocity ke liye, area velocity times time hota hai. Changing velocity ke liye, hum line ke neeche shape ka area nikalte hain."
+        ]
+      },
+      {
+        "id": "sec-07",
+        "title": "Kinematic equations",
+        "paragraphs": [
+          "Ye equations sirf tab use hoti hain jab acceleration constant ho. Ye displacement s, time t, initial velocity u, final velocity v aur acceleration a ko connect karti hain.",
+          "Teen equations hain v = u + at, s = ut + 1/2 at^2 aur v^2 = u^2 + 2as. Hum wo equation choose karte hain jisme humein known quantities aur required quantity dono hon.",
+          "Signs matter karte hain. Dono directions mein motion ke liye, u, v, a aur s ke sign humein direction batate hain. Braking ke time, agar velocity ko positive maana jaye toh acceleration negative hota hai."
+        ]
+      },
+      {
+        "id": "sec-08",
+        "title": "Plane mein motion aur uniform circular motion",
+        "paragraphs": [
+          "Plane mein motion do dimensions mein motion hota hai. Examples hain kicked ball, satellite aur ek vehicle jo doosre ko overtake karta hai. Circular motion circular path ke along motion hota hai.",
+          "Uniform circular motion mein speed constant hoti hai lekin velocity ki direction badalti rehti hai. Har point par velocity circle ke tangent ke along motion ki direction mein hoti hai.",
+          "Kyunki direction change hoti hai, uniform circular motion accelerated motion hai. Ek revolution mein distance circumference ke equal hoti hai aur displacement zero hota hai. Ye ek idealised model hai jo humein real circular motions samajhne mein madad karta hai."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "displacement",
+        "definition": "Do instants ke beech position mein net change, jisme magnitude aur direction dono hote hain."
+      },
+      {
+        "term": "average velocity",
+        "definition": "Displacement ko time interval se divide karke nikalte hain."
+      },
+      {
+        "term": "average acceleration",
+        "definition": "Velocity ke change ko time interval se divide karke nikalte hain."
+      },
+      {
+        "term": "slope",
+        "definition": "Graph line ki steepness, jo rate of change deti hai."
+      },
+      {
+        "term": "uniform circular motion",
+        "definition": "Circle mein constant speed ke saath motion, jisme velocity ki direction change hoti rehti hai."
+      },
+      {
+        "term": "tangent",
+        "definition": "Ek line jo circle ko sirf ek point par touch karti hai."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Hamare aas-paas sab kuch motion (gati) mein hai, butterflies aur horses se lekar clouds aur tides tak. Is variety ko simply study karne ke liye, scientists pehle idealised forms jaise linear motion ka study karte hain.",
+          "Linear motion seedhi line mein motion hai. Yah sabse simple kind ka motion hai. Examples hain: vertically girta hua ball, seedhi highway par car, aur seedhi track par train."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-02",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 600 180\"><line x1=\"40\" y1=\"100\" x2=\"560\" y2=\"100\" stroke=\"#1C1B18\" stroke-width=\"3\" /><line x1=\"80\" y1=\"90\" x2=\"80\" y2=\"110\" stroke=\"#1C1B18\" stroke-width=\"2\" /><line x1=\"240\" y1=\"90\" x2=\"240\" y2=\"110\" stroke=\"#1C1B18\" stroke-width=\"2\" /><line x1=\"440\" y1=\"90\" x2=\"440\" y2=\"110\" stroke=\"#1C1B18\" stroke-width=\"2\" /><circle cx=\"80\" cy=\"100\" r=\"8\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><circle cx=\"240\" cy=\"100\" r=\"8\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><circle cx=\"440\" cy=\"100\" r=\"8\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><text x=\"70\" y=\"140\" font-size=\"20\" fill=\"#1C1B18\">O 0 m</text><text x=\"220\" y=\"140\" font-size=\"20\" fill=\"#1C1B18\">B 40 m</text><text x=\"420\" y=\"140\" font-size=\"20\" fill=\"#1C1B18\">A 100 m</text><text x=\"480\" y=\"80\" font-size=\"20\" fill=\"#1F3A9E\" data-i18n=\"b-02.svg_texts.t-0\">positive</text></svg>",
+        "caption": "Reference point O aur ek straight line par positions B aur A. O ke right side positive hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-04"
+        }
+      ]
+    },
+    {
+      "id": "b-03",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Position ko describe karne ke liye hum pehle ek reference point fix karte hain. Us point se distance (doori) aur direction, kisi bhi instant par, position ko describe karte hain.",
+          "Agar position time ke saath badalti hai, to object motion (gati) mein hai. Agar position time ke saath nahi badalti, to object rest par hai. Ek straight line par, O ke right positive hai aur O ke left negative hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        }
+      ]
+    },
+    {
+      "id": "b-04",
+      "type": "check",
+      "spec": {
+        "question": "Ek object ko motion (gati) mein kaha jata hai jab uska position reference point ke respect mein time ke saath change hota hai. Aapke aage chal rahe truck ke liye iska kya matlab hai?",
+        "format": "mcq",
+        "options": [
+          "Agar woh door hai toh woh rest mein hai",
+          "Agar uska position time ke saath change hota hai toh woh motion mein hai",
+          "Woh sirf tabhi motion mein hai jab woh fast hai",
+          "Sirf distance (doori) hi position describe karne ke liye kaafi hai"
+        ],
+        "answer_index": 1,
+        "explanation": "Motion ka judgement position ke change se hota hai reference point ke respect mein, sirf speed (chaal) se nahi. Distance aur direction milke position ko describe karte hain.",
+        "expected_understanding": "Student motion aur rest ko define kar sakta hai position ke time ke saath change ka use karke.",
+        "answer": "Agar uska position time ke saath change hota hai toh woh motion mein hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        }
+      ]
+    },
+    {
+      "id": "b-05",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek athlete O se start karta hai, B tak pahunchta hai, phir A tak, phir B tak wapas daudta hai. Total distance (doori) travelled OA + AB = 100 m + 60 m = 160 m hai.",
+          "Start aur stop ke beech displacement (visthapan) OB = 40 m positive direction mein hai. Jab object wapas palat jata hai, tab total distance aur magnitude of displacement barabar nahi hote.",
+          "Displacement ko direction aur magnitude dono chahiye. Total distance ko sirf ek number chahiye. Dono ka SI unit metre hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-06",
+      "type": "check",
+      "spec": {
+        "question": "Ek ball ko O se vertically upwards throw kiya jata hai, wo B tak jaati hai aur wapas O par gir jaati hai. Displacement (visthapan) ke baare mein kaun sa statement true hai?",
+        "format": "mcq",
+        "options": [
+          "Yeh kabhi zero nahi hota",
+          "Iska magnitude total distance travelled se zyada ho sakta hai",
+          "Iska magnitude total distance travelled se less than ya equal to hota hai",
+          "Sabhi cases mein iska magnitude total distance travelled se less than hota hai"
+        ],
+        "answer_index": 2,
+        "explanation": "Jab ball wapas O par aati hai, displacement (visthapan) zero hota hai jabki total distance zero nahi hota. Displacement ka magnitude kabhi bhi total distance se zyada nahi ho sakta, aur yeh total distance ke equal tabhi hota hai jab motion sirf ek direction mein ho.",
+        "expected_understanding": "Student displacement (visthapan) aur total distance ki comparison kar sakta hai aise motion ke liye jisme object wapas mudta hai.",
+        "answer": "Iska magnitude total distance travelled se less than ya equal to hota hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-37"
+        }
+      ]
+    },
+    {
+      "id": "b-07",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Average speed total distance (doori) travelled divided by time interval hoti hai. Yeh batati hai ki object kitni speed se move karta hai aur iski koi direction nahi hoti.",
+          "Equal distances in equal intervals ka matlab hai uniform motion (eksamaan gati) at constant speed. Unequal distances ka matlab hai non-uniform motion with increasing ya decreasing speed."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-08",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Do postmen 210 yojanas ki distance (doori) se ek dusre ki taraf chalna shuru karte hain. Ek 9 yojanas per day chalta hai aur dusra 5 yojanas per day cover karta hai. Ve kitne days mein milenge?",
+        "steps": [
+          {
+            "title": "Ek din mein saath mein cover ki gayi distance",
+            "detail": "9 yojanas + 5 yojanas = 14 yojanas per day."
+          },
+          {
+            "title": "210 yojanas cover karne ka time",
+            "detail": "210 / 14 = 15 days."
+          },
+          {
+            "title": "Distances check karo",
+            "detail": "Pehla postman 9 x 15 = 135 yojanas. Dusra postman 5 x 15 = 75 yojanas. Total 210 yojanas."
+          }
+        ],
+        "answer": "Ve 15 days ke baad milenge."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-39"
+        }
+      ]
+    },
+    {
+      "id": "b-09",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Average velocity displacement (visthapan) ko time interval se divide karke milti hai. Ise v_av = s/t ke roop mein likha jata hai.",
+          "Iski direction displacement ke same hoti hai aur plus ya minus sign se dikhayi jati hai. Iski SI unit m s-1 hai, aur ise km h-1 mein bhi measure kiya jata hai. Yeh time ke saath position ke change ka average rate hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Sarang ko swimming pool mein ek end se doosre end tak swim karke wapas aane mein 50 seconds lagte hain. 50 s mein uska average speed (ausat chaal) aur average velocity (ausat veg) nikaalo.",
+        "steps": [
+          {
+            "title": "Total distance (kul doori)",
+            "detail": "Tay ki gayi total distance = 50 m."
+          },
+          {
+            "title": "Displacement (visthapan)",
+            "detail": "Wah start point par wapas aa jata hai, isliye displacement = 0 m."
+          },
+          {
+            "title": "Average speed (ausat chaal)",
+            "detail": "50 m / 50 s = 1 m s-1."
+          },
+          {
+            "title": "Average velocity (ausat veg)",
+            "detail": "0 m / 50 s = 0 m s-1."
+          }
+        ],
+        "answer": "Average speed 1 m s-1, average velocity 0 m s-1."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-16"
+        }
+      ]
+    },
+    {
+      "id": "b-11",
+      "type": "check",
+      "spec": {
+        "question": "Aap teen ghante mein 200 km north drive karte hain, phir do ghante mein 200 km south. Poore trip ke liye average speed kya hai?",
+        "format": "mcq",
+        "options": [
+          "40 km h-1",
+          "80 km h-1",
+          "0 km h-1",
+          "100 km h-1"
+        ],
+        "answer_index": 1,
+        "explanation": "Total distance (doori) = 400 km. Total time = 5 h. Average speed (ausat chaal) = 400 / 5 = 80 km h-1. Displacement (visthapan) zero hai, isliye average velocity (ausat veg) zero hai.",
+        "expected_understanding": "Student return journey ke liye average speed aur average velocity mein farq samajh sakta hai.",
+        "answer": "80 km h-1"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-12",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Average acceleration velocity (veg) ke change ko time interval se divide karke nikaala jaata hai. Yeh (v - u) / (t2 - t1) hai aur iska SI unit m s-2 hai.",
+          "Agar velocity ka magnitude badhta hai, to acceleration (tvaran) velocity ki direction mein hota hai. Agar magnitude ghatta hai, to acceleration velocity ke opposite hota hai.",
+          "Acceleration magnitude mein change, direction mein change, ya dono se aa sakta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-18"
+        }
+      ]
+    },
+    {
+      "id": "b-13",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek bus velocity (veg) 36 km h-1 se chalti hai. Driver 10 s tak accelerator dabata hai aur velocity badhkar 54 km h-1 ho jaati hai. Phir brakes dabane par bus 5 s mein ruk jaati hai. Dono intervals mein average acceleration nikaalo.",
+        "steps": [
+          {
+            "title": "Velocities ko convert karo",
+            "detail": "36 km h-1 = 10 m s-1. 54 km h-1 = 15 m s-1."
+          },
+          {
+            "title": "Accelerator interval",
+            "detail": "a = (15 - 10) / 10 = 0.5 m s-2 velocity ki direction mein."
+          },
+          {
+            "title": "Brake interval",
+            "detail": "a = (0 - 15) / 5 = -3 m s-2. Minus sign ka matlab velocity ke opposite."
+          }
+        ],
+        "answer": "(i) 0.5 m s-2 velocity ki direction mein. (ii) -3 m s-2 velocity ke opposite."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-14",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek object ko height se drop kiya jaata hai; uski velocities 0 s par 0 m s-1, 1 s par 9.8 m s-1, 2 s par 19.6 m s-1, 3 s par 29.4 m s-1 aur 4 s par 39.2 m s-1 hain. Har 1 s interval mein average acceleration (ausat tvaran) nikaalo.",
+        "steps": [
+          {
+            "title": "0 s se 1 s",
+            "detail": "(9.8 - 0) / 1 = 9.8 m s-2."
+          },
+          {
+            "title": "1 s se 2 s, 2 s se 3 s, 3 s se 4 s",
+            "detail": "Har interval se (19.6-9.8)/1, (29.4-19.6)/1 aur (39.2-29.4)/1 = 9.8 m s-2 milta hai."
+          },
+          {
+            "title": "Nishkarsh",
+            "detail": "Acceleration motion ki direction mein constant 9.8 m s-2 hai. Yah g hai, acceleration due to gravity."
+          }
+        ],
+        "answer": "Motion ki direction mein constant average acceleration 9.8 m s-2."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        }
+      ]
+    },
+    {
+      "id": "b-15",
+      "type": "check",
+      "spec": {
+        "question": "Ek scooter ka speedometer reading constant hai. Kya scooter phir bhi accelerating ho sakta hai?",
+        "format": "mcq",
+        "options": [
+          "Nahi, constant speed ka matlab hai acceleration nahi",
+          "Haan, agar velocity (veg) ki direction badalti hai",
+          "Haan, agar yeh tez chal raha hai",
+          "Nahi, acceleration (tvaran) ke liye sirf speed mein change chahiye"
+        ],
+        "answer_index": 1,
+        "explanation": "Acceleration (tvaran) tab hota hai jab velocity (veg) ka magnitude ya direction ya dono badalte hain. Circular motion mein speed constant hoti hai lekin direction badalti hai, isliye acceleration non-zero hota hai.",
+        "expected_understanding": "Student ko pata hai ki acceleration sirf speed ka change nahi hai.",
+        "answer": "Haan, agar velocity (veg) ki direction badalti hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-34"
+        },
+        {
+          "claim_id": "claim-38"
+        }
+      ]
+    },
+    {
+      "id": "b-16",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Graphs dikhate hain ki position (sthan), velocity (veg) ya acceleration (tvaran) time ke saath kaise badalte hain. Ye motions ko compare karne aur quantities nikalne mein madad karte hain.",
+          "Plot karne ke liye, origin O se X aur Y axes draw karein, X-axis par time aur Y-axis par position chunein, ek suitable scale chunein, points mark karein aur unhe join karein."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-17",
+      "type": "reveal",
+      "spec": {
+        "title": "Position-time graph plot karna",
+        "steps": [
+          {
+            "title": "Axes draw karo",
+            "detail": "Graph paper par perpendicular lines OX aur OY draw karo jo origin O par milti hain."
+          },
+          {
+            "title": "Scale chuno",
+            "detail": "Table 4.3 ke liye X-axis par 5 divisions = 1 s aur Y-axis par 5 divisions = 20 m use karo."
+          },
+          {
+            "title": "Points mark karo",
+            "detail": "0 s par position 0 m origin hai. 1 s par position 20 m, 2 s par 40 m, aur isi tarah 6 s par 120 m tak."
+          },
+          {
+            "title": "Points join karo",
+            "detail": "Points ko join karne se constant velocity (veg) data ke liye straight line milti hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-18",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek vehicle ke liye jo rest se start karke speed up ho raha hai, positions 0 m at 0 s, 1 m at 2 s, 4 m at 4 s, 9 m at 6 s, 16 m at 8 s, 25 m at 10 s aur 36 m at 12 s hain. Position-time graph plot karein.",
+        "steps": [
+          {
+            "title": "Scale chunein",
+            "detail": "X-axis: 5 divisions = 2 s, Y-axis: 5 divisions = 5 m."
+          },
+          {
+            "title": "Points mark karein",
+            "detail": "Table se har time-position pair ko mark karein."
+          },
+          {
+            "title": "Points ko join karein",
+            "detail": "Points ek straight line par nahi aate. Curve se join karein."
+          }
+        ],
+        "answer": "Graph ek curve hai, jo dikhata hai ki velocity (veg) badh rahi hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-19",
+      "type": "simulation",
+      "spec": {
+        "title": "Position-time graph aur velocity",
+        "description": "Constant velocity ke liye position = velocity x time equation se position-time graph banaya jata hai. Velocity badalne se line ki steepness badalti hai.",
+        "learning_goal": "Dekhein ki position-time graph ka slope (dhaal) velocity (veg) hota hai aur seedhi line ka matlab constant velocity hai.",
+        "controls": [
+          {
+            "id": "velocity",
+            "label": "Velocity (m/s)",
+            "min": 0,
+            "max": 30,
+            "step": 1,
+            "initial": 20
+          }
+        ],
+        "default_behaviour": "20 m/s ke liye seedhi position-time line dikhata hai, jo 6 s par 120 m tak pahunchti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    },
+    {
+      "id": "b-20",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek seedhi line wala position-time graph constant velocity (veg) ko darshata hai. Ek curved graph ka matlab hai ki velocity constant nahi hai.",
+          "Time axis ke parallel ek line ka matlab hai ki position nahi badal rahi, isliye object rest par hai. Ek steeper line ka matlab hai higher velocity."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-21",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek position-time graph dikhata hai ki ek vehicle origin se 40 m par hai aur uska position time ke saath change nahi ho raha. Yah kya darshata hai?",
+        "steps": [
+          {
+            "title": "Position padho",
+            "detail": "Position har time par 40 m par hi rehti hai."
+          },
+          {
+            "title": "Line interpret karo",
+            "detail": "Line time axis ke parallel hai."
+          }
+        ],
+        "answer": "Vehicle origin se 40 m par rest (viram) mein hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-22",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Do objects A aur B ke position-time graphs diye gaye hain. Kis object ki average velocity ka magnitude zyada hai?",
+        "steps": [
+          {
+            "title": "Same time mein displacement (visthapan) compare karo",
+            "detail": "Same time interval ke liye axes ke parallel lines draw karo."
+          },
+          {
+            "title": "Slope compare karo",
+            "detail": "Same time mein B ka displacement A se zyada hai, isliye B ka slope steeper hai."
+          }
+        ],
+        "answer": "B ki velocity A ki velocity se zyada hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-23",
+      "type": "reveal",
+      "spec": {
+        "title": "Position-time slope (dhaal) se velocity (veg)",
+        "steps": [
+          {
+            "title": "Graph ka part AB lo",
+            "detail": "A aur B se axes ke parallel lines kheencho taaki triangle ABC bane."
+          },
+          {
+            "title": "Sides identify karo",
+            "detail": "BC position mein change s2 - s1 hai. CA time mein change t2 - t1 hai."
+          },
+          {
+            "title": "Divide karo",
+            "detail": "Velocity = BC / CA = (s2 - s1)/(t2 - t1). Example (80 - 40)/(4 - 2) = 20 m s-1."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    },
+    {
+      "id": "b-24",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Velocity-time graph samay ke saath velocity (veg) mein change dikhata hai. Constant velocity X-axis ke parallel ek line deti hai aur zero acceleration (tvaran) deti hai.",
+          "Straight line ke saath velocity badhne par velocity ki direction mein constant acceleration milta hai. Velocity ghatne par velocity ke opposite constant acceleration milta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-25"
+        }
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "simulation",
+      "spec": {
+        "title": "Velocity-time graph ka slope (dhaal) aur area",
+        "description": "Velocity-time graph initial velocity (veg) aur constant acceleration (tvaran) se compute hota hai. Slope acceleration deta hai aur line ke neeche area displacement (visthapan) deta hai.",
+        "learning_goal": "Velocity-time graph se slope ka use karke acceleration nikaalein aur area ka use karke displacement nikaalein.",
+        "controls": [
+          {
+            "id": "initial_velocity",
+            "label": "Initial velocity (m/s)",
+            "min": 0,
+            "max": 20,
+            "step": 1,
+            "initial": 0
+          },
+          {
+            "id": "acceleration",
+            "label": "Acceleration (m/s2)",
+            "min": -2,
+            "max": 2,
+            "step": 0.5,
+            "initial": 0.5
+          }
+        ],
+        "default_behaviour": "Dikhata hai ki velocity 0 se 15 m/s tak 30 s mein badhti hai, slope 0.5 m/s2 ke saath."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-26",
+      "type": "reveal",
+      "spec": {
+        "title": "Velocity (veg)-time graph se slope (dhaal) aur area",
+        "steps": [
+          {
+            "title": "Acceleration (tvaran) ke liye slope",
+            "detail": "Acceleration = velocity mein change / time mein change. 10 s aur 20 s ke beech, (10 - 5)/10 = 0.5 m s-2. Decreasing graph ke liye ye -0.5 m s-2 hota hai."
+          },
+          {
+            "title": "Displacement (visthapan) ke liye area, constant velocity",
+            "detail": "Rectangle ka area = velocity x time. 20 m s-1 x 6 s = 120 m."
+          },
+          {
+            "title": "Displacement ke liye area, changing velocity",
+            "detail": "10 s aur 20 s ke beech area = rectangle + triangle = 50 m + 25 m = 75 m."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-27",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kinematic equations constant acceleration (tvaran) ke saath motion (gati) ko describe karte hain. Har instant par acceleration average acceleration ke barabar hota hai.",
+          "Paanch quantities hain: displacement (visthapan) s, time (samay) t, initial velocity (prarambhik veg) u, final velocity (antim veg) v aur acceleration a. Known quantities ke liye fit hone wala equation choose karein."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-28",
+      "type": "reveal",
+      "spec": {
+        "title": "Kinematic equations derive karna",
+        "steps": [
+          {
+            "title": "Velocity (veg) equation",
+            "detail": "a = (v - u)/t se hume at = v - u milta hai, isliye v = u + at."
+          },
+          {
+            "title": "Displacement (visthapan) equation",
+            "detail": "Displacement velocity-time graph ke neeche area hota hai: rectangle + triangle se s = ut + 1/2 at^2 milta hai."
+          },
+          {
+            "title": "Velocity squared equation",
+            "detail": "Dono equations ke beech t eliminate karke v^2 = u^2 + 2as milta hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-29",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek car acceleration (tvaran) -4 m s-2 ke saath brake karti hai. Rukne se pehle kitni distance (doori) tay karegi agar woh (i) 54 km h-1 aur (ii) 108 km h-1 se chal rahi thi?",
+        "steps": [
+          {
+            "title": "Velocities ko convert karo",
+            "detail": "(i) 54 km h-1 = 15 m s-1. (ii) 108 km h-1 = 30 m s-1. Final velocity (antim veg) v = 0."
+          },
+          {
+            "title": "v^2 = u^2 + 2as use karo",
+            "detail": "0 = u^2 + 2 x (-4) x s, isliye s = u^2 / 8."
+          },
+          {
+            "title": "Calculate karo",
+            "detail": "(i) 225/8 = 28.1 m. (ii) 900/8 = 112.5 m."
+          }
+        ],
+        "answer": "(i) 28.1 m (ii) 112.5 m. Zyada initial speed (chaal) ke liye kaafi zyada stopping distance (doori) chahiye."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        }
+      ]
+    },
+    {
+      "id": "b-30",
+      "type": "check",
+      "spec": {
+        "question": "Kaun sa pair remaining two kinematic equations ko v = u + at aur s = ut + 1/2 at^2 se derive karta hai?",
+        "format": "mcq",
+        "options": [
+          "s = vt - 1/2 at^2 aur s = (u + v)/2 t",
+          "v = u - at aur s = ut - at^2",
+          "s = vt + 1/2 at^2 aur v^2 = u^2 - 2as",
+          "a = (u - v)/t aur s = (u - v) t"
+        ],
+        "answer_index": 0,
+        "explanation": "Dusra equation velocity-time graph ke neeche trapezium ke area se aata hai, jo s = (u + v)/2 t deta hai. Pehla substitution se follow hota hai.",
+        "expected_understanding": "Student remaining kinematic equations ko state aur derive kar sakta hai.",
+        "answer": "s = vt - 1/2 at^2 aur s = (u + v)/2 t"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-40"
+        }
+      ]
+    },
+    {
+      "id": "b-31",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Motion (gati) in a plane do dimensions mein motion hai. Iske examples hain: ek kicked ball, ek satellite, aur ek vehicle jo dusre ko overtake kar raha hai.",
+          "Uniform circular motion ek circular path mein constant speed (chaal) ke saath motion hai. Ek revolution mein distance (doori) circumference hota hai, displacement (visthapan) zero hota hai, average speed 2 pi R / T hoti hai aur average velocity zero hoti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-32",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 600 300\"><circle cx=\"300\" cy=\"150\" r=\"110\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"3\" /><circle cx=\"300\" cy=\"150\" r=\"6\" fill=\"#1C1B18\" /><circle cx=\"300\" cy=\"40\" r=\"8\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><circle cx=\"410\" cy=\"150\" r=\"8\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><circle cx=\"300\" cy=\"260\" r=\"8\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><line x1=\"410\" y1=\"150\" x2=\"410\" y2=\"40\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><text x=\"285\" y=\"25\" font-size=\"22\" fill=\"#1C1B18\">A</text><text x=\"425\" y=\"155\" font-size=\"22\" fill=\"#1C1B18\">B</text><text x=\"285\" y=\"290\" font-size=\"22\" fill=\"#1C1B18\">C</text><text x=\"425\" y=\"35\" font-size=\"20\" fill=\"#1F3A9E\" data-i18n=\"b-32.svg_texts.t-0\">B par tangent</text><text x=\"290\" y=\"140\" font-size=\"20\" fill=\"#5A5748\" data-i18n=\"b-32.svg_texts.t-1\">centre</text></svg>",
+        "caption": "Circular path A se B se C tak. B par velocity (veg) motion (gati) ki direction mein tangent ke along hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-33"
+        }
+      ]
+    },
+    {
+      "id": "b-33",
+      "type": "simulation",
+      "spec": {
+        "title": "Uniform circular motion",
+        "description": "Ek point circle par constant speed (chaal) se move karta hai. Uska velocity (veg) arrow hamesha tangent ke along hota hai aur direction continuously badalta rehta hai.",
+        "learning_goal": "Dekho ki speed (chaal) constant hai lekin velocity (veg) ki direction badalti hai, isliye motion (gati) accelerated hai.",
+        "controls": [
+          {
+            "id": "radius",
+            "label": "Radius (m)",
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "initial": 5
+          },
+          {
+            "id": "period",
+            "label": "Ek revolution ka time (s)",
+            "min": 2,
+            "max": 20,
+            "step": 1,
+            "initial": 10
+          }
+        ],
+        "default_behaviour": "Ek point circle ke around move karta dikhata hai, tangent velocity (veg) arrow ke saath, aur 10 s mein ek revolution complete karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-34"
+        }
+      ]
+    },
+    {
+      "id": "b-34",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kisi point par velocity (veg) circle ke tangent ke along hoti hai, motion ki direction mein. Ek tangent circle se sirf ek hi point par milta hai.",
+          "Jab ek ring ke andar moving marble ko release kiya jata hai, toh woh release ke instant par ki direction mein straight line mein move karta hai.",
+          "Uniform circular motion ek idealised model hai. Yeh Sun ke around planets aur circular turns lene wale vehicles ke liye useful hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-33"
+        },
+        {
+          "claim_id": "claim-35"
+        },
+        {
+          "claim_id": "claim-36"
+        }
+      ]
+    },
+    {
+      "id": "b-35",
+      "type": "check",
+      "spec": {
+        "question": "Ek aadmi ghar se 250 m door ek dukaan tak jaata hai, ghar laut aata hai, phir dukaan jaata hai aur ghar laut aata hai. Ghar se total distance (doori) aur displacement (visthapan) kya hai?",
+        "format": "mcq",
+        "options": [
+          "Total distance 250 m, displacement 250 m",
+          "Total distance 1000 m, displacement 0 m",
+          "Total distance 500 m, displacement 250 m",
+          "Total distance 0 m, displacement 1000 m"
+        ],
+        "answer_index": 1,
+        "explanation": "250 m ki chaar yatraein total distance 1000 m deti hain. Woh ghar par hi khatam hota hai, isliye position mein net change 0 hai.",
+        "expected_understanding": "Student back-and-forth motion (gati) ke liye total distance aur displacement calculate kar sakta hai.",
+        "answer": "Total distance 1000 m, displacement 0 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-37"
+        }
+      ]
+    },
+    {
+      "id": "b-36",
+      "type": "check",
+      "spec": {
+        "question": "Ek car rest se start hoti hai aur uski velocity 6 s mein 24 m s-1 tak pahunchti hai. Average acceleration aur 6 s mein tay ki gayi distance (doori) nikaalo.",
+        "format": "mcq",
+        "options": [
+          "4 m s-2 aur 72 m",
+          "2 m s-2 aur 36 m",
+          "6 m s-2 aur 108 m",
+          "4 m s-2 aur 36 m"
+        ],
+        "answer_index": 0,
+        "explanation": "a = (24 - 0)/6 = 4 m s-2. s = ut + 1/2 at^2 = 0 + 0.5 x 4 x 36 = 72 m.",
+        "expected_understanding": "Student average acceleration aur rest se kinematic equations ka use kar sakta hai.",
+        "answer": "4 m s-2 aur 72 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-37",
+      "type": "check",
+      "spec": {
+        "question": "Ek motorbike initial velocity (veg) 28 m s-1 aur constant acceleration (tvaran) ke saath move kar rahi hai aur 98 m travel karne ke baad ruk jaati hai. Acceleration aur rukne ka time nikaalo.",
+        "format": "mcq",
+        "options": [
+          "-4 m s-2 aur 7 s",
+          "-2 m s-2 aur 14 s",
+          "-7 m s-2 aur 4 s",
+          "4 m s-2 aur 7 s"
+        ],
+        "answer_index": 0,
+        "explanation": "0 = 28^2 + 2 x a x 98 se a = -4 m s-2 milta hai. Time = (0 - 28)/(-4) = 7 s.",
+        "expected_understanding": "Student v^2 = u^2 + 2as aur v = u + at ko stopping motion ke liye use kar sakta hai.",
+        "answer": "-4 m s-2 aur 7 s"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-38",
+      "type": "check",
+      "spec": {
+        "question": "Ek truck 54 km h-1 se 36 km h-1 tak 36 s mein constant acceleration (tvaran) ke saath slow hota hai. Yeh kitna distance (doori) travel karta hai?",
+        "format": "mcq",
+        "options": [
+          "360 m",
+          "450 m",
+          "540 m",
+          "720 m"
+        ],
+        "answer_index": 1,
+        "explanation": "15 m s-1 aur 10 m s-1 mein convert karo. Average velocity = 12.5 m s-1. Distance (doori) = 12.5 x 36 = 450 m.",
+        "expected_understanding": "Student units convert kar sakta hai aur distance ke liye average velocity use kar sakta hai.",
+        "answer": "450 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-40"
+        }
+      ]
+    },
+    {
+      "id": "b-39",
+      "type": "check",
+      "spec": {
+        "question": "Ek car rest se uniformly accelerate karke 5 s mein 20 m s-1 tak pahunchti hai, phir 10 s tak 20 m s-1 se travel karti hai, uske baad uniformly brake karke 6 s mein stop hoti hai. Total distance (doori) nikaalo.",
+        "format": "mcq",
+        "options": [
+          "310 m",
+          "250 m",
+          "360 m",
+          "200 m"
+        ],
+        "answer_index": 0,
+        "explanation": "Phase 1: a = 4 m s-2, s = 50 m. Phase 2: s = 200 m. Phase 3: a = -3.33 m s-2, s = 60 m. Total distance = 310 m.",
+        "expected_understanding": "Student teen stages of motion (gati) ko constant acceleration ke saath combine kar sakta hai.",
+        "answer": "310 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-40",
+      "type": "check",
+      "spec": {
+        "question": "Velocity (veg)-time graph par, graph aur time axis ke beech ka area kya represent karta hai?",
+        "format": "mcq",
+        "options": [
+          "Acceleration (tvaran)",
+          "Displacement (visthapan)",
+          "Kisi instant par velocity",
+          "Total distance (doori) sabhi cases mein"
+        ],
+        "answer_index": 1,
+        "explanation": "Area = velocity x time constant velocity ke liye, aur badalti velocity ke liye shape ka area. Dono us time interval mein displacement dete hain.",
+        "expected_understanding": "Student velocity-time graph ke area se displacement padh sakta hai.",
+        "answer": "Displacement (visthapan)"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-41",
+      "type": "check",
+      "spec": {
+        "question": "Earth Sun ke around move karti hai. Kya Earth par rakha koi object rest mein mana ja sakta hai?",
+        "format": "mcq",
+        "options": [
+          "Nahi, Earth par koi bhi cheez kabhi rest mein nahi ho sakti",
+          "Haan, Earth ko reference point maan kar uski position change nahi hoti",
+          "Haan, kyunki Earth move nahi karti",
+          "Nahi, kyunki Earth par displacement (visthapan) hamesha zero hota hai"
+        ],
+        "answer_index": 1,
+        "explanation": "Rest aur motion (gati) reference point par depend karte hain. Earth ke respect mein object rest mein hai, chahe Earth Sun ke around move karti hai.",
+        "expected_understanding": "Student samajhta hai ki rest reference point ke relative hota hai.",
+        "answer": "Haan, Earth ko reference point maan kar uski position change nahi hoti"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        }
+      ]
+    },
+    {
+      "id": "b-42",
+      "type": "check",
+      "spec": {
+        "question": "Do objects ke position-time graphs par 10 s mein initial aur final positions same hain. 10 s ke over unki average velocity (ausat veg) ke baare mein aap kya keh sakte hain?",
+        "format": "mcq",
+        "options": [
+          "Average velocities equal hain kyunki displacement (visthapan) aur time equal hain",
+          "Average speeds hamesha equal hoti hain",
+          "Curved graph ki average velocity hamesha higher hoti hai",
+          "Koi conclusion possible nahi hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Average velocity = displacement / time. Same initial aur final positions same displacement dete hain, aur time bhi same hai, isliye average velocities equal hain. Average speed total distance par depend karti hai, jo alag ho sakta hai.",
+        "expected_understanding": "Student slope (dhaal) aur displacement ke ideas use karke position-time graphs se average velocity aur average speed compare kar sakta hai.",
+        "answer": "Average velocities equal hain kyunki displacement (visthapan) aur time equal hain"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    }
+  ]
+}

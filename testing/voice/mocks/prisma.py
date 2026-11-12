@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import time
 from collections.abc import Callable
+from dataclasses import replace
 
 from voice.config import VoiceSettings
 from voice.stt_client import SttEvent, SttUnavailableError
@@ -31,6 +32,7 @@ class MockPrisma:
         partials: list[str] | None = None,
         final_text: str = "",
         final_lang: str = "hi-en",
+        final_langs: list[str] | None = None,
         final_confidence: float = 0.93,
         fail_connect: bool = False,
         die_after: int | None = None,
@@ -52,6 +54,10 @@ class MockPrisma:
                     confidence=final_confidence,
                 )
             )
+        # ``final_langs`` scripts a language CHANGE per TURN (the vendor
+        # detects per utterance): the n-th final of the session reports the
+        # n-th entry, the last entry repeating once the list runs out.
+        self._turn_langs: list[str] = list(final_langs or [])
         self._fail_connect = fail_connect
         self._die_after = die_after
         self.final_delay_s = final_delay_s
@@ -121,6 +127,10 @@ class MockPrisma:
             if event.kind == "final":
                 if self.final_delay_s:
                     await asyncio.sleep(self.final_delay_s)
+                if self._turn_langs:
+                    # per-turn detected language (n-th final = n-th entry)
+                    index = min(self._finals_returned, len(self._turn_langs) - 1)
+                    event = replace(event, lang=self._turn_langs[index])
                 self.sent_final = True
                 self._finals_returned += 1
             return event

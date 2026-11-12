@@ -1,0 +1,1973 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Laws of Motion (Gati ke Niyam)",
+    "b-00-meta.objectives.0": "Is lesson ke baad aap samjha sakte hain ki Aristotle ka yeh vichar kyun galat hai ki kisi body ko moving rakhne ke liye force chahiye, aur Galileo ka law of inertia bata sakte hain.",
+    "b-00-meta.objectives.1": "Is lesson ke baad aap Newton ke teen laws of motion bata aur apply kar sakte hain, jisme momentum, impulse aur conservation of momentum shamil hain.",
+    "b-00-meta.objectives.2": "Is lesson ke baad aap equilibrium, level aur inclined surfaces par friction, aur level aur banked roads par car ki circular motion ka analyse kar sakte hain.",
+    "b-00-meta.objectives.3": "Is lesson ke baad aap free-body diagram bana sakte hain aur laws of motion se multi-body problems solve kar sakte hain.",
+    "b-00-meta.glossary.0.term": "Inertia",
+    "b-00-meta.glossary.0.definition": "Body ki apni rest state ya uniform motion mein kisi bhi change ko resist karne ki property.",
+    "b-00-meta.glossary.1.term": "Momentum",
+    "b-00-meta.glossary.1.definition": "Mass times velocity, p = m v; velocity ke along point karta vector.",
+    "b-00-meta.glossary.2.term": "Impulse",
+    "b-00-meta.glossary.2.definition": "Force ko uske act karne ke time se multiply karna; yeh change in momentum ke equal hota hai.",
+    "b-00-meta.glossary.3.term": "Equilibrium",
+    "b-00-meta.glossary.3.definition": "Particle ki woh state jab us par net external force zero ho.",
+    "b-00-meta.glossary.4.term": "Normal reaction",
+    "b-00-meta.glossary.4.definition": "Contact force ka woh part jo contact surfaces ke perpendicular hai.",
+    "b-00-meta.glossary.5.term": "Static friction",
+    "b-00-meta.glossary.5.definition": "Self-adjusting friction jo body ko rest mein rakhta hai, µ_s N limit tak.",
+    "b-00-meta.glossary.6.term": "Kinetic friction",
+    "b-00-meta.glossary.6.definition": "Friction jo actual sliding ko oppose karta hai, µ_k N ke equal.",
+    "b-00-meta.glossary.7.term": "Centripetal force",
+    "b-00-meta.glossary.7.definition": "Kisi bhi real force ka naam jo centre ki taraf point karta hai aur acceleration v²/R provide karta hai.",
+    "b-00-meta.glossary.8.term": "Free-body diagram",
+    "b-00-meta.glossary.8.definition": "Ek chosen system ka diagram jisme sirf us par outside se act karne wale forces dikhte hain.",
+    "b-00-meta.glossary.9.term": "Optimum speed (banked road)",
+    "b-00-meta.glossary.9.definition": "Woh speed √(R g tan θ) jis par banked turn par koi friction ki zaroorat nahi hoti.",
+    "b-01.paragraphs.0": "Socho ek football zameen par sthir pada hai. Use move karne ke liye, kisi ko use kick karna padega. Ek patthar ko upar bhejne ke liye, kisi ko use upar dhakelna padega. Ek halki hawa ped ki tehniyon ko jhulati hai, aur tez hawa bhaari vastuon ko bhi move kar sakti hai. In sabhi maamlon mein koi bahari agency force (bal) supply karti hai.",
+    "b-01.paragraphs.1": "Kabhi kabhi agency body ko touch karti hai, jaise tumhara haath ball ko touch karta hai ya ek behti dhara boat ko dhakelti hai. Yeh hamesha zaroori nahi hai. Ek building ke top se chhoda gaya patthar neeche ki taraf speed up hota hai kyunki earth ka gravitational pull hota hai, aur ek bar magnet iron nail ko distance (doori) se attract kar sakta hai. Toh ek external agency contact mein ya distance se act kar sakti hai.",
+    "b-01.paragraphs.2": "Force motion (gati) ko rokne ke liye bhi zaroori hai: tum ek inclined plane par rolling ball ko uski motion ki direction ke against dhakel kar rok sakte ho.",
+    "b-01.paragraphs.3": "Ab ek tez sawaal. Maan lo ek body pehle se hi uniform motion (eksamaan gati) mein move kar rahi hai - ek skater horizontal ice slab par constant speed (chaal) ke saath seedha move kar raha hai. Kya use uniform motion mein rakhne ke liye external force ki zaroorat hai? Yeh sawaal simple lagta hai, lekin iska jawab dene mein ages lag gaye.",
+    "b-02.paragraphs.0": "Aristotle (384 B.C. - 322 B.C.) ka maanna tha ki agar koi body move kar rahi hai, to use moving rakhne ke liye kuch external chahiye hota hai. Is view ke hisaab se dhanush se chhoda gaya arrow udta rehta hai kyunki uske peeche ki hawa use dhakelti rehti hai. Ise law ki tarah kaho: body ko motion (gati) mein rakhne ke liye external force (bal) zaroori hai.",
+    "b-02.paragraphs.1": "Daily experience se ye natural lagta hai. Ek chhota bachcha toy-car kheenchta hua jaanta hai ki string ko har waqt kheenchna padta hai; chhod do aur car rest par aa jaati hai. Agar unhein unke haal par chhod diya jaye, to earth par sabhi bodies rukti hui lagti hain.",
+    "b-02.paragraphs.2": "Flaw friction hai. Moving toy-car rukti hai kyunki floor us par friction ka force lagata hai, jo uski motion ke opposite hai. Car ko chalte rakhne ke liye, bachche ko forward equal force se kheenchna padega, taaki car par net external force zero ho. Agar friction na hota, to car ko uniformly moving rakhne ke liye koi force bilkul zaroori nahi hota.",
+    "b-02.paragraphs.3": "Solids ke beech friction, aur fluids mein viscous forces jaise opposing forces, natural world mein hamesha present hote hain. Isliye normally humein cheezon ko push karna padta hai taaki wo moving rahein. Nature ka true law dhoondhne ke liye, Galileo ne ek aisi duniya imagine ki jisme bilkul friction nahi tha.",
+    "b-03.paragraphs.0": "Galileo ne inclined planes par objects ki motion (gati) study ki. Ek object jo inclined plane par neeche move karta hai, accelerate karta hai; jo upar move karta hai, retard karta hai. Horizontal plane par motion in-between case hai. Galileo ne conclude kiya ki frictionless horizontal plane par move karta hua object na accelerate karega na retard karega: wo constant velocity (veg) se move karta hai.",
+    "b-03.paragraphs.1": "Uska second experiment double inclined plane use karta tha. Ek ball jo ek plane par rest se release hoti hai, neeche roll karti hai aur doosre par climb karti hai. Agar planes smooth hain, to ball lagbhag utni hi height tak pahunchti hai jitni se start hui thi - thodi kam, kabhi zyada nahi. Friction absent hone par, final height starting height ke barabar hoti.",
+    "b-03.paragraphs.2": "Doosre plane ko aur flat banao aur repeat karo: ball phir bhi same height tak climb karti hai, isliye use zyada door travel karna padta hai. Limiting case mein doosra plane horizontal ho jata hai aur ball infinite distance (doori) travel karti hai - uski motion kabhi khatam nahi hoti.",
+    "b-03.paragraphs.3": "Practice mein ball finite distance ke baad ruk jaati hai, kyunki friction ko kabhi bhi poori tarah remove nahi kiya ja sakta. Galileo ka insight yeh tha ki rest ki state aur uniform linear motion ki state equivalent hain: dono cases mein body par koi net force (bal) nahi hota. Ek body mein jo property hoti hai ki wo apni state of rest ya uniform motion (eksamaan gati) mein change ko resist karti hai, use inertia kehte hain. Inertia ka matlab hai 'resistance to change'.",
+    "b-04.question": "Ek bachcha floor par string se toy-car kheencha hai. Car straight line mein constant speed (chaal) se move karti hai. Kaunsa statement correct hai?",
+    "b-04.options.0": "Car ko moving rakhte rehne ke liye external force (bahari bal) chahiye, isliye us par net force zero nahi hai.",
+    "b-04.options.1": "Child ka force floor ke friction (gharshana) force se balanced hai, isliye car par net external force zero hai.",
+    "b-04.options.2": "Car mein Inertia nahi hai kyunki woh move kar rahi hai.",
+    "b-04.options.3": "Agar string release kar di jaye to car speed up ho jayegi.",
+    "b-04.explanation": "Constant velocity (veg) ka matlab zero acceleration (tvaran) hai, isliye first law ke anusar net external force zero hona chahiye. Child ka pull aur friction equal aur opposite hain. Agar friction na ho, to pull ki zaroorat hi nahi hoti — yahi exactly Aristotle galat the.",
+    "b-05.question": "Galileo ke double inclined plane experiment mein planes smooth hain. Jab second plane ka slope (dhaal) aur flat hota jata hai to kya hota hai?",
+    "b-05.options.0": "Ball shuru ki height se zyada height tak chadh jati hai.",
+    "b-05.options.1": "Ball same height tak pahunchti hai lekin zyada distance (doori) travel karti hai, aur agar second plane horizontal ho to wo hamesha travel karti rahegi.",
+    "b-05.options.2": "Second plane par ball fixed distance ke baad ruk jati hai, slope kuch bhi ho.",
+    "b-05.options.3": "Ball pehle plane par wapas neeche roll kar jati hai.",
+    "b-05.explanation": "Ball hamesha lagbhag apni starting height tak wapas chadh jati hai. Flatter plane ka matlab hai us height tak pahunchne ke liye zyada distance chahiye, aur horizontal plane par required distance infinite hota hai - idealised motion kabhi rukta nahi.",
+    "b-06.caption": "Table par rest mein rakhi ek book (left). Book par do forces hain: usda weight W, jo vertically downward act karta hai, aur table ka normal reaction R, jo vertically upward act karta hai. Dono ko equal length mein draw kiya gaya hai kyunki book rest mein hone par R ka W ke barabar hona zaroori hai. Sirf directions; arrows do forces dikhate hain, koi measured scale nahi.",
+    "b-06.svg_texts.t-0": "table par rest mein book",
+    "b-06.svg_texts.t-1": "book par forces",
+    "b-07.paragraphs.0": "Newton ne Galileo ke ideas par aage kaam kiya aur mechanics ki foundation three laws of motion (gati ke teen niyam) mein rakhi. Galileo ka law of inertia hi first law ban gaya: har body apne state of rest ya straight line mein uniform motion (eksamaan gati) mein rehti hai jab tak koi external force (bahari bal) use otherwise act karne ke liye compel na kare.",
+    "b-07.paragraphs.1": "Rest aur straight line mein uniform motion dono ka matlab zero acceleration hai. Isliye first law ko ek line mein kaha ja sakta hai: agar kisi body par net external force zero hai, to uska acceleration (tvaran) zero hai. Acceleration non-zero sirf tab ho sakta hai jab body par net external force ho.",
+    "b-07.paragraphs.2": "Do tarah ki situations aati hain. Kabhi hum jaante hain ki net force zero hai - jaise ek spaceship jo baaki sab objects se door hai aur uske saare rockets off hain; tab uska acceleration zero hona chahiye, aur agar wo move kar raha hai to wo uniform velocity (veg) maintain karta hai. Zyada tar hum saari forces nahi jaante, lekin hum dekh sakte hain ki object rest mein hai ya uniform motion mein; tab first law batata hai ki us par net external force zero hona chahiye.",
+    "b-07.paragraphs.3": "Ek table par rest mein rakhi book lo. Us par do forces act karti hain: uska weight W downward aur table ka normal force R upward. Sahi reasoning ye nahi hai ki 'kyunki W = R, forces cancel ho jaate hain aur book rest mein rehti hai'. Sahi reasoning ye hai: book rest mein observed hoti hai, isliye first law se us par net external force zero hona chahiye, aur is wajah se R ko W ke equal aur opposite hona chahiye. Gravity har jagah hai aur friction common hai, isliye earth par rest mein ya uniform motion mein kisi object par lagne wali forces ka sum zero hota hai - aisa nahi ki koi force hi na ho.",
+    "b-07.paragraphs.4": "Bus mein aap first law feel karte hain. Jab bus suddenly start hoti hai to aap peeche dhakel diye jaate hain: aapke feet friction ki wajah se floor ke saath move karte hain, jabki aapke body ka baaki hissa wahi rehna chahta hai, inertia ki wajah se. Jab bus suddenly rukti hai to aapke feet ruk jaate hain aur body ka baaki hissa aage move karta rehta hai, isliye aap aage dhakel diye jaate hain.",
+    "b-08.question": "Ek baarish ki boond constant speed (chaal) se vertically neeche gir rahi hai. Boond par net external force (bal) kya hai?",
+    "b-08.options.0": "Zero.",
+    "b-08.options.1": "Iska weight mg, neeche ki disha mein.",
+    "b-08.options.2": "Iska weight mg, upar ki disha mein.",
+    "b-08.options.3": "mg se zyada, neeche ki disha mein.",
+    "b-08.explanation": "Straight line mein constant speed (chaal) ka matlab zero acceleration (tvaran) hai, isliye first law ke anusar net external force (bal) zero hona chahiye. Weight ko hawa ka upward drag balance karta hai. Forces alag-alag zero nahi hain - woh cancel karti hain.",
+    "b-09.paragraphs.0": "Second law kisi body par net external force (bal) ko uske acceleration (tvaran) se jodta hai, aur ise momentum (samveg) ke terms mein statement kiya jata hai. Kisi body ka momentum uske mass m aur velocity (veg) v ke product ke roop mein define hota hai, likha jata hai p = m v. Momentum ek vector (sadish) quantity hai; yeh velocity ke along point karta hai.",
+    "b-09.paragraphs.1": "Yeh product kyun? Same time mein same speed tak pahunchne ke liye loaded truck ko small car se kaafi zyada force chahiye hota hai, aur same speed par same time mein rukne ke liye zyada opposing force chahiye hota hai. Same height se giraye gaye halke stone ki tulna mein heavy stone ko catch karna zyada mushkil hota hai. High speed se fired bullet tissue ko pierce kar sakti hai, jabki wahi bullet moderate speed par little damage karti hai. Sirf mass, ya sirf speed, enough nahi hai - product m v hi quantity hai jo matter karti hai.",
+    "b-09.paragraphs.2": "Agar ek fixed force kisi certain time interval tak different masses ki do bodies par, jo initially rest par hain, act karta hai, to lighter body greater speed pick up karti hai; lekin us time ke end mein har body ne same momentum acquire kar liya hota hai. Same force same time ke liye different bodies par same change in momentum cause karta hai.",
+    "b-09.paragraphs.3": "Direction bhi matter karti hai. Constant speed par horizontal circle mein whirled ek stone ka momentum fixed magnitude ka hota hai jiska direction constantly badalta rehta hai, aur us change ko produce karne ke liye force chahiye hoti hai. Agar aap stone ko faster whirl karte hain ya smaller circle mein whirl karte hain to aapke hand ko harder pull karna padta hai. Isliye momentum vector ke change ki rate jitni greater hogi, force utni greater hogi.",
+    "b-10.title": "Momentum (samveg) se F = m a tak",
+    "b-10.steps.0.title": "Step 1: momentum (samveg)",
+    "b-10.steps.0.detail": "Mass m wali body jab velocity (veg) v se move karti hai, to momentum p = m v hota hai.",
+    "b-10.steps.1.title": "Step 2: law shabdon mein",
+    "b-10.steps.1.detail": "Kisi body ke momentum ke change ki rate applied force (bal) ke directly proportional hoti hai aur yeh us direction mein hoti hai jisme force act karta hai.",
+    "b-10.steps.2.title": "Step 3: ise symbols mein likho",
+    "b-10.steps.2.detail": "Agar force F kisi time interval Δt ke liye act karta hai aur velocity v se v + Δv ho jati hai, to momentum Δp = m Δv se change hota hai. Law kehta hai F ∝ Δp/Δt, yani F = k Δp/Δt jahan k proportionality ka constant hai.",
+    "b-10.steps.3.title": "Step 4: limit lo",
+    "b-10.steps.3.detail": "Maan lo Δt bahut chhota ho jata hai. Tab Δp/Δt derivative dp/dt ban jata hai, isliye F = k dp/dt.",
+    "b-10.steps.4.title": "Step 5: fixed mass",
+    "b-10.steps.4.detail": "Fixed mass wali body ke liye, dp/dt = d(m v)/dt = m dv/dt = m a. Isliye F = k m a.",
+    "b-10.steps.5.title": "Step 6: k = 1 chuno",
+    "b-10.steps.5.detail": "Force ki unit abhi tak define nahi hui hai, isliye hum k = 1 choose karne ke liye free hain. Tab F = dp/dt = m a. SI units mein jo force mass 1 kg ko acceleration (tvaran) 1 m s-2 deta hai woh one newton hai, isliye 1 N = 1 kg m s-2.",
+    "b-11.paragraphs.0": "Second law ke baare mein chaar baatein. Pehla, F = 0 rakhne se a = 0 milta hai, isliye second law first law se match karta hai. Doosra, yeh ek vector (sadish) law hai: yeh teen equations hain, har component ke liye ek (F_x = dp_x/dt = m a_x, aur isi tarah y aur z ke liye). Ek force (bal) jo velocity (veg) ke parallel nahi hai, sirf velocity ke us component ko badalta hai jo force ke along hai; force ke perpendicular component wala velocity component unchanged rehta hai - isliye vertical gravity ke under projectile apna horizontal velocity component banaye rakhta hai.",
+    "b-11.paragraphs.1": "Teesra, yeh law ek single point particle par lagta hai, aur usi form mein rigid body ya particles ke system par bhi; tab F system par total external force hai aur a system ke acceleration (tvaran) hai as a whole, internal forces ko chhod kar. Chautha, yeh law ek local relation hai: ek point par ek instant par force us point par us instant par acceleration determine karta hai. Ek accelerating train se dropped stone ke paas, release ke turant baad, koi horizontal force nahi hai aur koi horizontal acceleration nahi hai - usme train ke acceleration ki koi memory nahi hoti.",
+    "b-11.paragraphs.2": "Yeh bhi yaad rakhein ki F ka matlab kya hai. F = m a mein, F body ke external sabhi material agencies ke kaaran net force hai, aur a us force ka effect hai. Product m a ek aur force nahi hai jo list mein add kiya jaaye.",
+    "b-12.problem": "Ek astronaut accidentally apne chhote spaceship se alag ho jata hai jo interstellar space mein constant rate 100 m s-2 se accelerate kar raha hai. Spaceship ke bahar nikalne ke turant baad astronaut ka acceleration (tvaran) kya hai? (Maan lijiye ki paas mein koi stars nahi hain jo us par gravitational force exert karein.)",
+    "b-12.steps.0.title": "Forces ki list banao",
+    "b-12.steps.0.detail": "Paas mein koi stars nahi hain jo use pull karein, aur chhota spaceship us par negligible gravitational attraction exert karta hai.",
+    "b-12.steps.1.title": "Net force",
+    "b-12.steps.1.detail": "Isliye astronaut par net external force, spaceship se bahar nikalne ke baad, zero hai.",
+    "b-12.steps.2.title": "First law apply karo",
+    "b-12.steps.2.detail": "Agar kisi body par net external force zero hai, to uska acceleration zero hota hai.",
+    "b-12.answer": "Astronaut ka acceleration zero hai. Woh spaceship ka 100 m s-2 acceleration nahi rakhta, kyunki force (bal) kisi body ke earlier motion se 'carried' nahi hota.",
+    "b-13.problem": "0.04 kg mass ki ek bullet 90 m s-1 ki speed (chaal) se chalte hue ek heavy wooden block mein ghusati hai aur 60 cm distance (doori) ke baad ruk jati hai. Block dwara bullet par lagaya gaya average resistive force (bal) kya hai?",
+    "b-13.steps.0.title": "Retardation nikalna",
+    "b-13.steps.0.detail": "Maan lijiye ki retardation a constant hai. Speed u = 90 m s-1 aur stopping distance s = 60 cm = 0.6 m se, a = u²/(2s) = (90 × 90)/(2 × 0.6) m s-2 = 6750 m s-2.",
+    "b-13.steps.1.title": "Second law lagayein",
+    "b-13.steps.1.detail": "Retarding force F = m a = 0.04 kg × 6750 m s-2 hai.",
+    "b-13.answer": "F = 270 N. Actual resistive force, aur isliye retardation, uniform nahi ho sakta, isliye yeh answer sirf average resistive force darshata hai.",
+    "b-14.problem": "Mass m ke ek particle ki motion (gati) y = u t + ½ g t² dwara describe ki jaati hai. Particle par lagne wala force (bal) nikaalein.",
+    "b-14.steps.0.title": "Velocity (veg)",
+    "b-14.steps.0.detail": "Position ko time ke respect mein differentiate karein: v = dy/dt = u + g t.",
+    "b-14.steps.1.title": "Acceleration (tvaran)",
+    "b-14.steps.1.detail": "Phir se differentiate karein: a = dv/dt = g.",
+    "b-14.steps.2.title": "Force (bal)",
+    "b-14.steps.2.detail": "Second law apply karein: F = m a = m g.",
+    "b-14.answer": "F = m g. Ye equation gravity ke karan acceleration ke under move karte particle ko describe karti hai, jahan y position coordinate hai jo g ki direction mein measured hai.",
+    "b-15.paragraphs.0": "Kuch force (bal) bahut kam samay ke liye act karte hain lekin itne large hote hain ki momentum (samveg) ko kaafi badal dete hain - jaise ball ka wall se takra kar bounce back hona. Ball par force sirf tab act karta hai jab ball aur wall contact mein hote hain, aur force aur contact time ko alag-alag measure karna mushkil hota hai. Unka product mushkil nahi hai: yah momentum mein change hai.",
+    "b-15.paragraphs.1": "Us product ko impulse kaha jata hai: impulse = force × time duration = change in momentum. Ek large force jo short time ke liye act karke momentum mein finite change produce karta hai, use impulsive force kehte hain. Newtonian mechanics mein impulsive force alag kind ka force nahi hai - yah simply large aur short-lived hota hai.",
+    "b-15.paragraphs.2": "Yeh ek familiar skill ko explain karta hai. Ek seasoned cricketer catch karte waqt apne hands backward kheenchta hai, isliye ball ko stop hone mein zyada time lagta hai. Momentum ka same change agar zyada time tak spread ho to smaller force chahiye, isliye uske hands hurt nahi hote. Ek novice jo apne hands fixed rakhta hai, use ball ko almost instantly stop karna padta hai, usse bahut larger force chahiye, aur usse hurt hota hai.",
+    "b-16.problem": "Ek batsman ball ko seedha bowler ki direction mein wapas hit karta hai bina uski initial speed (chaal) 12 m s-1 badle. Agar ball ka mass 0.15 kg hai, to ball par diya gaya impulse determine karein. (Ball ki linear motion (gati) assume karein.)",
+    "b-16.steps.0.title": "Ek positive direction chunein",
+    "b-16.steps.0.detail": "Bowler se batsman ki direction ko positive maanein. Initial momentum (samveg) = 0.15 × 12 = 1.8 kg m s-1.",
+    "b-16.steps.1.title": "Final momentum",
+    "b-16.steps.1.detail": "Hit ke baad ball same speed se wapas move karti hai, isliye uska final momentum −1.8 kg m s-1 hai.",
+    "b-16.steps.2.title": "Momentum mein change",
+    "b-16.steps.2.detail": "Momentum mein change = 0.15 × 12 − (−0.15 × 12) = 3.6 N s, aur impulse is change ke barabar hai.",
+    "b-16.answer": "Impulse = 3.6 N s, batsman se bowler ki direction mein. Ball par force (bal) aur contact time yahan pata karna mushkil hai, lekin impulse calculate karna aasan hai.",
+    "b-17.question": "20 kg mass ke ek body par 50 N ka constant retarding force (bal) lagaya jaata hai; body initially 15 m s-1 speed (chaal) se move kar rahi hai. Body ko stop hone mein kitna time lagega? Answer seconds mein dijiye.",
+    "b-17.explanation": "Retardation a = F/m = 50/20 = 2.5 m s-2 hai. Iska matlab body har second 2.5 m s-1 speed (chaal) kho deti hai, isliye uska 15 m s-1 speed 15/2.5 = 6 s mein use ho jaata hai.",
+    "b-18.paragraphs.0": "Doosra law batata hai ki external force (bahari bal) kya karta hai; teesra law batata hai ki aisa force kahan se aata hai. Newtonian mechanics mein kisi body par external force hamesha kisi doosri body se hi aata hai. Ek coiled spring ko dabaiye, to spring aapke haath par wapas push karti hai. Earth ek stone ko neeche kheenchti hai, aur stone earth ko barabar aur opposite force se upar kheenchta hai, jise hum notice nahi karte kyunki earth bahut massive hai.",
+    "b-18.paragraphs.1": "Toh force kabhi akela nahi hota: force do bodies ke beech mutual interaction hai, aur forces hamesha pairs mein hote hain. Newton ne ise aise kaha: har action ke liye hamesha ek equal aur opposite reaction hota hai. Symbols mein, B dwara A par lagne wala force minus B par A dwara lagne wala force ke barabar hai: F_AB = −F_BA.",
+    "b-18.paragraphs.2": "Teen warnings. Action aur reaction shabd 'force' se zyada kuch mean nahi karte. Inme koi cause-and-effect order nahi hota - dono forces same instant par act karte hain, aur dono mein se kisi ko bhi action kaha ja sakta hai. Aur dono forces different bodies par act karte hain, isliye agar aap ek body ke motion (gati) ka study kar rahe hain, to pair mein se sirf ek relevant hai; unhe add karke yeh claim karna ki net force zero hai, ek error hai. Sirf jab dono bodies ko ek system maana jaye tab hi yeh pair internal forces ban jaate hain aur cancel ho jaate hain.",
+    "b-19.problem": "Do identical billiard balls ek rigid wall se same speed (chaal) par lekin different angles par takrate hain, aur speed mein koi change ke bina reflect ho jaati hain. Case (a) mein ek ball wall par normally takrati hai aur seedha wapas bounce karti hai. Case (b) mein ek ball wall par apni velocity (veg) ke saath normal se 30° par takrati hai aur doosri side par normal se 30° par reflect hoti hai. (i) har ball ke karan wall par force (bal) ki direction kya hai, aur (ii) wall dwara balls ko diye gaye Impulse ke magnitudes ka ratio kya hai?",
+    "b-19.steps.0.title": "Axes set karein",
+    "b-19.steps.0.detail": "Maan lijiye collision se pehle aur baad mein har ball ki speed u hai aur uski mass m hai. x-axis ko wall ke normal ke along lijiye, wall se away direction negative, aur y-axis ko wall ke along lijiye.",
+    "b-19.steps.1.title": "Case (a): normal hit",
+    "b-19.steps.1.detail": "Initial p_x = m u, p_y = 0; final p_x = −m u, p_y = 0. Isliye impulse ka x-component −2 m u hai aur y-component 0 hai.",
+    "b-19.steps.2.title": "Case (b): normal se 30° par hit",
+    "b-19.steps.2.detail": "Initial p_x = m u cos 30°, p_y = −m u sin 30°; final p_x = −m u cos 30°, p_y = −m u sin 30°. Sirf p_x ka sign badalta hai, isliye impulse ka x-component −2 m u cos 30° hai aur y-component 0 hai.",
+    "b-19.steps.3.title": "Teesra law use karein",
+    "b-19.steps.3.detail": "Impulse aur force same direction mein hote hain. Dono cases mein ball par impulse wall ke normal hai; teesre law ke according ball ke karan wall par force wall ke normal hai, dono cases mein.",
+    "b-19.answer": "Wall par force dono cases mein wall ke normal hai. Impulse magnitudes ka ratio 2 m u /(2 m u cos 30°) = 2/√3 hai, lagbhag 1.2. Force ka magnitude nahi nikal sakte, kyunki chhota contact time nahi diya gaya hai.",
+    "b-20.question": "Ek book table par rest karti hai. Newton ke third law ke sense mein inmein se kaunsa action-reaction pair hai?",
+    "b-20.options.0": "Book ka weight aur table ka book par normal force.",
+    "b-20.options.1": "Earth dwara book par lagaya gaya gravitational force, aur book dwara earth par lagaya gaya gravitational force.",
+    "b-20.options.2": "Table ka book par normal force aur table ka weight.",
+    "b-20.options.3": "Book ka weight aur table ka weight.",
+    "b-20.explanation": "Action-reaction pair same do bodies ke beech ke do mutual forces hote hain — yahan book aur earth. Book ka weight aur us par lagne wala normal force ek hi body par do forces hain; book rest par hone ki wajah se ye equal aur opposite hain, lekin ye third-law pair nahin hain.",
+    "b-21.paragraphs.0": "Doosra aur teesra law milkar momentum (samveg) ke conservation ka law dete hain. Ek gun se bullet fire karo. Bullet par gun dwara lagaya gaya force (bal) F hai; teesre law ke anusar gun par bullet dwara lagaya gaya force −F hai; dono same time interval ke liye act karte hain. Isliye bullet ke momentum mein change F times woh interval hai, aur gun ka change ulta hai. Dono rest se start karte hain, isliye unke final momenta equal aur opposite hain, aur (bullet + gun) system ka total momentum zero rehta hai.",
+    "b-21.paragraphs.1": "Ek isolated system mein - jismein koi external force nahi hai - particles ke jodo ke beech mutual forces individual particles ka momentum change karte hain, lekin har jode ke liye changes equal aur opposite hote hain aur cancel ho jate hain. Isliye total momentum unchanged rehta hai. Momentum ke conservation ka law kehta hai: interacting particles ke isolated system ka total momentum conserved rehta hai.",
+    "b-21.paragraphs.2": "Collisions standard example hain. Do bodies A aur B jinke initial momenta p_A aur p_B hain, collide karte hain aur p′_A aur p′_B momenta ke saath separate hote hain. Second law ke anusar, contact ke common time ka use karte hue, F_AB times woh time = p′_A − p_A aur F_BA times woh time = p′_B − p_B. Kyunki F_AB = −F_BA, humein milta hai p′_A + p′_B = p_A + p_B: final total momentum initial total momentum ke barabar hai. Yeh sach hai chahe collision elastic ho ya inelastic.",
+    "b-22.problem": "0.020 kg mass ka ek shell 100 kg mass ki gun se fire kiya jata hai. Agar shell ki muzzle speed (chaal) 80 m s-1 hai, to gun ki recoil speed kya hai?",
+    "b-22.steps.0.title": "Firing se pehle",
+    "b-22.steps.0.detail": "Shell aur gun dono rest par hain, isliye system ka total momentum (samveg) zero hai.",
+    "b-22.steps.1.title": "Conservation of momentum",
+    "b-22.steps.1.detail": "Barrel ke along koi external force (bal) nahi hai, isliye total momentum zero hi rehta hai: mass of shell × speed of shell + mass of gun × speed of gun = 0.",
+    "b-22.steps.2.title": "Solve",
+    "b-22.steps.2.detail": "0.020 × 80 = 100 × v_gun, isliye v_gun = 1.6/100.",
+    "b-22.answer": "Gun 0.016 m s-1 ki speed se recoil karti hai, shell ki direction ke opposite.",
+    "b-23.question": "Do billiard balls, har ek ka mass 0.05 kg, opposite directions mein speed 6 m s-1 se move karte hain, collide karte hain aur same speed se rebound karte hain. Ek ball ko doosri ball ke karan mila impulse ka magnitude kya hai? Answer N s mein dijiye.",
+    "b-23.explanation": "Ek ball ki initial direction ko positive maaniye. Iska momentum 0.05 × 6 = 0.3 kg m s-1 se −0.3 kg m s-1 ho jata hai. Change 0.6 kg m s-1 hai, isliye impulse 0.6 N s hai, jo us ball ki original motion ke opposite directed hai.",
+    "b-24.paragraphs.0": "Mechanics mein ek particle equilibrium mein hota hai jab us par net external force (bal) zero ho. First law ke anusar, iska matlab hai particle ya to rest mein hai ya uniform motion (eksamaan gati) mein.",
+    "b-24.paragraphs.1": "Do forces F1 aur F2 ke under, equilibrium ke liye F1 = −F2 chahiye: dono forces equal aur opposite hone chahiye. Teen concurrent forces F1, F2 aur F3 ke under, equilibrium ke liye F1 + F2 + F3 = 0 chahiye. Inme se kisi bhi do ka resultant, parallelogram law se nikal kar, teesre ke equal aur opposite hona chahiye; teeno forces ko ek triangle ki sides ke roop mein draw kiya ja sakta hai jisme arrows same sense mein hon.",
+    "b-24.paragraphs.2": "Yeh result kisi bhi number ke forces ke liye generalise hota hai: woh ek particle ko equilibrium mein rakhte hain agar unhe ek closed n-sided polygon ki sides se represent kiya ja sake jisme arrows same sense mein hon. Components mein, x, y aur z ke har sum alag-alag zero hona chahiye.",
+    "b-25.problem": "6 kg ka mass ceiling se 2 m lambi rope se suspend kiya gaya hai. Rope ke mid-point P par horizontal direction mein 50 N ka force (bal) lagaya jata hai. Equilibrium mein rope vertical ke saath kitna angle banati hai? (g = 10 m s-2 lijiye.) Rope ke mass ko neglect kijiye.",
+    "b-25.steps.0.title": "Suspended weight ko dekhein",
+    "b-25.steps.0.detail": "Weight apne khud ke weight aur rope ke lower part mein tension T2 ke under equilibrium mein hai, isliye T2 = 6 × 10 = 60 N.",
+    "b-25.steps.1.title": "Point P ko dekhein",
+    "b-25.steps.1.detail": "P par teen forces act karti hain: rope ke upper part ke along tension T1, lower part ke along (vertically down) tension T2 = 60 N, aur 50 N ka horizontal force (bal).",
+    "b-25.steps.2.title": "P par resolve kijiye",
+    "b-25.steps.2.detail": "Vertical components cancel hone chahiye: T1 cos θ = T2 = 60 N. Horizontal components cancel hone chahiye: T1 sin θ = 50 N.",
+    "b-25.steps.3.title": "Solve kijiye",
+    "b-25.steps.3.detail": "Do equations ko divide kijiye: tan θ = 50/60 = 0.83, isliye θ lagbhag 40° hai. Phir T1 = √(60² + 50²) ≈ 78 N.",
+    "b-25.answer": "Rope vertical ke saath lagbhag 40° ka angle banati hai. Answer rope ki length (assumed massless) par depend nahi karta, aur na hi us point par jahan horizontal force (bal) lagaya jata hai.",
+    "b-26.question": "Teen concurrent forces (bal) ek particle par act karte hain jo equilibrium mein hai. Kaun sa statement zaroor sahi hona chahiye?",
+    "b-26.options.0": "Har force ka magnitude baaki do forces ke sum ke barabar hota hai.",
+    "b-26.options.1": "Teen forces ka vector sum (sadish yog) zero hai, aur unhe ek triangle ki sides ki tarah draw kiya ja sakta hai jisme arrows same sense mein liye gaye hon.",
+    "b-26.options.2": "Teen forces mutually perpendicular hone chahiye.",
+    "b-26.options.3": "Particle rest mein hona chahiye, moving nahi.",
+    "b-26.explanation": "Ek particle ka equilibrium ka matlab zero net external force (bahari bal) hai, isliye F1 + F2 + F3 = 0, aur har component ka sum alag-alag zero hota hai. Particle uniform motion (eksamaan gati) mein bhi ho sakta hai, zaroori nahi ki rest mein ho.",
+    "b-27.paragraphs.0": "Kai tarah ke force (bal) mechanics mein baar-baar aate hain. Gravitational force pervasive hai: earth par har object earth ke pull ko feel karta hai, aur gravity celestial bodies ki motion (gati) ko bhi govern karta hai. Ye distance par act karta hai, bina kisi medium ke beech mein.",
+    "b-27.paragraphs.1": "Baaki sab common forces contact forces hain, jo tab arise hote hain jab ek object doosre object ko touch karta hai, solid ho ya fluid. Jab do bodies contact mein hote hain to mutual contact forces hote hain jo third law satisfy karte hain. Contact force ka component jo surfaces ke normal hota hai use normal reaction kehte hain; surfaces ke parallel component ko friction kehte hain.",
+    "b-27.paragraphs.2": "Contact forces solid aur fluid ke beech bhi arise hote hain: fluid mein immersed solid ko upward buoyant force feel hota hai jo displaced fluid ke weight ke equal hota hai, aur viscous force aur air resistance bhi contact forces hain. String mein tension aur spring ka force further examples hain. Spring ko amount x tak compress ya stretch karne par restoring force F = −k x exert hota hai, jahan k force constant hai; minus sign batata hai ki force unstretched state se displacement (visthapan) ke opposite hai.",
+    "b-27.paragraphs.3": "Inextensible string ke liye force constant bahut high hota hai aur restoring force ko tension kehte hain. Negligible mass ki string ke liye tension T ko poore string mein same maan sakte hain. Microscopic level par ye sab contact forces bodies ke charged constituents ke beech electrical forces se aate hain, lekin unka detailed origin complex hai, isliye mechanics mein inhe separate kinds of force maana jata hai jinki properties experiment se milti hain.",
+    "b-28.paragraphs.0": "Ek block ko horizontal table par rakhiye. Gravity mg ko normal reaction N cancel kar deta hai. Ab ek chhota horizontal force F apply kijiye. Ho sakta hai block bilkul move na kare - lekin agar F hi only horizontal force hota to use accelerate karna padta. Isliye ek aur horizontal force F ko oppose karna chahiye, jisse net force zero rahe. Wahi force, surface ke parallel, friction hai.",
+    "b-28.paragraphs.1": "Jab tak block rest par rehta hai, friction static friction f_s hoti hai. Ye apne aap exist nahi karti: jis pal applied force aata hai, usi pal ye appear hoti hai, aur applied force ke equal aur opposite rehne ke liye grow karti hai. Static friction impending motion ko oppose karti hai - wo motion jo friction ke absent hone par hoti.",
+    "b-28.paragraphs.2": "Static friction ki ek limit hoti hai. Experiment show karta hai ki limiting value (f_s)max area of contact par depend nahi karti aur normal force ke saath badalti hai as (f_s)max = µ_s N, jahan µ_s coefficient of static friction hai, ek constant jo sirf do surfaces ki nature par depend karta hai. Isliye f_s ≤ µ_s N. Jab applied force (f_s)max se exceed karta hai, block slide karna shuru karta hai, aur friction ghat kar chhoti value par aa jati hai: kinetic (sliding) friction f_k = µ_k N, phir bhi area of contact par independent aur velocity par lagbhag independent, µ_k ke saath µ_s se kam.",
+    "b-28.paragraphs.3": "Slide karte waqt block ka acceleration (F − f_k)/m hota hai; constant velocity par F = f_k exactly; applied force hata dijiye to acceleration − f_k/m rehta hai jab tak block rukta hai. Dhyan dijiye ki friction relative motion ko oppose karti hai, motion ko nahi: ek accelerating train ke floor par rakha box static friction se aage accelerate hota hai, aur train ke relative rest par rehta hai.",
+    "b-28.paragraphs.4": "Ek ring ya sphere jo bina slipping ke roll karta hai, principle mein bilkul friction feel nahi karega, kyunki uska single point of contact plane ke saath relative motion nahi rakhta. Practice mein kuch rolling friction hoti hai, aur same weight ke liye ye static ya sliding friction se bahut chhoti hoti hai, even 2 or 3 orders of magnitude tak - isi liye wheel itna bada milestone raha hai. Lubricants, ball bearings aur air ki thin cushion friction ko reduce karte hain, lekin friction essential bhi hai: brakes kinetic friction use karke machines aur vehicles ko stop karte hain, aur hum sirf friction ki wajah se chal paate hain.",
+    "b-29.caption": "Ek block inclined plane par rest kar raha hai jiska surface horizontal ke saath angle θ banata hai (dashed horizontal line aur arc se marked). Block par teen forces act karti hain: weight mg vertically downward, normal reaction N sloped surface ke perpendicular, aur static friction fs slope ke upar ki taraf, impending motion down the slope ke opposite. Sirf directions di gayi hain; arrows measured scale ke according nahi hain.",
+    "b-29.svg_texts.t-0": "mg",
+    "b-29.svg_texts.t-1": "fs",
+    "b-30.problem": "4 kg ka mass ek horizontal plane par rest karta hai. Plane ko dheere-dheere inclined kiya jata hai jab tak horizontal ke saath angle θ = 15° par mass just slide karna shuru nahi kar deta. Block aur surface ke beech coefficient of static friction kya hai?",
+    "b-30.steps.0.title": "Block par lagne wali forces (bal)",
+    "b-30.steps.0.detail": "Iska weight mg vertically downward act karta hai, plane ka normal force N, aur static frictional force f_s jo impending motion (gati) ka opposition karti hai.",
+    "b-30.steps.1.title": "Weight ko resolve karo",
+    "b-30.steps.1.detail": "Slope (dhaal) ke along weight component mg sin θ hai; slope ke perpendicular ye mg cos θ hai. Equilibrium mein mg sin θ = f_s aur mg cos θ = N.",
+    "b-30.steps.2.title": "Sliding ke point par",
+    "b-30.steps.2.detail": "Jab θ badhta hai, self-adjusting f_s badhta hai jab tak θ_max par ye apna maximum value µ_s N tak nahi pahunch jata. Tab mg sin θ_max = µ_s mg cos θ_max.",
+    "b-30.steps.3.title": "Incline ke liye friction law",
+    "b-30.steps.3.detail": "Divide karne par tan θ_max = µ_s milta hai, aur θ_max sirf µ_s par depend karta hai, block ke mass par nahi.",
+    "b-30.steps.4.title": "Numbers insert karo",
+    "b-30.steps.4.detail": "θ_max = 15° ke liye, µ_s = tan 15° = 0.27.",
+    "b-30.answer": "µ_s = 0.27. 15° se thoda zyada par, slope ke neeche chhota net force block ko slide karna shuru kara deta hai.",
+    "b-31.problem": "Ek box train ke floor par rakha hai. Box aur floor ke beech coefficient of static friction 0.15 hai. Train ka maximum acceleration (tvaran) determine karo jiske liye box stationary rahega. (g = 10 m s-2 lo.)",
+    "b-31.steps.0.title": "Box ko kaunsi force accelerate karti hai?",
+    "b-31.steps.0.detail": "Agar box train ke relative stationary hai, to ye train ke saath accelerate karta hai, aur iske liye available sirf horizontal force static friction hai.",
+    "b-31.steps.1.title": "Box ke liye second law",
+    "b-31.steps.1.detail": "m a = f_s, aur static friction µ_s N = µ_s m g se zyada nahi ho sakta.",
+    "b-31.steps.2.title": "Inequality",
+    "b-31.steps.2.detail": "To m a ≤ µ_s m g, matlab a ≤ µ_s g.",
+    "b-31.answer": "a_max = µ_s g = 0.15 × 10 m s-2 = 1.5 m s-2.",
+    "b-32.problem": "Ek 3 kg block ek string se latka hai jo smooth pulley ke upar se jaati hai aur horizontal surface par rakhi 20 kg trolley se bandhi hai. Trolley aur surface ke beech coefficient of kinetic friction 0.04 hai. System ka acceleration aur string mein tension nikalo. (g = 10 m s-2 lo. String ka mass neglect karo.)",
+    "b-32.steps.0.title": "Ek hi acceleration",
+    "b-32.steps.0.detail": "String inextensible hai aur pulley smooth hai, isliye 3 kg block aur 20 kg trolley ka acceleration magnitude same a hai.",
+    "b-32.steps.1.title": "Block ke liye equation",
+    "b-32.steps.1.detail": "Block ka weight 30 N hai aur woh neeche move karta hai: 30 − T = 3a.",
+    "b-32.steps.2.title": "Trolley ke liye equation",
+    "b-32.steps.2.detail": "T − f_k = 20a, jahan f_k = µ_k N = 0.04 × (20 × 10) = 8 N. Isliye T − 8 = 20a.",
+    "b-32.steps.3.title": "Add karke solve karo",
+    "b-32.steps.3.detail": "Dono equations add karne par: 30 − 8 = 23a, isliye a = 22/23 m s-2.",
+    "b-32.steps.4.title": "Tension",
+    "b-32.steps.4.detail": "T = 8 + 20a = 27.1 N.",
+    "b-32.answer": "a = 22/23 m s-2 ≈ 0.96 m s-2, aur T ≈ 27.1 N.",
+    "b-33.question": "Aap ek rough horizontal table par rakhe block ko ek chhota horizontal force (bal) se push karte hain. Block move nahi hota. Us instant par block par friction force kya hai?",
+    "b-33.options.0": "Yeh µ_s N ke barabar hai, chahe aapka push kitna bhi ho.",
+    "b-33.options.1": "Yeh aapke push ke barabar aur opposite hai, aur µ_s N se chhota hai.",
+    "b-33.options.2": "Yeh zero hai, kyunki block move nahi ho raha.",
+    "b-33.options.3": "Yeh µ_k N ke barabar hai.",
+    "b-33.explanation": "Static friction self-adjusting hota hai: yeh applied force ke barabar hone tak badhta hai, µ_s N limit tak. Sirf jab block slide hone wala hota hai tab f_s = µ_s N hota hai. Kinetic friction sirf sliding shuru hone ke baad act karta hai.",
+    "b-34.paragraphs.0": "Ek body jo radius R ke circle mein uniform speed (chaal) v se move karti hai, uska acceleration (tvaran) v²/R hota hai jo centre ki taraf directed hota hai. Second law ke according, is acceleration ko provide karne wala force (bal) f_c = m v²/R hai, jo bhi centre ki taraf directed hota hai. Is force ko centripetal force kaha jata hai.",
+    "b-34.paragraphs.1": "Centripetal force koi naya type ka force nahi hai. Yeh sirf us real force ka naam hai jo centre ki taraf point karta ho: string par whirled stone ke liye yeh string mein tension hai, sun ke around ghoomte planet ke liye yeh sun ka gravitational pull hai, aur horizontal road par turn karti car ke liye yeh tyres aur road ke beech friction hai.",
+    "b-35.title": "Level road par car ki maximum speed (chaal)",
+    "b-35.steps.0.title": "Step 1: teen forces (bal)",
+    "b-35.steps.0.detail": "Car par teen forces act karte hain: uska weight mg, Normal reaction N, aur friction f.",
+    "b-35.steps.1.title": "Step 2: koi vertical acceleration nahi",
+    "b-35.steps.1.detail": "N − mg = 0, isliye N = mg.",
+    "b-35.steps.2.title": "Step 3: Centripetal force kaun supply karta hai?",
+    "b-35.steps.2.detail": "Centripetal force road ke along, turn ke centre ki taraf act karna chahiye. Sirf horizontal force available friction hai, isliye f = m v²/R.",
+    "b-35.steps.3.title": "Step 4: friction ki ek limit hoti hai",
+    "b-35.steps.3.detail": "Static friction f ≤ µ_s N = µ_s m g satisfy karta hai.",
+    "b-35.steps.4.title": "Step 5: combine karo",
+    "b-35.steps.4.detail": "m v²/R ≤ µ_s m g se v² ≤ µ_s R g milta hai. Mass cancel ho jata hai, isliye answer car ke mass par depend nahi karta.",
+    "b-36.title": "Level circular turn par maximum safe speed (chaal)",
+    "b-36.description": "Level (unbanked) road par centripetal force sirf friction se milta hai, isliye maximum safe speed v_max = √(µ_s R g) hoti hai. Plot aapke chune hue coefficient of static friction ke liye v_max versus turn radius R ki yeh curve dikhata hai, aur aapke chune hue radius par value print karta hai. g = 10 m s-2 lein.",
+    "b-36.controls.mus.label": "Static friction coefficient µ_s",
+    "b-36.controls.radius.label": "Turn radius R (m)",
+    "b-37.paragraphs.0": "Banked road par turn ka outer edge utha hua hota hai, isliye road surface horizontal ke saath angle θ banata hai. Tab Normal reaction ka ek horizontal component centre ki taraf hota hai, aur friction ko kam kaam karna padta hai.",
+    "b-37.paragraphs.1": "Vertical direction mein abhi bhi koi acceleration nahi hai, isliye vertical forces cancel honi chahiye: N cos θ = mg + f sin θ. Centripetal force N aur f ke horizontal components milakar supply hota hai: N sin θ + f cos θ = m v²/R.",
+    "b-37.paragraphs.2": "Maximum permissible speed nikalne ke liye friction ko uski limit par rakho, f = µ_s N, aur in dono equations ko saath solve karo.",
+    "b-38.title": "Banked road par maximum aur optimum speed (chaal)",
+    "b-38.steps.0.title": "Step 1: f ko uski limit par set karo",
+    "b-38.steps.0.detail": "Do banked-road equations mein f = µ_s N set karo: N cos θ = mg + µ_s N sin θ, aur N sin θ + µ_s N cos θ = m v²/R.",
+    "b-38.steps.1.title": "Step 2: N nikaalo",
+    "b-38.steps.1.detail": "Pehli equation se, N = mg/(cos θ − µ_s sin θ).",
+    "b-38.steps.2.title": "Step 3: substitute karo",
+    "b-38.steps.2.detail": "Is N ko doosri equation mein rakhne aur simplify karne se milta hai v²_max = R g (tan θ + µ_s)/(1 − µ_s tan θ).",
+    "b-38.steps.3.title": "Step 4: level road se compare karo",
+    "b-38.steps.3.detail": "Banked road par car ki maximum possible speed (chaal) flat road ke muqable zyada hoti hai.",
+    "b-38.steps.4.title": "Step 5: friction off karo",
+    "b-38.steps.4.detail": "µ_s = 0 rakhne par result v_o = √(R g tan θ) ho jaata hai. Is optimum speed (chaal) par friction ki zaroorat bilkul nahi hoti, isliye is par drive karne se tyres ka wear and tear kam hota hai. v < v_o ke liye friction slope (dhaal) ke upar act karta hai, aur car sirf tab park ho sakti hai jab tan θ ≤ µ_s.",
+    "b-39.problem": "Ek cyclist level road par 18 km/h ki speed (chaal) se ja raha hai aur speed kam kiye bina radius 3 m ka sharp circular turn leta hai. Tyres aur road ke beech coefficient of static friction 0.1 hai. Kya cyclist turn lete waqt slip karega? (g = 9.8 m s-2 lo.)",
+    "b-39.steps.0.title": "Not slipping ki condition",
+    "b-39.steps.0.detail": "Unbanked road par sirf friction hi centripetal force deta hai, isliye cyclist tabhi nahi slip karega jab v² ≤ µ_s R g ho.",
+    "b-39.steps.1.title": "Speed (chaal) ko convert karo",
+    "b-39.steps.1.detail": "18 km/h = 5 m s-1, isliye v² = 25 m2 s-2.",
+    "b-39.steps.2.title": "Limit compute karo",
+    "b-39.steps.2.detail": "µ_s R g = 0.1 × 3 × 9.8 = 2.94 m2 s-2.",
+    "b-39.steps.3.title": "Compare karo",
+    "b-39.steps.3.detail": "25 m2 s-2, 2.94 m2 s-2 se kaafi zyada hai, isliye condition follow nahi hoti.",
+    "b-39.answer": "Cyclist slip kar jayega. Speed bahut zyada hai, ya turn bahut sharp hai, itna ki friction needed centripetal force supply nahi kar sakta.",
+    "b-40.problem": "Radius 300 m ka ek circular racetrack 15° ke angle par banked hai. Agar race-car ke wheels aur road ke beech coefficient of friction 0.2 hai, to (a) tyres par wear and tear avoid karne ke liye race-car ki optimum speed (chaal) kya hai, aur (b) slipping avoid karne ke liye maximum permissible speed kya hai? (g = 9.8 m s-2 lo.)",
+    "b-40.steps.0.title": "(a) Optimum speed",
+    "b-40.steps.0.detail": "Optimum speed par normal reaction ka horizontal component akela centripetal force provide karta hai aur friction ki zarurat nahi hoti: v_o = √(R g tan θ).",
+    "b-40.steps.1.title": "Numbers insert karo",
+    "b-40.steps.1.detail": "v_o = √(300 × 9.8 × tan 15°) = √(300 × 9.8 × 0.268) ≈ 28.1 m s-1.",
+    "b-40.steps.2.title": "(b) Maximum speed",
+    "b-40.steps.2.detail": "v_max = √(R g (tan θ + µ_s)/(1 − µ_s tan θ)) use karo.",
+    "b-40.steps.3.title": "Numbers insert karo",
+    "b-40.steps.3.detail": "tan 15° = 0.268 aur µ_s = 0.2 ke saath: (0.268 + 0.2)/(1 − 0.2 × 0.268) = 0.468/0.946 ≈ 0.494. Phir v_max = √(300 × 9.8 × 0.494) ≈ 38.1 m s-1.",
+    "b-40.answer": "(a) Optimum speed ≈ 28.1 m s-1. (b) Maximum permissible speed ≈ 38.1 m s-1.",
+    "b-41.paragraphs.0": "Zyadatar real problems mein kai bodies ek doosre par push aur pull karti hain, aur unme se har ek par gravity bhi lagti hai. Working method hamesha same hota hai: assembly ke kisi bhi part ko apna system chuno aur us par laws of motion apply karo, bas shart ye hai ki remaining parts ki wajah se us part par lagne wali saari forces include karo.",
+    "b-41.paragraphs.1": "Step by step: (i) assembly ka ek diagram banao, jisme links aur supports dikhayein; (ii) assembly ke ek convenient part ko system ke roop mein chuno; (iii) us system ka alag diagram banao jisme rest of the assembly aur other agencies dwara us par lagne wali saari forces dikhayein, lekin environment par woh khud jo forces lagata hai woh nahi. Is type ke diagram ko free-body diagram kehte hain - aur iska matlab ye nahi ki system par net force zero hai.",
+    "b-41.paragraphs.2": "(iv) Free-body diagram par un forces ko likho jinke magnitudes aur directions diye gaye hain ya certain hain, jaise kisi tension ki direction uski length ke along; baaki ko unknowns maano jo laws of motion se nikalne hain. (v) Agar aapko second system chahiye, to procedure repeat karo aur third law use karo: agar A par B ki wajah se force A ke diagram mein F hai, to B par A ki wajah se force B ke diagram mein −F hai.",
+    "b-42.problem": "2 kg mass ka ek wooden block ek soft horizontal floor par rest karta hai. Jab 25 kg mass ka iron cylinder block ke upar rakha jata hai, floor steadily yield karta hai aur block aur cylinder dono milkar 0.1 m s-2 acceleration (tvaran) se neeche jate hain. Floor par block ka action kya hai (a) floor yield karne se pehle aur (b) baad mein? g = 10 m s-2 lo. Problem mein action-reaction pairs identify karo.",
+    "b-42.steps.0.title": "(a) Pehle: block ka free-body diagram",
+    "b-42.steps.0.detail": "Block par do forces (bal) lagti hain: gravity 2 × 10 = 20 N neeche, aur floor ka normal force R upar. Block rest par hai, isliye first law se R = 20 N.",
+    "b-42.steps.1.title": "(a) Third law",
+    "b-42.steps.1.detail": "Floor par block ka action 20 N vertically neeche hai.",
+    "b-42.steps.2.title": "(b) System block + cylinder chuno",
+    "b-42.steps.2.detail": "Iska mass 27 kg hai, isliye iska weight 270 N hai. Free-body diagram mein weight 270 N neeche aur floor ka normal force R′ upar dikhaya gaya hai; block aur cylinder ke beech internal forces nahi dikhaye gaye.",
+    "b-42.steps.3.title": "(b) Second law",
+    "b-42.steps.3.detail": "System 0.1 m s-2 se neeche accelerate karta hai, isliye 270 − R′ = 27 × 0.1 = 2.7 N, jisse R′ = 267.3 N milta hai.",
+    "b-42.steps.4.title": "(b) Third law aur pairs",
+    "b-42.steps.4.detail": "Floor par system ka action 267.3 N vertically neeche hai. Pairs ye hain: earth ka block (ya system) par pull aur block (ya system) ka earth par pull; block (ya system) ka floor par push aur floor ka block (ya system) par push; aur, floor yield karne ke baad, cylinder ka block par force aur block ka cylinder par force.",
+    "b-42.answer": "(a) 20 N vertically neeche; (b) 267.3 N vertically neeche. Weight aur normal force action-reaction pair nahi hain: ye same body par lagte hain, aur floor yield karne ke baad ye equal bhi nahi rehte (270 N aur 267.3 N).",
+    "b-43.question": "70 kg mass ka ek aadmi lift mein weighing scale par khada hai jo neeche ki taraf 5 m s-2 ke uniform acceleration (tvaran) se move kar rahi hai. Scale par reading kya hai? (g = 10 m s-2 lein.) Answer newtons mein dijiye.",
+    "b-43.explanation": "Scale us normal force N ko read karti hai jo woh aadmi par exert karti hai. Downward ko positive lete hue, net downward force mg − N = m a hai, isliye N = m(g − a) = 70 × (10 − 5) = 350 N. Agar lift gravity ke under freely girti, to a barabar g hota aur reading zero hoti.",
+    "b-44.question": "Ek patthar ko string se baandh kar horizontal circle mein ghumaya ja raha hai. Speed (chaal) ko us maximum se zyada badha diya jaata hai jo string seh sakti hai, aur string achanak toot jaati hai. Us pal ke baad patthar ka path kaunsa hoga?",
+    "b-44.options.0": "Yeh radially bahar ki taraf, centre se door move karta hai.",
+    "b-44.options.1": "Jis pal string tootati hai, us pal circle ke tangent ke along ud jaata hai.",
+    "b-44.options.2": "Yeh tangent se kisi angle par ud jaata hai, aur angle speed par depend karta hai.",
+    "b-44.options.3": "Yeh same circle mein chhoti speed ke saath ghoomta rehta hai.",
+    "b-44.explanation": "String ka tension wahi force tha jo patthar ke momentum (samveg) ki direction badal raha tha. Jis moment string tootati hai, koi horizontal force act nahi karta (air resistance ko neglect karte hue), isliye first law ke according patthar us instant wali velocity ke saath straight line mein chalta rehta hai — jo tangent ke along hoti hai.",
+    "b-45.question": "Ghoda empty space mein cart ko kyun pull karke daud nahi sakta?",
+    "b-45.options.0": "Kyunki empty space mein push karne ke liye hawa nahi hoti.",
+    "b-45.options.1": "Kyunki ghoda ground ko backward push karta hai aur ground ghode aur cart ko forward push karta hai; empty space mein push karne ke liye ground nahi hota, isliye system par koi external forward force act nahi kar sakta.",
+    "b-45.options.2": "Kyunki cart ke muqable ghode ka mass bahut kam hota hai.",
+    "b-45.options.3": "Kyunki empty space mein cart aur ground ke beech friction bahut zyada hoti.",
+    "b-45.explanation": "Horse-and-cart system par forward force system ke bahar se aana chahiye. Ground par yeh friction hoti hai ghode ke hooves aur ground ke beech: ghoda ground ko backward push karta hai, ground use forward push karta hai. Ground ke bina aisi external force nahi hoti, aur system ke andar ke mutual forces use accelerate nahi kar sakte.",
+    "b-46.paragraphs.0": "Kuch mechanics problems mein aapko forces ki list ke bajaye position vs time ka graph diya hota hai. Aap force aur impulse dono nikal sakte hain, kyunki sab kuch is baat se follow karta hai ki graph ka slope (dhaal) kya kar raha hai.",
+    "b-46.paragraphs.1": "Ek particle ke liye, velocity (veg) position ke time ke saath rate of change hai, v = dy/dt (y ko position coordinate maan lijiye). Position-time graph par yeh graph ka slope hota hai. Acceleration (tvaran) velocity ke rate of change hai, a = dv/dt, yani slope khud kitni tezi se badal raha hai.",
+    "b-46.paragraphs.2": "Graph ko teen steps mein padhiye. Agar graph ka koi stretch straight line hai, wahan velocity constant hai, isliye acceleration zero hai aur, second law ke according, us interval mein particle par force zero hai. Agar slope steadily badalta hai, velocity badal rahi hai, isliye acceleration aur force F = m a hai. Agar slope kisi ek instant par abruptly badalta hai - graph mein kink - to velocity almost no time mein definite amount se badalti hai, isliye momentum abruptly badalta hai: momentum ka woh change us instant par delivered impulse hai.",
+    "b-46.paragraphs.3": "Mass do baar aata hai: acceleration ko force mein badalne ke liye, F = m a, aur velocity ke change ko impulse mein badalne ke liye, impulse = change in momentum = m times the change in velocity. Kisi bhi instant par force us instant ki situation se fix hota hai; particle apni earlier motion ki koi memory nahi rakhta.",
+    "b-47.problem": "0.25 kg mass ka ek stone string ke end se tied hai aur horizontal plane mein 1.5 m radius ke circle mein 40 rev./min ki speed (chaal) se whirled round kiya ja raha hai. String mein tension kya hai? Agar string maximum 200 N tension seh sakti hai, to stone ko kis maximum speed se whirled around kiya ja sakta hai?",
+    "b-47.steps.0.title": "Centripetal force kaun supply karta hai?",
+    "b-47.steps.0.detail": "Stone uniform speed se circle mein move karta hai, isliye isko centre ki taraf directed force (bal) m v^2/R chahiye. Yahan centre ki taraf act karne wala sirf string mein tension hai, isliye tension hi centripetal force hai: T = m v^2/R.",
+    "b-47.steps.1.title": "Speed ko m s-1 mein convert karein",
+    "b-47.steps.1.detail": "Ek revolution mein stone circumference 2 pi R = 2 pi times 1.5, lagbhag 9.42 m travel karta hai. 40 revolutions per minute par yeh har second 40/60 revolution karta hai, isliye v = 9.42 times 40/60, lagbhag 6.28 m s-1.",
+    "b-47.steps.2.title": "String mein tension",
+    "b-47.steps.2.detail": "T = m v^2/R = 0.25 times (6.28)^2 / 1.5, jo lagbhag 6.6 N hai.",
+    "b-47.steps.3.title": "Maximum tension se maximum speed",
+    "b-47.steps.3.detail": "String maximum 200 N de sakti hai, isliye m v^2/R = 200 se v = square root of (200 times 1.5 / 0.25) = square root of 1200, lagbhag 34.6 m s-1.",
+    "b-47.answer": "Tension lagbhag 6.6 N hai. Maximum speed jisse stone ko whirled kiya ja sakta hai lagbhag 34.6 m s-1 hai; usse zyada par string ko 200 N se zyada supply karna padega aur woh break ho jayegi.",
+    "b-48.problem": "0.05 kg mass ka ek pebble vertically upwards throw kiya jaata hai. Air resistance ignore karte hue, pebble par net force (bal) ka magnitude aur direction batao (a) uske upward motion (gati) ke dauraan, (b) uske downward motion ke dauraan, aur (c) highest point par jahan woh momentarily rest mein hai. (g = 10 m s-2 lein.)",
+    "b-48.steps.0.title": "Kaunse forces act karte hain?",
+    "b-48.steps.0.detail": "Air resistance neglect kiya gaya hai, isliye kisi bhi instant par pebble par sirf uska weight, mg, vertically downward direction mein lagta hai. Earth use tab bhi pull kar rahi hai jab woh upar jaata hai, neeche aata hai, ya ek instant ke liye still hangs karta hai.",
+    "b-48.steps.1.title": "Weight nikaalo",
+    "b-48.steps.1.detail": "mg = 0.05 times 10 = 0.5 N, downward.",
+    "b-48.steps.2.title": "Highest point",
+    "b-48.steps.2.detail": "Highest point par velocity (veg) momentarily zero hoti hai, lekin isse force zero nahi ho jaata. Force aur acceleration (tvaran) us instant par body ki location ki situation se fixed hote hain, is baat se nahi ki woh kitni fast move kar raha hai: force ab bhi uska weight mg hai aur acceleration ab bhi g hai, downward.",
+    "b-48.answer": "(a) 0.5 N downward, (b) 0.5 N downward, (c) 0.5 N downward. Teeno cases mein answer same hai: ek body jo momentarily rest mein hai, us par ab bhi non-zero force aur non-zero acceleration ho sakta hai.",
+    "b-49.paragraphs.0": "Lawn mower ko push karne se zyada pull karna aasan kyun hota hai? Iska jawab un do cheezon se milta hai jo aap pehle se jaante hain: normal reaction aur friction.",
+    "b-49.paragraphs.1": "Jab do surfaces contact mein hoti hain, contact force ka ek component surfaces ke normal hota hai, normal reaction N, aur ek component unke parallel hota hai, friction. Friction ke laws kehte hain ki sliding friction f_k = mu_k N hota hai (aur static friction at most mu_s N tak badh sakta hai). Isliye jis friction ka aapko samna karna hai woh normal reaction ke proportional hota hai: N ko chhota banao aur friction bhi chhota ho jaata hai.",
+    "b-49.paragraphs.2": "Mower ko aise handle se pull karo jo upward slant karta hai, aur aapke pull ka ek upward component hota hai. Woh upward component mower ko partly support karta hai, isliye floor ko kam push up karna padta hai: normal reaction N chhota ho jaata hai, aur uske saath woh friction bhi chhota ho jaata hai jise mower ko overcome karna hota hai. Usi mower ko downward slanting handle se push karo, aur aapke push ka ek downward component hota hai jo mower ko ground mein zyada dabata hai: N bada ho jaata hai, aur friction bhi bada ho jaata hai. Same mower, same ground - sirf handle par aapke force ki direction badli hai, aur uske saath normal reaction aur friction bhi.",
+    "b-50.question": "4 kg mass wale particle ka position-time graph t = 0 se t = 4 s tak ek straight line hai, aur t = 4 s ke baad different slope wali ek straight line hai. t = 0 se t = 4 s ke interval mein particle par force kya hai?",
+    "b-50.options.0": "Zero, kyunki wahan graph straight line hai, isliye velocity constant hai aur acceleration zero hai.",
+    "b-50.options.1": "4 N, kyunki particle ka mass 4 kg hai.",
+    "b-50.options.2": "Non-zero, kyunki particle move kar raha hai.",
+    "b-50.options.3": "Ise t = 4 s ke baad ki force jaane bina find nahi kiya ja sakta.",
+    "b-50.explanation": "Straight position-time graph ka matlab hai velocity change nahi ho rahi, isliye acceleration zero hai aur second law ke according net force zero hai. Kisi bhi instant par force sirf usi instant par depend karti hai, t = 4 s ke baad kya hota hai uspar nahi. t = 4 s par slope abruptly change hota hai, isliye velocity suddenly change hoti hai aur wahan momentum ke us change ke barabar ek Impulse deliver hota hai.",
+    "b-51.question": "0.25 kg mass ka ek stone 1.5 m lambi string se bandha hai aur horizontal circle mein ghumaya ja raha hai. Agar string maximum 200 N tension seh sakti hai, toh stone ko maximum kis speed (chaal) se ghumaya ja sakta hai? Answer ko m s-1 mein do, ek decimal place tak.",
+    "b-51.explanation": "Tension hi centripetal force hai, isliye m v^2/R = T se v = square root of (T R / m) = square root of (200 times 1.5 / 0.25) = square root of 1200, lagbhag 34.6 m s-1. Is speed se zyada hone par required centripetal force 200 N se zyada ho jayega aur string toot jayegi.",
+    "b-52.question": "0.05 kg mass ka ek pebble vertically upwards throw kiya jata hai aur, apne path ke highest point par, momentarily rest mein hota hai. Air resistance ignore karte hue aur g = 10 m s-2 lete hue, us instant par is par lagne wale net force (bal) ka magnitude newtons mein kya hai?",
+    "b-52.explanation": "Sirf force weight mg = 0.05 times 10 = 0.5 N hai, jo downward directed hai, aur highest point par bhi ye anywhere else jaisa hi same hai. Momentarily rest hone se velocity (veg) zero hoti hai, force nahi: wahan acceleration (tvaran) g hai, downward.",
+    "b-53.question": "Lawn mower ko push karne ki tulna mein pull karna zyada aasan kyun hota hai?",
+    "b-53.options.0": "Kyunki pull karna hamesha push karne se chhota force (bal) maangta hai, chahe angle koi bhi ho.",
+    "b-53.options.1": "Kyunki upward-slanting handle par pull normal reaction ko kam karta hai, aur friction normal reaction ke proportional hota hai, isliye overcome karne ke liye kam friction hota hai; downward-slanting push dono ko badha deta hai.",
+    "b-53.options.2": "Kyunki pull karne par mower mein kam Inertia hota hai.",
+    "b-53.options.3": "Kyunki friction sirf tab lagta hai jab kisi body ko push kiya jata hai.",
+    "b-53.explanation": "Friction contact force ka woh component hai jo surfaces ke parallel hota hai, aur iska magnitude normal reaction N ke proportional hota hai. Upward-slanting pull mower ko kuch had tak support karta hai, jisse N kam hota hai aur isliye friction bhi kam hota hai; downward-slanting push mower ko ground mein dabata hai, jisse N badh jata hai aur isliye friction bhi badh jata hai."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Laws of Motion (Gati ke Niyam)",
+    "objectives": [
+      "Is lesson ke baad aap samjha sakte hain ki Aristotle ka yeh vichar kyun galat hai ki kisi body ko moving rakhne ke liye force chahiye, aur Galileo ka law of inertia bata sakte hain.",
+      "Is lesson ke baad aap Newton ke teen laws of motion bata aur apply kar sakte hain, jisme momentum, impulse aur conservation of momentum shamil hain.",
+      "Is lesson ke baad aap equilibrium, level aur inclined surfaces par friction, aur level aur banked roads par car ki circular motion ka analyse kar sakte hain.",
+      "Is lesson ke baad aap free-body diagram bana sakte hain aur laws of motion se multi-body problems solve kar sakte hain."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Kyun hum maante hain ki force chahiye",
+        "paragraphs": [
+          "Socho ek football zameen par still pada hai. Use move karne ke liye kisi ko kick karna padega. Ek stone ko upar bhejne ke liye kisi ko use upar push karna padega. Hawa se ped ki branches hilti hain, aur tez hawa bhaari objects ko bhi move kar sakti hai. Har case mein koi outside agency force deti hai.",
+          "Kabhi woh agency body ko touch karti hai, jaise aapka haath ball ko touch karta hai ya behti stream boat ko push karti hai. Yeh hamesha zaroori nahi: building se chhoda gaya stone earth ke gravitational pull ki wajah se neeche ki taraf speed up karta hai, aur bar magnet iron nail ko distance se attract kar sakta hai. Isliye external agency contact mein ya distance se act kar sakti hai.",
+          "Motion ko rokne ke liye bhi force chahiye. Aap inclined plane par rolling ball ko uski motion ki direction ke against push karke rok sakte hain. Ab ek sharper question: agar koi body already uniformly move kar rahi hai, jaise horizontal ice slab par constant speed se straight gliding karta skater, to use uniform motion mein rakhne ke liye external force chahiye? Yeh question simple lagta hai, lekin iska answer dene mein ages lag gaye."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "Aristotle ka galat vichar",
+        "paragraphs": [
+          "Aristotle (384 B.C. - 322 B.C.) maante the ki agar koi body move kar rahi hai, to use moving rakhne ke liye kuch external chahiye. Is view mein bow se chhoda gaya arrow udta rehta hai kyunki uske peeche ki air use push karti rehti hai. Ek law ke roop mein: body ko motion mein rakhne ke liye external force chahiye.",
+          "Yeh daily experience se natural lagta hai. Toy-car kheenchta bachcha jaanta hai ki string ko har waqt pull karna padta hai; chhod do to car ruk jaati hai. Apne aap par chhodi gayi earth par bodies rest mein aati dikhti hain.",
+          "Flaw friction hai. Toy-car isliye rukti hai kyunki floor uski motion ke opposite friction force lagata hai. Use chalane ke liye bachcha equal force se aage pull karta hai, isliye car par net external force zero hai. Agar friction na hota, to car ko uniform motion mein rakhne ke liye koi force hi nahi chahiye hoti.",
+          "Opposing forces jaise solids ke beech friction, aur fluids mein viscous forces, natural world mein hamesha present hote hain. Isliye hum normally cheezon ko moving rakhne ke liye push karte hain. Nature ka true law dhoondhne ke liye Galileo ne bina friction wali duniya imagine ki."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Law of inertia",
+        "paragraphs": [
+          "Galileo ne inclined planes par motion study kiya. Inclined plane par neeche moving object speed up karta hai; upar moving object slow down karta hai. Horizontal plane par motion in-between case hai. Galileo ne conclude kiya ki frictionless horizontal plane par object na speed up karega na slow down: woh constant velocity se move karega.",
+          "Unka second experiment double inclined plane use karta tha. Ek plane par rest se chhodi gayi ball neeche roll karti hai aur doosri par climb karti hai. Agar planes smooth hain to ball lagbhag utni hi height tak pahunchti hai jitni se start hui thi - thoda kam, kabhi zyada nahi. Friction absent hone par final height starting height ke equal hoti.",
+          "Doosri plane ko flatter banao aur repeat karo: ball phir bhi same height tak climb karti hai, isliye use farther travel karna padta hai. Limiting case mein doosri plane horizontal hoti hai aur ball infinite distance travel karti hai, isliye uski motion kabhi nahi rukti. Practice mein ball finite distance ke baad ruk jaati hai kyunki friction ko totally remove nahi kiya ja sakta.",
+          "Galileo ka insight yeh tha ki rest ki state aur uniform linear motion ki state equivalent hain: dono mein body par net force zero hota hai. Body ki property jo uski rest state ya uniform motion mein change ko resist karti hai, use inertia kehte hain. Inertia ka matlab hai 'resistance to change'."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Newton ka first law of motion",
+        "paragraphs": [
+          "Newton ne Galileo ke ideas par build kiya aur mechanics ki foundation teen laws of motion mein rakhi. Galileo ka law of inertia first law ban gaya: har body apni rest state ya straight line mein uniform motion ki state mein rehti hai jab tak koi external force use otherwise act karne ke liye compel na kare.",
+          "Rest aur straight line mein uniform motion dono ka matlab zero acceleration hai. Isliye first law ek line mein: agar body par net external force zero hai, to uska acceleration zero hai. Acceleration non-zero tabhi ho sakta hai jab body par net external force ho.",
+          "Kabhi hum jaante hain net force zero hai, jaise all objects se door spaceship ka jiske rockets off hain; tab uska acceleration zero hona chahiye aur, agar woh move kar raha hai, to uniform velocity maintain karega. Zyada baar hum saare forces nahi jaante, lekin dekh sakte hain ki object rest mein ya uniform motion mein hai; first law tab batata hai ki us par net external force zero hona chahiye.",
+          "Table par rest mein rakhi book lo. Uska weight W neeche act karta hai aur table ka normal force R upar act karta hai. Correct reasoning yeh nahi hai ki 'W = R hone se forces cancel ho jaate hain aur book rest mein rehti hai'. Correct yeh hai: book rest mein observe hoti hai, isliye us par net external force zero hona chahiye, jiska matlab R, W ke equal aur opposite hai. Gravity aur friction har jagah hain, isliye rest ya uniform motion mein body par forces hoti hain jo add hoke zero banti hain - aisa nahi ki koi force hi nahi.",
+          "Bus mein aap first law feel karte hain. Jab bus suddenly start hoti hai to aap peeche thrown hote hain: aapke feet friction ki wajah se floor ke saath move karte hain, lekin baaki body jahan thi wahan rehne ki tend karti hai. Jab bus suddenly stop hoti hai to aapke feet ruk jaate hain aur baaki body aage move karti rehti hai, isliye aap aage thrown hote hain."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Newton ka second law of motion: momentum aur impulse",
+        "paragraphs": [
+          "Second law body par net external force ko uske acceleration se relate karta hai. Ise momentum ke terms mein state kiya jaata hai: body ka momentum uske mass m aur velocity v ka product hai, likha jaata hai p = m v. Momentum ek vector hai, jo velocity ke along point karta hai.",
+          "Yeh product kyun? Loaded truck ko small car se bahut zyada force chahiye same time mein same speed tak pahunchne ke liye, aur same time mein rukne ke liye zyada opposing force chahiye. High speed se fired bullet tissue pierce kar sakti hai, jabki wahi bullet moderate speed par little damage karti hai. Akela mass ya akeli speed enough nahi; product m v hi quantity hai jo matter karti hai.",
+          "Agar fixed force certain time ke liye different masses ki do bodies par act kare, to lighter body greater speed paati hai, phir bhi har body same momentum acquire karti hai. Same force same time ke liye different bodies par same change in momentum karta hai. Second law kehta hai: body ke momentum ke change ki rate applied force ke directly proportional hai aur us direction mein hoti hai jisme force act karta hai.",
+          "Direction bhi matter karti hai. Constant speed se circle mein ghumaya gaya stone ka momentum fixed magnitude ka hota hai jiski direction badalti rehti hai, aur us change ke liye force chahiye; agar aap use faster ya smaller circle mein ghumaate hain to haath ko zyada hard pull karna padta hai. Isliye momentum vector ke change ki rate jitni greater, force utna greater.",
+          "Law par chaar notes. Yeh first law se agree karta hai, kyunki F = 0 se a = 0 milta hai. Yeh vector law hai, total teen equations: velocity ke parallel nahi wala force sirf velocity ke us component ko change karta hai jo force ke along hai, isliye vertical gravity ke under projectile apna horizontal velocity component maintain karta hai. Yeh particle par lagu hota hai aur, same form mein, body ya system of particles par bhi, jisme F total external force hai aur internal forces left out hain. Aur yeh local relation hai: force yahan aur ab acceleration yahan aur ab determine karta hai, motion ki history nahi.",
+          "Jab large force bahut short time ke liye act karta hai, force aur time ko separately measure karna mushkil hota hai, lekin unka product change in momentum ke equal hota hai. Us product ko impulse kehte hain: impulse = force × time duration = change in momentum. Aisa large, short-lived force impulsive force kehlata hai - kisi bhi doosre force se kind mein different nahi, sirf large aur brief. Cricketer catch karte waqt apne hands peeche kheenchta hai taaki same change of momentum zyada time le aur smaller force chahiye; novice jo ball ko almost instantly rokta hai use bahut greater force chahiye aur woh hurt ho jaata hai."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Newton ka third law of motion",
+        "paragraphs": [
+          "Second law batata hai ki external force kya karta hai; third law batata hai ki woh kahan se aata hai. Newtonian mechanics mein body par external force hamesha kisi doosri body se aata hai. Coiled spring ko press karo aur spring aapke haath par push back karta hai. Earth stone ko neeche pull karti hai, aur stone earth ko equal aur opposite force se upar pull karta hai, jise hum notice nahi karte kyunki earth bahut massive hai.",
+          "Isliye force kabhi akela nahi hota: yeh do bodies ke beech mutual interaction hai, aur forces hamesha pairs mein hote hain. Newton ne ise state kiya: har action ke liye hamesha equal aur opposite reaction hota hai. Symbols mein, F_AB = −F_BA: B dwara A par force, A dwara B par force ke minus ke equal hai.",
+          "Teen warnings. Action aur reaction shabd 'force' se zyada kuch nahi mean karte. Cause-and-effect order nahi hota - dono forces same instant par act karte hain, aur kisi ko bhi action kaha ja sakta hai. Aur dono forces different bodies par act karte hain, isliye jab aap ek body ki motion study karte hain to pair mein se sirf ek matter karta hai; unhe add karke net force zero kehna error hai. Sirf jab dono bodies ko ek system maana jaaye tab pair internal forces ban jaata hai aur cancel hota hai."
+        ]
+      },
+      {
+        "id": "sec-07",
+        "title": "Conservation of momentum",
+        "paragraphs": [
+          "Second aur third laws milkar law of conservation of momentum dete hain. Gun se bullet fire karo: gun dwara bullet par force F hai, bullet dwara gun par force −F hai, aur dono same time ke liye act karte hain. Isliye bullet momentum F times us time ke equal gain karti hai aur gun opposite amount gain karta hai. Dono rest se start karte hain, isliye unke final momenta equal aur opposite hain aur (bullet + gun) system ka total momentum unchanged rehta hai.",
+          "Isolated system mein - jis par koi external force nahi - particles ke pairs ke beech mutual forces individual momenta change karte hain, lekin har pair ke liye changes equal aur opposite hote hain aur cancel ho jaate hain, isliye total momentum same rehta hai. Law kehta hai: interacting particles ke isolated system ka total momentum conserved hota hai.",
+          "Collisions standard example hain. Do bodies ke initial momenta p_A aur p_B hain; woh collide hoke p′_A aur p′_B momenta ke saath separate hote hain, second law deta hai F_AB times contact time = p′_A − p_A aur F_BA times contact time = p′_B − p_B. Kyunki F_AB = −F_BA, hum paate hain p′_A + p′_B = p_A + p_B: final total momentum initial total momentum ke equal hai. Yeh collision elastic ho ya inelastic, hold karta hai."
+        ]
+      },
+      {
+        "id": "sec-08",
+        "title": "Particle ka equilibrium",
+        "paragraphs": [
+          "Mechanics mein particle equilibrium mein hota hai jab us par net external force zero ho. First law ke hisaab se iska matlab particle rest mein hai ya uniform motion mein.",
+          "Do forces ke under, equilibrium ke liye unhe equal aur opposite hona chahiye. Teen concurrent forces F1, F2 aur F3 ke under, F1 + F2 + F3 = 0 chahiye: kisi bhi do ka resultant, parallelogram law se nikal kar, teesre ke equal aur opposite hona chahiye. Phir teen forces ko ek triangle ki sides ki tarah draw kiya ja sakta hai, arrows same sense mein leke.",
+          "Yeh result generalise hota hai: forces particle ko equilibrium mein rakhte hain agar unhe closed n-sided polygon ki sides se represent kiya ja sake, arrows same sense mein. Components mein, x, y aur z ke har sum ko separately vanish karna chahiye."
+        ]
+      },
+      {
+        "id": "sec-09",
+        "title": "Mechanics mein common forces: friction",
+        "paragraphs": [
+          "Gravitational force pervasive hai: earth par har object earth ka pull feel karta hai, aur gravity celestial bodies ko bhi govern karti hai. Yeh distance se act karta hai. Baaki saare common forces contact forces hain, jo tab arise hote hain jab object doosre object ko touch karta hai, solid ho ya fluid.",
+          "Contact force ka component jo contact surfaces ke normal hai use normal reaction kehte hain; surfaces ke parallel component ko friction kehte hain. Fluid mein immersed solid upward buoyant force feel karta hai jo displaced fluid ke weight ke equal hota hai; viscous force aur air resistance bhi contact forces hain. x se compressed ya stretched spring restoring force F = −k x lagata hai, jahan k force constant hai aur minus sign batata hai ki force unstretched state se displacement ke opposite hai. Inextensible string ke liye is restoring force ko tension kehte hain, aur negligible mass wali string ke liye tension T ko throughout constant maana ja sakta hai.",
+          "Table par block rakho aur gently push karo. Woh move nahi kar sakta, isliye koi horizontal force aapke push ko oppose karta hoga, net force zero rakhke. Woh force, surface ke parallel, friction hai. Jab tak block rest mein rehta hai woh static friction f_s hai, jo applied force aate hi appear hota hai aur uske match tak grow karta hai. Static friction impending motion ko oppose karta hai - woh motion jo friction na hone par hoti.",
+          "Static friction ki limit hoti hai. Experiment dikhata hai (f_s)max contact area par depend nahi karta aur (f_s)max = µ_s N se diya jaata hai, jahan µ_s static friction ka coefficient hai, jo sirf do surfaces par depend karta hai. Isliye f_s ≤ µ_s N. Us limit ke beyond block slide karta hai, aur friction kinetic (sliding) friction f_k = µ_k N tak drop hota hai, jo phir contact area par independent aur velocity par lagbhag independent hai, µ_k, µ_s se less hone ke saath. Sliding ke waqt acceleration (F − f_k)/m hai; constant velocity par F = f_k; applied force hatao to acceleration − f_k/m hai jab tak block stop na ho.",
+          "Friction relative motion ko oppose karta hai, motion ko nahi: accelerating train ke floor par rakha box static friction se forward accelerate hota hai aur train ke relative rest mein rehta hai. Bina slipping rolling ring ya sphere principle mein koi friction feel nahi karega, kyunki uska single point of contact plane ke saath relative motion nahi rakhta; practice mein rolling friction hota hai, aur same weight ke liye woh static ya sliding friction se bahut smaller hota hai, 2 ya 3 orders of magnitude tak. Lubricants, ball bearings aur air ki thin cushion friction reduce karte hain, lekin friction essential bhi hai: brakes kinetic friction use karte hain aur hum sirf friction ki wajah se walk kar sakte hain."
+        ]
+      },
+      {
+        "id": "sec-10",
+        "title": "Circular motion",
+        "paragraphs": [
+          "Radius R ke circle mein uniform speed v se moving body ka acceleration v²/R hota hai jo centre ki taraf directed hai. Second law ke hisaab se ise provide karne wala force f_c = m v²/R hai, jo bhi centre ki taraf hai, aur ise centripetal force kehte hain. Yeh nayi kind ka force nahi hai: string par ghumaye gaye stone ke liye yeh tension hai, planet ke liye sun ki gravity hai, level road par turning car ke liye yeh friction hai.",
+          "Level road par, N = mg aur akela friction centripetal force deta hai, isliye m v²/R ≤ µ_s m g aur v_max = √(µ_s R g), car ke mass par independent. Banked road par surface angle θ se tilted hota hai, aur normal reaction khud ka horizontal component hota hai. Tab N cos θ = mg + f sin θ aur N sin θ + f cos θ = m v²/R; friction ko limit par rakhne se v_max = √(R g (tan θ + µ_s)/(1 − µ_s tan θ)) milta hai, jo flat road se greater hai.",
+          "µ_s = 0 rakhne se optimum speed v_o = √(R g tan θ) milti hai, jis par koi friction ki zaroorat hi nahi hoti aur tyres kam wear hote hain. v < v_o ke liye friction slope ke upar act karta hai, aur car sirf tab park ho sakti hai jab tan θ ≤ µ_s."
+        ]
+      },
+      {
+        "id": "sec-11",
+        "title": "Mechanics mein problems solve karna",
+        "paragraphs": [
+          "Zyadatar real problems mein kai bodies ek doosre ko push aur pull karti hain, aur unme se har ek gravity bhi feel karti hai. Assembly ka koi bhi part apna system choose karo aur us par laws of motion apply karo, bas us par remaining parts aur other agencies ki wajah se lagne wale saare forces include karo.",
+          "Steps yeh hain: assembly draw karo jisme links aur supports dikhein; convenient part ko system choose karo; us system ka separate diagram draw karo jisme rest of assembly aur other agencies ke lagaye saare forces hon, lekin woh forces nahi jo woh environment par lagata hai - yeh free-body diagram hai, aur iska matlab yeh nahi ki system par net force zero hai.",
+          "Phir un forces ko likho jinke magnitudes aur directions given ya certain hain, jaise tension ki direction uski length ke along, aur baaki ko unknowns maano. Agar second system chahiye, procedure repeat karo aur third law use karo: agar A ke diagram mein B ki wajah se A par force F hai, to B ke diagram mein A ki wajah se B par force −F hai."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "Inertia",
+        "definition": "Body ki apni rest state ya uniform motion mein kisi bhi change ko resist karne ki property."
+      },
+      {
+        "term": "Momentum",
+        "definition": "Mass times velocity, p = m v; velocity ke along point karta vector."
+      },
+      {
+        "term": "Impulse",
+        "definition": "Force ko uske act karne ke time se multiply karna; yeh change in momentum ke equal hota hai."
+      },
+      {
+        "term": "Equilibrium",
+        "definition": "Particle ki woh state jab us par net external force zero ho."
+      },
+      {
+        "term": "Normal reaction",
+        "definition": "Contact force ka woh part jo contact surfaces ke perpendicular hai."
+      },
+      {
+        "term": "Static friction",
+        "definition": "Self-adjusting friction jo body ko rest mein rakhta hai, µ_s N limit tak."
+      },
+      {
+        "term": "Kinetic friction",
+        "definition": "Friction jo actual sliding ko oppose karta hai, µ_k N ke equal."
+      },
+      {
+        "term": "Centripetal force",
+        "definition": "Kisi bhi real force ka naam jo centre ki taraf point karta hai aur acceleration v²/R provide karta hai."
+      },
+      {
+        "term": "Free-body diagram",
+        "definition": "Ek chosen system ka diagram jisme sirf us par outside se act karne wale forces dikhte hain."
+      },
+      {
+        "term": "Optimum speed (banked road)",
+        "definition": "Woh speed √(R g tan θ) jis par banked turn par koi friction ki zaroorat nahi hoti."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Socho ek football zameen par sthir pada hai. Use move karne ke liye, kisi ko use kick karna padega. Ek patthar ko upar bhejne ke liye, kisi ko use upar dhakelna padega. Ek halki hawa ped ki tehniyon ko jhulati hai, aur tez hawa bhaari vastuon ko bhi move kar sakti hai. In sabhi maamlon mein koi bahari agency force (bal) supply karti hai.",
+          "Kabhi kabhi agency body ko touch karti hai, jaise tumhara haath ball ko touch karta hai ya ek behti dhara boat ko dhakelti hai. Yeh hamesha zaroori nahi hai. Ek building ke top se chhoda gaya patthar neeche ki taraf speed up hota hai kyunki earth ka gravitational pull hota hai, aur ek bar magnet iron nail ko distance (doori) se attract kar sakta hai. Toh ek external agency contact mein ya distance se act kar sakti hai.",
+          "Force motion (gati) ko rokne ke liye bhi zaroori hai: tum ek inclined plane par rolling ball ko uski motion ki direction ke against dhakel kar rok sakte ho.",
+          "Ab ek tez sawaal. Maan lo ek body pehle se hi uniform motion (eksamaan gati) mein move kar rahi hai - ek skater horizontal ice slab par constant speed (chaal) ke saath seedha move kar raha hai. Kya use uniform motion mein rakhne ke liye external force ki zaroorat hai? Yeh sawaal simple lagta hai, lekin iska jawab dene mein ages lag gaye."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        }
+      ]
+    },
+    {
+      "id": "b-02",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Aristotle (384 B.C. - 322 B.C.) ka maanna tha ki agar koi body move kar rahi hai, to use moving rakhne ke liye kuch external chahiye hota hai. Is view ke hisaab se dhanush se chhoda gaya arrow udta rehta hai kyunki uske peeche ki hawa use dhakelti rehti hai. Ise law ki tarah kaho: body ko motion (gati) mein rakhne ke liye external force (bal) zaroori hai.",
+          "Daily experience se ye natural lagta hai. Ek chhota bachcha toy-car kheenchta hua jaanta hai ki string ko har waqt kheenchna padta hai; chhod do aur car rest par aa jaati hai. Agar unhein unke haal par chhod diya jaye, to earth par sabhi bodies rukti hui lagti hain.",
+          "Flaw friction hai. Moving toy-car rukti hai kyunki floor us par friction ka force lagata hai, jo uski motion ke opposite hai. Car ko chalte rakhne ke liye, bachche ko forward equal force se kheenchna padega, taaki car par net external force zero ho. Agar friction na hota, to car ko uniformly moving rakhne ke liye koi force bilkul zaroori nahi hota.",
+          "Solids ke beech friction, aur fluids mein viscous forces jaise opposing forces, natural world mein hamesha present hote hain. Isliye normally humein cheezon ko push karna padta hai taaki wo moving rahein. Nature ka true law dhoondhne ke liye, Galileo ne ek aisi duniya imagine ki jisme bilkul friction nahi tha."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        }
+      ]
+    },
+    {
+      "id": "b-03",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Galileo ne inclined planes par objects ki motion (gati) study ki. Ek object jo inclined plane par neeche move karta hai, accelerate karta hai; jo upar move karta hai, retard karta hai. Horizontal plane par motion in-between case hai. Galileo ne conclude kiya ki frictionless horizontal plane par move karta hua object na accelerate karega na retard karega: wo constant velocity (veg) se move karta hai.",
+          "Uska second experiment double inclined plane use karta tha. Ek ball jo ek plane par rest se release hoti hai, neeche roll karti hai aur doosre par climb karti hai. Agar planes smooth hain, to ball lagbhag utni hi height tak pahunchti hai jitni se start hui thi - thodi kam, kabhi zyada nahi. Friction absent hone par, final height starting height ke barabar hoti.",
+          "Doosre plane ko aur flat banao aur repeat karo: ball phir bhi same height tak climb karti hai, isliye use zyada door travel karna padta hai. Limiting case mein doosra plane horizontal ho jata hai aur ball infinite distance (doori) travel karti hai - uski motion kabhi khatam nahi hoti.",
+          "Practice mein ball finite distance ke baad ruk jaati hai, kyunki friction ko kabhi bhi poori tarah remove nahi kiya ja sakta. Galileo ka insight yeh tha ki rest ki state aur uniform linear motion ki state equivalent hain: dono cases mein body par koi net force (bal) nahi hota. Ek body mein jo property hoti hai ki wo apni state of rest ya uniform motion (eksamaan gati) mein change ko resist karti hai, use inertia kehte hain. Inertia ka matlab hai 'resistance to change'."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        }
+      ]
+    },
+    {
+      "id": "b-04",
+      "type": "check",
+      "spec": {
+        "question": "Ek bachcha floor par string se toy-car kheencha hai. Car straight line mein constant speed (chaal) se move karti hai. Kaunsa statement correct hai?",
+        "format": "mcq",
+        "options": [
+          "Car ko moving rakhte rehne ke liye external force (bahari bal) chahiye, isliye us par net force zero nahi hai.",
+          "Child ka force floor ke friction (gharshana) force se balanced hai, isliye car par net external force zero hai.",
+          "Car mein Inertia nahi hai kyunki woh move kar rahi hai.",
+          "Agar string release kar di jaye to car speed up ho jayegi."
+        ],
+        "answer_index": 1,
+        "answer": "Child ka force floor ke friction (gharshana) force se balanced hai, isliye car par net external force zero hai.",
+        "explanation": "Constant velocity (veg) ka matlab zero acceleration (tvaran) hai, isliye first law ke anusar net external force zero hona chahiye. Child ka pull aur friction equal aur opposite hain. Agar friction na ho, to pull ki zaroorat hi nahi hoti — yahi exactly Aristotle galat the.",
+        "expected_understanding": "'Practical mein force chahiye' aur 'net force chahiye' ke difference ko separate karo; friction woh force hai jise overcome karna padta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-05"
+        }
+      ]
+    },
+    {
+      "id": "b-05",
+      "type": "check",
+      "spec": {
+        "question": "Galileo ke double inclined plane experiment mein planes smooth hain. Jab second plane ka slope (dhaal) aur flat hota jata hai to kya hota hai?",
+        "format": "mcq",
+        "options": [
+          "Ball shuru ki height se zyada height tak chadh jati hai.",
+          "Ball same height tak pahunchti hai lekin zyada distance (doori) travel karti hai, aur agar second plane horizontal ho to wo hamesha travel karti rahegi.",
+          "Second plane par ball fixed distance ke baad ruk jati hai, slope kuch bhi ho.",
+          "Ball pehle plane par wapas neeche roll kar jati hai."
+        ],
+        "answer_index": 1,
+        "answer": "Ball same height tak pahunchti hai lekin zyada distance (doori) travel karti hai, aur agar second plane horizontal ho to wo hamesha travel karti rahegi.",
+        "explanation": "Ball hamesha lagbhag apni starting height tak wapas chadh jati hai. Flatter plane ka matlab hai us height tak pahunchne ke liye zyada distance chahiye, aur horizontal plane par required distance infinite hota hai - idealised motion kabhi rukta nahi.",
+        "expected_understanding": "Law of inertia, inclined plane experiments ko zero slope tak extrapolate karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-06"
+        }
+      ]
+    },
+    {
+      "id": "b-06",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 240\" role=\"img\" aria-label=\"Left mein table par rest karti ek book; right mein book ka free-body diagram jismein uska weight W neeche point karta hai aur normal reaction R upar point karta hai, dono equal length mein draw kiye gaye hain\"><line x1=\"20\" y1=\"180\" x2=\"195\" y2=\"180\" stroke=\"#1C1B18\" stroke-width=\"3\" /><rect x=\"60\" y=\"140\" width=\"90\" height=\"40\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><text x=\"30\" y=\"215\" font-family=\"Caveat, cursive\" font-size=\"22\" fill=\"#5A5748\" data-i18n=\"b-06.svg_texts.t-0\">table par rest mein book</text><circle cx=\"310\" cy=\"120\" r=\"4\" fill=\"#1C1B18\" /><line x1=\"310\" y1=\"120\" x2=\"310\" y2=\"196\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"310,200 304,188 316,188\" fill=\"#1F3A9E\" /><line x1=\"310\" y1=\"120\" x2=\"310\" y2=\"44\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"310,40 304,52 316,52\" fill=\"#1F3A9E\" /><text x=\"282\" y=\"80\" font-family=\"Caveat, cursive\" font-size=\"24\" fill=\"#1F3A9E\">R</text><text x=\"282\" y=\"196\" font-family=\"Caveat, cursive\" font-size=\"24\" fill=\"#1F3A9E\">W</text><text x=\"230\" y=\"225\" font-family=\"Caveat, cursive\" font-size=\"20\" fill=\"#5A5748\" data-i18n=\"b-06.svg_texts.t-1\">book par forces</text></svg>",
+        "caption": "Table par rest mein rakhi ek book (left). Book par do forces hain: usda weight W, jo vertically downward act karta hai, aur table ka normal reaction R, jo vertically upward act karta hai. Dono ko equal length mein draw kiya gaya hai kyunki book rest mein hone par R ka W ke barabar hona zaroori hai. Sirf directions; arrows do forces dikhate hain, koi measured scale nahi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-07",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Newton ne Galileo ke ideas par aage kaam kiya aur mechanics ki foundation three laws of motion (gati ke teen niyam) mein rakhi. Galileo ka law of inertia hi first law ban gaya: har body apne state of rest ya straight line mein uniform motion (eksamaan gati) mein rehti hai jab tak koi external force (bahari bal) use otherwise act karne ke liye compel na kare.",
+          "Rest aur straight line mein uniform motion dono ka matlab zero acceleration hai. Isliye first law ko ek line mein kaha ja sakta hai: agar kisi body par net external force zero hai, to uska acceleration (tvaran) zero hai. Acceleration non-zero sirf tab ho sakta hai jab body par net external force ho.",
+          "Do tarah ki situations aati hain. Kabhi hum jaante hain ki net force zero hai - jaise ek spaceship jo baaki sab objects se door hai aur uske saare rockets off hain; tab uska acceleration zero hona chahiye, aur agar wo move kar raha hai to wo uniform velocity (veg) maintain karta hai. Zyada tar hum saari forces nahi jaante, lekin hum dekh sakte hain ki object rest mein hai ya uniform motion mein; tab first law batata hai ki us par net external force zero hona chahiye.",
+          "Ek table par rest mein rakhi book lo. Us par do forces act karti hain: uska weight W downward aur table ka normal force R upward. Sahi reasoning ye nahi hai ki 'kyunki W = R, forces cancel ho jaate hain aur book rest mein rehti hai'. Sahi reasoning ye hai: book rest mein observed hoti hai, isliye first law se us par net external force zero hona chahiye, aur is wajah se R ko W ke equal aur opposite hona chahiye. Gravity har jagah hai aur friction common hai, isliye earth par rest mein ya uniform motion mein kisi object par lagne wali forces ka sum zero hota hai - aisa nahi ki koi force hi na ho.",
+          "Bus mein aap first law feel karte hain. Jab bus suddenly start hoti hai to aap peeche dhakel diye jaate hain: aapke feet friction ki wajah se floor ke saath move karte hain, jabki aapke body ka baaki hissa wahi rehna chahta hai, inertia ki wajah se. Jab bus suddenly rukti hai to aapke feet ruk jaate hain aur body ka baaki hissa aage move karta rehta hai, isliye aap aage dhakel diye jaate hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-07"
+        },
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-06"
+        }
+      ]
+    },
+    {
+      "id": "b-08",
+      "type": "check",
+      "spec": {
+        "question": "Ek baarish ki boond constant speed (chaal) se vertically neeche gir rahi hai. Boond par net external force (bal) kya hai?",
+        "format": "mcq",
+        "options": [
+          "Zero.",
+          "Iska weight mg, neeche ki disha mein.",
+          "Iska weight mg, upar ki disha mein.",
+          "mg se zyada, neeche ki disha mein."
+        ],
+        "answer_index": 0,
+        "answer": "Zero.",
+        "explanation": "Straight line mein constant speed (chaal) ka matlab zero acceleration (tvaran) hai, isliye first law ke anusar net external force (bal) zero hona chahiye. Weight ko hawa ka upward drag balance karta hai. Forces alag-alag zero nahi hain - woh cancel karti hain.",
+        "expected_understanding": "First law ko is direction mein apply karo: 'motion (gati) known hai, isliye net force known hai'."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-09",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Second law kisi body par net external force (bal) ko uske acceleration (tvaran) se jodta hai, aur ise momentum (samveg) ke terms mein statement kiya jata hai. Kisi body ka momentum uske mass m aur velocity (veg) v ke product ke roop mein define hota hai, likha jata hai p = m v. Momentum ek vector (sadish) quantity hai; yeh velocity ke along point karta hai.",
+          "Yeh product kyun? Same time mein same speed tak pahunchne ke liye loaded truck ko small car se kaafi zyada force chahiye hota hai, aur same speed par same time mein rukne ke liye zyada opposing force chahiye hota hai. Same height se giraye gaye halke stone ki tulna mein heavy stone ko catch karna zyada mushkil hota hai. High speed se fired bullet tissue ko pierce kar sakti hai, jabki wahi bullet moderate speed par little damage karti hai. Sirf mass, ya sirf speed, enough nahi hai - product m v hi quantity hai jo matter karti hai.",
+          "Agar ek fixed force kisi certain time interval tak different masses ki do bodies par, jo initially rest par hain, act karta hai, to lighter body greater speed pick up karti hai; lekin us time ke end mein har body ne same momentum acquire kar liya hota hai. Same force same time ke liye different bodies par same change in momentum cause karta hai.",
+          "Direction bhi matter karti hai. Constant speed par horizontal circle mein whirled ek stone ka momentum fixed magnitude ka hota hai jiska direction constantly badalta rehta hai, aur us change ko produce karne ke liye force chahiye hoti hai. Agar aap stone ko faster whirl karte hain ya smaller circle mein whirl karte hain to aapke hand ko harder pull karna padta hai. Isliye momentum vector ke change ki rate jitni greater hogi, force utni greater hogi."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "reveal",
+      "spec": {
+        "title": "Momentum (samveg) se F = m a tak",
+        "steps": [
+          {
+            "title": "Step 1: momentum (samveg)",
+            "detail": "Mass m wali body jab velocity (veg) v se move karti hai, to momentum p = m v hota hai."
+          },
+          {
+            "title": "Step 2: law shabdon mein",
+            "detail": "Kisi body ke momentum ke change ki rate applied force (bal) ke directly proportional hoti hai aur yeh us direction mein hoti hai jisme force act karta hai."
+          },
+          {
+            "title": "Step 3: ise symbols mein likho",
+            "detail": "Agar force F kisi time interval Δt ke liye act karta hai aur velocity v se v + Δv ho jati hai, to momentum Δp = m Δv se change hota hai. Law kehta hai F ∝ Δp/Δt, yani F = k Δp/Δt jahan k proportionality ka constant hai."
+          },
+          {
+            "title": "Step 4: limit lo",
+            "detail": "Maan lo Δt bahut chhota ho jata hai. Tab Δp/Δt derivative dp/dt ban jata hai, isliye F = k dp/dt."
+          },
+          {
+            "title": "Step 5: fixed mass",
+            "detail": "Fixed mass wali body ke liye, dp/dt = d(m v)/dt = m dv/dt = m a. Isliye F = k m a."
+          },
+          {
+            "title": "Step 6: k = 1 chuno",
+            "detail": "Force ki unit abhi tak define nahi hui hai, isliye hum k = 1 choose karne ke liye free hain. Tab F = dp/dt = m a. SI units mein jo force mass 1 kg ko acceleration (tvaran) 1 m s-2 deta hai woh one newton hai, isliye 1 N = 1 kg m s-2."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-14"
+        }
+      ]
+    },
+    {
+      "id": "b-11",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Second law ke baare mein chaar baatein. Pehla, F = 0 rakhne se a = 0 milta hai, isliye second law first law se match karta hai. Doosra, yeh ek vector (sadish) law hai: yeh teen equations hain, har component ke liye ek (F_x = dp_x/dt = m a_x, aur isi tarah y aur z ke liye). Ek force (bal) jo velocity (veg) ke parallel nahi hai, sirf velocity ke us component ko badalta hai jo force ke along hai; force ke perpendicular component wala velocity component unchanged rehta hai - isliye vertical gravity ke under projectile apna horizontal velocity component banaye rakhta hai.",
+          "Teesra, yeh law ek single point particle par lagta hai, aur usi form mein rigid body ya particles ke system par bhi; tab F system par total external force hai aur a system ke acceleration (tvaran) hai as a whole, internal forces ko chhod kar. Chautha, yeh law ek local relation hai: ek point par ek instant par force us point par us instant par acceleration determine karta hai. Ek accelerating train se dropped stone ke paas, release ke turant baad, koi horizontal force nahi hai aur koi horizontal acceleration nahi hai - usme train ke acceleration ki koi memory nahi hoti.",
+          "Yeh bhi yaad rakhein ki F ka matlab kya hai. F = m a mein, F body ke external sabhi material agencies ke kaaran net force hai, aur a us force ka effect hai. Product m a ek aur force nahi hai jo list mein add kiya jaaye."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-15"
+        },
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-37"
+        },
+        {
+          "claim_id": "claim-38"
+        }
+      ]
+    },
+    {
+      "id": "b-12",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek astronaut accidentally apne chhote spaceship se alag ho jata hai jo interstellar space mein constant rate 100 m s-2 se accelerate kar raha hai. Spaceship ke bahar nikalne ke turant baad astronaut ka acceleration (tvaran) kya hai? (Maan lijiye ki paas mein koi stars nahi hain jo us par gravitational force exert karein.)",
+        "steps": [
+          {
+            "title": "Forces ki list banao",
+            "detail": "Paas mein koi stars nahi hain jo use pull karein, aur chhota spaceship us par negligible gravitational attraction exert karta hai."
+          },
+          {
+            "title": "Net force",
+            "detail": "Isliye astronaut par net external force, spaceship se bahar nikalne ke baad, zero hai."
+          },
+          {
+            "title": "First law apply karo",
+            "detail": "Agar kisi body par net external force zero hai, to uska acceleration zero hota hai."
+          }
+        ],
+        "answer": "Astronaut ka acceleration zero hai. Woh spaceship ka 100 m s-2 acceleration nahi rakhta, kyunki force (bal) kisi body ke earlier motion se 'carried' nahi hota."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-16"
+        }
+      ]
+    },
+    {
+      "id": "b-13",
+      "type": "worked_example",
+      "spec": {
+        "problem": "0.04 kg mass ki ek bullet 90 m s-1 ki speed (chaal) se chalte hue ek heavy wooden block mein ghusati hai aur 60 cm distance (doori) ke baad ruk jati hai. Block dwara bullet par lagaya gaya average resistive force (bal) kya hai?",
+        "steps": [
+          {
+            "title": "Retardation nikalna",
+            "detail": "Maan lijiye ki retardation a constant hai. Speed u = 90 m s-1 aur stopping distance s = 60 cm = 0.6 m se, a = u²/(2s) = (90 × 90)/(2 × 0.6) m s-2 = 6750 m s-2."
+          },
+          {
+            "title": "Second law lagayein",
+            "detail": "Retarding force F = m a = 0.04 kg × 6750 m s-2 hai."
+          }
+        ],
+        "answer": "F = 270 N. Actual resistive force, aur isliye retardation, uniform nahi ho sakta, isliye yeh answer sirf average resistive force darshata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-14"
+        }
+      ]
+    },
+    {
+      "id": "b-14",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Mass m ke ek particle ki motion (gati) y = u t + ½ g t² dwara describe ki jaati hai. Particle par lagne wala force (bal) nikaalein.",
+        "steps": [
+          {
+            "title": "Velocity (veg)",
+            "detail": "Position ko time ke respect mein differentiate karein: v = dy/dt = u + g t."
+          },
+          {
+            "title": "Acceleration (tvaran)",
+            "detail": "Phir se differentiate karein: a = dv/dt = g."
+          },
+          {
+            "title": "Force (bal)",
+            "detail": "Second law apply karein: F = m a = m g."
+          }
+        ],
+        "answer": "F = m g. Ye equation gravity ke karan acceleration ke under move karte particle ko describe karti hai, jahan y position coordinate hai jo g ki direction mein measured hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-16"
+        }
+      ]
+    },
+    {
+      "id": "b-15",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kuch force (bal) bahut kam samay ke liye act karte hain lekin itne large hote hain ki momentum (samveg) ko kaafi badal dete hain - jaise ball ka wall se takra kar bounce back hona. Ball par force sirf tab act karta hai jab ball aur wall contact mein hote hain, aur force aur contact time ko alag-alag measure karna mushkil hota hai. Unka product mushkil nahi hai: yah momentum mein change hai.",
+          "Us product ko impulse kaha jata hai: impulse = force × time duration = change in momentum. Ek large force jo short time ke liye act karke momentum mein finite change produce karta hai, use impulsive force kehte hain. Newtonian mechanics mein impulsive force alag kind ka force nahi hai - yah simply large aur short-lived hota hai.",
+          "Yeh ek familiar skill ko explain karta hai. Ek seasoned cricketer catch karte waqt apne hands backward kheenchta hai, isliye ball ko stop hone mein zyada time lagta hai. Momentum ka same change agar zyada time tak spread ho to smaller force chahiye, isliye uske hands hurt nahi hote. Ek novice jo apne hands fixed rakhta hai, use ball ko almost instantly stop karna padta hai, usse bahut larger force chahiye, aur usse hurt hota hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-18"
+        }
+      ]
+    },
+    {
+      "id": "b-16",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek batsman ball ko seedha bowler ki direction mein wapas hit karta hai bina uski initial speed (chaal) 12 m s-1 badle. Agar ball ka mass 0.15 kg hai, to ball par diya gaya impulse determine karein. (Ball ki linear motion (gati) assume karein.)",
+        "steps": [
+          {
+            "title": "Ek positive direction chunein",
+            "detail": "Bowler se batsman ki direction ko positive maanein. Initial momentum (samveg) = 0.15 × 12 = 1.8 kg m s-1."
+          },
+          {
+            "title": "Final momentum",
+            "detail": "Hit ke baad ball same speed se wapas move karti hai, isliye uska final momentum −1.8 kg m s-1 hai."
+          },
+          {
+            "title": "Momentum mein change",
+            "detail": "Momentum mein change = 0.15 × 12 − (−0.15 × 12) = 3.6 N s, aur impulse is change ke barabar hai."
+          }
+        ],
+        "answer": "Impulse = 3.6 N s, batsman se bowler ki direction mein. Ball par force (bal) aur contact time yahan pata karna mushkil hai, lekin impulse calculate karna aasan hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-17",
+      "type": "check",
+      "spec": {
+        "question": "20 kg mass ke ek body par 50 N ka constant retarding force (bal) lagaya jaata hai; body initially 15 m s-1 speed (chaal) se move kar rahi hai. Body ko stop hone mein kitna time lagega? Answer seconds mein dijiye.",
+        "format": "numeric",
+        "answer": "6",
+        "explanation": "Retardation a = F/m = 50/20 = 2.5 m s-2 hai. Iska matlab body har second 2.5 m s-1 speed (chaal) kho deti hai, isliye uska 15 m s-1 speed 15/2.5 = 6 s mein use ho jaata hai.",
+        "expected_understanding": "Second law ka use karke force (bal) ko acceleration (tvaran) mein convert kijiye, phir speed (chaal) ko zero tak follow kijiye."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-14"
+        }
+      ]
+    },
+    {
+      "id": "b-18",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Doosra law batata hai ki external force (bahari bal) kya karta hai; teesra law batata hai ki aisa force kahan se aata hai. Newtonian mechanics mein kisi body par external force hamesha kisi doosri body se hi aata hai. Ek coiled spring ko dabaiye, to spring aapke haath par wapas push karti hai. Earth ek stone ko neeche kheenchti hai, aur stone earth ko barabar aur opposite force se upar kheenchta hai, jise hum notice nahi karte kyunki earth bahut massive hai.",
+          "Toh force kabhi akela nahi hota: force do bodies ke beech mutual interaction hai, aur forces hamesha pairs mein hote hain. Newton ne ise aise kaha: har action ke liye hamesha ek equal aur opposite reaction hota hai. Symbols mein, B dwara A par lagne wala force minus B par A dwara lagne wala force ke barabar hai: F_AB = −F_BA.",
+          "Teen warnings. Action aur reaction shabd 'force' se zyada kuch mean nahi karte. Inme koi cause-and-effect order nahi hota - dono forces same instant par act karte hain, aur dono mein se kisi ko bhi action kaha ja sakta hai. Aur dono forces different bodies par act karte hain, isliye agar aap ek body ke motion (gati) ka study kar rahe hain, to pair mein se sirf ek relevant hai; unhe add karke yeh claim karna ki net force zero hai, ek error hai. Sirf jab dono bodies ko ek system maana jaye tab hi yeh pair internal forces ban jaate hain aur cancel ho jaate hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-20"
+        }
+      ]
+    },
+    {
+      "id": "b-19",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Do identical billiard balls ek rigid wall se same speed (chaal) par lekin different angles par takrate hain, aur speed mein koi change ke bina reflect ho jaati hain. Case (a) mein ek ball wall par normally takrati hai aur seedha wapas bounce karti hai. Case (b) mein ek ball wall par apni velocity (veg) ke saath normal se 30° par takrati hai aur doosri side par normal se 30° par reflect hoti hai. (i) har ball ke karan wall par force (bal) ki direction kya hai, aur (ii) wall dwara balls ko diye gaye Impulse ke magnitudes ka ratio kya hai?",
+        "steps": [
+          {
+            "title": "Axes set karein",
+            "detail": "Maan lijiye collision se pehle aur baad mein har ball ki speed u hai aur uski mass m hai. x-axis ko wall ke normal ke along lijiye, wall se away direction negative, aur y-axis ko wall ke along lijiye."
+          },
+          {
+            "title": "Case (a): normal hit",
+            "detail": "Initial p_x = m u, p_y = 0; final p_x = −m u, p_y = 0. Isliye impulse ka x-component −2 m u hai aur y-component 0 hai."
+          },
+          {
+            "title": "Case (b): normal se 30° par hit",
+            "detail": "Initial p_x = m u cos 30°, p_y = −m u sin 30°; final p_x = −m u cos 30°, p_y = −m u sin 30°. Sirf p_x ka sign badalta hai, isliye impulse ka x-component −2 m u cos 30° hai aur y-component 0 hai."
+          },
+          {
+            "title": "Teesra law use karein",
+            "detail": "Impulse aur force same direction mein hote hain. Dono cases mein ball par impulse wall ke normal hai; teesre law ke according ball ke karan wall par force wall ke normal hai, dono cases mein."
+          }
+        ],
+        "answer": "Wall par force dono cases mein wall ke normal hai. Impulse magnitudes ka ratio 2 m u /(2 m u cos 30°) = 2/√3 hai, lagbhag 1.2. Force ka magnitude nahi nikal sakte, kyunki chhota contact time nahi diya gaya hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-20",
+      "type": "check",
+      "spec": {
+        "question": "Ek book table par rest karti hai. Newton ke third law ke sense mein inmein se kaunsa action-reaction pair hai?",
+        "format": "mcq",
+        "options": [
+          "Book ka weight aur table ka book par normal force.",
+          "Earth dwara book par lagaya gaya gravitational force, aur book dwara earth par lagaya gaya gravitational force.",
+          "Table ka book par normal force aur table ka weight.",
+          "Book ka weight aur table ka weight."
+        ],
+        "answer_index": 1,
+        "answer": "Earth dwara book par lagaya gaya gravitational force, aur book dwara earth par lagaya gaya gravitational force.",
+        "explanation": "Action-reaction pair same do bodies ke beech ke do mutual forces hote hain — yahan book aur earth. Book ka weight aur us par lagne wala normal force ek hi body par do forces hain; book rest par hone ki wajah se ye equal aur opposite hain, lekin ye third-law pair nahin hain.",
+        "expected_understanding": "Third-law pair (do bodies ke beech mutual forces) ko ek hi body par balance karne wale do forces se distinguish karna."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-20"
+        }
+      ]
+    },
+    {
+      "id": "b-21",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Doosra aur teesra law milkar momentum (samveg) ke conservation ka law dete hain. Ek gun se bullet fire karo. Bullet par gun dwara lagaya gaya force (bal) F hai; teesre law ke anusar gun par bullet dwara lagaya gaya force −F hai; dono same time interval ke liye act karte hain. Isliye bullet ke momentum mein change F times woh interval hai, aur gun ka change ulta hai. Dono rest se start karte hain, isliye unke final momenta equal aur opposite hain, aur (bullet + gun) system ka total momentum zero rehta hai.",
+          "Ek isolated system mein - jismein koi external force nahi hai - particles ke jodo ke beech mutual forces individual particles ka momentum change karte hain, lekin har jode ke liye changes equal aur opposite hote hain aur cancel ho jate hain. Isliye total momentum unchanged rehta hai. Momentum ke conservation ka law kehta hai: interacting particles ke isolated system ka total momentum conserved rehta hai.",
+          "Collisions standard example hain. Do bodies A aur B jinke initial momenta p_A aur p_B hain, collide karte hain aur p′_A aur p′_B momenta ke saath separate hote hain. Second law ke anusar, contact ke common time ka use karte hue, F_AB times woh time = p′_A − p_A aur F_BA times woh time = p′_B − p_B. Kyunki F_AB = −F_BA, humein milta hai p′_A + p′_B = p_A + p_B: final total momentum initial total momentum ke barabar hai. Yeh sach hai chahe collision elastic ho ya inelastic."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-22",
+      "type": "worked_example",
+      "spec": {
+        "problem": "0.020 kg mass ka ek shell 100 kg mass ki gun se fire kiya jata hai. Agar shell ki muzzle speed (chaal) 80 m s-1 hai, to gun ki recoil speed kya hai?",
+        "steps": [
+          {
+            "title": "Firing se pehle",
+            "detail": "Shell aur gun dono rest par hain, isliye system ka total momentum (samveg) zero hai."
+          },
+          {
+            "title": "Conservation of momentum",
+            "detail": "Barrel ke along koi external force (bal) nahi hai, isliye total momentum zero hi rehta hai: mass of shell × speed of shell + mass of gun × speed of gun = 0."
+          },
+          {
+            "title": "Solve",
+            "detail": "0.020 × 80 = 100 × v_gun, isliye v_gun = 1.6/100."
+          }
+        ],
+        "answer": "Gun 0.016 m s-1 ki speed se recoil karti hai, shell ki direction ke opposite."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-23",
+      "type": "check",
+      "spec": {
+        "question": "Do billiard balls, har ek ka mass 0.05 kg, opposite directions mein speed 6 m s-1 se move karte hain, collide karte hain aur same speed se rebound karte hain. Ek ball ko doosri ball ke karan mila impulse ka magnitude kya hai? Answer N s mein dijiye.",
+        "format": "numeric",
+        "answer": "0.6",
+        "explanation": "Ek ball ki initial direction ko positive maaniye. Iska momentum 0.05 × 6 = 0.3 kg m s-1 se −0.3 kg m s-1 ho jata hai. Change 0.6 kg m s-1 hai, isliye impulse 0.6 N s hai, jo us ball ki original motion ke opposite directed hai.",
+        "expected_understanding": "Impulse momentum ka change hai, jisme body reverse hone par sign ka change bhi include hota hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-24",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Mechanics mein ek particle equilibrium mein hota hai jab us par net external force (bal) zero ho. First law ke anusar, iska matlab hai particle ya to rest mein hai ya uniform motion (eksamaan gati) mein.",
+          "Do forces F1 aur F2 ke under, equilibrium ke liye F1 = −F2 chahiye: dono forces equal aur opposite hone chahiye. Teen concurrent forces F1, F2 aur F3 ke under, equilibrium ke liye F1 + F2 + F3 = 0 chahiye. Inme se kisi bhi do ka resultant, parallelogram law se nikal kar, teesre ke equal aur opposite hona chahiye; teeno forces ko ek triangle ki sides ke roop mein draw kiya ja sakta hai jisme arrows same sense mein hon.",
+          "Yeh result kisi bhi number ke forces ke liye generalise hota hai: woh ek particle ko equilibrium mein rakhte hain agar unhe ek closed n-sided polygon ki sides se represent kiya ja sake jisme arrows same sense mein hon. Components mein, x, y aur z ke har sum alag-alag zero hona chahiye."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "worked_example",
+      "spec": {
+        "problem": "6 kg ka mass ceiling se 2 m lambi rope se suspend kiya gaya hai. Rope ke mid-point P par horizontal direction mein 50 N ka force (bal) lagaya jata hai. Equilibrium mein rope vertical ke saath kitna angle banati hai? (g = 10 m s-2 lijiye.) Rope ke mass ko neglect kijiye.",
+        "steps": [
+          {
+            "title": "Suspended weight ko dekhein",
+            "detail": "Weight apne khud ke weight aur rope ke lower part mein tension T2 ke under equilibrium mein hai, isliye T2 = 6 × 10 = 60 N."
+          },
+          {
+            "title": "Point P ko dekhein",
+            "detail": "P par teen forces act karti hain: rope ke upper part ke along tension T1, lower part ke along (vertically down) tension T2 = 60 N, aur 50 N ka horizontal force (bal)."
+          },
+          {
+            "title": "P par resolve kijiye",
+            "detail": "Vertical components cancel hone chahiye: T1 cos θ = T2 = 60 N. Horizontal components cancel hone chahiye: T1 sin θ = 50 N."
+          },
+          {
+            "title": "Solve kijiye",
+            "detail": "Do equations ko divide kijiye: tan θ = 50/60 = 0.83, isliye θ lagbhag 40° hai. Phir T1 = √(60² + 50²) ≈ 78 N."
+          }
+        ],
+        "answer": "Rope vertical ke saath lagbhag 40° ka angle banati hai. Answer rope ki length (assumed massless) par depend nahi karta, aur na hi us point par jahan horizontal force (bal) lagaya jata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-26",
+      "type": "check",
+      "spec": {
+        "question": "Teen concurrent forces (bal) ek particle par act karte hain jo equilibrium mein hai. Kaun sa statement zaroor sahi hona chahiye?",
+        "format": "mcq",
+        "options": [
+          "Har force ka magnitude baaki do forces ke sum ke barabar hota hai.",
+          "Teen forces ka vector sum (sadish yog) zero hai, aur unhe ek triangle ki sides ki tarah draw kiya ja sakta hai jisme arrows same sense mein liye gaye hon.",
+          "Teen forces mutually perpendicular hone chahiye.",
+          "Particle rest mein hona chahiye, moving nahi."
+        ],
+        "answer_index": 1,
+        "answer": "Teen forces ka vector sum (sadish yog) zero hai, aur unhe ek triangle ki sides ki tarah draw kiya ja sakta hai jisme arrows same sense mein liye gaye hon.",
+        "explanation": "Ek particle ka equilibrium ka matlab zero net external force (bahari bal) hai, isliye F1 + F2 + F3 = 0, aur har component ka sum alag-alag zero hota hai. Particle uniform motion (eksamaan gati) mein bhi ho sakta hai, zaroori nahi ki rest mein ho.",
+        "expected_understanding": "Equilibrium forces ke vector sum ke baare mein statement hai, rest ke baare mein nahi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    },
+    {
+      "id": "b-27",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kai tarah ke force (bal) mechanics mein baar-baar aate hain. Gravitational force pervasive hai: earth par har object earth ke pull ko feel karta hai, aur gravity celestial bodies ki motion (gati) ko bhi govern karta hai. Ye distance par act karta hai, bina kisi medium ke beech mein.",
+          "Baaki sab common forces contact forces hain, jo tab arise hote hain jab ek object doosre object ko touch karta hai, solid ho ya fluid. Jab do bodies contact mein hote hain to mutual contact forces hote hain jo third law satisfy karte hain. Contact force ka component jo surfaces ke normal hota hai use normal reaction kehte hain; surfaces ke parallel component ko friction kehte hain.",
+          "Contact forces solid aur fluid ke beech bhi arise hote hain: fluid mein immersed solid ko upward buoyant force feel hota hai jo displaced fluid ke weight ke equal hota hai, aur viscous force aur air resistance bhi contact forces hain. String mein tension aur spring ka force further examples hain. Spring ko amount x tak compress ya stretch karne par restoring force F = −k x exert hota hai, jahan k force constant hai; minus sign batata hai ki force unstretched state se displacement (visthapan) ke opposite hai.",
+          "Inextensible string ke liye force constant bahut high hota hai aur restoring force ko tension kehte hain. Negligible mass ki string ke liye tension T ko poore string mein same maan sakte hain. Microscopic level par ye sab contact forces bodies ke charged constituents ke beech electrical forces se aate hain, lekin unka detailed origin complex hai, isliye mechanics mein inhe separate kinds of force maana jata hai jinki properties experiment se milti hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-28",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek block ko horizontal table par rakhiye. Gravity mg ko normal reaction N cancel kar deta hai. Ab ek chhota horizontal force F apply kijiye. Ho sakta hai block bilkul move na kare - lekin agar F hi only horizontal force hota to use accelerate karna padta. Isliye ek aur horizontal force F ko oppose karna chahiye, jisse net force zero rahe. Wahi force, surface ke parallel, friction hai.",
+          "Jab tak block rest par rehta hai, friction static friction f_s hoti hai. Ye apne aap exist nahi karti: jis pal applied force aata hai, usi pal ye appear hoti hai, aur applied force ke equal aur opposite rehne ke liye grow karti hai. Static friction impending motion ko oppose karti hai - wo motion jo friction ke absent hone par hoti.",
+          "Static friction ki ek limit hoti hai. Experiment show karta hai ki limiting value (f_s)max area of contact par depend nahi karti aur normal force ke saath badalti hai as (f_s)max = µ_s N, jahan µ_s coefficient of static friction hai, ek constant jo sirf do surfaces ki nature par depend karta hai. Isliye f_s ≤ µ_s N. Jab applied force (f_s)max se exceed karta hai, block slide karna shuru karta hai, aur friction ghat kar chhoti value par aa jati hai: kinetic (sliding) friction f_k = µ_k N, phir bhi area of contact par independent aur velocity par lagbhag independent, µ_k ke saath µ_s se kam.",
+          "Slide karte waqt block ka acceleration (F − f_k)/m hota hai; constant velocity par F = f_k exactly; applied force hata dijiye to acceleration − f_k/m rehta hai jab tak block rukta hai. Dhyan dijiye ki friction relative motion ko oppose karti hai, motion ko nahi: ek accelerating train ke floor par rakha box static friction se aage accelerate hota hai, aur train ke relative rest par rehta hai.",
+          "Ek ring ya sphere jo bina slipping ke roll karta hai, principle mein bilkul friction feel nahi karega, kyunki uska single point of contact plane ke saath relative motion nahi rakhta. Practice mein kuch rolling friction hoti hai, aur same weight ke liye ye static ya sliding friction se bahut chhoti hoti hai, even 2 or 3 orders of magnitude tak - isi liye wheel itna bada milestone raha hai. Lubricants, ball bearings aur air ki thin cushion friction ko reduce karte hain, lekin friction essential bhi hai: brakes kinetic friction use karke machines aur vehicles ko stop karte hain, aur hum sirf friction ki wajah se chal paate hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-27"
+        },
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-31"
+        }
+      ]
+    },
+    {
+      "id": "b-29",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 240\" role=\"img\" aria-label=\"Ek block inclined plane par rest kar raha hai jo horizontal ke saath angle θ banata hai; weight mg vertically down point karta hai, normal reaction N slope ke perpendicular hai, aur static friction fs slope ke upar point karta hai\"><line x1=\"50\" y1=\"200\" x2=\"290\" y2=\"61.4\" stroke=\"#1C1B18\" stroke-width=\"3\" /><line x1=\"50\" y1=\"200\" x2=\"180\" y2=\"200\" stroke=\"#5A5748\" stroke-width=\"2\" stroke-dasharray=\"6 5\" /><path d=\"M 100 200 A 50 50 0 0 0 93.3 175\" fill=\"none\" stroke=\"#5A5748\" stroke-width=\"2\" /><text x=\"104\" y=\"195\" font-family=\"Caveat, cursive\" font-size=\"22\" fill=\"#1C1B18\">θ</text><polygon points=\"124,157.3 176,127.3 146,75.3 94,105.3\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"135\" y1=\"116.3\" x2=\"135\" y2=\"186.3\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"135,190.3 129,178.3 141,178.3\" fill=\"#1F3A9E\" /><line x1=\"135\" y1=\"116.3\" x2=\"102.5\" y2=\"60\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"100.8,56.5 100.3,69.1 111.6,63.2\" fill=\"#1F3A9E\" /><line x1=\"135\" y1=\"116.3\" x2=\"182.6\" y2=\"88.8\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"186.2,87 174.6,83.3 177.9,95.2\" fill=\"#1F3A9E\" /><text x=\"143\" y=\"192\" font-family=\"Caveat, cursive\" font-size=\"24\" fill=\"#1F3A9E\" data-i18n=\"b-29.svg_texts.t-0\">mg</text><text x=\"72\" y=\"58\" font-family=\"Caveat, cursive\" font-size=\"24\" fill=\"#1F3A9E\">N</text><text x=\"192\" y=\"84\" font-family=\"Caveat, cursive\" font-size=\"24\" fill=\"#1F3A9E\" data-i18n=\"b-29.svg_texts.t-1\">fs</text></svg>",
+        "caption": "Ek block inclined plane par rest kar raha hai jiska surface horizontal ke saath angle θ banata hai (dashed horizontal line aur arc se marked). Block par teen forces act karti hain: weight mg vertically downward, normal reaction N sloped surface ke perpendicular, aur static friction fs slope ke upar ki taraf, impending motion down the slope ke opposite. Sirf directions di gayi hain; arrows measured scale ke according nahi hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-27"
+        },
+        {
+          "claim_id": "claim-30"
+        }
+      ]
+    },
+    {
+      "id": "b-30",
+      "type": "worked_example",
+      "spec": {
+        "problem": "4 kg ka mass ek horizontal plane par rest karta hai. Plane ko dheere-dheere inclined kiya jata hai jab tak horizontal ke saath angle θ = 15° par mass just slide karna shuru nahi kar deta. Block aur surface ke beech coefficient of static friction kya hai?",
+        "steps": [
+          {
+            "title": "Block par lagne wali forces (bal)",
+            "detail": "Iska weight mg vertically downward act karta hai, plane ka normal force N, aur static frictional force f_s jo impending motion (gati) ka opposition karti hai."
+          },
+          {
+            "title": "Weight ko resolve karo",
+            "detail": "Slope (dhaal) ke along weight component mg sin θ hai; slope ke perpendicular ye mg cos θ hai. Equilibrium mein mg sin θ = f_s aur mg cos θ = N."
+          },
+          {
+            "title": "Sliding ke point par",
+            "detail": "Jab θ badhta hai, self-adjusting f_s badhta hai jab tak θ_max par ye apna maximum value µ_s N tak nahi pahunch jata. Tab mg sin θ_max = µ_s mg cos θ_max."
+          },
+          {
+            "title": "Incline ke liye friction law",
+            "detail": "Divide karne par tan θ_max = µ_s milta hai, aur θ_max sirf µ_s par depend karta hai, block ke mass par nahi."
+          },
+          {
+            "title": "Numbers insert karo",
+            "detail": "θ_max = 15° ke liye, µ_s = tan 15° = 0.27."
+          }
+        ],
+        "answer": "µ_s = 0.27. 15° se thoda zyada par, slope ke neeche chhota net force block ko slide karna shuru kara deta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-31",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek box train ke floor par rakha hai. Box aur floor ke beech coefficient of static friction 0.15 hai. Train ka maximum acceleration (tvaran) determine karo jiske liye box stationary rahega. (g = 10 m s-2 lo.)",
+        "steps": [
+          {
+            "title": "Box ko kaunsi force accelerate karti hai?",
+            "detail": "Agar box train ke relative stationary hai, to ye train ke saath accelerate karta hai, aur iske liye available sirf horizontal force static friction hai."
+          },
+          {
+            "title": "Box ke liye second law",
+            "detail": "m a = f_s, aur static friction µ_s N = µ_s m g se zyada nahi ho sakta."
+          },
+          {
+            "title": "Inequality",
+            "detail": "To m a ≤ µ_s m g, matlab a ≤ µ_s g."
+          }
+        ],
+        "answer": "a_max = µ_s g = 0.15 × 10 m s-2 = 1.5 m s-2."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-32",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek 3 kg block ek string se latka hai jo smooth pulley ke upar se jaati hai aur horizontal surface par rakhi 20 kg trolley se bandhi hai. Trolley aur surface ke beech coefficient of kinetic friction 0.04 hai. System ka acceleration aur string mein tension nikalo. (g = 10 m s-2 lo. String ka mass neglect karo.)",
+        "steps": [
+          {
+            "title": "Ek hi acceleration",
+            "detail": "String inextensible hai aur pulley smooth hai, isliye 3 kg block aur 20 kg trolley ka acceleration magnitude same a hai."
+          },
+          {
+            "title": "Block ke liye equation",
+            "detail": "Block ka weight 30 N hai aur woh neeche move karta hai: 30 − T = 3a."
+          },
+          {
+            "title": "Trolley ke liye equation",
+            "detail": "T − f_k = 20a, jahan f_k = µ_k N = 0.04 × (20 × 10) = 8 N. Isliye T − 8 = 20a."
+          },
+          {
+            "title": "Add karke solve karo",
+            "detail": "Dono equations add karne par: 30 − 8 = 23a, isliye a = 22/23 m s-2."
+          },
+          {
+            "title": "Tension",
+            "detail": "T = 8 + 20a = 27.1 N."
+          }
+        ],
+        "answer": "a = 22/23 m s-2 ≈ 0.96 m s-2, aur T ≈ 27.1 N."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-33",
+      "type": "check",
+      "spec": {
+        "question": "Aap ek rough horizontal table par rakhe block ko ek chhota horizontal force (bal) se push karte hain. Block move nahi hota. Us instant par block par friction force kya hai?",
+        "format": "mcq",
+        "options": [
+          "Yeh µ_s N ke barabar hai, chahe aapka push kitna bhi ho.",
+          "Yeh aapke push ke barabar aur opposite hai, aur µ_s N se chhota hai.",
+          "Yeh zero hai, kyunki block move nahi ho raha.",
+          "Yeh µ_k N ke barabar hai."
+        ],
+        "answer_index": 1,
+        "answer": "Yeh aapke push ke barabar aur opposite hai, aur µ_s N se chhota hai.",
+        "explanation": "Static friction self-adjusting hota hai: yeh applied force ke barabar hone tak badhta hai, µ_s N limit tak. Sirf jab block slide hone wala hota hai tab f_s = µ_s N hota hai. Kinetic friction sirf sliding shuru hone ke baad act karta hai.",
+        "expected_understanding": "f_s = µ_s N mat set karo jab tak static friction ka maximum value actually reach na ho jaye."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-27"
+        },
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-34",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek body jo radius R ke circle mein uniform speed (chaal) v se move karti hai, uska acceleration (tvaran) v²/R hota hai jo centre ki taraf directed hota hai. Second law ke according, is acceleration ko provide karne wala force (bal) f_c = m v²/R hai, jo bhi centre ki taraf directed hota hai. Is force ko centripetal force kaha jata hai.",
+          "Centripetal force koi naya type ka force nahi hai. Yeh sirf us real force ka naam hai jo centre ki taraf point karta ho: string par whirled stone ke liye yeh string mein tension hai, sun ke around ghoomte planet ke liye yeh sun ka gravitational pull hai, aur horizontal road par turn karti car ke liye yeh tyres aur road ke beech friction hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-32"
+        },
+        {
+          "claim_id": "claim-40"
+        }
+      ]
+    },
+    {
+      "id": "b-35",
+      "type": "reveal",
+      "spec": {
+        "title": "Level road par car ki maximum speed (chaal)",
+        "steps": [
+          {
+            "title": "Step 1: teen forces (bal)",
+            "detail": "Car par teen forces act karte hain: uska weight mg, Normal reaction N, aur friction f."
+          },
+          {
+            "title": "Step 2: koi vertical acceleration nahi",
+            "detail": "N − mg = 0, isliye N = mg."
+          },
+          {
+            "title": "Step 3: Centripetal force kaun supply karta hai?",
+            "detail": "Centripetal force road ke along, turn ke centre ki taraf act karna chahiye. Sirf horizontal force available friction hai, isliye f = m v²/R."
+          },
+          {
+            "title": "Step 4: friction ki ek limit hoti hai",
+            "detail": "Static friction f ≤ µ_s N = µ_s m g satisfy karta hai."
+          },
+          {
+            "title": "Step 5: combine karo",
+            "detail": "m v²/R ≤ µ_s m g se v² ≤ µ_s R g milta hai. Mass cancel ho jata hai, isliye answer car ke mass par depend nahi karta."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-33"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-36",
+      "type": "simulation",
+      "spec": {
+        "title": "Level circular turn par maximum safe speed (chaal)",
+        "description": "Level (unbanked) road par centripetal force sirf friction se milta hai, isliye maximum safe speed v_max = √(µ_s R g) hoti hai. Plot aapke chune hue coefficient of static friction ke liye v_max versus turn radius R ki yeh curve dikhata hai, aur aapke chune hue radius par value print karta hai. g = 10 m s-2 lein.",
+        "learning_goal": "Dekhein ki safe speed turn ki radius aur coefficient of static friction ke saath kaise badhti hai.",
+        "controls": [
+          {
+            "id": "mus",
+            "label": "Static friction coefficient µ_s",
+            "min": 0.05,
+            "max": 0.9,
+            "step": 0.05,
+            "initial": 0.5
+          },
+          {
+            "id": "radius",
+            "label": "Turn radius R (m)",
+            "min": 5,
+            "max": 120,
+            "step": 5,
+            "initial": 30
+          }
+        ],
+        "default_behaviour": "µ_s = 0.5 ke liye v_max versus R ka curve dikhata hai, R = 30 m par marker aur readout ke saath, jahan v_max = √(0.5 × 30 × 10) ≈ 12.2 m s-1."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-33"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-37",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Banked road par turn ka outer edge utha hua hota hai, isliye road surface horizontal ke saath angle θ banata hai. Tab Normal reaction ka ek horizontal component centre ki taraf hota hai, aur friction ko kam kaam karna padta hai.",
+          "Vertical direction mein abhi bhi koi acceleration nahi hai, isliye vertical forces cancel honi chahiye: N cos θ = mg + f sin θ. Centripetal force N aur f ke horizontal components milakar supply hota hai: N sin θ + f cos θ = m v²/R.",
+          "Maximum permissible speed nikalne ke liye friction ko uski limit par rakho, f = µ_s N, aur in dono equations ko saath solve karo."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-34"
+        },
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-38",
+      "type": "reveal",
+      "spec": {
+        "title": "Banked road par maximum aur optimum speed (chaal)",
+        "steps": [
+          {
+            "title": "Step 1: f ko uski limit par set karo",
+            "detail": "Do banked-road equations mein f = µ_s N set karo: N cos θ = mg + µ_s N sin θ, aur N sin θ + µ_s N cos θ = m v²/R."
+          },
+          {
+            "title": "Step 2: N nikaalo",
+            "detail": "Pehli equation se, N = mg/(cos θ − µ_s sin θ)."
+          },
+          {
+            "title": "Step 3: substitute karo",
+            "detail": "Is N ko doosri equation mein rakhne aur simplify karne se milta hai v²_max = R g (tan θ + µ_s)/(1 − µ_s tan θ)."
+          },
+          {
+            "title": "Step 4: level road se compare karo",
+            "detail": "Banked road par car ki maximum possible speed (chaal) flat road ke muqable zyada hoti hai."
+          },
+          {
+            "title": "Step 5: friction off karo",
+            "detail": "µ_s = 0 rakhne par result v_o = √(R g tan θ) ho jaata hai. Is optimum speed (chaal) par friction ki zaroorat bilkul nahi hoti, isliye is par drive karne se tyres ka wear and tear kam hota hai. v < v_o ke liye friction slope (dhaal) ke upar act karta hai, aur car sirf tab park ho sakti hai jab tan θ ≤ µ_s."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-34"
+        },
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-39",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek cyclist level road par 18 km/h ki speed (chaal) se ja raha hai aur speed kam kiye bina radius 3 m ka sharp circular turn leta hai. Tyres aur road ke beech coefficient of static friction 0.1 hai. Kya cyclist turn lete waqt slip karega? (g = 9.8 m s-2 lo.)",
+        "steps": [
+          {
+            "title": "Not slipping ki condition",
+            "detail": "Unbanked road par sirf friction hi centripetal force deta hai, isliye cyclist tabhi nahi slip karega jab v² ≤ µ_s R g ho."
+          },
+          {
+            "title": "Speed (chaal) ko convert karo",
+            "detail": "18 km/h = 5 m s-1, isliye v² = 25 m2 s-2."
+          },
+          {
+            "title": "Limit compute karo",
+            "detail": "µ_s R g = 0.1 × 3 × 9.8 = 2.94 m2 s-2."
+          },
+          {
+            "title": "Compare karo",
+            "detail": "25 m2 s-2, 2.94 m2 s-2 se kaafi zyada hai, isliye condition follow nahi hoti."
+          }
+        ],
+        "answer": "Cyclist slip kar jayega. Speed bahut zyada hai, ya turn bahut sharp hai, itna ki friction needed centripetal force supply nahi kar sakta."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-33"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-40",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Radius 300 m ka ek circular racetrack 15° ke angle par banked hai. Agar race-car ke wheels aur road ke beech coefficient of friction 0.2 hai, to (a) tyres par wear and tear avoid karne ke liye race-car ki optimum speed (chaal) kya hai, aur (b) slipping avoid karne ke liye maximum permissible speed kya hai? (g = 9.8 m s-2 lo.)",
+        "steps": [
+          {
+            "title": "(a) Optimum speed",
+            "detail": "Optimum speed par normal reaction ka horizontal component akela centripetal force provide karta hai aur friction ki zarurat nahi hoti: v_o = √(R g tan θ)."
+          },
+          {
+            "title": "Numbers insert karo",
+            "detail": "v_o = √(300 × 9.8 × tan 15°) = √(300 × 9.8 × 0.268) ≈ 28.1 m s-1."
+          },
+          {
+            "title": "(b) Maximum speed",
+            "detail": "v_max = √(R g (tan θ + µ_s)/(1 − µ_s tan θ)) use karo."
+          },
+          {
+            "title": "Numbers insert karo",
+            "detail": "tan 15° = 0.268 aur µ_s = 0.2 ke saath: (0.268 + 0.2)/(1 − 0.2 × 0.268) = 0.468/0.946 ≈ 0.494. Phir v_max = √(300 × 9.8 × 0.494) ≈ 38.1 m s-1."
+          }
+        ],
+        "answer": "(a) Optimum speed ≈ 28.1 m s-1. (b) Maximum permissible speed ≈ 38.1 m s-1."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-34"
+        },
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-41",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Zyadatar real problems mein kai bodies ek doosre par push aur pull karti hain, aur unme se har ek par gravity bhi lagti hai. Working method hamesha same hota hai: assembly ke kisi bhi part ko apna system chuno aur us par laws of motion apply karo, bas shart ye hai ki remaining parts ki wajah se us part par lagne wali saari forces include karo.",
+          "Step by step: (i) assembly ka ek diagram banao, jisme links aur supports dikhayein; (ii) assembly ke ek convenient part ko system ke roop mein chuno; (iii) us system ka alag diagram banao jisme rest of the assembly aur other agencies dwara us par lagne wali saari forces dikhayein, lekin environment par woh khud jo forces lagata hai woh nahi. Is type ke diagram ko free-body diagram kehte hain - aur iska matlab ye nahi ki system par net force zero hai.",
+          "(iv) Free-body diagram par un forces ko likho jinke magnitudes aur directions diye gaye hain ya certain hain, jaise kisi tension ki direction uski length ke along; baaki ko unknowns maano jo laws of motion se nikalne hain. (v) Agar aapko second system chahiye, to procedure repeat karo aur third law use karo: agar A par B ki wajah se force A ke diagram mein F hai, to B par A ki wajah se force B ke diagram mein −F hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-36"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-42",
+      "type": "worked_example",
+      "spec": {
+        "problem": "2 kg mass ka ek wooden block ek soft horizontal floor par rest karta hai. Jab 25 kg mass ka iron cylinder block ke upar rakha jata hai, floor steadily yield karta hai aur block aur cylinder dono milkar 0.1 m s-2 acceleration (tvaran) se neeche jate hain. Floor par block ka action kya hai (a) floor yield karne se pehle aur (b) baad mein? g = 10 m s-2 lo. Problem mein action-reaction pairs identify karo.",
+        "steps": [
+          {
+            "title": "(a) Pehle: block ka free-body diagram",
+            "detail": "Block par do forces (bal) lagti hain: gravity 2 × 10 = 20 N neeche, aur floor ka normal force R upar. Block rest par hai, isliye first law se R = 20 N."
+          },
+          {
+            "title": "(a) Third law",
+            "detail": "Floor par block ka action 20 N vertically neeche hai."
+          },
+          {
+            "title": "(b) System block + cylinder chuno",
+            "detail": "Iska mass 27 kg hai, isliye iska weight 270 N hai. Free-body diagram mein weight 270 N neeche aur floor ka normal force R′ upar dikhaya gaya hai; block aur cylinder ke beech internal forces nahi dikhaye gaye."
+          },
+          {
+            "title": "(b) Second law",
+            "detail": "System 0.1 m s-2 se neeche accelerate karta hai, isliye 270 − R′ = 27 × 0.1 = 2.7 N, jisse R′ = 267.3 N milta hai."
+          },
+          {
+            "title": "(b) Third law aur pairs",
+            "detail": "Floor par system ka action 267.3 N vertically neeche hai. Pairs ye hain: earth ka block (ya system) par pull aur block (ya system) ka earth par pull; block (ya system) ka floor par push aur floor ka block (ya system) par push; aur, floor yield karne ke baad, cylinder ka block par force aur block ka cylinder par force."
+          }
+        ],
+        "answer": "(a) 20 N vertically neeche; (b) 267.3 N vertically neeche. Weight aur normal force action-reaction pair nahi hain: ye same body par lagte hain, aur floor yield karne ke baad ye equal bhi nahi rehte (270 N aur 267.3 N)."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-36"
+        }
+      ]
+    },
+    {
+      "id": "b-43",
+      "type": "check",
+      "spec": {
+        "question": "70 kg mass ka ek aadmi lift mein weighing scale par khada hai jo neeche ki taraf 5 m s-2 ke uniform acceleration (tvaran) se move kar rahi hai. Scale par reading kya hai? (g = 10 m s-2 lein.) Answer newtons mein dijiye.",
+        "format": "numeric",
+        "answer": "350",
+        "explanation": "Scale us normal force N ko read karti hai jo woh aadmi par exert karti hai. Downward ko positive lete hue, net downward force mg − N = m a hai, isliye N = m(g − a) = 70 × (10 − 5) = 350 N. Agar lift gravity ke under freely girti, to a barabar g hota aur reading zero hoti.",
+        "expected_understanding": "Scale directly weight ko read nahi karti; woh normal force read karti hai, jo aadmi par second law apply karke nikala jata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-44",
+      "type": "check",
+      "spec": {
+        "question": "Ek patthar ko string se baandh kar horizontal circle mein ghumaya ja raha hai. Speed (chaal) ko us maximum se zyada badha diya jaata hai jo string seh sakti hai, aur string achanak toot jaati hai. Us pal ke baad patthar ka path kaunsa hoga?",
+        "format": "mcq",
+        "options": [
+          "Yeh radially bahar ki taraf, centre se door move karta hai.",
+          "Jis pal string tootati hai, us pal circle ke tangent ke along ud jaata hai.",
+          "Yeh tangent se kisi angle par ud jaata hai, aur angle speed par depend karta hai.",
+          "Yeh same circle mein chhoti speed ke saath ghoomta rehta hai."
+        ],
+        "answer_index": 1,
+        "answer": "Jis pal string tootati hai, us pal circle ke tangent ke along ud jaata hai.",
+        "explanation": "String ka tension wahi force tha jo patthar ke momentum (samveg) ki direction badal raha tha. Jis moment string tootati hai, koi horizontal force act nahi karta (air resistance ko neglect karte hue), isliye first law ke according patthar us instant wali velocity ke saath straight line mein chalta rehta hai — jo tangent ke along hoti hai.",
+        "expected_understanding": "Force sirf momentum badalne ke liye chahiye hota hai, uski direction badalne ke liye bhi; jab koi force nahi hota to velocity apna magnitude aur direction dono maintain karti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-07"
+        },
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-45",
+      "type": "check",
+      "spec": {
+        "question": "Ghoda empty space mein cart ko kyun pull karke daud nahi sakta?",
+        "format": "mcq",
+        "options": [
+          "Kyunki empty space mein push karne ke liye hawa nahi hoti.",
+          "Kyunki ghoda ground ko backward push karta hai aur ground ghode aur cart ko forward push karta hai; empty space mein push karne ke liye ground nahi hota, isliye system par koi external forward force act nahi kar sakta.",
+          "Kyunki cart ke muqable ghode ka mass bahut kam hota hai.",
+          "Kyunki empty space mein cart aur ground ke beech friction bahut zyada hoti."
+        ],
+        "answer_index": 1,
+        "answer": "Kyunki ghoda ground ko backward push karta hai aur ground ghode aur cart ko forward push karta hai; empty space mein push karne ke liye ground nahi hota, isliye system par koi external forward force act nahi kar sakta.",
+        "explanation": "Horse-and-cart system par forward force system ke bahar se aana chahiye. Ground par yeh friction hoti hai ghode ke hooves aur ground ke beech: ghoda ground ko backward push karta hai, ground use forward push karta hai. Ground ke bina aisi external force nahi hoti, aur system ke andar ke mutual forces use accelerate nahi kar sakte.",
+        "expected_understanding": "Sirf external force hi kisi system ko accelerate kar sakti hai; third law akela kisi cheez ko accelerate nahi karta, kyunki internal pairs cancel ho jate hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ]
+    },
+    {
+      "id": "b-46",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kuch mechanics problems mein aapko forces ki list ke bajaye position vs time ka graph diya hota hai. Aap force aur impulse dono nikal sakte hain, kyunki sab kuch is baat se follow karta hai ki graph ka slope (dhaal) kya kar raha hai.",
+          "Ek particle ke liye, velocity (veg) position ke time ke saath rate of change hai, v = dy/dt (y ko position coordinate maan lijiye). Position-time graph par yeh graph ka slope hota hai. Acceleration (tvaran) velocity ke rate of change hai, a = dv/dt, yani slope khud kitni tezi se badal raha hai.",
+          "Graph ko teen steps mein padhiye. Agar graph ka koi stretch straight line hai, wahan velocity constant hai, isliye acceleration zero hai aur, second law ke according, us interval mein particle par force zero hai. Agar slope steadily badalta hai, velocity badal rahi hai, isliye acceleration aur force F = m a hai. Agar slope kisi ek instant par abruptly badalta hai - graph mein kink - to velocity almost no time mein definite amount se badalti hai, isliye momentum abruptly badalta hai: momentum ka woh change us instant par delivered impulse hai.",
+          "Mass do baar aata hai: acceleration ko force mein badalne ke liye, F = m a, aur velocity ke change ko impulse mein badalne ke liye, impulse = change in momentum = m times the change in velocity. Kisi bhi instant par force us instant ki situation se fix hota hai; particle apni earlier motion ki koi memory nahi rakhta."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-47",
+      "type": "worked_example",
+      "spec": {
+        "problem": "0.25 kg mass ka ek stone string ke end se tied hai aur horizontal plane mein 1.5 m radius ke circle mein 40 rev./min ki speed (chaal) se whirled round kiya ja raha hai. String mein tension kya hai? Agar string maximum 200 N tension seh sakti hai, to stone ko kis maximum speed se whirled around kiya ja sakta hai?",
+        "steps": [
+          {
+            "title": "Centripetal force kaun supply karta hai?",
+            "detail": "Stone uniform speed se circle mein move karta hai, isliye isko centre ki taraf directed force (bal) m v^2/R chahiye. Yahan centre ki taraf act karne wala sirf string mein tension hai, isliye tension hi centripetal force hai: T = m v^2/R."
+          },
+          {
+            "title": "Speed ko m s-1 mein convert karein",
+            "detail": "Ek revolution mein stone circumference 2 pi R = 2 pi times 1.5, lagbhag 9.42 m travel karta hai. 40 revolutions per minute par yeh har second 40/60 revolution karta hai, isliye v = 9.42 times 40/60, lagbhag 6.28 m s-1."
+          },
+          {
+            "title": "String mein tension",
+            "detail": "T = m v^2/R = 0.25 times (6.28)^2 / 1.5, jo lagbhag 6.6 N hai."
+          },
+          {
+            "title": "Maximum tension se maximum speed",
+            "detail": "String maximum 200 N de sakti hai, isliye m v^2/R = 200 se v = square root of (200 times 1.5 / 0.25) = square root of 1200, lagbhag 34.6 m s-1."
+          }
+        ],
+        "answer": "Tension lagbhag 6.6 N hai. Maximum speed jisse stone ko whirled kiya ja sakta hai lagbhag 34.6 m s-1 hai; usse zyada par string ko 200 N se zyada supply karna padega aur woh break ho jayegi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-32"
+        },
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-40"
+        }
+      ]
+    },
+    {
+      "id": "b-48",
+      "type": "worked_example",
+      "spec": {
+        "problem": "0.05 kg mass ka ek pebble vertically upwards throw kiya jaata hai. Air resistance ignore karte hue, pebble par net force (bal) ka magnitude aur direction batao (a) uske upward motion (gati) ke dauraan, (b) uske downward motion ke dauraan, aur (c) highest point par jahan woh momentarily rest mein hai. (g = 10 m s-2 lein.)",
+        "steps": [
+          {
+            "title": "Kaunse forces act karte hain?",
+            "detail": "Air resistance neglect kiya gaya hai, isliye kisi bhi instant par pebble par sirf uska weight, mg, vertically downward direction mein lagta hai. Earth use tab bhi pull kar rahi hai jab woh upar jaata hai, neeche aata hai, ya ek instant ke liye still hangs karta hai."
+          },
+          {
+            "title": "Weight nikaalo",
+            "detail": "mg = 0.05 times 10 = 0.5 N, downward."
+          },
+          {
+            "title": "Highest point",
+            "detail": "Highest point par velocity (veg) momentarily zero hoti hai, lekin isse force zero nahi ho jaata. Force aur acceleration (tvaran) us instant par body ki location ki situation se fixed hote hain, is baat se nahi ki woh kitni fast move kar raha hai: force ab bhi uska weight mg hai aur acceleration ab bhi g hai, downward."
+          }
+        ],
+        "answer": "(a) 0.5 N downward, (b) 0.5 N downward, (c) 0.5 N downward. Teeno cases mein answer same hai: ek body jo momentarily rest mein hai, us par ab bhi non-zero force aur non-zero acceleration ho sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-39"
+        },
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-16"
+        }
+      ]
+    },
+    {
+      "id": "b-49",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Lawn mower ko push karne se zyada pull karna aasan kyun hota hai? Iska jawab un do cheezon se milta hai jo aap pehle se jaante hain: normal reaction aur friction.",
+          "Jab do surfaces contact mein hoti hain, contact force ka ek component surfaces ke normal hota hai, normal reaction N, aur ek component unke parallel hota hai, friction. Friction ke laws kehte hain ki sliding friction f_k = mu_k N hota hai (aur static friction at most mu_s N tak badh sakta hai). Isliye jis friction ka aapko samna karna hai woh normal reaction ke proportional hota hai: N ko chhota banao aur friction bhi chhota ho jaata hai.",
+          "Mower ko aise handle se pull karo jo upward slant karta hai, aur aapke pull ka ek upward component hota hai. Woh upward component mower ko partly support karta hai, isliye floor ko kam push up karna padta hai: normal reaction N chhota ho jaata hai, aur uske saath woh friction bhi chhota ho jaata hai jise mower ko overcome karna hota hai. Usi mower ko downward slanting handle se push karo, aur aapke push ka ek downward component hota hai jo mower ko ground mein zyada dabata hai: N bada ho jaata hai, aur friction bhi bada ho jaata hai. Same mower, same ground - sirf handle par aapke force ki direction badli hai, aur uske saath normal reaction aur friction bhi."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-27"
+        },
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-50",
+      "type": "check",
+      "spec": {
+        "question": "4 kg mass wale particle ka position-time graph t = 0 se t = 4 s tak ek straight line hai, aur t = 4 s ke baad different slope wali ek straight line hai. t = 0 se t = 4 s ke interval mein particle par force kya hai?",
+        "format": "mcq",
+        "options": [
+          "Zero, kyunki wahan graph straight line hai, isliye velocity constant hai aur acceleration zero hai.",
+          "4 N, kyunki particle ka mass 4 kg hai.",
+          "Non-zero, kyunki particle move kar raha hai.",
+          "Ise t = 4 s ke baad ki force jaane bina find nahi kiya ja sakta."
+        ],
+        "answer_index": 0,
+        "answer": "Zero, kyunki wahan graph straight line hai, isliye velocity constant hai aur acceleration zero hai.",
+        "explanation": "Straight position-time graph ka matlab hai velocity change nahi ho rahi, isliye acceleration zero hai aur second law ke according net force zero hai. Kisi bhi instant par force sirf usi instant par depend karti hai, t = 4 s ke baad kya hota hai uspar nahi. t = 4 s par slope abruptly change hota hai, isliye velocity suddenly change hoti hai aur wahan momentum ke us change ke barabar ek Impulse deliver hota hai.",
+        "expected_understanding": "Position-time graph ke slope se force read karo: constant slope ka matlab zero force, kink ka matlab ek Impulse."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-51",
+      "type": "check",
+      "spec": {
+        "question": "0.25 kg mass ka ek stone 1.5 m lambi string se bandha hai aur horizontal circle mein ghumaya ja raha hai. Agar string maximum 200 N tension seh sakti hai, toh stone ko maximum kis speed (chaal) se ghumaya ja sakta hai? Answer ko m s-1 mein do, ek decimal place tak.",
+        "format": "numeric",
+        "answer": "34.6",
+        "explanation": "Tension hi centripetal force hai, isliye m v^2/R = T se v = square root of (T R / m) = square root of (200 times 1.5 / 0.25) = square root of 1200, lagbhag 34.6 m s-1. Is speed se zyada hone par required centripetal force 200 N se zyada ho jayega aur string toot jayegi.",
+        "expected_understanding": "f_c = m v^2/R ko rearrange karke speed nikaalo jab force (bal) ka ek stated maximum ho, aur yaad rakho ki tension centripetal force ka role play kar rahi hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-32"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-52",
+      "type": "check",
+      "spec": {
+        "question": "0.05 kg mass ka ek pebble vertically upwards throw kiya jata hai aur, apne path ke highest point par, momentarily rest mein hota hai. Air resistance ignore karte hue aur g = 10 m s-2 lete hue, us instant par is par lagne wale net force (bal) ka magnitude newtons mein kya hai?",
+        "format": "numeric",
+        "answer": "0.5",
+        "explanation": "Sirf force weight mg = 0.05 times 10 = 0.5 N hai, jo downward directed hai, aur highest point par bhi ye anywhere else jaisa hi same hai. Momentarily rest hone se velocity (veg) zero hoti hai, force nahi: wahan acceleration (tvaran) g hai, downward.",
+        "expected_understanding": "v = 0 ko F = 0 se confuse mat karo; kisi instant par force us instant ki situation se fixed hota hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-39"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ]
+    },
+    {
+      "id": "b-53",
+      "type": "check",
+      "spec": {
+        "question": "Lawn mower ko push karne ki tulna mein pull karna zyada aasan kyun hota hai?",
+        "format": "mcq",
+        "options": [
+          "Kyunki pull karna hamesha push karne se chhota force (bal) maangta hai, chahe angle koi bhi ho.",
+          "Kyunki upward-slanting handle par pull normal reaction ko kam karta hai, aur friction normal reaction ke proportional hota hai, isliye overcome karne ke liye kam friction hota hai; downward-slanting push dono ko badha deta hai.",
+          "Kyunki pull karne par mower mein kam Inertia hota hai.",
+          "Kyunki friction sirf tab lagta hai jab kisi body ko push kiya jata hai."
+        ],
+        "answer_index": 1,
+        "answer": "Kyunki upward-slanting handle par pull normal reaction ko kam karta hai, aur friction normal reaction ke proportional hota hai, isliye overcome karne ke liye kam friction hota hai; downward-slanting push dono ko badha deta hai.",
+        "explanation": "Friction contact force ka woh component hai jo surfaces ke parallel hota hai, aur iska magnitude normal reaction N ke proportional hota hai. Upward-slanting pull mower ko kuch had tak support karta hai, jisse N kam hota hai aur isliye friction bhi kam hota hai; downward-slanting push mower ko ground mein dabata hai, jisse N badh jata hai aur isliye friction bhi badh jata hai.",
+        "expected_understanding": "Applied force (bal) ki direction ko normal reaction se, aur normal reaction ko friction se link karo."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-27"
+        },
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    }
+  ]
+}

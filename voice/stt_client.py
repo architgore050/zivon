@@ -76,9 +76,17 @@ def default_connect(settings: VoiceSettings) -> Callable[[], Awaitable[SttTransp
             "x-sample-rate": str(settings.stt_sample_rate),
         }
         try:
-            return await ws_connect(settings.stt_url, additional_headers=headers)  # type: ignore[no-untyped-call]
+            return await ws_connect(
+                settings.stt_url,
+                additional_headers=headers,
+                open_timeout=settings.stt_connect_timeout_s,
+            )  # type: ignore[no-untyped-call]
         except TypeError:  # websockets < 14 named the option extra_headers
-            return await ws_connect(settings.stt_url, extra_headers=headers)  # type: ignore[no-untyped-call,no-redef]
+            return await ws_connect(
+                settings.stt_url,
+                extra_headers=headers,
+                open_timeout=settings.stt_connect_timeout_s,
+            )  # type: ignore[no-untyped-call,no-redef]
 
     return _connect
 
@@ -92,6 +100,16 @@ class SttEvent:
     seq: int
     lang: str = ""
     confidence: float | None = None
+
+
+def _confidence(raw: object) -> float | None:
+    """Parse an optional vendor confidence without letting a string crash us."""
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        return float(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
 
 
 class SttClient:
@@ -215,9 +233,12 @@ class SttClient:
                 text=text,
                 seq=self._seq - 1,
                 lang=str(
-                    payload.get("detected_language_code") or payload.get("lang") or ""
+                    payload.get("detected_language_code")
+                    or payload.get("detected_language")
+                    or payload.get("lang")
+                    or ""
                 ),
-                confidence=None,
+                confidence=_confidence(payload.get("confidence")),
             )
         text = payload.get("text")
         if kind not in ("partial", "final") or not isinstance(text, str):

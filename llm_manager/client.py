@@ -544,10 +544,13 @@ class LLMManager:
         model_kwargs: dict[str, Any] = {}
         if self.config.json_mode:
             model_kwargs["response_format"] = {"type": "json_object"}
-        if self.config.reasoning_effort:
-            model_kwargs["reasoning_effort"] = self.config.reasoning_effort
         if model_kwargs:
             kwargs["model_kwargs"] = model_kwargs
+        # An explicit ChatOpenAI parameter, NOT model_kwargs: passed through
+        # model_kwargs the SDK only warns and silently drops the effort, so a
+        # "low" run reasons like a "high" one and burns minutes per call.
+        if self.config.reasoning_effort:
+            kwargs["reasoning_effort"] = self.config.reasoning_effort
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         return ChatOpenAI(**kwargs)

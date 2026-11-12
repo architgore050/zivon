@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="hi" data-script="Deva">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
+<title>Motion in a Straight Line - Zivon</title>
+<link rel="canonical" href="../index.html">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="alternate" hreflang="hi" href="index.html">
+<link rel="alternate" hreflang="hi-Latn" href="../hi-Latn/index.html">
+<link rel="stylesheet" href="../../../../assets/zivon.css?v=20261111b">
+
+</head>
+<body>
+<header class="zn-lang-bar" data-current-locale="hi"><div class="zn-lang-in"><span class="zn-lang-lab" data-i18n="ui.lang_label">भाषा</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" data-locale="en" data-href="../index.html" aria-checked="false">English</button><button type="button" class="zn-chip" role="radio" data-locale="hi" data-href="index.html" lang="hi" aria-checked="true">हिन्दी</button><button type="button" class="zn-chip" role="radio" data-locale="hi-Latn" data-href="../hi-Latn/index.html" lang="hi-Latn" aria-checked="false">Hinglish</button></div><span class="zn-trans-badge" data-i18n="ui.trans_badge">AI-अनुवादित · समीक्षित</span></div></header>
+<main class="zn-page">
+  <header class="zn-header">
+    <p class="zn-kicker">class-11-physics</p>
+    <h1 class="zn-title" data-i18n="b-00-meta.title">Motion in a Straight Line</h1>
+    <p class="zn-objectives-label" data-i18n="ui.objectives_heading">इस पाठ के बाद आप सीखेंगे:</p>
+    <ul class="zn-objectives">
+      <li data-i18n="b-00-meta.objectives.0">इस पाठ के बाद आप स्थिति (Position), वेग (velocity) और त्वरण (acceleration) का उपयोग करते हुए सरल रेखा के अनुदिश गति का वर्णन कर सकेंगे।</li>
+      <li data-i18n="b-00-meta.objectives.1">इस पाठ के बाद आप स्थिति-समय और वेग-समय ग्राफ़ों से वेग और त्वरण पढ़ सकेंगे।</li>
+      <li data-i18n="b-00-meta.objectives.2">इस पाठ के बाद आप एकसमान त्वरण वाली गति और मुक्त पतन के लिए गतिक समीकरणों का उपयोग कर सकेंगे।</li>
+      <li data-i18n="b-00-meta.objectives.3">इस पाठ के बाद आप औसत चाल (Average speed) को औसत वेग के परिमाण से अलग पहचान सकेंगे और निर्देश तंत्र (Frame of reference) के साथ आपेक्षिक गति की व्याख्या कर सकेंगे।</li>
+    </ul>
+  </header>
+  <section class="zn-text" id="b-01">
+    <p data-i18n="b-01.paragraphs.0">आप अपने चारों ओर गति (motion) देखते हैं। आप चलते हैं, दौड़ते हैं और साइकिल चलाते हैं। पेड़ों से पत्तियाँ गिरती हैं और पानी बाँध से नीचे बहता है।</p>
+    <p data-i18n="b-01.paragraphs.1">गति का अर्थ है किसी वस्तु की स्थिति (Position) में समय के साथ परिवर्तन। इसका वर्णन करने के लिए आप पहले एक मूल बिंदु चुनते हैं। मूल बिंदु के दाईं ओर की स्थिति को धनात्मक और बाईं ओर की स्थिति को ऋणात्मक लिया जाता है।</p>
+    <p data-i18n="b-01.paragraphs.2">इस पाठ में हम सरल रेखा के अनुदिश गति का अध्ययन करते हैं। इसे ऋजुरेखीय गति कहते हैं। जब वस्तुओं का आकार उनके द्वारा तय की गई दूरी (distance) की तुलना में बहुत छोटा होता है, तो हम उन्हें बिंदु वस्तुएँ मानते हैं।</p>
+    <p data-i18n="b-01.paragraphs.3">गतिकी (kinematics) गति का वर्णन करने के तरीकों का अध्ययन है। यह गति के कारणों की पड़ताल नहीं करती। स्थिति समय के साथ कैसे बदलती है, इसका वर्णन करने के लिए हम वेग (velocity) और त्वरण (acceleration) विकसित करते हैं।</p>
+  </section>
+  <figure class="zn-diagram" id="b-02">
+    <div class="zn-diagram-svg"><svg viewBox="0 0 600 180"><line x1="40" y1="90" x2="560" y2="90" stroke="#1C1B18" stroke-width="3" /><polygon points="560,90 540,82 540,98" fill="#1C1B18" /><circle cx="300" cy="90" r="7" fill="#1F3A9E" /><circle cx="420" cy="90" r="7" fill="#1C1B18" /><text x="292" y="70" font-size="22" fill="#1C1B18">O</text><text x="530" y="70" font-size="22" fill="#1C1B18">+x</text><text x="410" y="70" font-size="22" fill="#1F3A9E">x</text><text x="40" y="70" font-size="22" fill="#1C1B18">-x</text><path d="M 420 75 Q 430 45 470 40" stroke="#1F3A9E" stroke-width="2" fill="none" /><text x="470" y="45" font-size="20" fill="#1F3A9E" data-i18n="b-02.svg_texts.t-0">बिंदु वस्तु</text></svg></div>
+    <figcaption data-i18n="b-02.caption">मूल बिंदु O वाली एक सरल रेखा, जिसकी धनात्मक दिशा दाईं ओर है, और स्थिति (Position) x पर एक बिंदु वस्तु।</figcaption>
+  </figure>
+  <fieldset class="zn-check" id="b-03" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-03.question">एक रेलगाड़ी का डिब्बा दो स्टेशनों के बीच बिना झटकों के चलता है, और यह यात्रा उसकी अपनी लंबाई की तुलना में बहुत अधिक लंबी है। क्या इसे बिंदु वस्तु माना जा सकता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-03" value="0"> <span data-i18n="b-03.options.0">हाँ, क्योंकि इसका आकार तय की गई दूरी (distance) से बहुत छोटा है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-03" value="1"> <span data-i18n="b-03.options.1">नहीं, क्योंकि यह एक बड़ी वस्तु है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-03" value="2"> <span data-i18n="b-03.options.2">हाँ, क्योंकि यह सरल रेखा पर चलता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-03" value="3"> <span data-i18n="b-03.options.3">नहीं, क्योंकि इसके कई भाग होते हैं</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-03.explanation">किसी वस्तु को बिंदु वस्तु तब माना जा सकता है जब उसका आकार उचित समय में उसके द्वारा चली गई दूरी की तुलना में बहुत छोटा हो।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-04">
+    <p data-i18n="b-04.paragraphs.0">औसत वेग (velocity) आपको बताता है कि कोई वस्तु पूरे अंतराल में कितनी तेजी से चली। यह आपको नहीं बताता कि वह किसी एक क्षण में कितनी तेजी से चली।</p>
+    <p data-i18n="b-04.paragraphs.1">तात्कालिक वेग औसत वेग की सीमा है जब समय अंतराल अत्यंत छोटा हो जाता है। प्रतीकों में, v = dx/dt।</p>
+    <p data-i18n="b-04.paragraphs.2">Position (Position)-समय ग्राफ पर, किसी क्षण पर वेग उस बिंदु पर स्पर्श रेखा की ढाल (slope) होता है। छोटे अंतराल जोड़ने वाली रेखा को स्पर्श रेखा के निकट ले जाते हैं।</p>
+    <p data-i18n="b-04.paragraphs.3">x = 0.08 t^3 के लिए, t = 4.0 s पर केंद्रित औसत वेग 3.84 m s-1 के निकट पहुँचता है जैसे-जैसे अंतराल घटता है। वह सीमांत मान t = 4.0 s पर वेग है।</p>
+  </section>
+  <section class="zn-sim zn-sim-b-05" id="b-05" data-sim-id="b-05" aria-label="स्थिति-समय ग्राफ और स्पर्शरेखा की ढाल (slope)">
+    <h3 data-i18n="b-05.title">स्थिति-समय ग्राफ और स्पर्शरेखा की ढाल (slope)</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span data-i18n="b-05.controls.t.label">समय t (s)</span><input type="range" data-control="t" min="0" max="6" step="0.1" value="4"><output>4</output></label>
+    </div>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="स्थिति-समय ग्राफ और स्पर्शरेखा की ढाल (slope) drawing"></canvas></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
+    <p class="zn-sim-desc" data-i18n="b-05.description">x = 0.08 t^3 वक्र और चुने गए समय पर स्पर्शरेखा दिखाता है। स्पर्शरेखा की ढाल तात्क्षणिक वेग (velocity) है।</p>
+  </section>
+  <section class="zn-example" id="b-06">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-06.problem">x-अक्ष के अनुदिश गतिमान किसी वस्तु की Position (Position) x = a + b t^2 द्वारा दी गई है, जहाँ a = 8.5 m, b = 2.5 m s-2 है और t को सेकंड में मापा गया है। t = 0 s और t = 2.0 s पर इसका वेग (velocity) क्या है? t = 2.0 s और t = 4.0 s के बीच औसत वेग क्या है?</p>
+    <ol>
+      <li><strong data-i18n="b-06.steps.0.title">Position का अवकलन करें</strong> <span data-i18n="b-06.steps.0.detail">v = dx/dt = 2 b t = 5.0 t m s-1.</span></li>
+      <li><strong data-i18n="b-06.steps.1.title">t = 0 s पर वेग</strong> <span data-i18n="b-06.steps.1.detail">v = 5.0 x 0 = 0 m s-1.</span></li>
+      <li><strong data-i18n="b-06.steps.2.title">t = 2.0 s पर वेग</strong> <span data-i18n="b-06.steps.2.detail">v = 5.0 x 2.0 = 10 m s-1.</span></li>
+      <li><strong data-i18n="b-06.steps.3.title">2.0 s और 4.0 s के बीच औसत वेग</strong> <span data-i18n="b-06.steps.3.detail">2.0 s पर x = 8.5 + 2.5 x 4 = 18.5 m. 4.0 s पर x = 8.5 + 2.5 x 16 = 48.5 m. औसत वेग = (48.5 - 18.5)/(4.0 - 2.0) = 15 m s-1.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-06.answer">t = 0 s पर वेग 0 m s-1 है, t = 2.0 s पर 10 m s-1 है, और 2.0 s और 4.0 s के बीच औसत वेग 15 m s-1 है।</span></p>
+  </section>
+  <section class="zn-text" id="b-07">
+    <p data-i18n="b-07.paragraphs.0">चाल (speed) वेग (velocity) का परिमाण है। +24.0 m s-1 का वेग और -24.0 m s-1 का वेग दोनों की चाल 24.0 m s-1 होती है।</p>
+    <p data-i18n="b-07.paragraphs.1">किसी परिमित अंतराल में औसत चाल (Average speed) औसत वेग के परिमाण से अधिक या उसके बराबर होती है। परंतु किसी क्षण पर तात्क्षणिक चाल उस क्षण पर तात्क्षणिक वेग के परिमाण के बराबर होती है।</p>
+  </section>
+  <section class="zn-text" id="b-08">
+    <p data-i18n="b-08.paragraphs.0">वेग (velocity) गति (motion) के दौरान बदलता है। हम इस परिवर्तन को समय के साथ वेग के परिवर्तन की दर के रूप में वर्णित करते हैं। यह दर त्वरण (acceleration) है।</p>
+    <p data-i18n="b-08.paragraphs.1">औसत त्वरण a = (v2 - v1)/(t2 - t1) है, जिसका SI मात्रक m s-2 है। तात्कालिक त्वरण a = dv/dt है, जो वेग-समय वक्र की स्पर्श रेखा की ढाल (slope) है।</p>
+    <p data-i18n="b-08.paragraphs.2">त्वरण धनात्मक, ऋणात्मक या शून्य हो सकता है। यह चाल (speed) में परिवर्तन, दिशा में परिवर्तन, या दोनों से हो सकता है।</p>
+    <p data-i18n="b-08.paragraphs.3">स्थिति (Position)-समय ग्राफ धनात्मक त्वरण के लिए ऊपर की ओर वक्रित होते हैं, ऋणात्मक त्वरण के लिए नीचे की ओर, और शून्य त्वरण के लिए सरल रेखाएँ होते हैं।</p>
+  </section>
+  <section class="zn-sim zn-sim-b-09" id="b-09" data-sim-id="b-09" aria-label="वेग (velocity)-समय ग्राफ और क्षेत्रफल विस्थापन (displacement) के रूप में">
+    <h3 data-i18n="b-09.title">वेग (velocity)-समय ग्राफ और क्षेत्रफल विस्थापन (displacement) के रूप में</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span data-i18n="b-09.controls.v0.label">प्रारंभिक वेग v0 (m/s)</span><input type="range" data-control="v0" min="-10" max="10" step="1" value="5"><output>5</output></label>
+      <label class="zn-sim-control"><span data-i18n="b-09.controls.a.label">त्वरण a (m/s^2)</span><input type="range" data-control="a" min="-5" max="5" step="0.5" value="2"><output>2</output></label>
+    </div>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="वेग (velocity)-समय ग्राफ और क्षेत्रफल विस्थापन (displacement) के रूप में drawing"></canvas></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
+    <p class="zn-sim-desc" data-i18n="b-09.description">स्थिर त्वरण (acceleration) के लिए वेग-समय रेखा दिखाता है और उसके नीचे के क्षेत्रफल को छायांकित करता है। छायांकित क्षेत्रफल विस्थापन के बराबर होता है।</p>
+  </section>
+  <section class="zn-text" id="b-10">
+    <p data-i18n="b-10.paragraphs.0">यदि किसी कण की चाल (speed) बढ़ रही है, तो त्वरण (acceleration) वेग (velocity) की दिशा में होता है। यदि उसकी चाल घट रही है, तो त्वरण वेग की दिशा के विपरीत होता है।</p>
+    <p data-i18n="b-10.paragraphs.1">यह बात आप जो भी मूल बिंदु और धनात्मक दिशा चुनें, सत्य रहती है। केवल त्वरण का चिह्न यह नहीं बताता कि चाल बढ़ रही है या घट रही है।</p>
+  </section>
+  <section class="zn-text" id="b-11">
+    <p data-i18n="b-11.paragraphs.0">स्थिर त्वरण (acceleration) के लिए, औसत त्वरण अंतराल के दौरान स्थिर मान के बराबर होता है। यदि t = 0 पर वेग (velocity) v0 है और समय t पर v है, तो v = v0 + a t।</p>
+    <p data-i18n="b-11.paragraphs.1">वेग-समय ग्राफ के नीचे का क्षेत्रफल एक त्रिभुज और एक आयत का योग होता है। यह क्षेत्रफल विस्थापन (displacement) के बराबर होता है।</p>
+    <p data-i18n="b-11.paragraphs.2">इससे x = ((v0 + v)/2) t प्राप्त होता है, अतः औसत वेग प्रारंभिक और अंतिम वेगों का अंकगणितीय औसत होता है।</p>
+    <p data-i18n="b-11.paragraphs.3">t को विलुप्त करने पर एकसमान त्वरित गति (motion) के लिए तीन गतिक समीकरण प्राप्त होते हैं।</p>
+  </section>
+  <section class="zn-reveal" id="b-12">
+    <h3 data-i18n="b-12.title">वेग (velocity)-समय क्षेत्रफल से गतिक समीकरणों की व्युत्पत्ति</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-12.steps.0.title">v = v0 + a t से प्रारंभ करें</summary><p data-i18n="b-12.steps.0.detail">यह स्थिर त्वरण (acceleration) के लिए a = (v - v0)/t से प्राप्त होता है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-12.steps.1.title">v-t ग्राफ के नीचे का क्षेत्रफल ज्ञात करें</summary><p data-i18n="b-12.steps.1.detail">क्षेत्रफल = त्रिभुज का क्षेत्रफल + आयत का क्षेत्रफल = (1/2)(v - v0) t + v0 t = ((v0 + v)/2) t.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-12.steps.2.title">क्षेत्रफल विस्थापन (displacement) के बराबर है</summary><p data-i18n="b-12.steps.2.detail">अतः x = ((v0 + v)/2) t.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-12.steps.3.title">t का विलोपन करें</summary><p data-i18n="b-12.steps.3.detail">v^2 = v0^2 + 2 a x प्राप्त करने के लिए x = ((v0 + v)/2) t में t = (v - v0)/a रखें। x = v0 t + (1/2) a t^2 प्राप्त करने के लिए x = ((v0 + v)/2) t में v - v0 = a t रखें।</p></details>
+  </section>
+  <section class="zn-reveal" id="b-13">
+    <h3 data-i18n="b-13.title">कलन द्वारा गति (motion) के समीकरणों की व्युत्पत्ति</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-13.steps.0.title">त्वरण (acceleration) का समाकलन</summary><p data-i18n="b-13.steps.0.detail">a = dv/dt, अतः dv = a dt। समाकलन करने पर v - v0 = a t प्राप्त होता है, अतः v = v0 + a t।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-13.steps.1.title">वेग (velocity) का समाकलन</summary><p data-i18n="b-13.steps.1.detail">v = dx/dt, अतः dx = v dt। v = v0 + a t के साथ समाकलन करने पर x - x0 = v0 t + (1/2) a t^2 प्राप्त होता है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-13.steps.2.title">समय का विलोपन</summary><p data-i18n="b-13.steps.2.detail">a = dv/dt और v = dx/dt से, a = v dv/dx, अतः v dv = a dx। समाकलन करने पर (1/2)(v^2 - v0^2) = a (x - x0) प्राप्त होता है, अतः v^2 = v0^2 + 2 a (x - x0)।</p></details>
+  </section>
+  <section class="zn-example" id="b-14">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-14.problem">एक गेंद को बहुमंज़िला इमारत की छत से 20 m s-1 के वेग (velocity) से ऊर्ध्वाधर ऊपर की ओर फेंका जाता है। जिस बिंदु से गेंद फेंकी जाती है, उसकी ज़मीन से ऊँचाई 25.0 m है। (a) गेंद कितनी ऊँचाई तक उठेगी? और (b) गेंद को ज़मीन पर गिरने में कितना समय लगेगा? g = 10 m s-2 लीजिए।</p>
+    <ol>
+      <li><strong data-i18n="b-14.steps.0.title">ऊपर की दिशा को धनात्मक चुनें</strong> <span data-i18n="b-14.steps.0.detail">v0 = +20 m s-1, a = -g = -10 m s-2, और शीर्ष पर v = 0 m s-1।</span></li>
+      <li><strong data-i18n="b-14.steps.1.title">उठी गई ऊँचाई</strong> <span data-i18n="b-14.steps.1.detail">v^2 = v0^2 + 2 a (y - y0) का उपयोग करें: 0 = (20)^2 + 2(-10)(y - y0), इसलिए y - y0 = 20 m। ज़मीन से ऊँचाई 25.0 + 20 = 45 m है।</span></li>
+      <li><strong data-i18n="b-14.steps.2.title">ऊपर जाने का समय</strong> <span data-i18n="b-14.steps.2.detail">v = v0 + a t का उपयोग करें: 0 = 20 - 10 t1, इसलिए t1 = 2 s।</span></li>
+      <li><strong data-i18n="b-14.steps.3.title">नीचे गिरने का समय</strong> <span data-i18n="b-14.steps.3.detail">शीर्ष से, v0 = 0, a = -10 m s-2, y0 = 45 m, y = 0: 0 = 45 + (1/2)(-10) t2^2, इसलिए t2 = 3 s। कुल समय = 2 + 3 = 5 s।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-14.answer">(a) गेंद प्रक्षेपण बिंदु से 20 m ऊपर उठती है, ज़मीन से 45 m। (b) यह 5 s बाद ज़मीन पर गिरती है।</span></p>
+  </section>
+  <section class="zn-text" id="b-15">
+    <p data-i18n="b-15.paragraphs.0">मुक्त पतन वायु प्रतिरोध की उपेक्षा करते हुए गुरुत्व के अधीन गति (motion) है। पृथ्वी की सतह के निकट, जब ऊँचाई पृथ्वी की त्रिज्या की तुलना में छोटी होती है, तो g का मान 9.8 m s-2 पर नियत रहता है।</p>
+    <p data-i18n="b-15.paragraphs.1">ऊपर की दिशा को धनात्मक लीजिए। तब गुरुत्व के कारण त्वरण (acceleration) a = -g = -9.8 m s-2 है।</p>
+    <p data-i18n="b-15.paragraphs.2">y = 0 पर विराम से छोड़ी गई वस्तु के लिए, गतिकीय समीकरण v = -9.8 t, y = -4.9 t^2 और v^2 = -19.6 y देते हैं।</p>
+    <p data-i18n="b-15.paragraphs.3">त्वरण नियत है, वेग (velocity) समय के साथ रैखिक रूप से परिवर्तित होता है, और दूरी (distance) t^2 के अनुसार परिवर्तित होती है।</p>
+  </section>
+  <section class="zn-example" id="b-16">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-16.problem">मुक्त पतन के अंतर्गत किसी वस्तु की गति (motion) की चर्चा कीजिए। वायु प्रतिरोध की उपेक्षा कीजिए। g = 9.8 m s-2 लीजिए, ऊपर की दिशा धनात्मक है, वस्तु को y = 0 से विरामावस्था से छोड़ा गया है।</p>
+    <ol>
+      <li><strong data-i18n="b-16.steps.0.title">त्वरण (acceleration) लिखिए</strong> <span data-i18n="b-16.steps.0.detail">a = -g = -9.8 m s-2, v0 = 0.</span></li>
+      <li><strong data-i18n="b-16.steps.1.title">समय के साथ वेग (velocity)</strong> <span data-i18n="b-16.steps.1.detail">v = v0 + a t = 0 - 9.8 t = -9.8 t m s-1.</span></li>
+      <li><strong data-i18n="b-16.steps.2.title">समय के साथ स्थिति (Position)</strong> <span data-i18n="b-16.steps.2.detail">y = 0 + (1/2) a t^2 = -4.9 t^2 m.</span></li>
+      <li><strong data-i18n="b-16.steps.3.title">स्थिति के साथ वेग</strong> <span data-i18n="b-16.steps.3.detail">v^2 = 0 + 2 a y = -19.6 y m^2 s-2.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-16.answer">v = -9.8 t m s-1, y = -4.9 t^2 m, v^2 = -19.6 y m^2 s-2.</span></p>
+  </section>
+  <section class="zn-example" id="b-17">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-17.problem">गैलीलियो का विषम संख्याओं का नियम: विरामावस्था से गिरते हुए किसी पिंड द्वारा समान समय अंतरालों में तय की गई दूरियाँ (distance) एक-दूसरे से उसी अनुपात में होती हैं जिस अनुपात में एक से प्रारंभ होने वाली विषम संख्याएँ होती हैं, अर्थात् 1:3:5:7। इसे सिद्ध कीजिए।</p>
+    <ol>
+      <li><strong data-i18n="b-17.steps.0.title">मुक्त पतन में Position का उपयोग करें</strong> <span data-i18n="b-17.steps.0.detail">विरामावस्था से गिरने के लिए Position का परिमाण (1/2) g t^2 होता है।</span></li>
+      <li><strong data-i18n="b-17.steps.1.title">समान अंतराल लीजिए</strong> <span data-i18n="b-17.steps.1.detail">समय को लंबाई tau के समान अंतरालों में विभाजित कीजिए और tau, 2 tau, 3 tau इत्यादि के बाद Position ज्ञात कीजिए।</span></li>
+      <li><strong data-i18n="b-17.steps.2.title">क्रमिक अंतरालों में दूरियाँ ज्ञात कीजिए</strong> <span data-i18n="b-17.steps.2.detail">क्रमिक Position मानों को घटाइए। दूरियाँ 1:3:5:7:9:11 इत्यादि के अनुपात में होती हैं।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-17.answer">क्रमिक समान समय अंतरालों में दूरियाँ 1:3:5:7:9:11 के अनुपात में होती हैं, जो विषम संख्याओं के नियम को सिद्ध करता है।</span></p>
+  </section>
+  <section class="zn-example" id="b-18">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-18.problem">जब किसी गतिमान वाहन पर ब्रेक लगाए जाते हैं, तो रुकने से पहले उसके द्वारा तय की गई दूरी (distance) को रुकने की दूरी कहते हैं। v0 और a के पदों में रुकने की दूरी के लिए एक व्यंजक व्युत्पन्न कीजिए, जहाँ a ब्रेक लगाने के कारण होने वाला मंदन है।</p>
+    <ol>
+      <li><strong data-i18n="b-18.steps.0.title">v^2 = v0^2 + 2 a x का उपयोग कीजिए</strong> <span data-i18n="b-18.steps.0.detail">मान लीजिए रुकने की दूरी ds है और अंतिम वेग (velocity) v = 0 है।</span></li>
+      <li><strong data-i18n="b-18.steps.1.title">ds के लिए हल कीजिए</strong> <span data-i18n="b-18.steps.1.detail">0 = v0^2 + 2 a ds, अतः ds = -v0^2/(2 a)।</span></li>
+      <li><strong data-i18n="b-18.steps.2.title">परिणाम की व्याख्या कीजिए</strong> <span data-i18n="b-18.steps.2.detail">रुकने की दूरी v0^2 के समानुपाती होती है। समान मंदन के लिए v0 को दोगुना करने पर ds 4 गुना हो जाती है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-18.answer">रुकने की दूरी ds = -v0^2/(2 a), जो प्रारंभिक वेग के वर्ग के समानुपाती है।</span></p>
+  </section>
+  <section class="zn-example" id="b-19">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-19.problem">प्रतिक्रिया समय वह समय है जो किसी व्यक्ति को देखने, सोचने और कार्य करने में लगता है। एक रूलर को ऊर्ध्वाधर रूप से गिराया जाता है और d = 21.0 cm यात्रा करने के बाद पकड़ लिया जाता है। प्रतिक्रिया समय का अनुमान लगाइए। g = 9.8 m s-2 लीजिए।</p>
+    <ol>
+      <li><strong data-i18n="b-19.steps.0.title">मुक्त पतन का उपयोग करें</strong> <span data-i18n="b-19.steps.0.detail">रूलर विराम से गिरता है, इसलिए दूरी (distance) का परिमाण (1/2) g t_r^2 है।</span></li>
+      <li><strong data-i18n="b-19.steps.1.title">d को प्रतिस्थापित करें</strong> <span data-i18n="b-19.steps.1.detail">d = 21.0 cm = 0.210 m, इसलिए 0.210 = (1/2) x 9.8 x t_r^2।</span></li>
+      <li><strong data-i18n="b-19.steps.2.title">t_r के लिए हल करें</strong> <span data-i18n="b-19.steps.2.detail">t_r^2 = 0.420/9.8 = 0.0429, इसलिए लगभग t_r = 0.21 s।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-19.answer">प्रतिक्रिया समय लगभग 0.21 s है।</span></p>
+  </section>
+  <section class="zn-text" id="b-20">
+    <p data-i18n="b-20.paragraphs.0">एकसमान गति (uniform motion) के लिए, त्वरण (acceleration) शून्य होता है। x-t ग्राफ़ समय अक्ष से झुकी हुई सरल रेखा होता है और v-t ग्राफ़ समय अक्ष के समांतर सरल रेखा होता है।</p>
+    <p data-i18n="b-20.paragraphs.1">एकसमान त्वरण के लिए, x-t ग्राफ़ परवलय होता है और v-t ग्राफ़ समय अक्ष से झुकी हुई सरल रेखा होता है।</p>
+    <p data-i18n="b-20.paragraphs.2">चिह्न निर्धारित करने से पहले मूलबिंदु और धनात्मक दिशा चुनें। केवल त्वरण का चिह्न यह नहीं बताता कि चाल (speed) बढ़ती है या घटती है।</p>
+    <p data-i18n="b-20.paragraphs.3">किसी क्षण पर शून्य वेग (velocity) का अर्थ शून्य त्वरण नहीं होता। गतिक समीकरण केवल तब लागू होते हैं जब त्वरण का परिमाण और दिशा स्थिर हो, तथा मानों को उचित चिह्नों के साथ प्रतिस्थापित किया जाए।</p>
+  </section>
+  <fieldset class="zn-check" id="b-21" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-21.question">एकविमीय गति (motion) के लिए कौन-सा कथन सत्य है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="0"> <span data-i18n="b-21.options.0">किसी क्षण शून्य चाल (speed) होने पर उस क्षण अशून्य त्वरण (acceleration) हो सकता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="1"> <span data-i18n="b-21.options.1">शून्य चाल होने पर भी अशून्य वेग (velocity) हो सकता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="2"> <span data-i18n="b-21.options.2">स्थिर चाल के साथ शून्य त्वरण होना आवश्यक है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-21" value="3"> <span data-i18n="b-21.options.3">धनात्मक त्वरण का अर्थ अनिवार्यतः चाल बढ़ना है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-21.explanation">ऊपर की ओर फेंके गए कण का शीर्ष पर वेग शून्य होता है, परंतु गुरुत्वीय त्वरण जारी रहता है। शून्य चाल का अर्थ वेग का परिमाण शून्य है; स्थिर चाल में भी दिशा परिवर्तन के कारण त्वरण हो सकता है, और धनात्मक त्वरण चुनी गई धनात्मक दिशा पर निर्भर करता है।</p></details>
+  </fieldset>
+  <section class="zn-example" id="b-22">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-22.problem">एक कार सीधे राजमार्ग पर 126 km h-1 की चाल (speed) से चल रही है और उसे 200 m की दूरी (distance) के भीतर रोक दिया जाता है। कार का मंदन (एकसमान मानकर) क्या है, और कार को रुकने में कितना समय लगता है?</p>
+    <ol>
+      <li><strong data-i18n="b-22.steps.0.title">चाल को रूपांतरित करें</strong> <span data-i18n="b-22.steps.0.detail">126 km h-1 = 35 m s-1. अंतिम वेग (velocity) v = 0, दूरी x = 200 m.</span></li>
+      <li><strong data-i18n="b-22.steps.1.title">मंदन ज्ञात करें</strong> <span data-i18n="b-22.steps.1.detail">v^2 = v0^2 + 2 a x का उपयोग करें: 0 = (35)^2 + 2 a (200), अतः a = -3.06 m s-2. मंदन 3.06 m s-2 है।</span></li>
+      <li><strong data-i18n="b-22.steps.2.title">समय ज्ञात करें</strong> <span data-i18n="b-22.steps.2.detail">v = v0 + a t का उपयोग करें: 0 = 35 - 3.06 t, अतः t = 11.4 s लगभग।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-22.answer">मंदन लगभग 3.06 m s-2 है और कार लगभग 11.4 s में रुक जाती है।</span></p>
+  </section>
+  <section class="zn-example" id="b-23">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-23.problem">एक खिलाड़ी एक गेंद को 29.4 m s-1 की प्रारंभिक चाल (speed) से ऊपर की ओर फेंकता है। (a) ऊपर की ओर गति (motion) के दौरान त्वरण (acceleration) की दिशा क्या है? (b) उच्चतम बिंदु पर वेग (velocity) और त्वरण क्या हैं? (d) गेंद कितनी ऊँचाई तक जाती है और कितने समय बाद खिलाड़ी के हाथों में लौटती है? g = 9.8 m s-2 लीजिए और वायु प्रतिरोध की उपेक्षा कीजिए।</p>
+    <ol>
+      <li><strong data-i18n="b-23.steps.0.title">त्वरण की दिशा</strong> <span data-i18n="b-23.steps.0.detail">ऊपर की ओर गति के दौरान गुरुत्व के कारण त्वरण नीचे की ओर होता है।</span></li>
+      <li><strong data-i18n="b-23.steps.1.title">उच्चतम बिंदु पर</strong> <span data-i18n="b-23.steps.1.detail">वेग शून्य है, त्वरण अभी भी नीचे की ओर है और इसका परिमाण 9.8 m s-2 है।</span></li>
+      <li><strong data-i18n="b-23.steps.2.title">चढ़ी गई ऊँचाई</strong> <span data-i18n="b-23.steps.2.detail">ऊपर की दिशा को धनात्मक लेते हुए v^2 = v0^2 + 2 a x का उपयोग कीजिए: 0 = (29.4)^2 + 2(-9.8) h, इसलिए h = 44.1 m।</span></li>
+      <li><strong data-i18n="b-23.steps.3.title">लौटने का समय</strong> <span data-i18n="b-23.steps.3.detail">ऊपर जाने का समय = 29.4/9.8 = 3 s। सममिति से नीचे आने का समय भी 3 s है, इसलिए कुल समय 6 s है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-23.answer">त्वरण नीचे की ओर है, शीर्ष पर वेग शून्य है और नीचे की ओर त्वरण 9.8 m s-2 है, चढ़ी गई ऊँचाई 44.1 m है, तथा लौटने का समय 6 s है।</span></p>
+  </section>
+  <section class="zn-example" id="b-24">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-24.problem">एक संकरी गली में चल रहा एक शराबी 5 कदम आगे और 3 कदम पीछे चलता है, फिर दोबारा 5 कदम आगे और 3 कदम पीछे, और इसी तरह। प्रत्येक कदम 1 m लंबा है और 1 s लेता है। प्रारंभ से 13 m दूर एक गड्ढे में गिरने में उसे कितना समय लगेगा?</p>
+    <ol>
+      <li><strong data-i18n="b-24.steps.0.title">गति (motion) का आलेख बनाएँ</strong> <span data-i18n="b-24.steps.0.detail">x-t आलेख पर प्रत्येक आगे के कदम की ढाल (slope) +1 m/s और प्रत्येक पीछे के कदम की ढाल -1 m/s होती है।</span></li>
+      <li><strong data-i18n="b-24.steps.1.title">स्थिति (Position) पर नज़र रखें</strong> <span data-i18n="b-24.steps.1.detail">पहले 5 आगे के बाद: 5 s पर 5 m। 3 पीछे के बाद: 8 s पर 2 m। अगले 5 आगे के बाद: 13 s पर 7 m। 3 पीछे के बाद: 16 s पर 4 m। अगले 5 आगे के बाद: 21 s पर 9 m। 3 पीछे के बाद: 24 s पर 6 m। अगले 5 आगे के बाद: 29 s पर 11 m। 3 पीछे के बाद: 32 s पर 8 m।</span></li>
+      <li><strong data-i18n="b-24.steps.2.title">गड्ढे तक पहुँचना</strong> <span data-i18n="b-24.steps.2.detail">अगले 5 आगे के कदम उसे 8 m से 13 m तक ले जाते हैं, और वह 37 s पर गड्ढे तक पहुँचता है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-24.answer">वह 37 s बाद गड्ढे में गिरता है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-25" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-25.question">एक महिला घर से 2.5 km दूर कार्यालय तक पैदल जाती है, कार्यालय में काफी समय ठहरती है, फिर ऑटो से घर लौटती है। कार्यालय में उसके ठहरने के दौरान x-t ग्राफ कैसा दिखेगा?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="0"> <span data-i18n="b-25.options.0">एक क्षैतिज रेखा, क्योंकि स्थिति (position) नहीं बदलती और वेग (velocity) शून्य है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="1"> <span data-i18n="b-25.options.1">एक तीव्र ऊपर की ओर झुकी रेखा, क्योंकि वह कार्यालय में है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="2"> <span data-i18n="b-25.options.2">एक तीव्र नीचे की ओर झुकी रेखा, क्योंकि वह बाद में लौटेगी</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-25" value="3"> <span data-i18n="b-25.options.3">एक परवलय, क्योंकि समय बीत रहा है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-25.explanation">ठहराव के दौरान स्थिति स्थिर रहती है, इसलिए x-t ग्राफ क्षैतिज होता है और उसकी ढाल (slope), जो वेग है, शून्य होती है। कार्यालय तक पैदल जाने पर धनात्मक ढाल मिलती है और लौटने पर ऋणात्मक ढाल।</p></details>
+  </fieldset>
+  <section class="zn-example" id="b-26">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-26.problem">एक व्यक्ति सीधी सड़क पर अपने घर से 2.5 km दूर बाज़ार तक 5 km h-1 की चाल (speed) से पैदल जाता है। बाज़ार बंद पाकर वह तुरंत लौटता है और 7.5 km h-1 की चाल से घर वापस पैदल चलता है। (i) 0 से 30 min, (ii) 0 से 50 min, (iii) 0 से 40 min के लिए औसत वेग (velocity) का परिमाण और औसत चाल (Average speed) क्या है?</p>
+    <ol>
+      <li><strong data-i18n="b-26.steps.0.title">बाज़ार तक पहुँचने का समय</strong> <span data-i18n="b-26.steps.0.detail">5 km h-1 की चाल से 2.5 km चलने में 0.5 h = 30 min लगते हैं।</span></li>
+      <li><strong data-i18n="b-26.steps.1.title">0 से 30 min</strong> <span data-i18n="b-26.steps.1.detail">विस्थापन (displacement) = 2.5 km, पथ = 2.5 km। औसत वेग का परिमाण = 2.5/0.5 = 5 km h-1। औसत चाल = 5 km h-1।</span></li>
+      <li><strong data-i18n="b-26.steps.2.title">0 से 50 min</strong> <span data-i18n="b-26.steps.2.detail">7.5 km h-1 की चाल से वापस लौटते हुए 20 min में वह 2.5 km चलता है और घर पहुँच जाता है। विस्थापन = 0, इसलिए औसत वेग का परिमाण = 0। 50 min में पथ = 5 km, औसत चाल = 6 km h-1।</span></li>
+      <li><strong data-i18n="b-26.steps.3.title">0 से 40 min</strong> <span data-i18n="b-26.steps.3.detail">वापस लौटते हुए 10 min में वह 1.25 km चलता है, इसलिए घर से स्थिति (Position) 1.25 km है। औसत वेग का परिमाण = 1.25/(2/3) = 1.875 km h-1। पथ = 3.75 km, औसत चाल = 3.75/(2/3) = 5.625 km h-1।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-26.answer">(i) 5 km h-1 और 5 km h-1। (ii) 0 km h-1 और 6 km h-1। (iii) 1.875 km h-1 और 5.625 km h-1।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-27" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-27.question">एक-विमीय गति (motion) के लिए, किसी अंतराल में विस्थापन (displacement) के परिमाण और कुल पथ-लंबाई की तुलना कैसे की जाती है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="0"> <span data-i18n="b-27.options.0">कुल पथ-लंबाई विस्थापन के परिमाण के बराबर या उससे अधिक होती है, समानता केवल तब होती है जब वापस मुड़ना न हो</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="1"> <span data-i18n="b-27.options.1">विस्थापन का परिमाण सदैव पथ-लंबाई से अधिक होता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="2"> <span data-i18n="b-27.options.2">वे सदैव बराबर होते हैं</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-27" value="3"> <span data-i18n="b-27.options.3">पथ-लंबाई सदैव शून्य होती है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-27.explanation">विस्थापन केवल प्रारंभिक और अंतिम स्थितियों (Position) पर निर्भर करता है, जबकि पथ-लंबाई प्रत्येक चरण को जोड़ती है। वापस मुड़ने पर पथ-लंबाई बड़ी हो जाती है। यही बात औसत चाल (Average speed) और औसत वेग (average velocity) के परिमाण के बीच भी लागू होती है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-28" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-28.question">दो बच्चे A और B स्कूल से लौटते समय x-t ग्राफ पर दर्शाए गए हैं। A, t = 0 पर छोटी ढाल (slope) के साथ शुरू करता है, B बाद में बड़ी ढाल के साथ शुरू करता है, और दोनों एक ही घर की स्थिति (position) पर समाप्त होते हैं। कौन-सा निष्कर्ष निकलता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="0"> <span data-i18n="b-28.options.0">B अधिक तेज़ चलता है क्योंकि ढाल बड़ी है, भले ही B बाद में शुरू करता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="1"> <span data-i18n="b-28.options.1">A अधिक तेज़ चलता है क्योंकि A पहले शुरू करता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="2"> <span data-i18n="b-28.options.2">दोनों समान चाल (speed) से चलते हैं क्योंकि वे साथ में समाप्त होते हैं</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-28" value="3"> <span data-i18n="b-28.options.3">चाल को x-t ग्राफ से नहीं पढ़ा जा सकता</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-28.explanation">x-t ग्राफ की ढाल वेग (velocity) है। बड़ी ढाल का अर्थ है बड़ी चाल। समय-अक्ष पर अंतःखंड प्रारंभ समय दर्शाता है, और अंतिम स्थिति स्कूल से दूरी (distance) दर्शाती है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-29" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-29.question">एक गेंद 90 m की ऊँचाई से गिराई जाती है और फर्श के साथ प्रत्येक टकराव पर अपनी चाल (speed) का एक दसवाँ भाग खो देती है। t = 0 और 12 s के बीच इसका चाल-समय ग्राफ कैसा दिखेगा?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="0"> <span data-i18n="b-29.options.0">प्रत्येक गिरावट के दौरान चाल रैखिक रूप से बढ़ती है, फिर प्रत्येक उछाल पर अचानक पिछली टकराव-चाल के नौ दसवाँ भाग तक गिर जाती है, और हर बार शिखर छोटे होते जाते हैं</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="1"> <span data-i18n="b-29.options.1">चाल पूरे समय स्थिर रहती है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="2"> <span data-i18n="b-29.options.2">चाल रैखिक रूप से घटकर शून्य हो जाती है और शून्य ही रहती है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="3"> <span data-i18n="b-29.options.3">उछालों पर किसी भी गिरावट के बिना चाल बढ़ती जाती है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-29.explanation">मुक्त पतन के दौरान चाल समय के साथ बढ़ती है। टकराव पर चाल नौ दसवाँ भाग तक गिर जाती है, इसलिए अगला शिखर छोटा होता है। यथार्थवादी चिकने ग्राफ में वेग (velocity) और त्वरण (acceleration) अचानक नहीं बदल सकते, लेकिन इस आदर्शित वर्णन में उछाल पर चाल गिर जाती है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-30" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-30.question">इनमें से कौन एक कण की एक-विमीय गति (motion) को संभवतः निरूपित नहीं कर सकता?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="0"> <span data-i18n="b-30.options.0">एक x-t ग्राफ़ जिसमें एक ऊर्ध्वाधर खंड हो, जो एक क्षण में अनंत वेग (velocity) दर्शाता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="1"> <span data-i18n="b-30.options.1">एक x-t ग्राफ़ जो एक सीधी झुकी हुई रेखा है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="2"> <span data-i18n="b-30.options.2">एक v-t ग्राफ़ जो एक सीधी झुकी हुई रेखा है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-30" value="3"> <span data-i18n="b-30.options.3">एक x-t ग्राफ़ जो स्थिर त्वरण (acceleration) के लिए परवलय है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-30.explanation">एक ऊर्ध्वाधर x-t खंड का अर्थ होगा कि स्थिति (Position) शून्य समय में बदलती है, जिससे अनंत वेग प्राप्त होता है। सीधी झुकी हुई x-t, झुकी हुई v-t और परवलयिक x-t—ये सभी एकसमान गति या एकसमान त्वरित गति के लिए संभव हैं।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-31" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-31.question">एक x-t ग्राफ़ t &lt; 0 के लिए एक सरल रेखा है और t &gt; 0 के लिए एक परवलय है। क्या यह कहना सही है कि कण t &lt; 0 के लिए एक सरल रेखा पर गति करता है और t &gt; 0 के लिए एक परवलयिक पथ पर गति करता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="0"> <span data-i18n="b-31.options.0">नहीं। ग्राफ़ स्थिति (Position) को समय के सापेक्ष आलेखित करता है; कण अभी भी एक सरल रेखा पर गति करता है, और परवलय का अर्थ है कि त्वरण (acceleration) के कारण स्थिति t^2 के अनुसार परिवर्तित होती है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="1"> <span data-i18n="b-31.options.1">हाँ, ग्राफ़ का आकार कण का पथ है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="2"> <span data-i18n="b-31.options.2">हाँ, t &gt; 0 के लिए कण सरल रेखा छोड़ देता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-31" value="3"> <span data-i18n="b-31.options.3">नहीं, क्योंकि x-t ग्राफ़ परवलय नहीं हो सकते</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-31.explanation">एक x-t ग्राफ़ अंतरिक्ष में एक प्रक्षेपपथ नहीं है। एक-विमीय गति (motion) के लिए कण एक सरल रेखा पर गति करता है; एक परवलयिक x-t ग्राफ़ नियत त्वरण दर्शाता है।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-32">
+    <p data-i18n="b-32.paragraphs.0">गति (motion) को सदैव एक निश्चित बिंदु के सापेक्ष मापा जाता है। इस निश्चित बिंदु को निर्देश तंत्र (Frame of reference) कहते हैं।</p>
+    <p data-i18n="b-32.paragraphs.1">बिंदु का चुनाव मनमाना है और सभी निर्देश तंत्र समान रूप से वैध हैं। एक चलती कार में बैठा यात्री चालक के सापेक्ष गति नहीं कर रहा है।</p>
+    <p data-i18n="b-32.paragraphs.2">फुटपाथ पर खड़े व्यक्ति के लिए यात्री और चालक दोनों गति कर रहे हैं। सापेक्ष वेग (relative velocity) विभिन्न निर्देश तंत्रों से देखी गई गति की तुलना करता है।</p>
+    <p data-i18n="b-32.paragraphs.3">एक वस्तु के दूसरी वस्तु से टकराने के लिए प्रासंगिक चाल (speed) ज्ञात करने के लिए, आप उनके वेगों की तुलना एक ही निर्देश तंत्र में करते हैं।</p>
+  </section>
+  <section class="zn-example" id="b-33">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-33.problem">एक राजमार्ग पर 30 km h-1 की चाल (speed) से चलती पुलिस वैन एक चोर की कार पर गोली चलाती है, जो उसी दिशा में 192 km h-1 की चाल से भाग रही है। यदि गोली की नली-चाल 150 m s-1 है, तो गोली चोर की कार से किस चाल से टकराती है?</p>
+    <ol>
+      <li><strong data-i18n="b-33.steps.0.title">चालों को m s-1 में बदलें</strong> <span data-i18n="b-33.steps.0.detail">30 km h-1 = 8.33 m s-1 तथा 192 km h-1 = 53.33 m s-1।</span></li>
+      <li><strong data-i18n="b-33.steps.1.title">भूमि के सापेक्ष गोली की चाल</strong> <span data-i18n="b-33.steps.1.detail">गोली की चाल = नली-चाल + वैन की चाल = 150 + 8.33 = 158.33 m s-1, उसी दिशा में।</span></li>
+      <li><strong data-i18n="b-33.steps.2.title">चोर की कार के सापेक्ष चाल</strong> <span data-i18n="b-33.steps.2.detail">सापेक्ष चाल = 158.33 - 53.33 = 105 m s-1। यही चाल चोर की कार को क्षति पहुँचाने के लिए प्रासंगिक है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-33.answer">गोली चोर की कार से लगभग 105 m s-1 की सापेक्ष चाल से टकराती है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-34" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-34.question">एक यात्री चलती हुई कार में बैठा है। यात्री किसके सापेक्ष गतिमान है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-34" value="0"> <span data-i18n="b-34.options.0">चालक के सापेक्ष गतिमान नहीं है, परंतु फुटपाथ पर खड़े व्यक्ति के सापेक्ष गतिमान है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-34" value="1"> <span data-i18n="b-34.options.1">चालक के सापेक्ष गतिमान है, परंतु फुटपाथ के सापेक्ष गतिमान नहीं है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-34" value="2"> <span data-i18n="b-34.options.2">किसी के भी सापेक्ष गतिमान नहीं है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-34" value="3"> <span data-i18n="b-34.options.3">केवल कार की सीट के सापेक्ष गतिमान है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-34.explanation">गति (motion) निर्देश तंत्र (Frame of reference) के सापेक्ष होती है। यात्री और चालक एक ही निर्देश तंत्र में हैं, जबकि फुटपाथ पर खड़ा व्यक्ति भिन्न निर्देश तंत्र में है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-35" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-35.question">एक वेग (velocity)-समय ग्राफ एक स्थिर ढाल (slope) के साथ ऊपर उठता है, फिर क्षैतिज हो जाता है, फिर स्थिर ढाल के साथ गिरकर शून्य हो जाता है। यह किस भौतिक स्थिति को दर्शाता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="0"> <span data-i18n="b-35.options.0">स्थिर त्वरण (acceleration) से वेग बढ़ाना, फिर स्थिर वेग से चलना, फिर रुकने के लिए ब्रेक लगाना</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="1"> <span data-i18n="b-35.options.1">पूरे समय स्थिर वेग से चलना</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="2"> <span data-i18n="b-35.options.2">पूरे समय पीछे की ओर चलना</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="3"> <span data-i18n="b-35.options.3">कोई गति (motion) ही नहीं</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-35.explanation">v-t ग्राफ की ढाल त्वरण होती है। ऊपर उठती ढाल का अर्थ धनात्मक त्वरण है, क्षैतिज का अर्थ शून्य त्वरण है, और गिरती ढाल का अर्थ ऋणात्मक त्वरण है जबकि वस्तु तब तक आगे बढ़ती रहती है जब तक वेग शून्य न हो जाए।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-36" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-36.question">किसी चुने हुए क्षण पर x-t ग्राफ पर, स्थिति (Position) धनात्मक है और स्पर्श रेखा की ढाल (slope) ऋणात्मक है। उस क्षण पर स्थिति और वेग (velocity) के चिह्न क्या हैं?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-36" value="0"> <span data-i18n="b-36.options.0">स्थिति धनात्मक, वेग ऋणात्मक</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-36" value="1"> <span data-i18n="b-36.options.1">स्थिति ऋणात्मक, वेग धनात्मक</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-36" value="2"> <span data-i18n="b-36.options.2">स्थिति धनात्मक, वेग धनात्मक</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-36" value="3"> <span data-i18n="b-36.options.3">स्थिति शून्य, वेग शून्य</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-36.explanation">स्थिति का चिह्न x के मान से पढ़ा जाता है। वेग का चिह्न स्पर्श रेखा की ढाल से पढ़ा जाता है; ऋणात्मक ढाल का अर्थ है कि वेग ऋणात्मक है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-37" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-37.question">एक x-t ग्राफ तीन समान समय अंतरालों को दर्शाता है। मध्य अंतराल में सबसे तीव्र ढाल (slope) है, पहले अंतराल में मध्यम ढाल है, और अंतिम अंतराल में सबसे कम ढाल है, सभी की ढाल धनात्मक है। किस अंतराल में औसत चाल (Average speed) सबसे अधिक और सबसे कम है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="0"> <span data-i18n="b-37.options.0">मध्य अंतराल में सबसे अधिक और अंतिम अंतराल में सबसे कम</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="1"> <span data-i18n="b-37.options.1">अंतिम अंतराल में सबसे अधिक और मध्य अंतराल में सबसे कम</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="2"> <span data-i18n="b-37.options.2">पहले अंतराल में सबसे अधिक और मध्य अंतराल में सबसे कम</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="3"> <span data-i18n="b-37.options.3">तीनों अंतरालों में समान</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-37.explanation">किसी अंतराल में औसत चाल विस्थापन (displacement) का परिमाण समय से विभाजित है, जो एक सीधे खंड के लिए ढाल का परिमाण है। सबसे तीव्र ढाल सबसे अधिक औसत चाल देती है और सबसे कम ढाल सबसे कम। सभी औसत वेग धनात्मक हैं क्योंकि ढाल धनात्मक हैं।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-38" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-38.question">एक स्थिर दिशा में गति (motion) के लिए चाल (speed)-समय ग्राफ तीन समान समय अंतरालों को दर्शाता है। पहले अंतराल में सबसे तीव्र चढ़ती ढाल (slope) है, दूसरा क्षैतिज है, और तीसरे में हल्की गिरती ढाल है। किस अंतराल में औसत त्वरण (average acceleration) का परिमाण सबसे अधिक और औसत चाल (Average speed) सबसे अधिक है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-38" value="0"> <span data-i18n="b-38.options.0">पहले अंतराल में औसत त्वरण सबसे अधिक; दूसरे अंतराल में औसत चाल सबसे अधिक, यदि उसका चाल स्तर सबसे ऊँचा है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-38" value="1"> <span data-i18n="b-38.options.1">दूसरे अंतराल में औसत त्वरण सबसे अधिक; पहले अंतराल में औसत चाल सबसे अधिक</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-38" value="2"> <span data-i18n="b-38.options.2">तीसरे अंतराल में औसत त्वरण सबसे अधिक; तीसरे अंतराल में औसत चाल सबसे अधिक</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-38" value="3"> <span data-i18n="b-38.options.3">सभी अंतरालों में औसत त्वरण शून्य है</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-38.explanation">औसत त्वरण चाल-समय ग्राफ की ढाल होता है, इसलिए सबसे तीव्र ढाल सबसे अधिक परिमाण देती है। औसत चाल अंतराल पर ग्राफ की औसत ऊँचाई होती है, इसलिए सबसे ऊँचे चाल स्तर वाला अंतराल सबसे अधिक औसत चाल देता है। यदि धनात्मक दिशा को गति की दिशा मानें, तो सभी अंतरालों में वेग (velocity) धनात्मक है और त्वरण (acceleration) क्रमशः धनात्मक, शून्य, फिर ऋणात्मक है।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-39">
+    <p data-i18n="b-39.paragraphs.0">तीन गतिक समीकरणों को याद रखें: v = v0 + a t, x = v0 t + (1/2) a t^2, और v^2 = v0^2 + 2 a x।</p>
+    <p data-i18n="b-39.paragraphs.1">यदि कण x0 से प्रारंभ होता है, तो (x - x0) का उपयोग करें। मूल बिंदु और धनात्मक दिशा चुनने के बाद उचित चिह्नों के साथ मानों को प्रतिस्थापित करें।</p>
+    <p data-i18n="b-39.paragraphs.2">ऊर्ध्वमुखी धनात्मक के साथ मुक्त पतन के लिए, a = -9.8 m s-2 का उपयोग करें। रुकने के लिए, याद रखें कि दूरी (distance) प्रारंभिक वेग (velocity) के वर्ग के रूप में बढ़ती है।</p>
+    <p data-i18n="b-39.paragraphs.3">ग्राफ़ों को ध्यान से पढ़ें: x-t की ढाल (slope) वेग है, v-t की ढाल त्वरण (acceleration) है, और v-t के नीचे का क्षेत्रफल विस्थापन (displacement) है।</p>
+  </section>
+  <fieldset class="zn-check" id="b-40" data-format="numeric" data-answer="19.6">
+    <legend data-i18n="b-40.question">एक वस्तु विराम से स्वतंत्र रूप से गिरती है। y = -4.9 t^2 का उपयोग करते हुए, जहाँ ऊपर की ओर धनात्मक है, 2 s में गिरी गई दूरी (distance) का परिमाण क्या है? उत्तर मीटर में दें।</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-40-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-40.explanation">y का परिमाण = 4.9 x (2)^2 = 4.9 x 4 = 19.6 m। ऋणात्मक चिह्न दर्शाता है कि जब ऊपर की ओर धनात्मक है, तो विस्थापन (displacement) नीचे की ओर है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-41" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-41.question">तात्क्षणिक चाल (instantaneous speed) और तात्क्षणिक वेग (instantaneous velocity) के परिमाण में कोई अंतर क्यों नहीं है, जबकि औसत चाल (average speed) औसत वेग (average velocity) के परिमाण से भिन्न हो सकती है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-41" value="0"> <span data-i18n="b-41.options.0">किसी क्षण पर ऐसा कोई अंतराल नहीं होता जिसमें दिशा बदल सके, इसलिए उस क्षण पर चाल वेग के परिमाण मात्र होती है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-41" value="1"> <span data-i18n="b-41.options.1">क्योंकि किसी क्षण पर चाल सदैव शून्य होती है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-41" value="2"> <span data-i18n="b-41.options.2">क्योंकि औसत वेग सदैव शून्य होता है</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-41" value="3"> <span data-i18n="b-41.options.3">क्योंकि तात्क्षणिक वेग की कोई दिशा नहीं होती</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-41.explanation">तात्क्षणिक चाल को तात्क्षणिक वेग के परिमाण के रूप में परिभाषित किया जाता है। औसत चाल एक परिमित अंतराल में कुल पथ-लंबाई का उपयोग करती है, जो दिशा बदलने पर औसत वेग के परिमाण से अधिक हो सकती है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-42" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-42.question">एक कण की चाल (speed) बढ़ रही है। इसके त्वरण (acceleration) की दिशा इसके वेग (velocity) के सापेक्ष क्या है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-42" value="0"> <span data-i18n="b-42.options.0">वेग की दिशा में</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-42" value="1"> <span data-i18n="b-42.options.1">वेग के विपरीत</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-42" value="2"> <span data-i18n="b-42.options.2">सदैव ऋणात्मक</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-42" value="3"> <span data-i18n="b-42.options.3">सदैव शून्य</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-42.explanation">यदि किसी कण की चाल बढ़ रही है, तो त्वरण वेग की दिशा में होता है। यदि चाल घट रही है, तो त्वरण वेग के विपरीत होता है। यह मूल-बिंदु और अक्ष के चयन पर निर्भर नहीं करता।</p></details>
+  </fieldset>
+  <section class="zn-glossary">
+    <h2 data-i18n="ui.glossary_heading">शब्दावली (Glossary)</h2>
+    <dl>
+      <dt data-i18n="b-00-meta.glossary.0.term">स्थिति</dt><dd data-i18n="b-00-meta.glossary.0.definition">किसी चुने गए मूल बिंदु के सापेक्ष वस्तु की स्थिति; सरल रेखा में गति के लिए दाईं ओर धनात्मक और बाईं ओर ऋणात्मक होती है।</dd>
+      <dt data-i18n="b-00-meta.glossary.1.term">वेग</dt><dd data-i18n="b-00-meta.glossary.1.definition">किसी क्षण पर समय के साथ स्थिति के परिवर्तन की दर, v = dx/dt; इसका परिमाण और दिशा होती है।</dd>
+      <dt data-i18n="b-00-meta.glossary.2.term">त्वरण</dt><dd data-i18n="b-00-meta.glossary.2.definition">समय के साथ वेग के परिवर्तन की दर, a = dv/dt; इसका परिमाण और दिशा होती है और इसका मात्रक m s-2 है।</dd>
+      <dt data-i18n="b-00-meta.glossary.3.term">विस्थापन</dt><dd data-i18n="b-00-meta.glossary.3.definition">समय अंतराल में स्थिति में परिवर्तन; यह धनात्मक, ऋणात्मक या शून्य हो सकता है और वेग-समय ग्राफ़ के नीचे के क्षेत्रफल के बराबर होता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.4.term">औसत चाल</dt><dd data-i18n="b-00-meta.glossary.4.definition">कुल पथ लंबाई को समय अंतराल से विभाजित करने पर; यह औसत वेग के परिमाण के बराबर या उससे अधिक होती है।</dd>
+      <dt data-i18n="b-00-meta.glossary.5.term">निर्देश तंत्र</dt><dd data-i18n="b-00-meta.glossary.5.definition">वह स्थिर बिंदु या बिंदुओं का समूह जिसके सापेक्ष गति मापी जाती है।</dd>
+    </dl>
+  </section>
+  <footer class="zn-footer">
+    <p class="zn-sources" data-i18n="ui.sources_footer">Zivon कंटेंट फ़ैक्टरी द्वारा निर्मित। स्रोत कोर्स इंडेक्स में सूचीबद्ध हैं।</p>
+  </footer>
+</main>
+<script src="../i18n.js"></script>
+<script src="../../../../assets/zivon.js?v=20261111b"></script>
+<script src="../page.js"></script>
+</body>
+</html>

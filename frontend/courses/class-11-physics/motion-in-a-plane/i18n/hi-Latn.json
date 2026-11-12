@@ -1,0 +1,1379 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Plane mein Motion",
+    "b-00-meta.objectives.0": "Is lesson ke baad aap bata sakte hain ki koi quantity scalar hai ya vector, aur vectors ko graphically aur components se add kar sakte hain.",
+    "b-00-meta.objectives.1": "Is lesson ke baad aap plane mein position, velocity aur acceleration ko components se aur differentiation se nikaal sakte hain.",
+    "b-00-meta.objectives.2": "Is lesson ke baad aap is chapter ke equations use karke constant-acceleration, projectile aur uniform circular motion ke problems solve kar sakte hain.",
+    "b-00-meta.glossary.0.term": "scalar",
+    "b-00-meta.glossary.0.definition": "Sirf magnitude wali quantity, jaise mass ya time.",
+    "b-00-meta.glossary.1.term": "vector",
+    "b-00-meta.glossary.1.definition": "Magnitude aur direction wali quantity, jaise velocity.",
+    "b-00-meta.glossary.2.term": "displacement",
+    "b-00-meta.glossary.2.definition": "Start se finish tak position ka straight-line change, jo path par depend nahi karta.",
+    "b-00-meta.glossary.3.term": "unit vector",
+    "b-00-meta.glossary.3.definition": "Magnitude 1 wala vector jo sirf direction specify karne ke liye use hota hai.",
+    "b-00-meta.glossary.4.term": "projectile",
+    "b-00-meta.glossary.4.definition": "Throw hone ke baad flight mein object, jisme horizontal aur vertical motion independent hoti hai.",
+    "b-00-meta.glossary.5.term": "centripetal acceleration",
+    "b-00-meta.glossary.5.definition": "Circle ke centre ki taraf acceleration, magnitude v squared over R.",
+    "b-01.paragraphs.0": "Aap ek ball phenkte hain aur wo ek hi samay mein sideways aur up dono taraf move karti hai. Ek plus ya minus sign us sideways-plus-up direction ko describe nahi kar sakta. Aapko vectors (sadish) chahiye, aisi quantities jo magnitude aur direction dono carry karti hain.",
+    "b-01.paragraphs.1": "Is lesson mein aap vectors ki language seekhenge, phir ise plane mein position, velocity (veg) aur acceleration (tvaran) ke liye use karenge. Uske baad aap constant-acceleration motion (gati), projectile motion aur uniform circular motion solve karenge.",
+    "b-02.paragraphs.0": "Scalar (adish) mein sirf magnitude hota hai aur ise unit ke saath ek number se vyakt kiya jata hai. Distance (doori), mass, temperature aur time scalars hain. Vector (sadish) mein magnitude aur direction dono hote hain aur ye triangle ya parallelogram addition follow karta hai. Displacement (visthapan), velocity (veg), acceleration (tvaran) aur force (bal) vectors hain.",
+    "b-02.paragraphs.1": "Origin O choose karein. Position vector OP equals r, jo O se P tak points karta hai. Agar object P se P prime tak move karta hai, to displacement PP prime start aur finish ko jodne wali straight line hai. Ye actual path par depend nahi karta, aur iska magnitude path length se less than ya equal hota hai.",
+    "b-03.caption": "Origin O se position vectors r aur r' (r prime), aur P se P' tak displacement (visthapan) delta r. Arrow ki lambaiyan schematic hain, scale ke according nahi.",
+    "b-03.svg_texts.t-0": "P'",
+    "b-03.svg_texts.t-1": "r'",
+    "b-03.svg_texts.t-2": "delta r",
+    "b-04.question": "Kaunsi list mein sirf vector (sadish) quantities hain?",
+    "b-04.options.0": "mass, speed, temperature",
+    "b-04.options.1": "displacement (visthapan), velocity (veg), acceleration (tvaran)",
+    "b-04.options.2": "distance (doori), time, volume",
+    "b-04.options.3": "density, charge, energy",
+    "b-04.explanation": "Displacement (visthapan), velocity (veg) aur acceleration (tvaran) mein magnitude aur direction dono hote hain aur ye vector addition follow karte hain. Baaki lists scalar (adish) hain.",
+    "b-05.paragraphs.0": "A ko positive lambda se multiply karne par same direction mein magnitude lambda times |A| milta hai. -lambda se multiply karne par direction reverse ho jaati hai. Velocity (veg) ko time se multiply karne par displacement (visthapan) milta hai.",
+    "b-05.paragraphs.1": "Do vector (sadish) tabhi equal hote hain jab unka magnitude aur direction match kare. Kisi free vector ko khud ke parallel shift karne se woh unchanged rehta hai. Null vector ka magnitude zero hota hai aur koi direction nahi hoti, aur A plus 0 equals A.",
+    "b-06.caption": "Parallelogram method: A aur B common origin O se lete hain, resultant R diagonal OS ke along hota hai. Dashed lines construction lines hain.",
+    "b-07.paragraphs.0": "Head-to-tail method: B ka tail A ke head par rakho, A ke tail ko B ke head se jodo taaki R mile. Parallelogram method: dono tails ko common origin par lao aur parallelogram complete karo; R diagonal hai. Dono se same R milta hai.",
+    "b-07.paragraphs.1": "Addition commutative aur associative hai. Subtraction A minus B equals A plus (-B). A aur -A ko add karne se null vector milta hai.",
+    "b-08.problem": "Rain (barish) vertically gir rahi hai jiski speed (chaal) 35 m s-1 hai. Wind 12 m s-1 ki speed se east to west direction mein chalna shuru karti hai. Boy apna umbrella kis direction mein rakhe?",
+    "b-08.steps.0.title": "Velocities ko represent karo",
+    "b-08.steps.0.detail": "Maan lo vr rain ki velocity (veg) vertically neeche hai aur vw wind ki velocity east se west direction mein hai. Resultant R unka vector (sadish) sum hai.",
+    "b-08.steps.1.title": "Magnitude",
+    "b-08.steps.1.detail": "R = sqrt(vr squared + vw squared) = sqrt(35 squared + 12 squared) = 37 m s-1.",
+    "b-08.steps.2.title": "Direction",
+    "b-08.steps.2.detail": "tan theta = vw / vr = 12 / 35 = 0.343, isliye theta = tan inverse 0.343 = 19 degrees vertical se.",
+    "b-08.answer": "Umbrella ko vertical plane mein vertical se lagbhag 19 degrees east ki taraf rakho, jaise source mein diya hai.",
+    "b-09.question": "Scalar aur vector quantities ke saath kaunsa algebraic operation aam taur par meaningful hota hai?",
+    "b-09.options.0": "same dimensions wale vector mein scalar add karna",
+    "b-09.options.1": "vector ke ek component ko usi vector mein add karna",
+    "b-09.options.2": "kisi bhi vector ko kisi bhi scalar se multiply karna",
+    "b-09.options.3": "different units wale kisi bhi do scalars ko add karna",
+    "b-09.explanation": "Vector ko scalar se multiply karne par scaled magnitude wala vector milta hai. Vector mein scalar add karna, ya different units wale scalars ko add karna, meaningful nahi hai.",
+    "b-10.paragraphs.0": "Plane mein ek vector (sadish) A ko do non-parallel directions ke along resolve kiya ja sakta hai. Rectangular axes use karte hue, unit vectors i, j, k ka magnitude 1 hota hai aur ye x, y, z axes ke along point karte hain.",
+    "b-10.paragraphs.1": "A equals Ax i plus Ay j likhiye. Ax aur Ay scalar (adish) hain; Ax i aur Ay j vectors hain. Teen dimensions mein Az k add kijiye. Position vector r equals x i plus y j plus z k hota hai.",
+    "b-11.title": "Magnitude-angle se components tak aur wapas",
+    "b-11.steps.0.title": "A aur theta diye hue hon",
+    "b-11.steps.0.detail": "Ax = A cos theta and Ay = A sin theta, component diagram par trigonometry se.",
+    "b-11.steps.1.title": "Ax aur Ay diye hue hon",
+    "b-11.steps.1.detail": "Pythagoras se A = sqrt(Ax squared + Ay squared), aur tan theta = Ay / Ax.",
+    "b-11.steps.2.title": "Signs",
+    "b-11.steps.2.detail": "Ek component theta ke according positive, negative ya zero ho sakta hai, kyunki cos aur sin quadrant ke hisaab se sign badalte hain.",
+    "b-12.paragraphs.0": "Analytical addition: A equals Ax i plus Ay j aur B equals Bx i plus By j likhein. Phir R equals (Ax plus Bx) i plus (Ay plus By) j. Har resultant component corresponding components ka sum hota hai.",
+    "b-12.paragraphs.1": "Teen dimensions mein z components ko usi tarah add karein. Yeh kisi bhi number ke vectors (sadish) tak extend hota hai, aur subtraction negative ke addition ke roop mein hota hai.",
+    "b-13.problem": "Do vector (sadish) A aur B ke resultant ka magnitude aur direction unke magnitudes aur unke beech ke angle theta ke terms mein nikaliye.",
+    "b-13.steps.0.title": "Parallelogram geometry",
+    "b-13.steps.0.detail": "Maan lijiye OS resultant R hai. ON = A + B cos theta aur SN = B sin theta, aur OS squared = ON squared + SN squared.",
+    "b-13.steps.1.title": "Magnitude",
+    "b-13.steps.1.detail": "R squared = (A + B cos theta) squared + (B sin theta) squared = A squared + B squared + 2AB cos theta.",
+    "b-13.steps.2.title": "Direction",
+    "b-13.steps.2.detail": "R sin alpha = B sin theta, isliye sin alpha = B sin theta / R, jahan alpha R aur A ke beech ka angle hai.",
+    "b-13.answer": "R squared = A squared + B squared + 2AB cos theta; direction sin alpha = B sin theta / R se milti hai.",
+    "b-14.problem": "Ek motorboat north ki taraf 25 km/h ki speed (chaal) se ja rahi hai aur water current 10 km/h hai, south se 60 degrees east ki direction mein. Boat ka resultant velocity (veg) nikaliye.",
+    "b-14.steps.0.title": "Vectors (sadish) draw kijiye",
+    "b-14.steps.0.detail": "vb 25 km/h north hai, vc 10 km/h hai south se 60 degrees east par. Parallelogram mein unke beech ka angle 120 degrees hai.",
+    "b-14.steps.1.title": "Law of cosines se magnitude",
+    "b-14.steps.1.detail": "R squared = 25 squared + 10 squared + 2 x 25 x 10 x cos 120 degrees, jisse R approx 21.8 km/h milta hai.",
+    "b-14.steps.2.title": "Law of sines se direction",
+    "b-14.steps.2.detail": "sin f = vc sin 120 degrees / R = 10 x sin 120 degrees / 21.8 = 0.397, isliye f approx 23.4 degrees.",
+    "b-14.answer": "Resultant speed (chaal) lagbhag 21.8 km/h hai, direction source figure mein f = 23.4 degrees se di gayi hai.",
+    "b-15.question": "Vector (sadish) inequalities mein |a + b| = |a| + |b| equality ke roop mein kab hold karta hai?",
+    "b-15.options.0": "jab a aur b same direction mein hain",
+    "b-15.options.1": "jab a aur b opposite direction mein hain",
+    "b-15.options.2": "jab a aur b perpendicular hain",
+    "b-15.options.3": "hamesha, sabhi a aur b ke liye",
+    "b-15.explanation": "Geometrically triangle inequality equality tabhi hoti hai jab vectors same direction mein collinear hote hain. Agar a+b+c+d = 0 to |a+c| = |b+d| kyunki a+c = -(b+d).",
+    "b-16.paragraphs.0": "Position (sthiti) r equals x i plus y j hota hai. Displacement (visthapan) delta r equals r prime minus r equals delta x i plus delta y j hota hai. Average velocity (ausat veg) delta r over delta t hoti hai.",
+    "b-16.paragraphs.1": "Instantaneous velocity (taatkalik veg) v equals dr over dt hoti hai, jo path ke tangent hoti hai. Acceleration (tvaran) a equals dv over dt hota hai. Components (ghatak) vx equals dx over dt, vy equals dy over dt, ax equals dvx over dt, ay equals dvy over dt hote hain.",
+    "b-17.caption": "P par velocity (veg) path ke tangent hai, motion (gati) ki direction mein. Dashed line tangent line hai.",
+    "b-17.svg_texts.t-0": "v tangent",
+    "b-17.svg_texts.t-1": "path",
+    "b-18.title": "Velocity aur acceleration limits ke roop mein",
+    "b-18.steps.0.title": "Average velocity",
+    "b-18.steps.0.detail": "v average = delta r / delta t; iska direction delta r ke direction mein hota hai, jo path ka chord hai.",
+    "b-18.steps.1.title": "Instantaneous velocity",
+    "b-18.steps.1.detail": "Jab delta t zero ki taraf tend karta hai, chord tangent ban jata hai; v = limit delta r / delta t = dr/dt.",
+    "b-18.steps.2.title": "Acceleration (tvaran)",
+    "b-18.steps.2.detail": "a average = delta v / delta t; jab delta t zero ki taraf tend karta hai, a = dv/dt. 2D mein, a, v ke saath 0 to 180 degrees tak koi bhi angle bana sakta hai.",
+    "b-19.problem": "Ek particle ki position coefficients 3.0, 2.0 aur 5.0 ke saath di gayi hai, t seconds mein aur r metres mein. v(t) aur a(t) nikalo, aur t = 1.0 s par v ka magnitude aur direction bhi nikalo.",
+    "b-19.steps.0.title": "Differentiate karo",
+    "b-19.steps.0.detail": "Source result mein v = dr/dt = 3.0 i + 4.0 t j m/s; a = dv/dt = 4.0 j m/s squared.",
+    "b-19.steps.1.title": "t = 1.0 s par",
+    "b-19.steps.1.detail": "v = 3.0 i + 4.0 j m/s.",
+    "b-19.steps.2.title": "Magnitude aur direction",
+    "b-19.steps.2.detail": "Magnitude = sqrt(3 squared + 4 squared) = 5.0 m/s; theta = tan inverse (4/3) = 53 degrees, x-axis ke saath.",
+    "b-19.answer": "a = 4.0 m s-2 y-direction ke along hai; 1.0 s par speed (chaal) 5.0 m/s hai, x-axis ke saath 53 degrees par.",
+    "b-20.paragraphs.0": "Constant acceleration (tvaran) ke saath, average acceleration us constant ke barabar hota hai. t=0 par v0 se lekar t par v tak, v equals v0 plus a t hota hai. Position r equals r0 plus v0 t plus one half a t squared hoti hai.",
+    "b-20.paragraphs.1": "x aur y ko alag-alag likho: vx equals vox plus ax t, x equals x0 plus vox t plus one half ax t squared, aur y ke liye bhi isi tarah. Do perpendicular motions (gatiyan) ko independently treat karo.",
+    "b-21.problem": "Ek particle origin se t = 0 par velocity (veg) 5.0 i m/s ke saath shuru hota hai aur x-y plane mein constant acceleration (tvaran) (3.0 i + 2.0 j) m/s squared ke under move karta hai. Jab x 84 m hai tab y kya hai, aur us samay speed (chaal) kya hai?",
+    "b-21.steps.0.title": "Position",
+    "b-21.steps.0.detail": "x = 5.0 t + 1.5 t squared, y = 1.0 t squared, r = v0 t + one half a t squared se.",
+    "b-21.steps.1.title": "t nikaalo",
+    "b-21.steps.1.detail": "5.0 t + 1.5 t squared = 84 se t = 6 s milta hai. Phir y = 1.0 x 36 = 36.0 m.",
+    "b-21.steps.2.title": "Velocity",
+    "b-21.steps.2.detail": "v = 5.0 i + 3.0 t i + 2.0 t j; 6 s par, vx = 23.0, vy = 12.0 m/s, speed = sqrt(23 squared + 12 squared) approx 26 m/s.",
+    "b-21.answer": "t = 6 s par y = 36.0 m; speed approx 26 m/s.",
+    "b-22.question": "Space mein arbitrary motion (gati) ke liye, kaun sa relation hamesha true hota hai?",
+    "b-22.options.0": "v average = (1/2)(v(t1) + v(t2))",
+    "b-22.options.1": "v average = [r(t2) - r(t1)] / (t2 - t1)",
+    "b-22.options.2": "v(t) = v(0) + a t kisi bhi motion ke liye",
+    "b-22.options.3": "r(t) = r(0) + v(0) t + (1/2) a t squared kisi bhi motion ke liye",
+    "b-22.explanation": "Average velocity (average veg) ko time interval ke dauran displacement (visthapan) ke roop mein define kiya jata hai. Baaki forms sirf constant acceleration ke liye valid hain, aur a average = [v(t2)-v(t1)]/(t2-t1) acceleration ki definition hai.",
+    "b-23.paragraphs.0": "Ek projectile throw hone ke baad flight mein hota hai, jaise ball. Iski motion (gati) do simultaneous components se banti hai: horizontal without acceleration (tvaran) aur vertical constant g downward ke saath. Air resistance ko neglect kiya gaya hai.",
+    "b-23.paragraphs.1": "x ko horizontal aur y ko vertical up choose karo. Tab ax equals 0 aur ay equals -g. Initial components vox equals v0 cos theta0 aur voy equals v0 sin theta0 hain.",
+    "b-24.title": "Projectile trajectory",
+    "b-24.description": "Origin se launch kiya gaya projectile speed (chaal) v0 aur angle theta0 ke saath. Curve ko x = v0 cos theta0 t aur y = v0 sin theta0 t - 0.5 g t squared se compute kiya jata hai.",
+    "b-24.controls.v0.label": "Initial speed v0 (m/s)",
+    "b-24.controls.theta.label": "Angle theta0 (degrees)",
+    "b-25.title": "Projectile equations aur key results",
+    "b-25.steps.0.title": "Position aur velocity (veg)",
+    "b-25.steps.0.detail": "x = v0 cos theta0 t, y = v0 sin theta0 t - 0.5 g t squared; vx = v0 cos theta0, vy = v0 sin theta0 - g t.",
+    "b-25.steps.1.title": "Path",
+    "b-25.steps.1.detail": "t ko eliminate karo: y = x tan theta0 - g x squared / (2 v0 squared cos squared theta0), ek parabola.",
+    "b-25.steps.2.title": "Top aur flight",
+    "b-25.steps.2.detail": "vy = 0 se tm = v0 sin theta0 / g milta hai; y=0 se Tf = 2 tm milta hai; tm substitute karne se hm = v0 squared sin squared theta0 / (2g) milta hai.",
+    "b-25.steps.3.title": "Range",
+    "b-25.steps.3.detail": "R = v0 cos theta0 x Tf = v0 squared sin 2theta0 / g, maximum v0 squared / g 45 degrees par.",
+    "b-26.problem": "Galileo ne kaha tha ki jin elevations ke liye 45 degrees se equal amount upar ya neeche jaate hain, unki ranges equal hoti hain. Is statement ko prove karein.",
+    "b-26.steps.0.title": "Range formula",
+    "b-26.steps.0.detail": "Launch speed v0 ke liye R = v0 squared sin 2theta0 / g.",
+    "b-26.steps.1.title": "Do angles",
+    "b-26.steps.1.detail": "45 degrees + alpha aur 45 degrees - alpha ke liye, 2theta0 90 degrees + 2alpha aur 90 degrees - 2alpha hota hai.",
+    "b-26.steps.2.title": "Sines equal",
+    "b-26.steps.2.detail": "sin(90 degrees + 2alpha) = sin(90 degrees - 2alpha) = cos 2alpha, isliye dono ke liye R same hai.",
+    "b-26.answer": "Elevations 45 degrees plus or minus alpha ke liye ranges equal hoti hain.",
+    "b-27.problem": "Ek hiker zameen se 490 m upar cliff ke kinare par khada hai aur ek stone ko horizontally initial speed (chaal) 15 m s-1 se phenkta hai. Air resistance neglect karein, g = 9.8 m s-2 lein. Zameen tak time aur zameen par hit hone ke waqt speed nikaalein.",
+    "b-27.steps.0.title": "Axes set karein",
+    "b-27.steps.0.detail": "Origin cliff edge par, x initial velocity (veg) ke along, y up ki taraf. vox = 15 m/s, voy = 0, ay = -9.8 m/s squared.",
+    "b-27.steps.1.title": "Time",
+    "b-27.steps.1.detail": "Ground par jab y = -490 m: -490 = -0.5 x 9.8 x t squared, isse t = 10 s milta hai.",
+    "b-27.steps.2.title": "Speed",
+    "b-27.steps.2.detail": "vx = 15 m/s, vy = -9.8 x 10 = -98 m/s, speed = sqrt(15 squared + 98 squared) approx 99 m/s.",
+    "b-27.answer": "Time 10 s; zameen par hit hone par speed lagbhag 99 m/s.",
+    "b-28.problem": "Ek cricket ball ko horizontal ke upar 30 degrees ki direction mein 28 m s-1 speed se phenka jaata hai. Maximum height, same level par wapas aane ka time, aur us point tak distance (doori) calculate karein.",
+    "b-28.steps.0.title": "Maximum height (adhiktam unchai)",
+    "b-28.steps.0.detail": "hm = v0 squared sin squared 30 degrees / (2g) = 28 squared x 0.25 / (2 x 9.8) = 10.0 m.",
+    "b-28.steps.1.title": "Time of flight (udan samay)",
+    "b-28.steps.1.detail": "Tf = 2 v0 sin 30 degrees / g = 2 x 28 x 0.5 / 9.8 = 2.9 s.",
+    "b-28.steps.2.title": "Range (doori)",
+    "b-28.steps.2.detail": "R = v0 squared sin 60 degrees / g = 28 squared x sin 60 degrees / 9.8 approx 69 m.",
+    "b-28.answer": "Maximum height 10.0 m; time 2.9 s; distance (doori) 69 m.",
+    "b-29.question": "Ek cricketer ball ko maximum horizontal distance 100 m tak throw kar sakta hai. Wahi ball ground se kitni height tak throw kar sakta hai?",
+    "b-29.options.0": "25 m",
+    "b-29.options.1": "50 m",
+    "b-29.options.2": "100 m",
+    "b-29.options.3": "200 m",
+    "b-29.explanation": "Rmax = v0 squared / g = 100 m, isliye v0 squared = 100 g. Same v0 ke liye maximum height v0 squared / (2g) = 50 m hai. Ceiling height ko isi tarah limit karti hai kyunki woh vertical component ko limit karti hai.",
+    "b-30.paragraphs.0": "Uniform circular motion ka matlab hai circle par constant speed (chaal) se chalna. Velocity (veg) ki direction continuously badalti hai, isliye acceleration (tvaran) hota hai aur centre ki taraf point karta hai.",
+    "b-30.paragraphs.1": "Magnitude ac equals v squared over R hai. Direction har point par badalti hai, isliye acceleration constant vector (sadish) nahi hota, even though magnitude constant hai.",
+    "b-31.caption": "Uniform circular motion (ek samaan varti gati): velocity v point P par tangent hai, acceleration ac centre C ki taraf hai. Circle ki radius schematic hai.",
+    "b-31.svg_texts.t-0": "ac",
+    "b-32.title": "Angular speed (koniy chaal) aur centripetal acceleration",
+    "b-32.steps.0.title": "Angular speed",
+    "b-32.steps.0.detail": "omega = delta theta / delta t, angular displacement (koniy visthapan) ke change ki rate.",
+    "b-32.steps.1.title": "Linear speed",
+    "b-32.steps.1.detail": "Distance (doori) delta s = R delta theta, isliye v = delta s / delta t = R omega.",
+    "b-32.steps.2.title": "Acceleration ke forms",
+    "b-32.steps.2.detail": "ac = v squared / R = omega squared R. Period T aur frequency n = 1/T ke saath, v = 2 pi R / T = 2 pi R n, omega = 2 pi n, ac = 4 pi squared n squared R.",
+    "b-33.problem": "Ek insect 12 cm radius ki circular groove mein phansa hua hai, steady move karta hai aur 100 s mein 7 revolutions complete karta hai. Angular speed, linear speed, aur acceleration (tvaran) ka magnitude find karo. Kya acceleration ek constant vector (sadish) hai?",
+    "b-33.steps.0.title": "Angular speed",
+    "b-33.steps.0.detail": "omega = 2 pi x 7 / 100 = 0.44 rad/s.",
+    "b-33.steps.1.title": "Linear speed",
+    "b-33.steps.1.detail": "v = omega R = 0.44 x 12 cm = 5.3 cm/s, circle ke tangent.",
+    "b-33.steps.2.title": "Acceleration",
+    "b-33.steps.2.detail": "a = omega squared R = 0.44 squared x 12 = 2.3 cm/s squared centre ki taraf; direction badalta hai, isliye constant vector nahi hai.",
+    "b-33.answer": "omega = 0.44 rad/s, v = 5.3 cm/s, a = 2.3 cm/s squared centre ki taraf, constant vector nahi hai.",
+    "b-34.question": "Ek stone jo 80 cm lambi string se bandha hai, constant speed (chaal) se horizontal circle mein ghumaya jaata hai aur 25 s mein 14 revolutions karta hai. Acceleration (tvaran) ka magnitude aur direction kya hai?",
+    "b-34.explanation": "omega = 2 pi x 14 / 25 = 3.52 rad/s; ac = omega squared R = 12.4 x 0.80 approx 9.9 m/s squared, centre ki taraf directed.",
+    "b-35.question": "Ek aircraft 1.00 km radius ka horizontal loop constant speed (chaal) 900 km/h se karta hai. Iske centripetal acceleration ki g se tulna kijiye.",
+    "b-35.options.0": "lagbhag 0.64 g",
+    "b-35.options.1": "lagbhag 6.4 g",
+    "b-35.options.2": "lagbhag 64 g",
+    "b-35.options.3": "g ke barabar",
+    "b-35.explanation": "900 km/h = 250 m/s; ac = v squared / R = 250 squared / 1000 = 62.5 m/s squared; 9.8 se divide karne par lagbhag 6.4 g milta hai.",
+    "b-36.paragraphs.0": "Path length actual path par depend karta hai; displacement (visthapan) sirf end points par depend karta hai. Ye dono tabhi equal hote hain jab direction nahi badalti. Isliye average speed (chaal) average velocity (veg) ke magnitude se greater than ya equal hoti hai.",
+    "b-36.paragraphs.1": "Constant acceleration ke liye vector (sadish) equations mein axes choose karna zaruri nahi hota, lekin aap unhe kisi bhi do independent axes ke along resolve kar sakte hain. Trajectory initial position aur velocity (veg) ke saath-saath acceleration (tvaran) par bhi depend karti hai. Resultant velocity v1 plus v2 hoti hai, jabki relative velocity v12 common frame ke respect mein v1 minus v2 hoti hai.",
+    "b-37.question": "Teen ladkiyan 200 m radius wale circular ground par P se shuru karti hain aur alag-alag paths se diametrically opposite Q tak pahunchti hain. Har ek ke liye displacement (visthapan) ka magnitude kya hai?",
+    "b-37.options.0": "200 m",
+    "b-37.options.1": "400 m",
+    "b-37.options.2": "0 m",
+    "b-37.options.3": "har path ke liye alag",
+    "b-37.explanation": "Displacement straight line PQ hai, yaani diameter 400 m, sabke liye same. Path length displacement ke barabar sirf us ladki ke liye hoti hai jo diameter ke along seedha jaati hai.",
+    "b-38.question": "Ek hotel straight road par 10 km door hai. Ek cab 23 km ka ghumavdar path leti hai aur 28 min mein pahunchti hai. Average speed aur average velocity ka magnitude nikaalo.",
+    "b-38.explanation": "Average speed = 23 km / (28/60 h) approx 49 km/h. Average velocity ka magnitude = 10 km / (28/60 h) approx 21 km/h. Path length displacement (visthapan) se alag hota hai, isliye ye alag hote hain.",
+    "b-39.question": "i + j aur i - j ka magnitude aur direction kya hai?",
+    "b-39.options.0": "dono sqrt(2), x-axis ke saath 45 degrees aur -45 degrees par",
+    "b-39.options.1": "dono 2, x-axis ke saath 90 degrees par",
+    "b-39.options.2": "dono 1, x-axis ke along",
+    "b-39.options.3": "dono 0, koi direction nahi",
+    "b-39.explanation": "i+j ke components 1,1 hain, magnitude sqrt(2), direction tan inverse 1 = 45 degrees. i-j ke components 1,-1 hain, magnitude sqrt(2), direction -45 degrees. In directions ke along components ko projection se graphically nikaal sakte hain.",
+    "b-40.question": "Scalar (adish) quantity ke baare mein kaunsa statement galat hai?",
+    "b-40.options.0": "iska sirf magnitude hota hai",
+    "b-40.options.1": "ye kabhi negative values nahi le sakta",
+    "b-40.options.2": "ise ek number aur ek unit se specify kiya jata hai",
+    "b-40.options.3": "different axis orientations wale observers ke liye iska value same hota hai",
+    "b-40.explanation": "Scalar (adish) sirf magnitude se define hota hai; source yeh require nahi karta ki wo conserved, dimensionless, non-negative ya space mein constant ho. Temperature difference aur doosre scalars dikhate hain ki definition sirf magnitude hai.",
+    "b-41.question": "Position r = 3.0 t squared i - 2.0 t squared j + 4.0 t squared k metres hai, t seconds mein. t = 2.0 s par velocity (veg) ka magnitude kya hai?",
+    "b-41.explanation": "v = dr/dt = 6.0 t i - 4.0 t j + 8.0 t k; 2.0 s par v = 12 i - 8 j + 16 k, magnitude sqrt(144+64+256)=sqrt(464) approx 21.5 m/s. Acceleration (tvaran) 6 i -4 j +8 k m/s squared hai.",
+    "b-42.question": "Ek aircraft 3400 m height par ud raha hai. Ground point par 10.0 s apart positions ke dwara subtend kiya gaya angle 30 degrees hai. Speed (chaal) estimate karo, assuming ground point dono positions ke midpoint ke neeche hai.",
+    "b-42.explanation": "Half distance (doori) = 3400 x tan 15 degrees approx 911 m, total distance approx 1822 m in 10.0 s, speed approx 182 m/s. Yeh midpoint assumption use karta hai jo diya gaya hai kyunki source mein figure geometry poori tarah readable nahi hai."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Plane mein Motion",
+    "objectives": [
+      "Is lesson ke baad aap bata sakte hain ki koi quantity scalar hai ya vector, aur vectors ko graphically aur components se add kar sakte hain.",
+      "Is lesson ke baad aap plane mein position, velocity aur acceleration ko components se aur differentiation se nikaal sakte hain.",
+      "Is lesson ke baad aap is chapter ke equations use karke constant-acceleration, projectile aur uniform circular motion ke problems solve kar sakte hain."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Vectors ki zaroorat kyun hai",
+        "paragraphs": [
+          "Aapko pata hai ki straight line par motion (gati) ko plus aur minus signs se describe kar sakte hain, kyunki sirf do directions possible hain. Plane mein koi object ek hi waqt mein kai directions mein move kar sakta hai, isliye sirf sign kaafi nahi hai. Aapko aisi quantity chahiye jo size aur direction dono carry kare.",
+          "Ek ball socho jo upar aur sideways throw ki gayi hai. Uske motion mein sideways part aur up-down part ek saath hote hain. Vectors aapko dono parts ko saath rakhne dete hain, aur jab calculate karna ho tab unhe alag kar sakte hain."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "Scalars aur vectors",
+        "paragraphs": [
+          "Scalar (adish) mein sirf magnitude hota hai. Distance (doori), mass, temperature aur time scalars hain, aur inko ordinary algebra se combine karte hain. Vector (sadish) mein magnitude aur direction dono hote hain aur ye triangle ya parallelogram law of addition follow karta hai. Displacement (visthapan), velocity (veg), acceleration (tvaran) aur force (bal) vectors hain.",
+          "Kisi object ki position ko chosen origin O se point P tak ke position vector se show karte hain. P se P prime tak ka displacement start aur finish ko jodne wali straight line hoti hai, chahe actual path koi bhi ho. Iska magnitude path length se less than ya equal hota hai."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Vectors ko numbers se multiply karna",
+        "paragraphs": [
+          "Agar vector A ko positive number lambda se multiply karte hain, to new vector ka magnitude lambda times |A| hota hai aur direction A jaisi hi rehti hai. Negative number se multiply karne par direction reverse ho jaati hai. Velocity ko time se multiply karne par displacement milta hai, kyunki number apni unit carry kar sakta hai.",
+          "Do vectors tabhi equal hote hain jab magnitude aur direction dono same hon. Vector ko khud ke parallel shift karne se wo nahi badalta. Zero vector ka magnitude zero hota hai aur direction nahi hoti, aur A plus zero phir bhi A hi rehta hai."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Vectors ko graphically add karna",
+        "paragraphs": [
+          "Vectors ko graphically add karne ke liye second vector ka tail first vector ke head par rakho. First ke tail ko second ke head se join karo; wahi line resultant hoti hai. Ise head-to-tail ya triangle method kehte hain. Parallelogram method, jisme dono tails common origin par hote hain, wahi resultant deta hai.",
+          "Addition commutative hota hai, A plus B equals B plus A, aur associative hota hai, (A plus B) plus C equals A plus (B plus C). Subtraction ko A minus B equals A plus (-B) se define karte hain, jahan -B B ke opposite point karta hai."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Vectors ko components mein resolve karna",
+        "paragraphs": [
+          "Plane mein koi bhi vector same plane ki do non-parallel directions ke along do parts mein resolve ho sakta hai. Rectangular axes use karna sabse convenient hai, jahan unit vectors i x ke along, j y ke along aur k z ke along hote hain. Unit vector ka magnitude 1 hota hai aur ye sirf direction batata hai.",
+          "x-y plane mein vector A ke liye, A equals Ax i plus Ay j. Ax aur Ay scalars hain, jabki Ax i aur Ay j vectors hain. Magnitude aur angle se, Ax equals A cos theta aur Ay equals A sin theta. Components se, A equals sqrt(Ax squared plus Ay squared) aur tan theta equals Ay over Ax."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Vectors ko components se add karna",
+        "paragraphs": [
+          "Components se add karna drawing se easier aur more accurate hota hai. Har vector ko i aur j form mein likho, phir x parts ko saath add karo aur y parts ko saath add karo. Resultant R ke liye Rx equals Ax plus Bx aur Ry equals Ay plus By. Yahi rule three dimensions aur many vectors tak extend hota hai.",
+          "Do vectors ke beech angle theta ho to resultant magnitude R squared equals A squared plus B squared plus 2AB cos theta follow karta hai. Direction law of sines follow karti hai. Ye do laws aapko bina scale par drawing ke size aur direction dono nikaalne dete hain."
+        ]
+      },
+      {
+        "id": "sec-07",
+        "title": "Plane mein position, velocity aur acceleration",
+        "paragraphs": [
+          "x-y plane mein position r equals x i plus y j hoti hai, jahan x aur y coordinates hain. Displacement delta r equals r prime minus r hota hai. Average velocity delta r over delta t hoti hai, delta r ki direction mein.",
+          "Instantaneous velocity average velocity ka limit hai jab delta t zero ki taraf jaata hai, ise v equals dr over dt likhte hain. Iski direction us point par path ki tangent hoti hai, motion ki direction mein. Acceleration velocity change ka limit hai, a equals dv over dt, jiske components ax equals dvx over dt aur ay equals dvy over dt hain."
+        ]
+      },
+      {
+        "id": "sec-08",
+        "title": "Constant acceleration ke saath motion",
+        "paragraphs": [
+          "Agar acceleration a constant hai, to velocity v equals v0 plus a t se change hoti hai. Position r equals r0 plus v0 t plus one half a t squared se change hoti hai. Inhe vector form mein ya x aur y components mein alag-alag use kar sakte hain.",
+          "Yahi separation key idea hai: plane mein motion perpendicular directions ke along do simultaneous one-dimensional motions hoti hai. Aap x aur y ko independently solve karte hain aur phir speed (chaal) aur direction ke liye unhe combine karte hain."
+        ]
+      },
+      {
+        "id": "sec-09",
+        "title": "Projectile motion",
+        "paragraphs": [
+          "Projectile wo object hai jo throw hone ke baad flight mein hota hai. Air resistance ko neglect karo. Iski horizontal motion mein acceleration nahi hota, jabki vertical motion mein constant acceleration g downward hota hai. Galileo ne pehli baar horizontal aur vertical components ki is independence ko kaha tha.",
+          "Launch speed v0 aur angle theta0 ke saath, x equals v0 cos theta0 times t aur y equals v0 sin theta0 times t minus one half g t squared. t eliminate karne par parabolic path milta hai. Top tak time v0 sin theta0 over g hai, maximum height v0 squared sin squared theta0 over 2g hai, aur range v0 squared sin 2theta0 over g hai, jo 45 degrees par maximum hoti hai."
+        ]
+      },
+      {
+        "id": "sec-10",
+        "title": "Uniform circular motion",
+        "paragraphs": [
+          "Uniform circular motion mein speed constant hoti hai lekin velocity ki direction continuously change hoti hai, isliye acceleration hota hai. Wo acceleration hamesha centre ki taraf hota hai, jiska magnitude v squared over R hota hai. Ise centripetal acceleration kehte hain, matlab centre-seeking.",
+          "Angular speed omega angular displacement ke change ki rate hoti hai. Phir v equals omega R aur ac equals omega squared R. Period T aur frequency n equals 1 over T ke saath, v equals 2 pi R over T equals 2 pi R n aur ac equals 4 pi squared n squared R. Magnitude constant hota hai lekin direction change hoti hai, isliye acceleration constant vector nahi hota."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "scalar",
+        "definition": "Sirf magnitude wali quantity, jaise mass ya time."
+      },
+      {
+        "term": "vector",
+        "definition": "Magnitude aur direction wali quantity, jaise velocity."
+      },
+      {
+        "term": "displacement",
+        "definition": "Start se finish tak position ka straight-line change, jo path par depend nahi karta."
+      },
+      {
+        "term": "unit vector",
+        "definition": "Magnitude 1 wala vector jo sirf direction specify karne ke liye use hota hai."
+      },
+      {
+        "term": "projectile",
+        "definition": "Throw hone ke baad flight mein object, jisme horizontal aur vertical motion independent hoti hai."
+      },
+      {
+        "term": "centripetal acceleration",
+        "definition": "Circle ke centre ki taraf acceleration, magnitude v squared over R."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Aap ek ball phenkte hain aur wo ek hi samay mein sideways aur up dono taraf move karti hai. Ek plus ya minus sign us sideways-plus-up direction ko describe nahi kar sakta. Aapko vectors (sadish) chahiye, aisi quantities jo magnitude aur direction dono carry karti hain.",
+          "Is lesson mein aap vectors ki language seekhenge, phir ise plane mein position, velocity (veg) aur acceleration (tvaran) ke liye use karenge. Uske baad aap constant-acceleration motion (gati), projectile motion aur uniform circular motion solve karenge."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-02",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Scalar (adish) mein sirf magnitude hota hai aur ise unit ke saath ek number se vyakt kiya jata hai. Distance (doori), mass, temperature aur time scalars hain. Vector (sadish) mein magnitude aur direction dono hote hain aur ye triangle ya parallelogram addition follow karta hai. Displacement (visthapan), velocity (veg), acceleration (tvaran) aur force (bal) vectors hain.",
+          "Origin O choose karein. Position vector OP equals r, jo O se P tak points karta hai. Agar object P se P prime tak move karta hai, to displacement PP prime start aur finish ko jodne wali straight line hai. Ye actual path par depend nahi karta, aur iska magnitude path length se less than ya equal hota hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-05"
+        }
+      ]
+    },
+    {
+      "id": "b-03",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 400 220\"><line x1=\"60\" y1=\"180\" x2=\"180\" y2=\"80\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"60\" y1=\"180\" x2=\"320\" y2=\"60\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"180\" y1=\"80\" x2=\"320\" y2=\"60\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"180,80 168,88 176,70\" fill=\"#1C1B18\" /><polygon points=\"320,60 306,66 312,50\" fill=\"#1C1B18\" /><polygon points=\"320,60 308,72 304,58\" fill=\"#1F3A9E\" /><circle cx=\"60\" cy=\"180\" r=\"4\" fill=\"#1C1B18\" /><circle cx=\"180\" cy=\"80\" r=\"4\" fill=\"#1C1B18\" /><circle cx=\"320\" cy=\"60\" r=\"4\" fill=\"#1C1B18\" /><text x=\"48\" y=\"200\" fill=\"#1C1B18\" font-size=\"20\">O</text><text x=\"170\" y=\"70\" fill=\"#1C1B18\" font-size=\"20\">P</text><text x=\"330\" y=\"55\" fill=\"#1C1B18\" font-size=\"20\" data-i18n=\"b-03.svg_texts.t-0\">P'</text><text x=\"110\" y=\"120\" fill=\"#1C1B18\" font-size=\"20\">r</text><text x=\"210\" y=\"110\" fill=\"#1C1B18\" font-size=\"20\" data-i18n=\"b-03.svg_texts.t-1\">r'</text><text x=\"240\" y=\"45\" fill=\"#1F3A9E\" font-size=\"20\" data-i18n=\"b-03.svg_texts.t-2\">delta r</text></svg>",
+        "caption": "Origin O se position vectors r aur r' (r prime), aur P se P' tak displacement (visthapan) delta r. Arrow ki lambaiyan schematic hain, scale ke according nahi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-05"
+        }
+      ]
+    },
+    {
+      "id": "b-04",
+      "type": "check",
+      "spec": {
+        "question": "Kaunsi list mein sirf vector (sadish) quantities hain?",
+        "format": "mcq",
+        "options": [
+          "mass, speed, temperature",
+          "displacement (visthapan), velocity (veg), acceleration (tvaran)",
+          "distance (doori), time, volume",
+          "density, charge, energy"
+        ],
+        "answer_index": 1,
+        "explanation": "Displacement (visthapan), velocity (veg) aur acceleration (tvaran) mein magnitude aur direction dono hote hain aur ye vector addition follow karte hain. Baaki lists scalar (adish) hain.",
+        "expected_understanding": "Student quantities ko scalar ya vector classify kar sakta hai.",
+        "answer": "displacement (visthapan), velocity (veg), acceleration (tvaran)"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        }
+      ]
+    },
+    {
+      "id": "b-05",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "A ko positive lambda se multiply karne par same direction mein magnitude lambda times |A| milta hai. -lambda se multiply karne par direction reverse ho jaati hai. Velocity (veg) ko time se multiply karne par displacement (visthapan) milta hai.",
+          "Do vector (sadish) tabhi equal hote hain jab unka magnitude aur direction match kare. Kisi free vector ko khud ke parallel shift karne se woh unchanged rehta hai. Null vector ka magnitude zero hota hai aur koi direction nahi hoti, aur A plus 0 equals A."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-07"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ]
+    },
+    {
+      "id": "b-06",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 400 220\"><line x1=\"50\" y1=\"180\" x2=\"190\" y2=\"150\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"50\" y1=\"180\" x2=\"130\" y2=\"90\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"190\" y1=\"150\" x2=\"270\" y2=\"120\" stroke=\"#5A5748\" stroke-width=\"2\" stroke-dasharray=\"6 4\" /><line x1=\"130\" y1=\"90\" x2=\"270\" y2=\"120\" stroke=\"#5A5748\" stroke-width=\"2\" stroke-dasharray=\"6 4\" /><line x1=\"50\" y1=\"180\" x2=\"270\" y2=\"120\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"270,120 254,124 260,110\" fill=\"#1F3A9E\" /><text x=\"40\" y=\"200\" fill=\"#1C1B18\" font-size=\"20\">O</text><text x=\"195\" y=\"145\" fill=\"#1C1B18\" font-size=\"20\">A</text><text x=\"120\" y=\"85\" fill=\"#1C1B18\" font-size=\"20\">B</text><text x=\"275\" y=\"115\" fill=\"#1F3A9E\" font-size=\"20\">R = A+B</text></svg>",
+        "caption": "Parallelogram method: A aur B common origin O se lete hain, resultant R diagonal OS ke along hota hai. Dashed lines construction lines hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        }
+      ]
+    },
+    {
+      "id": "b-07",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Head-to-tail method: B ka tail A ke head par rakho, A ke tail ko B ke head se jodo taaki R mile. Parallelogram method: dono tails ko common origin par lao aur parallelogram complete karo; R diagonal hai. Dono se same R milta hai.",
+          "Addition commutative aur associative hai. Subtraction A minus B equals A plus (-B). A aur -A ko add karne se null vector milta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ]
+    },
+    {
+      "id": "b-08",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Rain (barish) vertically gir rahi hai jiski speed (chaal) 35 m s-1 hai. Wind 12 m s-1 ki speed se east to west direction mein chalna shuru karti hai. Boy apna umbrella kis direction mein rakhe?",
+        "steps": [
+          {
+            "title": "Velocities ko represent karo",
+            "detail": "Maan lo vr rain ki velocity (veg) vertically neeche hai aur vw wind ki velocity east se west direction mein hai. Resultant R unka vector (sadish) sum hai."
+          },
+          {
+            "title": "Magnitude",
+            "detail": "R = sqrt(vr squared + vw squared) = sqrt(35 squared + 12 squared) = 37 m s-1."
+          },
+          {
+            "title": "Direction",
+            "detail": "tan theta = vw / vr = 12 / 35 = 0.343, isliye theta = tan inverse 0.343 = 19 degrees vertical se."
+          }
+        ],
+        "answer": "Umbrella ko vertical plane mein vertical se lagbhag 19 degrees east ki taraf rakho, jaise source mein diya hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-09",
+      "type": "check",
+      "spec": {
+        "question": "Scalar aur vector quantities ke saath kaunsa algebraic operation aam taur par meaningful hota hai?",
+        "format": "mcq",
+        "options": [
+          "same dimensions wale vector mein scalar add karna",
+          "vector ke ek component ko usi vector mein add karna",
+          "kisi bhi vector ko kisi bhi scalar se multiply karna",
+          "different units wale kisi bhi do scalars ko add karna"
+        ],
+        "answer_index": 2,
+        "explanation": "Vector ko scalar se multiply karne par scaled magnitude wala vector milta hai. Vector mein scalar add karna, ya different units wale scalars ko add karna, meaningful nahi hai.",
+        "expected_understanding": "Student jaanta hai ki kaunse scalar-vector operations meaningful hote hain.",
+        "answer": "kisi bhi vector ko kisi bhi scalar se multiply karna"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-07"
+        },
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Plane mein ek vector (sadish) A ko do non-parallel directions ke along resolve kiya ja sakta hai. Rectangular axes use karte hue, unit vectors i, j, k ka magnitude 1 hota hai aur ye x, y, z axes ke along point karte hain.",
+          "A equals Ax i plus Ay j likhiye. Ax aur Ay scalar (adish) hain; Ax i aur Ay j vectors hain. Teen dimensions mein Az k add kijiye. Position vector r equals x i plus y j plus z k hota hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-11",
+      "type": "reveal",
+      "spec": {
+        "title": "Magnitude-angle se components tak aur wapas",
+        "steps": [
+          {
+            "title": "A aur theta diye hue hon",
+            "detail": "Ax = A cos theta and Ay = A sin theta, component diagram par trigonometry se."
+          },
+          {
+            "title": "Ax aur Ay diye hue hon",
+            "detail": "Pythagoras se A = sqrt(Ax squared + Ay squared), aur tan theta = Ay / Ax."
+          },
+          {
+            "title": "Signs",
+            "detail": "Ek component theta ke according positive, negative ya zero ho sakta hai, kyunki cos aur sin quadrant ke hisaab se sign badalte hain."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-12",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Analytical addition: A equals Ax i plus Ay j aur B equals Bx i plus By j likhein. Phir R equals (Ax plus Bx) i plus (Ay plus By) j. Har resultant component corresponding components ka sum hota hai.",
+          "Teen dimensions mein z components ko usi tarah add karein. Yeh kisi bhi number ke vectors (sadish) tak extend hota hai, aur subtraction negative ke addition ke roop mein hota hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-13",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Do vector (sadish) A aur B ke resultant ka magnitude aur direction unke magnitudes aur unke beech ke angle theta ke terms mein nikaliye.",
+        "steps": [
+          {
+            "title": "Parallelogram geometry",
+            "detail": "Maan lijiye OS resultant R hai. ON = A + B cos theta aur SN = B sin theta, aur OS squared = ON squared + SN squared."
+          },
+          {
+            "title": "Magnitude",
+            "detail": "R squared = (A + B cos theta) squared + (B sin theta) squared = A squared + B squared + 2AB cos theta."
+          },
+          {
+            "title": "Direction",
+            "detail": "R sin alpha = B sin theta, isliye sin alpha = B sin theta / R, jahan alpha R aur A ke beech ka angle hai."
+          }
+        ],
+        "answer": "R squared = A squared + B squared + 2AB cos theta; direction sin alpha = B sin theta / R se milti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-14",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek motorboat north ki taraf 25 km/h ki speed (chaal) se ja rahi hai aur water current 10 km/h hai, south se 60 degrees east ki direction mein. Boat ka resultant velocity (veg) nikaliye.",
+        "steps": [
+          {
+            "title": "Vectors (sadish) draw kijiye",
+            "detail": "vb 25 km/h north hai, vc 10 km/h hai south se 60 degrees east par. Parallelogram mein unke beech ka angle 120 degrees hai."
+          },
+          {
+            "title": "Law of cosines se magnitude",
+            "detail": "R squared = 25 squared + 10 squared + 2 x 25 x 10 x cos 120 degrees, jisse R approx 21.8 km/h milta hai."
+          },
+          {
+            "title": "Law of sines se direction",
+            "detail": "sin f = vc sin 120 degrees / R = 10 x sin 120 degrees / 21.8 = 0.397, isliye f approx 23.4 degrees."
+          }
+        ],
+        "answer": "Resultant speed (chaal) lagbhag 21.8 km/h hai, direction source figure mein f = 23.4 degrees se di gayi hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-15",
+      "type": "check",
+      "spec": {
+        "question": "Vector (sadish) inequalities mein |a + b| = |a| + |b| equality ke roop mein kab hold karta hai?",
+        "format": "mcq",
+        "options": [
+          "jab a aur b same direction mein hain",
+          "jab a aur b opposite direction mein hain",
+          "jab a aur b perpendicular hain",
+          "hamesha, sabhi a aur b ke liye"
+        ],
+        "answer_index": 0,
+        "explanation": "Geometrically triangle inequality equality tabhi hoti hai jab vectors same direction mein collinear hote hain. Agar a+b+c+d = 0 to |a+c| = |b+d| kyunki a+c = -(b+d).",
+        "expected_understanding": "Student triangle inequalities aur equality conditions ko samajhta hai.",
+        "answer": "jab a aur b same direction mein hain"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-16",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Position (sthiti) r equals x i plus y j hota hai. Displacement (visthapan) delta r equals r prime minus r equals delta x i plus delta y j hota hai. Average velocity (ausat veg) delta r over delta t hoti hai.",
+          "Instantaneous velocity (taatkalik veg) v equals dr over dt hoti hai, jo path ke tangent hoti hai. Acceleration (tvaran) a equals dv over dt hota hai. Components (ghatak) vx equals dx over dt, vy equals dy over dt, ax equals dvx over dt, ay equals dvy over dt hote hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-17",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 400 220\"><path d=\"M 40 180 Q 150 60 360 140\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"120\" y1=\"140\" x2=\"300\" y2=\"80\" stroke=\"#5A5748\" stroke-width=\"2\" stroke-dasharray=\"6 4\" /><line x1=\"200\" y1=\"110\" x2=\"300\" y2=\"80\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"300,80 284,84 290,70\" fill=\"#1F3A9E\" /><circle cx=\"200\" cy=\"110\" r=\"4\" fill=\"#1C1B18\" /><text x=\"190\" y=\"100\" fill=\"#1C1B18\" font-size=\"20\">P</text><text x=\"305\" y=\"75\" fill=\"#1F3A9E\" font-size=\"20\" data-i18n=\"b-17.svg_texts.t-0\">v tangent</text><text x=\"60\" y=\"200\" fill=\"#1C1B18\" font-size=\"20\" data-i18n=\"b-17.svg_texts.t-1\">path</text></svg>",
+        "caption": "P par velocity (veg) path ke tangent hai, motion (gati) ki direction mein. Dashed line tangent line hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-18",
+      "type": "reveal",
+      "spec": {
+        "title": "Velocity aur acceleration limits ke roop mein",
+        "steps": [
+          {
+            "title": "Average velocity",
+            "detail": "v average = delta r / delta t; iska direction delta r ke direction mein hota hai, jo path ka chord hai."
+          },
+          {
+            "title": "Instantaneous velocity",
+            "detail": "Jab delta t zero ki taraf tend karta hai, chord tangent ban jata hai; v = limit delta r / delta t = dr/dt."
+          },
+          {
+            "title": "Acceleration (tvaran)",
+            "detail": "a average = delta v / delta t; jab delta t zero ki taraf tend karta hai, a = dv/dt. 2D mein, a, v ke saath 0 to 180 degrees tak koi bhi angle bana sakta hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-20"
+        }
+      ]
+    },
+    {
+      "id": "b-19",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek particle ki position coefficients 3.0, 2.0 aur 5.0 ke saath di gayi hai, t seconds mein aur r metres mein. v(t) aur a(t) nikalo, aur t = 1.0 s par v ka magnitude aur direction bhi nikalo.",
+        "steps": [
+          {
+            "title": "Differentiate karo",
+            "detail": "Source result mein v = dr/dt = 3.0 i + 4.0 t j m/s; a = dv/dt = 4.0 j m/s squared."
+          },
+          {
+            "title": "t = 1.0 s par",
+            "detail": "v = 3.0 i + 4.0 j m/s."
+          },
+          {
+            "title": "Magnitude aur direction",
+            "detail": "Magnitude = sqrt(3 squared + 4 squared) = 5.0 m/s; theta = tan inverse (4/3) = 53 degrees, x-axis ke saath."
+          }
+        ],
+        "answer": "a = 4.0 m s-2 y-direction ke along hai; 1.0 s par speed (chaal) 5.0 m/s hai, x-axis ke saath 53 degrees par."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-20",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Constant acceleration (tvaran) ke saath, average acceleration us constant ke barabar hota hai. t=0 par v0 se lekar t par v tak, v equals v0 plus a t hota hai. Position r equals r0 plus v0 t plus one half a t squared hoti hai.",
+          "x aur y ko alag-alag likho: vx equals vox plus ax t, x equals x0 plus vox t plus one half ax t squared, aur y ke liye bhi isi tarah. Do perpendicular motions (gatiyan) ko independently treat karo."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-21",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek particle origin se t = 0 par velocity (veg) 5.0 i m/s ke saath shuru hota hai aur x-y plane mein constant acceleration (tvaran) (3.0 i + 2.0 j) m/s squared ke under move karta hai. Jab x 84 m hai tab y kya hai, aur us samay speed (chaal) kya hai?",
+        "steps": [
+          {
+            "title": "Position",
+            "detail": "x = 5.0 t + 1.5 t squared, y = 1.0 t squared, r = v0 t + one half a t squared se."
+          },
+          {
+            "title": "t nikaalo",
+            "detail": "5.0 t + 1.5 t squared = 84 se t = 6 s milta hai. Phir y = 1.0 x 36 = 36.0 m."
+          },
+          {
+            "title": "Velocity",
+            "detail": "v = 5.0 i + 3.0 t i + 2.0 t j; 6 s par, vx = 23.0, vy = 12.0 m/s, speed = sqrt(23 squared + 12 squared) approx 26 m/s."
+          }
+        ],
+        "answer": "t = 6 s par y = 36.0 m; speed approx 26 m/s."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-22",
+      "type": "check",
+      "spec": {
+        "question": "Space mein arbitrary motion (gati) ke liye, kaun sa relation hamesha true hota hai?",
+        "format": "mcq",
+        "options": [
+          "v average = (1/2)(v(t1) + v(t2))",
+          "v average = [r(t2) - r(t1)] / (t2 - t1)",
+          "v(t) = v(0) + a t kisi bhi motion ke liye",
+          "r(t) = r(0) + v(0) t + (1/2) a t squared kisi bhi motion ke liye"
+        ],
+        "answer_index": 1,
+        "explanation": "Average velocity (average veg) ko time interval ke dauran displacement (visthapan) ke roop mein define kiya jata hai. Baaki forms sirf constant acceleration ke liye valid hain, aur a average = [v(t2)-v(t1)]/(t2-t1) acceleration ki definition hai.",
+        "expected_understanding": "Student definitions ko constant-acceleration formulas se alag pehchanta hai.",
+        "answer": "v average = [r(t2) - r(t1)] / (t2 - t1)"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-23",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek projectile throw hone ke baad flight mein hota hai, jaise ball. Iski motion (gati) do simultaneous components se banti hai: horizontal without acceleration (tvaran) aur vertical constant g downward ke saath. Air resistance ko neglect kiya gaya hai.",
+          "x ko horizontal aur y ko vertical up choose karo. Tab ax equals 0 aur ay equals -g. Initial components vox equals v0 cos theta0 aur voy equals v0 sin theta0 hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    },
+    {
+      "id": "b-24",
+      "type": "simulation",
+      "spec": {
+        "title": "Projectile trajectory",
+        "description": "Origin se launch kiya gaya projectile speed (chaal) v0 aur angle theta0 ke saath. Curve ko x = v0 cos theta0 t aur y = v0 sin theta0 t - 0.5 g t squared se compute kiya jata hai.",
+        "learning_goal": "Dekhen ki v0 aur theta0 badalne se maximum height, time of flight aur range kaise badalte hain, aur path parabola hota hai.",
+        "controls": [
+          {
+            "id": "v0",
+            "label": "Initial speed v0 (m/s)",
+            "min": 5,
+            "max": 40,
+            "step": 1,
+            "initial": 20
+          },
+          {
+            "id": "theta",
+            "label": "Angle theta0 (degrees)",
+            "min": 0,
+            "max": 90,
+            "step": 1,
+            "initial": 45
+          }
+        ],
+        "default_behaviour": "v0 = 20 m/s par 45 degrees ke liye trajectory dikhata hai, maximum height aur range readouts equations se compute hote hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "reveal",
+      "spec": {
+        "title": "Projectile equations aur key results",
+        "steps": [
+          {
+            "title": "Position aur velocity (veg)",
+            "detail": "x = v0 cos theta0 t, y = v0 sin theta0 t - 0.5 g t squared; vx = v0 cos theta0, vy = v0 sin theta0 - g t."
+          },
+          {
+            "title": "Path",
+            "detail": "t ko eliminate karo: y = x tan theta0 - g x squared / (2 v0 squared cos squared theta0), ek parabola."
+          },
+          {
+            "title": "Top aur flight",
+            "detail": "vy = 0 se tm = v0 sin theta0 / g milta hai; y=0 se Tf = 2 tm milta hai; tm substitute karne se hm = v0 squared sin squared theta0 / (2g) milta hai."
+          },
+          {
+            "title": "Range",
+            "detail": "R = v0 cos theta0 x Tf = v0 squared sin 2theta0 / g, maximum v0 squared / g 45 degrees par."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-26",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Galileo ne kaha tha ki jin elevations ke liye 45 degrees se equal amount upar ya neeche jaate hain, unki ranges equal hoti hain. Is statement ko prove karein.",
+        "steps": [
+          {
+            "title": "Range formula",
+            "detail": "Launch speed v0 ke liye R = v0 squared sin 2theta0 / g."
+          },
+          {
+            "title": "Do angles",
+            "detail": "45 degrees + alpha aur 45 degrees - alpha ke liye, 2theta0 90 degrees + 2alpha aur 90 degrees - 2alpha hota hai."
+          },
+          {
+            "title": "Sines equal",
+            "detail": "sin(90 degrees + 2alpha) = sin(90 degrees - 2alpha) = cos 2alpha, isliye dono ke liye R same hai."
+          }
+        ],
+        "answer": "Elevations 45 degrees plus or minus alpha ke liye ranges equal hoti hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-27",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek hiker zameen se 490 m upar cliff ke kinare par khada hai aur ek stone ko horizontally initial speed (chaal) 15 m s-1 se phenkta hai. Air resistance neglect karein, g = 9.8 m s-2 lein. Zameen tak time aur zameen par hit hone ke waqt speed nikaalein.",
+        "steps": [
+          {
+            "title": "Axes set karein",
+            "detail": "Origin cliff edge par, x initial velocity (veg) ke along, y up ki taraf. vox = 15 m/s, voy = 0, ay = -9.8 m/s squared."
+          },
+          {
+            "title": "Time",
+            "detail": "Ground par jab y = -490 m: -490 = -0.5 x 9.8 x t squared, isse t = 10 s milta hai."
+          },
+          {
+            "title": "Speed",
+            "detail": "vx = 15 m/s, vy = -9.8 x 10 = -98 m/s, speed = sqrt(15 squared + 98 squared) approx 99 m/s."
+          }
+        ],
+        "answer": "Time 10 s; zameen par hit hone par speed lagbhag 99 m/s."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-28",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek cricket ball ko horizontal ke upar 30 degrees ki direction mein 28 m s-1 speed se phenka jaata hai. Maximum height, same level par wapas aane ka time, aur us point tak distance (doori) calculate karein.",
+        "steps": [
+          {
+            "title": "Maximum height (adhiktam unchai)",
+            "detail": "hm = v0 squared sin squared 30 degrees / (2g) = 28 squared x 0.25 / (2 x 9.8) = 10.0 m."
+          },
+          {
+            "title": "Time of flight (udan samay)",
+            "detail": "Tf = 2 v0 sin 30 degrees / g = 2 x 28 x 0.5 / 9.8 = 2.9 s."
+          },
+          {
+            "title": "Range (doori)",
+            "detail": "R = v0 squared sin 60 degrees / g = 28 squared x sin 60 degrees / 9.8 approx 69 m."
+          }
+        ],
+        "answer": "Maximum height 10.0 m; time 2.9 s; distance (doori) 69 m."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-29",
+      "type": "check",
+      "spec": {
+        "question": "Ek cricketer ball ko maximum horizontal distance 100 m tak throw kar sakta hai. Wahi ball ground se kitni height tak throw kar sakta hai?",
+        "format": "mcq",
+        "options": [
+          "25 m",
+          "50 m",
+          "100 m",
+          "200 m"
+        ],
+        "answer_index": 1,
+        "explanation": "Rmax = v0 squared / g = 100 m, isliye v0 squared = 100 g. Same v0 ke liye maximum height v0 squared / (2g) = 50 m hai. Ceiling height ko isi tarah limit karti hai kyunki woh vertical component ko limit karti hai.",
+        "expected_understanding": "Student same launch speed ke liye maximum range aur maximum height ko relate kar sakta hai.",
+        "answer": "50 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-30",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Uniform circular motion ka matlab hai circle par constant speed (chaal) se chalna. Velocity (veg) ki direction continuously badalti hai, isliye acceleration (tvaran) hota hai aur centre ki taraf point karta hai.",
+          "Magnitude ac equals v squared over R hai. Direction har point par badalti hai, isliye acceleration constant vector (sadish) nahi hota, even though magnitude constant hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-30"
+        }
+      ]
+    },
+    {
+      "id": "b-31",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 400 220\"><circle cx=\"200\" cy=\"110\" r=\"80\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><circle cx=\"200\" cy=\"110\" r=\"4\" fill=\"#1C1B18\" /><line x1=\"200\" y1=\"110\" x2=\"260\" y2=\"50\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"260\" y1=\"50\" x2=\"320\" y2=\"90\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><line x1=\"260\" y1=\"50\" x2=\"200\" y2=\"110\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"320,90 304,92 310,78\" fill=\"#1F3A9E\" /><polygon points=\"200,110 214,104 210,118\" fill=\"#1F3A9E\" /><text x=\"190\" y=\"100\" fill=\"#1C1B18\" font-size=\"20\">C</text><text x=\"265\" y=\"45\" fill=\"#1C1B18\" font-size=\"20\">P</text><text x=\"325\" y=\"85\" fill=\"#1F3A9E\" font-size=\"20\">v</text><text x=\"215\" y=\"105\" fill=\"#1F3A9E\" font-size=\"20\" data-i18n=\"b-31.svg_texts.t-0\">ac</text></svg>",
+        "caption": "Uniform circular motion (ek samaan varti gati): velocity v point P par tangent hai, acceleration ac centre C ki taraf hai. Circle ki radius schematic hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-32",
+      "type": "reveal",
+      "spec": {
+        "title": "Angular speed (koniy chaal) aur centripetal acceleration",
+        "steps": [
+          {
+            "title": "Angular speed",
+            "detail": "omega = delta theta / delta t, angular displacement (koniy visthapan) ke change ki rate."
+          },
+          {
+            "title": "Linear speed",
+            "detail": "Distance (doori) delta s = R delta theta, isliye v = delta s / delta t = R omega."
+          },
+          {
+            "title": "Acceleration ke forms",
+            "detail": "ac = v squared / R = omega squared R. Period T aur frequency n = 1/T ke saath, v = 2 pi R / T = 2 pi R n, omega = 2 pi n, ac = 4 pi squared n squared R."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        }
+      ]
+    },
+    {
+      "id": "b-33",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek insect 12 cm radius ki circular groove mein phansa hua hai, steady move karta hai aur 100 s mein 7 revolutions complete karta hai. Angular speed, linear speed, aur acceleration (tvaran) ka magnitude find karo. Kya acceleration ek constant vector (sadish) hai?",
+        "steps": [
+          {
+            "title": "Angular speed",
+            "detail": "omega = 2 pi x 7 / 100 = 0.44 rad/s."
+          },
+          {
+            "title": "Linear speed",
+            "detail": "v = omega R = 0.44 x 12 cm = 5.3 cm/s, circle ke tangent."
+          },
+          {
+            "title": "Acceleration",
+            "detail": "a = omega squared R = 0.44 squared x 12 = 2.3 cm/s squared centre ki taraf; direction badalta hai, isliye constant vector nahi hai."
+          }
+        ],
+        "answer": "omega = 0.44 rad/s, v = 5.3 cm/s, a = 2.3 cm/s squared centre ki taraf, constant vector nahi hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-30"
+        }
+      ]
+    },
+    {
+      "id": "b-34",
+      "type": "check",
+      "spec": {
+        "question": "Ek stone jo 80 cm lambi string se bandha hai, constant speed (chaal) se horizontal circle mein ghumaya jaata hai aur 25 s mein 14 revolutions karta hai. Acceleration (tvaran) ka magnitude aur direction kya hai?",
+        "format": "numeric",
+        "answer": "9.9",
+        "explanation": "omega = 2 pi x 14 / 25 = 3.52 rad/s; ac = omega squared R = 12.4 x 0.80 approx 9.9 m/s squared, centre ki taraf directed.",
+        "expected_understanding": "Student revolutions aur radius se centripetal acceleration compute kar sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        }
+      ]
+    },
+    {
+      "id": "b-35",
+      "type": "check",
+      "spec": {
+        "question": "Ek aircraft 1.00 km radius ka horizontal loop constant speed (chaal) 900 km/h se karta hai. Iske centripetal acceleration ki g se tulna kijiye.",
+        "format": "mcq",
+        "options": [
+          "lagbhag 0.64 g",
+          "lagbhag 6.4 g",
+          "lagbhag 64 g",
+          "g ke barabar"
+        ],
+        "answer_index": 1,
+        "explanation": "900 km/h = 250 m/s; ac = v squared / R = 250 squared / 1000 = 62.5 m/s squared; 9.8 se divide karne par lagbhag 6.4 g milta hai.",
+        "expected_understanding": "Student centripetal acceleration ki g se tulna kar sakta hai.",
+        "answer": "lagbhag 6.4 g"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-36",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Path length actual path par depend karta hai; displacement (visthapan) sirf end points par depend karta hai. Ye dono tabhi equal hote hain jab direction nahi badalti. Isliye average speed (chaal) average velocity (veg) ke magnitude se greater than ya equal hoti hai.",
+          "Constant acceleration ke liye vector (sadish) equations mein axes choose karna zaruri nahi hota, lekin aap unhe kisi bhi do independent axes ke along resolve kar sakte hain. Trajectory initial position aur velocity (veg) ke saath-saath acceleration (tvaran) par bhi depend karti hai. Resultant velocity v1 plus v2 hoti hai, jabki relative velocity v12 common frame ke respect mein v1 minus v2 hoti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-37",
+      "type": "check",
+      "spec": {
+        "question": "Teen ladkiyan 200 m radius wale circular ground par P se shuru karti hain aur alag-alag paths se diametrically opposite Q tak pahunchti hain. Har ek ke liye displacement (visthapan) ka magnitude kya hai?",
+        "format": "mcq",
+        "options": [
+          "200 m",
+          "400 m",
+          "0 m",
+          "har path ke liye alag"
+        ],
+        "answer_index": 1,
+        "explanation": "Displacement straight line PQ hai, yaani diameter 400 m, sabke liye same. Path length displacement ke barabar sirf us ladki ke liye hoti hai jo diameter ke along seedha jaati hai.",
+        "expected_understanding": "Student displacement ko path length se distinguish karta hai.",
+        "answer": "400 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        }
+      ]
+    },
+    {
+      "id": "b-38",
+      "type": "check",
+      "spec": {
+        "question": "Ek hotel straight road par 10 km door hai. Ek cab 23 km ka ghumavdar path leti hai aur 28 min mein pahunchti hai. Average speed aur average velocity ka magnitude nikaalo.",
+        "format": "numeric",
+        "answer": "49",
+        "explanation": "Average speed = 23 km / (28/60 h) approx 49 km/h. Average velocity ka magnitude = 10 km / (28/60 h) approx 21 km/h. Path length displacement (visthapan) se alag hota hai, isliye ye alag hote hain.",
+        "expected_understanding": "Student average speed aur average velocity ko compare karke compute kar sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-39",
+      "type": "check",
+      "spec": {
+        "question": "i + j aur i - j ka magnitude aur direction kya hai?",
+        "format": "mcq",
+        "options": [
+          "dono sqrt(2), x-axis ke saath 45 degrees aur -45 degrees par",
+          "dono 2, x-axis ke saath 90 degrees par",
+          "dono 1, x-axis ke along",
+          "dono 0, koi direction nahi"
+        ],
+        "answer_index": 0,
+        "explanation": "i+j ke components 1,1 hain, magnitude sqrt(2), direction tan inverse 1 = 45 degrees. i-j ke components 1,-1 hain, magnitude sqrt(2), direction -45 degrees. In directions ke along components ko projection se graphically nikaal sakte hain.",
+        "expected_understanding": "Student unit-vector combinations ka magnitude, direction aur components nikaal sakta hai.",
+        "answer": "dono sqrt(2), x-axis ke saath 45 degrees aur -45 degrees par"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-40",
+      "type": "check",
+      "spec": {
+        "question": "Scalar (adish) quantity ke baare mein kaunsa statement galat hai?",
+        "format": "mcq",
+        "options": [
+          "iska sirf magnitude hota hai",
+          "ye kabhi negative values nahi le sakta",
+          "ise ek number aur ek unit se specify kiya jata hai",
+          "different axis orientations wale observers ke liye iska value same hota hai"
+        ],
+        "answer_index": 1,
+        "explanation": "Scalar (adish) sirf magnitude se define hota hai; source yeh require nahi karta ki wo conserved, dimensionless, non-negative ya space mein constant ho. Temperature difference aur doosre scalars dikhate hain ki definition sirf magnitude hai.",
+        "expected_understanding": "Student scalars ke properties ko over-generalise nahi karta.",
+        "answer": "ye kabhi negative values nahi le sakta"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-41",
+      "type": "check",
+      "spec": {
+        "question": "Position r = 3.0 t squared i - 2.0 t squared j + 4.0 t squared k metres hai, t seconds mein. t = 2.0 s par velocity (veg) ka magnitude kya hai?",
+        "format": "numeric",
+        "answer": "21.5",
+        "explanation": "v = dr/dt = 6.0 t i - 4.0 t j + 8.0 t k; 2.0 s par v = 12 i - 8 j + 16 k, magnitude sqrt(144+64+256)=sqrt(464) approx 21.5 m/s. Acceleration (tvaran) 6 i -4 j +8 k m/s squared hai.",
+        "expected_understanding": "Student position ko differentiate karke velocity aur acceleration nikal sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-42",
+      "type": "check",
+      "spec": {
+        "question": "Ek aircraft 3400 m height par ud raha hai. Ground point par 10.0 s apart positions ke dwara subtend kiya gaya angle 30 degrees hai. Speed (chaal) estimate karo, assuming ground point dono positions ke midpoint ke neeche hai.",
+        "format": "numeric",
+        "answer": "182",
+        "explanation": "Half distance (doori) = 3400 x tan 15 degrees approx 911 m, total distance approx 1822 m in 10.0 s, speed approx 182 m/s. Yeh midpoint assumption use karta hai jo diya gaya hai kyunki source mein figure geometry poori tarah readable nahi hai.",
+        "expected_understanding": "Student angle, height aur time se speed estimate kar sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    }
+  ]
+}

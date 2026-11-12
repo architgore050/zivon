@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="hi" data-script="Deva">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
+<title>Laws of Motion - Zivon</title>
+<link rel="canonical" href="../index.html">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="alternate" hreflang="hi" href="index.html">
+<link rel="alternate" hreflang="hi-Latn" href="../hi-Latn/index.html">
+<link rel="stylesheet" href="../../../../assets/zivon.css">
+
+</head>
+<body>
+<header class="zn-lang-bar" data-current-locale="hi"><div class="zn-lang-in"><span class="zn-lang-lab" data-i18n="ui.lang_label">भाषा</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" data-locale="en" data-href="../index.html" aria-checked="false">English</button><button type="button" class="zn-chip" role="radio" data-locale="hi" data-href="index.html" lang="hi" aria-checked="true">हिन्दी</button><button type="button" class="zn-chip" role="radio" data-locale="hi-Latn" data-href="../hi-Latn/index.html" lang="hi-Latn" aria-checked="false">Hinglish</button></div><span class="zn-trans-badge" data-i18n="ui.trans_badge">AI-अनुवादित · समीक्षित</span></div></header>
+<main class="zn-page">
+  <header class="zn-header">
+    <p class="zn-kicker">class-11-physics</p>
+    <h1 class="zn-title" data-i18n="b-00-meta.title">Laws of Motion</h1>
+    <p class="zn-objectives-label" data-i18n="ui.objectives_heading">इस पाठ के बाद आप सीखेंगे:</p>
+    <ul class="zn-objectives">
+      <li data-i18n="b-00-meta.objectives.0">इस पाठ के बाद आप समझा सकते हैं कि अरस्तू का यह विचार क्यों गलत है कि किसी पिंड को गतिमान रखने के लिए बल (force) की आवश्यकता होती है, और गैलीलियो के जड़त्व (inertia) के नियम को बता सकते हैं।</li>
+      <li data-i18n="b-00-meta.objectives.1">इस पाठ के बाद आप न्यूटन के गति (motion) के तीन नियमों को बता और लागू कर सकते हैं, जिनमें संवेग (momentum), आवेग (impulse) और संवेग संरक्षण शामिल हैं।</li>
+      <li data-i18n="b-00-meta.objectives.2">इस पाठ के बाद आप साम्यावस्था (equilibrium), समतल और झुके हुए पृष्ठों पर घर्षण, और समतल तथा बैंक वाली सड़कों पर कार की वृत्तीय गति का विश्लेषण कर सकते हैं।</li>
+      <li data-i18n="b-00-meta.objectives.3">इस पाठ के बाद आप एक मुक्त-पिंड आरेख (free-body diagram) बना सकते हैं और गति के नियमों से बहु-पिंड समस्याओं को हल कर सकते हैं।</li>
+    </ul>
+  </header>
+  <section class="zn-text" id="b-01">
+    <p data-i18n="b-01.paragraphs.0">कल्पना कीजिए कि एक फुटबॉल जमीन पर स्थिर पड़ा है। इसे गतिमान करने के लिए किसी को उसे किक करना होगा। एक पत्थर को ऊपर भेजने के लिए किसी को उसे ऊपर धकेलना होगा। हवा के झोंके से पेड़ की शाखाएँ झूलती हैं, और तेज़ हवा भारी वस्तुओं को भी हिला सकती है। इनमें से प्रत्येक मामले में कोई बाहरी एजेंसी बल (force) प्रदान करती है।</p>
+    <p data-i18n="b-01.paragraphs.1">कभी-कभी एजेंसी शरीर को छूती है, जैसे आपका हाथ गेंद को छूता है या बहती धारा नाव को धकेलती है। यह हमेशा आवश्यक नहीं है। एक इमारत की छत से गिराया गया पत्थर पृथ्वी के गुरुत्वाकर्षण खिंचाव के कारण नीचे की ओर तेज़ होता जाता है, और एक छड़ चुंबक लोहे की कील को दूरी (distance) से आकर्षित कर सकता है। इसलिए एक बाहरी एजेंसी संपर्क में या दूरी से कार्य कर सकती है।</p>
+    <p data-i18n="b-01.paragraphs.2">गति (motion) को रोकने के लिए भी बल की आवश्यकता होती है: आप एक झुके हुए तल पर लुढ़कती गेंद को उसकी गति की दिशा के विपरीत धकेलकर रोक सकते हैं।</p>
+    <p data-i18n="b-01.paragraphs.3">अब एक और तीखा प्रश्न। मान लीजिए कि एक पिंड पहले से ही एकसमान गति (uniform motion) से चल रहा है - एक स्केटर क्षैतिज बर्फ की सिल्ली पर स्थिर चाल (speed) से सीधा चल रहा है। क्या इसे एकसमान गति में बनाए रखने के लिए बाहरी बल की आवश्यकता होती है? यह प्रश्न सरल लगता है, लेकिन इसे उत्तर देने में बहुत लंबा समय लगा।</p>
+  </section>
+  <section class="zn-text" id="b-02">
+    <p data-i18n="b-02.paragraphs.0">अरस्तू (Aristotle) (384 B.C. - 322 B.C.) का मत था कि यदि कोई पिंड गतिमान है, तो उसे गतिमान बनाए रखने के लिए कुछ बाहरी वस्तु आवश्यक है। इस दृष्टिकोण के अनुसार, धनुष से छोड़ा गया तीर उड़ता रहता है क्योंकि उसके पीछे की हवा उसे धक्का देती रहती है। इसे नियम के रूप में कहें: किसी पिंड को गति (motion) में बनाए रखने के लिए बाहरी बल (force) आवश्यक है।</p>
+    <p data-i18n="b-02.paragraphs.1">यह दैनिक अनुभव से स्वाभाविक लगता है। खिलौना-गाड़ी खींचता हुआ एक छोटा बच्चा जानता है कि रस्सी को हर समय खींचना पड़ता है; उसे छोड़ दें तो गाड़ी विराम में आ जाती है। अपने आप छोड़ दिए जाने पर पृथ्वी पर सभी पिंड रुकते से प्रतीत होते हैं।</p>
+    <p data-i18n="b-02.paragraphs.2">दोष घर्षण में है। गतिमान खिलौना-गाड़ी इसलिए रुक जाती है क्योंकि फर्श उस पर उसकी गति के विपरीत घर्षण बल लगाता है। गाड़ी को चलते रखने के लिए बच्चे को बराबर बल से आगे की ओर खींचना चाहिए, ताकि गाड़ी पर लगने वाला कुल बाहरी बल शून्य हो। यदि घर्षण न होता, तो गाड़ी को एकसमान गति से चलते रखने के लिए किसी भी बल की आवश्यकता न होती।</p>
+    <p data-i18n="b-02.paragraphs.3">ठोसों के बीच घर्षण तथा तरलों में श्यान बल जैसे विरोधी बल प्राकृतिक जगत में सदैव उपस्थित रहते हैं। इसी कारण हमें सामान्यतः वस्तुओं को उन्हें चलते रखने के लिए धकेलना पड़ता है। प्रकृति का सच्चा नियम खोजने के लिए गैलीलियो ने ऐसी दुनिया की कल्पना की जिसमें बिल्कुल ही घर्षण न हो।</p>
+  </section>
+  <section class="zn-text" id="b-03">
+    <p data-i18n="b-03.paragraphs.0">गैलीलियो (Galileo) ने नत तलों पर वस्तुओं की गति (motion) का अध्ययन किया। नत तल पर नीचे की ओर गतिमान वस्तु का त्वरण होता है; ऊपर की ओर गतिमान वस्तु का मंदन होता है। क्षैतिज तल पर गति मध्यवर्ती स्थिति है। गैलीलियो ने निष्कर्ष निकाला कि घर्षणरहित क्षैतिज तल पर गतिमान वस्तु का न तो त्वरण होना चाहिए और न ही मंदन: वह स्थिर वेग (velocity) से गति करती है।</p>
+    <p data-i18n="b-03.paragraphs.1">उनके दूसरे प्रयोग में दोहरा नत तल प्रयोग किया गया। एक तल पर विराम से छोड़ी गई गेंद नीचे लुढ़कती है और दूसरे तल पर चढ़ती है। यदि तल चिकने हों, तो गेंद लगभग उसी ऊँचाई तक पहुँचती है जहाँ से उसने प्रारंभ किया था - थोड़ी कम, कभी अधिक नहीं। घर्षण न होने पर अंतिम ऊँचाई प्रारंभिक ऊँचाई के बराबर होगी।</p>
+    <p data-i18n="b-03.paragraphs.2">दूसरे तल को और अधिक समतल बनाइए और दोहराइए: गेंद फिर भी उसी ऊँचाई तक चढ़ती है, इसलिए उसे और अधिक दूरी तय करनी पड़ती है। सीमांत स्थिति में दूसरा तल क्षैतिज हो जाता है और गेंद अनंत दूरी (distance) तय करती है - उसकी गति कभी नहीं रुकती।</p>
+    <p data-i18n="b-03.paragraphs.3">व्यवहार में गेंद परिमित दूरी के बाद रुक ही जाती है, क्योंकि घर्षण को पूर्णतः हटाया नहीं जा सकता। गैलीलियो की अंतर्दृष्टि यह थी कि विराम की अवस्था और एकसमान रैखिक गति (uniform motion) की अवस्था तुल्य हैं: दोनों ही स्थितियों में पिंड पर कोई परिणामी बल (force) नहीं होता। किसी पिंड का अपनी विराम अवस्था या एकसमान गति में परिवर्तन का विरोध करने का गुण जड़त्व (Inertia) कहलाता है। जड़त्व का अर्थ है &#x27;परिवर्तन का विरोध&#x27;।</p>
+  </section>
+  <fieldset class="zn-check" id="b-04" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-04.question">एक बच्चा फर्श पर एक डोरी से खिलौना-कार को खींचता है। कार स्थिर चाल (speed) से एक सीधी रेखा में चलती है। कौन-सा कथन सही है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="0"> <span data-i18n="b-04.options.0">कार को चलते रहने के लिए एक बाह्य बल (force) आवश्यक है, इसलिए उस पर परिणामी बल शून्य नहीं है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="1"> <span data-i18n="b-04.options.1">बच्चे द्वारा लगाया गया बल फर्श द्वारा लगाए गए घर्षण बल द्वारा संतुलित होता है, इसलिए कार पर परिणामी बाह्य बल शून्य है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="2"> <span data-i18n="b-04.options.2">कार में जड़त्व (Inertia) नहीं है क्योंकि वह गतिमान है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="3"> <span data-i18n="b-04.options.3">यदि डोरी छोड़ दी जाए तो कार की चाल बढ़ जाएगी।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-04.explanation">स्थिर वेग (velocity) का अर्थ है शून्य त्वरण (acceleration), इसलिए गति के प्रथम नियम के अनुसार परिणामी बाह्य बल शून्य होना चाहिए। बच्चे का खिंचाव और घर्षण बराबर तथा विपरीत हैं। घर्षण न हो तो खिंचाव की आवश्यकता ही नहीं होगी - यही वह बिंदु है जहाँ अरस्तु (Aristotle) से गलती हुई थी।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-05" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-05.question">गैलीलियो के द्वि-नत समतल प्रयोग में समतल चिकने हैं। जब दूसरे समतल की ढाल (slope) को और अधिक सपाट बनाया जाता है, तो क्या होता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="0"> <span data-i18n="b-05.options.0">गेंद जिस ऊँचाई से उसने प्रारंभ किया था, उससे अधिक ऊँचाई तक चढ़ जाती है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="1"> <span data-i18n="b-05.options.1">गेंद उसी ऊँचाई तक पहुँचती है, परंतु अधिक दूरी (distance) तय करती है; और यदि दूसरा समतल क्षैतिज हो, तो वह सदा चलती रहेगी।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="2"> <span data-i18n="b-05.options.2">गेंद दूसरे समतल पर एक निश्चित दूरी तय करने के बाद रुक जाती है, चाहे ढाल कोई भी हो।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-05" value="3"> <span data-i18n="b-05.options.3">गेंद पहले समतल पर वापस नीचे लुढ़क जाती है।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-05.explanation">गेंद सदैव लगभग अपनी प्रारंभिक ऊँचाई तक वापस चढ़ जाती है। अधिक सपाट समतल का अर्थ है कि उस ऊँचाई तक पहुँचने के लिए उसे अधिक दूरी चाहिए, और क्षैतिज समतल पर आवश्यक दूरी अनंत होती है - आदर्शित गति (motion) कभी समाप्त नहीं होती।</p></details>
+  </fieldset>
+  <figure class="zn-diagram" id="b-06">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 240" role="img" aria-label="बाएँ ओर मेज़ पर विरामावस्था में रखी एक पुस्तक; दाएँ ओर पुस्तक का मुक्त-पिंड आरेख (Free-body diagram), जिसमें उसका भार W नीचे की ओर और अभिलंब प्रतिक्रिया R ऊपर की ओर दर्शायी गई है, इन्हें समान लंबाई में खींचा गया है"><line x1="20" y1="180" x2="195" y2="180" stroke="#1C1B18" stroke-width="3" /><rect x="60" y="140" width="90" height="40" fill="none" stroke="#1C1B18" stroke-width="2.6" /><text x="30" y="215" font-family="Caveat, cursive" font-size="22" fill="#5A5748" data-i18n="b-06.svg_texts.t-0">मेज़ पर विराम में पुस्तक</text><circle cx="310" cy="120" r="4" fill="#1C1B18" /><line x1="310" y1="120" x2="310" y2="196" stroke="#1F3A9E" stroke-width="3" /><polygon points="310,200 304,188 316,188" fill="#1F3A9E" /><line x1="310" y1="120" x2="310" y2="44" stroke="#1F3A9E" stroke-width="3" /><polygon points="310,40 304,52 316,52" fill="#1F3A9E" /><text x="282" y="80" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">R</text><text x="282" y="196" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">W</text><text x="230" y="225" font-family="Caveat, cursive" font-size="20" fill="#5A5748" data-i18n="b-06.svg_texts.t-1">पुस्तक पर लगने वाले बल</text></svg></div>
+    <figcaption data-i18n="b-06.caption">मेज़ पर विरामावस्था में रखी एक पुस्तक (बाएँ)। पुस्तक पर लगने वाले दो बल (force) हैं—उसका भार W, जो ऊर्ध्वाधर नीचे की ओर कार्य करता है, और मेज़ की अभिलंब प्रतिक्रिया (Normal reaction) R, जो ऊर्ध्वाधर ऊपर की ओर कार्य करती है। इन्हें समान लंबाई में खींचा गया है क्योंकि पुस्तक के विरामावस्था में होने पर R का मान W के बराबर होना चाहिए। केवल दिशाएँ; तीर दोनों बलों को दर्शाते हैं, किसी मापित पैमाने को नहीं।</figcaption>
+  </figure>
+  <section class="zn-text" id="b-07">
+    <p data-i18n="b-07.paragraphs.0">न्यूटन ने गैलीलियो के विचारों पर आगे बढ़ते हुए गति (motion) के तीन नियमों में यांत्रिकी की नींव रखी। गैलीलियो का जड़त्व (Inertia) का नियम पहला नियम बना: प्रत्येक पिंड अपनी विरामावस्था या सीधी रेखा में एकसमान गति (uniform motion) की अवस्था में तब तक बना रहता है, जब तक कोई बाह्य बल (force) उसे अन्यथा कार्य करने के लिए विवश न करे।</p>
+    <p data-i18n="b-07.paragraphs.1">विरामावस्था और सीधी रेखा में एकसमान गति दोनों का अर्थ शून्य त्वरण (acceleration) है। अतः पहला नियम एक पंक्ति में कहा जा सकता है: यदि किसी पिंड पर कुल बाह्य बल शून्य है, तो उसका त्वरण शून्य है। त्वरण तभी अशून्य हो सकता है जब पिंड पर कोई कुल बाह्य बल हो।</p>
+    <p data-i18n="b-07.paragraphs.2">दो प्रकार की स्थितियाँ उत्पन्न होती हैं। कभी-कभी हम जानते हैं कि कुल बल शून्य है—उदाहरण के लिए, अन्य सभी वस्तुओं से दूर एक अंतरिक्ष यान जिसके सभी रॉकेट बंद हैं; तब उसका त्वरण शून्य होना चाहिए, और यदि वह गतिमान है तो वह एकसमान वेग (velocity) बनाए रखता है। अधिकतर हम सभी बलों को नहीं जानते, परंतु हम देख सकते हैं कि वस्तु विरामावस्था में है या एकसमान गति में है; तब पहला नियम हमें बताता है कि उस पर कुल बाह्य बल शून्य होना चाहिए।</p>
+    <p data-i18n="b-07.paragraphs.3">मेज़ पर विरामावस्था में रखी एक पुस्तक लीजिए। उस पर दो बल कार्य करते हैं: उसका भार W नीचे की ओर और मेज़ का अभिलंब बल R ऊपर की ओर। सही तर्क यह नहीं है कि &#x27;चूँकि W = R, बल कट जाते हैं और पुस्तक विरामावस्था में रहती है&#x27;। सही तर्क यह है: पुस्तक विरामावस्था में देखी जाती है, अतः पहले नियम से उस पर कुल बाह्य बल शून्य होना चाहिए, और इसलिए R को W के बराबर तथा विपरीत होना चाहिए। गुरुत्व हर जगह है और घर्षण सामान्य है, इसलिए पृथ्वी पर विरामावस्था में या एकसमान गति में किसी वस्तु पर ऐसे बल होते हैं जिनका योग शून्य होता है—बल बिल्कुल नहीं, ऐसा नहीं।</p>
+    <p data-i18n="b-07.paragraphs.4">आप पहले नियम को बस में महसूस करते हैं। जब बस अचानक चलना शुरू करती है तो आप पीछे धकेल दिए जाते हैं: आपके पैर घर्षण के कारण फर्श के साथ चलते हैं, जबकि आपका शेष शरीर जड़त्व के कारण वहीं रहना चाहता है। जब बस अचानक रुकती है तो आपके पैर रुक जाते हैं और शेष शरीर आगे बढ़ता रहता है, इसलिए आप आगे धकेल दिए जाते हैं।</p>
+  </section>
+  <fieldset class="zn-check" id="b-08" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-08.question">बारिश की एक बूंद स्थिर चाल (speed) से सीधी ऊर्ध्वाधर नीचे की ओर गिर रही है। बूंद पर कुल बाह्य बल (force) कितना है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="0"> <span data-i18n="b-08.options.0">शून्य।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="1"> <span data-i18n="b-08.options.1">उसका भार mg, नीचे की ओर।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="2"> <span data-i18n="b-08.options.2">उसका भार mg, ऊपर की ओर।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-08" value="3"> <span data-i18n="b-08.options.3">mg से अधिक, नीचे की ओर।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-08.explanation">सीधी रेखा में स्थिर चाल का अर्थ है शून्य त्वरण (acceleration), इसलिए पहले नियम के अनुसार कुल बाह्य बल शून्य होना चाहिए। भार को वायु के ऊपर की ओर लगने वाले कर्षण से संतुलित किया जाता है। बल अलग-अलग रूप से शून्य नहीं हैं - वे एक-दूसरे को निरस्त करते हैं।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-09">
+    <p data-i18n="b-09.paragraphs.0">गति का दूसरा नियम किसी पिंड पर लगने वाले कुल बाह्य बल (force) को उसके त्वरण (acceleration) से संबंधित करता है, और इसे संवेग (momentum) के पदों में व्यक्त किया जाता है। किसी पिंड का संवेग उसके द्रव्यमान m और उसके वेग (velocity) v के गुणनफल के रूप में परिभाषित किया जाता है, जिसे p = m v लिखा जाता है। संवेग एक सदिश (vector) राशि है; यह वेग की दिशा में होता है।</p>
+    <p data-i18n="b-09.paragraphs.1">यह गुणनफल क्यों? समान समय में समान चाल (speed) प्राप्त करने के लिए एक लदे हुए ट्रक को छोटी कार की तुलना में बहुत अधिक बल की आवश्यकता होती है, और समान चाल पर समान समय में रुकने के लिए अधिक विरोधी बल की आवश्यकता होती है। समान ऊँचाई से गिराए गए हल्के पत्थर की तुलना में भारी पत्थर को पकड़ना कठिन होता है। तेज़ चाल से दागी गई गोली ऊतक को भेद सकती है, जबकि वही गोली मध्यम चाल से बहुत कम क्षति पहुँचाती है। केवल द्रव्यमान, या केवल चाल, पर्याप्त नहीं है - महत्व रखने वाली राशि गुणनफल m v ही है।</p>
+    <p data-i18n="b-09.paragraphs.2">यदि कोई नियत बल कुछ समय अंतराल के लिए विभिन्न द्रव्यमानों के दो पिंडों पर, जो प्रारंभ में विरामावस्था में हैं, कार्य करता है, तो हल्का पिंड अधिक चाल प्राप्त करता है; परंतु उस समय के अंत में प्रत्येक पिंड का संवेग समान होता है। विभिन्न पिंडों के लिए समान बल समान समय तक संवेग में समान परिवर्तन उत्पन्न करता है।</p>
+    <p data-i18n="b-09.paragraphs.3">दिशा भी मायने रखती है। क्षैतिज वृत्त में नियत चाल से घुमाए जा रहे पत्थर का संवेग निश्चित परिमाण का होता है, परंतु उसकी दिशा लगातार बदलती रहती है, और उस परिवर्तन को उत्पन्न करने के लिए बल की आवश्यकता होती है। यदि आप पत्थर को अधिक तेज़ी से या छोटे वृत्त में घुमाते हैं, तो आपके हाथ को अधिक ज़ोर से खींचना पड़ता है। इसलिए संवेग सदिश के परिवर्तन की दर जितनी अधिक होगी, बल उतना ही अधिक होगा।</p>
+  </section>
+  <section class="zn-reveal" id="b-10">
+    <h3 data-i18n="b-10.title">संवेग (momentum) से F = m a तक</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.0.title">चरण 1: संवेग</summary><p data-i18n="b-10.steps.0.detail">द्रव्यमान m वाले किसी पिंड के लिए जो वेग (velocity) v से गतिमान है, संवेग p = m v होता है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.1.title">चरण 2: नियम शब्दों में</summary><p data-i18n="b-10.steps.1.detail">किसी पिंड के संवेग के परिवर्तन की दर लगाए गए बल (force) के सीधे समानुपाती होती है और उसी दिशा में होती है जिस दिशा में बल कार्य करता है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.2.title">चरण 3: इसे संकेतों में लिखिए</summary><p data-i18n="b-10.steps.2.detail">यदि कोई बल F समय अंतराल Δt के लिए कार्य करता है और वेग v से v + Δv तक परिवर्तित होता है, तो संवेग में परिवर्तन Δp = m Δv होता है। नियम देता है F ∝ Δp/Δt, अर्थात् F = k Δp/Δt, जहाँ k समानुपातिकता का स्थिरांक है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.3.title">चरण 4: सीमा लीजिए</summary><p data-i18n="b-10.steps.3.detail">मान लीजिए Δt बहुत छोटा हो जाता है। तब Δp/Δt अवकलज dp/dt बन जाता है, इसलिए F = k dp/dt।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.4.title">चरण 5: नियत द्रव्यमान</summary><p data-i18n="b-10.steps.4.detail">नियत द्रव्यमान वाले पिंड के लिए, dp/dt = d(m v)/dt = m dv/dt = m a। अतः F = k m a।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-10.steps.5.title">चरण 6: k = 1 चुनिए</summary><p data-i18n="b-10.steps.5.detail">बल की इकाई अभी परिभाषित नहीं की गई है, इसलिए हम k = 1 चुनने के लिए स्वतंत्र हैं। तब F = dp/dt = m a। SI इकाइयों में वह बल जो 1 kg द्रव्यमान को 1 m s-2 का त्वरण (acceleration) देता है, एक न्यूटन है, इसलिए 1 N = 1 kg m s-2।</p></details>
+  </section>
+  <section class="zn-text" id="b-11">
+    <p data-i18n="b-11.paragraphs.0">चार बिंदु द्वितीय नियम के बारे में। पहला, F = 0 रखने पर a = 0 प्राप्त होता है, इसलिए द्वितीय नियम प्रथम नियम से सहमत है। दूसरा, यह एक सदिश (vector) नियम है: यह तीन समीकरण हैं, प्रत्येक घटक के लिए एक (F_x = dp_x/dt = m a_x, और इसी प्रकार y और z के लिए)। एक बल (force) जो वेग (velocity) के समानांतर नहीं है, केवल बल के अनुदिश वेग के घटक को बदलता है; बल के लंबवत घटक अपरिवर्तित रहता है - यही कारण है कि ऊर्ध्वाधर गुरुत्व के अधीन एक प्रक्षेप्य अपने क्षैतिज वेग घटक को बनाए रखता है।</p>
+    <p data-i18n="b-11.paragraphs.1">तीसरा, नियम एकल बिंदु कण पर लागू होता है, और उसी रूप में एक दृढ़ पिंड या कणों के निकाय पर भी; तब F निकाय पर कुल बाह्य बल है और a समग्र रूप से निकाय का त्वरण (acceleration) है, आंतरिक बलों को छोड़कर। चौथा, नियम एक स्थानीय संबंध है: किसी क्षण पर किसी बिंदु पर बल उस क्षण पर उस बिंदु पर त्वरण निर्धारित करता है। एक त्वरणशील ट्रेन से गिराया गया पत्थर, छोड़ने के क्षण बाद, कोई क्षैतिज बल नहीं और कोई क्षैतिज त्वरण नहीं होता है - यह ट्रेन के त्वरण की कोई स्मृति नहीं रखता।</p>
+    <p data-i18n="b-11.paragraphs.2">यह भी याद रखें कि F का क्या अर्थ है। F = m a में, F शरीर के बाह्य सभी भौतिक कारकों के कारण कुल बल है, और a उस बल का प्रभाव है। गुणनफल m a सूची में जोड़ने के लिए एक और बल नहीं है।</p>
+  </section>
+  <section class="zn-example" id="b-12">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-12.problem">एक अंतरिक्ष यात्री संयोगवश अपने छोटे अंतरिक्ष यान से अलग हो जाता है, जो अंतरतारकीय अंतरिक्ष में नियत दर 100 m s-2 से त्वरण (acceleration) कर रहा है। अंतरिक्ष यान से बाहर निकलने के तुरंत बाद अंतरिक्ष यात्री का त्वरण क्या है? (मान लें कि उस पर गुरुत्वाकर्षण बल लगाने के लिए आस-पास कोई तारे नहीं हैं।)</p>
+    <ol>
+      <li><strong data-i18n="b-12.steps.0.title">बल (force) की सूची बनाएँ</strong> <span data-i18n="b-12.steps.0.detail">उसे खींचने के लिए आस-पास कोई तारे नहीं हैं, और छोटा अंतरिक्ष यान उस पर नगण्य गुरुत्वाकर्षण आकर्षण लगाता है।</span></li>
+      <li><strong data-i18n="b-12.steps.1.title">कुल बल</strong> <span data-i18n="b-12.steps.1.detail">अतः अंतरिक्ष यान से बाहर निकलने के बाद अंतरिक्ष यात्री पर कुल बाह्य बल शून्य है।</span></li>
+      <li><strong data-i18n="b-12.steps.2.title">प्रथम नियम लागू करें</strong> <span data-i18n="b-12.steps.2.detail">यदि किसी पिंड पर कुल बाह्य बल शून्य है, तो उसका त्वरण शून्य है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-12.answer">अंतरिक्ष यात्री का त्वरण शून्य है। वह अंतरिक्ष यान के 100 m s-2 त्वरण को बनाए नहीं रखता, क्योंकि बल किसी पिंड द्वारा उसकी पूर्व गति (motion) से &#x27;वहन&#x27; नहीं किया जाता।</span></p>
+  </section>
+  <section class="zn-example" id="b-13">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-13.problem">0.04 kg द्रव्यमान की एक गोली 90 m s-1 की चाल (speed) से चलते हुए एक भारी लकड़ी के गुटके में प्रवेश करती है और 60 cm की दूरी (distance) तय करने के बाद रुक जाती है। गुटके द्वारा गोली पर लगाया गया औसत प्रतिरोधी बल (force) क्या है?</p>
+    <ol>
+      <li><strong data-i18n="b-13.steps.0.title">मंदन ज्ञात कीजिए</strong> <span data-i18n="b-13.steps.0.detail">मान लीजिए कि मंदन a नियत है। चाल u = 90 m s-1 और रुकने की दूरी s = 60 cm = 0.6 m से, a = u²/(2s) = (90 × 90)/(2 × 0.6) m s-2 = 6750 m s-2.</span></li>
+      <li><strong data-i18n="b-13.steps.1.title">द्वितीय नियम लागू कीजिए</strong> <span data-i18n="b-13.steps.1.detail">मंदक बल F = m a = 0.04 kg × 6750 m s-2 है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-13.answer">F = 270 N. वास्तविक प्रतिरोधी बल, और इसलिए मंदन, एकसमान नहीं हो सकते, अतः यह उत्तर केवल औसत प्रतिरोधी बल दर्शाता है।</span></p>
+  </section>
+  <section class="zn-example" id="b-14">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-14.problem">द्रव्यमान m के एक कण की गति (motion) का वर्णन y = u t + ½ g t² द्वारा होता है। कण पर लगने वाला बल (force) ज्ञात कीजिए।</p>
+    <ol>
+      <li><strong data-i18n="b-14.steps.0.title">वेग (velocity)</strong> <span data-i18n="b-14.steps.0.detail">स्थिति को समय के सापेक्ष अवकलन कीजिए: v = dy/dt = u + g t.</span></li>
+      <li><strong data-i18n="b-14.steps.1.title">त्वरण (acceleration)</strong> <span data-i18n="b-14.steps.1.detail">पुनः अवकलन कीजिए: a = dv/dt = g.</span></li>
+      <li><strong data-i18n="b-14.steps.2.title">बल</strong> <span data-i18n="b-14.steps.2.detail">द्वितीय नियम लगाइए: F = m a = m g.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-14.answer">F = m g. यह समीकरण गुरुत्व के कारण त्वरण के अधीन गतिमान कण का वर्णन करता है, जहाँ y, g की दिशा में मापा गया स्थिति निर्देशांक है।</span></p>
+  </section>
+  <section class="zn-text" id="b-15">
+    <p data-i18n="b-15.paragraphs.0">कुछ बल (force) बहुत कम समय के लिए कार्य करते हैं, परंतु संवेग (momentum) को काफी बदलने के लिए पर्याप्त बड़े होते हैं—उदाहरण के लिए, दीवार से टकराकर वापस उछलती गेंद। गेंद पर बल केवल तभी कार्य करता है जब तक गेंद और दीवार संपर्क में रहते हैं, और बल तथा संपर्क-समय को अलग-अलग मापना कठिन है। उनका गुणनफल कठिन नहीं है: वह संवेग में परिवर्तन है।</p>
+    <p data-i18n="b-15.paragraphs.1">इस गुणनफल को आवेग (Impulse) कहते हैं: आवेग = बल × समय अवधि = संवेग में परिवर्तन। संवेग में सीमित परिवर्तन उत्पन्न करने के लिए थोड़े समय तक कार्य करने वाले बड़े बल को आवेगी बल कहते हैं। न्यूटनियन यांत्रिकी में आवेगी बल अलग प्रकार का बल नहीं है—वह केवल बड़ा और अल्पकालिक होता है।</p>
+    <p data-i18n="b-15.paragraphs.2">यह एक परिचित कौशल की व्याख्या करता है। एक अनुभवी क्रिकेटर कैच लेते समय अपने हाथ पीछे खींचता है, जिससे गेंद को रुकने में अधिक समय लगता है। संवेग का वही परिवर्तन अधिक समय में फैलने पर छोटे बल की आवश्यकता होती है, इसलिए उसके हाथों में चोट नहीं लगती। एक नौसिखिया जो अपने हाथ स्थिर रखता है, उसे गेंद को लगभग तुरंत रोकना पड़ता है, उसे बहुत अधिक बल की आवश्यकता होती है, और उसे चोट लग जाती है।</p>
+  </section>
+  <section class="zn-example" id="b-16">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-16.problem">एक बल्लेबाज़ गेंद को सीधे गेंदबाज़ की दिशा में वापस मारता है, बिना उसकी प्रारंभिक चाल (speed) 12 m s-1 को बदले। यदि गेंद का द्रव्यमान 0.15 kg है, तो गेंद को दिया गया आवेग (Impulse) ज्ञात कीजिए। (मान लें कि गेंद की गति (motion) रेखीय है।)</p>
+    <ol>
+      <li><strong data-i18n="b-16.steps.0.title">धनात्मक दिशा चुनें</strong> <span data-i18n="b-16.steps.0.detail">गेंदबाज़ से बल्लेबाज़ की ओर की दिशा को धनात्मक मानें। प्रारंभिक संवेग (momentum) = 0.15 × 12 = 1.8 kg m s-1।</span></li>
+      <li><strong data-i18n="b-16.steps.1.title">अंतिम संवेग</strong> <span data-i18n="b-16.steps.1.detail">प्रहार के बाद गेंद उसी चाल से वापस चलती है, इसलिए उसका अंतिम संवेग −1.8 kg m s-1 है।</span></li>
+      <li><strong data-i18n="b-16.steps.2.title">संवेग में परिवर्तन</strong> <span data-i18n="b-16.steps.2.detail">संवेग में परिवर्तन = 0.15 × 12 − (−0.15 × 12) = 3.6 N s, और आवेग इस परिवर्तन के बराबर है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-16.answer">आवेग = 3.6 N s, जिसकी दिशा बल्लेबाज़ से गेंदबाज़ की ओर है। यहाँ गेंद पर लगने वाले बल (force) और संपर्क-समय को जानना कठिन है, परंतु आवेग की गणना करना आसान है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-17" data-format="numeric" data-answer="6">
+    <legend data-i18n="b-17.question">20 kg द्रव्यमान के एक पिंड पर, जो प्रारंभ में 15 m s-1 की चाल (speed) से गतिमान है, 50 N का एक स्थिर मंदक बल (force) लगाया जाता है। पिंड को रुकने में कितना समय लगेगा? उत्तर सेकंड में दीजिए।</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-17-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-17.explanation">मंदन a = F/m = 50/20 = 2.5 m s-2 है। इसका अर्थ है कि पिंड प्रत्येक सेकंड में 2.5 m s-1 की चाल खो देता है, इसलिए इसकी 15 m s-1 की चाल 15/2.5 = 6 s में समाप्त हो जाती है।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-18">
+    <p data-i18n="b-18.paragraphs.0">द्वितीय नियम आपको बताता है कि बाह्य बल (force) क्या करता है; तृतीय नियम बताता है कि ऐसा बल कहाँ से आता है। न्यूटनी यांत्रिकी में किसी पिंड पर लगने वाला बाह्य बल सदैव किसी अन्य पिंड से उत्पन्न होता है। एक कुंडलित स्प्रिंग को दबाइए और स्प्रिंग आपके हाथ पर पीछे की ओर धकेलती है। पृथ्वी एक पत्थर को नीचे खींचती है, और पत्थर पृथ्वी को बराबर और विपरीत बल से ऊपर खींचता है, जिसे हम इसलिए नहीं देख पाते क्योंकि पृथ्वी बहुत विशाल है।</p>
+    <p data-i18n="b-18.paragraphs.1">अतः बल कभी अकेले नहीं होता: बल दो पिंडों के बीच पारस्परिक क्रिया है, और बल सदैव युग्मों में होते हैं। न्यूटन ने इसे इस प्रकार कहा: प्रत्येक क्रिया के लिए सदैव एक बराबर और विपरीत प्रतिक्रिया होती है। संकेतन में, B द्वारा A पर लगाया गया बल, A द्वारा B पर लगाए गए बल के ऋणात्मक के बराबर होता है: F_AB = −F_BA।</p>
+    <p data-i18n="b-18.paragraphs.2">तीन चेतावनियाँ। क्रिया और प्रतिक्रिया शब्दों का अर्थ &#x27;बल&#x27; से अधिक कुछ नहीं है। इनमें कोई कारण-और-प्रभाव क्रम नहीं है - दोनों बल एक ही क्षण में कार्य करते हैं, और इनमें से किसी को भी क्रिया कहा जा सकता है। और दोनों बल विभिन्न पिंडों पर कार्य करते हैं, इसलिए यदि आप एक पिंड की गति (motion) का अध्ययन कर रहे हैं, तो युग्म में से केवल एक ही प्रासंगिक है; उन्हें जोड़कर यह दावा करना कि कुल बल शून्य है, एक त्रुटि है। केवल जब दोनों पिंडों को एक निकाय के रूप में माना जाता है, तब यह युग्म आंतरिक बल बन जाते हैं और निरसित हो जाते हैं।</p>
+  </section>
+  <section class="zn-example" id="b-19">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-19.problem">दो समरूप बिलियर्ड गेंदें एक दृढ़ दीवार से समान चाल (speed) परंतु भिन्न कोणों पर टकराती हैं और चाल में किसी भी परिवर्तन के बिना परावर्तित हो जाती हैं। स्थिति (a) में एक गेंद दीवार से अभिलंबवत टकराती है और सीधे वापस उछलती है। स्थिति (b) में एक गेंद दीवार से इस प्रकार टकराती है कि इसका वेग (velocity) अभिलंब से 30° पर है और दूसरी ओर अभिलंब से 30° पर परावर्तित होती है। (i) प्रत्येक गेंद के कारण दीवार पर बल (force) की दिशा क्या है, और (ii) दीवार द्वारा गेंदों को दिए गए Impulse के परिमाणों का अनुपात क्या है?</p>
+    <ol>
+      <li><strong data-i18n="b-19.steps.0.title">अक्ष स्थापित करें</strong> <span data-i18n="b-19.steps.0.detail">मान लीजिए टक्कर से पहले और बाद में प्रत्येक गेंद की चाल u है और उसका द्रव्यमान m है। x-अक्ष को दीवार के अभिलंब के अनुदिश लें, दीवार से दूर की दिशा ऋणात्मक है, और y-अक्ष को दीवार के अनुदिश लें।</span></li>
+      <li><strong data-i18n="b-19.steps.1.title">स्थिति (a): अभिलंब टक्कर</strong> <span data-i18n="b-19.steps.1.detail">प्रारंभिक p_x = m u, p_y = 0; अंतिम p_x = −m u, p_y = 0। अतः Impulse का x-घटक −2 m u है और y-घटक 0 है।</span></li>
+      <li><strong data-i18n="b-19.steps.2.title">स्थिति (b): अभिलंब से 30° पर टक्कर</strong> <span data-i18n="b-19.steps.2.detail">प्रारंभिक p_x = m u cos 30°, p_y = −m u sin 30°; अंतिम p_x = −m u cos 30°, p_y = −m u sin 30°। केवल p_x का चिह्न बदलता है, इसलिए Impulse का x-घटक −2 m u cos 30° है और y-घटक 0 है।</span></li>
+      <li><strong data-i18n="b-19.steps.3.title">तृतीय नियम का उपयोग करें</strong> <span data-i18n="b-19.steps.3.detail">Impulse और बल एक ही दिशा में होते हैं। दोनों स्थितियों में गेंद पर Impulse दीवार के अभिलंब है; तृतीय नियम से गेंद के कारण दीवार पर बल दोनों स्थितियों में दीवार के अभिलंब है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-19.answer">दोनों स्थितियों में दीवार पर बल दीवार के अभिलंब है। Impulse के परिमाणों का अनुपात 2 m u /(2 m u cos 30°) = 2/√3 है, लगभग 1.2। बल का परिमाण ज्ञात नहीं किया जा सकता, क्योंकि संपर्क समय छोटा है और दिया नहीं गया है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-20" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-20.question">एक पुस्तक मेज पर रखी है। न्यूटन के तृतीय नियम के अर्थ में निम्नलिखित में से कौन-सा क्रिया-प्रतिक्रिया युग्म है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="0"> <span data-i18n="b-20.options.0">पुस्तक का भार और मेज द्वारा पुस्तक पर लगाया गया अभिलंब बल (force)।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="1"> <span data-i18n="b-20.options.1">पृथ्वी द्वारा पुस्तक पर लगाया गया गुरुत्व बल, और पुस्तक द्वारा पृथ्वी पर लगाया गया गुरुत्व बल।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="2"> <span data-i18n="b-20.options.2">मेज द्वारा पुस्तक पर लगाया गया अभिलंब बल और मेज का भार।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-20" value="3"> <span data-i18n="b-20.options.3">पुस्तक का भार और मेज का भार।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-20.explanation">क्रिया-प्रतिक्रिया युग्म एक ही दो पिंडों—यहाँ पुस्तक और पृथ्वी—के बीच लगने वाले दो पारस्परिक बल होते हैं। पुस्तक का भार और उस पर लगा अभिलंब बल एक ही पिंड पर लगने वाले दो बल हैं; पुस्तक विरामावस्था में होने के कारण ये संयोगवश समान और विपरीत हैं, परंतु ये तृतीय नियम का युग्म नहीं हैं।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-21">
+    <p data-i18n="b-21.paragraphs.0">दूसरा और तीसरा नियम मिलकर संवेग (momentum) के संरक्षण का नियम देते हैं। एक बंदूक से गोली चलाइए। बंदूक द्वारा गोली पर लगाया गया बल (force) F है; तीसरे नियम से गोली द्वारा बंदूक पर लगाया गया बल −F है; दोनों समान समय अंतराल तक कार्य करते हैं। अतः गोली के संवेग में परिवर्तन F गुणा उस अंतराल के बराबर है, और बंदूक के संवेग में परिवर्तन विपरीत है। दोनों विराम से प्रारंभ करते हैं, इसलिए उनके अंतिम संवेग बराबर और विपरीत हैं, और (गोली + बंदूक) निकाय का कुल संवेग शून्य ही रहता है।</p>
+    <p data-i18n="b-21.paragraphs.1">एक विलगित निकाय में - जिस पर कोई बाह्य बल नहीं होता - कणों के युग्मों के बीच परस्पर बल व्यक्तिगत कणों के संवेग को बदलते हैं, परंतु प्रत्येक युग्म के लिए परिवर्तन बराबर और विपरीत होते हैं और निरसित हो जाते हैं। अतः कुल संवेग अपरिवर्तित रहता है। संवेग संरक्षण का नियम कहता है: परस्पर क्रिया करने वाले कणों के विलगित निकाय का कुल संवेग संरक्षित रहता है।</p>
+    <p data-i18n="b-21.paragraphs.2">टकराव इसका मानक उदाहरण हैं। प्रारंभिक संवेग p_A और p_B वाले दो पिंड A और B टकराते हैं और संवेग p′_A और p′_B के साथ अलग होते हैं। दूसरे नियम से, संपर्क के समान समय का उपयोग करते हुए, F_AB गुणा वह समय = p′_A − p_A और F_BA गुणा वह समय = p′_B − p_B। चूँकि F_AB = −F_BA, हमें p′_A + p′_B = p_A + p_B प्राप्त होता है: अंतिम कुल संवेग प्रारंभिक कुल संवेग के बराबर है। यह सत्य है चाहे टकराव प्रत्यास्थ हो या अप्रत्यास्थ।</p>
+  </section>
+  <section class="zn-example" id="b-22">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-22.problem">0.020 kg द्रव्यमान के एक गोले को 100 kg द्रव्यमान की एक बंदूक से दागा जाता है। यदि गोले की नाल से निकलने की चाल (speed) 80 m s-1 है, तो बंदूक की प्रतिक्षेप चाल क्या है?</p>
+    <ol>
+      <li><strong data-i18n="b-22.steps.0.title">दागने से पहले</strong> <span data-i18n="b-22.steps.0.detail">गोला और बंदूक दोनों विरामावस्था में हैं, इसलिए निकाय का कुल संवेग (momentum) शून्य है।</span></li>
+      <li><strong data-i18n="b-22.steps.1.title">संवेग का संरक्षण</strong> <span data-i18n="b-22.steps.1.detail">नाल के अनुदिश कोई बाहरी बल (force) नहीं है, इसलिए कुल संवेग शून्य रहता है: गोले का द्रव्यमान × गोले की चाल + बंदूक का द्रव्यमान × बंदूक की चाल = 0।</span></li>
+      <li><strong data-i18n="b-22.steps.2.title">हल</strong> <span data-i18n="b-22.steps.2.detail">0.020 × 80 = 100 × v_gun, इसलिए v_gun = 1.6/100।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-22.answer">बंदूक 0.016 m s-1 की चाल से प्रतिक्षेप करती है, गोले की विपरीत दिशा में।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-23" data-format="numeric" data-answer="0.6">
+    <legend data-i18n="b-23.question">दो बिलियर्ड गेंदें, जिनमें से प्रत्येक का द्रव्यमान 0.05 kg है, विपरीत दिशाओं में 6 m s-1 की चाल (speed) से चलती हैं, टकराती हैं और उसी चाल से वापस उछलती हैं। एक-दूसरे के कारण प्रत्येक गेंद को दिए गए आवेग (Impulse) का परिमाण क्या है? उत्तर N s में दीजिए।</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-23-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-23.explanation">एक गेंद की प्रारंभिक दिशा को धनात्मक मानिए। इसका संवेग (momentum) 0.05 × 6 = 0.3 kg m s-1 से −0.3 kg m s-1 तक बदल जाता है। परिवर्तन 0.6 kg m s-1 है, अतः आवेग 0.6 N s है, जो उस गेंद की मूल गति (motion) के विपरीत दिशा में है।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-24">
+    <p data-i18n="b-24.paragraphs.0">यांत्रिकी में कोई कण तब साम्य (Equilibrium) में होता है जब उस पर कुल बाह्य बल (force) शून्य होता है। प्रथम नियम के अनुसार, इसका अर्थ है कि कण या तो विरामावस्था में है या एकसमान गति (uniform motion) में।</p>
+    <p data-i18n="b-24.paragraphs.1">दो बलों F1 और F2 के अंतर्गत, साम्य के लिए आवश्यक है कि F1 = −F2: दोनों बल बराबर और विपरीत होने चाहिए। तीन समवर्ती बलों F1, F2 और F3 के अंतर्गत, साम्य के लिए आवश्यक है कि F1 + F2 + F3 = 0। इनमें से किन्हीं दो का परिणामी, जो समांतर चतुर्भुज नियम से प्राप्त होता है, तीसरे के बराबर और विपरीत होना चाहिए; तीनों बलों को एक त्रिभुज की भुजाओं के रूप में खींचा जा सकता है जिनमें तीर समान दिशा में लिए गए हों।</p>
+    <p data-i18n="b-24.paragraphs.2">यह परिणाम किसी भी संख्या के बलों तक सामान्यीकृत होता है: वे किसी कण को साम्य में रखते हैं यदि उन्हें एक बंद n भुजाओं वाले बहुभुज की भुजाओं द्वारा निरूपित किया जा सके जिनमें तीर समान दिशा में हों। घटकों में, x, y और z के योगों में से प्रत्येक अलग-अलग शून्य होना चाहिए।</p>
+  </section>
+  <section class="zn-example" id="b-25">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-25.problem">6 kg के द्रव्यमान को छत से 2 m लंबी रस्सी द्वारा लटकाया गया है। रस्सी के मध्य-बिंदु P पर क्षैतिज दिशा में 50 N का बल (force) लगाया जाता है। साम्य (Equilibrium) में रस्सी ऊर्ध्वाधर से कितना कोण बनाती है? (g = 10 m s-2 लीजिए।) रस्सी के द्रव्यमान को उपेक्षित कीजिए।</p>
+    <ol>
+      <li><strong data-i18n="b-25.steps.0.title">लटके हुए भार को देखिए</strong> <span data-i18n="b-25.steps.0.detail">भार अपने स्वयं के भार और रस्सी के निचले भाग में तनाव T2 के अंतर्गत साम्य में है, इसलिए T2 = 6 × 10 = 60 N।</span></li>
+      <li><strong data-i18n="b-25.steps.1.title">बिंदु P को देखिए</strong> <span data-i18n="b-25.steps.1.detail">P पर तीन बल कार्य करते हैं: रस्सी के ऊपरी भाग के अनुदिश तनाव T1, निचले भाग के अनुदिश (ऊर्ध्वाधर नीचे की ओर) तनाव T2 = 60 N, और 50 N का क्षैतिज बल।</span></li>
+      <li><strong data-i18n="b-25.steps.2.title">P पर वियोजन कीजिए</strong> <span data-i18n="b-25.steps.2.detail">ऊर्ध्वाधर घटक निरस्त होने चाहिए: T1 cos θ = T2 = 60 N. क्षैतिज घटक निरस्त होने चाहिए: T1 sin θ = 50 N.</span></li>
+      <li><strong data-i18n="b-25.steps.3.title">हल कीजिए</strong> <span data-i18n="b-25.steps.3.detail">दोनों समीकरणों को विभाजित कीजिए: tan θ = 50/60 = 0.83, अतः θ लगभग 40° है। तब T1 = √(60² + 50²) ≈ 78 N.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-25.answer">रस्सी ऊर्ध्वाधर से लगभग 40° का कोण बनाती है। उत्तर रस्सी की लंबाई (जिसे द्रव्यमानरहित माना गया है) या उस बिंदु पर निर्भर नहीं करता जिस पर क्षैतिज बल लगाया जाता है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-26" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-26.question">एक कण पर तीन समवर्ती बल (force) कार्य कर रहे हैं जो साम्य (Equilibrium) में है। कौन-सा कथन अनिवार्यतः सत्य होना चाहिए?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="0"> <span data-i18n="b-26.options.0">प्रत्येक बल का परिमाण अन्य दो बलों के योग के बराबर होता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="1"> <span data-i18n="b-26.options.1">तीनों बलों का सदिश (vector) योग शून्य होता है, और उन्हें त्रिभुज की भुजाओं के रूप में इस प्रकार खींचा जा सकता है कि तीर एक ही दिशा में हों।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="2"> <span data-i18n="b-26.options.2">तीनों बल परस्पर लंबवत होने चाहिए।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-26" value="3"> <span data-i18n="b-26.options.3">कण अनिवार्यतः विरामावस्था में होना चाहिए, गतिमान नहीं।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-26.explanation">किसी कण का साम्य का अर्थ है शून्य परिणामी बाह्य बल, अतः F1 + F2 + F3 = 0, और प्रत्येक घटक का योग पृथक् रूप से शून्य होता है। कण एकसमान गति (uniform motion) में भी हो सकता है, अनिवार्यतः विराम में नहीं।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-27">
+    <p data-i18n="b-27.paragraphs.0">यांत्रिकी में कई प्रकार के बल (force) बार-बार आते हैं। गुरुत्वीय बल सर्वव्यापी है: पृथ्वी पर प्रत्येक वस्तु पृथ्वी के खिंचाव को अनुभव करती है, और गुरुत्व आकाशीय पिंडों की गति (motion) को भी नियंत्रित करता है। यह बिना किसी माध्यम के, दूर से कार्य करता है।</p>
+    <p data-i18n="b-27.paragraphs.1">अन्य सभी सामान्य बल संपर्क बल होते हैं, जो तब उत्पन्न होते हैं जब कोई वस्तु किसी दूसरी वस्तु—ठोस या तरल—को छूती है। जब दो पिंड संपर्क में होते हैं तो उनके बीच पारस्परिक संपर्क बल होते हैं जो तृतीय नियम को संतुष्ट करते हैं। संपर्कित सतहों के अभिलंब संपर्क बल के घटक को अभिलंब प्रतिक्रिया (Normal reaction) कहते हैं; सतहों के समांतर घटक को घर्षण कहते हैं।</p>
+    <p data-i18n="b-27.paragraphs.2">संपर्क बल ठोस और तरल के बीच भी उत्पन्न होते हैं: किसी तरल में डुबोया गया ठोस ऊपर की ओर उत्प्लावन बल अनुभव करता है जो विस्थापित तरल के भार के बराबर होता है, और श्यान बल तथा वायु प्रतिरोध भी संपर्क बल हैं। डोरी में तनाव और स्प्रिंग का बल इसके अतिरिक्त उदाहरण हैं। x मात्रा से संपीडित या खींची गई स्प्रिंग एक प्रत्यानयन बल F = −k x लगाती है, जहाँ k बल नियतांक है; ऋण चिह्न यह बताता है कि बल अविकृत अवस्था से विस्थापन (displacement) के विपरीत है।</p>
+    <p data-i18n="b-27.paragraphs.3">अवितान्य डोरी के लिए बल नियतांक बहुत अधिक होता है और प्रत्यानयन बल को तनाव कहते हैं। नगण्य द्रव्यमान की डोरी के लिए तनाव T को पूरी डोरी में समान माना जा सकता है। सूक्ष्म स्तर पर ये सभी संपर्क बल पिंडों के आवेशित अवयवों के बीच विद्युत बलों से आते हैं, परंतु उनका विस्तृत मूल जटिल है, इसलिए यांत्रिकी में इन्हें अलग-अलग प्रकार के बल माना जाता है जिनके गुण प्रयोगों से ज्ञात किए जाते हैं।</p>
+  </section>
+  <section class="zn-text" id="b-28">
+    <p data-i18n="b-28.paragraphs.0">एक क्षैतिज मेज़ पर एक गुटका रखिए। गुरुत्व mg को अभिलंब प्रतिक्रिया (Normal reaction) N संतुलित कर देता है। अब एक छोटा क्षैतिज बल (force) F लगाइए। गुटका बिल्कुल भी नहीं हिल सकता है - फिर भी यदि F ही एकमात्र क्षैतिज बल होता तो उसका त्वरण (acceleration) होना ही पड़ता। इसलिए कोई अन्य क्षैतिज बल F का विरोध करना चाहिए, जिससे कुल बल शून्य रहे। वह बल, जो सतह के समानांतर है, घर्षण है।</p>
+    <p data-i18n="b-28.paragraphs.1">जब तक गुटका विरामावस्था में रहता है, घर्षण स्थैतिक घर्षण (Static friction) f_s होता है। यह अपने आप नहीं होता: जिस क्षण आरोपित बल प्रकट होता है, उसी क्षण यह प्रकट होता है, और आरोपित बल के बराबर तथा विपरीत बना रहने के लिए बढ़ता जाता है। स्थैतिक घर्षण होने वाली गति (motion) का विरोध करता है - ऐसी गति जो घर्षण न होने पर होती।</p>
+    <p data-i18n="b-28.paragraphs.2">स्थैतिक घर्षण की एक सीमा होती है। प्रयोग दर्शाते हैं कि सीमांत मान (f_s)max संपर्क क्षेत्रफल पर निर्भर नहीं करता और अभिलंब बल के साथ (f_s)max = µ_s N के अनुसार बदलता है, जहाँ µ_s स्थैतिक घर्षण गुणांक है, जो केवल दोनों सतहों की प्रकृति पर निर्भर एक स्थिरांक है। अतः f_s ≤ µ_s N. जब आरोपित बल (f_s)max से अधिक हो जाता है तो गुटका सरकने लगता है, और घर्षण घटकर छोटा मान ले लेता है: गतिज (सर्पी) घर्षण (Kinetic friction) f_k = µ_k N, जो फिर संपर्क क्षेत्रफल पर निर्भर नहीं करता और वेग (velocity) पर लगभग निर्भर नहीं करता, तथा µ_k, µ_s से कम होता है।</p>
+    <p data-i18n="b-28.paragraphs.3">सरकते समय गुटके का त्वरण (F − f_k)/m होता है; स्थिर वेग पर F = f_k ठीक-ठीक होता है; आरोपित बल हटा दीजिए तो गुटके के रुकने तक त्वरण − f_k/m होता है। ध्यान दीजिए कि घर्षण सापेक्ष गति का विरोध करता है, गति का नहीं: किसी त्वरित ट्रेन के फर्श पर पड़ा बक्सा स्थैतिक घर्षण द्वारा आगे की ओर त्वरित होता है, और ट्रेन के सापेक्ष विरामावस्था में बना रहता है।</p>
+    <p data-i18n="b-28.paragraphs.4">बिना फिसले लुढ़कता कोई वलय या गोला सैद्धांतिक रूप से किसी भी घर्षण का अनुभव नहीं करेगा, क्योंकि उसका एकमात्र संपर्क बिंदु तल के सापेक्ष कोई सापेक्ष गति नहीं रखता। व्यवहार में कुछ लोटनिक घर्षण होता है, और समान भार के लिए यह स्थैतिक या सर्पी घर्षण की तुलना में बहुत कम होता है, यहाँ तक कि 2 या 3 कोटि (orders of magnitude) तक - इसी कारण पहिया इतना बड़ा मील का पत्थर रहा है। स्नेहक, बॉल बियरिंग और हवा की एक पतली परत घर्षण को कम करते हैं, परंतु घर्षण आवश्यक भी है: ब्रेक मशीनों और वाहनों को रोकने के लिए गतिज घर्षण का उपयोग करते हैं, और हम केवल घर्षण के कारण ही चल सकते हैं।</p>
+  </section>
+  <figure class="zn-diagram" id="b-29">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" role="img" aria-label="क्षैतिज से theta कोण बनाते झुके हुए तल पर विरामावस्था में रखा एक गुटका; भार mg ऊर्ध्वाधर नीचे की ओर है, अभिलंब प्रतिक्रिया N ढाल के लंबवत है, और स्थैतिक घर्षण fs ढाल के ऊपर की ओर है"><line x1="50" y1="200" x2="290" y2="61.4" stroke="#1C1B18" stroke-width="3" /><line x1="50" y1="200" x2="180" y2="200" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 5" /><path d="M 100 200 A 50 50 0 0 0 93.3 175" fill="none" stroke="#5A5748" stroke-width="2" /><text x="104" y="195" font-family="Caveat, cursive" font-size="22" fill="#1C1B18">θ</text><polygon points="124,157.3 176,127.3 146,75.3 94,105.3" fill="none" stroke="#1C1B18" stroke-width="2.6" /><line x1="135" y1="116.3" x2="135" y2="186.3" stroke="#1F3A9E" stroke-width="3" /><polygon points="135,190.3 129,178.3 141,178.3" fill="#1F3A9E" /><line x1="135" y1="116.3" x2="102.5" y2="60" stroke="#1F3A9E" stroke-width="3" /><polygon points="100.8,56.5 100.3,69.1 111.6,63.2" fill="#1F3A9E" /><line x1="135" y1="116.3" x2="182.6" y2="88.8" stroke="#1F3A9E" stroke-width="3" /><polygon points="186.2,87 174.6,83.3 177.9,95.2" fill="#1F3A9E" /><text x="143" y="192" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E" data-i18n="b-29.svg_texts.t-0">mg</text><text x="72" y="58" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E">N</text><text x="192" y="84" font-family="Caveat, cursive" font-size="24" fill="#1F3A9E" data-i18n="b-29.svg_texts.t-1">fs</text></svg></div>
+    <figcaption data-i18n="b-29.caption">एक झुके हुए तल पर विरामावस्था में रखा एक गुटका, जिसकी सतह क्षैतिज से θ कोण बनाती है (क्षैतिज डैश रेखा और चाप द्वारा दर्शाया गया)। गुटके पर तीन बल (force) कार्य करते हैं: ऊर्ध्वाधर नीचे की ओर भार mg, झुकी सतह के लंबवत अभिलंब प्रतिक्रिया (Normal reaction) N, और ढाल (slope) के ऊपर की ओर स्थैतिक घर्षण (Static friction) fs, जो ढाल के नीचे की ओर होने वाली आसन्न गति (motion) का विरोध करता है। केवल दिशाएँ दर्शाई गई हैं; तीर किसी मापित पैमाने के अनुसार नहीं हैं।</figcaption>
+  </figure>
+  <section class="zn-example" id="b-30">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-30.problem">4 kg का एक द्रव्यमान एक क्षैतिज तल पर विरामावस्था में रखा है। तल को धीरे-धीरे झुकाया जाता है, जब तक क्षैतिज से θ = 15° कोण पर द्रव्यमान फिसलना प्रारंभ ही करता है। गुटके और सतह के बीच स्थैतिक घर्षण (static friction) का गुणांक क्या है?</p>
+    <ol>
+      <li><strong data-i18n="b-30.steps.0.title">गुटके पर बल (force)</strong> <span data-i18n="b-30.steps.0.detail">इसका भार mg ऊर्ध्वाधर नीचे की ओर कार्य करता है, तल का अभिलंब बल N, और आसन्न गति (motion) का विरोध करने वाला स्थैतिक घर्षण बल f_s।</span></li>
+      <li><strong data-i18n="b-30.steps.1.title">भार का वियोजन करें</strong> <span data-i18n="b-30.steps.1.detail">ढाल (slope) के अनुदिश भार का घटक mg sin θ है; ढाल के लंबवत यह mg cos θ है। साम्यावस्था (Equilibrium) में mg sin θ = f_s और mg cos θ = N।</span></li>
+      <li><strong data-i18n="b-30.steps.2.title">फिसलन के बिंदु पर</strong> <span data-i18n="b-30.steps.2.detail">जैसे-जैसे θ बढ़ता है, स्वतः समायोजित होने वाला f_s बढ़ता है जब तक कि θ_max पर यह अपने अधिकतम मान µ_s N तक नहीं पहुँच जाता। तब mg sin θ_max = µ_s mg cos θ_max।</span></li>
+      <li><strong data-i18n="b-30.steps.3.title">झुकाव के लिए घर्षण का नियम</strong> <span data-i18n="b-30.steps.3.detail">भाग देने पर tan θ_max = µ_s प्राप्त होता है, और θ_max केवल µ_s पर निर्भर करता है, गुटके के द्रव्यमान पर नहीं।</span></li>
+      <li><strong data-i18n="b-30.steps.4.title">मान रखें</strong> <span data-i18n="b-30.steps.4.detail">θ_max = 15° के लिए, µ_s = tan 15° = 0.27।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-30.answer">µ_s = 0.27। 15° से थोड़ा अधिक पर, ढाल के नीचे की ओर छोटा नेट बल गुटके को फिसलना प्रारंभ करा देता है।</span></p>
+  </section>
+  <section class="zn-example" id="b-31">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-31.problem">एक बक्सा किसी रेलगाड़ी के फर्श पर रखा है। बक्से और फर्श के बीच स्थैतिक घर्षण (static friction) का गुणांक 0.15 है। उस अधिकतम त्वरण (acceleration) का निर्धारण करें जिसके लिए बक्सा स्थिर रहेगा। (g = 10 m s-2 लें।)</p>
+    <ol>
+      <li><strong data-i18n="b-31.steps.0.title">कौन-सा बल (force) बक्से को त्वरित करता है?</strong> <span data-i18n="b-31.steps.0.detail">यदि बक्सा रेलगाड़ी के सापेक्ष स्थिर है, तो वह रेलगाड़ी के साथ त्वरित होता है, और ऐसा करने के लिए उपलब्ध एकमात्र क्षैतिज बल स्थैतिक घर्षण है।</span></li>
+      <li><strong data-i18n="b-31.steps.1.title">बक्से के लिए द्वितीय नियम</strong> <span data-i18n="b-31.steps.1.detail">m a = f_s, और स्थैतिक घर्षण µ_s N = µ_s m g से अधिक नहीं हो सकता।</span></li>
+      <li><strong data-i18n="b-31.steps.2.title">असमिका</strong> <span data-i18n="b-31.steps.2.detail">अतः m a ≤ µ_s m g, अर्थात् a ≤ µ_s g।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-31.answer">a_max = µ_s g = 0.15 × 10 m s-2 = 1.5 m s-2.</span></p>
+  </section>
+  <section class="zn-example" id="b-32">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-32.problem">3 kg का एक ब्लॉक एक डोरी से लटका है जो एक चिकनी घिरनी के ऊपर से गुजरती है और क्षैतिज सतह पर खड़ी 20 kg की ट्रॉली से बंधी है। ट्रॉली और सतह के बीच गतिज घर्षण (Kinetic friction) का गुणांक 0.04 है। निकाय का त्वरण (acceleration) और डोरी में तनाव ज्ञात कीजिए। (g = 10 m s-2 लें। डोरी के द्रव्यमान को नगण्य मानें।)</p>
+    <ol>
+      <li><strong data-i18n="b-32.steps.0.title">एक ही त्वरण</strong> <span data-i18n="b-32.steps.0.detail">डोरी अवितान्य है और घिरनी चिकनी है, इसलिए 3 kg के ब्लॉक और 20 kg की ट्रॉली के त्वरण a का परिमाण समान है।</span></li>
+      <li><strong data-i18n="b-32.steps.1.title">ब्लॉक के लिए समीकरण</strong> <span data-i18n="b-32.steps.1.detail">ब्लॉक का भार 30 N है और यह नीचे की ओर गति करता है: 30 − T = 3a।</span></li>
+      <li><strong data-i18n="b-32.steps.2.title">ट्रॉली के लिए समीकरण</strong> <span data-i18n="b-32.steps.2.detail">T − f_k = 20a, जहाँ f_k = µ_k N = 0.04 × (20 × 10) = 8 N है। अतः T − 8 = 20a।</span></li>
+      <li><strong data-i18n="b-32.steps.3.title">जोड़िए और हल कीजिए</strong> <span data-i18n="b-32.steps.3.detail">दोनों समीकरणों को जोड़ने पर: 30 − 8 = 23a, अतः a = 22/23 m s-2।</span></li>
+      <li><strong data-i18n="b-32.steps.4.title">तनाव</strong> <span data-i18n="b-32.steps.4.detail">T = 8 + 20a = 27.1 N।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-32.answer">a = 22/23 m s-2 ≈ 0.96 m s-2, और T ≈ 27.1 N।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-33" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-33.question">आप एक खुरदरी क्षैतिज मेज पर रखे एक ब्लॉक को छोटे क्षैतिज बल (force) से धकेलते हैं। ब्लॉक हिलता नहीं है। उस क्षण ब्लॉक पर घर्षण बल कितना होता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="0"> <span data-i18n="b-33.options.0">यह µ_s N के बराबर होता है, आपका धक्का चाहे जितना भी हो।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="1"> <span data-i18n="b-33.options.1">यह आपके धक्के के बराबर और विपरीत होता है, तथा µ_s N से छोटा होता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="2"> <span data-i18n="b-33.options.2">यह शून्य होता है, क्योंकि ब्लॉक गतिमान नहीं है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-33" value="3"> <span data-i18n="b-33.options.3">यह µ_k N के बराबर होता है।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-33.explanation">स्थैतिक घर्षण (Static friction) स्वतः समायोजित होता है: यह लगाए गए बल से मेल खाने तक बढ़ता है, µ_s N की सीमा तक। केवल जब ब्लॉक बस फिसलने ही वाला होता है तब f_s, µ_s N के बराबर होता है। गतिज घर्षण (Kinetic friction) केवल फिसलना शुरू होने के बाद कार्य करता है।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-34">
+    <p data-i18n="b-34.paragraphs.0">त्रिज्या R के वृत्त में एकसमान चाल (speed) v से गतिमान किसी पिंड का त्वरण (acceleration) v²/R होता है, जो केंद्र की ओर निर्देशित होता है। द्वितीय नियम के अनुसार, इस त्वरण को प्रदान करने वाला बल (force) f_c = m v²/R है, जो भी केंद्र की ओर निर्देशित होता है। इस बल को अभिकेन्द्रीय बल (centripetal force) कहते हैं।</p>
+    <p data-i18n="b-34.paragraphs.1">अभिकेन्द्रीय बल कोई नया प्रकार का बल नहीं है। यह केवल उस वास्तविक बल का नाम है जो संयोगवश केंद्र की ओर निर्देशित होता है: डोरी पर घुमाए जा रहे पत्थर के लिए यह डोरी में तनाव है, सूर्य के चारों ओर घूमने वाले ग्रह के लिए यह सूर्य का गुरुत्वाकर्षण खिंचाव है, और क्षैतिज सड़क पर मुड़ने वाली कार के लिए यह टायरों और सड़क के बीच घर्षण है।</p>
+  </section>
+  <section class="zn-reveal" id="b-35">
+    <h3 data-i18n="b-35.title">समतल सड़क पर कार की अधिकतम चाल (speed)</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.0.title">चरण 1: तीन बल (force)</summary><p data-i18n="b-35.steps.0.detail">कार पर तीन बल कार्य करते हैं: उसका भार mg, अभिलंब प्रतिक्रिया (Normal reaction) N, और घर्षण f।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.1.title">चरण 2: कोई ऊर्ध्वाधर त्वरण (acceleration) नहीं</summary><p data-i18n="b-35.steps.1.detail">N − mg = 0, इसलिए N = mg।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.2.title">चरण 3: अभिकेन्द्रीय बल (Centripetal force) कौन प्रदान करता है?</summary><p data-i18n="b-35.steps.2.detail">अभिकेन्द्रीय बल सड़क के अनुदिश, मोड़ के केंद्र की ओर कार्य करना चाहिए। उपलब्ध एकमात्र क्षैतिज बल घर्षण है, इसलिए f = m v²/R।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.3.title">चरण 4: घर्षण की एक सीमा होती है</summary><p data-i18n="b-35.steps.3.detail">स्थैतिक घर्षण (Static friction) f ≤ µ_s N = µ_s m g को संतुष्ट करता है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-35.steps.4.title">चरण 5: संयोजन</summary><p data-i18n="b-35.steps.4.detail">m v²/R ≤ µ_s m g से v² ≤ µ_s R g प्राप्त होता है। द्रव्यमान कट जाता है, इसलिए उत्तर कार के द्रव्यमान पर निर्भर नहीं करता।</p></details>
+  </section>
+  <section class="zn-sim zn-sim-b-36" id="b-36" data-sim-id="b-36" aria-label="समतल वृत्तीय मोड़ पर अधिकतम सुरक्षित चाल (speed)">
+    <h3 data-i18n="b-36.title">समतल वृत्तीय मोड़ पर अधिकतम सुरक्षित चाल (speed)</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span data-i18n="b-36.controls.mus.label">स्थैतिक घर्षण का गुणांक µ_s</span><input type="range" data-control="mus" min="0.05" max="0.9" step="0.05" value="0.5"><output>0.5</output></label>
+      <label class="zn-sim-control"><span data-i18n="b-36.controls.radius.label">मोड़ की त्रिज्या R (m)</span><input type="range" data-control="radius" min="5" max="120" step="5" value="30"><output>30</output></label>
+    </div>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="समतल वृत्तीय मोड़ पर अधिकतम सुरक्षित चाल (speed) drawing"></canvas></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
+    <p class="zn-sim-desc" data-i18n="b-36.description">समतल (बिना ढाल वाली) सड़क पर केवल घर्षण ही अभिकेन्द्रीय बल (Centripetal force) प्रदान करता है, इसलिए अधिकतम सुरक्षित चाल v_max = √(µ_s R g) है। आपके द्वारा चुने गए स्थैतिक घर्षण (Static friction) के गुणांक के लिए, ग्राफ़ v_max को मोड़ की त्रिज्या R के सापेक्ष दर्शाता है, और आपकी चुनी हुई त्रिज्या पर मान प्रिंट करता है। g = 10 m s-2 लें।</p>
+  </section>
+  <section class="zn-text" id="b-37">
+    <p data-i18n="b-37.paragraphs.0">बैंकिंग वाली सड़क पर मोड़ का बाहरी किनारा ऊँचा कर दिया जाता है, इसलिए सड़क की सतह क्षैतिज से θ कोण बनाती है। तब अभिलंब प्रतिक्रिया (Normal reaction) का एक क्षैतिज घटक केंद्र की ओर होता है, और घर्षण को कम कार्य करना पड़ता है।</p>
+    <p data-i18n="b-37.paragraphs.1">ऊर्ध्वाधर दिशा में अभी भी कोई त्वरण (acceleration) नहीं होता, इसलिए ऊर्ध्वाधर बलों (force) को एक-दूसरे को निरस्त करना चाहिए: N cos θ = mg + f sin θ। अभिकेंद्रीय बल (Centripetal force) N और f के क्षैतिज घटकों के संयुक्त योग से प्राप्त होता है: N sin θ + f cos θ = m v²/R।</p>
+    <p data-i18n="b-37.paragraphs.2">अधिकतम अनुमेय चाल (speed) ज्ञात करने के लिए घर्षण को उसकी सीमा पर रखें, f = µ_s N, और इन दोनों समीकरणों को साथ-साथ हल करें।</p>
+  </section>
+  <section class="zn-reveal" id="b-38">
+    <h3 data-i18n="b-38.title">बैंकिंग वाली सड़क पर अधिकतम और इष्टतम चाल (speed)</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.0.title">चरण 1: f को उसकी सीमा पर रखें</summary><p data-i18n="b-38.steps.0.detail">बैंकिंग वाली सड़क के दोनों समीकरणों में f = µ_s N रखें: N cos θ = mg + µ_s N sin θ, और N sin θ + µ_s N cos θ = m v²/R।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.1.title">चरण 2: N ज्ञात करें</summary><p data-i18n="b-38.steps.1.detail">पहले समीकरण से, N = mg/(cos θ − µ_s sin θ)।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.2.title">चरण 3: प्रतिस्थापित करें</summary><p data-i18n="b-38.steps.2.detail">इस N को दूसरे समीकरण में रखने और सरल करने पर v²_max = R g (tan θ + µ_s)/(1 − µ_s tan θ) प्राप्त होता है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.3.title">चरण 4: समतल सड़क से तुलना करें</summary><p data-i18n="b-38.steps.3.detail">बैंकिंग वाली सड़क पर कार की अधिकतम संभावित चाल समतल सड़क पर उसकी चाल से अधिक होती है।</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-38.steps.4.title">चरण 5: घर्षण को शून्य करें</summary><p data-i18n="b-38.steps.4.detail">µ_s = 0 के साथ परिणाम v_o = √(R g tan θ) हो जाता है। इस इष्टतम चाल पर घर्षण की आवश्यकता बिल्कुल नहीं होती, इसलिए इस पर गाड़ी चलाने से टायरों का बहुत कम घिसाव होता है। v &lt; v_o के लिए घर्षण ढाल (slope) के ऊपर की ओर कार्य करता है, और कार केवल तभी खड़ी की जा सकती है जब tan θ ≤ µ_s हो।</p></details>
+  </section>
+  <section class="zn-example" id="b-39">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-39.problem">एक साइकिल सवार समतल सड़क पर 18 km/h की चाल (speed) से जा रहा है और बिना चाल कम किए 3 m त्रिज्या का तीखा वृत्तीय मोड़ लेता है। टायरों और सड़क के बीच स्थैतिक घर्षण (Static friction) का गुणांक 0.1 है। क्या साइकिल सवार मोड़ लेते समय फिसलेगा? (g = 9.8 m s-2 लें।)</p>
+    <ol>
+      <li><strong data-i18n="b-39.steps.0.title">न फिसलने की शर्त</strong> <span data-i18n="b-39.steps.0.detail">बिना बैंकिंग वाली सड़क पर केवल घर्षण अभिकेंद्रीय बल (Centripetal force) प्रदान करता है, इसलिए साइकिल सवार तभी नहीं फिसलेगा जब v² ≤ µ_s R g हो।</span></li>
+      <li><strong data-i18n="b-39.steps.1.title">चाल को रूपांतरित करें</strong> <span data-i18n="b-39.steps.1.detail">18 km/h = 5 m s-1, अतः v² = 25 m2 s-2।</span></li>
+      <li><strong data-i18n="b-39.steps.2.title">सीमा की गणना करें</strong> <span data-i18n="b-39.steps.2.detail">µ_s R g = 0.1 × 3 × 9.8 = 2.94 m2 s-2।</span></li>
+      <li><strong data-i18n="b-39.steps.3.title">तुलना करें</strong> <span data-i18n="b-39.steps.3.detail">25 m2 s-2, 2.94 m2 s-2 से बहुत अधिक है, इसलिए शर्त का पालन नहीं होता।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-39.answer">साइकिल सवार फिसल जाएगा। चाल बहुत अधिक है, या मोड़ बहुत तीखा है, जिससे घर्षण आवश्यक अभिकेंद्रीय बल प्रदान नहीं कर पाता।</span></p>
+  </section>
+  <section class="zn-example" id="b-40">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-40.problem">300 m त्रिज्या का एक वृत्तीय रेसट्रैक 15° के कोण पर ढालू है। यदि रेस-कार के पहियों और सड़क के बीच घर्षण गुणांक 0.2 है, तो (a) टायरों पर घिसाव और टूट-फूट से बचने के लिए रेस-कार की इष्टतम चाल (speed) क्या है, और (b) फिसलने से बचने के लिए अधिकतम अनुमत चाल क्या है? (g = 9.8 m s-2 लें।)</p>
+    <ol>
+      <li><strong data-i18n="b-40.steps.0.title">(a) इष्टतम चाल</strong> <span data-i18n="b-40.steps.0.detail">इष्टतम चाल पर अभिलंब प्रतिक्रिया (Normal reaction) का क्षैतिज घटक अकेले अभिकेन्द्रीय बल (Centripetal force) प्रदान करता है और घर्षण की आवश्यकता नहीं होती: v_o = √(R g tan θ)।</span></li>
+      <li><strong data-i18n="b-40.steps.1.title">संख्याएँ रखें</strong> <span data-i18n="b-40.steps.1.detail">v_o = √(300 × 9.8 × tan 15°) = √(300 × 9.8 × 0.268) ≈ 28.1 m s-1.</span></li>
+      <li><strong data-i18n="b-40.steps.2.title">(b) अधिकतम चाल</strong> <span data-i18n="b-40.steps.2.detail">v_max = √(R g (tan θ + µ_s)/(1 − µ_s tan θ)) का उपयोग करें।</span></li>
+      <li><strong data-i18n="b-40.steps.3.title">संख्याएँ रखें</strong> <span data-i18n="b-40.steps.3.detail">tan 15° = 0.268 और µ_s = 0.2 के साथ: (0.268 + 0.2)/(1 − 0.2 × 0.268) = 0.468/0.946 ≈ 0.494। तब v_max = √(300 × 9.8 × 0.494) ≈ 38.1 m s-1।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-40.answer">(a) इष्टतम चाल ≈ 28.1 m s-1। (b) अधिकतम अनुमत चाल ≈ 38.1 m s-1।</span></p>
+  </section>
+  <section class="zn-text" id="b-41">
+    <p data-i18n="b-41.paragraphs.0">अधिकांश वास्तविक समस्याओं में कई पिंड एक-दूसरे को धकेलते और खींचते हैं, और उनमें से प्रत्येक गुरुत्वाकर्षण भी अनुभव करता है। कार्य विधि सदैव एक ही होती है: संयोजन के किसी भी भाग को अपना निकाय चुनें और उस पर गति (motion) के नियम लागू करें, बशर्ते आप संयोजन के शेष भागों के कारण उस भाग पर लगने वाले सभी बल (force) सम्मिलित करें।</p>
+    <p data-i18n="b-41.paragraphs.1">चरणबद्ध रूप से: (i) संयोजन का एक आरेख बनाएं, जिसमें लिंक और आधार दर्शाए गए हों; (ii) संयोजन के एक सुविधाजनक भाग को निकाय के रूप में चुनें; (iii) उस निकाय का एक अलग आरेख बनाएं जिसमें संयोजन के शेष भागों और अन्य साधनों द्वारा उस पर लगाए गए सभी बल दर्शाए गए हों, लेकिन वे बल नहीं जो वह पर्यावरण पर लगाता है। इस प्रकार के आरेख को मुक्त-पिंड आरेख (Free-body diagram) कहा जाता है - और इसका यह अर्थ नहीं है कि निकाय पर कोई परिणामी बल नहीं है।</p>
+    <p data-i18n="b-41.paragraphs.2">(iv) मुक्त-पिंड आरेख पर, उन बलों को लिखें जिनके परिमाण और दिशाएँ दी गई हैं या निश्चित हैं, जैसे किसी तनाव की दिशा उसकी लंबाई के अनुदिश; शेष को अज्ञात मानें जिन्हें गति के नियमों से ज्ञात करना है। (v) यदि आपको दूसरे निकाय की आवश्यकता हो, तो प्रक्रिया दोहराएं और तीसरे नियम का उपयोग करें: यदि A पर B के कारण बल F है A के आरेख में, तो B पर A के कारण बल −F है B के आरेख में।</p>
+  </section>
+  <section class="zn-example" id="b-42">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-42.problem">2 kg द्रव्यमान का एक लकड़ी का गुटका एक मुलायम क्षैतिज फर्श पर रखा है। जब 25 kg द्रव्यमान का एक लोहे का बेलन गुटके के ऊपर रखा जाता है, तो फर्श धीरे-धीरे झुक जाता है और गुटका तथा बेलन मिलकर 0.1 m s-2 के त्वरण (acceleration) से नीचे जाते हैं। फर्श पर गुटके की क्रिया (a) फर्श के झुकने से पहले और (b) फर्श के झुकने के बाद क्या है? g = 10 m s-2 लें। समस्या में क्रिया-प्रतिक्रिया युग्मों की पहचान करें।</p>
+    <ol>
+      <li><strong data-i18n="b-42.steps.0.title">(a) पहले: गुटके का मुक्त-पिंड आरेख (Free-body diagram)</strong> <span data-i18n="b-42.steps.0.detail">गुटके पर दो बल (force) कार्य करते हैं: गुरुत्वाकर्षण 2 × 10 = 20 N नीचे की ओर, और फर्श का अभिलंब बल R ऊपर की ओर। गुटका विरामावस्था में है, इसलिए पहले नियम से R = 20 N।</span></li>
+      <li><strong data-i18n="b-42.steps.1.title">(a) तीसरा नियम</strong> <span data-i18n="b-42.steps.1.detail">फर्श पर गुटके की क्रिया 20 N ऊर्ध्वाधर नीचे की ओर है।</span></li>
+      <li><strong data-i18n="b-42.steps.2.title">(b) निकाय गुटका + बेलन चुनें</strong> <span data-i18n="b-42.steps.2.detail">इसका द्रव्यमान 27 kg है, इसलिए इसका भार 270 N है। मुक्त-पिंड आरेख में भार 270 N नीचे की ओर और फर्श का अभिलंब बल R′ ऊपर की ओर दर्शाया गया है; गुटके और बेलन के बीच के आंतरिक बल नहीं दिखाए गए हैं।</span></li>
+      <li><strong data-i18n="b-42.steps.3.title">(b) दूसरा नियम</strong> <span data-i18n="b-42.steps.3.detail">निकाय 0.1 m s-2 से नीचे की ओर त्वरित होता है, इसलिए 270 − R′ = 27 × 0.1 = 2.7 N, जिससे R′ = 267.3 N प्राप्त होता है।</span></li>
+      <li><strong data-i18n="b-42.steps.4.title">(b) तीसरा नियम और युग्म</strong> <span data-i18n="b-42.steps.4.detail">फर्श पर निकाय की क्रिया 267.3 N ऊर्ध्वाधर नीचे की ओर है। युग्म हैं: पृथ्वी का गुटके (या निकाय) पर खिंचाव और गुटके (या निकाय) का पृथ्वी पर खिंचाव; गुटके (या निकाय) का फर्श पर धक्का और फर्श का गुटके (या निकाय) पर धक्का; और, फर्श के झुकने के बाद, बेलन का गुटके पर बल और गुटके का बेलन पर बल।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-42.answer">(a) 20 N ऊर्ध्वाधर नीचे की ओर; (b) 267.3 N ऊर्ध्वाधर नीचे की ओर। भार और अभिलंब बल क्रिया-प्रतिक्रिया युग्म नहीं हैं: वे एक ही पिंड पर कार्य करते हैं, और फर्श के झुकने के बाद वे समान भी नहीं हैं (270 N और 267.3 N)।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-43" data-format="numeric" data-answer="350">
+    <legend data-i18n="b-43.question">70 kg द्रव्यमान का एक व्यक्ति एक लिफ्ट में तुला पर खड़ा है जो 5 m s-2 के एकसमान त्वरण (acceleration) से नीचे की ओर गतिमान है। तुला पर पाठ्यांक क्या है? (g = 10 m s-2 लें।) उत्तर न्यूटन में दीजिए।</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-43-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-43.explanation">तुला वह अभिलंब बल N दर्शाती है जो वह व्यक्ति पर लगाती है। नीचे की दिशा को धनात्मक मानने पर, नीचे की ओर कुल बल (force) mg − N = m a है, इसलिए N = m(g − a) = 70 × (10 − 5) = 350 N। यदि लिफ्ट गुरुत्व के अधीन मुक्त रूप से गिरती, तो a का मान g के बराबर होता और पाठ्यांक शून्य होता।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-44" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-44.question">एक डोरी से बँधा पत्थर क्षैतिज वृत्त में घुमाया जाता है। चाल (speed) को उस अधिकतम मान से बढ़ा दिया जाता है जिसे डोरी सहन कर सकती है, और डोरी अचानक टूट जाती है। उस क्षण से पत्थर का पथ कौन-सा वर्णन करता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="0"> <span data-i18n="b-44.options.0">यह केंद्र से दूर, त्रिज्यीय रूप से बाहर की ओर गति करता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="1"> <span data-i18n="b-44.options.1">डोरी टूटने के क्षण वृत्त की स्पर्श रेखा के अनुदिश उड़ जाता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="2"> <span data-i18n="b-44.options.2">यह स्पर्श रेखा से किसी कोण पर उड़ जाता है, कोण चाल पर निर्भर करता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-44" value="3"> <span data-i18n="b-44.options.3">यह छोटी चाल से उसी वृत्त में चलता रहता है।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-44.explanation">डोरी का तनाव वह बल (force) था जो पत्थर के संवेग (momentum) की दिशा बदल रहा था। जिस क्षण डोरी टूटती है, कोई क्षैतिज बल कार्य नहीं करता (वायु प्रतिरोध की उपेक्षा करते हुए), अतः पहले नियम के अनुसार पत्थर उसी वेग (velocity) से सीधी रेखा में चलता रहता है जो उस क्षण उसका था - जो स्पर्श रेखा के अनुदिश है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-45" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-45.question">खाली स्थान में घोड़ा गाड़ी को खींचकर क्यों नहीं दौड़ सकता?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="0"> <span data-i18n="b-45.options.0">क्योंकि खाली स्थान में धक्का देने के लिए हवा नहीं होती।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="1"> <span data-i18n="b-45.options.1">क्योंकि घोड़ा भूमि को पीछे की ओर धक्का देता है और भूमि घोड़े तथा गाड़ी को आगे की ओर धक्का देती है; खाली स्थान में धक्का देने के लिए कोई भूमि नहीं होती, इसलिए निकाय पर कोई बाह्य अग्र बल (force) कार्य नहीं कर सकता।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="2"> <span data-i18n="b-45.options.2">क्योंकि गाड़ी की तुलना में घोड़े का द्रव्यमान बहुत कम है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-45" value="3"> <span data-i18n="b-45.options.3">क्योंकि खाली स्थान में गाड़ी और भूमि के बीच घर्षण बहुत अधिक होगा।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-45.explanation">घोड़े-गाड़ी निकाय पर आगे की ओर लगने वाला बल उस निकाय के बाहर से आना चाहिए। भूमि पर यह घोड़े के खुरों और भूमि के बीच का घर्षण होता है: घोड़ा भूमि को पीछे की ओर धक्का देता है, भूमि उसे आगे की ओर धक्का देती है। भूमि के बिना ऐसा कोई बाह्य बल नहीं होता, और निकाय के भीतर के पारस्परिक बल उसे त्वरित नहीं कर सकते।</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-46">
+    <p data-i18n="b-46.paragraphs.0">कुछ यांत्रिकी समस्याओं में आपको बल (force) की सूची के बजाय स्थिति बनाम समय का ग्राफ दिया जाता है। आप अभी भी बल और आवेग (Impulse) ज्ञात कर सकते हैं, क्योंकि सब कुछ इस बात से निकलता है कि ग्राफ की ढाल (slope) क्या कर रही है।</p>
+    <p data-i18n="b-46.paragraphs.1">एक कण के लिए, वेग (velocity) समय के साथ स्थिति के परिवर्तन की दर है, v = dy/dt (y को स्थिति निर्देशांक मानें)। स्थिति-समय ग्राफ पर, यह ग्राफ की ढाल है। त्वरण (acceleration) वेग के परिवर्तन की दर है, a = dv/dt, अर्थात्, ढाल स्वयं कितनी तेजी से बदल रही है।</p>
+    <p data-i18n="b-46.paragraphs.2">ग्राफ को तीन चरणों में पढ़ें। यदि ग्राफ का कोई भाग सीधी रेखा है, तो वहाँ वेग स्थिर है, इसलिए त्वरण शून्य है और, द्वितीय नियम के अनुसार, उस अंतराल के दौरान कण पर बल शून्य है। यदि ढाल लगातार बदलती है, तो वेग बदल रहा है, इसलिए एक त्वरण और एक बल F = m a है। यदि ढाल एक क्षण में अचानक बदलती है - ग्राफ में एक मोड़ - तो वेग लगभग शून्य समय में एक निश्चित मात्रा से बदल जाता है, इसलिए संवेग (momentum) अचानक बदल जाता है: संवेग में वह परिवर्तन उस क्षण पर दिया गया आवेग है।</p>
+    <p data-i18n="b-46.paragraphs.3">द्रव्यमान दो बार आता है: त्वरण को बल में बदलने के लिए, F = m a, और वेग के परिवर्तन को आवेग में बदलने के लिए, आवेग = संवेग में परिवर्तन = m गुणा वेग में परिवर्तन। किसी भी क्षण पर बल उस क्षण की स्थिति से निर्धारित होता है; एक कण अपनी पहले की गति (motion) की कोई स्मृति नहीं रखता।</p>
+  </section>
+  <section class="zn-example" id="b-47">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-47.problem">0.25 kg द्रव्यमान का एक पत्थर एक डोरी के सिरे से बाँधकर क्षैतिज तल में 1.5 m त्रिज्या के वृत्त में 40 rev./min की चाल (speed) से घुमाया जाता है। डोरी में तनाव क्या है? यदि डोरी अधिकतम 200 N तनाव सहन कर सकती है, तो पत्थर को किस अधिकतम चाल से घुमाया जा सकता है?</p>
+    <ol>
+      <li><strong data-i18n="b-47.steps.0.title">अभिकेन्द्रीय बल (Centripetal force) कौन प्रदान करता है?</strong> <span data-i18n="b-47.steps.0.detail">पत्थर एकसमान चाल से वृत्त में चलता है, इसलिए इसके लिए केंद्र की ओर निर्देशित बल (force) m v^2/R आवश्यक है। यहाँ केंद्र की ओर कार्य करने वाला एकमात्र बल डोरी में तनाव है, इसलिए तनाव ही अभिकेन्द्रीय बल है: T = m v^2/R।</span></li>
+      <li><strong data-i18n="b-47.steps.1.title">चाल को m s-1 में बदलिए</strong> <span data-i18n="b-47.steps.1.detail">एक चक्कर में पत्थर परिधि 2 pi R = 2 pi times 1.5, लगभग 9.42 m, तय करता है। 40 चक्कर प्रति मिनट पर यह प्रति सेकंड 40/60 चक्कर लगाता है, इसलिए v = 9.42 times 40/60, लगभग 6.28 m s-1।</span></li>
+      <li><strong data-i18n="b-47.steps.2.title">डोरी में तनाव</strong> <span data-i18n="b-47.steps.2.detail">T = m v^2/R = 0.25 times (6.28)^2 / 1.5, जो लगभग 6.6 N है।</span></li>
+      <li><strong data-i18n="b-47.steps.3.title">अधिकतम तनाव से अधिकतम चाल</strong> <span data-i18n="b-47.steps.3.detail">डोरी अधिकतम 200 N तनाव दे सकती है, इसलिए m v^2/R = 200 से v = square root of (200 times 1.5 / 0.25) = square root of 1200, लगभग 34.6 m s-1।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-47.answer">तनाव लगभग 6.6 N है। पत्थर को जिस अधिकतम चाल से घुमाया जा सकता है वह लगभग 34.6 m s-1 है; इससे अधिक पर डोरी को 200 N से अधिक तनाव देना होगा और वह टूट जाएगी।</span></p>
+  </section>
+  <section class="zn-example" id="b-48">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-48.problem">0.05 kg द्रव्यमान का एक कंकड़ ऊर्ध्वाधर ऊपर की ओर फेंका जाता है। वायु प्रतिरोध की उपेक्षा करते हुए, कंकड़ पर लगने वाले कुल बल (force) का परिमाण और दिशा बताइए (a) इसकी ऊपर की गति (motion) के दौरान, (b) इसकी नीचे की गति के दौरान, और (c) उच्चतम बिंदु पर जहाँ यह क्षण भर के लिए विरामावस्था में है। (g = 10 m s-2 लीजिए।)</p>
+    <ol>
+      <li><strong data-i18n="b-48.steps.0.title">कौन-से बल कार्य करते हैं?</strong> <span data-i18n="b-48.steps.0.detail">वायु प्रतिरोध की उपेक्षा की गई है, इसलिए किसी भी क्षण कंकड़ पर लगने वाला एकमात्र बल उसका भार, mg है, जो ऊर्ध्वाधर नीचे की ओर है। पृथ्वी उसे तब भी खींच रही है जब वह ऊपर जाता है, नीचे आता है, या एक क्षण के लिए स्थिर रहता है।</span></li>
+      <li><strong data-i18n="b-48.steps.1.title">भार की गणना कीजिए</strong> <span data-i18n="b-48.steps.1.detail">mg = 0.05 times 10 = 0.5 N, नीचे की ओर।</span></li>
+      <li><strong data-i18n="b-48.steps.2.title">उच्चतम बिंदु</strong> <span data-i18n="b-48.steps.2.detail">उच्चतम बिंदु पर वेग (velocity) क्षण भर के लिए शून्य होता है, लेकिन इससे बल शून्य नहीं हो जाता। बल और त्वरण (acceleration) उस क्षण में वस्तु की स्थिति की परिस्थिति से निर्धारित होते हैं, इससे नहीं कि वह कितनी तेज़ी से गतिमान है: बल अभी भी उसका भार mg है और त्वरण अभी भी g है, नीचे की ओर।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-i18n="b-48.answer">(a) 0.5 N नीचे की ओर, (b) 0.5 N नीचे की ओर, (c) 0.5 N नीचे की ओर। उत्तर तीनों स्थितियों में समान है: क्षण भर के लिए विरामावस्था में रहने वाली वस्तु पर भी अशून्य बल और अशून्य त्वरण हो सकता है।</span></p>
+  </section>
+  <section class="zn-text" id="b-49">
+    <p data-i18n="b-49.paragraphs.0">लॉन मोअर को धकेलने की तुलना में खींचना अधिक आसान क्यों होता है? इसका उत्तर उन दो चीज़ों से मिलता है जिन्हें आप पहले से जानते हैं: अभिलंब प्रतिक्रिया (Normal reaction) और घर्षण।</p>
+    <p data-i18n="b-49.paragraphs.1">जब दो सतहें संपर्क में होती हैं, तो संपर्क बल (force) का एक घटक सतहों के अभिलंब होता है, जिसे अभिलंब प्रतिक्रिया N कहते हैं, और एक घटक उनके समांतर होता है, जिसे घर्षण कहते हैं। घर्षण के नियम कहते हैं कि सर्पण घर्षण f_k = mu_k N होता है (और स्थैतिक घर्षण (Static friction) अधिकतम mu_s N तक ही बढ़ सकता है)। इसलिए जिस घर्षण का आपको सामना करना होता है, वह अभिलंब प्रतिक्रिया के समानुपाती होता है: N को छोटा करें तो घर्षण भी छोटा हो जाता है।</p>
+    <p data-i18n="b-49.paragraphs.2">मोअर को ऊपर की ओर झुके हैंडल से खींचिए, तो आपके खिंचाव का एक ऊपर की ओर घटक होता है। वह ऊपर की ओर का घटक मोअर को कुछ सहारा देता है, इसलिए फर्श को कम ऊपर की ओर धकेलना पड़ता है: अभिलंब प्रतिक्रिया N छोटी हो जाती है, और उसके साथ वह घर्षण भी छोटा हो जाता है जिसे मोअर को पार करना होता है। उसी मोअर को नीचे की ओर झुके हैंडल से धकेलिए, तो आपके धक्के का एक नीचे की ओर घटक होता है जो मोअर को ज़मीन में और अधिक दबाता है: N बड़ा हो जाता है, और घर्षण भी बड़ा हो जाता है। वही मोअर, वही ज़मीन - केवल हैंडल पर आपके बल की दिशा बदली है, और उसके साथ अभिलंब प्रतिक्रिया और घर्षण भी।</p>
+  </section>
+  <fieldset class="zn-check" id="b-50" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-50.question">4 kg द्रव्यमान के एक कण का स्थिति-समय ग्राफ़ t = 0 से t = 4 s तक एक सरल रेखा है, और t = 4 s के बाद भिन्न ढाल (slope) वाली एक सरल रेखा है। t = 0 से t = 4 s के अंतराल में कण पर बल (force) क्या है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="0"> <span data-i18n="b-50.options.0">शून्य, क्योंकि वहाँ ग्राफ़ एक सरल रेखा है, इसलिए वेग (velocity) नियत है और त्वरण (acceleration) शून्य है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="1"> <span data-i18n="b-50.options.1">4 N, क्योंकि कण का द्रव्यमान 4 kg है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="2"> <span data-i18n="b-50.options.2">अशून्य, क्योंकि कण गतिमान है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-50" value="3"> <span data-i18n="b-50.options.3">इसे t = 4 s के बाद के बल को जाने के बिना नहीं निकाला जा सकता।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-50.explanation">एक सरल स्थिति-समय ग्राफ़ का अर्थ है कि वेग बदल नहीं रहा है, इसलिए त्वरण शून्य है और दूसरे नियम से कुल बल शून्य है। किसी भी क्षण पर बल केवल उसी क्षण पर निर्भर करता है, t = 4 s के बाद क्या होता है उस पर नहीं। t = 4 s पर ढाल अचानक बदलती है, इसलिए वेग अचानक बदल जाता है और वहाँ संवेग (momentum) में उस परिवर्तन के बराबर एक आवेग (Impulse) दिया जाता है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-51" data-format="numeric" data-answer="34.6">
+    <legend data-i18n="b-51.question">0.25 kg द्रव्यमान का एक पत्थर 1.5 m लंबी डोरी से बाँधकर क्षैतिज वृत्त में घुमाया जाता है। यदि डोरी अधिकतम 200 N का तनाव सहन कर सकती है, तो पत्थर को अधिकतम किस चाल (speed) से घुमाया जा सकता है? उत्तर m s-1 में, एक दशमलव स्थान तक दें।</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-51-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-51.explanation">तनाव ही अभिकेंद्रीय बल (Centripetal force) है, इसलिए m v^2/R = T से v = square root of (T R / m) = square root of (200 times 1.5 / 0.25) = square root of 1200, लगभग 34.6 m s-1 प्राप्त होता है। इस चाल से अधिक होने पर आवश्यक अभिकेंद्रीय बल 200 N से अधिक हो जाएगा और डोरी टूट जाएगी।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-52" data-format="numeric" data-answer="0.5">
+    <legend data-i18n="b-52.question">0.05 kg द्रव्यमान का एक कंकड़ ऊर्ध्वाधर ऊपर की ओर फेंका जाता है और अपने पथ के उच्चतम बिंदु पर क्षण भर के लिए विराम में होता है। वायु प्रतिरोध को नजरअंदाज करते हुए और g = 10 m s-2 लेते हुए, उस क्षण उस पर लगने वाले कुल बल (force) का परिमाण न्यूटन में क्या है?</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-52-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-52.explanation">एकमात्र बल उसका भार mg = 0.05 times 10 = 0.5 N है, जो नीचे की ओर है, और यह उच्चतम बिंदु पर भी उतना ही है जितना कहीं और। क्षण भर के लिए विराम में होना वेग (velocity) को शून्य बनाता है, बल को नहीं: वहाँ त्वरण (acceleration) g है, नीचे की ओर।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-53" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-53.question">लॉन मोअर को खींचना उसे धकेलने की तुलना में अधिक आसान क्यों होता है?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="0"> <span data-i18n="b-53.options.0">क्योंकि कोण जो भी हो, खींचने में धकेलने की तुलना में सदैव छोटा बल (force) आवश्यक होता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="1"> <span data-i18n="b-53.options.1">क्योंकि ऊपर की ओर झुके हैंडल पर खींचने से अभिलंब प्रतिक्रिया (Normal reaction) घट जाती है, और घर्षण अभिलंब प्रतिक्रिया के समानुपाती होता है, इसलिए पार करने के लिए कम घर्षण रहता है; नीचे की ओर झुके हैंडल पर धकेलने से दोनों बढ़ जाते हैं।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="2"> <span data-i18n="b-53.options.2">क्योंकि खींचे जाने पर लॉन मोअर का जड़त्व (Inertia) कम होता है।</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-53" value="3"> <span data-i18n="b-53.options.3">क्योंकि घर्षण केवल तब कार्य करता है जब किसी पिंड को धकेला जाता है।</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-53.explanation">घर्षण संपर्क बल का वह घटक है जो सतहों के समांतर होता है, और इसका परिमाण अभिलंब प्रतिक्रिया N के समानुपाती होता है। ऊपर की ओर झुका हुआ खिंचाव लॉन मोअर को आंशिक रूप से सहारा देता है, जिससे N और इस प्रकार घर्षण घट जाता है; नीचे की ओर झुका हुआ धक्का लॉन मोअर को जमीन में दबाता है, जिससे N और इस प्रकार घर्षण बढ़ जाता है।</p></details>
+  </fieldset>
+  <section class="zn-glossary">
+    <h2 data-i18n="ui.glossary_heading">शब्दावली (Glossary)</h2>
+    <dl>
+      <dt data-i18n="b-00-meta.glossary.0.term">जड़त्व (inertia)</dt><dd data-i18n="b-00-meta.glossary.0.definition">किसी पिंड का अपनी विराम अवस्था या एकसमान गति की अवस्था में किसी भी परिवर्तन का विरोध करना।</dd>
+      <dt data-i18n="b-00-meta.glossary.1.term">संवेग</dt><dd data-i18n="b-00-meta.glossary.1.definition">द्रव्यमान गुणा वेग, p = m v; एक सदिश जो वेग के अनुदिश इंगित करता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.2.term">आवेग (impulse)</dt><dd data-i18n="b-00-meta.glossary.2.definition">बल गुणा वह समय जितनी देर वह कार्य करता है; यह संवेग में परिवर्तन के बराबर होता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.3.term">साम्यावस्था</dt><dd data-i18n="b-00-meta.glossary.3.definition">किसी कण की वह अवस्था जब उस पर कुल बाहरी बल शून्य होता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.4.term">अभिलंब प्रतिक्रिया</dt><dd data-i18n="b-00-meta.glossary.4.definition">संपर्क बल का वह भाग जो संपर्क में आने वाले पृष्ठों के लंबवत होता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.5.term">स्थैतिक घर्षण</dt><dd data-i18n="b-00-meta.glossary.5.definition">स्व-समायोजित घर्षण जो किसी पिंड को विराम में रखता है, सीमा µ_s N तक।</dd>
+      <dt data-i18n="b-00-meta.glossary.6.term">गतिज घर्षण</dt><dd data-i18n="b-00-meta.glossary.6.definition">वास्तविक फिसलन का विरोध करने वाला घर्षण, जो µ_k N के बराबर होता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.7.term">अभिकेंद्री बल</dt><dd data-i18n="b-00-meta.glossary.7.definition">जो भी वास्तविक बल केंद्र की ओर इंगित करता है और त्वरण v²/R प्रदान करता है, उसका नाम।</dd>
+      <dt data-i18n="b-00-meta.glossary.8.term">मुक्त-पिंड आरेख</dt><dd data-i18n="b-00-meta.glossary.8.definition">एक चुने गए निकाय का आरेख जो केवल बाहर से उस पर कार्य करने वाले बलों को दर्शाता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.9.term">इष्टतम चाल (बैंक वाली सड़क)</dt><dd data-i18n="b-00-meta.glossary.9.definition">वह चाल √(R g tan θ) जिस पर बैंक वाले मोड़ पर कोई घर्षण आवश्यक नहीं होता।</dd>
+    </dl>
+  </section>
+  <footer class="zn-footer">
+    <p class="zn-sources" data-i18n="ui.sources_footer">Zivon कंटेंट फ़ैक्टरी द्वारा निर्मित। स्रोत कोर्स इंडेक्स में सूचीबद्ध हैं।</p>
+  </footer>
+</main>
+<script src="../i18n.js"></script>
+<script src="../../../../assets/zivon.js"></script>
+<script src="../page.js"></script>
+</body>
+</html>

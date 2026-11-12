@@ -441,6 +441,12 @@ class VoiceSession:
     state: str = "idle"
     locale: str = "hi-en"
     text_only: bool = False  # F6 demo downgrade
+    # Reply language (voice/language.py): latest Prisma detection > the
+    # session.start locale > the product default. ``announced_locale`` is
+    # what the dock was last told in ``language.detected`` (emit on change).
+    detected_locale: str = ""
+    reply_locale: str = ""
+    announced_locale: str = ""
     snapshot: dict[str, Any] | None = None  # context.snapshot (latest-wins)
     snapshot_at: float = 0.0
     user_key: str = ""

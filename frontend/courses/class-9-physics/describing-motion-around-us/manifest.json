@@ -29,6 +29,34 @@
     "reveal": 4,
     "simulation": 3
   },
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Describing Motion Around Us",
+    "hi": "हमारे चारों ओर गति (motion) का वर्णन",
+    "hi-Latn": "Hamare Aas-Paas ki Motion ka Varnan"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "i18n_hashes": {
+    "en": "27f1bea0a21466d0bc1c0ac77dbcd1b2e05c2f0eee05d1de110d5d6cbe7abe5c",
+    "hi": "cd35897cbdca75890ef3d45da8ee897b4b0ba9688d034792628056e8d806aecf",
+    "hi-Latn": "feb5721a16b12893ea5055a64a4b2417f5141853fa5f3b80d5d8d07b4be88479"
+  },
   "narration": {
     "available": true,
     "lang": "en",

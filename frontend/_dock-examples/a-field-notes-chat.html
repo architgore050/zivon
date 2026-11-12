@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="hi-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Direction A — Field Notes Chat</title>
+<link rel="stylesheet" href="a-field-notes-chat.css">
+</head>
+<body>
+
+<div class="demo-bar" role="group" aria-label="Mock controls">
+  <span class="demo-tag">MOCK</span>
+  <label>state
+    <select id="stateSel" aria-label="Mock dock state">
+      <option value="idle">idle</option>
+      <option value="listening">listening</option>
+      <option value="thinking">thinking</option>
+      <option value="speaking">speaking</option>
+      <option value="text-only">text-only</option>
+      <option value="reconnecting">reconnecting</option>
+      <option value="offline">offline</option>
+      <option value="mic-denied">mic-denied</option>
+    </select>
+  </label>
+  <div class="demo-views" role="group" aria-label="Mock containment">
+    <button type="button" data-view="expanded" class="is-on">Sheet</button>
+    <button type="button" data-view="collapsed">Strip</button>
+    <button type="button" data-view="hidden">Tab</button>
+  </div>
+</div>
+
+<main class="lesson">
+  <p class="kicker">Class 11 · Physics</p>
+  <h1 class="lesson-title">Laws of Motion</h1>
+  <p class="lesson-body">Newton's second law says the rate of change of momentum is proportional to the applied force. Push a wall and it pushes back — that is the third law.</p>
+  <p class="lesson-body">When the force acts for a short time, the product of force and time is called <strong>impulse</strong>. A cricket bat stays in contact with the ball for a tiny fraction of a second, but the force is large.</p>
+  <div class="taped">
+    <span class="tag">WORKED EXAMPLE · B-13</span>
+    <p>A bat applies 400 N for 0.15 s. Impulse = 400 × 0.15 = 60 N·s. That is also the change in the ball's momentum.</p>
+  </div>
+  <p class="sub">The question</p>
+  <p class="lesson-body">Why are impulse and change in momentum the same quantity — and why do we give one thing two names?</p>
+</main>
+
+<aside class="dock" id="dock" data-view="expanded" data-state="idle" role="region" aria-label="Voice tutor">
+
+  <button class="tab" id="tab" type="button" aria-label="Open the tutor">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    Ask
+  </button>
+
+  <div class="strip-shell" id="strip">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="strip">
+      <button class="strip-open" id="stripOpen" type="button" aria-label="Open the tutor">
+        <span class="strip-who" id="stripWho">Tutor</span>
+        <span class="strip-line" id="stripLine">Haan. Chhota time, bada force…</span>
+      </button>
+      <button class="strip-mic mic" id="stripMic" type="button" aria-label="Start listening" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <section class="sheet" id="sheet" aria-label="Conversation">
+    <header class="sheet-head">
+      <button class="anchor" type="button" id="anchorChip" aria-label="Showing where the tutor is looking: block b-13, worked example">
+        <span class="dot" aria-hidden="true"></span>
+        <span>b-13 · worked example</span>
+        <span class="bid" aria-hidden="true">↗</span>
+      </button>
+      <div class="head-tools">
+        <button class="lang" type="button" id="langChip" aria-label="Language: Hinglish. Change language">Hinglish</button>
+        <button class="iconbtn" type="button" id="collapseBtn" aria-label="Collapse the tutor">▾</button>
+      </div>
+    </header>
+
+    <div class="transcript" id="transcript" role="log" aria-live="polite" aria-relevant="additions text"></div>
+
+    <div class="composer-wrap">
+      <form class="composer" id="composer" autocomplete="off">
+        <button class="mic" id="mic" type="button" aria-label="Start listening" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <label class="sr-only" for="field">Type your physics doubt</label>
+        <input class="field" id="field" type="text" placeholder="Poochho is page se…" autocomplete="off">
+        <button class="send" type="submit">Send</button>
+      </form>
+      <p class="note" id="ledger" hidden>Voice rests today · typing and reading stay free.</p>
+      <div class="hints" id="hints" hidden>
+        <button class="hint" type="button">Is graph ka slope?</button>
+        <button class="hint" type="button">Step by step samjhao</button>
+      </div>
+    </div>
+  </section>
+</aside>
+
+<script src="a-field-notes-chat.js"></script>
+</body>
+</html>

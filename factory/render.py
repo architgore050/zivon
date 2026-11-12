@@ -760,7 +760,9 @@ def write_courses_js(frontend_dir: Path) -> list[dict[str, Any]]:
     courses_dir = frontend_dir / "courses"
     entries: list[dict[str, Any]] = []
     if courses_dir.exists():
-        for mf in sorted(courses_dir.glob("*/**/manifest.json")):
+        for mf in sorted(
+            courses_dir.glob("*/*/manifest.json")
+        ):  # topic manifests only; locale manifests live one level deeper
             data = json.loads(mf.read_text(encoding="utf-8"))
             # rel already starts with "courses/" (manifests only exist under courses/)
             rel = mf.parent.relative_to(frontend_dir).as_posix()

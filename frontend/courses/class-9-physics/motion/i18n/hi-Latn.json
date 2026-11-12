@@ -1,0 +1,1653 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Force (bal) Motion (gati) ko Kaise Affect Karte Hain: Force, Friction aur Newton ke Teen Laws",
+    "b-00-meta.objectives.0": "Is lesson ke baad aap force (bal) ko uske magnitude, direction aur unit se describe kar sakte hain, aur spring balance se force measure kar sakte hain.",
+    "b-00-meta.objectives.1": "Is lesson ke baad aap net force nikal sakte hain jab kisi object par kai forces act karti hain, aur bata sakte hain ki forces balanced hain ya nahi.",
+    "b-00-meta.objectives.2": "Is lesson ke baad aap Newton ke teen laws of motion state aur apply kar sakte hain, including F = ma aur newton ki definition.",
+    "b-00-meta.objectives.3": "Is lesson ke baad aap do connected objects ki acceleration (tvaran) nikal sakte hain jab unhe ek single system maana jaye.",
+    "b-00-meta.glossary.0.term": "force",
+    "b-00-meta.glossary.0.definition": "Force (bal) ek aisa push ya pull hai jo kisi object ko move karna shuru kar sakta hai, uski speed ya direction badal sakta hai, ya uski shape badal sakta hai; iska magnitude, direction aur unit newton (N) hota hai.",
+    "b-00-meta.glossary.1.term": "balanced forces",
+    "b-00-meta.glossary.1.definition": "Do forces jo magnitude mein equal aur direction mein opposite hain, taaki object move na kare.",
+    "b-00-meta.glossary.2.term": "net force",
+    "b-00-meta.glossary.2.definition": "Saari forces add karne ke baad bachi single force: agar same direction mein hain toh sum, agar opposite hain toh difference. Motion sirf net force decide karti hai.",
+    "b-00-meta.glossary.3.term": "normal force",
+    "b-00-meta.glossary.3.definition": "Kisi surface par rest kar rahe object par us surface ka upward push, surface ke perpendicular.",
+    "b-00-meta.glossary.4.term": "inertia",
+    "b-00-meta.glossary.4.definition": "Kisi object ki tendency jo uske rest ya uniform motion ki state mein kisi bhi change ko resist karti hai.",
+    "b-00-meta.glossary.5.term": "tension",
+    "b-00-meta.glossary.5.definition": "Do objects ko jodne wali string dwara carry ki gayi force; ye har object ko opposite direction mein pull karti hai.",
+    "b-00-meta.glossary.6.term": "newton",
+    "b-00-meta.glossary.6.definition": "Force ka SI unit: woh force jo 1 kg object ko 1 m s⁻² ka acceleration deti hai.",
+    "b-01.paragraphs.0": "Zameen par padi ek ball motion (gati) mein aa jati hai jab aap use kick karte hain. Aapki taraf aa rahi cricket ball ki direction badal jati hai jab bat usse hit karti hai. Nimbu ka shape badal jata hai jab aapki ungliyan use dabati hain. Ye teenon changes force (bal) ki wajah se hote hain.",
+    "b-01.paragraphs.1": "To force (bal) kisi object ko rest se motion mein la sakta hai, kisi moving object ki speed (chaal) aur direction of motion badal sakta hai, aur kisi object ka shape badal sakta hai.",
+    "b-01.paragraphs.2": "Dhyan dijiye ki in examples mein har force ki ek direction hoti hai. Friction motion ke opposite act karta hai, magnets kisi particular line ke along push ya pull karte hain, Earth kisi object ko apni taraf pull karti hai, aur ek liquid floating object ko buoyant force se upwards push karta hai.",
+    "b-01.paragraphs.3": "Isliye force ek physical quantity hai jiske liye humein magnitude aur unit ke saath-saath direction bhi batani hoti hai. Force ka SI unit newton hai, words mein chhote 'n' ke saath likha jata hai, aur iska symbol N hai. Kisi force ka magnitude uski strength batata hai. Agar magnitude, direction, ya dono badal jayein, to force ka effect bhi badal jata hai.",
+    "b-02.paragraphs.0": "Hum kaise measure karte hain ki ek force (bal) kitna bada hai? Ek spring balance yeh kaam karta hai. Aapne iska istemal kisi object ka weight measure karne ke liye kiya hai, aur kisi object ka weight woh gravitational force hai jisse Earth use kheenchti hai.",
+    "b-02.paragraphs.1": "Ek spring balance weight measure karne se zyada karta hai. Agar aap iske free end ko kheenchte hain, toh yeh us force ko measure karta hai jisse aap balance ke andar spring par kheenchte hain. Toh wahi instrument generally ek force ka magnitude measure karta hai.",
+    "b-02.paragraphs.2": "Ek halka touch millinewtons ke order ka force hota hai, yaani 10⁻³ N, jo lagbhag sabse chhota force hai jo ek insaan direct feel kar sakta hai. Specialised experiments mein, scientists yoctonewtons jitne chhote forces measure kar sakte hain, yaani 10⁻²⁴ N.",
+    "b-03.question": "Force (bal) ke baare mein kaun sa statement sahi hai?",
+    "b-03.options.0": "Force (bal) ko sirf uske magnitude se hi completely describe kiya ja sakta hai.",
+    "b-03.options.1": "Force (bal) ke liye magnitude ke saath direction bhi zaroori hai, aur iska SI unit newton (N) hai.",
+    "b-03.options.2": "Force (bal) ko kilograms mein measure kiya jata hai, aur iski direction matter nahi karti.",
+    "b-03.options.3": "Sirf force (bal) ki direction badalne se uska effect nahi badalta.",
+    "b-03.explanation": "Force (bal) ek physical quantity hai jisme magnitude aur direction dono hote hain, aur iska SI unit newton (N) hai. Agar magnitude, direction, ya dono badal jayein, to force (bal) ka effect badal jata hai.",
+    "b-04.paragraphs.0": "Asli zindagi mein, aksar ek hi samay par kisi object par ek se zyada force (bal) act karte hain. Jab aap floor par box ko dhakelte hain, to aapka push ek force hai aur friction ka force doosra, jo opposite direction mein act karta hai. Jab ek ball paani par tairti hai, to Earth ka gravitational force use neeche kheenchta hai aur liquid ka buoyant force use upar dhakelta hai.",
+    "b-04.paragraphs.1": "Tug of war sochiye. Agar dono teams equal force se kheenchti hain, to rope nahi move karti. Do forces jo magnitude mein equal hain lekin direction mein opposite hain, unhe balanced forces kehte hain. Agar ek team zyada zor se kheenchti hai, to forces balanced nahi rehte aur rope larger force ki direction mein move karti hai.",
+    "b-04.paragraphs.2": "Jab kisi object par forces balanced nahi hote, to us par non-zero net force act karta hai. Agar do opposite forces unequal hain, to net force unke magnitudes ka difference hota hai aur larger force ki direction mein point karta hai. Agar do forces same direction mein act karte hain, to net force unke magnitudes ka sum hota hai aur usi same direction mein point karta hai.",
+    "b-04.paragraphs.3": "Key idea yaad rakhiye: kisi object par kai forces act kar sakte hain, lekin uski motion (gati) sirf net force par depend karti hai.",
+    "b-05.caption": "Ek hi block par do force (bal) act kar rahe hain. Upar: dono force right ki taraf point karte hain, isliye net force unka sum hai, 16 N right ki taraf. Neeche: forces ek doosre ke opposite hain, isliye net force difference hai, 4 N, badi force ke along (right ki taraf). Har arrow ki length 14 pixels per newton scale par draw ki gayi hai: 10 N, 6 N, 4 N aur 16 N.",
+    "b-05.svg_texts.t-0": "Net force = 16 N",
+    "b-05.svg_texts.t-1": "Dono forces same direction mein",
+    "b-05.svg_texts.t-2": "Net force = 4 N",
+    "b-05.svg_texts.t-3": "Forces opposite directions mein",
+    "b-06.problem": "Ek block par, jo table par rakha hai, 10 N aur 6 N ke do force (bal) act kar rahe hain. Har case mein block par act karne wale net force ka magnitude aur direction kya hai? (a) dono force right ki taraf act karte hain; (b) 10 N force right ki taraf act karta hai aur 6 N force left ki taraf act karta hai; (c) 10 N force left ki taraf act karta hai aur 6 N force right ki taraf act karta hai.",
+    "b-06.steps.0.title": "(a) Same direction mein forces",
+    "b-06.steps.0.detail": "Dono force right ki taraf act karte hain, isliye unhe add karein: net force = 10 N + 6 N = 16 N, jo right side ki taraf act karta hai.",
+    "b-06.steps.1.title": "(b) Opposite forces, larger force right ki taraf",
+    "b-06.steps.1.detail": "Forces ek doosre ke opposite hain, isliye subtract karein: net force = 10 N − 6 N = 4 N, jo right side ki taraf act karta hai, yani larger force ke along.",
+    "b-06.steps.2.title": "(c) Opposite forces, larger force left ki taraf",
+    "b-06.steps.2.detail": "Phir subtract karein: net force = 10 N − 6 N = 4 N, lekin ab yeh left side ki taraf act karta hai, 10 N force ke along.",
+    "b-06.answer": "(a) 16 N right ki taraf; (b) 4 N right ki taraf; (c) 4 N left ki taraf.",
+    "b-07.question": "Ek weightlifter barbell ko utha kar apne sir ke upar steady rakhti hai. Barbell par kaun se do force (bal) act kar rahe hain, aur kya woh balanced hain?",
+    "b-07.options.0": "Weightlifter dwara lagaya gaya upward force aur barbell ka downward gravitational force (weight); ye balanced hain.",
+    "b-07.options.1": "Sirf gravitational force act karta hai; forces balanced nahin hain.",
+    "b-07.options.2": "Applied force aur friction ka force; ye balanced nahin hain.",
+    "b-07.options.3": "Normal force aur weight; ye balanced hain lekin normal force horizontal hai.",
+    "b-07.explanation": "Barbell steady hai, isliye iski velocity nahin badalti. Iske liye zero net force chahiye, isliye weightlifter ka upward force downward weight ko balance karna chahiye.",
+    "b-08.question": "Do players R aur S ek arm-wrestling match mein hain. Us instant par jab arms front direction (page ke bahar, aapki taraf) tilt karte hain, kya players dwara lagaye gaye forces balanced hain? Agar nahi, to kis player ne larger force lagaya?",
+    "b-08.options.0": "Balanced; dono players equal forces lagate hain.",
+    "b-08.options.1": "Not balanced; jis player ki side arms tilt karte hain, usne larger force lagaya.",
+    "b-08.options.2": "Not balanced; doosre player ne larger force lagaya.",
+    "b-08.options.3": "Kuch nahi kaha ja sakta, kyunki masses nahi di gayi hain.",
+    "b-08.explanation": "Jab do opposite forces unequal hoti hain, net force larger force ki direction mein point karta hai, aur arms us direction mein move karte hain. Ek side ki taraf tilt dikhata hai ki kiski force larger hai.",
+    "b-09.paragraphs.0": "Kisi object ko floor par rest mein rakho aur use halke se push karo. Aksar woh move nahi karta; aapko zyada zor se push karna padta hai. Iska reason object ki bottom surface aur floor ke beech ka friction (gharshana) force (bal) hai, jo aapke push ke opposite direction mein act karta hai.",
+    "b-09.paragraphs.1": "Box sirf tab move karna shuru karta hai jab aapka force friction ke force se larger ho, taaki box par motion (gati) ki direction mein net force act kare.",
+    "b-09.paragraphs.2": "Pushed box par do aur forces act karte hain. Gravitational force, yani uska weight, downwards act karta hai. Jis surface par box rests karta hai, us surface dwara lagaya gaya force normal force kehlata hai, aur woh upwards, surface ke perpendicular act karta hai. Level floor par box ke liye ye dono forces balanced hain. Air bhi moving box par friction force lagata hai, lekin usually yeh itna small hota hai ki ise neglect kiya ja sakta hai.",
+    "b-09.paragraphs.3": "Ab pushing band kar do. Box slow down hota hai aur rest mein aa jata hai. Jis bicycle ko aap pedalling band karte ho, woh bhi kuch distance (doori) ke baad rest mein aa jati hai. Iska matlab yeh nahi ki motion continue karne ke liye force chahiye; iska matlab friction motion ke against act karta hai. Object ko moving rakhte rehne ke liye aapko ek force lagate rehna padta hai jo friction ko counter karta hai.",
+    "b-10.caption": "Ek box ko level floor par push kiya ja raha hai. Agar box sirf move kar raha hai, na speed up ho raha hai na slow down, to applied force (bal) aur force of friction magnitude mein equal hain aur direction mein opposite. Weight vertically neeche act karta hai aur normal force vertically upar act karta hai, floor ke perpendicular, aur ye dono ek dusre ko balance karte hain. Arrow lengths sirf directions dikhati hain; applied aur friction arrows equal banaye gaye hain kyunki woh equal hain.",
+    "b-10.svg_texts.t-0": "Lagaya gaya force",
+    "b-10.svg_texts.t-1": "Friction force",
+    "b-10.svg_texts.t-2": "Gravitational force (bhaar)",
+    "b-10.svg_texts.t-3": "Normal force",
+    "b-11.paragraphs.0": "Do simple experiments dikhate hain ki friction different surfaces par kaise behave karta hai. Pehle experiment mein, chaar sikkon ka stack ek stretched rubber band se peeche khincha jata hai aur level surfaces par chhod diya jata hai: wooden table top, laminated table top, aur polished marble ya tiled floor. Rubber band ko har baar same amount tak stretch kiya jata hai.",
+    "b-11.paragraphs.1": "Release se pehle, coins stationary hain, isliye un par forces (bal) balanced hain. Release par, rubber band coins ko forward push karta hai ek force ke saath jo friction se larger hai, isliye net force act karta hai aur coins accelerate karte hain. Jis moment coins rubber band se contact kho dete hain, un par sirf friction act karta hai, unki motion (gati) ke opposite, aur dheere-dheere unhe rest par le aata hai.",
+    "b-11.paragraphs.2": "Coins different surfaces par different distances (doori) travel karte hain, isliye friction different hai. Ek spring balance jise horizontally kheencha jata hai aur jisme wooden block attached hai, friction ka approximate measure deta hai: jis reading par block just move karna shuru karta hai, woh force of friction ka magnitude dikhati hai.",
+    "b-11.paragraphs.3": "Conclusion simple hai. Jahan friction smaller hai, velocity (veg) dheere-dheere decrease hoti hai aur object stopping se pehle larger distance travel karta hai. Jahan friction larger hai, object jaldi stop ho jata hai.",
+    "b-12.title": "Ek thought experiment: agar friction zero hota to kya hota?",
+    "b-12.steps.0.title": "Friction ko zero set karo",
+    "b-12.steps.0.detail": "Ek object aur ek horizontal floor imagine karo jo itna smooth ho ki unke beech friction force (bal) zero ho. Thought experiment tab use hota hai jab experiment ke liye zaroori conditions real world mein recreate karna mushkil ho.",
+    "b-12.steps.1.title": "Object ko release karo",
+    "b-12.steps.1.detail": "Is floor par rubber band experiment repeat karo. Jab object rubber band se contact kho deta hai, to koi force use aage nahi dhakelta aur koi friction uske against act nahi karta.",
+    "b-12.steps.2.title": "Koi cheez velocity (veg) ko kam nahi kar sakti",
+    "b-12.steps.2.detail": "Jab moving object par koi net force act nahi karta, to uski velocity change nahi ho sakti. Ye bilkul slow down nahi hota, isliye ye kabhi rest mein nahi aata; ye hamesha move karta rehta hai.",
+    "b-12.steps.3.title": "Historical step",
+    "b-12.steps.3.detail": "Galileo Galilei ne 17th century mein, kai thought experiments ke through, argue kiya ki agar ek body horizontal plane par move karti hai aur uske motion (gati) ke saare impediments hata diye jayein, to wo indefinitely move karti rahegi.",
+    "b-12.steps.4.title": "Is tendency ka naam",
+    "b-12.steps.4.detail": "Isaac Newton ne inertia word ka use kiya to describe kiya objects ki tendency ko ki wo apne state of rest ya uniform motion (eksamaan gati) mein change ko resist karein, aur is idea ka use karke apna first law of motion frame kiya.",
+    "b-13.question": "Ek horizontal force (bal) F ka use karke, ek table ko floor par constant velocity (veg) se move kiya jata hai. Floor dwara table par lagaya gaya frictional force kitna hai?",
+    "b-13.options.0": "Zero",
+    "b-13.options.1": "F ke barabar",
+    "b-13.options.2": "F se zyada",
+    "b-13.options.3": "F se kam lekin zero nahi",
+    "b-13.explanation": "Constant velocity (veg) ka matlab hai ki velocity change nahi ho rahi, isliye acceleration (tvaran) aur net force zero hain. Isliye friction force ko applied force F ko exactly balance karna chahiye.",
+    "b-14.paragraphs.0": "Newton's first law of motion (gati) kehta hai: ek object rest mein rest rehta hai, aur ek object motion mein constant velocity (veg) ke saath move karta rehta hai, jab tak us object par net force act nahi karta.",
+    "b-14.paragraphs.1": "Dusre shabdon mein, agar kisi object par act karne wala net force zero hai, to object move karna shuru nahi kar sakta aur apni velocity change nahi kar sakta. Iska acceleration (tvaran) zero hai.",
+    "b-14.paragraphs.2": "Ek object rest mein zero velocity rakhta hai. Constant velocity ka matlab hai ki velocity ke magnitude ya direction mein koi change nahi hota. Agar wo constant velocity non-zero hai, to object same direction mein same speed (chaal) ke saath straight line mein move karta hai.",
+    "b-14.paragraphs.3": "Ye law ek common doubt ko bhi settle karta hai. Ek moving box ko forward push karo with a force (bal) exactly equal to the friction force: dono forces balance ho jate hain, net force zero ho jata hai, aur box rest mein aane ke bajaye constant velocity ke saath move karta rehta hai.",
+    "b-15.problem": "Ek person ek moving box par forward direction mein force (bal) laga raha hai jo box ke bottom surface aur floor ke beech lagne wale friction force ke equal hai. Kya box move karta rahega ya kuch time baad rest mein aa jayega?",
+    "b-15.steps.0.title": "Dono forces ko identify karein",
+    "b-15.steps.0.detail": "Person ka force forward act karta hai. Friction ka force backward, motion (gati) ke opposite, same magnitude ke saath act karta hai.",
+    "b-15.steps.1.title": "Net force nikaalein",
+    "b-15.steps.1.detail": "Dono forces magnitude mein equal aur direction mein opposite hain, isliye wo ek doosre ko balance karte hain. Box par net force zero hai.",
+    "b-15.steps.2.title": "Newton's first law apply karein",
+    "b-15.steps.2.detail": "Zero net force ke saath box ki velocity (veg) change nahi ho sakti, isliye box apni existing velocity ko maintain karta hai.",
+    "b-15.answer": "Box constant velocity ke saath move karta rahega; wo rest mein nahi aayega.",
+    "b-16.title": "Graphs jab net force zero hota hai",
+    "b-16.description": "Us object ke position–time aur velocity–time graphs dikhao jis par koi net force act nahi karta. Zero speed (chaal) par object rest mein rehta hai; kisi bhi doosri speed par wo constant velocity (veg) se move karta hai.",
+    "b-16.controls.speed.label": "Speed (chaal) (m s⁻¹)",
+    "b-17.question": "Ek object constant velocity (veg) se move kar raha hai. Kya us par koi net force act kar raha hai?",
+    "b-17.options.0": "Haan, net force motion ki direction mein act karta hai.",
+    "b-17.options.1": "Nahi, us par act karne wala net force zero hai.",
+    "b-17.options.2": "Haan, net force motion ki direction ke opposite act karta hai.",
+    "b-17.options.3": "Mass jaane bina kuch kehna impossible hai.",
+    "b-17.explanation": "Constant velocity ka matlab hai ki velocity ka magnitude aur direction dono change nahi ho rahe, isliye acceleration zero hai; Newton's first law ke according net force zero hona chahiye.",
+    "b-18.question": "Maan lijiye kisi object par koi net force act nahi kar raha hai. Nimnlikhit situations mein se kaunsi possible NAHI hai?",
+    "b-18.options.0": "Agar object rest mein tha to woh rest mein hi rahega.",
+    "b-18.options.1": "Agar object pehle se move kar raha tha to woh constant velocity (veg) se move karta rahega.",
+    "b-18.options.2": "Object constant acceleration (tvaran) ke saath move karta hai.",
+    "b-18.options.3": "Teeno situations possible hain.",
+    "b-18.explanation": "Zero net force hone par acceleration (tvaran) zero hota hai, isliye velocity (veg) bilkul change nahi ho sakti. Constant non-zero acceleration ke liye net force chahiye hoga.",
+    "b-19.question": "Ek ball smooth frictionless surface par move karti hai. Woh option chuniye jisse teenon statements physically correct ho. (i) Agar ball par koi net force apply nahi hota, to ball ki velocity (veg) ___. (ii) Agar uski motion (gati) ki direction mein net force apply hota hai, to velocity ka magnitude ___. (iii) Agar uski motion ke opposite net force apply hota hai, to velocity ka magnitude ___.",
+    "b-19.options.0": "same rehti hai / badhti hai / ghatti hai",
+    "b-19.options.1": "same rehti hai / ghatti hai / badhti hai",
+    "b-19.options.2": "badhti hai / badhti hai / ghatti hai",
+    "b-19.options.3": "same rehti hai / badhti hai / badhti hai",
+    "b-19.explanation": "Net force na hone se velocity unchanged rehti hai. Motion ki direction mein force ball ko accelerate karta hai, isliye uski speed badh jaati hai. Motion ke opposite force usko opposite direction mein accelerate karta hai, isliye uski speed ghat jaati hai.",
+    "b-20.paragraphs.0": "Ek ball ko halke se push kijiye to woh dheere move karna shuru karti hai. Zor se push kijiye to woh tezi se move karna shuru karti hai. Is rozmarra ke anubhav se aap ek hypothesis bana sakte hain: same object ke liye, larger force (bal) larger acceleration produce karta hai.",
+    "b-20.paragraphs.1": "Ise test karne ke liye, same surface par same cart par different magnitudes ke weights ko pulley ke upar thread se latka kar different magnitudes ke forces lagaye jaate hain, aur fixed distance (doori) cover karne mein laga time measure kiya jaata hai. Same mass ke liye jab force badhaya jaata hai, acceleration (tvaran) badh jaata hai. Isliye fixed mass wale object ka acceleration badhta hai jaise-jaise us par net force badhta hai.",
+    "b-20.paragraphs.2": "Rozmarra ka anubhav second hypothesis deta hai: same force ke saath, lighter object ko motion (gati) mein set karna heavier object se aasan hota hai. Same pulling force lekin heavier cart ke saath experiment repeat karne se pata chalta hai ki mass badhne par acceleration kam ho jaata hai. Isliye given force ke liye, acceleration object ke mass ke inversely related hota hai.",
+    "b-20.paragraphs.3": "Newton's second law of motion states: jab kisi object par net force act karta hai, to object net force ki direction mein accelerate karta hai. Acceleration ka magnitude net force ke magnitude ke proportional hota hai aur object ke mass ke inversely proportional hota hai.",
+    "b-21.title": "Second law se F = ma tak, aur newton ki definition",
+    "b-21.steps.0.title": "Proportionality likhiye",
+    "b-21.steps.0.detail": "Law kehta hai ki acceleration (tvaran) net force ke proportional hai aur mass ke inversely proportional. Dono statements ko combine karne se a = F/m milta hai.",
+    "b-21.steps.1.title": "Ise rearrange kijiye",
+    "b-21.steps.1.detail": "Dono sides ko m se multiply karne par F = ma milta hai, jahan F net force hai, m mass hai aur a acceleration (tvaran) hai. Acceleration ki direction net force ki direction ke same hoti hai.",
+    "b-21.steps.2.title": "Unit fix kijiye",
+    "b-21.steps.2.detail": "Mass kg mein aur acceleration m s⁻² mein measure kiya jata hai. Agar m = 1 kg aur a = 1 m s⁻², to F = (1 kg) × (1 m s⁻²) = 1 kg m s⁻² = 1 N.",
+    "b-21.steps.3.title": "Definition bataiye",
+    "b-21.steps.3.detail": "Ek newton force woh force hai jo 1 kg mass wale object par 1 m s⁻² ka acceleration (tvaran) produce karta hai.",
+    "b-21.steps.4.title": "Weight likhiye",
+    "b-21.steps.4.detail": "Earth ke gravitational force ke under, girte hue object ka acceleration g hota hai. F = ma mein a = g rakhne se mass m wale object par gravitational force F = mg milta hai. g ki value 9.8 m s⁻² hai, Earth ki surface ke paas lagbhag constant; quick estimation ke liye aap g = 10 m s⁻² le sakte hain. Dhyan dijiye ki g object ke mass par depend nahi karta.",
+    "b-22.problem": "Ek weightlifter bar ke dono sides par 10 kg mass fixed wala barbell hold kar rahi hai. Bar ka khud ka mass 10 kg hai. Barbell ko steady rakhne ke liye woh kitna force (bal) apply kar rahi hai? (g = 9.8 m s⁻² lein.)",
+    "b-22.steps.0.title": "Barbell ka total mass",
+    "b-22.steps.0.detail": "Ek side par 10 kg + doosri side par 10 kg + bar ke liye 10 kg = 30 kg.",
+    "b-22.steps.1.title": "Barbell ka weight",
+    "b-22.steps.1.detail": "F = mg = 30 kg × 9.8 m s⁻² = 294 N, jo neeche ki direction mein lagta hai.",
+    "b-22.steps.2.title": "Weightlifter dwara apply kiya gaya force",
+    "b-22.steps.2.detail": "Barbell ko steady rakhne ke liye uski velocity change nahi honi chahiye, isliye net force zero hai. Use opposite direction mein, yaani upwards, 294 N ke barabar force lagana hoga.",
+    "b-22.answer": "Woh upward direction mein 294 N apply karti hai.",
+    "b-23.problem": "Ek student horizontal floor par 25 kg ke stationary block ko push karne ki koshish kar raha hai. Is motion (gati) ko oppose karne wala maximum force (bal) of friction 50 N hai. Block ka displacement (visthapan) 2 seconds mein determine karein agar student use forward direction mein constant force (i) 50 N aur (ii) 55 N se push karta hai.",
+    "b-23.steps.0.title": "(i) Applied force friction ke equal",
+    "b-23.steps.0.detail": "50 N ka applied force 50 N ke opposing force of friction ke equal hai. Dono forces balanced hain aur block par net force zero hai, isliye block stationary rehta hai aur uska displacement 0 m hai.",
+    "b-23.steps.1.title": "(ii) Net force",
+    "b-23.steps.1.detail": "Block par net force forward direction mein 55 N − 50 N = 5 N hai.",
+    "b-23.steps.2.title": "Acceleration (tvaran)",
+    "b-23.steps.2.detail": "Newton's second law use karke, a = F/m = 5 N / 25 kg = 0.2 m s⁻², forward direction mein.",
+    "b-23.steps.3.title": "2 s mein displacement",
+    "b-23.steps.3.detail": "Block rest se start hota hai, isliye u = 0 m s⁻¹. s = ut + ½at² use karke, s = 0 × 2 s + ½ × 0.2 m s⁻² × (2 s)² = 0.4 m.",
+    "b-23.answer": "(i) 0 m — block stationary rehta hai; (ii) forward direction mein 0.4 m.",
+    "b-24.problem": "1500 kg mass ki ek sports car east ki taraf moving hai. Iska velocity–time graph t = 0 s par 0 m s⁻¹ se shuru hokar t = 5 s par 10 m s⁻¹ tak straight line ke roop mein badhta hai, 5 s se 10 s tak 10 m s⁻¹ par time axis ke parallel straight line rehta hai, aur phir t = 10 s par 10 m s⁻¹ se t = 15 s par 0 m s⁻¹ tak straight line ke roop mein girta hai. Car par lagne wala force (bal) calculate karein during (i) 0 s se 5 s, (ii) 5 s se 10 s, aur (iii) 10 s se 15 s.",
+    "b-24.steps.0.title": "(i) 0 s se 5 s",
+    "b-24.steps.0.detail": "Graph time axis ki taraf inclined straight line hai, isliye acceleration (tvaran) constant hai, jahan u = 0 m s⁻¹, v = 10 m s⁻¹ aur t = 5 s. v = u + at se: 10 = 0 + a × 5, isliye a = 2 m s⁻². Phir F = ma = 1500 kg × 2 m s⁻² = 3000 N, east ki taraf act karta hai.",
+    "b-24.steps.1.title": "(ii) 5 s se 10 s",
+    "b-24.steps.1.detail": "Graph time axis ke parallel hai, isliye velocity (veg) constant hai aur acceleration zero hai. Is interval mein car par koi force act nahin karta.",
+    "b-24.steps.2.title": "(iii) 10 s se 15 s",
+    "b-24.steps.2.detail": "Yahan u = 10 m s⁻¹, v = 0 m s⁻¹ aur t = 5 s. v = u + at se: 0 = 10 + a × 5, isliye a = −2 m s⁻². Phir F = ma = 1500 kg × (−2 m s⁻²) = −3000 N. Negative sign dikhata hai ki force motion (gati) ki direction ke opposite act karta hai, yani west ki taraf.",
+    "b-24.answer": "(i) 3000 N east ki taraf; (ii) zero force; (iii) 3000 N west ki taraf.",
+    "b-25.question": "100 g mass ki ek toy car 0.5 m s⁻¹ ki constant velocity (veg) se move kar rahi hai. Toy car par lagne wala net force kya hai?",
+    "b-25.options.0": "0 N",
+    "b-25.options.1": "0.05 N",
+    "b-25.options.2": "0.5 N",
+    "b-25.options.3": "50 N",
+    "b-25.explanation": "Constant velocity ka matlab hai acceleration (tvaran) zero hai. F = ma use karne par net force zero hota hai, car ka mass jo bhi ho.",
+    "b-26.question": "Alag-alag masses ke do children ek jaise swings par baithe hain. Same initial acceleration (tvaran) dene ke liye, aapko kis child par larger force (bal) lagana hoga?",
+    "b-26.options.0": "Lighter child, kyunki smaller mass ko larger force chahiye.",
+    "b-26.options.1": "Heavier child, kyunki F = ma ka matlab hai ki same acceleration ke liye larger mass ko larger force chahiye.",
+    "b-26.options.2": "Dono ko same force chahiye, kyunki maanga gaya acceleration same hai.",
+    "b-26.options.3": "Kisi ko bhi force nahi chahiye, kyunki swing rest par hai.",
+    "b-26.explanation": "Same acceleration a ke liye, needed force F = ma hai, jo mass ke saath badhta hai. Isliye heavier child ko larger force chahiye.",
+    "b-27.question": "Transportation ke liye glass items ko bubble wrap ya hay se pack karke damage se kaise protect kiya jata hai?",
+    "b-27.options.0": "Packing se glass item ka mass kam ho jata hai.",
+    "b-27.options.1": "Packing us time ko badha deti hai jisme glass item ko rest par laaya jata hai, isliye acceleration aur us par lagne wala force chhota ho jata hai.",
+    "b-27.options.2": "Packing friction ko poori tarah hata deti hai.",
+    "b-27.options.3": "Packing glass item par force badha deti hai lekin use larger area par spread kar deti hai.",
+    "b-27.explanation": "Soft packing same change of velocity ke liye stopping time ko lamba karti hai, jiska matlab smaller acceleration; F = ma se glass par smaller force milta hai.",
+    "b-28.paragraphs.0": "Kisi force (bal) ke kaam aane ke liye at least do objects ka interact karna zaroori hai. Jab aap apne foot se ball ko push karte hain, to aapko ball dwara aapke foot par lagaya gaya force feel hota hai.",
+    "b-28.paragraphs.1": "Newton's third law of motion (gati) kehta hai: jab bhi ek object doosre object par force exert karta hai, usi samay doosra object pehle object par equal aur opposite force exert karta hai.",
+    "b-28.paragraphs.2": "Wheels wali chair par baithein aur ek heavy table ko apne se door push karein: aapki chair backwards move karti hai. Table ko apni taraf pull karein: aapki chair table ki taraf move karti hai. Har baar table aap par aapke push ya pull ki opposite direction mein force lagata hai. Do identical spring balances ko hook karke apart pull karne par har baar same value read hoti hai, jo dikhata hai ki wo ek doosre par equal magnitude ke forces lagate hain.",
+    "b-28.paragraphs.3": "Forces hamesha pairs mein aate hain, lekin wo do different objects par act karte hain, isliye wo ek doosre ko cancel nahi karte. Same object par act karne wale do equal aur opposite forces ek doosre ko balance karte hain. Ye law contact aur non-contact forces dono ke liye valid hai: do magnets ke beech magnetic forces, do charged balloons ke beech electrostatic forces, aur Earth aur ek fruit ke beech gravitational forces—sab equal aur opposite pairs mein aate hain.",
+    "b-29.caption": "Walking ek third-law pair hai. Foot ground ko backwards push karta hai (lower arrow, ground line ke neeche draw kiya gaya hai taaki ground par push dikhaye), aur ground friction ke through foot ko forwards push karta hai (upper arrow, foot ke upar draw kiya gaya hai). Dono arrows length mein equal hain kyunki forces (bal) magnitude mein equal hain; ye different objects par act karte hain, isliye cancel nahi hote.",
+    "b-29.svg_texts.t-0": "foot",
+    "b-29.svg_texts.t-1": "Foot par friction force (forward)",
+    "b-29.svg_texts.t-2": "Foot ground ko backwards push karta hai",
+    "b-30.problem": "Earth aur ek fruit ek doosre par equal aur opposite gravitational forces (bal) lagate hain. Phir fruit Earth ki taraf kyun move karta hai, jabki Earth fruit ki taraf move hota hua nahi dikhta?",
+    "b-30.steps.0.title": "Forces equal hain",
+    "b-30.steps.0.detail": "Newton's third law ke anusar, Earth dwara fruit par lagaya gaya force aur fruit dwara Earth par lagaya gaya force magnitude mein equal aur direction mein opposite hain.",
+    "b-30.steps.1.title": "Lekin accelerations equal nahi hain",
+    "b-30.steps.1.detail": "a = F/m ka use karke, har body ko milne wala acceleration (tvaran) uske apne mass par depend karta hai. Earth ka mass fruit ki tulna mein itna zyada hai ki is force se Earth ka acceleration bahut hi small hota hai.",
+    "b-30.steps.2.title": "Hum kya notice karte hain",
+    "b-30.steps.2.detail": "Fruit ka acceleration dekhne ke liye kaafi large hai, jabki Earth par effect itna small hai ki notice nahi hota.",
+    "b-30.answer": "Dono forces magnitude mein equal hain, lekin Earth ka enormous mass uske acceleration ko extremely small bana deta hai, isliye uska motion (gati) notice nahi hota.",
+    "b-31.problem": "Jab 0.1 kg ki bullet ko 5 kg ke gun se 2 N ke force (bal) se fire kiya jata hai, to gun recoil karta hai. Bullet aur gun ke initial accelerations (tvaran) ke magnitudes kya hain?",
+    "b-31.steps.0.title": "Recoil force",
+    "b-31.steps.0.detail": "Newton's third law ke anusar, gun par 2 N ka recoil force lagta hai, jo bullet par lage force ke magnitude ke barabar hai.",
+    "b-31.steps.1.title": "Gun ka acceleration",
+    "b-31.steps.1.detail": "a = F/m = 2 N / 5 kg = 0.4 m s⁻².",
+    "b-31.steps.2.title": "Bullet ka acceleration",
+    "b-31.steps.2.detail": "a = F/m = 2 N / 0.1 kg = 20 m s⁻².",
+    "b-31.answer": "Gun ka initial acceleration 0.4 m s⁻² hai aur bullet ka 20 m s⁻². Forces ka pair magnitude mein equal hai, lekin accelerations equal nahi hain kyunki masses different hain.",
+    "b-32.question": "Ek fireperson kabhi-kabhi paani nikaal rahe pipe ko hold karte waqt struggle kyun karta hai?",
+    "b-32.options.0": "Bahar rush karta paani pipe par backward force (bal) lagata hai, aur fireperson ko use hold karne ke liye large force lagana padta hai.",
+    "b-32.options.1": "Paani flow hone se pipe fireperson se zyada heavy ho jata hai.",
+    "b-32.options.2": "Paani aur pipe ke beech friction pipe ko forward kheenchta hai.",
+    "b-32.options.3": "Pipe par koi force nahi hota; struggle sirf pipe ke weight ki wajah se hota hai.",
+    "b-32.explanation": "Pipe paani ko forward push karta hai; Newton ke third law ke according paani pipe ko equal force ke saath backwards push karta hai. Pipe ko steady rakhne ke liye fireperson ko opposite force dena padta hai.",
+    "b-33.question": "Ek spacecraft space ke aise region mein move kar raha hai jahan us par lagne wala gravitational force negligible hai. Suggest kijiye ki woh apni velocity kaise change kar sakta hai.",
+    "b-33.options.0": "Apne saare engines band karke wait karne se.",
+    "b-33.options.1": "Apna engine fire karke exhaust gases ko bahar nikaalne se, jo spacecraft par equal aur opposite force lagati hain.",
+    "b-33.options.2": "Space mein matter ke saath friction use karne se.",
+    "b-33.options.3": "Yeh space mein apni velocity bilkul change nahi kar sakta.",
+    "b-33.explanation": "Velocity sirf tab change hoti hai jab koi force act karti hai. Negligible gravity ke saath, spacecraft gas ko expel karke apni khud ki force banata hai; gas equal aur opposite force ke saath spacecraft par push back karti hai.",
+    "b-34.question": "Ek sailor chhoti boat se shore par jump karta hai. Jab sailor aage (forward) jump karta hai, to kya boat move karegi? Agar haan, to kis direction mein aur kyun?",
+    "b-34.options.0": "Boat still rahegi, kyunki sailor ka force (bal) balanced hai.",
+    "b-34.options.1": "Boat backwards move karegi, kyunki sailor boat ko backwards push karta hai aur boat sailor ko equal force se forwards push karti hai.",
+    "b-34.options.2": "Boat sailor ke saath forwards move karegi.",
+    "b-34.options.3": "Boat tabhi backwards move karegi agar sailor ka mass boat ke mass se zyada ho.",
+    "b-34.explanation": "Jump ek third-law pair hai: sailor boat ko backwards push karta hai, aur boat sailor ko forwards push karti hai. Backward force boat par act karta hai, isliye boat backwards move karti hai.",
+    "b-35.paragraphs.0": "Teen laws ek single object ke liye use kiye gaye the, lekin ye do ya usse zyada connected objects par bhi lagti hain.",
+    "b-35.paragraphs.1": "Do boxes lijiye jinke masses m₁ aur m₂ hain, ek frictionless horizontal surface par, jo ek string se connected hain, aur ek force (bal) F Box 1 ko right side pull kar raha hai. Box 1 string ke through Box 2 ko pull karta hai, aur Newton's third law ke according, Box 2 Box 1 ko equal aur opposite force se back pull karta hai. String mein is force ko tension T kehte hain.",
+    "b-35.paragraphs.2": "Aap har box par net force alag-alag nikaal sakte hain. Ek simpler tarika hai do boxes aur string ko ek hi system maanna. System ke andar ke forces, jaise tension, internal forces hote hain aur unhe consider karne ki zaroorat nahi; sirf bahar se lagne wale forces, jaise F, matter karte hain.",
+    "b-35.paragraphs.3": "Tab system ek single object jiska mass m₁ + m₂ hai, ki tarah behave karta hai, isliye iska acceleration (tvaran) a = F/(m₁ + m₂) hai. F ke alawa, external forces gravitational force (m₁ + m₂)g hain jo downwards act karta hai, aur ise ground se lagne wala normal force (N₁ + N₂) balance karta hai.",
+    "b-36.title": "Do connected boxes ka acceleration (tvaran) nikalna",
+    "b-36.steps.0.title": "Sirf bahari forces (bal) ko count karo",
+    "b-36.steps.0.detail": "Do boxes aur string ko ek system maano. Tension dono boxes par system ke andar act karta hai, isliye ye internal force hai; pulling force F hi sirf horizontal external force hai.",
+    "b-36.steps.1.title": "Poore system par second law use karo",
+    "b-36.steps.1.detail": "System ka mass m₁ + m₂ hai, isliye Newton's second law se F = (m₁ + m₂)a milta hai.",
+    "b-36.steps.2.title": "Acceleration ke liye solve karo",
+    "b-36.steps.2.detail": "Dono sides ko (m₁ + m₂) se divide karne par a = F/(m₁ + m₂) milta hai. System ek single object ki tarah accelerate karta hai jiska total mass utna hi hai.",
+    "b-36.steps.3.title": "Vertical forces ko check karo",
+    "b-36.steps.3.detail": "Neeche ki gravitational force (m₁ + m₂)g aur upar ki normal force (N₁ + N₂) barabar aur opposite hain, isliye ye horizontal acceleration ko affect nahi karte.",
+    "b-37.question": "Do boxes jinke masses m₁ aur m₂ hain, ek smooth horizontal surface par ek string se jude hue hain aur pehle box par lagaye gaye horizontal force (bal) F se kheenche ja rahe hain. System ka acceleration (tvaran) kya hai?",
+    "b-37.options.0": "F/m₁",
+    "b-37.options.1": "F/m₂",
+    "b-37.options.2": "F/(m₁ + m₂)",
+    "b-37.options.3": "(m₁ + m₂)/F",
+    "b-37.explanation": "Boxes aur string ko ek system maano. Tension internal hai aur cancel ho jata hai, sirf external horizontal force F hai, aur total mass m₁ + m₂ hai, isliye a = F/(m₁ + m₂).",
+    "b-38.question": "Snake boat race ki practice karte samay, 100 oarsmen ek boat ko mil kar row karte hain. Unme se 95 boat ko aage badhane ke liye peeche ki taraf row karte hain, lekin galti se 5 oarsmen ulti direction mein row karte hain. Agar har oarsman 200 N ka horizontal force (bal) lagata hai, to snake boat par net force kitna hai, newtons mein? (Drag forces aur air friction ko ignore karein.) Sirf number dijiye.",
+    "b-38.explanation": "95 oarsmen aage ki taraf push karte hain aur 5 peeche ki taraf, isliye effective number 95 − 5 = 90 hai. Net force 90 × 200 N = 18000 N hai, forward direction mein.",
+    "b-39.problem": "50 g mass ki ek bullet 100 m s⁻¹ speed (chaal) se chalte hue ek heavy stationary wooden block mein enters karti hai aur 50 cm distance penetrate karne ke baad ruk jaati hai. Maan lijiye ki bullet block ke andar constant acceleration (tvaran) se chalti hai. Bullet par lagne wale stopping force (bal) ka estimate kijiye.",
+    "b-39.steps.0.title": "Jo aapko pata hai use SI units mein likhiye",
+    "b-39.steps.0.detail": "Mass 50 g hai, yani 0.05 kg. Penetration distance 50 cm hai, yani 0.5 m. Saath hi u = 100 m s⁻¹ aur v = 0 m s⁻¹ hai. Maan lijiye block ke andar constant acceleration a hai aur laga time t hai.",
+    "b-39.steps.1.title": "Velocity relation ka use kijiye",
+    "b-39.steps.1.detail": "v = u + at se: 0 = 100 + a t, isliye t = −100/a.",
+    "b-39.steps.2.title": "Displacement (visthapan) relation mein substitute kijiye",
+    "b-39.steps.2.detail": "s = ut + ½at² se: 0.5 = 100t + ½at². t = −100/a rakhne par 0.5 = −10000/a + 5000/a = −5000/a milta hai, isliye a = −10000 m s⁻².",
+    "b-39.steps.3.title": "Stopping force nikaliye",
+    "b-39.steps.3.detail": "Force ka magnitude F = ma = 0.05 kg × 10000 m s⁻² = 500 N hai, jo bullet ki motion ke opposite act karta hai.",
+    "b-39.answer": "Stopping force lagbhag 500 N hai, jo bullet ki motion ki direction ke opposite hai.",
+    "b-40.problem": "2 kg mass ka ek object constant velocity (veg) 10 m s⁻¹ se chal raha hai; usse ek rough patch milta hai jahan object par friction force (bal) 7 N hai. Usi samay, motion (gati) ke opposing ek additional constant force 3 N object par lagaya jata hai. Rough patch mein enter karne ke baad, object rest mein aane se pehle kitni distance (doori) travel karta hai?",
+    "b-40.steps.0.title": "Kul opposing force",
+    "b-40.steps.0.detail": "Dono forces motion ka oppose karte hain, isliye add hote hain: 7 N + 3 N = 10 N peeche ki taraf.",
+    "b-40.steps.1.title": "Acceleration (tvaran)",
+    "b-40.steps.1.detail": "a = F/m = 10 N / 2 kg = 5 m s⁻², motion ke opposite directed. Motion ko positive maante hue, a = −5 m s⁻².",
+    "b-40.steps.2.title": "Rukne mein laga time",
+    "b-40.steps.2.detail": "v = u + at se: 0 = 10 + (−5)t, isliye t = 2 s.",
+    "b-40.steps.3.title": "Distance travelled (doori)",
+    "b-40.steps.3.detail": "s = ut + ½at² se: s = 10 × 2 + ½ × (−5) × (2)² = 20 − 10 = 10 m.",
+    "b-40.answer": "Object rest mein aane se pehle 10 m travel karta hai.",
+    "b-41.title": "Ek force (bal), do loads: accelerations (tvaran) ko ek formula mein combine karna",
+    "b-41.steps.0.title": "Sirf harrow",
+    "b-41.steps.0.detail": "Tractor mass m₁ ko net force F se kheenchta hai aur acceleration a₁ paida karta hai, isliye F = m₁a₁ aur isliye m₁ = F/a₁.",
+    "b-41.steps.1.title": "Sirf trolley",
+    "b-41.steps.1.detail": "Wahi force F mass m₂ par acceleration a₂ paida karta hai, isliye F = m₂a₂ aur isliye m₂ = F/a₂.",
+    "b-41.steps.2.title": "Trolley par harrow",
+    "b-41.steps.2.detail": "Ab tractor usi force F se trolley ko kheenchta hai jis par harrow rakha hai. Inhe ek hi system maankar total mass m₁ + m₂ hai aur acceleration a = F/(m₁ + m₂) hai.",
+    "b-41.steps.3.title": "Substitute karke simplify karna",
+    "b-41.steps.3.detail": "m₁ = F/a₁ aur m₂ = F/a₂ ko expression mein rakho: a = F / (F/a₁ + F/a₂). F cancel karo: a = 1 / (1/a₁ + 1/a₂) = a₁a₂ / (a₁ + a₂).",
+    "b-42.question": "Ek footballer 0.4 kg mass ki football ko kick karta hai aur usse 108 km h⁻¹ ki speed (chaal) deta hai. Estimated force (bal) 800 N tha. Foot aur ball ke beech contact time seconds mein calculate karo. Sirf number do.",
+    "b-42.explanation": "Pehle speed convert karo: 108 km h⁻¹ = 108 × 1000 m / 3600 s = 30 m s⁻¹. Phir a = F/m = 800 N / 0.4 kg = 2000 m s⁻². Ball rest se start hoti hai, isliye v = u + at se: 30 = 0 + 2000t, jisse t = 30/2000 = 0.015 s.",
+    "b-43.question": "Jab ek bar magnet ka pole magnetic compass ke paas laaya jaata hai, to bar magnet aur compass needle ek doosre par equal aur opposite magnetic forces lagate hain. Phir bhi compass needle move karti hai aur bar magnet move nahi karta. Kyun?",
+    "b-43.options.0": "Needle par lagne wala force magnet par lagne wale force se larger hai.",
+    "b-43.options.1": "Forces equal hain, lekin needle ka mass bahut chhota hai, isliye uski acceleration bahut zyada hai.",
+    "b-43.options.2": "Magnet par koi force hi nahi lag raha.",
+    "b-43.options.3": "Compass needle magnet nahi hai, isliye use koi force feel nahi hota.",
+    "b-43.explanation": "Do different masses par equal forces different accelerations dete hain, kyunki a = F/m. Needle ka small mass use visible acceleration deta hai jabki magnet ki acceleration negligible hai.",
+    "b-44.question": "High jump event mein, athlete ke girne ke liye landing mat ya sand bed rakha jaata hai. Yeh injury ka risk kyun kam karta hai?",
+    "b-44.options.0": "Yeh athlete ka weight kam karta hai.",
+    "b-44.options.1": "Yeh us time ko badha deta hai jisme athlete ko rest par laaya jaata hai, isliye athlete par acceleration (tvaran) aur force (bal) chhote hote hain.",
+    "b-44.options.2": "Yeh athlete par lagne wala gravitational force hata deta hai.",
+    "b-44.options.3": "Yeh athlete par force badha deta hai lekin use phaila deta hai.",
+    "b-44.explanation": "Same change of velocity (veg) ke liye, lamba stopping time chhota acceleration deta hai; phir F = ma se athlete par chhota force milta hai, jaise vehicle mein airbag karta hai."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Force (bal) Motion (gati) ko Kaise Affect Karte Hain: Force, Friction aur Newton ke Teen Laws",
+    "objectives": [
+      "Is lesson ke baad aap force (bal) ko uske magnitude, direction aur unit se describe kar sakte hain, aur spring balance se force measure kar sakte hain.",
+      "Is lesson ke baad aap net force nikal sakte hain jab kisi object par kai forces act karti hain, aur bata sakte hain ki forces balanced hain ya nahi.",
+      "Is lesson ke baad aap Newton ke teen laws of motion state aur apply kar sakte hain, including F = ma aur newton ki definition.",
+      "Is lesson ke baad aap do connected objects ki acceleration (tvaran) nikal sakte hain jab unhe ek single system maana jaye."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Force (bal) kya hai, aur hum ise kaise measure karte hain",
+        "paragraphs": [
+          "Zameen par padi ek ball tab move karna shuru karti hai jab aap use kick karte hain. Aapki taraf aati cricket ball bat lagne par direction badal leti hai. Nimbu apni shape badalta hai jab aapki ungliyan use squeeze karti hain. Teenon changes force (bal) ki wajah se hote hain.",
+          "Toh force kisi object ko rest se move kar sakti hai, moving object ki speed (chaal) aur direction of motion (gati) badal sakti hai, aur object ki shape badal sakti hai. Dhyan dijiye ki in examples mein har force ki direction hoti hai. Friction motion ke opposite act karti hai, magnets kisi particular line ke along pull ya push karte hain, Earth object ko apni taraf pull karti hai, aur liquid floating object ko upwards push karti hai.",
+          "Isliye force ek physical quantity hai jiske liye humein magnitude aur unit ke saath direction bhi batani hoti hai. Force ka SI unit newton hai, words mein chhote 'n' se likha jata hai, aur iska symbol N hai. Force ka magnitude uski strength batata hai. Agar magnitude, direction, ya dono badalte hain, toh force ka effect bhi badal jata hai.",
+          "Spring balance force measure karta hai. Ye object ka weight measure karta hai, aur object ka weight woh gravitational force hai jisse Earth use apni taraf pull karti hai. Wahi balance us force ko bhi measure karta hai jisse aap uske free end ko pull karte hain, isliye ye generally force ka magnitude measure karta hai. Sabse chhoti forces jo hum directly feel kar sakte hain woh millinewtons (10⁻³ N) ke order ki hoti hain, jabki scientists specialised experiments mein yoctonewtons (10⁻²⁴ N) jitni chhoti forces measure kar sakte hain."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "Balanced aur unbalanced forces: net force",
+        "paragraphs": [
+          "Real life mein, aksar kisi object par ek se zyada force act karti hai. Jab aap box ko floor par push karte hain, friction bhi us par opposite direction mein act karti hai. Jab ball paani par float karti hai, gravitational force use neeche pull karti hai aur liquid ki buoyant force use upar push karti hai.",
+          "Tug of war sochiye. Agar dono teams equal force se pull karti hain, rope move nahi karti. Do forces jo magnitude mein equal hain lekin direction mein opposite hain, unhe balanced forces kehte hain. Agar ek team zyada zor se pull kare, forces balanced nahi rehti aur rope larger force ki direction mein move karti hai.",
+          "Jab kisi object par forces balanced nahi hoti, us par non-zero net force act karti hai. Agar do opposite forces unequal hain, net force unke magnitudes ka difference hai aur larger force ki direction mein point karti hai. Agar do forces same direction mein act karti hain, net force unke magnitudes ka sum hai aur usi direction mein point karti hai. Object par kai forces act kar sakti hain, lekin uska motion sirf net force par depend karta hai."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Friction ki force: aksar ignore hoti hai lekin hamesha present hoti hai",
+        "paragraphs": [
+          "Floor par rakhe box ko halke se push kijiye, ho sakta hai woh bilkul move na kare. Iska karan box ki bottom surface aur floor ke beech friction force hai, jo aapke push ke opposite act karti hai. Box tabhi move karna shuru karta hai jab aapki force friction se zyada ho, taaki us par motion ki direction mein net force act kare.",
+          "Pushed box par do aur forces act karti hain. Gravitational force, yani uska weight, neeche act karta hai. Jis surface par box rakha hai us surface dwara lagayi gayi force ko normal force kehte hain, aur ye surface ke perpendicular upwards act karti hai. Ye do forces balanced hoti hain. Air bhi moving box par friction force lagati hai, lekin usually ye itni chhoti hoti hai ki ise neglect kar sakte hain.",
+          "Push karna band kijiye aur box slow hokar rest mein aa jata hai. Jis bicycle ko aap pedal karna band kar dete hain woh bhi kuch distance ke baad rest mein aa jati hai. Iska matlab ye nahi ki motion continue karne ke liye force chahiye; iska matlab hai friction motion ko oppose karti hai. Object ko moving rakhe rakhne ke liye aapko aisi force lagate rehna hoti hai jo friction ko counter kare.",
+          "Rubber band se pulled coins ke stack ki activities dikhati hain ki same amount se rubber band stretch hone par bhi coins wooden table top, laminated table top aur polished marble ya tiled floor par different distances (doori) travel karte hain. Block attached spring balance ko pull karne se friction ka approximate measure milta hai. Jahan friction chhoti hoti hai, wahan velocity (veg) zyada dheere decrease hoti hai aur object rest mein aane se pehle zyada distance travel karta hai."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Newton ka first law of motion",
+        "paragraphs": [
+          "Newton ka first law of motion kehta hai: koi object rest mein rest rehta hai, aur koi object motion mein constant velocity se move karta rehta hai, jab tak us par net force act na kare. Doosre shabdon mein, agar object par net force zero hai, toh object move karna shuru nahi kar sakta ya apni velocity change nahi kar sakta, aur uska acceleration (tvaran) zero hota hai.",
+          "Rest mein object ki velocity zero hoti hai. Constant velocity ka matlab hai velocity ke magnitude ya direction mein koi change nahi. Agar woh constant velocity non-zero hai, toh object same direction mein same speed se straight line mein move karta hai.",
+          "Ye law ek purani confusion clear karta hai. Moving box ko exactly friction force ke equal force se forward push kijiye: dono forces balance ho jati hain, net force zero hota hai, aur box rukne ke bajaye constant velocity se move karta rehta hai. Motion ke liye force zaroori nahi; motion ke change ke liye zaroori hai.",
+          "Ye idea ek thought experiment se aaya. Galileo Galilei ne argue kiya ki agar koi body horizontal plane ke along move kare aur uske motion ke saare impediments hata diye jayein, toh woh indefinitely move karti rahegi. Newton ne objects ki tendency ko, rest ya uniform motion (eksamaan gati) ki state mein change resist karne ki, inertia word diya, aur isi idea se apna first law frame kiya."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Newton ka second law of motion",
+        "paragraphs": [
+          "Ball ko halke se push kijiye toh woh dheere move karna shuru karti hai; zor se push kijiye toh tez move karna shuru karti hai. Isse aap hypothesis bana sakte hain: same object ke liye larger force larger acceleration deti hai. Isse test karne ke liye same surface par same cart par different magnitudes ki forces pulley ke upar different weights hang karke lagayi jati hain, aur fixed distance cover karne ka time measure kiya jata hai. Same mass ke liye force badhane par acceleration badhta hai.",
+          "Everyday experience se doosri hypothesis milti hai: same force se lighter object ko motion mein laana heavier object se aasan hota hai. Same pulling force lekin heavier cart ke saath experiment repeat karne par dikhta hai ki mass badhne par acceleration decrease hota hai. Toh given force ke liye acceleration object ke mass ke inversely related hota hai.",
+          "Newton ka second law of motion kehta hai: jab kisi object par net force act karti hai, object net force ki direction mein accelerate karta hai. Acceleration ka magnitude net force ke magnitude ke proportional hota hai aur object ke mass ke inversely proportional hota hai. Symbols mein, a = F/m, ya F = ma, jahan F net force hai, m mass hai aur a acceleration hai.",
+          "Mass kg mein aur acceleration m s⁻² mein measure hota hai. m = 1 kg aur a = 1 m s⁻² rakhne par F = 1 kg m s⁻² = 1 N milta hai. Toh ek newton force woh force hai jo 1 kg mass ke object par 1 m s⁻² ka acceleration produce karti hai. Earth ki gravitational force ke under falling object ka acceleration g hota hai, isliye mass m ke object par gravitational force F = mg hoti hai, jahan g = 9.8 m s⁻², quick estimations ke liye 10 m s⁻² liya jata hai. g ka value object ke mass par depend nahi karta.",
+          "Second law kai everyday events explain karta hai. Fast ball catch karte waqt fielder hands ko backwards pull karta hai, jisse ball rukne ka time badh jata hai, toh acceleration aur required force chhoti ho jati hai. Airbags passenger ke head aur chest ke liye wahi karte hain. Bahut high velocity se neeche laya gaya coconut bahut short time mein ruk jata hai, isliye ground ko us par bahut large force lagani padti hai, aur wahi force shell ko tod deti hai."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Newton ka third law of motion",
+        "paragraphs": [
+          "Force play mein aane ke liye kam se kam do objects ka interact karna zaroori hai. Jab aap apne foot se ball kick karte hain, aapko ball dwara apne foot par lagayi gayi force feel hoti hai. Newton ka third law of motion kehta hai: jab bhi ek object doosre object par force exert karta hai, doosra object simultaneously pehle object par equal aur opposite force exert karta hai.",
+          "Wheeled chair par baithein, legs uthayein aur heavy table ko apne se door push karein: aapki chair backwards move karti hai. Table ko apni taraf pull karein: aapki chair uski taraf move karti hai. Do identical spring balances jo hooked hain aur apart pulled hain har baar same value read karte hain, jo dikhata hai ki woh ek doosre par equal magnitude ki forces lagate hain.",
+          "Forces hamesha pairs mein hoti hain, lekin woh do different objects par act karti hain, isliye woh ek doosre ko cancel nahi karti. Same object par act karne wali do equal aur opposite forces ek doosre ko balance karti hain. Ye law contact aur non-contact forces dono ke liye lagu hota hai: do magnets ke beech magnetic forces, do charged balloons ke beech electrostatic forces, aur Earth aur fruit ke beech gravitational forces sab equal aur opposite pairs mein aati hain.",
+          "Ye law walking, climbing aur rowing explain karta hai. Walking karte waqt aap apne feet se ground ko backwards push karte hain, aur ground aapke feet par friction ke form mein opposite force lagata hai, jo aapko forward move karata hai. Coconut tree climb karne wala person trunk ke against neeche push karta hai aur friction person ko upwards push karti hai, isliye smooth trunks par ye zyada mushkil hota hai. Jab canoeist paddle se paani ko backwards push karta hai, paani paddle ko forward push karta hai, aur paani par zyada zor lagane se canoe ki velocity badh jati hai.",
+          "Rocket bhi isi tarah kaam karta hai. Uska engine gas ko neeche expel karta hai aur gas rocket par equal aur opposite upward force lagati hai; jab ye upward force rocket ke weight se zyada hoti hai, rocket lift off karta hai. Agar space mein rocket apne motion ki direction mein engine fire kare, exhaust gases motion ke opposite force lagati hain aur use slow karti hain — yahi method Chandrayaan-3 ke Vikram lander ne Moon ke south pole ke paas soft landing ke liye use kiya.",
+          "Equal forces ka matlab equal accelerations nahi hota. a = F/m use karne par, har object ka acceleration uske apne mass par depend karta hai. Isliye fruit Earth ki taraf move karta hai jabki Earth ka fruit ki taraf motion notice karne ke liye bahut chhota hota hai, aur isliye gun bullet ko diye gaye acceleration se bahut kam recoil karta hai."
+        ]
+      },
+      {
+        "id": "sec-07",
+        "title": "Objects ke system par act karne wali forces",
+        "paragraphs": [
+          "Ab tak laws ek object ke liye use kiye gaye. Ye do ya zyada connected objects ke liye bhi kaam karte hain. Frictionless horizontal surface par masses m₁ aur m₂ ke do boxes consider kijiye, jo ek string se connected hain, aur Box 1 ko right side force F pull kar rahi hai. Box 1 string ke through Box 2 ko pull karta hai aur, third law se, Box 2 Box 1 ko equal aur opposite force se back pull karta hai. String mein is force ko tension T kehte hain.",
+          "Aap har box par net force alag se nikal sakte the. Ek simpler tareeka hai dono boxes aur string ko ek system maanna. System ke andar ki forces, jaise tension, internal forces hoti hain aur unhe consider karne ki zaroorat nahi; sirf bahar se act karne wali forces, jaise F, matter karti hain.",
+          "Tab system mass m₁ + m₂ ke single object ki tarah behave karta hai, isliye uska acceleration a = F/(m₁ + m₂) hota hai. F ke alawa external forces mein mass (m₁ + m₂)g ka gravitational force neeche act karta hai, jo ground se normal force (N₁ + N₂) se balanced hota hai."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "force",
+        "definition": "Force (bal) ek aisa push ya pull hai jo kisi object ko move karna shuru kar sakta hai, uski speed ya direction badal sakta hai, ya uski shape badal sakta hai; iska magnitude, direction aur unit newton (N) hota hai."
+      },
+      {
+        "term": "balanced forces",
+        "definition": "Do forces jo magnitude mein equal aur direction mein opposite hain, taaki object move na kare."
+      },
+      {
+        "term": "net force",
+        "definition": "Saari forces add karne ke baad bachi single force: agar same direction mein hain toh sum, agar opposite hain toh difference. Motion sirf net force decide karti hai."
+      },
+      {
+        "term": "normal force",
+        "definition": "Kisi surface par rest kar rahe object par us surface ka upward push, surface ke perpendicular."
+      },
+      {
+        "term": "inertia",
+        "definition": "Kisi object ki tendency jo uske rest ya uniform motion ki state mein kisi bhi change ko resist karti hai."
+      },
+      {
+        "term": "tension",
+        "definition": "Do objects ko jodne wali string dwara carry ki gayi force; ye har object ko opposite direction mein pull karti hai."
+      },
+      {
+        "term": "newton",
+        "definition": "Force ka SI unit: woh force jo 1 kg object ko 1 m s⁻² ka acceleration deti hai."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Zameen par padi ek ball motion (gati) mein aa jati hai jab aap use kick karte hain. Aapki taraf aa rahi cricket ball ki direction badal jati hai jab bat usse hit karti hai. Nimbu ka shape badal jata hai jab aapki ungliyan use dabati hain. Ye teenon changes force (bal) ki wajah se hote hain.",
+          "To force (bal) kisi object ko rest se motion mein la sakta hai, kisi moving object ki speed (chaal) aur direction of motion badal sakta hai, aur kisi object ka shape badal sakta hai.",
+          "Dhyan dijiye ki in examples mein har force ki ek direction hoti hai. Friction motion ke opposite act karta hai, magnets kisi particular line ke along push ya pull karte hain, Earth kisi object ko apni taraf pull karti hai, aur ek liquid floating object ko buoyant force se upwards push karta hai.",
+          "Isliye force ek physical quantity hai jiske liye humein magnitude aur unit ke saath-saath direction bhi batani hoti hai. Force ka SI unit newton hai, words mein chhote 'n' ke saath likha jata hai, aur iska symbol N hai. Kisi force ka magnitude uski strength batata hai. Agar magnitude, direction, ya dono badal jayein, to force ka effect bhi badal jata hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        }
+      ]
+    },
+    {
+      "id": "b-02",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Hum kaise measure karte hain ki ek force (bal) kitna bada hai? Ek spring balance yeh kaam karta hai. Aapne iska istemal kisi object ka weight measure karne ke liye kiya hai, aur kisi object ka weight woh gravitational force hai jisse Earth use kheenchti hai.",
+          "Ek spring balance weight measure karne se zyada karta hai. Agar aap iske free end ko kheenchte hain, toh yeh us force ko measure karta hai jisse aap balance ke andar spring par kheenchte hain. Toh wahi instrument generally ek force ka magnitude measure karta hai.",
+          "Ek halka touch millinewtons ke order ka force hota hai, yaani 10⁻³ N, jo lagbhag sabse chhota force hai jo ek insaan direct feel kar sakta hai. Specialised experiments mein, scientists yoctonewtons jitne chhote forces measure kar sakte hain, yaani 10⁻²⁴ N."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-03",
+      "type": "check",
+      "spec": {
+        "question": "Force (bal) ke baare mein kaun sa statement sahi hai?",
+        "format": "mcq",
+        "options": [
+          "Force (bal) ko sirf uske magnitude se hi completely describe kiya ja sakta hai.",
+          "Force (bal) ke liye magnitude ke saath direction bhi zaroori hai, aur iska SI unit newton (N) hai.",
+          "Force (bal) ko kilograms mein measure kiya jata hai, aur iski direction matter nahi karti.",
+          "Sirf force (bal) ki direction badalne se uska effect nahi badalta."
+        ],
+        "answer_index": 1,
+        "answer": "Force (bal) ke liye magnitude ke saath direction bhi zaroori hai, aur iska SI unit newton (N) hai.",
+        "explanation": "Force (bal) ek physical quantity hai jisme magnitude aur direction dono hote hain, aur iska SI unit newton (N) hai. Agar magnitude, direction, ya dono badal jayein, to force (bal) ka effect badal jata hai.",
+        "expected_understanding": "Student bata sakta hai ki force (bal) ek directed quantity hai jo newtons mein measure hoti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        }
+      ]
+    },
+    {
+      "id": "b-04",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Asli zindagi mein, aksar ek hi samay par kisi object par ek se zyada force (bal) act karte hain. Jab aap floor par box ko dhakelte hain, to aapka push ek force hai aur friction ka force doosra, jo opposite direction mein act karta hai. Jab ek ball paani par tairti hai, to Earth ka gravitational force use neeche kheenchta hai aur liquid ka buoyant force use upar dhakelta hai.",
+          "Tug of war sochiye. Agar dono teams equal force se kheenchti hain, to rope nahi move karti. Do forces jo magnitude mein equal hain lekin direction mein opposite hain, unhe balanced forces kehte hain. Agar ek team zyada zor se kheenchti hai, to forces balanced nahi rehte aur rope larger force ki direction mein move karti hai.",
+          "Jab kisi object par forces balanced nahi hote, to us par non-zero net force act karta hai. Agar do opposite forces unequal hain, to net force unke magnitudes ka difference hota hai aur larger force ki direction mein point karta hai. Agar do forces same direction mein act karte hain, to net force unke magnitudes ka sum hota hai aur usi same direction mein point karta hai.",
+          "Key idea yaad rakhiye: kisi object par kai forces act kar sakte hain, lekin uski motion (gati) sirf net force par depend karti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        }
+      ]
+    },
+    {
+      "id": "b-05",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 640 400\" role=\"img\" aria-label=\"Ek block par do forces act kar rahe hain, ek baar same direction mein aur ek baar opposite directions mein, net force ke saath dikhaya gaya\"><rect x=\"80\" y=\"60\" width=\"110\" height=\"70\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"190\" y1=\"80\" x2=\"330\" y2=\"80\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"330,80 318,74 318,86\" fill=\"#1C1B18\" /><text x=\"260\" y=\"68\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\">10 N</text><line x1=\"190\" y1=\"110\" x2=\"274\" y2=\"110\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"274,110 262,104 262,116\" fill=\"#1C1B18\" /><text x=\"232\" y=\"98\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\">6 N</text><line x1=\"80\" y1=\"160\" x2=\"304\" y2=\"160\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"304,160 292,154 292,166\" fill=\"#1F3A9E\" /><text x=\"312\" y=\"166\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1F3A9E\" data-i18n=\"b-05.svg_texts.t-0\">Net force = 16 N</text><text x=\"80\" y=\"40\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#5A5748\" data-i18n=\"b-05.svg_texts.t-1\">Dono forces same direction mein</text><rect x=\"200\" y=\"260\" width=\"110\" height=\"70\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"310\" y1=\"280\" x2=\"450\" y2=\"280\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"450,280 438,274 438,286\" fill=\"#1C1B18\" /><text x=\"380\" y=\"268\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\">10 N</text><line x1=\"200\" y1=\"310\" x2=\"116\" y2=\"310\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"116,310 128,304 128,316\" fill=\"#1C1B18\" /><text x=\"158\" y=\"298\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\">6 N</text><line x1=\"200\" y1=\"360\" x2=\"256\" y2=\"360\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"256,360 244,354 244,366\" fill=\"#1F3A9E\" /><text x=\"264\" y=\"366\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1F3A9E\" data-i18n=\"b-05.svg_texts.t-2\">Net force = 4 N</text><text x=\"200\" y=\"240\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#5A5748\" data-i18n=\"b-05.svg_texts.t-3\">Forces opposite directions mein</text></svg>",
+        "caption": "Ek hi block par do force (bal) act kar rahe hain. Upar: dono force right ki taraf point karte hain, isliye net force unka sum hai, 16 N right ki taraf. Neeche: forces ek doosre ke opposite hain, isliye net force difference hai, 4 N, badi force ke along (right ki taraf). Har arrow ki length 14 pixels per newton scale par draw ki gayi hai: 10 N, 6 N, 4 N aur 16 N."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        }
+      ]
+    },
+    {
+      "id": "b-06",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek block par, jo table par rakha hai, 10 N aur 6 N ke do force (bal) act kar rahe hain. Har case mein block par act karne wale net force ka magnitude aur direction kya hai? (a) dono force right ki taraf act karte hain; (b) 10 N force right ki taraf act karta hai aur 6 N force left ki taraf act karta hai; (c) 10 N force left ki taraf act karta hai aur 6 N force right ki taraf act karta hai.",
+        "steps": [
+          {
+            "title": "(a) Same direction mein forces",
+            "detail": "Dono force right ki taraf act karte hain, isliye unhe add karein: net force = 10 N + 6 N = 16 N, jo right side ki taraf act karta hai."
+          },
+          {
+            "title": "(b) Opposite forces, larger force right ki taraf",
+            "detail": "Forces ek doosre ke opposite hain, isliye subtract karein: net force = 10 N − 6 N = 4 N, jo right side ki taraf act karta hai, yani larger force ke along."
+          },
+          {
+            "title": "(c) Opposite forces, larger force left ki taraf",
+            "detail": "Phir subtract karein: net force = 10 N − 6 N = 4 N, lekin ab yeh left side ki taraf act karta hai, 10 N force ke along."
+          }
+        ],
+        "answer": "(a) 16 N right ki taraf; (b) 4 N right ki taraf; (c) 4 N left ki taraf."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        }
+      ]
+    },
+    {
+      "id": "b-07",
+      "type": "check",
+      "spec": {
+        "question": "Ek weightlifter barbell ko utha kar apne sir ke upar steady rakhti hai. Barbell par kaun se do force (bal) act kar rahe hain, aur kya woh balanced hain?",
+        "format": "mcq",
+        "options": [
+          "Weightlifter dwara lagaya gaya upward force aur barbell ka downward gravitational force (weight); ye balanced hain.",
+          "Sirf gravitational force act karta hai; forces balanced nahin hain.",
+          "Applied force aur friction ka force; ye balanced nahin hain.",
+          "Normal force aur weight; ye balanced hain lekin normal force horizontal hai."
+        ],
+        "answer_index": 0,
+        "answer": "Weightlifter dwara lagaya gaya upward force aur barbell ka downward gravitational force (weight); ye balanced hain.",
+        "explanation": "Barbell steady hai, isliye iski velocity nahin badalti. Iske liye zero net force chahiye, isliye weightlifter ka upward force downward weight ko balance karna chahiye.",
+        "expected_understanding": "Student steady object par lagne wale forces ko naam de sakta hai aur balance ka use karke conclude kar sakta hai ki net force zero hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-08",
+      "type": "check",
+      "spec": {
+        "question": "Do players R aur S ek arm-wrestling match mein hain. Us instant par jab arms front direction (page ke bahar, aapki taraf) tilt karte hain, kya players dwara lagaye gaye forces balanced hain? Agar nahi, to kis player ne larger force lagaya?",
+        "format": "mcq",
+        "options": [
+          "Balanced; dono players equal forces lagate hain.",
+          "Not balanced; jis player ki side arms tilt karte hain, usne larger force lagaya.",
+          "Not balanced; doosre player ne larger force lagaya.",
+          "Kuch nahi kaha ja sakta, kyunki masses nahi di gayi hain."
+        ],
+        "answer_index": 1,
+        "answer": "Not balanced; jis player ki side arms tilt karte hain, usne larger force lagaya.",
+        "explanation": "Jab do opposite forces unequal hoti hain, net force larger force ki direction mein point karta hai, aur arms us direction mein move karte hain. Ek side ki taraf tilt dikhata hai ki kiski force larger hai.",
+        "expected_understanding": "Student motion ki direction ko unbalanced pair mein larger force ki direction ke roop mein padh sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-09",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kisi object ko floor par rest mein rakho aur use halke se push karo. Aksar woh move nahi karta; aapko zyada zor se push karna padta hai. Iska reason object ki bottom surface aur floor ke beech ka friction (gharshana) force (bal) hai, jo aapke push ke opposite direction mein act karta hai.",
+          "Box sirf tab move karna shuru karta hai jab aapka force friction ke force se larger ho, taaki box par motion (gati) ki direction mein net force act kare.",
+          "Pushed box par do aur forces act karte hain. Gravitational force, yani uska weight, downwards act karta hai. Jis surface par box rests karta hai, us surface dwara lagaya gaya force normal force kehlata hai, aur woh upwards, surface ke perpendicular act karta hai. Level floor par box ke liye ye dono forces balanced hain. Air bhi moving box par friction force lagata hai, lekin usually yeh itna small hota hai ki ise neglect kiya ja sakta hai.",
+          "Ab pushing band kar do. Box slow down hota hai aur rest mein aa jata hai. Jis bicycle ko aap pedalling band karte ho, woh bhi kuch distance (doori) ke baad rest mein aa jati hai. Iska matlab yeh nahi ki motion continue karne ke liye force chahiye; iska matlab friction motion ke against act karta hai. Object ko moving rakhte rehne ke liye aapko ek force lagate rehna padta hai jo friction ko counter karta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 640 380\" role=\"img\" aria-label=\"Floor par push kiya ja raha ek box, jisme applied force, force of friction, gravitational force aur normal force dikhaye gaye hain\"><line x1=\"40\" y1=\"260\" x2=\"600\" y2=\"260\" stroke=\"#1C1B18\" stroke-width=\"3\" /><rect x=\"240\" y=\"180\" width=\"160\" height=\"80\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><line x1=\"400\" y1=\"220\" x2=\"520\" y2=\"220\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"520,220 508,214 508,226\" fill=\"#1C1B18\" /><text x=\"460\" y=\"210\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\" data-i18n=\"b-10.svg_texts.t-0\">Lagaya gaya force</text><line x1=\"240\" y1=\"220\" x2=\"120\" y2=\"220\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"120,220 132,214 132,226\" fill=\"#1C1B18\" /><text x=\"180\" y=\"210\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\" data-i18n=\"b-10.svg_texts.t-1\">Friction force</text><line x1=\"320\" y1=\"260\" x2=\"320\" y2=\"330\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"320,330 314,318 326,318\" fill=\"#1C1B18\" /><text x=\"332\" y=\"326\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" data-i18n=\"b-10.svg_texts.t-2\">Gravitational force (bhaar)</text><line x1=\"320\" y1=\"180\" x2=\"320\" y2=\"110\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"320,110 314,122 326,122\" fill=\"#1C1B18\" /><text x=\"332\" y=\"122\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" data-i18n=\"b-10.svg_texts.t-3\">Normal force</text></svg>",
+        "caption": "Ek box ko level floor par push kiya ja raha hai. Agar box sirf move kar raha hai, na speed up ho raha hai na slow down, to applied force (bal) aur force of friction magnitude mein equal hain aur direction mein opposite. Weight vertically neeche act karta hai aur normal force vertically upar act karta hai, floor ke perpendicular, aur ye dono ek dusre ko balance karte hain. Arrow lengths sirf directions dikhati hain; applied aur friction arrows equal banaye gaye hain kyunki woh equal hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-13"
+        },
+        {
+          "claim_id": "claim-14"
+        }
+      ]
+    },
+    {
+      "id": "b-11",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Do simple experiments dikhate hain ki friction different surfaces par kaise behave karta hai. Pehle experiment mein, chaar sikkon ka stack ek stretched rubber band se peeche khincha jata hai aur level surfaces par chhod diya jata hai: wooden table top, laminated table top, aur polished marble ya tiled floor. Rubber band ko har baar same amount tak stretch kiya jata hai.",
+          "Release se pehle, coins stationary hain, isliye un par forces (bal) balanced hain. Release par, rubber band coins ko forward push karta hai ek force ke saath jo friction se larger hai, isliye net force act karta hai aur coins accelerate karte hain. Jis moment coins rubber band se contact kho dete hain, un par sirf friction act karta hai, unki motion (gati) ke opposite, aur dheere-dheere unhe rest par le aata hai.",
+          "Coins different surfaces par different distances (doori) travel karte hain, isliye friction different hai. Ek spring balance jise horizontally kheencha jata hai aur jisme wooden block attached hai, friction ka approximate measure deta hai: jis reading par block just move karna shuru karta hai, woh force of friction ka magnitude dikhati hai.",
+          "Conclusion simple hai. Jahan friction smaller hai, velocity (veg) dheere-dheere decrease hoti hai aur object stopping se pehle larger distance travel karta hai. Jahan friction larger hai, object jaldi stop ho jata hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-12",
+      "type": "reveal",
+      "spec": {
+        "title": "Ek thought experiment: agar friction zero hota to kya hota?",
+        "steps": [
+          {
+            "title": "Friction ko zero set karo",
+            "detail": "Ek object aur ek horizontal floor imagine karo jo itna smooth ho ki unke beech friction force (bal) zero ho. Thought experiment tab use hota hai jab experiment ke liye zaroori conditions real world mein recreate karna mushkil ho."
+          },
+          {
+            "title": "Object ko release karo",
+            "detail": "Is floor par rubber band experiment repeat karo. Jab object rubber band se contact kho deta hai, to koi force use aage nahi dhakelta aur koi friction uske against act nahi karta."
+          },
+          {
+            "title": "Koi cheez velocity (veg) ko kam nahi kar sakti",
+            "detail": "Jab moving object par koi net force act nahi karta, to uski velocity change nahi ho sakti. Ye bilkul slow down nahi hota, isliye ye kabhi rest mein nahi aata; ye hamesha move karta rehta hai."
+          },
+          {
+            "title": "Historical step",
+            "detail": "Galileo Galilei ne 17th century mein, kai thought experiments ke through, argue kiya ki agar ek body horizontal plane par move karti hai aur uske motion (gati) ke saare impediments hata diye jayein, to wo indefinitely move karti rahegi."
+          },
+          {
+            "title": "Is tendency ka naam",
+            "detail": "Isaac Newton ne inertia word ka use kiya to describe kiya objects ki tendency ko ki wo apne state of rest ya uniform motion (eksamaan gati) mein change ko resist karein, aur is idea ka use karke apna first law of motion frame kiya."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-13",
+      "type": "check",
+      "spec": {
+        "question": "Ek horizontal force (bal) F ka use karke, ek table ko floor par constant velocity (veg) se move kiya jata hai. Floor dwara table par lagaya gaya frictional force kitna hai?",
+        "format": "mcq",
+        "options": [
+          "Zero",
+          "F ke barabar",
+          "F se zyada",
+          "F se kam lekin zero nahi"
+        ],
+        "answer_index": 1,
+        "answer": "F ke barabar",
+        "explanation": "Constant velocity (veg) ka matlab hai ki velocity change nahi ho rahi, isliye acceleration (tvaran) aur net force zero hain. Isliye friction force ko applied force F ko exactly balance karna chahiye.",
+        "expected_understanding": "Student constant velocity (veg) ko zero net force se jodta hai aur isliye equal aur opposite forces se bhi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-15"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-14",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Newton's first law of motion (gati) kehta hai: ek object rest mein rest rehta hai, aur ek object motion mein constant velocity (veg) ke saath move karta rehta hai, jab tak us object par net force act nahi karta.",
+          "Dusre shabdon mein, agar kisi object par act karne wala net force zero hai, to object move karna shuru nahi kar sakta aur apni velocity change nahi kar sakta. Iska acceleration (tvaran) zero hai.",
+          "Ek object rest mein zero velocity rakhta hai. Constant velocity ka matlab hai ki velocity ke magnitude ya direction mein koi change nahi hota. Agar wo constant velocity non-zero hai, to object same direction mein same speed (chaal) ke saath straight line mein move karta hai.",
+          "Ye law ek common doubt ko bhi settle karta hai. Ek moving box ko forward push karo with a force (bal) exactly equal to the friction force: dono forces balance ho jate hain, net force zero ho jata hai, aur box rest mein aane ke bajaye constant velocity ke saath move karta rehta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-15",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek person ek moving box par forward direction mein force (bal) laga raha hai jo box ke bottom surface aur floor ke beech lagne wale friction force ke equal hai. Kya box move karta rahega ya kuch time baad rest mein aa jayega?",
+        "steps": [
+          {
+            "title": "Dono forces ko identify karein",
+            "detail": "Person ka force forward act karta hai. Friction ka force backward, motion (gati) ke opposite, same magnitude ke saath act karta hai."
+          },
+          {
+            "title": "Net force nikaalein",
+            "detail": "Dono forces magnitude mein equal aur direction mein opposite hain, isliye wo ek doosre ko balance karte hain. Box par net force zero hai."
+          },
+          {
+            "title": "Newton's first law apply karein",
+            "detail": "Zero net force ke saath box ki velocity (veg) change nahi ho sakti, isliye box apni existing velocity ko maintain karta hai."
+          }
+        ],
+        "answer": "Box constant velocity ke saath move karta rahega; wo rest mein nahi aayega."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-16",
+      "type": "simulation",
+      "spec": {
+        "title": "Graphs jab net force zero hota hai",
+        "description": "Us object ke position–time aur velocity–time graphs dikhao jis par koi net force act nahi karta. Zero speed (chaal) par object rest mein rehta hai; kisi bhi doosri speed par wo constant velocity (veg) se move karta hai.",
+        "learning_goal": "Dekho ki net force na hone par object ya toh rest mein rehta hai ya constant velocity (veg) banaye rakhta hai; isliye velocity–time graph ek horizontal line hoti hai aur position–time graph ek straight line hoti hai.",
+        "controls": [
+          {
+            "id": "speed",
+            "label": "Speed (chaal) (m s⁻¹)",
+            "min": 0,
+            "max": 5,
+            "step": 1,
+            "initial": 2
+          }
+        ],
+        "default_behaviour": "Speed 2 m s⁻¹ par velocity–time graph 2 par ek horizontal line hoti hai aur position–time graph constant slope (dhaal) ki straight line hoti hai. Speed 0 par position apni starting value par fixed rehti hai aur velocity zero rehti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-17",
+      "type": "check",
+      "spec": {
+        "question": "Ek object constant velocity (veg) se move kar raha hai. Kya us par koi net force act kar raha hai?",
+        "format": "mcq",
+        "options": [
+          "Haan, net force motion ki direction mein act karta hai.",
+          "Nahi, us par act karne wala net force zero hai.",
+          "Haan, net force motion ki direction ke opposite act karta hai.",
+          "Mass jaane bina kuch kehna impossible hai."
+        ],
+        "answer_index": 1,
+        "answer": "Nahi, us par act karne wala net force zero hai.",
+        "explanation": "Constant velocity ka matlab hai ki velocity ka magnitude aur direction dono change nahi ho rahe, isliye acceleration zero hai; Newton's first law ke according net force zero hona chahiye.",
+        "expected_understanding": "Student constant velocity ko zero net force se link karta hai, mass ki zaroorat ke bina."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-18",
+      "type": "check",
+      "spec": {
+        "question": "Maan lijiye kisi object par koi net force act nahi kar raha hai. Nimnlikhit situations mein se kaunsi possible NAHI hai?",
+        "format": "mcq",
+        "options": [
+          "Agar object rest mein tha to woh rest mein hi rahega.",
+          "Agar object pehle se move kar raha tha to woh constant velocity (veg) se move karta rahega.",
+          "Object constant acceleration (tvaran) ke saath move karta hai.",
+          "Teeno situations possible hain."
+        ],
+        "answer_index": 2,
+        "answer": "Object constant acceleration (tvaran) ke saath move karta hai.",
+        "explanation": "Zero net force hone par acceleration (tvaran) zero hota hai, isliye velocity (veg) bilkul change nahi ho sakti. Constant non-zero acceleration ke liye net force chahiye hoga.",
+        "expected_understanding": "Student net force zero hone par acceleration ko rule out karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-19",
+      "type": "check",
+      "spec": {
+        "question": "Ek ball smooth frictionless surface par move karti hai. Woh option chuniye jisse teenon statements physically correct ho. (i) Agar ball par koi net force apply nahi hota, to ball ki velocity (veg) ___. (ii) Agar uski motion (gati) ki direction mein net force apply hota hai, to velocity ka magnitude ___. (iii) Agar uski motion ke opposite net force apply hota hai, to velocity ka magnitude ___.",
+        "format": "mcq",
+        "options": [
+          "same rehti hai / badhti hai / ghatti hai",
+          "same rehti hai / ghatti hai / badhti hai",
+          "badhti hai / badhti hai / ghatti hai",
+          "same rehti hai / badhti hai / badhti hai"
+        ],
+        "answer_index": 0,
+        "answer": "same rehti hai / badhti hai / ghatti hai",
+        "explanation": "Net force na hone se velocity unchanged rehti hai. Motion ki direction mein force ball ko accelerate karta hai, isliye uski speed badh jaati hai. Motion ke opposite force usko opposite direction mein accelerate karta hai, isliye uski speed ghat jaati hai.",
+        "expected_understanding": "Student net force ki direction se speed ke change ka prediction karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-20",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek ball ko halke se push kijiye to woh dheere move karna shuru karti hai. Zor se push kijiye to woh tezi se move karna shuru karti hai. Is rozmarra ke anubhav se aap ek hypothesis bana sakte hain: same object ke liye, larger force (bal) larger acceleration produce karta hai.",
+          "Ise test karne ke liye, same surface par same cart par different magnitudes ke weights ko pulley ke upar thread se latka kar different magnitudes ke forces lagaye jaate hain, aur fixed distance (doori) cover karne mein laga time measure kiya jaata hai. Same mass ke liye jab force badhaya jaata hai, acceleration (tvaran) badh jaata hai. Isliye fixed mass wale object ka acceleration badhta hai jaise-jaise us par net force badhta hai.",
+          "Rozmarra ka anubhav second hypothesis deta hai: same force ke saath, lighter object ko motion (gati) mein set karna heavier object se aasan hota hai. Same pulling force lekin heavier cart ke saath experiment repeat karne se pata chalta hai ki mass badhne par acceleration kam ho jaata hai. Isliye given force ke liye, acceleration object ke mass ke inversely related hota hai.",
+          "Newton's second law of motion states: jab kisi object par net force act karta hai, to object net force ki direction mein accelerate karta hai. Acceleration ka magnitude net force ke magnitude ke proportional hota hai aur object ke mass ke inversely proportional hota hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-21",
+      "type": "reveal",
+      "spec": {
+        "title": "Second law se F = ma tak, aur newton ki definition",
+        "steps": [
+          {
+            "title": "Proportionality likhiye",
+            "detail": "Law kehta hai ki acceleration (tvaran) net force ke proportional hai aur mass ke inversely proportional. Dono statements ko combine karne se a = F/m milta hai."
+          },
+          {
+            "title": "Ise rearrange kijiye",
+            "detail": "Dono sides ko m se multiply karne par F = ma milta hai, jahan F net force hai, m mass hai aur a acceleration (tvaran) hai. Acceleration ki direction net force ki direction ke same hoti hai."
+          },
+          {
+            "title": "Unit fix kijiye",
+            "detail": "Mass kg mein aur acceleration m s⁻² mein measure kiya jata hai. Agar m = 1 kg aur a = 1 m s⁻², to F = (1 kg) × (1 m s⁻²) = 1 kg m s⁻² = 1 N."
+          },
+          {
+            "title": "Definition bataiye",
+            "detail": "Ek newton force woh force hai jo 1 kg mass wale object par 1 m s⁻² ka acceleration (tvaran) produce karta hai."
+          },
+          {
+            "title": "Weight likhiye",
+            "detail": "Earth ke gravitational force ke under, girte hue object ka acceleration g hota hai. F = ma mein a = g rakhne se mass m wale object par gravitational force F = mg milta hai. g ki value 9.8 m s⁻² hai, Earth ki surface ke paas lagbhag constant; quick estimation ke liye aap g = 10 m s⁻² le sakte hain. Dhyan dijiye ki g object ke mass par depend nahi karta."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-22",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek weightlifter bar ke dono sides par 10 kg mass fixed wala barbell hold kar rahi hai. Bar ka khud ka mass 10 kg hai. Barbell ko steady rakhne ke liye woh kitna force (bal) apply kar rahi hai? (g = 9.8 m s⁻² lein.)",
+        "steps": [
+          {
+            "title": "Barbell ka total mass",
+            "detail": "Ek side par 10 kg + doosri side par 10 kg + bar ke liye 10 kg = 30 kg."
+          },
+          {
+            "title": "Barbell ka weight",
+            "detail": "F = mg = 30 kg × 9.8 m s⁻² = 294 N, jo neeche ki direction mein lagta hai."
+          },
+          {
+            "title": "Weightlifter dwara apply kiya gaya force",
+            "detail": "Barbell ko steady rakhne ke liye uski velocity change nahi honi chahiye, isliye net force zero hai. Use opposite direction mein, yaani upwards, 294 N ke barabar force lagana hoga."
+          }
+        ],
+        "answer": "Woh upward direction mein 294 N apply karti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-23",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek student horizontal floor par 25 kg ke stationary block ko push karne ki koshish kar raha hai. Is motion (gati) ko oppose karne wala maximum force (bal) of friction 50 N hai. Block ka displacement (visthapan) 2 seconds mein determine karein agar student use forward direction mein constant force (i) 50 N aur (ii) 55 N se push karta hai.",
+        "steps": [
+          {
+            "title": "(i) Applied force friction ke equal",
+            "detail": "50 N ka applied force 50 N ke opposing force of friction ke equal hai. Dono forces balanced hain aur block par net force zero hai, isliye block stationary rehta hai aur uska displacement 0 m hai."
+          },
+          {
+            "title": "(ii) Net force",
+            "detail": "Block par net force forward direction mein 55 N − 50 N = 5 N hai."
+          },
+          {
+            "title": "Acceleration (tvaran)",
+            "detail": "Newton's second law use karke, a = F/m = 5 N / 25 kg = 0.2 m s⁻², forward direction mein."
+          },
+          {
+            "title": "2 s mein displacement",
+            "detail": "Block rest se start hota hai, isliye u = 0 m s⁻¹. s = ut + ½at² use karke, s = 0 × 2 s + ½ × 0.2 m s⁻² × (2 s)² = 0.4 m."
+          }
+        ],
+        "answer": "(i) 0 m — block stationary rehta hai; (ii) forward direction mein 0.4 m."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ]
+    },
+    {
+      "id": "b-24",
+      "type": "worked_example",
+      "spec": {
+        "problem": "1500 kg mass ki ek sports car east ki taraf moving hai. Iska velocity–time graph t = 0 s par 0 m s⁻¹ se shuru hokar t = 5 s par 10 m s⁻¹ tak straight line ke roop mein badhta hai, 5 s se 10 s tak 10 m s⁻¹ par time axis ke parallel straight line rehta hai, aur phir t = 10 s par 10 m s⁻¹ se t = 15 s par 0 m s⁻¹ tak straight line ke roop mein girta hai. Car par lagne wala force (bal) calculate karein during (i) 0 s se 5 s, (ii) 5 s se 10 s, aur (iii) 10 s se 15 s.",
+        "steps": [
+          {
+            "title": "(i) 0 s se 5 s",
+            "detail": "Graph time axis ki taraf inclined straight line hai, isliye acceleration (tvaran) constant hai, jahan u = 0 m s⁻¹, v = 10 m s⁻¹ aur t = 5 s. v = u + at se: 10 = 0 + a × 5, isliye a = 2 m s⁻². Phir F = ma = 1500 kg × 2 m s⁻² = 3000 N, east ki taraf act karta hai."
+          },
+          {
+            "title": "(ii) 5 s se 10 s",
+            "detail": "Graph time axis ke parallel hai, isliye velocity (veg) constant hai aur acceleration zero hai. Is interval mein car par koi force act nahin karta."
+          },
+          {
+            "title": "(iii) 10 s se 15 s",
+            "detail": "Yahan u = 10 m s⁻¹, v = 0 m s⁻¹ aur t = 5 s. v = u + at se: 0 = 10 + a × 5, isliye a = −2 m s⁻². Phir F = ma = 1500 kg × (−2 m s⁻²) = −3000 N. Negative sign dikhata hai ki force motion (gati) ki direction ke opposite act karta hai, yani west ki taraf."
+          }
+        ],
+        "answer": "(i) 3000 N east ki taraf; (ii) zero force; (iii) 3000 N west ki taraf."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "check",
+      "spec": {
+        "question": "100 g mass ki ek toy car 0.5 m s⁻¹ ki constant velocity (veg) se move kar rahi hai. Toy car par lagne wala net force kya hai?",
+        "format": "mcq",
+        "options": [
+          "0 N",
+          "0.05 N",
+          "0.5 N",
+          "50 N"
+        ],
+        "answer_index": 0,
+        "answer": "0 N",
+        "explanation": "Constant velocity ka matlab hai acceleration (tvaran) zero hai. F = ma use karne par net force zero hota hai, car ka mass jo bhi ho.",
+        "expected_understanding": "Student mass ko velocity se multiply nahi karta, balki zero acceleration se zero net force nikalta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-26",
+      "type": "check",
+      "spec": {
+        "question": "Alag-alag masses ke do children ek jaise swings par baithe hain. Same initial acceleration (tvaran) dene ke liye, aapko kis child par larger force (bal) lagana hoga?",
+        "format": "mcq",
+        "options": [
+          "Lighter child, kyunki smaller mass ko larger force chahiye.",
+          "Heavier child, kyunki F = ma ka matlab hai ki same acceleration ke liye larger mass ko larger force chahiye.",
+          "Dono ko same force chahiye, kyunki maanga gaya acceleration same hai.",
+          "Kisi ko bhi force nahi chahiye, kyunki swing rest par hai."
+        ],
+        "answer_index": 1,
+        "answer": "Heavier child, kyunki F = ma ka matlab hai ki same acceleration ke liye larger mass ko larger force chahiye.",
+        "explanation": "Same acceleration a ke liye, needed force F = ma hai, jo mass ke saath badhta hai. Isliye heavier child ko larger force chahiye.",
+        "expected_understanding": "Student F = ma use karke equal accelerations ke liye forces compare karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    },
+    {
+      "id": "b-27",
+      "type": "check",
+      "spec": {
+        "question": "Transportation ke liye glass items ko bubble wrap ya hay se pack karke damage se kaise protect kiya jata hai?",
+        "format": "mcq",
+        "options": [
+          "Packing se glass item ka mass kam ho jata hai.",
+          "Packing us time ko badha deti hai jisme glass item ko rest par laaya jata hai, isliye acceleration aur us par lagne wala force chhota ho jata hai.",
+          "Packing friction ko poori tarah hata deti hai.",
+          "Packing glass item par force badha deti hai lekin use larger area par spread kar deti hai."
+        ],
+        "answer_index": 1,
+        "answer": "Packing us time ko badha deti hai jisme glass item ko rest par laaya jata hai, isliye acceleration aur us par lagne wala force chhota ho jata hai.",
+        "explanation": "Soft packing same change of velocity ke liye stopping time ko lamba karti hai, jiska matlab smaller acceleration; F = ma se glass par smaller force milta hai.",
+        "expected_understanding": "Student second law apply karke explain karta hai ki longer stopping time ka matlab smaller force kyun hota hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-28",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Kisi force (bal) ke kaam aane ke liye at least do objects ka interact karna zaroori hai. Jab aap apne foot se ball ko push karte hain, to aapko ball dwara aapke foot par lagaya gaya force feel hota hai.",
+          "Newton's third law of motion (gati) kehta hai: jab bhi ek object doosre object par force exert karta hai, usi samay doosra object pehle object par equal aur opposite force exert karta hai.",
+          "Wheels wali chair par baithein aur ek heavy table ko apne se door push karein: aapki chair backwards move karti hai. Table ko apni taraf pull karein: aapki chair table ki taraf move karti hai. Har baar table aap par aapke push ya pull ki opposite direction mein force lagata hai. Do identical spring balances ko hook karke apart pull karne par har baar same value read hoti hai, jo dikhata hai ki wo ek doosre par equal magnitude ke forces lagate hain.",
+          "Forces hamesha pairs mein aate hain, lekin wo do different objects par act karte hain, isliye wo ek doosre ko cancel nahi karte. Same object par act karne wale do equal aur opposite forces ek doosre ko balance karte hain. Ye law contact aur non-contact forces dono ke liye valid hai: do magnets ke beech magnetic forces, do charged balloons ke beech electrostatic forces, aur Earth aur ek fruit ke beech gravitational forces—sab equal aur opposite pairs mein aate hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-29",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 640 300\" role=\"img\" aria-label=\"Walking: foot ground ko backwards push karta hai jabki foot par friction forwards act karta hai\"><line x1=\"40\" y1=\"220\" x2=\"600\" y2=\"220\" stroke=\"#1C1B18\" stroke-width=\"3\" /><rect x=\"260\" y=\"180\" width=\"120\" height=\"40\" fill=\"none\" stroke=\"#1C1B18\" stroke-width=\"2.6\" /><text x=\"320\" y=\"205\" font-family=\"Courier Prime, monospace\" font-size=\"16\" fill=\"#1C1B18\" text-anchor=\"middle\" data-i18n=\"b-29.svg_texts.t-0\">foot</text><line x1=\"320\" y1=\"170\" x2=\"440\" y2=\"170\" stroke=\"#1F3A9E\" stroke-width=\"3\" /><polygon points=\"440,170 428,164 428,176\" fill=\"#1F3A9E\" /><text x=\"470\" y=\"166\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1F3A9E\" data-i18n=\"b-29.svg_texts.t-1\">Foot par friction force (forward)</text><line x1=\"300\" y1=\"255\" x2=\"180\" y2=\"255\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"180,255 192,249 192,261\" fill=\"#1C1B18\" /><text x=\"240\" y=\"284\" font-family=\"Courier Prime, monospace\" font-size=\"18\" fill=\"#1C1B18\" text-anchor=\"middle\" data-i18n=\"b-29.svg_texts.t-2\">Foot ground ko backwards push karta hai</text></svg>",
+        "caption": "Walking ek third-law pair hai. Foot ground ko backwards push karta hai (lower arrow, ground line ke neeche draw kiya gaya hai taaki ground par push dikhaye), aur ground friction ke through foot ko forwards push karta hai (upper arrow, foot ke upar draw kiya gaya hai). Dono arrows length mein equal hain kyunki forces (bal) magnitude mein equal hain; ye different objects par act karte hain, isliye cancel nahi hote."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-33"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-30",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Earth aur ek fruit ek doosre par equal aur opposite gravitational forces (bal) lagate hain. Phir fruit Earth ki taraf kyun move karta hai, jabki Earth fruit ki taraf move hota hua nahi dikhta?",
+        "steps": [
+          {
+            "title": "Forces equal hain",
+            "detail": "Newton's third law ke anusar, Earth dwara fruit par lagaya gaya force aur fruit dwara Earth par lagaya gaya force magnitude mein equal aur direction mein opposite hain."
+          },
+          {
+            "title": "Lekin accelerations equal nahi hain",
+            "detail": "a = F/m ka use karke, har body ko milne wala acceleration (tvaran) uske apne mass par depend karta hai. Earth ka mass fruit ki tulna mein itna zyada hai ki is force se Earth ka acceleration bahut hi small hota hai."
+          },
+          {
+            "title": "Hum kya notice karte hain",
+            "detail": "Fruit ka acceleration dekhne ke liye kaafi large hai, jabki Earth par effect itna small hai ki notice nahi hota."
+          }
+        ],
+        "answer": "Dono forces magnitude mein equal hain, lekin Earth ka enormous mass uske acceleration ko extremely small bana deta hai, isliye uska motion (gati) notice nahi hota."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-37"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-31",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Jab 0.1 kg ki bullet ko 5 kg ke gun se 2 N ke force (bal) se fire kiya jata hai, to gun recoil karta hai. Bullet aur gun ke initial accelerations (tvaran) ke magnitudes kya hain?",
+        "steps": [
+          {
+            "title": "Recoil force",
+            "detail": "Newton's third law ke anusar, gun par 2 N ka recoil force lagta hai, jo bullet par lage force ke magnitude ke barabar hai."
+          },
+          {
+            "title": "Gun ka acceleration",
+            "detail": "a = F/m = 2 N / 5 kg = 0.4 m s⁻²."
+          },
+          {
+            "title": "Bullet ka acceleration",
+            "detail": "a = F/m = 2 N / 0.1 kg = 20 m s⁻²."
+          }
+        ],
+        "answer": "Gun ka initial acceleration 0.4 m s⁻² hai aur bullet ka 20 m s⁻². Forces ka pair magnitude mein equal hai, lekin accelerations equal nahi hain kyunki masses different hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-37"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-32",
+      "type": "check",
+      "spec": {
+        "question": "Ek fireperson kabhi-kabhi paani nikaal rahe pipe ko hold karte waqt struggle kyun karta hai?",
+        "format": "mcq",
+        "options": [
+          "Bahar rush karta paani pipe par backward force (bal) lagata hai, aur fireperson ko use hold karne ke liye large force lagana padta hai.",
+          "Paani flow hone se pipe fireperson se zyada heavy ho jata hai.",
+          "Paani aur pipe ke beech friction pipe ko forward kheenchta hai.",
+          "Pipe par koi force nahi hota; struggle sirf pipe ke weight ki wajah se hota hai."
+        ],
+        "answer_index": 0,
+        "answer": "Bahar rush karta paani pipe par backward force (bal) lagata hai, aur fireperson ko use hold karne ke liye large force lagana padta hai.",
+        "explanation": "Pipe paani ko forward push karta hai; Newton ke third law ke according paani pipe ko equal force ke saath backwards push karta hai. Pipe ko steady rakhne ke liye fireperson ko opposite force dena padta hai.",
+        "expected_understanding": "Student ek flowing-fluid situation mein third-law pair pehchanta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-33",
+      "type": "check",
+      "spec": {
+        "question": "Ek spacecraft space ke aise region mein move kar raha hai jahan us par lagne wala gravitational force negligible hai. Suggest kijiye ki woh apni velocity kaise change kar sakta hai.",
+        "format": "mcq",
+        "options": [
+          "Apne saare engines band karke wait karne se.",
+          "Apna engine fire karke exhaust gases ko bahar nikaalne se, jo spacecraft par equal aur opposite force lagati hain.",
+          "Space mein matter ke saath friction use karne se.",
+          "Yeh space mein apni velocity bilkul change nahi kar sakta."
+        ],
+        "answer_index": 1,
+        "answer": "Apna engine fire karke exhaust gases ko bahar nikaalne se, jo spacecraft par equal aur opposite force lagati hain.",
+        "explanation": "Velocity sirf tab change hoti hai jab koi force act karti hai. Negligible gravity ke saath, spacecraft gas ko expel karke apni khud ki force banata hai; gas equal aur opposite force ke saath spacecraft par push back karti hai.",
+        "expected_understanding": "Student third law ka use karke explain karta hai ki rocket space mein apni velocity kaise change karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-36"
+        }
+      ]
+    },
+    {
+      "id": "b-34",
+      "type": "check",
+      "spec": {
+        "question": "Ek sailor chhoti boat se shore par jump karta hai. Jab sailor aage (forward) jump karta hai, to kya boat move karegi? Agar haan, to kis direction mein aur kyun?",
+        "format": "mcq",
+        "options": [
+          "Boat still rahegi, kyunki sailor ka force (bal) balanced hai.",
+          "Boat backwards move karegi, kyunki sailor boat ko backwards push karta hai aur boat sailor ko equal force se forwards push karti hai.",
+          "Boat sailor ke saath forwards move karegi.",
+          "Boat tabhi backwards move karegi agar sailor ka mass boat ke mass se zyada ho."
+        ],
+        "answer_index": 1,
+        "answer": "Boat backwards move karegi, kyunki sailor boat ko backwards push karta hai aur boat sailor ko equal force se forwards push karti hai.",
+        "explanation": "Jump ek third-law pair hai: sailor boat ko backwards push karta hai, aur boat sailor ko forwards push karti hai. Backward force boat par act karta hai, isliye boat backwards move karti hai.",
+        "expected_understanding": "Student third-law pair ke do objects identify karta hai aur har force ki direction batata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-35",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Teen laws ek single object ke liye use kiye gaye the, lekin ye do ya usse zyada connected objects par bhi lagti hain.",
+          "Do boxes lijiye jinke masses m₁ aur m₂ hain, ek frictionless horizontal surface par, jo ek string se connected hain, aur ek force (bal) F Box 1 ko right side pull kar raha hai. Box 1 string ke through Box 2 ko pull karta hai, aur Newton's third law ke according, Box 2 Box 1 ko equal aur opposite force se back pull karta hai. String mein is force ko tension T kehte hain.",
+          "Aap har box par net force alag-alag nikaal sakte hain. Ek simpler tarika hai do boxes aur string ko ek hi system maanna. System ke andar ke forces, jaise tension, internal forces hote hain aur unhe consider karne ki zaroorat nahi; sirf bahar se lagne wale forces, jaise F, matter karte hain.",
+          "Tab system ek single object jiska mass m₁ + m₂ hai, ki tarah behave karta hai, isliye iska acceleration (tvaran) a = F/(m₁ + m₂) hai. F ke alawa, external forces gravitational force (m₁ + m₂)g hain jo downwards act karta hai, aur ise ground se lagne wala normal force (N₁ + N₂) balance karta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-38"
+        },
+        {
+          "claim_id": "claim-39"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-36",
+      "type": "reveal",
+      "spec": {
+        "title": "Do connected boxes ka acceleration (tvaran) nikalna",
+        "steps": [
+          {
+            "title": "Sirf bahari forces (bal) ko count karo",
+            "detail": "Do boxes aur string ko ek system maano. Tension dono boxes par system ke andar act karta hai, isliye ye internal force hai; pulling force F hi sirf horizontal external force hai."
+          },
+          {
+            "title": "Poore system par second law use karo",
+            "detail": "System ka mass m₁ + m₂ hai, isliye Newton's second law se F = (m₁ + m₂)a milta hai."
+          },
+          {
+            "title": "Acceleration ke liye solve karo",
+            "detail": "Dono sides ko (m₁ + m₂) se divide karne par a = F/(m₁ + m₂) milta hai. System ek single object ki tarah accelerate karta hai jiska total mass utna hi hai."
+          },
+          {
+            "title": "Vertical forces ko check karo",
+            "detail": "Neeche ki gravitational force (m₁ + m₂)g aur upar ki normal force (N₁ + N₂) barabar aur opposite hain, isliye ye horizontal acceleration ko affect nahi karte."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-38"
+        },
+        {
+          "claim_id": "claim-39"
+        }
+      ]
+    },
+    {
+      "id": "b-37",
+      "type": "check",
+      "spec": {
+        "question": "Do boxes jinke masses m₁ aur m₂ hain, ek smooth horizontal surface par ek string se jude hue hain aur pehle box par lagaye gaye horizontal force (bal) F se kheenche ja rahe hain. System ka acceleration (tvaran) kya hai?",
+        "format": "mcq",
+        "options": [
+          "F/m₁",
+          "F/m₂",
+          "F/(m₁ + m₂)",
+          "(m₁ + m₂)/F"
+        ],
+        "answer_index": 2,
+        "answer": "F/(m₁ + m₂)",
+        "explanation": "Boxes aur string ko ek system maano. Tension internal hai aur cancel ho jata hai, sirf external horizontal force F hai, aur total mass m₁ + m₂ hai, isliye a = F/(m₁ + m₂).",
+        "expected_understanding": "Student connected objects ko ek single system maanta hai aur internal forces ko ignore karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-38"
+        }
+      ]
+    },
+    {
+      "id": "b-38",
+      "type": "check",
+      "spec": {
+        "question": "Snake boat race ki practice karte samay, 100 oarsmen ek boat ko mil kar row karte hain. Unme se 95 boat ko aage badhane ke liye peeche ki taraf row karte hain, lekin galti se 5 oarsmen ulti direction mein row karte hain. Agar har oarsman 200 N ka horizontal force (bal) lagata hai, to snake boat par net force kitna hai, newtons mein? (Drag forces aur air friction ko ignore karein.) Sirf number dijiye.",
+        "format": "numeric",
+        "answer": "18000",
+        "explanation": "95 oarsmen aage ki taraf push karte hain aur 5 peeche ki taraf, isliye effective number 95 − 5 = 90 hai. Net force 90 × 200 N = 18000 N hai, forward direction mein.",
+        "expected_understanding": "Student kai forces ko milakar ek net force banata hai, aur jo forces oppose karte hain unhe subtract karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        }
+      ]
+    },
+    {
+      "id": "b-39",
+      "type": "worked_example",
+      "spec": {
+        "problem": "50 g mass ki ek bullet 100 m s⁻¹ speed (chaal) se chalte hue ek heavy stationary wooden block mein enters karti hai aur 50 cm distance penetrate karne ke baad ruk jaati hai. Maan lijiye ki bullet block ke andar constant acceleration (tvaran) se chalti hai. Bullet par lagne wale stopping force (bal) ka estimate kijiye.",
+        "steps": [
+          {
+            "title": "Jo aapko pata hai use SI units mein likhiye",
+            "detail": "Mass 50 g hai, yani 0.05 kg. Penetration distance 50 cm hai, yani 0.5 m. Saath hi u = 100 m s⁻¹ aur v = 0 m s⁻¹ hai. Maan lijiye block ke andar constant acceleration a hai aur laga time t hai."
+          },
+          {
+            "title": "Velocity relation ka use kijiye",
+            "detail": "v = u + at se: 0 = 100 + a t, isliye t = −100/a."
+          },
+          {
+            "title": "Displacement (visthapan) relation mein substitute kijiye",
+            "detail": "s = ut + ½at² se: 0.5 = 100t + ½at². t = −100/a rakhne par 0.5 = −10000/a + 5000/a = −5000/a milta hai, isliye a = −10000 m s⁻²."
+          },
+          {
+            "title": "Stopping force nikaliye",
+            "detail": "Force ka magnitude F = ma = 0.05 kg × 10000 m s⁻² = 500 N hai, jo bullet ki motion ke opposite act karta hai."
+          }
+        ],
+        "answer": "Stopping force lagbhag 500 N hai, jo bullet ki motion ki direction ke opposite hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ]
+    },
+    {
+      "id": "b-40",
+      "type": "worked_example",
+      "spec": {
+        "problem": "2 kg mass ka ek object constant velocity (veg) 10 m s⁻¹ se chal raha hai; usse ek rough patch milta hai jahan object par friction force (bal) 7 N hai. Usi samay, motion (gati) ke opposing ek additional constant force 3 N object par lagaya jata hai. Rough patch mein enter karne ke baad, object rest mein aane se pehle kitni distance (doori) travel karta hai?",
+        "steps": [
+          {
+            "title": "Kul opposing force",
+            "detail": "Dono forces motion ka oppose karte hain, isliye add hote hain: 7 N + 3 N = 10 N peeche ki taraf."
+          },
+          {
+            "title": "Acceleration (tvaran)",
+            "detail": "a = F/m = 10 N / 2 kg = 5 m s⁻², motion ke opposite directed. Motion ko positive maante hue, a = −5 m s⁻²."
+          },
+          {
+            "title": "Rukne mein laga time",
+            "detail": "v = u + at se: 0 = 10 + (−5)t, isliye t = 2 s."
+          },
+          {
+            "title": "Distance travelled (doori)",
+            "detail": "s = ut + ½at² se: s = 10 × 2 + ½ × (−5) × (2)² = 20 − 10 = 10 m."
+          }
+        ],
+        "answer": "Object rest mein aane se pehle 10 m travel karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-41",
+      "type": "reveal",
+      "spec": {
+        "title": "Ek force (bal), do loads: accelerations (tvaran) ko ek formula mein combine karna",
+        "steps": [
+          {
+            "title": "Sirf harrow",
+            "detail": "Tractor mass m₁ ko net force F se kheenchta hai aur acceleration a₁ paida karta hai, isliye F = m₁a₁ aur isliye m₁ = F/a₁."
+          },
+          {
+            "title": "Sirf trolley",
+            "detail": "Wahi force F mass m₂ par acceleration a₂ paida karta hai, isliye F = m₂a₂ aur isliye m₂ = F/a₂."
+          },
+          {
+            "title": "Trolley par harrow",
+            "detail": "Ab tractor usi force F se trolley ko kheenchta hai jis par harrow rakha hai. Inhe ek hi system maankar total mass m₁ + m₂ hai aur acceleration a = F/(m₁ + m₂) hai."
+          },
+          {
+            "title": "Substitute karke simplify karna",
+            "detail": "m₁ = F/a₁ aur m₂ = F/a₂ ko expression mein rakho: a = F / (F/a₁ + F/a₂). F cancel karo: a = 1 / (1/a₁ + 1/a₂) = a₁a₂ / (a₁ + a₂)."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-38"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-42",
+      "type": "check",
+      "spec": {
+        "question": "Ek footballer 0.4 kg mass ki football ko kick karta hai aur usse 108 km h⁻¹ ki speed (chaal) deta hai. Estimated force (bal) 800 N tha. Foot aur ball ke beech contact time seconds mein calculate karo. Sirf number do.",
+        "format": "numeric",
+        "answer": "0.015",
+        "explanation": "Pehle speed convert karo: 108 km h⁻¹ = 108 × 1000 m / 3600 s = 30 m s⁻¹. Phir a = F/m = 800 N / 0.4 kg = 2000 m s⁻². Ball rest se start hoti hai, isliye v = u + at se: 30 = 0 + 2000t, jisse t = 30/2000 = 0.015 s.",
+        "expected_understanding": "Student F = ma ko v = u + at ke saath combine karke contact time nikalta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ]
+    },
+    {
+      "id": "b-43",
+      "type": "check",
+      "spec": {
+        "question": "Jab ek bar magnet ka pole magnetic compass ke paas laaya jaata hai, to bar magnet aur compass needle ek doosre par equal aur opposite magnetic forces lagate hain. Phir bhi compass needle move karti hai aur bar magnet move nahi karta. Kyun?",
+        "format": "mcq",
+        "options": [
+          "Needle par lagne wala force magnet par lagne wale force se larger hai.",
+          "Forces equal hain, lekin needle ka mass bahut chhota hai, isliye uski acceleration bahut zyada hai.",
+          "Magnet par koi force hi nahi lag raha.",
+          "Compass needle magnet nahi hai, isliye use koi force feel nahi hota."
+        ],
+        "answer_index": 1,
+        "answer": "Forces equal hain, lekin needle ka mass bahut chhota hai, isliye uski acceleration bahut zyada hai.",
+        "explanation": "Do different masses par equal forces different accelerations dete hain, kyunki a = F/m. Needle ka small mass use visible acceleration deta hai jabki magnet ki acceleration negligible hai.",
+        "expected_understanding": "Student equal forces aur equal accelerations ko a = F/m ka use karke alag pahchanta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-37"
+        }
+      ]
+    },
+    {
+      "id": "b-44",
+      "type": "check",
+      "spec": {
+        "question": "High jump event mein, athlete ke girne ke liye landing mat ya sand bed rakha jaata hai. Yeh injury ka risk kyun kam karta hai?",
+        "format": "mcq",
+        "options": [
+          "Yeh athlete ka weight kam karta hai.",
+          "Yeh us time ko badha deta hai jisme athlete ko rest par laaya jaata hai, isliye athlete par acceleration (tvaran) aur force (bal) chhote hote hain.",
+          "Yeh athlete par lagne wala gravitational force hata deta hai.",
+          "Yeh athlete par force badha deta hai lekin use phaila deta hai."
+        ],
+        "answer_index": 1,
+        "answer": "Yeh us time ko badha deta hai jisme athlete ko rest par laaya jaata hai, isliye athlete par acceleration (tvaran) aur force (bal) chhote hote hain.",
+        "explanation": "Same change of velocity (veg) ke liye, lamba stopping time chhota acceleration deta hai; phir F = ma se athlete par chhota force milta hai, jaise vehicle mein airbag karta hai.",
+        "expected_understanding": "Student Newton ke second law ko lambe stopping time par apply karta hai aur chhota force predict karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="hi-Latn" data-script="Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
+<title>Motion in a Plane - Zivon</title>
+<link rel="canonical" href="../index.html">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="alternate" hreflang="hi" href="../hi/index.html">
+<link rel="alternate" hreflang="hi-Latn" href="index.html">
+<link rel="stylesheet" href="../../../../assets/zivon.css?v=20261111b">
+
+</head>
+<body>
+<header class="zn-lang-bar" data-current-locale="hi-Latn"><div class="zn-lang-in"><span class="zn-lang-lab" data-i18n="ui.lang_label">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" data-locale="en" data-href="../index.html" aria-checked="false">English</button><button type="button" class="zn-chip" role="radio" data-locale="hi" data-href="../hi/index.html" lang="hi" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" data-locale="hi-Latn" data-href="index.html" lang="hi-Latn" aria-checked="true">Hinglish</button></div><span class="zn-trans-badge" data-i18n="ui.trans_badge">AI-translated · Reviewed</span></div></header>
+<main class="zn-page">
+  <header class="zn-header">
+    <p class="zn-kicker">class-11-physics</p>
+    <h1 class="zn-title" data-i18n="b-00-meta.title">Motion in a Plane</h1>
+    <p class="zn-objectives-label" data-i18n="ui.objectives_heading">Is lesson ke baad aap seekhenge:</p>
+    <ul class="zn-objectives">
+      <li data-i18n="b-00-meta.objectives.0">Is lesson ke baad aap bata sakte hain ki koi quantity scalar hai ya vector, aur vectors ko graphically aur components se add kar sakte hain.</li>
+      <li data-i18n="b-00-meta.objectives.1">Is lesson ke baad aap plane mein position, velocity aur acceleration ko components se aur differentiation se nikaal sakte hain.</li>
+      <li data-i18n="b-00-meta.objectives.2">Is lesson ke baad aap is chapter ke equations use karke constant-acceleration, projectile aur uniform circular motion ke problems solve kar sakte hain.</li>
+    </ul>
+  </header>
+  <section class="zn-text" id="b-01">
+    <p data-i18n="b-01.paragraphs.0">Aap ek ball phenkte hain aur wo ek hi samay mein sideways aur up dono taraf move karti hai. Ek plus ya minus sign us sideways-plus-up direction ko describe nahi kar sakta. Aapko vectors (sadish) chahiye, aisi quantities jo magnitude aur direction dono carry karti hain.</p>
+    <p data-i18n="b-01.paragraphs.1">Is lesson mein aap vectors ki language seekhenge, phir ise plane mein position, velocity (veg) aur acceleration (tvaran) ke liye use karenge. Uske baad aap constant-acceleration motion (gati), projectile motion aur uniform circular motion solve karenge.</p>
+  </section>
+  <section class="zn-text" id="b-02">
+    <p data-i18n="b-02.paragraphs.0">Scalar (adish) mein sirf magnitude hota hai aur ise unit ke saath ek number se vyakt kiya jata hai. Distance (doori), mass, temperature aur time scalars hain. Vector (sadish) mein magnitude aur direction dono hote hain aur ye triangle ya parallelogram addition follow karta hai. Displacement (visthapan), velocity (veg), acceleration (tvaran) aur force (bal) vectors hain.</p>
+    <p data-i18n="b-02.paragraphs.1">Origin O choose karein. Position vector OP equals r, jo O se P tak points karta hai. Agar object P se P prime tak move karta hai, to displacement PP prime start aur finish ko jodne wali straight line hai. Ye actual path par depend nahi karta, aur iska magnitude path length se less than ya equal hota hai.</p>
+  </section>
+  <figure class="zn-diagram" id="b-03">
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="60" y1="180" x2="180" y2="80" stroke="#1C1B18" stroke-width="2.6" /><line x1="60" y1="180" x2="320" y2="60" stroke="#1C1B18" stroke-width="2.6" /><line x1="180" y1="80" x2="320" y2="60" stroke="#1F3A9E" stroke-width="3" /><polygon points="180,80 168,88 176,70" fill="#1C1B18" /><polygon points="320,60 306,66 312,50" fill="#1C1B18" /><polygon points="320,60 308,72 304,58" fill="#1F3A9E" /><circle cx="60" cy="180" r="4" fill="#1C1B18" /><circle cx="180" cy="80" r="4" fill="#1C1B18" /><circle cx="320" cy="60" r="4" fill="#1C1B18" /><text x="48" y="200" fill="#1C1B18" font-size="20">O</text><text x="170" y="70" fill="#1C1B18" font-size="20">P</text><text x="330" y="55" fill="#1C1B18" font-size="20" data-i18n="b-03.svg_texts.t-0">P'</text><text x="110" y="120" fill="#1C1B18" font-size="20">r</text><text x="210" y="110" fill="#1C1B18" font-size="20" data-i18n="b-03.svg_texts.t-1">r'</text><text x="240" y="45" fill="#1F3A9E" font-size="20" data-i18n="b-03.svg_texts.t-2">delta r</text></svg></div>
+    <figcaption data-i18n="b-03.caption">Origin O se position vectors r aur r&#x27; (r prime), aur P se P&#x27; tak displacement (visthapan) delta r. Arrow ki lambaiyan schematic hain, scale ke according nahi.</figcaption>
+  </figure>
+  <fieldset class="zn-check" id="b-04" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-04.question">Kaunsi list mein sirf vector (sadish) quantities hain?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="0"> <span data-i18n="b-04.options.0">mass, speed, temperature</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="1"> <span data-i18n="b-04.options.1">displacement (visthapan), velocity (veg), acceleration (tvaran)</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="2"> <span data-i18n="b-04.options.2">distance (doori), time, volume</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="3"> <span data-i18n="b-04.options.3">density, charge, energy</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-04.explanation">Displacement (visthapan), velocity (veg) aur acceleration (tvaran) mein magnitude aur direction dono hote hain aur ye vector addition follow karte hain. Baaki lists scalar (adish) hain.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-05">
+    <p data-i18n="b-05.paragraphs.0">A ko positive lambda se multiply karne par same direction mein magnitude lambda times |A| milta hai. -lambda se multiply karne par direction reverse ho jaati hai. Velocity (veg) ko time se multiply karne par displacement (visthapan) milta hai.</p>
+    <p data-i18n="b-05.paragraphs.1">Do vector (sadish) tabhi equal hote hain jab unka magnitude aur direction match kare. Kisi free vector ko khud ke parallel shift karne se woh unchanged rehta hai. Null vector ka magnitude zero hota hai aur koi direction nahi hoti, aur A plus 0 equals A.</p>
+  </section>
+  <figure class="zn-diagram" id="b-06">
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="50" y1="180" x2="190" y2="150" stroke="#1C1B18" stroke-width="2.6" /><line x1="50" y1="180" x2="130" y2="90" stroke="#1C1B18" stroke-width="2.6" /><line x1="190" y1="150" x2="270" y2="120" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 4" /><line x1="130" y1="90" x2="270" y2="120" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 4" /><line x1="50" y1="180" x2="270" y2="120" stroke="#1F3A9E" stroke-width="3" /><polygon points="270,120 254,124 260,110" fill="#1F3A9E" /><text x="40" y="200" fill="#1C1B18" font-size="20">O</text><text x="195" y="145" fill="#1C1B18" font-size="20">A</text><text x="120" y="85" fill="#1C1B18" font-size="20">B</text><text x="275" y="115" fill="#1F3A9E" font-size="20">R = A+B</text></svg></div>
+    <figcaption data-i18n="b-06.caption">Parallelogram method: A aur B common origin O se lete hain, resultant R diagonal OS ke along hota hai. Dashed lines construction lines hain.</figcaption>
+  </figure>
+  <section class="zn-text" id="b-07">
+    <p data-i18n="b-07.paragraphs.0">Head-to-tail method: B ka tail A ke head par rakho, A ke tail ko B ke head se jodo taaki R mile. Parallelogram method: dono tails ko common origin par lao aur parallelogram complete karo; R diagonal hai. Dono se same R milta hai.</p>
+    <p data-i18n="b-07.paragraphs.1">Addition commutative aur associative hai. Subtraction A minus B equals A plus (-B). A aur -A ko add karne se null vector milta hai.</p>
+  </section>
+  <section class="zn-example" id="b-08">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-08.problem">Rain (barish) vertically gir rahi hai jiski speed (chaal) 35 m s-1 hai. Wind 12 m s-1 ki speed se east to west direction mein chalna shuru karti hai. Boy apna umbrella kis direction mein rakhe?</p>
+    <ol>
+      <li><strong data-i18n="b-08.steps.0.title">Velocities ko represent karo</strong> <span data-i18n="b-08.steps.0.detail">Maan lo vr rain ki velocity (veg) vertically neeche hai aur vw wind ki velocity east se west direction mein hai. Resultant R unka vector (sadish) sum hai.</span></li>
+      <li><strong data-i18n="b-08.steps.1.title">Magnitude</strong> <span data-i18n="b-08.steps.1.detail">R = sqrt(vr squared + vw squared) = sqrt(35 squared + 12 squared) = 37 m s-1.</span></li>
+      <li><strong data-i18n="b-08.steps.2.title">Direction</strong> <span data-i18n="b-08.steps.2.detail">tan theta = vw / vr = 12 / 35 = 0.343, isliye theta = tan inverse 0.343 = 19 degrees vertical se.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-08.answer">Umbrella ko vertical plane mein vertical se lagbhag 19 degrees east ki taraf rakho, jaise source mein diya hai.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-09" data-format="mcq" data-answer-index="2">
+    <legend data-i18n="b-09.question">Scalar aur vector quantities ke saath kaunsa algebraic operation aam taur par meaningful hota hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="0"> <span data-i18n="b-09.options.0">same dimensions wale vector mein scalar add karna</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="1"> <span data-i18n="b-09.options.1">vector ke ek component ko usi vector mein add karna</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="2"> <span data-i18n="b-09.options.2">kisi bhi vector ko kisi bhi scalar se multiply karna</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="3"> <span data-i18n="b-09.options.3">different units wale kisi bhi do scalars ko add karna</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-09.explanation">Vector ko scalar se multiply karne par scaled magnitude wala vector milta hai. Vector mein scalar add karna, ya different units wale scalars ko add karna, meaningful nahi hai.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-10">
+    <p data-i18n="b-10.paragraphs.0">Plane mein ek vector (sadish) A ko do non-parallel directions ke along resolve kiya ja sakta hai. Rectangular axes use karte hue, unit vectors i, j, k ka magnitude 1 hota hai aur ye x, y, z axes ke along point karte hain.</p>
+    <p data-i18n="b-10.paragraphs.1">A equals Ax i plus Ay j likhiye. Ax aur Ay scalar (adish) hain; Ax i aur Ay j vectors hain. Teen dimensions mein Az k add kijiye. Position vector r equals x i plus y j plus z k hota hai.</p>
+  </section>
+  <section class="zn-reveal" id="b-11">
+    <h3 data-i18n="b-11.title">Magnitude-angle se components tak aur wapas</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-11.steps.0.title">A aur theta diye hue hon</summary><p data-i18n="b-11.steps.0.detail">Ax = A cos theta and Ay = A sin theta, component diagram par trigonometry se.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-11.steps.1.title">Ax aur Ay diye hue hon</summary><p data-i18n="b-11.steps.1.detail">Pythagoras se A = sqrt(Ax squared + Ay squared), aur tan theta = Ay / Ax.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-11.steps.2.title">Signs</summary><p data-i18n="b-11.steps.2.detail">Ek component theta ke according positive, negative ya zero ho sakta hai, kyunki cos aur sin quadrant ke hisaab se sign badalte hain.</p></details>
+  </section>
+  <section class="zn-text" id="b-12">
+    <p data-i18n="b-12.paragraphs.0">Analytical addition: A equals Ax i plus Ay j aur B equals Bx i plus By j likhein. Phir R equals (Ax plus Bx) i plus (Ay plus By) j. Har resultant component corresponding components ka sum hota hai.</p>
+    <p data-i18n="b-12.paragraphs.1">Teen dimensions mein z components ko usi tarah add karein. Yeh kisi bhi number ke vectors (sadish) tak extend hota hai, aur subtraction negative ke addition ke roop mein hota hai.</p>
+  </section>
+  <section class="zn-example" id="b-13">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-13.problem">Do vector (sadish) A aur B ke resultant ka magnitude aur direction unke magnitudes aur unke beech ke angle theta ke terms mein nikaliye.</p>
+    <ol>
+      <li><strong data-i18n="b-13.steps.0.title">Parallelogram geometry</strong> <span data-i18n="b-13.steps.0.detail">Maan lijiye OS resultant R hai. ON = A + B cos theta aur SN = B sin theta, aur OS squared = ON squared + SN squared.</span></li>
+      <li><strong data-i18n="b-13.steps.1.title">Magnitude</strong> <span data-i18n="b-13.steps.1.detail">R squared = (A + B cos theta) squared + (B sin theta) squared = A squared + B squared + 2AB cos theta.</span></li>
+      <li><strong data-i18n="b-13.steps.2.title">Direction</strong> <span data-i18n="b-13.steps.2.detail">R sin alpha = B sin theta, isliye sin alpha = B sin theta / R, jahan alpha R aur A ke beech ka angle hai.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-13.answer">R squared = A squared + B squared + 2AB cos theta; direction sin alpha = B sin theta / R se milti hai.</span></p>
+  </section>
+  <section class="zn-example" id="b-14">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-14.problem">Ek motorboat north ki taraf 25 km/h ki speed (chaal) se ja rahi hai aur water current 10 km/h hai, south se 60 degrees east ki direction mein. Boat ka resultant velocity (veg) nikaliye.</p>
+    <ol>
+      <li><strong data-i18n="b-14.steps.0.title">Vectors (sadish) draw kijiye</strong> <span data-i18n="b-14.steps.0.detail">vb 25 km/h north hai, vc 10 km/h hai south se 60 degrees east par. Parallelogram mein unke beech ka angle 120 degrees hai.</span></li>
+      <li><strong data-i18n="b-14.steps.1.title">Law of cosines se magnitude</strong> <span data-i18n="b-14.steps.1.detail">R squared = 25 squared + 10 squared + 2 x 25 x 10 x cos 120 degrees, jisse R approx 21.8 km/h milta hai.</span></li>
+      <li><strong data-i18n="b-14.steps.2.title">Law of sines se direction</strong> <span data-i18n="b-14.steps.2.detail">sin f = vc sin 120 degrees / R = 10 x sin 120 degrees / 21.8 = 0.397, isliye f approx 23.4 degrees.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-14.answer">Resultant speed (chaal) lagbhag 21.8 km/h hai, direction source figure mein f = 23.4 degrees se di gayi hai.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-15" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-15.question">Vector (sadish) inequalities mein |a + b| = |a| + |b| equality ke roop mein kab hold karta hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="0"> <span data-i18n="b-15.options.0">jab a aur b same direction mein hain</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="1"> <span data-i18n="b-15.options.1">jab a aur b opposite direction mein hain</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="2"> <span data-i18n="b-15.options.2">jab a aur b perpendicular hain</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="3"> <span data-i18n="b-15.options.3">hamesha, sabhi a aur b ke liye</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-15.explanation">Geometrically triangle inequality equality tabhi hoti hai jab vectors same direction mein collinear hote hain. Agar a+b+c+d = 0 to |a+c| = |b+d| kyunki a+c = -(b+d).</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-16">
+    <p data-i18n="b-16.paragraphs.0">Position (sthiti) r equals x i plus y j hota hai. Displacement (visthapan) delta r equals r prime minus r equals delta x i plus delta y j hota hai. Average velocity (ausat veg) delta r over delta t hoti hai.</p>
+    <p data-i18n="b-16.paragraphs.1">Instantaneous velocity (taatkalik veg) v equals dr over dt hoti hai, jo path ke tangent hoti hai. Acceleration (tvaran) a equals dv over dt hota hai. Components (ghatak) vx equals dx over dt, vy equals dy over dt, ax equals dvx over dt, ay equals dvy over dt hote hain.</p>
+  </section>
+  <figure class="zn-diagram" id="b-17">
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><path d="M 40 180 Q 150 60 360 140" fill="none" stroke="#1C1B18" stroke-width="2.6" /><line x1="120" y1="140" x2="300" y2="80" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 4" /><line x1="200" y1="110" x2="300" y2="80" stroke="#1F3A9E" stroke-width="3" /><polygon points="300,80 284,84 290,70" fill="#1F3A9E" /><circle cx="200" cy="110" r="4" fill="#1C1B18" /><text x="190" y="100" fill="#1C1B18" font-size="20">P</text><text x="305" y="75" fill="#1F3A9E" font-size="20" data-i18n="b-17.svg_texts.t-0">v tangent</text><text x="60" y="200" fill="#1C1B18" font-size="20" data-i18n="b-17.svg_texts.t-1">path</text></svg></div>
+    <figcaption data-i18n="b-17.caption">P par velocity (veg) path ke tangent hai, motion (gati) ki direction mein. Dashed line tangent line hai.</figcaption>
+  </figure>
+  <section class="zn-reveal" id="b-18">
+    <h3 data-i18n="b-18.title">Velocity aur acceleration limits ke roop mein</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-18.steps.0.title">Average velocity</summary><p data-i18n="b-18.steps.0.detail">v average = delta r / delta t; iska direction delta r ke direction mein hota hai, jo path ka chord hai.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-18.steps.1.title">Instantaneous velocity</summary><p data-i18n="b-18.steps.1.detail">Jab delta t zero ki taraf tend karta hai, chord tangent ban jata hai; v = limit delta r / delta t = dr/dt.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-18.steps.2.title">Acceleration (tvaran)</summary><p data-i18n="b-18.steps.2.detail">a average = delta v / delta t; jab delta t zero ki taraf tend karta hai, a = dv/dt. 2D mein, a, v ke saath 0 to 180 degrees tak koi bhi angle bana sakta hai.</p></details>
+  </section>
+  <section class="zn-example" id="b-19">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-19.problem">Ek particle ki position coefficients 3.0, 2.0 aur 5.0 ke saath di gayi hai, t seconds mein aur r metres mein. v(t) aur a(t) nikalo, aur t = 1.0 s par v ka magnitude aur direction bhi nikalo.</p>
+    <ol>
+      <li><strong data-i18n="b-19.steps.0.title">Differentiate karo</strong> <span data-i18n="b-19.steps.0.detail">Source result mein v = dr/dt = 3.0 i + 4.0 t j m/s; a = dv/dt = 4.0 j m/s squared.</span></li>
+      <li><strong data-i18n="b-19.steps.1.title">t = 1.0 s par</strong> <span data-i18n="b-19.steps.1.detail">v = 3.0 i + 4.0 j m/s.</span></li>
+      <li><strong data-i18n="b-19.steps.2.title">Magnitude aur direction</strong> <span data-i18n="b-19.steps.2.detail">Magnitude = sqrt(3 squared + 4 squared) = 5.0 m/s; theta = tan inverse (4/3) = 53 degrees, x-axis ke saath.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-19.answer">a = 4.0 m s-2 y-direction ke along hai; 1.0 s par speed (chaal) 5.0 m/s hai, x-axis ke saath 53 degrees par.</span></p>
+  </section>
+  <section class="zn-text" id="b-20">
+    <p data-i18n="b-20.paragraphs.0">Constant acceleration (tvaran) ke saath, average acceleration us constant ke barabar hota hai. t=0 par v0 se lekar t par v tak, v equals v0 plus a t hota hai. Position r equals r0 plus v0 t plus one half a t squared hoti hai.</p>
+    <p data-i18n="b-20.paragraphs.1">x aur y ko alag-alag likho: vx equals vox plus ax t, x equals x0 plus vox t plus one half ax t squared, aur y ke liye bhi isi tarah. Do perpendicular motions (gatiyan) ko independently treat karo.</p>
+  </section>
+  <section class="zn-example" id="b-21">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-21.problem">Ek particle origin se t = 0 par velocity (veg) 5.0 i m/s ke saath shuru hota hai aur x-y plane mein constant acceleration (tvaran) (3.0 i + 2.0 j) m/s squared ke under move karta hai. Jab x 84 m hai tab y kya hai, aur us samay speed (chaal) kya hai?</p>
+    <ol>
+      <li><strong data-i18n="b-21.steps.0.title">Position</strong> <span data-i18n="b-21.steps.0.detail">x = 5.0 t + 1.5 t squared, y = 1.0 t squared, r = v0 t + one half a t squared se.</span></li>
+      <li><strong data-i18n="b-21.steps.1.title">t nikaalo</strong> <span data-i18n="b-21.steps.1.detail">5.0 t + 1.5 t squared = 84 se t = 6 s milta hai. Phir y = 1.0 x 36 = 36.0 m.</span></li>
+      <li><strong data-i18n="b-21.steps.2.title">Velocity</strong> <span data-i18n="b-21.steps.2.detail">v = 5.0 i + 3.0 t i + 2.0 t j; 6 s par, vx = 23.0, vy = 12.0 m/s, speed = sqrt(23 squared + 12 squared) approx 26 m/s.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-21.answer">t = 6 s par y = 36.0 m; speed approx 26 m/s.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-22" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-22.question">Space mein arbitrary motion (gati) ke liye, kaun sa relation hamesha true hota hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="0"> <span data-i18n="b-22.options.0">v average = (1/2)(v(t1) + v(t2))</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="1"> <span data-i18n="b-22.options.1">v average = [r(t2) - r(t1)] / (t2 - t1)</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="2"> <span data-i18n="b-22.options.2">v(t) = v(0) + a t kisi bhi motion ke liye</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="3"> <span data-i18n="b-22.options.3">r(t) = r(0) + v(0) t + (1/2) a t squared kisi bhi motion ke liye</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-22.explanation">Average velocity (average veg) ko time interval ke dauran displacement (visthapan) ke roop mein define kiya jata hai. Baaki forms sirf constant acceleration ke liye valid hain, aur a average = [v(t2)-v(t1)]/(t2-t1) acceleration ki definition hai.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-23">
+    <p data-i18n="b-23.paragraphs.0">Ek projectile throw hone ke baad flight mein hota hai, jaise ball. Iski motion (gati) do simultaneous components se banti hai: horizontal without acceleration (tvaran) aur vertical constant g downward ke saath. Air resistance ko neglect kiya gaya hai.</p>
+    <p data-i18n="b-23.paragraphs.1">x ko horizontal aur y ko vertical up choose karo. Tab ax equals 0 aur ay equals -g. Initial components vox equals v0 cos theta0 aur voy equals v0 sin theta0 hain.</p>
+  </section>
+  <section class="zn-sim zn-sim-b-24" id="b-24" data-sim-id="b-24" aria-label="Projectile trajectory">
+    <h3 data-i18n="b-24.title">Projectile trajectory</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control"><span data-i18n="b-24.controls.v0.label">Initial speed v0 (m/s)</span><input type="range" data-control="v0" min="5" max="40" step="1" value="20"><output>20</output></label>
+      <label class="zn-sim-control"><span data-i18n="b-24.controls.theta.label">Angle theta0 (degrees)</span><input type="range" data-control="theta" min="0" max="90" step="1" value="45"><output>45</output></label>
+    </div>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="Projectile trajectory drawing"></canvas></div>
+    <p class="zn-sim-read" aria-live="polite"></p>
+    <p class="zn-sim-desc" data-i18n="b-24.description">Origin se launch kiya gaya projectile speed (chaal) v0 aur angle theta0 ke saath. Curve ko x = v0 cos theta0 t aur y = v0 sin theta0 t - 0.5 g t squared se compute kiya jata hai.</p>
+  </section>
+  <section class="zn-reveal" id="b-25">
+    <h3 data-i18n="b-25.title">Projectile equations aur key results</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.0.title">Position aur velocity (veg)</summary><p data-i18n="b-25.steps.0.detail">x = v0 cos theta0 t, y = v0 sin theta0 t - 0.5 g t squared; vx = v0 cos theta0, vy = v0 sin theta0 - g t.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.1.title">Path</summary><p data-i18n="b-25.steps.1.detail">t ko eliminate karo: y = x tan theta0 - g x squared / (2 v0 squared cos squared theta0), ek parabola.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.2.title">Top aur flight</summary><p data-i18n="b-25.steps.2.detail">vy = 0 se tm = v0 sin theta0 / g milta hai; y=0 se Tf = 2 tm milta hai; tm substitute karne se hm = v0 squared sin squared theta0 / (2g) milta hai.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.3.title">Range</summary><p data-i18n="b-25.steps.3.detail">R = v0 cos theta0 x Tf = v0 squared sin 2theta0 / g, maximum v0 squared / g 45 degrees par.</p></details>
+  </section>
+  <section class="zn-example" id="b-26">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-26.problem">Galileo ne kaha tha ki jin elevations ke liye 45 degrees se equal amount upar ya neeche jaate hain, unki ranges equal hoti hain. Is statement ko prove karein.</p>
+    <ol>
+      <li><strong data-i18n="b-26.steps.0.title">Range formula</strong> <span data-i18n="b-26.steps.0.detail">Launch speed v0 ke liye R = v0 squared sin 2theta0 / g.</span></li>
+      <li><strong data-i18n="b-26.steps.1.title">Do angles</strong> <span data-i18n="b-26.steps.1.detail">45 degrees + alpha aur 45 degrees - alpha ke liye, 2theta0 90 degrees + 2alpha aur 90 degrees - 2alpha hota hai.</span></li>
+      <li><strong data-i18n="b-26.steps.2.title">Sines equal</strong> <span data-i18n="b-26.steps.2.detail">sin(90 degrees + 2alpha) = sin(90 degrees - 2alpha) = cos 2alpha, isliye dono ke liye R same hai.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-26.answer">Elevations 45 degrees plus or minus alpha ke liye ranges equal hoti hain.</span></p>
+  </section>
+  <section class="zn-example" id="b-27">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-27.problem">Ek hiker zameen se 490 m upar cliff ke kinare par khada hai aur ek stone ko horizontally initial speed (chaal) 15 m s-1 se phenkta hai. Air resistance neglect karein, g = 9.8 m s-2 lein. Zameen tak time aur zameen par hit hone ke waqt speed nikaalein.</p>
+    <ol>
+      <li><strong data-i18n="b-27.steps.0.title">Axes set karein</strong> <span data-i18n="b-27.steps.0.detail">Origin cliff edge par, x initial velocity (veg) ke along, y up ki taraf. vox = 15 m/s, voy = 0, ay = -9.8 m/s squared.</span></li>
+      <li><strong data-i18n="b-27.steps.1.title">Time</strong> <span data-i18n="b-27.steps.1.detail">Ground par jab y = -490 m: -490 = -0.5 x 9.8 x t squared, isse t = 10 s milta hai.</span></li>
+      <li><strong data-i18n="b-27.steps.2.title">Speed</strong> <span data-i18n="b-27.steps.2.detail">vx = 15 m/s, vy = -9.8 x 10 = -98 m/s, speed = sqrt(15 squared + 98 squared) approx 99 m/s.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-27.answer">Time 10 s; zameen par hit hone par speed lagbhag 99 m/s.</span></p>
+  </section>
+  <section class="zn-example" id="b-28">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-28.problem">Ek cricket ball ko horizontal ke upar 30 degrees ki direction mein 28 m s-1 speed se phenka jaata hai. Maximum height, same level par wapas aane ka time, aur us point tak distance (doori) calculate karein.</p>
+    <ol>
+      <li><strong data-i18n="b-28.steps.0.title">Maximum height (adhiktam unchai)</strong> <span data-i18n="b-28.steps.0.detail">hm = v0 squared sin squared 30 degrees / (2g) = 28 squared x 0.25 / (2 x 9.8) = 10.0 m.</span></li>
+      <li><strong data-i18n="b-28.steps.1.title">Time of flight (udan samay)</strong> <span data-i18n="b-28.steps.1.detail">Tf = 2 v0 sin 30 degrees / g = 2 x 28 x 0.5 / 9.8 = 2.9 s.</span></li>
+      <li><strong data-i18n="b-28.steps.2.title">Range (doori)</strong> <span data-i18n="b-28.steps.2.detail">R = v0 squared sin 60 degrees / g = 28 squared x sin 60 degrees / 9.8 approx 69 m.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-28.answer">Maximum height 10.0 m; time 2.9 s; distance (doori) 69 m.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-29" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-29.question">Ek cricketer ball ko maximum horizontal distance 100 m tak throw kar sakta hai. Wahi ball ground se kitni height tak throw kar sakta hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="0"> <span data-i18n="b-29.options.0">25 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="1"> <span data-i18n="b-29.options.1">50 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="2"> <span data-i18n="b-29.options.2">100 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="3"> <span data-i18n="b-29.options.3">200 m</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-29.explanation">Rmax = v0 squared / g = 100 m, isliye v0 squared = 100 g. Same v0 ke liye maximum height v0 squared / (2g) = 50 m hai. Ceiling height ko isi tarah limit karti hai kyunki woh vertical component ko limit karti hai.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-30">
+    <p data-i18n="b-30.paragraphs.0">Uniform circular motion ka matlab hai circle par constant speed (chaal) se chalna. Velocity (veg) ki direction continuously badalti hai, isliye acceleration (tvaran) hota hai aur centre ki taraf point karta hai.</p>
+    <p data-i18n="b-30.paragraphs.1">Magnitude ac equals v squared over R hai. Direction har point par badalti hai, isliye acceleration constant vector (sadish) nahi hota, even though magnitude constant hai.</p>
+  </section>
+  <figure class="zn-diagram" id="b-31">
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><circle cx="200" cy="110" r="80" fill="none" stroke="#1C1B18" stroke-width="2.6" /><circle cx="200" cy="110" r="4" fill="#1C1B18" /><line x1="200" y1="110" x2="260" y2="50" stroke="#1C1B18" stroke-width="2.6" /><line x1="260" y1="50" x2="320" y2="90" stroke="#1F3A9E" stroke-width="3" /><line x1="260" y1="50" x2="200" y2="110" stroke="#1F3A9E" stroke-width="3" /><polygon points="320,90 304,92 310,78" fill="#1F3A9E" /><polygon points="200,110 214,104 210,118" fill="#1F3A9E" /><text x="190" y="100" fill="#1C1B18" font-size="20">C</text><text x="265" y="45" fill="#1C1B18" font-size="20">P</text><text x="325" y="85" fill="#1F3A9E" font-size="20">v</text><text x="215" y="105" fill="#1F3A9E" font-size="20" data-i18n="b-31.svg_texts.t-0">ac</text></svg></div>
+    <figcaption data-i18n="b-31.caption">Uniform circular motion (ek samaan varti gati): velocity v point P par tangent hai, acceleration ac centre C ki taraf hai. Circle ki radius schematic hai.</figcaption>
+  </figure>
+  <section class="zn-reveal" id="b-32">
+    <h3 data-i18n="b-32.title">Angular speed (koniy chaal) aur centripetal acceleration</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-32.steps.0.title">Angular speed</summary><p data-i18n="b-32.steps.0.detail">omega = delta theta / delta t, angular displacement (koniy visthapan) ke change ki rate.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-32.steps.1.title">Linear speed</summary><p data-i18n="b-32.steps.1.detail">Distance (doori) delta s = R delta theta, isliye v = delta s / delta t = R omega.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-32.steps.2.title">Acceleration ke forms</summary><p data-i18n="b-32.steps.2.detail">ac = v squared / R = omega squared R. Period T aur frequency n = 1/T ke saath, v = 2 pi R / T = 2 pi R n, omega = 2 pi n, ac = 4 pi squared n squared R.</p></details>
+  </section>
+  <section class="zn-example" id="b-33">
+    <h3 data-i18n="ui.example_heading">Solved example (Worked example)</h3>
+    <p class="zn-example-problem" data-i18n="b-33.problem">Ek insect 12 cm radius ki circular groove mein phansa hua hai, steady move karta hai aur 100 s mein 7 revolutions complete karta hai. Angular speed, linear speed, aur acceleration (tvaran) ka magnitude find karo. Kya acceleration ek constant vector (sadish) hai?</p>
+    <ol>
+      <li><strong data-i18n="b-33.steps.0.title">Angular speed</strong> <span data-i18n="b-33.steps.0.detail">omega = 2 pi x 7 / 100 = 0.44 rad/s.</span></li>
+      <li><strong data-i18n="b-33.steps.1.title">Linear speed</strong> <span data-i18n="b-33.steps.1.detail">v = omega R = 0.44 x 12 cm = 5.3 cm/s, circle ke tangent.</span></li>
+      <li><strong data-i18n="b-33.steps.2.title">Acceleration</strong> <span data-i18n="b-33.steps.2.detail">a = omega squared R = 0.44 squared x 12 = 2.3 cm/s squared centre ki taraf; direction badalta hai, isliye constant vector nahi hai.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Uttar (Answer)</span> <span data-i18n="b-33.answer">omega = 0.44 rad/s, v = 5.3 cm/s, a = 2.3 cm/s squared centre ki taraf, constant vector nahi hai.</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-34" data-format="numeric" data-answer="9.9">
+    <legend data-i18n="b-34.question">Ek stone jo 80 cm lambi string se bandha hai, constant speed (chaal) se horizontal circle mein ghumaya jaata hai aur 25 s mein 14 revolutions karta hai. Acceleration (tvaran) ka magnitude aur direction kya hai?</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Aapka answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-34-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-34.explanation">omega = 2 pi x 14 / 25 = 3.52 rad/s; ac = omega squared R = 12.4 x 0.80 approx 9.9 m/s squared, centre ki taraf directed.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-35" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-35.question">Ek aircraft 1.00 km radius ka horizontal loop constant speed (chaal) 900 km/h se karta hai. Iske centripetal acceleration ki g se tulna kijiye.</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="0"> <span data-i18n="b-35.options.0">lagbhag 0.64 g</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="1"> <span data-i18n="b-35.options.1">lagbhag 6.4 g</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="2"> <span data-i18n="b-35.options.2">lagbhag 64 g</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="3"> <span data-i18n="b-35.options.3">g ke barabar</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-35.explanation">900 km/h = 250 m/s; ac = v squared / R = 250 squared / 1000 = 62.5 m/s squared; 9.8 se divide karne par lagbhag 6.4 g milta hai.</p></details>
+  </fieldset>
+  <section class="zn-text" id="b-36">
+    <p data-i18n="b-36.paragraphs.0">Path length actual path par depend karta hai; displacement (visthapan) sirf end points par depend karta hai. Ye dono tabhi equal hote hain jab direction nahi badalti. Isliye average speed (chaal) average velocity (veg) ke magnitude se greater than ya equal hoti hai.</p>
+    <p data-i18n="b-36.paragraphs.1">Constant acceleration ke liye vector (sadish) equations mein axes choose karna zaruri nahi hota, lekin aap unhe kisi bhi do independent axes ke along resolve kar sakte hain. Trajectory initial position aur velocity (veg) ke saath-saath acceleration (tvaran) par bhi depend karti hai. Resultant velocity v1 plus v2 hoti hai, jabki relative velocity v12 common frame ke respect mein v1 minus v2 hoti hai.</p>
+  </section>
+  <fieldset class="zn-check" id="b-37" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-37.question">Teen ladkiyan 200 m radius wale circular ground par P se shuru karti hain aur alag-alag paths se diametrically opposite Q tak pahunchti hain. Har ek ke liye displacement (visthapan) ka magnitude kya hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="0"> <span data-i18n="b-37.options.0">200 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="1"> <span data-i18n="b-37.options.1">400 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="2"> <span data-i18n="b-37.options.2">0 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="3"> <span data-i18n="b-37.options.3">har path ke liye alag</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-37.explanation">Displacement straight line PQ hai, yaani diameter 400 m, sabke liye same. Path length displacement ke barabar sirf us ladki ke liye hoti hai jo diameter ke along seedha jaati hai.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-38" data-format="numeric" data-answer="49">
+    <legend data-i18n="b-38.question">Ek hotel straight road par 10 km door hai. Ek cab 23 km ka ghumavdar path leti hai aur 28 min mein pahunchti hai. Average speed aur average velocity ka magnitude nikaalo.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Aapka answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-38-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-38.explanation">Average speed = 23 km / (28/60 h) approx 49 km/h. Average velocity ka magnitude = 10 km / (28/60 h) approx 21 km/h. Path length displacement (visthapan) se alag hota hai, isliye ye alag hote hain.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-39" data-format="mcq" data-answer-index="0">
+    <legend data-i18n="b-39.question">i + j aur i - j ka magnitude aur direction kya hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="0"> <span data-i18n="b-39.options.0">dono sqrt(2), x-axis ke saath 45 degrees aur -45 degrees par</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="1"> <span data-i18n="b-39.options.1">dono 2, x-axis ke saath 90 degrees par</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="2"> <span data-i18n="b-39.options.2">dono 1, x-axis ke along</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="3"> <span data-i18n="b-39.options.3">dono 0, koi direction nahi</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-39.explanation">i+j ke components 1,1 hain, magnitude sqrt(2), direction tan inverse 1 = 45 degrees. i-j ke components 1,-1 hain, magnitude sqrt(2), direction -45 degrees. In directions ke along components ko projection se graphically nikaal sakte hain.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-40" data-format="mcq" data-answer-index="1">
+    <legend data-i18n="b-40.question">Scalar (adish) quantity ke baare mein kaunsa statement galat hai?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="0"> <span data-i18n="b-40.options.0">iska sirf magnitude hota hai</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="1"> <span data-i18n="b-40.options.1">ye kabhi negative values nahi le sakta</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="2"> <span data-i18n="b-40.options.2">ise ek number aur ek unit se specify kiya jata hai</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="3"> <span data-i18n="b-40.options.3">different axis orientations wale observers ke liye iska value same hota hai</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-40.explanation">Scalar (adish) sirf magnitude se define hota hai; source yeh require nahi karta ki wo conserved, dimensionless, non-negative ya space mein constant ho. Temperature difference aur doosre scalars dikhate hain ki definition sirf magnitude hai.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-41" data-format="numeric" data-answer="21.5">
+    <legend data-i18n="b-41.question">Position r = 3.0 t squared i - 2.0 t squared j + 4.0 t squared k metres hai, t seconds mein. t = 2.0 s par velocity (veg) ka magnitude kya hai?</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Aapka answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-41-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-41.explanation">v = dr/dt = 6.0 t i - 4.0 t j + 8.0 t k; 2.0 s par v = 12 i - 8 j + 16 k, magnitude sqrt(144+64+256)=sqrt(464) approx 21.5 m/s. Acceleration (tvaran) 6 i -4 j +8 k m/s squared hai.</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-42" data-format="numeric" data-answer="182">
+    <legend data-i18n="b-42.question">Ek aircraft 3400 m height par ud raha hai. Ground point par 10.0 s apart positions ke dwara subtend kiya gaya angle 30 degrees hai. Speed (chaal) estimate karo, assuming ground point dono positions ke midpoint ke neeche hai.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Aapka answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-42-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check karein</button>
+    <p class="zn-check-feedback" aria-live="polite"></p>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Kyon?</summary><p data-i18n="b-42.explanation">Half distance (doori) = 3400 x tan 15 degrees approx 911 m, total distance approx 1822 m in 10.0 s, speed approx 182 m/s. Yeh midpoint assumption use karta hai jo diya gaya hai kyunki source mein figure geometry poori tarah readable nahi hai.</p></details>
+  </fieldset>
+  <section class="zn-glossary">
+    <h2 data-i18n="ui.glossary_heading">Glossary (Shabdavali)</h2>
+    <dl>
+      <dt data-i18n="b-00-meta.glossary.0.term">scalar</dt><dd data-i18n="b-00-meta.glossary.0.definition">Sirf magnitude wali quantity, jaise mass ya time.</dd>
+      <dt data-i18n="b-00-meta.glossary.1.term">vector</dt><dd data-i18n="b-00-meta.glossary.1.definition">Magnitude aur direction wali quantity, jaise velocity.</dd>
+      <dt data-i18n="b-00-meta.glossary.2.term">displacement</dt><dd data-i18n="b-00-meta.glossary.2.definition">Start se finish tak position ka straight-line change, jo path par depend nahi karta.</dd>
+      <dt data-i18n="b-00-meta.glossary.3.term">unit vector</dt><dd data-i18n="b-00-meta.glossary.3.definition">Magnitude 1 wala vector jo sirf direction specify karne ke liye use hota hai.</dd>
+      <dt data-i18n="b-00-meta.glossary.4.term">projectile</dt><dd data-i18n="b-00-meta.glossary.4.definition">Throw hone ke baad flight mein object, jisme horizontal aur vertical motion independent hoti hai.</dd>
+      <dt data-i18n="b-00-meta.glossary.5.term">centripetal acceleration</dt><dd data-i18n="b-00-meta.glossary.5.definition">Circle ke centre ki taraf acceleration, magnitude v squared over R.</dd>
+    </dl>
+  </section>
+  <footer class="zn-footer">
+    <p class="zn-sources" data-i18n="ui.sources_footer">Zivon content factory dwara nirmit. Sources course index mein listed hain.</p>
+  </footer>
+</main>
+<script src="../i18n.js"></script>
+<script src="../../../../assets/zivon.js?v=20261111b"></script>
+<script src="../page.js"></script>
+</body>
+</html>

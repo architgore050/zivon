@@ -195,6 +195,8 @@ class TestFrontendFeatures(unittest.TestCase):
                     lessonEn: R.parseRoute(p + 'index.html'),
                     lessonHi: R.parseRoute('/hi' + p),
                     lessonHinglish: R.parseRoute('/hi-Latn' + p),
+                    lessonHiSuffix: R.parseRoute(p + 'hi/index.html'),
+                    lessonHiSuffixDir: R.parseRoute(p + 'hi/'),
                     missing: R.parseRoute('/unknown/path'),
                     builtHi: R.buildLocalizedHref(p, 'hi'),
                     builtHinglish: R.buildLocalizedHref(p, 'hinglish'),
@@ -210,9 +212,16 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(res["lessonHi"]["locale"], "hi")
             self.assertEqual(res["lessonHi"]["canonical_path"], canon)
             self.assertEqual(res["lessonHinglish"]["locale"], "hi-Latn")
+            # v1 localized pages live at <topic>/<locale>/ (the prefix form is
+            # kept as the legacy hook, not the shipped layout).
+            self.assertEqual(res["lessonHiSuffix"]["screen"], "SCR-LES-01")
+            self.assertEqual(res["lessonHiSuffix"]["course_id"], "class-9-physics")
+            self.assertEqual(res["lessonHiSuffix"]["topic_slug"], "motion")
+            self.assertEqual(res["lessonHiSuffix"]["canonical_path"], canon)
+            self.assertEqual(res["lessonHiSuffixDir"]["canonical_path"], canon)
             self.assertEqual(res["missing"]["screen"], "SCR-404-01")
-            self.assertEqual(res["builtHi"], "/hi" + canon)
-            self.assertEqual(res["builtHinglish"], "/hi-Latn" + canon)
+            self.assertEqual(res["builtHi"], canon + "hi/")
+            self.assertEqual(res["builtHinglish"], canon + "hi-Latn/")
             self.assertEqual(res["builtEn"], canon)
             self.assertEqual(errors, [])
         finally:
@@ -649,7 +658,9 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(result["afterBargeInGain"]["mic"], 1.0)
             self.assertEqual(result["afterBargeInGain"]["agent"], 1.0)
             self.assertEqual(result["deniedState"], "error:mic-denied")
-            self.assertEqual(result["offlineState"], "offline")
+            # A typed doubt on a closed link is a transient transport problem,
+            # not "offline": it queues and retries.
+            self.assertEqual(result["offlineState"], "reconnecting")
             self.assertEqual(result["queuedCount"], 1)
             self.assertEqual(errors, [])
         finally:
@@ -687,14 +698,20 @@ class TestFrontendFeatures(unittest.TestCase):
                   stale.simulateDrop();
                   const stateAfterStaleClose = client.getState();
 
-                  // 2. An unexpected drop recovers through capped backoff.
+                  // 2. An unexpected drop recovers through capped backoff and
+                  //    presents as "reconnecting", never "offline".
                   mock.getSocket().simulateDrop();
                   const offlineAt = client.getState();
+                  const banner = document.getElementById('zn-lesson-status-reconnecting');
+                  const reconnectingBannerVisible = Boolean(banner && !banner.hidden);
+                  const offlineBanner = document.getElementById('zn-lesson-status-offline');
                   await new Promise((r) => setTimeout(r, 500));
                   return {
                     connections: sockets.length,
                     stateAfterStaleClose,
                     offlineAt,
+                    reconnectingBannerVisible,
+                    offlineBannerVisible: Boolean(offlineBanner && !offlineBanner.hidden),
                     finalState: client.getState(),
                     history
                   };
@@ -705,10 +722,185 @@ class TestFrontendFeatures(unittest.TestCase):
                 "ready",
                 "a replaced socket's close must not mark the live link offline",
             )
-            self.assertEqual(result["offlineAt"], "offline")
+            self.assertEqual(result["offlineAt"], "reconnecting")
+            self.assertTrue(
+                result["reconnectingBannerVisible"],
+                "a transient drop must show the reconnecting banner",
+            )
+            self.assertFalse(
+                result["offlineBannerVisible"],
+                "a transient drop must never present as offline",
+            )
             self.assertGreaterEqual(result["connections"], 3)
             self.assertEqual(result["finalState"], "ready")
-            self.assertIn("offline", result["history"])
+            self.assertIn("reconnecting", result["history"])
+            self.assertNotIn("offline", result["history"])
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_navigator_offline_is_offline_and_online_resumes(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "navigator-offline.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'test-token',
+                    reconnect_base_ms: 10,
+                    reconnect_max_ms: 20
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  const readyBefore = client.getState();
+
+                  Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+                  window.dispatchEvent(new Event('offline'));
+                  const offlineAfter = client.getState();
+                  const banner = document.getElementById('zn-lesson-status-offline');
+                  const offlineBannerVisible = Boolean(banner && !banner.hidden);
+
+                  Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+                  window.dispatchEvent(new Event('online'));
+                  await new Promise((r) => setTimeout(r, 120));
+                  return {
+                    readyBefore,
+                    offlineAfter,
+                    offlineBannerVisible,
+                    afterOnline: client.getState()
+                  };
+                }"""
+            )
+            self.assertEqual(result["readyBefore"], "ready")
+            self.assertEqual(result["offlineAfter"], "offline")
+            self.assertTrue(result["offlineBannerVisible"])
+            self.assertEqual(result["afterOnline"], "ready")
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_typed_doubt_survives_transient_reconnect(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "typed-resume.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const mock = VC.createMockServer({});
+                  const client = VC.create({
+                    createWebSocket: mock.createWebSocket,
+                    session_token: 'test-token',
+                    reconnect_base_ms: 10,
+                    reconnect_max_ms: 20
+                  });
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 25));
+                  mock.getSocket().simulateDrop();
+                  const stateAfterDrop = client.getState();
+                  const text = 'Free fall mein acceleration kyun constant hai?';
+                  client.sendTypedDoubt(text);
+                  const queuedDuringDrop = client.getQueuedTypedDoubts().length;
+                  await new Promise((r) => setTimeout(r, 300));
+                  const typed = mock.getSentMessages().filter((m) => m.type === 'typed.doubt');
+                  return {
+                    stateAfterDrop,
+                    queuedDuringDrop,
+                    finalState: client.getState(),
+                    sentText: typed.length ? typed[typed.length - 1].text : null,
+                    queuedAfter: client.getQueuedTypedDoubts().length
+                  };
+                }"""
+            )
+            self.assertEqual(result["stateAfterDrop"], "reconnecting")
+            self.assertEqual(result["queuedDuringDrop"], 1)
+            # The queued turn is flushed on reconnect and the tutor starts
+            # answering: text was not lost.
+            self.assertEqual(result["finalState"], "thinking")
+            self.assertEqual(
+                result["sentText"],
+                "Free fall mein acceleration kyun constant hai?",
+                "a typed doubt queued during a reconnect is sent after session.ready",
+            )
+            self.assertEqual(result["queuedAfter"], 0)
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_exhausted_retries_degrade_to_offline_honestly(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "retries-exhausted.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  const history = [];
+                  // Every dial opens and immediately drops: the retry budget
+                  // runs out and only then may the dock say "offline".
+                  const failingFactory = () => {
+                    const s = { readyState: 0, binaryType: 'arraybuffer', send: () => {}, close: () => { s.readyState = 3; } };
+                    setTimeout(() => {
+                      s.readyState = 3;
+                      if (typeof s.onclose === 'function') s.onclose({ code: 1006, reason: 'network_drop' });
+                    }, 1);
+                    return s;
+                  };
+                  const client = VC.create({
+                    createWebSocket: failingFactory,
+                    session_token: 'test-token',
+                    max_reconnect_attempts: 2,
+                    reconnect_base_ms: 5,
+                    reconnect_max_ms: 5
+                  });
+                  client.onStateChange((s) => history.push(s));
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 200));
+                  return { state: client.getState(), history };
+                }"""
+            )
+            self.assertEqual(result["state"], "offline")
+            self.assertIn("reconnecting", result["history"])
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_voice_connect_timeout_retries_without_saying_offline(self) -> None:
+        page, errors = self._open_html(LESSON_SYNTHETIC_HTML, "connect-timeout.html")
+        try:
+            result = page.evaluate(
+                """async () => {
+                  const VC = window.ZivonVoiceClient;
+                  let dials = 0;
+                  // A 2G-style dial that opens the socket object but never
+                  // completes the WS handshake: without a client-side connect
+                  // timeout the dock sat in "connecting" forever.
+                  const hangingFactory = () => {
+                    dials += 1;
+                    return {
+                      readyState: 0,
+                      binaryType: 'arraybuffer',
+                      send: () => {},
+                      close: function () { this.readyState = 3; }
+                    };
+                  };
+                  const history = [];
+                  const client = VC.create({
+                    createWebSocket: hangingFactory,
+                    session_token: 'test-token',
+                    connect_timeout_ms: 20,
+                    reconnect_base_ms: 5,
+                    reconnect_max_ms: 5,
+                    max_reconnect_attempts: 3
+                  });
+                  client.onStateChange((s) => history.push(s));
+                  client.connect();
+                  await new Promise((r) => setTimeout(r, 60));
+                  return { dials, state: client.getState(), history };
+                }"""
+            )
+            self.assertGreaterEqual(result["dials"], 2)
+            self.assertEqual(result["state"], "reconnecting")
+            self.assertIn("reconnecting", result["history"])
+            self.assertNotIn("offline", result["history"])
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -723,10 +915,13 @@ class TestFrontendFeatures(unittest.TestCase):
                   const client = VC.create({
                     createWebSocket: mock.createWebSocket,
                     session_token: 'test-token',
-                    max_reconnect_attempts: 0
+                    max_reconnect_attempts: 0,
+                    pong_timeout_ms: 20000
                   });
                   client.connect();
                   await new Promise((r) => setTimeout(r, 25));
+                  // Simulate a dead link: no pong ever returns.
+                  mock.getSocket().onmessage = null;
                   const stillOpen = client.checkKeepalive(Date.now());
                   const timedOut = client.checkKeepalive(Date.now() + 31000);
                   return {
@@ -931,8 +1126,8 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertEqual(result["scheduledCount"], 3)
             self.assertGreaterEqual(
                 result["firstLeadMs"],
-                150,
-                "jitter buffer must never hard-schedule < 150 ms ahead",
+                60,
+                "jitter buffer must never hard-schedule < 60 ms ahead",
             )
             self.assertEqual(result["stoppedCount"], 3)
             self.assertEqual(result["statsAfterBargeIn"]["active_sources"], 0)

@@ -547,7 +547,10 @@ def check_fixloop_pedagogy_preservation(
         sim_ids = re.findall(r'data-sim-id=["\']([^"\']+)["\']', html_text)
         if not sim_ids:
             continue
-        js_path = tdir / "page.js"
+        # Localized pages reference ../page.js; resolve the actual script
+        # instead of assuming it sits next to every index.html.
+        js_ref = re.search(r'<script[^>]+src=["\']([^"\']*page\.js)["\']', html_text)
+        js_path = (tdir / js_ref.group(1)).resolve() if js_ref else tdir / "page.js"
         if not js_path.exists():
             issues.append(
                 IssueRecord(

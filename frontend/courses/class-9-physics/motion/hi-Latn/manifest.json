@@ -1,0 +1,128 @@
+{
+  "course_id": "class-9-physics",
+  "topic_slug": "motion",
+  "locale": "hi-Latn",
+  "narration": {
+    "available": false,
+    "lang": "hi-Latn",
+    "hash": "0fdda2b22bc3aa0d",
+    "mode": "live",
+    "blocks": {
+      "b-00-meta": {
+        "available": false
+      },
+      "b-01": {
+        "available": false
+      },
+      "b-02": {
+        "available": false
+      },
+      "b-03": {
+        "available": false
+      },
+      "b-04": {
+        "available": false
+      },
+      "b-06": {
+        "available": false
+      },
+      "b-07": {
+        "available": false
+      },
+      "b-08": {
+        "available": false
+      },
+      "b-09": {
+        "available": false
+      },
+      "b-11": {
+        "available": false
+      },
+      "b-13": {
+        "available": false
+      },
+      "b-14": {
+        "available": false
+      },
+      "b-15": {
+        "available": false
+      },
+      "b-16": {
+        "available": false
+      },
+      "b-17": {
+        "available": false
+      },
+      "b-18": {
+        "available": false
+      },
+      "b-19": {
+        "available": false
+      },
+      "b-20": {
+        "available": false
+      },
+      "b-22": {
+        "available": false
+      },
+      "b-23": {
+        "available": false
+      },
+      "b-24": {
+        "available": false
+      },
+      "b-25": {
+        "available": false
+      },
+      "b-26": {
+        "available": false
+      },
+      "b-27": {
+        "available": false
+      },
+      "b-28": {
+        "available": false
+      },
+      "b-30": {
+        "available": false
+      },
+      "b-31": {
+        "available": false
+      },
+      "b-32": {
+        "available": false
+      },
+      "b-33": {
+        "available": false
+      },
+      "b-34": {
+        "available": false
+      },
+      "b-35": {
+        "available": false
+      },
+      "b-37": {
+        "available": false
+      },
+      "b-38": {
+        "available": false
+      },
+      "b-39": {
+        "available": false
+      },
+      "b-40": {
+        "available": false
+      },
+      "b-42": {
+        "available": false
+      },
+      "b-43": {
+        "available": false
+      },
+      "b-44": {
+        "available": false
+      }
+    }
+  },
+  "generated_at": "2026-11-11T15:00:46Z"
+}

@@ -39,6 +39,34 @@
     "worked_example": 11,
     "simulation": 1
   },
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Units and Measurement",
+    "hi": "मात्रक (unit) और मापन",
+    "hi-Latn": "Units aur Measurement"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "i18n_hashes": {
+    "en": "22fd240a9f061356661f0524cab49d429285a7d89f7ff05f89db46336e4786f3",
+    "hi": "1ccc9549c3aea4750d8c3d4e1b706d906033f31db9430c68ceb868141d092dc4",
+    "hi-Latn": "f72e9d6ebefea8501d91f898ba65a0597e1899d2ea2e4fb663cd46fa009f766e"
+  },
   "narration": {
     "available": true,
     "lang": "en",

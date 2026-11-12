@@ -1,0 +1,1547 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Seedhi Rekha mein Motion",
+    "b-00-meta.objectives.0": "Is paath ke baad aap position, velocity aur acceleration ka use karke seedhi rekha ke saath motion describe kar sakte hain.",
+    "b-00-meta.objectives.1": "Is paath ke baad aap position-time aur velocity-time graphs se velocity aur acceleration padh sakte hain.",
+    "b-00-meta.objectives.2": "Is paath ke baad aap uniformly accelerated motion aur free fall ke liye kinematic equations ka use kar sakte hain.",
+    "b-00-meta.objectives.3": "Is paath ke baad aap average speed ko average velocity ke magnitude se distinguish kar sakte hain aur frame of reference ke saath relative motion explain kar sakte hain.",
+    "b-00-meta.glossary.0.term": "Position",
+    "b-00-meta.glossary.0.definition": "Kisi object ki location chosen origin ke respect mein; seedhi rekha ke motion mein right positive aur left negative hota hai.",
+    "b-00-meta.glossary.1.term": "Velocity",
+    "b-00-meta.glossary.1.definition": "Kisi instant par time ke saath position ke change ki rate, v = dx/dt; iska magnitude aur direction hoti hai.",
+    "b-00-meta.glossary.2.term": "Acceleration",
+    "b-00-meta.glossary.2.definition": "Time ke saath velocity ke change ki rate, a = dv/dt; iska magnitude aur direction hoti hai aur iska unit m s-2 hai.",
+    "b-00-meta.glossary.3.term": "Displacement",
+    "b-00-meta.glossary.3.definition": "Time interval mein position ka change; yeh positive, negative ya zero ho sakta hai aur velocity-time graph ke neeche ke area ke barabar hota hai.",
+    "b-00-meta.glossary.4.term": "Average speed",
+    "b-00-meta.glossary.4.definition": "Total path length ko time interval se divide kiya gaya; yeh average velocity ke magnitude se greater ya equal hoti hai.",
+    "b-00-meta.glossary.5.term": "Frame of reference",
+    "b-00-meta.glossary.5.definition": "Woh fixed point ya points ka group jiske respect mein motion measure kiya jaata hai.",
+    "b-01.paragraphs.0": "Aap apne chaaro taraf motion (gati) dekhte hain. Aap chalte hain, daudte hain, aur cycle chalate hain. Pedon se patte girte hain aur paani dam se neeche bahta hai.",
+    "b-01.paragraphs.1": "Motion (gati) ka matlab hai kisi object ki position ka samay ke saath badalna. Isko describe karne ke liye, aap pehle ek origin chunte hain. Origin ke right side ki position ko positive aur left side ko negative maana jata hai.",
+    "b-01.paragraphs.2": "Is lesson mein hum seedhi rekha ke saath motion (gati) ka adhyayan karte hain. Ise rectilinear motion kehte hain. Hum objects ko point objects maante hain jab unka size unke dwara tay ki gayi distance (doori) se bahut chhota ho.",
+    "b-01.paragraphs.3": "Kinematics motion ko describe karne ke tarikon ka adhyayan hai. Yeh motion ke karanon mein nahi jaata. Hum velocity (veg) aur acceleration (tvaran) ko develop karte hain taaki position samay ke saath kaise badalti hai, iska varnan kar sakein.",
+    "b-02.caption": "Ek seedhi line jiska origin O hai, positive direction daayen taraf hai, aur ek point object position x par hai.",
+    "b-02.svg_texts.t-0": "point object",
+    "b-03.question": "Ek railway carriage do stations ke beech bina jerks ke move karta hai, apni khud ki length se kaafi zyada door tak. Kya ise point object maana ja sakta hai?",
+    "b-03.options.0": "Haan, kyunki iska size move kiye gaye distance (doori) se bahut chhota hai",
+    "b-03.options.1": "Nahi, kyunki yeh ek bada object hai",
+    "b-03.options.2": "Haan, kyunki yeh seedhi line par move karta hai",
+    "b-03.options.3": "Nahi, kyunki iske bahut se parts hain",
+    "b-03.explanation": "Ek object ko point object tab maana ja sakta hai jab uska size reasonable time mein move kiye gaye distance (doori) se bahut chhota ho.",
+    "b-04.paragraphs.0": "Average velocity (veg) batata hai ki koi object poore interval mein kitni tezi se move hua. Yeh nahi batata ki kisi ek instant par woh kitni tezi se move hua.",
+    "b-04.paragraphs.1": "Instantaneous velocity average velocity ki limit hai jab time interval infinitesimally small ho jata hai. Symbols mein, v = dx/dt.",
+    "b-04.paragraphs.2": "Position-time graph par, kisi instant par velocity us point par tangent ka slope (dhaal) hoti hai. Chhote intervals joining line ko tangent ke kareeb le jaate hain.",
+    "b-04.paragraphs.3": "x = 0.08 t^3 ke liye, t = 4.0 s par centred average velocity 3.84 m s-1 ke kareeb pahunchti hai jab interval ghatta hai. Woh limiting value hi t = 4.0 s par velocity hai.",
+    "b-05.title": "Position-time graph aur tangent slope",
+    "b-05.description": "Yeh curve x = 0.08 t^3 aur chune gaye time par tangent dikhata hai. Tangent ka slope (dhaal) instantaneous velocity (veg) hota hai.",
+    "b-05.controls.t.label": "Time t (s)",
+    "b-06.problem": "Ek object jo x-axis ke along move kar raha hai, uski position x = a + b t^2 se di gayi hai jahan a = 8.5 m, b = 2.5 m s-2 hai aur t seconds mein measure kiya jata hai. t = 0 s aur t = 2.0 s par iski velocity (veg) kya hai? t = 2.0 s aur t = 4.0 s ke beech average velocity kya hai?",
+    "b-06.steps.0.title": "Position ko differentiate karo",
+    "b-06.steps.0.detail": "v = dx/dt = 2 b t = 5.0 t m s-1.",
+    "b-06.steps.1.title": "t = 0 s par velocity",
+    "b-06.steps.1.detail": "v = 5.0 x 0 = 0 m s-1.",
+    "b-06.steps.2.title": "t = 2.0 s par velocity",
+    "b-06.steps.2.detail": "v = 5.0 x 2.0 = 10 m s-1.",
+    "b-06.steps.3.title": "2.0 s aur 4.0 s ke beech average velocity",
+    "b-06.steps.3.detail": "2.0 s par x = 8.5 + 2.5 x 4 = 18.5 m. 4.0 s par x = 8.5 + 2.5 x 16 = 48.5 m. Average velocity = (48.5 - 18.5)/(4.0 - 2.0) = 15 m s-1.",
+    "b-06.answer": "t = 0 s par velocity 0 m s-1 hai, t = 2.0 s par 10 m s-1 hai, aur t = 2.0 s aur 4.0 s ke beech average velocity 15 m s-1 hai.",
+    "b-07.paragraphs.0": "Speed (chaal) velocity (veg) ka magnitude hoti hai. +24.0 m s-1 velocity aur -24.0 m s-1 velocity, dono ki speed 24.0 m s-1 hoti hai.",
+    "b-07.paragraphs.1": "Finite interval par Average speed, average velocity ke magnitude se greater than ya equal hoti hai. Lekin kisi instant par instantaneous speed us instant ki instantaneous velocity ke magnitude ke equal hoti hai.",
+    "b-08.paragraphs.0": "Motion (gati) ke dauraan velocity (veg) badalti hai. Hum is badlav ko samay ke saath velocity ke change ki rate ke roop mein describe karte hain. Yeh rate acceleration (tvaran) hai.",
+    "b-08.paragraphs.1": "Average acceleration a = (v2 - v1)/(t2 - t1) hai, jiska SI unit m s-2 hai. Instantaneous acceleration a = dv/dt hai, jo velocity-time curve ke tangent ka slope (dhaal) hai.",
+    "b-08.paragraphs.2": "Acceleration positive, negative ya zero ho sakta hai. Yeh speed (chaal) mein badlav, direction mein badlav, ya dono se aa sakta hai.",
+    "b-08.paragraphs.3": "Position-time graphs positive acceleration ke liye upward curve karte hain, negative acceleration ke liye downward, aur zero acceleration ke liye straight lines hote hain.",
+    "b-09.title": "Velocity (veg)-time graph aur area as displacement (visthapan)",
+    "b-09.description": "Constant acceleration (tvaran) ke liye velocity-time line dikhata hai aur uske neeche ka area shade karta hai. Shaded area displacement (visthapan) ke barabar hai.",
+    "b-09.controls.v0.label": "Initial velocity v0 (m/s)",
+    "b-09.controls.a.label": "Acceleration a (m/s^2)",
+    "b-10.paragraphs.0": "Agar koi particle speeding up hai, to acceleration (tvaran) velocity (veg) ki direction mein hota hai. Agar uski speed (chaal) kam ho rahi hai, to acceleration velocity ki opposite direction mein hota hai.",
+    "b-10.paragraphs.1": "Yeh baat har origin aur positive direction ke liye sach hai jo aap choose karein. Sirf acceleration ka sign yeh nahi batata ki speed badh rahi hai ya kam ho rahi hai.",
+    "b-11.paragraphs.0": "Constant acceleration (tvaran) ke liye, average acceleration interval ke dauraan constant value ke barabar hota hai. Agar t = 0 par velocity (veg) v0 hai aur time t par v hai, to v = v0 + a t.",
+    "b-11.paragraphs.1": "Velocity-time graph ke neeche ka area ek triangle plus ek rectangle hota hai. Yeh area displacement (visthapan) ke barabar hota hai.",
+    "b-11.paragraphs.2": "Isse x = ((v0 + v)/2) t milta hai, isliye average velocity initial aur final velocities ka arithmetic average hota hai.",
+    "b-11.paragraphs.3": "t ko eliminate karne se uniformly accelerated motion (gati) ke liye teen kinematic equations milti hain.",
+    "b-12.title": "velocity (veg)-time area se kinematic equations derive karna",
+    "b-12.steps.0.title": "v = v0 + a t se shuru karein",
+    "b-12.steps.0.detail": "Yeh a = (v - v0)/t se aata hai constant acceleration (tvaran) ke liye.",
+    "b-12.steps.1.title": "v-t graph ke neeche area nikaalein",
+    "b-12.steps.1.detail": "Area = triangle ka area + rectangle ka area = (1/2)(v - v0) t + v0 t = ((v0 + v)/2) t.",
+    "b-12.steps.2.title": "Area displacement (visthapan) ke barabar hai",
+    "b-12.steps.2.detail": "To x = ((v0 + v)/2) t.",
+    "b-12.steps.3.title": "t ko hataayein",
+    "b-12.steps.3.detail": "x = ((v0 + v)/2) t mein t = (v - v0)/a use karein to v^2 = v0^2 + 2 a x milta hai. x = ((v0 + v)/2) t mein v - v0 = a t use karein to x = v0 t + (1/2) a t^2 milta hai.",
+    "b-13.title": "Calculus se equations of motion (gati ke equations) derive karna",
+    "b-13.steps.0.title": "Acceleration (tvaran) ko integrate karna",
+    "b-13.steps.0.detail": "a = dv/dt, isliye dv = a dt. Integrate karne se v - v0 = a t milta hai, isliye v = v0 + a t.",
+    "b-13.steps.1.title": "Velocity (veg) ko integrate karna",
+    "b-13.steps.1.detail": "v = dx/dt, isliye dx = v dt. v = v0 + a t ke saath integrate karne se x - x0 = v0 t + (1/2) a t^2 milta hai.",
+    "b-13.steps.2.title": "Time ko eliminate karna",
+    "b-13.steps.2.detail": "a = dv/dt aur v = dx/dt se, a = v dv/dx, isliye v dv = a dx. Integrate karne se (1/2)(v^2 - v0^2) = a (x - x0) milta hai, isliye v^2 = v0^2 + 2 a (x - x0).",
+    "b-14.problem": "Ek ball ko multistorey building ke top se vertically upwards 20 m s-1 ki velocity (veg) se throw kiya jata hai. Jis point se ball throw kiya gaya hai, uski height ground se 25.0 m hai. (a) Ball kitni high tak rise karegi? aur (b) ball ground hit karne se pehle kitna time lagega? g = 10 m s-2 lein.",
+    "b-14.steps.0.title": "Upward ko positive maanein",
+    "b-14.steps.0.detail": "v0 = +20 m s-1, a = -g = -10 m s-2, aur top par v = 0 m s-1.",
+    "b-14.steps.1.title": "Rise ki height",
+    "b-14.steps.1.detail": "v^2 = v0^2 + 2 a (y - y0) use karein: 0 = (20)^2 + 2(-10)(y - y0), isliye y - y0 = 20 m. Ground se height 25.0 + 20 = 45 m hai.",
+    "b-14.steps.2.title": "Upar jaane ka time",
+    "b-14.steps.2.detail": "v = v0 + a t use karein: 0 = 20 - 10 t1, isliye t1 = 2 s.",
+    "b-14.steps.3.title": "Neeche girne ka time",
+    "b-14.steps.3.detail": "Top se, v0 = 0, a = -10 m s-2, y0 = 45 m, y = 0: 0 = 45 + (1/2)(-10) t2^2, isliye t2 = 3 s. Total time = 2 + 3 = 5 s.",
+    "b-14.answer": "(a) Ball launch point se 20 m upar rise karti hai, ground se 45 m. (b) Yeh ground ko 5 s baad hit karti hai.",
+    "b-15.paragraphs.0": "Free fall (mukta patan) gravity ke under motion (gati) hai, jisme air resistance neglected hai. Earth ki surface ke paas, jab height earth ke radius ke tulna mein chhoti ho, to g constant 9.8 m s-2 hota hai.",
+    "b-15.paragraphs.1": "Upward direction ko positive maanein. Phir gravity ke karan acceleration (tvaran) a = -g = -9.8 m s-2 hota hai.",
+    "b-15.paragraphs.2": "Ek object jo rest se y = 0 par release kiya gaya hai, uske liye kinematic equations se v = -9.8 t, y = -4.9 t^2 aur v^2 = -19.6 y milta hai.",
+    "b-15.paragraphs.3": "Acceleration constant hai, velocity (veg) time ke saath linearly vary karti hai, aur distance (doori) t^2 ke hisaab se vary karti hai.",
+    "b-16.problem": "Free fall (mukta patan) ke under ek object ki motion (gati) discuss karo. Air resistance ko neglect karo. g = 9.8 m s-2 lo, upward positive, aur object ko rest se y = 0 par release kiya gaya hai.",
+    "b-16.steps.0.title": "Acceleration (tvaran) likho",
+    "b-16.steps.0.detail": "a = -g = -9.8 m s-2, v0 = 0.",
+    "b-16.steps.1.title": "Velocity (veg) time ke saath",
+    "b-16.steps.1.detail": "v = v0 + a t = 0 - 9.8 t = -9.8 t m s-1.",
+    "b-16.steps.2.title": "Time ke saath position",
+    "b-16.steps.2.detail": "y = 0 + (1/2) a t^2 = -4.9 t^2 m.",
+    "b-16.steps.3.title": "Position ke saath velocity",
+    "b-16.steps.3.detail": "v^2 = 0 + 2 a y = -19.6 y m^2 s-2.",
+    "b-16.answer": "v = -9.8 t m s-1, y = -4.9 t^2 m, v^2 = -19.6 y m^2 s-2.",
+    "b-17.problem": "Galileo ka law of odd numbers: Rest se girte hue body ke equal intervals of time mein traverse kiye gaye distances (doori) ek dusre se same ratio mein hote hain jaise unity se shuru hone wale odd numbers, namely 1:3:5:7. Isse prove karo.",
+    "b-17.steps.0.title": "Free-fall position ka use karo",
+    "b-17.steps.0.detail": "Rest se fall ke liye, position ka magnitude (1/2) g t^2 hai.",
+    "b-17.steps.1.title": "Equal intervals lo",
+    "b-17.steps.1.detail": "Time ko length tau ke equal intervals mein divide karo aur tau, 2 tau, 3 tau etc. ke baad positions find karo.",
+    "b-17.steps.2.title": "Successive intervals mein distances (doori) find karo",
+    "b-17.steps.2.detail": "Successive positions ko subtract karo. Distances ratio 1:3:5:7:9:11 aur aage isi tarah hote hain.",
+    "b-17.answer": "Successive equal time intervals mein distances ratio 1:3:5:7:9:11 mein hote hain, jo law of odd numbers ko prove karta hai.",
+    "b-18.problem": "Jab ek moving vehicle par brakes lagaye jate hain, to rukne se pehle wo jo distance (doori) travel karta hai use stopping distance kehte hain. v0 aur a ke terms mein stopping distance ke liye expression derive karo, jahan a braking ke karan deceleration hai.",
+    "b-18.steps.0.title": "v^2 = v0^2 + 2 a x use karo",
+    "b-18.steps.0.detail": "Maan lo stopping distance ds hai aur final velocity (veg) v = 0 hai.",
+    "b-18.steps.1.title": "ds ke liye solve karo",
+    "b-18.steps.1.detail": "0 = v0^2 + 2 a ds, isliye ds = -v0^2/(2 a).",
+    "b-18.steps.2.title": "Result ko interpret karo",
+    "b-18.steps.2.detail": "Stopping distance v0^2 ke proportional hai. Same deceleration ke liye v0 ko double karne se ds 4 ke factor se badh jata hai.",
+    "b-18.answer": "Stopping distance ds = -v0^2/(2 a), jo initial velocity ke square ke proportional hai.",
+    "b-19.problem": "Reaction time wo samay hai jo ek vyakti observe karne, sochne aur act karne mein leta hai. Ek ruler ko vertically drop kiya jata hai aur d = 21.0 cm travel karne ke baad catch kiya jata hai. Reaction time estimate karo. g = 9.8 m s-2 lo.",
+    "b-19.steps.0.title": "Free fall use karo",
+    "b-19.steps.0.detail": "Ruler rest se drop hota hai, isliye distance ka magnitude (1/2) g t_r^2 hai.",
+    "b-19.steps.1.title": "d insert karo",
+    "b-19.steps.1.detail": "d = 21.0 cm = 0.210 m, isliye 0.210 = (1/2) x 9.8 x t_r^2.",
+    "b-19.steps.2.title": "t_r ke liye solve karo",
+    "b-19.steps.2.detail": "t_r^2 = 0.420/9.8 = 0.0429, isliye t_r = 0.21 s lagbhag.",
+    "b-19.answer": "Reaction time lagbhag 0.21 s hai.",
+    "b-20.paragraphs.0": "Uniform motion (eksamaan gati) ke liye acceleration (tvaran) zero hota hai. x-t graph time axis ki taraf inclined ek straight line hota hai aur v-t graph time axis ke parallel ek straight line hota hai.",
+    "b-20.paragraphs.1": "Uniform acceleration ke liye, x-t graph parabola hota hai aur v-t graph time axis ki taraf inclined straight line hota hai.",
+    "b-20.paragraphs.2": "Signs assign karne se pehle origin aur positive direction choose karo. Sirf acceleration ka sign ye nahi batata ki speed badhti hai ya ghatti hai.",
+    "b-20.paragraphs.3": "Kisi instant par zero velocity ka matlab zero acceleration nahi hota. Kinematic equations tabhi apply hoti hain jab acceleration ka magnitude aur direction constant ho, aur values proper signs ke saath substitute ki jayein.",
+    "b-21.question": "One-dimensional motion (ek-akshi gati) ke liye kaun sa statement true hai?",
+    "b-21.options.0": "Kisi instant par zero speed hone par bhi us instant par non-zero acceleration ho sakta hai",
+    "b-21.options.1": "Zero speed ke saath non-zero velocity bhi ho sakti hai",
+    "b-21.options.2": "Constant speed ke liye acceleration zero hona zaroori hai",
+    "b-21.options.3": "Positive acceleration ka matlab hamesha speeding up hi hai",
+    "b-21.explanation": "Upar phenka gaya particle top par zero velocity (veg) rakhta hai, lekin gravity acceleration (tvaran) continue rehta hai. Zero speed ka matlab zero velocity magnitude hota hai; constant speed ke saath bhi direction change se acceleration ho sakta hai, aur positive acceleration is baat par depend karta hai ki positive direction kaun si chuni gayi hai.",
+    "b-22.problem": "Ek car seedhe highway par speed (chaal) 126 km h-1 ke saath chal rahi hai aur use 200 m ki distance (doori) ke andar stop kar diya jaata hai. Car ka retardation (assumed uniform) kya hai, aur car ko rukne mein kitna time lagta hai?",
+    "b-22.steps.0.title": "Speed (chaal) ko convert karein",
+    "b-22.steps.0.detail": "126 km h-1 = 35 m s-1. Final velocity (veg) v = 0, distance (doori) x = 200 m.",
+    "b-22.steps.1.title": "Retardation nikaalein",
+    "b-22.steps.1.detail": "v^2 = v0^2 + 2 a x use karein: 0 = (35)^2 + 2 a (200), isliye a = -3.06 m s-2. Retardation 3.06 m s-2 hai.",
+    "b-22.steps.2.title": "Time nikaalein",
+    "b-22.steps.2.detail": "v = v0 + a t use karein: 0 = 35 - 3.06 t, isliye t = 11.4 s approximately.",
+    "b-22.answer": "Retardation lagbhag 3.06 m s-2 hai aur car lagbhag 11.4 s mein ruk jaati hai.",
+    "b-23.problem": "Ek player ball ko upwards 29.4 m s-1 ki initial speed (chaal) ke saath throw karta hai. (a) Upward motion (gati) ke dauraan acceleration (tvaran) ki direction kya hai? (b) Highest point par velocity (veg) aur acceleration (tvaran) kya hain? (d) Ball kitni height tak uthegi aur kitne time baad player ke hands mein wapas aayegi? g = 9.8 m s-2 lo aur air resistance ko neglect karo.",
+    "b-23.steps.0.title": "Acceleration ki direction",
+    "b-23.steps.0.detail": "Upward motion (gati) ke dauraan gravity ke kaaran acceleration (tvaran) downward hota hai.",
+    "b-23.steps.1.title": "Highest point par",
+    "b-23.steps.1.detail": "Velocity (veg) zero hai, acceleration (tvaran) abhi bhi downward hai jiska magnitude 9.8 m s-2 hai.",
+    "b-23.steps.2.title": "Uthne ki height",
+    "b-23.steps.2.detail": "Upward positive maan kar v^2 = v0^2 + 2 a x use karo: 0 = (29.4)^2 + 2(-9.8) h, isliye h = 44.1 m.",
+    "b-23.steps.3.title": "Return hone ka time",
+    "b-23.steps.3.detail": "Time up = 29.4/9.8 = 3 s. Symmetry se time down bhi 3 s hai, isliye total time 6 s hai.",
+    "b-23.answer": "Acceleration (tvaran) downward hai, top par velocity (veg) zero hai aur downward acceleration 9.8 m s-2 hai, uthne ki height 44.1 m hai, aur return time 6 s hai.",
+    "b-24.problem": "Ek drunkard (sharabi) narrow lane mein chalte hue 5 steps forward aur 3 steps backward leta hai, phir wahi 5 steps forward aur 3 steps backward, aur aise hi aage. Har step 1 m lamba hai aur 1 s leta hai. Start se 13 m door pit mein girne mein usse kitna time lagega?",
+    "b-24.steps.0.title": "Motion (gati) plot karo",
+    "b-24.steps.0.detail": "x-t graph par har forward step ka slope (dhaal) +1 m/s hota hai aur har backward step ka slope -1 m/s hota hai.",
+    "b-24.steps.1.title": "Position track karo",
+    "b-24.steps.1.detail": "Pehle 5 forward ke baad: 5 s par 5 m. 3 back ke baad: 8 s par 2 m. Agle 5 forward ke baad: 13 s par 7 m. 3 back ke baad: 16 s par 4 m. Agle 5 forward ke baad: 21 s par 9 m. 3 back ke baad: 24 s par 6 m. Agle 5 forward ke baad: 29 s par 11 m. 3 back ke baad: 32 s par 8 m.",
+    "b-24.steps.2.title": "Pit tak pahuncho",
+    "b-24.steps.2.detail": "Agle 5 forward steps usse 8 m se 13 m tak le jaate hain, aur woh 37 s par pit tak pahunchta hai.",
+    "b-24.answer": "Woh 37 s baad pit mein gir jaata hai.",
+    "b-25.question": "Ek mahila ghar se 2.5 km door office tak paidal jaati hai, office mein kaafi der rukti hai, phir auto se ghar wapas aati hai. Office mein rukne ke dauran uska x-t graph kaisa dikhega?",
+    "b-25.options.0": "Ek horizontal line, kyunki position (sthiti) nahi badalti aur velocity zero hai",
+    "b-25.options.1": "Ek steep upward line, kyunki woh office mein hai",
+    "b-25.options.2": "Ek steep downward line, kyunki woh baad mein wapas aayegi",
+    "b-25.options.3": "Ek parabola, kyunki time beet raha hai",
+    "b-25.explanation": "Rukne ke dauran position constant rehti hai, isliye x-t graph horizontal hota hai aur uska slope, yaani velocity, zero hota hai. Office tak paidal jaane par positive slope milta hai aur wapas aane par negative slope.",
+    "b-26.problem": "Ek aadmi seedhi sadak par apne ghar se 2.5 km door market tak 5 km h-1 speed (chaal) se paidal jaata hai. Market band dekh kar, wah turant palat kar 7.5 km h-1 speed se ghar wapas chalta hai. (i) 0 se 30 min, (ii) 0 se 50 min, (iii) 0 se 40 min ke intervals mein average velocity (veg) ka magnitude aur average speed kya hai?",
+    "b-26.steps.0.title": "Market tak time",
+    "b-26.steps.0.detail": "5 km h-1 se 2.5 km jaane mein 0.5 h = 30 min lagta hai.",
+    "b-26.steps.1.title": "0 se 30 min",
+    "b-26.steps.1.detail": "Displacement (visthapan) = 2.5 km, path = 2.5 km. Average velocity ka magnitude = 2.5/0.5 = 5 km h-1. Average speed = 5 km h-1.",
+    "b-26.steps.2.title": "0 se 50 min",
+    "b-26.steps.2.detail": "20 min mein 7.5 km h-1 se wapas aate hue woh 2.5 km cover karta hai aur ghar pahunchta hai. Displacement = 0, isliye average velocity ka magnitude = 0. 50 min mein path = 5 km, average speed = 6 km h-1.",
+    "b-26.steps.3.title": "0 se 40 min",
+    "b-26.steps.3.detail": "Wapas aate hue 10 min mein woh 1.25 km cover karta hai, isliye ghar se position 1.25 km hai. Average velocity ka magnitude = 1.25/(2/3) = 1.875 km h-1. Path = 3.75 km, average speed = 3.75/(2/3) = 5.625 km h-1.",
+    "b-26.answer": "(i) 5 km h-1 aur 5 km h-1. (ii) 0 km h-1 aur 6 km h-1. (iii) 1.875 km h-1 aur 5.625 km h-1.",
+    "b-27.question": "One-dimensional motion (gati) ke liye, kisi interval mein displacement (visthapan) ka magnitude aur total path length kaise compare hote hain?",
+    "b-27.options.0": "Total path length, magnitude of displacement se greater than ya equal hota hai; equality sirf tab hoti hai jab koi turning back na ho",
+    "b-27.options.1": "Displacement ka magnitude hamesha path length se greater hota hai",
+    "b-27.options.2": "Ye hamesha equal hote hain",
+    "b-27.options.3": "Path length hamesha zero hota hai",
+    "b-27.explanation": "Displacement (visthapan) sirf start aur end positions par depend karta hai, jabki path length har step ko add karta hai. Turning back karne se path length larger ho jaata hai. Yahi average speed (chaal) aur magnitude of average velocity (veg) ke beech bhi lagu hota hai.",
+    "b-28.question": "Do bachche A aur B school se wapas aate hue x-t graphs par hain. A t = 0 par chhote slope (dhaal) ke saath shuru karta hai, B baad mein bade slope ke saath shuru karta hai, aur dono ghar ki same position par khatam hote hain. Isse kaunsa nishkarsh nikalta hai?",
+    "b-28.options.0": "B zyada tez chalta hai kyunki slope bada hai, chahe B baad mein shuru kare",
+    "b-28.options.1": "A zyada tez chalta hai kyunki A pehle shuru karta hai",
+    "b-28.options.2": "Dono same speed (chaal) par chalte hain kyunki dono saath khatam hote hain",
+    "b-28.options.3": "x-t graph se speed nahi padhi ja sakti",
+    "b-28.explanation": "x-t graph ka slope velocity (veg) hota hai. Bada slope bada speed (chaal) batata hai. Time axis par intercept start time dikhata hai, aur final position school se distance (doori) dikhati hai.",
+    "b-29.question": "Ek ball ko 90 m ki height se drop kiya jata hai aur floor ke saath har collision par apni speed (chaal) ka one tenth kho deti hai. t = 0 aur 12 s ke beech iska speed-time graph kaisa dikhega?",
+    "b-29.options.0": "Har fall ke dauraan speed linearly badhti hai, phir har bounce par suddenly previous impact speed ke nine tenths tak gir jaati hai, aur har baar peaks chhote hote jaate hain",
+    "b-29.options.1": "Speed poore samay constant rehti hai",
+    "b-29.options.2": "Speed linearly zero tak ghatti hai aur zero hi rehti hai",
+    "b-29.options.3": "Speed bounces par kisi bhi drop ke bina badhti rehti hai",
+    "b-29.explanation": "Free fall ke dauraan speed time ke saath badhti hai. Collision par speed nine tenths tak gir jaati hai, isliye next peak chhota hota hai. Realistic smooth graph mein velocity aur acceleration abruptly nahi badal sakte, lekin is idealised description mein bounce par speed drop hoti hai.",
+    "b-30.question": "Inmein se kaun sa graph kisi particle ki one-dimensional motion (ek-dimension mein gati) ko possible roop se represent nahi kar sakta?",
+    "b-30.options.0": "Ek x-t graph jisme vertical segment ho, jo ek instant par infinite velocity (veg) imply karta hai",
+    "b-30.options.1": "Ek x-t graph jo straight inclined line hai",
+    "b-30.options.2": "Ek v-t graph jo straight inclined line hai",
+    "b-30.options.3": "Ek x-t graph jo constant acceleration (tvaran) ke liye parabola hai",
+    "b-30.explanation": "Ek vertical x-t segment ka matlab hoga ki position zero time mein change ho rahi hai, jisse infinite velocity milti hai. Straight inclined x-t, inclined v-t aur parabolic x-t — ye sab uniform ya uniformly accelerated motion ke liye possible hain.",
+    "b-31.question": "Ek x-t graph t < 0 ke liye straight line hai aur t > 0 ke liye parabola hai. Kya yeh kehna sahi hai ki particle t < 0 ke liye straight line mein move karta hai aur t > 0 ke liye parabolic path par move karta hai?",
+    "b-31.options.0": "Nahi. Graph position ko time ke against plot karta hai; particle abhi bhi straight line par move karta hai, aur parabola ka matlab hai ki position acceleration ke karan t^2 ke roop mein badalti hai",
+    "b-31.options.1": "Haan, graph ka shape particle ka path hai",
+    "b-31.options.2": "Haan, t > 0 ke liye particle straight line chhod deta hai",
+    "b-31.options.3": "Nahi, kyunki x-t graphs parabola nahi ho sakte",
+    "b-31.explanation": "Ek x-t graph space mein trajectory nahi hai. One-dimensional motion ke liye particle straight line par move karta hai; ek parabolic x-t graph constant acceleration ko darshata hai.",
+    "b-32.paragraphs.0": "Motion (gati) hamesha ek fixed point ke respect mein measure ki jati hai. Is fixed point ko frame of reference kehte hain.",
+    "b-32.paragraphs.1": "Point ka choice arbitrary hai aur saare frames of reference equally valid hain. Ek moving car mein passenger driver ke respect mein move nahi kar raha hota.",
+    "b-32.paragraphs.2": "Sidewalk par khade ek person ke liye passenger aur driver dono move kar rahe hain. Relative velocity (veg) different frames se dekhi gayi motion ko compare karti hai.",
+    "b-32.paragraphs.3": "Ek object ke doosre se takrane ke liye relevant speed (chaal) nikalne ke liye, aap unki velocities ko same frame of reference mein compare karte hain.",
+    "b-33.problem": "Ek police van highway par 30 km h-1 speed (chaal) se chal rahi hai aur same direction mein 192 km h-1 speed se bhaag rahi thief ki car par bullet fire karti hai. Agar bullet ki muzzle speed 150 m s-1 hai, to bullet thief ki car ko kis speed se hit karegi?",
+    "b-33.steps.0.title": "Speeds ko m s-1 mein convert karo",
+    "b-33.steps.0.detail": "30 km h-1 = 8.33 m s-1 aur 192 km h-1 = 53.33 m s-1.",
+    "b-33.steps.1.title": "Ground ke respect mein bullet ki speed",
+    "b-33.steps.1.detail": "Bullet speed = muzzle speed + van speed = 150 + 8.33 = 158.33 m s-1 same direction mein.",
+    "b-33.steps.2.title": "Thief ki car ke respect mein relative speed",
+    "b-33.steps.2.detail": "Relative speed = 158.33 - 53.33 = 105 m s-1. Yahi speed thief ki car ko damage karne ke liye relevant hai.",
+    "b-33.answer": "Bullet thief ki car ko lagbhag 105 m s-1 ki relative speed se hit karti hai.",
+    "b-34.question": "Ek passenger ek moving car mein baitha hai. Passenger kis ke respect mein motion (gati) kar raha hai?",
+    "b-34.options.0": "Driver ke respect mein moving nahi hai, lekin sidewalk par khade person ke respect mein moving hai",
+    "b-34.options.1": "Driver ke respect mein moving hai lekin sidewalk ke respect mein nahi",
+    "b-34.options.2": "Kisi ke bhi respect mein moving nahi hai",
+    "b-34.options.3": "Sirf car seat ke respect mein moving hai",
+    "b-34.explanation": "Motion (gati) Frame of reference ke relative hoti hai. Passenger aur driver same frame share karte hain, jabki sidewalk par khada person different frame mein hai.",
+    "b-35.question": "Ek velocity-time graph constant slope ke saath upar uthta hai, phir horizontal ho jata hai, phir constant slope ke saath neeche gir kar zero tak aata hai. Yeh kis physical situation ko darshata hai?",
+    "b-35.options.0": "Constant acceleration ke saath speed badhana, phir constant velocity par chalna, phir brake lagakar rukna",
+    "b-35.options.1": "Poori tarah constant velocity par chalna",
+    "b-35.options.2": "Poori tarah backward direction mein chalna",
+    "b-35.options.3": "Bilkul motion nahi",
+    "b-35.explanation": "v-t graph ka slope acceleration hota hai. Rising slope ka matlab positive acceleration hai, horizontal ka matlab zero acceleration hai, aur falling slope ka matlab negative acceleration hai jabki object tab tak forward move karta rehta hai jab tak velocity zero na ho jaye.",
+    "b-36.question": "Ek chuni gayi instant par x-t graph par, Position positive hai aur tangent ka slope (dhaal) negative hai. Us instant par Position aur velocity (veg) ke signs kya hain?",
+    "b-36.options.0": "Position positive, velocity negative",
+    "b-36.options.1": "Position negative, velocity positive",
+    "b-36.options.2": "Position positive, velocity positive",
+    "b-36.options.3": "Position zero, velocity zero",
+    "b-36.explanation": "Position ka sign x ki value se padha jata hai. Velocity (veg) ka sign tangent ke slope (dhaal) se padha jata hai; negative slope ka matlab velocity negative hai.",
+    "b-37.question": "Ek x-t graph teen barabar time intervals dikhata hai. Beech wale interval ka slope (dhaal) sabse steep hai, pehle interval ka moderate slope hai, aur aakhri interval ka slope sabse shallow hai, sabhi ka slope positive hai. Kis interval mein average speed greatest aur least hai?",
+    "b-37.options.0": "Beech wale interval mein greatest aur aakhri interval mein least",
+    "b-37.options.1": "Aakhri interval mein greatest aur beech wale interval mein least",
+    "b-37.options.2": "Pehle interval mein greatest aur beech wale interval mein least",
+    "b-37.options.3": "Teenon intervals mein equal",
+    "b-37.explanation": "Kisi interval par average speed displacement (visthapan) ka magnitude divided by time hota hai, jo straight segment ke liye slope ka magnitude hota hai. Sabse steep slope greatest average speed deta hai aur sabse shallow least. Sabhi average velocities positive hain kyunki slopes positive hain.",
+    "b-38.question": "Constant direction mein motion (gati) ke liye ek speed (chaal)-time graph teen barabar time intervals dikhata hai. Pehle interval ka rising slope (dhaal) sabse steep hai, doosra horizontal hai, aur teesre ka falling slope shallow hai. Kis interval mein average acceleration (tvaran) magnitude mein greatest hai aur average speed greatest hai?",
+    "b-38.options.0": "Average acceleration pehle interval mein greatest; average speed doosre interval mein greatest agar uska speed level highest hai",
+    "b-38.options.1": "Average acceleration doosre interval mein greatest; average speed pehle interval mein greatest",
+    "b-38.options.2": "Average acceleration teesre interval mein greatest; average speed teesre interval mein greatest",
+    "b-38.options.3": "Average acceleration sabhi intervals mein zero hai",
+    "b-38.explanation": "Average acceleration speed-time graph ka slope (dhaal) hota hai, isliye steepest slope greatest magnitude deta hai. Average speed interval par graph ki average height hoti hai, isliye highest speed level wala interval greatest average speed deta hai. Positive direction ko motion (gati) direction maanne par, velocity (veg) sabhi intervals mein positive hai aur acceleration (tvaran) positive, zero, phir negative hai.",
+    "b-39.paragraphs.0": "Teen kinematic equations yaad rakho: v = v0 + a t, x = v0 t + (1/2) a t^2, aur v^2 = v0^2 + 2 a x.",
+    "b-39.paragraphs.1": "Agar particle x0 se start hota hai to (x - x0) use karo. Origin aur positive direction choose karne ke baad values ko proper signs ke saath substitute karo.",
+    "b-39.paragraphs.2": "Upward positive ke saath free fall ke liye a = -9.8 m s-2 use karo. Stopping ke liye yaad rakho ki distance (doori) initial velocity (veg) ke square ke hisaab se badhti hai.",
+    "b-39.paragraphs.3": "Graphs dhyan se padho: x-t ka slope (dhaal) velocity (veg) hai, v-t ka slope acceleration (tvaran) hai, aur v-t ke neeche area displacement (visthapan) hai.",
+    "b-40.question": "Ek object rest se freely girta hai. y = -4.9 t^2 ka use karo jahan upward positive hai, toh 2 s mein girne wali distance (doori) ka magnitude kya hai? Answer metres mein do.",
+    "b-40.explanation": "y ka magnitude = 4.9 x (2)^2 = 4.9 x 4 = 19.6 m. Negative sign dikhata hai ki jab upward positive hai tab displacement (visthapan) downward hai.",
+    "b-41.question": "Instantaneous speed aur magnitude of instantaneous velocity ke beech koi distinction kyun nahi hota, jabki average speed magnitude of average velocity se alag ho sakti hai?",
+    "b-41.options.0": "Ek instant par aisa koi interval nahi hota jisme direction badal sake, isliye us instant par speed bas velocity ka magnitude hoti hai",
+    "b-41.options.1": "Kyunki ek instant par speed hamesha zero hoti hai",
+    "b-41.options.2": "Kyunki average velocity hamesha zero hoti hai",
+    "b-41.options.3": "Kyunki instantaneous velocity ki koi direction nahi hoti",
+    "b-41.explanation": "Instantaneous speed ko instantaneous velocity ka magnitude define kiya jata hai. Average speed finite interval mein total path length use karti hai, jo direction badalne par magnitude of average velocity se zyada ho sakti hai.",
+    "b-42.question": "Ek particle speed up ho raha hai. Uske velocity (veg) ke relative acceleration (tvaran) ki direction kya hai?",
+    "b-42.options.0": "Velocity ki direction mein",
+    "b-42.options.1": "Velocity ke opposite",
+    "b-42.options.2": "Hamesha negative",
+    "b-42.options.3": "Hamesha zero",
+    "b-42.explanation": "Agar particle speed up ho raha hai, to acceleration velocity ki direction mein hota hai. Agar speed decrease ho rahi hai, to acceleration velocity ke opposite hota hai. Yeh origin aur axis ke choice se independent hai."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Seedhi Rekha mein Motion",
+    "objectives": [
+      "Is paath ke baad aap position, velocity aur acceleration ka use karke seedhi rekha ke saath motion describe kar sakte hain.",
+      "Is paath ke baad aap position-time aur velocity-time graphs se velocity aur acceleration padh sakte hain.",
+      "Is paath ke baad aap uniformly accelerated motion aur free fall ke liye kinematic equations ka use kar sakte hain.",
+      "Is paath ke baad aap average speed ko average velocity ke magnitude se distinguish kar sakte hain aur frame of reference ke saath relative motion explain kar sakte hain."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Parichay",
+        "paragraphs": [
+          "Aapke chaaron taraf motion (gati) dikhta hai. Aap chalte hain, daudte hain, aur bicycle chalate hain. Pedon se patte girte hain aur dam se paani neeche behta hai.",
+          "Motion ka matlab hai kisi object ki position ka time ke saath badalna. Isko describe karne ke liye aap pehle origin chunte hain. Origin ke right taraf position positive li jaati hai aur left taraf negative.",
+          "Is paath mein hum seedhi rekha ke saath motion padhte hain. Ise rectilinear motion kaha jaata hai. Jab objects ka size unke move kiye gaye distance se bahut chhota hota hai, tab hum unhe point objects maante hain.",
+          "Kinematics motion ko describe karne ke tareeqon ka adhyayan hai. Yeh motion ke causes mein nahi jaata. Position time ke saath kaise badalti hai, isko describe karne ke liye hum velocity aur acceleration ke ideas develop karte hain."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "Instantaneous Velocity aur Speed",
+        "paragraphs": [
+          "Average velocity batati hai ki kisi object ne poore time interval mein kitni tezi se motion kiya. Yeh nahi batati ki us interval ke andar kisi ek instant par object kitni tezi se move kar raha tha.",
+          "Instantaneous velocity, ya sirf velocity (veg), average velocity ki limit hai jab time interval infinitesimally small hota jaata hai. Symbols mein, v = dx/dt. Yeh us instant par time ke respect mein position ke change ki rate hai.",
+          "Position-time graph par, kisi instant par velocity us point par tangent ka slope (dhaal) hoti hai. Jab aap us instant ke around chhote aur chhote intervals lete hain, do points ko jodne wali line tangent ban jaati hai.",
+          "Speed (chaal) velocity ka magnitude hai. +24.0 m s-1 ki velocity aur -24.0 m s-1 ki velocity dono ki speed 24.0 m s-1 hai. Instantaneous speed hamesha instantaneous velocity ke magnitude ke barabar hoti hai."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Acceleration",
+        "paragraphs": [
+          "Motion ke dauraan velocity badalti hai. Hum is change ko time ke saath velocity ke change ki rate ke roop mein describe karte hain. Is rate ko acceleration (tvaran) kaha jaata hai.",
+          "Kisi interval par average acceleration a = (v2 - v1)/(t2 - t1) hota hai. Iska SI unit m s-2 hai. Instantaneous acceleration a = dv/dt hota hai, jo velocity-time curve par tangent ka slope hai.",
+          "Acceleration positive, negative ya zero ho sakta hai. Yeh speed mein change, direction mein change, ya dono se aa sakta hai. Positive acceleration ke liye position-time graphs upar ki taraf curve karte hain aur negative acceleration ke liye neeche ki taraf.",
+          "Do times ke beech velocity-time curve ke neeche ka area us interval mein displacement ke barabar hota hai. Constant velocity u ke liye, area height u aur base T wala rectangle hota hai, jo displacement uT deta hai."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Uniformly Accelerated Motion ke Kinematic Equations",
+        "paragraphs": [
+          "Is paath mein hum khud ko constant acceleration tak seemit rakhte hain. Tab average acceleration interval ke dauraan acceleration ke constant value ke barabar hota hai.",
+          "Agar t = 0 par velocity v0 hai aur time t par v hai, to v = v0 + a t. Velocity-time graph ke neeche ka area ek triangle plus ek rectangle hota hai. Isse displacement x = ((v0 + v)/2) t milta hai.",
+          "In relations se humein teen equations milte hain: v = v0 + a t, x = v0 t + (1/2) a t^2, aur v^2 = v0^2 + 2 a x. Yeh displacement, time, initial velocity, final velocity aur acceleration ko jodte hain.",
+          "Agar particle zero ke bajaye position x0 se start hota hai, to x ko (x - x0) se replace karein. Equations algebraic hain, isliye origin aur positive direction choose karne ke baad aapko values proper signs ke saath substitute karni hongi."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Free Fall, Stopping aur Reaction",
+        "paragraphs": [
+          "Free fall gravity ke under motion hai jisme air resistance ko neglect kiya jaata hai. Earth ki surface ke paas, agar height earth ke radius ke compared chhoti hai, to g constant 9.8 m s-2 hota hai.",
+          "Upward ko positive lein. Tab gravity ke karan acceleration a = -g = -9.8 m s-2 hota hai. y = 0 par rest se chhode gaye object ke liye, equations v = -9.8 t, y = -4.9 t^2 aur v^2 = -19.6 y ban jaate hain.",
+          "Jab brakes lagaye jaate hain, stopping distance initial velocity aur deceleration par depend karti hai. Yeh initial velocity ke square ke proportional hoti hai, isliye same deceleration ke liye velocity double karne se stopping distance chaar guna badh jaati hai.",
+          "Reaction time observe karne, sochne aur act karne ka time hai. Giraayi hui ruler free fall ke under travel karti hai, isliye aapke pakadne se pehle woh jitni door girti hai us distance se aapka reaction time estimate kiya ja sakta hai."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Relative Velocity aur Points to Ponder",
+        "paragraphs": [
+          "Motion hamesha kisi fixed point ke respect mein measure hota hai. Is fixed point ko frame of reference kaha jaata hai. Point ka choice arbitrary hai aur saare frames equally valid hain.",
+          "Moving car mein passenger driver ke respect mein move nahi kar raha hota, lekin sidewalk par khade person ke liye dono move kar rahe hote hain. Relative velocity different frames se dekhe gaye motion ko compare karti hai.",
+          "Signs assign karne se pehle origin aur positive direction choose karein. Agar particle speed up karta hai, to acceleration velocity ki direction mein hota hai. Agar speed decrease hoti hai, to acceleration velocity ke opposite hota hai.",
+          "Kisi instant par zero velocity ka matlab zero acceleration nahi hota. Upar phenka gaya particle top par kuch pal ke liye rest par hota hai, phir bhi gravity acceleration continue rehta hai. Sirf acceleration ka sign nahi batata ki speed badh rahi hai ya ghat rahi hai."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "Position",
+        "definition": "Kisi object ki location chosen origin ke respect mein; seedhi rekha ke motion mein right positive aur left negative hota hai."
+      },
+      {
+        "term": "Velocity",
+        "definition": "Kisi instant par time ke saath position ke change ki rate, v = dx/dt; iska magnitude aur direction hoti hai."
+      },
+      {
+        "term": "Acceleration",
+        "definition": "Time ke saath velocity ke change ki rate, a = dv/dt; iska magnitude aur direction hoti hai aur iska unit m s-2 hai."
+      },
+      {
+        "term": "Displacement",
+        "definition": "Time interval mein position ka change; yeh positive, negative ya zero ho sakta hai aur velocity-time graph ke neeche ke area ke barabar hota hai."
+      },
+      {
+        "term": "Average speed",
+        "definition": "Total path length ko time interval se divide kiya gaya; yeh average velocity ke magnitude se greater ya equal hoti hai."
+      },
+      {
+        "term": "Frame of reference",
+        "definition": "Woh fixed point ya points ka group jiske respect mein motion measure kiya jaata hai."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Aap apne chaaro taraf motion (gati) dekhte hain. Aap chalte hain, daudte hain, aur cycle chalate hain. Pedon se patte girte hain aur paani dam se neeche bahta hai.",
+          "Motion (gati) ka matlab hai kisi object ki position ka samay ke saath badalna. Isko describe karne ke liye, aap pehle ek origin chunte hain. Origin ke right side ki position ko positive aur left side ko negative maana jata hai.",
+          "Is lesson mein hum seedhi rekha ke saath motion (gati) ka adhyayan karte hain. Ise rectilinear motion kehte hain. Hum objects ko point objects maante hain jab unka size unke dwara tay ki gayi distance (doori) se bahut chhota ho.",
+          "Kinematics motion ko describe karne ke tarikon ka adhyayan hai. Yeh motion ke karanon mein nahi jaata. Hum velocity (veg) aur acceleration (tvaran) ko develop karte hain taaki position samay ke saath kaise badalti hai, iska varnan kar sakein."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-36"
+        }
+      ]
+    },
+    {
+      "id": "b-02",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 600 180\"><line x1=\"40\" y1=\"90\" x2=\"560\" y2=\"90\" stroke=\"#1C1B18\" stroke-width=\"3\" /><polygon points=\"560,90 540,82 540,98\" fill=\"#1C1B18\" /><circle cx=\"300\" cy=\"90\" r=\"7\" fill=\"#1F3A9E\" /><circle cx=\"420\" cy=\"90\" r=\"7\" fill=\"#1C1B18\" /><text x=\"292\" y=\"70\" font-size=\"22\" fill=\"#1C1B18\">O</text><text x=\"530\" y=\"70\" font-size=\"22\" fill=\"#1C1B18\">+x</text><text x=\"410\" y=\"70\" font-size=\"22\" fill=\"#1F3A9E\">x</text><text x=\"40\" y=\"70\" font-size=\"22\" fill=\"#1C1B18\">-x</text><path d=\"M 420 75 Q 430 45 470 40\" stroke=\"#1F3A9E\" stroke-width=\"2\" fill=\"none\" /><text x=\"470\" y=\"45\" font-size=\"20\" fill=\"#1F3A9E\" data-i18n=\"b-02.svg_texts.t-0\">point object</text></svg>",
+        "caption": "Ek seedhi line jiska origin O hai, positive direction daayen taraf hai, aur ek point object position x par hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-03",
+      "type": "check",
+      "spec": {
+        "question": "Ek railway carriage do stations ke beech bina jerks ke move karta hai, apni khud ki length se kaafi zyada door tak. Kya ise point object maana ja sakta hai?",
+        "format": "mcq",
+        "options": [
+          "Haan, kyunki iska size move kiye gaye distance (doori) se bahut chhota hai",
+          "Nahi, kyunki yeh ek bada object hai",
+          "Haan, kyunki yeh seedhi line par move karta hai",
+          "Nahi, kyunki iske bahut se parts hain"
+        ],
+        "answer_index": 0,
+        "explanation": "Ek object ko point object tab maana ja sakta hai jab uska size reasonable time mein move kiye gaye distance (doori) se bahut chhota ho.",
+        "expected_understanding": "Point object approximation size aur move kiye gaye distance (doori) ki tulna par depend karta hai.",
+        "answer": "Haan, kyunki iska size move kiye gaye distance (doori) se bahut chhota hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        }
+      ]
+    },
+    {
+      "id": "b-04",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Average velocity (veg) batata hai ki koi object poore interval mein kitni tezi se move hua. Yeh nahi batata ki kisi ek instant par woh kitni tezi se move hua.",
+          "Instantaneous velocity average velocity ki limit hai jab time interval infinitesimally small ho jata hai. Symbols mein, v = dx/dt.",
+          "Position-time graph par, kisi instant par velocity us point par tangent ka slope (dhaal) hoti hai. Chhote intervals joining line ko tangent ke kareeb le jaate hain.",
+          "x = 0.08 t^3 ke liye, t = 4.0 s par centred average velocity 3.84 m s-1 ke kareeb pahunchti hai jab interval ghatta hai. Woh limiting value hi t = 4.0 s par velocity hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-05",
+      "type": "simulation",
+      "spec": {
+        "title": "Position-time graph aur tangent slope",
+        "description": "Yeh curve x = 0.08 t^3 aur chune gaye time par tangent dikhata hai. Tangent ka slope (dhaal) instantaneous velocity (veg) hota hai.",
+        "learning_goal": "Instantaneous velocity ko position-time graph par tangent ke slope (dhaal) ke roop mein padhna.",
+        "controls": [
+          {
+            "id": "t",
+            "label": "Time t (s)",
+            "min": 0,
+            "max": 6,
+            "step": 0.1,
+            "initial": 4
+          }
+        ],
+        "default_behaviour": "t = 4 s par position-time curve ke saath tangent line dikhata hai aur velocity ka readout deta hai jo 3.84 m s-1 ke kareeb pahunchta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-06",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek object jo x-axis ke along move kar raha hai, uski position x = a + b t^2 se di gayi hai jahan a = 8.5 m, b = 2.5 m s-2 hai aur t seconds mein measure kiya jata hai. t = 0 s aur t = 2.0 s par iski velocity (veg) kya hai? t = 2.0 s aur t = 4.0 s ke beech average velocity kya hai?",
+        "steps": [
+          {
+            "title": "Position ko differentiate karo",
+            "detail": "v = dx/dt = 2 b t = 5.0 t m s-1."
+          },
+          {
+            "title": "t = 0 s par velocity",
+            "detail": "v = 5.0 x 0 = 0 m s-1."
+          },
+          {
+            "title": "t = 2.0 s par velocity",
+            "detail": "v = 5.0 x 2.0 = 10 m s-1."
+          },
+          {
+            "title": "2.0 s aur 4.0 s ke beech average velocity",
+            "detail": "2.0 s par x = 8.5 + 2.5 x 4 = 18.5 m. 4.0 s par x = 8.5 + 2.5 x 16 = 48.5 m. Average velocity = (48.5 - 18.5)/(4.0 - 2.0) = 15 m s-1."
+          }
+        ],
+        "answer": "t = 0 s par velocity 0 m s-1 hai, t = 2.0 s par 10 m s-1 hai, aur t = 2.0 s aur 4.0 s ke beech average velocity 15 m s-1 hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-07",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Speed (chaal) velocity (veg) ka magnitude hoti hai. +24.0 m s-1 velocity aur -24.0 m s-1 velocity, dono ki speed 24.0 m s-1 hoti hai.",
+          "Finite interval par Average speed, average velocity ke magnitude se greater than ya equal hoti hai. Lekin kisi instant par instantaneous speed us instant ki instantaneous velocity ke magnitude ke equal hoti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-08",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Motion (gati) ke dauraan velocity (veg) badalti hai. Hum is badlav ko samay ke saath velocity ke change ki rate ke roop mein describe karte hain. Yeh rate acceleration (tvaran) hai.",
+          "Average acceleration a = (v2 - v1)/(t2 - t1) hai, jiska SI unit m s-2 hai. Instantaneous acceleration a = dv/dt hai, jo velocity-time curve ke tangent ka slope (dhaal) hai.",
+          "Acceleration positive, negative ya zero ho sakta hai. Yeh speed (chaal) mein badlav, direction mein badlav, ya dono se aa sakta hai.",
+          "Position-time graphs positive acceleration ke liye upward curve karte hain, negative acceleration ke liye downward, aur zero acceleration ke liye straight lines hote hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-09",
+      "type": "simulation",
+      "spec": {
+        "title": "Velocity (veg)-time graph aur area as displacement (visthapan)",
+        "description": "Constant acceleration (tvaran) ke liye velocity-time line dikhata hai aur uske neeche ka area shade karta hai. Shaded area displacement (visthapan) ke barabar hai.",
+        "learning_goal": "Dekhein ki velocity-time graph ke neeche area displacement (visthapan) deta hai aur slope (dhaal) acceleration (tvaran) deta hai.",
+        "controls": [
+          {
+            "id": "v0",
+            "label": "Initial velocity v0 (m/s)",
+            "min": -10,
+            "max": 10,
+            "step": 1,
+            "initial": 5
+          },
+          {
+            "id": "a",
+            "label": "Acceleration a (m/s^2)",
+            "min": -5,
+            "max": 5,
+            "step": 0.5,
+            "initial": 2
+          }
+        ],
+        "default_behaviour": "5 m/s se shuru hone wali slanted velocity-time line dikhata hai, jiska slope 2 m/s^2 hai, aur chune gaye samay tak uske neeche trapezoid area dikhata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        },
+        {
+          "claim_id": "claim-16"
+        }
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Agar koi particle speeding up hai, to acceleration (tvaran) velocity (veg) ki direction mein hota hai. Agar uski speed (chaal) kam ho rahi hai, to acceleration velocity ki opposite direction mein hota hai.",
+          "Yeh baat har origin aur positive direction ke liye sach hai jo aap choose karein. Sirf acceleration ka sign yeh nahi batata ki speed badh rahi hai ya kam ho rahi hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        }
+      ]
+    },
+    {
+      "id": "b-11",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Constant acceleration (tvaran) ke liye, average acceleration interval ke dauraan constant value ke barabar hota hai. Agar t = 0 par velocity (veg) v0 hai aur time t par v hai, to v = v0 + a t.",
+          "Velocity-time graph ke neeche ka area ek triangle plus ek rectangle hota hai. Yeh area displacement (visthapan) ke barabar hota hai.",
+          "Isse x = ((v0 + v)/2) t milta hai, isliye average velocity initial aur final velocities ka arithmetic average hota hai.",
+          "t ko eliminate karne se uniformly accelerated motion (gati) ke liye teen kinematic equations milti hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-18"
+        }
+      ]
+    },
+    {
+      "id": "b-12",
+      "type": "reveal",
+      "spec": {
+        "title": "velocity (veg)-time area se kinematic equations derive karna",
+        "steps": [
+          {
+            "title": "v = v0 + a t se shuru karein",
+            "detail": "Yeh a = (v - v0)/t se aata hai constant acceleration (tvaran) ke liye."
+          },
+          {
+            "title": "v-t graph ke neeche area nikaalein",
+            "detail": "Area = triangle ka area + rectangle ka area = (1/2)(v - v0) t + v0 t = ((v0 + v)/2) t."
+          },
+          {
+            "title": "Area displacement (visthapan) ke barabar hai",
+            "detail": "To x = ((v0 + v)/2) t."
+          },
+          {
+            "title": "t ko hataayein",
+            "detail": "x = ((v0 + v)/2) t mein t = (v - v0)/a use karein to v^2 = v0^2 + 2 a x milta hai. x = ((v0 + v)/2) t mein v - v0 = a t use karein to x = v0 t + (1/2) a t^2 milta hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-15"
+        },
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-20"
+        }
+      ]
+    },
+    {
+      "id": "b-13",
+      "type": "reveal",
+      "spec": {
+        "title": "Calculus se equations of motion (gati ke equations) derive karna",
+        "steps": [
+          {
+            "title": "Acceleration (tvaran) ko integrate karna",
+            "detail": "a = dv/dt, isliye dv = a dt. Integrate karne se v - v0 = a t milta hai, isliye v = v0 + a t."
+          },
+          {
+            "title": "Velocity (veg) ko integrate karna",
+            "detail": "v = dx/dt, isliye dx = v dt. v = v0 + a t ke saath integrate karne se x - x0 = v0 t + (1/2) a t^2 milta hai."
+          },
+          {
+            "title": "Time ko eliminate karna",
+            "detail": "a = dv/dt aur v = dx/dt se, a = v dv/dx, isliye v dv = a dx. Integrate karne se (1/2)(v^2 - v0^2) = a (x - x0) milta hai, isliye v^2 = v0^2 + 2 a (x - x0)."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-14",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek ball ko multistorey building ke top se vertically upwards 20 m s-1 ki velocity (veg) se throw kiya jata hai. Jis point se ball throw kiya gaya hai, uski height ground se 25.0 m hai. (a) Ball kitni high tak rise karegi? aur (b) ball ground hit karne se pehle kitna time lagega? g = 10 m s-2 lein.",
+        "steps": [
+          {
+            "title": "Upward ko positive maanein",
+            "detail": "v0 = +20 m s-1, a = -g = -10 m s-2, aur top par v = 0 m s-1."
+          },
+          {
+            "title": "Rise ki height",
+            "detail": "v^2 = v0^2 + 2 a (y - y0) use karein: 0 = (20)^2 + 2(-10)(y - y0), isliye y - y0 = 20 m. Ground se height 25.0 + 20 = 45 m hai."
+          },
+          {
+            "title": "Upar jaane ka time",
+            "detail": "v = v0 + a t use karein: 0 = 20 - 10 t1, isliye t1 = 2 s."
+          },
+          {
+            "title": "Neeche girne ka time",
+            "detail": "Top se, v0 = 0, a = -10 m s-2, y0 = 45 m, y = 0: 0 = 45 + (1/2)(-10) t2^2, isliye t2 = 3 s. Total time = 2 + 3 = 5 s."
+          }
+        ],
+        "answer": "(a) Ball launch point se 20 m upar rise karti hai, ground se 45 m. (b) Yeh ground ko 5 s baad hit karti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-15",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Free fall (mukta patan) gravity ke under motion (gati) hai, jisme air resistance neglected hai. Earth ki surface ke paas, jab height earth ke radius ke tulna mein chhoti ho, to g constant 9.8 m s-2 hota hai.",
+          "Upward direction ko positive maanein. Phir gravity ke karan acceleration (tvaran) a = -g = -9.8 m s-2 hota hai.",
+          "Ek object jo rest se y = 0 par release kiya gaya hai, uske liye kinematic equations se v = -9.8 t, y = -4.9 t^2 aur v^2 = -19.6 y milta hai.",
+          "Acceleration constant hai, velocity (veg) time ke saath linearly vary karti hai, aur distance (doori) t^2 ke hisaab se vary karti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-16",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Free fall (mukta patan) ke under ek object ki motion (gati) discuss karo. Air resistance ko neglect karo. g = 9.8 m s-2 lo, upward positive, aur object ko rest se y = 0 par release kiya gaya hai.",
+        "steps": [
+          {
+            "title": "Acceleration (tvaran) likho",
+            "detail": "a = -g = -9.8 m s-2, v0 = 0."
+          },
+          {
+            "title": "Velocity (veg) time ke saath",
+            "detail": "v = v0 + a t = 0 - 9.8 t = -9.8 t m s-1."
+          },
+          {
+            "title": "Time ke saath position",
+            "detail": "y = 0 + (1/2) a t^2 = -4.9 t^2 m."
+          },
+          {
+            "title": "Position ke saath velocity",
+            "detail": "v^2 = 0 + 2 a y = -19.6 y m^2 s-2."
+          }
+        ],
+        "answer": "v = -9.8 t m s-1, y = -4.9 t^2 m, v^2 = -19.6 y m^2 s-2."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-17",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Galileo ka law of odd numbers: Rest se girte hue body ke equal intervals of time mein traverse kiye gaye distances (doori) ek dusre se same ratio mein hote hain jaise unity se shuru hone wale odd numbers, namely 1:3:5:7. Isse prove karo.",
+        "steps": [
+          {
+            "title": "Free-fall position ka use karo",
+            "detail": "Rest se fall ke liye, position ka magnitude (1/2) g t^2 hai."
+          },
+          {
+            "title": "Equal intervals lo",
+            "detail": "Time ko length tau ke equal intervals mein divide karo aur tau, 2 tau, 3 tau etc. ke baad positions find karo."
+          },
+          {
+            "title": "Successive intervals mein distances (doori) find karo",
+            "detail": "Successive positions ko subtract karo. Distances ratio 1:3:5:7:9:11 aur aage isi tarah hote hain."
+          }
+        ],
+        "answer": "Successive equal time intervals mein distances ratio 1:3:5:7:9:11 mein hote hain, jo law of odd numbers ko prove karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    },
+    {
+      "id": "b-18",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Jab ek moving vehicle par brakes lagaye jate hain, to rukne se pehle wo jo distance (doori) travel karta hai use stopping distance kehte hain. v0 aur a ke terms mein stopping distance ke liye expression derive karo, jahan a braking ke karan deceleration hai.",
+        "steps": [
+          {
+            "title": "v^2 = v0^2 + 2 a x use karo",
+            "detail": "Maan lo stopping distance ds hai aur final velocity (veg) v = 0 hai."
+          },
+          {
+            "title": "ds ke liye solve karo",
+            "detail": "0 = v0^2 + 2 a ds, isliye ds = -v0^2/(2 a)."
+          },
+          {
+            "title": "Result ko interpret karo",
+            "detail": "Stopping distance v0^2 ke proportional hai. Same deceleration ke liye v0 ko double karne se ds 4 ke factor se badh jata hai."
+          }
+        ],
+        "answer": "Stopping distance ds = -v0^2/(2 a), jo initial velocity ke square ke proportional hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-34"
+        }
+      ]
+    },
+    {
+      "id": "b-19",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Reaction time wo samay hai jo ek vyakti observe karne, sochne aur act karne mein leta hai. Ek ruler ko vertically drop kiya jata hai aur d = 21.0 cm travel karne ke baad catch kiya jata hai. Reaction time estimate karo. g = 9.8 m s-2 lo.",
+        "steps": [
+          {
+            "title": "Free fall use karo",
+            "detail": "Ruler rest se drop hota hai, isliye distance ka magnitude (1/2) g t_r^2 hai."
+          },
+          {
+            "title": "d insert karo",
+            "detail": "d = 21.0 cm = 0.210 m, isliye 0.210 = (1/2) x 9.8 x t_r^2."
+          },
+          {
+            "title": "t_r ke liye solve karo",
+            "detail": "t_r^2 = 0.420/9.8 = 0.0429, isliye t_r = 0.21 s lagbhag."
+          }
+        ],
+        "answer": "Reaction time lagbhag 0.21 s hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ]
+    },
+    {
+      "id": "b-20",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Uniform motion (eksamaan gati) ke liye acceleration (tvaran) zero hota hai. x-t graph time axis ki taraf inclined ek straight line hota hai aur v-t graph time axis ke parallel ek straight line hota hai.",
+          "Uniform acceleration ke liye, x-t graph parabola hota hai aur v-t graph time axis ki taraf inclined straight line hota hai.",
+          "Signs assign karne se pehle origin aur positive direction choose karo. Sirf acceleration ka sign ye nahi batata ki speed badhti hai ya ghatti hai.",
+          "Kisi instant par zero velocity ka matlab zero acceleration nahi hota. Kinematic equations tabhi apply hoti hain jab acceleration ka magnitude aur direction constant ho, aur values proper signs ke saath substitute ki jayein."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        },
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-31"
+        }
+      ]
+    },
+    {
+      "id": "b-21",
+      "type": "check",
+      "spec": {
+        "question": "One-dimensional motion (ek-akshi gati) ke liye kaun sa statement true hai?",
+        "format": "mcq",
+        "options": [
+          "Kisi instant par zero speed hone par bhi us instant par non-zero acceleration ho sakta hai",
+          "Zero speed ke saath non-zero velocity bhi ho sakti hai",
+          "Constant speed ke liye acceleration zero hona zaroori hai",
+          "Positive acceleration ka matlab hamesha speeding up hi hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Upar phenka gaya particle top par zero velocity (veg) rakhta hai, lekin gravity acceleration (tvaran) continue rehta hai. Zero speed ka matlab zero velocity magnitude hota hai; constant speed ke saath bhi direction change se acceleration ho sakta hai, aur positive acceleration is baat par depend karta hai ki positive direction kaun si chuni gayi hai.",
+        "expected_understanding": "Zero velocity ka matlab zero acceleration nahi hota, aur acceleration ka sign akele speed badhne ya ghatne ka faisla nahi karta.",
+        "answer": "Kisi instant par zero speed hone par bhi us instant par non-zero acceleration ho sakta hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-30"
+        }
+      ]
+    },
+    {
+      "id": "b-22",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek car seedhe highway par speed (chaal) 126 km h-1 ke saath chal rahi hai aur use 200 m ki distance (doori) ke andar stop kar diya jaata hai. Car ka retardation (assumed uniform) kya hai, aur car ko rukne mein kitna time lagta hai?",
+        "steps": [
+          {
+            "title": "Speed (chaal) ko convert karein",
+            "detail": "126 km h-1 = 35 m s-1. Final velocity (veg) v = 0, distance (doori) x = 200 m."
+          },
+          {
+            "title": "Retardation nikaalein",
+            "detail": "v^2 = v0^2 + 2 a x use karein: 0 = (35)^2 + 2 a (200), isliye a = -3.06 m s-2. Retardation 3.06 m s-2 hai."
+          },
+          {
+            "title": "Time nikaalein",
+            "detail": "v = v0 + a t use karein: 0 = 35 - 3.06 t, isliye t = 11.4 s approximately."
+          }
+        ],
+        "answer": "Retardation lagbhag 3.06 m s-2 hai aur car lagbhag 11.4 s mein ruk jaati hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        }
+      ]
+    },
+    {
+      "id": "b-23",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek player ball ko upwards 29.4 m s-1 ki initial speed (chaal) ke saath throw karta hai. (a) Upward motion (gati) ke dauraan acceleration (tvaran) ki direction kya hai? (b) Highest point par velocity (veg) aur acceleration (tvaran) kya hain? (d) Ball kitni height tak uthegi aur kitne time baad player ke hands mein wapas aayegi? g = 9.8 m s-2 lo aur air resistance ko neglect karo.",
+        "steps": [
+          {
+            "title": "Acceleration ki direction",
+            "detail": "Upward motion (gati) ke dauraan gravity ke kaaran acceleration (tvaran) downward hota hai."
+          },
+          {
+            "title": "Highest point par",
+            "detail": "Velocity (veg) zero hai, acceleration (tvaran) abhi bhi downward hai jiska magnitude 9.8 m s-2 hai."
+          },
+          {
+            "title": "Uthne ki height",
+            "detail": "Upward positive maan kar v^2 = v0^2 + 2 a x use karo: 0 = (29.4)^2 + 2(-9.8) h, isliye h = 44.1 m."
+          },
+          {
+            "title": "Return hone ka time",
+            "detail": "Time up = 29.4/9.8 = 3 s. Symmetry se time down bhi 3 s hai, isliye total time 6 s hai."
+          }
+        ],
+        "answer": "Acceleration (tvaran) downward hai, top par velocity (veg) zero hai aur downward acceleration 9.8 m s-2 hai, uthne ki height 44.1 m hai, aur return time 6 s hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-30"
+        }
+      ]
+    },
+    {
+      "id": "b-24",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek drunkard (sharabi) narrow lane mein chalte hue 5 steps forward aur 3 steps backward leta hai, phir wahi 5 steps forward aur 3 steps backward, aur aise hi aage. Har step 1 m lamba hai aur 1 s leta hai. Start se 13 m door pit mein girne mein usse kitna time lagega?",
+        "steps": [
+          {
+            "title": "Motion (gati) plot karo",
+            "detail": "x-t graph par har forward step ka slope (dhaal) +1 m/s hota hai aur har backward step ka slope -1 m/s hota hai."
+          },
+          {
+            "title": "Position track karo",
+            "detail": "Pehle 5 forward ke baad: 5 s par 5 m. 3 back ke baad: 8 s par 2 m. Agle 5 forward ke baad: 13 s par 7 m. 3 back ke baad: 16 s par 4 m. Agle 5 forward ke baad: 21 s par 9 m. 3 back ke baad: 24 s par 6 m. Agle 5 forward ke baad: 29 s par 11 m. 3 back ke baad: 32 s par 8 m."
+          },
+          {
+            "title": "Pit tak pahuncho",
+            "detail": "Agle 5 forward steps usse 8 m se 13 m tak le jaate hain, aur woh 37 s par pit tak pahunchta hai."
+          }
+        ],
+        "answer": "Woh 37 s baad pit mein gir jaata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "check",
+      "spec": {
+        "question": "Ek mahila ghar se 2.5 km door office tak paidal jaati hai, office mein kaafi der rukti hai, phir auto se ghar wapas aati hai. Office mein rukne ke dauran uska x-t graph kaisa dikhega?",
+        "format": "mcq",
+        "options": [
+          "Ek horizontal line, kyunki position (sthiti) nahi badalti aur velocity zero hai",
+          "Ek steep upward line, kyunki woh office mein hai",
+          "Ek steep downward line, kyunki woh baad mein wapas aayegi",
+          "Ek parabola, kyunki time beet raha hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Rukne ke dauran position constant rehti hai, isliye x-t graph horizontal hota hai aur uska slope, yaani velocity, zero hota hai. Office tak paidal jaane par positive slope milta hai aur wapas aane par negative slope.",
+        "expected_understanding": "x-t graph ka slope velocity hota hai; zero slope ka matlab hai koi motion (gati) nahi.",
+        "answer": "Ek horizontal line, kyunki position (sthiti) nahi badalti aur velocity zero hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-26",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek aadmi seedhi sadak par apne ghar se 2.5 km door market tak 5 km h-1 speed (chaal) se paidal jaata hai. Market band dekh kar, wah turant palat kar 7.5 km h-1 speed se ghar wapas chalta hai. (i) 0 se 30 min, (ii) 0 se 50 min, (iii) 0 se 40 min ke intervals mein average velocity (veg) ka magnitude aur average speed kya hai?",
+        "steps": [
+          {
+            "title": "Market tak time",
+            "detail": "5 km h-1 se 2.5 km jaane mein 0.5 h = 30 min lagta hai."
+          },
+          {
+            "title": "0 se 30 min",
+            "detail": "Displacement (visthapan) = 2.5 km, path = 2.5 km. Average velocity ka magnitude = 2.5/0.5 = 5 km h-1. Average speed = 5 km h-1."
+          },
+          {
+            "title": "0 se 50 min",
+            "detail": "20 min mein 7.5 km h-1 se wapas aate hue woh 2.5 km cover karta hai aur ghar pahunchta hai. Displacement = 0, isliye average velocity ka magnitude = 0. 50 min mein path = 5 km, average speed = 6 km h-1."
+          },
+          {
+            "title": "0 se 40 min",
+            "detail": "Wapas aate hue 10 min mein woh 1.25 km cover karta hai, isliye ghar se position 1.25 km hai. Average velocity ka magnitude = 1.25/(2/3) = 1.875 km h-1. Path = 3.75 km, average speed = 3.75/(2/3) = 5.625 km h-1."
+          }
+        ],
+        "answer": "(i) 5 km h-1 aur 5 km h-1. (ii) 0 km h-1 aur 6 km h-1. (iii) 1.875 km h-1 aur 5.625 km h-1."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-27",
+      "type": "check",
+      "spec": {
+        "question": "One-dimensional motion (gati) ke liye, kisi interval mein displacement (visthapan) ka magnitude aur total path length kaise compare hote hain?",
+        "format": "mcq",
+        "options": [
+          "Total path length, magnitude of displacement se greater than ya equal hota hai; equality sirf tab hoti hai jab koi turning back na ho",
+          "Displacement ka magnitude hamesha path length se greater hota hai",
+          "Ye hamesha equal hote hain",
+          "Path length hamesha zero hota hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Displacement (visthapan) sirf start aur end positions par depend karta hai, jabki path length har step ko add karta hai. Turning back karne se path length larger ho jaata hai. Yahi average speed (chaal) aur magnitude of average velocity (veg) ke beech bhi lagu hota hai.",
+        "expected_understanding": "Displacement (visthapan) ko path length se, aur magnitude of average velocity (veg) ko average speed (chaal) se distinguish karna.",
+        "answer": "Total path length, magnitude of displacement se greater than ya equal hota hai; equality sirf tab hoti hai jab koi turning back na ho"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-28",
+      "type": "check",
+      "spec": {
+        "question": "Do bachche A aur B school se wapas aate hue x-t graphs par hain. A t = 0 par chhote slope (dhaal) ke saath shuru karta hai, B baad mein bade slope ke saath shuru karta hai, aur dono ghar ki same position par khatam hote hain. Isse kaunsa nishkarsh nikalta hai?",
+        "format": "mcq",
+        "options": [
+          "B zyada tez chalta hai kyunki slope bada hai, chahe B baad mein shuru kare",
+          "A zyada tez chalta hai kyunki A pehle shuru karta hai",
+          "Dono same speed (chaal) par chalte hain kyunki dono saath khatam hote hain",
+          "x-t graph se speed nahi padhi ja sakti"
+        ],
+        "answer_index": 0,
+        "explanation": "x-t graph ka slope velocity (veg) hota hai. Bada slope bada speed (chaal) batata hai. Time axis par intercept start time dikhata hai, aur final position school se distance (doori) dikhati hai.",
+        "expected_understanding": "x-t graphs ke intercept se start time aur slope se speed padhna.",
+        "answer": "B zyada tez chalta hai kyunki slope bada hai, chahe B baad mein shuru kare"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        }
+      ]
+    },
+    {
+      "id": "b-29",
+      "type": "check",
+      "spec": {
+        "question": "Ek ball ko 90 m ki height se drop kiya jata hai aur floor ke saath har collision par apni speed (chaal) ka one tenth kho deti hai. t = 0 aur 12 s ke beech iska speed-time graph kaisa dikhega?",
+        "format": "mcq",
+        "options": [
+          "Har fall ke dauraan speed linearly badhti hai, phir har bounce par suddenly previous impact speed ke nine tenths tak gir jaati hai, aur har baar peaks chhote hote jaate hain",
+          "Speed poore samay constant rehti hai",
+          "Speed linearly zero tak ghatti hai aur zero hi rehti hai",
+          "Speed bounces par kisi bhi drop ke bina badhti rehti hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Free fall ke dauraan speed time ke saath badhti hai. Collision par speed nine tenths tak gir jaati hai, isliye next peak chhota hota hai. Realistic smooth graph mein velocity aur acceleration abruptly nahi badal sakte, lekin is idealised description mein bounce par speed drop hoti hai.",
+        "expected_understanding": "Free fall mein speed ke increase aur har bounce par one tenth ke loss ka use karke speed-time graph sketch karo.",
+        "answer": "Har fall ke dauraan speed linearly badhti hai, phir har bounce par suddenly previous impact speed ke nine tenths tak gir jaati hai, aur har baar peaks chhote hote jaate hain"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-33"
+        }
+      ]
+    },
+    {
+      "id": "b-30",
+      "type": "check",
+      "spec": {
+        "question": "Inmein se kaun sa graph kisi particle ki one-dimensional motion (ek-dimension mein gati) ko possible roop se represent nahi kar sakta?",
+        "format": "mcq",
+        "options": [
+          "Ek x-t graph jisme vertical segment ho, jo ek instant par infinite velocity (veg) imply karta hai",
+          "Ek x-t graph jo straight inclined line hai",
+          "Ek v-t graph jo straight inclined line hai",
+          "Ek x-t graph jo constant acceleration (tvaran) ke liye parabola hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Ek vertical x-t segment ka matlab hoga ki position zero time mein change ho rahi hai, jisse infinite velocity milti hai. Straight inclined x-t, inclined v-t aur parabolic x-t — ye sab uniform ya uniformly accelerated motion ke liye possible hain.",
+        "expected_understanding": "Slope (dhaal) ko velocity aur area ko displacement (visthapan) maan kar impossible graphs identify karna.",
+        "answer": "Ek x-t graph jisme vertical segment ho, jo ek instant par infinite velocity (veg) imply karta hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-15"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-31",
+      "type": "check",
+      "spec": {
+        "question": "Ek x-t graph t < 0 ke liye straight line hai aur t > 0 ke liye parabola hai. Kya yeh kehna sahi hai ki particle t < 0 ke liye straight line mein move karta hai aur t > 0 ke liye parabolic path par move karta hai?",
+        "format": "mcq",
+        "options": [
+          "Nahi. Graph position ko time ke against plot karta hai; particle abhi bhi straight line par move karta hai, aur parabola ka matlab hai ki position acceleration ke karan t^2 ke roop mein badalti hai",
+          "Haan, graph ka shape particle ka path hai",
+          "Haan, t > 0 ke liye particle straight line chhod deta hai",
+          "Nahi, kyunki x-t graphs parabola nahi ho sakte"
+        ],
+        "answer_index": 0,
+        "explanation": "Ek x-t graph space mein trajectory nahi hai. One-dimensional motion ke liye particle straight line par move karta hai; ek parabolic x-t graph constant acceleration ko darshata hai.",
+        "expected_understanding": "Graph ke shape aur spatial path mein farq karein.",
+        "answer": "Nahi. Graph position ko time ke against plot karta hai; particle abhi bhi straight line par move karta hai, aur parabola ka matlab hai ki position acceleration ke karan t^2 ke roop mein badalti hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-26"
+        }
+      ]
+    },
+    {
+      "id": "b-32",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Motion (gati) hamesha ek fixed point ke respect mein measure ki jati hai. Is fixed point ko frame of reference kehte hain.",
+          "Point ka choice arbitrary hai aur saare frames of reference equally valid hain. Ek moving car mein passenger driver ke respect mein move nahi kar raha hota.",
+          "Sidewalk par khade ek person ke liye passenger aur driver dono move kar rahe hain. Relative velocity (veg) different frames se dekhi gayi motion ko compare karti hai.",
+          "Ek object ke doosre se takrane ke liye relevant speed (chaal) nikalne ke liye, aap unki velocities ko same frame of reference mein compare karte hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-33",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek police van highway par 30 km h-1 speed (chaal) se chal rahi hai aur same direction mein 192 km h-1 speed se bhaag rahi thief ki car par bullet fire karti hai. Agar bullet ki muzzle speed 150 m s-1 hai, to bullet thief ki car ko kis speed se hit karegi?",
+        "steps": [
+          {
+            "title": "Speeds ko m s-1 mein convert karo",
+            "detail": "30 km h-1 = 8.33 m s-1 aur 192 km h-1 = 53.33 m s-1."
+          },
+          {
+            "title": "Ground ke respect mein bullet ki speed",
+            "detail": "Bullet speed = muzzle speed + van speed = 150 + 8.33 = 158.33 m s-1 same direction mein."
+          },
+          {
+            "title": "Thief ki car ke respect mein relative speed",
+            "detail": "Relative speed = 158.33 - 53.33 = 105 m s-1. Yahi speed thief ki car ko damage karne ke liye relevant hai."
+          }
+        ],
+        "answer": "Bullet thief ki car ko lagbhag 105 m s-1 ki relative speed se hit karti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-34",
+      "type": "check",
+      "spec": {
+        "question": "Ek passenger ek moving car mein baitha hai. Passenger kis ke respect mein motion (gati) kar raha hai?",
+        "format": "mcq",
+        "options": [
+          "Driver ke respect mein moving nahi hai, lekin sidewalk par khade person ke respect mein moving hai",
+          "Driver ke respect mein moving hai lekin sidewalk ke respect mein nahi",
+          "Kisi ke bhi respect mein moving nahi hai",
+          "Sirf car seat ke respect mein moving hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Motion (gati) Frame of reference ke relative hoti hai. Passenger aur driver same frame share karte hain, jabki sidewalk par khada person different frame mein hai.",
+        "expected_understanding": "Motion chune gaye Frame of reference par depend karti hai.",
+        "answer": "Driver ke respect mein moving nahi hai, lekin sidewalk par khade person ke respect mein moving hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-35"
+        }
+      ]
+    },
+    {
+      "id": "b-35",
+      "type": "check",
+      "spec": {
+        "question": "Ek velocity-time graph constant slope ke saath upar uthta hai, phir horizontal ho jata hai, phir constant slope ke saath neeche gir kar zero tak aata hai. Yeh kis physical situation ko darshata hai?",
+        "format": "mcq",
+        "options": [
+          "Constant acceleration ke saath speed badhana, phir constant velocity par chalna, phir brake lagakar rukna",
+          "Poori tarah constant velocity par chalna",
+          "Poori tarah backward direction mein chalna",
+          "Bilkul motion nahi"
+        ],
+        "answer_index": 0,
+        "explanation": "v-t graph ka slope acceleration hota hai. Rising slope ka matlab positive acceleration hai, horizontal ka matlab zero acceleration hai, aur falling slope ka matlab negative acceleration hai jabki object tab tak forward move karta rehta hai jab tak velocity zero na ho jaye.",
+        "expected_understanding": "v-t graphs par slope se acceleration aur velocity se motion padhna.",
+        "answer": "Constant acceleration ke saath speed badhana, phir constant velocity par chalna, phir brake lagakar rukna"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-36",
+      "type": "check",
+      "spec": {
+        "question": "Ek chuni gayi instant par x-t graph par, Position positive hai aur tangent ka slope (dhaal) negative hai. Us instant par Position aur velocity (veg) ke signs kya hain?",
+        "format": "mcq",
+        "options": [
+          "Position positive, velocity negative",
+          "Position negative, velocity positive",
+          "Position positive, velocity positive",
+          "Position zero, velocity zero"
+        ],
+        "answer_index": 0,
+        "explanation": "Position ka sign x ki value se padha jata hai. Velocity (veg) ka sign tangent ke slope (dhaal) se padha jata hai; negative slope ka matlab velocity negative hai.",
+        "expected_understanding": "Graph value se Position aur tangent slope se velocity padhna.",
+        "answer": "Position positive, velocity negative"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-37",
+      "type": "check",
+      "spec": {
+        "question": "Ek x-t graph teen barabar time intervals dikhata hai. Beech wale interval ka slope (dhaal) sabse steep hai, pehle interval ka moderate slope hai, aur aakhri interval ka slope sabse shallow hai, sabhi ka slope positive hai. Kis interval mein average speed greatest aur least hai?",
+        "format": "mcq",
+        "options": [
+          "Beech wale interval mein greatest aur aakhri interval mein least",
+          "Aakhri interval mein greatest aur beech wale interval mein least",
+          "Pehle interval mein greatest aur beech wale interval mein least",
+          "Teenon intervals mein equal"
+        ],
+        "answer_index": 0,
+        "explanation": "Kisi interval par average speed displacement (visthapan) ka magnitude divided by time hota hai, jo straight segment ke liye slope ka magnitude hota hai. Sabse steep slope greatest average speed deta hai aur sabse shallow least. Sabhi average velocities positive hain kyunki slopes positive hain.",
+        "expected_understanding": "Equal intervals par slope magnitude ka use karke average speed compare karna.",
+        "answer": "Beech wale interval mein greatest aur aakhri interval mein least"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-38",
+      "type": "check",
+      "spec": {
+        "question": "Constant direction mein motion (gati) ke liye ek speed (chaal)-time graph teen barabar time intervals dikhata hai. Pehle interval ka rising slope (dhaal) sabse steep hai, doosra horizontal hai, aur teesre ka falling slope shallow hai. Kis interval mein average acceleration (tvaran) magnitude mein greatest hai aur average speed greatest hai?",
+        "format": "mcq",
+        "options": [
+          "Average acceleration pehle interval mein greatest; average speed doosre interval mein greatest agar uska speed level highest hai",
+          "Average acceleration doosre interval mein greatest; average speed pehle interval mein greatest",
+          "Average acceleration teesre interval mein greatest; average speed teesre interval mein greatest",
+          "Average acceleration sabhi intervals mein zero hai"
+        ],
+        "answer_index": 0,
+        "explanation": "Average acceleration speed-time graph ka slope (dhaal) hota hai, isliye steepest slope greatest magnitude deta hai. Average speed interval par graph ki average height hoti hai, isliye highest speed level wala interval greatest average speed deta hai. Positive direction ko motion (gati) direction maanne par, velocity (veg) sabhi intervals mein positive hai aur acceleration (tvaran) positive, zero, phir negative hai.",
+        "expected_understanding": "Speed-time graphs par slope (dhaal) se average acceleration aur height se average speed padho.",
+        "answer": "Average acceleration pehle interval mein greatest; average speed doosre interval mein greatest agar uska speed level highest hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-39",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Teen kinematic equations yaad rakho: v = v0 + a t, x = v0 t + (1/2) a t^2, aur v^2 = v0^2 + 2 a x.",
+          "Agar particle x0 se start hota hai to (x - x0) use karo. Origin aur positive direction choose karne ke baad values ko proper signs ke saath substitute karo.",
+          "Upward positive ke saath free fall ke liye a = -9.8 m s-2 use karo. Stopping ke liye yaad rakho ki distance (doori) initial velocity (veg) ke square ke hisaab se badhti hai.",
+          "Graphs dhyan se padho: x-t ka slope (dhaal) velocity (veg) hai, v-t ka slope acceleration (tvaran) hai, aur v-t ke neeche area displacement (visthapan) hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-40",
+      "type": "check",
+      "spec": {
+        "question": "Ek object rest se freely girta hai. y = -4.9 t^2 ka use karo jahan upward positive hai, toh 2 s mein girne wali distance (doori) ka magnitude kya hai? Answer metres mein do.",
+        "format": "numeric",
+        "answer": "19.6",
+        "explanation": "y ka magnitude = 4.9 x (2)^2 = 4.9 x 4 = 19.6 m. Negative sign dikhata hai ki jab upward positive hai tab displacement (visthapan) downward hai.",
+        "expected_understanding": "Free-fall equation y = -4.9 t^2 apply karo distance (doori) fallen nikalne ke liye."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-41",
+      "type": "check",
+      "spec": {
+        "question": "Instantaneous speed aur magnitude of instantaneous velocity ke beech koi distinction kyun nahi hota, jabki average speed magnitude of average velocity se alag ho sakti hai?",
+        "format": "mcq",
+        "options": [
+          "Ek instant par aisa koi interval nahi hota jisme direction badal sake, isliye us instant par speed bas velocity ka magnitude hoti hai",
+          "Kyunki ek instant par speed hamesha zero hoti hai",
+          "Kyunki average velocity hamesha zero hoti hai",
+          "Kyunki instantaneous velocity ki koi direction nahi hoti"
+        ],
+        "answer_index": 0,
+        "explanation": "Instantaneous speed ko instantaneous velocity ka magnitude define kiya jata hai. Average speed finite interval mein total path length use karti hai, jo direction badalne par magnitude of average velocity se zyada ho sakti hai.",
+        "expected_understanding": "Definition ke hisaab se instantaneous speed, instantaneous velocity ke magnitude ke barabar hoti hai.",
+        "answer": "Ek instant par aisa koi interval nahi hota jisme direction badal sake, isliye us instant par speed bas velocity ka magnitude hoti hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-42",
+      "type": "check",
+      "spec": {
+        "question": "Ek particle speed up ho raha hai. Uske velocity (veg) ke relative acceleration (tvaran) ki direction kya hai?",
+        "format": "mcq",
+        "options": [
+          "Velocity ki direction mein",
+          "Velocity ke opposite",
+          "Hamesha negative",
+          "Hamesha zero"
+        ],
+        "answer_index": 0,
+        "explanation": "Agar particle speed up ho raha hai, to acceleration velocity ki direction mein hota hai. Agar speed decrease ho rahi hai, to acceleration velocity ke opposite hota hai. Yeh origin aur axis ke choice se independent hai.",
+        "expected_understanding": "Acceleration ki direction ko velocity ki direction se compare karke decide karna ki particle speed up ho raha hai ya slow down.",
+        "answer": "Velocity ki direction mein"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    }
+  ]
+}

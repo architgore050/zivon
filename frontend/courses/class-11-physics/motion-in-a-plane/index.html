@@ -1,345 +1,350 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-script="Latn">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
 <title>Motion in a Plane - Zivon</title>
-<link rel="stylesheet" href="../../../assets/zivon.css">
+<link rel="canonical" href="index.html">
+<link rel="alternate" hreflang="en" href="index.html">
+<link rel="alternate" hreflang="hi" href="hi/index.html">
+<link rel="alternate" hreflang="hi-Latn" href="hi-Latn/index.html">
+<link rel="stylesheet" href="../../../assets/zivon.css?v=20261111b">
 
 </head>
 <body>
-<header class="zn-lang-bar"><div class="zn-lang-in"><span class="zn-lang-lab">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" aria-checked="true">English</button><button type="button" class="zn-chip" role="radio" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" aria-checked="false">Hinglish</button></div></div></header>
+<header class="zn-lang-bar" data-current-locale="en"><div class="zn-lang-in"><span class="zn-lang-lab" data-i18n="ui.lang_label">Language</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" data-locale="en" data-href="index.html" aria-checked="true">English</button><button type="button" class="zn-chip" role="radio" data-locale="hi" data-href="hi/index.html" lang="hi" aria-checked="false">हिन्दी</button><button type="button" class="zn-chip" role="radio" data-locale="hi-Latn" data-href="hi-Latn/index.html" lang="hi-Latn" aria-checked="false">Hinglish</button></div><span class="zn-trans-badge" data-i18n="ui.trans_badge" hidden>Original English</span></div></header>
 <main class="zn-page">
   <header class="zn-header">
     <p class="zn-kicker">class-11-physics</p>
-    <h1 class="zn-title">Motion in a Plane</h1>
-    <p class="zn-objectives-label">After this lesson you can:</p>
+    <h1 class="zn-title" data-i18n="b-00-meta.title">Motion in a Plane</h1>
+    <p class="zn-objectives-label" data-i18n="ui.objectives_heading">After this lesson you can:</p>
     <ul class="zn-objectives">
-      <li>After this lesson you can tell whether a quantity is a scalar or a vector and add vectors graphically and by components.</li>
-      <li>After this lesson you can find position, velocity and acceleration in a plane from components and from differentiation.</li>
-      <li>After this lesson you can solve constant-acceleration, projectile and uniform circular motion problems using the equations of this chapter.</li>
+      <li data-i18n="b-00-meta.objectives.0">After this lesson you can tell whether a quantity is a scalar or a vector and add vectors graphically and by components.</li>
+      <li data-i18n="b-00-meta.objectives.1">After this lesson you can find position, velocity and acceleration in a plane from components and from differentiation.</li>
+      <li data-i18n="b-00-meta.objectives.2">After this lesson you can solve constant-acceleration, projectile and uniform circular motion problems using the equations of this chapter.</li>
     </ul>
   </header>
   <section class="zn-text" id="b-01">
-    <p>You throw a ball and it moves sideways and up at the same time. A plus or minus sign cannot describe that sideways-plus-up direction. You need vectors, quantities that carry both magnitude and direction.</p>
-    <p>In this lesson you will learn the language of vectors, then use it for position, velocity and acceleration in a plane. You will then solve constant-acceleration motion, projectile motion and uniform circular motion.</p>
+    <p data-i18n="b-01.paragraphs.0">You throw a ball and it moves sideways and up at the same time. A plus or minus sign cannot describe that sideways-plus-up direction. You need vectors, quantities that carry both magnitude and direction.</p>
+    <p data-i18n="b-01.paragraphs.1">In this lesson you will learn the language of vectors, then use it for position, velocity and acceleration in a plane. You will then solve constant-acceleration motion, projectile motion and uniform circular motion.</p>
   </section>
   <section class="zn-text" id="b-02">
-    <p>A scalar has magnitude only and is given by a number with a unit. Distance, mass, temperature and time are scalars. A vector has magnitude and direction and obeys triangle or parallelogram addition. Displacement, velocity, acceleration and force are vectors.</p>
-    <p>Choose origin O. The position vector OP equals r points from O to P. If the object moves from P to P prime, displacement PP prime is the straight line joining start and finish. It does not depend on the actual path, and its magnitude is less than or equal to path length.</p>
+    <p data-i18n="b-02.paragraphs.0">A scalar has magnitude only and is given by a number with a unit. Distance, mass, temperature and time are scalars. A vector has magnitude and direction and obeys triangle or parallelogram addition. Displacement, velocity, acceleration and force are vectors.</p>
+    <p data-i18n="b-02.paragraphs.1">Choose origin O. The position vector OP equals r points from O to P. If the object moves from P to P prime, displacement PP prime is the straight line joining start and finish. It does not depend on the actual path, and its magnitude is less than or equal to path length.</p>
   </section>
   <figure class="zn-diagram" id="b-03">
-    <div class="zn-diagram-svg"><svg viewBox='0 0 400 220'><line x1='60' y1='180' x2='180' y2='80' stroke='#1C1B18' stroke-width='2.6'/><line x1='60' y1='180' x2='320' y2='60' stroke='#1C1B18' stroke-width='2.6'/><line x1='180' y1='80' x2='320' y2='60' stroke='#1F3A9E' stroke-width='3'/><polygon points='180,80 168,88 176,70' fill='#1C1B18'/><polygon points='320,60 306,66 312,50' fill='#1C1B18'/><polygon points='320,60 308,72 304,58' fill='#1F3A9E'/><circle cx='60' cy='180' r='4' fill='#1C1B18'/><circle cx='180' cy='80' r='4' fill='#1C1B18'/><circle cx='320' cy='60' r='4' fill='#1C1B18'/><text x='48' y='200' fill='#1C1B18' font-size='20'>O</text><text x='170' y='70' fill='#1C1B18' font-size='20'>P</text><text x='330' y='55' fill='#1C1B18' font-size='20'>P'</text><text x='110' y='120' fill='#1C1B18' font-size='20'>r</text><text x='210' y='110' fill='#1C1B18' font-size='20'>r'</text><text x='240' y='45' fill='#1F3A9E' font-size='20'>delta r</text></svg></div>
-    <figcaption>Position vectors r and r prime from origin O, and displacement delta r from P to P prime. Arrow lengths are schematic, not to scale.</figcaption>
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="60" y1="180" x2="180" y2="80" stroke="#1C1B18" stroke-width="2.6" /><line x1="60" y1="180" x2="320" y2="60" stroke="#1C1B18" stroke-width="2.6" /><line x1="180" y1="80" x2="320" y2="60" stroke="#1F3A9E" stroke-width="3" /><polygon points="180,80 168,88 176,70" fill="#1C1B18" /><polygon points="320,60 306,66 312,50" fill="#1C1B18" /><polygon points="320,60 308,72 304,58" fill="#1F3A9E" /><circle cx="60" cy="180" r="4" fill="#1C1B18" /><circle cx="180" cy="80" r="4" fill="#1C1B18" /><circle cx="320" cy="60" r="4" fill="#1C1B18" /><text x="48" y="200" fill="#1C1B18" font-size="20">O</text><text x="170" y="70" fill="#1C1B18" font-size="20">P</text><text x="330" y="55" fill="#1C1B18" font-size="20" data-i18n="b-03.svg_texts.t-0">P'</text><text x="110" y="120" fill="#1C1B18" font-size="20">r</text><text x="210" y="110" fill="#1C1B18" font-size="20" data-i18n="b-03.svg_texts.t-1">r'</text><text x="240" y="45" fill="#1F3A9E" font-size="20" data-i18n="b-03.svg_texts.t-2">delta r</text></svg></div>
+    <figcaption data-i18n="b-03.caption">Position vectors r and r prime from origin O, and displacement delta r from P to P prime. Arrow lengths are schematic, not to scale.</figcaption>
   </figure>
   <fieldset class="zn-check" id="b-04" data-format="mcq" data-answer-index="1">
-    <legend>Which list contains only vector quantities?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-04" value="0"> <span>mass, speed, temperature</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-04" value="1"> <span>displacement, velocity, acceleration</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-04" value="2"> <span>distance, time, volume</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-04" value="3"> <span>density, charge, energy</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-04.question">Which list contains only vector quantities?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="0"> <span data-i18n="b-04.options.0">mass, speed, temperature</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="1"> <span data-i18n="b-04.options.1">displacement, velocity, acceleration</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="2"> <span data-i18n="b-04.options.2">distance, time, volume</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-04" value="3"> <span data-i18n="b-04.options.3">density, charge, energy</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Displacement, velocity and acceleration have magnitude and direction and obey vector addition. The other lists are scalars.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-04.explanation">Displacement, velocity and acceleration have magnitude and direction and obey vector addition. The other lists are scalars.</p></details>
   </fieldset>
   <section class="zn-text" id="b-05">
-    <p>Multiplying A by positive lambda gives magnitude lambda times |A| in the same direction. Multiplying by -lambda reverses direction. Multiplying a velocity by a time gives a displacement.</p>
-    <p>Two vectors are equal only if magnitude and direction match. Shifting parallel to itself leaves a free vector unchanged. A null vector has zero magnitude and no direction, and A plus 0 equals A.</p>
+    <p data-i18n="b-05.paragraphs.0">Multiplying A by positive lambda gives magnitude lambda times |A| in the same direction. Multiplying by -lambda reverses direction. Multiplying a velocity by a time gives a displacement.</p>
+    <p data-i18n="b-05.paragraphs.1">Two vectors are equal only if magnitude and direction match. Shifting parallel to itself leaves a free vector unchanged. A null vector has zero magnitude and no direction, and A plus 0 equals A.</p>
   </section>
   <figure class="zn-diagram" id="b-06">
-    <div class="zn-diagram-svg"><svg viewBox='0 0 400 220'><line x1='50' y1='180' x2='190' y2='150' stroke='#1C1B18' stroke-width='2.6'/><line x1='50' y1='180' x2='130' y2='90' stroke='#1C1B18' stroke-width='2.6'/><line x1='190' y1='150' x2='270' y2='120' stroke='#5A5748' stroke-width='2' stroke-dasharray='6 4'/><line x1='130' y1='90' x2='270' y2='120' stroke='#5A5748' stroke-width='2' stroke-dasharray='6 4'/><line x1='50' y1='180' x2='270' y2='120' stroke='#1F3A9E' stroke-width='3'/><polygon points='270,120 254,124 260,110' fill='#1F3A9E'/><text x='40' y='200' fill='#1C1B18' font-size='20'>O</text><text x='195' y='145' fill='#1C1B18' font-size='20'>A</text><text x='120' y='85' fill='#1C1B18' font-size='20'>B</text><text x='275' y='115' fill='#1F3A9E' font-size='20'>R = A+B</text></svg></div>
-    <figcaption>Parallelogram method: A and B from common origin O, resultant R along diagonal OS. Dashed lines are construction lines.</figcaption>
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><line x1="50" y1="180" x2="190" y2="150" stroke="#1C1B18" stroke-width="2.6" /><line x1="50" y1="180" x2="130" y2="90" stroke="#1C1B18" stroke-width="2.6" /><line x1="190" y1="150" x2="270" y2="120" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 4" /><line x1="130" y1="90" x2="270" y2="120" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 4" /><line x1="50" y1="180" x2="270" y2="120" stroke="#1F3A9E" stroke-width="3" /><polygon points="270,120 254,124 260,110" fill="#1F3A9E" /><text x="40" y="200" fill="#1C1B18" font-size="20">O</text><text x="195" y="145" fill="#1C1B18" font-size="20">A</text><text x="120" y="85" fill="#1C1B18" font-size="20">B</text><text x="275" y="115" fill="#1F3A9E" font-size="20">R = A+B</text></svg></div>
+    <figcaption data-i18n="b-06.caption">Parallelogram method: A and B from common origin O, resultant R along diagonal OS. Dashed lines are construction lines.</figcaption>
   </figure>
   <section class="zn-text" id="b-07">
-    <p>Head-to-tail method: place tail of B at head of A, join tail of A to head of B to get R. Parallelogram method: bring tails to common origin and complete the parallelogram; R is the diagonal. Both give the same R.</p>
-    <p>Addition is commutative and associative. Subtraction is A minus B equals A plus (-B). Adding A and -A gives the null vector.</p>
+    <p data-i18n="b-07.paragraphs.0">Head-to-tail method: place tail of B at head of A, join tail of A to head of B to get R. Parallelogram method: bring tails to common origin and complete the parallelogram; R is the diagonal. Both give the same R.</p>
+    <p data-i18n="b-07.paragraphs.1">Addition is commutative and associative. Subtraction is A minus B equals A plus (-B). Adding A and -A gives the null vector.</p>
   </section>
   <section class="zn-example" id="b-08">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Rain is falling vertically with a speed of 35 m s-1. Wind starts blowing with a speed of 12 m s-1 in east to west direction. In which direction should a boy hold his umbrella?</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-08.problem">Rain is falling vertically with a speed of 35 m s-1. Wind starts blowing with a speed of 12 m s-1 in east to west direction. In which direction should a boy hold his umbrella?</p>
     <ol>
-      <li><strong>Represent velocities</strong> Let vr be rain velocity vertically down and vw be wind velocity east to west. Resultant R is their vector sum.</li>
-      <li><strong>Magnitude</strong> R = sqrt(vr squared + vw squared) = sqrt(35 squared + 12 squared) = 37 m s-1.</li>
-      <li><strong>Direction</strong> tan theta = vw / vr = 12 / 35 = 0.343, so theta = tan inverse 0.343 = 19 degrees from the vertical.</li>
+      <li><strong data-i18n="b-08.steps.0.title">Represent velocities</strong> <span data-i18n="b-08.steps.0.detail">Let vr be rain velocity vertically down and vw be wind velocity east to west. Resultant R is their vector sum.</span></li>
+      <li><strong data-i18n="b-08.steps.1.title">Magnitude</strong> <span data-i18n="b-08.steps.1.detail">R = sqrt(vr squared + vw squared) = sqrt(35 squared + 12 squared) = 37 m s-1.</span></li>
+      <li><strong data-i18n="b-08.steps.2.title">Direction</strong> <span data-i18n="b-08.steps.2.detail">tan theta = vw / vr = 12 / 35 = 0.343, so theta = tan inverse 0.343 = 19 degrees from the vertical.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Hold umbrella in the vertical plane at about 19 degrees with the vertical towards the east, as given in the source.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-08.answer">Hold umbrella in the vertical plane at about 19 degrees with the vertical towards the east, as given in the source.</span></p>
   </section>
   <fieldset class="zn-check" id="b-09" data-format="mcq" data-answer-index="2">
-    <legend>Which algebraic operation with scalar and vector quantities is meaningful in general?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-09" value="0"> <span>adding a scalar to a vector of the same dimensions</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-09" value="1"> <span>adding a component of a vector to the same vector</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-09" value="2"> <span>multiplying any vector by any scalar</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-09" value="3"> <span>adding any two scalars of different units</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-09.question">Which algebraic operation with scalar and vector quantities is meaningful in general?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="0"> <span data-i18n="b-09.options.0">adding a scalar to a vector of the same dimensions</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="1"> <span data-i18n="b-09.options.1">adding a component of a vector to the same vector</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="2"> <span data-i18n="b-09.options.2">multiplying any vector by any scalar</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-09" value="3"> <span data-i18n="b-09.options.3">adding any two scalars of different units</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>A vector multiplied by a scalar is a vector with scaled magnitude. Adding scalar to vector, or scalars of different units, is not meaningful.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-09.explanation">A vector multiplied by a scalar is a vector with scaled magnitude. Adding scalar to vector, or scalars of different units, is not meaningful.</p></details>
   </fieldset>
   <section class="zn-text" id="b-10">
-    <p>A vector A in a plane can be resolved along two non-parallel directions. Using rectangular axes, unit vectors i, j, k have magnitude 1 and point along x, y, z axes.</p>
-    <p>Write A equals Ax i plus Ay j. Ax and Ay are scalars; Ax i and Ay j are vectors. In three dimensions add Az k. Position vector is r equals x i plus y j plus z k.</p>
+    <p data-i18n="b-10.paragraphs.0">A vector A in a plane can be resolved along two non-parallel directions. Using rectangular axes, unit vectors i, j, k have magnitude 1 and point along x, y, z axes.</p>
+    <p data-i18n="b-10.paragraphs.1">Write A equals Ax i plus Ay j. Ax and Ay are scalars; Ax i and Ay j are vectors. In three dimensions add Az k. Position vector is r equals x i plus y j plus z k.</p>
   </section>
   <section class="zn-reveal" id="b-11">
-    <h3>From magnitude-angle to components and back</h3>
-      <details class="zn-reveal-step"><summary>Given A and theta</summary><p>Ax = A cos theta and Ay = A sin theta from trigonometry on the component diagram.</p></details>
-      <details class="zn-reveal-step"><summary>Given Ax and Ay</summary><p>A = sqrt(Ax squared + Ay squared) by Pythagoras, and tan theta = Ay / Ax.</p></details>
-      <details class="zn-reveal-step"><summary>Signs</summary><p>A component can be positive, negative or zero depending on theta, because cos and sin change sign by quadrant.</p></details>
+    <h3 data-i18n="b-11.title">From magnitude-angle to components and back</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-11.steps.0.title">Given A and theta</summary><p data-i18n="b-11.steps.0.detail">Ax = A cos theta and Ay = A sin theta from trigonometry on the component diagram.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-11.steps.1.title">Given Ax and Ay</summary><p data-i18n="b-11.steps.1.detail">A = sqrt(Ax squared + Ay squared) by Pythagoras, and tan theta = Ay / Ax.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-11.steps.2.title">Signs</summary><p data-i18n="b-11.steps.2.detail">A component can be positive, negative or zero depending on theta, because cos and sin change sign by quadrant.</p></details>
   </section>
   <section class="zn-text" id="b-12">
-    <p>Analytical addition: write A equals Ax i plus Ay j and B equals Bx i plus By j. Then R equals (Ax plus Bx) i plus (Ay plus By) j. Each resultant component is the sum of corresponding components.</p>
-    <p>In three dimensions add z components the same way. This extends to any number of vectors, with subtraction as addition of the negative.</p>
+    <p data-i18n="b-12.paragraphs.0">Analytical addition: write A equals Ax i plus Ay j and B equals Bx i plus By j. Then R equals (Ax plus Bx) i plus (Ay plus By) j. Each resultant component is the sum of corresponding components.</p>
+    <p data-i18n="b-12.paragraphs.1">In three dimensions add z components the same way. This extends to any number of vectors, with subtraction as addition of the negative.</p>
   </section>
   <section class="zn-example" id="b-13">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Find the magnitude and direction of the resultant of two vectors A and B in terms of their magnitudes and angle theta between them.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-13.problem">Find the magnitude and direction of the resultant of two vectors A and B in terms of their magnitudes and angle theta between them.</p>
     <ol>
-      <li><strong>Parallelogram geometry</strong> Let OS be resultant R. ON = A + B cos theta and SN = B sin theta, with OS squared = ON squared + SN squared.</li>
-      <li><strong>Magnitude</strong> R squared = (A + B cos theta) squared + (B sin theta) squared = A squared + B squared + 2AB cos theta.</li>
-      <li><strong>Direction</strong> R sin alpha = B sin theta, so sin alpha = B sin theta / R, where alpha is angle between R and A.</li>
+      <li><strong data-i18n="b-13.steps.0.title">Parallelogram geometry</strong> <span data-i18n="b-13.steps.0.detail">Let OS be resultant R. ON = A + B cos theta and SN = B sin theta, with OS squared = ON squared + SN squared.</span></li>
+      <li><strong data-i18n="b-13.steps.1.title">Magnitude</strong> <span data-i18n="b-13.steps.1.detail">R squared = (A + B cos theta) squared + (B sin theta) squared = A squared + B squared + 2AB cos theta.</span></li>
+      <li><strong data-i18n="b-13.steps.2.title">Direction</strong> <span data-i18n="b-13.steps.2.detail">R sin alpha = B sin theta, so sin alpha = B sin theta / R, where alpha is angle between R and A.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> R squared = A squared + B squared + 2AB cos theta; direction from sin alpha = B sin theta / R.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-13.answer">R squared = A squared + B squared + 2AB cos theta; direction from sin alpha = B sin theta / R.</span></p>
   </section>
   <section class="zn-example" id="b-14">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A motorboat is racing towards north at 25 km/h and the water current is 10 km/h in the direction of 60 degrees east of south. Find the resultant velocity of the boat.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-14.problem">A motorboat is racing towards north at 25 km/h and the water current is 10 km/h in the direction of 60 degrees east of south. Find the resultant velocity of the boat.</p>
     <ol>
-      <li><strong>Draw vectors</strong> vb is 25 km/h north, vc is 10 km/h at 60 degrees east of south. Angle between them in parallelogram is 120 degrees.</li>
-      <li><strong>Magnitude by law of cosines</strong> R squared = 25 squared + 10 squared + 2 x 25 x 10 x cos 120 degrees, giving R approx 21.8 km/h.</li>
-      <li><strong>Direction by law of sines</strong> sin f = vc sin 120 degrees / R = 10 x sin 120 degrees / 21.8 = 0.397, so f approx 23.4 degrees.</li>
+      <li><strong data-i18n="b-14.steps.0.title">Draw vectors</strong> <span data-i18n="b-14.steps.0.detail">vb is 25 km/h north, vc is 10 km/h at 60 degrees east of south. Angle between them in parallelogram is 120 degrees.</span></li>
+      <li><strong data-i18n="b-14.steps.1.title">Magnitude by law of cosines</strong> <span data-i18n="b-14.steps.1.detail">R squared = 25 squared + 10 squared + 2 x 25 x 10 x cos 120 degrees, giving R approx 21.8 km/h.</span></li>
+      <li><strong data-i18n="b-14.steps.2.title">Direction by law of sines</strong> <span data-i18n="b-14.steps.2.detail">sin f = vc sin 120 degrees / R = 10 x sin 120 degrees / 21.8 = 0.397, so f approx 23.4 degrees.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Resultant speed about 21.8 km/h, direction given by f = 23.4 degrees in the source figure.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-14.answer">Resultant speed about 21.8 km/h, direction given by f = 23.4 degrees in the source figure.</span></p>
   </section>
   <fieldset class="zn-check" id="b-15" data-format="mcq" data-answer-index="0">
-    <legend>When does |a + b| = |a| + |b| hold as equality in the vector inequalities?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-15" value="0"> <span>when a and b are in the same direction</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-15" value="1"> <span>when a and b are opposite in direction</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-15" value="2"> <span>when a and b are perpendicular</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-15" value="3"> <span>always, for all a and b</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-15.question">When does |a + b| = |a| + |b| hold as equality in the vector inequalities?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="0"> <span data-i18n="b-15.options.0">when a and b are in the same direction</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="1"> <span data-i18n="b-15.options.1">when a and b are opposite in direction</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="2"> <span data-i18n="b-15.options.2">when a and b are perpendicular</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-15" value="3"> <span data-i18n="b-15.options.3">always, for all a and b</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Geometrically the triangle inequality becomes equality only when vectors are collinear in the same direction. If a+b+c+d = 0 then |a+c| = |b+d| because a+c = -(b+d).</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-15.explanation">Geometrically the triangle inequality becomes equality only when vectors are collinear in the same direction. If a+b+c+d = 0 then |a+c| = |b+d| because a+c = -(b+d).</p></details>
   </fieldset>
   <section class="zn-text" id="b-16">
-    <p>Position r equals x i plus y j. Displacement delta r equals r prime minus r equals delta x i plus delta y j. Average velocity is delta r over delta t.</p>
-    <p>Instantaneous velocity v equals dr over dt, tangent to the path. Acceleration a equals dv over dt. Components are vx equals dx over dt, vy equals dy over dt, ax equals dvx over dt, ay equals dvy over dt.</p>
+    <p data-i18n="b-16.paragraphs.0">Position r equals x i plus y j. Displacement delta r equals r prime minus r equals delta x i plus delta y j. Average velocity is delta r over delta t.</p>
+    <p data-i18n="b-16.paragraphs.1">Instantaneous velocity v equals dr over dt, tangent to the path. Acceleration a equals dv over dt. Components are vx equals dx over dt, vy equals dy over dt, ax equals dvx over dt, ay equals dvy over dt.</p>
   </section>
   <figure class="zn-diagram" id="b-17">
-    <div class="zn-diagram-svg"><svg viewBox='0 0 400 220'><path d='M 40 180 Q 150 60 360 140' fill='none' stroke='#1C1B18' stroke-width='2.6'/><line x1='120' y1='140' x2='300' y2='80' stroke='#5A5748' stroke-width='2' stroke-dasharray='6 4'/><line x1='200' y1='110' x2='300' y2='80' stroke='#1F3A9E' stroke-width='3'/><polygon points='300,80 284,84 290,70' fill='#1F3A9E'/><circle cx='200' cy='110' r='4' fill='#1C1B18'/><text x='190' y='100' fill='#1C1B18' font-size='20'>P</text><text x='305' y='75' fill='#1F3A9E' font-size='20'>v tangent</text><text x='60' y='200' fill='#1C1B18' font-size='20'>path</text></svg></div>
-    <figcaption>Velocity at P is tangent to the path in the direction of motion. Dashed line is the tangent line.</figcaption>
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><path d="M 40 180 Q 150 60 360 140" fill="none" stroke="#1C1B18" stroke-width="2.6" /><line x1="120" y1="140" x2="300" y2="80" stroke="#5A5748" stroke-width="2" stroke-dasharray="6 4" /><line x1="200" y1="110" x2="300" y2="80" stroke="#1F3A9E" stroke-width="3" /><polygon points="300,80 284,84 290,70" fill="#1F3A9E" /><circle cx="200" cy="110" r="4" fill="#1C1B18" /><text x="190" y="100" fill="#1C1B18" font-size="20">P</text><text x="305" y="75" fill="#1F3A9E" font-size="20" data-i18n="b-17.svg_texts.t-0">v tangent</text><text x="60" y="200" fill="#1C1B18" font-size="20" data-i18n="b-17.svg_texts.t-1">path</text></svg></div>
+    <figcaption data-i18n="b-17.caption">Velocity at P is tangent to the path in the direction of motion. Dashed line is the tangent line.</figcaption>
   </figure>
   <section class="zn-reveal" id="b-18">
-    <h3>Velocity and acceleration as limits</h3>
-      <details class="zn-reveal-step"><summary>Average velocity</summary><p>v average = delta r / delta t, direction of delta r, which is a chord of the path.</p></details>
-      <details class="zn-reveal-step"><summary>Instantaneous velocity</summary><p>As delta t tends to zero, chord becomes tangent; v = limit delta r / delta t = dr/dt.</p></details>
-      <details class="zn-reveal-step"><summary>Acceleration</summary><p>a average = delta v / delta t; as delta t tends to zero, a = dv/dt. In 2D, a may make any angle 0 to 180 degrees with v.</p></details>
+    <h3 data-i18n="b-18.title">Velocity and acceleration as limits</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-18.steps.0.title">Average velocity</summary><p data-i18n="b-18.steps.0.detail">v average = delta r / delta t, direction of delta r, which is a chord of the path.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-18.steps.1.title">Instantaneous velocity</summary><p data-i18n="b-18.steps.1.detail">As delta t tends to zero, chord becomes tangent; v = limit delta r / delta t = dr/dt.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-18.steps.2.title">Acceleration</summary><p data-i18n="b-18.steps.2.detail">a average = delta v / delta t; as delta t tends to zero, a = dv/dt. In 2D, a may make any angle 0 to 180 degrees with v.</p></details>
   </section>
   <section class="zn-example" id="b-19">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">The position of a particle is given with coefficients 3.0, 2.0 and 5.0, t in seconds and r in metres. Find v(t) and a(t), and magnitude and direction of v at t = 1.0 s.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-19.problem">The position of a particle is given with coefficients 3.0, 2.0 and 5.0, t in seconds and r in metres. Find v(t) and a(t), and magnitude and direction of v at t = 1.0 s.</p>
     <ol>
-      <li><strong>Differentiate</strong> v = dr/dt = 3.0 i + 4.0 t j m/s in the source result; a = dv/dt = 4.0 j m/s squared.</li>
-      <li><strong>At t = 1.0 s</strong> v = 3.0 i + 4.0 j m/s.</li>
-      <li><strong>Magnitude and direction</strong> Magnitude = sqrt(3 squared + 4 squared) = 5.0 m/s; theta = tan inverse (4/3) = 53 degrees with x-axis.</li>
+      <li><strong data-i18n="b-19.steps.0.title">Differentiate</strong> <span data-i18n="b-19.steps.0.detail">v = dr/dt = 3.0 i + 4.0 t j m/s in the source result; a = dv/dt = 4.0 j m/s squared.</span></li>
+      <li><strong data-i18n="b-19.steps.1.title">At t = 1.0 s</strong> <span data-i18n="b-19.steps.1.detail">v = 3.0 i + 4.0 j m/s.</span></li>
+      <li><strong data-i18n="b-19.steps.2.title">Magnitude and direction</strong> <span data-i18n="b-19.steps.2.detail">Magnitude = sqrt(3 squared + 4 squared) = 5.0 m/s; theta = tan inverse (4/3) = 53 degrees with x-axis.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> a = 4.0 m s-2 along y-direction; at 1.0 s, speed 5.0 m/s at 53 degrees with x-axis.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-19.answer">a = 4.0 m s-2 along y-direction; at 1.0 s, speed 5.0 m/s at 53 degrees with x-axis.</span></p>
   </section>
   <section class="zn-text" id="b-20">
-    <p>With constant acceleration, average acceleration equals that constant. From v0 at t=0 to v at t, v equals v0 plus a t. Position is r equals r0 plus v0 t plus one half a t squared.</p>
-    <p>Write x and y separately: vx equals vox plus ax t, x equals x0 plus vox t plus one half ax t squared, and similarly for y. Treat the two perpendicular motions independently.</p>
+    <p data-i18n="b-20.paragraphs.0">With constant acceleration, average acceleration equals that constant. From v0 at t=0 to v at t, v equals v0 plus a t. Position is r equals r0 plus v0 t plus one half a t squared.</p>
+    <p data-i18n="b-20.paragraphs.1">Write x and y separately: vx equals vox plus ax t, x equals x0 plus vox t plus one half ax t squared, and similarly for y. Treat the two perpendicular motions independently.</p>
   </section>
   <section class="zn-example" id="b-21">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A particle starts from origin at t = 0 with velocity 5.0 i m/s and moves in x-y plane under constant acceleration (3.0 i + 2.0 j) m/s squared. What is y when x is 84 m, and what is speed then?</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-21.problem">A particle starts from origin at t = 0 with velocity 5.0 i m/s and moves in x-y plane under constant acceleration (3.0 i + 2.0 j) m/s squared. What is y when x is 84 m, and what is speed then?</p>
     <ol>
-      <li><strong>Position</strong> x = 5.0 t + 1.5 t squared, y = 1.0 t squared from r = v0 t + one half a t squared.</li>
-      <li><strong>Find t</strong> 5.0 t + 1.5 t squared = 84 gives t = 6 s. Then y = 1.0 x 36 = 36.0 m.</li>
-      <li><strong>Velocity</strong> v = 5.0 i + 3.0 t i + 2.0 t j; at 6 s, vx = 23.0, vy = 12.0 m/s, speed = sqrt(23 squared + 12 squared) approx 26 m/s.</li>
+      <li><strong data-i18n="b-21.steps.0.title">Position</strong> <span data-i18n="b-21.steps.0.detail">x = 5.0 t + 1.5 t squared, y = 1.0 t squared from r = v0 t + one half a t squared.</span></li>
+      <li><strong data-i18n="b-21.steps.1.title">Find t</strong> <span data-i18n="b-21.steps.1.detail">5.0 t + 1.5 t squared = 84 gives t = 6 s. Then y = 1.0 x 36 = 36.0 m.</span></li>
+      <li><strong data-i18n="b-21.steps.2.title">Velocity</strong> <span data-i18n="b-21.steps.2.detail">v = 5.0 i + 3.0 t i + 2.0 t j; at 6 s, vx = 23.0, vy = 12.0 m/s, speed = sqrt(23 squared + 12 squared) approx 26 m/s.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> y = 36.0 m at t = 6 s; speed approx 26 m/s.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-21.answer">y = 36.0 m at t = 6 s; speed approx 26 m/s.</span></p>
   </section>
   <fieldset class="zn-check" id="b-22" data-format="mcq" data-answer-index="1">
-    <legend>For arbitrary motion in space, which relation is always true?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="0"> <span>v average = (1/2)(v(t1) + v(t2))</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="1"> <span>v average = [r(t2) - r(t1)] / (t2 - t1)</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="2"> <span>v(t) = v(0) + a t for any motion</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-22" value="3"> <span>r(t) = r(0) + v(0) t + (1/2) a t squared for any motion</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-22.question">For arbitrary motion in space, which relation is always true?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="0"> <span data-i18n="b-22.options.0">v average = (1/2)(v(t1) + v(t2))</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="1"> <span data-i18n="b-22.options.1">v average = [r(t2) - r(t1)] / (t2 - t1)</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="2"> <span data-i18n="b-22.options.2">v(t) = v(0) + a t for any motion</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-22" value="3"> <span data-i18n="b-22.options.3">r(t) = r(0) + v(0) t + (1/2) a t squared for any motion</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Average velocity is defined as displacement over time interval. The other forms hold only for constant acceleration, and a average = [v(t2)-v(t1)]/(t2-t1) is the definition for acceleration.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-22.explanation">Average velocity is defined as displacement over time interval. The other forms hold only for constant acceleration, and a average = [v(t2)-v(t1)]/(t2-t1) is the definition for acceleration.</p></details>
   </fieldset>
   <section class="zn-text" id="b-23">
-    <p>A projectile is in flight after being thrown, such as a ball. Its motion is two simultaneous components: horizontal without acceleration and vertical with constant g downward. Air resistance is neglected.</p>
-    <p>Choose x horizontal and y vertical up. Then ax equals 0 and ay equals -g. Initial components are vox equals v0 cos theta0 and voy equals v0 sin theta0.</p>
+    <p data-i18n="b-23.paragraphs.0">A projectile is in flight after being thrown, such as a ball. Its motion is two simultaneous components: horizontal without acceleration and vertical with constant g downward. Air resistance is neglected.</p>
+    <p data-i18n="b-23.paragraphs.1">Choose x horizontal and y vertical up. Then ax equals 0 and ay equals -g. Initial components are vox equals v0 cos theta0 and voy equals v0 sin theta0.</p>
   </section>
   <section class="zn-sim zn-sim-b-24" id="b-24" data-sim-id="b-24" aria-label="Projectile trajectory">
-    <h3>Projectile trajectory</h3>
+    <h3 data-i18n="b-24.title">Projectile trajectory</h3>
     <div class="zn-sim-controls">
-      <label class="zn-sim-control"><span>Initial speed v0 (m/s)</span><input type="range" data-control="v0" min="5" max="40" step="1" value="20"><output>20</output></label>
-      <label class="zn-sim-control"><span>Angle theta0 (degrees)</span><input type="range" data-control="theta" min="0" max="90" step="1" value="45"><output>45</output></label>
+      <label class="zn-sim-control"><span data-i18n="b-24.controls.v0.label">Initial speed v0 (m/s)</span><input type="range" data-control="v0" min="5" max="40" step="1" value="20"><output>20</output></label>
+      <label class="zn-sim-control"><span data-i18n="b-24.controls.theta.label">Angle theta0 (degrees)</span><input type="range" data-control="theta" min="0" max="90" step="1" value="45"><output>45</output></label>
     </div>
     <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" height="320" tabindex="0" aria-label="Projectile trajectory drawing"></canvas></div>
     <p class="zn-sim-read" aria-live="polite"></p>
-    <p class="zn-sim-desc">A projectile launched from origin with speed v0 at angle theta0. The curve is computed from x = v0 cos theta0 t and y = v0 sin theta0 t - 0.5 g t squared.</p>
+    <p class="zn-sim-desc" data-i18n="b-24.description">A projectile launched from origin with speed v0 at angle theta0. The curve is computed from x = v0 cos theta0 t and y = v0 sin theta0 t - 0.5 g t squared.</p>
   </section>
   <section class="zn-reveal" id="b-25">
-    <h3>Projectile equations and key results</h3>
-      <details class="zn-reveal-step"><summary>Position and velocity</summary><p>x = v0 cos theta0 t, y = v0 sin theta0 t - 0.5 g t squared; vx = v0 cos theta0, vy = v0 sin theta0 - g t.</p></details>
-      <details class="zn-reveal-step"><summary>Path</summary><p>Eliminate t: y = x tan theta0 - g x squared / (2 v0 squared cos squared theta0), a parabola.</p></details>
-      <details class="zn-reveal-step"><summary>Top and flight</summary><p>vy = 0 gives tm = v0 sin theta0 / g; y=0 gives Tf = 2 tm; substituting tm gives hm = v0 squared sin squared theta0 / (2g).</p></details>
-      <details class="zn-reveal-step"><summary>Range</summary><p>R = v0 cos theta0 x Tf = v0 squared sin 2theta0 / g, maximum v0 squared / g at 45 degrees.</p></details>
+    <h3 data-i18n="b-25.title">Projectile equations and key results</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.0.title">Position and velocity</summary><p data-i18n="b-25.steps.0.detail">x = v0 cos theta0 t, y = v0 sin theta0 t - 0.5 g t squared; vx = v0 cos theta0, vy = v0 sin theta0 - g t.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.1.title">Path</summary><p data-i18n="b-25.steps.1.detail">Eliminate t: y = x tan theta0 - g x squared / (2 v0 squared cos squared theta0), a parabola.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.2.title">Top and flight</summary><p data-i18n="b-25.steps.2.detail">vy = 0 gives tm = v0 sin theta0 / g; y=0 gives Tf = 2 tm; substituting tm gives hm = v0 squared sin squared theta0 / (2g).</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-25.steps.3.title">Range</summary><p data-i18n="b-25.steps.3.detail">R = v0 cos theta0 x Tf = v0 squared sin 2theta0 / g, maximum v0 squared / g at 45 degrees.</p></details>
   </section>
   <section class="zn-example" id="b-26">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">Galileo stated that for elevations which exceed or fall short of 45 degrees by equal amounts, the ranges are equal. Prove this statement.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-26.problem">Galileo stated that for elevations which exceed or fall short of 45 degrees by equal amounts, the ranges are equal. Prove this statement.</p>
     <ol>
-      <li><strong>Range formula</strong> R = v0 squared sin 2theta0 / g for launch speed v0.</li>
-      <li><strong>Two angles</strong> For 45 degrees + alpha and 45 degrees - alpha, 2theta0 is 90 degrees + 2alpha and 90 degrees - 2alpha.</li>
-      <li><strong>Sines equal</strong> sin(90 degrees + 2alpha) = sin(90 degrees - 2alpha) = cos 2alpha, so R is the same for both.</li>
+      <li><strong data-i18n="b-26.steps.0.title">Range formula</strong> <span data-i18n="b-26.steps.0.detail">R = v0 squared sin 2theta0 / g for launch speed v0.</span></li>
+      <li><strong data-i18n="b-26.steps.1.title">Two angles</strong> <span data-i18n="b-26.steps.1.detail">For 45 degrees + alpha and 45 degrees - alpha, 2theta0 is 90 degrees + 2alpha and 90 degrees - 2alpha.</span></li>
+      <li><strong data-i18n="b-26.steps.2.title">Sines equal</strong> <span data-i18n="b-26.steps.2.detail">sin(90 degrees + 2alpha) = sin(90 degrees - 2alpha) = cos 2alpha, so R is the same for both.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Ranges are equal for elevations 45 degrees plus or minus alpha.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-26.answer">Ranges are equal for elevations 45 degrees plus or minus alpha.</span></p>
   </section>
   <section class="zn-example" id="b-27">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A hiker stands on the edge of a cliff 490 m above the ground and throws a stone horizontally with initial speed 15 m s-1. Neglect air resistance, take g = 9.8 m s-2. Find time to ground and speed on hitting ground.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-27.problem">A hiker stands on the edge of a cliff 490 m above the ground and throws a stone horizontally with initial speed 15 m s-1. Neglect air resistance, take g = 9.8 m s-2. Find time to ground and speed on hitting ground.</p>
     <ol>
-      <li><strong>Set axes</strong> Origin at cliff edge, x along initial velocity, y up. vox = 15 m/s, voy = 0, ay = -9.8 m/s squared.</li>
-      <li><strong>Time</strong> Ground when y = -490 m: -490 = -0.5 x 9.8 x t squared, giving t = 10 s.</li>
-      <li><strong>Speed</strong> vx = 15 m/s, vy = -9.8 x 10 = -98 m/s, speed = sqrt(15 squared + 98 squared) approx 99 m/s.</li>
+      <li><strong data-i18n="b-27.steps.0.title">Set axes</strong> <span data-i18n="b-27.steps.0.detail">Origin at cliff edge, x along initial velocity, y up. vox = 15 m/s, voy = 0, ay = -9.8 m/s squared.</span></li>
+      <li><strong data-i18n="b-27.steps.1.title">Time</strong> <span data-i18n="b-27.steps.1.detail">Ground when y = -490 m: -490 = -0.5 x 9.8 x t squared, giving t = 10 s.</span></li>
+      <li><strong data-i18n="b-27.steps.2.title">Speed</strong> <span data-i18n="b-27.steps.2.detail">vx = 15 m/s, vy = -9.8 x 10 = -98 m/s, speed = sqrt(15 squared + 98 squared) approx 99 m/s.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Time 10 s; speed approx 99 m/s on hitting ground.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-27.answer">Time 10 s; speed approx 99 m/s on hitting ground.</span></p>
   </section>
   <section class="zn-example" id="b-28">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">A cricket ball is thrown at 28 m s-1 in a direction 30 degrees above the horizontal. Calculate maximum height, time to return to same level, and distance to that point.</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-28.problem">A cricket ball is thrown at 28 m s-1 in a direction 30 degrees above the horizontal. Calculate maximum height, time to return to same level, and distance to that point.</p>
     <ol>
-      <li><strong>Maximum height</strong> hm = v0 squared sin squared 30 degrees / (2g) = 28 squared x 0.25 / (2 x 9.8) = 10.0 m.</li>
-      <li><strong>Time of flight</strong> Tf = 2 v0 sin 30 degrees / g = 2 x 28 x 0.5 / 9.8 = 2.9 s.</li>
-      <li><strong>Range</strong> R = v0 squared sin 60 degrees / g = 28 squared x sin 60 degrees / 9.8 approx 69 m.</li>
+      <li><strong data-i18n="b-28.steps.0.title">Maximum height</strong> <span data-i18n="b-28.steps.0.detail">hm = v0 squared sin squared 30 degrees / (2g) = 28 squared x 0.25 / (2 x 9.8) = 10.0 m.</span></li>
+      <li><strong data-i18n="b-28.steps.1.title">Time of flight</strong> <span data-i18n="b-28.steps.1.detail">Tf = 2 v0 sin 30 degrees / g = 2 x 28 x 0.5 / 9.8 = 2.9 s.</span></li>
+      <li><strong data-i18n="b-28.steps.2.title">Range</strong> <span data-i18n="b-28.steps.2.detail">R = v0 squared sin 60 degrees / g = 28 squared x sin 60 degrees / 9.8 approx 69 m.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> Maximum height 10.0 m; time 2.9 s; distance 69 m.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-28.answer">Maximum height 10.0 m; time 2.9 s; distance 69 m.</span></p>
   </section>
   <fieldset class="zn-check" id="b-29" data-format="mcq" data-answer-index="1">
-    <legend>A cricketer can throw a ball to a maximum horizontal distance of 100 m. How high above the ground can the cricketer throw the same ball?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="0"> <span>25 m</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="1"> <span>50 m</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="2"> <span>100 m</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-29" value="3"> <span>200 m</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-29.question">A cricketer can throw a ball to a maximum horizontal distance of 100 m. How high above the ground can the cricketer throw the same ball?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="0"> <span data-i18n="b-29.options.0">25 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="1"> <span data-i18n="b-29.options.1">50 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="2"> <span data-i18n="b-29.options.2">100 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-29" value="3"> <span data-i18n="b-29.options.3">200 m</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Rmax = v0 squared / g = 100 m, so v0 squared = 100 g. Maximum height for same v0 is v0 squared / (2g) = 50 m. A ceiling limits height in the same way by limiting vertical component.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-29.explanation">Rmax = v0 squared / g = 100 m, so v0 squared = 100 g. Maximum height for same v0 is v0 squared / (2g) = 50 m. A ceiling limits height in the same way by limiting vertical component.</p></details>
   </fieldset>
   <section class="zn-text" id="b-30">
-    <p>Uniform circular motion means following a circle at constant speed. Velocity direction changes continuously, so acceleration exists and points towards the centre.</p>
-    <p>Magnitude is ac equals v squared over R. Direction changes at every point, so acceleration is not a constant vector even though magnitude is constant.</p>
+    <p data-i18n="b-30.paragraphs.0">Uniform circular motion means following a circle at constant speed. Velocity direction changes continuously, so acceleration exists and points towards the centre.</p>
+    <p data-i18n="b-30.paragraphs.1">Magnitude is ac equals v squared over R. Direction changes at every point, so acceleration is not a constant vector even though magnitude is constant.</p>
   </section>
   <figure class="zn-diagram" id="b-31">
-    <div class="zn-diagram-svg"><svg viewBox='0 0 400 220'><circle cx='200' cy='110' r='80' fill='none' stroke='#1C1B18' stroke-width='2.6'/><circle cx='200' cy='110' r='4' fill='#1C1B18'/><line x1='200' y1='110' x2='260' y2='50' stroke='#1C1B18' stroke-width='2.6'/><line x1='260' y1='50' x2='320' y2='90' stroke='#1F3A9E' stroke-width='3'/><line x1='260' y1='50' x2='200' y2='110' stroke='#1F3A9E' stroke-width='3'/><polygon points='320,90 304,92 310,78' fill='#1F3A9E'/><polygon points='200,110 214,104 210,118' fill='#1F3A9E'/><text x='190' y='100' fill='#1C1B18' font-size='20'>C</text><text x='265' y='45' fill='#1C1B18' font-size='20'>P</text><text x='325' y='85' fill='#1F3A9E' font-size='20'>v</text><text x='215' y='105' fill='#1F3A9E' font-size='20'>ac</text></svg></div>
-    <figcaption>Uniform circular motion: velocity v is tangent at P, acceleration ac is towards centre C. Circle radius is schematic.</figcaption>
+    <div class="zn-diagram-svg"><svg viewBox="0 0 400 220"><circle cx="200" cy="110" r="80" fill="none" stroke="#1C1B18" stroke-width="2.6" /><circle cx="200" cy="110" r="4" fill="#1C1B18" /><line x1="200" y1="110" x2="260" y2="50" stroke="#1C1B18" stroke-width="2.6" /><line x1="260" y1="50" x2="320" y2="90" stroke="#1F3A9E" stroke-width="3" /><line x1="260" y1="50" x2="200" y2="110" stroke="#1F3A9E" stroke-width="3" /><polygon points="320,90 304,92 310,78" fill="#1F3A9E" /><polygon points="200,110 214,104 210,118" fill="#1F3A9E" /><text x="190" y="100" fill="#1C1B18" font-size="20">C</text><text x="265" y="45" fill="#1C1B18" font-size="20">P</text><text x="325" y="85" fill="#1F3A9E" font-size="20">v</text><text x="215" y="105" fill="#1F3A9E" font-size="20" data-i18n="b-31.svg_texts.t-0">ac</text></svg></div>
+    <figcaption data-i18n="b-31.caption">Uniform circular motion: velocity v is tangent at P, acceleration ac is towards centre C. Circle radius is schematic.</figcaption>
   </figure>
   <section class="zn-reveal" id="b-32">
-    <h3>Angular speed and centripetal acceleration</h3>
-      <details class="zn-reveal-step"><summary>Angular speed</summary><p>omega = delta theta / delta t, rate of change of angular displacement.</p></details>
-      <details class="zn-reveal-step"><summary>Linear speed</summary><p>Distance delta s = R delta theta, so v = delta s / delta t = R omega.</p></details>
-      <details class="zn-reveal-step"><summary>Acceleration forms</summary><p>ac = v squared / R = omega squared R. With period T and frequency n = 1/T, v = 2 pi R / T = 2 pi R n, omega = 2 pi n, ac = 4 pi squared n squared R.</p></details>
+    <h3 data-i18n="b-32.title">Angular speed and centripetal acceleration</h3>
+      <details class="zn-reveal-step"><summary data-i18n="b-32.steps.0.title">Angular speed</summary><p data-i18n="b-32.steps.0.detail">omega = delta theta / delta t, rate of change of angular displacement.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-32.steps.1.title">Linear speed</summary><p data-i18n="b-32.steps.1.detail">Distance delta s = R delta theta, so v = delta s / delta t = R omega.</p></details>
+      <details class="zn-reveal-step"><summary data-i18n="b-32.steps.2.title">Acceleration forms</summary><p data-i18n="b-32.steps.2.detail">ac = v squared / R = omega squared R. With period T and frequency n = 1/T, v = 2 pi R / T = 2 pi R n, omega = 2 pi n, ac = 4 pi squared n squared R.</p></details>
   </section>
   <section class="zn-example" id="b-33">
-    <h3>Worked example</h3>
-    <p class="zn-example-problem">An insect trapped in a circular groove of radius 12 cm moves steadily and completes 7 revolutions in 100 s. Find angular speed, linear speed, and magnitude of acceleration. Is acceleration a constant vector?</p>
+    <h3 data-i18n="ui.example_heading">Worked example</h3>
+    <p class="zn-example-problem" data-i18n="b-33.problem">An insect trapped in a circular groove of radius 12 cm moves steadily and completes 7 revolutions in 100 s. Find angular speed, linear speed, and magnitude of acceleration. Is acceleration a constant vector?</p>
     <ol>
-      <li><strong>Angular speed</strong> omega = 2 pi x 7 / 100 = 0.44 rad/s.</li>
-      <li><strong>Linear speed</strong> v = omega R = 0.44 x 12 cm = 5.3 cm/s, tangent to circle.</li>
-      <li><strong>Acceleration</strong> a = omega squared R = 0.44 squared x 12 = 2.3 cm/s squared towards centre; direction changes, so not constant vector.</li>
+      <li><strong data-i18n="b-33.steps.0.title">Angular speed</strong> <span data-i18n="b-33.steps.0.detail">omega = 2 pi x 7 / 100 = 0.44 rad/s.</span></li>
+      <li><strong data-i18n="b-33.steps.1.title">Linear speed</strong> <span data-i18n="b-33.steps.1.detail">v = omega R = 0.44 x 12 cm = 5.3 cm/s, tangent to circle.</span></li>
+      <li><strong data-i18n="b-33.steps.2.title">Acceleration</strong> <span data-i18n="b-33.steps.2.detail">a = omega squared R = 0.44 squared x 12 = 2.3 cm/s squared towards centre; direction changes, so not constant vector.</span></li>
     </ol>
-    <p class="zn-answer"><span class="zn-answer-label">Answer</span> omega = 0.44 rad/s, v = 5.3 cm/s, a = 2.3 cm/s squared towards centre, not constant vector.</p>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">Answer</span> <span data-i18n="b-33.answer">omega = 0.44 rad/s, v = 5.3 cm/s, a = 2.3 cm/s squared towards centre, not constant vector.</span></p>
   </section>
   <fieldset class="zn-check" id="b-34" data-format="numeric" data-answer="9.9">
-    <legend>A stone tied to a string 80 cm long is whirled in a horizontal circle with constant speed, making 14 revolutions in 25 s. What is magnitude and direction of acceleration?</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-34-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-34.question">A stone tied to a string 80 cm long is whirled in a horizontal circle with constant speed, making 14 revolutions in 25 s. What is magnitude and direction of acceleration?</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-34-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>omega = 2 pi x 14 / 25 = 3.52 rad/s; ac = omega squared R = 12.4 x 0.80 approx 9.9 m/s squared, directed to centre.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-34.explanation">omega = 2 pi x 14 / 25 = 3.52 rad/s; ac = omega squared R = 12.4 x 0.80 approx 9.9 m/s squared, directed to centre.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-35" data-format="mcq" data-answer-index="1">
-    <legend>An aircraft executes a horizontal loop of radius 1.00 km with steady speed 900 km/h. Compare its centripetal acceleration with g.</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-35" value="0"> <span>about 0.64 g</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-35" value="1"> <span>about 6.4 g</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-35" value="2"> <span>about 64 g</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-35" value="3"> <span>equal to g</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-35.question">An aircraft executes a horizontal loop of radius 1.00 km with steady speed 900 km/h. Compare its centripetal acceleration with g.</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="0"> <span data-i18n="b-35.options.0">about 0.64 g</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="1"> <span data-i18n="b-35.options.1">about 6.4 g</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="2"> <span data-i18n="b-35.options.2">about 64 g</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-35" value="3"> <span data-i18n="b-35.options.3">equal to g</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>900 km/h = 250 m/s; ac = v squared / R = 250 squared / 1000 = 62.5 m/s squared; divided by 9.8 gives about 6.4 g.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-35.explanation">900 km/h = 250 m/s; ac = v squared / R = 250 squared / 1000 = 62.5 m/s squared; divided by 9.8 gives about 6.4 g.</p></details>
   </fieldset>
   <section class="zn-text" id="b-36">
-    <p>Path length depends on actual path; displacement depends only on end points. They are equal only if direction does not change. Average speed is therefore greater than or equal to magnitude of average velocity.</p>
-    <p>Vector equations for constant acceleration do not need a choice of axes, but you may resolve them along any two independent axes. Trajectory depends on initial position and velocity as well as acceleration. Resultant velocity is v1 plus v2, while relative velocity v12 is v1 minus v2 with respect to a common frame.</p>
+    <p data-i18n="b-36.paragraphs.0">Path length depends on actual path; displacement depends only on end points. They are equal only if direction does not change. Average speed is therefore greater than or equal to magnitude of average velocity.</p>
+    <p data-i18n="b-36.paragraphs.1">Vector equations for constant acceleration do not need a choice of axes, but you may resolve them along any two independent axes. Trajectory depends on initial position and velocity as well as acceleration. Resultant velocity is v1 plus v2, while relative velocity v12 is v1 minus v2 with respect to a common frame.</p>
   </section>
   <fieldset class="zn-check" id="b-37" data-format="mcq" data-answer-index="1">
-    <legend>Three girls start at P on a circular ground of radius 200 m and reach Q diametrically opposite by different paths. What is magnitude of displacement for each?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-37" value="0"> <span>200 m</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-37" value="1"> <span>400 m</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-37" value="2"> <span>0 m</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-37" value="3"> <span>different for each path</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-37.question">Three girls start at P on a circular ground of radius 200 m and reach Q diametrically opposite by different paths. What is magnitude of displacement for each?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="0"> <span data-i18n="b-37.options.0">200 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="1"> <span data-i18n="b-37.options.1">400 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="2"> <span data-i18n="b-37.options.2">0 m</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-37" value="3"> <span data-i18n="b-37.options.3">different for each path</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Displacement is straight line PQ, the diameter 400 m, same for all. Path length equals displacement only for the girl who goes straight along the diameter.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-37.explanation">Displacement is straight line PQ, the diameter 400 m, same for all. Path length equals displacement only for the girl who goes straight along the diameter.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-38" data-format="numeric" data-answer="49">
-    <legend>A hotel is 10 km away on a straight road. A cab takes a 23 km circuitous path and reaches in 28 min. Find average speed and magnitude of average velocity.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-38-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-38.question">A hotel is 10 km away on a straight road. A cab takes a 23 km circuitous path and reaches in 28 min. Find average speed and magnitude of average velocity.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-38-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Average speed = 23 km / (28/60 h) approx 49 km/h. Magnitude of average velocity = 10 km / (28/60 h) approx 21 km/h. Path length differs from displacement, so they differ.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-38.explanation">Average speed = 23 km / (28/60 h) approx 49 km/h. Magnitude of average velocity = 10 km / (28/60 h) approx 21 km/h. Path length differs from displacement, so they differ.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-39" data-format="mcq" data-answer-index="0">
-    <legend>What are magnitude and direction of i + j and i - j?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-39" value="0"> <span>both sqrt(2), at 45 degrees and -45 degrees with x-axis</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-39" value="1"> <span>both 2, at 90 degrees with x-axis</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-39" value="2"> <span>both 1, along x-axis</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-39" value="3"> <span>both 0, no direction</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-39.question">What are magnitude and direction of i + j and i - j?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="0"> <span data-i18n="b-39.options.0">both sqrt(2), at 45 degrees and -45 degrees with x-axis</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="1"> <span data-i18n="b-39.options.1">both 2, at 90 degrees with x-axis</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="2"> <span data-i18n="b-39.options.2">both 1, along x-axis</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-39" value="3"> <span data-i18n="b-39.options.3">both 0, no direction</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>i+j has components 1,1 magnitude sqrt(2) direction tan inverse 1 = 45 degrees. i-j has components 1,-1 magnitude sqrt(2) direction -45 degrees. Components along these directions can be found graphically by projection.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-39.explanation">i+j has components 1,1 magnitude sqrt(2) direction tan inverse 1 = 45 degrees. i-j has components 1,-1 magnitude sqrt(2) direction -45 degrees. Components along these directions can be found graphically by projection.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-40" data-format="mcq" data-answer-index="1">
-    <legend>Which statement about a scalar quantity is false?</legend>
-      <label class="zn-opt"><input type="radio" name="check-b-40" value="0"> <span>it has magnitude only</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-40" value="1"> <span>it can never take negative values</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-40" value="2"> <span>it is specified by a number and a unit</span></label>
-      <label class="zn-opt"><input type="radio" name="check-b-40" value="3"> <span>it has the same value for observers with different axis orientations</span></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-40.question">Which statement about a scalar quantity is false?</legend>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="0"> <span data-i18n="b-40.options.0">it has magnitude only</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="1"> <span data-i18n="b-40.options.1">it can never take negative values</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="2"> <span data-i18n="b-40.options.2">it is specified by a number and a unit</span></label>
+      <label class="zn-opt"><input type="radio" name="check-b-40" value="3"> <span data-i18n="b-40.options.3">it has the same value for observers with different axis orientations</span></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>A scalar is defined by magnitude only; the source does not require it to be conserved, dimensionless, non-negative or constant in space. Temperature difference and other scalars show the definition is magnitude only.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-40.explanation">A scalar is defined by magnitude only; the source does not require it to be conserved, dimensionless, non-negative or constant in space. Temperature difference and other scalars show the definition is magnitude only.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-41" data-format="numeric" data-answer="21.5">
-    <legend>Position is r = 3.0 t squared i - 2.0 t squared j + 4.0 t squared k metres, t in seconds. What is magnitude of velocity at t = 2.0 s?</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-41-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-41.question">Position is r = 3.0 t squared i - 2.0 t squared j + 4.0 t squared k metres, t in seconds. What is magnitude of velocity at t = 2.0 s?</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-41-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>v = dr/dt = 6.0 t i - 4.0 t j + 8.0 t k; at 2.0 s v = 12 i - 8 j + 16 k, magnitude sqrt(144+64+256)=sqrt(464) approx 21.5 m/s. Acceleration is 6 i -4 j +8 k m/s squared.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-41.explanation">v = dr/dt = 6.0 t i - 4.0 t j + 8.0 t k; at 2.0 s v = 12 i - 8 j + 16 k, magnitude sqrt(144+64+256)=sqrt(464) approx 21.5 m/s. Acceleration is 6 i -4 j +8 k m/s squared.</p></details>
   </fieldset>
   <fieldset class="zn-check" id="b-42" data-format="numeric" data-answer="182">
-    <legend>An aircraft flies at height 3400 m. Angle subtended at a ground point by positions 10.0 s apart is 30 degrees. Estimate speed, assuming the ground point is below the midpoint of the two positions.</legend>
-      <label class="zn-opt zn-opt-numeric">Your answer: <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-42-input"></label>
-    <button type="button" class="zn-check-btn">Check</button>
+    <legend data-i18n="b-42.question">An aircraft flies at height 3400 m. Angle subtended at a ground point by positions 10.0 s apart is 30 degrees. Estimate speed, assuming the ground point is below the midpoint of the two positions.</legend>
+      <label class="zn-opt zn-opt-numeric"><span data-i18n="ui.check_your_answer">Your answer:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-42-input"></label>
+    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">Check</button>
     <p class="zn-check-feedback" aria-live="polite"></p>
-    <details class="zn-check-why"><summary>Why?</summary><p>Half distance = 3400 x tan 15 degrees approx 911 m, total distance approx 1822 m in 10.0 s, speed approx 182 m/s. This uses the midpoint assumption stated because figure geometry is not fully readable in source.</p></details>
+    <details class="zn-check-why"><summary data-i18n="ui.check_why">Why?</summary><p data-i18n="b-42.explanation">Half distance = 3400 x tan 15 degrees approx 911 m, total distance approx 1822 m in 10.0 s, speed approx 182 m/s. This uses the midpoint assumption stated because figure geometry is not fully readable in source.</p></details>
   </fieldset>
   <section class="zn-glossary">
-    <h2>Glossary</h2>
+    <h2 data-i18n="ui.glossary_heading">Glossary</h2>
     <dl>
-      <dt>scalar</dt><dd>Quantity with magnitude only, such as mass or time.</dd>
-      <dt>vector</dt><dd>Quantity with magnitude and direction, such as velocity.</dd>
-      <dt>displacement</dt><dd>Straight-line change in position from start to finish, independent of path.</dd>
-      <dt>unit vector</dt><dd>Vector of magnitude 1 used to specify direction only.</dd>
-      <dt>projectile</dt><dd>Object in flight after being thrown, with independent horizontal and vertical motion.</dd>
-      <dt>centripetal acceleration</dt><dd>Acceleration towards the centre of a circle, magnitude v squared over R.</dd>
+      <dt data-i18n="b-00-meta.glossary.0.term">scalar</dt><dd data-i18n="b-00-meta.glossary.0.definition">Quantity with magnitude only, such as mass or time.</dd>
+      <dt data-i18n="b-00-meta.glossary.1.term">vector</dt><dd data-i18n="b-00-meta.glossary.1.definition">Quantity with magnitude and direction, such as velocity.</dd>
+      <dt data-i18n="b-00-meta.glossary.2.term">displacement</dt><dd data-i18n="b-00-meta.glossary.2.definition">Straight-line change in position from start to finish, independent of path.</dd>
+      <dt data-i18n="b-00-meta.glossary.3.term">unit vector</dt><dd data-i18n="b-00-meta.glossary.3.definition">Vector of magnitude 1 used to specify direction only.</dd>
+      <dt data-i18n="b-00-meta.glossary.4.term">projectile</dt><dd data-i18n="b-00-meta.glossary.4.definition">Object in flight after being thrown, with independent horizontal and vertical motion.</dd>
+      <dt data-i18n="b-00-meta.glossary.5.term">centripetal acceleration</dt><dd data-i18n="b-00-meta.glossary.5.definition">Acceleration towards the centre of a circle, magnitude v squared over R.</dd>
     </dl>
   </section>
   <footer class="zn-footer">
-    <p class="zn-sources">Generated by the Zivon content factory. Sources are listed in the course index.</p>
+    <p class="zn-sources" data-i18n="ui.sources_footer">Generated by the Zivon content factory. Sources are listed in the course index.</p>
   </footer>
 </main>
-<script src="../../../assets/zivon.js"></script>
+<script src="i18n.js"></script>
+<script src="../../../assets/zivon.js?v=20261111b"></script>
 <script src="page.js"></script>
 </body>
 </html>

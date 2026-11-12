@@ -1,0 +1,1450 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Units aur Measurement",
+    "b-00-meta.objectives.0": "Is lesson ke baad aap samjha sakte hain ki unit, base quantity aur derived unit kya hain.",
+    "b-00-meta.objectives.1": "Is lesson ke baad aap calculations mein significant figures, rounding aur uncertainty ke rules use kar sakte hain.",
+    "b-00-meta.objectives.2": "Is lesson ke baad aap dimensional formulae likh sakte hain aur equations check karne aur relations deduce karne ke liye dimensional analysis use kar sakte hain.",
+    "b-00-meta.glossary.0.term": "unit",
+    "b-00-meta.glossary.0.definition": "Ek standard reference jisse physical quantity compare ki jaati hai.",
+    "b-00-meta.glossary.1.term": "base quantity",
+    "b-00-meta.glossary.1.definition": "System of units ke liye choose ki gayi fundamental quantity, jaise length, mass aur time.",
+    "b-00-meta.glossary.2.term": "derived unit",
+    "b-00-meta.glossary.2.definition": "Derived quantity ke liye base units ke combination se bana unit.",
+    "b-00-meta.glossary.3.term": "significant figures",
+    "b-00-meta.glossary.3.definition": "Measurement mein reliable digits plus pehla uncertain digit.",
+    "b-00-meta.glossary.4.term": "dimension",
+    "b-00-meta.glossary.4.definition": "Base quantities ki powers jo kisi physical quantity ko represent karti hain, square brackets mein likhi jaati hain.",
+    "b-00-meta.glossary.5.term": "dimensional formula",
+    "b-00-meta.glossary.5.definition": "Expression jo dikhata hai ki kaunsi base quantities kisi quantity ke dimensions ko represent karti hain.",
+    "b-00-meta.glossary.6.term": "order of magnitude",
+    "b-00-meta.glossary.6.definition": "Kisi number ke approximate estimate ke liye a × 10b mein exponent b.",
+    "b-00-meta.glossary.7.term": "principle of homogeneity",
+    "b-00-meta.glossary.7.definition": "Sirf same dimensions wali quantities ko add ya subtract kiya ja sakta hai.",
+    "b-01.paragraphs.0": "Aap length ko scale se aur mass ko balance se measure karte hain. Measurement ka matlab standard se comparison hota hai. Us standard ko unit kaha jata hai.",
+    "b-01.paragraphs.1": "Measurement ka result ek number hota hai jo unit ke saath hota hai. For example, length ko metres mein ek number ke roop mein likha jata hai.",
+    "b-01.paragraphs.2": "Base quantities ke units base units hote hain. Doosri quantities ke units derived units hote hain. Ye sab milkar units ka ek system banate hain.",
+    "b-02.question": "Measurement ka result kya hota hai?",
+    "b-02.options.0": "Sirf ek number",
+    "b-02.options.1": "Ek number jo unit ke saath hota hai",
+    "b-02.options.2": "Sirf ek unit",
+    "b-02.options.3": "Bina kisi standard ke ek number",
+    "b-02.explanation": "Measurement kisi quantity ko unit se compare karta hai, isliye result ek number with unit hota hai.",
+    "b-03.paragraphs.0": "Pehle ke systems CGS, FPS aur MKS the. CGS mein centimetre, gram aur second use hote the. FPS mein foot, pound aur second use hote the. MKS mein metre, kilogram aur second use hote the.",
+    "b-03.paragraphs.1": "SI ab internationally accepted hai. Isse BIPM ne 1971 mein develop kiya aur November 2018 mein revise kiya gaya. Yeh book SI units ko follow karti hai.",
+    "b-03.paragraphs.2": "SI mein saat base units hain. Plane angle ka unit radian, rad hai. Solid angle ka unit steradian, sr hai. Dono dimensionless hain. SI decimal system use karta hai.",
+    "b-04.caption": "Saat SI base quantities unke units aur symbols ke saath.",
+    "b-04.svg_texts.t-0": "Length",
+    "b-04.svg_texts.t-1": "Mass",
+    "b-04.svg_texts.t-2": "Time",
+    "b-04.svg_texts.t-3": "Current",
+    "b-04.svg_texts.t-4": "Temp.",
+    "b-04.svg_texts.t-5": "Amount",
+    "b-04.svg_texts.t-6": "Light",
+    "b-04.svg_texts.t-7": "Saat SI base quantities aur units",
+    "b-05.question": "Kaunsa set length, mass aur time ke SI base units deta hai?",
+    "b-05.options.0": "centimetre, gram, second",
+    "b-05.options.1": "foot, pound, second",
+    "b-05.options.2": "metre, kilogram, second",
+    "b-05.options.3": "metre, gram, second",
+    "b-05.explanation": "MKS aur SI length, mass aur time ke liye metre, kilogram aur second use karte hain.",
+    "b-06.paragraphs.0": "Significant figures reliable digits plus pehla uncertain digit hote hain. 1.62 s mein, 1 aur 6 certain hain aur 2 uncertain hai, isliye teen significant figures hain. 287.5 cm mein chaar hain.",
+    "b-06.paragraphs.1": "Sabhi non-zero digits significant hote hain. Do non-zero digits ke beech ke zeros significant hote hain. 1 se kam number mein pehle non-zero digit se pehle ke zeros significant nahi hote.",
+    "b-06.paragraphs.2": "Decimal point ke bina trailing zeros significant nahi hote. Decimal point ke saath trailing zeros significant hote hain. Units badalne se significant figures nahi badalte. Precision instrument ke least count par depend karti hai.",
+    "b-07.title": "Scientific notation aur order of magnitude",
+    "b-07.steps.0.title": "a × 10b likhein",
+    "b-07.steps.0.detail": "Number ko a × 10b ke roop mein likhein, jahan a 1 aur 10 ke beech hai aur b koi bhi positive ya negative exponent hai.",
+    "b-07.steps.1.title": "Order of magnitude nikaalein",
+    "b-07.steps.1.detail": "a ko 1 tak round karein jab a ≤ 5 ho, aur 10 tak jab 5 < a ≤ 10 ho. Phir number lagbhag 10b ho jaata hai aur b hi order of magnitude hai.",
+    "b-07.steps.2.title": "Examples use karein",
+    "b-07.steps.2.detail": "Earth ka diameter 1.28 × 107 m order 107 m ka hai, order 7 ke saath. Hydrogen atom ka diameter 1.06 × 10-10 m order 10-10 m ka hai, order -10 ke saath.",
+    "b-07.steps.3.title": "Trailing zeros",
+    "b-07.steps.3.detail": "Scientific notation mein a ke saare zeros significant hote hain, isliye 4.700 m = 4.700 × 102 cm mein chaar significant figures hain.",
+    "b-08.question": "0.2370 g cm-3 mein kitne significant figures hain?",
+    "b-08.options.0": "2",
+    "b-08.options.1": "3",
+    "b-08.options.2": "4",
+    "b-08.options.3": "5",
+    "b-08.explanation": "Leading zeros significant nahi hote aur decimal point ke saath trailing zero significant hota hai, isliye 2, 3, 7 aur 0 milakar chaar significant figures dete hain. Isi tarah 0.007 m2 mein 1, 2.64 × 1024 kg mein 3, 6.320 J mein 4, 6.032 N m-2 mein 4 aur 0.0006032 m2 mein 4 significant figures hain.",
+    "b-09.paragraphs.0": "Multiplication ya division mein, utne hi significant figures rakho jitne least significant figures wale number mein hain. Density 4.237 g ko 2.51 cm3 se divide karne par 1.69 g cm-3 report hoti hai, na ki bahut zyada decimal places tak.",
+    "b-09.paragraphs.1": "Addition ya subtraction mein, utne hi decimal places rakho jitne least decimal places wale number mein hain. 436.32 g, 227.2 g aur 0.301 g ka sum 663.8 g hai.",
+    "b-09.paragraphs.2": "Difference 0.307 m - 0.304 m = 0.003 m hai. Addition aur subtraction ke liye multiplication rule ka use mat karo.",
+    "b-10.problem": "5.74 g kisi substance ka volume 1.2 cm3 hai. Significant figures ko dhyan mein rakhte hue iski density express karo.",
+    "b-10.steps.0.title": "Significant figures count karo",
+    "b-10.steps.0.detail": "Mass 5.74 g mein 3 significant figures hain. Volume 1.2 cm3 mein 2 significant figures hain.",
+    "b-10.steps.1.title": "Divide karo",
+    "b-10.steps.1.detail": "Density = 5.74 / 1.2 = 4.783... g cm-3.",
+    "b-10.steps.2.title": "Least tak round karo",
+    "b-10.steps.2.detail": "Data mein sabse kam 2 significant figures hain, isliye 2 significant figures tak round karo.",
+    "b-10.answer": "4.8 g cm-3",
+    "b-11.problem": "Ek cube ki har side 7.203 m measured hai. Appropriate significant figures mein cube ka total surface area aur volume kya hai?",
+    "b-11.steps.0.title": "Significant figures count karo",
+    "b-11.steps.0.detail": "Length 7.203 m mein 4 significant figures hain, isliye area aur volume ke liye 4 significant figures chahiye.",
+    "b-11.steps.1.title": "Surface area",
+    "b-11.steps.1.detail": "Area = 6 × (7.203)2 = 311.299254 m2, 311.3 m2 tak rounded.",
+    "b-11.steps.2.title": "Volume",
+    "b-11.steps.2.detail": "Volume = (7.203)3 = 373.714754 m3, 373.7 m3 tak rounded.",
+    "b-11.answer": "Surface area 311.3 m2, volume 373.7 m3",
+    "b-12.title": "Anishchit digits ko round off karna",
+    "b-12.steps.0.title": "Dropped digit 5 se zyada hai",
+    "b-12.steps.0.detail": "Preceding digit ko 1 se badha do. Example: 2.746 ko three significant figures tak round karne par 2.75 milta hai.",
+    "b-12.steps.1.title": "Dropped digit 5 se kam hai",
+    "b-12.steps.1.detail": "Preceding digit ko unchanged chhod do. Example: 1.743 ko three significant figures tak round karne par 1.74 milta hai.",
+    "b-12.steps.2.title": "Dropped digit exactly 5 hai",
+    "b-12.steps.2.detail": "Agar preceding digit even hai, to 5 ko drop kar do. Agar odd hai, to use 1 se badha do. Isliye 2.745 2.74 ban jata hai aur 2.735 2.74 ban jata hai.",
+    "b-12.steps.3.title": "Intermediate steps",
+    "b-12.steps.3.detail": "Intermediate steps mein ek extra digit rakho aur rounding errors build hone se bachne ke liye end mein round karo.",
+    "b-13.question": "436.32 g + 227.2 g + 0.301 g = ? g correct decimal places tak",
+    "b-13.explanation": "Arithmetic sum 663.821 g hai, lekin 227.2 g sirf ek decimal place tak correct hai, isliye round karke 663.8 g karo.",
+    "b-14.paragraphs.0": "Product mein uncertainty combine hoti hai. 16.2 cm by 10.1 cm ki sheet ke liye, har measurement ± 0.1 cm hai, isliye area 163.62 cm2 mein lagbhag 1.6% error hai aur ise 164 ± 3 cm2 likha jata hai.",
+    "b-14.paragraphs.1": "Subtraction significant figures kam kar sakta hai. 12.9 g - 7.06 g ka result 5.8 g hai, 5.84 g nahin, kyunki decimal places matter karti hain.",
+    "b-14.paragraphs.2": "Relative error number par hi depend karta hai. Multi-step work ke intermediate steps mein ek extra digit rakhein.",
+    "b-15.question": "1.02 g aur 9.89 g dono ± 0.01 g tak accurate hain. Kis mein relative error chhota hai?",
+    "b-15.options.0": "1.02 g",
+    "b-15.options.1": "9.89 g",
+    "b-15.options.2": "Dono barabar hain",
+    "b-15.options.3": "Nahi kaha ja sakta",
+    "b-15.explanation": "1.02 g mein relative error (±0.01/1.02) × 100% = ±1% hai. 9.89 g mein ye (±0.01/9.89) × 100% = ±0.1% hai, isliye 9.89 g ka relative error chhota hai.",
+    "b-16.paragraphs.0": "Dimension kisi quantity ki nature batate hain. Length [L] hai, mass [M] hai, time [T] hai, electric current [A] hai, temperature [K] hai, luminous intensity [cd] hai aur amount of substance [mol] hai.",
+    "b-16.paragraphs.1": "Volume teen lengths ka hota hai, isliye dimensions [L3] hain. Iska mass aur time mein zero dimension hai.",
+    "b-16.paragraphs.2": "Force (bal) mass times acceleration (tvaran) hota hai, isliye dimensions [M L T-2] hain. Magnitudes consider nahi kiye jaate, isliye speed (chaal) aur velocity (veg) dono ka dimension [L T-1] hota hai.",
+    "b-17.caption": "Volume aur force (bal) base dimensions mein vyakt kiye gaye hain.",
+    "b-17.svg_texts.t-0": "Volume = L × L × L",
+    "b-17.svg_texts.t-1": "[L3]",
+    "b-17.svg_texts.t-2": "Force = M × L / T2",
+    "b-17.svg_texts.t-3": "[M L T-2]",
+    "b-17.svg_texts.t-4": "Base quantities [L], [M], [T] se dimensions",
+    "b-18.paragraphs.0": "Ek dimensional formula dikhata hai ki base quantities kisi quantity ko kaise represent karti hain. Volume [M0 L3 T0] hai. Speed (chaal) [M0 L T-1] hai. Acceleration (tvaran) [M0 L T-2] hai. Mass density [M L-3 T0] hai.",
+    "b-18.paragraphs.1": "Ek dimensional equation kisi quantity ko uske formula ke barabar rakhta hai. [V] = [M0 L3 T0], [v] = [M0 L T-1], [F] = [M L T-2] aur [ρ] = [M L-3 T0].",
+    "b-18.paragraphs.2": "Aap quantities ke beech ke relations se dimensional equations paate hain, har quantity ko uske dimensions se replace karke.",
+    "b-19.title": "x = x0 + v0 t + (1/2) a t2 ko check karna",
+    "b-19.steps.0.title": "Left side (baaya paksh)",
+    "b-19.steps.0.detail": "[x] = [L].",
+    "b-19.steps.1.title": "Right side ka pehla term",
+    "b-19.steps.1.detail": "[x0] = [L].",
+    "b-19.steps.2.title": "Right side ka doosra term",
+    "b-19.steps.2.detail": "[v0 t] = [L T-1][T] = [L].",
+    "b-19.steps.3.title": "Right side ka teesra term",
+    "b-19.steps.3.detail": "[(1/2) a t2] = [L T-2][T2] = [L].",
+    "b-19.steps.4.title": "Conclusion (nishkarsh)",
+    "b-19.steps.4.detail": "Har term ka dimension length hai, left side ke same, isliye equation dimensionally correct hai. Pass hona ise sahi prove nahi karta.",
+    "b-20.problem": "Ek equation 1/2 m v2 = m g h consider karte hain, jahan m body ka mass hai, v uska velocity (veg) hai, g acceleration due to gravity (tvaran) hai aur h height hai. Check kijiye ki ye equation dimensionally correct hai ya nahi.",
+    "b-20.steps.0.title": "Baayi taraf",
+    "b-20.steps.0.detail": "[M][L T-1]2 = [M][L2 T-2] = [M L2 T-2].",
+    "b-20.steps.1.title": "Daayi taraf",
+    "b-20.steps.1.detail": "[M][L T-2][L] = [M][L2 T-2] = [M L2 T-2].",
+    "b-20.steps.2.title": "Compare karein",
+    "b-20.steps.2.detail": "LHS aur RHS ke dimensions same hain, isliye equation dimensionally correct hai.",
+    "b-20.answer": "Dimensionally correct",
+    "b-21.problem": "Energy ka SI unit J = kg m2 s-2 hai; speed (chaal) v ka unit m s-1 hai aur acceleration (tvaran) a ka unit m s-2 hai. Kinetic energy (K) ke liye di gayi formulae mein se kaun-si formulae ko dimensional arguments se rule out kar sakte hain (m ka matlab mass hai): (a) K = m2 v3 (b) K = (1/2) m v2 (c) K = m a (d) K = (3/16) m v2 (e) K = (1/2) m v2 + m a",
+    "b-21.steps.0.title": "K ke dimensions",
+    "b-21.steps.0.detail": "K ke dimensions [M L2 T-2] hain, jo J = kg m2 s-2 se aate hain.",
+    "b-21.steps.1.title": "Har formula check kijiye",
+    "b-21.steps.1.detail": "(a) [M2 L3 T-3] deta hai, (b) aur (d) [M L2 T-2] dete hain, (c) [M L T-2] deta hai, aur (e) different dimensions ki quantities ko add karta hai, isliye iske proper dimensions nahi hain.",
+    "b-21.steps.2.title": "Rule out kijiye",
+    "b-21.steps.2.detail": "(a), (c) aur (e) rule out ho jate hain. Dimensions (b) aur (d) mein distinguish nahi kar sakte. Correct formula (b) hai.",
+    "b-21.answer": "(a), (c) aur (e) ruled out; correct (b) K = (1/2) m v2 hai",
+    "b-22.title": "Dimensions se pendulum period deduce karna",
+    "b-22.steps.0.title": "Product form maan lijiye",
+    "b-22.steps.0.detail": "Maan lijiye period T length l, mass m aur gravity g par depend karta hai: T = k lx gy mz, jahan k dimensionless hai aur x, y, z exponents hain.",
+    "b-22.steps.1.title": "Dimensions match karna",
+    "b-22.steps.1.detail": "[T] = [L]x [L T-2]y [M]z se Lx+y T-2y Mz milta hai, isliye x + y = 0, -2y = 1 aur z = 0.",
+    "b-22.steps.2.title": "Solve kijiye",
+    "b-22.steps.2.detail": "x = 1/2, y = -1/2, z = 0, isliye T = k l1/2 g-1/2 = k sqrt(l/g).",
+    "b-22.steps.3.title": "Constant",
+    "b-22.steps.3.detail": "k ko dimensions se nahi nikal sakte. Asal mein k = 2π, isliye T = 2π sqrt(l/g).",
+    "b-23.title": "Pendulum period aur length",
+    "b-23.description": "Simple pendulum ke liye length badalne par period T = 2π sqrt(l/g) dikhata hai.",
+    "b-23.controls.length.label": "Length l (m)",
+    "b-24.question": "Principle of homogeneity ke according kaunsa addition allowed hai?",
+    "b-24.options.0": "velocity + force",
+    "b-24.options.1": "electric current - thermodynamic temperature",
+    "b-24.options.2": "length + length",
+    "b-24.options.3": "speed + force",
+    "b-24.explanation": "Sirf same dimensions wali quantities ko add ya subtract kiya ja sakta hai. Length plus length mein dono sides par same dimension [L] hota hai.",
+    "b-25.paragraphs.0": "Base quantities hain length, mass, time, electric current, temperature, amount of substance aur luminous intensity. Inke units hain metre, kilogram, second, ampere, kelvin, mole aur candela.",
+    "b-25.paragraphs.1": "Derived unit (vyutpann unit) ke special names ho sakte hain jaise joule, newton aur watt. Calculations mein units ko algebraic quantities ki tarah treat kiya jata hai.",
+    "b-25.paragraphs.2": "Sirf proper significant figures hi retain karne chahiye. Dimensions equations ko check karte hain, lekin dimensionally correct equation exact hona zaroori nahi hai aur dimensionally wrong equation zaroor wrong hogi.",
+    "b-26.problem": "Khaali sthaan bharo: (a) 1 cm side wale cube ka volume m3 mein (b) speed (chaal) 18 km h-1 se chalne wala vehicle 1 s mein m cover karta hai (c) 1 kg m2 s-2 = g cm2 s-2 (d) 3.0 m s-2 = km h-2 (e) 1 m = ly (f) G = 6.67 × 10-11 N m2 (kg)-2 = (cm)3 s-2 g-1",
+    "b-26.steps.0.title": "Cube aur vehicle",
+    "b-26.steps.0.detail": "1 cm = 0.01 m, isliye volume = (0.01)3 = 1 × 10-6 m3. 18 km h-1 = 5 m s-1, isliye 1 s mein ye 5 m cover karta hai.",
+    "b-26.steps.1.title": "Energy unit",
+    "b-26.steps.1.detail": "1 kg = 1000 g aur 1 m = 100 cm, isliye 1 kg m2 s-2 = 1000 × 10000 = 1 × 107 g cm2 s-2.",
+    "b-26.steps.2.title": "Acceleration (tvaran)",
+    "b-26.steps.2.detail": "3.0 m s-2 = 0.003 km per (1/3600 h)2 = 38880 km h-2.",
+    "b-26.steps.3.title": "Light year aur G",
+    "b-26.steps.3.detail": "Source example ke anusaar light year 9.47 × 1015 m hai, isliye 1 m = 1.06 × 10-16 ly. G ke liye, 1 N = 105 g cm s-2, jisse 6.67 × 10-8 (cm)3 s-2 g-1 milta hai.",
+    "b-26.answer": "1 × 10-6 m3; 5 m; 1 × 107 g cm2 s-2; 38880 km h-2; 1.06 × 10-16 ly; 6.67 × 10-8 (cm)3 s-2 g-1",
+    "b-27.title": "Calorie naye units mein",
+    "b-27.steps.0.title": "Calorie se shuru karein",
+    "b-27.steps.0.detail": "Ek calorie lagbhag 4.2 J ke barabar hai aur 1 J = 1 kg m2 s-2.",
+    "b-27.steps.1.title": "Naye units",
+    "b-27.steps.1.detail": "Mass ka naya unit α kg ke barabar hai, length β m ke barabar hai aur time γ s ke barabar hai. Units ko algebraic quantities ki tarah treat karein.",
+    "b-27.steps.2.title": "Convert karein",
+    "b-27.steps.2.detail": "1 kg = 1/α naye mass units, 1 m = 1/β naye length units, 1 s = 1/γ naye time units, isliye 1 kg m2 s-2 = α-1 β-2 γ2 naye units.",
+    "b-27.steps.3.title": "Result",
+    "b-27.steps.3.detail": "Naye units mein calorie ka magnitude 4.2 α-1 β-2 γ2 hai.",
+    "b-28.question": "Kaun sa statement meaningful hai bina comparison ke liye standard specify kiye?",
+    "b-28.options.0": "atoms bahut chhote objects hain",
+    "b-28.options.1": "ek jet plane bahut zyada speed (chaal) se move karta hai",
+    "b-28.options.2": "ek proton electron se bahut zyada massive hai",
+    "b-28.options.3": "Jupiter ka mass bahut large hai",
+    "b-28.explanation": "Large ya small ka koi matlab nahi hai bina standard ke. Proton ko electron se compare karne se standard specify hota hai, yaani electron, jabki baaki statements mein standard specify nahi kiya gaya.",
+    "b-29.question": "Length ki ek nayi unit aise chuni jaati hai ki vacuum mein speed of light unity ho. Light Sun se Earth tak 8 min aur 20 s leta hai. Is nayi unit mein distance (doori) kya hai?",
+    "b-29.explanation": "Time 8 × 60 + 20 = 500 s hai. Nayi unit mein speed = 1 hone par, distance = speed × time = 500 new units.",
+    "b-30.question": "Kaunsa device length measure karne ke liye sabse precise hai: (a) vernier callipers jisme sliding scale par 20 divisions hain (b) screw gauge jiska pitch 1 mm hai aur circular scale par 100 divisions hain (c) optical instrument jo length ko light ke wavelength ke andar measure kar sakta hai?",
+    "b-30.options.0": "(a) vernier callipers",
+    "b-30.options.1": "(b) screw gauge",
+    "b-30.options.2": "(c) optical instrument",
+    "b-30.options.3": "Sab equally precise hain",
+    "b-30.explanation": "Precision least count par depend karti hai. Optical instrument light ke wavelength ke andar measure karta hai, jo is list mein sabse chhota scale hai, isliye yahi sabse precise hai.",
+    "b-31.problem": "Ek student human hair ki thickness measure karta hai microscope se jiska magnification 100 hai. Woh 20 observations karta hai aur paata hai ki microscope ke field of view mein hair ki average width 3.5 mm hai. Hair ki thickness ka estimate kya hai?",
+    "b-31.steps.0.title": "Magnification ka use karein",
+    "b-31.steps.0.detail": "Actual thickness = observed width / magnification = 3.5 mm / 100.",
+    "b-31.steps.1.title": "Calculate karein",
+    "b-31.steps.1.detail": "3.5 / 100 = 0.035 mm.",
+    "b-31.steps.2.title": "Significant figures",
+    "b-31.steps.2.detail": "3.5 mm mein 2 significant figures hain, isliye answer 0.035 mm = 3.5 × 10-5 m hai.",
+    "b-31.answer": "0.035 mm ya 3.5 × 10-5 m",
+    "b-32.question": "Ek thin brass rod ke diameter ki 100 measurements ka set sirf 5 measurements ke set se zyada reliable estimate kyun dega?",
+    "b-32.options.0": "100 measurements diameter ko badal dete hain",
+    "b-32.options.1": "Zyada observations zyada reliable average estimate dete hain",
+    "b-32.options.2": "5 measurements hamesha galat hote hain",
+    "b-32.options.3": "Rod patli ho jati hai",
+    "b-32.explanation": "Zyada observations average estimate ko better banate hain. Yahi principle metre scale se thread diameter estimate karne mein aur general repeated measurements mein bhi lagta hai.",
+    "b-33.problem": "Ek ghar ki photograph 35 mm slide par 1.75 cm2 area occupy karti hai. Slide ko screen par project kiya jata hai, aur screen par ghar ka area 1.55 m2 hai. Projector-screen arrangement ka linear magnification kya hai?",
+    "b-33.steps.0.title": "Slide area convert karo",
+    "b-33.steps.0.detail": "1.75 cm2 = 1.75 × 10-4 m2.",
+    "b-33.steps.1.title": "Area ratio",
+    "b-33.steps.1.detail": "Area ratio = 1.55 / (1.75 × 10-4) = 8857.",
+    "b-33.steps.2.title": "Linear magnification",
+    "b-33.steps.2.detail": "Linear magnification = sqrt(area ratio) = sqrt(8857) = 94.1 (teen significant figures tak).",
+    "b-33.answer": "94.1",
+    "b-34.problem": "Ek rectangular metal sheet ki length, breadth aur thickness kramashah 4.234 m, 1.005 m, aur 2.01 cm hain. Sheet ka area aur volume correct significant figures tak dijiye.",
+    "b-34.steps.0.title": "Area",
+    "b-34.steps.0.detail": "Area = 4.234 × 1.005 = 4.25517 m2. Dono mein 4 significant figures hain, isliye area = 4.255 m2.",
+    "b-34.steps.1.title": "Thickness metres mein",
+    "b-34.steps.1.detail": "2.01 cm = 0.0201 m, 3 significant figures ke saath.",
+    "b-34.steps.2.title": "Volume",
+    "b-34.steps.2.detail": "Volume = 4.255 × 0.0201 = 0.0855 m3, 3 significant figures tak.",
+    "b-34.answer": "Area 4.255 m2, volume 0.0855 m3",
+    "b-35.problem": "Ek box ka mass, jo grocer's balance se measure kiya gaya hai, 2.30 kg hai. Box mein 20.15 g aur 20.17 g mass ke do gold pieces add kiye jaate hain. Correct significant figures tak (a) box ka total mass kya hai, (b) pieces ke masses ka difference kya hai?",
+    "b-35.steps.0.title": "Total mass",
+    "b-35.steps.0.detail": "2.30 kg = 2300 g, 10 g place tak correct hai. Total = 2300 + 20.15 + 20.17 = 2340.32 g, decimal places ke hisaab se round karke 2340 g = 2.34 kg.",
+    "b-35.steps.1.title": "Difference",
+    "b-35.steps.1.detail": "Difference = 20.17 - 20.15 = 0.02 g, two decimal places tak correct.",
+    "b-35.answer": "(a) 2.34 kg (b) 0.02 g",
+    "b-36.question": "Ek ladka m/m0 = (1 - v2)-1/2 likhta hai aur bhool jaata hai ki c kahan rakhna hai. Dimensional correctness ke liye c kahan hona chahiye?",
+    "b-36.options.0": "v ke saath v/c bracket ke andar",
+    "b-36.options.1": "m ke saath numerator mein",
+    "b-36.options.2": "m0 ke saath denominator mein",
+    "b-36.options.3": "Kahin nahi, c ki zaroorat nahi hai",
+    "b-36.explanation": "v aur c dono ke dimensions [L T-1] hain, isliye v/c dimensionless hai. Function ka argument dimensionless hona chahiye, aur similar quantities ka ratio dimensionless hota hai.",
+    "b-37.problem": "Atomic scale par convenient length ka unit angstrom kehlata hai aur ise Å se denote karte hain: 1 Å = 10-10 m. Hydrogen atom ka size lagbhag 0.5 Å hai. Hydrogen atoms ke ek mole ka total atomic volume m3 mein kya hai?",
+    "b-37.steps.0.title": "Har atom ka volume",
+    "b-37.steps.0.detail": "Size = 0.5 Å = 0.5 × 10-10 m. Har atom ka volume = (0.5 × 10-10)3 = 1.25 × 10-31 m3.",
+    "b-37.steps.1.title": "Har mole mein number",
+    "b-37.steps.1.detail": "Mole ki definition ke anusar ek mole mein 6.02214076 × 1023 elementary entities hoti hain.",
+    "b-37.steps.2.title": "Total volume",
+    "b-37.steps.2.detail": "Total = 1.25 × 10-31 × 6.022 × 1023 = 7.5 × 10-8 m3.",
+    "b-37.answer": "7.5 × 10-8 m3",
+    "b-38.question": "Standard temperature aur pressure par ek mole ideal gas 22.4 L occupy karta hai. Hydrogen molecule ka size lagbhag 1 Å lete hue, ek mole hydrogen ke molar volume aur atomic volume ka ratio kya hai?",
+    "b-38.explanation": "Molar volume = 22.4 L = 2.24 × 10-2 m3. Atomic volume = (1 × 10-10)3 × 6.022 × 1023 = 6.0 × 10-7 m3. Ratio = 2.24 × 10-2 / 6.0 × 10-7 = 3.7 × 104. Ratio bada hai kyunki gas mein atoms door-door hote hain aur unke beech zyada tar volume khaali space hota hai.",
+    "b-39.question": "Agar aap ek fast moving train se bahar dekhein, to paas ke trees train ke opposite direction mein tezi se move karte hain, lekin door ke objects stationary lagte hain. Kyun?",
+    "b-39.options.0": "Paas ke objects train se zyada tezi se move karte hain",
+    "b-39.options.1": "Aapke relative paas ke objects ki direction jaldi badalti hai, door ke objects ki direction bahut dheere badalti hai",
+    "b-39.options.2": "Door ke objects space mein stationary hain",
+    "b-39.options.3": "Door ke objects se aane wala light slower hota hai",
+    "b-39.explanation": "Apparent motion (gati) is par depend karta hai ki moving observer ke liye object ki direction kitni jaldi badalti hai. Paas ke objects ki direction jaldi badalti hai, door ke objects ki direction dheere badalti hai, isliye wo aapke saath move karte hue ya stationary lagte hain.",
+    "b-40.problem": "Sun ek hot plasma hai jiska inner core temperature 107 K se zyada hai aur outer surface lagbhag 6000 K hai. Kya aap expect karte hain ki Sun ki mass density solids aur liquids ke range mein hogi ya gases ke? Check karein: mass of the Sun = 2.0 × 1030 kg, radius of the Sun = 7.0 × 108 m.",
+    "b-40.steps.0.title": "Sun ka volume",
+    "b-40.steps.0.detail": "Volume = (4/3) π r3 = (4/3) π (7.0 × 108)3 = 1.44 × 1027 m3.",
+    "b-40.steps.1.title": "Density",
+    "b-40.steps.1.detail": "Density = mass / volume = 2.0 × 1030 / 1.44 × 1027 = 1.4 × 103 kg m-3.",
+    "b-40.steps.2.title": "Range compare karein",
+    "b-40.steps.2.detail": "1.4 × 103 kg m-3 solids aur liquids ke range mein hai, gases ke nahi, isliye solids aur liquids range ke liye guess sahi hai.",
+    "b-40.answer": "1.4 × 103 kg m-3, solids aur liquids ke range mein",
+    "b-41.question": "Dimensional analysis humein ek equation ke baare mein kya batata hai?",
+    "b-41.options.0": "Ek dimensionally correct equation exact hona chahiye",
+    "b-41.options.1": "Ek dimensionally correct equation exact hona zaroori nahi hai, lekin ek dimensionally wrong equation galat hi hoga",
+    "b-41.options.2": "Dimensional analysis saare constants deta hai",
+    "b-41.options.3": "Dimensions same dimensions wali quantities ko distinguish kar sakte hain",
+    "b-41.explanation": "Agar ek equation test mein fail ho jaata hai to woh galat sabit ho jaata hai. Agar pass ho jaata hai, to woh sahi sabit nahi hota. Constants obtain nahi kiye ja sakte aur same dimensions wali quantities ko distinguish nahi kiya ja sakta."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Units aur Measurement",
+    "objectives": [
+      "Is lesson ke baad aap samjha sakte hain ki unit, base quantity aur derived unit kya hain.",
+      "Is lesson ke baad aap calculations mein significant figures, rounding aur uncertainty ke rules use kar sakte hain.",
+      "Is lesson ke baad aap dimensional formulae likh sakte hain aur equations check karne aur relations deduce karne ke liye dimensional analysis use kar sakte hain."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Introduction: Measurement kya hai?",
+        "paragraphs": [
+          "Aap rozana cheezein measure karte hain. Length ke liye scale use karte hain. Mass ke liye balance use karte hain. Time ke liye clock use karte hain.",
+          "Measurement ka matlab comparison hai. Aap ek quantity ko standard se compare karte hain. Us standard ko unit kehte hain.",
+          "Result ek number hota hai jiske saath unit hota hai. For example, 5 m ka matlab hai unit metre ka 5 times.",
+          "Kuch quantities basic hoti hain. Unhe base quantities kehte hain. Unke units base units hote hain.",
+          "Baqi quantities base quantities se banti hain. Unke units derived units hote hain. Saare base aur derived units milkar system of units banate hain."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "International System of Units",
+        "paragraphs": [
+          "Pehle different countries different systems use karte the. CGS centimetre, gram aur second use karta tha. FPS foot, pound aur second use karta tha. MKS metre, kilogram aur second use karta tha.",
+          "Ab duniya SI use karti hai. SI ka matlab Système International d'Unités hai. Yahi International System of Units hai.",
+          "SI mein seven base units hain. Ye length, mass, time, electric current, temperature, amount of substance aur luminous intensity ke liye hain.",
+          "Unke units metre, kilogram, second, ampere, kelvin, mole aur candela hain. Unke symbols m, kg, s, A, K, mol aur cd hain.",
+          "Plane angle ka unit radian hai, symbol rad. Solid angle ka unit steradian hai, symbol sr. Dono dimensionless hain. SI decimal system use karta hai, isliye conversions simple hain."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Significant figures",
+        "paragraphs": [
+          "Har measurement mein error hota hai. Isliye precision dikhana zaroori hai. Significant figures precision dikhate hain.",
+          "Significant figures reliable digits plus pehla uncertain digit hote hain. 1.62 s mein 1 aur 6 certain hain aur 2 uncertain hai. Isliye teen significant figures hain.",
+          "Saare non-zero digits significant hote hain. Do non-zero digits ke beech ke zeros significant hote hain. 1 se chhoti number mein pehle non-zero digit se pehle ke zeros significant nahi hote.",
+          "Decimal point ke bina trailing zeros significant nahi hote. Decimal point ke saath trailing zeros significant hote hain. Units change karne se significant figures nahi badalte.",
+          "Scientific notation ise dikhane ka best way hai. Number ko a × 10b ki tarah likhiye, jahan a 1 aur 10 ke beech hota hai. Exponent b order of magnitude hota hai."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Arithmetic, rounding aur uncertainty",
+        "paragraphs": [
+          "Multiplication ya division mein utne hi significant figures rakhiye jitne least significant figures wale number mein hain. Addition ya subtraction mein utne hi decimal places rakhiye jitne least decimal places wale number mein hain.",
+          "Rounding ka matlab extra uncertain digits hataana hai. Agar dropped digit 5 se zyada hai, to preceding digit ko 1 se badha dijiye. Agar 5 se kam hai, to use unchanged chhod dijiye.",
+          "Agar dropped digit exactly 5 hai, to preceding digit dekhiye. Agar wo even hai, to 5 drop kar dijiye. Agar odd hai, to use 1 se badha dijiye.",
+          "Multi-step work mein intermediate steps mein ek extra digit rakhiye. Sirf end mein round kijiye. Isse rounding errors build up hona rukta hai.",
+          "Uncertainty ko plus ya minus ki tarah dikha sakte hain. Relative error number par depend karta hai, sirf significant figures par nahi."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Physical quantities ke dimensions",
+        "paragraphs": [
+          "Dimensions quantity ki nature describe karte hain. Hum dimensions square brackets mein likhte hain. Length [L] hai, mass [M] hai aur time [T] hai.",
+          "Electric current [A] hai, temperature [K] hai, luminous intensity [cd] hai aur amount of substance [mol] hai.",
+          "Volume length times length times length hai. Isliye iske dimensions [L3] hain. Mass aur time mein iska dimension zero hai.",
+          "Force (bal) mass times acceleration (tvaran) hai. Acceleration length divided by time squared hai. Isliye force ke dimensions [M L T-2] hain.",
+          "Yahan magnitudes consider nahi hote. Sirf quantity ka type matter karta hai. Speed (chaal) aur velocity (veg) dono ke dimensions [L T-1] hain."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Dimensional formulae aur equations",
+        "paragraphs": [
+          "Dimensional formula dikhata hai ki base quantities kisi quantity ko kaise represent karti hain. Volume ka formula [M0 L3 T0] hai. Speed ka formula [M0 L T-1] hai.",
+          "Acceleration ka formula [M0 L T-2] hai. Mass density ka formula [M L-3 T0] hai. Zero ka matlab hai ki wo base quantity absent hai.",
+          "Dimensional equation kisi quantity ko uske formula ke barabar rakhta hai. For example, [V] = [M0 L3 T0] aur [F] = [M L T-2].",
+          "Aap quantities ke beech relation se dimensional equation nikal sakte hain. Aap har quantity ko uske dimensions se replace karte hain."
+        ]
+      },
+      {
+        "id": "sec-07",
+        "title": "Dimensional analysis aur uske applications",
+        "paragraphs": [
+          "Sirf same dimensions wali quantities ko add ya subtract kiya ja sakta hai. Yahi principle of homogeneity of dimensions hai. Ye equation check karne mein help karta hai.",
+          "Agar dono sides ke dimensions match nahi karte, to equation wrong hai. Agar match karte hain, to equation phir bhi wrong ho sakta hai. Test pass karna ise right prove nahi karta.",
+          "Dimensional analysis relation deduce bhi kar sakta hai. Aap maan lijiye ki quantity doosri quantities par product ke roop mein depend karti hai. Phir dono sides ke dimensions match kijiye.",
+          "Ye method dimensionless constants nahi de sakta. Ye same dimensions wali quantities mein distinguish bhi nahi kar sakta."
+        ]
+      },
+      {
+        "id": "sec-08",
+        "title": "Summary",
+        "paragraphs": [
+          "Physics physical quantities ke measurement par based hai. Base quantities pehle choose ki jaati hain. Unke units base units hote hain.",
+          "Derived quantities base quantities ke combinations hote hain. Unke units derived units hote hain. SI seven base units wala international system hai.",
+          "Zaroorat par measurements scientific notation mein likhe jane chahiye. Sirf proper significant figures retain kiye jane chahiye.",
+          "Dimensions quantities ki nature describe karte hain. Dimensional analysis equations check karta hai aur relations deduce karta hai. Dimensionally wrong equation zaroor wrong hota hai."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "unit",
+        "definition": "Ek standard reference jisse physical quantity compare ki jaati hai."
+      },
+      {
+        "term": "base quantity",
+        "definition": "System of units ke liye choose ki gayi fundamental quantity, jaise length, mass aur time."
+      },
+      {
+        "term": "derived unit",
+        "definition": "Derived quantity ke liye base units ke combination se bana unit."
+      },
+      {
+        "term": "significant figures",
+        "definition": "Measurement mein reliable digits plus pehla uncertain digit."
+      },
+      {
+        "term": "dimension",
+        "definition": "Base quantities ki powers jo kisi physical quantity ko represent karti hain, square brackets mein likhi jaati hain."
+      },
+      {
+        "term": "dimensional formula",
+        "definition": "Expression jo dikhata hai ki kaunsi base quantities kisi quantity ke dimensions ko represent karti hain."
+      },
+      {
+        "term": "order of magnitude",
+        "definition": "Kisi number ke approximate estimate ke liye a × 10b mein exponent b."
+      },
+      {
+        "term": "principle of homogeneity",
+        "definition": "Sirf same dimensions wali quantities ko add ya subtract kiya ja sakta hai."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Aap length ko scale se aur mass ko balance se measure karte hain. Measurement ka matlab standard se comparison hota hai. Us standard ko unit kaha jata hai.",
+          "Measurement ka result ek number hota hai jo unit ke saath hota hai. For example, length ko metres mein ek number ke roop mein likha jata hai.",
+          "Base quantities ke units base units hote hain. Doosri quantities ke units derived units hote hain. Ye sab milkar units ka ek system banate hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        }
+      ]
+    },
+    {
+      "id": "b-02",
+      "type": "check",
+      "spec": {
+        "question": "Measurement ka result kya hota hai?",
+        "format": "mcq",
+        "options": [
+          "Sirf ek number",
+          "Ek number jo unit ke saath hota hai",
+          "Sirf ek unit",
+          "Bina kisi standard ke ek number"
+        ],
+        "answer_index": 1,
+        "explanation": "Measurement kisi quantity ko unit se compare karta hai, isliye result ek number with unit hota hai.",
+        "expected_understanding": "Student jaanta hai ki measurement unit se comparison hai aur number plus unit ke roop mein report hota hai.",
+        "answer": "Ek number jo unit ke saath hota hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-03",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Pehle ke systems CGS, FPS aur MKS the. CGS mein centimetre, gram aur second use hote the. FPS mein foot, pound aur second use hote the. MKS mein metre, kilogram aur second use hote the.",
+          "SI ab internationally accepted hai. Isse BIPM ne 1971 mein develop kiya aur November 2018 mein revise kiya gaya. Yeh book SI units ko follow karti hai.",
+          "SI mein saat base units hain. Plane angle ka unit radian, rad hai. Solid angle ka unit steradian, sr hai. Dono dimensionless hain. SI decimal system use karta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-31"
+        }
+      ]
+    },
+    {
+      "id": "b-04",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 420 130\"><rect x=\"5\" y=\"20\" width=\"55\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><rect x=\"65\" y=\"20\" width=\"55\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><rect x=\"125\" y=\"20\" width=\"55\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><rect x=\"185\" y=\"20\" width=\"55\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><rect x=\"245\" y=\"20\" width=\"55\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><rect x=\"305\" y=\"20\" width=\"55\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><rect x=\"365\" y=\"20\" width=\"50\" height=\"60\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><text x=\"32\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-0\">Length</text><text x=\"32\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">m</text><text x=\"92\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-1\">Mass</text><text x=\"92\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">kg</text><text x=\"152\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-2\">Time</text><text x=\"152\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">s</text><text x=\"212\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-3\">Current</text><text x=\"212\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">A</text><text x=\"272\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-4\">Temp.</text><text x=\"272\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">K</text><text x=\"332\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-5\">Amount</text><text x=\"332\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">mol</text><text x=\"390\" y=\"45\" fill=\"#1C1B18\" font-size=\"11\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-6\">Light</text><text x=\"390\" y=\"65\" fill=\"#1F3A9E\" font-size=\"12\" text-anchor=\"middle\">cd</text><text x=\"210\" y=\"105\" fill=\"#5A5748\" font-size=\"12\" text-anchor=\"middle\" data-i18n=\"b-04.svg_texts.t-7\">Saat SI base quantities aur units</text></svg>",
+        "caption": "Saat SI base quantities unke units aur symbols ke saath."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-05",
+      "type": "check",
+      "spec": {
+        "question": "Kaunsa set length, mass aur time ke SI base units deta hai?",
+        "format": "mcq",
+        "options": [
+          "centimetre, gram, second",
+          "foot, pound, second",
+          "metre, kilogram, second",
+          "metre, gram, second"
+        ],
+        "answer_index": 2,
+        "explanation": "MKS aur SI length, mass aur time ke liye metre, kilogram aur second use karte hain.",
+        "expected_understanding": "Student SI base units identify kar sakta hai aur CGS, FPS aur MKS me farq kar sakta hai.",
+        "answer": "metre, kilogram, second"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-06",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Significant figures reliable digits plus pehla uncertain digit hote hain. 1.62 s mein, 1 aur 6 certain hain aur 2 uncertain hai, isliye teen significant figures hain. 287.5 cm mein chaar hain.",
+          "Sabhi non-zero digits significant hote hain. Do non-zero digits ke beech ke zeros significant hote hain. 1 se kam number mein pehle non-zero digit se pehle ke zeros significant nahi hote.",
+          "Decimal point ke bina trailing zeros significant nahi hote. Decimal point ke saath trailing zeros significant hote hain. Units badalne se significant figures nahi badalte. Precision instrument ke least count par depend karti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-07",
+      "type": "reveal",
+      "spec": {
+        "title": "Scientific notation aur order of magnitude",
+        "steps": [
+          {
+            "title": "a × 10b likhein",
+            "detail": "Number ko a × 10b ke roop mein likhein, jahan a 1 aur 10 ke beech hai aur b koi bhi positive ya negative exponent hai."
+          },
+          {
+            "title": "Order of magnitude nikaalein",
+            "detail": "a ko 1 tak round karein jab a ≤ 5 ho, aur 10 tak jab 5 < a ≤ 10 ho. Phir number lagbhag 10b ho jaata hai aur b hi order of magnitude hai."
+          },
+          {
+            "title": "Examples use karein",
+            "detail": "Earth ka diameter 1.28 × 107 m order 107 m ka hai, order 7 ke saath. Hydrogen atom ka diameter 1.06 × 10-10 m order 10-10 m ka hai, order -10 ke saath."
+          },
+          {
+            "title": "Trailing zeros",
+            "detail": "Scientific notation mein a ke saare zeros significant hote hain, isliye 4.700 m = 4.700 × 102 cm mein chaar significant figures hain."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        }
+      ]
+    },
+    {
+      "id": "b-08",
+      "type": "check",
+      "spec": {
+        "question": "0.2370 g cm-3 mein kitne significant figures hain?",
+        "format": "mcq",
+        "options": [
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "answer_index": 2,
+        "explanation": "Leading zeros significant nahi hote aur decimal point ke saath trailing zero significant hota hai, isliye 2, 3, 7 aur 0 milakar chaar significant figures dete hain. Isi tarah 0.007 m2 mein 1, 2.64 × 1024 kg mein 3, 6.320 J mein 4, 6.032 N m-2 mein 4 aur 0.0006032 m2 mein 4 significant figures hain.",
+        "expected_understanding": "Student 1 se kam numbers aur trailing zeros par significant figure ke niyam lagata hai.",
+        "answer": "4"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        }
+      ]
+    },
+    {
+      "id": "b-09",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Multiplication ya division mein, utne hi significant figures rakho jitne least significant figures wale number mein hain. Density 4.237 g ko 2.51 cm3 se divide karne par 1.69 g cm-3 report hoti hai, na ki bahut zyada decimal places tak.",
+          "Addition ya subtraction mein, utne hi decimal places rakho jitne least decimal places wale number mein hain. 436.32 g, 227.2 g aur 0.301 g ka sum 663.8 g hai.",
+          "Difference 0.307 m - 0.304 m = 0.003 m hai. Addition aur subtraction ke liye multiplication rule ka use mat karo."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "worked_example",
+      "spec": {
+        "problem": "5.74 g kisi substance ka volume 1.2 cm3 hai. Significant figures ko dhyan mein rakhte hue iski density express karo.",
+        "steps": [
+          {
+            "title": "Significant figures count karo",
+            "detail": "Mass 5.74 g mein 3 significant figures hain. Volume 1.2 cm3 mein 2 significant figures hain."
+          },
+          {
+            "title": "Divide karo",
+            "detail": "Density = 5.74 / 1.2 = 4.783... g cm-3."
+          },
+          {
+            "title": "Least tak round karo",
+            "detail": "Data mein sabse kam 2 significant figures hain, isliye 2 significant figures tak round karo."
+          }
+        ],
+        "answer": "4.8 g cm-3"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-11",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek cube ki har side 7.203 m measured hai. Appropriate significant figures mein cube ka total surface area aur volume kya hai?",
+        "steps": [
+          {
+            "title": "Significant figures count karo",
+            "detail": "Length 7.203 m mein 4 significant figures hain, isliye area aur volume ke liye 4 significant figures chahiye."
+          },
+          {
+            "title": "Surface area",
+            "detail": "Area = 6 × (7.203)2 = 311.299254 m2, 311.3 m2 tak rounded."
+          },
+          {
+            "title": "Volume",
+            "detail": "Volume = (7.203)3 = 373.714754 m3, 373.7 m3 tak rounded."
+          }
+        ],
+        "answer": "Surface area 311.3 m2, volume 373.7 m3"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-25"
+        }
+      ]
+    },
+    {
+      "id": "b-12",
+      "type": "reveal",
+      "spec": {
+        "title": "Anishchit digits ko round off karna",
+        "steps": [
+          {
+            "title": "Dropped digit 5 se zyada hai",
+            "detail": "Preceding digit ko 1 se badha do. Example: 2.746 ko three significant figures tak round karne par 2.75 milta hai."
+          },
+          {
+            "title": "Dropped digit 5 se kam hai",
+            "detail": "Preceding digit ko unchanged chhod do. Example: 1.743 ko three significant figures tak round karne par 1.74 milta hai."
+          },
+          {
+            "title": "Dropped digit exactly 5 hai",
+            "detail": "Agar preceding digit even hai, to 5 ko drop kar do. Agar odd hai, to use 1 se badha do. Isliye 2.745 2.74 ban jata hai aur 2.735 2.74 ban jata hai."
+          },
+          {
+            "title": "Intermediate steps",
+            "detail": "Intermediate steps mein ek extra digit rakho aur rounding errors build hone se bachne ke liye end mein round karo."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-13",
+      "type": "check",
+      "spec": {
+        "question": "436.32 g + 227.2 g + 0.301 g = ? g correct decimal places tak",
+        "format": "numeric",
+        "answer": "663.8",
+        "explanation": "Arithmetic sum 663.821 g hai, lekin 227.2 g sirf ek decimal place tak correct hai, isliye round karke 663.8 g karo.",
+        "expected_understanding": "Student addition ke liye decimal places rule use karta hai, significant figures nahi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-14",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Product mein uncertainty combine hoti hai. 16.2 cm by 10.1 cm ki sheet ke liye, har measurement ± 0.1 cm hai, isliye area 163.62 cm2 mein lagbhag 1.6% error hai aur ise 164 ± 3 cm2 likha jata hai.",
+          "Subtraction significant figures kam kar sakta hai. 12.9 g - 7.06 g ka result 5.8 g hai, 5.84 g nahin, kyunki decimal places matter karti hain.",
+          "Relative error number par hi depend karta hai. Multi-step work ke intermediate steps mein ek extra digit rakhein."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ]
+    },
+    {
+      "id": "b-15",
+      "type": "check",
+      "spec": {
+        "question": "1.02 g aur 9.89 g dono ± 0.01 g tak accurate hain. Kis mein relative error chhota hai?",
+        "format": "mcq",
+        "options": [
+          "1.02 g",
+          "9.89 g",
+          "Dono barabar hain",
+          "Nahi kaha ja sakta"
+        ],
+        "answer_index": 1,
+        "explanation": "1.02 g mein relative error (±0.01/1.02) × 100% = ±1% hai. 9.89 g mein ye (±0.01/9.89) × 100% = ±0.1% hai, isliye 9.89 g ka relative error chhota hai.",
+        "expected_understanding": "Student relative error calculate karta hai aur dekhta hai ki ye number par depend karta hai.",
+        "answer": "9.89 g"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        }
+      ]
+    },
+    {
+      "id": "b-16",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Dimension kisi quantity ki nature batate hain. Length [L] hai, mass [M] hai, time [T] hai, electric current [A] hai, temperature [K] hai, luminous intensity [cd] hai aur amount of substance [mol] hai.",
+          "Volume teen lengths ka hota hai, isliye dimensions [L3] hain. Iska mass aur time mein zero dimension hai.",
+          "Force (bal) mass times acceleration (tvaran) hota hai, isliye dimensions [M L T-2] hain. Magnitudes consider nahi kiye jaate, isliye speed (chaal) aur velocity (veg) dono ka dimension [L T-1] hota hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-17",
+      "type": "diagram",
+      "spec": {
+        "svg": "<svg viewBox=\"0 0 400 150\"><rect x=\"20\" y=\"20\" width=\"160\" height=\"50\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><text x=\"100\" y=\"42\" fill=\"#1C1B18\" font-size=\"13\" text-anchor=\"middle\" data-i18n=\"b-17.svg_texts.t-0\">Volume = L × L × L</text><text x=\"100\" y=\"62\" fill=\"#1F3A9E\" font-size=\"13\" text-anchor=\"middle\" data-i18n=\"b-17.svg_texts.t-1\">[L3]</text><rect x=\"220\" y=\"20\" width=\"160\" height=\"50\" fill=\"#F6F0CF\" stroke=\"#1C1B18\" stroke-width=\"2\" /><text x=\"300\" y=\"42\" fill=\"#1C1B18\" font-size=\"13\" text-anchor=\"middle\" data-i18n=\"b-17.svg_texts.t-2\">Force = M × L / T2</text><text x=\"300\" y=\"62\" fill=\"#1F3A9E\" font-size=\"13\" text-anchor=\"middle\" data-i18n=\"b-17.svg_texts.t-3\">[M L T-2]</text><line x1=\"100\" y1=\"70\" x2=\"100\" y2=\"95\" stroke=\"#5A5748\" stroke-width=\"2\" stroke-dasharray=\"4 3\" /><line x1=\"300\" y1=\"70\" x2=\"300\" y2=\"95\" stroke=\"#5A5748\" stroke-width=\"2\" stroke-dasharray=\"4 3\" /><text x=\"200\" y=\"115\" fill=\"#5A5748\" font-size=\"12\" text-anchor=\"middle\" data-i18n=\"b-17.svg_texts.t-4\">Base quantities [L], [M], [T] se dimensions</text></svg>",
+        "caption": "Volume aur force (bal) base dimensions mein vyakt kiye gaye hain."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-17"
+        }
+      ]
+    },
+    {
+      "id": "b-18",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Ek dimensional formula dikhata hai ki base quantities kisi quantity ko kaise represent karti hain. Volume [M0 L3 T0] hai. Speed (chaal) [M0 L T-1] hai. Acceleration (tvaran) [M0 L T-2] hai. Mass density [M L-3 T0] hai.",
+          "Ek dimensional equation kisi quantity ko uske formula ke barabar rakhta hai. [V] = [M0 L3 T0], [v] = [M0 L T-1], [F] = [M L T-2] aur [ρ] = [M L-3 T0].",
+          "Aap quantities ke beech ke relations se dimensional equations paate hain, har quantity ko uske dimensions se replace karke."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ]
+    },
+    {
+      "id": "b-19",
+      "type": "reveal",
+      "spec": {
+        "title": "x = x0 + v0 t + (1/2) a t2 ko check karna",
+        "steps": [
+          {
+            "title": "Left side (baaya paksh)",
+            "detail": "[x] = [L]."
+          },
+          {
+            "title": "Right side ka pehla term",
+            "detail": "[x0] = [L]."
+          },
+          {
+            "title": "Right side ka doosra term",
+            "detail": "[v0 t] = [L T-1][T] = [L]."
+          },
+          {
+            "title": "Right side ka teesra term",
+            "detail": "[(1/2) a t2] = [L T-2][T2] = [L]."
+          },
+          {
+            "title": "Conclusion (nishkarsh)",
+            "detail": "Har term ka dimension length hai, left side ke same, isliye equation dimensionally correct hai. Pass hona ise sahi prove nahi karta."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-20",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek equation 1/2 m v2 = m g h consider karte hain, jahan m body ka mass hai, v uska velocity (veg) hai, g acceleration due to gravity (tvaran) hai aur h height hai. Check kijiye ki ye equation dimensionally correct hai ya nahi.",
+        "steps": [
+          {
+            "title": "Baayi taraf",
+            "detail": "[M][L T-1]2 = [M][L2 T-2] = [M L2 T-2]."
+          },
+          {
+            "title": "Daayi taraf",
+            "detail": "[M][L T-2][L] = [M][L2 T-2] = [M L2 T-2]."
+          },
+          {
+            "title": "Compare karein",
+            "detail": "LHS aur RHS ke dimensions same hain, isliye equation dimensionally correct hai."
+          }
+        ],
+        "answer": "Dimensionally correct"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-27"
+        }
+      ]
+    },
+    {
+      "id": "b-21",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Energy ka SI unit J = kg m2 s-2 hai; speed (chaal) v ka unit m s-1 hai aur acceleration (tvaran) a ka unit m s-2 hai. Kinetic energy (K) ke liye di gayi formulae mein se kaun-si formulae ko dimensional arguments se rule out kar sakte hain (m ka matlab mass hai): (a) K = m2 v3 (b) K = (1/2) m v2 (c) K = m a (d) K = (3/16) m v2 (e) K = (1/2) m v2 + m a",
+        "steps": [
+          {
+            "title": "K ke dimensions",
+            "detail": "K ke dimensions [M L2 T-2] hain, jo J = kg m2 s-2 se aate hain."
+          },
+          {
+            "title": "Har formula check kijiye",
+            "detail": "(a) [M2 L3 T-3] deta hai, (b) aur (d) [M L2 T-2] dete hain, (c) [M L T-2] deta hai, aur (e) different dimensions ki quantities ko add karta hai, isliye iske proper dimensions nahi hain."
+          },
+          {
+            "title": "Rule out kijiye",
+            "detail": "(a), (c) aur (e) rule out ho jate hain. Dimensions (b) aur (d) mein distinguish nahi kar sakte. Correct formula (b) hai."
+          }
+        ],
+        "answer": "(a), (c) aur (e) ruled out; correct (b) K = (1/2) m v2 hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        }
+      ]
+    },
+    {
+      "id": "b-22",
+      "type": "reveal",
+      "spec": {
+        "title": "Dimensions se pendulum period deduce karna",
+        "steps": [
+          {
+            "title": "Product form maan lijiye",
+            "detail": "Maan lijiye period T length l, mass m aur gravity g par depend karta hai: T = k lx gy mz, jahan k dimensionless hai aur x, y, z exponents hain."
+          },
+          {
+            "title": "Dimensions match karna",
+            "detail": "[T] = [L]x [L T-2]y [M]z se Lx+y T-2y Mz milta hai, isliye x + y = 0, -2y = 1 aur z = 0."
+          },
+          {
+            "title": "Solve kijiye",
+            "detail": "x = 1/2, y = -1/2, z = 0, isliye T = k l1/2 g-1/2 = k sqrt(l/g)."
+          },
+          {
+            "title": "Constant",
+            "detail": "k ko dimensions se nahi nikal sakte. Asal mein k = 2π, isliye T = 2π sqrt(l/g)."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-23",
+      "type": "simulation",
+      "spec": {
+        "title": "Pendulum period aur length",
+        "description": "Simple pendulum ke liye length badalne par period T = 2π sqrt(l/g) dikhata hai.",
+        "learning_goal": "Dekhiye ki length badhne par period kaise badhta hai aur mass dimensional result mein nahi aata.",
+        "controls": [
+          {
+            "id": "length",
+            "label": "Length l (m)",
+            "min": 0.1,
+            "max": 2,
+            "step": 0.1,
+            "initial": 1
+          }
+        ],
+        "default_behaviour": "l = 1 m ke liye period dikhata hai, jo T = 2π sqrt(l/g) se compute hota hai, jahan g = 9.8 m s-2 hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        }
+      ]
+    },
+    {
+      "id": "b-24",
+      "type": "check",
+      "spec": {
+        "question": "Principle of homogeneity ke according kaunsa addition allowed hai?",
+        "format": "mcq",
+        "options": [
+          "velocity + force",
+          "electric current - thermodynamic temperature",
+          "length + length",
+          "speed + force"
+        ],
+        "answer_index": 2,
+        "explanation": "Sirf same dimensions wali quantities ko add ya subtract kiya ja sakta hai. Length plus length mein dono sides par same dimension [L] hota hai.",
+        "expected_understanding": "Student homogeneity principle ko addition aur subtraction par apply karta hai.",
+        "answer": "length + length"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-20"
+        }
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "text",
+      "spec": {
+        "paragraphs": [
+          "Base quantities hain length, mass, time, electric current, temperature, amount of substance aur luminous intensity. Inke units hain metre, kilogram, second, ampere, kelvin, mole aur candela.",
+          "Derived unit (vyutpann unit) ke special names ho sakte hain jaise joule, newton aur watt. Calculations mein units ko algebraic quantities ki tarah treat kiya jata hai.",
+          "Sirf proper significant figures hi retain karne chahiye. Dimensions equations ko check karte hain, lekin dimensionally correct equation exact hona zaroori nahi hai aur dimensionally wrong equation zaroor wrong hogi."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-07"
+        },
+        {
+          "claim_id": "claim-33"
+        },
+        {
+          "claim_id": "claim-34"
+        },
+        {
+          "claim_id": "claim-22"
+        }
+      ]
+    },
+    {
+      "id": "b-26",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Khaali sthaan bharo: (a) 1 cm side wale cube ka volume m3 mein (b) speed (chaal) 18 km h-1 se chalne wala vehicle 1 s mein m cover karta hai (c) 1 kg m2 s-2 = g cm2 s-2 (d) 3.0 m s-2 = km h-2 (e) 1 m = ly (f) G = 6.67 × 10-11 N m2 (kg)-2 = (cm)3 s-2 g-1",
+        "steps": [
+          {
+            "title": "Cube aur vehicle",
+            "detail": "1 cm = 0.01 m, isliye volume = (0.01)3 = 1 × 10-6 m3. 18 km h-1 = 5 m s-1, isliye 1 s mein ye 5 m cover karta hai."
+          },
+          {
+            "title": "Energy unit",
+            "detail": "1 kg = 1000 g aur 1 m = 100 cm, isliye 1 kg m2 s-2 = 1000 × 10000 = 1 × 107 g cm2 s-2."
+          },
+          {
+            "title": "Acceleration (tvaran)",
+            "detail": "3.0 m s-2 = 0.003 km per (1/3600 h)2 = 38880 km h-2."
+          },
+          {
+            "title": "Light year aur G",
+            "detail": "Source example ke anusaar light year 9.47 × 1015 m hai, isliye 1 m = 1.06 × 10-16 ly. G ke liye, 1 N = 105 g cm s-2, jisse 6.67 × 10-8 (cm)3 s-2 g-1 milta hai."
+          }
+        ],
+        "answer": "1 × 10-6 m3; 5 m; 1 × 107 g cm2 s-2; 38880 km h-2; 1.06 × 10-16 ly; 6.67 × 10-8 (cm)3 s-2 g-1"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-34"
+        }
+      ]
+    },
+    {
+      "id": "b-27",
+      "type": "reveal",
+      "spec": {
+        "title": "Calorie naye units mein",
+        "steps": [
+          {
+            "title": "Calorie se shuru karein",
+            "detail": "Ek calorie lagbhag 4.2 J ke barabar hai aur 1 J = 1 kg m2 s-2."
+          },
+          {
+            "title": "Naye units",
+            "detail": "Mass ka naya unit α kg ke barabar hai, length β m ke barabar hai aur time γ s ke barabar hai. Units ko algebraic quantities ki tarah treat karein."
+          },
+          {
+            "title": "Convert karein",
+            "detail": "1 kg = 1/α naye mass units, 1 m = 1/β naye length units, 1 s = 1/γ naye time units, isliye 1 kg m2 s-2 = α-1 β-2 γ2 naye units."
+          },
+          {
+            "title": "Result",
+            "detail": "Naye units mein calorie ka magnitude 4.2 α-1 β-2 γ2 hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-35"
+        },
+        {
+          "claim_id": "claim-34"
+        }
+      ]
+    },
+    {
+      "id": "b-28",
+      "type": "check",
+      "spec": {
+        "question": "Kaun sa statement meaningful hai bina comparison ke liye standard specify kiye?",
+        "format": "mcq",
+        "options": [
+          "atoms bahut chhote objects hain",
+          "ek jet plane bahut zyada speed (chaal) se move karta hai",
+          "ek proton electron se bahut zyada massive hai",
+          "Jupiter ka mass bahut large hai"
+        ],
+        "answer_index": 2,
+        "explanation": "Large ya small ka koi matlab nahi hai bina standard ke. Proton ko electron se compare karne se standard specify hota hai, yaani electron, jabki baaki statements mein standard specify nahi kiya gaya.",
+        "expected_understanding": "Student samajhta hai ki large aur small ke liye comparison ka standard chahiye.",
+        "answer": "ek proton electron se bahut zyada massive hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-29",
+      "type": "check",
+      "spec": {
+        "question": "Length ki ek nayi unit aise chuni jaati hai ki vacuum mein speed of light unity ho. Light Sun se Earth tak 8 min aur 20 s leta hai. Is nayi unit mein distance (doori) kya hai?",
+        "format": "numeric",
+        "answer": "500",
+        "explanation": "Time 8 × 60 + 20 = 500 s hai. Nayi unit mein speed = 1 hone par, distance = speed × time = 500 new units.",
+        "expected_understanding": "Student distance = speed × time ko nayi unit definition ke saath use karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-30",
+      "type": "check",
+      "spec": {
+        "question": "Kaunsa device length measure karne ke liye sabse precise hai: (a) vernier callipers jisme sliding scale par 20 divisions hain (b) screw gauge jiska pitch 1 mm hai aur circular scale par 100 divisions hain (c) optical instrument jo length ko light ke wavelength ke andar measure kar sakta hai?",
+        "format": "mcq",
+        "options": [
+          "(a) vernier callipers",
+          "(b) screw gauge",
+          "(c) optical instrument",
+          "Sab equally precise hain"
+        ],
+        "answer_index": 2,
+        "explanation": "Precision least count par depend karti hai. Optical instrument light ke wavelength ke andar measure karta hai, jo is list mein sabse chhota scale hai, isliye yahi sabse precise hai.",
+        "expected_understanding": "Student least count principle se precision compare karta hai.",
+        "answer": "(c) optical instrument"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-31",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek student human hair ki thickness measure karta hai microscope se jiska magnification 100 hai. Woh 20 observations karta hai aur paata hai ki microscope ke field of view mein hair ki average width 3.5 mm hai. Hair ki thickness ka estimate kya hai?",
+        "steps": [
+          {
+            "title": "Magnification ka use karein",
+            "detail": "Actual thickness = observed width / magnification = 3.5 mm / 100."
+          },
+          {
+            "title": "Calculate karein",
+            "detail": "3.5 / 100 = 0.035 mm."
+          },
+          {
+            "title": "Significant figures",
+            "detail": "3.5 mm mein 2 significant figures hain, isliye answer 0.035 mm = 3.5 × 10-5 m hai."
+          }
+        ],
+        "answer": "0.035 mm ya 3.5 × 10-5 m"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-40"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-32",
+      "type": "check",
+      "spec": {
+        "question": "Ek thin brass rod ke diameter ki 100 measurements ka set sirf 5 measurements ke set se zyada reliable estimate kyun dega?",
+        "format": "mcq",
+        "options": [
+          "100 measurements diameter ko badal dete hain",
+          "Zyada observations zyada reliable average estimate dete hain",
+          "5 measurements hamesha galat hote hain",
+          "Rod patli ho jati hai"
+        ],
+        "answer_index": 1,
+        "explanation": "Zyada observations average estimate ko better banate hain. Yahi principle metre scale se thread diameter estimate karne mein aur general repeated measurements mein bhi lagta hai.",
+        "expected_understanding": "Student samajhta hai ki repeated measurements reliability ko improve karte hain.",
+        "answer": "Zyada observations zyada reliable average estimate dete hain"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-32"
+        }
+      ]
+    },
+    {
+      "id": "b-33",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek ghar ki photograph 35 mm slide par 1.75 cm2 area occupy karti hai. Slide ko screen par project kiya jata hai, aur screen par ghar ka area 1.55 m2 hai. Projector-screen arrangement ka linear magnification kya hai?",
+        "steps": [
+          {
+            "title": "Slide area convert karo",
+            "detail": "1.75 cm2 = 1.75 × 10-4 m2."
+          },
+          {
+            "title": "Area ratio",
+            "detail": "Area ratio = 1.55 / (1.75 × 10-4) = 8857."
+          },
+          {
+            "title": "Linear magnification",
+            "detail": "Linear magnification = sqrt(area ratio) = sqrt(8857) = 94.1 (teen significant figures tak)."
+          }
+        ],
+        "answer": "94.1"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-39"
+        }
+      ]
+    },
+    {
+      "id": "b-34",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek rectangular metal sheet ki length, breadth aur thickness kramashah 4.234 m, 1.005 m, aur 2.01 cm hain. Sheet ka area aur volume correct significant figures tak dijiye.",
+        "steps": [
+          {
+            "title": "Area",
+            "detail": "Area = 4.234 × 1.005 = 4.25517 m2. Dono mein 4 significant figures hain, isliye area = 4.255 m2."
+          },
+          {
+            "title": "Thickness metres mein",
+            "detail": "2.01 cm = 0.0201 m, 3 significant figures ke saath."
+          },
+          {
+            "title": "Volume",
+            "detail": "Volume = 4.255 × 0.0201 = 0.0855 m3, 3 significant figures tak."
+          }
+        ],
+        "answer": "Area 4.255 m2, volume 0.0855 m3"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-12"
+        }
+      ]
+    },
+    {
+      "id": "b-35",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Ek box ka mass, jo grocer's balance se measure kiya gaya hai, 2.30 kg hai. Box mein 20.15 g aur 20.17 g mass ke do gold pieces add kiye jaate hain. Correct significant figures tak (a) box ka total mass kya hai, (b) pieces ke masses ka difference kya hai?",
+        "steps": [
+          {
+            "title": "Total mass",
+            "detail": "2.30 kg = 2300 g, 10 g place tak correct hai. Total = 2300 + 20.15 + 20.17 = 2340.32 g, decimal places ke hisaab se round karke 2340 g = 2.34 kg."
+          },
+          {
+            "title": "Difference",
+            "detail": "Difference = 20.17 - 20.15 = 0.02 g, two decimal places tak correct."
+          }
+        ],
+        "answer": "(a) 2.34 kg (b) 0.02 g"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-13"
+        }
+      ]
+    },
+    {
+      "id": "b-36",
+      "type": "check",
+      "spec": {
+        "question": "Ek ladka m/m0 = (1 - v2)-1/2 likhta hai aur bhool jaata hai ki c kahan rakhna hai. Dimensional correctness ke liye c kahan hona chahiye?",
+        "format": "mcq",
+        "options": [
+          "v ke saath v/c bracket ke andar",
+          "m ke saath numerator mein",
+          "m0 ke saath denominator mein",
+          "Kahin nahi, c ki zaroorat nahi hai"
+        ],
+        "answer_index": 0,
+        "explanation": "v aur c dono ke dimensions [L T-1] hain, isliye v/c dimensionless hai. Function ka argument dimensionless hona chahiye, aur similar quantities ka ratio dimensionless hota hai.",
+        "expected_understanding": "Student c ko v ke saath rakhkar dimensionless ratio banata hai.",
+        "answer": "v ke saath v/c bracket ke andar"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-21"
+        }
+      ]
+    },
+    {
+      "id": "b-37",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Atomic scale par convenient length ka unit angstrom kehlata hai aur ise Å se denote karte hain: 1 Å = 10-10 m. Hydrogen atom ka size lagbhag 0.5 Å hai. Hydrogen atoms ke ek mole ka total atomic volume m3 mein kya hai?",
+        "steps": [
+          {
+            "title": "Har atom ka volume",
+            "detail": "Size = 0.5 Å = 0.5 × 10-10 m. Har atom ka volume = (0.5 × 10-10)3 = 1.25 × 10-31 m3."
+          },
+          {
+            "title": "Har mole mein number",
+            "detail": "Mole ki definition ke anusar ek mole mein 6.02214076 × 1023 elementary entities hoti hain."
+          },
+          {
+            "title": "Total volume",
+            "detail": "Total = 1.25 × 10-31 × 6.022 × 1023 = 7.5 × 10-8 m3."
+          }
+        ],
+        "answer": "7.5 × 10-8 m3"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-36"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ]
+    },
+    {
+      "id": "b-38",
+      "type": "check",
+      "spec": {
+        "question": "Standard temperature aur pressure par ek mole ideal gas 22.4 L occupy karta hai. Hydrogen molecule ka size lagbhag 1 Å lete hue, ek mole hydrogen ke molar volume aur atomic volume ka ratio kya hai?",
+        "format": "numeric",
+        "answer": "37000",
+        "explanation": "Molar volume = 22.4 L = 2.24 × 10-2 m3. Atomic volume = (1 × 10-10)3 × 6.022 × 1023 = 6.0 × 10-7 m3. Ratio = 2.24 × 10-2 / 6.0 × 10-7 = 3.7 × 104. Ratio bada hai kyunki gas mein atoms door-door hote hain aur unke beech zyada tar volume khaali space hota hai.",
+        "expected_understanding": "Student molar se atomic volume ka ratio compute karta hai aur explain karta hai ki yeh bada kyun hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-37"
+        }
+      ]
+    },
+    {
+      "id": "b-39",
+      "type": "check",
+      "spec": {
+        "question": "Agar aap ek fast moving train se bahar dekhein, to paas ke trees train ke opposite direction mein tezi se move karte hain, lekin door ke objects stationary lagte hain. Kyun?",
+        "format": "mcq",
+        "options": [
+          "Paas ke objects train se zyada tezi se move karte hain",
+          "Aapke relative paas ke objects ki direction jaldi badalti hai, door ke objects ki direction bahut dheere badalti hai",
+          "Door ke objects space mein stationary hain",
+          "Door ke objects se aane wala light slower hota hai"
+        ],
+        "answer_index": 1,
+        "explanation": "Apparent motion (gati) is par depend karta hai ki moving observer ke liye object ki direction kitni jaldi badalti hai. Paas ke objects ki direction jaldi badalti hai, door ke objects ki direction dheere badalti hai, isliye wo aapke saath move karte hue ya stationary lagte hain.",
+        "expected_understanding": "Student relative change of direction se apparent motion explain karta hai.",
+        "answer": "Aapke relative paas ke objects ki direction jaldi badalti hai, door ke objects ki direction bahut dheere badalti hai"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        }
+      ]
+    },
+    {
+      "id": "b-40",
+      "type": "worked_example",
+      "spec": {
+        "problem": "Sun ek hot plasma hai jiska inner core temperature 107 K se zyada hai aur outer surface lagbhag 6000 K hai. Kya aap expect karte hain ki Sun ki mass density solids aur liquids ke range mein hogi ya gases ke? Check karein: mass of the Sun = 2.0 × 1030 kg, radius of the Sun = 7.0 × 108 m.",
+        "steps": [
+          {
+            "title": "Sun ka volume",
+            "detail": "Volume = (4/3) π r3 = (4/3) π (7.0 × 108)3 = 1.44 × 1027 m3."
+          },
+          {
+            "title": "Density",
+            "detail": "Density = mass / volume = 2.0 × 1030 / 1.44 × 1027 = 1.4 × 103 kg m-3."
+          },
+          {
+            "title": "Range compare karein",
+            "detail": "1.4 × 103 kg m-3 solids aur liquids ke range mein hai, gases ke nahi, isliye solids aur liquids range ke liye guess sahi hai."
+          }
+        ],
+        "answer": "1.4 × 103 kg m-3, solids aur liquids ke range mein"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-38"
+        }
+      ]
+    },
+    {
+      "id": "b-41",
+      "type": "check",
+      "spec": {
+        "question": "Dimensional analysis humein ek equation ke baare mein kya batata hai?",
+        "format": "mcq",
+        "options": [
+          "Ek dimensionally correct equation exact hona chahiye",
+          "Ek dimensionally correct equation exact hona zaroori nahi hai, lekin ek dimensionally wrong equation galat hi hoga",
+          "Dimensional analysis saare constants deta hai",
+          "Dimensions same dimensions wali quantities ko distinguish kar sakte hain"
+        ],
+        "answer_index": 1,
+        "explanation": "Agar ek equation test mein fail ho jaata hai to woh galat sabit ho jaata hai. Agar pass ho jaata hai, to woh sahi sabit nahi hota. Constants obtain nahi kiye ja sakte aur same dimensions wali quantities ko distinguish nahi kiya ja sakta.",
+        "expected_understanding": "Student dimensional analysis ki limits ko sahi se batata hai.",
+        "answer": "Ek dimensionally correct equation exact hona zaroori nahi hai, lekin ek dimensionally wrong equation galat hi hoga"
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-23"
+        }
+      ]
+    }
+  ]
+}
