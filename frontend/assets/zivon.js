@@ -2101,6 +2101,10 @@
       region.querySelectorAll(".zn-dock-panel-toggle").forEach(function (btn) {
         btn.setAttribute("aria-expanded", c === "expanded" ? "true" : "false");
       });
+      /* Keep the ring on the block the tutor would read right now. */
+      if (c === "expanded") {
+        try { buildContextSnapshot(); } catch (e) {}
+      }
       if (persist !== false) {
         safeStorageSet(DOCK_STORAGE_KEY, c);
       }
@@ -2966,6 +2970,8 @@
       refreshLangAvailability();
       ZivonVoiceDock.setContainment(getInitialContainment(), false);
       ZivonVoiceDock.renderAgentState("idle", {});
+      /* Show the anchor as soon as the dock exists, not only after a turn. */
+      try { buildContextSnapshot(); } catch (e) {}
       return { mounted: true, region: region };
     }
   };
@@ -2985,10 +2991,48 @@
 
   function blockTextExcerpt(el) {
     if (!el) return "";
-    var raw = typeof el.innerText === "string" && el.innerText
-      ? el.innerText
-      : (el.textContent || "");
-    return String(raw).replace(/\s+/g, " ").trim().slice(0, 400);
+    /* Read-aloud controls live inside the block; their button label must not
+       become the tutor's "what is on screen" text. Clone, drop chrome, read. */
+    var textEl = el;
+    try {
+      var clone = el.cloneNode(true);
+      clone.querySelectorAll(
+        ".zn-read-aloud-wrap, .zn-read-aloud-progress, button, script, style, .zn-sr-only"
+      ).forEach(function (n) { n.remove(); });
+      textEl = clone;
+    } catch (e) {}
+    var raw = typeof textEl.innerText === "string" && textEl.innerText
+      ? textEl.innerText
+      : (textEl.textContent || "");
+    var bits = [raw];
+    /* A diagram/image/simulation often carries its meaning in alt text,
+       SVG <title>/<desc>, or control labels — innerText alone is empty for
+       those, so the tutor would answer as if the block were blank. */
+    try {
+      el.querySelectorAll("img[alt]").forEach(function (img) {
+        if (img.alt) bits.push(img.alt);
+      });
+      el.querySelectorAll("svg title, svg desc, figure figcaption").forEach(function (n) {
+        if (n.textContent) bits.push(n.textContent);
+      });
+      el.querySelectorAll("svg[aria-label], [role='img'][aria-label]").forEach(function (n) {
+        var v = n.getAttribute("aria-label");
+        if (v) bits.push(v);
+      });
+      el.querySelectorAll("[data-visual-alt], [data-description]").forEach(function (n) {
+        var v = n.getAttribute("data-visual-alt") || n.getAttribute("data-description");
+        if (v) bits.push(v);
+      });
+      el.querySelectorAll("[data-control]").forEach(function (inp) {
+        var label = inp.getAttribute("aria-label") || inp.name || inp.getAttribute("data-control");
+        if (label) bits.push(label + " = " + String(inp.value));
+      });
+    } catch (e) {}
+    var seen = {};
+    var joined = bits.map(function (s) { return String(s || "").replace(/\s+/g, " ").trim(); })
+      .filter(function (s) { if (!s || seen[s]) return false; seen[s] = true; return true; })
+      .join(" ");
+    return joined.slice(0, 400);
   }
 
   function humanBlockTitle(el, headingEl, bType) {
@@ -3099,6 +3143,12 @@
       lang_pref: langPref,
       ts: Date.now()
     };
+
+    /* Make the anchor visible: the student must be able to see which block
+       the tutor is currently reading. Ring only, never text/ids. */
+    if (activeBlock && document.getElementById(activeBlock)) {
+      highlightBlocks([activeBlock]);
+    }
 
     var json = JSON.stringify(snap);
     if (json.length > 4096) {
