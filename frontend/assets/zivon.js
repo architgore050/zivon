@@ -2972,6 +2972,16 @@
       ZivonVoiceDock.renderAgentState("idle", {});
       /* Show the anchor as soon as the dock exists, not only after a turn. */
       try { buildContextSnapshot(); } catch (e) {}
+      /* Follow the page: the ring must move with what the student is reading. */
+      var anchorTick = false;
+      window.addEventListener("scroll", function () {
+        if (anchorTick) return;
+        anchorTick = true;
+        setTimeout(function () {
+          anchorTick = false;
+          try { buildContextSnapshot(); } catch (e) {}
+        }, 180);
+      }, { passive: true });
       return { mounted: true, region: region };
     }
   };
