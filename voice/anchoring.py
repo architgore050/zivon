@@ -140,14 +140,13 @@ def parse_snapshot(
         ids = tuple(
             str(b.get("id")) for b in visible if isinstance(b, dict) and b.get("id")
         )
-        names = [
-            (str(b.get("title")).strip(), str(b.get("id")))
-            for b in visible
-            if isinstance(b, dict)
-            and b.get("id")
-            and isinstance(b.get("title"), str)
-            and b.get("title").strip()
-        ]
+        names = []
+        for b in visible:
+            if not isinstance(b, dict) or not b.get("id"):
+                continue
+            title = b.get("title")
+            if isinstance(title, str) and title.strip():
+                names.append((title.strip(), str(b["id"])))
     elif isinstance(visible, list):
         ids = tuple(str(b) for b in visible if b)
     else:
