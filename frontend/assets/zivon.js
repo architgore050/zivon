@@ -2293,8 +2293,15 @@
         var role = kind === "tutor" ? "tutor" : "you";
         var key = role === "tutor" ? "t" + (item.turn_id || ("x" + i)) : "s" + i;
         if (role === "tutor" && last && last.role === "tutor" && last.key === key) {
-          /* Streamed tutor deltas are one answer, not one line per chunk. */
-          last.text += String(item.text || "");
+          /* Streamed tutor deltas are one answer, not one line per chunk.
+             Segments arrive without surrounding whitespace: join with one
+             space unless punctuation already separates them. */
+          var add = String(item.text || "");
+          if (add) {
+            var prev = String(last.text || "");
+            var needsSpace = prev && !/[\s]$/.test(prev) && !/^[\s.,;:!?…]/.test(add);
+            last.text = prev + (needsSpace ? " " : "") + add;
+          }
           last.interrupted = last.interrupted || Boolean(item.interrupted);
           continue;
         }
@@ -3968,8 +3975,9 @@
         /* A segment that is only Timbre tags (e.g. a standalone <pauses>) is
            a delivery cue, not a sentence: never render it as tutor text. */
         var tagOnly = /^\s*(?:<[^>]+>\s*)+$/.test(String(txt));
-        if (!tagOnly) {
-          transcripts.push({ kind: "tutor", subkind: payload.kind || "speech", text: String(txt), turn_id: payload.turn_id || lastTurnId });
+        var subkind = payload.kind || "speech";
+        if (!tagOnly && subkind !== "summary" && subkind !== "filler") {
+          transcripts.push({ kind: "tutor", subkind: subkind, text: String(txt), turn_id: payload.turn_id || lastTurnId });
           /* Streaming text must reach the DOM now, not only on the next state
              change: the dock rebuilds its transcript from getTranscripts(). */
           if (window.ZivonVoiceDock && typeof window.ZivonVoiceDock.syncTranscript === "function") {
