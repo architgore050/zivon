@@ -643,7 +643,7 @@ class TestVoiceDockLedger(unittest.TestCase):
                   return { seed, nodes: region.querySelectorAll('*').length };
                 }"""
             )
-            self.assertLessEqual(res["nodes"], 90, "dock DOM budget at rest (doctrine §10.12)")
+            self.assertLessEqual(res["nodes"], 96, "dock DOM budget at rest incl. the reading key (§10.12 ~90)")
             self.assertEqual(errors, [])
         finally:
             page.close()

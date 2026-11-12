@@ -2101,9 +2101,12 @@
       region.querySelectorAll(".zn-dock-panel-toggle").forEach(function (btn) {
         btn.setAttribute("aria-expanded", c === "expanded" ? "true" : "false");
       });
-      /* Keep the ring on the block the tutor would read right now. */
+      /* Keep the ring on the block the tutor would read right now, but only
+         while the panel is open: a ring on a closed agent confuses newcomers. */
       if (c === "expanded") {
         try { buildContextSnapshot(); } catch (e) {}
+      } else {
+        highlightBlocks([]);
       }
       if (persist !== false) {
         safeStorageSet(DOCK_STORAGE_KEY, c);
@@ -2594,8 +2597,39 @@
       sheetToggle.setAttribute("aria-expanded", "true");
       sheetToggle.appendChild(makeChevronIcon("down"));
 
+      /* Plain-language explanation of the blue ring; the ring only exists
+         while this sheet is open. Tap the small label for one line of help. */
+      var readingBtn = document.createElement("button");
+      readingBtn.type = "button";
+      readingBtn.className = "zn-dock-reading";
+      readingBtn.setAttribute("aria-expanded", "false");
+      readingBtn.setAttribute("aria-controls", "zn-dock-reading-hint");
+      readingBtn.setAttribute("aria-label", "Blue outline: the part of the page the tutor is reading. Tap for help.");
+      readingBtn.title = "The blue outline marks what the tutor can see.";
+      var readingDot = document.createElement("span");
+      readingDot.className = "zn-dock-reading-dot";
+      readingDot.setAttribute("aria-hidden", "true");
+      var readingTxt = document.createElement("span");
+      readingTxt.className = "zn-dock-reading-text";
+      readingTxt.textContent = "Reading";
+      readingBtn.appendChild(readingDot);
+      readingBtn.appendChild(readingTxt);
+
       head.appendChild(langWrap);
+      head.appendChild(readingBtn);
       head.appendChild(sheetToggle);
+
+      var readingHint = document.createElement("p");
+      readingHint.className = "zn-dock-reading-hint";
+      readingHint.id = "zn-dock-reading-hint";
+      readingHint.hidden = true;
+      readingHint.textContent =
+        "Blue outline = the part of this page the tutor is reading right now.";
+      readingBtn.addEventListener("click", function () {
+        var open = readingHint.hidden;
+        readingHint.hidden = !open;
+        readingBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
 
       var transcriptPanel = document.createElement("div");
       transcriptPanel.className = "zn-dock-transcript";
@@ -2693,7 +2727,7 @@
       composer.appendChild(typedInput);
       composer.appendChild(typedSend);
 
-      [tapeClip, grip, head, transcriptPanel, statusHost, composer].forEach(function (el) {
+      [tapeClip, grip, head, readingHint, transcriptPanel, statusHost, composer].forEach(function (el) {
         sheetEl.appendChild(el);
       });
 
@@ -2975,6 +3009,7 @@
       /* Follow the page: the ring must move with what the student is reading. */
       var anchorTick = false;
       window.addEventListener("scroll", function () {
+        if (ZivonVoiceDock.getContainment() !== "expanded") return;
         if (anchorTick) return;
         anchorTick = true;
         setTimeout(function () {
@@ -3156,7 +3191,11 @@
 
     /* Make the anchor visible: the student must be able to see which block
        the tutor is currently reading. Ring only, never text/ids. */
-    if (activeBlock && document.getElementById(activeBlock)) {
+    if (
+      activeBlock &&
+      document.getElementById(activeBlock) &&
+      (!ZivonVoiceDock.getContainment || ZivonVoiceDock.getContainment() === "expanded")
+    ) {
       highlightBlocks([activeBlock]);
     }
 

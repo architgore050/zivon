@@ -1507,3 +1507,43 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
 .zn-report-status[hidden] {
   display: none;
 }
+
+/* Plain-language key for the blue "tutor is reading this" outline. Small,
+   graphite, only inside the expanded sheet; the outline itself is gated to
+   the open panel too. */
+.zn-dock-reading {
+  margin-left: auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--graphite);
+  font-family: var(--notes);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.zn-dock-reading:hover {
+  color: var(--ink);
+}
+.zn-dock-reading:focus-visible {
+  outline: 2px solid var(--pen-blue);
+  outline-offset: 2px;
+}
+.zn-dock-reading-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border: 2px solid var(--pen-blue);
+  border-radius: 2px;
+}
+.zn-dock-reading-hint {
+  margin: 0;
+  padding: 0 var(--dock-gutter) 6px;
+  color: var(--graphite);
+  font-family: var(--notes);
+  font-size: 11px;
+  line-height: 1.4;
+}
