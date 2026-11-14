@@ -2,7 +2,7 @@
 name: zivon-evals-and-observability-skills
 description: Makes "logged" and "evaluated" concrete for Zivon and guides the change end to end. Covers structured events through logging_manager and the instrumentation map, eval cards, deterministic checkers, golden topics, seeded defects, judges, calibration, the dual-write eval store, EVT-EVAL-* telemetry, regression diffs, and the PR evidence that proves a run happened. Use when adding or changing telemetry, a log event, an instrumentation-map row, an eval card, a checker, a golden fixture, reviewer calibration, an eval run, a regression baseline, the eval store or dashboard readout; when a PR needs its logging/eval evidence; when reviewing such a change; or when asked "is this logged?", "is this evaluated?", "where do eval results land?", or "why is map-lint red?".
 license: MIT
-compatibility: Works from the Zivon repo root with Python 3.10+. Smoke evals and every test in this bundle run key-free and offline; full/calibration suites need a configured model endpoint.
+compatibility: Works from the Zivon repo root with Python 3.10+. Smoke evals, `--mock` calibration, and every test in this bundle run key-free and offline; live `full`/`calibrate` suites need a configured model endpoint.
 metadata:
   owner: zivon
   version: "1.0"
@@ -159,8 +159,9 @@ child's words or page content, log a reference id instead.
    reuses the factory rubric verbatim and supplies fatal/major/minor anchors plus the
    `unverified:` way out.
 5. **Run the funnel key-free:** `python -m evals run --suite smoke --mock` and
-   `python -m evals run --suite smoke --fail-on-regression`. A fatal checker failure
-   short-circuits the judge; a checker with no data must record a skip, never a pass.
+   `python -m evals run --suite smoke --fail-on-regression`. A failing deterministic check
+   (fatal or major) short-circuits the judge; a checker with no data must record a skip, never
+   a pass.
 6. **Persist and verify.** The run must appear in the ledger and its run directory. If the
    store was degraded, confirm the outbox bundle and the `EVT-EVAL-*` warning.
    [`references/eval-store-and-dashboard.md`](references/eval-store-and-dashboard.md) has the

@@ -33,7 +33,8 @@ tests into evals just to raise a score.
 5. The judge runs only when the card is not skipped, the deterministic checks did not fail,
    the suite is `full`/`calibrate` (or an explicit `--card` was passed), a judge exists, and a
    judge client exists.
-6. A deterministic fatal short-circuits the judge — no model call is spent on a broken artifact.
+6. Any deterministic failure (a fatal or major issue, or a below-1.0 pass rate) short-circuits
+   the judge — no model call is spent on a broken artifact. Minor-only findings do not block it.
 
 Consequences for card design:
 

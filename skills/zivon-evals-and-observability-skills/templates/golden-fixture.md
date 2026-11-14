@@ -129,8 +129,8 @@ reviewer that only fails bad samples proves nothing about specificity.
   compare against the existing golden.
 - **Schema/contract/kit change, pipeline version bumped:** regenerate the topic with a fresh
   factory run, publish it, verify the cards, then
-  `python -m evals rotate-golden --topic <id> --reason "<why>"`. The command updates the SHA-256
-  and appends a `rotations[]` audit entry to the manifest.
+  `python -m evals rotate-golden --topic-id <id> --reason "<why>"`. The command updates the
+  SHA-256 and appends a `rotations[]` audit entry to the manifest.
 - **Never weaken a seeded defect** to pass a regression. Add a new sample for a new failure mode.
 - **Never edit `expected.json` in place** without a rotation record and a PR explanation.
 - Keep `pipeline_version_min` truthful: a golden from an older pipeline is grandfathered until

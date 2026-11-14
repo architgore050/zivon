@@ -136,8 +136,10 @@ coordinate with the P4 owner) in the same Wave as the card.
 - **There is no eval view yet** (ADM-10, P-GAP-17). The dashboard does not read
   `evals_runs/`. The curation front is the ledger + run directory + PR evidence.
 - The eval spec's target endpoints (`GET /api/v1/admin/evals/runs`, `.../diff`,
-  `POST .../trigger`) and the `zivon_eval_*` Prometheus metrics are **specified**, not built.
-  Do not assume they exist; check `dashboard/app.py` before wiring a UI to them.
+  `POST .../trigger`) are **specified, not built**; check `dashboard/app.py` before wiring a
+  UI to them. The six `zivon_eval_*` metrics are rendered into `eval_metrics.prom` by
+  `evals/telemetry.py::format_prometheus_metrics`, but no service exposes or scrapes that file
+  yet — the spec's histogram/scrape wiring is still pending.
 - In-cluster runs: the `eval-suite` CronJob (`k8s/52-eval-cronjob.yaml`) runs
   `python -m evals run --suite full --fail-on-regression` on the `EVAL_CRON_SCHEDULE` cadence
   (daily 02:00 UTC in `k8s/infra.env`) and persists evidence to the `zivon-sources` PVC

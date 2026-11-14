@@ -23,7 +23,7 @@ component,event,severity,correlation_ids,required_fields,latency_ms,error_class,
 | `severity` | `DEBUG|INFO|WARNING|ERROR|CRITICAL`; declared once, never overridden at the call site | `INFO` |
 | `correlation_ids` | `+`-joined ids the event actually carries; `no` or blank when none (the map uses both) | `run_id+stage+request_id`, `session_id+turn_id`, `no` |
 | `required_fields` | `;`-separated payload keys a dashboard/query depends on; `no` or blank when none (the map uses both) | `blocks;attempts` |
-| `latency_ms` | `no` for non-timing; `yes` or the metric field name for a duration event (the map uses both) | `stage_ms`, `call_ms`, `no` |
+| `latency_ms` | `no` for non-timing; `yes` or the metric field name for a duration event (the current map uses metric names, e.g. `stage_ms`) | `stage_ms`, `call_ms`, `no` |
 | `error_class` | blank for non-failure; a closed `ErrorClass` for failure-shaped rows | `gate_fail` |
 | `privacy_class` | `L1` system/diagnostic, `L2` usage/telemetry, `L3` security/audit, `CR` credit | `L1` |
 | `emitter` | the file/symbol that actually calls `log_event` | `factory/stages.py::run_pipeline` |
@@ -149,9 +149,14 @@ frontend,frontend.worksheet_open,INFO,client_session_id,topic;worksheet_id,no,,L
 ```
 
 ```js
-// frontend/assets/zivon.js — record through the existing queue, never a raw fetch
+// frontend/assets/zivon.js — first add the EVENT_CATALOG entry (below), then
+// record through the existing queue, never a raw fetch
+// "EVT-worksheet_open": { evt_id: "EVT-F13", event: "frontend.worksheet_open", privacy_class: "L2" }
 window.ZivonEvents.emit("EVT-worksheet_open", { topic: topic, worksheet_id: id });
 ```
+
+An id that is not in `EVENT_CATALOG` falls back to `EVT-F08` with the raw name as `event`, so
+the catalogue entry is part of the change, not an afterthought.
 
 A new `EVT-Fxx` id is a frontend-spec change (`docs/specs/observability/spec.md` §8), not just a
 JS string. The browser must keep working when the beacon is dropped.

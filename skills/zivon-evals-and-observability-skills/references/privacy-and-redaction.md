@@ -144,10 +144,12 @@ log_event(
     "voice.stt.final",
     {
         "transcript_row_id": row_id,
+        "stt_final_ms": 540,
         "char_count": 84,
         "partial_count": 2,
         "language_mix": "hi-en",
     },
+    latency_ms=540,
 )
 
 # Bad: the child's words, the prompt, and a secret-shaped value.

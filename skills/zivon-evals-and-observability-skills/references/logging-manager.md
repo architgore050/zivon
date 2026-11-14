@@ -21,7 +21,8 @@ from logging_manager import (
 
 Do not import private modules from consumer code. Instrumentation owners (the factory
 adapter, the llm-manager node, the dashboard) may import `logging_manager.context` helpers
-(`correlation_headers`, `new_request_id`); that is not part of the consumer surface.
+(`correlation_headers`, `new_request_id`, `bind_from_headers`); that is not part of the
+consumer surface.
 
 `__all__` is pinned by `testing/observability/test_events.py::ContractSurfaceTests`; adding a
 public symbol is a contract change, not a convenience.
@@ -67,10 +68,10 @@ one row per name in `docs/specs/observability/instrumentation-map.csv`.
 | Component (closed enum) | Used by |
 |---|---|
 | `factory` | pipeline stages, orchestration, perf, publish |
-| `llm` | model-call client events inside any consumer (`factory/llm.py`, eval judges) |
-| `llm_node` | the isolated llm-manager service |
+| `llm` | model-call client events emitted by `llm_manager` itself (`events._infer_component`); today the factory's calls are declared as `factory.call.*`, so no `llm.*` row exists (2026-11-14) |
+| `llm_node` | the isolated llm-manager service (`node.*` events) |
 | `voice` | voice backend |
-| `translator` | translation service (today `factory/translate.py` emits `factory.*`) |
+| `translator` | translation stages in `factory/translate.py` (`translator.translate.ok` / `.fail`) |
 | `frontend` | browser events validated/re-emitted by the ingest endpoint |
 | `dashboard` | admin dashboard |
 | `credit` | credit guard / ledger |
@@ -149,7 +150,9 @@ nested list cannot be redacted reliably, so the whole value becomes `[REDACTED:s
 
 Every redaction action emits `log.redaction_violation` (WARNING, `privacy_violation`) with
 `{event_ref, key, kind}` only, deduplicated per call site (first + every 100th). A nonempty
-violation stream on the dashboard is a call-site bug, not noise.
+violation stream on the dashboard is a call-site bug, not noise. Recorded drift: the map row
+and `sink.py` say `event_ref`; the spec prose (`logging-api.md` §6, `spec.md` §4.4) still says
+`event`. The map row is authoritative here; do not rename the field at a call site.
 
 ## 7. Sinks
 
