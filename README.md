@@ -202,6 +202,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |
 | [`skills/zivon-product-design-skills/`](skills/zivon-product-design-skills/) | Feature-decision + granular-spec method (original skill + vendored PM skills); see the folder README |
 | [`skills/zivon-systems-design-skills/`](skills/zivon-systems-design-skills/) | Backend/DB/storage-tiering spec method (original skill + vendored engineering skills); see the folder README |
+| [`skills/skill-creation/`](skills/skill-creation/) | Find/evaluate/adapt/write/test/maintain skills for any domain: tested discovery toolkit, dated source catalog, rubric, security/licensing review, and a stdlib bundle validator |
 | [`docs/specs/voice-agent/`](docs/specs/voice-agent/README.md) | Voice-tutor agent architecture spec (wave S1): pipeline, WebSocket contract, latency budget vs Gate C, ADRs 0017–0020, open questions |
 | `voice/` | The vocal tutor runtime package (built by EX1-VOICE per the spec): Prisma STT → Gemma brain (Gemini API) → sentence chunker → Timbre TTS, streamed end-to-end; mounts into the core backend via `voice.mount_voice(app)`; tests in `testing/voice/` |
 | [`docs/specs/translation/`](docs/specs/translation/) | Build-time translation pipeline spec, per-block contracts, reviewer rubric, and translation ADRs (`0021`–`0023`); see the folder README |

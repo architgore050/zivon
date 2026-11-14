@@ -1,0 +1,3 @@
+# duplicate-b
+
+Fixture README.
