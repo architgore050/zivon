@@ -48,6 +48,13 @@ jobs:
         run: ruff check .
       - name: Ruff format check
         run: ruff format --check .
+      - name: Skill bundle validator
+        # Deterministic, stdlib-only: format/links/secrets/duplicates across
+        # skills/ (legacy layouts warn, they do not fail), plus a strict gate
+        # on the bundles that opt in. Tests live in testing/skills/.
+        run: |
+          python3 scripts/check_skills.py
+          python3 scripts/check_skills.py --strict --bundle skills/skill-creation
       - name: Mypy type check
         run: |
           # Fixed core paths + guarded Wave-E extension paths: a package joins
@@ -353,13 +360,13 @@ jobs:
         # Same path-guard rule as the mypy extension: EX0-EX8 add the test
         # sets (testing/backend, testing/voice, testing/translation,
         # testing/narration, testing/observability, testing/logging_manager,
-        # testing/evals) under the repo's unittest layout — this loop runs
+        # testing/evals, testing/skills) under the repo's unittest layout — this loop runs
         # each suite only when its folder exists, so a suite landing mid-wave
         # is covered automatically without another yml edit. Any suite
         # failure fails the job; the guard only skips ABSENT folders.
         run: |
           status=0
-          for d in backend voice translation narration observability logging_manager evals; do
+          for d in backend voice translation narration observability logging_manager evals skills; do
             if [ -d "testing/$d" ]; then
               echo "=== testing/$d ==="
               python -m unittest discover -s "testing/$d" -t . -v || status=1
