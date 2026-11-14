@@ -16,7 +16,8 @@ and stay abstract.
 | [`zivon-systems-design-skills/`](zivon-systems-design-skills/) | Backend/DB/storage-tiering stage-2 spec method (original skill + vendored engineering skills) | [`zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md`](zivon-systems-design-skills/skills/zivon-systems-design/SKILL.md) |
 | [`zivon-audio-engineering-skills/`](zivon-audio-engineering-skills/) | Audio discipline for the realtime voice loop and build-time narration (flat skill: `README.md` carries the frontmatter) | [`zivon-audio-engineering-skills/README.md`](zivon-audio-engineering-skills/README.md) |
 | [`zivon-backend-engineering-skills/`](zivon-backend-engineering-skills/) | Perishable backend ops: Alembic, Postgres durability, quota guards, rate limits, Job/CronJob semantics (flat skill) | [`zivon-backend-engineering-skills/README.md`](zivon-backend-engineering-skills/README.md) |
-| [`zivon-frontend-skills/`](zivon-frontend-skills/) | Frontend-specific guidance files (e.g. SEO) | [`zivon-frontend-skills/seo-optimization.md`](zivon-frontend-skills/seo-optimization.md) |
+| [`zivon-frontend-product-skills/`](zivon-frontend-product-skills/) | **Full frontend implementation entry point**: Field Notes public pages and generated lessons, static/SSR split, app shell, auth, dashboard, lesson shell, practice, speaking, tests/series, progress, SWOT, settings, admin, the 11-state matrix, a11y/perf/SEO, and the founder visual-verdict protocol | [`zivon-frontend-product-skills/SKILL.md`](zivon-frontend-product-skills/SKILL.md) |
+| [`zivon-frontend-skills/`](zivon-frontend-skills/) | SEO reference only (technical SEO, metadata, sitemaps, structured data, Core Web Vitals); the implementation entry point is `zivon-frontend-product-skills/` | [`zivon-frontend-skills/seo-optimization.md`](zivon-frontend-skills/seo-optimization.md) |
 
 ## Validate
 
