@@ -58,7 +58,8 @@ have their own docs and skills.
    pipeline. The factory Job's `backoffLimit: 0` encodes the same rule.
 4. **Progress beats a blind round count.** Catchers stop on a genuine plateau
    (`repair.stall_rounds`) or a generous cap (`repair.*_rounds`,
-   `perf.fix_rounds`), using a severity-weighted score (`fatal=2`, `major=1`).
+   `perf.fix_rounds`), scoring the blocking set (severity-weighted
+   `fatal=2`, `major=1`; the perf loop scores its failure count).
 5. **A change is not done until five things agree:** the artifact contract,
    the deterministic tests, the eval evidence, the structured event, and the
    doc that describes it.

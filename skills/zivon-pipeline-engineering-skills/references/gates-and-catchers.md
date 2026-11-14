@@ -113,9 +113,10 @@ Why each piece exists:
   elsewhere. The gate re-runs in full (`10c` is the scoped exception: it
   rechecks the repaired units only, then the required-locale verdict is
   recomputed).
-- **Severity-weighted score.** Count-only progress lets a fixer trade one
-  fatal for two majors and look successful. The score treats a fatal as twice
-  a major.
+- **Severity-weighted score where the gate emits severities.** Count-only
+  progress lets a fixer trade one fatal for two majors and look successful;
+  03/09/10b therefore score `2 * fatals + majors`. `08-fixloop` has no severity
+  on its budget failures, so it scores the failure count instead.
 - **Stall limit is the real stopper.** `stall_rounds` consecutive
   no-improvement rechecks declare a genuine plateau. The cap is a safety
   valve, not the intended stop.
