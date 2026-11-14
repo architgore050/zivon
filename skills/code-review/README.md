@@ -1,6 +1,6 @@
 # Code Review Skills
 
-A small suite of seven skills that together review a codebase against the standards that actually matter. One entry point routes to six specialist lenses; every lens reports findings in the same format, so results merge into one prioritized review.
+A small suite of eight skills that together review a codebase against the standards that actually matter. One entry point routes to seven specialist lenses; every lens reports findings in the same format, so results merge into one prioritized review.
 
 | Skill | What it judges | Bundled references |
 |---|---|---|
@@ -11,6 +11,7 @@ A small suite of seven skills that together review a codebase against the standa
 | `review-tests` | Would the tests catch a regression? Scored rubric, mutation thinking, flakiness, anti-patterns | none |
 | `review-docs-sync` | README, AGENTS.md/CLAUDE.md, changelog, API docs, comments staying true to the code | `agents-md-rubric.md` |
 | `review-production-readiness` | Observability, failure modes, migrations, rollout/rollback, performance, cost | none |
+| `review-content-quality` | Generated learning content and content-pipeline PRs: lesson pages/blocks, questions, test series, translations, narration, catalogue/publish output | `content-quality-checklist.md`, `review-procedure.md`, `anti-patterns.md` |
 
 ## How they fit together
 
@@ -18,21 +19,21 @@ A small suite of seven skills that together review a codebase against the standa
                          code-review
            (understand → triage → order → verify → report)
                               │
-   ┌──────────┬───────────────┼───────────────┬──────────────┬───────────────┐
- architecture  implementation  security        tests          docs-sync   production-readiness
- (design)      (correctness)   (OWASP, agents) (would it      (is it       (can we ship,
-                                               catch bugs?)    still true?) observe, undo?)
+   ┌──────────┬───────────────┼───────────────┬──────────────┬───────────────┬─────────────────┐
+ architecture  implementation  security        tests          docs-sync   production-readiness  content-quality
+ (design)      (correctness)   (OWASP, agents) (would it      (is it       (can we ship,         (does it teach,
+                                               catch bugs?)    still true?) observe, undo?)      and is it true?)
 ```
 
-Review order is deliberate (design → correctness/security → tests → operability → docs → style), following the principle that design problems are the costliest to fix late and make line comments moot.
+Review order is deliberate (design/content → correctness/security → tests → operability → docs → style), following the principle that design and content problems are the costliest to fix late and make line comments moot.
 
 ## Install
 
-- **Claude Code**: copy the seven folders into `~/.claude/skills/` (personal) or `<repo>/.claude/skills/` (shared with the team).
+- **Claude Code**: copy the eight folders into `~/.claude/skills/` (personal) or `<repo>/.claude/skills/` (shared with the team).
 - **Claude.ai / Cowork**: zip each skill folder (or use the provided `code-review-skills.zip`) and upload under Settings → Capabilities → Skills.
-- Keep all seven together: `code-review` refers to the others by name.
+- Keep all eight together: `code-review` refers to the others by name.
 
-Then just ask: *"review this PR"*, *"is this ready to merge?"*, *"are these tests any good?"*, *"does AGENTS.md need updating for this change?"*, *"audit this for security."*
+Then just ask: *"review this PR"*, *"is this ready to merge?"*, *"are these tests any good?"*, *"does AGENTS.md need updating for this change?"*, *"audit this for security"*, *"is this lesson content correct?"*, *"review this question paper."*
 
 ## Design principles baked in
 
@@ -57,3 +58,4 @@ Synthesized, not copied; credit where it's due:
 - Community and published evaluations on writing effective AGENTS.md files: short, non-discoverable, kept current in the same PR.
 - Mutation-testing and test-smell literature for the test-quality rubric.
 - Michael Nygard's ADR format and the expand/contract migration pattern.
+- WCAG 2.2, the NIST AI Risk Management Framework, CheckList behavioural testing, LLM-as-judge bias research, and instructional-design research for the content-quality rubric (dates and links in the lens's `SKILL.md`).

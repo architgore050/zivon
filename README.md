@@ -199,7 +199,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | `evals/` | Evaluation & reviewer-calibration framework: 9 Eval Cards (`evals/cards/EV-*.yaml`), 4 Golden Topics, 19 Seeded Defects, deterministic checkers, `llm_manager` judges (`ADR-0028`), dual-write store (`ADR-0027`), and CLI (`python -m evals`) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 | [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
-| [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + six lenses) used for the agentic review step; see the folder README |
+| [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + seven lenses) used for the agentic review step; see the folder README |
 | [`skills/zivon-product-design-skills/`](skills/zivon-product-design-skills/) | Feature-decision + granular-spec method (original skill + vendored PM skills); see the folder README |
 | [`skills/zivon-systems-design-skills/`](skills/zivon-systems-design-skills/) | Backend/DB/storage-tiering spec method (original skill + vendored engineering skills); see the folder README |
 | [`skills/skill-creation/`](skills/skill-creation/) | Find/evaluate/adapt/write/test/maintain skills for any domain: tested discovery toolkit, dated source catalog, rubric, security/licensing review, and a stdlib bundle validator |
