@@ -1,15 +1,15 @@
 # review-content-quality
 
-The seventh specialist lens in `skills/code-review/`. It reviews generated learning content and content-pipeline PRs: lesson pages and blocks, question banks, practice sets, tests and test series, translations/i18n bundles, narration assets, catalogue/publish output, and the prompts/checkers that produce them.
+The seventh specialist lens in `skills/code-review/`. It reviews generated learning content and content-pipeline PRs: lesson pages and blocks, comprehension checks and answer keys, translations/i18n bundles, narration assets, catalogue/publish output, and the prompts/checkers that produce them. Practice packs, marks-scheme papers, and test series are not product surfaces in this repo today; the lens says so explicitly rather than inventing a contract for them.
 
 ## Layout
 
 | File | Purpose |
 |---|---|
 | [`SKILL.md`](SKILL.md) | Entry point: triggers, when not to use, evidence rules, rubric, review order, reporting, worked example, severity guidance, contract and source list |
-| [`references/content-quality-checklist.md`](references/content-quality-checklist.md) | Per-area checklist: schema/IDs, grounding, answer keys, tolerance/units, coverage, marks/series, language, claims, technical integrity, accessibility/perf, narration, eval/debt evidence |
+| [`references/content-quality-checklist.md`](references/content-quality-checklist.md) | Per-area checklist: schema/IDs, grounding, answer keys, numeric tolerance/units, coverage, language, claims, technical integrity, accessibility/perf, narration, eval/debt evidence |
 | [`references/review-procedure.md`](references/review-procedure.md) | Artifact map, stage tracing, sampling, exact deterministic commands, reference comparison, severity calibration, product-decision guard, report procedure |
-| [`references/anti-patterns.md`](references/anti-patterns.md) | Twenty recurring failure shapes with symptom, detection, default severity, and fix/gate |
+| [`references/anti-patterns.md`](references/anti-patterns.md) | Eighteen recurring failure shapes with symptom, detection, default severity, and fix/gate |
 | [`templates/content-review-report.md`](templates/content-review-report.md) | Ready report skeleton in the suite's finding format and severity scale |
 
 ## How it fits
@@ -27,4 +27,4 @@ python -m unittest discover -s testing/skills -t .
 
 ## Evidence date
 
-The rubric and the external evidence basis were checked on **2026-11-14** (`metadata.evidence_date`). Re-verify perishable claims (board pattern, chapter numbering, marks scheme, WCAG edition) at review time.
+The rubric and the external evidence basis were checked on **2026-11-14** (`metadata.evidence_date`). Re-verify perishable claims (board/edition wording, chapter numbering, WCAG edition) at review time.

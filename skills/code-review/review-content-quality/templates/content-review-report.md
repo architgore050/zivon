@@ -14,7 +14,7 @@ Copy this into the review comment. Replace every angle-bracket field; delete sec
 
 | Field | Value |
 |---|---|
-| Artifact class | lesson page / block pack / practice pack / series / translation / narration / catalogue / prompt-checker |
+| Artifact class | lesson page / block pack / check set / translation / narration / catalogue / prompt-checker |
 | Artifact path | `<path or run id>` |
 | Pipeline stage(s) | `<00-ingest … 12-narration>` |
 | Gate that approved it | `<03-check / 07-perf / 09-review / 10b-transcheck / 11-link>` |
@@ -39,7 +39,7 @@ Copy this into the review comment. Replace every angle-bracket field; delete sec
 | Dimension | Score (0–3) | Evidence |
 |---|---:|---|
 | Grounding and factual accuracy | <0–3> | <one sentence> |
-| Assessment integrity | <0–3> | <one sentence> |
+| Check integrity | <0–3> | <one sentence> |
 | Curriculum coverage and structure | <0–3> | <one sentence> |
 | Language and localization | <0–3> | <one sentence> |
 | Technical page integrity | <0–3> | <one sentence> |
@@ -80,7 +80,7 @@ The highest-leverage change: <the one change that would raise the lowest dimensi
 
 | Area | Inspected | Result |
 |---|---|---|
-| Blocks / items | <all / N of M, stratified by …> | <pass / findings> |
+| Blocks / checks | <all / N of M, stratified by …> | <pass / findings> |
 | Answer keys | <all> | <pass / findings> |
 | Citations / source claims | <all factual blocks / N traced> | <pass / findings> |
 | Locales | <en, hi, hi-Latn> | <pass / findings> |

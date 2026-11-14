@@ -13,6 +13,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -110,7 +111,7 @@ class BundleLayoutTests(unittest.TestCase):
         body = (BUNDLE / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("## Worked example", body)
         self.assertIn("v = u + at", body)
-        self.assertIn("q-07", body)
+        self.assertIn("b-07", body)
 
     def test_entry_point_has_no_placeholder_tokens(self) -> None:
         text = (BUNDLE / "SKILL.md").read_text(encoding="utf-8")
@@ -129,13 +130,12 @@ class ChecklistCoverageTests(unittest.TestCase):
             "## 3. Answer keys and explanations",
             "## 4. Numeric tolerance, units, and significant figures",
             "## 5. Curriculum coverage, teach order, and block budget",
-            "## 6. Marks, sections, blueprints, and series volume",
-            "## 7. Language coverage and script policy",
-            "## 8. Copy and claim compliance",
-            "## 9. Technical page integrity",
-            "## 10. Accessibility and performance",
-            "## 11. Narration (when the artifact includes audio)",
-            "## 12. Eval, logging, and content-debt evidence",
+            "## 6. Language coverage and script policy",
+            "## 7. Copy and claim compliance",
+            "## 8. Technical page integrity",
+            "## 9. Accessibility and performance",
+            "## 10. Narration (when the artifact includes audio)",
+            "## 11. Eval, logging, and content-debt evidence",
         ):
             self.assertIn(heading, text, f"missing checklist section: {heading}")
 
@@ -163,10 +163,11 @@ class ChecklistCoverageTests(unittest.TestCase):
             "missing explanation",
             "broken diagram",
             "untranslated leak",
-            "marks",
-            "CBSE",
+            "false provenance",
             "duplicate topic",
-            "thin series",
+            "citation theatre",
+            "answer leak",
+            "stale catalogue",
             "mixed pipeline versions",
         ):
             self.assertIn(phrase.lower(), text.lower())
@@ -181,6 +182,23 @@ class ChecklistCoverageTests(unittest.TestCase):
         self.assertIn("Why it matters:", text)
         self.assertIn("Fix:", text)
         self.assertIn("Not reviewed / assumptions", text)
+
+
+class BundleLinkTests(unittest.TestCase):
+    def test_every_relative_link_resolves(self) -> None:
+        # The strict validator checks SKILL.md links only; references and
+        # templates are loaded on demand, so a dead link there is silent.
+        link = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+        for path in sorted(BUNDLE.rglob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            for target in link.findall(text):
+                if target.startswith(("http://", "https://", "mailto:", "#")):
+                    continue
+                resolved = (path.parent / target.split("#", 1)[0]).resolve()
+                self.assertTrue(
+                    resolved.exists(),
+                    f"{path.relative_to(BUNDLE)} links to missing {target}",
+                )
 
 
 class WiringTests(unittest.TestCase):

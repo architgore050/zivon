@@ -24,8 +24,6 @@ Hard limits: no live model calls, no live Timbre synthesis, no `python pipeline.
 |---|---|---|---|
 | Lesson page | `frontend/courses/<course>/<topic>/` (`index.html`, `page.js`, `page.css`, `manifest.json`, `i18n/<locale>.json`, `i18n.js`) | `docs/content-factory/blocks-schema.md`; `docs/specs/frontend/shell-injection.md`; `docs/frontend/design-doctrine.md` | rendered page + manifest + perf report |
 | Lesson draft / run output | `runs/<run_id>/02-generate/output.json`, `03-check/combined-*.json`, `09-review/**`, `status.json`, `run_report.json`, `issues_ledger.jsonl`, `calls_ledger.jsonl` | `docs/content-factory/architecture.md` | run artifacts + gate verdicts |
-| Practice / question pack | `factory/assessment/**` output (new workstream; schema per `docs/product/features.md` and pending `EV-ASM-*` cards) | practice/assessment spec + item schema | pack + manifest + deterministic checks |
-| Test / series | `factory/exam/**`, `factory/series/**`, `sources/exam/**`, published pack/manifest | `docs/product/features.md`; `docs/backend/` (storage) | series manifest + blueprint + coverage report |
 | Translation | `runs/<run_id>/10a-translate/blocks/<locale>/*.json`, `10b-transcheck/**`, `10d` output, published `i18n/<locale>.json` and `<locale>/index.html` | `docs/specs/translation/spec.md`, `docs/specs/translation/block-contract.md`, `docs/specs/translation/reviewer-rubric.md` | per-locale verdict + TM + published strings |
 | Narration | `frontend/audio/<course_id>/**`, topic `manifest.json` → `narration`, `narration-manifest.json`, `runs/narration-budget.json`, `narration_usage.jsonl` | `docs/specs/gaps/gap-register.md` §GAP-015; architecture stage 12 | manifest + assets + speakable selection |
 | Catalogue / publish | `frontend/courses.js`, `catalogue.json` (when present), `frontend/sitemap.xml`, `frontend/robots.txt`, publish report | `factory/link.py`, `scripts/publish-frontend.sh`, `docs/specs/frontend/seo-plan.md` | every href/locale/sitemap URL resolves |
@@ -54,14 +52,13 @@ If you cannot fill the map, the PR is missing evidence; that itself is a finding
 | Artifact size | Sampling rule |
 |---|---|
 | One lesson page (4–45 blocks) | Inspect **all** blocks. It is small enough; sampling hides the one wrong key. |
-| Practice pack (15–20 items/chapter) | All answer keys and numeric answers. For pedagogy/prose, stratify by concept, item type, difficulty band, and language; at least 6 items or 10%, whichever is larger. Always include the first, last, and one middle item. |
-| Series / paper | All manifests, all chapter coverage counts, all section/marks totals. Sample items per section and per difficulty band; include every section type. |
+| Check set on a lesson page | All answer keys and numeric answers. For explanations/prose, stratify by concept, item type, and language; at least 6 checks or 10%, whichever is larger. Always include the first, last, and one middle check. |
 | Translation | Every locale in `locales_available`; every key with a fallback; a full script-purity scan; sample glossary first mentions and every check explanation. |
 | Narration | Every speakable block's selection; inspect a sample of audio metadata/hash/duration; listen only when a human reviewer is available and the asset is present. |
 | Catalogue / publish | Every entry, every href, every declared locale file, every sitemap URL. |
 | Prompt/checker | The diff plus the affected artifact from the latest run; the eval card and the last two eval runs (regression diff). |
 
-Record the sample in the report: what you inspected, what you skipped, and why. Never sample only the first N items; generated packs often cluster defects near the end or after a repair round.
+Record the sample in the report: what you inspected, what you skipped, and why. Never sample only the first N items; generated pages often cluster defects near the end or after a repair round.
 
 ## 4. Run the deterministic checks
 
@@ -113,9 +110,9 @@ A failing deterministic check is the finding. Do not override it with a judge or
 - Current-shape lesson pages: `frontend/courses/class-9-physics/motion/` and `frontend/courses/class-11-physics/laws-of-motion/`.
 - Kit/doctrine reference: `docs/frontend/design-doctrine-lesson-example.html` and `docs/frontend/design-doctrine.md` §10.
 - Golden contracts: `evals/goldens/topics/*/expected.json` (structure bounds, concepts/equations, numerical anchors, visual invariants, perf budgets) and `evals/goldens/defects/` (seeded defects for reviewer calibration).
-- Pipeline expectations: the published tree may mix versions — inspect `pipeline_version` across manifests and match the best page and the tests, not the average. Known live defects (for example `chapter.title = "Grade"` on `describing-motion-around-us`) are **not** a licence to copy.
+- Pipeline expectations: `PIPELINE_VERSION` lives in the run fingerprint (`factory/stages.py::run_fingerprint`, recorded in `status.json`), not in the topic manifest. The published tree predates that field, so compare manifest shape (`lesson_title`, `locales_available`, `translation_status`, `narration`) and the run's fingerprint/status; match the best page and the tests, not the average. Known live defects (for example `chapter.title = "Grade"` on `describing-motion-around-us`) are **not** a licence to copy.
 
-When the artifact is a new surface with no reference (practice pack, series), compare with the **closest** existing contract: `docs/product/features.md` feature card, `docs/specs/evals/golden-sets.md` expected properties, and the backend spec's data contract. State the comparison you used.
+When the artifact is a new surface with no reference, compare with the **closest** existing contract: the `docs/product/features.md` feature card and the eval card/golden that covers the artifact. State the comparison you used. Do not invent a contract for a surface the repo has not specified.
 
 ## 6. Classify severity
 
@@ -123,10 +120,10 @@ Start from the defect class, then adjust for blast radius and whether the artifa
 
 | Defect class | Default | Escalate when |
 |---|---|---|
-| Wrong answer key; fact contradicts the cited source; later-chapter concept taught/tested as fact; translation inverts a physics statement; answer read aloud | blocker | already published and a learner is scored on it → still blocker |
+| Wrong answer key; fact contradicts the cited source; later-chapter concept taught/tested as fact; translation inverts a physics statement; answer read aloud | blocker | already published and a learner sees it → still blocker |
 | Page blank/broken; `eval`/external call/CSP break; missing block/asset that makes the lesson unusable | blocker | — |
 | Identity-only title/label error (`"Grade"`, model headline, wrong chapter label) | major | the page teaches the wrong chapter's content → blocker |
-| Missing/empty explanation; required section/exercise type missing; marks/section totals wrong; untranslated leak in a promised locale; duplicate topic; thin series | major | a published paper's total is wrong or a full-paper series omits a chapter → major/blocker by impact |
+| Missing/empty explanation; required section/exercise type missing; untranslated leak in a promised locale; duplicate topic; false provenance or over-claim | major | a false official-endorsement or guaranteed-score claim → blocker |
 | Mixed pipeline versions in one catalogue; stale sitemap/placeholder host; narration asset missing while marked available | major | a route 404s or the catalogue cannot be trusted → major |
 | Thin but correct explanation; glossary gap; readability above class level; awkward but faithful translation | minor | it changes the answer/claim → major |
 | Typography, wording preference, layout taste with no learning impact | nit | — |
@@ -137,7 +134,7 @@ Rules:
 
 - **One root cause, one finding.** If the same defect appears in 6 items, write one finding and list the ids.
 - **Distinguish new from pre-existing.** A pre-existing published defect is reported but does not block an unrelated PR; name the publish owner.
-- **A blocker is never "just content debt".** The R1 debt rule covers logged quality debt, not wrong answers, false claims, or broken pages.
+- **A blocker is never "just a follow-up".** `TIMELINE.md` records pending work, but a wrong answer, a false claim, or a broken page remains a blocker.
 - **The rubric does not override severity.** A single wrong key is a blocker even if the other five dimensions score 3.
 
 ## 7. Do not re-litigate product decisions
@@ -145,11 +142,11 @@ Rules:
 These are frozen; a review that argues with them is noise:
 
 - Subject scope is academic Physics, Class 9–12. No Python, no general chat.
-- Lessons/UI/AI tests/challenge/loop are EN + HI + Hinglish; CBSE-style series are EN + HI only.
+- Product language set is all Gnani-supported languages; the v1/demo subset is English + हिन्दी + Hinglish (`T2`). Page translation is a separate second-layer pipeline (`SC-01`, not yet built); the factory produces English natively.
 - Guest-first; no parent account, no leaderboards, no share links; static generated lessons + server-rendered pages + vanilla-JS islands, no SPA.
 - Voice loop is Prisma v3.0 + Timbre v3.0 + Gemma 4 26B A4B (Gemini API key); never replace.
 - Source content is NCERT/public-domain only, with citations; no scraped copyrighted textbooks.
-- R1 gate: technical breakage blocks; content-quality debt is logged. The v1 base batch may publish on technical gates alone (the frozen product decision log), with debt recorded.
+- Every generated page passes the Comprehension & Fact Reviewer and the Code Reviewer before it goes live (`AGENTS.md`). There is no content-debt exception gate; `TIMELINE.md` is the only task list, and a follow-up is recorded there or in the PR body with artifact, owner, severity, and reproduction.
 
 If a PR contradicts a frozen decision, record a **question** with the doc citation (`docs/product/features.md`, `TIMELINE.md`, `AGENTS.md`). If two docs conflict, treat `AGENTS.md` and `TIMELINE.md` as the repo law above derived specs, record both paths, and raise the conflict; do not pick a side silently. Do not ask for a new feature in a review; log it as a follow-up or question.
 
@@ -163,6 +160,6 @@ Use [../templates/content-review-report.md](../templates/content-review-report.m
 4. Findings by severity, in the suite format, ordered by learner impact.
 5. Coverage table: what was inspected, what was sampled, what was skipped.
 6. Content-debt table: finding, owner, artifact, reproduction, target.
-7. What you did **not** review (live model calls, full regeneration, audio listening, a series you could not generate) so approval is not read as broader than it is.
+7. What you did **not** review (live model calls, full regeneration, audio listening, a page you could not render) so approval is not read as broader than it is.
 
 If the user asks for fixes rather than a report, make the smallest change that addresses blockers/majors, re-run the deterministic checks, and list exactly what changed. Never bypass a gate, never edit a golden to make a failure disappear, and never hand-edit a generated artifact that the publish flow owns.
