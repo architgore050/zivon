@@ -9,7 +9,7 @@ and stay abstract.
 | Bundle | What it is for | Entry point |
 |---|---|---|
 | [`skill-creation/`](skill-creation/) | Finding, evaluating, adapting, writing, testing, and maintaining skills for **any** domain; tested discovery toolkit + dated source catalog + validator | [`skill-creation/SKILL.md`](skill-creation/SKILL.md) |
-| [`code-review/`](code-review/) | The agentic review suite: one orchestrator + six specialist lenses (architecture, implementation, security, tests, docs-sync, production-readiness) | [`code-review/code-review/SKILL.md`](code-review/code-review/SKILL.md) |
+| [`code-review/`](code-review/) | The agentic review suite: one orchestrator + seven specialist lenses (architecture, implementation, security, tests, docs-sync, production-readiness, content-quality) | [`code-review/code-review/SKILL.md`](code-review/code-review/SKILL.md) |
 | [`prompting-and-agent-design/`](prompting-and-agent-design/) | Current-era prompting and agent-graph rules for the content factory and voice tutor (goal-first, contracts, harness vs prompt) | [`prompting-and-agent-design/SKILL.md`](prompting-and-agent-design/SKILL.md) |
 | [`content-creation/`](content-creation/) | Build-in-public post skills (LinkedIn/X interviewers, photo/video edit directors, shared theme + tool lessons) | [`content-creation/README.md`](content-creation/README.md) |
 | [`zivon-product-design-skills/`](zivon-product-design-skills/) | Feature decision + granular spec method (original skill + vendored PM skills) | [`zivon-product-design-skills/skills/zivon-product-design/SKILL.md`](zivon-product-design-skills/skills/zivon-product-design/SKILL.md) |

@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Entry point for reviewing any code change. Use whenever the user asks to review a PR, diff, branch, commit, patch, or set of files; says "look over my changes", "is this ready to merge", "audit this", "sanity check this", or "self-review before I open a PR"; or wants AI-written code checked. Triages the change, routes it to the specialist lenses (review-security, review-architecture, review-implementation, review-tests, review-docs-sync, review-production-readiness), and merges the results into one prioritized report with a clear verdict. Use this skill first even if the user only names one concern, because it decides which lenses matter.
+description: Entry point for reviewing any code or content change. Use whenever the user asks to review a PR, diff, branch, commit, patch, or set of files; says "look over my changes", "is this ready to merge", "audit this", "sanity check this", "is this lesson/answer key correct", "are these translations good", or "self-review before I open a PR"; or wants AI-written code or generated learning content checked. Triages the change, routes it to the specialist lenses (review-security, review-architecture, review-implementation, review-tests, review-docs-sync, review-production-readiness, review-content-quality), and merges the results into one prioritized report with a clear verdict. Use this skill first even if the user only names one concern, because it decides which lenses matter.
 ---
 
 # Code Review (orchestrator)
@@ -34,8 +34,9 @@ Read the matching lens's `SKILL.md` before applying it. Not every change needs e
 | New module/package/service, new dependency or framework, public API/schema/contract change, moved files, new cross-cutting pattern | `review-architecture` |
 | Changed commands, config/env vars, public API, setup steps, directory layout, conventions, runtime versions | `review-docs-sync` |
 | Migrations, queries, network calls, background jobs, flags/config, deploy or infra changes, hot paths | `review-production-readiness` |
+| Generated/edited lesson content, blocks, checks, translations/i18n, narration, catalogue or publish output, or a prompt/checker/golden that produces them | `review-content-quality` |
 
-Scale depth to risk. Auth, payments, data migrations, concurrency, and anything irreversible get a deep pass; docs-only or test-only changes get a light one.
+Scale depth to risk. Auth, payments, data migrations, concurrency, and anything irreversible get a deep pass; docs-only or test-only changes get a light one. For a content-only PR, run `review-content-quality` **before** implementation/tests: if the lesson teaches the wrong answer, line-level code comments are secondary. For a mixed PR, run it after the design/security pass but before signing off, because content defects are product defects.
 
 ## Step 3: Review in priority order
 
@@ -47,6 +48,8 @@ Design problems are expensive to fix late and make line-level comments moot, so 
 4. **Operability**: can it be deployed, observed, and rolled back?
 5. **Docs**: is what the repo tells people still true?
 6. **Readability & style**: naming, comments, polish.
+
+If content is in scope, fold it into steps 1–2: a wrong answer key is a correctness defect even when the design is right.
 
 If you find a fundamental design problem in pass 1, report it immediately and say you stopped there; reviewing line details of code that should be restructured wastes everyone's time.
 
