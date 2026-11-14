@@ -24,6 +24,11 @@ seeded into the served root with a no-clobber copy. Generated pages arrive at
 runtime on a volume/PVC and are never baked into an image. `publish-frontend.sh`
 mirrors the PVC into the repo snapshot and refuses to touch the shell.
 
+The server-rendered classes need a `web/` package and a Jinja dependency in the
+core-backend image. That is a backend implementation PR with its own
+requirements/CI update, not a frontend-only change; this skill assumes the
+contract, not the package.
+
 ## 2. Route map
 
 ### 2.1 Static (nginx / CDN)

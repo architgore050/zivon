@@ -120,7 +120,9 @@ Repo sources that bind this bundle:
 
 The full-frontend plan lives in the workspace's gitignored `tmp/` folder. It is
 cited as the planning artifact, not as a durable repo file. Everything this
-bundle needs from it is restated here or traceable to the committed docs above.
+bundle relies on is restated here or traceable to the committed docs above;
+exact content-volume counts and the workstream briefs stay in the planning
+artifact.
 
 ## Maintenance
 
