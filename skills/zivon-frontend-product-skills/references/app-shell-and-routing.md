@@ -6,6 +6,9 @@ The current repo is already most of the way there: static file-path routing on
 nginx, a same-origin voice WebSocket, and a shell that works offline. The full
 product adds server-rendered app, auth, and admin pages behind the same origin.
 
+The route map below is the **R1 target**; check the current tree and
+`TIMELINE.md` for what is already live before wiring a new URL.
+
 Read `docs/specs/frontend/spec.md` §2–§3 for the binding implementation view,
 `docker/nginx.conf` for the live header/cache/proxy truth, and
 `tmp/full-frontend/REQUIREMENTS.md` §3 for the full route and API map.

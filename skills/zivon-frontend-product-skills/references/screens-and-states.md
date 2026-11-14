@@ -4,6 +4,10 @@ The screen inventory and the 11-state matrix. Use this before writing a screen
 spec, and again before review. A screen is not built until every region has a
 row and every state cell is either implemented or `n/a` with a reason.
 
+This is the **R1 target inventory**, not a claim that every route is live.
+Check `TIMELINE.md`, the current `frontend/`, and the route map before assuming
+a screen exists; a planned route still needs its owning workstream and PR.
+
 The binding sources are `docs/specs/frontend/state-matrix.md` (the existing
 implementation view), `docs/product/features.md` §5.4 (the canonical
 product-state matrix), and `tmp/full-frontend/REQUIREMENTS.md` §10 (the
