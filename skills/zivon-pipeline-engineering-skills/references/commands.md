@@ -75,7 +75,7 @@ python -m evals calibrate --stage all --mock
 python -m evals diff --prev <baseline_run_id> --curr <current_run_id>
 python -m evals record-edit \
   --course class-9-physics --topic motion \
-  --baseline-dir runs/<run_id>/11-link/courses/class-9-physics/motion \
+  --baseline-dir runs/<run_id>/06-render/site/courses/class-9-physics/motion \
   --published-dir frontend/courses/class-9-physics/motion
 python -m evals record-kid-test --input session.json
 python -m evals report --run <eval_run_id>
@@ -94,7 +94,11 @@ Semantics: `smoke` = deterministic checkers + fake judge (0 model calls);
 `full` = checkers + judges; `calibrate` = seeded-defect reviewer calibration.
 `--fail-on-regression` compares to the most recent same-suite run in the ledger
 and exits 2 on regression. A deliberate baseline change must be stated in the
-PR with the reason and new expected values.
+PR with the reason and new expected values. `record-edit` diffs
+`index.html`/`page.css`/`page.js`/`plan.json`, so its baseline is the
+pre-edit generated topic — the staging copy under `06-render/site/`, not
+`11-link` (which keeps only `output.json`; it publishes straight into
+`frontend/`).
 
 ## 6. Pipeline runs
 
