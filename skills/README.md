@@ -19,6 +19,7 @@ and stay abstract.
 | [`zivon-frontend-product-skills/`](zivon-frontend-product-skills/) | **Full frontend implementation entry point**: Field Notes public pages and generated lessons, static/SSR split, app shell, auth, dashboard, lesson shell, practice, speaking, tests/series, progress, SWOT, settings, admin, the 11-state matrix, a11y/perf/SEO, and the founder visual-verdict protocol | [`zivon-frontend-product-skills/SKILL.md`](zivon-frontend-product-skills/SKILL.md) |
 | [`zivon-frontend-skills/`](zivon-frontend-skills/) | SEO reference only (technical SEO, metadata, sitemaps, structured data, Core Web Vitals); the implementation entry point is `zivon-frontend-product-skills/` | [`zivon-frontend-skills/seo-optimization.md`](zivon-frontend-skills/seo-optimization.md) |
 | [`zivon-pipeline-engineering-skills/`](zivon-pipeline-engineering-skills/) | Content-factory engineering: stage contracts, artifacts/resume, gate/catcher design, quality/evals, rendering/publishing, and logging | [`zivon-pipeline-engineering-skills/SKILL.md`](zivon-pipeline-engineering-skills/SKILL.md) |
+| [`zivon-evals-and-observability-skills/`](zivon-evals-and-observability-skills/) | The logging + evaluation entry point: events and the instrumentation map, eval cards/checkers/goldens/judges, dual-write store, curation front, review bar | [`zivon-evals-and-observability-skills/SKILL.md`](zivon-evals-and-observability-skills/SKILL.md) |
 
 ## Validate
 
