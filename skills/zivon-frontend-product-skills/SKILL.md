@@ -83,9 +83,11 @@ assuming.
 2. **Product decisions are frozen.** Do not re-litigate features, routes,
    languages, auth, or SWOT rules. If a contract is missing, record the gap
    and ask; do not invent product behaviour in a template.
-3. **Static first, server when the data is private.** Public discovery and
-   lesson reading stay static. Anything that needs a cookie, private progress,
-   or a database read is server-rendered.
+3. **Static first, server when the page's content is private.** Public discovery
+   and lesson reading stay static. A page whose primary content needs a cookie,
+   a private row, or a per-student computation is server-rendered. A public
+   page may add a private *decoration* (the catalogue's signed-in progress)
+   through a scoped same-origin island; the page itself stays static.
 4. **Failure first.** Every component ships its loading, empty, partial,
    error, offline, permission, reduced-motion, untranslated, quota, and
    consent states — or an `n/a` with a reason.
@@ -155,7 +157,8 @@ waives it in writing.
   read-aloud, consent, report, and notices.
 - SSR page → a Jinja template + a route that passes a typed view model. Keep
   the template dumb; compute in Python.
-- Island → a single ES5-compatible script with a named global, an idempotent
+- Island → a single vanilla-JS script (no framework, no build step; modern
+  syntax is fine, matching `zivon.js`) with a named global, an idempotent
   mount, and a no-op when its root is absent.
 - Copy → a copy key or a UI string bundle. Never hard-code English inside a
   localized page.
@@ -191,11 +194,13 @@ the PR; a review agent merges. Never merge your own PR.
 
 ## Static vs SSR in one paragraph
 
-If a stranger can see it without signing in, it is static and indexable. If it
-needs a session cookie, a private row, or a per-student computation, it is
-server-rendered and noindex. If it only needs local interaction (a sim, a
-check, the dock, a timer), it is a static page plus an island. There is no
-third category called "client app".
+If a stranger can see the page's primary content without signing in, it is
+static and indexable. If the primary content needs a session cookie, a private
+row, or a per-student computation, it is server-rendered and noindex. If it
+only needs local interaction (a sim, a check, the dock, a timer), it is a
+static page plus an island. A private decoration on a public page (signed-in
+catalogue progress) is a scoped island, not a reason to move the page to SSR.
+There is no third category called "client app".
 
 ## The 11-state rule
 

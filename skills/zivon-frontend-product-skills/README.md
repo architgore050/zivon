@@ -84,10 +84,12 @@ When two documents disagree, use this order and record the conflict:
 
 1. `AGENTS.md` + `TIMELINE.md`.
 2. `tmp/full-frontend/FEATURE-MAP.md` (frozen 2026-11-13).
-3. `docs/specs/*` and `docs/backend/adr/`.
-4. `docs/content-factory/*`.
-5. The agent handshake (process and allocation only).
-6. `tmp/full-frontend/REQUIREMENTS.md`.
+3. `docs/product/features.md` + the element/information inventories (feature
+   cards, `EL-`/`INF-` IDs, copy and privacy rules).
+4. `docs/specs/*` and `docs/backend/adr/`.
+5. `docs/content-factory/*`.
+6. The agent handshake (process and allocation only).
+7. `tmp/full-frontend/REQUIREMENTS.md`.
 
 The frozen map wins over the requirements doc. The doctrine wins over any
 example or mockup. The kit wins over any page-local invention.

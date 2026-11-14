@@ -19,8 +19,8 @@ a frontend agent fills.
 | Group | Screen | Route | Surface | Primary data / API | Key events |
 |---|---|---|---|---|---|
 | Public | Landing | `/` | Static | None required; optional catalog summary | `landing_view`, `demo_play`, `cta_try` |
-| Public | Catalogue | `/courses` | Static + optional progress decoration | `/v1/catalog`, `/v1/catalog/search`; progress if signed in | `catalogue_view`, `chapter_open`, `search` |
-| Public | Class/course | `/courses/{class}/physics` | Static | `/v1/catalog/chapters?class=` | `course_view`, `chapter_open` |
+| Public | Catalogue | `/courses` | Static + optional progress decoration | Published `courses.js`/catalogue manifest; `/v1/catalog/search` for the search island; signed-in progress via a scoped island | `catalogue_view`, `chapter_open`, `search` |
+| Public | Class/course | `/courses/{class}/physics` | Static | Published catalogue/manifest; `/v1/catalog` for the app view | `course_view`, `chapter_open` |
 | Public | Method, About, Pricing, Trust | `/method`, `/about`, `/pricing`, `/privacy`, `/terms`, `/contact`, `/status` | Static | Waitlist `POST /v1/waitlist`; privacy `GET /v1/data/challenge`, `DELETE /v1/data` | `pricing_view`, `waitlist_submit`, `delete_request` |
 | Public | 404 | unmatched | Static | None | — |
 | Lesson | Generated lesson | `/courses/{class}-physics/{chapter}/` | Static generated + shell islands | `manifest.json`, static narration, `/v1/session`, `/voice/ws`, `/v1/reports`, `/v1/events` | `lesson_view`, `block_view`, `sim_interact`, `check_answer`, `read_aloud`, `bookmark`, `ask_about_this` |
@@ -42,6 +42,12 @@ a frontend agent fills.
 | App | Bookmarks | `/app/bookmarks` | SSR | `/v1/bookmarks/*` | `bookmark` |
 | App | Settings/privacy | `/app/settings`, `/app/settings/privacy` | SSR | `/v1/me`, `/v1/me/export`, `/v1/me/delete` | `settings_save`, `language_change`, `delete_request`, `export_request` |
 | Admin | Staff login + cockpit + panels | `/admin/*` | SSR, staff auth | `/v1/admin/*` | Staff-only audit events |
+
+**Event names in this table are working labels, not a new register.** Map each
+to the canonical `EVT-001…018` catalogue (`docs/product/backend-handoff.md` §4)
+and the client triggers in `docs/specs/frontend/spec.md` §9/§14.3 before
+emitting. A screen with no registered event is a gap to record in its screen
+spec — do not invent an event ID or ship an unregistered name.
 
 ## 2. The eleven states
 
@@ -74,8 +80,10 @@ Cells name what the student perceives and, where useful, the code path
 
 | Screen | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | quota-exhausted | consent-missing |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| **Landing** | Notebook hero, real clip + transcript, mini-sim, one CTA `[static]` | Static paint; no spinner | n/a (fixed marketing copy) | Demo section absent if the clip is not published; page still sells the product | Demo fails → transcript + static still visible; no broken embed | Static page works; demo disabled with a reason | n/a (no mic/camera until the demo is pressed) | No autoplay; clip paused; static first frame | EN/HI/Hinglish variant or English + marker | n/a (no credits before voice) | n/a (no voice on the landing) |
+| **Landing** | Notebook hero, real clip + transcript, mini-sim, one CTA `[static]` | Static paint; no spinner | n/a (fixed marketing copy) | Demo section absent if the clip is not published; page still sells the product | Demo fails → transcript + static still visible; no broken embed | Static page works; demo disabled with a reason | n/a (the landing has no mic; the demo is a clip) | No autoplay; clip paused; static first frame | EN/HI/Hinglish variant or English + marker | n/a (no credits before voice) | n/a (no voice on the landing) |
 | **Catalogue** | Class tabs, chapter cards, status, progress if signed in `[static]` + `[island]` | Static paint; progress decoration arrives later | No chapters for the filter → clear copy + reset filter | Some classes/chapters not live → status badge, no dead link | Catalogue fetch fails → static published list remains | Cached list + offline chip | n/a (public page) | Hover/focus colour only; no motion | English cards or localized variant + marker | n/a | n/a |
+| **Class/course** | Chapter list with status, availability, counts, continue `[static]` | Static paint; no spinner | No live chapters for this class → “not available yet” + back to the catalogue | Some chapters in development → status badge, no dead link | Published list still renders; a broken island loses only its decoration | Cached page works; continue needs the network | n/a (public page) | No motion | English + marker when a variant is missing | n/a (no voice) | n/a (no mic) |
+| **Public info + 404** (Method, About, Pricing, Trust) | Static copy, one H1, one action (waitlist/contact/home) `[static]` | Static paint; no spinner | n/a (fixed copy) | A missing section is omitted, not stubbed | Static page still serves; the one form shows a field-level error | Readable from cache; form disabled with a reason | n/a | No motion | English + marker when a variant is missing | n/a | n/a |
 | **Lesson** | Ruled paper, text, diagram, sim, check, language bar, dock tab `[static]` + `[kit]` | Static HTML first; sim first frame inside budget | n/a (a published lesson has content; an empty page cannot publish) | Some blocks untranslated → English + marker; a missing narration asset → no button | Broken sim → on-canvas painter + text mirror; broken kit → content readable | Cached page + read-aloud; dock offline; typed path open | Mic denied → `MIC OFF` stamp + typed field; reading unaffected | One static sim draw; no bars/caret; instant caption | English + `.zn-untranslated-notice` per block | `text_only` dock + ledger line; reading/sims/typing free | Consent sheet before dock; decline hides voice quietly |
 | **Auth** | One paper card: email/password, Google, guest link `[ssr]` | Submitting state on the button; fields disabled; no double submit | n/a (a form is never empty) | Email unverified / Google not linked → row state + action | Invalid credentials, rate limit, expired token, Google error → field-level copy | Submit disabled with a reason; password managers still work | n/a | No animated toggle or spinner; instant status text | UI strings per locale; English + marker if missing | n/a | n/a (voice consent is separate) |
 | **Dashboard** | Greeting, continue, today, map, SWOT, recent, one primary CTA `[ssr]` | Server paints shell; panels may stream/skeleton | New user: no data → start a chapter/diagnostic, not empty cards | No SWOT yet → "not enough data"; no tests yet → hide the panel | Panel-level error; other panels keep working | Cached summary + offline banner; actions disabled with reason | n/a (no permission) | No animated counters or confetti | English + localized dashboard strings; marker where missing | Voice-limited notice; typed tutor remains | n/a (no mic on the dashboard) |
@@ -85,8 +93,9 @@ Cells name what the student perceives and, where useful, the code path
 | **Tests/series** | Hub, series cards, builder, exam paper, palette, review `[ssr]` + `[island]` | Test starts/resumes; autosave indicator | No tests/series yet → browse catalogue | Some papers/sections not ready → locked with reason; no dead start | Autosave fail → keep local, retry, tell the student; submit fail → keep answers | Loaded test continues; submission retries when online | n/a (no permission) | Timer is text; no pulsing palette; no animation | EN/HI for CBSE-style; EN/HI/Hinglish otherwise; marker if missing | Tutor action only; test itself works | n/a |
 | **SWOT** | Four labelled quadrants with evidence cards + one next action `[ssr]` | Skeleton by quadrant, not a spinner | "Not enough data yet" + what to do to earn it | Some chapters unrated → "unrated" row, not a fake quadrant | Snapshot error → retry + link to progress; no stale claim | Cached snapshot + timestamp; recompute disabled | n/a (private to the student) | No quadrant animation; static cards | Labels/evidence per locale; marker if missing | n/a (no voice dependency) | n/a |
 | **Doubts** | Saved text conversations: title, chapter, date, last message `[ssr]` | List skeleton; detail loads | No doubts yet → ask from a lesson | Deleted/empty thread → tombstone + back | Load/delete fails → retry; no silent loss | Cached list; new turns disabled with reason | n/a | No typing animation | History in the language it was spoken; UI chrome localized | Voice turns unavailable; typed history readable | Consent applies to new voice turns only |
+| **Bookmarks** | Saved blocks/chapters/questions, newest first, remove `[ssr]` | List skeleton; header already painted | “No bookmarks yet — save a block from a lesson” + link | A deleted source block → tombstone + remove; never a dead link | List error + retry; app nav keeps working | Cached list readable; remove disabled with a reason | n/a (private to the student, no device permission) | No motion | Saved titles keep their original language; chrome localized; marker if missing | n/a (no voice) | n/a (no mic) |
 | **Settings** | Profile, class/board/language, password, Google link, voice, accessibility, privacy, delete/export `[ssr]` | Save in progress; field-level status | n/a (form is never empty) | Email unverified / Google not linked → row state + action | Validation or save error tied to the field; delete failure deletes nothing | Read-only cached settings; save disabled with reason | n/a | No animated toggles | Labels localized; account data as stored | Voice settings still apply to typed mode | Consent status shown, not hidden |
-| **Admin** | Cockpit, coverage, questions, series, blueprints, users, credits, reports, flags, evals, debt `[ssr]` | Panel skeletons | "No runs yet" / "No reports" per panel | One source down → panel error, other panels fine | Auth fail → login; 403 page; panel retry | n/a (staff tool on the cluster network) | 403 / role denied | No animated charts | English staff UI only | Guard badge shows exhausted | n/a |
+| **Admin** | Cockpit, coverage, questions, series, blueprints, users, credits, reports, flags, evals, debt `[ssr]` | Panel skeletons | "No runs yet" / "No reports" per panel | One source down → panel error, other panels fine | Auth fail → login; 403 page; panel retry | Panel error + retry; privileged actions disabled until reconnected (no offline admin cache) | 403 / role denied | No animated charts | English staff UI only | Guard badge shows exhausted | n/a |
 
 ## 4. Screen-specific notes
 
@@ -104,10 +113,11 @@ decoration is additive; the catalogue works signed out.
 
 ### Lesson
 
-The generated page is the content. The shell adds the language bar, read-aloud,
-report, consent, and dock. With JavaScript off, the text, examples, diagrams,
-checks, and sources remain readable. The dock never mount before consent. The
-lesson has no “mark complete” button; progress is derived.
+The generated page is the content. The renderer emits the language bar (kit
+chrome, doctrine §10.5); the shell adds read-aloud, report, consent, and the
+dock. With JavaScript off, the text, examples, diagrams, checks, and sources
+remain readable. The dock never mount before consent. The lesson has no “mark
+complete” button; progress is derived.
 
 ### Auth
 

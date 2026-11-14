@@ -64,6 +64,8 @@ class FrontendProductBundleTests(unittest.TestCase):
     REQUIRED_SCREENS = (
         "Landing",
         "Catalogue",
+        "Class/course",
+        "Public info",
         "Lesson",
         "Dashboard",
         "Practice",
@@ -71,6 +73,7 @@ class FrontendProductBundleTests(unittest.TestCase):
         "Tests",
         "SWOT",
         "Doubts",
+        "Bookmarks",
         "Settings",
         "Admin",
     )
@@ -207,6 +210,29 @@ class FrontendProductBundleTests(unittest.TestCase):
         text = self._text("references/worked-example.md")
         for token in ("SaaS dashboard", "Gradients", "Leaderboards", "SPA"):
             self.assertIn(token, text, f"worked example must name {token}")
+
+    def test_contract_details_match_the_kit(self) -> None:
+        """Pin facts that a plausible-sounding rewrite could get wrong."""
+        screens = self._text("references/screens-and-states.md")
+        quality = self._text("references/accessibility-performance-seo.md")
+        skill = self._text("SKILL.md")
+        # The language bar is renderer-emitted kit chrome (doctrine v1.6);
+        # the shell injects the other chrome. The lesson note must say so.
+        self.assertIn("renderer emits the language bar", screens)
+        self.assertIn("shell adds read-aloud, report, consent", screens)
+        # The sim mirror is not rewritten on every animation frame (the kit
+        # writes it only when it is empty/auto and the text changed).
+        self.assertIn("never on every animation frame", quality)
+        # Event labels are working names; the register is EVT-001..018.
+        self.assertIn("EVT-001", screens)
+        self.assertIn("backend-handoff.md", screens)
+        # A public page stays static even with a private decoration (catalogue
+        # progress); only private primary content moves a page to SSR.
+        self.assertIn("primary content", skill)
+        self.assertIn("private decoration", skill)
+        self.assertIn("Published `courses.js`", screens)
+        # No invented ES5 constraint: the kit itself uses modern syntax.
+        self.assertNotIn("ES5", skill)
 
 
 if __name__ == "__main__":

@@ -53,7 +53,9 @@ it.
 ### Screen-reader rules
 
 - Canvas simulations have a text mirror (`.zn-sim-read`, `aria-live="polite"`)
-  populated every draw; a broken sim announces its error.
+  carrying the readable state; the kit updates it on control change or error,
+  never on every animation frame, so it cannot flood the live region. A broken
+  sim announces its error.
 - Diagrams carry an `aria-label` listing their labels; complex diagrams may add
   a long description.
 - Decorative SVG is `aria-hidden="true"`; meaningful SVG has a title/label.
