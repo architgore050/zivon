@@ -10,7 +10,7 @@ make a failing test pass.
 
 | Term | Meaning here | Example |
 |---|---|---|
-| **Fixture** | Fixed input staged for a test: JSON, PDF, HTML fragment, PDF page, scripted event stream | `testing/content_factory/mocks/fixtures/03-check.json` |
+| **Fixture** | Fixed input staged for a test: JSON, PDF, HTML fragment, scripted event stream | `testing/content_factory/mocks/fixtures/03-check.json` |
 | **Double / fake** | A test replacement for a collaborator, kept at a seam | `MockBrain` in `testing/voice/mocks/brain.py` |
 | **Golden topic** | A published artifact snapshot plus `expected.json` invariants | `evals/goldens/topics/class-9-motion/` |
 | **Seeded defect** | A known-bad input with an expected severity/verdict | `evals/goldens/defects/03-check/SD-CHK-001.json` |
@@ -49,7 +49,7 @@ make a failing test pass.
 | Location | What is there | Used by |
 |---|---|---|
 | `testing/content_factory/mocks/fixtures/` | Stage JSON (`02-generate.json`, `03-check.json`, `05-interactive.json`, `08-fixloop.json`, `09-review-*.json`), combined fixtures, `repair_plan.json`, gate reports | Factory unit and integration tests |
-| `testing/content_factory/mocks/fixtures/pdfs/` | Hand-rolled minimal PDFs plus `make_pdfs.py` | Ingest/locate and the end-to-end run |
+| `testing/content_factory/mocks/fixtures/pdfs/` | Hand-rolled minimal PDFs, built by `make_pdfs.py` in the parent folder | Ingest/locate and the end-to-end run |
 | `testing/voice/mocks/` | `MockPrisma`, `MockBrain`, `MockTimbre` — scriptable doubles, no static files | Voice suite |
 | `testing/skills/fixtures/` | `good-bundle`, `bad-bundle`, `legacy-bundle`, duplicate-name fixtures | `scripts/check_skills.py` tests |
 | `testing/narration/` | `narration_env.py` and real-encoder fixtures | Narration suite (needs ffmpeg) |

@@ -68,11 +68,15 @@ contract test for the attributes and an eval card for the pedagogy.
 
 ## 4. The deterministic-first funnel
 
-Every card runs code checkers before any judge call. A fatal checker failure
-short-circuits the judge and records the deterministic failure; the judge is
-skipped unless `--force-judge` is passed. This is both a cost control and a
-truth control: a schema-broken page should not spend a model call to be told it
-is broken.
+Every card runs code checkers before any judge call. A checker failure
+(`fatal`/`major` above the card threshold, or a pass rate under the card
+minimum) short-circuits the judge and records the deterministic failure. The
+judge runs only when the card is not skipped, the deterministic checks passed,
+and the run executes judges (`full`/`calibrate`, or a single `--card` run).
+`evals/cli.py` currently exposes **no override flag**: `--force-judge` is named
+in `docs/specs/evals/spec.md` §2 but is not implemented as of 2026-11-14. This is
+both a cost control and a truth control: a schema-broken page should not spend a
+model call to be told it is broken.
 
 Rules for checkers:
 

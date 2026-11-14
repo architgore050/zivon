@@ -29,7 +29,7 @@ chains. A fake that implements the real protocol catches shape drift; a
 | Boundary | Production code | Seam | Existing double | What the double scripts |
 |---|---|---|---|---|
 | Prisma STT | `voice/stt_client.py` | `SttClient` surface used by `voice/ws_api.py` | `testing/voice/mocks/prisma.py::MockPrisma` | partials, final text/language/confidence, `fail_connect`, `die_after`, final delay |
-| Gemini / OpenRouter brain | `voice/brain_client.py` | `BrainClient` transport factory yielding `RawChunk` | `testing/voice/mocks/brain.py::MockBrain` | content lines, thoughts, usage, chunk delay, first-event delay, stall, `fail_times`, `hang_forever`, disconnect recording |
+| Gemini / OpenRouter brain | `voice/brain_client.py` | `BrainClient` transport factory yielding `RawChunk` | `testing/voice/mocks/brain.py::MockBrain` | content lines, thoughts, usage, chunk delay, first-event delay, stall, `fail_times`, `hang_forever`, `closed` (the upstream saw the abort) |
 | Timbre TTS | `voice/tts_client.py` | `TtsTransport` protocol (`send`/`recv`/`close`) | `FakeTimbreTransport` in `testing/voice/test_tts_client.py`; `MockTimbre` at the client surface | binary or base64 audio frames, `segment_end`/`complete`, dead stream, abort drain |
 | Factory / llm-manager HTTP | `llm_manager/`, `factory/llm.py` | OpenAI-format `/chat/completions` | `testing/content_factory/mocks/openai_mock.py` | SSE deltas, usage, finish reason, 500/400/bad-shape/slow/stall/mid-stream-close/stream-error, disconnect accounting |
 | Eval judge | `evals/judges/` via `llm_manager` | `EvalConfig.judge_llm_config()` | `--mock` calibrated fake judge | deterministic verdicts for smoke/calibration |
@@ -64,9 +64,9 @@ chains. A fake that implements the real protocol catches shape drift; a
 6. **Assert outcomes, not the mock's diary.** Assert the emitted frames, the
    persisted row, the returned typed error, the page state. Assert a call only
    when the call *is* the contract ("one synthesis request per segment").
-7. **Record what the real thing would have seen.** `MockState.disconnected`
-   proves a deadline abort actually closed the server side; `MockTimbre.spoken`
-   proves the text that would be billed. Use those recordings as evidence.
+7. **Record what the real thing would have seen.** `MockBrain.closed` proves a
+   deadline abort actually closed the server side; `MockTimbre.spoken` proves
+   the text that would be billed. Use those recordings as evidence.
 8. **No global patching.** Patch the narrow seam. Do not patch
    `time.monotonic`, `asyncio.sleep`, or a module-level singleton; inject a
    clock or a fake instead.

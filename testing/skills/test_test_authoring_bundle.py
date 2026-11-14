@@ -71,8 +71,10 @@ class TestAuthoringBundleTests(unittest.TestCase):
         text = (BUNDLE / "SKILL.md").read_text(encoding="utf-8")
         header = text.split("---", 2)[1]
         self.assertIn("owner: zivon", header)
-        self.assertIn('version: "1.0"', header)
-        self.assertIn('evidence_date: "2026-11-14"', header)
+        # Shape, not the literal values: bumping the version or re-verifying the
+        # evidence date is maintenance, not a test change.
+        self.assertRegex(header, r'(?m)^\s+version: "\d+\.\d+"$')
+        self.assertRegex(header, r'(?m)^\s+evidence_date: "\d{4}-\d{2}-\d{2}"$')
 
     def test_skill_md_points_to_every_reference_and_template(self) -> None:
         body = (BUNDLE / "SKILL.md").read_text(encoding="utf-8")

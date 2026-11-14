@@ -1,6 +1,6 @@
 ---
 name: zivon-test-authoring-skills
-description: Writes and reviews deterministic tests for Zivon across unit, integration, contract, browser, accessibility, performance, and static-shell layers; keeps fixtures and goldens hermetic; mocks Prisma, Gemini, Timbre, llm_manager, and database seams; and decides whether a check belongs in testing/ or in an evals/ card. Use when adding or changing tests, when a change needs coverage, when a bug fix needs a regression test, when tests are flaky, over-mocked, or tautological, when wiring test discovery or CI path guards, or when asked "what tests should I write", "is this tested", "does this need an eval", or "why is CI not running this suite".
+description: Writes, repairs, and self-checks deterministic Zivon tests across unit, integration, contract, browser, accessibility, performance, and static-shell layers; keeps fixtures and goldens hermetic; mocks Prisma, Gemini, Timbre, llm_manager, and database seams; and decides whether a check belongs in testing/ or in an evals/ card. Use when adding or changing tests, when a change needs coverage, when a bug fix needs a regression test, when tests are flaky, over-mocked, or tautological, when wiring test discovery or CI path guards, or when asked "what tests should I write", "is this tested", "does this need an eval", or "why is CI not running this suite".
 license: MIT
 compatibility: Python 3.12+ for the unittest suites. Browser and performance layers need Playwright Chromium (python -m playwright install chromium); narration needs ffmpeg. All deterministic suites run key-free and offline.
 metadata:
@@ -118,11 +118,13 @@ before the first browser or accessibility test.
   a pass.
 - CI runs the factory unit set, the integration test, the frontend suite, each
   Wave-E suite that exists, the deterministic eval smoke, lint, format, and
-  types. The deterministic eval gate is
-  `python -m evals run --suite smoke --mock`; the full/calibration suites run in
-  an infra window, not in CI. Path guards keep reserved jobs green until their
-  service lands; do not add a duplicate job for a suite that discovery already
-  covers. See [references/ci-and-path-guards.md](references/ci-and-path-guards.md).
+  types. The deterministic eval smoke is
+  `python -m evals run --suite smoke --mock` for a key-free local run; the CI
+  job runs the same suite with `--fail-on-regression`. The full/calibration
+  suites run in an infra window, not in CI. Path guards keep reserved jobs green
+  until their service lands; do not add a duplicate job for a suite that
+  discovery already covers. See
+  [references/ci-and-path-guards.md](references/ci-and-path-guards.md).
 
 ## Non-negotiables
 

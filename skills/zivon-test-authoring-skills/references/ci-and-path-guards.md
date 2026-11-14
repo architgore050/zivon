@@ -98,7 +98,9 @@ Rules:
 CI has no product secrets:
 
 - No `ZIVON_*_API_KEY`, no Gnani key, no model endpoint key, no production DSN.
-- Vendor seams are mocked; the deterministic eval smoke uses `--mock`.
+- Vendor seams are mocked; the deterministic eval smoke makes zero judge calls
+  (`--mock` selects the deterministic fake judge for a key-free local run; the
+  CI job runs the same suite with `--fail-on-regression`).
 - The only database credential is a throwaway Postgres service container
   (`zivon`/`zivon`, `127.0.0.1:5432`) for backend and migration tests. It is a
   test fixture, not a product secret.
