@@ -1,0 +1,45 @@
+# Copy to evals/cards/EV-<PREFIX>-<NNN>.yaml.
+# Replace every value with the card's real contract. The schema is closed:
+# a new card_id prefix, stage value, or agent_role is a schema extension
+# (evals/models.py + docs/specs/evals/card-template.md + testing/evals/),
+# not a YAML string.
+card_id: EV-SYN-003
+version: 1
+title: "Replace with the failure mode this card owns, not the stage name"
+stage: "02-generate.blocks..04-repair"
+agent_role: "Synthesizer"
+suites:
+  - smoke
+golden_inputs:
+  topics:
+    - "evals/goldens/topics/class-9-motion"
+  seeded_defects: []
+  source_catalog_ref: "sources/catalog.json"
+deterministic_checks:
+  - id: DET-SYN03-GOLDEN-REGISTERED
+    entrypoint: "evals.checkers.example_checks:check_golden_registration"
+    severity_on_fail: fatal
+    reuses_factory_rule: null
+    description: "Replace with the invariant the checker enforces; it must be 0-call and deterministic."
+# null means deterministic-only. If a judge is needed, replace null with:
+# llm_judge:
+#   enabled_in_suites: [full]
+#   entrypoint: "evals.judges.pedagogy_judge:<function>"
+#   reuses_prompt_from: "factory.agents:run_check"
+#   severity_ladder: {fatal: "...", major: "...", minor: "..."}
+#   way_out_rule: "Report unverifiable suspicions as severity='minor' with message starting 'unverified:' — never as fatal or major."
+#   anchor_examples:
+#     - {label: "Fatal — ...", input_summary: "...", expected_issue: {block_id: "b-03", severity: fatal, category: content, message: "..."}}
+#     - {label: "Minor — ...", input_summary: "...", expected_issue: {block_id: null, severity: minor, category: content, message: "unverified: ..."}}
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 35000
+  call_deadline_s: 1800

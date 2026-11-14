@@ -1,0 +1,4 @@
+component,event,severity,correlation_ids,required_fields,latency_ms,error_class,privacy_class,emitter,notes
+factory,factory.catalogue.written,INFO,run_id,topics_count;locales_count,yes,,L1,factory/link.py,11-link regenerated courses.js; duration is the write time
+factory,factory.catalogue.smoke_failed,ERROR,run_id,broken_links,no,infra_error,L1,factory/link.py,11-link href and locale-file smoke gate; feeds factory.run.failed
+frontend,frontend.practice_start,INFO,client_session_id,topic;practice_id,no,,L2,frontend shell (zivon.js),only if no existing EVT-Fxx expresses it; no free text
