@@ -278,7 +278,7 @@ Additive narration fields from `12`:
   "narration": {
     "available": true,
     "lang": "en",
-    "hash": "sha256[:16] of narration-manifest.json bytes",
+    "hash": "sha256[:16] of the deterministic manifest content (lang, voice, mode, blocks; not generated_at)",
     "mode": "live",
     "blocks": {
       "b-01": {"available": true, "path": "audio/class-9-physics/b-01.en.<hash>.opus", "hash": "...", "duration_ms": 12345}
@@ -326,7 +326,7 @@ Rules:
 **Known gaps:** localized hubs currently load the same `courses.js`, whose
 hrefs point at the English page (no locale-aware href rewrite); catalogue
 entries carry no status/language-coverage/counts/concept/exam-weight metadata.
-Both are tracked as P-GAP-03/P-GAP-05 in the pipeline audit; fix through the
+Both are recorded here (not in the repo's `GAP-###` register); fix through the
 owner (`factory/render.py` / `factory/link.py` / shell) with tests.
 
 ## 7. Translation artifacts
@@ -447,8 +447,8 @@ These are confirmed against code/docs on 2026-11-14; re-verify before acting.
 - **No deterministic numeric/unit recomputation.** Wrong computed answers are
   caught by the model reviewer, not code.
 - **`03-check` issues lack a category.** The prompt does not ask for one;
-  `factory/ledger.py` defaults to `content`, so cross-run analysis collapses
-  this gate.
+  `factory/agents.py` tags them `content` (the ledger builder's own default is
+  `other`), so cross-run analysis collapses this gate.
 - **Eval schema and version drift.** `evals/runner.py` hardcodes
   `pipeline_version=1`; `evals/goldens/manifest.json` says 7; actual
   `PIPELINE_VERSION` is 9. Eval telemetry (`EVT-EVAL-*`) has zero rows in the

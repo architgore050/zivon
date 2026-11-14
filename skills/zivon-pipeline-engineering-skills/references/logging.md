@@ -70,8 +70,9 @@ must be added to `STAGE_ORDER`, the instrumentation map, and
 bind_context(run_id=run_id)
 ```
 
-- `run_id` comes from `make_run_id(chapter, class)`, `--run-id`, or
-  `ZIVON_RUN_ID` (honored only when it agrees with the id being made).
+- `run_id` comes from `--run-id` or `ZIVON_RUN_ID` when either is set, else
+  `make_run_id(chapter, class)`. The env var is the cluster Job's pod-level
+  join; it names the run and therefore also decides which directory resumes.
 - Every factory event, model call, and publish joins on that `run_id`.
 - `request_id` is created per outbound model call
   (`context_scope(request_id=new_request_id())` in `factory/llm.py`); it joins
@@ -139,7 +140,7 @@ module and do not duplicate.
 | `factory.call.transport_exhausted` | `factory/llm.py` | `attempts`, `last_status` | `transport_error` |
 | `factory.repair.round` | `fixloop.py`, `reviewfix.py`, `stages.py` | `round`, `issues_count` | bounded catcher round (incl. `10c`) |
 | `factory.repair.exhausted` | `fixloop.py`, `reviewfix.py`, `stages.py` | `plateau`, `cap_hit` | `repair_exhausted` |
-| `factory.coverage.gap_fatal` | `factory/checks.py` | `missing_count` | `gate_fail` |
+| `factory.coverage.gap_fatal` | `factory/checks.py` | `missing_count` | `gate_fail`; map row only — no emitter in `factory/checks.py` yet |
 | `factory.perf.budget_fail` | `factory/perf.py` | `budget_name`, `measured_ms`, `limit_ms` | `gate_fail` |
 | `factory.publish.ok` / `.fail` | `scripts/publish-frontend.sh` | `target`, `asset_count` / `reason_code` | publish path |
 

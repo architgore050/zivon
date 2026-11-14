@@ -116,7 +116,7 @@ Cards live in `evals/cards/EV-*.yaml`. Goldens:
 | `07`/`08` perf or fixloop behavior | `EV-PERF-001` profile/checker |
 | Full-pipeline reliability, catcher convergence, edit rate | `EV-E2E-001` metrics |
 | Kid comprehension / Gate B | `EV-KID-001` session schema |
-| A new stage (assessment/exam/series) | **Blocked by the closed card schema** (`P-GAP-16`); land the additive enum extension first |
+| A new stage (assessment/exam/series) | **Blocked by the closed card schema** (see §9); land the additive enum extension first |
 
 If no existing card can express the new failure mode, say so in the PR and
 name the schema change needed. Do not bend an unrelated card.
@@ -207,28 +207,30 @@ exist. Otherwise it is a local experiment.
 
 ## 9. Known eval/quality gaps
 
-Re-verify each before treating it as open:
+These are dated observations local to this bundle, not rows in the repo's gap
+register (`docs/specs/gaps/gap-register.md`, `GAP-###`). Re-verify each against
+the code before treating it as open:
 
-- **Closed card schema (`P-GAP-16`):** ids are
+- **Closed card schema:** ids are
   `EV-(CUR|SYN|VIS|PERF|REV|E2E|KID)-NNN`; stage and role enums are fixed.
   Assessment/exam/series cards cannot be added until the additive extension
   lands.
-- **Eval telemetry undeclared (`P-GAP-14`):** `EVT-EVAL-*` maps to
+- **Eval telemetry undeclared:** `EVT-EVAL-*` maps to
   `factory.eval.*` but the instrumentation map has zero rows and the shim uses
   `component="evals"`, outside the closed enum. Fix the map/component before
   adding cards.
-- **Version drift (`P-GAP-15`):** `evals/runner.py` hardcodes
+- **Version drift:** `evals/runner.py` hardcodes
   `pipeline_version=1`; the goldens manifest says 7; actual is 9. A diff across
   versions is not trustworthy until this is fixed.
-- **No a11y gate (`P-GAP-06`):** no axe/ARIA assertion; accessibility depends
+- **No a11y gate:** no axe/ARIA assertion; accessibility depends
   on the model reviewer. A deterministic a11y probe is the highest-value
   checker to add.
-- **No deterministic numeric recompute (`P-GAP-09`):** a wrong answer is
+- **No deterministic numeric recompute:** a wrong answer is
   model-caught only.
-- **`03-check` has no category (`P-GAP-08`):** its issues aggregate as
-  `content`, so cross-run analysis cannot separate answer-key, fact, and
+- **`03-check` has no category:** its issues are tagged `content` at the call
+  site, so cross-run analysis cannot separate answer-key, fact, and
   coverage failures.
-- **No JS-byte budget (`P-GAP-07`):** the current lesson JS (~103-125 KB gzip)
+- **No JS-byte budget:** the current lesson JS (~103-125 KB gzip)
   exceeds the stated 60 KB budget before new features. The budget definition is
   an open founder question; do not enforce a number that the current site
   already fails.

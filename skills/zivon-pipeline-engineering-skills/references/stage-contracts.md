@@ -25,18 +25,23 @@ stage.
 6. **Upstream is never re-derived for a downstream failure.** `02-generate`
    output is reused across every `03/04` round; `06-render` output is reused
    across `07/08` and `09/10`.
-7. **Only `11-link` writes `frontend/`.** Everything before it writes inside
-   the run directory (staging site included).
-8. **Only `06-render` and `10d-transrender` write HTML.** `05-interactive`
-   writes simulation JS/CSS fragments; `08` and `10` may only rewrite
-   topic-local `page.js` / `page.css` (plus corrected block specs at `10`).
+7. **`11-link` is the only stage that publishes the page tree.** Everything
+   before it writes inside the run directory (staging site included).
+   `12-narration` may then write `frontend/audio/` and stamp the published
+   topic manifest; no other stage touches `frontend/`.
+8. **Only `06-render` and `10d-transrender` author the HTML template.**
+   `05-interactive` writes simulation JS/CSS fragments; `08` and `10` may only
+   rewrite topic-local `page.js` / `page.css` (plus corrected block specs at
+   `10`), and the harness re-renders `index.html`'s body from the current
+   block specs (`_rebuild_html_if_needed`). A catcher never accepts a
+   model-authored `index.html`.
 
 ## 2. Run identity, fingerprint, and freshness
 
 | Concept | Contract |
 |---|---|
 | Run id | `make_run_id(chapter, class)` = slugified chapter plus `c<N>` when a class was supplied. Deterministic: the same topic resumes the same directory. |
-| Overrides | `--run-id` keeps parallel attempts; `ZIVON_RUN_ID` is honored when it agrees with the id being made; otherwise the deterministic id wins. |
+| Overrides | `--run-id` keeps parallel attempts; `ZIVON_RUN_ID` (set by the cluster Job for pod-level joins) names the run when `--run-id` is absent; otherwise the deterministic id is made. |
 | Fingerprint | `status.json.fingerprint` = SHA-256 (first 16 hex) of `{pipeline_version, chapter, class, model, limits, retrieval, learner}` plus a `translation` payload only when `translation.enabled` is true (`target_locales`, `optional_locales`, `prompt_version`, `glossary_sha256`). |
 | Fingerprint guard | A differing fingerprint raises `ConfigError` and tells the operator to pass `--fresh` or choose another `--run-id`. Stage artifacts from two pipeline shapes are never mixed silently. |
 | Deliberately absent | Repair round caps (`content_rounds`, `code_rounds`, `translation_rounds`, `stall_rounds`, `perf.fix_rounds`) are runtime policy, not artifact semantics. Tuning them must not invalidate good generated work. |

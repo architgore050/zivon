@@ -25,7 +25,8 @@ In scope:
 Out of scope (read the sibling bundles instead):
 
 - prompt wording and agent-graph design: `skills/prompting-and-agent-design/`;
-- the runtime voice loop (`voice/`): the voice and audio skills;
+- the runtime voice loop (`voice/`): the voice-agent spec and the audio
+  discipline in `skills/zivon-audio-engineering-skills/`;
 - frontend shell design and the design doctrine: `docs/frontend/` and
   `skills/zivon-frontend-skills/`;
 - backend, database, deployment, and infra changes: `docs/backend/`,

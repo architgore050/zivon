@@ -11,7 +11,9 @@ Run from the repo root:
 
 from __future__ import annotations
 
+import ast
 import importlib.util
+import re
 import subprocess
 import sys
 import unittest
@@ -21,25 +23,24 @@ REPO = Path(__file__).resolve().parents[2]
 BUNDLE = REPO / "skills" / "zivon-pipeline-engineering-skills"
 VALIDATOR = REPO / "scripts" / "check_skills.py"
 
-STAGE_IDS = (
-    "00-ingest",
-    "01-locate",
-    "02-generate",
-    "03-check",
-    "04-repair",
-    "05-interactive",
-    "06-render",
-    "07-perf",
-    "08-fixloop",
-    "09-review",
-    "10-reviewfix",
-    "10a-translate",
-    "10b-transcheck",
-    "10c-transrepair",
-    "10d-transrender",
-    "11-link",
-    "12-narration",
-)
+
+def _stage_order_from_code() -> tuple[str, ...]:
+    """Read `STAGE_ORDER` from the pipeline source.
+
+    The bundle's job is to teach the real stage graph, so the test derives the
+    ids from `factory/stages.py` instead of restating them: adding, removing,
+    or renaming a stage fails here until the bundle is updated.
+    """
+    tree = ast.parse((REPO / "factory" / "stages.py").read_text(encoding="utf-8"))
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "STAGE_ORDER":
+                    return tuple(ast.literal_eval(node.value))
+    raise AssertionError("STAGE_ORDER not found in factory/stages.py")
+
+
+STAGE_IDS = _stage_order_from_code()
 
 REQUIRED_FILES = (
     "SKILL.md",
@@ -115,6 +116,20 @@ class StageContractTests(unittest.TestCase):
         text = _read("references/stage-contracts.md")
         missing = [stage for stage in STAGE_IDS if f"`{stage}`" not in text]
         self.assertEqual(missing, [])
+
+    def test_no_stage_id_is_documented_that_the_code_lacks(self) -> None:
+        text = _read("references/stage-contracts.md")
+        # `09-review-facts` / `09-review-design` are the two CALLS of the
+        # 09-review stage, not extra stage ids; strip those suffixes only.
+        documented = {
+            re.sub(r"-(?:facts|design)$", "", token)
+            for token in re.findall(r"`(\d{2}[a-d]?-[a-z-]+)`", text)
+        }
+        self.assertEqual(sorted(documented - set(STAGE_IDS)), [])
+
+    def test_readme_stage_count_matches_the_code(self) -> None:
+        readme = _read("README.md")
+        self.assertIn(f"All {len(STAGE_IDS)} stage ids", readme)
 
     def test_every_stage_has_an_owner_module(self) -> None:
         text = _read("references/stage-contracts.md")

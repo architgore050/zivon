@@ -251,6 +251,9 @@ External sources (linked, not copied; accessed 2026-11-14):
 
 Discovery provenance and access notes:
 `skills/skill-creation/references/source-catalog.md` (SRC-001, SRC-003, and the
-tiering rules). The dated pipeline gap audit behind the "known gaps" is
-reflected in [references/quality-and-evals.md](references/quality-and-evals.md);
-re-verify each gap against code before treating it as open.
+tiering rules). The dated known gaps are recorded in
+[references/quality-and-evals.md](references/quality-and-evals.md) and
+[references/artifacts-and-schemas.md](references/artifacts-and-schemas.md); they
+are observations from this bundle, not rows in the repo's
+`docs/specs/gaps/gap-register.md` (`GAP-###`). Re-verify each against code
+before treating it as open.

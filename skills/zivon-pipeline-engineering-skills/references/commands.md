@@ -140,6 +140,10 @@ late raises `MissingArtifactError` with instructions.
 
 Rules:
 
+- The last row re-authors the topic from `02-generate` onward; it is an
+  operator decision for an intentional rebuild, never the remedy for a gate or
+  catcher finding (that finding routes to its catcher). Get the owner's
+  agreement before running it.
 - A targeted re-run does **not** re-run upstream stages. If the upstream
   artifact is stale, fix it explicitly or use `--fresh`.
 - The fingerprint guard still applies: changing the model/config/translation
