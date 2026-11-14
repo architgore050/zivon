@@ -10,10 +10,11 @@ patterns that get rejected and what to do instead.
 
 `/app/swot` is a **server-rendered app surface**, auth required, noindex. It
 reads private progress data and must never be statically cached or indexed.
-Owner: F8. Features: SWOT-01…SWOT-05, SWOT-09, SWOT-10. Data: `/v1/swot` and
-`/v1/swot/explain`; inputs are the chapter metrics defined in the full-frontend
-plan §13 (weighted accuracy, coverage, attempt rate, trend, hint rate, time
-ratio, speaking score, exam weight, confidence, last activity).
+Owner: F8. Features: SWOT-01…SWOT-10 (student-facing 01–07 and 09–10; 08 is the
+admin calibration surface). Data: `/v1/swot` and `/v1/swot/explain`; inputs are
+the chapter metrics defined in the full-frontend plan §13 (weighted accuracy,
+coverage, attempt rate, trend, hint rate, time ratio, speaking score, exam
+weight, confidence, last activity).
 
 ### A1. Screen spec
 

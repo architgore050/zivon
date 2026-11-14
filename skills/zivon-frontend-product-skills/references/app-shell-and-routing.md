@@ -169,6 +169,8 @@ Rules:
   not required.
 - A CSP change is a security decision. Record why and scope it to the smallest
   location.
+- Serve over HTTPS with HSTS at the edge; `Secure` cookies require it. Do not
+  add a mixed-content exception for a convenience script.
 
 ## 6. i18n: English, Hindi, Hinglish
 

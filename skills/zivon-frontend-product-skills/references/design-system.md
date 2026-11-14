@@ -95,6 +95,9 @@ CSS header is the canonical component catalog. The main families:
 - **Behaviour services**: `wireCheck`, `ZivonSim` (rAF, reduced-motion single
   draw, on-canvas error painter), `LessonKit` (measured rules + pen underline),
   the landing course renderer, language-chip wiring.
+
+`docs/frontend/lesson-kit.js` is the legacy source of the `LessonKit` section;
+nothing new references it. The live kit is `frontend/assets/zivon.js`.
 - **Wave E2 chrome**: voice dock, read-aloud, consent, report, locale bundle,
   telemetry queue, privacy wipe.
 
@@ -154,7 +157,7 @@ quality floor in
 
 The founder's visual verdict finalises a new surface. After the verdict, the
 implementing agent may draft or update the product-surfaces doctrine section
-(the process is in the full-frontend plan, §5.5). Rules:
+(the process is in the full-frontend plan, §5.4, and locked decision 12). Rules:
 
 - Add a new section; do not rewrite §10.12–§10.14 without explicit founder
   authorisation.
