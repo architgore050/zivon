@@ -358,7 +358,7 @@ jobs:
         run: python -m unittest discover -s testing/frontend -t . -v
       - name: Wave-E test suites (each runs once its folder lands)
         # Same path-guard rule as the mypy extension: EX0-EX8 add the test
-        # sets (testing/backend, testing/voice, testing/translation,
+        # sets (testing/docs, testing/backend, testing/voice, testing/translation,
         # testing/narration, testing/observability, testing/logging_manager,
         # testing/evals, testing/skills) under the repo's unittest layout — this loop runs
         # each suite only when its folder exists, so a suite landing mid-wave
@@ -366,7 +366,7 @@ jobs:
         # failure fails the job; the guard only skips ABSENT folders.
         run: |
           status=0
-          for d in backend voice translation narration observability logging_manager evals skills; do
+          for d in docs backend voice translation narration observability logging_manager evals skills; do
             if [ -d "testing/$d" ]; then
               echo "=== testing/$d ==="
               python -m unittest discover -s "testing/$d" -t . -v || status=1
