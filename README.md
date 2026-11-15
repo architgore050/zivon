@@ -2,9 +2,21 @@
 
 **A voice-first AI tutor Indian students can actually talk to.**
 
-Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sovereign stack:
+**Status: post-challenge startup track (since 2026-11-15).** Zivon began as a
+**Great Indian AI Internship Challenge** entry; it is now a startup build with no external
+deadline. The current milestone is a **working prototype for product-market-fit testing** —
+Class 9/10 Physics content complete, live lessons in English/Hindi/Hinglish, and the full
+consumer frontend. Milestone, wave order, and the definition of done live in
+[`TIMELINE.md`](TIMELINE.md) and [`AGENTS.md`](AGENTS.md).
 
-> Student speaks (Hindi / English / Hinglish) → **Prisma v3.0** listens → **Gemma 4 26B A4B** (via Gemini API) reasons → **Timbre v3.0** speaks back.
+The voice loop (current stack by choice, revisable by founder decision — see "Current stack" in
+[`AGENTS.md`](AGENTS.md)):
+
+> Student speaks (Hindi / English / Hinglish) → **Prisma v3.0** listens → **Gemma 4 26B A4B**
+> (via the Gemini API) reasons → **Timbre v3.0** speaks back.
+
+Build-time content generation runs on **DeepSeek V4.1 Flash** through the OpenCode API;
+translation uses **Gnani Evon**.
 
 **Focus:** academic Physics, Class 9–12 — taught through interactive animations, simulations, and diagrams, with a patient spoken Hinglish tutor anchored to every page.
 
@@ -12,17 +24,22 @@ Built for the **Great Indian AI Internship Challenge** (Gnani AI) on Gnani's sov
 
 ## Status
 
-🚧 **In active build.** Deadline: **10 November 2026, 11:59 PM IST**.
+🚧 **In active build — startup track, no external deadline.** Current milestone: the working
+prototype for product-market-fit testing. Wave order and exit gates: [`TIMELINE.md`](TIMELINE.md);
+the definition of done: [`AGENTS.md`](AGENTS.md).
 
-- **Live demo (P0):** <https://advertisers-sunshine-rendered-sheet.trycloudflare.com> — a
-  demo-grade Cloudflare quick tunnel in front of the container stack, run as the
-  user service `zivon-tunnel` (survives this shell session). A quick-tunnel URL
-  changes if that service restarts, so pin the current URL before recording the
-  video; a durable VM + domain is the next step (see `TIMELINE.md`).
-- Day-by-day build plan: [`TIMELINE.md`](TIMELINE.md)
+- **Challenge-demo link (historical):** <https://advertisers-sunshine-rendered-sheet.trycloudflare.com>
+  — a demo-grade Cloudflare quick tunnel used for the challenge submission, run as the user
+  service `zivon-tunnel`. It may be offline now; a durable deployment is tracked in `TIMELINE.md`.
+- **Scope source:** the frozen full-frontend plan (2026-11-13) is workspace-local
+  (`tmp/full-frontend/FEATURE-MAP.md` + `REQUIREMENTS.md`, gitignored and deliberately not
+  committed). Its committed restatement is [`docs/product/`](docs/product/) +
+  [`docs/specs/frontend/`](docs/specs/frontend/) + `skills/zivon-frontend-product-skills/`.
+- **Compliance:** exam-paper use is gated by the `docs/compliance/` memo (C0, 2026-11-15) —
+  nothing is ingested, reproduced, or published before it lands.
 
-**Honest status of the voice loop (2026-11-10).** The full loop has been run live on the
-public URL: Prisma v3.0 transcribes a Hinglish doubt, the reasoning model answers, and
+**Honest status of the voice loop (challenge demo, 2026-11-10).** The full loop has been run
+live on the public URL: Prisma v3.0 transcribes a Hinglish doubt, the reasoning model answers, and
 Timbre v3.0 returns the tutor's speech — measured **2.98 s** from end-of-speech to first
 audio, inside the 4 s Gate C bar, with the answer audio captured. The in-page voice dock
 (**design-doctrine §10.12**, DCR-002 closed) does the full press-and-hold loop: permission on
@@ -41,7 +58,7 @@ via the content-first shell injection kit (`ZivonShell.mount()`).
 **Recorded model deviation.** Gate A selected **Gemma 4 26B A4B** as the runtime brain.
 Measured on the Gemini API on 2026-11-10, it thinks for ~20 s before its first content
 token and rejects `thinking_budget`/`thinking_level`, so it cannot meet a real-time voice
-turn today. The P0 demo therefore runs **`gemini-2.5-flash` with thinking disabled** via
+turn today. The challenge demo therefore ran **`gemini-2.5-flash` with thinking disabled** via
 deployment config; Gemma 4 remains the code default and a one-env-var switch. This is a
 documented deviation, not a silent swap (`docs/specs/voice-agent/open-questions.md` OQ-04).
 
@@ -77,8 +94,8 @@ backup, not a continuously replicated store.
         └───────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Product runtime** runs on the Gnani stack (Prisma + Timbre + Gemma 4 reasoning (Evon = post-challenge aspiration)).
-- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model — all model calls go through the standalone **`llm_manager/`** module (streaming transport, honest inactivity timeouts, a per-call wall-clock deadline), which also ships as an isolated **llm-manager node** (own image + K8s Deployment/Service) that every consumer talks to. Server wiring via environment variables, pipeline behaviour via `config.json` (see `.env.example`). Build-time models are a deliberate choice (see TIMELINE.md, guiding rule 4); the product runtime stays Gnani.
+- **Voice loop (current stack by choice):** Gnani **Prisma** + **Timbre** for speech I/O, **Gemma 4 26B A4B** (Gemini API) for reasoning. **Translation (build-time):** Gnani **Evon**. **Content generation (build-time):** **DeepSeek V4.1 Flash** via the OpenCode API. `AGENTS.md` carries the routing table and the rule that a change is a recorded founder decision.
+- **Content factory** is build-time tooling (`pipeline.py` + `factory/`) that runs on any local OpenAI-format model — all model calls go through the standalone **`llm_manager/`** module (streaming transport, honest inactivity timeouts, a per-call wall-clock deadline), which also ships as an isolated **llm-manager node** (own image + K8s Deployment/Service) that every consumer talks to. Server wiring via environment variables, pipeline behaviour via `config.json` (see `.env.example`). The build-time path and the tutor path are deliberately separate: the factory talks to the OpenCode/DeepSeek endpoint through `llm_manager`, the tutor talks to the Gemini API, and neither shares the other's credentials.
 
 ## Run the content factory
 
@@ -115,8 +132,10 @@ Every run keeps full evidence (requests, responses, retries, reports) under `run
 | Layer | Choice |
 |---|---|
 | STT | Gnani **Prisma v3.0** (streaming, code-mixed, noisy-audio strong) |
-| LLM | Gnani **Gemma 4 26B A4B** via Google Gemini API (Evon v3.3 post-challenge aspiration) |
+| Tutor LLM | **Gemma 4 26B A4B** via the Gemini API (current choice; a recorded deployment may run another model) |
 | TTS | Gnani **Timbre v3.0** (streaming, expressive tags) |
+| Content generation (build-time) | **DeepSeek V4.1 Flash** via the OpenCode API, through `llm_manager` |
+| Translation (build-time) | Gnani **Evon** |
 | Backend | Python — FastAPI + WebSockets |
 | Frontend | Web UI with mic; static interactive pages (canvas/SVG) |
 | Infra | Docker containers, Kubernetes, CI/CD, staging → prod |
@@ -185,7 +204,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | Doc | Contents |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Instructions for coding agents working on this repo |
-| [`TIMELINE.md`](TIMELINE.md) | Day-by-day build timeline, gates, risks, scope ladder |
+| [`TIMELINE.md`](TIMELINE.md) | Startup-track status, milestone + wave order; the preserved challenge timeline, gates, risks, and scope ladder; the live infra TODO and dated execution log |
 | [`docs/DECISIONS-and-RESEARCH/01-gnani-challenge-brief.md`](docs/DECISIONS-and-RESEARCH/01-gnani-challenge-brief.md) | Challenge brief |
 | [`docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md`](docs/DECISIONS-and-RESEARCH/02-all-about-gnani.md) | Gnani context, strategy, and "what they need vs what we deliver" |
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
@@ -193,6 +212,8 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status — incl. the secrets registry (`secrets.md`) and the Wave-E reserved manifest numbering map |
 | [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status) |
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
+| Full-frontend plan (frozen 2026-11-13) | Workspace-local `tmp/full-frontend/FEATURE-MAP.md` + `REQUIREMENTS.md` — gitignored and deliberately not committed: locked product decisions, R1/R1.5/R2 scope, routes, screens, states, workstreams. Committed restatement: `docs/product/`, `docs/specs/frontend/`, `skills/zivon-frontend-product-skills/` |
+| `docs/compliance/` (C0, 2026-11-15) | Compliance research memo for exam-paper use — copyright/CBSE terms, educational-use boundaries, the exact user-facing notice copy, and counsel-review flags. Lands with the C0 agent; nothing past-paper is ingested, reproduced, or published before it |
 | [`docs/backend/`](docs/backend/) | Stage-2 systems specs (2026-11-07): backend spec (APIs, voice WebSocket contract, guard), database spec (Postgres schema), storage-tiering spec (cache / hot DB / cold provider), capacity & cost model, 16 ADRs |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
 | [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `translation/` (10a..10d localization + TM + reviewer rules), `frontend/` (site shell, behaviour, voice-client state machine and low-end-Android perf budgets in Chromium), `observability/` (the logging_manager contract harness + dashboard tests), `evals/` (unit + calibration tests for the evaluation framework), `backend/` (REST/admin contracts, credit guard concurrency, consent/wipe cascade, TTL, HMAC abuse, Alembic migrations), and `voice/` (voice-loop units on mocked Prisma/brain/Timbre seams — no network, no keys) |
@@ -223,11 +244,19 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 - Public build-in-public posts on X / LinkedIn throughout the build
 - For those posts, use the skills in [`skills/content-creation/`](skills/content-creation/); **Kinocut MCP** (video) and **GIMP MCP** (images) are the decided editing tools. The folder README holds the layout and rules
 
-## Built on Gnani's Models
+## Voice Stack and History
 
-Zivon is built entirely on Gnani AI's sovereign stack — **Prisma v3.0, Gemma 4 26B A4B, and Timbre v3.0** — Indian models for Indian learners, for the **Great Indian AI Internship Challenge**.
+Zivon's voice loop runs on Gnani's stack — **Prisma v3.0** (STT) and **Timbre v3.0** (TTS) —
+plus **Gemma 4 26B A4B** for reasoning. Gnani is the current vendor **by choice**: its models
+are strong on Indian languages and code-mixed speech, not because a challenge rule requires
+them. Translation uses Gnani Evon; build-time content generation uses DeepSeek V4.1 Flash.
+See "Current stack" in [`AGENTS.md`](AGENTS.md) for the routing table and the change rule.
 
-`#GreatIndianAIInternshipChallenge` `#GnaniAI`
+**History.** Zivon was built for the **Great Indian AI Internship Challenge** by Gnani AI
+(`#GreatIndianAIInternshipChallenge` `#GnaniAI`). That track closed on 2026-11-15; the plan,
+decision gates, and build-in-public posts are preserved as written in
+[`TIMELINE.md`](TIMELINE.md), [`docs/logs/`](docs/logs/), and
+[`docs/DECISIONS-and-RESEARCH/`](docs/DECISIONS-and-RESEARCH/).
 
 ## License
 

@@ -1,16 +1,59 @@
-# Build Timeline: Oct 29 → Nov 10, 2026
+# Build Timeline
 
-## Reality Snapshot
+> **Status 2026-11-15 — startup track.** The Great Indian AI Internship Challenge track is
+> closed. Zivon is now a post-challenge startup build with **no external deadline**; the
+> **10 Nov 2026, 11:59 PM IST** deadline and the Gate A–D ladder below are **historical**.
+> The challenge plan and the dated execution log are preserved as the record, not the current
+> plan (the only edits are the status block and the historical markers on closed sections).
+
+## Status 2026-11-15 — startup track
+
+Founder decision Q-0 (2026-11-15): the challenge deadline and its P0/demo ladder are history;
+no external deadline governs the build. The product scope is the frozen full-frontend plan
+(2026-11-13: `FEATURE-MAP.md` + `REQUIREMENTS.md`, workspace-local under `tmp/full-frontend/`
+and not committed; restated in `docs/product/`, `docs/specs/frontend/`, and
+`skills/zivon-frontend-product-skills/`).
+
+**Current milestone — a working prototype for product-market-fit testing:**
+
+- Class 9/10 Physics content complete, with live lessons in EN/HI/Hinglish (full translation
+  path; a missing translation is a publish failure, not a silent fallback — Q-2).
+- The full consumer frontend: public site + catalogue, lesson shell, guest-first identity,
+  dashboard/progress, practice, speaking, tests/series, SWOT, settings, admin.
+- Pipeline quality good enough to keep producing content unattended: metadata/hooks, quality
+  gates, assessment/series stages, publish integrity (P1–P5).
+- Exam-paper content gated by the `docs/compliance/` memo (Q-8); it stays behind a feature
+  flag until that memo lands.
+
+**Wave order** (from the workstream handshake; each wave ends at its exit gate):
+
+| Wave | Parallel work | Exit gate |
+|---|---|---|
+| **W0** | founder decisions + handshake | decisions answered (done 2026-11-15) |
+| **W1** | P1 metadata/hooks · P4 quality gates · F0 foundation · C0 compliance · W0 docs reframe | P1 hooks on a rendered page; P4 a11y/byte-budget/eval-schema plan + telemetry rows; F0 boots with DB + auth skeleton |
+| **W2** | P5 catalogue/publish · F1 public+catalogue · F4 lesson shell | one homogeneous catalogue + one lesson shell consuming P1 hooks |
+| **W3** | P2 assessment content · F2 identity/settings · F3 dashboard/progress | 1 chapter of practice + speaking rubrics; progress events land |
+| **W4** | P3 exam/series · F5 practice · F6 speaking · F7 tests/series | one Class 10 Physics-section paper + one Class 12 full paper; screens work on real data |
+| **W5** | F8 SWOT · F10 admin · F11 integration | end-to-end flow on one chapter; E2E evals; rehearsal |
+
+**Historical boundary:** `## Reality Snapshot` through `## Definition of Submission-Ready`
+belong to the closed challenge plan — with one exception: **`## Infra & Deployment TODO` stays
+live working state** (infra items are not challenge-specific, and new pending work still merges
+into this file). The dated execution-log and "Done" sections are the historical build record.
+
+---
+
+## Reality Snapshot (challenge track — historical)
 
 | Item | Value |
 |---|---|
 | Start | Thu 29 Oct 2026 (Day 0) |
-| Hard deadline | **Tue 10 Nov 2026, 11:59 PM IST** — no extensions |
+| Hard deadline (historical — closed 2026-11-15) | **Tue 10 Nov 2026, 11:59 PM IST** — no extensions |
 | Build time | ~12.5 days |
 | Internal submission target | Everything public by **10 Nov, 12:00 PM IST** (12h safety buffer) |
 | Working assumption | Team of 2 (founder + teammate) + agent workforce, full-time crunch, weekends included |
 
-This is an ambitious plan compressed into 12 days. The timeline is built so that **the demo is never at risk**: every phase has a gate, every "Netflix-level" ambition is time-boxed to a minimum credible version, and there is an explicit scope ladder (P0 / P1 / P2) so cuts happen deliberately, not by panic on Day 11.
+This is an ambitious plan compressed into 12 days. The timeline is built so that **the demo is never at risk**: every phase has a gate, every "Netflix-level" ambition is time-boxed to a minimum credible version, and there is an explicit scope ladder (P0 / P1 / P2) so cuts happen deliberately, not by panic on Day 11. *(Historical: the challenge track closed 2026-11-15; see the status block above.)*
 
 ---
 
@@ -388,7 +431,10 @@ Constraints carried forward: cron granularity is minutes (sub-minute loops = run
 
 ---
 
-## Definition of Submission-Ready (checklist, Day 11 dry run)
+## Definition of Submission-Ready (historical — challenge checklist, Day 11 dry run)
+
+*(The current milestone's definition of done is in `AGENTS.md`, "Definition of done — prototype
+milestone (startup track)".)*
 
 - [ ] Live link works on: laptop, mid-range Android, low-end Android
 - [ ] Voice loop answers a Hinglish doubt in < 4s on the deployed site
