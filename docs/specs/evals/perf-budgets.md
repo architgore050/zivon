@@ -34,8 +34,10 @@ The **load-path** long task (a task that starts before the interaction probe)
 is measured and reported as `load_longest_task_ms`, but it is **monitored, not
 blocking**: Q-4's hard long-task gate names the interaction path, and a shared
 CI runner adds enough scheduler noise to make a load-path assertion flaky
-(2026-11-16: `class-11-physics/laws-of-motion/hi` measured 245–463 ms on CI
-while its interaction path stayed inside budget).
+(2026-11-16: `class-11-physics/laws-of-motion/hi` measured 245–324 ms locally
+and 463 ms on CI, while its interaction probe stayed at 130–197 ms locally; the
+CI run's 432 ms "interaction" task was a late-delivered load task, which the
+`start`-timestamp classification now excludes).
 
 ## 2. Soft budget — reported, never blocks
 
