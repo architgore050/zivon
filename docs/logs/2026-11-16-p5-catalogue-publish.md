@@ -34,8 +34,26 @@ Branch: `feature/w2-p5-catalogue-publish` (worktree `tmp/worktrees/w2-p5`), base
   six topics, one version, zero `Grade`, `lesson_title` on every manifest,
   class-9 chapter 4 (`Describing Motion Around Us`) and chapter 6
   (`How Forces Affect Motion`, number 6) corrected, the stale `/motion`
-  duplicate pruned, and narration + per-locale manifests carried forward
-  (all six topics report `available: true`).
+  duplicate pruned, and narration + per-locale manifests carried forward.
+  Every topic reports `available: true`; two of the six still have **one
+  un-narrated speakable block** each (`units-and-measurement` `b-26`,
+  `laws-of-motion` `b-28`), named in `catalogue.json` `narration.missing_blocks`
+  and in the publish check's warnings - not claimed as covered.
+- The republish also removed two runtime hand-patches that had been edited
+  directly into generated `page.js` files (they were not reproducible and are
+  not published by any stage):
+  - `units-and-measurement`: a `MutationObserver` that re-styled every SVG on
+    every DOM mutation (a weak-Android perf hazard) and rewrote one check
+    question in place. Removing it restores the artifact's own NCERT wording
+    ("meaningful **without** specifying a standard for comparison"), which is
+    the correct question for that answer/explanation pair.
+  - `units-and-measurement` sim readout machinery: redundant, `zivon.js`
+    already drives `.zn-sim-read`.
+  The underlying a11y gap the patch masked is real and pre-existing: diagram
+  `<svg>` elements on 4 of the 6 topics carry no `role="img"`/`aria-label`
+  (only `laws-of-motion` and `how-forces-affect-motion` do). Root-cause fix is
+  the renderer's (`factory/render.py`, P1) plus an `EV-VIS-002` rule (P4);
+  recorded in `TIMELINE.md` as debt, not fixed here.
 - Tests: `testing/content_factory/unit/test_catalogue_publish.py` (25 tests:
   version guard, v2 shape/order, locale hrefs incl. prefixed routes, hooks,
   sitemap/robots, narration honesty, link preservation/pruning, publish-script
