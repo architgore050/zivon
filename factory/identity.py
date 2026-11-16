@@ -59,6 +59,15 @@ _NON_TITLE_WORDS = frozenset(
 _FURNITURE_RE = re.compile(
     r"(?i)^(?:chapter-?\d+\.indd|fig\.?\s*\d|table\s*\d|page\s*\d)"
 )
+# Running headers ("Curiosity - Textbook of Science for Grade 8"), chapter
+# markers ("Chapter Nine"), and numbered body sections ("6.1 I NTRODUCTION"):
+# none of these names a chapter, whatever else the line contains.
+_NON_TITLE_RE = re.compile(
+    r"(?i)^chapter\s+\w"  # starts with a chapter marker
+    r"|\b(?:grade|class)\s+\d+"  # running header / book title
+    r"|\btextbook\s+of\b"  # book title
+    r"|^\d+\.\d+\b"  # section number, e.g. 6.1 / 10.2
+)
 
 _MAX_TITLE_WORDS = 14
 
@@ -77,7 +86,7 @@ def is_usable_chapter_title(title: Any) -> bool:
     words = text.split()
     if len(words) > _MAX_TITLE_WORDS:
         return False
-    if _FURNITURE_RE.match(text):
+    if _FURNITURE_RE.match(text) or _NON_TITLE_RE.search(text):
         return False
     if text.casefold() in _NON_TITLE_WORDS:
         return False

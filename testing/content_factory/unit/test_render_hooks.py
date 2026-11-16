@@ -12,9 +12,12 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from typing import ClassVar
 
 from factory import identity, schemas, sections
-from factory.render import CATALOGUE_NAME, run as render_run, write_courses_js
+from factory.hooks import hook_issues
+from factory.render import CATALOGUE_NAME, write_courses_js
+from factory.render import run as render_run
 from testing.content_factory.unit.test_render import make_cfg, minimal_inputs
 
 BLOCK_TAG_RE = re.compile(
@@ -32,7 +35,7 @@ TYPE_BY_CLASS = {
 
 
 def _render(tmp: Path):
-    cfg, frontend = make_cfg(tmp)
+    cfg, _frontend = make_cfg(tmp)
     from factory.artifacts import RunContext
 
     run_ctx = RunContext(cfg.repo_path(cfg.paths["runs"]), "t-hooks")
@@ -76,7 +79,7 @@ class TestRendererHooks(unittest.TestCase):
             r'<section class="zn-section" id="(sec-\d\d)" '
             r'data-section-id="sec-\d\d" data-concept-id="([^"]+)">(.*?)</section>',
             self.html,
-            re.S,
+            re.DOTALL,
         )
         self.assertTrue(wrappers, "expected zn-section wrappers")
         # Nesting makes the regex non-greedy-ambiguous, so count ownership by
@@ -271,7 +274,7 @@ class TestCatalogue(unittest.TestCase):
 
 
 class TestSectionOwnership(unittest.TestCase):
-    LESSON = {
+    LESSON: ClassVar[dict] = {
         "sections": [
             {
                 "id": "sec-01",
@@ -377,3 +380,56 @@ class TestIdentity(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestHookContractChecker(unittest.TestCase):
+    """`factory.hooks.hook_issues` is the assertion P4 registers for the eval
+    cards (EV-SYN-001 render contract / EV-VIS-002 metadata conformance). Its
+    negative cases must fire on exactly the defects they name."""
+
+    def setUp(self):
+        tmp = Path(tempfile.mkdtemp())
+        _out, topic, self.html = _render(tmp)
+        self.manifest = json.loads((topic / "manifest.json").read_text())
+        self.assertEqual(hook_issues(self.html, self.manifest), [])
+
+    def test_a_block_without_a_type_hook_is_reported(self):
+        broken = self.html.replace(' data-block-type="check"', "", 1)
+        issues = hook_issues(broken)
+        self.assertTrue(any("data-block-type" in issue for issue in issues), issues)
+
+    def test_a_block_outside_a_section_wrapper_is_reported(self):
+        # Move one block out of its wrapper: the id must not be owned twice.
+        broken = self.html.replace(
+            '<section class="zn-section" id="sec-01" '
+            'data-section-id="sec-01" data-concept-id="class-9-motion-sec-01">',
+            '<div class="zn-section" data-section-id="sec-01" '
+            'data-concept-id="class-9-motion-sec-01">',
+            1,
+        ).replace("</section>", "</div>", 1)
+        issues = hook_issues(broken)
+        self.assertTrue(any("zn-section" in issue for issue in issues), issues)
+
+    def test_a_manifest_that_disagrees_with_the_page_is_reported(self):
+        manifest = json.loads(json.dumps(self.manifest))
+        first_block = next(iter(manifest["blocks"]))
+        manifest["blocks"][first_block]["section_id"] = "sec-99"
+        issues = hook_issues(self.html, manifest)
+        self.assertTrue(
+            any(
+                first_block in issue and "manifest section" in issue for issue in issues
+            ),
+            issues,
+        )
+
+    def test_a_manifest_missing_a_rendered_block_is_reported(self):
+        manifest = json.loads(json.dumps(self.manifest))
+        dropped = next(iter(manifest["blocks"]))
+        del manifest["blocks"][dropped]
+        issues = hook_issues(self.html, manifest)
+        self.assertTrue(
+            any(
+                dropped in issue and "absent from manifest" in issue for issue in issues
+            ),
+            issues,
+        )

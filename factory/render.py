@@ -31,6 +31,7 @@ from . import sections as section_map
 from .artifacts import RunContext, slugify
 from .config import Config
 from .errors import LintError
+from .hooks import hook_issues
 from .lint import lint_generated, lint_html, lint_js
 from .translate import (
     LOCALE_METADATA,
@@ -52,7 +53,10 @@ TRANSRENDER_STAGE_ID = "10d-transrender"
 EL_KICKER = "EL-LES-01-001"
 EL_TITLE = "EL-LES-01-002"
 EL_OBJECTIVES_LABEL = "EL-LES-01-004"
-EL_OBJECTIVES_LIST = "EL-LES-01-005"
+# EL-LES-01-005 (the objectives list) is deliberately NOT emitted yet: 08-fixloop
+# re-extracts the objectives by matching `<ul class="zn-objectives">` exactly,
+# so an extra attribute there silently degrades a repaired page. The id lands
+# once that rebuild path is hook-aware (tracked in the P1 PR as known debt).
 EL_TEXT_PARAGRAPH = "EL-LES-01-010"
 EL_DIAGRAM_FIGURE = "EL-LES-01-014"
 EL_DIAGRAM_CAPTION = "EL-LES-01-015"
@@ -249,6 +253,16 @@ def run(
         raise LintError(
             STAGE_ID,
             "rendered page violates hard lints:\n" + "\n".join(hits),
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        )
+    # The hook contract is a producer guarantee, not a reviewer's hope: a page
+    # whose blocks cannot be addressed by the product layers never ships.
+    hook_problems = hook_issues(html_text)
+    if hook_problems:
+        raise LintError(
+            STAGE_ID,
+            "rendered page violates the renderer hook contract:\n"
+            + "\n".join(hook_problems),
             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
         )
 
@@ -658,14 +672,16 @@ def _render_block(
         if with_i18n_attrs:
             tagged_svg = _tag_svg_with_i18n(str(b["id"]), str(spec.get("svg", "")))
             return (
-                f'  <figure class="zn-diagram" id="{bid}"{hooks}{fallback_attr}>\n'
+                f'  <figure class="zn-diagram" id="{bid}" '
+                f'data-element-id="{EL_DIAGRAM_FIGURE}"{hooks}{fallback_attr}>\n'
                 f"{fallback_banner}"
                 f'    <div class="zn-diagram-svg">{tagged_svg}</div>\n'
                 f'    <figcaption data-element-id="{EL_DIAGRAM_CAPTION}" '
                 f'data-i18n="{bid}.caption">{_esc(spec.get("caption", ""))}</figcaption>\n  </figure>'
             )
         return (
-            f'  <figure class="zn-diagram" id="{bid}"{hooks}>\n'
+            f'  <figure class="zn-diagram" id="{bid}" '
+            f'data-element-id="{EL_DIAGRAM_FIGURE}"{hooks}>\n'
             f'    <div class="zn-diagram-svg">{spec.get("svg", "")!s}</div>\n'
             f'    <figcaption data-element-id="{EL_DIAGRAM_CAPTION}">'
             f"{_esc(spec.get('caption', ''))}</figcaption>\n  </figure>"
@@ -1009,14 +1025,14 @@ def _page_html(
     <p class="zn-kicker" data-element-id="{EL_KICKER}">{_esc(course_id)}</p>
     <h1 class="zn-title" data-element-id="{EL_TITLE}"{title_attr}>{_esc(title)}</h1>
     <p class="zn-objectives-label" data-element-id="{EL_OBJECTIVES_LABEL}"{obj_lbl_attr}>{_esc(ui["lesson.objectives.heading"])}</p>
-    <ul class="zn-objectives" data-element-id="{EL_OBJECTIVES_LIST}">
+    <ul class="zn-objectives">
 {objectives}
     </ul>
   </header>
 {body}
-  <section class="zn-glossary" data-element-id="{EL_GLOSSARY}">
+  <section class="zn-glossary">
     <h2{gloss_lbl_attr}>{_esc(ui["lesson.glossary.heading"])}</h2>
-    <dl>
+    <dl data-element-id="{EL_GLOSSARY}">
 {glossary}
     </dl>
   </section>
@@ -1517,6 +1533,14 @@ def render_localized(
                 TRANSRENDER_STAGE_ID,
                 f"localized page ({locale}) violates hard lints:\n"
                 + "\n".join(lint_hits),
+                artifacts_dir=str(run_ctx.stage_dir(TRANSRENDER_STAGE_ID)),
+            )
+        loc_hook_problems = hook_issues(loc_html)
+        if loc_hook_problems:
+            raise LintError(
+                TRANSRENDER_STAGE_ID,
+                f"localized page ({locale}) violates the hook contract:\n"
+                + "\n".join(loc_hook_problems),
                 artifacts_dir=str(run_ctx.stage_dir(TRANSRENDER_STAGE_ID)),
             )
 
