@@ -110,6 +110,19 @@ class TestAlembicMigrations(unittest.TestCase):
         self.assertEqual(upgrade_db(eng, "head"), "0003_full_frontend")
         self.assertIn("users", set(eng.list_tables()))
 
+    def test_cli_only_revision_alias_downgrades_from_the_alias(self) -> None:
+        """The alias applies to downgrade too: 0022 behaves as 0002, not ValueError."""
+        eng = DatabaseEngine.from_url("sqlite:///:memory:", auto_migrate=False)
+        upgrade_db(eng, "0002")
+        eng.execute("DELETE FROM alembic_version")
+        eng.execute(
+            "INSERT INTO alembic_version (version_num) "
+            "VALUES ('0022_translation_memory_c3')"
+        )
+        self.assertEqual(downgrade_db(eng, "0002"), "0002")
+        self.assertEqual(downgrade_db(eng, "base"), None)
+        self.assertEqual(set(eng.list_tables()), {"alembic_version"})
+
     def test_schema_enforced_privacy_and_singleton_constraints(self) -> None:
         eng = DatabaseEngine.from_url("sqlite:///:memory:", auto_migrate=True)
         dev_id = "11111111-1111-4111-8111-111111111111"

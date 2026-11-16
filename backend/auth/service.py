@@ -11,8 +11,9 @@ Security properties this module owns (the routes only translate HTTP):
 - Email verification and password-reset tokens are single-use, hashed, and
   time-bounded; reset never reveals whether an address exists.
 - Google linking is by Google-asserted verified email onto the one account with
-  that address; accounts created by Google have no password identity until the
-  student sets one.
+  that address; an unverified local account's unproven password identity and
+  sessions are discarded (pre-hijack defence), and accounts created by Google
+  have no password identity until the student sets one.
 - Account deletion revokes sessions, deletes every user-scoped row, unlinks
   devices, and leaves only an anonymised tombstone row (no email/name/class).
 """
@@ -130,6 +131,21 @@ def normalize_email(raw: str) -> str:
             "E-VALIDATION", status_code=422, extra={"reason": "invalid_email"}
         )
     return email
+
+
+def safe_next_path(value: object, default: str = "/app") -> str:
+    """Return a same-origin post-auth path, or `default`.
+
+    A leading single `/` is required and `//host` (protocol-relative) plus any
+    backslash/control character is rejected, so `next` can never turn the
+    Google callback into an open redirect.
+    """
+    candidate = str(value or "").strip()
+    if not candidate.startswith("/") or candidate.startswith("//"):
+        return default
+    if any(ch in candidate for ch in ("\\", "\r", "\n", "\t", "\x00")):
+        return default
+    return candidate
 
 
 class AuthService:
@@ -706,7 +722,7 @@ class AuthService:
                 raise APIError("E-AUTH-REQUIRED", status_code=401)
             if current.user.get("email_verified_at") is None:
                 raise APIError("E-EMAIL-UNVERIFIED", status_code=403)
-        safe_next = next_path if next_path.startswith("/") else "/app"
+        safe_next = safe_next_path(next_path)
         try:
             return self.google.start(intent=intent, next_path=safe_next)
         except BackendConfigError as exc:
@@ -745,9 +761,7 @@ class AuthService:
             grant = self._google_link_to(current, identity, ip_hash, user_agent_hash)
         else:
             grant = self._google_login_or_create(identity, ip_hash, user_agent_hash)
-        next_path = str(payload.get("next") or "/app")
-        if not next_path.startswith("/"):
-            next_path = "/app"
+        next_path = safe_next_path(payload.get("next"))
         return GoogleCallbackResult(grant=grant, next_path=next_path)
 
     def _google_identity_user(self, subject: str) -> dict[str, Any] | None:
@@ -782,7 +796,28 @@ class AuthService:
         now = self._now_iso()
         if existing is not None:
             user_id = str(existing["user_id"])
+            verified = existing.get("email_verified_at") is not None
             with self.db.transaction() as tx:
+                if not verified:
+                    # Google just proved ownership of an address this account
+                    # never proved. Whoever created the row chose that password
+                    # and holds those sessions, so neither may survive: an
+                    # attacker who pre-registers a victim's address would
+                    # otherwise keep reading the account after the victim signs
+                    # in with Google (account pre-hijacking). The student keeps
+                    # the row and is prompted to set a password
+                    # (`password_set: false`).
+                    tx.execute(
+                        "DELETE FROM auth_identity WHERE user_id = ? AND provider = 'password'",
+                        (user_id,),
+                    )
+                    tx.execute(
+                        """
+                        UPDATE auth_session SET revoked_at = ?
+                        WHERE user_id = ? AND revoked_at IS NULL
+                        """,
+                        (now, user_id),
+                    )
                 try:
                     tx.execute(
                         """
@@ -794,10 +829,13 @@ class AuthService:
                         (uuid7_str(), user_id, identity.subject, now, now),
                     )
                 except Exception as exc:
-                    if not _is_unique_violation(exc):
-                        raise
-                # Google asserted ownership of this address: attach the identity
-                # and record the verification the local account was missing.
+                    if _is_unique_violation(exc):
+                        # A concurrent callback already bound this subject;
+                        # never continue as if the link succeeded.
+                        raise APIError("E-CONFLICT", status_code=409) from exc
+                    raise
+                # Google asserted ownership of this address: record the
+                # verification the local account was missing.
                 tx.execute(
                     """
                     UPDATE users
@@ -883,8 +921,11 @@ class AuthService:
                     (uuid7_str(), user_id, identity.subject, now, now),
                 )
             except Exception as exc:
-                if not _is_unique_violation(exc):
-                    raise
+                if _is_unique_violation(exc):
+                    # The subject is already bound elsewhere (concurrent
+                    # callback): fail closed instead of pretending to link.
+                    raise APIError("E-CONFLICT", status_code=409) from exc
+                raise
             tx.execute(
                 """
                 UPDATE users
@@ -1122,6 +1163,10 @@ class AuthService:
             "SELECT event_id, kind, chapter_id, concept_id, question_id, payload, created_at FROM progress_event WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
             (user_id, EXPORT_EVENT_LIMIT),
         )
+        event_total_row = self.db.fetchone(
+            "SELECT COUNT(*) AS cnt FROM progress_event WHERE user_id = ?", (user_id,)
+        )
+        event_total = int(event_total_row["cnt"]) if event_total_row else 0
         bookmarks = self.db.fetchall(
             "SELECT bookmark_id, target_type, target_id, created_at FROM bookmark WHERE user_id = ? ORDER BY created_at DESC",
             (user_id,),
@@ -1173,6 +1218,9 @@ class AuthService:
                 }
                 for row in events
             ],
+            "progress_events_total": event_total,
+            # An export must say so when it is bounded, never truncate silently.
+            "progress_events_truncated": len(events) < event_total,
             "bookmarks": [
                 {
                     "bookmark_id": str(row["bookmark_id"]),

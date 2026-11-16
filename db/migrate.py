@@ -153,6 +153,9 @@ def downgrade_db(engine: DatabaseEngine, target: str = "base") -> str | None:
     current = get_current_revision(engine)
     if current is None:
         return None
+    current = REVISION_ALIASES.get(current, current)
+    if current not in valid_revs:
+        raise RuntimeError(f"Database at unknown revision '{current}'")
 
     curr_idx = valid_revs.index(current)
     stop_idx = -1 if target == "base" else valid_revs.index(target)

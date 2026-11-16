@@ -13,6 +13,7 @@ import datetime
 import logging
 import os
 import smtplib
+import ssl
 import threading
 from pathlib import Path
 from typing import Any, Final, Protocol
@@ -119,7 +120,10 @@ class SmtpEmailSender:
         )
         with smtplib.SMTP(self.host, self.port, timeout=self.timeout_s) as smtp:
             if self.starttls:
-                smtp.starttls()
+                # smtplib's default context is `_create_stdlib_context()`
+                # (CERT_NONE, no hostname check), which would hand SMTP
+                # credentials and reset/verification links to any MITM.
+                smtp.starttls(context=ssl.create_default_context())
             if self.username and self.password:
                 smtp.login(self.username, self.password)
             smtp.sendmail(self.sender, [message.to], raw.encode("utf-8"))
@@ -178,6 +182,13 @@ def build_email_sender(config: BackendConfig) -> EmailSender:
     backend = config.email_backend.strip().lower()
     if backend not in SUPPORTED_BACKENDS:
         raise BackendConfigError(f"unsupported ZIVON_EMAIL_BACKEND '{backend}'")
+    if backend == "dev" and config.env.strip().lower() in ("cluster", "prod"):
+        # The in-memory sink would accept and discard verification/reset mail;
+        # fail loud (auth then answers 503) instead of a silent mail black hole.
+        raise BackendConfigError(
+            "ZIVON_EMAIL_BACKEND=dev is not allowed in cluster/prod; "
+            "configure smtp or resend"
+        )
     if backend == "dev":
         return DevEmailSink(config.dev_email_dir)
     if backend == "smtp":

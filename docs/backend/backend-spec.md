@@ -502,16 +502,23 @@ K8s Secret, cluster-side only.
 - **No enumeration:** unknown email and wrong password share `E-AUTH-INVALID` and the same
   Argon2 cost; reset requests always return 202.
 - **Email tokens** (verify/reset) are single-use, hashed at rest, expiring (48 h / 1 h), and
-  reset requires a verified email and revokes every session.
+  reset requires a verified email and revokes every session. SMTP STARTTLS verifies the
+  server certificate, and the dev in-memory sink is refused in `cluster`/`prod` so mail is
+  never silently discarded.
 - **Google** resolves by `sub`, then by Google-verified email; it attaches to the one local
-  account and records verification. A Google-created account has no password until the
-  student sets one (`password_set:false`). Conflicting links are `E-CONFLICT`; accounts are
-  never merged.
-- **Rate limits** per family on the salted daily-rotating IP hash: register 5, login 10,
-  reset 3, verify 10, Google 10 per minute. The limiter is in-memory (single replica P0);
-  a multi-replica deployment must move it to a shared store (ADR-0029 revisit trigger).
+  account and records verification. When that account's email was unverified, the unproven
+  password identity and its sessions are dropped first (pre-hijack defence) and the student
+  is prompted to set a password. A Google-created account has no password until the student
+  sets one (`password_set:false`). Conflicting links are `E-CONFLICT`; accounts are never
+  merged.
+- **Rate limits** per family on the salted daily-rotating hash of the proxy-observed client
+  IP (`X-Real-IP`, else the last `X-Forwarded-For` hop): register 5, login 10, reset 3,
+  verify 10, Google 10 per minute. The client-controlled first XFF element is never used. The
+  limiter is in-memory (single replica P0); a multi-replica deployment must move it to a
+  shared store (ADR-0029 revisit trigger).
 - **Deletion** hard-deletes sessions, identities, tokens, progress, events, and bookmarks,
-  unlinks devices, and keeps an anonymised tombstone plus an `audit_log` row.
+  unlinks devices, and keeps an anonymised tombstone plus an `audit_log` row. The JSON export
+  states when its 2,000-event window truncated instead of dropping rows silently.
 
 ### 8.2 Consent gating (server-side, not UI-side)
 

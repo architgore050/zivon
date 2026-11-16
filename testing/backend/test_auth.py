@@ -12,6 +12,7 @@ import unittest
 import uuid
 from pathlib import Path
 from typing import Any
+from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
@@ -266,6 +267,28 @@ class TestLoginRateLimit(AuthTestCase):
         self.assertEqual(limited.json()["code"], "E-RATE-LIMIT")
         self.assertGreaterEqual(int(limited.headers["Retry-After"]), 1)
 
+    def test_spoofed_first_forwarded_for_hop_cannot_bypass_the_limit(self) -> None:
+        """Only the proxy-observed (last) XFF hop may key the limiter.
+
+        nginx appends the peer with `$proxy_add_x_forwarded_for`, so the first
+        element is whatever the client sent. Keying on it would let an attacker
+        rotate a fake header and brute-force a login without ever being limited.
+        """
+        for hop in range(self.login_limit):
+            response = self.client.post(
+                "/v1/auth/login",
+                json={"email": "kid@example.com", "password": "wrong-password"},
+                headers={"X-Forwarded-For": f"203.0.113.{hop}, 198.51.100.7"},
+            )
+            self.assertEqual(response.status_code, 401)
+        limited = self.client.post(
+            "/v1/auth/login",
+            json={"email": "kid@example.com", "password": "wrong-password"},
+            headers={"X-Forwarded-For": "203.0.113.200, 198.51.100.7"},
+        )
+        self.assertEqual(limited.status_code, 429)
+        self.assertEqual(limited.json()["code"], "E-RATE-LIMIT")
+
 
 class TestEmailLifecycle(AuthTestCase):
     def test_verification_token_is_single_use(self) -> None:
@@ -375,6 +398,74 @@ class TestGoogleAuth(AuthTestCase):
             (local_user_id,),
         )
         self.assertEqual(int(row["cnt"]), 2)
+
+    def test_google_into_unverified_local_account_drops_the_unproven_password(
+        self,
+    ) -> None:
+        """Pre-hijack defence: Google proof replaces an unverified password identity.
+
+        Attacker pre-registers the victim's address with their own password; the
+        victim later signs in with Google. The victim must get the account, and
+        the attacker's password and live sessions must not survive the link.
+        """
+        self.register("kid@example.com")
+        local_user_id = self.user_id()
+        attacker_cookie = self.client.cookies.get("zivon_session")
+        self.assertIsNotNone(attacker_cookie)
+
+        transport = FakeGoogleTransport(subject="google-pre-hijack")
+        _url, state = self.start_google(transport=transport)
+        response = self.finish_google(state)
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response.headers["location"], "/app")
+
+        session = self.client.get("/v1/auth/session").json()
+        self.assertEqual(session["user"]["user_id"], local_user_id)
+        self.assertTrue(session["user"]["email_verified"])
+        self.assertTrue(session["google_linked"])
+        self.assertFalse(
+            session["password_set"],
+            "Google must discard the password credential the account never proved",
+        )
+
+        self.client.cookies.clear()
+        self.client.cookies.set("zivon_session", str(attacker_cookie))
+        self.assertFalse(
+            self.client.get("/v1/auth/session").json()["authenticated"],
+            "sessions created before Google proved the address must be revoked",
+        )
+        self.client.cookies.clear()
+        login = self.client.post(
+            "/v1/auth/login",
+            json={"email": "kid@example.com", "password": PASSWORD},
+        )
+        self.assertEqual(login.status_code, 401)
+
+    def test_google_next_cannot_redirect_off_site(self) -> None:
+        transport = FakeGoogleTransport(subject="google-open-redirect")
+        self.service.google.transport = transport
+        response = self.client.get(
+            "/v1/auth/google/start?intent=login&next=//evil.example/phish",
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 302)
+        state = parse_qs(urlparse(response.headers["location"]).query)["state"][0]
+        done = self.finish_google(state)
+        self.assertEqual(done.status_code, 303)
+        self.assertEqual(done.headers["location"], "/app")
+
+    def test_google_next_keeps_a_same_origin_path(self) -> None:
+        transport = FakeGoogleTransport(subject="google-safe-next")
+        self.service.google.transport = transport
+        response = self.client.get(
+            "/v1/auth/google/start?intent=login&next=/app/practice",
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 302)
+        state = parse_qs(urlparse(response.headers["location"]).query)["state"][0]
+        done = self.finish_google(state)
+        self.assertEqual(done.status_code, 303)
+        self.assertEqual(done.headers["location"], "/app/practice")
 
     def test_google_unverified_email_does_not_create_or_link(self) -> None:
         transport = FakeGoogleTransport(email_verified=False)
@@ -551,6 +642,25 @@ class TestDeleteAndExport(AuthTestCase):
         self.assertNotIn("argon2", body)
         self.assertNotIn("password_hash", body)
         self.assertNotIn("token_hash", body)
+
+    def test_export_reports_truncation_instead_of_silently_dropping_events(
+        self,
+    ) -> None:
+        self.register()
+        user_id = self.user_id()
+        for _ in range(2):
+            self.db.execute(
+                """
+                INSERT INTO progress_event (event_id, user_id, kind, chapter_id)
+                VALUES (?, ?, 'lesson_block_view', 'class-9-motion')
+                """,
+                (uuid7_str(), user_id),
+            )
+        with mock.patch("backend.auth.service.EXPORT_EVENT_LIMIT", 1):
+            body = self.client.get("/v1/me/export").json()
+        self.assertEqual(body["progress_events_total"], 2)
+        self.assertEqual(len(body["progress_events"]), 1)
+        self.assertTrue(body["progress_events_truncated"])
 
     def test_delete_removes_learning_data_and_blocks_login(self) -> None:
         self.register()
