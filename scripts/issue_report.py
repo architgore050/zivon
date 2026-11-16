@@ -138,14 +138,16 @@ def aggregate(runs_dir: Path) -> dict[str, Any]:
     # Recurring findings: same (stage, call, block, category) across rounds.
     rounds_by_key: dict[tuple[str, str, str, str], set[str]] = {}
     for i in issues:
-        key = (
+        round_key = (
             str(i.get("stage", "?")),
             str(i.get("call", "?")),
             str(i.get("block_id") or "(page level)"),
             str(i.get("category") or "other"),
         )
-        rounds_by_key.setdefault(key, set()).add(str(i.get("round_tag") or "first"))
-    recurring = sorted(
+        rounds_by_key.setdefault(round_key, set()).add(
+            str(i.get("round_tag") or "first")
+        )
+    recurring: list[dict[str, Any]] = sorted(
         (
             {
                 "stage": k[0],
@@ -157,7 +159,7 @@ def aggregate(runs_dir: Path) -> dict[str, Any]:
             for k, v in rounds_by_key.items()
             if len(v) >= 2
         ),
-        key=lambda r: -r["rounds"],
+        key=lambda r: -int(r["rounds"]),
     )
 
     return {

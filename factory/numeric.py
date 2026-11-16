@@ -7,7 +7,8 @@ machine-checkable subset with a hand-written arithmetic parser (never `eval`):
 - numeric equality chains: `90 x 200 N = 18000 N` -> both sides evaluate and
   must agree (same unit token, or none on both sides);
 - answers reproducible from the stated arithmetic: at least one computed value
-  must match a stated answer value within tolerance;
+  must match a stated answer value within tolerance.
+
 Dimensional sanity is deliberately NOT enabled yet: the published pages quote
 several quantities per explanation, so "which unit belongs to the answer" is
 not deterministic without a stated-answer unit field. A wrong guess there is a
@@ -50,8 +51,8 @@ _X_TIMES_RE = re.compile(r"(?<=\d)\s*[xX]\s*(?=[\d(])")
 # Scientific notation / physics constants we deliberately do not evaluate:
 # "2.24 x 10-2", "6.022 x 1023", "10^3", "1e-10", "sqrt(...)", "pi".
 _UNSAFE_EXPR_RE = re.compile(
-    r"(?:\d\s*[xX*]\s*10\b|\b10\s*[-−^]\s*\d|\b10\s*\*\*\s*\d|\d[eE][-+]?\d{1,2}\b|"
-    r"\bsqrt\b|\bpi\b|\bπ\b|\bsquare root\b|\btimes\b)",
+    r"(?:\d\s*[xX*]\s*10(?:\d|\b)|\b10\s*[-−^]\s*\d|\b10\s*\*\*\s*\d|"
+    r"\d[eE][-+]?\d{1,2}\b|\bsqrt\b|\bpi\b|\bπ\b|\bsquare root\b|\btimes\b)",
     re.IGNORECASE,
 )
 
@@ -221,23 +222,34 @@ def _clean_run(raw: str) -> str:
     return text
 
 
+def _has_binary_operator(text: str) -> bool:
+    """True when `text` computes something (a unary sign is not an operator)."""
+    body = text.lstrip("+-").strip()
+    return bool(re.search(r"[+\-*/^]|\d\s*[()]", body))
+
+
 def _eval_run(raw: str) -> float | None:
     cleaned = _clean_run(raw)
-    if not _OPERATOR_RE.search(cleaned):
+    if not _has_binary_operator(cleaned):
         # A lone number is a value, never a computation.
         return None
     return evaluate(cleaned)
 
 
-def _unit_after(tail: str) -> str:
+def _unit_after(tail: str) -> str | None:
+    """The recognized unit after an expression.
+
+    `""` = no unit at all; `None` = something trailing that is neither a unit
+    nor punctuation (a variable like `a`/`t`, prose, or an unlisted unit).
+    A chain with an unrecognized trailing token is not comparable: `30 - 8 =
+    23a` must never be read as `22 = 23`.
+    """
     match = _UNIT_AFTER_RE.match(tail)
     if not match:
         return ""
     unit = _normalize_unit(match.group(1))
-    # Prose words are not units; only a recognized unit (or a unit-shaped
-    # token like `ms-2` / `m/s`) may take part in a comparison.
-    if unit and unit_dimension(unit) is None and not re.search(r"[/\-^]", unit):
-        return ""
+    if unit and unit_dimension(unit) is None:
+        return None
     return unit
 
 
@@ -247,6 +259,10 @@ def _left_side(fragment: str) -> tuple[float | None, str, str]:
         return None, "", ""
     match = runs[-1]
     prefix = fragment[: match.start()].strip()
+    if ":" in prefix:
+        # "Average speed is total distance / total time: 100 / 20" - the
+        # label before the colon frames the computation, it is not part of it.
+        prefix = prefix.rsplit(":", 1)[1].strip()
     if prefix and not _IDENTIFIER_RE.match(prefix):
         # Text before the computation ("x at 2.0 s", "tan inverse (4/3)")
         # means the number is a description, not a computed left-hand side.
@@ -254,7 +270,10 @@ def _left_side(fragment: str) -> tuple[float | None, str, str]:
     value = _eval_run(match.group(0))
     if value is None:
         return None, "", ""
-    return value, _unit_after(fragment[match.end() :]), _clean_run(match.group(0))
+    unit = _unit_after(fragment[match.end() :])
+    if unit is None:
+        return None, "", ""
+    return value, unit, _clean_run(match.group(0))
 
 
 def _right_side(fragment: str) -> tuple[float | None, str, str]:
@@ -264,6 +283,8 @@ def _right_side(fragment: str) -> tuple[float | None, str, str]:
     match = values[0]
     tail = fragment[match.end() :]
     unit = _unit_after(tail)
+    if unit is None:
+        return None, "", ""
     unit_match = _UNIT_AFTER_RE.match(tail)
     remainder = tail[unit_match.end() :] if unit_match else tail
     if re.search(r"[A-Za-z0-9]", remainder):
@@ -271,17 +292,18 @@ def _right_side(fragment: str) -> tuple[float | None, str, str]:
         # second clause or prose - not a comparison we can trust.
         return None, "", ""
     cleaned = _clean_run(match.group(0))
-    if not _OPERATOR_RE.search(cleaned):
+    right_value: float | None
+    if not _has_binary_operator(cleaned):
         # A lone number is allowed on the right: it is the stated result.
         try:
-            value = float(cleaned)
+            right_value = float(cleaned)
         except ValueError:
             return None, "", ""
     else:
-        value = evaluate(cleaned)
-    if value is None:
+        right_value = evaluate(cleaned)
+    if right_value is None:
         return None, "", ""
-    return value, unit, cleaned
+    return right_value, unit, cleaned
 
 
 def _chain_at(fragment: str, eq_index: int) -> Chain | None:
@@ -310,8 +332,15 @@ def find_chains(text: str) -> list[Chain]:
     normalized = normalize_text(text or "")
     chains: list[Chain] = []
     for clause in _CLAUSE_SPLIT_RE.split(normalized):
-        for match in re.finditer(r"=", clause):
-            chain = _chain_at(clause, match.start())
+        eq_positions = [m.start() for m in re.finditer(r"=", clause)]
+        for index, position in enumerate(eq_positions):
+            start = eq_positions[index - 1] + 1 if index else 0
+            end = (
+                eq_positions[index + 1]
+                if index + 1 < len(eq_positions)
+                else len(clause)
+            )
+            chain = _chain_at(clause[start:end], position - start)
             if chain is not None:
                 chains.append(chain)
     return chains

@@ -71,6 +71,7 @@ RULE_CATEGORY: dict[str, str] = {
     "DET-SYN02-ANSWER-KEYS": "answer_key",
     "DET-SYN02-READABILITY": "content",
     "DET-SYN03-NUMERIC-RECOMPUTE": "numeric",
+    "DET-SYN03-WAY-OUT": "numeric",
     "DET-SYN03-UNITS": "numeric",
     "DET-VIS01-LINTS-AND-SCOPE": "rendering",
     "DET-VIS01-COMPUTED-SIM-LOOPS": "drawn_behaviour",
@@ -83,6 +84,7 @@ RULE_CATEGORY: dict[str, str] = {
     "DET-E2E01-PUBLISHED-INTEGRITY": "rendering",
     "DET-E2E02-CATALOGUE-INTEGRITY": "rendering",
     "DET-E2E02-GLOSSARY-COVERAGE": "glossary",
+    "DET-E2E02-GLOSSARY-LAUNCH": "glossary",
     "DET-KID01-GATE-B-COHORT": "content",
 }
 
