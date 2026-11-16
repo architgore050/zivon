@@ -301,13 +301,12 @@ cache/CDN purge and sitemap refresh, register entry. Copy: `N-05`; process: §7.
 
 **What this does not change:** the AGENTS.md content-sourcing rule. Since the W0
 reframe landed (2026-11-15), that rule reads "NCERT (officially free) and
-public-domain sources only", plus a CBSE clause: nothing is ingested, reproduced
-or published until this memo lands, and P3 ingest/publish stays behind a feature
-flag until then. This memo meets that condition, so the operative rule for exam
-content is now `DEC-COMP-001` — blueprint-only, with verbatim blocked on the
-clearance register — and the sourcing sentence still forbids verbatim
-publication. If the founder ever approves verbatim mode, that AGENTS.md sentence
-must be amended in the same change.
+public-domain sources only", plus a CBSE clause: exam-paper ingest, reproduction
+and publishing follow this folder — blueprint-only until `DEC-COMP-001` has a
+clearance record — and generated items never claim official CBSE affiliation.
+That clause points here rather than around the rule: the sourcing sentence still
+forbids verbatim publication, and if the founder ever approves verbatim mode, the
+AGENTS.md sentence must be amended in the same change.
 
 ---
 
