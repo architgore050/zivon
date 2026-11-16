@@ -143,7 +143,7 @@ agent can build it without re-working anything:
 
 ## 4. Screen & region list (canonical — reconciled per `open-questions.md` §R)
 
-Regions follow `docs/product/features.md` §4 and `ui-element-inventory.csv` (97 canonical `EL-` rows, plus retained provisional shell aliases for backward compatibility).
+Regions follow `docs/product/features.md` §4 and `ui-element-inventory.csv` (97 canonical `EL-` rows, plus retained provisional shell aliases for backward compatibility and the W2 F4 lesson-shell rows `EL-LES-01-091…110`).
 
 | Screen | Region | Canonical `EL-` ids (provisional aliases in parentheses) |
 |---|---|---|

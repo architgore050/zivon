@@ -214,6 +214,11 @@ class TestLessonShell(unittest.TestCase):
             self.assertEqual(
                 page.get_attribute("#zn-contents-toggle", "aria-expanded"), "true"
             )
+            self.assertEqual(
+                page.get_attribute("#zn-contents-toggle", "aria-controls"),
+                "zn-chapter-drawer",
+                "the toggle names the panel it controls",
+            )
             expected = [s["title"] for s in _manifest_sections()]
             got = page.eval_on_selector_all(
                 "#zn-chapter-drawer .zn-drawer-link .zn-drawer-title",
@@ -514,6 +519,13 @@ class TestLessonShell(unittest.TestCase):
                 page.locator(".zn-ask-block").count(),
                 42,
                 "one quiet affordance per block",
+            )
+            # WCAG 2.5.3 label-in-name: the accessible name starts with the
+            # visible words, so speech-input users can say "Ask about this".
+            first_label = page.get_attribute(".zn-ask-block", "aria-label")
+            self.assertTrue(
+                first_label.startswith("Ask about this"),
+                f"accessible name must contain the visible label: {first_label}",
             )
             page.evaluate("() => document.getElementById('sec-06').scrollIntoView()")
             page.wait_for_timeout(250)

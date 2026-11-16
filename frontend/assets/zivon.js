@@ -6127,9 +6127,11 @@
         "data-block-id": block.id
       });
       shellI18nText(btn, "ui.shell.ask_about_this", "Ask about this");
+      /* WCAG 2.5.3 label-in-name: the accessible name starts with the visible
+         words, then names the block the tutor will anchor to. */
       btn.setAttribute(
         "aria-label",
-        shellFormat("ui.shell.ask_about_block", "Ask the tutor about: {title}", { title: shellBlockTitle(block) })
+        shellFormat("ui.shell.ask_about_block", "Ask about this: {title}", { title: shellBlockTitle(block) })
       );
       btn.addEventListener("click", function () {
         askAboutLessonBlock(block.id);
@@ -6266,6 +6268,11 @@
     lessonShellState.mounted = true;
     if (document.body) document.body.setAttribute(SHELL_MOUNTED_ATTR, "true");
 
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape" || !lessonDrawerOpen()) return;
+      ev.preventDefault();
+      closeLessonDrawer();
+    });
     window.addEventListener("scroll", shellQueuePositionUpdate, { passive: true });
     window.addEventListener("resize", shellQueuePositionUpdate);
     window.addEventListener("pagehide", function () {
@@ -6420,7 +6427,7 @@
     },
     /* Exposed for the "only link to pages that exist" regression test. */
     resolveTopicHref: function (entry) { return shellTopicHref(entry); },
-    setBookmarked: function (sectionId) {
+    toggleBookmark: function (sectionId) {
       var section = lessonShellState.sections.filter(function (s) {
         return s.id === sectionId;
       })[0];
