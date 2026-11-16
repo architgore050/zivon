@@ -1,6 +1,6 @@
 card_id: EV-VIS-002
 version: 1
-title: Accessibility (WCAG 2.2 AA subset) and Hook Conformance of Rendered Golden Pages
+title: Accessibility (WCAG 2.2 AA subset) of Rendered Golden Pages and Localized Routes
 stage: 05-interactive..06-render
 agent_role: Visual Builder
 suites:
@@ -23,6 +23,8 @@ deterministic_checks:
     quiz fieldsets without legend, feedback/readout regions without aria-live, duplicate ids,
     positive tabindex, aria-hidden focusables, sims with no keyboard control). Findings on the
     hand-maintained doctrine example (GT-03) are reported as non-blocking debt for its owner.
+    The P1 hook conformance assertions join this card when P1 lands them (P1 owns the assertions;
+    P4 owns the card), so this card currently gates accessibility only.
 - id: DET-VIS02-A11Y-AXE
   entrypoint: evals.checkers.a11y_checks:check_axe_serious_critical
   severity_on_fail: fatal

@@ -21,8 +21,10 @@ deterministic_checks:
   entrypoint: evals.checkers.perf_harness:check_golden_perf_budgets
   severity_on_fail: fatal
   reuses_factory_rule: factory.perf:run
-  description: Validates perf profiles and evaluates golden pages against RAM <= 750MB, FPS >= 24, overflow_px
-    <= 2, load_s <= 6.0, and fcp_s <= 3.5.
+  description: Validates perf profiles and evaluates golden pages against RAM <= 750MB, FPS >= 24,
+    overflow_px <= 2, load_s <= 6.0, fcp_s <= 3.5, interactive_s <= 3.0 and no long task > 200ms on
+    the interaction path (Q-4). Byte budgets (shell JS <= 150 KB gzip, CSS <= 50 KB gzip) are
+    reported as soft advisories and never fail the page.
 - id: DET-PERF01-PEDAGOGY-GUARD
   entrypoint: evals.checkers.perf_harness:check_fixloop_pedagogy_preservation
   severity_on_fail: fatal

@@ -31,8 +31,14 @@ _CLEAN_FIXTURE = Path("evals/goldens/defects/03-check/SD-CHK-007.json")
 
 
 def _topic_blocks(cfg: EvalConfig, topic_rel: str) -> list[dict[str, Any]]:
-    """Blocks for a golden topic: its published i18n bundle, else the clean
-    GT-01 fixture (documented: the class-9 golden has no i18n bundle)."""
+    """Blocks for a golden topic from its published English bundle.
+
+    A golden with no `published_dir` (contract-frozen) has no rendered page to
+    grade, so it contributes nothing. The clean seeded-defect fixture is the
+    explicit fallback only while the published tree is unavailable (a fresh
+    checkout without `frontend/courses/`); it is never attributed to a named
+    topic that has a published page of its own.
+    """
     ref_path = cfg.repo_root / topic_rel / "artifact_ref.json"
     if ref_path.is_file():
         ref = json.loads(ref_path.read_text(encoding="utf-8"))
@@ -41,6 +47,7 @@ def _topic_blocks(cfg: EvalConfig, topic_rel: str) -> list[dict[str, Any]]:
             bundle = cfg.repo_root / published / "i18n" / "en.json"
             if bundle.is_file():
                 return list(json.loads(bundle.read_text(encoding="utf-8"))["blocks"])
+            return []
     fixture = cfg.repo_root / _CLEAN_FIXTURE
     if fixture.is_file():
         return list(
@@ -72,10 +79,16 @@ def check_numeric_recompute(
         if not topic_blocks:
             continue
         topics += 1
-        blocks += len(topic_blocks)
-        if clean_blocks is None:
-            clean_blocks = topic_blocks
         for block in topic_blocks:
+            is_numeric = block.get("type") == "worked_example" or (
+                block.get("type") == "check"
+                and (block.get("spec") or {}).get("format") == "numeric"
+            )
+            if not is_numeric:
+                continue
+            blocks += 1
+            if clean_blocks is None:
+                clean_blocks = topic_blocks
             report = rule_numeric_recompute([block])
             if any(i.get("severity") in ("fatal", "major") for i in report):
                 issues.append(
@@ -119,6 +132,10 @@ def check_numeric_recompute(
     metrics["numeric_checked"] = checked
     metrics["numeric_reported"] = checked - verified
     metrics["numeric_mutation_caught"] = mutation_caught
+    if topics == 0:
+        context.setdefault("skipped_checks", {})[CHECK_ID] = (
+            "no golden topic has a published block bundle to grade"
+        )
     return issues
 
 
@@ -131,8 +148,10 @@ def check_numeric_way_out(
     unverified = 0
     minors = 0
     total = 0
+    blocks_seen = 0
     for topic_rel in card.golden_inputs.get("topics", []):
         for block in _topic_blocks(cfg, topic_rel):
+            blocks_seen += 1
             for finding in rule_numeric_recompute([block]):
                 total += 1
                 message = str(finding.get("message", ""))
@@ -155,4 +174,8 @@ def check_numeric_way_out(
     metrics["numeric_unverified"] = unverified
     metrics["numeric_minor_reported"] = minors
     metrics["numeric_unverified_rate"] = round(unverified / total, 4) if total else 0.0
+    if blocks_seen == 0:
+        context.setdefault("skipped_checks", {})[WAY_OUT_ID] = (
+            "no golden topic has a published block bundle to grade"
+        )
     return issues

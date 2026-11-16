@@ -39,6 +39,16 @@ class TestProfiles(unittest.TestCase):
         self.assertEqual(p["soft_js_gzip_kb"], 150)
         self.assertEqual(p["soft_css_gzip_kb"], 50)
 
+    def test_shim_profile_copies_match_the_canonical_profiles(self):
+        shim = REPO_ROOT / "testing" / "content_factory" / "perf" / "profiles"
+        for name in ("weak-android.json", "mid-laptop.json"):
+            with self.subTest(profile=name):
+                self.assertEqual(
+                    json.loads((PROFILES / name).read_text(encoding="utf-8")),
+                    json.loads((shim / name).read_text(encoding="utf-8")),
+                    f"{name} drifted from the canonical evals/goldens/profiles copy",
+                )
+
     def test_missing_key_rejected(self):
         bad = json.loads((PROFILES / "weak-android.json").read_text())
         del bad["fps_min"]
@@ -116,18 +126,24 @@ class TestJudge(unittest.TestCase):
     def test_long_task_on_the_interaction_path_fails(self):
         report = self.base_report()
         report["budgets"]["long_task_ms"] = 200
-        report["measured"]["longest_task_ms"] = 260
+        report["measured"]["interaction_longest_task_ms"] = 260
         _judge(report)
         self.assertFalse(report["pass"])
-        self.assertTrue(any("long task" in f for f in report["failures"]))
+        self.assertTrue(any("interaction path" in f for f in report["failures"]))
 
-    def test_scroll_jank_long_task_fails(self):
+    def test_load_path_long_task_is_an_advisory_not_a_failure(self):
+        # Q-4 names the interaction path as the hard long-task gate; a
+        # load-path task is measured and reported, but not blocking (a shared
+        # CI runner adds scheduler noise that made a load-path 200 ms
+        # assertion flaky: class-11 laws-of-motion/hi, 2026-11-16).
         report = self.base_report()
         report["budgets"]["long_task_ms"] = 200
-        report["measured"]["interaction_longest_task_ms"] = 320
+        report["measured"]["longest_task_ms"] = 320
+        report["measured"]["load_longest_task_ms"] = 320
         _judge(report)
-        self.assertFalse(report["pass"])
-        self.assertTrue(any("jank" in f for f in report["failures"]))
+        self.assertTrue(report["pass"])
+        self.assertEqual(report["failures"], [])
+        self.assertTrue(any("load-path long task" in a for a in report["advisories"]))
 
     def test_soft_byte_budget_is_an_advisory_never_a_failure(self):
         report = self.base_report()

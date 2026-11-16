@@ -26,7 +26,6 @@ CHECK_ID = "DET-E2E02-GLOSSARY-COVERAGE"
 LAUNCH_ID = "DET-E2E02-GLOSSARY-LAUNCH"
 
 LAUNCH_LOCALES = ("hi", "hi-Latn")
-CLEAN_FIXTURE = "evals/goldens/defects/03-check/SD-CHK-007.json"
 
 
 def _load_glossary(cfg: EvalConfig) -> dict[str, Any]:
@@ -39,31 +38,33 @@ def _load_glossary(cfg: EvalConfig) -> dict[str, Any]:
 def _topic_content(
     cfg: EvalConfig, topic_rel: str
 ) -> tuple[dict, list[dict], list[str]]:
-    """(lesson, blocks, promised non-English locales) for one golden topic."""
+    """(lesson, blocks, promised non-English locales) for one golden topic.
+
+    Only a **published** topic is graded: a golden whose `artifact_ref.json`
+    has no `published_dir` (e.g. GT-04, contract-frozen) has no page promise to
+    keep, so it is skipped rather than substituted with an unrelated fixture.
+    """
     tdir = cfg.repo_root / topic_rel
     ref_path = tdir / "artifact_ref.json"
     promised: list[str] = []
-    published = None
-    if ref_path.is_file():
-        ref = json.loads(ref_path.read_text(encoding="utf-8"))
-        published = ref.get("published_dir")
-    if published:
-        manifest_path = cfg.repo_root / published / "manifest.json"
-        if manifest_path.is_file():
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            promised = [
-                loc
-                for loc in manifest.get("locales_available", [])
-                if loc not in ("en", "en-IN")
-            ]
-        bundle = cfg.repo_root / published / "i18n" / "en.json"
-        if bundle.is_file():
-            payload = json.loads(bundle.read_text(encoding="utf-8"))
-            return payload["lesson"], list(payload["blocks"]), promised
-    fixture = cfg.repo_root / CLEAN_FIXTURE
-    if fixture.is_file():
-        inputs = json.loads(fixture.read_text(encoding="utf-8"))["inputs"]
-        return inputs["lesson"], list(inputs["blocks"]["blocks"]), promised
+    if not ref_path.is_file():
+        return {}, [], promised
+    ref = json.loads(ref_path.read_text(encoding="utf-8"))
+    published = ref.get("published_dir")
+    if not published:
+        return {}, [], promised
+    manifest_path = cfg.repo_root / published / "manifest.json"
+    if manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        promised = [
+            loc
+            for loc in manifest.get("locales_available", [])
+            if loc not in ("en", "en-IN")
+        ]
+    bundle = cfg.repo_root / published / "i18n" / "en.json"
+    if bundle.is_file():
+        payload = json.loads(bundle.read_text(encoding="utf-8"))
+        return payload["lesson"], list(payload["blocks"]), promised
     return {}, [], promised
 
 
@@ -116,10 +117,12 @@ def check_page_glossary_coverage(
     glossary = _load_glossary(cfg)
     metrics = context.setdefault("metrics", {})
     pages = 0
+    unpublished: list[str] = []
     promised_locales: set[str] = set()
     for topic_rel in card.golden_inputs.get("topics", []):
         lesson, blocks, promised = _topic_content(cfg, topic_rel)
         if not lesson:
+            unpublished.append(topic_rel)
             continue
         pages += 1
         promised_locales.update(promised)
@@ -133,5 +136,10 @@ def check_page_glossary_coverage(
                 )
             )
     metrics["glossary_pages_checked"] = pages
+    metrics["glossary_topics_without_published_page"] = unpublished
     metrics["glossary_promised_locales"] = sorted(promised_locales)
+    if pages == 0:
+        context.setdefault("skipped_checks", {})[CHECK_ID] = (
+            "no golden topic has a published English bundle to grade"
+        )
     return issues
