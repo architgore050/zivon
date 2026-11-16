@@ -40,7 +40,10 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
     "properties": {
         "card_id": {
             "type": "string",
-            "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID)-[0-9]{3}$",
+            # Additive Q-5 extension (2026-11-15): ASM (assessment/practice),
+            # EXM (exam ingest) and SER (series) cards join the original seven
+            # families. Existing ids stay stable; nothing is renumbered.
+            "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID|ASM|EXM|SER)-[0-9]{3}$",
         },
         "version": {"type": "integer", "minimum": 1},
         "title": {"type": "string", "minLength": 10},
@@ -59,6 +62,22 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "09-review",
                 "00-ingest..11-link",
                 "post-11-link-gate-b",
+                # Assessment stages (P2; separate factory.assessment entrypoint,
+                # HANDSHAKE Q-1) and exam/series stages (P3). Additive per Q-5.
+                "A1-syllabus",
+                "A2-concept-tag",
+                "A3-practice-items",
+                "A4-speaking-rubrics",
+                "A5-time-priors",
+                "A6-publish-export",
+                "A1-syllabus..A6-publish-export",
+                "A3-practice-items..A6-publish-export",
+                "A4-speaking-rubrics..A6-publish-export",
+                "E1-ingest",
+                "E2-blueprint",
+                "E3-series",
+                "E4-publish",
+                "E1-ingest..E4-publish",
             ],
         },
         "agent_role": {
@@ -72,6 +91,11 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "Code Reviewer",
                 "End-to-End Pipeline",
                 "Kid-Comprehension Validator",
+                # Q-5 additive roles for the assessment/exam/series workstreams.
+                "Assessment Author",
+                "Speaking Rubric Author",
+                "Exam Ingest Curator",
+                "Series Assembler",
             ],
         },
         "suites": {

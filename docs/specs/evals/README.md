@@ -17,6 +17,7 @@ This folder specifies Zivon's standalone **`evals/`** package and the migration 
 | [`migration-map.csv`](migration-map.csv) | File-by-file and test-by-test migration table mapping every current test in `testing/content_factory/` and `testing/frontend/` to either `KEEP_IN_TESTING`, `MIGRATE_TO_EVALS`, or `SPLIT`, with its target `eval_card_id`. |
 | [`card-template.md`](card-template.md) | Canonical schema and Markdown/YAML template for authoring new eval cards, including deterministic checker bindings, calibrated LLM-judge rubrics, anchor examples, pass thresholds, and call-cost budgets. |
 | [`golden-sets.md`](golden-sets.md) | Versioned golden topics inventory, expected-property schemas (`expected.json`), seeded-defect corpus for reviewer calibration (`03-check` and `09-review`), storage placement, and version-rotation rules. |
+| [`perf-budgets.md`](perf-budgets.md) | Q-4 performance budget (hard runtime gates vs soft byte reporting) and the measured weak-android baseline for the published pages. |
 | [`open-questions.md`](open-questions.md) | Open questions, cross-agent alignment flags (Wave S0 DB/storage specs, SP3 observability/dashboard contracts, CI/CD workflow agent), and tracked assumptions. |
 
 ---
@@ -33,7 +34,7 @@ This folder specifies Zivon's standalone **`evals/`** package and the migration 
 ## Reading Order for Execution Agents
 
 1. Read [`AGENTS.md`](../../../AGENTS.md), [`docs/content-factory/architecture.md`](../../content-factory/architecture.md), and [`skills/prompting-and-agent-design/SKILL.md`](../../../skills/prompting-and-agent-design/SKILL.md).
-2. Read [`spec.md`](spec.md) for the `evals/` package architecture, CLI contract, eval cards (`EV-CUR-001` through `EV-KID-001`), regression store, and K8s/CI wiring.
+2. Read [`spec.md`](spec.md) for the `evals/` package architecture, CLI contract, eval cards (`EV-CUR-001` through `EV-KID-001` plus the P4 cards `EV-VIS-002`, `EV-SYN-003`, `EV-E2E-002`), regression store, and K8s/CI wiring.
 3. Follow [`migration-map.csv`](migration-map.csv) row-by-row when extracting eval assertions out of `testing/content_factory/` into `evals/`.
 4. Populate `evals/goldens/` using the schemas and defect catalog in [`golden-sets.md`](golden-sets.md) and [`card-template.md`](card-template.md).
 5. Check [`open-questions.md`](open-questions.md) and ADRs [`0027`](../../backend/adr/0027-eval-result-store-and-tiering.md)–[`0028`](../../backend/adr/0028-eval-judge-model-and-calibration.md) before wiring database persistence or dashboard endpoints.

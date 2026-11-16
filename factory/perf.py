@@ -40,6 +40,12 @@ def _harness():
 _TIME_BUDGET = re.compile(
     r"^(?P<name>\w+) (?P<measured>[\d.]+)s > budget (?P<limit>[\d.]+)s"
 )
+_MS_BUDGET = re.compile(
+    r"^(?P<name>[a-z/]+) long task (?P<measured>[\d.]+)ms > budget (?P<limit>[\d.]+)ms"
+)
+_INPUT_BUDGET = re.compile(
+    r"^interactive input (?P<measured>[\d.]+)ms > budget (?P<limit>[\d.]+)ms"
+)
 _SCORE_BUDGET = re.compile(
     r"^(?P<name>\w+) (?P<measured>[\d.]+) < minimum (?P<limit>[\d.]+)"
 )
@@ -61,10 +67,30 @@ def _emit_budget_fails(run_ctx: RunContext, report: dict[str, Any]) -> None:
             fields["limit_ms"] = int(float(match.group("limit")) * 1000)
             latency_ms = measured_ms
         else:
-            score = _SCORE_BUDGET.match(text)
-            if score:
-                fields["measured"] = float(score.group("measured"))
-                fields["limit"] = float(score.group("limit"))
+            input_match = _INPUT_BUDGET.match(text)
+            if input_match:
+                measured_ms = int(float(input_match.group("measured")))
+                fields["budget_name"] = "interaction_input"
+                fields["measured_ms"] = measured_ms
+                fields["limit_ms"] = int(float(input_match.group("limit")))
+                latency_ms = measured_ms
+            else:
+                task = _MS_BUDGET.match(text)
+                if task:
+                    measured_ms = int(float(task.group("measured")))
+                    fields["budget_name"] = (
+                        "interaction_long_task"
+                        if task.group("name") == "scroll/click"
+                        else f"{task.group('name')}_long_task"
+                    )
+                    fields["measured_ms"] = measured_ms
+                    fields["limit_ms"] = int(float(task.group("limit")))
+                    latency_ms = measured_ms
+                else:
+                    score = _SCORE_BUDGET.match(text)
+                    if score:
+                        fields["measured"] = float(score.group("measured"))
+                        fields["limit"] = float(score.group("limit"))
         log_event(
             "factory.perf.budget_fail",
             fields,
@@ -92,10 +118,14 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     results: dict[str, Any] = {
         "profile": str(profile_path),
         "pages": {},
+        # Q-4 splits the byte budget from the runtime budget: bytes are
+        # measured and reported (soft), runtime misses are fatal.
+        "soft_budgets": {},
     }
     for label, url in (("topic_page", topic_url), ("landing_page", landing_url)):
         report = run_profile(url, profile_path)
         results["pages"][label] = report
+        results["soft_budgets"][label] = report.get("soft_budgets", {})
         run_ctx.write_json(run_ctx.stage_dir(STAGE_ID) / f"{label}.perf.json", report)
 
     topic_report = results["pages"]["topic_page"]

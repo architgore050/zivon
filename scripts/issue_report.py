@@ -38,6 +38,14 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+# Running `python3 scripts/issue_report.py` puts `scripts/` (not the repo root)
+# on sys.path; make the shared factory mapping importable either way.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from factory.issue_categories import issue_category
+
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
@@ -123,20 +131,29 @@ def aggregate(runs_dir: Path) -> dict[str, Any]:
 
     by_stage = Counter(str(i.get("stage", "?")) for i in issues)
     by_category = Counter(str(i.get("category") or "other") for i in issues)
+    # `category` is what the ledger recorded at the time; the normalized view
+    # applies the deterministic rule-id mapping (factory/issue_categories.py)
+    # so runs recorded before the mapping land were still comparable.
+    by_category_normalized = Counter(issue_category(i) for i in issues)
+    by_rule = Counter(
+        str(i.get("rule")) for i in issues if i.get("rule") not in (None, "")
+    )
     by_severity = Counter(str(i.get("severity", "?")) for i in issues)
     unverified = sum(1 for i in issues if i.get("unverified"))
 
     # Recurring findings: same (stage, call, block, category) across rounds.
     rounds_by_key: dict[tuple[str, str, str, str], set[str]] = {}
     for i in issues:
-        key = (
+        round_key = (
             str(i.get("stage", "?")),
             str(i.get("call", "?")),
             str(i.get("block_id") or "(page level)"),
             str(i.get("category") or "other"),
         )
-        rounds_by_key.setdefault(key, set()).add(str(i.get("round_tag") or "first"))
-    recurring = sorted(
+        rounds_by_key.setdefault(round_key, set()).add(
+            str(i.get("round_tag") or "first")
+        )
+    recurring: list[dict[str, Any]] = sorted(
         (
             {
                 "stage": k[0],
@@ -148,7 +165,7 @@ def aggregate(runs_dir: Path) -> dict[str, Any]:
             for k, v in rounds_by_key.items()
             if len(v) >= 2
         ),
-        key=lambda r: -r["rounds"],
+        key=lambda r: -int(r["rounds"]),
     )
 
     return {
@@ -159,6 +176,8 @@ def aggregate(runs_dir: Path) -> dict[str, Any]:
         "issues_unverified": unverified,
         "issues_by_stage": dict(by_stage.most_common()),
         "issues_by_category": dict(by_category.most_common()),
+        "issues_by_category_normalized": dict(by_category_normalized.most_common()),
+        "issues_by_rule": dict(by_rule.most_common(20)),
         "issues_by_severity": dict(by_severity.most_common()),
         "recurring_findings": recurring,
     }
@@ -189,6 +208,10 @@ def _print_report(data: dict[str, Any]) -> None:
     print("  by stage:   ", data["issues_by_stage"])
     print("  by severity:", data["issues_by_severity"])
     print("  by category:", data["issues_by_category"])
+    if data["issues_by_category_normalized"] != data["issues_by_category"]:
+        print("  by category (normalized):", data["issues_by_category_normalized"])
+    if data["issues_by_rule"]:
+        print("  top rules:  ", data["issues_by_rule"])
 
     if data["recurring_findings"]:
         print("\nrecurring findings (same block+class across catcher rounds):")

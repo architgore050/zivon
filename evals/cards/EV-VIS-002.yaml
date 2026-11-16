@@ -1,0 +1,47 @@
+card_id: EV-VIS-002
+version: 1
+title: Accessibility (WCAG 2.2 AA subset) of Rendered Golden Pages and Localized Routes
+stage: 05-interactive..06-render
+agent_role: Visual Builder
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-VIS02-A11Y-STATIC
+  entrypoint: evals.checkers.a11y_checks:check_static_a11y
+  severity_on_fail: minor
+  reuses_factory_rule: factory.lint:lint_html
+  description: Dependency-free WCAG subset over every rendered golden page (published + localized
+    routes). Fails on critical/serious findings (missing accessible names, unlabelled controls,
+    quiz fieldsets without legend, feedback/readout regions without aria-live, duplicate ids,
+    positive tabindex, aria-hidden focusables, sims with no keyboard control). Findings on the
+    hand-maintained doctrine example (GT-03) are reported as non-blocking debt for its owner.
+    The P1 hook conformance assertions join this card when P1 lands them (P1 owns the assertions;
+    P4 owns the card), so this card currently gates accessibility only.
+- id: DET-VIS02-A11Y-AXE
+  entrypoint: evals.checkers.a11y_checks:check_axe_serious_critical
+  severity_on_fail: fatal
+  reuses_factory_rule: null
+  description: Real axe-core run (WCAG 2.2 AA tags) through headless Chromium when axe.min.js is
+    resolvable locally (ZIVON_AXE_JS or a local axe-core install). Zero serious/critical required.
+    SKIPPED - never reported as passing - when axe/Chromium is unavailable; the static engine above
+    remains the always-on CI gate.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

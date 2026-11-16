@@ -1,0 +1,53 @@
+card_id: EV-E2E-002
+version: 1
+title: Catalogue/Publish Integrity and Glossary Coverage Across Promised Locales
+stage: 00-ingest..11-link
+agent_role: End-to-End Pipeline
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  - evals/goldens/topics/class-9-forces-reference-kit
+  - evals/goldens/topics/class-10-light-reflection-and-refraction
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-E2E02-CATALOGUE-INTEGRITY
+  entrypoint: evals.checkers.publish_checks:check_catalogue_integrity
+  severity_on_fail: minor
+  reuses_factory_rule: factory.link:run
+  description: Fails on technical breakage only - a courses.js href that does not resolve, a
+    manifest without identity fields, a promised locale route/i18n bundle that is missing or
+    mislabelled, a sitemap URL with no page. Metadata/publish debt (chapter.title == 'Grade',
+    missing pipeline_version, placeholder sitemap base URL, topics absent from courses.js) is
+    reported as non-blocking minor findings for P5/P1.
+- id: DET-E2E02-GLOSSARY-LAUNCH
+  entrypoint: evals.checkers.glossary_checks:check_launch_locale_coverage
+  severity_on_fail: fatal
+  reuses_factory_rule: null
+  description: Every canonical glossary term in sources/glossary/physics_glossary.json has a
+    complete hi and hi-Latn entry (native_term + first_mention_gloss) - the launch languages per
+    FEATURE-MAP item 3. Closes the missing-localized-term path that would silently fall back to
+    English mid-sentence.
+- id: DET-E2E02-GLOSSARY-COVERAGE
+  entrypoint: evals.checkers.glossary_checks:check_page_glossary_coverage
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:rule_glossary_coverage
+  description: Every glossary term a golden page actually uses has a complete entry in every
+    locale that page promises (manifest locales_available). P2 owns authoring entries; this card
+    gates the publish promise, not the prose.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

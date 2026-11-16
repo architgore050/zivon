@@ -72,3 +72,8 @@ log,log.store_recovered,INFO,,target_path,no,,L1,logging_manager/sink.py,Postgre
 log,log.redaction_violation,WARNING,,event_ref;key;kind,no,privacy_violation,L3,logging_manager/redact.py,payload NEVER included; per-call-site dedup (first + every 100th)
 log,log.event_unknown,WARNING,,offender_event,no,,L1,logging_manager/events.py,emitted event has no instrumentation-map.csv row; CI map-lint makes this red
 privacy,privacy.subject_deleted,INFO,session_id,session_count;stores_touched,no,,L3,logging_manager/store.py,guardian deletion completed within 24h (ADR-0025 4b); IDs only
+evals,factory.eval.run_started,INFO,run_id,suite;cards_selected;git_sha;mock_mode,no,,L1,evals/telemetry.py::emit_eval_event,EVT-EVAL-RUN-STARTED; one per suite invocation (smoke|full|calibrate)
+evals,factory.eval.run_completed,INFO,run_id,suite;overall_pass;cards_total;cards_passed;cards_failed;model_calls_total,yes,,L1,evals/telemetry.py::emit_eval_event,EVT-EVAL-RUN-COMPLETED; latency_ms = suite wall clock; store_degraded_to_jsonl=true on outbox fallback
+evals,factory.eval.regression_alert,ERROR,run_id,eval_run_id;baseline_eval_run_id;blocking_reasons,no,gate_fail,L1,evals/diff.py + evals/telemetry.py::emit_eval_event,EVT-EVAL-REGRESSION-ALERT; blocking_reasons are card ids + reason codes (never content)
+evals,factory.eval.human_edit_recorded,INFO,run_id,topic_slug;class_level;human_edit_rate,no,,L1,evals/telemetry.py::emit_eval_event,EVT-EVAL-HUMAN-EDIT-RECORDED; references the ledger row (no diff text)
+evals,factory.eval.kid_session_logged,INFO,run_id,session_code;topic_slug;gate_b_pass,no,,L2,evals/telemetry.py::emit_eval_event,EVT-EVAL-KID-SESSION-LOGGED; pseudonymous session_code only (DPDP); no transcript

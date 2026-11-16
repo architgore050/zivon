@@ -11,6 +11,15 @@ Every evaluation in `evals/` is declared as a structured **Eval Card** under `ev
 
 ## 1. JSON Schema for Eval Card Definitions (`EVAL_CARD_SCHEMA`)
 
+> **Q-5 additive extension (2026-11-15, P4).** `EV-ASM-###` (assessment/practice),
+> `EV-EXM-###` (exam ingest) and `EV-SER-###` (series) prefixes join the original seven
+> families, together with the assessment stages (`A1-syllabus` … `A6-publish-export`), the
+> exam/series stages (`E1-ingest` … `E4-publish`) and the matching roles. The change is
+> additive only: existing card ids, stages and roles are unchanged, and `testing/evals`
+> proves an old card still validates. P2/P3 register their cards against these values;
+> a further stage/role name is an additive edit here **and** in
+> `evals/models.py::EVAL_CARD_SCHEMA` (the schema is the runtime validator).
+
 `evals/models.py` validates every YAML/JSON file in `evals/cards/` against this schema at load time:
 
 ```json
@@ -35,7 +44,7 @@ Every evaluation in `evals/` is declared as a structured **Eval Card** under `ev
   "properties": {
     "card_id": {
       "type": "string",
-      "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID)-[0-9]{3}$"
+      "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID|ASM|EXM|SER)-[0-9]{3}$"
     },
     "version": { "type": "integer", "minimum": 1 },
     "title": { "type": "string", "minLength": 10 },
@@ -50,7 +59,21 @@ Every evaluation in `evals/` is declared as a structured **Eval Card** under `ev
         "03-check",
         "09-review",
         "00-ingest..11-link",
-        "post-11-link-gate-b"
+        "post-11-link-gate-b",
+        "A1-syllabus",
+        "A2-concept-tag",
+        "A3-practice-items",
+        "A4-speaking-rubrics",
+        "A5-time-priors",
+        "A6-publish-export",
+        "A1-syllabus..A6-publish-export",
+        "A3-practice-items..A6-publish-export",
+        "A4-speaking-rubrics..A6-publish-export",
+        "E1-ingest",
+        "E2-blueprint",
+        "E3-series",
+        "E4-publish",
+        "E1-ingest..E4-publish"
       ]
     },
     "agent_role": {
@@ -63,7 +86,11 @@ Every evaluation in `evals/` is declared as a structured **Eval Card** under `ev
         "Comprehension & Fact Reviewer",
         "Code Reviewer",
         "End-to-End Pipeline",
-        "Kid-Comprehension Validator"
+        "Kid-Comprehension Validator",
+        "Assessment Author",
+        "Speaking Rubric Author",
+        "Exam Ingest Curator",
+        "Series Assembler"
       ]
     },
     "suites": {

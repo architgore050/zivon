@@ -16,6 +16,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from .issue_categories import issue_category
+
 
 def issue_entry(
     stage: str,
@@ -29,6 +31,12 @@ def issue_entry(
     stage: pipeline stage id (e.g. "09-review"); call: which reviewer call
     produced it ("facts" / "design" / "check"); round_tag: the catcher round
     ("round-01") or None for the first pass.
+
+    The category is derived deterministically from the issue itself: a model
+    category is kept verbatim, a code rule id maps through
+    `factory.issue_categories`, and only an issue with neither falls back to
+    the stage default. `rule` is carried so cross-run reports can group by the
+    exact rule that fired (P4, 2026-11-15).
     """
     message = str(issue.get("message", ""))
     return {
@@ -38,7 +46,8 @@ def issue_entry(
         "round_tag": round_tag,
         "block_id": issue.get("block_id"),
         "severity": issue.get("severity", "?"),
-        "category": issue.get("category") or default_category,
+        "category": issue_category(issue, default_category),
+        "rule": issue.get("rule") or issue.get("check_id") or None,
         "message": message,
         "unverified": message.startswith("unverified:"),
     }

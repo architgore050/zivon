@@ -309,13 +309,33 @@ MOTION page. Two harness bugs caused it, not the model:
   reviewer. Citation source ids must come from the actual source pack.
 - Numbers in worked-example PROBLEMS and check QUESTIONS must appear verbatim
   in the ground truth or the primary source text - whole-numeral match, no
-  substring smuggling (invented-problem guard). Answers and options are
-  deliberately NOT code-checked: textbook exercises are meant to be computed,
-  and derivability cannot be verified by string match (the old verbatim-answer
-  rule made every NCERT numerical impossible, which is why the 2026-11-04
-  Motion page skipped all of them). The 03-check reviewer RECOMPUTES every
-  worked_example and numeric check instead - a wrong computed answer is fatal
-  there and routes to 04-repair.
+  substring smuggling (invented-problem guard). The old verbatim-answer rule
+  made every NCERT numerical impossible (2026-11-04 Motion skipped all of
+  them), so answers are not string-matched; instead the 03-check reviewer
+  RECOMPUTES every worked_example and numeric check and a wrong computed
+  answer is fatal there, routing to 04-repair.
+- Since 2026-11-15 that recompute also has a code side
+  (`factory/numeric.py` + `factory/checks.py::rule_numeric_recompute`):
+  arithmetic equality chains inside the working (`90 x 200 N = 18000 N`) are
+  parsed with a hand-written arithmetic parser and compared. Only a provable
+  contradiction (both sides pure arithmetic, unit tokens agree) is fatal;
+  everything ambiguous - symbolic algebra, scientific notation, `sqrt`,
+  approximate equalities, unit conversions like `0.5 h = 30 min` - is reported
+  as a `minor` whose message starts `unverified:` and never blocks a page. The
+  rule's `numeric_recompute` summary (checked / verified / unverifiable counts)
+  travels in the 03-check output so coverage is visible, not implied.
+- Every 03-check rule issue now carries a stable `rule` id and a ledger
+  `category` (`factory/issue_categories.py`): the model-review vocabulary
+  (`answer_key`, `fact`, `drawn_behaviour`, `inconsistency`, `visual_language`,
+  `frame`, `accessibility`, `rendering`) plus the code-only classes
+  `content`, `numeric`, `glossary`. `factory/ledger.py` applies the same
+  mapping to the issues ledger, so `scripts/issue_report.py` can group by
+  category and by exact rule without a model call.
+- Glossary coverage is a publish contract: every canonical term the page uses
+  (`sources/glossary/physics_glossary.json`) must carry a complete entry in
+  every locale the page promises (`native_term` + `first_mention_gloss`).
+  `factory/checks.py::rule_glossary_coverage` measures it; `EV-E2E-002`
+  registers it as a gate. Authoring entries stays with the content owner.
 - Coverage is a gate, not a hope (founder diagnosis 2026-11-04: the Motion
   page taught only the basics and skipped momentum, exercises and practice
   problems, although ingestion had delivered the whole chapter): 02-generate's

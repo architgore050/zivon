@@ -1,0 +1,43 @@
+card_id: EV-SYN-003
+version: 1
+title: Worked-Example and Numeric-Check Recomputation, and the Unverified Way-Out Contract
+stage: 02-generate.blocks..04-repair
+agent_role: Synthesizer
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/topics/class-9-motion
+  - evals/goldens/topics/class-11-motion-in-a-straight-line
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-SYN03-NUMERIC-RECOMPUTE
+  entrypoint: evals.checkers.numeric_checks:check_numeric_recompute
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:rule_numeric_recompute
+  description: Parses the arithmetic equality chains inside worked examples and numeric checks
+    (hand-written parser, never eval) and recomputes them. Clean goldens must carry no blocking
+    finding, and a planted contradiction (10 / 5 = 3) MUST be caught - proving the rule is not
+    vacuously green. Reports checked/verified/unverifiable coverage counts.
+- id: DET-SYN03-WAY-OUT
+  entrypoint: evals.checkers.numeric_checks:check_numeric_way_out
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.checks:rule_numeric_recompute
+  description: Enforces the way-out contract - every finding the rule cannot prove (symbolic
+    working, scientific notation, sqrt) is a minor whose message starts 'unverified:' and never a
+    blocker. Reports the unverified rate; a unit conversion (0.5 h = 30 min) is not an arithmetic
+    claim and must not be reported at all.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60
