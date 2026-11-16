@@ -952,6 +952,50 @@ code {
   line-height: 1.55;
 }
 
+/* A single "Why?" disclosure inside a paper artifact. Same native mechanism as
+   the FAQ, smaller anatomy, no page-level border. */
+.why {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+}
+
+.why summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.why summary::-webkit-details-marker {
+  display: none;
+}
+
+.why summary::marker {
+  content: "";
+}
+
+.why summary::before {
+  content: "+";
+  font-family: var(--notes);
+  font-weight: 700;
+  color: var(--graphite);
+  width: 1rem;
+}
+
+.why[open] summary::before {
+  content: "–";
+}
+
+.why .answer {
+  color: var(--graphite);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
 /* ---- final CTA ---- */
 .final {
   padding-block: clamp(4rem, 9vw, 7rem);

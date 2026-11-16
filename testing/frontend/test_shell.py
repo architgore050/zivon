@@ -1,11 +1,12 @@
-"""Frontend shell tests: the hand-maintained landing page contract.
+"""Public-site contract: landing, catalogue, class pages, trust pages, 404.
 
-Level 1 (no browser): self-containment (shell AND published pages), internal
-references, font licensing, and the published-catalogue integrity contract
-(courses.js entries <-> the courses/ directories agree).
-Level 2 (headless Chromium): clean load with zero console errors, accessibility
-basics, the empty-STATE contract (against synthetic data), and catalogue
-rendering from injected ZIVON_COURSES data.
+Level 1 (no browser): page inventory, no external *resources*, internal
+references, catalogue integrity, lesson-device scope guard, metadata, and the
+nginx route that serves the hand-maintained catalogue.
+
+Level 2 (headless Chromium): clean load with zero console errors, the Concept A
+landing with JavaScript off, catalogue search/filter/empty/error states, class
+pages, 360 px overflow, and basic accessibility.
 
 Needs a Playwright browser once:  python -m playwright install chromium
 """
@@ -31,89 +32,213 @@ CODE_FILES = [
     FRONTEND / "courses.js",
     FRONTEND / "assets" / "zivon.js",
     FRONTEND / "assets" / "zivon.css",
+    FRONTEND / "assets" / "product.js",
+    FRONTEND / "assets" / "product.css",
+]
+
+# Route -> repo file. This is the static-site map; /courses is served by the
+# exact-match nginx location from catalogue/index.html (see docker/nginx.conf)
+# because frontend/courses/ is factory-owned and replaced wholesale on publish.
+PUBLIC_PAGES: dict[str, Path] = {
+    "/": FRONTEND / "index.html",
+    "/courses": FRONTEND / "catalogue" / "index.html",
+    "/class-9-physics/": FRONTEND / "class-9-physics" / "index.html",
+    "/class-10-physics/": FRONTEND / "class-10-physics" / "index.html",
+    "/class-11-physics/": FRONTEND / "class-11-physics" / "index.html",
+    "/class-12-physics/": FRONTEND / "class-12-physics" / "index.html",
+    "/method/": FRONTEND / "method" / "index.html",
+    "/about/": FRONTEND / "about" / "index.html",
+    "/pricing/": FRONTEND / "pricing" / "index.html",
+    "/terms/": FRONTEND / "terms" / "index.html",
+    "/contact/": FRONTEND / "contact" / "index.html",
+    "/status/": FRONTEND / "status" / "index.html",
+    "/privacy/": FRONTEND / "privacy" / "index.html",
+}
+
+# The browser server serves paths, not nginx's exact-match route. /courses is
+# tested through its file path; the nginx routing is asserted separately.
+BROWSER_PAGES = ["/", "/catalogue/", "/class-9-physics/", "/method/", "/about/",
+                 "/pricing/", "/terms/", "/contact/", "/status/", "/privacy/"]
+
+LESSON_DEVICE_MARKERS = [
+    "zn-lang-bar",
+    "zn-voice-dock",
+    "zn-check",
+    "zn-sim",
+    "zn-reveal",
+    "zn-page",
+    "Caveat",
+    'class="zn-diagram',
 ]
 
 
-class TestShellContract(unittest.TestCase):
-    """Static checks on the shell source: no browser needed."""
+def _resolve_ref(ref: str, page: Path) -> Path | None:
+    """Resolve a local reference the way the static server/nginx would.
 
-    def test_self_contained_no_network_refs(self) -> None:
-        # The repo rule: generated AND hand-maintained pages make no EXTERNAL
-        # calls. Same-origin requests (fetch("/v1/..."), ./manifest.json,
-        # wss://<same origin>/voice/ws) are allowed and covered by the CSP
-        # tests; a blanket `fetch(` ban hid real same-origin wiring.
-        bad = re.compile(
-            r"""(?:src|href)\s*=\s*["']https?://|url\(\s*["']?https?://"""
-            r"""|(?:fetch|WebSocket)\(\s*["']https?://"""
+    Returns None for anchors, mail links and external URLs (external *links*
+    are allowed; external resources are caught by the resource regex).
+    """
+    raw = ref.split("?", 1)[0].split("#", 1)[0]
+    if not raw or raw.startswith(("http:", "https:", "mailto:", "tel:", "//")):
+        return None
+    if raw.startswith("/"):
+        if raw in ("/courses", "/courses/"):
+            return FRONTEND / "catalogue" / "index.html"
+        target = FRONTEND / raw.lstrip("/")
+    else:
+        target = page.parent / raw
+    if target.is_dir():
+        target = target / "index.html"
+    return target
+
+
+def _public_html() -> list[tuple[str, Path]]:
+    return list(PUBLIC_PAGES.items()) + [("/404.html", FRONTEND / "404.html")]
+
+
+class TestPublicSiteContract(unittest.TestCase):
+    """Static contract: no browser needed."""
+
+    def test_self_contained_no_external_resources(self) -> None:
+        # A page may LINK out (the public issue tracker), but it may not LOAD
+        # anything from another host: fonts, styles, scripts, images, fetches.
+        external_src = re.compile(r"""\bsrc\s*=\s*["']https?://""", re.IGNORECASE)
+        external_link = re.compile(
+            r"""<link\b[^>]*\bhref\s*=\s*["']https?://""", re.IGNORECASE
+        )
+        external_css = re.compile(r"""url\(\s*["']?https?://""", re.IGNORECASE)
+        external_io = re.compile(
+            r"""(?:fetch|WebSocket|EventSource)\(\s*["']https?://""", re.IGNORECASE
         )
         files = list(CODE_FILES)
-        if (FRONTEND / "courses").is_dir():
-            # Published snapshot (scripts/publish-frontend.sh) is held to the
-            # same no-external-refs rule as the shell and as factory lint.
-            files += [
-                p
-                for p in (FRONTEND / "courses").rglob("*")
-                if p.suffix in {".html", ".js", ".css", ".json"}
-            ]
+        files += [path for _, path in _public_html()]
+        files += [path for path in (FRONTEND / "courses").rglob("*") if path.suffix in {".html", ".js", ".css", ".json"}]
         for f in files:
             text = f.read_text(encoding="utf-8")
             for line_no, line in enumerate(text.splitlines(), 1):
-                if bad.search(line):
-                    self.fail(
-                        f"{f.relative_to(REPO_ROOT)}:{line_no} touches the network: {line.strip()}"
-                    )
+                for pattern in (external_src, external_link, external_css, external_io):
+                    if pattern.search(line):
+                        self.fail(
+                            f"{f.relative_to(REPO_ROOT)}:{line_no} loads an external "
+                            f"resource: {line.strip()}"
+                        )
 
     def test_internal_references_resolve(self) -> None:
-        html = INDEX.read_text(encoding="utf-8")
-        refs = re.findall(r"""(?:src|href)\s*=\s*["']([^"'#]+)["']""", html)
-        local = [r for r in refs if not r.startswith(("http:", "https:", "mailto:"))]
-        self.assertTrue(local, "expected local asset references in index.html")
-        for ref in local:
-            # Cache-busted references (`assets/zivon.js?v=20261111b`) address
-            # the file before the query string; the query is a cache key, not
-            # part of the path. Strip it (and any fragment) before resolving.
-            path = ref.split("?", 1)[0].split("#", 1)[0]
-            self.assertTrue(
-                (FRONTEND / path).exists(),
-                f"index.html references missing file: {ref}",
-            )
+        checked = 0
+        for route, page in _public_html():
+            self.assertTrue(page.is_file(), f"{route} is missing ({page})")
+            html = page.read_text(encoding="utf-8")
+            refs = re.findall(r"""(?:src|href)\s*=\s*["']([^"']+)["']""", html)
+            self.assertTrue(refs, f"{route} has no local references")
+            for ref in refs:
+                target = _resolve_ref(ref, page)
+                if target is None:
+                    continue
+                self.assertTrue(
+                    target.is_file(),
+                    f"{route} references missing file: {ref}",
+                )
+                checked += 1
+        self.assertGreater(checked, 20, "expected a linked public site")
 
     def test_cache_busted_asset_refs_still_resolve(self) -> None:
-        # The shipped shell cache-busts its JS/CSS (`?v=<build>`), so a stale
-        # zivon.js can never pin an old page. The rewrite must not turn into a
-        # broken path: every local ref on every shipped HTML page (shell and
-        # published snapshot alike) resolves once the query string is removed.
-        pages = [INDEX, FRONTEND / "privacy" / "index.html", FRONTEND / "404.html"]
-        if (FRONTEND / "courses").is_dir():
-            pages += sorted((FRONTEND / "courses").rglob("*.html"))
-        pages = [p for p in pages if p.is_file()]
-        self.assertIn(
-            "?v=",
-            INDEX.read_text(encoding="utf-8"),
-            "the shell should cache-bust its assets",
-        )
-        checked = 0
+        # A stale asset must never pin an old page; the query string is a cache
+        # key, not part of the path. Every shipped public page carries ?v= and
+        # still resolves after it is stripped.
+        pages = [path for _, path in _public_html()]
         for page in pages:
             html = page.read_text(encoding="utf-8")
-            refs = re.findall(r"""(?:src|href)\s*=\s*["']([^"'#]+)["']""", html)
-            for ref in refs:
-                if ref.startswith(("http:", "https:", "mailto:", "//")):
+            refs = re.findall(r"""(?:src|href)\s*=\s*["']([^"']+)["']""", html)
+            local = [
+                ref
+                for ref in refs
+                if not ref.startswith(("http:", "https:", "mailto:", "tel:", "//", "#"))
+            ]
+            self.assertIn("?v=", html, f"{page.name} should cache-bust its assets")
+            for ref in local:
+                target = _resolve_ref(ref, page)
+                if target is None:
                     continue
-                path = ref.split("?", 1)[0].split("#", 1)[0]
-                if not path:
-                    continue
-                if path.startswith("/"):
-                    target = (FRONTEND / path.lstrip("/")).resolve()
-                else:
-                    target = (page.parent / path).resolve()
-                if target.is_dir():
-                    target = target / "index.html"
                 self.assertTrue(
                     target.is_file(),
                     f"{page.relative_to(REPO_ROOT)} references missing file: {ref}",
                 )
-                checked += 1
-        self.assertGreater(checked, 0, "expected local references on shipped pages")
+
+    def test_public_pages_have_metadata_and_one_h1(self) -> None:
+        for route, page in _public_html():
+            html = page.read_text(encoding="utf-8")
+            self.assertRegex(html, r'<html\s+lang="en"', f"{route}: html lang")
+            self.assertIn('name="viewport"', html, f"{route}: viewport")
+            self.assertRegex(html, r"<title>[^<]+</title>", f"{route}: title")
+            self.assertIn('name="description"', html, f"{route}: description")
+            if route != "/404.html":
+                self.assertIn('rel="canonical"', html, f"{route}: canonical")
+            self.assertEqual(
+                len(re.findall(r"<h1\b", html)), 1, f"{route}: exactly one h1"
+            )
+            self.assertIn('id="main"', html, f"{route}: main landmark")
+            self.assertIn('class="skip" href="#main"', html, f"{route}: skip link")
+            if route != "/404.html":
+                self.assertIn(
+                    'name="robots" content="index,follow"',
+                    html,
+                    f"{route}: indexable public page",
+                )
+
+    def test_landing_carries_social_metadata_and_json_ld(self) -> None:
+        html = INDEX.read_text(encoding="utf-8")
+        self.assertIn('property="og:type"', html)
+        self.assertIn('property="og:url"', html)
+        self.assertRegex(html, r'property="og:image"\s+content="https?://[^"]+"')
+        self.assertRegex(html, r'name="twitter:image"\s+content="https?://[^"]+"')
+        self.assertIn('type="application/ld+json"', html)
+        self.assertIn('"@type":"WebSite"', html)
+
+    def test_no_lesson_devices_on_public_pages(self) -> None:
+        # Doctrine §0 scope guard: the public site uses base Field Notes §1-§9.
+        # The privacy page keeps functional zn-privacy-* ids but must not load
+        # the lesson stylesheet or any §10 component.
+        for route, page in _public_html():
+            html = page.read_text(encoding="utf-8")
+            self.assertNotIn("assets/zivon.css", html, f"{route}: lesson stylesheet")
+            for marker in LESSON_DEVICE_MARKERS:
+                self.assertNotIn(marker, html, f"{route}: lesson device {marker!r}")
+            self.assertNotIn("style=", html, f"{route}: inline style (CSP)")
+
+    def test_no_official_affiliation_claims(self) -> None:
+        forbidden = [
+            "CBSE-approved",
+            "CBSE approved",
+            "official CBSE paper",
+            "official CBSE question",
+            "is affiliated with CBSE",
+            "in partnership with CBSE",
+        ]
+        for route, page in _public_html():
+            text = page.read_text(encoding="utf-8").lower()
+            for phrase in forbidden:
+                self.assertNotIn(
+                    phrase.lower(), text, f"{route}: forbidden claim {phrase!r}"
+                )
+
+    def test_no_dead_form_or_payment_affordance(self) -> None:
+        # Honest waitlist state: no form and no payment input until the backend
+        # and accounts exist (F2/F11 handoff).
+        for route in ("/pricing/", "/contact/"):
+            html = PUBLIC_PAGES[route].read_text(encoding="utf-8")
+            self.assertNotIn("<form", html.lower(), f"{route}: no dead form")
+            self.assertNotIn('type="email"', html, f"{route}: no email field")
+            self.assertNotIn('type="password"', html, f"{route}: no password field")
+
+    def test_nginx_serves_the_catalogue_and_class_routes(self) -> None:
+        nginx = (REPO_ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
+        self.assertIn("location = /courses {", nginx)
+        self.assertIn("try_files /catalogue/index.html =404;", nginx)
+        for klass in (9, 10, 11, 12):
+            self.assertRegex(
+                nginx,
+                rf"location = /courses/{klass}/physics\s+\{{ return 301 /class-{klass}-physics/; \}}",
+            )
 
     def test_published_catalogue_entries_resolve(self) -> None:
         # Publish-flow contract (scripts/publish-frontend.sh): the repo copy of
@@ -121,18 +246,11 @@ class TestShellContract(unittest.TestCase):
         # index.html with a manifest.json beside it (traceability), and every
         # topic directory on disk must be listed (a wholesale replacement never
         # leaves unlisted pages behind). Mirrors stage 11-link's publish smoke.
-        #
-        # Localized pages are variants, not catalogue entries: they live at
-        # `<topic>/<locale>/index.html` (the v1 route layout), carry their
-        # strings in `<topic>/i18n/<locale>.json`, and must belong to a listed
-        # topic. They do not need their own courses.js entry.
         if not (FRONTEND / "courses").is_dir():
             self.skipTest("no published catalogue in this checkout")
         courses_text = (FRONTEND / "courses.js").read_text(encoding="utf-8")
         entries = re.findall(r'"href":\s*"([^"]+)"', courses_text)
         self.assertTrue(entries, "courses/ exists but courses.js lists no entries")
-        # P5 catalogue v2: the machine catalogue is the source of truth and its
-        # version guard says the published tree is homogeneous.
         catalogue = json.loads(
             (FRONTEND / "catalogue.json").read_text(encoding="utf-8")
         )
@@ -188,21 +306,18 @@ class TestShellContract(unittest.TestCase):
         )
 
 
-class TestShellBehaviour(unittest.TestCase):
-    """Real Chromium against file://frontend/index.html."""
+class TestPublicSiteBehaviour(unittest.TestCase):
+    """Real Chromium against a static server over HTTP."""
 
-    _pw: Any  # Playwright handle, injected in setUpClass
-    _browser: Any  # Chromium browser, injected in setUpClass
-    _server: Any  # static HTTP server (file:// blocks font CORS)
+    _pw: Any
+    _browser: Any
+    _server: Any
     _base_url: str
 
     @classmethod
     def setUpClass(cls) -> None:
         cls._pw = sync_playwright().start()
         cls._browser = cls._pw.chromium.launch()
-        # Serve frontend/ over HTTP: Chromium refuses woff2 @font-face and
-        # crossorigin preloads from an opaque file:// origin (CORS), which is
-        # not how the site is ever deployed.
         cls._server = serve_static(FRONTEND)
         cls._base_url = cls._server.__enter__()
 
@@ -212,8 +327,12 @@ class TestShellBehaviour(unittest.TestCase):
         cls._browser.close()
         cls._pw.stop()
 
-    def _new_page(self) -> tuple[Page, list[str]]:
-        page = self._browser.new_page()
+    def _new_page(self, *, javascript: bool = True, width: int = 1280) -> tuple[Page, list[str]]:
+        context = self._browser.new_context(
+            viewport={"width": width, "height": 900},
+            java_script_enabled=javascript,
+        )
+        page = context.new_page()
         errors: list[str] = []
         page.on(
             "console", lambda m: errors.append(m.text) if m.type == "error" else None
@@ -221,73 +340,183 @@ class TestShellBehaviour(unittest.TestCase):
         page.on("pageerror", lambda e: errors.append(str(e)))
         return page, errors
 
-    def test_page_loads_clean_with_a11y_basics(self) -> None:
+    def test_landing_loads_clean_with_concept_a(self) -> None:
         page, errors = self._new_page()
         try:
-            page.goto(f"{self._base_url}/index.html")
+            page.goto(f"{self._base_url}/")
+            page.wait_for_timeout(500)
             self.assertEqual(errors, [], f"console/page errors on load: {errors}")
             self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
             self.assertTrue(page.title().startswith("Zivon"))
-            self.assertIsNotNone(page.query_selector('meta[name="viewport"]'))
-            self.assertIsNotNone(page.query_selector("#zn-courses[aria-label]"))
+            self.assertEqual(page.locator("h1").count(), 1)
+            self.assertIn("Ask the page", page.locator("h1").inner_text())
+            self.assertGreaterEqual(page.locator(".pen .uline").count(), 1)
+            self.assertEqual(page.locator('a.btn[href="/courses"]').count(), 3)
+            self.assertIn("not a recording", page.locator(".artifact-head .meta").first.inner_text())
+            self.assertIn("16 N", page.locator(".artifact--tilt").inner_text())
+            self.assertEqual(page.locator("[data-coverage] tbody tr").count(), 4)
+            self.assertFalse(page.locator("[data-coverage]").is_hidden())
         finally:
             page.close()
 
-    def test_empty_catalogue_contract(self) -> None:
-        # Empty-STATE contract against a SYNTHETIC empty courses.js (request-time
-        # fake, like the catalogue-render test below): zero cards, and the
-        # human-readable empty state is revealed. The repo's live courses.js may
-        # hold published entries (the publish flow commits generated pages);
-        # that integrity is level-1 TestShellContract's job, never this test's.
+    def test_landing_works_with_javascript_off(self) -> None:
+        page, errors = self._new_page(javascript=False)
+        try:
+            page.goto(f"{self._base_url}/")
+            self.assertIn("Ask the page", page.locator("h1").inner_text())
+            self.assertIn("net force", page.locator(".artifact--tilt").inner_text())
+            self.assertEqual(page.locator(".pen .uline").count(), 0)
+            self.assertTrue(page.locator('a.btn[href="/courses"]').first.is_visible())
+            self.assertIn("A video explains the step", page.locator(".pull").inner_text())
+            self.assertIn("Is my voice recorded?", page.locator(".faq").inner_text())
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_catalogue_filters_searches_and_states(self) -> None:
+        page, errors = self._new_page()
+        try:
+            page.goto(f"{self._base_url}/catalogue/")
+            page.wait_for_timeout(300)
+            self.assertEqual(page.locator(".chapter-card").count(), 6)
+            self.assertEqual(page.locator(".class-group-heading h3").count(), 2)
+            self.assertIn("6 chapters live", page.locator("#catalogue-count").inner_text())
+            self.assertIn("Class 10, Class 12", page.locator("#catalogue-coverage").inner_text())
+
+            page.click('[data-class-filter="9"]')
+            page.wait_for_timeout(100)
+            self.assertEqual(page.locator(".chapter-card").count(), 2)
+            self.assertIn("2 of 6 chapters shown", page.locator("#catalogue-count").inner_text())
+            self.assertIn("Class 9", page.locator(".class-group-heading h3").first.inner_text())
+
+            page.click('[data-class-filter="0"]')
+            page.fill("#catalogue-search", "how forces")
+            page.wait_for_timeout(300)
+            self.assertEqual(page.locator(".chapter-card").count(), 1)
+            self.assertIn(
+                "How Forces Affect Motion", page.locator(".chapter-card").inner_text()
+            )
+            self.assertIn("q=how+forces", page.url)
+
+            page.fill("#catalogue-search", "zzzz")
+            page.wait_for_timeout(300)
+            self.assertEqual(page.locator(".chapter-card").count(), 0)
+            self.assertFalse(page.locator("#catalogue-empty").is_hidden())
+            self.assertIn(
+                "No chapter matches", page.locator("#catalogue-empty").inner_text()
+            )
+
+            page.click("#catalogue-clear")
+            page.wait_for_timeout(200)
+            self.assertEqual(page.locator(".chapter-card").count(), 6)
+            self.assertEqual(errors, [], f"console/page errors: {errors}")
+        finally:
+            page.close()
+
+    def test_catalogue_error_state_is_honest(self) -> None:
         page, errors = self._new_page()
         try:
             page.route(
                 "**/courses.js",
                 lambda route: route.fulfill(
-                    status=200,
-                    body="window.ZIVON_COURSES=[];",
-                    content_type="application/javascript",
+                    status=200, body="", content_type="application/javascript"
                 ),
             )
-            page.goto(f"{self._base_url}/index.html")
-            self.assertEqual(
-                page.evaluate("document.querySelectorAll('#zn-courses a').length"), 0
-            )
-            self.assertFalse(
-                page.evaluate("document.getElementById('zn-empty').hidden"),
-                "empty-state message should be revealed when there are no courses",
-            )
-            self.assertEqual(errors, [], f"console/page errors: {errors}")
+            page.goto(f"{self._base_url}/catalogue/")
+            page.wait_for_timeout(200)
+            self.assertFalse(page.locator("#catalogue-error").is_hidden())
+            self.assertEqual(page.locator(".chapter-card").count(), 0)
+            self.assertIn("did not load", page.locator("#catalogue-count").inner_text())
+            self.assertEqual(page.locator("#catalogue-error a").get_attribute("href"), "/sitemap.xml")
+            self.assertEqual(errors, [])
         finally:
             page.close()
 
-    def test_catalogue_renders_from_courses_js(self) -> None:
-        # Replace courses.js with fake catalogue data at request time, then
-        # assert the renderer produced a well-formed card.
-        fake = (
-            "window.ZIVON_COURSES=[{course_id:'PHY9-MOTION',title:'Motion',"
-            "chapter:'Motion and Force',href:'courses/motion/index.html',"
-            "generated_at:'2026-11-02'}];"
-        )
+    def test_class_pages_render_live_and_empty_states(self) -> None:
         page, errors = self._new_page()
         try:
-            page.route(
-                "**/courses.js",
-                lambda route: route.fulfill(
-                    status=200, body=fake, content_type="application/javascript"
-                ),
+            page.goto(f"{self._base_url}/class-9-physics/")
+            page.wait_for_timeout(300)
+            self.assertEqual(page.locator(".chapter-card").count(), 2)
+            self.assertIn("2 chapters live", page.locator("#class-count").inner_text())
+            self.assertTrue(page.locator("#class-empty").is_hidden())
+            self.assertIn("Latest chapter published", page.locator("#class-latest").inner_text())
+
+            page.goto(f"{self._base_url}/class-10-physics/")
+            page.wait_for_timeout(300)
+            self.assertEqual(page.locator(".chapter-card").count(), 0)
+            self.assertIn("No published chapter yet", page.locator("#class-count").inner_text())
+            self.assertFalse(page.locator("#class-empty").is_hidden())
+
+            page.goto(f"{self._base_url}/class-11-physics/")
+            page.wait_for_timeout(300)
+            self.assertEqual(page.locator(".chapter-card").count(), 4)
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_every_public_page_loads_clean_at_360(self) -> None:
+        for path in BROWSER_PAGES:
+            page, errors = self._new_page(width=360)
+            try:
+                page.goto(f"{self._base_url}{path}")
+                page.wait_for_timeout(300)
+                self.assertEqual(errors, [], f"{path}: console/page errors: {errors}")
+                self.assertEqual(page.locator("h1").count(), 1, f"{path}: one h1")
+                overflow = page.evaluate(
+                    "document.documentElement.scrollWidth > "
+                    "document.documentElement.clientWidth"
+                )
+                self.assertFalse(overflow, f"{path}: horizontal overflow at 360 px")
+            finally:
+                page.close()
+
+    def test_catalogue_lesson_links_resolve(self) -> None:
+        page, errors = self._new_page()
+        try:
+            page.goto(f"{self._base_url}/catalogue/")
+            page.wait_for_timeout(300)
+            hrefs = page.eval_on_selector_all(
+                ".chapter-card .chapter-title a", "els => els.map(e => e.getAttribute('href'))"
             )
-            page.goto(f"{self._base_url}/index.html")
-            cards = page.query_selector_all("#zn-courses a.zn-card")
-            self.assertEqual(len(cards), 1)
-            text = cards[0].inner_text()
-            self.assertIn("Motion", text)
-            self.assertIn("Chapter: Motion and Force", text)
-            self.assertIn("PHY9-MOTION", text)
+            self.assertEqual(len(hrefs), 6)
+            for href in hrefs:
+                response = page.request.get(f"{self._base_url}{href}")
+                self.assertEqual(response.status, 200, f"lesson link broke: {href}")
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
+    def test_accessibility_basics(self) -> None:
+        page, errors = self._new_page()
+        try:
+            page.goto(f"{self._base_url}/catalogue/")
+            page.wait_for_timeout(300)
+            empty_links = page.evaluate(
+                """() => Array.from(document.querySelectorAll('a')).filter(
+                    (a) => !a.textContent.trim() && !a.getAttribute('aria-label')
+                ).length"""
+            )
+            self.assertEqual(empty_links, 0, "every link needs an accessible name")
+            self.assertEqual(page.locator("#catalogue-search").count(), 1)
+            self.assertIsNotNone(
+                page.evaluate(
+                    "document.querySelector('label[for=\"catalogue-search\"]') ? 1 : null"
+                )
+            )
             self.assertEqual(
-                cards[0].get_attribute("href"), "courses/motion/index.html"
+                page.evaluate(
+                    "document.querySelector('#catalogue-count').getAttribute('aria-live')"
+                ),
+                "polite",
             )
-            self.assertEqual(errors, [], f"console/page errors: {errors}")
+            self.assertEqual(
+                page.evaluate(
+                    "document.querySelector('[data-class-filter]').tagName"
+                ),
+                "BUTTON",
+            )
+            self.assertEqual(errors, [])
         finally:
             page.close()
 
