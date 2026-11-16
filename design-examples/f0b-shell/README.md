@@ -186,6 +186,25 @@ them to the shared kit rather than copy page-local markup:
 - This is example evidence, not the product perf/a11y gate; the implementing PR still needs
   axe, keyboard, state-coverage, and weak-Android evidence.
 
+## Kit merge notes (for implementation)
+
+These are the places where the exploration meets the existing kit; resolve them before merging
+the components into `frontend/assets/zivon.css`:
+
+- **`.zn-footer` already names the lesson sources footer** in the kit. The public footer here
+  uses the same class; rename it (for example `.zn-site-footer`) or scope it so lesson pages
+  never inherit the marketing footer.
+- `.zn-card` and `.zn-empty` already exist on the landing shell; extend those rules rather than
+  forking a second card or empty state.
+- `.zn-header`, `.zn-title`, `.zn-kicker` are lesson-header components; the app uses
+  `.zn-appbar` + `.zn-page-head` so the two surfaces do not collide.
+- `.zn-check` is the lesson quiz card. The app practice question uses `.zn-choice` rows and a
+  `.feedback-panel`; do not reuse `.zn-check` outside a lesson.
+- The `.review-strip` is example chrome and must not be implemented. The example-only
+  `data-state` / template injection is a review harness, not a runtime state machine.
+- The public footer copy is a draft; the trust/privacy copy still needs the compliance and
+  privacy owners' review.
+
 ## Review checklist
 
 - [ ] Public header/footer feel like one Field Notes page, not SaaS.
