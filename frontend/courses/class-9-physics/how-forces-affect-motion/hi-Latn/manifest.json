@@ -1,6 +1,6 @@
 {
   "course_id": "class-9-physics",
-  "topic_slug": "motion",
+  "topic_slug": "how-forces-affect-motion",
   "locale": "hi-Latn",
   "narration": {
     "available": false,
@@ -124,5 +124,28 @@
       }
     }
   },
-  "generated_at": "2026-11-11T15:00:46Z"
+  "generated_at": "2026-11-11T15:00:46Z",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "How Forces Affect Motion: Force, Friction and Newton's Three Laws",
+    "hi": "बल (force) गति (motion) को कैसे प्रभावित करते हैं: बल, घर्षण और न्यूटन के तीन नियम",
+    "hi-Latn": "Force (bal) Motion (gati) ko Kaise Affect Karte Hain: Force, Friction aur Newton ke Teen Laws"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  }
 }

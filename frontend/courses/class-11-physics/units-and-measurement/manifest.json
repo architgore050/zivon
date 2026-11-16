@@ -1,8 +1,370 @@
 {
+  "manifest_version": 2,
+  "chapter_id": "class-11-units-and-measurement",
+  "lesson_id": "class-11-units-and-measurement",
   "course_id": "class-11-physics",
+  "subject": "physics",
   "class": 11,
   "topic_slug": "units-and-measurement",
   "title": "Units and Measurement",
+  "lesson_title": "Units and Measurement",
+  "status": "lesson_only",
+  "languages": {
+    "default": "en",
+    "available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "missing": []
+  },
+  "counts": {
+    "lesson_blocks": 41,
+    "checks": 14,
+    "worked_examples": 11,
+    "diagrams": 2,
+    "simulations": 1,
+    "reveals": 5,
+    "text_blocks": 8
+  },
+  "concepts": [
+    {
+      "concept_id": "class-11-units-and-measurement-sec-01",
+      "section_id": "sec-01",
+      "title": "Introduction: What is measurement?"
+    },
+    {
+      "concept_id": "class-11-units-and-measurement-sec-02",
+      "section_id": "sec-02",
+      "title": "The International System of Units"
+    },
+    {
+      "concept_id": "class-11-units-and-measurement-sec-03",
+      "section_id": "sec-03",
+      "title": "Significant figures"
+    },
+    {
+      "concept_id": "class-11-units-and-measurement-sec-04",
+      "section_id": "sec-04",
+      "title": "Arithmetic, rounding and uncertainty"
+    },
+    {
+      "concept_id": "class-11-units-and-measurement-sec-05",
+      "section_id": "sec-05",
+      "title": "Dimensions of physical quantities"
+    },
+    {
+      "concept_id": "class-11-units-and-measurement-sec-06",
+      "section_id": "sec-06",
+      "title": "Dimensional formulae and equations"
+    },
+    {
+      "concept_id": "class-11-units-and-measurement-sec-08",
+      "section_id": "sec-08",
+      "title": "Summary"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "Introduction: What is measurement?",
+      "concept_id": "class-11-units-and-measurement-sec-01",
+      "block_ids": [
+        "b-01",
+        "b-02"
+      ]
+    },
+    {
+      "id": "sec-02",
+      "title": "The International System of Units",
+      "concept_id": "class-11-units-and-measurement-sec-02",
+      "block_ids": [
+        "b-03",
+        "b-04",
+        "b-05"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "Significant figures",
+      "concept_id": "class-11-units-and-measurement-sec-03",
+      "block_ids": [
+        "b-06",
+        "b-07",
+        "b-08",
+        "b-09",
+        "b-10",
+        "b-11"
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Arithmetic, rounding and uncertainty",
+      "concept_id": "class-11-units-and-measurement-sec-04",
+      "block_ids": [
+        "b-12",
+        "b-13",
+        "b-14",
+        "b-15"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "title": "Dimensions of physical quantities",
+      "concept_id": "class-11-units-and-measurement-sec-05",
+      "block_ids": [
+        "b-16",
+        "b-17"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Dimensional formulae and equations",
+      "concept_id": "class-11-units-and-measurement-sec-06",
+      "block_ids": [
+        "b-18",
+        "b-19",
+        "b-20",
+        "b-21",
+        "b-22",
+        "b-23",
+        "b-24"
+      ]
+    },
+    {
+      "id": "sec-08",
+      "title": "Summary",
+      "concept_id": "class-11-units-and-measurement-sec-08",
+      "block_ids": [
+        "b-25",
+        "b-26",
+        "b-27",
+        "b-28",
+        "b-29",
+        "b-30",
+        "b-31",
+        "b-32",
+        "b-33",
+        "b-34",
+        "b-35",
+        "b-36",
+        "b-37",
+        "b-38",
+        "b-39",
+        "b-40",
+        "b-41"
+      ]
+    }
+  ],
+  "blocks": {
+    "b-01": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-11-units-and-measurement-sec-01"
+    },
+    "b-02": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-11-units-and-measurement-sec-01"
+    },
+    "b-03": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-11-units-and-measurement-sec-02"
+    },
+    "b-04": {
+      "type": "diagram",
+      "section_id": "sec-02",
+      "concept_id": "class-11-units-and-measurement-sec-02"
+    },
+    "b-05": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-11-units-and-measurement-sec-02"
+    },
+    "b-06": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-11-units-and-measurement-sec-03"
+    },
+    "b-07": {
+      "type": "reveal",
+      "section_id": "sec-03",
+      "concept_id": "class-11-units-and-measurement-sec-03"
+    },
+    "b-08": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-11-units-and-measurement-sec-03"
+    },
+    "b-09": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-11-units-and-measurement-sec-03"
+    },
+    "b-10": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-11-units-and-measurement-sec-03"
+    },
+    "b-11": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-11-units-and-measurement-sec-03"
+    },
+    "b-12": {
+      "type": "reveal",
+      "section_id": "sec-04",
+      "concept_id": "class-11-units-and-measurement-sec-04"
+    },
+    "b-13": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-11-units-and-measurement-sec-04"
+    },
+    "b-14": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-11-units-and-measurement-sec-04"
+    },
+    "b-15": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-11-units-and-measurement-sec-04"
+    },
+    "b-16": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-11-units-and-measurement-sec-05"
+    },
+    "b-17": {
+      "type": "diagram",
+      "section_id": "sec-05",
+      "concept_id": "class-11-units-and-measurement-sec-05"
+    },
+    "b-18": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-19": {
+      "type": "reveal",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-20": {
+      "type": "worked_example",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-21": {
+      "type": "worked_example",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-22": {
+      "type": "reveal",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-23": {
+      "type": "simulation",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-24": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-units-and-measurement-sec-06"
+    },
+    "b-25": {
+      "type": "text",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-26": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-27": {
+      "type": "reveal",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-28": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-29": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-30": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-31": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-32": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-33": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-34": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-35": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-36": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-37": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-38": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-39": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-40": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    },
+    "b-41": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-units-and-measurement-sec-08"
+    }
+  },
+  "pipeline_version": "9",
+  "content_hash": "sha256:1ec0615b2b29ac298f27363a8f087b019460799b9255624261c96f274aaa8777",
   "chapter": {
     "query": "Units and Measurement",
     "title": "UNITS AND MEASUREMENT",
@@ -10,7 +372,8 @@
     "pages": [
       1,
       12
-    ]
+    ],
+    "number": 1
   },
   "sources": [
     {
@@ -29,8 +392,8 @@
       "license": "see sources catalog"
     }
   ],
-  "run_id": "units-and-measurement-c11",
-  "generated_at": "2026-11-09T11:56:46Z",
+  "run_id": "units-and-measurement-c11-trans",
+  "generated_at": "2026-11-16T09:11:15Z",
   "block_counts": {
     "text": 8,
     "check": 14,
@@ -63,9 +426,9 @@
     }
   },
   "i18n_hashes": {
-    "en": "22fd240a9f061356661f0524cab49d429285a7d89f7ff05f89db46336e4786f3",
-    "hi": "1ccc9549c3aea4750d8c3d4e1b706d906033f31db9430c68ceb868141d092dc4",
-    "hi-Latn": "f72e9d6ebefea8501d91f898ba65a0597e1899d2ea2e4fb663cd46fa009f766e"
+    "en": "d6dfe6981599bbe7bab1e5c8e9115b8725fc0c221c133b2e16fb9485a4c30193",
+    "hi": "a740325ffd0fdb0cf2e6eb91f007b0242c0313713fc80a65537f2e7bc129ab69",
+    "hi-Latn": "9791988c923129293272920188fcb5317176802b66a2e0bee6b835656cdb2e77"
   },
   "narration": {
     "available": true,

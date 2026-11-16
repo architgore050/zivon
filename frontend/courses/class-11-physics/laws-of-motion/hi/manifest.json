@@ -301,5 +301,28 @@
       }
     }
   },
-  "generated_at": "2026-11-11T14:54:00Z"
+  "generated_at": "2026-11-11T14:54:00Z",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Laws of Motion",
+    "hi": "गति के नियम",
+    "hi-Latn": "Laws of Motion (Gati ke Niyam)"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  }
 }

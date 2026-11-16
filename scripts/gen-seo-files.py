@@ -64,6 +64,37 @@ def parse_courses_js(courses_js_path: Path) -> list[dict[str, Any]]:
     return [row for row in data if isinstance(row, dict)]
 
 
+def parse_catalogue(catalogue_path: Path) -> dict[str, dict[str, str]]:
+    """Map canonical topic path -> {locale: site path} from catalogue.json.
+
+    Stage 11-link writes ``localized_hrefs`` from what is on disk, so SEO uses
+    the SAME route truth as the catalogue instead of re-discovering it. A
+    missing/legacy catalogue simply yields an empty map and the on-disk
+    discovery below still runs.
+    """
+    if not catalogue_path.is_file():
+        return {}
+    try:
+        payload = json.loads(catalogue_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    for topic in payload.get("topics", []):
+        if not isinstance(topic, dict):
+            continue
+        canonical = topic_rel_path_from_href(str(topic.get("href") or ""))
+        hrefs = topic.get("localized_hrefs")
+        if canonical is None or not isinstance(hrefs, dict):
+            continue
+        routes: dict[str, str] = {}
+        for locale, href in hrefs.items():
+            route = topic_rel_path_from_href(str(href))
+            if route is not None:
+                routes[str(locale)] = route
+        out[canonical] = routes
+    return out
+
+
 def normalize_topic_path(href: str) -> str:
     clean = href.strip().lstrip("/")
     if clean.endswith("/index.html"):
@@ -110,6 +141,35 @@ def discover_locale_alternates(
     return alternates
 
 
+def _verified_alternates(
+    frontend_dir: Path,
+    canonical_rel_path: str,
+    catalogue_routes: dict[str, str],
+) -> dict[str, str]:
+    """Catalogue-first alternates, verified on disk before they are emitted.
+
+    ``catalogue.json`` is the publish contract; the on-disk walk remains the
+    fallback for a tree built before catalogue v2. A catalogue route whose file
+    vanished is dropped (never advertised), and English is added only when a
+    localized alternate actually survived.
+    """
+    alternates: dict[str, str] = {}
+    for locale, route in sorted(catalogue_routes.items()):
+        if locale in ("en", "en-IN"):
+            continue
+        target = (frontend_dir / route.strip("/") / "index.html").resolve()
+        try:
+            target.relative_to(frontend_dir.resolve())
+        except ValueError:
+            continue
+        if target.is_file():
+            alternates[locale] = route
+    if not alternates:
+        return discover_locale_alternates(frontend_dir, canonical_rel_path)
+    alternates["en"] = f"/{canonical_rel_path.strip('/')}/"
+    return alternates
+
+
 def build_json_ld(
     manifest: dict[str, Any], base_url: str | None = None
 ) -> dict[str, Any]:
@@ -151,6 +211,7 @@ def build_json_ld(
 def generate_sitemap_xml(frontend_dir: Path, base_url: str | None = None) -> str:
     base = get_base_url(base_url)
     entries = parse_courses_js(frontend_dir / "courses.js")
+    catalogue_routes = parse_catalogue(frontend_dir / "catalogue.json")
     url_blocks: list[str] = []
     has_any_alternates = False
 
@@ -181,7 +242,11 @@ def generate_sitemap_xml(frontend_dir: Path, base_url: str | None = None) -> str
             manifest.get("generated_at") or item.get("generated_at") or ""
         ).strip()
         latest_ts = max(latest_ts, lastmod)
-        alts = discover_locale_alternates(frontend_dir, rel_path)
+        alts = _verified_alternates(
+            frontend_dir,
+            rel_path,
+            catalogue_routes.get(rel_path, {}),
+        )
         if alts:
             has_any_alternates = True
         topic_records.append((rel_path, lastmod, alts))

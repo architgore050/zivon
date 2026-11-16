@@ -8,30 +8,70 @@
 # a generation run produced pages worth publishing (same manual discipline as
 # the factory trigger).
 #
-# What it copies: courses/, courses.js, any generated top-level locale hub
-# directories (hi/, hi-Latn/, etc.), and the pre-generated narration audio
-# (audio/, stage 12-narration) when present. It then regenerates
-# frontend/sitemap.xml and frontend/robots.txt via scripts/gen-seo-files.py
-# (seo-plan.md §5). The hand-maintained shell (index.html, 404.html, assets/)
-# stays repo-owned and is never overwritten from the cluster. Version
-# rotation: courses/ is replaced wholesale, so the repo copy always mirrors
-# exactly the current site; previous versions live in git history. audio/ is
-# mirrored ADDITIVELY (the content-hash filenames are immutable addresses -
-# GAP-015: old audio stays addressable until eviction), and every audio asset
-# is synchronously uploaded to the cold provider and sha256-read-back-verified
-# when the coldstore env is configured (backend-spec SYNC-01 P0 form, class C2).
-# Commit after publishing.
+# What it copies: courses/, catalogue.json, courses.js, any generated
+# top-level locale hub directories (hi/, hi-Latn/, etc.), and the pre-generated
+# narration audio (audio/, stage 12-narration) when present. The hand-maintained
+# shell (index.html, 404.html, assets/) stays repo-owned and is never
+# overwritten from the cluster. Version rotation: courses/ is replaced
+# wholesale, so the repo copy always mirrors exactly the current site; previous
+# versions live in git history. audio/ is mirrored ADDITIVELY (the content-hash
+# filenames are immutable addresses - GAP-015: old audio stays addressable
+# until eviction), and every audio asset is synchronously uploaded to the cold
+# provider and sha256-read-back-verified when the coldstore env is configured
+# (backend-spec SYNC-01 P0 form, class C2).
 #
-# Standalone deploy once published:
-#   docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" \
-#       zivon-frontend:0.1.6        # no factory, no cluster involved
+# Publish gates (P5, 2026-11-16):
+#   1. catalogue version guard - a tree mixing incompatible pipeline_versions
+#      is refused; one version across every published page is required;
+#   2. every courses.js/catalogue.json href and declared locale route resolves;
+#   3. every page carries the P1 hook contract (data-block-type/section map);
+#   4. no "Grade"/"Class" chapter title, no missing lesson_title;
+#   5. SEO regenerated AFTER locale hubs, with no placeholder base URL;
+#   6. every sitemap URL resolves, robots points at the same host;
+#   7. narration coverage is reported honestly (missing assets are listed).
 #
-# Usage: scripts/publish-frontend.sh
+# Usage:
+#   scripts/publish-frontend.sh
+#   scripts/publish-frontend.sh --dry-run --source-dir /path/to/site
+#   scripts/publish-frontend.sh --source-dir /path/to/site --allow-placeholder
+#
+# --dry-run validates a tree without touching the repo (used by the publish
+# contract tests and by an operator before a real publish).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 ns=zivon
 locale_hubs=(hi hi-Latn ta te mr bn gu kn ml pa)
+dry_run=0
+source_dir=""
+allow_placeholder=0
+publish_args=()
+seo_args=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) dry_run=1 ;;
+    --source-dir)
+      shift
+      [[ $# -gt 0 ]] || { echo "--source-dir needs a path" >&2; exit 2; }
+      source_dir="$1"
+      ;;
+    --allow-placeholder)
+      allow_placeholder=1
+      publish_args+=(--allow-placeholder)
+      seo_args+=(--allow-placeholder)
+      ;;
+    -h|--help)
+      sed -n 's/^# \{0,1\}//p' "$0" | sed -n '1,60p'
+      exit 0
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 emit_publish_log() {
   local evt="$1"
@@ -41,16 +81,23 @@ emit_publish_log() {
     "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$lvl" "$evt" "$detail" >&2
 }
 
-if ! kubectl get deploy/frontend -n "$ns" >/dev/null 2>&1; then
-  emit_publish_log "factory.publish.fail" "ERROR" "no frontend Deployment in namespace $ns"
-  echo "no frontend Deployment in namespace $ns - nothing to publish from" >&2
-  exit 1
+if [[ -z "$source_dir" ]]; then
+  if ! kubectl get deploy/frontend -n "$ns" >/dev/null 2>&1; then
+    emit_publish_log "factory.publish.fail" "ERROR" "no frontend Deployment in namespace $ns"
+    echo "no frontend Deployment in namespace $ns - nothing to publish from" >&2
+    exit 1
+  fi
+elif [[ ! -d "$source_dir" ]]; then
+  echo "--source-dir $source_dir is not a directory" >&2
+  exit 2
 fi
+
 if [[ ! -f frontend/index.html ]]; then
   emit_publish_log "factory.publish.fail" "ERROR" "repo frontend/index.html missing"
   echo "repo frontend/ shell missing (index.html) - refusing to publish" >&2
   exit 1
 fi
+
 # Canonical/sitemap/OG URLs come from ONE env var (seo-plan §5). Publishing with
 # it unset would write placeholder URLs into the committed snapshot and the
 # sitemap would point crawlers at a host that does not exist - fail loudly.
@@ -66,30 +113,52 @@ fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-# Pull the generated output from the PVC (the served html root), including any
-# generated locale hub directories (hi/, hi-Latn/, etc.) when present.
-# Narration audio (audio/) arrived with 12-narration builds only, so it is
-# pulled conditionally: an older PVC without it must not fail the tar.
-remote_paths=(courses courses.js)
-for loc in "${locale_hubs[@]}"; do
-  if kubectl exec -n "$ns" deploy/frontend -c nginx -- test -d "/usr/share/nginx/html/$loc" 2>/dev/null; then
-    remote_paths+=("$loc")
+if [[ -n "$source_dir" ]]; then
+  cp -a "$source_dir"/. "$tmp"/
+else
+  # Pull the generated output from the PVC (the served html root), including
+  # any generated locale hub directories (hi/, hi-Latn/, etc.) when present.
+  # Narration audio (audio/) arrived with 12-narration builds only, so it is
+  # pulled conditionally: an older PVC without it must not fail the tar.
+  remote_paths=(courses courses.js catalogue.json)
+  for loc in "${locale_hubs[@]}"; do
+    if kubectl exec -n "$ns" deploy/frontend -c nginx -- test -d "/usr/share/nginx/html/$loc" 2>/dev/null; then
+      remote_paths+=("$loc")
+    fi
+  done
+
+  if kubectl exec -n "$ns" deploy/frontend -c nginx -- \
+      test -d /usr/share/nginx/html/audio >/dev/null 2>&1; then
+    remote_paths+=("audio")
   fi
-done
 
-if kubectl exec -n "$ns" deploy/frontend -c nginx -- \
-    test -d /usr/share/nginx/html/audio >/dev/null 2>&1; then
-  remote_paths+=("audio")
+  kubectl exec -n "$ns" deploy/frontend -c nginx -- \
+    tar -C /usr/share/nginx/html -cf - "${remote_paths[@]}" > "$tmp/site.tar"
+
+  tar -xf "$tmp/site.tar" -C "$tmp"
 fi
-
-kubectl exec -n "$ns" deploy/frontend -c nginx -- \
-  tar -C /usr/share/nginx/html -cf - "${remote_paths[@]}" > "$tmp/site.tar"
-
-tar -xf "$tmp/site.tar" -C "$tmp"
 
 if [[ ! -d "$tmp/courses" || ! -f "$tmp/courses.js" ]]; then
   emit_publish_log "factory.publish.fail" "ERROR" "PVC has no generated courses/ + courses.js"
   echo "PVC has no generated courses/ + courses.js - nothing to publish" >&2
+  exit 1
+fi
+if [[ ! -f "$tmp/catalogue.json" ]]; then
+  emit_publish_log "factory.publish.fail" "ERROR" "PVC has no catalogue.json"
+  echo "PVC has no catalogue.json - stage 11-link must publish it next to courses.js" >&2
+  exit 1
+fi
+
+# Publish smoke BEFORE replacing the repo snapshot: version guard, hrefs,
+# locale routes, page hooks, manifest identity, narration coverage. SEO files
+# do not exist in the staging tree yet, so that part is checked after copy.
+if ! python3 -m factory.catalogue check \
+    --frontend-dir "$tmp" \
+    --strict \
+    --skip-seo \
+    "${publish_args[@]}"; then
+  emit_publish_log "factory.publish.fail" "ERROR" "catalogue integrity gate failed (staging tree)"
+  echo "Refusing to publish: the staging tree failed the catalogue/publish integrity gate." >&2
   exit 1
 fi
 
@@ -98,15 +167,22 @@ fi
 # site is byte-identical to the repo snapshot, the recent run never reached
 # stage 11-link (check it: scripts/logs-factory-run.sh) and this script would
 # silently "republish" an older topic. Say so loudly instead.
-if [[ -d frontend/courses ]] \
+if [[ "$dry_run" -eq 0 ]] \
+   && [[ -d frontend/courses ]] \
    && diff -rq frontend/courses "$tmp/courses" >/dev/null 2>&1 \
-   && cmp -s frontend/courses.js "$tmp/courses.js"; then
+   && cmp -s frontend/courses.js "$tmp/courses.js" \
+   && cmp -s frontend/catalogue.json "$tmp/catalogue.json"; then
   emit_publish_log "factory.publish.fail" "WARNING" "PVC site is identical to repo snapshot"
   echo "NOTHING NEW on the PVC: the site is identical to the repo snapshot." >&2
   echo "The last factory run did not publish a page (it failed before stage" >&2
   echo "11-link). Check it: scripts/logs-factory-run.sh  /  kubectl get jobs -n $ns" >&2
   echo "Repo frontend/ left untouched." >&2
   exit 2
+fi
+
+if [[ "$dry_run" -eq 1 ]]; then
+  echo "DRY RUN OK: $tmp would pass the catalogue/publish gates (repo untouched)."
+  exit 0
 fi
 
 # SYNC-01 publish gate (storage-tiering.md §3, ADR-0006): upload + read-back
@@ -117,6 +193,7 @@ bash scripts/publish-verify-hook.sh "$tmp/courses" C1
 rm -rf frontend/courses
 cp -a "$tmp/courses" frontend/courses
 cp -a "$tmp/courses.js" frontend/courses.js
+cp -a "$tmp/catalogue.json" frontend/catalogue.json
 
 copied_hubs=()
 for loc in "${locale_hubs[@]}"; do
@@ -130,7 +207,18 @@ done
 # Generate AFTER the locale hub copy: discover_locale_alternates() walks the
 # on-disk locale trees, so generating before hubs land made hreflang one
 # publish behind. Uses ZIVON_PUBLIC_BASE_URL (required above).
-python3 scripts/gen-seo-files.py
+python3 scripts/gen-seo-files.py --frontend-dir frontend "${seo_args[@]}"
+
+# Final smoke against the committed tree, now including generated SEO files.
+if ! python3 -m factory.catalogue check \
+    --frontend-dir frontend \
+    --strict \
+    "${publish_args[@]}"; then
+  emit_publish_log "factory.publish.fail" "ERROR" "catalogue integrity gate failed (snapshot)"
+  echo "The snapshot copy failed the final publish smoke - do NOT commit it." >&2
+  echo "Fix the tree (or restore frontend/ from git) and re-run." >&2
+  exit 1
+fi
 
 # Narration audio: additive mirror (content-addressed, immutable - existing
 # hashes stay addressable; GAP-015), then the SYNC-01 P0 cold gate.
@@ -162,5 +250,5 @@ echo "Published $count topic page(s) (+ $loc_count localized variant page(s)) fr
 find frontend/courses -mindepth 3 -maxdepth 4 -name index.html | sed 's|/index.html||; s|^|  |'
 echo
 echo "Next: review the diff and commit - git history is the version rotation:"
-echo "  git add frontend/courses frontend/courses.js frontend/sitemap.xml frontend/robots.txt frontend/audio ${copied_hubs[*]:-}"
+echo "  git add frontend/courses frontend/catalogue.json frontend/courses.js frontend/sitemap.xml frontend/robots.txt frontend/audio ${copied_hubs[*]:-}"
 echo "  git commit -m 'feat(site): publish <what changed>'"

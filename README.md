@@ -186,7 +186,9 @@ scripts/trigger-tests.sh                  # manual full test run (the "button")
 scripts/trigger-evals.sh                  # manual evaluation & reviewer-calibration run
 scripts/trigger-factory-run.sh "Motion" 9 # one generation run (same topic+class RESUMES; add --fresh to force clean generation)
 scripts/logs-factory-run.sh               # follow the latest run's logs (no job name needed)
-scripts/publish-frontend.sh               # mirror the cluster-built site (courses/ + courses.js) into frontend/ and regenerate sitemap.xml/robots.txt - the versioned deploy snapshot
+scripts/publish-frontend.sh               # mirror courses/ + catalogue.json + courses.js into frontend/, run the P5 integrity gates, regenerate sitemap.xml/robots.txt
+scripts/publish-frontend.sh --dry-run --source-dir <tree>   # validate a staging tree without touching frontend/
+python3 -m factory.catalogue check --frontend-dir frontend --strict   # catalogue/version/locale/hook/SEO smoke
 ```
 
 - The content factory runs as a **Job** (batch, runs to completion) and is **manual-trigger only** — generation never runs on a schedule. Only the test suite is scheduled (cadence from `TEST_CRON_SCHEDULE` in `k8s/infra.env`). The voice backend will run as a **Deployment + Service** when it exists.
