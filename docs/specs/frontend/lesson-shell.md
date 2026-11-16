@@ -75,10 +75,16 @@ drawer — no second nav).
   `EVT-F02`) with `section_id`, `concept_id` and a **measured** dwell bucket
   (`<5s` / `5-30s` / `>30s`). No fabricated buckets.
 - **The bar** shows `max(scroll percentage ever reached, sections read / total)`
-  so it never goes backwards. `aria-valuenow` is updated; nothing is announced
-  per scroll tick.
+  so it never goes backwards — including across a reload: the shell re-reads
+  `zivon.progress` at mount and seeds the in-memory counters from it, so a
+  returning student sees the sections they already read instead of "0 of 8"
+  (and an already-read section is not emitted again: the store is the source of
+  truth for "read"). The same hydration restores `completed`, so a finished
+  chapter never re-emits `EVT-lesson_complete` on a reload. `aria-valuenow` is
+  updated; nothing is announced per scroll tick.
 - **Lesson complete** = every section read **and** ≥ 90 % of the document
-  scrolled; emits `EVT-lesson_complete` once and stores `completed: true`.
+  scrolled; emits `EVT-lesson_complete` once per chapter per device and stores
+  `completed: true`.
 - **Device-local store** `localStorage["zivon.progress"]`:
 
 ```json
@@ -208,7 +214,10 @@ them with the consent record and the device pseudonym (`ZivonPrivacy`).
 `testing/frontend/test_lesson_shell.py` (key-free, offline, headless Chromium):
 shell mount and untouched body, drawer sections/current position, keyboard
 (Esc, focus restore, jump), previous/next chapter resolution, device-local
-progress + `EVT-section_viewed`, bookmark persistence across reload, explicit
-anchor + dock expansion, context-snapshot filter regression, honest end CTA,
-360 px frame, JS-off integrity, and a content-only fixture without manifest or
-catalogue.
+progress + `EVT-section_viewed`, progress hydration across a reload (no reset,
+no re-emitted section, no second completion), the completion gate's negative
+case (scrolled to the end is not "read"), bookmark persistence across reload,
+explicit anchor + dock expansion, the context-snapshot filter regression,
+declined-consent absence of voice affordances, honest end CTA (including the
+absent-row case), 360 px frame, JS-off integrity, and a content-only fixture
+without manifest or catalogue.

@@ -12,19 +12,26 @@ Contract under test (`docs/specs/frontend/lesson-shell.md`):
 3. Previous/next chapter links come from `catalogue.json` (same course order),
    and a page with no neighbour renders no link (never a dead control).
 4. Reading progress is device-local (`localStorage["zivon.progress"]`), drives
-   the 2 px bar, and emits `EVT-section_viewed` with a measured dwell bucket.
+   the 2 px bar, emits `EVT-section_viewed` with a measured dwell bucket, keeps
+   what the device already recorded across a reload (and never re-emits a
+   section it already counted), and needs every section read before it claims
+   completion.
 5. Bookmarks are device-local (`localStorage["zivon.bookmarks"]`), survive a
    reload, and toggle `aria-pressed`.
 6. "Ask about this" anchors the next tutor turn to that block: the explicit
    anchor wins over the viewport anchor and the dock opens expanded.
 7. `buildContextSnapshot()` never lets a `sec-NN` section wrapper into the
-   voice context (regression for the F4 context bug).
+   voice context (regression for the F4 context bug), and an explicit anchor
+   deep in the lesson keeps its real block type.
 8. The end-of-lesson CTA links only to pages that exist; practice and
-   explain-back are honest non-interactive "coming soon" statuses.
-9. 360 px: no horizontal overflow, shell controls >= 40 px, drawer fits.
-10. With JavaScript off the lesson is fully readable and no shell chrome
+   explain-back are honest non-interactive "coming soon" statuses, and a
+   chapter without a successor renders no empty row.
+9. Declined voice consent hides the Ask entry and every per-block chip
+   (doctrine §10.14) while reading, the drawer and progress keep working.
+10. 360 px: no horizontal overflow, shell controls >= 40 px, drawer fits.
+11. With JavaScript off the lesson is fully readable and no shell chrome
     exists (progressive enhancement, shell-injection.md "content-first").
-11. A content-only fixture without a manifest or catalogue still gets the
+12. A content-only fixture without a manifest or catalogue still gets the
     drawer from the DOM and hides the chapter links (no invented data).
 
 Browser tests serve `frontend/` over HTTP (fonts + `manifest.json` +
@@ -122,6 +129,15 @@ class TestLessonShell(unittest.TestCase):
         if reduced_motion:
             context_args["reduced_motion"] = reduced_motion
         context = self._browser.new_context(**context_args)
+        # No page in this repo ships a favicon, so Chromium's implicit
+        # /favicon.ico probe 404s and logs a console error on the FIRST
+        # navigation of a browser process only (later pages hit the same-process
+        # cache). That made the clean-console assertions depend on test order.
+        # The icon is not this contract's business: answer it here.
+        context.route(
+            "**/favicon.ico",
+            lambda route: route.fulfill(status=204, body=""),
+        )
         page = context.new_page()
         errors: list[str] = []
         page.on(
@@ -148,9 +164,6 @@ class TestLessonShell(unittest.TestCase):
             )
             page.wait_for_timeout(120)
         return context, page, errors
-
-    def _sections_from_page(self, page: Page) -> list[dict[str, Any]]:
-        return page.evaluate("() => window.ZivonLessonShell.getSections()")
 
     # -- 1. mount + lesson body untouched --------------------------------
 
@@ -200,7 +213,49 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 2. drawer sections + current position ---------------------------
+    # -- 2. consent gate: voice affordances are device-local and gated ---
+
+    def test_declined_consent_hides_voice_affordances(self) -> None:
+        """Declined voice must leave no dead affordance (doctrine §10.14).
+
+        The per-block chips and the app-bar Ask entry exist only when voice can
+        actually open; reading, the drawer and progress never depend on them.
+        """
+        context, page, errors = self._open_lesson(consent="declined")
+        try:
+            self.assertEqual(errors, [], f"declined page must load clean, got {errors}")
+            self.assertTrue(
+                page.eval_on_selector(".zn-appbar-ask", "el => el.hidden"),
+                "no Ask entry when voice is off on this device",
+            )
+            self.assertEqual(
+                page.locator(".zn-ask-block").count(),
+                0,
+                "no per-block chips when voice is off on this device",
+            )
+            self.assertEqual(
+                page.evaluate("() => document.body.getAttribute('data-zn-voice')"),
+                "off",
+            )
+            self.assertEqual(
+                page.evaluate("() => window.ZivonLessonShell.openTutor(null)"),
+                {"opened": False, "reason": "consent_declined"},
+            )
+            # The lesson and the navigation still work without voice consent.
+            self.assertEqual(page.locator(".zn-page > .zn-section").count(), 7)
+            self.assertIn(
+                "Everything around us is in motion",
+                page.inner_text("[data-block-type]"),
+            )
+            page.evaluate("() => window.ZivonLessonShell.openDrawer()")
+            self.assertFalse(
+                page.eval_on_selector("#zn-chapter-drawer", "el => el.hidden"),
+                "the drawer is not a voice surface",
+            )
+        finally:
+            context.close()
+
+    # -- 3. drawer sections + current position ---------------------------
 
     def test_drawer_lists_manifest_sections_and_tracks_position(self) -> None:
         context, page, _ = self._open_lesson()
@@ -245,7 +300,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 3. keyboard: Esc closes, jump moves focus ----------------------
+    # -- 4. keyboard: Esc closes, jump moves focus ----------------------
 
     def test_drawer_is_keyboard_operable(self) -> None:
         # Reduced motion makes the section jump instant (`behavior: auto`), so
@@ -297,7 +352,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 4. previous / next chapter -------------------------------------
+    # -- 5. previous / next chapter -------------------------------------
 
     def test_chapter_links_only_point_at_published_pages(self) -> None:
         context, page, _ = self._open_lesson()
@@ -355,6 +410,10 @@ class TestLessonShell(unittest.TestCase):
                 page.eval_on_selector("#zn-next-chapter", "el => el.hidden"),
                 "no next-chapter CTA on the last chapter",
             )
+            self.assertFalse(
+                page.is_visible("#zn-next-chapter"),
+                "the hidden next-chapter row leaves no empty dashed row on the paper",
+            )
         finally:
             context.close()
 
@@ -395,7 +454,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 5. reading progress (local + telemetry) ------------------------
+    # -- 6. reading progress (local + telemetry) ------------------------
 
     def test_reading_progress_is_local_and_emits_section_views(self) -> None:
         context, page, _ = self._open_lesson()
@@ -461,10 +520,125 @@ class TestLessonShell(unittest.TestCase):
             )
             record = stored["chapters"]["class-9-physics/describing-motion-around-us"]
             self.assertTrue(record["completed"], "completion is stored locally")
+
+            # A completed chapter is a per-chapter fact: reopening it must not
+            # emit completion again just because the counters were rehydrated.
+            page.reload(wait_until="load")
+            page.wait_for_function(
+                "() => document.body.getAttribute('data-zn-lessonshell-mounted') === 'true'",
+                timeout=5000,
+            )
+            page.wait_for_timeout(300)
+            page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+            page.wait_for_timeout(300)
+            again = [
+                e
+                for e in page.evaluate("() => window.ZivonEvents.getQueue()")
+                if e["evt"] == "EVT-lesson_complete"
+            ]
+            self.assertEqual(
+                again, [], "a reload of a finished chapter emits no new completion"
+            )
         finally:
             context.close()
 
-    # -- 6. bookmarks ---------------------------------------------------
+    def test_scrolling_to_the_end_alone_is_not_completion(self) -> None:
+        """Completion needs evidence: scrolled to the end is not "read".
+
+        Without this negative case a regression that drops the "every section
+        read" half of the gate would still be green (the happy-path test reads
+        every section), and the product would claim completion it never saw.
+        """
+        context, page, _ = self._open_lesson()
+        try:
+            page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+            page.wait_for_timeout(400)
+            events = [
+                e
+                for e in page.evaluate("() => window.ZivonEvents.getQueue()")
+                if e["evt"] == "EVT-lesson_complete"
+            ]
+            self.assertEqual(events, [], "scrolling to the end is not completion")
+            stored = json.loads(
+                page.evaluate("() => localStorage.getItem('zivon.progress')")
+            )
+            record = stored["chapters"]["class-9-physics/describing-motion-around-us"]
+            self.assertFalse(record["completed"])
+            self.assertLess(
+                len(record["sections"]),
+                len(page.evaluate("() => window.ZivonLessonShell.getSections()")),
+                "a fast jump to the bottom does not fabricate section reads",
+            )
+        finally:
+            context.close()
+
+    def test_reading_progress_survives_reload_without_double_counting(self) -> None:
+        """The device store is the source of truth for "read".
+
+        Reading half a chapter, closing the tab and coming back must not reset
+        the drawer to "0 of N" (the progress rule "never goes backwards"), and
+        the sections already recorded must not emit `EVT-section_viewed` again.
+        """
+        context, page, _ = self._open_lesson()
+        try:
+            for section_id in ("sec-03", "sec-04"):
+                page.evaluate(
+                    "id => document.getElementById(id).scrollIntoView()", section_id
+                )
+                page.wait_for_timeout(250)
+            before_bar = int(
+                page.get_attribute("#zn-read-progress", "aria-valuenow") or "0"
+            )
+            page.evaluate("() => window.ZivonLessonShell.openDrawer()")
+            before_text = page.inner_text("#zn-chapter-drawer .zn-drawer-progress")
+            self.assertIn("2 of 7", before_text)
+
+            page.reload(wait_until="load")
+            page.wait_for_function(
+                "() => document.body.getAttribute('data-zn-lessonshell-mounted') === 'true'",
+                timeout=5000,
+            )
+            page.wait_for_timeout(200)
+            self.assertGreaterEqual(
+                int(page.get_attribute("#zn-read-progress", "aria-valuenow") or "0"),
+                before_bar,
+                "the progress rule keeps what the device already recorded",
+            )
+            # pagehide closes the section the student was on, so the store can
+            # hold one more section than the drawer showed before the reload.
+            stored = json.loads(
+                page.evaluate("() => localStorage.getItem('zivon.progress')")
+            )
+            stored_sections = stored["chapters"][
+                "class-9-physics/describing-motion-around-us"
+            ]["sections"]
+            page.evaluate("() => window.ZivonLessonShell.openDrawer()")
+            after_text = page.inner_text("#zn-chapter-drawer .zn-drawer-progress")
+            self.assertIn(
+                f"{len(stored_sections)} of 7",
+                after_text,
+                f"the drawer shows what the device recorded: {after_text}",
+            )
+            self.assertGreaterEqual(len(stored_sections), 3)
+
+            # Leaving an already-read section must not emit it a second time.
+            page.evaluate("() => document.getElementById('sec-05').scrollIntoView()")
+            page.wait_for_timeout(300)
+            replayed = [
+                e
+                for e in page.evaluate("() => window.ZivonEvents.getQueue()")
+                if e["evt"] == "EVT-section_viewed"
+                and e["props"].get("section_id") in set(stored_sections)
+            ]
+            self.assertEqual(
+                replayed,
+                [],
+                "a reloaded, already-read section is not re-emitted",
+            )
+        finally:
+            context.close()
+
+    # -- 7. bookmarks ---------------------------------------------------
 
     def test_bookmark_toggles_and_survives_reload(self) -> None:
         context, page, _ = self._open_lesson()
@@ -510,7 +684,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 7. ask about this: explicit anchor -----------------------------
+    # -- 8. ask about this: explicit anchor -----------------------------
 
     def test_ask_about_this_anchors_the_next_turn_to_the_block(self) -> None:
         context, page, _ = self._open_lesson()
@@ -561,7 +735,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 8. context snapshot excludes section wrappers ------------------
+    # -- 9. context snapshot excludes section wrappers ------------------
 
     def test_context_snapshot_excludes_section_wrappers(self) -> None:
         context, page, _ = self._open_lesson()
@@ -595,7 +769,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 9. end-of-lesson CTA honesty -----------------------------------
+    # -- 10. end-of-lesson CTA honesty ----------------------------------
 
     def test_end_of_lesson_cta_is_honest(self) -> None:
         context, page, _ = self._open_lesson()
@@ -626,6 +800,10 @@ class TestLessonShell(unittest.TestCase):
                     "#zn-next-chapter a[rel=next]", "el => el.href.length > 0"
                 )
             )
+            self.assertTrue(
+                page.is_visible("#zn-next-chapter a[rel=next]"),
+                "the next-chapter row is rendered when the chapter has a successor",
+            )
             page.click(".zn-next-contents")
             page.wait_for_timeout(80)
             self.assertFalse(
@@ -635,7 +813,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 10. 360 px frame ----------------------------------------------
+    # -- 11. 360 px frame ----------------------------------------------
 
     def test_mobile_360_frame_has_no_overflow(self) -> None:
         context, page, errors = self._open_lesson(
@@ -680,7 +858,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 11. JavaScript off ---------------------------------------------
+    # -- 12. JavaScript off ---------------------------------------------
 
     def test_lesson_is_readable_with_javascript_off(self) -> None:
         context, page, _ = self._open_lesson(javascript=False)
@@ -699,7 +877,7 @@ class TestLessonShell(unittest.TestCase):
         finally:
             context.close()
 
-    # -- 12. content-only fixture, no manifest / catalogue --------------
+    # -- 13. content-only fixture, no manifest / catalogue --------------
 
     def test_content_only_fixture_gets_shell_without_manifest_or_catalogue(
         self,
@@ -734,6 +912,10 @@ class TestLessonShell(unittest.TestCase):
             self.assertTrue(
                 page.eval_on_selector("#zn-next-chapter", "el => el.hidden"),
                 "no catalogue -> no next-chapter CTA",
+            )
+            self.assertFalse(
+                page.is_visible("#zn-next-chapter"),
+                "no catalogue -> no empty next-chapter row either",
             )
         finally:
             context.close()
