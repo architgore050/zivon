@@ -179,7 +179,13 @@
         dropped += 1;
         return;
       }
-      if (!item.href || !item.title) {
+      if (
+        typeof item.href !== "string" ||
+        typeof item.title !== "string" ||
+        !item.href ||
+        !item.title ||
+        item.href.indexOf("\\") !== -1
+      ) {
         dropped += 1;
         return;
       }

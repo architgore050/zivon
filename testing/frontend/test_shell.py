@@ -508,6 +508,41 @@ class TestPublicSiteBehaviour(unittest.TestCase):
         finally:
             page.close()
 
+    def test_catalogue_partial_state_drops_malformed_entries(self) -> None:
+        # public-site.md: a malformed manifest entry is dropped and the page
+        # shows a partial warning, never a broken link. Type-check as well as
+        # presence: a non-string href must not reach the DOM.
+        page, errors = self._new_page()
+        try:
+            page.route(
+                "**/courses.js",
+                lambda route: route.fulfill(
+                    status=200,
+                    body=(
+                        "window.ZIVON_COURSES=["
+                        "{href:'courses/class-9-physics/how-forces-affect-motion/"
+                        "index.html',title:'How Forces Affect Motion',class:9,"
+                        "chapter_number:6,generated_at:'2026-11-16T09:12:53Z',"
+                        "languages:{available:['en']}},"
+                        "{href:'courses/class-9-physics/broken/index.html'},"
+                        "{href:42,title:'Bad href',class:9}"
+                        "];"
+                    ),
+                    content_type="application/javascript",
+                ),
+            )
+            page.goto(f"{self._base_url}/catalogue/")
+            page.wait_for_timeout(200)
+            self.assertFalse(page.locator("#catalogue-partial").is_hidden())
+            self.assertIn("2 entries", page.locator("#catalogue-partial").inner_text())
+            self.assertEqual(page.locator(".chapter-card").count(), 1)
+            self.assertIn(
+                "1 chapter live", page.locator("#catalogue-count").inner_text()
+            )
+            self.assertEqual(errors, [])
+        finally:
+            page.close()
+
     def test_class_pages_render_live_and_empty_states(self) -> None:
         entries = _courses_entries()
         if not entries:
