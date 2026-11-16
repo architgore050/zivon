@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
@@ -15,6 +16,7 @@ from evals.checkers.perf_harness import (
     load_profile,
     measure_asset_bytes,
 )
+from factory import perf as factory_perf
 
 PROFILES = REPO_ROOT / "evals" / "goldens" / "profiles"
 
@@ -160,6 +162,22 @@ class TestJudge(unittest.TestCase):
         self.assertTrue(report["pass"])
         self.assertEqual(report["failures"], [])
         self.assertTrue(any("soft byte budget" in a for a in report["advisories"]))
+
+
+class TestBudgetFailEvents(unittest.TestCase):
+    def test_interaction_long_task_failure_carries_measured_and_limit_ms(self):
+        report = {
+            "failures": [
+                "scroll/click long task 432.0ms > budget 200ms (interaction path)"
+            ]
+        }
+        with mock.patch.object(factory_perf, "log_event") as log_event:
+            factory_perf._emit_budget_fails(mock.Mock(run_id="r1"), report)
+        fields = log_event.call_args.args[1]
+        self.assertEqual(fields["budget_name"], "interaction_long_task")
+        self.assertEqual(fields["measured_ms"], 432)
+        self.assertEqual(fields["limit_ms"], 200)
+        self.assertEqual(log_event.call_args.kwargs["latency_ms"], 432)
 
 
 class TestAssetBytes(unittest.TestCase):
