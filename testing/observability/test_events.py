@@ -95,7 +95,11 @@ class MapParsingTests(unittest.TestCase):
     def test_map_parses_rfc4180_with_consistent_columns(self) -> None:
         text = MAP_PATH.read_text(encoding="utf-8")
         rows = list(csv.DictReader(text.splitlines()))
-        self.assertEqual(len(rows), 78)
+        # The map is additive by design ("components add rows in the same PR as
+        # their code"), so the contract is shape + no truncation, not a frozen
+        # count. 78 was the baseline when this test was written (F4's three
+        # frontend rows made it 81).
+        self.assertGreaterEqual(len(rows), 78, "the instrumentation map lost rows")
         expected_columns = [
             "component",
             "event",

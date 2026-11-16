@@ -47,6 +47,7 @@ features are specified** — only surfaces the shell and doctrine already show.
 | [`perf-budget-tests.md`](perf-budget-tests.md) | how CI enforces the page-load / fps / RAM budgets on low-end Android (extends `testing/frontend/`), both budget eras, reduced-motion tests |
 | [`seo-plan.md`](seo-plan.md) | static multilingual SEO: meta + hreflang, sitemap/robots generation, JSON-LD, Open Graph, canonical URLs, the child-privacy guardrails that constrain all of it |
 | [`shell-injection.md`](shell-injection.md) | binding contract for injecting product chrome (consent, dock, read-aloud, report, notices) into content-only generated pages from the shell kit |
+| [`lesson-shell.md`](lesson-shell.md) | F4 lesson shell: app bar, chapter drawer, reading progress, bookmarks, "Ask about this", end-of-lesson next steps, the context-snapshot block filter, and the F2/F3/F5/F6 handoffs |
 | [`open-questions.md`](open-questions.md) | every unresolved upstream reference, the decision needed, and the reconciliation procedure for provisional ids |
 
 ## Binding ground rules (inherited — restated because every section depends on them)

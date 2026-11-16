@@ -1547,3 +1547,409 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
   font-size: 11px;
   line-height: 1.4;
 }
+
+/* ==========================================================================
+   F4 LESSON SHELL (SCR-LES-01.R0 / R13 / R14 / R15) - 2026-11-16
+   --------------------------------------------------------------------------
+   Chrome AROUND a generated lesson page: app bar, chapter drawer, reading
+   progress, per-block "Ask about this", end-of-lesson next steps.
+   Identity = BASE Field Notes (§1-§9): typed Bricolage/Courier, flat paper,
+   1px ink rules, ink-fill selected controls, pen-blue for "where you are".
+   NO §10 device lives here (no ruled rhythm, no handwritten accents, no tape,
+   no language-bar look) - the lesson BODY keeps §10 untouched.
+
+   Additive only: every rule below targets a shell-owned class that exists
+   only after ZivonLessonShell mounts, or the scroll-margin of a section
+   wrapper. With JS off none of it renders and the lesson reads as before.
+   ========================================================================== */
+
+/* ---- app bar: the notebook's cover edge (base identity, scrolls away) ---- */
+.zn-appbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+  padding:
+    calc(0.5rem + env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    0.5rem
+    max(1rem, env(safe-area-inset-left, 0px));
+  font-family: var(--display);
+}
+.zn-appbar-brand {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  margin-inline-end: 0.5rem;
+}
+.zn-appbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-wrap: wrap;
+}
+.zn-appbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+.zn-appbar-link:hover { background: var(--paper-light); }
+.zn-appbar-link-soon { color: var(--graphite); cursor: default; }
+.zn-appbar-link-soon:hover { background: transparent; }
+.zn-appbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-inline-start: auto;
+}
+.zn-appbar-btn {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 0.9375rem var(--display);
+  cursor: pointer;
+}
+.zn-appbar-btn:hover { background: var(--paper-light); }
+.zn-appbar-btn[aria-expanded="true"] {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+.zn-appbar-identity {
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--graphite);
+  padding-inline-start: 0.25rem;
+}
+.zn-appbar-identity[hidden] { display: none; }
+@media (max-width: 719px) {
+  .zn-appbar-nav { display: none; }
+  .zn-appbar { gap: 0.375rem; }
+  .zn-appbar-brand { margin-inline-end: 0.25rem; }
+}
+
+/* ---- chapter drawer: a paper-light navigation sheet (not a lesson card) -- */
+.zn-drawer {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  z-index: 35;
+  width: min(24rem, 100vw);
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  background: var(--paper-light);
+  border-left: 1px solid var(--ink);
+  padding:
+    calc(0.75rem + env(safe-area-inset-top, 0px))
+    1rem
+    calc(1rem + env(safe-area-inset-bottom, 0px));
+  font-family: var(--display);
+}
+.zn-drawer[hidden] { display: none; }
+@media (max-width: 479px) {
+  .zn-drawer { width: 100vw; border-left: 0; }
+}
+.zn-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.zn-drawer-kicker {
+  margin: 0;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+.zn-drawer-close {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 0.8125rem var(--display);
+  cursor: pointer;
+}
+.zn-drawer-close:hover { background: var(--paper); }
+.zn-drawer-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+.zn-drawer-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px dashed var(--graphite);
+  padding-inline-start: 0;
+}
+.zn-drawer-item:first-child { border-top: 0; }
+.zn-drawer-item[data-current="true"] {
+  border-top-color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--pen-blue);
+  padding-inline-start: 0.5rem;
+}
+.zn-drawer-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.35rem 0;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+.zn-drawer-link:hover { color: var(--pen-blue); }
+.zn-drawer-num {
+  flex: none;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+.zn-drawer-link[aria-current="location"] { font-weight: 700; }
+.zn-drawer-link[aria-current="location"] .zn-drawer-num { color: var(--pen-blue); }
+.zn-drawer-save {
+  min-height: 40px;
+  min-width: 3.75rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 0.8125rem var(--display);
+  cursor: pointer;
+}
+.zn-drawer-save:hover { background: var(--paper); }
+.zn-drawer-save[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+.zn-drawer-progress {
+  margin: 0.75rem 0 0;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+.zn-drawer-chapters {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--ink);
+  padding-top: 0.5rem;
+}
+.zn-drawer-chapter-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.25rem 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+.zn-drawer-chapter-link:hover .zn-drawer-chapter-title { color: var(--pen-blue); }
+.zn-drawer-chapter-label {
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  color: var(--graphite);
+}
+.zn-drawer-chapter-title { font-weight: 700; font-size: 0.9375rem; }
+.zn-drawer-nav {
+  display: none;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  margin-top: 1rem;
+  border-top: 1px dashed var(--graphite);
+  padding-top: 0.5rem;
+}
+@media (max-width: 719px) {
+  .zn-drawer-nav { display: flex; }
+}
+.zn-drawer-note {
+  margin: 0.75rem 0 0;
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--graphite);
+}
+
+/* ---- reading progress: one 2 px ink rule at the top of the frame --------- */
+.zn-read-progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 2px;
+  z-index: 30;
+  background: transparent;
+  pointer-events: none;
+}
+.zn-read-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* ---- per-block "Ask about this" (EL-LES-01-013, quiet graphite chip) ----- */
+.zn-block-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+.zn-ask-block {
+  min-height: 40px;
+  padding: 0 0.625rem;
+  border: 1px solid var(--graphite);
+  border-radius: 2px;
+  /* opaque: the chip sits on the ruled paper, an ink rule must not show
+     through it (the kit's opaque-card rule, applied to shell chrome) */
+  background: var(--paper);
+  color: var(--graphite);
+  font: 500 0.8125rem var(--display);
+  cursor: pointer;
+}
+.zn-ask-block:hover,
+.zn-ask-block:focus-visible {
+  border-color: var(--ink);
+  background: var(--paper-light);
+  color: var(--ink);
+}
+
+/* ---- end-of-lesson next steps (shell chrome inside the page) ------------ */
+.zn-lesson-next {
+  margin: calc(var(--row) * 2) 0 var(--row);
+  border-top: 2px solid var(--ink);
+  padding-top: 0.75rem;
+  font-family: var(--display);
+}
+.zn-lesson-next h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--display);
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.zn-next-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.zn-next-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.55rem 0;
+  border-top: 1px dashed var(--graphite);
+  box-sizing: border-box;
+}
+.zn-next-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.zn-next-soon .zn-next-label { color: var(--graphite); }
+.zn-next-soon .zn-soon { margin-inline-start: auto; }
+.zn-soon {
+  border: 1px solid var(--graphite);
+  border-radius: 2px;
+  padding: 0.05rem 0.35rem;
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+.zn-next-link {
+  margin-inline-start: auto;
+  color: var(--pen-blue);
+  font-weight: 700;
+  text-align: end;
+}
+.zn-next-chapter {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+/* The row is `hidden` when the chapter has no successor (last chapter, no
+   catalogue); the list's display:flex would otherwise keep an empty 44 px
+   dashed row on the paper. */
+.zn-next-list li[hidden] { display: none; }
+.zn-next-chapter .zn-next-label {
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--graphite);
+}
+.zn-next-chapter .zn-next-link {
+  margin-inline-start: 0;
+  text-align: start;
+}
+.zn-next-arrow { color: var(--pen-blue); font-weight: 700; }
+.zn-next-note {
+  margin: 0.5rem 0 0;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--graphite);
+}
+.zn-next-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.25rem;
+  color: var(--pen-blue);
+  font-weight: 700;
+}
+
+/* Section jumps must clear the sticky language bar (§10.5) after a click. */
+.zn-page:not(.zn-home) .zn-section { scroll-margin-top: 4.5rem; }
+
+/* ---- end-of-lesson actions (shell chrome, base identity) ----------------- */
+.zn-next-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.zn-next-contents {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 0.9375rem var(--display);
+  cursor: pointer;
+}
+.zn-next-contents:hover { background: var(--paper-light); }

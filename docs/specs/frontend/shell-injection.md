@@ -49,6 +49,7 @@ forms. No per-page copies of chrome.
 | 4 | Consent gate (§10.14) | `localStorage[zivon.consent]` | if absent, gate before the dock; reading unaffected |
 | 5 | Voice dock (§10.12) | `ZivonVoiceDock.lazyMount()`; `doctrineReady` | if doctrine text is missing, stay hidden (existing gate) |
 | 6 | Privacy link + locale controls | footer; `window.ZIVON_I18N` | link always present; disabled chips if no bundle |
+| 7 | Lesson shell (F4): app bar, chapter drawer, reading progress, bookmarks, per-block "Ask about this", end-of-lesson next steps | `section.zn-section` hooks; `manifest.json` → `sections`; `catalogue.json`; `localStorage[zivon.progress|zivon.bookmarks]` | no sections/blocks → no shell; no manifest → DOM-derived drawer titles; no catalogue → no chapter links (`docs/specs/frontend/lesson-shell.md`) |
 
 Rules:
 
@@ -70,8 +71,11 @@ Rules:
   local consent audit record written with the gate), `zivon_locale` (plus the
   read-only legacy `zivon.lang`), `zivon.captions`, `zivon.identity_seen`
   (identity line shown once per device), `zivon.evtdebug` (explicit debug flag
-  only) and `zivon.device_pseudo_id` (ADR-0007). No behavioural profile, no
-  progress store.
+  only), `zivon.device_pseudo_id` (ADR-0007), and the F4 lesson-shell records
+  `zivon.progress` (sections read, max scroll %, completion - no free text) and
+  `zivon.bookmarks` (saved section + its first block id). All of these are
+  device-local, bounded, and wiped by the privacy page's clear-data flow. No
+  behavioural profile.
 
 ## 4. Why this keeps working for future factory runs
 

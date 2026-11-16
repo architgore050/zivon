@@ -1460,6 +1460,15 @@
     if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
       window.ZivonEvents.emit("EVT-consent_recorded", { outcome: act });
     }
+    /* The lesson shell reacts to the decision (voice entry, per-block "Ask
+       about this"): one event, no polling of localStorage. */
+    try {
+      if (typeof window.dispatchEvent === "function" && typeof window.CustomEvent === "function") {
+        window.dispatchEvent(new window.CustomEvent("zivon:consent-changed", {
+          detail: { action: act }
+        }));
+      }
+    } catch (e) {}
     /* Best-effort async sync to PUT /v1/consent (never blocks UI) */
     sameOriginRequest("/v1/consent", {
       method: "PUT",
@@ -1631,7 +1640,9 @@
     "zivon.lang",
     "zivon.captions",
     "zivon.identity_seen",
-    "zivon.evtdebug"
+    "zivon.evtdebug",
+    "zivon.progress",
+    "zivon.bookmarks"
   ];
 
   async function clearAllDeviceData() {
@@ -3095,6 +3106,7 @@
     var checkedChip = document.querySelector('.zn-lang-row .zn-chip[aria-checked="true"]');
     var langPref = checkedChip ? (checkedChip.getAttribute("data-lang") || checkedChip.textContent.trim()) : (document.documentElement.lang || "en");
     var visibleBlocks = [];
+    var allBlocks = [];
     var blockTypes = {};
     var blockTitles = {};
     var blockTexts = {};
@@ -3102,8 +3114,24 @@
     var bestBlockId = null;
     var bestBlockType = "text";
     var bestDistance = Infinity;
-    document.querySelectorAll(".zn-page [id]").forEach(function (el) {
-      if (visibleBlocks.length >= 12) return;
+    /* Block anchors only: the P1 hook `data-block-type` is on every lesson
+       block, while section wrappers (`section.zn-section#sec-NN`) also carry
+       an id but are NOT blocks. Letting them in anchored the tutor to a
+       wrapper and pushed wrapper ids into visible_blocks (F4 context bug;
+       regression test: testing/frontend/test_lesson_shell.py). A legacy page
+       without the hook falls back to the `b-NN` block-id shape - never to
+       "every id in .zn-page". */
+    var blockSelector = ".zn-page [data-block-type][id]";
+    var blockEls = document.querySelectorAll(blockSelector);
+    if (!blockEls.length) {
+      blockEls = Array.prototype.filter.call(
+        document.querySelectorAll(".zn-page [id]"),
+        function (el) {
+          return el.hasAttribute("data-block-type") || /^b-\d+$/.test(el.id || "");
+        }
+      );
+    }
+    blockEls.forEach(function (el) {
       /* SVG/MathML elements expose className as an SVGAnimatedString, not a
          string. Normalise before the class-name probe so an id'd <svg>/<g>/
          <math> child can never throw and take the whole snapshot down. */
@@ -3112,37 +3140,63 @@
         ? classAttr
         : (classAttr && typeof classAttr.baseVal === "string" ? classAttr.baseVal : "");
       var tag = className || el.tagName.toLowerCase();
-      var bType = "text";
-      if (tag.indexOf("zn-sim") !== -1) bType = "simulation";
-      else if (tag.indexOf("zn-check") !== -1) bType = "check";
-      else if (tag.indexOf("zn-diagram") !== -1) bType = "diagram";
-      else if (tag.indexOf("zn-example") !== -1) bType = "worked_example";
-      else if (tag.indexOf("zn-reveal") !== -1) bType = "reveal";
+      var bType = el.getAttribute("data-block-type") || "text";
+      /* The class probe is the legacy fallback (pages generated before the P1
+         hook); the hook is authoritative when present. */
+      if (!el.getAttribute("data-block-type")) {
+        if (tag.indexOf("zn-sim") !== -1) bType = "simulation";
+        else if (tag.indexOf("zn-check") !== -1) bType = "check";
+        else if (tag.indexOf("zn-diagram") !== -1) bType = "diagram";
+        else if (tag.indexOf("zn-example") !== -1) bType = "worked_example";
+        else if (tag.indexOf("zn-reveal") !== -1) bType = "reveal";
+      }
       var h = el.querySelector("h3, legend, figcaption");
+      /* Type/title/text are collected for EVERY block: the explicit anchor
+         ("Ask about this", F-ADD-VOI-02) can target any block, and the 12-item
+         cap below must not leave a deep block typed as "text". */
       blockTypes[el.id] = bType;
       var blockTitle = humanBlockTitle(el, h, bType);
       blockTitles[el.id] = blockTitle;
       blockTexts[el.id] = blockTextExcerpt(el);
-      visibleBlocks.push({
-        id: el.id,
-        type: bType,
-        /* `title` is the human label the tutor prompt may quote; it is never
-           the DOM id or the internal block type. */
-        title: blockTitle
-      });
       /* Anchor = the block nearest the viewport centre (§10.12 "the block
          being discussed"), not simply the first block on the page. */
+      var blockDistance = Infinity;
       if (typeof el.getBoundingClientRect === "function") {
         var rect = el.getBoundingClientRect();
         var centre = rect.top + rect.height / 2;
-        var dist = Math.abs(centre - viewportCentre);
-        if (dist < bestDistance) {
-          bestDistance = dist;
+        blockDistance = Math.abs(centre - viewportCentre);
+        if (blockDistance < bestDistance) {
+          bestDistance = blockDistance;
           bestBlockId = el.id;
           bestBlockType = bType;
         }
       }
+      allBlocks.push({
+        id: el.id,
+        type: bType,
+        /* `title` is the human label the tutor prompt may quote; it is never
+           the DOM id or the internal block type. */
+        title: blockTitle,
+        distance: blockDistance
+      });
     });
+    /* `visible_blocks` is the 12 blocks nearest the viewport, in document
+       order - the first 12 on the page was neither honest for a long lesson
+       nor guaranteed to include the anchor block. */
+    if (allBlocks.length > 12) {
+      var nearest = allBlocks.slice().sort(function (a, b) {
+        return a.distance - b.distance;
+      }).slice(0, 12);
+      var keep = {};
+      nearest.forEach(function (b) { keep[b.id] = true; });
+      allBlocks.forEach(function (b) {
+        if (keep[b.id]) visibleBlocks.push({ id: b.id, type: b.type, title: b.title });
+      });
+    } else {
+      allBlocks.forEach(function (b) {
+        visibleBlocks.push({ id: b.id, type: b.type, title: b.title });
+      });
+    }
 
     var simStates = [];
     document.querySelectorAll(".zn-sim[data-sim-id]").forEach(function (simEl) {
@@ -3162,7 +3216,7 @@
     var docEl = document.documentElement;
     var maxScroll = Math.max(1, (docEl.scrollHeight || 1) - (window.innerHeight || 1));
     var scrollPct = Math.min(100, Math.max(0, Math.round(((window.scrollY || 0) / maxScroll) * 100)));
-    var activeBlock = explicitBlockId || bestBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
+    var activeBlock = explicitBlockId || explicitAnchorBlockId || bestBlockId || (visibleBlocks[0] ? visibleBlocks[0].id : "page");
     var activeBlockType = blockTypes[activeBlock] || bestBlockType || "text";
     var firstSim = simStates[0] || null;
     var activeSim = simStates.filter(function (s) { return s.block_id === activeBlock; })[0] || firstSim;
@@ -4739,12 +4793,12 @@
 
   /* --------------- 8. event instrumentation (ZivonEvents) -----------------
      Implements spec.md §9 (C2), SP3 docs/specs/observability/instrumentation-map.csv
-     (EVT-F01..EVT-F12), and GAP-013 reconciliation:
+     (EVT-F01..EVT-F15), and GAP-013 reconciliation:
      - Capped in-memory queue (200 events, oldest dropped) with a no-op default
        sink so CSP connect-src 'none' is never violated.
      - Observable via console.debug when localStorage['zivon.evtdebug'] or
        window.__ZIVON_EVTDEBUG__ is truthy.
-     - Every emitted event carries canonical SP3 fields (evt_id: EVT-F01..F12,
+     - Every emitted event carries canonical SP3 fields (evt_id: EVT-F01..F15,
        event: frontend.*, client_session_id, privacy_class: L2) alongside the
        SP5 trigger name (evt: EVT-<verb_noun>) for 1:1 traceability.
      - Never logs child free-text or quiz option text; hashes sim error strings
@@ -4776,6 +4830,9 @@
     "EVT-publish_viewed":      { evt_id: "EVT-F11", event: "frontend.publish_view",     privacy_class: "L2" },
     "EVT-heartbeat":           { evt_id: "EVT-F12", event: "frontend.heartbeat",        privacy_class: "L2" },
     "EVT-read_aloud_played":   { evt_id: "EVT-012", event: "frontend.page_view",        privacy_class: "L2" },
+    "EVT-bookmark":            { evt_id: "EVT-F13", event: "frontend.bookmark",          privacy_class: "L2" },
+    "EVT-ask_about_this":      { evt_id: "EVT-F14", event: "frontend.ask_about_this",    privacy_class: "L2" },
+    "EVT-lesson_complete":     { evt_id: "EVT-F15", event: "frontend.lesson_complete",   privacy_class: "L2" },
     "EVT-consent_recorded":    { evt_id: "EVT-013", event: "frontend.page_view",        privacy_class: "L2" },
     "EVT-report_submitted":    { evt_id: "EVT-014", event: "frontend.page_view",        privacy_class: "L2" },
     "EVT-data_cleared":        { evt_id: "EVT-018", event: "frontend.page_view",        privacy_class: "L2" }
@@ -5160,6 +5217,1255 @@
     ZivonShell.mount();
   });
 
+  /* --------------- 10. Lesson shell (F4): app bar, chapter drawer, ---------
+     reading progress, bookmarks, "Ask about this" and end-of-lesson steps.
+
+     Scope (doctrine §0): this is SHELL chrome around a generated lesson page,
+     so it uses the BASE Field Notes identity (§1-§9: typed Bricolage/Courier,
+     flat paper, 1px ink rules, ink-fill primary controls, pen-blue for "where
+     you are") and never the lesson-page extensions (§10 ruled rhythm,
+     handwritten accents, taped cards, language bar). The lesson body is not
+     rewritten or restyled: every node injected here either lives outside the
+     ruled paper (.zn-appbar, .zn-drawer, .zn-read-progress) or is marked
+     [data-ruled-skip] so LessonKit ignores it.
+
+     Data is device-local only (F3 owns the progress API):
+     - localStorage["zivon.progress"]  {v, chapters: {"<course>/<topic>": {...}}}
+     - localStorage["zivon.bookmarks"] {v, items: [{course, topic, section_id,
+                                                    block_id, title, ts}]}
+     Handoff: ZivonLessonShell.getProgress() and .setProgressSink(fn) - see
+     docs/specs/frontend/lesson-shell.md.
+
+     Progressive enhancement: with JS off none of this exists and the lesson
+     stays fully readable (shell-injection.md "content-first"). */
+  var SHELL_BOOKMARK_KEY = "zivon.bookmarks";
+  var SHELL_PROGRESS_KEY = "zivon.progress";
+  var SHELL_DRAWER_ID = "zn-chapter-drawer";
+  var SHELL_TOGGLE_ID = "zn-contents-toggle";
+  var SHELL_MOUNTED_ATTR = "data-zn-lessonshell-mounted";
+  /* Explicit anchor for F-ADD-VOI-02 behaviour 3: pressing "Ask about this"
+     on a block makes that block the anchor for the next turn instead of the
+     block nearest the viewport centre. */
+  var explicitAnchorBlockId = null;
+
+  var lessonShellState = {
+    mounted: false,
+    sections: [],
+    currentIndex: -1,
+    dwellStart: {},
+    emitted: {},
+    hydrated: {},
+    seenCount: 0,
+    totalSections: 0,
+    maxScrollPct: 0,
+    completeEmitted: false,
+    manifest: null,
+    catalogue: null,
+    neighbours: { prev: null, next: null },
+    progressSink: null,
+    scrollQueued: false,
+    lastScrollPersistMs: 0
+  };
+
+  function shellPad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function shellTopicKey() {
+    var route = ZivonRouter.currentRoute();
+    return String(route.course_id || "physics") + "/" + String(route.topic_slug || "topic");
+  }
+
+  function shellReadJson(key, fallback) {
+    var raw = safeStorageGet(key);
+    if (!raw) return fallback;
+    try {
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function shellWriteJson(key, value) {
+    try {
+      return safeStorageSet(key, JSON.stringify(value));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* Bundle-aware chrome string: keys live in the page i18n bundle
+     (window.ZIVON_I18N[locale].strings) and fall back to reviewed English.
+     New ui.shell.* keys are a translation-pipeline follow-up; until they
+     exist the data-i18n attribute stays on the node so the swap lands with no
+     code change (applyClientBundleSwap only rewrites known keys). */
+  function shellString(key, fallback) {
+    var root = window.ZIVON_I18N;
+    var loc = getSavedLang();
+    var strings = root && root[loc] && root[loc].strings ? root[loc].strings : null;
+    if (strings && Object.prototype.hasOwnProperty.call(strings, key) && strings[key]) {
+      return String(strings[key]);
+    }
+    return fallback;
+  }
+
+  function shellFormat(key, fallback, vars) {
+    var txt = shellString(key, fallback);
+    Object.keys(vars || {}).forEach(function (k) {
+      txt = txt.split("{" + k + "}").join(String(vars[k]));
+    });
+    return txt;
+  }
+
+  function shellEl(tag, className, attrs) {
+    var el = document.createElement(tag);
+    if (className) el.className = className;
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        var v = attrs[k];
+        if (v === null || v === undefined) return;
+        el.setAttribute(k, String(v));
+      });
+    }
+    return el;
+  }
+
+  function shellI18nText(el, key, fallback) {
+    el.setAttribute("data-i18n", key);
+    el.textContent = fallback;
+    return el;
+  }
+
+  function shellEmit(evtName, props) {
+    try {
+      if (window.ZivonEvents && typeof window.ZivonEvents.emit === "function") {
+        window.ZivonEvents.emit(evtName, props || {});
+      }
+    } catch (e) {}
+  }
+
+  function shellPrefersReducedMotion() {
+    try {
+      return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function shellFocus(el) {
+    if (!el || typeof el.focus !== "function") return;
+    try {
+      el.focus({ preventScroll: true });
+    } catch (e) {
+      try { el.focus(); } catch (e2) {}
+    }
+  }
+
+  /* ------------------------- sections & progress -------------------------- */
+
+  function shellSectionFallbackTitle(el) {
+    var heading = el.querySelector("h2, h3, legend, .zn-section-title");
+    if (heading && heading.textContent && heading.textContent.trim()) {
+      return heading.textContent.replace(/\s+/g, " ").trim().slice(0, 90);
+    }
+    var p = el.querySelector("p");
+    if (p && p.textContent && p.textContent.trim()) {
+      var txt = p.textContent.replace(/\s+/g, " ").trim();
+      return txt.length > 64 ? txt.slice(0, 61) + "\u2026" : txt;
+    }
+    return "";
+  }
+
+  function shellCollectSections() {
+    var page = document.querySelector(".zn-page:not(.zn-home)");
+    if (!page) return [];
+    var mf = lessonShellState.manifest || window.__ZIVON_MANIFEST__ || null;
+    var byId = {};
+    if (mf && Array.isArray(mf.sections)) {
+      mf.sections.forEach(function (s) {
+        if (s && s.id) byId[String(s.id)] = s;
+      });
+    }
+    var out = [];
+    Array.prototype.slice.call(page.querySelectorAll(".zn-section")).forEach(function (el, i) {
+      var id = el.getAttribute("data-section-id") || el.id || ("sec-" + (i + 1));
+      if (!el.id) el.id = id;
+      var entry = byId[id] || null;
+      var title = (entry && entry.title) || shellSectionFallbackTitle(el) || ("Section " + (i + 1));
+      var firstBlock = el.querySelector("[data-block-type][id]");
+      out.push({
+        id: id,
+        el: el,
+        index: i,
+        title: String(title),
+        concept_id: (entry && entry.concept_id) || el.getAttribute("data-concept-id") || "",
+        block_id: firstBlock ? firstBlock.id : ""
+      });
+    });
+    return out;
+  }
+
+  function shellProgressStore() {
+    var store = shellReadJson(SHELL_PROGRESS_KEY, null);
+    if (!store || typeof store !== "object" || !store.chapters || typeof store.chapters !== "object") {
+      store = { v: 1, chapters: {} };
+    }
+    return store;
+  }
+
+  function shellProgressRecord() {
+    return shellProgressStore().chapters[shellTopicKey()] || null;
+  }
+
+  /* Re-seed the in-memory counters from the device store before the shelf is
+     drawn: a returning student keeps their "N of M sections read" and their
+     progress rule (F3 reads the same record), and an already-read section is
+     never emitted again (the store is the single source of truth for "read";
+     the event is a usage signal, not a per-visit counter). */
+  function shellHydrateStoredProgress(sections) {
+    var rec = shellProgressRecord();
+    if (!rec) return;
+    if (
+      typeof rec.max_scroll_pct === "number" &&
+      rec.max_scroll_pct > lessonShellState.maxScrollPct
+    ) {
+      lessonShellState.maxScrollPct = Math.max(0, Math.min(100, rec.max_scroll_pct));
+    }
+    var stored = rec.sections && typeof rec.sections === "object" ? rec.sections : {};
+    sections.forEach(function (section, index) {
+      if (lessonShellState.hydrated[index]) return;
+      if (!Object.prototype.hasOwnProperty.call(stored, section.id)) return;
+      lessonShellState.hydrated[index] = true;
+      lessonShellState.emitted[index] = true;
+      if (lessonShellState.seenCount < lessonShellState.totalSections) {
+        lessonShellState.seenCount += 1;
+      }
+    });
+    /* Completion is a per-chapter fact: a reloaded finished lesson must not
+       emit `EVT-lesson_complete` again just because the counters are hydrated. */
+    if (rec.completed) lessonShellState.completeEmitted = true;
+  }
+
+  function shellNotifyProgressSink() {
+    if (typeof lessonShellState.progressSink !== "function") return;
+    try {
+      lessonShellState.progressSink(window.ZivonLessonShell.getProgress());
+    } catch (e) {}
+  }
+
+  function shellSaveProgress(patch) {
+    var store = shellProgressStore();
+    var key = shellTopicKey();
+    var rec = store.chapters[key];
+    if (!rec || typeof rec !== "object") {
+      rec = { sections: {}, max_scroll_pct: 0, completed: false };
+    }
+    if (!rec.sections || typeof rec.sections !== "object") rec.sections = {};
+    Object.keys(patch || {}).forEach(function (k) {
+      if (k === "sections") {
+        Object.keys(patch.sections || {}).forEach(function (sid) {
+          rec.sections[sid] = patch.sections[sid];
+        });
+      } else {
+        rec[k] = patch[k];
+      }
+    });
+    rec.updated_at = Date.now();
+    store.chapters[key] = rec;
+    /* Bounded local store: the 50 most recently touched chapters. */
+    var keys = Object.keys(store.chapters);
+    if (keys.length > 50) {
+      keys.sort(function (a, b) {
+        return (store.chapters[a].updated_at || 0) - (store.chapters[b].updated_at || 0);
+      });
+      keys.slice(0, keys.length - 50).forEach(function (k) { delete store.chapters[k]; });
+    }
+    shellWriteJson(SHELL_PROGRESS_KEY, store);
+    shellNotifyProgressSink();
+    return rec;
+  }
+
+  function shellDwellBucket(ms) {
+    var s = ms / 1000;
+    if (s < 5) return "<5s";
+    if (s <= 30) return "5-30s";
+    return ">30s";
+  }
+
+  function shellOpenDwell(index) {
+    if (index < 0) return;
+    if (!lessonShellState.dwellStart[index]) lessonShellState.dwellStart[index] = Date.now();
+  }
+
+  function shellCloseDwell(index) {
+    if (index < 0) return;
+    var started = lessonShellState.dwellStart[index];
+    if (!started || lessonShellState.emitted[index]) return;
+    var section = lessonShellState.sections[index];
+    if (!section) return;
+    lessonShellState.emitted[index] = true;
+    var ms = Math.max(0, Date.now() - started);
+    var bucket = shellDwellBucket(ms);
+    if (lessonShellState.seenCount < lessonShellState.totalSections) {
+      lessonShellState.seenCount += 1;
+    }
+    var patch = { sections: {}, last_section: section.id };
+    patch.sections[section.id] = {
+      first_seen: started,
+      dwell_s: Math.round(ms / 1000),
+      dwell_bucket: bucket
+    };
+    shellSaveProgress(patch);
+    shellEmit("EVT-section_viewed", {
+      course_id: ZivonRouter.currentRoute().course_id || "",
+      section_id: section.id,
+      concept_id: section.concept_id,
+      dwell_bucket: bucket
+    });
+    shellSyncDrawerProgress();
+    shellMaybeComplete();
+  }
+
+  function shellScrollPercent() {
+    var doc = document.documentElement;
+    var scrollable = Math.max(1, (doc.scrollHeight || 1) - (window.innerHeight || 1));
+    var pct = Math.round(((window.scrollY || 0) / scrollable) * 100);
+    return Math.min(100, Math.max(0, pct));
+  }
+
+  function shellMaybeComplete() {
+    if (lessonShellState.completeEmitted) return;
+    if (!lessonShellState.totalSections) return;
+    if (lessonShellState.seenCount < lessonShellState.totalSections) return;
+    if (lessonShellState.maxScrollPct < 90) return;
+    lessonShellState.completeEmitted = true;
+    shellSaveProgress({ completed: true, completed_at: Date.now() });
+    shellEmit("EVT-lesson_complete", {
+      course_id: ZivonRouter.currentRoute().course_id || "",
+      sections_seen: lessonShellState.seenCount,
+      scroll_pct: lessonShellState.maxScrollPct
+    });
+  }
+
+  function shellCurrentSectionIndex() {
+    var sections = lessonShellState.sections;
+    if (!sections.length) return -1;
+    var centre = (window.innerHeight || 800) * 0.45;
+    var found = -1;
+    sections.forEach(function (s, i) {
+      var r = s.el.getBoundingClientRect();
+      if (r.top <= centre && r.bottom > centre) found = i;
+    });
+    if (found !== -1) return found;
+    /* Above the first section or below the last one: keep the nearest section
+       so "you are here" is never blank; "read" stays dwell-based. */
+    var nearest = Infinity;
+    sections.forEach(function (s, i) {
+      var r = s.el.getBoundingClientRect();
+      var d = Math.min(Math.abs(r.top - centre), Math.abs(r.bottom - centre));
+      if (d < nearest) {
+        nearest = d;
+        found = i;
+      }
+    });
+    return found;
+  }
+
+  function shellUpdatePosition() {
+    lessonShellState.scrollQueued = false;
+    var idx = shellCurrentSectionIndex();
+    if (idx !== lessonShellState.currentIndex) {
+      if (lessonShellState.currentIndex >= 0) shellCloseDwell(lessonShellState.currentIndex);
+      lessonShellState.currentIndex = idx;
+      shellOpenDwell(idx);
+      shellSyncDrawerCurrent();
+    }
+    var pct = shellScrollPercent();
+    /* Reading to the end IS reading the last section: close its dwell when the
+       student reaches the bottom, or completion could never fire (the last
+       section's dwell otherwise closes only on pagehide). */
+    if (
+      lessonShellState.sections.length > 0 &&
+      lessonShellState.currentIndex === lessonShellState.sections.length - 1 &&
+      pct >= 90
+    ) {
+      shellCloseDwell(lessonShellState.currentIndex);
+    }
+    if (pct > lessonShellState.maxScrollPct) {
+      lessonShellState.maxScrollPct = pct;
+      /* localStorage is a synchronous main-thread write: persist at most once
+         per 750 ms while scrolling. The in-memory value is always current, and
+         the pagehide flush persists the final number. */
+      var nowMs = Date.now();
+      if (!lessonShellState.lastScrollPersistMs || nowMs - lessonShellState.lastScrollPersistMs > 750) {
+        lessonShellState.lastScrollPersistMs = nowMs;
+        shellSaveProgress({ max_scroll_pct: pct });
+      }
+    }
+    shellSyncProgressBar();
+    shellMaybeComplete();
+  }
+
+  function shellQueuePositionUpdate() {
+    if (lessonShellState.scrollQueued) return;
+    lessonShellState.scrollQueued = true;
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(shellUpdatePosition);
+    } else {
+      window.setTimeout(shellUpdatePosition, 16);
+    }
+  }
+
+  /* ------------------------------- app bar -------------------------------- */
+
+  function shellNavLink(href, labelKey, label, elementId, ready) {
+    if (ready) {
+      var a = shellEl("a", "zn-appbar-link", { href: href, "data-element-id": elementId });
+      shellI18nText(a, labelKey, label);
+      return a;
+    }
+    /* Honest coming-soon state: a non-interactive status, never a dead link
+       (zivon-frontend-product-skills: "dead controls" anti-pattern). */
+    var span = shellEl("span", "zn-appbar-link zn-appbar-link-soon", {
+      "data-element-id": elementId,
+      "aria-disabled": "true"
+    });
+    var lab = shellEl("span", "zn-appbar-link-label");
+    shellI18nText(lab, labelKey, label);
+    span.appendChild(lab);
+    var soon = shellEl("span", "zn-soon");
+    shellI18nText(soon, "ui.shell.soon", "soon");
+    span.appendChild(soon);
+    return span;
+  }
+
+  function buildLessonAppBar() {
+    var existing = document.querySelector(".zn-appbar");
+    if (existing) return { mounted: true, element: existing, idempotent: true };
+    if (!document.body) return { mounted: false, reason: "no_body" };
+    var homeHref = ZivonRouter.buildLocalizedHref("/", getSavedLang());
+
+    var bar = shellEl("header", "zn-appbar", {
+      "data-region": "SCR-LES-01.R0",
+      "data-element-id": "EL-LES-01-091",
+      "data-ruled-skip": "true"
+    });
+
+    var brand = shellEl("a", "zn-appbar-brand", {
+      href: homeHref,
+      "data-element-id": "EL-LES-01-092",
+      "aria-label": shellString("ui.shell.brand_label", "Zivon \u2014 all chapters")
+    });
+    brand.textContent = "Zivon";
+    bar.appendChild(brand);
+
+    var nav = shellEl("nav", "zn-appbar-nav", { "aria-label": "Zivon" });
+    nav.appendChild(shellNavLink(homeHref, "ui.shell.courses", "Courses", "EL-LES-01-093", true));
+    nav.appendChild(shellNavLink("/app/practice", "ui.shell.practice", "Practice", "EL-LES-01-094", false));
+    nav.appendChild(shellNavLink("/app/progress", "ui.shell.progress", "Progress", "EL-LES-01-095", false));
+    bar.appendChild(nav);
+
+    var actions = shellEl("div", "zn-appbar-actions");
+
+    var contents = shellEl("button", "zn-appbar-btn", {
+      type: "button",
+      id: SHELL_TOGGLE_ID,
+      "data-element-id": "EL-LES-01-097",
+      "aria-expanded": "false",
+      "aria-controls": SHELL_DRAWER_ID
+    });
+    shellI18nText(contents, "ui.shell.contents", "Contents");
+    contents.addEventListener("click", function () {
+      if (lessonDrawerOpen()) closeLessonDrawer();
+      else openLessonDrawer();
+    });
+    actions.appendChild(contents);
+
+    var ask = shellEl("button", "zn-appbar-btn zn-appbar-ask", {
+      type: "button",
+      "data-element-id": "EL-LES-01-096",
+      "aria-label": shellString("ui.shell.ask_label", "Ask the tutor about this page")
+    });
+    shellI18nText(ask, "ui.shell.ask", "Ask");
+    ask.addEventListener("click", function () {
+      /* "Ask" in the bar is a page-level question: it clears a previous
+         per-block anchor instead of silently reusing it. */
+      explicitAnchorBlockId = null;
+      openShellTutor(null);
+    });
+    actions.appendChild(ask);
+
+    var identity = shellEl("span", "zn-appbar-identity", {
+      "data-element-id": "EL-LES-01-109",
+      "data-zn-identity": "guest",
+      hidden: ""
+    });
+    actions.appendChild(identity);
+
+    bar.appendChild(actions);
+    /* Above the sticky language bar: the shell is the outermost frame and
+       scrolls away, so §10.5's bar keeps the top edge while reading. */
+    document.body.insertBefore(bar, document.body.firstChild);
+    syncLessonShellConsent();
+    return { mounted: true, element: bar };
+  }
+
+  function syncLessonShellConsent() {
+    var declined = getConsentState() === "declined";
+    var ask = document.querySelector(".zn-appbar-ask");
+    if (ask) {
+      if (declined) {
+        ask.hidden = true;
+        ask.setAttribute("aria-hidden", "true");
+      } else {
+        ask.hidden = false;
+        ask.removeAttribute("aria-hidden");
+      }
+    }
+    if (document.body) {
+      document.body.setAttribute("data-zn-voice", declined ? "off" : "on");
+      document.body.setAttribute("data-zn-identity", "guest");
+    }
+  }
+
+  function openShellTutor(blockId) {
+    if (blockId) explicitAnchorBlockId = String(blockId);
+    var consent = getConsentState();
+    if (consent === "declined") return { opened: false, reason: "consent_declined" };
+    if (consent !== "granted") {
+      /* Voice is device-local and gated (§10.14): surface the gate, keep the
+         pending anchor, and never pretend the tutor heard anything. */
+      var sheet = document.querySelector('[data-element-id="EL-LES-01-057"]');
+      if (sheet && !sheet.hidden) shellFocus(sheet.querySelector("input, button"));
+      return { opened: false, reason: "consent_required" };
+    }
+    var res = ZivonVoiceDock.lazyMount();
+    ZivonVoiceDock.setContainment("expanded");
+    try {
+      buildContextSnapshot(blockId || explicitAnchorBlockId || undefined);
+    } catch (e) {}
+    var region = ZivonVoiceDock.getRegion();
+    var mic = region ? region.querySelector(".zn-dock-mic") : null;
+    shellFocus(mic);
+    return { opened: Boolean(res && res.mounted), reason: res && res.reason };
+  }
+
+  /* ------------------------------ chapter drawer -------------------------- */
+
+  function lessonDrawerOpen() {
+    var drawer = document.getElementById(SHELL_DRAWER_ID);
+    return Boolean(drawer && !drawer.hidden);
+  }
+
+  function buildLessonDrawer() {
+    var existing = document.getElementById(SHELL_DRAWER_ID);
+    if (existing) return { mounted: true, element: existing, idempotent: true };
+
+    var drawer = shellEl("nav", "zn-drawer", {
+      id: SHELL_DRAWER_ID,
+      "data-region": "SCR-LES-01.R13",
+      "data-element-id": "EL-LES-01-098",
+      "data-ruled-skip": "true",
+      "aria-label": shellString("ui.shell.chapter_contents", "Chapter contents"),
+      hidden: ""
+    });
+
+    var head = shellEl("div", "zn-drawer-head");
+    var kicker = shellEl("p", "zn-drawer-kicker");
+    shellI18nText(kicker, "ui.shell.chapter_contents", "Chapter contents");
+    head.appendChild(kicker);
+    var close = shellEl("button", "zn-drawer-close", {
+      type: "button",
+      "aria-label": shellString("ui.shell.close_contents", "Close chapter contents")
+    });
+    shellI18nText(close, "ui.shell.close", "Close");
+    close.addEventListener("click", function () { closeLessonDrawer(); });
+    head.appendChild(close);
+    drawer.appendChild(head);
+
+    drawer.appendChild(shellEl("ol", "zn-drawer-list", { "data-element-id": "EL-LES-01-099" }));
+    drawer.appendChild(shellEl("p", "zn-drawer-progress", { "data-element-id": "EL-LES-01-103" }));
+    drawer.appendChild(shellEl("div", "zn-drawer-chapters"));
+
+    var nav = shellEl("nav", "zn-drawer-nav", { "aria-label": "Zivon" });
+    nav.appendChild(shellNavLink(homeHrefForShell(), "ui.shell.courses", "Courses", "EL-LES-01-093", true));
+    nav.appendChild(shellNavLink("/app/practice", "ui.shell.practice", "Practice", "EL-LES-01-094", false));
+    nav.appendChild(shellNavLink("/app/progress", "ui.shell.progress", "Progress", "EL-LES-01-095", false));
+    drawer.appendChild(nav);
+
+    var note = shellEl("p", "zn-drawer-note");
+    shellI18nText(note, "ui.shell.local_note", "Progress and saves stay on this device.");
+    drawer.appendChild(note);
+
+    drawer.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape") return;
+      ev.preventDefault();
+      closeLessonDrawer();
+    });
+
+    document.body.appendChild(drawer);
+    renderLessonDrawerList();
+    renderLessonChapterLinks();
+    return { mounted: true, element: drawer };
+  }
+
+  function homeHrefForShell() {
+    return ZivonRouter.buildLocalizedHref("/", getSavedLang());
+  }
+
+  function shellSectionBookmarks() {
+    var store = shellReadJson(SHELL_BOOKMARK_KEY, null);
+    if (!store || typeof store !== "object" || !Array.isArray(store.items)) {
+      store = { v: 1, items: [] };
+    }
+    return store;
+  }
+
+  function shellIsBookmarked(sectionId) {
+    var topic = shellTopicKey();
+    return shellSectionBookmarks().items.some(function (it) {
+      return it && it.topic === topic && it.section_id === sectionId;
+    });
+  }
+
+  function shellToggleBookmark(section) {
+    var store = shellSectionBookmarks();
+    var topic = shellTopicKey();
+    var before = store.items.length;
+    store.items = store.items.filter(function (it) {
+      return !(it && it.topic === topic && it.section_id === section.id);
+    });
+    var added = store.items.length === before;
+    if (added) {
+      store.items.unshift({
+        course: ZivonRouter.currentRoute().course_id || "",
+        topic: topic,
+        section_id: section.id,
+        block_id: section.block_id || "",
+        title: section.title,
+        ts: Date.now()
+      });
+      /* Bounded local store: newest first, 100 items. */
+      if (store.items.length > 100) store.items.length = 100;
+    }
+    shellWriteJson(SHELL_BOOKMARK_KEY, store);
+    shellEmit("EVT-bookmark", {
+      course_id: ZivonRouter.currentRoute().course_id || "",
+      section_id: section.id,
+      bookmarked: added
+    });
+    return added;
+  }
+
+  function renderLessonDrawerList() {
+    var list = document.querySelector("#" + SHELL_DRAWER_ID + " .zn-drawer-list");
+    if (!list) return;
+    list.textContent = "";
+    lessonShellState.sections.forEach(function (section, index) {
+      var li = shellEl("li", "zn-drawer-item", { "data-section-id": section.id });
+      var link = shellEl("a", "zn-drawer-link", {
+        href: "#" + section.id,
+        "data-element-id": "EL-LES-01-099"
+      });
+      var num = shellEl("span", "zn-drawer-num");
+      num.textContent = shellPad2(index + 1);
+      link.appendChild(num);
+      var title = shellEl("span", "zn-drawer-title");
+      title.textContent = section.title;
+      link.appendChild(title);
+      link.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        jumpToLessonSection(index);
+      });
+      li.appendChild(link);
+
+      var save = shellEl("button", "zn-drawer-save", {
+        type: "button",
+        "data-element-id": "EL-LES-01-102",
+        "aria-pressed": shellIsBookmarked(section.id) ? "true" : "false",
+        "aria-label": shellFormat("ui.shell.save_section", "Save section: {title}", { title: section.title })
+      });
+      var saveLabel = shellEl("span", "zn-drawer-save-label");
+      shellI18nText(saveLabel, "ui.shell.save", "Save");
+      save.appendChild(saveLabel);
+      save.addEventListener("click", function () {
+        var added = shellToggleBookmark(section);
+        save.setAttribute("aria-pressed", added ? "true" : "false");
+        saveLabel.setAttribute("data-i18n", added ? "ui.shell.saved" : "ui.shell.save");
+        saveLabel.textContent = added
+          ? shellString("ui.shell.saved", "Saved")
+          : shellString("ui.shell.save", "Save");
+      });
+      li.appendChild(save);
+      list.appendChild(li);
+    });
+    shellSyncDrawerCurrent();
+    shellSyncDrawerProgress();
+  }
+
+  function shellSyncDrawerCurrent() {
+    var currentIndex = lessonShellState.currentIndex;
+    document.querySelectorAll("#" + SHELL_DRAWER_ID + " .zn-drawer-item").forEach(function (item, i) {
+      var link = item.querySelector(".zn-drawer-link");
+      if (i !== currentIndex) {
+        item.removeAttribute("data-current");
+        if (link) link.removeAttribute("aria-current");
+        return;
+      }
+      item.setAttribute("data-current", "true");
+      if (link) link.setAttribute("aria-current", "location");
+    });
+  }
+
+  function shellSyncDrawerProgress() {
+    var status = document.querySelector("#" + SHELL_DRAWER_ID + " .zn-drawer-progress");
+    if (!status) return;
+    var total = lessonShellState.totalSections || lessonShellState.sections.length;
+    if (!total) {
+      status.textContent = "";
+      return;
+    }
+    status.textContent = shellFormat(
+      "ui.shell.sections_read",
+      "{n} of {m} sections read",
+      { n: lessonShellState.seenCount, m: total }
+    );
+  }
+
+  function openLessonDrawer() {
+    var drawer = document.getElementById(SHELL_DRAWER_ID);
+    var toggle = document.getElementById(SHELL_TOGGLE_ID);
+    if (!drawer) return false;
+    drawer.hidden = false;
+    if (toggle) toggle.setAttribute("aria-expanded", "true");
+    shellSyncDrawerProgress();
+    var target = drawer.querySelector('.zn-drawer-link[aria-current="location"]') ||
+      drawer.querySelector(".zn-drawer-close");
+    shellFocus(target);
+    return true;
+  }
+
+  function closeLessonDrawer(options) {
+    var drawer = document.getElementById(SHELL_DRAWER_ID);
+    var toggle = document.getElementById(SHELL_TOGGLE_ID);
+    if (!drawer) return false;
+    drawer.hidden = true;
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+    if (!options || options.restoreFocus !== false) shellFocus(toggle);
+    return true;
+  }
+
+  function jumpToLessonSection(index) {
+    var section = lessonShellState.sections[index];
+    if (!section) return;
+    closeLessonDrawer({ restoreFocus: false });
+    var behaviour = shellPrefersReducedMotion() ? "auto" : "smooth";
+    try {
+      section.el.scrollIntoView({ behavior: behaviour, block: "start" });
+    } catch (e) {
+      try { section.el.scrollIntoView(); } catch (e2) {}
+    }
+    if (!section.el.hasAttribute("tabindex")) section.el.setAttribute("tabindex", "-1");
+    shellFocus(section.el);
+  }
+
+  /* --------------------------- chapters (prev / next) --------------------- */
+
+  function shellTopicBasePath() {
+    var pathname = (window.location && window.location.pathname) || "/";
+    var p = pathname.replace(/\/[^/]*\.html?$/i, "/");
+    p = p.replace(/\/(hi|hi-Latn)\/?$/i, "/");
+    if (p.charAt(p.length - 1) !== "/") p += "/";
+    return p;
+  }
+
+  function loadLessonCatalogue() {
+    if (lessonShellState.catalogue) return Promise.resolve(lessonShellState.catalogue);
+    if (!hasNetworkTransport()) return Promise.resolve(null);
+    var route = ZivonRouter.currentRoute();
+    if (route.screen !== "SCR-LES-01" || !route.course_id || !route.topic_slug) {
+      /* Not a published topic route: no catalogue to read, no fetch. */
+      return Promise.resolve(null);
+    }
+    return sameOriginRequest(shellTopicBasePath() + "../../../catalogue.json", { method: "GET" })
+      .then(function (res) {
+        return res && res.ok ? res.json() : null;
+      })
+      .then(function (data) {
+        lessonShellState.catalogue = data && Array.isArray(data.topics) ? data : null;
+        return lessonShellState.catalogue;
+      })
+      .catch(function () { return null; });
+  }
+
+  /* Chapter links resolve through the catalogue's own `localized_hrefs`
+     (P5 publishes exactly the routes that exist per locale). A locale the
+     topic does not ship falls back to English - never to a guessed /hi/ URL
+     that would 404 ("only link to pages that exist"). Older catalogues
+     without the map keep the router's buildLocalizedHref behaviour. */
+  function shellTopicHref(entry) {
+    if (!entry) return "";
+    var locale = getSavedLang() === "hinglish" ? "hi-Latn" : getSavedLang();
+    var map = entry.localized_hrefs && typeof entry.localized_hrefs === "object"
+      ? entry.localized_hrefs
+      : null;
+    var raw = "";
+    if (map) raw = map[locale] || map.en || "";
+    if (!raw) raw = entry.href || "";
+    if (!raw) return "";
+    var abs = "/" + String(raw).replace(/^\/+/, "");
+    abs = abs.replace(/\/index\.html$/i, "/");
+    if (map) return abs;
+    return ZivonRouter.buildLocalizedHref(abs, getSavedLang());
+  }
+
+  function computeChapterNeighbours() {
+    var route = ZivonRouter.currentRoute();
+    var catalogue = lessonShellState.catalogue;
+    if (!catalogue || !route.course_id || !route.topic_slug) {
+      lessonShellState.neighbours = { prev: null, next: null };
+      return lessonShellState.neighbours;
+    }
+    var sameCourse = catalogue.topics.filter(function (t) {
+      return t && String(t.course_id) === String(route.course_id);
+    });
+    var idx = -1;
+    for (var i = 0; i < sameCourse.length; i++) {
+      var href = String(sameCourse[i].href || "");
+      if (String(sameCourse[i].chapter_id || "") === String(route.topic_slug) ||
+          href.indexOf("/" + route.topic_slug + "/") !== -1) {
+        idx = i;
+        break;
+      }
+    }
+    function pack(entry) {
+      if (!entry) return null;
+      return {
+        href: shellTopicHref(entry),
+        title: String(entry.lesson_title || entry.title || "")
+      };
+    }
+    lessonShellState.neighbours = {
+      prev: idx > 0 ? pack(sameCourse[idx - 1]) : null,
+      next: idx >= 0 && idx < sameCourse.length - 1 ? pack(sameCourse[idx + 1]) : null
+    };
+    return lessonShellState.neighbours;
+  }
+
+  function renderLessonChapterLinks() {
+    var host = document.querySelector("#" + SHELL_DRAWER_ID + " .zn-drawer-chapters");
+    if (!host) return;
+    var neighbours = computeChapterNeighbours();
+    host.textContent = "";
+
+    if (neighbours.prev) {
+      var prev = shellEl("a", "zn-drawer-chapter-link", {
+        href: neighbours.prev.href,
+        "data-element-id": "EL-LES-01-100",
+        rel: "prev"
+      });
+      var prevLab = shellEl("span", "zn-drawer-chapter-label");
+      shellI18nText(prevLab, "ui.shell.prev_chapter", "Previous chapter");
+      prev.appendChild(prevLab);
+      var prevTitle = shellEl("span", "zn-drawer-chapter-title");
+      prevTitle.textContent = neighbours.prev.title;
+      prev.appendChild(prevTitle);
+      host.appendChild(prev);
+    }
+    if (neighbours.next) {
+      var next = shellEl("a", "zn-drawer-chapter-link", {
+        href: neighbours.next.href,
+        "data-element-id": "EL-LES-01-101",
+        rel: "next"
+      });
+      var nextLab = shellEl("span", "zn-drawer-chapter-label");
+      shellI18nText(nextLab, "ui.shell.next_chapter", "Next chapter");
+      next.appendChild(nextLab);
+      var nextTitle = shellEl("span", "zn-drawer-chapter-title");
+      nextTitle.textContent = neighbours.next.title;
+      next.appendChild(nextTitle);
+      host.appendChild(next);
+    }
+  }
+
+  /* --------------------------- reading progress bar ----------------------- */
+
+  function buildLessonProgressBar() {
+    var existing = document.getElementById("zn-read-progress");
+    if (existing) return { mounted: true, element: existing, idempotent: true };
+    if (!document.body) return { mounted: false, reason: "no_body" };
+    var bar = shellEl("div", "zn-read-progress", {
+      id: "zn-read-progress",
+      "data-element-id": "EL-LES-01-103",
+      "data-ruled-skip": "true",
+      role: "progressbar",
+      "aria-label": shellString("ui.shell.reading_progress", "Reading progress"),
+      "aria-valuemin": "0",
+      "aria-valuemax": "100",
+      "aria-valuenow": "0"
+    });
+    bar.appendChild(shellEl("span", "zn-read-progress-fill"));
+    document.body.appendChild(bar);
+    return { mounted: true, element: bar };
+  }
+
+  function shellProgressPercent() {
+    var total = lessonShellState.totalSections || lessonShellState.sections.length;
+    var bySections = total ? Math.round((lessonShellState.seenCount / total) * 100) : 0;
+    return Math.max(lessonShellState.maxScrollPct, bySections);
+  }
+
+  function shellSyncProgressBar() {
+    var bar = document.getElementById("zn-read-progress");
+    if (!bar) return;
+    var pct = shellProgressPercent();
+    bar.setAttribute("aria-valuenow", String(pct));
+    var fill = bar.querySelector(".zn-read-progress-fill");
+    if (fill) fill.style.transform = "scaleX(" + (pct / 100).toFixed(4) + ")";
+  }
+
+  /* --------------------------- ask about this (per block) ------------------ */
+
+  function shellBlockTitle(block) {
+    var heading = block.querySelector("h3, legend, figcaption");
+    var bType = block.getAttribute("data-block-type") || "text";
+    try {
+      return humanBlockTitle(block, heading, bType);
+    } catch (e) {
+      return BLOCK_TYPE_HUMAN[bType] || "Lesson content";
+    }
+  }
+
+  function injectAskButtons() {
+    var page = document.querySelector(".zn-page:not(.zn-home)");
+    if (!page) return { mounted: false, count: 0 };
+    if (getConsentState() === "declined") return { mounted: false, count: 0, reason: "consent_declined" };
+    var count = 0;
+    page.querySelectorAll("[data-block-type][id]").forEach(function (block) {
+      if (block.querySelector(".zn-ask-block")) {
+        count += 1;
+        return;
+      }
+      var wrap = shellEl("div", "zn-block-tools", { "data-ruled-skip": "true" });
+      var btn = shellEl("button", "zn-ask-block", {
+        type: "button",
+        "data-element-id": "EL-LES-01-013",
+        "data-block-id": block.id
+      });
+      shellI18nText(btn, "ui.shell.ask_about_this", "Ask about this");
+      /* WCAG 2.5.3 label-in-name: the accessible name starts with the visible
+         words, then names the block the tutor will anchor to. */
+      btn.setAttribute(
+        "aria-label",
+        shellFormat("ui.shell.ask_about_block", "Ask about this: {title}", { title: shellBlockTitle(block) })
+      );
+      btn.addEventListener("click", function () {
+        askAboutLessonBlock(block.id);
+      });
+      wrap.appendChild(btn);
+      block.appendChild(wrap);
+      count += 1;
+    });
+    return { mounted: count > 0, count: count };
+  }
+
+  function askAboutLessonBlock(blockId) {
+    var target = document.getElementById(String(blockId));
+    if (!target) return { anchored: false, reason: "block_missing" };
+    var opened = openShellTutor(blockId);
+    shellEmit("EVT-ask_about_this", {
+      course_id: ZivonRouter.currentRoute().course_id || "",
+      block_id: String(blockId),
+      block_type: target.getAttribute("data-block-type") || "text",
+      opened: Boolean(opened && opened.opened)
+    });
+    return {
+      anchored: true,
+      opened: Boolean(opened && opened.opened),
+      reason: opened && opened.reason
+    };
+  }
+
+  function clearAskButtons() {
+    document.querySelectorAll(".zn-block-tools").forEach(function (el) { el.remove(); });
+  }
+
+  /* ---------------------------- end-of-lesson steps ----------------------- */
+
+  function shellNextRow(textKey, text, elementId) {
+    var li = shellEl("li", "zn-next-soon", { "data-element-id": elementId, "aria-disabled": "true" });
+    var label = shellEl("span", "zn-next-label");
+    shellI18nText(label, textKey, text);
+    li.appendChild(label);
+    var soon = shellEl("span", "zn-soon");
+    shellI18nText(soon, "ui.shell.soon", "coming soon");
+    li.appendChild(soon);
+    return li;
+  }
+
+  function buildLessonNextSteps() {
+    var page = document.querySelector(".zn-page:not(.zn-home)");
+    if (!page) return { mounted: false, reason: "not_lesson_page" };
+    var existing = page.querySelector(".zn-lesson-next");
+    if (existing) return { mounted: true, element: existing, idempotent: true };
+
+    var box = shellEl("section", "zn-lesson-next", {
+      "data-region": "SCR-LES-01.R15",
+      "data-element-id": "EL-LES-01-104",
+      "data-ruled-skip": "true",
+      "aria-labelledby": "zn-next-title"
+    });
+    var title = shellEl("h2", "zn-next-title", { id: "zn-next-title" });
+    shellI18nText(title, "ui.shell.what_next", "What next?");
+    box.appendChild(title);
+
+    var list = shellEl("ul", "zn-next-list");
+    list.appendChild(shellNextRow("ui.shell.practise", "Practise this chapter", "EL-LES-01-105"));
+    list.appendChild(shellNextRow("ui.shell.explain_back", "Explain it back", "EL-LES-01-106"));
+    list.appendChild(shellEl("li", "zn-next-chapter", { id: "zn-next-chapter" }));
+    box.appendChild(list);
+
+    var note = shellEl("p", "zn-next-note");
+    shellI18nText(
+      note,
+      "ui.shell.next_note",
+      "Practice and explain-back arrive with the practice hub. Progress and saves on this page stay on this device."
+    );
+    box.appendChild(note);
+
+    var actions = shellEl("div", "zn-next-actions");
+
+    /* The app bar scrolls away by design (doctrine §10.5 keeps the language
+       bar at the top edge), so the end of the lesson also offers the chapter
+       contents - same drawer, no second navigation surface. */
+    var contentsLink = shellEl("button", "zn-next-contents", {
+      type: "button",
+      "data-element-id": "EL-LES-01-110"
+    });
+    shellI18nText(contentsLink, "ui.shell.back_to_contents", "Back to contents");
+    contentsLink.addEventListener("click", function () { openLessonDrawer(); });
+    actions.appendChild(contentsLink);
+
+    var allLink = shellEl("a", "zn-next-all", {
+      href: homeHrefForShell(),
+      "data-element-id": "EL-LES-01-108"
+    });
+    shellI18nText(allLink, "ui.shell.all_chapters", "All chapters");
+    actions.appendChild(allLink);
+    box.appendChild(actions);
+
+    var footer = page.querySelector(".zn-footer");
+    if (footer && footer.parentNode === page) page.insertBefore(box, footer);
+    else page.appendChild(box);
+
+    renderLessonNextChapter();
+    return { mounted: true, element: box };
+  }
+
+  function renderLessonNextChapter() {
+    var slot = document.getElementById("zn-next-chapter");
+    if (!slot) return;
+    slot.textContent = "";
+    var next = lessonShellState.neighbours.next;
+    if (!next) {
+      slot.hidden = true;
+      return;
+    }
+    slot.hidden = false;
+    var label = shellEl("span", "zn-next-label");
+    shellI18nText(label, "ui.shell.next_chapter", "Next chapter");
+    slot.appendChild(label);
+    var link = shellEl("a", "zn-next-link", {
+      href: next.href,
+      "data-element-id": "EL-LES-01-107",
+      rel: "next"
+    });
+    link.appendChild(document.createTextNode(next.title + " "));
+    var arrow = shellEl("span", "zn-next-arrow", { "aria-hidden": "true" });
+    arrow.textContent = "\u2192";
+    link.appendChild(arrow);
+    slot.appendChild(link);
+  }
+
+  /* ------------------------------- observers ------------------------------ */
+
+  function wireLessonShellObservers() {
+    if (lessonShellState.mounted) return { wired: true, idempotent: true };
+    lessonShellState.mounted = true;
+    if (document.body) document.body.setAttribute(SHELL_MOUNTED_ATTR, "true");
+
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape" || !lessonDrawerOpen()) return;
+      ev.preventDefault();
+      closeLessonDrawer();
+    });
+    window.addEventListener("scroll", shellQueuePositionUpdate, { passive: true });
+    window.addEventListener("resize", shellQueuePositionUpdate);
+    window.addEventListener("pagehide", function () {
+      if (lessonShellState.currentIndex >= 0) shellCloseDwell(lessonShellState.currentIndex);
+      shellSaveProgress({ max_scroll_pct: lessonShellState.maxScrollPct });
+      /* The telemetry flush listener was registered before this one; flush
+         once more so the dwell emitted during unload still ships. */
+      try {
+        if (window.ZivonEvents && typeof window.ZivonEvents.flush === "function") {
+          window.ZivonEvents.flush(undefined, { keepalive: true });
+        }
+      } catch (e) {}
+    });
+    window.addEventListener("zivon:consent-changed", function () {
+      syncLessonShellConsent();
+      clearAskButtons();
+      injectAskButtons();
+      syncLessonShellConsent();
+    });
+    shellUpdatePosition();
+    return { wired: true };
+  }
+
+  function refreshLessonShellSections() {
+    lessonShellState.sections = shellCollectSections();
+    lessonShellState.totalSections = lessonShellState.sections.length;
+    shellHydrateStoredProgress(lessonShellState.sections);
+    renderLessonDrawerList();
+    renderLessonChapterLinks();
+    renderLessonNextChapter();
+    shellUpdatePosition();
+    return lessonShellState.sections.length;
+  }
+
+  var ZivonLessonShell = {
+    mount: function (options) {
+      var opts = options || {};
+      var page = document.querySelector(".zn-page:not(.zn-home)");
+      if (!page) return { mounted: false, reason: "not_lesson_page" };
+      /* Shell chrome belongs to a generated lesson: a page with section
+         wrappers or block hooks. Privacy, 404, hub and fixture pages get no
+         app bar and no catalogue probe (no dead chrome, no 404 in the
+         console). */
+      if (!page.querySelector(".zn-section, [data-block-type]")) {
+        return { mounted: false, reason: "no_lesson_sections" };
+      }
+      var alreadyMounted = document.body &&
+        document.body.getAttribute(SHELL_MOUNTED_ATTR) === "true";
+      var steps = {};
+      try {
+        steps.appbar = buildLessonAppBar();
+      } catch (e) {
+        steps.appbar = { mounted: false, error: String(e) };
+      }
+      try {
+        steps.drawer = buildLessonDrawer();
+      } catch (e) {
+        steps.drawer = { mounted: false, error: String(e) };
+      }
+      try {
+        steps.progress = buildLessonProgressBar();
+      } catch (e) {
+        steps.progress = { mounted: false, error: String(e) };
+      }
+      try {
+        steps.ask = injectAskButtons();
+      } catch (e) {
+        steps.ask = { mounted: false, error: String(e) };
+      }
+      try {
+        steps.next = buildLessonNextSteps();
+      } catch (e) {
+        steps.next = { mounted: false, error: String(e) };
+      }
+      try {
+        steps.observe = wireLessonShellObservers();
+      } catch (e) {
+        steps.observe = { mounted: false, error: String(e) };
+      }
+      try {
+        steps.sections = refreshLessonShellSections();
+      } catch (e) {
+        steps.sections = { error: String(e) };
+      }
+      /* The manifest carries the authored section titles (the renderer emits
+         section wrappers, not section headings) and the catalogue carries the
+         chapter order. Both are optional: without them the drawer falls back
+         to DOM-derived titles and hides the chapter links. */
+      try {
+        if (typeof loadTopicManifestAndMountReadAloud === "function") {
+          Promise.resolve(loadTopicManifestAndMountReadAloud(opts.manifest || null))
+            .then(function (mf) {
+              if (!mf) return;
+              lessonShellState.manifest = mf;
+              refreshLessonShellSections();
+            })
+            .catch(function () {});
+        }
+      } catch (e) {}
+      try {
+        loadLessonCatalogue().then(function (cat) {
+          if (!cat) return;
+          computeChapterNeighbours();
+          renderLessonChapterLinks();
+          renderLessonNextChapter();
+        }).catch(function () {});
+      } catch (e) {}
+
+      return { mounted: true, idempotent: Boolean(alreadyMounted), steps: steps };
+    },
+    refresh: function () {
+      syncLessonShellConsent();
+      clearAskButtons();
+      injectAskButtons();
+      return refreshLessonShellSections();
+    },
+    openDrawer: openLessonDrawer,
+    closeDrawer: closeLessonDrawer,
+    openTutor: openShellTutor,
+    askAboutBlock: askAboutLessonBlock,
+    getSections: function () {
+      return lessonShellState.sections.map(function (s) {
+        return { id: s.id, title: s.title, index: s.index };
+      });
+    },
+    getProgress: function () {
+      return shellProgressRecord() || {
+        sections: {},
+        max_scroll_pct: lessonShellState.maxScrollPct,
+        completed: false
+      };
+    },
+    setProgressSink: function (fn) {
+      lessonShellState.progressSink = typeof fn === "function" ? fn : null;
+      shellNotifyProgressSink();
+    },
+    setIdentity: function (identity) {
+      var slot = document.querySelector(".zn-appbar-identity");
+      if (!slot) return false;
+      var id = identity || {};
+      if (!id.name) {
+        slot.hidden = true;
+        slot.textContent = "";
+        slot.setAttribute("data-zn-identity", "guest");
+        if (document.body) document.body.setAttribute("data-zn-identity", "guest");
+        return true;
+      }
+      slot.hidden = false;
+      slot.textContent = String(id.name);
+      slot.setAttribute("data-zn-identity", "user");
+      if (document.body) document.body.setAttribute("data-zn-identity", "user");
+      return true;
+    },
+    /* Exposed for the "only link to pages that exist" regression test. */
+    resolveTopicHref: function (entry) { return shellTopicHref(entry); },
+    toggleBookmark: function (sectionId) {
+      var section = lessonShellState.sections.filter(function (s) {
+        return s.id === sectionId;
+      })[0];
+      return section ? shellToggleBookmark(section) : false;
+    },
+    getAnchor: function () { return explicitAnchorBlockId; },
+    clearAnchor: function () { explicitAnchorBlockId = null; }
+  };
+  window.ZivonLessonShell = ZivonLessonShell;
+
   /* --------------- 9. Shell Injection (shell-injection.md §3) --------------
      Injects product chrome on content-only lesson pages in exact order:
        1. Global notices (offline, voice-limited warn, typed-only exhausted)
@@ -5192,7 +6498,10 @@
     return { mounted: true };
   }
 
-  var manifestFetchStarted = false;
+  /* One stable promise per page: the read-aloud controls, the lesson shell's
+     chapter drawer and the end-of-lesson chapter links all want the manifest,
+     and a second mount must never trigger a second fetch. */
+  var topicManifestPromise = null;
   function loadTopicManifestAndMountReadAloud(explicitManifest) {
     if (explicitManifest && typeof explicitManifest === "object") {
       window.__ZIVON_MANIFEST__ = explicitManifest;
@@ -5226,11 +6535,11 @@
     if (!hasNetworkTransport()) {
       return Promise.resolve(null);
     }
-    if (manifestFetchStarted) {
-      /* Mount is idempotent: never fetch the manifest twice. */
-      return Promise.resolve(window.__ZIVON_MANIFEST__ || null);
+    if (topicManifestPromise) {
+      /* Mount is idempotent: never fetch the manifest twice, and a caller that
+         arrives while the fetch is in flight gets the same promise. */
+      return topicManifestPromise;
     }
-    manifestFetchStarted = true;
     /* Directory URLs and catalogue links (…/index.html) must both build
        …/manifest.json; never append to "index.html" itself. */
     var pathname = (window.location && window.location.pathname) || "/";
@@ -5238,7 +6547,7 @@
     var locMatch = normalizedPath.match(/\/(hi|hi-Latn)\/?$/);
     var basePath = normalizedPath.replace(/\/(hi|hi-Latn)\/?$/, "/");
     var manifestPath = basePath + "manifest.json";
-    return sameOriginRequest(manifestPath, { method: "GET" })
+    topicManifestPromise = sameOriginRequest(manifestPath, { method: "GET" })
       .then(function (res) {
         if (!res || !res.ok) return null;
         return res.json();
@@ -5270,6 +6579,7 @@
           });
       })
       .catch(function () { return null; });
+    return topicManifestPromise;
   }
 
   var ZivonShell = {
@@ -5334,6 +6644,17 @@
         if (langRow) syncLangBarBundleAvailability(langRow);
       } catch (e) {
         steps.privacy = { mounted: false, error: String(e) };
+      }
+
+      /* Step 7: F4 lesson shell (app bar, chapter drawer, reading progress,
+         bookmarks, per-block "Ask about this", end-of-lesson next steps).
+         Additive and idempotent: it never rewrites or restyles the lesson
+         body, and any failure leaves the generated page fully readable. */
+      try {
+        if (opts.throwAtStep === "lesson_shell") throw new Error("injected_lesson_shell_error");
+        steps.lesson_shell = ZivonLessonShell.mount({ manifest: opts.manifest || null });
+      } catch (e) {
+        steps.lesson_shell = { mounted: false, error: String(e) };
       }
 
       if (root) {

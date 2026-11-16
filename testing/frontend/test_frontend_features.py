@@ -516,7 +516,12 @@ class TestFrontendFeatures(unittest.TestCase):
                     untranslatedCount,
                     snapSize: JSON.stringify(snap).length,
                     snapSimId: snap.sim_id,
-                    snapHasSvgId: snap.visible_blocks.some((b) => b.id === 'b-ig-04'),
+                    /* F4 context fix: an id'd <svg> INSIDE a block is not a
+                       block. The className normalisation below still has to
+                       survive it (SVGAnimatedString), which is what the old
+                       assertion protected; the exclusion is the new contract. */
+                    snapSvgChildExcluded: !snap.visible_blocks.some((b) => b.id === 'b-ig-04'),
+                    snapHasSvgParent: snap.visible_blocks.some((b) => b.id === 'b-04'),
                     sectionsLeft
                   };
                 }"""
@@ -537,8 +542,11 @@ class TestFrontendFeatures(unittest.TestCase):
             self.assertGreaterEqual(res["untranslatedCount"], 2)
             self.assertLessEqual(res["snapSize"], 4096)
             self.assertEqual(res["snapSimId"], "b-05")
-            # SVGAnimatedString className must not throw; the id'd svg is listed.
-            self.assertTrue(res["snapHasSvgId"])
+            # SVGAnimatedString className must not throw (the snapshot built),
+            # the diagram block that owns the svg is listed, and the id'd svg
+            # child is not mistaken for a block (F4 context fix).
+            self.assertTrue(res["snapSvgChildExcluded"])
+            self.assertTrue(res["snapHasSvgParent"])
             self.assertEqual(res["sectionsLeft"], 0)
             self.assertEqual(errors, [])
         finally:

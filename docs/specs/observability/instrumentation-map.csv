@@ -59,6 +59,9 @@ frontend,frontend.language_bar_use,INFO,client_session_id,topic;lang_selected,no
 frontend,frontend.session_end,INFO,client_session_id,duration_bucket;turn_count,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F10; pagehide beacon
 frontend,frontend.publish_view,INFO,client_session_id,topic;source,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F11; source enum (pvc;snapshot)
 frontend,frontend.heartbeat,INFO,client_session_id,,no,,L2,frontend shell (zivon.js; F-2 agent contract),EVT-F12; 60s liveness
+frontend,frontend.bookmark,INFO,client_session_id,topic;section_id;bookmarked,no,,L2,frontend shell (zivon.js; F4 lesson shell),EVT-F13; device-local bookmark toggle; bookmarked bool; no free text
+frontend,frontend.ask_about_this,INFO,client_session_id,topic;block_id;block_type;opened,no,,L2,frontend shell (zivon.js; F4 lesson shell),EVT-F14; explicit anchor press; opened=false when consent blocks the dock
+frontend,frontend.lesson_complete,INFO,client_session_id,topic;sections_seen;scroll_pct,no,,L2,frontend shell (zivon.js; F4 lesson shell),EVT-F15; every section read AND >=90% scrolled; once per chapter per device (the stored `completed` flag suppresses a reload re-emit)
 credit,credit.call_counted,INFO,session_id,profile;model;units,no,,CR,voice backend (S2 agent contract; ADR-0015 counters),one per billable model call
 credit,credit.counter_update,INFO,session_id,profile;used;cap;remaining,no,,CR,voice backend (S2 agent contract; ADR-0015 counters),profile enum (normal;demo); alert input
 credit,credit.guard_blocked,CRITICAL,session_id,profile;requested;remaining,no,quota_error,CR,voice backend (S2 agent contract; F-OPS-MET-01 guard),call refused to protect the 2000-credit demo reserve (40% of 5000)
