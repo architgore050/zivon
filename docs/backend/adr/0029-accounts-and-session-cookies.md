@@ -40,7 +40,7 @@ An account is an additional identity a device can be linked to.
    It never merges two accounts; a conflicting link is `E-CONFLICT`. A Google-created
    account answers `password_set: false` so the UI can prompt for a password.
 3. **Sessions are opaque and revocable.** The cookie carries a 256-bit token; the table
-   stores only `HMAC-SHA256(session key, "auth-session:" + token)`, its expiry, and
+   stores only a keyed BLAKE2b MAC of the token, its expiry, and
    revocation. TTL 30 days, rotated on password change/reset and after a Google link.
    Cookie: `HttpOnly; Secure; SameSite=Lax; Path=/` (Secure is configurable only for local
    development).

@@ -492,7 +492,7 @@ K8s Secret, cluster-side only.
 - **One account per email**; password identities and Google identities live in
   `auth_identity`, never as two accounts.
 - **Cookie session:** opaque 256-bit token in `zivon_session` (`HttpOnly; Secure;
-  SameSite=Lax; Path=/`), 30-day TTL. Only `HMAC(key, "auth-session:"+token)` is stored;
+  SameSite=Lax; Path=/`), 30-day TTL. Only a keyed BLAKE2b MAC of the token is stored;
   logout/password change/reset revoke it, and password change/reset/link rotate the token.
 - **CSRF:** the client echoes the token returned by register/login/session in
   `X-CSRF-Token` for authenticated state-changing calls; the server compares its keyed hash

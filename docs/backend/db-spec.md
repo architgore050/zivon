@@ -488,7 +488,7 @@ for google); `password_hash` (Argon2id, NULL for google); `created_at`/`updated_
 NULL) OR (provider='google' AND password_hash IS NULL)`; index on `user_id`.
 
 **`auth_session`** — `session_id` text PK; `user_id` FK ON DELETE CASCADE;
-`token_hash` UNIQUE (`HMAC(key,"auth-session:"+token)`); `csrf_token_hash` (`HMAC` of the
+`token_hash` UNIQUE (keyed BLAKE2b MAC of the token); `csrf_token_hash` (`MAC` of the
 derived CSRF token); `expires_at` NOT NULL; `created_at`/`last_seen_at`; `revoked_at`;
 `ip_hash` / `user_agent_hash` (salted hashes only, never raw); index
 `(user_id, revoked_at, expires_at)`.

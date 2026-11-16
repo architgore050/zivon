@@ -2,10 +2,13 @@
 
 Rules:
 - Tokens are generated with `secrets` and never stored in plaintext. The table
-  keeps `HMAC-SHA256(key, "<domain>:" + token)` so a database read alone cannot
+  keeps `keyed_hash(key, "<domain>", token)` so a database read alone cannot
   replay a session, CSRF, verify, reset, or OAuth state token.
-- The HMAC key is the backend's existing `ZIVON_SESSION_TOKEN_KEY` secret,
+- The key is the backend's existing `ZIVON_SESSION_TOKEN_KEY` secret,
   domain-separated per purpose, so one leaked database does not yield another.
+- The digest is keyed **BLAKE2b** (a MAC), not a bare fast hash. Password
+  storage is Argon2id (`backend/auth/passwords.py`); this module never hashes a
+  password.
 - Client IPs and user agents are only ever stored as salted hashes (A-12); the
   raw values never reach the tables or logs.
 """
@@ -14,7 +17,6 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import hmac
 import secrets
 from typing import Final
 
@@ -26,34 +28,47 @@ CSRF_TOKEN_DOMAIN: Final[str] = "auth-csrf:"
 EMAIL_TOKEN_DOMAIN: Final[str] = "auth-email:"
 OAUTH_STATE_DOMAIN: Final[str] = "auth-oauth:"
 
+# BLAKE2b limits: key <= 64 bytes, person <= 16 bytes. Every domain above fits.
+_MAX_KEY_BYTES: Final[int] = 64
+_MAX_PERSON_BYTES: Final[int] = 16
+
 
 def new_token(nbytes: int = 32) -> str:
     """Return a URL-safe opaque token (256 bits by default)."""
     return secrets.token_urlsafe(nbytes)
 
 
+def _key_bytes(secret_key: str) -> bytes:
+    raw = secret_key.encode("utf-8")
+    if len(raw) <= _MAX_KEY_BYTES:
+        return raw
+    return hashlib.blake2b(raw, digest_size=32).digest()
+
+
 def keyed_hash(secret_key: str, domain: str, value: str) -> str:
-    """Return a hex HMAC-SHA256 of `value` bound to its purpose."""
-    return hmac.new(
-        secret_key.encode("utf-8"),
-        (domain + value).encode("utf-8"),
-        hashlib.sha256,
+    """Return a hex keyed BLAKE2b MAC of `value` bound to its purpose."""
+    return hashlib.blake2b(
+        value.encode("utf-8"),
+        digest_size=32,
+        key=_key_bytes(secret_key),
+        person=domain.encode("ascii")[:_MAX_PERSON_BYTES],
     ).hexdigest()
 
 
 def derive_csrf(secret_key: str, raw_session_token: str) -> str:
     """Derive the CSRF token from the session token (no extra stored secret).
 
-    The server keeps only `HMAC(CSRF domain, csrf_token)` in `auth_session`,
-    so a database read cannot produce a usable CSRF token either. The client
-    receives this value in the session/register/login response body and echoes
-    it in `X-CSRF-Token`; the cookie alone is therefore not enough to mutate
-    state from a cross-site form.
+    The server keeps only `keyed_hash(key, CSRF domain, csrf_token)` in
+    `auth_session`, so a database read cannot produce a usable CSRF token
+    either. The client receives this value in the session/register/login
+    response body and echoes it in `X-CSRF-Token`; the cookie alone is therefore
+    not enough to mutate state from a cross-site form.
     """
-    digest = hmac.new(
-        secret_key.encode("utf-8"),
-        (CSRF_TOKEN_DOMAIN + raw_session_token).encode("utf-8"),
-        hashlib.sha256,
+    digest = hashlib.blake2b(
+        raw_session_token.encode("utf-8"),
+        digest_size=32,
+        key=_key_bytes(secret_key),
+        person=CSRF_TOKEN_DOMAIN.encode("ascii")[:_MAX_PERSON_BYTES],
     ).digest()
     return b64url(digest)
 
