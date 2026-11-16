@@ -3,6 +3,7 @@
 | Folder | What it covers | Run from repo root |
 |---|---|---|
 | [`content_factory/`](content_factory/README.md) | the whole build-time pipeline: unit sets, end-to-end vs the mock inference server, and `perf/` - the weak-hardware harness (a TOOL imported by stage 08, not a test) | `python -m unittest discover -s testing/content_factory/unit -t .` |
+| `docs/` | the documentation contracts: `docs/compliance/` required files and sections, decision/notice id integrity, the notice placeholder contract, source-register dates and links, and the AGENTS.md docs-map entry | `python -m unittest discover -s testing/docs -t .` |
 | `frontend/` | the hand-maintained site shell: load contract, self-containment, course-list rendering, quiz + ZivonSim behaviour in real Chromium | `python -m unittest discover -s testing/frontend -t .` |
 | `docs/` | the startup-track docs contract (W0, 2026-11-15): dated status banners, the model-routing table, the preserved challenge history, and the `docs/compliance/` map entry — stdlib only, no network, no browser | `python -m unittest discover -s testing/docs -t .` |
 | [`observability/`](observability/README.md) | the `logging_manager` contract harness + dashboard endpoint tests: redaction guarantees, JSON schema, correlation/headers, sinks + fallback, retention/store helpers, ADR-0026 auth flows, seeded-fixture views | `python -m unittest discover -s testing/observability -t .` |

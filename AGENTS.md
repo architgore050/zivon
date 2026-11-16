@@ -36,6 +36,7 @@ acceptance criteria.
 - `docs/frontend/` — consult before any frontend or design work.
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
 - `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog).
+- `docs/compliance/` — consult before reusing third-party exam content, changing exam-source policy, or editing attribution/takedown copy: the CBSE reuse decision, source register, notice strings, and counsel flags live here.
 - `docs/specs/` — consult before any product-runtime backend or voice work; `docs/specs/voice-agent/` is the voice-tutor architecture spec (wave S1: pipeline, WebSocket contract, latency budget, ADRs 0017–0020, open questions).
 - `docs/specs/translation/` — consult before any translation pipeline, localization, or locale-switcher work; see its README for layout and `docs/backend/adr/` (0021–0023) for translation ADRs. [WS1 renumber: translation ADRs 0017–0019 → 0021–0023]
 - `docs/specs/observability/` — consult before implementing observability or any cross-module system spec (logging_manager contract, instrumentation map, admin dashboard v0); backing ADRs live in `docs/backend/adr/` (0024–0026). [WS1 renumber: obs ADRs 0017–0019 → 0024–0026]

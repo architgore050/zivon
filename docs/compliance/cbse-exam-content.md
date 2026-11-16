@@ -1,19 +1,13 @@
 # CBSE past and sample paper reuse — compliance memo and decision
 
-**Status:** WIP checkpoint (founder pause, 2026-11-15). The research memo is
-complete; its companion files — `docs/compliance/README.md`, `decision-log.md`
-and `notices.md` — are **not written yet**, so the links to them below are
-pending. Decision ids (`DEC-COMP-*`), notice ids (`N-*`) and counsel questions
-(`CQ-*`) are drafted in this memo and will be registered when those files land.
-
-Decision memo for the Zivon exam-prep build (FEATURE-MAP SER-01/SER-06,
+**Status:** decision memo for the Zivon exam-prep build (FEATURE-MAP SER-01/SER-06,
 CNT-05; handshake Q-8). **Not legal advice.** Written by the C0 compliance
 research agent on 2026-11-15 against `main` @ `e2977bc`. Every load-bearing claim
 carries a confidence tag and a source id from [`sources.md`](sources.md).
 
-**Decisions:** `decision-log.md` (`DEC-COMP-001` … `008`) — pending.
-**User-facing copy:** `notices.md` (`N-01` … `N-05`) — pending.
-**Counsel questions:** `CQ-01` … `CQ-10` — pending.
+**Decisions:** [`decision-log.md`](decision-log.md) (`DEC-COMP-001` … `008`).
+**User-facing copy:** [`notices.md`](notices.md) (`N-01` … `N-05`).
+**Counsel questions:** [`CQ-01` … `CQ-10`](decision-log.md#counsel-questions).
 
 ---
 
@@ -47,10 +41,11 @@ ACER, Sri Aurobindo Society — treated as third-party material, see F-13);
 NCERT textbook text (already governed by `sources/catalog.json` and AGENTS.md);
 third-party "PYQ" websites (never a source).
 
-**Method.** Primary sources first: the Act (S-01/S-02), four Indian judgments
-(S-14 … S-18), CBSE's published policies and archives (S-03 … S-13, S-19), and
-the artefacts themselves (S-06, S-08, S-09). Secondary commentary (X-01 … X-03)
-was used to find cases, never as the sole basis for a finding. Retrieval method,
+**Method.** Primary sources first: the Act (S-01/S-02, dated via S-20), four
+Indian judgments (S-14 … S-18), CBSE's published policies and archives (S-03 …
+S-13, S-19), and the artefacts themselves (S-06, S-08, S-09). Secondary
+commentary (X-01 … X-03) was used to find cases, never as the sole basis for a
+finding. Retrieval method,
 status, byte sizes and hashes are in [`sources.md`](sources.md); the TLS and
 India Code caveats are recorded there rather than smoothed over.
 
