@@ -81,6 +81,8 @@ skill/doctrine conflicts instead of silently resolving them.
   pen underline and the native disclosure behaviour; the argument works with JS off.
 - **Samples are labelled.** A’s voice turn and B’s test result are illustrative; the claim ledgers
   mark them for replacement. C uses a real capture of the live Class 9 page and six dated pages.
+- **Hinglish is model-drafted here.** A native reader must check the transcript and headline before
+  launch; a plausible model-drafted Hinglish line is not proof.
 - **A/B coverage.** B uses launch-state coverage; the claim ledger marks it `[launch]`. If the
   current catalogue is smaller, either use A/C or change B’s coverage copy before publishing.
 
