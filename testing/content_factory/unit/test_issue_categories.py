@@ -12,6 +12,7 @@ The contracts under test:
 """
 
 import json
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -260,6 +261,21 @@ class TestRunAllRulesWiring(unittest.TestCase):
         for issue in report["rule_issues"]:
             self.assertIn("category", issue)
             self.assertIn(issue["category"], LEDGER_CATEGORIES)
+
+
+class TestIssueReportScript(unittest.TestCase):
+    def test_script_runs_without_an_installed_package(self):
+        # `python3 scripts/issue_report.py` puts scripts/ on sys.path, not the
+        # repo root; the shared category mapping must still import.
+        result = subprocess.run(
+            [sys.executable, "scripts/issue_report.py", "--help"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Aggregate the factory's ledgers", result.stdout)
 
 
 def _pack() -> dict:

@@ -38,6 +38,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+# Running `python3 scripts/issue_report.py` puts `scripts/` (not the repo root)
+# on sys.path; make the shared factory mapping importable either way.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from factory.issue_categories import issue_category
 
 
