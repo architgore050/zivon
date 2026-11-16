@@ -200,8 +200,8 @@ precedent for responsive duplicates.
 | `zivon.progress` | per-chapter sections read, max scroll %, completion | device-local, bounded, no identity |
 | `zivon.bookmarks` | saved sections with their first block id | device-local, bounded, newest first |
 
-Both are wiped by the privacy page's "Clear my data" flow
-(`ZivonPrivacy.WIPE_LOCAL_KEYS`).
+Both are on the privacy page's device-wipe key list, so "Clear my data" removes
+them with the consent record and the device pseudonym (`ZivonPrivacy`).
 
 ## 12. Tests
 
