@@ -1,0 +1,759 @@
+{
+  "catalogue_version": 2,
+  "pipeline_version_expected": "9",
+  "integrity": {
+    "status": "ok",
+    "versions": {
+      "9": 6
+    },
+    "mixed_versions": [],
+    "missing_versions": [],
+    "grades": []
+  },
+  "topics": [
+    {
+      "href": "courses/class-9-physics/describing-motion-around-us/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-9-describing-motion-around-us",
+      "lesson_id": "class-9-describing-motion-around-us",
+      "course_id": "class-9-physics",
+      "class": 9,
+      "subject": "physics",
+      "title": "Describing Motion Around Us",
+      "lesson_title": "Describing Motion Around Us",
+      "chapter": {
+        "query": "Motion in a Straight Line",
+        "title": "Describing Motion Around Us",
+        "book": "Science - Textbook for Grade 9 (2025 edition)",
+        "pages": [
+          1,
+          24
+        ],
+        "number": 4
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 42,
+        "checks": 13,
+        "worked_examples": 8,
+        "diagrams": 2,
+        "simulations": 3,
+        "reveals": 4,
+        "text_blocks": 12
+      },
+      "concepts": [
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-01",
+          "section_id": "sec-01",
+          "title": "Describing position in a straight line"
+        },
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-03",
+          "section_id": "sec-03",
+          "title": "Average speed and average velocity"
+        },
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-04",
+          "section_id": "sec-04",
+          "title": "Average acceleration"
+        },
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-05",
+          "section_id": "sec-05",
+          "title": "Position-time graphs"
+        },
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-06",
+          "section_id": "sec-06",
+          "title": "Velocity-time graphs"
+        },
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-07",
+          "section_id": "sec-07",
+          "title": "Kinematic equations"
+        },
+        {
+          "concept_id": "class-9-describing-motion-around-us-sec-08",
+          "section_id": "sec-08",
+          "title": "Motion in a plane and uniform circular motion"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:0d9ef34f9e911a2f1270e050477880483661caebf46a8e2ec6394ec037b8c9e1",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "Describing Motion Around Us",
+        "hi": "हमारे चारों ओर गति (motion) का वर्णन",
+        "hi-Latn": "Hamare Aas-Paas ki Motion ka Varnan"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 4,
+      "generated_at": "2026-11-16T09:11:17Z",
+      "localized_hrefs": {
+        "en": "courses/class-9-physics/describing-motion-around-us/index.html",
+        "hi": "courses/class-9-physics/describing-motion-around-us/hi/index.html",
+        "hi-Latn": "courses/class-9-physics/describing-motion-around-us/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": true,
+        "manifest": true,
+        "mode": "live",
+        "lang": "en",
+        "blocks_total": 37,
+        "blocks_available": 37,
+        "missing_assets": [],
+        "missing_blocks": []
+      }
+    },
+    {
+      "href": "courses/class-9-physics/how-forces-affect-motion/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-9-how-forces-affect-motion",
+      "lesson_id": "class-9-how-forces-affect-motion",
+      "course_id": "class-9-physics",
+      "class": 9,
+      "subject": "physics",
+      "title": "How Forces Affect Motion",
+      "lesson_title": "How Forces Affect Motion: Force, Friction and Newton's Three Laws",
+      "chapter": {
+        "query": "Motion",
+        "title": "How Forces Affect Motion",
+        "book": "Science - Textbook for Grade 9 (2025 edition)",
+        "pages": [
+          1,
+          22
+        ],
+        "number": 6
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 44,
+        "checks": 18,
+        "worked_examples": 9,
+        "diagrams": 3,
+        "simulations": 1,
+        "reveals": 4,
+        "text_blocks": 9
+      },
+      "concepts": [
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-01",
+          "section_id": "sec-01",
+          "title": "What a force is, and how we measure it"
+        },
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-02",
+          "section_id": "sec-02",
+          "title": "Balanced and unbalanced forces: the net force"
+        },
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-03",
+          "section_id": "sec-03",
+          "title": "The force of friction: often overlooked but always present"
+        },
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-04",
+          "section_id": "sec-04",
+          "title": "Newton's first law of motion"
+        },
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-05",
+          "section_id": "sec-05",
+          "title": "Newton's second law of motion"
+        },
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-06",
+          "section_id": "sec-06",
+          "title": "Newton's third law of motion"
+        },
+        {
+          "concept_id": "class-9-how-forces-affect-motion-sec-07",
+          "section_id": "sec-07",
+          "title": "Forces acting on a system of objects"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:2bb28d7d1af2bab584a5ff9e33b061747a3513b9b207d6a8ecd11625321ee099",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "How Forces Affect Motion: Force, Friction and Newton's Three Laws",
+        "hi": "बल (force) गति (motion) को कैसे प्रभावित करते हैं: बल, घर्षण और न्यूटन के तीन नियम",
+        "hi-Latn": "Force (bal) Motion (gati) ko Kaise Affect Karte Hain: Force, Friction aur Newton ke Teen Laws"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 6,
+      "generated_at": "2026-11-16T09:12:53Z",
+      "localized_hrefs": {
+        "en": "courses/class-9-physics/how-forces-affect-motion/index.html",
+        "hi": "courses/class-9-physics/how-forces-affect-motion/hi/index.html",
+        "hi-Latn": "courses/class-9-physics/how-forces-affect-motion/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": true,
+        "manifest": true,
+        "mode": "live",
+        "lang": "en",
+        "blocks_total": 38,
+        "blocks_available": 38,
+        "missing_assets": [],
+        "missing_blocks": []
+      }
+    },
+    {
+      "href": "courses/class-11-physics/units-and-measurement/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-11-units-and-measurement",
+      "lesson_id": "class-11-units-and-measurement",
+      "course_id": "class-11-physics",
+      "class": 11,
+      "subject": "physics",
+      "title": "Units and Measurement",
+      "lesson_title": "Units and Measurement",
+      "chapter": {
+        "query": "Units and Measurement",
+        "title": "UNITS AND MEASUREMENT",
+        "book": "Physics Part I - Textbook for Class XI",
+        "pages": [
+          1,
+          12
+        ],
+        "number": 1
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 41,
+        "checks": 14,
+        "worked_examples": 11,
+        "diagrams": 2,
+        "simulations": 1,
+        "reveals": 5,
+        "text_blocks": 8
+      },
+      "concepts": [
+        {
+          "concept_id": "class-11-units-and-measurement-sec-01",
+          "section_id": "sec-01",
+          "title": "Introduction: What is measurement?"
+        },
+        {
+          "concept_id": "class-11-units-and-measurement-sec-02",
+          "section_id": "sec-02",
+          "title": "The International System of Units"
+        },
+        {
+          "concept_id": "class-11-units-and-measurement-sec-03",
+          "section_id": "sec-03",
+          "title": "Significant figures"
+        },
+        {
+          "concept_id": "class-11-units-and-measurement-sec-04",
+          "section_id": "sec-04",
+          "title": "Arithmetic, rounding and uncertainty"
+        },
+        {
+          "concept_id": "class-11-units-and-measurement-sec-05",
+          "section_id": "sec-05",
+          "title": "Dimensions of physical quantities"
+        },
+        {
+          "concept_id": "class-11-units-and-measurement-sec-06",
+          "section_id": "sec-06",
+          "title": "Dimensional formulae and equations"
+        },
+        {
+          "concept_id": "class-11-units-and-measurement-sec-08",
+          "section_id": "sec-08",
+          "title": "Summary"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:1ec0615b2b29ac298f27363a8f087b019460799b9255624261c96f274aaa8777",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "Units and Measurement",
+        "hi": "मात्रक (unit) और मापन",
+        "hi-Latn": "Units aur Measurement"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 1,
+      "generated_at": "2026-11-16T09:11:15Z",
+      "localized_hrefs": {
+        "en": "courses/class-11-physics/units-and-measurement/index.html",
+        "hi": "courses/class-11-physics/units-and-measurement/hi/index.html",
+        "hi-Latn": "courses/class-11-physics/units-and-measurement/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": true,
+        "manifest": true,
+        "mode": "live",
+        "lang": "en",
+        "blocks_total": 35,
+        "blocks_available": 34,
+        "missing_assets": [],
+        "missing_blocks": [
+          "b-26"
+        ]
+      }
+    },
+    {
+      "href": "courses/class-11-physics/motion-in-a-straight-line/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-11-motion-in-a-straight-line",
+      "lesson_id": "class-11-motion-in-a-straight-line",
+      "course_id": "class-11-physics",
+      "class": 11,
+      "subject": "physics",
+      "title": "Motion in a Straight Line",
+      "lesson_title": "Motion in a Straight Line",
+      "chapter": {
+        "query": "Motion in a Straight Line",
+        "title": "MOTION IN A STRAIGHT LINE",
+        "book": "Physics Part I - Textbook for Class XI",
+        "pages": [
+          1,
+          14
+        ],
+        "number": 2
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 42,
+        "checks": 16,
+        "worked_examples": 11,
+        "diagrams": 1,
+        "simulations": 2,
+        "reveals": 2,
+        "text_blocks": 10
+      },
+      "concepts": [
+        {
+          "concept_id": "class-11-motion-in-a-straight-line-sec-01",
+          "section_id": "sec-01",
+          "title": "Introduction"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-straight-line-sec-02",
+          "section_id": "sec-02",
+          "title": "Instantaneous Velocity and Speed"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-straight-line-sec-03",
+          "section_id": "sec-03",
+          "title": "Acceleration"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-straight-line-sec-04",
+          "section_id": "sec-04",
+          "title": "Kinematic Equations for Uniformly Accelerated Motion"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-straight-line-sec-05",
+          "section_id": "sec-05",
+          "title": "Free Fall, Stopping and Reaction"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-straight-line-sec-06",
+          "section_id": "sec-06",
+          "title": "Relative Velocity and Points to Ponder"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:3ec96abe1f83267eb4c21186f522148faae251aaadaae6d3d84cec2bc4ff1e90",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "Motion in a Straight Line",
+        "hi": "सरल रेखा में गति (motion)",
+        "hi-Latn": "Seedhi Rekha mein Motion"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 2,
+      "generated_at": "2026-11-16T09:11:13Z",
+      "localized_hrefs": {
+        "en": "courses/class-11-physics/motion-in-a-straight-line/index.html",
+        "hi": "courses/class-11-physics/motion-in-a-straight-line/hi/index.html",
+        "hi-Latn": "courses/class-11-physics/motion-in-a-straight-line/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": true,
+        "manifest": true,
+        "mode": "live",
+        "lang": "en",
+        "blocks_total": 38,
+        "blocks_available": 38,
+        "missing_assets": [],
+        "missing_blocks": []
+      }
+    },
+    {
+      "href": "courses/class-11-physics/motion-in-a-plane/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-11-motion-in-a-plane",
+      "lesson_id": "class-11-motion-in-a-plane",
+      "course_id": "class-11-physics",
+      "class": 11,
+      "subject": "physics",
+      "title": "Motion in a Plane",
+      "lesson_title": "Motion in a Plane",
+      "chapter": {
+        "query": "Motion in a Plane",
+        "title": "MOTION IN A PLANE",
+        "book": "Physics Part I - Textbook for Class XI",
+        "pages": [
+          1,
+          22
+        ],
+        "number": 3
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 42,
+        "checks": 13,
+        "worked_examples": 9,
+        "diagrams": 4,
+        "simulations": 1,
+        "reveals": 4,
+        "text_blocks": 11
+      },
+      "concepts": [
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-01",
+          "section_id": "sec-01",
+          "title": "Why vectors are needed"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-02",
+          "section_id": "sec-02",
+          "title": "Scalars and vectors"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-03",
+          "section_id": "sec-03",
+          "title": "Multiplying vectors by numbers"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-04",
+          "section_id": "sec-04",
+          "title": "Adding vectors graphically"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-05",
+          "section_id": "sec-05",
+          "title": "Resolving vectors into components"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-07",
+          "section_id": "sec-07",
+          "title": "Position, velocity and acceleration in a plane"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-09",
+          "section_id": "sec-09",
+          "title": "Projectile motion"
+        },
+        {
+          "concept_id": "class-11-motion-in-a-plane-sec-10",
+          "section_id": "sec-10",
+          "title": "Uniform circular motion"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:0dc92f43506ef7f80f2b2052b70b7b140ac5e68b051625732317458f0a0a6c4a",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "Motion in a Plane",
+        "hi": "एक समतल में गति (motion)",
+        "hi-Latn": "Plane mein Motion"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 3,
+      "generated_at": "2026-11-16T09:10:40Z",
+      "localized_hrefs": {
+        "en": "courses/class-11-physics/motion-in-a-plane/index.html",
+        "hi": "courses/class-11-physics/motion-in-a-plane/hi/index.html",
+        "hi-Latn": "courses/class-11-physics/motion-in-a-plane/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": true,
+        "manifest": true,
+        "mode": "live",
+        "lang": "en",
+        "blocks_total": 35,
+        "blocks_available": 35,
+        "missing_assets": [],
+        "missing_blocks": []
+      }
+    },
+    {
+      "href": "courses/class-11-physics/laws-of-motion/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-11-laws-of-motion",
+      "lesson_id": "class-11-laws-of-motion",
+      "course_id": "class-11-physics",
+      "class": 11,
+      "subject": "physics",
+      "title": "Laws of Motion",
+      "lesson_title": "Laws of Motion",
+      "chapter": {
+        "query": "Laws of Motion",
+        "title": "LAWS OF MOTION",
+        "book": "Physics Part I - Textbook for Class XI",
+        "pages": [
+          1,
+          22
+        ],
+        "number": 4
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 53,
+        "checks": 15,
+        "worked_examples": 15,
+        "diagrams": 2,
+        "simulations": 1,
+        "reveals": 3,
+        "text_blocks": 17
+      },
+      "concepts": [
+        {
+          "concept_id": "class-11-laws-of-motion-sec-01",
+          "section_id": "sec-01",
+          "title": "Why we think a force is needed"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-02",
+          "section_id": "sec-02",
+          "title": "Aristotle's fallacy"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-03",
+          "section_id": "sec-03",
+          "title": "The law of inertia"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-04",
+          "section_id": "sec-04",
+          "title": "Newton's first law of motion"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-05",
+          "section_id": "sec-05",
+          "title": "Newton's second law of motion: momentum and impulse"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-06",
+          "section_id": "sec-06",
+          "title": "Newton's third law of motion"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-07",
+          "section_id": "sec-07",
+          "title": "Conservation of momentum"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-08",
+          "section_id": "sec-08",
+          "title": "Equilibrium of a particle"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-09",
+          "section_id": "sec-09",
+          "title": "Common forces in mechanics: friction"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-10",
+          "section_id": "sec-10",
+          "title": "Circular motion"
+        },
+        {
+          "concept_id": "class-11-laws-of-motion-sec-11",
+          "section_id": "sec-11",
+          "title": "Solving problems in mechanics"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:96c5d15e82311592a83ce2a5cfb212a30965d24962f95b6751771f91810bf9be",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "Laws of Motion",
+        "hi": "गति के नियम",
+        "hi-Latn": "Laws of Motion (Gati ke Niyam)"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 4,
+      "generated_at": "2026-11-16T09:11:12Z",
+      "localized_hrefs": {
+        "en": "courses/class-11-physics/laws-of-motion/index.html",
+        "hi": "courses/class-11-physics/laws-of-motion/hi/index.html",
+        "hi-Latn": "courses/class-11-physics/laws-of-motion/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": true,
+        "manifest": true,
+        "mode": "live",
+        "lang": "en",
+        "blocks_total": 41,
+        "blocks_available": 40,
+        "missing_assets": [],
+        "missing_blocks": [
+          "b-28"
+        ]
+      }
+    }
+  ]
+}

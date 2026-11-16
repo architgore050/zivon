@@ -94,6 +94,10 @@ source-pack honesty rule into the metadata (licenses surface to crawlers too).
   `frontend/courses/*/manifest.json` + `ZIVON_PUBLIC_BASE_URL` from the
   environment; writes `frontend/sitemap.xml` + `frontend/robots.txt`. It is
   IDEMPOTENT and offline (no fetches) — same discipline as the publish flow.
+  **2026-11-16 (P5):** locale alternates come from `frontend/catalogue.json`
+  `localized_hrefs` first (the publish-side route truth), verified against the
+  files on disk; the old on-disk walk remains the fallback for a pre-catalogue
+  tree. A route whose file vanished is never emitted.
 - **Hook**: invoked by `scripts/publish-frontend.sh` after the courses copy
   succeeds (a 2-line addition to that script — **shared-file line edit,
   assignment table §8**), and documented in the script's header comment.

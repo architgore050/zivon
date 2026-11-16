@@ -217,5 +217,28 @@
       }
     }
   },
-  "generated_at": "2026-11-11T05:31:36Z"
+  "generated_at": "2026-11-11T05:31:36Z",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Units and Measurement",
+    "hi": "मात्रक (unit) और मापन",
+    "hi-Latn": "Units aur Measurement"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  }
 }

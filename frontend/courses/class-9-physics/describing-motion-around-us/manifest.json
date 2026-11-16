@@ -1,16 +1,385 @@
 {
+  "manifest_version": 2,
+  "chapter_id": "class-9-describing-motion-around-us",
+  "lesson_id": "class-9-describing-motion-around-us",
   "course_id": "class-9-physics",
+  "subject": "physics",
   "class": 9,
   "topic_slug": "describing-motion-around-us",
   "title": "Describing Motion Around Us",
+  "lesson_title": "Describing Motion Around Us",
+  "status": "lesson_only",
+  "languages": {
+    "default": "en",
+    "available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "missing": []
+  },
+  "counts": {
+    "lesson_blocks": 42,
+    "checks": 13,
+    "worked_examples": 8,
+    "diagrams": 2,
+    "simulations": 3,
+    "reveals": 4,
+    "text_blocks": 12
+  },
+  "concepts": [
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "title": "Describing position in a straight line"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-03",
+      "section_id": "sec-03",
+      "title": "Average speed and average velocity"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "title": "Average acceleration"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-05",
+      "section_id": "sec-05",
+      "title": "Position-time graphs"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-06",
+      "section_id": "sec-06",
+      "title": "Velocity-time graphs"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-07",
+      "section_id": "sec-07",
+      "title": "Kinematic equations"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "title": "Motion in a plane and uniform circular motion"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "Describing position in a straight line",
+      "concept_id": "class-9-describing-motion-around-us-sec-01",
+      "block_ids": [
+        "b-01",
+        "b-02",
+        "b-03",
+        "b-04",
+        "b-05",
+        "b-06"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "Average speed and average velocity",
+      "concept_id": "class-9-describing-motion-around-us-sec-03",
+      "block_ids": [
+        "b-07",
+        "b-08",
+        "b-09",
+        "b-10",
+        "b-11"
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Average acceleration",
+      "concept_id": "class-9-describing-motion-around-us-sec-04",
+      "block_ids": [
+        "b-12",
+        "b-13",
+        "b-14",
+        "b-15",
+        "b-16",
+        "b-17",
+        "b-18",
+        "b-19"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "title": "Position-time graphs",
+      "concept_id": "class-9-describing-motion-around-us-sec-05",
+      "block_ids": [
+        "b-20",
+        "b-21",
+        "b-22",
+        "b-23"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Velocity-time graphs",
+      "concept_id": "class-9-describing-motion-around-us-sec-06",
+      "block_ids": [
+        "b-24",
+        "b-25",
+        "b-26"
+      ]
+    },
+    {
+      "id": "sec-07",
+      "title": "Kinematic equations",
+      "concept_id": "class-9-describing-motion-around-us-sec-07",
+      "block_ids": [
+        "b-27",
+        "b-28",
+        "b-29",
+        "b-30"
+      ]
+    },
+    {
+      "id": "sec-08",
+      "title": "Motion in a plane and uniform circular motion",
+      "concept_id": "class-9-describing-motion-around-us-sec-08",
+      "block_ids": [
+        "b-31",
+        "b-32",
+        "b-33",
+        "b-34",
+        "b-35",
+        "b-36",
+        "b-37",
+        "b-38",
+        "b-39",
+        "b-40",
+        "b-41",
+        "b-42"
+      ]
+    }
+  ],
+  "blocks": {
+    "b-01": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-9-describing-motion-around-us-sec-01"
+    },
+    "b-02": {
+      "type": "diagram",
+      "section_id": "sec-01",
+      "concept_id": "class-9-describing-motion-around-us-sec-01"
+    },
+    "b-03": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-9-describing-motion-around-us-sec-01"
+    },
+    "b-04": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-9-describing-motion-around-us-sec-01"
+    },
+    "b-05": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-9-describing-motion-around-us-sec-01"
+    },
+    "b-06": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-9-describing-motion-around-us-sec-01"
+    },
+    "b-07": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-9-describing-motion-around-us-sec-03"
+    },
+    "b-08": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-9-describing-motion-around-us-sec-03"
+    },
+    "b-09": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-9-describing-motion-around-us-sec-03"
+    },
+    "b-10": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-9-describing-motion-around-us-sec-03"
+    },
+    "b-11": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-9-describing-motion-around-us-sec-03"
+    },
+    "b-12": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-13": {
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-14": {
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-15": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-16": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-17": {
+      "type": "reveal",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-18": {
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-19": {
+      "type": "simulation",
+      "section_id": "sec-04",
+      "concept_id": "class-9-describing-motion-around-us-sec-04"
+    },
+    "b-20": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-9-describing-motion-around-us-sec-05"
+    },
+    "b-21": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-9-describing-motion-around-us-sec-05"
+    },
+    "b-22": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-9-describing-motion-around-us-sec-05"
+    },
+    "b-23": {
+      "type": "reveal",
+      "section_id": "sec-05",
+      "concept_id": "class-9-describing-motion-around-us-sec-05"
+    },
+    "b-24": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-9-describing-motion-around-us-sec-06"
+    },
+    "b-25": {
+      "type": "simulation",
+      "section_id": "sec-06",
+      "concept_id": "class-9-describing-motion-around-us-sec-06"
+    },
+    "b-26": {
+      "type": "reveal",
+      "section_id": "sec-06",
+      "concept_id": "class-9-describing-motion-around-us-sec-06"
+    },
+    "b-27": {
+      "type": "text",
+      "section_id": "sec-07",
+      "concept_id": "class-9-describing-motion-around-us-sec-07"
+    },
+    "b-28": {
+      "type": "reveal",
+      "section_id": "sec-07",
+      "concept_id": "class-9-describing-motion-around-us-sec-07"
+    },
+    "b-29": {
+      "type": "worked_example",
+      "section_id": "sec-07",
+      "concept_id": "class-9-describing-motion-around-us-sec-07"
+    },
+    "b-30": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-9-describing-motion-around-us-sec-07"
+    },
+    "b-31": {
+      "type": "text",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-32": {
+      "type": "diagram",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-33": {
+      "type": "simulation",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-34": {
+      "type": "text",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-35": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-36": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-37": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-38": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-39": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-40": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-41": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    },
+    "b-42": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-9-describing-motion-around-us-sec-08"
+    }
+  },
+  "pipeline_version": "9",
+  "content_hash": "sha256:0d9ef34f9e911a2f1270e050477880483661caebf46a8e2ec6394ec037b8c9e1",
   "chapter": {
     "query": "Motion in a Straight Line",
-    "title": "Grade",
+    "title": "Describing Motion Around Us",
     "book": "Science - Textbook for Grade 9 (2025 edition)",
     "pages": [
       1,
       24
-    ]
+    ],
+    "number": 4
   },
   "sources": [
     {
@@ -19,8 +388,8 @@
       "license": "NCERT (free educational use)"
     }
   ],
-  "run_id": "motion-in-a-straight-line-c9",
-  "generated_at": "2026-11-09T15:31:18Z",
+  "run_id": "motion-in-a-straight-line-c9-trans",
+  "generated_at": "2026-11-16T09:11:17Z",
   "block_counts": {
     "text": 12,
     "diagram": 2,
@@ -53,9 +422,9 @@
     }
   },
   "i18n_hashes": {
-    "en": "27f1bea0a21466d0bc1c0ac77dbcd1b2e05c2f0eee05d1de110d5d6cbe7abe5c",
-    "hi": "cd35897cbdca75890ef3d45da8ee897b4b0ba9688d034792628056e8d806aecf",
-    "hi-Latn": "feb5721a16b12893ea5055a64a4b2417f5141853fa5f3b80d5d8d07b4be88479"
+    "en": "2dbdad11c1dc24d960731aa263f50b52fb1cbd543086198b7aa1ba4b41efc687",
+    "hi": "6b3972133f52589feed0be5c4fcd0e50f617d4c9ff7495337b795eb1f559dfa7",
+    "hi-Latn": "962f5f8f9ed90cd67982e4bfdd62ffa42ebecd5603a0f259387984c7a1c148ac"
   },
   "narration": {
     "available": true,

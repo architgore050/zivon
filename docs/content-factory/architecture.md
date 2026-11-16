@@ -44,7 +44,7 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 10b | transcheck | factory/transcheck.py | model + code; 9 deterministic rules (`R1`..`R9`) + 1 calibrated Evon v3.3 reviewer call per locale (`TRANSLATION_REVIEW_CALL_REPORT`); passing units promoted to `sources/cache/tm/` | per-locale verdict + issues (`issues_ledger.jsonl`); blocking (`fatal`/`major`) routes to `10c-transrepair` |
 | 10c | transrepair | factory/transrepair.py (catcher) | model, progress-aware per-block loop (`repair.translation_rounds` cap, `repair.stall_rounds` plateau); re-translates ONLY flagged `(locale, unit_id)` items | replacement localized units merged by `unit_id` + recheck per round |
 | 10d | transrender | factory/render.py (`render_localized`) | code | `<locale>/index.html`, `i18n/<locale>.json`, `i18n/en.json`, `i18n.js`, locale hub pages, `CP-TRN-004` manifest metadata, and the refreshed manifest-v2 `languages` coverage (the same block -> section map, so every locale has the English page's section structure) |
-| 11 | link | factory/link.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter** (2026-11-10: the chapter owns exactly one page — a pre-fix model-titled duplicate is removed when its chapter is republished), regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
+| 11 | link | factory/link.py + factory/catalogue.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter (or the same run_id)**, preserve the previous read-aloud state (topic + per-locale manifests) across a re-render, write **catalogue v2** (`catalogue.json`: manifest-v2 core + `href` + `localized_hrefs` + `pipeline_version` + the version-guard integrity block) and derive `courses.js` from it (status/languages/counts/concepts/exam_weight, ordered class → chapter number → chapter → title), then smoke-test hrefs, locale routes and i18n bundles |
 | 12 | narration | factory/narration/ (stage.py + select/spoken/timbre/audio/budget/publish) | code + **Gnani Timbre v3.0** (build-time TTS, opt-in via `ZIVON_NARRATION_ENABLED`; never an LLM call) | opus assets under `frontend/audio/{course_id}/` (ST-04 content-hash names), `narration` availability flag in the topic manifest + `narration-manifest.json`, A-15 budget ledger (`runs/narration-budget.json`) + `narration_usage.jsonl` |
 
 ### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
@@ -625,6 +625,41 @@ metadata"):
 
 `PIPELINE_VERSION` stays **9**: every field above is additive, so a version-9
 run directory remains resumable and its drafts render with derived metadata.
+
+### Catalogue v2 publish, locale hrefs and the version guard (P5, 2026-11-16)
+
+Stage 11 is the publish boundary. `factory/catalogue.py` owns the contract the
+product layers consume:
+
+- **One catalogue, one derivation.** `catalogue.json` is machine-readable
+  (`catalogue_version: 2`): one entry per topic carrying the manifest-v2 core,
+  `href`, `chapter_number`, `localized_hrefs`, narration coverage and
+  `pipeline_version`. `courses.js` is written FROM that file, never from a
+  second scan - so a browser surface cannot disagree with the machine
+  catalogue. Entries keep the product ordering (class -> chapter number ->
+  chapter -> title; unknown numbers sort last).
+- **Locale hrefs are route-aware.** `localized_hrefs` is computed from what is
+  actually on disk: `<topic>/<locale>/index.html` (shipped layout) or
+  `<frontend>/<locale>/<topic>/index.html` (reserved prefixed layout). A
+  promised locale with no route is listed in `missing_locales`; it never
+  silently points at the English page. F1's hub renderer consumes this field
+  and may show the honest English-only marker from `missing_locales`.
+- **Each localized route has a `manifest.json`.** `zivon.js` reads it for
+  localized read-aloud; the publish flow preserves the previous locale
+  manifest (including its already-generated audio addresses) when its block ids
+  still describe the page, otherwise writes an honest `available: false`.
+- **The version guard.** The catalogue records `pipeline_version` per topic and
+  an `integrity` block (`status`, `versions`, `mixed_versions`,
+  `missing_versions`, `grades`). Stage 11 writes/marks a mixed tree loudly; the
+  publish script refuses it. A page with no `pipeline_version` (pre-manifest-v2)
+  is `incomplete`, not "version 9 by assumption".
+- **The publish smoke** (`python3 -m factory.catalogue check --strict`) checks
+  every catalogue/courses href, every declared locale route + i18n bundle +
+  locale manifest, the P1 hook contract on every page, `lesson_title` and a
+  usable `chapter.title`, every sitemap URL, robots' sitemap pointer, narration
+  assets (reported, never claimed), and the absence of the dev placeholder base
+  URL. `factory.link` runs the build half on every publish; the strict check is
+  the publish-script gate.
 
 ## Design doctrine flow (open-ended)
 

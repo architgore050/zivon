@@ -67,11 +67,11 @@ is correct end to end and the only remaining variable is your real model.
 - Open `frontend/index.html` in a browser (or `python3 -m http.server -d frontend`).
 - Cluster runs: stage 11 lands the site on the `zivon-frontend` PVC (served live at
   the NodePort). After a run whose pages you want to keep, `scripts/publish-frontend.sh`
-  mirrors the generated output (`courses/`, `courses.js`) back into the repo's
-  `frontend/` - the versioned, standalone-deployable snapshot (git history holds
-  the previous versions). If the PVC site is identical to the repo snapshot (the
-  last run never reached stage 11-link), the script exits loudly with code 2
-  instead of silently republishing an older topic.
+  mirrors the generated output (`courses/`, `catalogue.json`, `courses.js`) back
+  into the repo's `frontend/` - the versioned, standalone-deployable snapshot
+  (git history holds the previous versions). If the PVC site is identical to the
+  repo snapshot (the last run never reached stage 11-link), the script exits
+  loudly with code 2 instead of silently republishing an older topic.
 - Run ids are deterministic per (chapter, class) - `motion-c9`. Re-triggering
   the same topic RESUMES the previous attempt (completed stages reused, zero
   model re-calls). Pass `--fresh` to wipe the previous attempt and generate the
@@ -79,6 +79,57 @@ is correct end to end and the only remaining variable is your real model.
 - On a local ~20 tok/s model a full happy-path run costs roughly 3 big model
   calls (generate / check / review) plus one per simulation - budget tens of
   minutes. Catchers (04, 08, 10) only add time when a gate finds something.
+
+## Publish the repo snapshot (P5 catalogue/version/SEO gates)
+
+`scripts/publish-frontend.sh` is the one-way PVC -> repo bridge. It now gates on
+the catalogue contract, so a broken/mixed tree never reaches a commit:
+
+    # 1. Dry-run a staging tree (or a local copy) without touching the repo
+    ZIVON_PUBLIC_BASE_URL=https://<origin> \
+      scripts/publish-frontend.sh --dry-run --source-dir /path/to/site
+
+    # 2. Real publish (PVC -> repo), requires the public origin
+    ZIVON_PUBLIC_BASE_URL=https://<origin> scripts/publish-frontend.sh
+
+What the gates check, in order:
+
+1. `catalogue.json` is present and `catalogue_version: 2`; every topic records
+   one compatible `pipeline_version` (a mixed tree is refused, not marked green);
+2. every `courses.js` / `catalogue.json` href resolves, and each promised locale
+   has its route, `<locale>/manifest.json` and `i18n/<locale>.json`;
+3. every page passes the P1 hook contract (`data-block-type`, section wrapper,
+   concept id, block map) and carries a `lesson_title` and a usable
+   `chapter.title` (no "Grade");
+4. narration coverage is reported honestly (missing manifests/assets/blocks are
+   listed, never claimed);
+5. after the locale-hub copy, `scripts/gen-seo-files.py` regenerates
+   `sitemap.xml`/`robots.txt` and the shell's absolute OG URLs from
+   `ZIVON_PUBLIC_BASE_URL`; the dev placeholder is refused unless
+   `--allow-placeholder` is passed explicitly (local snapshot only);
+6. the final smoke reruns against the committed tree and fails if any sitemap
+   URL does not resolve.
+
+The repo snapshot may still be regenerated with `--allow-placeholder` while the
+public domain decision is open (Q10); such a snapshot is explicitly not
+production-publishable, and the strict check says so.
+
+### Republish an existing topic (no model credits)
+
+An existing run can be re-rendered from its own 02/04/05/10a artifacts with zero
+model calls:
+
+    # re-render, re-localize and link only (no 00..05, no model stages)
+    python pipeline.py "<chapter>" --class <N> --run-id <existing-run> \
+        --locales hi,hi-Latn --stages 06-render,10d-transrender,11-link
+
+Stage 11 preserves the topic's previous narration manifest/flag and per-locale
+manifests when the block set is unchanged (content-addressed audio stays valid),
+prunes a superseded duplicate that shares the chapter or the run id, and rewrites
+`catalogue.json`/`courses.js`. If a stale 01-locate artifact has the wrong
+chapter title/number, repair only that metadata from the cached opener first
+(the `P5` republish on 2026-11-16 did this for the "Grade" page); never re-run
+02-generate just to fix metadata.
 
 ## Narration builds (read-aloud audio, stage 12)
 

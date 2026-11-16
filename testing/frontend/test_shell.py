@@ -12,6 +12,7 @@ Needs a Playwright browser once:  python -m playwright install chromium
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -122,16 +123,22 @@ class TestShellContract(unittest.TestCase):
         # leaves unlisted pages behind). Mirrors stage 11-link's publish smoke.
         #
         # Localized pages are variants, not catalogue entries: they live at
-        # `<topic>/<locale>/index.html` (the v1 route layout), carry their own
-        # locale manifest.json, and must belong to a listed topic. They do not
-        # need their own courses.js entry.
+        # `<topic>/<locale>/index.html` (the v1 route layout), carry their
+        # strings in `<topic>/i18n/<locale>.json`, and must belong to a listed
+        # topic. They do not need their own courses.js entry.
         if not (FRONTEND / "courses").is_dir():
             self.skipTest("no published catalogue in this checkout")
-        entries = re.findall(
-            r'"href":\s*"([^"]+)"',
-            (FRONTEND / "courses.js").read_text(encoding="utf-8"),
-        )
+        courses_text = (FRONTEND / "courses.js").read_text(encoding="utf-8")
+        entries = re.findall(r'"href":\s*"([^"]+)"', courses_text)
         self.assertTrue(entries, "courses/ exists but courses.js lists no entries")
+        # P5 catalogue v2: the machine catalogue is the source of truth and its
+        # version guard says the published tree is homogeneous.
+        catalogue = json.loads(
+            (FRONTEND / "catalogue.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(catalogue["catalogue_version"], 2)
+        self.assertEqual(catalogue["integrity"]["status"], "ok", catalogue["integrity"])
+        self.assertEqual(len(catalogue["topics"]), len(entries))
         locale_dirs = {"hi", "hi-Latn"}
         for href in entries:
             index = FRONTEND / href
@@ -142,6 +149,13 @@ class TestShellContract(unittest.TestCase):
                 (index.parent / "manifest.json").is_file(),
                 f"published page has no manifest.json: {index.parent}",
             )
+        for topic in catalogue["topics"]:
+            for locale, localized_href in topic.get("localized_hrefs", {}).items():
+                self.assertTrue(
+                    (FRONTEND / localized_href).is_file(),
+                    f"catalogue localized href for {locale!r} resolves to nothing: "
+                    f"{localized_href}",
+                )
         listed = {str((FRONTEND / e).parent) for e in entries}
         on_disk: set[str] = set()
         localized: list[Path] = []
@@ -160,8 +174,8 @@ class TestShellContract(unittest.TestCase):
                 f"localized page for an unlisted topic: {topic}",
             )
             self.assertTrue(
-                (topic / "manifest.json").is_file(),
-                f"localized page has no locale manifest.json: {topic}",
+                (topic.parent / "i18n" / f"{topic.name}.json").is_file(),
+                f"localized page has no i18n bundle: {topic}",
             )
 
     def test_fonts_are_shipped_with_license(self) -> None:

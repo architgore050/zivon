@@ -561,7 +561,9 @@
         {
           "claim_id": "claim-02"
         }
-      ]
+      ],
+      "section_id": "sec-01",
+      "concept_id": "class-11-laws-of-motion-sec-01"
     },
     {
       "id": "b-02",
@@ -584,7 +586,9 @@
         {
           "claim_id": "claim-03"
         }
-      ]
+      ],
+      "section_id": "sec-02",
+      "concept_id": "class-11-laws-of-motion-sec-02"
     },
     {
       "id": "b-03",
@@ -610,7 +614,9 @@
         {
           "claim_id": "claim-06"
         }
-      ]
+      ],
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
     },
     {
       "id": "b-04",
@@ -636,7 +642,9 @@
         {
           "claim_id": "claim-05"
         }
-      ]
+      ],
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
     },
     {
       "id": "b-05",
@@ -662,7 +670,9 @@
         {
           "claim_id": "claim-06"
         }
-      ]
+      ],
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
     },
     {
       "id": "b-06",
@@ -678,7 +688,9 @@
         {
           "claim_id": "claim-24"
         }
-      ]
+      ],
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
     },
     {
       "id": "b-07",
@@ -705,7 +717,9 @@
         {
           "claim_id": "claim-06"
         }
-      ]
+      ],
+      "section_id": "sec-04",
+      "concept_id": "class-11-laws-of-motion-sec-04"
     },
     {
       "id": "b-08",
@@ -731,7 +745,9 @@
         {
           "claim_id": "claim-09"
         }
-      ]
+      ],
+      "section_id": "sec-04",
+      "concept_id": "class-11-laws-of-motion-sec-04"
     },
     {
       "id": "b-09",
@@ -754,7 +770,9 @@
         {
           "claim_id": "claim-12"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-10",
@@ -798,7 +816,9 @@
         {
           "claim_id": "claim-14"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-11",
@@ -823,7 +843,9 @@
         {
           "claim_id": "claim-38"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-12",
@@ -853,7 +875,9 @@
         {
           "claim_id": "claim-16"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-13",
@@ -879,7 +903,9 @@
         {
           "claim_id": "claim-14"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-14",
@@ -909,7 +935,9 @@
         {
           "claim_id": "claim-16"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-15",
@@ -928,7 +956,9 @@
         {
           "claim_id": "claim-18"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-16",
@@ -955,7 +985,9 @@
         {
           "claim_id": "claim-17"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-17",
@@ -974,7 +1006,9 @@
         {
           "claim_id": "claim-14"
         }
-      ]
+      ],
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
     },
     {
       "id": "b-18",
@@ -993,7 +1027,9 @@
         {
           "claim_id": "claim-20"
         }
-      ]
+      ],
+      "section_id": "sec-06",
+      "concept_id": "class-11-laws-of-motion-sec-06"
     },
     {
       "id": "b-19",
@@ -1027,7 +1063,9 @@
         {
           "claim_id": "claim-19"
         }
-      ]
+      ],
+      "section_id": "sec-06",
+      "concept_id": "class-11-laws-of-motion-sec-06"
     },
     {
       "id": "b-20",
@@ -1053,7 +1091,9 @@
         {
           "claim_id": "claim-20"
         }
-      ]
+      ],
+      "section_id": "sec-06",
+      "concept_id": "class-11-laws-of-motion-sec-06"
     },
     {
       "id": "b-21",
@@ -1072,7 +1112,9 @@
         {
           "claim_id": "claim-22"
         }
-      ]
+      ],
+      "section_id": "sec-07",
+      "concept_id": "class-11-laws-of-motion-sec-07"
     },
     {
       "id": "b-22",
@@ -1099,7 +1141,9 @@
         {
           "claim_id": "claim-21"
         }
-      ]
+      ],
+      "section_id": "sec-07",
+      "concept_id": "class-11-laws-of-motion-sec-07"
     },
     {
       "id": "b-23",
@@ -1118,7 +1162,9 @@
         {
           "claim_id": "claim-19"
         }
-      ]
+      ],
+      "section_id": "sec-07",
+      "concept_id": "class-11-laws-of-motion-sec-07"
     },
     {
       "id": "b-24",
@@ -1137,7 +1183,9 @@
         {
           "claim_id": "claim-08"
         }
-      ]
+      ],
+      "section_id": "sec-08",
+      "concept_id": "class-11-laws-of-motion-sec-08"
     },
     {
       "id": "b-25",
@@ -1171,7 +1219,9 @@
         {
           "claim_id": "claim-26"
         }
-      ]
+      ],
+      "section_id": "sec-08",
+      "concept_id": "class-11-laws-of-motion-sec-08"
     },
     {
       "id": "b-26",
@@ -1194,7 +1244,9 @@
         {
           "claim_id": "claim-23"
         }
-      ]
+      ],
+      "section_id": "sec-08",
+      "concept_id": "class-11-laws-of-motion-sec-08"
     },
     {
       "id": "b-27",
@@ -1217,7 +1269,9 @@
         {
           "claim_id": "claim-26"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-28",
@@ -1244,7 +1298,9 @@
         {
           "claim_id": "claim-31"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-29",
@@ -1263,7 +1319,9 @@
         {
           "claim_id": "claim-30"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-30",
@@ -1301,7 +1359,9 @@
         {
           "claim_id": "claim-27"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-31",
@@ -1331,7 +1391,9 @@
         {
           "claim_id": "claim-27"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-32",
@@ -1372,7 +1434,9 @@
         {
           "claim_id": "claim-26"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-33",
@@ -1398,7 +1462,9 @@
         {
           "claim_id": "claim-28"
         }
-      ]
+      ],
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
     },
     {
       "id": "b-34",
@@ -1416,7 +1482,9 @@
         {
           "claim_id": "claim-40"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-35",
@@ -1453,7 +1521,9 @@
         {
           "claim_id": "claim-32"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-36",
@@ -1489,7 +1559,9 @@
         {
           "claim_id": "claim-32"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-37",
@@ -1508,7 +1580,9 @@
         {
           "claim_id": "claim-35"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-38",
@@ -1545,7 +1619,9 @@
         {
           "claim_id": "claim-35"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-39",
@@ -1579,7 +1655,9 @@
         {
           "claim_id": "claim-32"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-40",
@@ -1613,7 +1691,9 @@
         {
           "claim_id": "claim-35"
         }
-      ]
+      ],
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
     },
     {
       "id": "b-41",
@@ -1632,7 +1712,9 @@
         {
           "claim_id": "claim-19"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-42",
@@ -1676,7 +1758,9 @@
         {
           "claim_id": "claim-36"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-43",
@@ -1695,7 +1779,9 @@
         {
           "claim_id": "claim-13"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-44",
@@ -1724,7 +1810,9 @@
         {
           "claim_id": "claim-32"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-45",
@@ -1753,7 +1841,9 @@
         {
           "claim_id": "claim-08"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-46",
@@ -1779,7 +1869,9 @@
         {
           "claim_id": "claim-17"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-47",
@@ -1816,7 +1908,9 @@
         {
           "claim_id": "claim-40"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-48",
@@ -1849,7 +1943,9 @@
         {
           "claim_id": "claim-16"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-49",
@@ -1871,7 +1967,9 @@
         {
           "claim_id": "claim-28"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-50",
@@ -1900,7 +1998,9 @@
         {
           "claim_id": "claim-17"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-51",
@@ -1919,7 +2019,9 @@
         {
           "claim_id": "claim-26"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-52",
@@ -1938,7 +2040,9 @@
         {
           "claim_id": "claim-08"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     },
     {
       "id": "b-53",
@@ -1967,7 +2071,9 @@
         {
           "claim_id": "claim-28"
         }
-      ]
+      ],
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
     }
   ]
 }

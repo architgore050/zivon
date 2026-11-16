@@ -188,10 +188,26 @@ file and the machine catalogue can never disagree. `courses.js` keeps its
 existing shape (`window.ZIVON_COURSES`); product layers that need identity,
 status, counts or concepts read `catalogue.json`.
 
-Publish handoff (P5): `catalogue.json` lands next to `courses.js` at the
-staging root, so `scripts/publish-frontend.sh` must copy it in the same step as
-`courses/` + `courses.js` (it currently copies only those two) and the publish
-verification must treat a stale/missing `catalogue.json` as a failure.
+Publish handoff (P5, landed 2026-11-16): `scripts/publish-frontend.sh` copies
+`catalogue.json` in the same step as `courses/` + `courses.js` and treats a
+stale/missing catalogue as a failure. P5 then upgrades it to
+`catalogue_version: 2` (`factory/catalogue.py::build`): each entry gains
+`localized_hrefs` (only routes that exist on disk), `missing_locales`,
+narration coverage and `pipeline_version`; the top-level `integrity` block
+records `status` / `versions` / `mixed_versions` / `missing_versions` / `grades`.
+`courses.js` is DERIVED from this catalogue, so the browser file carries
+`status`, `languages`, `counts`, `concepts`, `exam_weight`, `localized_hrefs`
+and `pipeline_version` too. A promised locale also gets a
+`<locale>/manifest.json` (the shell reads it for localized read-aloud); publish
+preserves the previous one while its audio addresses still match, otherwise it
+writes `available: false`.
+
+The publish smoke (`python3 -m factory.catalogue check --strict`) fails a mixed
+`pipeline_version`, a missing `lesson_title`, a non-chapter `chapter.title`
+("Grade"), an unresolved href/locale/i18n bundle, a page without the P1 hook
+contract, a sitemap URL with no page, or the dev placeholder base URL. Narration
+gaps are reported as counts and explicit missing-asset lists, never claimed as
+coverage.
 
 ## Localization Contracts (`SP2-TRANS`, Implemented in Wave E)
 

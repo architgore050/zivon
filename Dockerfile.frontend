@@ -23,7 +23,8 @@ FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 # regcomp integer overflow -> 1.2.6-r3) and zlib (CVE-2026-85091, gz_vacate
 # heap overflow -> 1.3.2-r1) — 1.31.7-alpine3.24 is still the newest micro
 # build of this base (last rebuilt 2026-10-19), so bumping the tag cannot
-# reach those fixes; this layer is the fix.
+# reach those fixes; this layer is the fix. Round 3 (2026-11-16, P5 CI):
+# libxslt (CVE-2026-125350 / -87636 / -9947 -> 1.1.43-r4).
 # The apk update is required: the base ships a frozen index from its build date,
 # so the newer fixes are invisible to apk upgrade without it. Targeted + unpinned
 # on purpose: Alpine repos keep only the newest -r revision, so exact pins rot
@@ -32,7 +33,7 @@ FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 # USER stays non-root.
 # hadolint ignore=DL3018
 USER 0
-RUN apk update && apk upgrade --no-cache brotli-libs curl libcurl libexpat musl musl-utils zlib
+RUN apk update && apk upgrade --no-cache brotli-libs curl libcurl libexpat libxslt musl musl-utils zlib
 USER 101
 
 # Replace the stock default site with the Zivon site config.

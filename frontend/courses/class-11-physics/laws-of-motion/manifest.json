@@ -1,9 +1,490 @@
 {
+  "manifest_version": 2,
+  "chapter_id": "class-11-laws-of-motion",
+  "lesson_id": "class-11-laws-of-motion",
   "course_id": "class-11-physics",
+  "subject": "physics",
   "class": 11,
   "topic_slug": "laws-of-motion",
   "title": "Laws of Motion",
   "lesson_title": "Laws of Motion",
+  "status": "lesson_only",
+  "languages": {
+    "default": "en",
+    "available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "missing": []
+  },
+  "counts": {
+    "lesson_blocks": 53,
+    "checks": 15,
+    "worked_examples": 15,
+    "diagrams": 2,
+    "simulations": 1,
+    "reveals": 3,
+    "text_blocks": 17
+  },
+  "concepts": [
+    {
+      "concept_id": "class-11-laws-of-motion-sec-01",
+      "section_id": "sec-01",
+      "title": "Why we think a force is needed"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-02",
+      "section_id": "sec-02",
+      "title": "Aristotle's fallacy"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-03",
+      "section_id": "sec-03",
+      "title": "The law of inertia"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-04",
+      "section_id": "sec-04",
+      "title": "Newton's first law of motion"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-05",
+      "section_id": "sec-05",
+      "title": "Newton's second law of motion: momentum and impulse"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-06",
+      "section_id": "sec-06",
+      "title": "Newton's third law of motion"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-07",
+      "section_id": "sec-07",
+      "title": "Conservation of momentum"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-08",
+      "section_id": "sec-08",
+      "title": "Equilibrium of a particle"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-09",
+      "section_id": "sec-09",
+      "title": "Common forces in mechanics: friction"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-10",
+      "section_id": "sec-10",
+      "title": "Circular motion"
+    },
+    {
+      "concept_id": "class-11-laws-of-motion-sec-11",
+      "section_id": "sec-11",
+      "title": "Solving problems in mechanics"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "Why we think a force is needed",
+      "concept_id": "class-11-laws-of-motion-sec-01",
+      "block_ids": [
+        "b-01"
+      ]
+    },
+    {
+      "id": "sec-02",
+      "title": "Aristotle's fallacy",
+      "concept_id": "class-11-laws-of-motion-sec-02",
+      "block_ids": [
+        "b-02"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "The law of inertia",
+      "concept_id": "class-11-laws-of-motion-sec-03",
+      "block_ids": [
+        "b-03",
+        "b-04",
+        "b-05",
+        "b-06"
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Newton's first law of motion",
+      "concept_id": "class-11-laws-of-motion-sec-04",
+      "block_ids": [
+        "b-07",
+        "b-08"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "title": "Newton's second law of motion: momentum and impulse",
+      "concept_id": "class-11-laws-of-motion-sec-05",
+      "block_ids": [
+        "b-09",
+        "b-10",
+        "b-11",
+        "b-12",
+        "b-13",
+        "b-14",
+        "b-15",
+        "b-16",
+        "b-17"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Newton's third law of motion",
+      "concept_id": "class-11-laws-of-motion-sec-06",
+      "block_ids": [
+        "b-18",
+        "b-19",
+        "b-20"
+      ]
+    },
+    {
+      "id": "sec-07",
+      "title": "Conservation of momentum",
+      "concept_id": "class-11-laws-of-motion-sec-07",
+      "block_ids": [
+        "b-21",
+        "b-22",
+        "b-23"
+      ]
+    },
+    {
+      "id": "sec-08",
+      "title": "Equilibrium of a particle",
+      "concept_id": "class-11-laws-of-motion-sec-08",
+      "block_ids": [
+        "b-24",
+        "b-25",
+        "b-26"
+      ]
+    },
+    {
+      "id": "sec-09",
+      "title": "Common forces in mechanics: friction",
+      "concept_id": "class-11-laws-of-motion-sec-09",
+      "block_ids": [
+        "b-27",
+        "b-28",
+        "b-29",
+        "b-30",
+        "b-31",
+        "b-32",
+        "b-33"
+      ]
+    },
+    {
+      "id": "sec-10",
+      "title": "Circular motion",
+      "concept_id": "class-11-laws-of-motion-sec-10",
+      "block_ids": [
+        "b-34",
+        "b-35",
+        "b-36",
+        "b-37",
+        "b-38",
+        "b-39",
+        "b-40"
+      ]
+    },
+    {
+      "id": "sec-11",
+      "title": "Solving problems in mechanics",
+      "concept_id": "class-11-laws-of-motion-sec-11",
+      "block_ids": [
+        "b-41",
+        "b-42",
+        "b-43",
+        "b-44",
+        "b-45",
+        "b-46",
+        "b-47",
+        "b-48",
+        "b-49",
+        "b-50",
+        "b-51",
+        "b-52",
+        "b-53"
+      ]
+    }
+  ],
+  "blocks": {
+    "b-01": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-11-laws-of-motion-sec-01"
+    },
+    "b-02": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-11-laws-of-motion-sec-02"
+    },
+    "b-03": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
+    },
+    "b-04": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
+    },
+    "b-05": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
+    },
+    "b-06": {
+      "type": "diagram",
+      "section_id": "sec-03",
+      "concept_id": "class-11-laws-of-motion-sec-03"
+    },
+    "b-07": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-11-laws-of-motion-sec-04"
+    },
+    "b-08": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-11-laws-of-motion-sec-04"
+    },
+    "b-09": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-10": {
+      "type": "reveal",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-11": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-12": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-13": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-14": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-15": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-16": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-17": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-laws-of-motion-sec-05"
+    },
+    "b-18": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-11-laws-of-motion-sec-06"
+    },
+    "b-19": {
+      "type": "worked_example",
+      "section_id": "sec-06",
+      "concept_id": "class-11-laws-of-motion-sec-06"
+    },
+    "b-20": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-laws-of-motion-sec-06"
+    },
+    "b-21": {
+      "type": "text",
+      "section_id": "sec-07",
+      "concept_id": "class-11-laws-of-motion-sec-07"
+    },
+    "b-22": {
+      "type": "worked_example",
+      "section_id": "sec-07",
+      "concept_id": "class-11-laws-of-motion-sec-07"
+    },
+    "b-23": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-11-laws-of-motion-sec-07"
+    },
+    "b-24": {
+      "type": "text",
+      "section_id": "sec-08",
+      "concept_id": "class-11-laws-of-motion-sec-08"
+    },
+    "b-25": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-11-laws-of-motion-sec-08"
+    },
+    "b-26": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-11-laws-of-motion-sec-08"
+    },
+    "b-27": {
+      "type": "text",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-28": {
+      "type": "text",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-29": {
+      "type": "diagram",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-30": {
+      "type": "worked_example",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-31": {
+      "type": "worked_example",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-32": {
+      "type": "worked_example",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-33": {
+      "type": "check",
+      "section_id": "sec-09",
+      "concept_id": "class-11-laws-of-motion-sec-09"
+    },
+    "b-34": {
+      "type": "text",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-35": {
+      "type": "reveal",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-36": {
+      "type": "simulation",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-37": {
+      "type": "text",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-38": {
+      "type": "reveal",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-39": {
+      "type": "worked_example",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-40": {
+      "type": "worked_example",
+      "section_id": "sec-10",
+      "concept_id": "class-11-laws-of-motion-sec-10"
+    },
+    "b-41": {
+      "type": "text",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-42": {
+      "type": "worked_example",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-43": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-44": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-45": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-46": {
+      "type": "text",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-47": {
+      "type": "worked_example",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-48": {
+      "type": "worked_example",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-49": {
+      "type": "text",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-50": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-51": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-52": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    },
+    "b-53": {
+      "type": "check",
+      "section_id": "sec-11",
+      "concept_id": "class-11-laws-of-motion-sec-11"
+    }
+  },
+  "pipeline_version": "9",
+  "content_hash": "sha256:96c5d15e82311592a83ce2a5cfb212a30965d24962f95b6751771f91810bf9be",
   "chapter": {
     "query": "Laws of Motion",
     "title": "LAWS OF MOTION",
@@ -27,7 +508,7 @@
     }
   ],
   "run_id": "laws-of-motion-c11",
-  "generated_at": "2026-11-10T21:02:19Z",
+  "generated_at": "2026-11-16T09:11:12Z",
   "block_counts": {
     "text": 17,
     "check": 15,
@@ -60,9 +541,9 @@
     }
   },
   "i18n_hashes": {
-    "en": "6246e42a08ad61020f7ed2e1f6ccbeaa772d46f631e37540764960941c9b1e62",
-    "hi": "ac507fb529c079f06d9222e80e8f6cc6d5aefc6a9b89892513269b28831e2385",
-    "hi-Latn": "ee3eaeb330d69273906f5046725b327d3517c0f53222e90808f535698f291065"
+    "en": "7cb3a694c7233c49f71f22d5472f9449fc536478f82ae22babea77083fb92fb0",
+    "hi": "70ce83d52b939d47e53cc4aa55a163df84bf69da001f5731ce4920f6f51c3216",
+    "hi-Latn": "1f8fe24b257f4cffc88299133983d06276c3c24e31d4d6fb2ec7d0c0c08a03f5"
   },
   "narration": {
     "available": true,

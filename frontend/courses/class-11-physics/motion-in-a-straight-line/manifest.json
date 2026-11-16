@@ -1,8 +1,364 @@
 {
+  "manifest_version": 2,
+  "chapter_id": "class-11-motion-in-a-straight-line",
+  "lesson_id": "class-11-motion-in-a-straight-line",
   "course_id": "class-11-physics",
+  "subject": "physics",
   "class": 11,
   "topic_slug": "motion-in-a-straight-line",
   "title": "Motion in a Straight Line",
+  "lesson_title": "Motion in a Straight Line",
+  "status": "lesson_only",
+  "languages": {
+    "default": "en",
+    "available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "missing": []
+  },
+  "counts": {
+    "lesson_blocks": 42,
+    "checks": 16,
+    "worked_examples": 11,
+    "diagrams": 1,
+    "simulations": 2,
+    "reveals": 2,
+    "text_blocks": 10
+  },
+  "concepts": [
+    {
+      "concept_id": "class-11-motion-in-a-straight-line-sec-01",
+      "section_id": "sec-01",
+      "title": "Introduction"
+    },
+    {
+      "concept_id": "class-11-motion-in-a-straight-line-sec-02",
+      "section_id": "sec-02",
+      "title": "Instantaneous Velocity and Speed"
+    },
+    {
+      "concept_id": "class-11-motion-in-a-straight-line-sec-03",
+      "section_id": "sec-03",
+      "title": "Acceleration"
+    },
+    {
+      "concept_id": "class-11-motion-in-a-straight-line-sec-04",
+      "section_id": "sec-04",
+      "title": "Kinematic Equations for Uniformly Accelerated Motion"
+    },
+    {
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05",
+      "section_id": "sec-05",
+      "title": "Free Fall, Stopping and Reaction"
+    },
+    {
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06",
+      "section_id": "sec-06",
+      "title": "Relative Velocity and Points to Ponder"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "Introduction",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-01",
+      "block_ids": [
+        "b-01",
+        "b-02",
+        "b-03"
+      ]
+    },
+    {
+      "id": "sec-02",
+      "title": "Instantaneous Velocity and Speed",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-02",
+      "block_ids": [
+        "b-04",
+        "b-05",
+        "b-06",
+        "b-07"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "Acceleration",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-03",
+      "block_ids": [
+        "b-08",
+        "b-09",
+        "b-10"
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Kinematic Equations for Uniformly Accelerated Motion",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-04",
+      "block_ids": [
+        "b-11",
+        "b-12",
+        "b-13",
+        "b-14"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "title": "Free Fall, Stopping and Reaction",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05",
+      "block_ids": [
+        "b-15",
+        "b-16",
+        "b-17",
+        "b-18",
+        "b-19",
+        "b-20",
+        "b-21",
+        "b-22",
+        "b-23",
+        "b-24",
+        "b-25",
+        "b-26",
+        "b-27",
+        "b-28",
+        "b-29",
+        "b-30",
+        "b-31"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Relative Velocity and Points to Ponder",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06",
+      "block_ids": [
+        "b-32",
+        "b-33",
+        "b-34",
+        "b-35",
+        "b-36",
+        "b-37",
+        "b-38",
+        "b-39",
+        "b-40",
+        "b-41",
+        "b-42"
+      ]
+    }
+  ],
+  "blocks": {
+    "b-01": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-01"
+    },
+    "b-02": {
+      "type": "diagram",
+      "section_id": "sec-01",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-01"
+    },
+    "b-03": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-01"
+    },
+    "b-04": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-02"
+    },
+    "b-05": {
+      "type": "simulation",
+      "section_id": "sec-02",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-02"
+    },
+    "b-06": {
+      "type": "worked_example",
+      "section_id": "sec-02",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-02"
+    },
+    "b-07": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-02"
+    },
+    "b-08": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-03"
+    },
+    "b-09": {
+      "type": "simulation",
+      "section_id": "sec-03",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-03"
+    },
+    "b-10": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-03"
+    },
+    "b-11": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-04"
+    },
+    "b-12": {
+      "type": "reveal",
+      "section_id": "sec-04",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-04"
+    },
+    "b-13": {
+      "type": "reveal",
+      "section_id": "sec-04",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-04"
+    },
+    "b-14": {
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-04"
+    },
+    "b-15": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-16": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-17": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-18": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-19": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-20": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-21": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-22": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-23": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-24": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-25": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-26": {
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-27": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-28": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-29": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-30": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-31": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-05"
+    },
+    "b-32": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-33": {
+      "type": "worked_example",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-34": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-35": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-36": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-37": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-38": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-39": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-40": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-41": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    },
+    "b-42": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-11-motion-in-a-straight-line-sec-06"
+    }
+  },
+  "pipeline_version": "9",
+  "content_hash": "sha256:3ec96abe1f83267eb4c21186f522148faae251aaadaae6d3d84cec2bc4ff1e90",
   "chapter": {
     "query": "Motion in a Straight Line",
     "title": "MOTION IN A STRAIGHT LINE",
@@ -10,7 +366,8 @@
     "pages": [
       1,
       14
-    ]
+    ],
+    "number": 2
   },
   "sources": [
     {
@@ -29,8 +386,8 @@
       "license": "see sources catalog"
     }
   ],
-  "run_id": "motion-in-a-straight-line-c11",
-  "generated_at": "2026-11-09T10:23:43Z",
+  "run_id": "motion-in-a-straight-line-c11-trans",
+  "generated_at": "2026-11-16T09:11:13Z",
   "block_counts": {
     "text": 10,
     "diagram": 1,
@@ -63,9 +420,9 @@
     }
   },
   "i18n_hashes": {
-    "en": "746dfcd914d6fd9c6e905e45dd7ad20836b8265e4931136850be94dbac931c59",
-    "hi": "7731b3a46a0cd9ee3c96cb0505166e9146f2f966cd73b59412d760c780ca747a",
-    "hi-Latn": "8374d3dc843435c35eff7bc81b27670209de24d3d687ab716c60012bd5bb2943"
+    "en": "edc63407409c766e93ad951c6ff19e75e990071835dbf0e22b886a86dbde6146",
+    "hi": "2132bba50b7988a09f5fe60bf3e398ddb5fcc97c23b09e1430af7c6e67ef870d",
+    "hi-Latn": "da64f0a42f558d26f4ddc4d4f8e0c99091de8168c5789e590cd9faac52f3cef4"
   },
   "narration": {
     "available": true,

@@ -232,5 +232,28 @@
       }
     }
   },
-  "generated_at": "2026-11-11T05:37:29Z"
+  "generated_at": "2026-11-11T05:37:29Z",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Describing Motion Around Us",
+    "hi": "हमारे चारों ओर गति (motion) का वर्णन",
+    "hi-Latn": "Hamare Aas-Paas ki Motion ka Varnan"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  }
 }

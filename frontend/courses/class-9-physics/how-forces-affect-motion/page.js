@@ -1,1 +1,167 @@
-ZivonSim.register('b-06',{init:function(ctx){ctx.ready=true;},draw:function(ctx){var canvas=ctx.canvas,g=ctx.g;var dpr=(typeof window!=='undefined'&&window.devicePixelRatio)||1;var cssW=canvas.clientWidth||ctx.width||320;var cssH=canvas.clientHeight||ctx.height||260;var pw=Math.round(cssW*dpr),ph=Math.round(cssH*dpr);if(canvas.width!==pw||canvas.height!==ph){canvas.width=pw;canvas.height=ph;}ctx.width=cssW;ctx.height=cssH;ctx.dpr=dpr;g.setTransform(dpr,0,0,dpr,0,0);var W=cssW,H=cssH;var vals=ctx.values||{};var R=Math.round(Number(vals.right_force));if(!isFinite(R))R=10;R=Math.max(0,Math.min(20,R));var L=Math.round(Number(vals.left_force));if(!isFinite(L))L=6;L=Math.max(0,Math.min(20,L));var PAPER_LIGHT='#F6F0CF',PAPER='#EFE6B8',INK='#1C1B18',GRAPHITE='#5A5748',PEN_BLUE='#1F3A9E';g.fillStyle=PAPER_LIGHT;g.fillRect(0,0,W,H);function seedFrom(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=(t+Math.imul(t^t>>>7,61|t))^t;return((t^t>>>14)>>>0)/4294967296;};}function clamp(v,a,b){return Math.min(Math.max(v,a),b);}function handLine(g,x1,y1,x2,y2,seed,jitter,width,color,dash){var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);if(len<1)return;var n=Math.max(2,Math.round(len/28));var rnd=rng(seedFrom(seed));var pts=[];for(var i=0;i<=n;i++){var t=i/n;var x=x1+dx*t,y=y1+dy*t;if(i>0&&i<n){x+=(rnd()-0.5)*jitter;y+=(rnd()-0.5)*jitter;}pts.push([x,y]);}g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(var i=1;i<pts.length-1;i++){var xc=(pts[i][0]+pts[i+1][0])/2,yc=(pts[i][1]+pts[i+1][1])/2;g.quadraticCurveTo(pts[i][0],pts[i][1],xc,yc);}g.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);g.strokeStyle=color;g.lineWidth=width;g.lineCap='round';g.lineJoin='round';if(dash&&g.setLineDash)g.setLineDash(dash);else if(g.setLineDash)g.setLineDash([]);g.stroke();if(g.setLineDash)g.setLineDash([]);}function drawArrow(g,x1,y1,x2,y2,seed,color,width,jitter,dash){var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);if(len<2)return;handLine(g,x1,y1,x2,y2,seed,jitter,width,color,dash);var angle=Math.atan2(dy,dx);var h=Math.max(4,Math.min(12,len*0.45));var a1=angle-0.45,a2=angle+0.45;handLine(g,x2-h*Math.cos(a1),y2-h*Math.sin(a1),x2,y2,seed+'a',jitter*0.5,width,color);handLine(g,x2-h*Math.cos(a2),y2-h*Math.sin(a2),x2,y2,seed+'b',jitter*0.5,width,color);}var blockW=clamp(W*0.22,40,92);var blockH=clamp(H*0.18,28,50);var cx=W/2;var cy=H*0.55;var maxArrow=clamp((W-blockW)/2-24,0,220);var scale=maxArrow/20;var scaleSum=maxArrow/40;var bx=cx-blockW/2,by=cy-blockH/2;g.fillStyle=PAPER;g.fillRect(bx,by,blockW,blockH);handLine(g,bx,by,bx+blockW,by,'b-06-top',1.2,2.6,INK);handLine(g,bx+blockW,by,bx+blockW,by+blockH,'b-06-right',1.2,2.6,INK);handLine(g,bx+blockW,by+blockH,bx,by+blockH,'b-06-bottom',1.2,2.6,INK);handLine(g,bx,by+blockH,bx,by,'b-06-left',1.2,2.6,INK);g.fillStyle=INK;g.font='700 20px Caveat, Kalam, cursive';g.textAlign='center';g.textBaseline='middle';g.fillText('block',cx,cy);var rightTail=bx+blockW+6;var leftTail=bx-6;var rightHead=rightTail+R*scale;var leftHead=leftTail-L*scale;if(R>0)drawArrow(g,rightTail,cy,rightHead,cy,'b-06-right-force',INK,3,1.2);if(L>0)drawArrow(g,leftTail,cy,leftHead,cy,'b-06-left-force',INK,3,1.2);g.font='700 14px "Courier Prime", "Courier New", monospace';g.textAlign='center';g.textBaseline='bottom';g.fillStyle=INK;var rightLabelX=clamp(R>0?(rightTail+rightHead)/2:rightTail,24,W-24);g.fillText(R+' N',rightLabelX,cy-10);var leftLabelX=clamp(L>0?(leftTail+leftHead)/2:leftTail,24,W-24);g.fillText(L+' N',leftLabelX,cy-10);var net=R-L;var mag=Math.abs(net);var netY=by-26;if(mag>0){var dir=net>0?1:-1;var netHead=cx+dir*mag*scale;drawArrow(g,cx,netY,netHead,netY,'b-06-net',PEN_BLUE,3,1.2);g.fillStyle=PEN_BLUE;g.font='700 14px "Courier Prime", "Courier New", monospace';g.textAlign='center';g.textBaseline='bottom';g.fillText(mag+' N',clamp((cx+netHead)/2,24,W-24),netY-10);}else{g.fillStyle=PEN_BLUE;g.font='700 14px "Courier Prime", "Courier New", monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('0 N',cx,netY);}var sum=R+L;var sumY=by+blockH+26;if(sum>0){var sumHead=cx+sum*scaleSum;drawArrow(g,cx,sumY,sumHead,sumY,'b-06-sum',GRAPHITE,2.6,1.0,[7,8]);}var larger=R>=L?'right':'left';var oppositeLong=mag===0?'Opposite: 0 N':'Opposite: '+Math.max(R,L)+'-'+Math.min(R,L)+'='+mag+' N '+larger;var oppositeShort=mag===0?'Opposite: 0 N':'Opposite: '+mag+' N '+larger;var sameLong='If both right: '+R+'+'+L+'='+sum+' N';var sameShort='Same: '+sum+' N';var font12='700 12px "Courier Prime", "Courier New", monospace';g.font=font12;var maxW=W-24;var oppositeText=g.measureText(oppositeLong).width<=maxW?oppositeLong:oppositeShort;var sameText=g.measureText(sameLong).width<=maxW?sameLong:sameShort;g.fillStyle=INK;g.textAlign='center';g.textBaseline='middle';g.fillText(oppositeText,W/2,H-28);g.fillStyle=GRAPHITE;g.fillText(sameText,W/2,H-12);}});
+// b-16 — Graphs when the net force is zero
+// Velocity–time is a horizontal line at v; position–time is a straight line of slope v.
+// Both curves are evaluated point-by-point from v(t) = v (constant) and x(t) = v*t.
+
+ZivonSim.register("b-16", {
+  init: function (ctx) {
+    ctx.t = 0;
+  },
+
+  draw: function (ctx) {
+    var g = ctx.g || ctx.canvas.getContext("2d");
+    var W = 480, H = 320;
+
+    // ---- control value (speed, m/s) ----
+    var v = Number(ctx.values && ctx.values.speed);
+    if (!isFinite(v)) v = 0;
+    v = Math.max(0, Math.min(5, v));
+
+    // ---- declared, fixed axes (content provably stays inside) ----
+    var T = 5;      // seconds of motion shown          -> t axis  0..5 s
+    var VMAX = 6;   // m/s, speed control max is 5      -> v axis  0..6 m/s
+    var XMAX = 25;  // m, largest x = 5 m/s * 5 s       -> x axis  0..25 m
+
+    // ---- layout (480 x 320 buffer) ----
+    var PL = 62, PR = 440;
+    var ATOP = 34, ABOT = 118;   // velocity–time plot box
+    var BTOP = 178, BBOT = 262;  // position–time plot box
+
+    // ---- scale mappings: value -> pixel (used by ticks AND curves) ----
+    function tx(t) { return PL + (t / T) * (PR - PL); }
+    function vy(val) { return ABOT - (val / VMAX) * (ABOT - ATOP); }
+    function xy(val) { return BBOT - (val / XMAX) * (BBOT - BTOP); }
+
+    function fmt(n) { return String(Math.round(n * 100) / 100); }
+
+    var MONO = '14px "Courier Prime","Courier New",monospace';
+    var MONOB = 'bold 14px "Courier Prime","Courier New",monospace';
+
+    g.clearRect(0, 0, W, H);
+    g.lineCap = "round";
+    g.lineJoin = "round";
+    g.textBaseline = "alphabetic";
+
+    // ---- tick helpers: tick positions come from the same mapping as the curves ----
+    function yTicks(mapVal, step, maxVal) {
+      g.font = MONO;
+      g.textAlign = "right";
+      for (var val = 0; val <= maxVal + 1e-9; val += step) {
+        var y = mapVal(val);
+        g.strokeStyle = "#5A5748";
+        g.lineWidth = 1;
+        g.beginPath();
+        g.moveTo(PL - 5, y);
+        g.lineTo(PL, y);
+        g.stroke();
+        g.fillStyle = "#5A5748";
+        g.fillText(fmt(val), PL - 8, y + 4);
+      }
+    }
+    function xTicks(bot) {
+      g.font = MONO;
+      g.textAlign = "center";
+      for (var t = 0; t <= T + 1e-9; t += 1) {
+        var x = tx(t);
+        g.strokeStyle = "#5A5748";
+        g.lineWidth = 1;
+        g.beginPath();
+        g.moveTo(x, bot);
+        g.lineTo(x, bot + 4);
+        g.stroke();
+        g.fillStyle = "#5A5748";
+        g.fillText(fmt(t), x, bot + 16);
+      }
+    }
+    function frameBox(top, bot, ylabel) {
+      g.strokeStyle = "#1C1B18";
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(PL, top);
+      g.lineTo(PL, bot);
+      g.lineTo(PR, bot);
+      g.stroke();
+      g.font = MONOB;
+      g.fillStyle = "#1C1B18";
+      g.textAlign = "left";
+      g.fillText(ylabel, PL, top - 16);
+      g.textAlign = "right";
+      g.fillText("t (s)", PR, top - 16);
+    }
+
+    // ---------- 1. axes, ticks, axis labels ----------
+    frameBox(ATOP, ABOT, "v (m/s)");
+    yTicks(vy, 2, VMAX);
+    xTicks(ABOT);
+
+    frameBox(BTOP, BBOT, "x (m)");
+    yTicks(xy, 5, XMAX);
+    xTicks(BBOT);
+
+    // ---------- 2. the two computed curves ----------
+    // velocity–time: v(t) = v, constant, so a horizontal line at height v
+    var t, s;
+    g.strokeStyle = "#1F3A9E";
+    g.lineWidth = 3;
+    g.beginPath();
+    s = true;
+    for (t = 0; t <= T + 1e-9; t += 0.05) {
+      var ax = tx(t), ay = vy(v);
+      if (s) { g.moveTo(ax, ay); s = false; } else { g.lineTo(ax, ay); }
+    }
+    g.stroke();
+
+    // position–time: x(t) = v * t, a straight line of constant slope v
+    g.beginPath();
+    s = true;
+    for (t = 0; t <= T + 1e-9; t += 0.05) {
+      var bx = tx(t), by = xy(v * t);
+      if (s) { g.moveTo(bx, by); s = false; } else { g.lineTo(bx, by); }
+    }
+    g.stroke();
+
+    // ---------- 3. travelling time marker ----------
+    var period = 5.6;
+    var time = ctx.t || 0;
+    var tNow = Math.min(time % period, T);
+
+    g.save();
+    g.setLineDash([3, 4]);
+    g.lineWidth = 1;
+    g.strokeStyle = "#5A5748";
+    g.globalAlpha = 0.65;
+
+    // velocity panel: the velocity is the height of the point above the axis
+    g.beginPath();
+    g.moveTo(tx(tNow), ABOT);
+    g.lineTo(tx(tNow), vy(v));
+    g.stroke();
+
+    // position panel: read the position off the y axis
+    var px = tx(tNow), py = xy(v * tNow);
+    g.beginPath();
+    g.moveTo(px, BBOT);
+    g.lineTo(px, py);
+    g.stroke();
+    if (v > 0) {
+      g.beginPath();
+      g.moveTo(PL, py);
+      g.lineTo(px, py);
+      g.stroke();
+    }
+    g.restore();
+
+    g.fillStyle = "#1F3A9E";
+    g.beginPath();
+    g.arc(tx(tNow), vy(v), 4.5, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.arc(px, py, 4.5, 0, Math.PI * 2);
+    g.fill();
+
+    // ---------- 4. readout ----------
+    g.font = MONOB;
+    g.fillStyle = "#1C1B18";
+    g.textAlign = "left";
+    g.fillText("v = " + v + " m/s \u00b7 a = 0 \u00b7 x(5 s) = " + (v * T) + " m", 24, 300);
+  }
+});

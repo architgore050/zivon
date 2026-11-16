@@ -220,5 +220,28 @@
       }
     }
   },
-  "generated_at": "2026-11-10T20:55:17Z"
+  "generated_at": "2026-11-10T20:55:17Z",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Motion in a Plane",
+    "hi": "एक समतल में गति (motion)",
+    "hi-Latn": "Plane mein Motion"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  }
 }
