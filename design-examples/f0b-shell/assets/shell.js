@@ -77,9 +77,6 @@
         menus.forEach(function (other) {
           if (other !== menu) other.open = false;
         });
-        var summary = $("summary", menu);
-        var first = $(".zn-menu-item", menu);
-        if (summary && first && document.activeElement === summary) first.focus();
       });
 
       menu.addEventListener("keydown", function (event) {
