@@ -16,6 +16,7 @@ Simulates a low-end Android phone on a real Chromium instance:
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import re
 import statistics
@@ -37,6 +38,13 @@ REQUIRED_PROFILE_KEYS: dict[str, Any] = {
     "load_budget_s": (int, float),
     "fcp_budget_s": (int, float),
     "fps_min": (int, float),
+    # Q-4 hard runtime budget: the page must answer input within this window
+    # (weak-android), and no single long task on load/scroll/click may exceed
+    # `long_task_budget_ms`. Bytes are SOFT (reported, never blocking).
+    "interactive_budget_s": (int, float),
+    "long_task_budget_ms": (int, float),
+    "soft_js_gzip_kb": (int, float),
+    "soft_css_gzip_kb": (int, float),
     "sim_seconds": (int, float),
     "pin_cores": (int, type(None)),
     "scroll": bool,
@@ -137,8 +145,12 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
             "fcp_s": profile["fcp_budget_s"],
             "ram_mb": profile["ram_budget_mb"],
             "fps_min": profile["fps_min"],
+            "interactive_s": profile["interactive_budget_s"],
+            "long_task_ms": profile["long_task_budget_ms"],
         },
         "measured": {},
+        "asset_bytes": {},
+        "soft_budgets": {},
         "console_errors": [],
         "page_errors": [],
         "failures": [],
@@ -192,7 +204,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 "try { localStorage.setItem('zivon.consent', 'declined'); } catch (e) {}"
             )
             page.add_init_script("""
-                window.__zivonPerf = {fcp: null, lcp: null};
+                window.__zivonPerf = {fcp: null, lcp: null, longtasks: []};
                 try {
                   new PerformanceObserver((list) => {
                     for (const e of list.getEntries()) {
@@ -205,6 +217,11 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                       window.__zivonPerf.lcp = entries[entries.length - 1].startTime;
                     }
                   }).observe({type: 'largest-contentful-paint', buffered: true});
+                  new PerformanceObserver((list) => {
+                    for (const e of list.getEntries()) {
+                      window.__zivonPerf.longtasks.push({start: e.startTime, duration: e.duration});
+                    }
+                  }).observe({type: 'longtask', buffered: true});
                 } catch (e) {}
             """)
 
@@ -216,7 +233,26 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 "Math.max(0, document.documentElement.scrollWidth - window.innerWidth)"
             )
 
+            # Interaction latency: how long after navigation start does a
+            # synthetic click actually complete (handler + style/layout)?
+            interactive_ms = page.evaluate("""
+                () => {
+                  const el = document.querySelector(
+                    '.zn-check-btn, .zn-sim-canvas, canvas, button, a, body'
+                  );
+                  if (!el) return performance.now();
+                  try {
+                    el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                  } catch (e) {}
+                  void el.getBoundingClientRect();
+                  return performance.now();
+                }
+            """)
+            longtask_before = page.evaluate(
+                "() => (window.__zivonPerf.longtasks || []).length"
+            )
             fps = _sample_fps(page, profile)
+            longtasks = page.evaluate("() => window.__zivonPerf.longtasks || []")
 
             metrics = cdp.send("Performance.getMetrics")
             js_heap_mb = 0.0
@@ -227,16 +263,38 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
             peak_rss = rss.stop() if rss else 0.0
             perf_obj = page.evaluate("window.__zivonPerf || {}")
 
+            longest_task_ms = round(
+                max((float(t.get("duration", 0.0)) for t in longtasks), default=0.0),
+                1,
+            )
+            interaction_tasks = longtasks[int(longtask_before) :]
+            scroll_task_ms = round(
+                max(
+                    (float(t.get("duration", 0.0)) for t in interaction_tasks),
+                    default=0.0,
+                ),
+                1,
+            )
             report["measured"] = {
                 "load_s": round(load_s, 2),
                 "fcp_s": round((perf_obj.get("fcp") or 0) / 1000, 2),
                 "lcp_s": round((perf_obj.get("lcp") or 0) / 1000, 2),
+                "interactive_s": round(float(interactive_ms) / 1000, 2),
                 "fps_median": round(fps, 1) if fps else None,
+                "longest_task_ms": longest_task_ms,
+                "interaction_longest_task_ms": scroll_task_ms,
+                "long_tasks_total": len(longtasks),
                 "peak_browser_rss_mb": round(peak_rss, 1),
                 "js_heap_mb": round(js_heap_mb, 2),
                 "overflow_px": int(overflow_px),
                 "cpu_throttle_rate": profile["cpu_throttle_rate"],
             }
+            report["asset_bytes"] = measure_asset_bytes(url)
+            report["soft_budgets"] = _soft_budget_report(
+                report.get("asset_bytes") or {},
+                profile["soft_js_gzip_kb"],
+                profile["soft_css_gzip_kb"],
+            )
         finally:
             browser.close()
 
@@ -332,6 +390,113 @@ def _sample_fps(page: Any, profile: dict[str, Any]) -> float | None:
     return 1000.0 / median_ms if median_ms > 0 else None
 
 
+def measure_asset_bytes(url: str) -> dict[str, Any]:
+    """Gzip size of the page's first-party JS/CSS, split by role (Q-4 soft).
+
+    Reports, never blocks:
+    - `shell_js`  = the shared shell/app bundle (`zivon.js`)
+    - `page_js`   = the topic's own `page.js`
+    - `i18n_js`   = the topic's per-locale string bundle
+    - `css`       = shell + page stylesheets
+
+    Only local `file://` pages are measurable this way; a remote URL returns
+    `{"measured": False}` rather than inventing numbers.
+    """
+    from urllib.parse import unquote, urlparse
+
+    parsed = urlparse(url)
+    if parsed.scheme != "file":
+        return {"measured": False, "reason": "not a local file:// page"}
+    page_path = Path(unquote(parsed.path))
+    if not page_path.is_file():
+        return {"measured": False, "reason": f"page not found: {page_path}"}
+    html = page_path.read_text(encoding="utf-8", errors="replace")
+    refs = [
+        *re.findall(
+            r"""<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']""", html, re.IGNORECASE
+        ),
+        *re.findall(
+            r"""<link\b[^>]*\brel\s*=\s*["']stylesheet["'][^>]*\bhref\s*=\s*["']([^"']+)["']""",
+            html,
+            re.IGNORECASE,
+        ),
+        *re.findall(
+            r"""<link\b[^>]*\bhref\s*=\s*["']([^"']+\.css)["'][^>]*\brel\s*=\s*["']stylesheet["']""",
+            html,
+            re.IGNORECASE,
+        ),
+    ]
+    budgets: dict[str, float] = {
+        "shell_js": 0.0,
+        "page_js": 0.0,
+        "i18n_js": 0.0,
+        "css": 0.0,
+    }
+    counted: set[Path] = set()
+    for ref in refs:
+        if ref.startswith(("http://", "https://", "//", "data:")):
+            continue
+        # Cache-busting query strings and fragments are not part of the path.
+        clean = ref.split("?", 1)[0].split("#", 1)[0]
+        candidates = [(page_path.parent / clean).resolve()]
+        if clean.startswith("/"):
+            # Root-relative refs resolve against the site root: the nearest
+            # ancestor that actually contains the file.
+            candidates = [
+                (parent / clean.lstrip("/")).resolve()
+                for parent in [page_path.parent, *page_path.parent.parents]
+            ]
+        target = next((c for c in candidates if c.is_file()), None)
+        if target is None or target in counted:
+            continue
+        counted.add(target)
+        try:
+            size = len(gzip.compress(target.read_bytes(), compresslevel=9))
+        except OSError:
+            continue
+        name = target.name
+        parts = target.parts
+        if name.endswith(".css"):
+            budgets["css"] += size / 1024
+        elif name == "zivon.js":
+            budgets["shell_js"] += size / 1024
+        elif name == "page.js":
+            budgets["page_js"] += size / 1024
+        elif "i18n" in parts or name.startswith("i18n"):
+            budgets["i18n_js"] += size / 1024
+    out: dict[str, Any] = {"measured": bool(counted), "files": len(counted)}
+    for key, kb in budgets.items():
+        out[f"{key}_gzip_kb"] = round(kb, 2)
+    return out
+
+
+def _soft_budget_report(
+    asset_bytes: dict[str, Any], js_budget_kb: float, css_budget_kb: float
+) -> dict[str, Any]:
+    """Q-4 soft byte report: measured sizes and pass/fail against the soft
+    budget. The result is advisory only - it never reaches `failures`."""
+    shell = float(asset_bytes.get("shell_js_gzip_kb", 0.0))
+    topic = float(asset_bytes.get("page_js_gzip_kb", 0.0)) + float(
+        asset_bytes.get("i18n_js_gzip_kb", 0.0)
+    )
+    css = float(asset_bytes.get("css_gzip_kb", 0.0))
+    return {
+        "measured": bool(asset_bytes.get("measured")),
+        "shell_js_gzip_kb": round(shell, 1),
+        "per_topic_js_gzip_kb": round(topic, 1),
+        "css_gzip_kb": round(css, 1),
+        "detail_gzip_kb": {
+            "shell_js": round(shell, 2),
+            "page_js": round(float(asset_bytes.get("page_js_gzip_kb", 0.0)), 2),
+            "i18n_js": round(float(asset_bytes.get("i18n_js_gzip_kb", 0.0)), 2),
+            "css": round(css, 2),
+        },
+        "soft_js_budget_kb": float(js_budget_kb),
+        "soft_css_budget_kb": float(css_budget_kb),
+        "within_soft_budget": shell <= js_budget_kb and css <= css_budget_kb,
+    }
+
+
 def _judge(report: dict[str, Any]) -> None:
     m = report["measured"]
     budgets = report["budgets"]
@@ -355,6 +520,34 @@ def _judge(report: dict[str, Any]) -> None:
         )
     if m["fps_median"] is not None and m["fps_median"] < budgets["fps_min"]:
         failures.append(f"FPS {m['fps_median']} < minimum {budgets['fps_min']}")
+    interactive_budget = budgets.get("interactive_s")
+    if (
+        interactive_budget is not None
+        and m.get("interactive_s") is not None
+        and m["interactive_s"] > interactive_budget
+    ):
+        failures.append(
+            f"interactive {m['interactive_s']}s > budget {interactive_budget}s"
+        )
+    long_task_budget = budgets.get("long_task_ms")
+    if (
+        long_task_budget is not None
+        and m.get("longest_task_ms") is not None
+        and m["longest_task_ms"] > long_task_budget
+    ):
+        failures.append(
+            f"long task {m['longest_task_ms']}ms > budget {long_task_budget}ms "
+            "(interaction path)"
+        )
+    if (
+        long_task_budget is not None
+        and m.get("interaction_longest_task_ms")
+        and m["interaction_longest_task_ms"] > long_task_budget
+    ):
+        failures.append(
+            f"scroll/click long task {m['interaction_longest_task_ms']}ms > "
+            f"budget {long_task_budget}ms (jank)"
+        )
     if m.get("overflow_px", 0) > 2:
         failures.append(
             f"horizontal overflow {m['overflow_px']}px at {report['viewport_width']}px "
@@ -364,6 +557,14 @@ def _judge(report: dict[str, Any]) -> None:
         failures.append(f"page errors: {report['page_errors']}")
     if report["console_errors"]:
         failures.append(f"console errors: {report['console_errors'][:5]}")
+    soft = report.get("soft_budgets") or {}
+    if soft.get("measured") and not soft.get("within_soft_budget", True):
+        advisories.append(
+            "soft byte budget exceeded: shell JS "
+            f"{soft['shell_js_gzip_kb']} KB (soft {soft['soft_js_budget_kb']} KB), "
+            f"CSS {soft['css_gzip_kb']} KB (soft {soft['soft_css_budget_kb']} KB) "
+            "- monitored, not blocking (Q-4)"
+        )
     report["failures"] = failures
     report["advisories"] = advisories
     report["pass"] = not failures

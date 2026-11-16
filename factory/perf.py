@@ -92,10 +92,14 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
     results: dict[str, Any] = {
         "profile": str(profile_path),
         "pages": {},
+        # Q-4 splits the byte budget from the runtime budget: bytes are
+        # measured and reported (soft), runtime misses are fatal.
+        "soft_budgets": {},
     }
     for label, url in (("topic_page", topic_url), ("landing_page", landing_url)):
         report = run_profile(url, profile_path)
         results["pages"][label] = report
+        results["soft_budgets"][label] = report.get("soft_budgets", {})
         run_ctx.write_json(run_ctx.stage_dir(STAGE_ID) / f"{label}.perf.json", report)
 
     topic_report = results["pages"]["topic_page"]

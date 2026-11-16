@@ -12,5 +12,9 @@
   "sim_seconds": 3,
   "pin_cores": 2,
   "scroll": true,
-  "click_checks": true
+  "click_checks": true,
+  "interactive_budget_s": 3.0,
+  "long_task_budget_ms": 200,
+  "soft_js_gzip_kb": 150,
+  "soft_css_gzip_kb": 50
 }
