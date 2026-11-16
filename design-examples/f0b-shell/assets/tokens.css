@@ -1,0 +1,347 @@
+/* ==========================================================================
+   F0B shell exploration — tokens, fonts, base
+   --------------------------------------------------------------------------
+   Field Notes is the single visual source of truth:
+   docs/frontend/design-doctrine.md §1–§9 for every non-lesson surface.
+   This file copies the doctrine's tokens; it does not invent a second
+   palette, a second type scale, or a second visual language.
+
+   New in this exploration (and therefore part of the founder's verdict):
+   the shell layout widths only — --shell-w, --read-w, --measure. They are
+   layout, not style; no new colour, font, shadow, gradient, or radius.
+
+   Fonts are local (assets/fonts/, SIL OFL 1.1 — see FONTS-LICENSE.md).
+   NO external hosts, NO CDN, NO Google Fonts.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/BricolageGrotesque-Variable.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Courier Prime";
+  src: url("fonts/CourierPrime-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Courier Prime";
+  src: url("fonts/CourierPrime-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Caveat";
+  src: url("fonts/Caveat-Variable.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  /* doctrine §3 — colour tokens, unchanged */
+  --paper: #efe6b8;
+  --paper-light: #f6f0cf;
+  --ink: #1c1b18;
+  --graphite: #5a5748;
+  --pen-blue: #1f3a9e;
+  --pencil-red: #b3261e;
+  --tick-green: #2f6b2f;
+
+  /* doctrine §5 — type families, unchanged */
+  --display: "Bricolage Grotesque", Arial, sans-serif;
+  --notes: "Courier Prime", "Courier New", monospace;
+  --hand: Caveat, "Segoe Print", "Bradley Hand", cursive;
+
+  /* doctrine §4 — paper texture + tape */
+  --rule: rgba(90, 87, 72, 0.4);
+  --tape: rgba(196, 174, 104, 0.5);
+
+  /* doctrine §10.2 — lesson rhythm (lesson excerpt only) */
+  --row: 2.25rem;
+  --gutter: 1.5rem;
+  --page-w: 47rem;
+
+  /* shell layout — proposed in this exploration, not yet a doctrine token */
+  --shell-w: 76rem;   /* public + app content width (1216 px) */
+  --read-w: 47rem;    /* lesson reading column, matches doctrine --page-w */
+  --measure: 42rem;   /* forms / settings / prose column (672 px) */
+  --pad: clamp(1.125rem, 4vw, 1.5rem);
+  --gap: clamp(1.25rem, 3vw, 2rem);
+  --radius: 2px;      /* doctrine §6: square or 4 px; the kit uses 2 */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background-color: var(--paper);
+  /* doctrine §4: flat paper with ruled lines; no grain, no gradient decoration */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 34px,
+    var(--rule) 34px,
+    var(--rule) 36px
+  );
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+a {
+  color: var(--pen-blue);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  margin: 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--ink);
+  margin: 0;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+:focus-visible {
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 3px;
+}
+
+/* The review strip sits on ink; pen-blue would disappear there. */
+.review-strip :focus-visible,
+.review-strip a:focus-visible,
+.review-strip select:focus-visible {
+  outline-color: var(--paper-light);
+}
+
+/* ---- utilities ---------------------------------------------------------- */
+
+.zn-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.zn-shell {
+  width: 100%;
+  max-width: var(--shell-w);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.zn-read {
+  width: 100%;
+  max-width: var(--read-w);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+.zn-measure {
+  width: 100%;
+  max-width: var(--measure);
+}
+
+.zn-kicker {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.zn-kicker--ink {
+  color: var(--ink);
+}
+
+.zn-lede {
+  max-width: 62ch;
+  font-size: clamp(1rem, 1.4vw, 1.125rem);
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--graphite);
+}
+
+.zn-meta {
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--graphite);
+}
+
+.zn-meta--ink {
+  color: var(--ink);
+}
+
+.zn-mono {
+  font-family: var(--notes);
+}
+
+.zn-mono--bold {
+  font-family: var(--notes);
+  font-weight: 700;
+}
+
+.zn-rule {
+  border: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.zn-rule--thin {
+  border-top: 1px solid var(--ink);
+}
+
+.zn-rule--dashed {
+  border-top: 1px dashed var(--graphite);
+}
+
+.zn-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.zn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.zn-nowrap {
+  white-space: nowrap;
+}
+
+/* ---- skip link (first focusable element on every page) ------------------ */
+
+.zn-skip {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 200;
+  transform: translateY(-160%);
+  background: var(--ink);
+  color: var(--paper-light);
+  padding: 0.75rem 1rem;
+  min-height: 44px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border: 2px solid var(--paper-light);
+  border-radius: var(--radius);
+}
+
+.zn-skip:focus {
+  transform: translateY(0);
+}
+
+/* ---- reduced motion ----------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* The states page can simulate the OS setting for review. */
+html.zn-reduce *,
+html.zn-reduce *::before,
+html.zn-reduce *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --pad: 1.125rem;
+  }
+}

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Practice — Zivon design exploration</title>
+<meta name="description" content="Field Notes practice exploration: one question at a time, a hint margin, feedback and a why.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+</head>
+<body data-page="practice" data-states="default,loading,empty,error,offline,auth,quota">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html">Components</a>
+      <a href="states.html">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-appbar">
+  <div class="zn-appbar-in zn-shell">
+    <a class="zn-wordmark" href="dashboard.html">Zivon</a>
+    <details class="zn-menu zn-context">
+      <summary class="zn-context-summary">
+        <span class="zn-context-copy"><span class="zn-context-label">Class · Subject</span><span class="zn-context-value">Class 9 · Physics</span></span>
+        <span class="zn-caret" aria-hidden="true"></span>
+      </summary>
+      <div class="zn-menu-panel">
+        <div class="zn-menu-head"><p class="zn-menu-title">Class 9 Physics</p><p class="zn-menu-note">NCERT · CBSE · English</p></div>
+        <a class="zn-menu-item" href="practice.html" aria-current="true">Class 9 · Physics <span class="zn-menu-check">✓</span></a>
+        <a class="zn-menu-item" href="catalogue.html?class=10">Class 10 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=11">Class 11 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=12">Class 12 · Physics</a>
+      </div>
+    </details>
+    <nav class="zn-nav zn-app-nav" aria-label="App sections">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html">Courses</a>
+      <a href="practice.html" aria-current="page">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html">Progress</a>
+    </nav>
+    <div class="zn-app-actions">
+      <span class="zn-credits" data-credits aria-label="Voice credits: 24 of 30 left today"><span class="zn-credits-label">Voice</span> 24 / 30</span>
+      <details class="zn-menu zn-user-menu">
+        <summary>Aarav <span class="zn-caret" aria-hidden="true"></span></summary>
+        <div class="zn-menu-panel zn-menu-panel--right">
+          <div class="zn-menu-head"><p class="zn-menu-title">Aarav</p><p class="zn-menu-note">Class 9 · CBSE · English · signed in</p></div>
+          <a class="zn-menu-item" href="settings.html">Settings</a>
+          <a class="zn-menu-item" href="settings.html#privacy">Privacy &amp; data</a>
+          <div class="zn-menu-sep"></div>
+          <button class="zn-menu-item" type="button" data-demo-action="Signed out (design example).">Log out</button>
+        </div>
+      </details>
+      <button class="zn-btn zn-btn--secondary zn-app-menu-btn" type="button" data-open-dialog="app-drawer" aria-label="Open menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="zn-app-main zn-shell">
+  <div id="screen-body">
+    <nav class="zn-breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="practice.html">Practice</a></li>
+        <li><a href="lesson.html">Force and Laws of Motion</a></li>
+        <li><span aria-current="page">Question 3</span></li>
+      </ol>
+    </nav>
+
+    <div class="zn-page-head">
+      <div class="zn-page-head-copy">
+        <p class="zn-kicker">Practice · Chapter drill · Untimed</p>
+        <h1>Force and Laws of Motion</h1>
+        <p class="zn-lede">One question at a time. A hint is here if you want it; nothing is scored until you check.</p>
+      </div>
+      <div class="zn-page-actions">
+        <a class="zn-btn zn-btn--quiet" href="dashboard.html">Exit practice</a>
+      </div>
+    </div>
+
+    <div class="practice-grid">
+      <section class="zn-panel question-panel" data-check-root data-answer="1" aria-labelledby="question-title">
+        <div class="question-progress">
+          <div class="zn-progress">
+            <div class="zn-progress-head"><span><strong>Question 3</strong> of 10</span><span>2 correct · no hints used</span></div>
+            <div class="zn-progress-track" role="progressbar" aria-label="Practice progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30">
+              <div class="zn-progress-fill" style="width:30%"></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="zn-kicker">Net force · Medium · 1 mark</p>
+        <h2 class="question-stem" id="question-title">A 5 kg box is pushed across a floor with a horizontal force of 20 N. Friction acts on it with a force of 5 N. What is the acceleration of the box?</h2>
+
+        <div class="options" role="radiogroup" aria-labelledby="question-title">
+          <label class="zn-choice"><input type="radio" name="practice-option" value="0"> <span>1 m/s²</span></label>
+          <label class="zn-choice"><input type="radio" name="practice-option" value="1"> <span>3 m/s²</span></label>
+          <label class="zn-choice"><input type="radio" name="practice-option" value="2"> <span>4 m/s²</span></label>
+          <label class="zn-choice"><input type="radio" name="practice-option" value="3"> <span>5 m/s²</span></label>
+        </div>
+
+        <div class="question-tools">
+          <button class="zn-btn zn-btn--primary" type="button" data-check>Check answer</button>
+          <span class="zn-meta">You can change the answer before checking.</span>
+        </div>
+
+        <div class="feedback-panel" id="practice-feedback" hidden>
+          <div class="feedback-title" data-outcome="correct">
+            <span class="feedback-mark" aria-hidden="true">✓</span>
+            <span>Correct</span>
+          </div>
+          <p class="feedback-copy">That is the right idea. Open “Why?” for the full reasoning.</p>
+          <details class="feedback-why">
+            <summary>Why?</summary>
+            <p>The net force is 20 N − 5 N = 15 N. Newton's second law gives a = F / m = 15 N ÷ 5 kg = 3 m/s². The common slip is to divide the applied force by the mass and ignore friction.</p>
+          </details>
+        </div>
+      </section>
+
+      <aside class="practice-side" aria-label="Hint and session">
+        <section class="hint-margin" aria-labelledby="hint-title">
+          <h2 id="hint-title">Hint margin</h2>
+          <p class="hint-copy" id="practice-hint" hidden>First find the net force. Then use F = ma with the mass of the box.</p>
+          <button class="zn-btn zn-btn--secondary zn-btn--sm zn-mt-2" type="button" data-show-hint aria-expanded="false">Show a hint</button>
+          <p class="zn-meta zn-mt-1">Hint use is recorded. It never removes the chance to answer.</p>
+        </section>
+
+        <section class="zn-panel" aria-labelledby="session-title">
+          <div class="zn-panel-head">
+            <div><h2 class="zn-panel-title" id="session-title">Session</h2><p class="zn-panel-note">Chapter drill · 10 questions</p></div>
+          </div>
+          <div class="zn-stat"><span class="zn-stat-label">Correct so far</span><span class="zn-stat-value">2</span></div>
+          <div class="zn-stat"><span class="zn-stat-label">Hints used</span><span class="zn-stat-value" id="hint-used">0</span></div>
+          <div class="zn-stat"><span class="zn-stat-label">Timer</span><span class="zn-stat-value">Off</span><span class="zn-stat-note">Practice is untimed. Nothing is deducted for thinking.</span></div>
+        </section>
+      </aside>
+    </div>
+
+    <div data-banner="offline" class="zn-banner zn-banner--offline zn-mt-2" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">You're offline</p>
+        <p class="zn-meta">Questions already loaded keep working; checking is local. Saving the session and the tutor need a connection.</p>
+      </div>
+    </div>
+
+    <div data-banner="quota" class="zn-banner zn-banner--quota zn-mt-2" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">Voice is used up for today</p>
+        <p class="zn-meta">Practice itself is unaffected. The tutor's voice is disabled until 00:00; typed input stays available on lesson pages.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="state-injected" hidden></div>
+  <div id="state-templates" hidden>
+    <template data-state-template="loading">
+      <div class="zn-page-head">
+        <div class="zn-page-head-copy">
+          <div class="zn-skeleton" aria-hidden="true"><div class="zn-skeleton-line zn-skeleton-line--short"></div><div class="zn-skeleton-line zn-skeleton-line--title"></div></div>
+        </div>
+      </div>
+      <p class="zn-skeleton-status" role="status">Loading question 3…</p>
+      <div class="zn-panel zn-mt-2"><div class="zn-skeleton"><div class="zn-skeleton-line zn-skeleton-line--title"></div><div class="zn-skeleton-line"></div><div class="zn-skeleton-line"></div><div class="zn-skeleton-line zn-skeleton-line--short"></div></div></div>
+    </template>
+    <template data-state-template="empty">
+      <div class="zn-empty">
+        <h2 class="zn-empty-title">No practice for this chapter yet</h2>
+        <p class="zn-empty-copy">The lesson is live, but the practice bank has not passed its review gate. Use the lesson checks for now; they feed the same mastery evidence.</p>
+        <div class="zn-empty-actions"><a class="zn-btn zn-btn--secondary" href="lesson.html">Back to the lesson</a><a class="zn-btn zn-btn--quiet" href="catalogue.html">Choose another chapter</a></div>
+      </div>
+    </template>
+    <template data-state-template="error">
+      <div class="zn-error-box">
+        <div class="zn-error-title">Could not load question 3</div>
+        <p class="zn-error-copy">Your answer to question 2 is safe. The question pack is still on this device; try again or go back to the session.</p>
+        <div class="zn-error-actions"><button class="zn-btn zn-btn--secondary" type="button" data-retry>Retry</button><a class="zn-btn zn-btn--quiet" href="practice.html">Back to practice</a></div>
+      </div>
+    </template>
+    <template data-state-template="auth">
+      <div class="zn-auth-card">
+        <p class="zn-kicker">Session ended</p>
+        <h1>Log in to keep this practice session</h1>
+        <p class="zn-lede">Your device answers are safe. A guest can practise, but the session and its history need an account.</p>
+        <div class="zn-auth-actions"><button class="zn-btn zn-btn--primary zn-btn--block" type="button" data-open-dialog="login-note">Log in</button><a class="zn-btn zn-btn--secondary zn-btn--block" href="lesson.html">Back to the lesson</a></div>
+      </div>
+    </template>
+  </div>
+</main>
+
+<footer class="zn-shell">
+  <div class="zn-app-footer">
+    <span>Zivon · Physics you can talk to. · <a href="settings.html">Settings</a> · <a href="public-info.html#privacy">Privacy</a></span>
+    <span>Design example · no backend, no network, no microphone.</span>
+  </div>
+</footer>
+
+<dialog class="zn-drawer" id="app-drawer" aria-labelledby="app-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head"><span class="zn-wordmark" id="app-drawer-title">Zivon</span><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <nav class="zn-drawer-nav" aria-label="App sections">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html">Courses</a>
+      <a href="practice.html" aria-current="page">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html">Progress</a>
+      <a href="settings.html">Settings</a>
+    </nav>
+    <div class="zn-drawer-context"><p class="zn-kicker">Class · Subject</p><p class="zn-context-value">Class 9 · Physics</p><p class="zn-meta">NCERT · CBSE · English</p></div>
+    <div class="zn-drawer-foot"><span class="zn-credits" data-credits><span class="zn-credits-label">Voice</span> 24 / 30</span><button class="zn-btn zn-btn--secondary zn-btn--block" type="button" data-demo-action="Signed out (design example).">Log out</button></div>
+  </div>
+</dialog>
+
+<dialog class="zn-dialog" id="login-note" aria-labelledby="login-note-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head"><h2 class="zn-dialog-title" id="login-note-title">Sign-in is an F2 screen</h2><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <p class="zn-dialog-copy">This bundle has no backend or auth screen. The auth-required state shows where the form mounts.</p>
+    <div class="zn-dialog-actions"><a class="zn-btn zn-btn--secondary" href="states.html#auth-required">See the state plate</a><a class="zn-btn zn-btn--primary" href="catalogue.html">Continue as guest</a></div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>

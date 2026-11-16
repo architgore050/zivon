@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Component catalogue — Zivon design exploration</title>
+<meta name="description" content="Field Notes component catalogue: buttons, fields, cards, tabs, progress, mastery, states, dialogs, exam paper, SWOT, audio and mic.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+</head>
+<body data-page="components" data-states="default">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html" aria-current="page">Components</a>
+      <a href="states.html">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-site-header">
+  <div class="zn-site-header-in zn-shell">
+    <a class="zn-wordmark" href="index.html">Zivon</a>
+    <nav class="zn-nav zn-site-nav" aria-label="Primary">
+      <a href="catalogue.html">Courses</a>
+      <a href="public-info.html#method">Method</a>
+      <a href="public-info.html#pricing">Pricing</a>
+    </nav>
+    <div class="zn-site-actions">
+      <a class="zn-btn zn-btn--quiet" href="states.html">States</a>
+      <a class="zn-btn zn-btn--primary" href="dashboard.html">App shell</a>
+      <button class="zn-btn zn-btn--secondary zn-site-menu-btn" type="button" data-open-dialog="public-drawer" aria-label="Open menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="zn-shell" style="padding-top:1.75rem">
+  <div class="zn-page-head">
+    <div class="zn-page-head-copy">
+      <p class="zn-kicker">F0B · design system · component catalogue</p>
+      <h1>Every shared pattern, one place.</h1>
+      <p class="zn-lede">Proposals for the kit, not product code. Colours, type and radii are the doctrine's; the layouts and class names are what the founder is reviewing.</p>
+    </div>
+  </div>
+
+  <nav class="ds-contents" aria-label="Component sections">
+    <a href="#buttons">Buttons</a>
+    <a href="#fields">Fields</a>
+    <a href="#cards">Cards</a>
+    <a href="#tabs">Tabs</a>
+    <a href="#progress">Progress</a>
+    <a href="#states">States</a>
+    <a href="#dialogs">Dialogs</a>
+    <a href="#exam">Exam</a>
+    <a href="#swot">SWOT</a>
+    <a href="#audio">Audio</a>
+    <a href="#tables">Tables</a>
+  </nav>
+
+  <section class="ds-section" id="buttons" aria-labelledby="buttons-title">
+    <div class="ds-section-head">
+      <h2 id="buttons-title">Buttons</h2>
+      <p class="zn-meta">44 px minimum. Primary is ink; secondary is outline; quiet is a text action; danger is reserved for destructive actions.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <p class="ds-label">Variants</p>
+        <div class="ds-row">
+          <button class="zn-btn zn-btn--primary" type="button">Primary action</button>
+          <button class="zn-btn zn-btn--secondary" type="button">Secondary</button>
+          <button class="zn-btn zn-btn--quiet" type="button">Quiet action</button>
+          <button class="zn-btn zn-btn--danger" type="button">Delete</button>
+        </div>
+        <p class="ds-note">Hover changes fill or weight, never hue alone. Focus is the doctrine's 3 px pen-blue ring.</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">States</p>
+        <div class="ds-row">
+          <button class="zn-btn zn-btn--primary" type="button" aria-busy="true">Saving…</button>
+          <button class="zn-btn zn-btn--secondary" type="button" disabled>Disabled</button>
+          <button class="zn-btn zn-btn--danger" type="button" disabled>Delete</button>
+        </div>
+        <p class="ds-note">Busy is words + dashed underline, not a spinner. Disabled controls stay readable and never pretend to work.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="fields" aria-labelledby="fields-title">
+    <div class="ds-section-head">
+      <h2 id="fields-title">Fields</h2>
+      <p class="zn-meta">Labels above fields; placeholders are examples, not labels. Errors say how to fix the field and are tied with aria-describedby.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <p class="ds-label">Text, error, search</p>
+        <div class="ds-stack">
+          <div class="zn-field">
+            <label class="zn-label" for="demo-name">Display name <span class="zn-label-optional">optional</span></label>
+            <input class="zn-input" id="demo-name" type="text" value="Aarav" autocomplete="given-name">
+            <p class="zn-help">Only used in the app; never shown to other students.</p>
+          </div>
+          <div class="zn-field">
+            <label class="zn-label" for="demo-email">Email</label>
+            <input class="zn-input" id="demo-email" type="email" value="aarav@" aria-invalid="true" aria-describedby="demo-email-error">
+            <p class="zn-error" id="demo-email-error">Add the part after @, for example school.example.</p>
+          </div>
+          <div class="zn-field">
+            <label class="zn-label" for="demo-search">Search chapters</label>
+            <input class="zn-input" id="demo-search" type="search" placeholder="Light, force, electricity…">
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-specimen">
+        <p class="ds-label">Select, password, textarea</p>
+        <div class="ds-stack">
+          <div class="zn-field">
+            <label class="zn-label" for="demo-class">Class</label>
+            <div class="zn-select-wrap"><select class="zn-select" id="demo-class"><option selected>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option></select><span class="zn-caret" aria-hidden="true"></span></div>
+          </div>
+          <div class="zn-field">
+            <label class="zn-label" for="demo-password">Password</label>
+            <div class="zn-cluster">
+              <input class="zn-input" id="demo-password" type="password" value="not-a-real-password" autocomplete="current-password" style="flex:1 1 12rem">
+              <button class="zn-btn zn-btn--quiet" type="button" data-toggle-password="demo-password" aria-pressed="false">Show</button>
+            </div>
+            <p class="zn-help">At least 10 characters; a blocklist catches common passwords. No symbol theatre.</p>
+          </div>
+          <div class="zn-field">
+            <label class="zn-label" for="demo-note">Report note <span class="zn-label-optional">optional</span></label>
+            <textarea class="zn-textarea" id="demo-note" rows="2" placeholder="A short note helps; no personal details."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-specimen">
+        <p class="ds-label">Choice, radio, switch</p>
+        <div class="ds-stack">
+          <label class="zn-choice"><input type="checkbox" checked> <span>Remember this device</span></label>
+          <fieldset class="zn-fieldset">
+            <legend class="zn-label">Voice pace</legend>
+            <div class="zn-checks">
+              <label class="zn-choice zn-choice--plain"><input type="radio" name="demo-pace" value="slow"> <span>Slower (0.75×)</span></label>
+              <label class="zn-choice zn-choice--plain"><input type="radio" name="demo-pace" value="normal" checked> <span>Normal (1×)</span></label>
+              <label class="zn-choice zn-choice--plain"><input type="radio" name="demo-pace" value="fast"> <span>Faster (1.25×)</span></label>
+            </div>
+          </fieldset>
+          <div class="zn-switch-row">
+            <div class="zn-switch-copy"><p class="zn-label">Reduce motion</p><p class="zn-help">Follows the device setting by default.</p></div>
+            <button class="zn-switch" type="button" role="switch" aria-checked="true" data-switch aria-label="Reduce motion"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-specimen">
+        <p class="ds-label">Numeric answer</p>
+        <div class="zn-field">
+          <label class="zn-label" for="demo-numeric">Acceleration (m/s²)</label>
+          <input class="zn-input zn-numeric" id="demo-numeric" type="text" inputmode="decimal" value="3" aria-describedby="demo-numeric-help">
+          <p class="zn-help" id="demo-numeric-help">Numbers only. A parse failure is a recoverable answer, not a crash.</p>
+        </div>
+        <p class="ds-note">Units stay beside the label; they are never translated.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="cards" aria-labelledby="cards-title">
+    <div class="ds-section-head">
+      <h2 id="cards-title">Cards and rows</h2>
+      <p class="zn-meta">A card is a paper slip, not a floating panel: paper-light, 1 px ink, 2 px corners, no shadow.</p>
+    </div>
+    <div class="ds-grid">
+      <a class="zn-card" href="lesson.html">
+        <span class="zn-status zn-status--live">Live</span>
+        <span class="zn-card-title">Force and Laws of Motion</span>
+        <span class="zn-card-meta">Class 9 · 9 sections · 15 practice · chapter test</span>
+        <span class="zn-card-foot"><span class="zn-mastery zn-mastery--learning"><span class="zn-mastery-mark" aria-hidden="true"></span>Learning</span><span class="zn-meta">EN · हिन्दी · Hinglish</span></span>
+      </a>
+      <a class="zn-card" href="test.html">
+        <span class="zn-kicker">Series · Class 10</span>
+        <span class="zn-card-title">Board Practice</span>
+        <span class="zn-card-meta">Full Physics-section papers · 5 papers · 3 hours · EN/HI</span>
+        <span class="zn-copy-flag"><strong>Close to the paper pattern.</strong> Not an official CBSE paper.</span>
+        <span class="zn-card-foot"><span class="zn-link">Open series →</span></span>
+      </a>
+      <div class="zn-card">
+        <span class="zn-kicker">Question card</span>
+        <span class="zn-card-title">A 5 kg box is pushed with 20 N while friction is 5 N. What is its acceleration?</span>
+        <span class="zn-card-meta">Net force · Medium · 1 mark · MCQ</span>
+        <span class="zn-card-foot"><span class="zn-status zn-status--lesson">Unanswered</span><span class="zn-meta">Hint available</span></span>
+      </div>
+      <div class="zn-card">
+        <span class="zn-kicker">Stat row</span>
+        <div class="zn-stat"><span class="zn-stat-label">Accuracy</span><span class="zn-stat-value">70%</span><span class="zn-stat-note">14 correct · 5 incorrect · 1 unattempted</span></div>
+        <div class="zn-stat"><span class="zn-stat-label">Time</span><span class="zn-stat-value">38 min</span><span class="zn-stat-note">of 45 · pace 0.95× expected</span></div>
+        <p class="zn-meta">A number without a meaning is decoration.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="tabs" aria-labelledby="tabs-title">
+    <div class="ds-section-head">
+      <h2 id="tabs-title">Tabs and filters</h2>
+      <p class="zn-meta">Tabs use arrow keys and one selected tab. Filters are toggle buttons, not fake tabs.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen ds-specimen--wide">
+        <p class="ds-label">Tablist</p>
+        <div class="zn-tabs" role="tablist" aria-label="Demo tabs" data-demo-tabs>
+          <button class="zn-tab" type="button" role="tab" aria-selected="true" aria-controls="demo-panel-a" id="demo-tab-a">Overview</button>
+          <button class="zn-tab" type="button" role="tab" aria-selected="false" aria-controls="demo-panel-b" id="demo-tab-b" tabindex="-1">Checks</button>
+          <button class="zn-tab" type="button" role="tab" aria-selected="false" aria-controls="demo-panel-c" id="demo-tab-c" tabindex="-1">Sources</button>
+        </div>
+        <div class="zn-panel zn-mt-2" role="tabpanel" id="demo-panel-a" aria-labelledby="demo-tab-a">The selected tab uses a 3 px ink rule and bold text, never colour alone.</div>
+        <div class="zn-panel zn-mt-2" role="tabpanel" id="demo-panel-b" aria-labelledby="demo-tab-b" hidden>One check per concept; feedback is a ✓/✗ plus words.</div>
+        <div class="zn-panel zn-mt-2" role="tabpanel" id="demo-panel-c" aria-labelledby="demo-tab-c" hidden>Sources name the book and licence; they are not decorative.</div>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Filter bar</p>
+        <div class="zn-filters">
+          <button class="zn-filter" type="button" aria-pressed="true"><span class="zn-filter-mark" aria-hidden="true"></span>Live only</button>
+          <button class="zn-filter" type="button" aria-pressed="false"><span class="zn-filter-mark" aria-hidden="true"></span>Has practice</button>
+          <button class="zn-filter" type="button" aria-pressed="false"><span class="zn-filter-mark" aria-hidden="true"></span>Has a test</button>
+        </div>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Search</p>
+        <div class="zn-field"><label class="zn-label" for="demo-search-2">Search chapters</label><input class="zn-input" id="demo-search-2" type="search" placeholder="Light, force, electricity…"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="progress" aria-labelledby="progress-title">
+    <div class="ds-section-head">
+      <h2 id="progress-title">Progress and mastery</h2>
+      <p class="zn-meta">Five mastery states in words and shape. A ring is decorative unless the same text is exposed.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <p class="ds-label">Progress bar</p>
+        <div class="zn-progress">
+          <div class="zn-progress-head"><span><strong>3 of 8</strong> sections</span><span>42%</span></div>
+          <div class="zn-progress-track" role="progressbar" aria-label="Sections read" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42"><div class="zn-progress-fill" style="width:42%"></div></div>
+        </div>
+        <p class="ds-note">The accessible name and values live on the track; the label above is visible text.</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Progress ring</p>
+        <div class="zn-cluster">
+          <div class="zn-ring" role="img" aria-label="62 percent of chapters practised">
+            <svg viewBox="0 0 84 84" aria-hidden="true"><circle class="zn-ring-track" cx="42" cy="42" r="34"></circle><circle class="zn-ring-fill" cx="42" cy="42" r="34" stroke-dasharray="213.6" stroke-dashoffset="81"></circle></svg>
+            <span class="zn-ring-value">62%</span>
+          </div>
+          <p class="zn-meta">62% of chapters practised<br>3 of 5 chapters · 2 unrated</p>
+        </div>
+      </div>
+      <div class="ds-specimen ds-specimen--wide">
+        <p class="ds-label">Mastery pills — five states, five shapes</p>
+        <div class="ds-row">
+          <span class="zn-mastery zn-mastery--not-started"><span class="zn-mastery-mark" aria-hidden="true"></span>Not started</span>
+          <span class="zn-mastery zn-mastery--learning"><span class="zn-mastery-mark" aria-hidden="true"></span>Learning</span>
+          <span class="zn-mastery zn-mastery--practising"><span class="zn-mastery-mark" aria-hidden="true"></span>Practising</span>
+          <span class="zn-mastery zn-mastery--confident"><span class="zn-mastery-mark" aria-hidden="true"></span>Confident</span>
+          <span class="zn-mastery zn-mastery--needs"><span class="zn-mastery-mark" aria-hidden="true"></span>Needs revision</span>
+        </div>
+        <p class="ds-note">Hollow/dotted, half, three-quarter, full, full + red slash. The word is always present; colour is never the only signal.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="states" aria-labelledby="states-title">
+    <div class="ds-section-head">
+      <h2 id="states-title">States</h2>
+      <p class="zn-meta">Failure first: say what happened, what is safe, and the one next action. A skeleton matches the final block's size.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <p class="ds-label">Loading skeleton</p>
+        <div class="zn-skeleton" aria-hidden="true"><div class="zn-skeleton-line zn-skeleton-line--short"></div><div class="zn-skeleton-line zn-skeleton-line--title"></div><div class="zn-skeleton-line"></div><div class="zn-skeleton-panel"></div></div>
+        <p class="zn-skeleton-status zn-mt-1" role="status">Loading your study log…</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Empty</p>
+        <div class="zn-empty">
+          <h3 class="zn-empty-title">No doubts yet</h3>
+          <p class="zn-empty-copy">Ask one from a lesson. The tutor will keep the page and block as the anchor.</p>
+          <div class="zn-empty-actions"><a class="zn-btn zn-btn--secondary" href="lesson.html">Open a lesson</a></div>
+        </div>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Panel error</p>
+        <div class="zn-error-box">
+          <div class="zn-error-title">Could not load your SWOT snapshot</div>
+          <p class="zn-error-copy">The rest of the page is here. Retry, or open the full SWOT.</p>
+          <div class="zn-error-actions"><button class="zn-btn zn-btn--secondary" type="button" data-toast="Retry started (design example).">Retry</button></div>
+        </div>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Banners</p>
+        <div class="ds-stack">
+          <div class="zn-banner zn-banner--offline"><div><p class="zn-banner-title">You're offline</p><p class="zn-meta">Cached lessons work. Voice needs a connection.</p></div></div>
+          <div class="zn-banner zn-banner--quota"><div><p class="zn-banner-title">Voice is used up for today</p><p class="zn-meta">30 credits/day · resets at 00:00 · reading, sims and typing free.</p></div></div>
+          <span class="zn-untranslated">Hindi is not ready for this block — showing English</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="dialogs" aria-labelledby="dialogs-title">
+    <div class="ds-section-head">
+      <h2 id="dialogs-title">Dialog, sheet, toast</h2>
+      <p class="zn-meta">A dialog is a blocking decision; a toast is a transient confirmation. One toast at a time, no focus steal.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <p class="ds-label">Dialog</p>
+        <button class="zn-btn zn-btn--secondary" type="button" data-open-dialog="demo-dialog">Open a dialog</button>
+        <p class="ds-note">Native &lt;dialog&gt;: focus moves in, Esc closes, focus returns to the trigger.</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Sheet</p>
+        <button class="zn-btn zn-btn--secondary" type="button" data-open-dialog="demo-sheet">Open a sheet</button>
+        <p class="ds-note">Bottom-aligned on phones, respects safe-area insets, never a second conversation surface.</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Toast</p>
+        <button class="zn-btn zn-btn--secondary" type="button" data-toast="Saved: voice settings">Show a toast</button>
+        <p class="ds-note">role=status, auto-dismisses, the message is never the only copy of something important.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="exam" aria-labelledby="exam-title">
+    <div class="ds-section-head">
+      <h2 id="exam-title">Exam paper</h2>
+      <p class="zn-meta">Title, sections, marks and duration at the top; marks sit next to the question; the palette is shape + words.</p>
+    </div>
+    <div class="zn-exam">
+      <header class="zn-exam-head">
+        <div class="zn-exam-topline">
+          <div><p class="zn-kicker">Chapter test · Class 9 Physics</p><h3 class="zn-exam-title">Force and Laws of Motion</h3></div>
+          <span class="zn-marks" aria-label="35 marks">35 marks</span>
+        </div>
+        <div class="zn-exam-meta"><span><strong>20</strong> questions</span><span><strong>Sections A–C</strong></span><span><strong>45 minutes</strong></span><span>No negative marking</span></div>
+      </header>
+      <div class="zn-q-head"><span>Section B · Question 14</span><span class="zn-marks" aria-label="2 marks">2 marks</span></div>
+      <p class="zn-q-title">A passenger standing in a bus falls forward when the driver brakes suddenly. Explain why, using the idea of inertia.</p>
+      <div class="zn-cluster zn-mt-2">
+        <span class="zn-timer">38:12 remaining</span>
+        <span class="zn-autosave" data-state="saved">Saved just now</span>
+        <span class="zn-autosave" data-state="error">Could not save — retrying</span>
+      </div>
+      <div class="zn-palette zn-mt-2" role="group" aria-label="Palette states" data-demo-palette>
+        <button class="zn-palette-cell" type="button" data-palette="answered" aria-label="Question 1, answered">1</button>
+        <button class="zn-palette-cell" type="button" data-palette="unanswered" aria-label="Question 2, unanswered">2</button>
+        <button class="zn-palette-cell" type="button" data-palette="answered" data-marked="true" aria-label="Question 3, answered and marked for review">3<span class="zn-palette-flag" aria-hidden="true">R</span></button>
+        <button class="zn-palette-cell" type="button" data-palette="unanswered" aria-current="true" aria-label="Question 4, current question">4</button>
+        <button class="zn-palette-cell" type="button" data-palette="unanswered" aria-label="Question 5, unanswered">5</button>
+      </div>
+      <div class="zn-legend zn-mt-1">
+        <span class="zn-legend-item"><span class="zn-legend-swatch zn-legend-swatch--answered" aria-hidden="true"></span>Answered</span>
+        <span class="zn-legend-item"><span class="zn-legend-swatch" aria-hidden="true"></span>Unanswered</span>
+        <span class="zn-legend-item"><span class="zn-legend-swatch zn-legend-swatch--marked" aria-hidden="true"></span>Marked · R</span>
+        <span class="zn-legend-item"><span class="zn-legend-swatch zn-legend-swatch--current" aria-hidden="true"></span>Current</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="swot" aria-labelledby="swot-title">
+    <div class="ds-section-head">
+      <h2 id="swot-title">SWOT quadrant</h2>
+      <p class="zn-meta">Four labelled quadrants, each with a short explanation. Evidence and one next action live on the full page.</p>
+    </div>
+    <div class="zn-swot">
+      <section class="zn-quadrant"><div class="zn-quadrant-head"><span class="zn-quadrant-letter" aria-hidden="true">S</span><div><h3>Strengths</h3><p class="zn-quadrant-desc">High performance, enough coverage.</p></div></div></section>
+      <section class="zn-quadrant"><div class="zn-quadrant-head"><span class="zn-quadrant-letter" aria-hidden="true">W</span><div><h3>Weaknesses</h3><p class="zn-quadrant-desc">Effort without results.</p></div></div></section>
+      <section class="zn-quadrant"><div class="zn-quadrant-head"><span class="zn-quadrant-letter" aria-hidden="true">O</span><div><h3>Opportunities</h3><p class="zn-quadrant-desc">Strong when tried, not tried enough.</p></div></div></section>
+      <section class="zn-quadrant"><div class="zn-quadrant-head"><span class="zn-quadrant-letter" aria-hidden="true">T</span><div><h3>Threats <span class="zn-meta">(watch-outs)</span></h3><p class="zn-quadrant-desc">Unexplored risk; exam weight raises priority.</p></div></div></section>
+    </div>
+  </section>
+
+  <section class="ds-section" id="audio" aria-labelledby="audio-title">
+    <div class="ds-section-head">
+      <h2 id="audio-title">Audio and mic</h2>
+      <p class="zn-meta">No autoplay. A play control has a visible label. The mic is 56–64 px with aria-pressed; the waveform is decorative.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <p class="ds-label">Read-aloud player</p>
+        <div class="zn-audio" data-playing="false">
+          <button class="zn-btn zn-btn--secondary" type="button" data-audio-demo aria-pressed="false">
+            <span aria-hidden="true">▶</span><span data-audio-label>Listen</span>
+          </button>
+          <span class="zn-audio-progress" aria-hidden="true"></span>
+        </div>
+        <p class="ds-note">Design example: no audio is bundled; the control states and progress rule are shown.</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Mic states</p>
+        <div class="ds-row">
+          <div style="text-align:center"><button class="zn-mic" type="button" aria-pressed="false" data-demo-mic aria-label="Mic idle"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="12" rx="4"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button><p class="zn-meta">Idle</p></div>
+          <div style="text-align:center"><button class="zn-mic" type="button" aria-pressed="true" data-demo-mic aria-label="Mic listening"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="12" rx="4"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button><p class="zn-meta">Listening</p></div>
+          <div style="text-align:center"><button class="zn-mic" type="button" disabled aria-label="Mic disabled"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="12" rx="4"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button><p class="zn-meta">Disabled</p></div>
+        </div>
+        <p class="ds-note">Pressed = filled ink. Disabled = graphite outline + words, never a silent dead button.</p>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Waveform + transcript</p>
+        <div class="zn-wave" aria-hidden="true"><span style="--h:30%"></span><span style="--h:60%"></span><span style="--h:80%"></span><span style="--h:45%"></span><span style="--h:70%"></span><span style="--h:35%"></span><span style="--h:55%"></span><span style="--h:75%"></span><span style="--h:40%"></span><span style="--h:65%"></span></div>
+        <div class="zn-transcript zn-mt-1">
+          <div class="zn-transcript-row"><span class="zn-transcript-role">You</span><span>When the bus brakes, the passenger keeps moving forward because of inertia.</span></div>
+          <div class="zn-transcript-row zn-transcript-row--tutor"><span class="zn-transcript-role">Zivon</span><span>Right. Now say what happens to the bus in the same sentence.</span></div>
+        </div>
+      </div>
+      <div class="ds-specimen">
+        <p class="ds-label">Rubric + ledger</p>
+        <span class="zn-ai-label">AI feedback</span>
+        <div class="zn-rubric zn-mt-1">
+          <div class="zn-rubric-item"><span class="zn-rubric-mark zn-rubric-mark--yes" aria-hidden="true">✓</span><span>Names inertia.</span></div>
+          <div class="zn-rubric-item"><span class="zn-rubric-mark zn-rubric-mark--no" aria-hidden="true">✗</span><span>Does not separate the bus slowing from the passenger's motion.</span></div>
+        </div>
+        <p class="zn-ledger zn-mt-1">30 credits/day · voice resets 00:00 · reading, sims, typing free.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ds-section" id="tables" aria-labelledby="tables-title">
+    <div class="ds-section-head">
+      <h2 id="tables-title">Status, tables, source chips</h2>
+      <p class="zn-meta">Status is a word + a shape. Source chips name the source and licence; copy flags are part of the component.</p>
+    </div>
+    <div class="ds-grid">
+      <div class="ds-specimen ds-specimen--wide">
+        <p class="ds-label">Status pills</p>
+        <div class="ds-row">
+          <span class="zn-status zn-status--live">Live</span>
+          <span class="zn-status zn-status--lesson">Lesson only</span>
+          <span class="zn-status zn-status--practice">Practice coming</span>
+          <span class="zn-status zn-status--dev">In development</span>
+          <span class="zn-source-chip">NCERT · free educational use</span>
+          <span class="zn-copy-flag"><strong>Not an official CBSE paper.</strong> Built for practice.</span>
+        </div>
+      </div>
+      <div class="ds-specimen ds-specimen--wide">
+        <p class="ds-label">Table</p>
+        <div class="zn-table-wrap">
+          <table class="zn-table">
+            <caption>Chapter evidence — last 30 days</caption>
+            <thead><tr><th scope="col">Chapter</th><th scope="col">Attempts</th><th scope="col">Accuracy</th><th scope="col">Mastery</th></tr></thead>
+            <tbody>
+              <tr><td>Motion</td><td>26</td><td>84%</td><td><span class="zn-mastery zn-mastery--confident"><span class="zn-mastery-mark" aria-hidden="true"></span>Confident</span></td></tr>
+              <tr><td>Force and Laws of Motion</td><td>18</td><td>46%</td><td><span class="zn-mastery zn-mastery--learning"><span class="zn-mastery-mark" aria-hidden="true"></span>Learning</span></td></tr>
+              <tr><td>Gravitation</td><td>3</td><td>67%</td><td><span class="zn-mastery zn-mastery--not-started"><span class="zn-mastery-mark" aria-hidden="true"></span>Not started</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="zn-footer">
+  <div class="zn-footer-in">
+    <div class="zn-footer-brand">
+      <a class="zn-wordmark" href="index.html">Zivon</a>
+      <p class="zn-footer-tagline">Physics you can talk to.</p>
+      <p class="zn-footer-promise">Built in public. Lessons are paraphrased from NCERT and openly licensed sources, with citations on every page.</p>
+    </div>
+    <nav class="zn-footer-col" aria-label="Learn"><h2>Learn</h2><a href="catalogue.html">Courses</a><a href="public-info.html#method">Method</a><a href="public-info.html#pricing">Pricing</a></nav>
+    <nav class="zn-footer-col" aria-label="Trust"><h2>Trust</h2><a href="public-info.html#privacy">Privacy</a><a href="public-info.html#terms">Terms</a><a href="public-info.html#contact">Contact</a><a href="public-info.html#status">Status</a></nav>
+  </div>
+  <div class="zn-shell"><div class="zn-footer-fine"><span>© 2026 Zivon · Design exploration, not the live site.</span><span>F0B · feature/w1-f0b-design-shell · noindex</span></div></div>
+</footer>
+
+<dialog class="zn-dialog" id="demo-dialog" aria-labelledby="demo-dialog-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head"><h2 class="zn-dialog-title" id="demo-dialog-title">A blocking decision</h2><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <p class="zn-dialog-copy">This is a native dialog. Focus moves inside, Esc closes it, and focus returns to the button that opened it.</p>
+    <p class="zn-dialog-copy">Use a dialog for consent, deletion and submission — not for a passing confirmation.</p>
+    <div class="zn-dialog-actions"><button class="zn-btn zn-btn--secondary" type="button" data-close-dialog autofocus>Not now</button><button class="zn-btn zn-btn--primary" type="button" data-close-dialog>Continue</button></div>
+  </div>
+</dialog>
+
+<dialog class="zn-sheet" id="demo-sheet" aria-labelledby="demo-sheet-title">
+  <div class="zn-sheet-in">
+    <div class="zn-sheet-handle" aria-hidden="true"></div>
+    <div class="zn-dialog-head"><h2 class="zn-dialog-title" id="demo-sheet-title">A bottom sheet</h2><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <p class="zn-dialog-copy">A sheet is for a short, local task: filters, settings, or the voice dock. It respects the safe area and never locks scroll unless it is modal.</p>
+    <div class="zn-dialog-actions"><button class="zn-btn zn-btn--primary" type="button" data-close-dialog>Done</button></div>
+  </div>
+</dialog>
+
+<dialog class="zn-drawer" id="public-drawer" aria-labelledby="public-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head"><span class="zn-wordmark" id="public-drawer-title">Zivon</span><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <nav class="zn-drawer-nav" aria-label="Public sections"><a href="catalogue.html">Courses</a><a href="public-info.html#method">Method</a><a href="public-info.html#pricing">Pricing</a><a href="public-info.html#privacy">Privacy</a></nav>
+    <div class="zn-drawer-foot"><a class="zn-btn zn-btn--primary zn-btn--block" href="dashboard.html">Open the app shell</a><p class="zn-meta">Free during launch. No ads, no parent access, no raw audio kept.</p></div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>How forces affect motion — Zivon design exploration</title>
+<meta name="description" content="Field Notes lesson-shell exploration: real §10 lesson content inside the product app bar, chapter drawer, language bar, read-aloud and collapsed voice dock.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+<link rel="stylesheet" href="assets/lesson.css">
+</head>
+<body data-page="lesson" data-states="default,offline,quota,untranslated">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html">Components</a>
+      <a href="states.html">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-appbar">
+  <div class="zn-appbar-in zn-shell">
+    <a class="zn-wordmark" href="dashboard.html">Zivon</a>
+
+    <details class="zn-menu zn-context">
+      <summary class="zn-context-summary">
+        <span class="zn-context-copy">
+          <span class="zn-context-label">Class · Subject</span>
+          <span class="zn-context-value">Class 9 · Physics</span>
+        </span>
+        <span class="zn-caret" aria-hidden="true"></span>
+      </summary>
+      <div class="zn-menu-panel">
+        <div class="zn-menu-head">
+          <p class="zn-menu-title">Class 9 Physics</p>
+          <p class="zn-menu-note">NCERT · CBSE · English</p>
+        </div>
+        <a class="zn-menu-item" href="lesson.html" aria-current="true">Class 9 · Physics <span class="zn-menu-check">✓</span></a>
+        <a class="zn-menu-item" href="catalogue.html?class=10">Class 10 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=11">Class 11 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=12">Class 12 · Physics</a>
+      </div>
+    </details>
+
+    <nav class="zn-nav zn-app-nav" aria-label="App sections">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html" aria-current="page">Courses</a>
+      <a href="practice.html">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html">Progress</a>
+    </nav>
+
+    <div class="zn-app-actions">
+      <span class="zn-credits" data-credits aria-label="Voice credits: 24 of 30 left today"><span class="zn-credits-label">Voice</span> 24 / 30</span>
+      <details class="zn-menu zn-user-menu">
+        <summary>Aarav <span class="zn-caret" aria-hidden="true"></span></summary>
+        <div class="zn-menu-panel zn-menu-panel--right">
+          <div class="zn-menu-head">
+            <p class="zn-menu-title">Aarav</p>
+            <p class="zn-menu-note">Class 9 · CBSE · English · signed in</p>
+          </div>
+          <a class="zn-menu-item" href="settings.html">Settings</a>
+          <a class="zn-menu-item" href="settings.html#privacy">Privacy &amp; data</a>
+          <div class="zn-menu-sep"></div>
+          <button class="zn-menu-item" type="button" data-demo-action="Signed out (design example).">Log out</button>
+        </div>
+      </details>
+      <button class="zn-btn zn-btn--secondary zn-app-menu-btn" type="button" data-open-dialog="app-drawer" aria-label="Open menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<div class="zn-shell">
+  <div class="lesson-toolbar">
+    <nav class="zn-breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="catalogue.html">Courses</a></li>
+        <li><a href="class.html">Class 9</a></li>
+        <li><a href="lesson.html">Force and Laws of Motion</a></li>
+        <li><span aria-current="page">Net force</span></li>
+      </ol>
+    </nav>
+    <div class="lesson-tools">
+      <button class="zn-btn zn-btn--quiet" type="button" data-open-dialog="chapter-drawer">Contents</button>
+      <button class="zn-btn zn-btn--quiet" type="button" data-bookmark aria-pressed="false">Bookmark</button>
+      <button class="zn-btn zn-btn--quiet" type="button" data-open-dialog="report-dialog">Report</button>
+    </div>
+  </div>
+</div>
+
+<div class="lesson-lang">
+  <div class="lesson-lang-in">
+    <span class="lesson-lang-label" id="lesson-lang-label">Language</span>
+    <div class="lesson-lang-row" role="radiogroup" aria-labelledby="lesson-lang-label">
+      <button class="lesson-chip" type="button" role="radio" aria-checked="true">English</button>
+      <button class="lesson-chip" type="button" role="radio" aria-checked="false" lang="hi">हिन्दी</button>
+      <button class="lesson-chip" type="button" role="radio" aria-checked="false" lang="hi-Latn">Hinglish</button>
+    </div>
+  </div>
+  <div class="lesson-progress" aria-hidden="true"><span id="lesson-progress-fill"></span></div>
+</div>
+
+<div class="zn-shell">
+  <div data-banner="offline" class="zn-banner zn-banner--offline zn-mt-2" role="status" hidden>
+    <div>
+      <p class="zn-banner-title">You're offline</p>
+      <p class="zn-meta">The lesson is static and still readable. Simulations and checks keep working. Voice needs a connection; typed input stays open.</p>
+    </div>
+  </div>
+
+  <div data-banner="quota" class="zn-banner zn-banner--quota zn-mt-2" role="status" hidden>
+    <div>
+      <p class="zn-banner-title">Voice is used up for today</p>
+      <p class="zn-meta">0 of 30 credits left · resets at 00:00. Reading, simulations, checks and typing are free and always available.</p>
+    </div>
+  </div>
+
+  <div data-banner="untranslated" class="zn-banner zn-banner--error zn-mt-2" role="status" hidden>
+    <div>
+      <p class="zn-banner-title">This block is showing in English</p>
+      <p class="zn-meta">The Hindi version of this block is not ready. The rest of the page stays in your selected language; nothing is silently mixed.</p>
+    </div>
+  </div>
+</div>
+
+<main id="main" class="lesson-paper">
+  <div class="lesson-column">
+    <p class="lesson-kicker">Class 9 · Physics · Chapter 9</p>
+    <h1 class="lesson-title">How forces affect motion</h1>
+    <p class="lesson-meta">NCERT Science · Grade 9 · updated 10 Nov 2026</p>
+
+    <p class="lesson-objectives-label">After this lesson you can:</p>
+    <ul class="lesson-objectives">
+      <li>describe a force by its magnitude, direction and unit;</li>
+      <li>work out the net force when more than one force acts on an object;</li>
+      <li>explain why a moving object keeps moving when no net force acts on it.</li>
+    </ul>
+
+    <div class="lesson-text">
+      <button class="lesson-read" type="button" data-audio-demo aria-pressed="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 2.5v11l8-5.5-8-5.5Z" fill="currentColor" stroke="none"/></svg>
+        <span data-audio-label>Listen</span>
+      </button>
+      <span class="lesson-read-progress" aria-hidden="true"></span>
+      <p>A ball lying on the ground starts moving when you kick it. A cricket ball coming towards you changes direction when the bat hits it. A lemon changes shape when your fingers squeeze it. All three changes happen because of a force.</p>
+      <p>So a force can make an object move from rest, change the speed and direction of a moving object, and change the shape of an object. Every force has a direction as well as a magnitude, and the SI unit is the newton (N).</p>
+    </div>
+
+    <p class="lesson-highlight zn-pen">Only the net force decides the motion.</p>
+
+    <figure class="lesson-diagram">
+      <div class="lesson-diagram-box">
+        <svg viewBox="0 0 640 400" role="img" aria-label="Two forces acting on a block, once in the same direction and once in opposite directions, with the net force shown">
+          <rect x="80" y="60" width="110" height="70" fill="none" stroke="#1C1B18" stroke-width="2.6"></rect>
+          <line x1="190" y1="80" x2="330" y2="80" stroke="#1C1B18" stroke-width="3"></line>
+          <polygon points="330,80 318,74 318,86" fill="#1C1B18"></polygon>
+          <text x="260" y="68" font-size="20" fill="#1C1B18" text-anchor="middle">10 N</text>
+          <line x1="190" y1="110" x2="274" y2="110" stroke="#1C1B18" stroke-width="3"></line>
+          <polygon points="274,110 262,104 262,116" fill="#1C1B18"></polygon>
+          <text x="232" y="98" font-size="20" fill="#1C1B18" text-anchor="middle">6 N</text>
+          <line x1="80" y1="160" x2="304" y2="160" stroke="#1F3A9E" stroke-width="3"></line>
+          <polygon points="304,160 292,154 292,166" fill="#1F3A9E"></polygon>
+          <text x="312" y="166" font-size="20" fill="#1F3A9E">Net force = 16 N</text>
+          <text x="80" y="40" font-size="20" fill="#5A5748">Both forces in the same direction</text>
+
+          <rect x="200" y="260" width="110" height="70" fill="none" stroke="#1C1B18" stroke-width="2.6"></rect>
+          <line x1="310" y1="280" x2="450" y2="280" stroke="#1C1B18" stroke-width="3"></line>
+          <polygon points="450,280 438,274 438,286" fill="#1C1B18"></polygon>
+          <text x="380" y="268" font-size="20" fill="#1C1B18" text-anchor="middle">10 N</text>
+          <line x1="200" y1="310" x2="116" y2="310" stroke="#1C1B18" stroke-width="3"></line>
+          <polygon points="116,310 128,304 128,316" fill="#1C1B18"></polygon>
+          <text x="158" y="298" font-size="20" fill="#1C1B18" text-anchor="middle">6 N</text>
+          <line x1="200" y1="360" x2="256" y2="360" stroke="#1F3A9E" stroke-width="3"></line>
+          <polygon points="256,360 244,354 244,366" fill="#1F3A9E"></polygon>
+          <text x="264" y="366" font-size="20" fill="#1F3A9E">Net force = 4 N</text>
+          <text x="200" y="240" font-size="20" fill="#5A5748">Forces in opposite directions</text>
+        </svg>
+      </div>
+      <figcaption>Two forces acting on the same block. Top: both point right, so the net force is their sum, 16 N. Bottom: the forces oppose each other, so the net force is the difference, 4 N, along the larger force. Arrow lengths are drawn to scale at 14 pixels per newton.</figcaption>
+    </figure>
+
+    <fieldset class="lesson-check" data-check-root data-answer="1">
+      <legend>Which statement about force is correct?</legend>
+      <label class="lesson-opt"><input type="radio" name="check-net-force" value="0"> <span>Force is completely described by its magnitude alone.</span></label>
+      <label class="lesson-opt"><input type="radio" name="check-net-force" value="1"> <span>Force needs a direction as well as a magnitude, and its SI unit is the newton (N).</span></label>
+      <label class="lesson-opt"><input type="radio" name="check-net-force" value="2"> <span>Force is measured in kilograms, and its direction does not matter.</span></label>
+      <label class="lesson-opt"><input type="radio" name="check-net-force" value="3"> <span>Changing only the direction of a force does not change its effect.</span></label>
+      <button class="lesson-check-btn" type="button" data-check>Check</button>
+      <p class="lesson-feedback" aria-live="polite"></p>
+      <details class="lesson-why"><summary>Why?</summary><p>Force is a physical quantity with a magnitude and a direction, and its SI unit is the newton (N). If the magnitude, the direction, or both change, the effect of the force changes.</p></details>
+    </fieldset>
+
+    <section class="zn-panel zn-mt-2" aria-labelledby="end-title">
+      <h2 id="end-title">You have the idea. Prove it.</h2>
+      <p>Practise five questions on net force, or explain the bus example in your own words.</p>
+      <div class="lesson-end-actions">
+        <a class="zn-btn zn-btn--primary" href="practice.html">Practise this chapter</a>
+        <a class="zn-btn zn-btn--secondary" href="speaking.html">Explain it back</a>
+        <a class="zn-btn zn-btn--quiet" href="lesson.html#next">Next: Friction</a>
+      </div>
+    </section>
+
+    <section class="lesson-glossary" aria-labelledby="glossary-title">
+      <h2 id="glossary-title">Glossary</h2>
+      <dl>
+        <dt>force</dt>
+        <dd>A push or pull that can start an object moving, change its speed or direction, or change its shape; it has a magnitude, a direction and the unit newton (N).</dd>
+        <dt>net force</dt>
+        <dd>The single force left after adding all forces: a sum if they are in the same direction, a difference if they are opposite. Only the net force decides the motion.</dd>
+      </dl>
+    </section>
+
+    <footer class="lesson-sources">
+      <p>Source: NCERT Science, Grade 9 (2025 edition) · free educational use. Generated by the Zivon content factory on 10 Nov 2026.</p>
+    </footer>
+  </div>
+</main>
+
+<button class="zn-dock-tab" type="button" data-dock-tab aria-label="Ask the tutor">
+  <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="1.5" width="6" height="9" rx="3"></rect><path d="M3 7.5a5 5 0 0 0 10 0M8 12.5v2"></path></svg>
+  Ask
+</button>
+
+<div class="zn-dock-region" data-dock-region hidden>
+  <div class="zn-dock-grip" aria-hidden="true"></div>
+  <div class="zn-dock-strip">
+    <div class="zn-dock-strip-copy">
+      <span class="zn-dock-role">Zivon</span>
+      <span class="zn-dock-caption" data-dock-caption>Mic dabao aur poochho</span>
+    </div>
+    <span class="zn-dock-state" aria-hidden="true">
+      <span style="--h:35%"></span><span style="--h:60%"></span><span style="--h:80%"></span><span style="--h:50%"></span><span style="--h:30%"></span>
+    </span>
+    <button class="zn-dock-mic" type="button" data-dock-mic data-needs-voice data-needs-network aria-pressed="false" aria-label="Hold to talk">
+      <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="1.5" width="6" height="9" rx="3"></rect><path d="M3 7.5a5 5 0 0 0 10 0M8 12.5v2"></path></svg>
+    </button>
+    <button class="zn-dock-type" type="button" data-dock-type>Type</button>
+  </div>
+  <p class="zn-dock-note">Design example: the dock is visual only; no microphone is opened. Full states are §10.12 / F4.</p>
+</div>
+
+<dialog class="zn-drawer" id="chapter-drawer" aria-labelledby="chapter-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head">
+      <span class="zn-wordmark" id="chapter-drawer-title">Contents</span>
+      <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+    </div>
+    <p class="zn-kicker zn-mt-2">Force and Laws of Motion · 9 sections</p>
+    <div class="drawer-toc">
+      <a href="lesson.html"><span class="drawer-toc-num">01</span><span>Force — a push or a pull<span class="drawer-toc-state">Read</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">02</span><span>Balanced and unbalanced forces<span class="drawer-toc-state">Read</span></span></a>
+      <a href="lesson.html" aria-current="true"><span class="drawer-toc-num">03</span><span>Net force and the laws of motion<span class="drawer-toc-state">Reading now</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">04</span><span>Inertia and mass<span class="drawer-toc-state">Not started</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">05</span><span>Newton's second law<span class="drawer-toc-state">Not started</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">06</span><span>Newton's third law<span class="drawer-toc-state">Not started</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">07</span><span>Friction<span class="drawer-toc-state">Not started</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">08</span><span>Worked examples<span class="drawer-toc-state">Not started</span></span></a>
+      <a href="lesson.html"><span class="drawer-toc-num">09</span><span>Glossary and sources<span class="drawer-toc-state">Not started</span></span></a>
+    </div>
+    <div class="zn-drawer-foot">
+      <a class="zn-btn zn-btn--primary zn-btn--block" href="practice.html">Practise this chapter</a>
+      <p class="zn-meta">Progress is derived from blocks you read. There is no “mark complete” button.</p>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="zn-dialog" id="consent-dialog" aria-labelledby="consent-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head">
+      <h2 class="zn-dialog-title" id="consent-title">Before we use your voice</h2>
+      <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+    </div>
+    <p class="zn-dialog-copy">The tutor can listen to your doubt and answer out loud. Here is exactly what that means:</p>
+    <ul class="consent-list">
+      <li>Your speech is turned into text so the tutor can understand the doubt.</li>
+      <li>The audio itself is not kept on Zivon's servers or on this device.</li>
+      <li>Gnani processes the speech to provide the transcript and voice.</li>
+      <li>The lesson works without voice — reading, simulations, checks and typing stay free.</li>
+    </ul>
+    <label class="zn-choice zn-choice--plain">
+      <input type="checkbox" id="guardian-check">
+      <span>I am 18 or older, or a parent or guardian is with me.</span>
+    </label>
+    <p class="zn-help" id="consent-guardian-help">Required before voice can be enabled on this device.</p>
+    <p class="consent-link"><a href="public-info.html#privacy">Read the privacy summary</a> · You can turn voice off anytime in Settings. Declining never blocks the lesson.</p>
+    <div class="zn-dialog-actions">
+      <button class="zn-btn zn-btn--secondary" type="button" data-consent-decline autofocus>Not now</button>
+      <button class="zn-btn zn-btn--primary" type="button" data-consent-accept>Continue</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="zn-dialog" id="report-dialog" aria-labelledby="report-title">
+  <div class="zn-dialog-in">
+    <form id="report-form">
+      <div class="zn-dialog-head">
+        <h2 class="zn-dialog-title" id="report-title">Report a problem</h2>
+        <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+      </div>
+      <div class="zn-field">
+        <label class="zn-label" for="report-category">What is wrong?</label>
+        <div class="zn-select-wrap">
+          <select class="zn-select" id="report-category" required>
+            <option>A fact or explanation</option>
+            <option>A diagram or label</option>
+            <option>A simulation</option>
+            <option>A question or answer</option>
+            <option>Something else</option>
+          </select>
+          <span class="zn-caret" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div class="zn-field zn-mt-2">
+        <label class="zn-label" for="report-text">Anything else? <span class="zn-label-optional">optional</span></label>
+        <textarea class="zn-textarea" id="report-text" rows="3" placeholder="A short note helps; please do not include personal details."></textarea>
+        <p class="zn-help">No name, phone number or email is needed. The page and block are attached automatically.</p>
+      </div>
+      <div class="zn-dialog-actions">
+        <button class="zn-btn zn-btn--secondary" type="button" data-close-dialog>Cancel</button>
+        <button class="zn-btn zn-btn--primary" type="submit">Send report</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<dialog class="zn-drawer" id="app-drawer" aria-labelledby="app-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head">
+      <span class="zn-wordmark" id="app-drawer-title">Zivon</span>
+      <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+    </div>
+    <nav class="zn-drawer-nav" aria-label="App sections">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html" aria-current="page">Courses</a>
+      <a href="practice.html">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html">Progress</a>
+      <a href="settings.html">Settings</a>
+    </nav>
+    <div class="zn-drawer-context">
+      <p class="zn-kicker">Class · Subject</p>
+      <p class="zn-context-value">Class 9 · Physics</p>
+      <p class="zn-meta">NCERT · CBSE · English</p>
+    </div>
+    <div class="zn-drawer-foot">
+      <span class="zn-credits" data-credits><span class="zn-credits-label">Voice</span> 24 / 30</span>
+      <button class="zn-btn zn-btn--secondary zn-btn--block" type="button" data-demo-action="Signed out (design example).">Log out</button>
+      <p class="zn-meta">Voice resets at 00:00. Reading, sims and typing stay free.</p>
+    </div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>

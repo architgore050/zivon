@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Chapter test — Zivon design exploration</title>
+<meta name="description" content="Field Notes exam-paper exploration: sections, marks, timer, question palette, autosave and submit.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+</head>
+<body data-page="test" data-states="default,autosave-fail,offline,time-expired,submit,loading">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html">Components</a>
+      <a href="states.html">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-appbar zn-appbar--exam">
+  <div class="zn-appbar-in zn-shell">
+    <a class="zn-wordmark" href="dashboard.html">Zivon</a>
+    <span class="zn-meta zn-nowrap" style="margin-left:0.5rem">Chapter test · Force and Laws of Motion</span>
+    <div class="zn-exam-clock">
+      <span class="zn-autosave" id="autosave" data-state="saved">Saved just now</span>
+      <button class="zn-btn zn-btn--quiet" id="autosave-retry" type="button" hidden>Retry save</button>
+      <span class="zn-timer" id="exam-timer">38:12 remaining</span>
+      <button class="zn-btn zn-btn--primary" id="submit-test" type="button" data-needs-network>Submit test</button>
+      <a class="zn-btn zn-btn--quiet" href="dashboard.html">Exit test</a>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="zn-app-main zn-shell" data-test>
+  <div id="screen-body">
+    <div data-banner="offline" class="zn-banner zn-banner--offline" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">Connection lost — answers kept on this device</p>
+        <p class="zn-meta">Keep answering. Zivon retries the save when the connection returns. Submitting needs a connection, so the button is disabled with a reason; nothing is lost.</p>
+      </div>
+    </div>
+
+    <div data-banner="time-expired" class="zn-banner zn-banner--error" id="time-expired-banner" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">Time is up — submitting your answers</p>
+        <p class="zn-meta">You can no longer change answers. This screen will move to the result when the submission is accepted.</p>
+      </div>
+    </div>
+
+    <div class="test-grid">
+      <div>
+        <section class="zn-exam" aria-labelledby="exam-title">
+          <header class="zn-exam-head">
+            <div class="zn-exam-topline">
+              <div>
+                <p class="zn-kicker">Chapter test · Class 9 Physics</p>
+                <h1 class="zn-exam-title" id="exam-title">Force and Laws of Motion</h1>
+              </div>
+              <span class="zn-marks" aria-label="35 marks">35 marks</span>
+            </div>
+            <div class="zn-exam-meta">
+              <span><strong>20</strong> questions</span>
+              <span><strong>Sections A–C</strong></span>
+              <span><strong>45 minutes</strong></span>
+              <span>No negative marking</span>
+              <span>No partial credit</span>
+            </div>
+          </header>
+
+          <div class="zn-q-head">
+            <span>Section B · Question 14</span>
+            <span class="zn-marks" aria-label="2 marks">2 marks</span>
+          </div>
+          <h2 class="zn-q-title">A passenger standing in a bus falls forward when the driver brakes suddenly. Explain why, using the idea of inertia.</h2>
+          <p class="zn-meta zn-mt-1">Write two or three sentences. Marks are for the idea, not the length.</p>
+
+          <div class="zn-mt-2">
+            <label class="zn-label" for="test-answer">Your answer</label>
+            <textarea class="zn-answer-input" id="test-answer" aria-describedby="test-answer-help">When the driver brakes, the bus slows down. The passenger keeps moving forward because of inertia, so they fall forward.</textarea>
+            <p class="zn-help" id="test-answer-help">Saved automatically. You can change it until you submit.</p>
+          </div>
+
+          <div class="test-actions">
+            <label class="zn-review-flag"><input type="checkbox" id="mark-review"> Mark for review</label>
+            <div class="test-nav">
+              <button class="zn-btn zn-btn--secondary" type="button" data-demo-action="Previous question (design example).">Previous</button>
+              <button class="zn-btn zn-btn--secondary" type="button" data-demo-action="Next question (design example).">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <p class="zn-meta zn-mt-2">Question 14 of 20 · Section B. The palette shows every question; selecting another question is visual in this single-question example.</p>
+      </div>
+
+      <aside class="test-aside" aria-label="Question palette and test rules">
+        <p class="zn-kicker test-aside-context">Chapter test · Force and Laws of Motion · Class 9 Physics</p>
+        <section class="zn-panel" aria-labelledby="palette-title">
+          <div class="zn-panel-head">
+            <div>
+              <h2 class="zn-panel-title" id="palette-title">Question palette</h2>
+              <p class="zn-panel-note">13 answered · 7 unanswered · 2 marked</p>
+            </div>
+          </div>
+
+          <div class="zn-palette" role="group" aria-label="Questions">
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 1, answered">1</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 2, answered">2</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 3, answered">3</button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-palette-cell aria-label="Question 4, unanswered">4</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 5, answered">5</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 6, answered">6</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-marked="true" data-palette-cell aria-label="Question 7, answered and marked for review">7<span class="zn-palette-flag" aria-hidden="true">R</span></button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 8, answered">8</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 9, answered">9</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 10, answered">10</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 11, answered">11</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 12, answered">12</button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-palette-cell aria-label="Question 13, unanswered">13</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" aria-current="true" data-palette-cell aria-label="Question 14, current question, answered">14</button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-palette-cell aria-label="Question 15, unanswered">15</button>
+            <button class="zn-palette-cell" type="button" data-palette="answered" data-palette-cell aria-label="Question 16, answered">16</button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-marked="true" data-palette-cell aria-label="Question 17, unanswered, marked for review">17<span class="zn-palette-flag" aria-hidden="true">R</span></button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-palette-cell aria-label="Question 18, unanswered">18</button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-palette-cell aria-label="Question 19, unanswered">19</button>
+            <button class="zn-palette-cell" type="button" data-palette="unanswered" data-palette-cell aria-label="Question 20, unanswered">20</button>
+          </div>
+
+          <div class="zn-legend zn-mt-2">
+            <span class="zn-legend-item"><span class="zn-legend-swatch zn-legend-swatch--answered" aria-hidden="true"></span>Answered</span>
+            <span class="zn-legend-item"><span class="zn-legend-swatch" aria-hidden="true"></span>Unanswered</span>
+            <span class="zn-legend-item"><span class="zn-legend-swatch zn-legend-swatch--marked" aria-hidden="true"></span>Marked · R</span>
+            <span class="zn-legend-item"><span class="zn-legend-swatch zn-legend-swatch--current" aria-hidden="true"></span>Current</span>
+          </div>
+        </section>
+
+        <section class="zn-panel" aria-labelledby="rules-title">
+          <h2 class="zn-panel-title" id="rules-title">Test rules</h2>
+          <ul class="zn-evidence zn-mt-1">
+            <li>Section A: Q1–10, 1 mark each. Section B: Q11–15, 2 marks each. Section C: Q16–18, 5 marks each.</li>
+            <li>Total 35 marks in 45 minutes. No negative marking, no partial credit.</li>
+            <li>When time expires, answers submit automatically and the screen says so.</li>
+            <li>Autosave keeps your answer on this device; “saved” is never claimed if the request failed.</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div id="state-injected" hidden></div>
+  <div id="state-templates" hidden>
+    <template data-state-template="loading">
+      <div class="zn-page-head"><div class="zn-page-head-copy"><div class="zn-skeleton" aria-hidden="true"><div class="zn-skeleton-line zn-skeleton-line--short"></div><div class="zn-skeleton-line zn-skeleton-line--title"></div></div></div></div>
+      <p class="zn-skeleton-status" role="status">Loading the test…</p>
+      <div class="zn-skeleton-panel zn-mt-2"></div>
+      <div class="zn-skeleton-panel zn-mt-2"></div>
+    </template>
+  </div>
+</main>
+
+<dialog class="zn-dialog" id="submit-dialog" aria-labelledby="submit-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head">
+      <h2 class="zn-dialog-title" id="submit-title">Submit this test?</h2>
+      <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+    </div>
+    <p class="zn-dialog-copy" id="submit-unanswered">7 questions are unanswered.</p>
+    <p class="zn-dialog-copy">You cannot change answers after submitting. The result will show every question, the correct answer and an explanation.</p>
+    <div class="zn-dialog-actions">
+      <button class="zn-btn zn-btn--secondary" type="button" data-close-dialog autofocus>Keep working</button>
+      <a class="zn-btn zn-btn--primary" href="results.html">Submit test</a>
+    </div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>

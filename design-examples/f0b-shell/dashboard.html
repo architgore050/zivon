@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Study log — Zivon design exploration</title>
+<meta name="description" content="Field Notes dashboard exploration: a study log with continue, today, map, SWOT snapshot and weekly rhythm.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+</head>
+<body data-page="dashboard" data-states="default,loading,empty,error,offline,auth,quota">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html">Components</a>
+      <a href="states.html">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-appbar">
+  <div class="zn-appbar-in zn-shell">
+    <a class="zn-wordmark" href="dashboard.html">Zivon</a>
+
+    <details class="zn-menu zn-context">
+      <summary class="zn-context-summary">
+        <span class="zn-context-copy">
+          <span class="zn-context-label">Class · Subject</span>
+          <span class="zn-context-value">Class 9 · Physics</span>
+        </span>
+        <span class="zn-caret" aria-hidden="true"></span>
+      </summary>
+      <div class="zn-menu-panel">
+        <div class="zn-menu-head">
+          <p class="zn-menu-title">Class 9 Physics</p>
+          <p class="zn-menu-note">NCERT · CBSE · English</p>
+        </div>
+        <a class="zn-menu-item" href="dashboard.html" aria-current="true">Class 9 · Physics <span class="zn-menu-check">✓</span></a>
+        <a class="zn-menu-item" href="catalogue.html?class=10">Class 10 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=11">Class 11 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=12">Class 12 · Physics</a>
+        <div class="zn-menu-sep"></div>
+        <p class="zn-menu-note-item">One subject for now: Physics. More subjects are out of R1 scope.</p>
+      </div>
+    </details>
+
+    <nav class="zn-nav zn-app-nav" aria-label="App sections">
+      <a href="dashboard.html" aria-current="page">Dashboard</a>
+      <a href="catalogue.html">Courses</a>
+      <a href="practice.html">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html">Progress</a>
+    </nav>
+
+    <div class="zn-app-actions">
+      <span class="zn-credits" data-credits aria-label="Voice credits: 24 of 30 left today"><span class="zn-credits-label">Voice</span> 24 / 30</span>
+      <details class="zn-menu zn-user-menu">
+        <summary>Aarav <span class="zn-caret" aria-hidden="true"></span></summary>
+        <div class="zn-menu-panel zn-menu-panel--right">
+          <div class="zn-menu-head">
+            <p class="zn-menu-title">Aarav</p>
+            <p class="zn-menu-note">Class 9 · CBSE · English · signed in</p>
+          </div>
+          <a class="zn-menu-item" href="settings.html">Settings</a>
+          <a class="zn-menu-item" href="settings.html#privacy">Privacy &amp; data</a>
+          <div class="zn-menu-sep"></div>
+          <button class="zn-menu-item" type="button" data-demo-action="Signed out (design example).">Log out</button>
+        </div>
+      </details>
+      <button class="zn-btn zn-btn--secondary zn-app-menu-btn" type="button" data-open-dialog="app-drawer" aria-label="Open menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="zn-app-main zn-shell">
+  <div id="screen-body">
+    <div class="zn-page-head">
+      <div class="zn-page-head-copy">
+        <p class="zn-kicker">Dashboard · Class 9 Physics · CBSE</p>
+        <h1>Your study log</h1>
+        <p class="zn-lede">Pick up where you stopped. Three things today, nothing more.</p>
+      </div>
+      <div class="zn-page-actions">
+        <a class="zn-btn zn-btn--quiet" href="swot.html">See SWOT →</a>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-main">
+        <section class="zn-panel continue-card" aria-labelledby="continue-title">
+          <div class="continue-top">
+            <p class="zn-kicker">Continue reading</p>
+            <span class="zn-meta">Remaining: 6 min</span>
+          </div>
+          <h2 class="continue-title" id="continue-title">Force and Laws of <span class="zn-pen">Motion</span></h2>
+          <p class="continue-sub">Section 3 of 9 · Net force and balanced forces</p>
+          <div class="continue-progress">
+            <div class="zn-progress">
+              <div class="zn-progress-head"><span><strong>42%</strong> of the lesson</span><span>Section 3 of 9</span></div>
+              <div class="zn-progress-track" role="progressbar" aria-label="Lesson progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42">
+                <div class="zn-progress-fill" style="width:42%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="continue-actions">
+            <a class="zn-btn zn-btn--primary" href="lesson.html">Resume lesson</a>
+            <a class="zn-btn zn-btn--secondary" href="lesson.html#contents">Chapter contents</a>
+          </div>
+          <div class="continue-meta">
+            <span class="zn-meta">Last opened yesterday, 18:40</span>
+            <span class="zn-meta">EN · हिन्दी · Hinglish</span>
+          </div>
+        </section>
+
+        <section class="zn-panel" aria-labelledby="today-title">
+          <div class="zn-panel-head">
+            <div>
+              <h2 class="zn-panel-title" id="today-title">Today · Mon 16 Nov</h2>
+              <p class="zn-panel-note">A quiet plan. A missed day resets without a penalty.</p>
+            </div>
+            <span class="zn-meta">About 20 min</span>
+          </div>
+          <div class="today-list">
+            <div class="today-item">
+              <span class="today-mark" data-done="true" aria-hidden="true">✓</span>
+              <div class="today-main">
+                <h3>Read: net force and balanced forces</h3>
+                <p>6 min left · lesson section</p>
+              </div>
+              <a class="today-action" href="lesson.html">Open</a>
+            </div>
+            <div class="today-item">
+              <span class="today-mark" data-done="part" aria-hidden="true">…</span>
+              <div class="today-main">
+                <h3>Practise: 5 questions on net force</h3>
+                <p>2 of 5 done · 8 min · no timer</p>
+              </div>
+              <a class="today-action" href="practice.html" data-needs-network>Continue</a>
+            </div>
+            <div class="today-item">
+              <span class="today-mark" aria-hidden="true"></span>
+              <div class="today-main">
+                <h3>Explain back: why a passenger falls forward</h3>
+                <p>45 seconds · AI feedback, not a mark</p>
+              </div>
+              <a class="today-action" href="speaking.html" data-needs-network>Start</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="zn-panel" aria-labelledby="map-title">
+          <div class="zn-panel-head">
+            <div>
+              <h2 class="zn-panel-title" id="map-title">Your map</h2>
+              <p class="zn-panel-note">Five states, in words. Evidence comes from checks, practice and tests.</p>
+            </div>
+            <a class="zn-link" href="swot.html">Open SWOT →</a>
+          </div>
+          <div class="map-list">
+            <div class="map-row">
+              <div><p class="map-title">Motion</p><p class="map-sub">8 sections · 12 practice · test</p></div>
+              <span class="zn-mastery zn-mastery--confident"><span class="zn-mastery-mark" aria-hidden="true"></span>Confident</span>
+            </div>
+            <div class="map-row">
+              <div><p class="map-title">Force and Laws of Motion</p><p class="map-sub">Current chapter · 9 sections</p></div>
+              <span class="zn-mastery zn-mastery--learning"><span class="zn-mastery-mark" aria-hidden="true"></span>Learning</span>
+            </div>
+            <div class="map-row">
+              <div><p class="map-title">Gravitation</p><p class="map-sub">Not opened yet · 7 sections</p></div>
+              <span class="zn-mastery zn-mastery--not-started"><span class="zn-mastery-mark" aria-hidden="true"></span>Not started</span>
+            </div>
+            <div class="map-row">
+              <div><p class="map-title">Work and Energy</p><p class="map-sub">Lesson only · practice in review</p></div>
+              <span class="zn-mastery zn-mastery--practising"><span class="zn-mastery-mark" aria-hidden="true"></span>Practising</span>
+            </div>
+            <div class="map-row">
+              <div><p class="map-title">Sound</p><p class="map-sub">In development · no page yet</p></div>
+              <span class="zn-mastery zn-mastery--not-started"><span class="zn-mastery-mark" aria-hidden="true"></span>Not started</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="dash-rail" aria-label="This week and recent activity">
+        <section class="zn-panel" aria-labelledby="week-title">
+          <div class="zn-panel-head">
+            <div>
+              <h2 class="zn-panel-title" id="week-title">This week</h2>
+              <p class="zn-panel-note">3 days active · goal 4</p>
+            </div>
+          </div>
+          <div class="week-days">
+            <div class="week-day"><span>M</span><span class="week-box" data-active="true" aria-label="Monday: active">✓</span></div>
+            <div class="week-day"><span>T</span><span class="week-box" data-active="true" aria-label="Tuesday: active">✓</span></div>
+            <div class="week-day"><span>W</span><span class="week-box" aria-label="Wednesday: not active"></span></div>
+            <div class="week-day"><span>T</span><span class="week-box" data-active="true" aria-label="Thursday: active">✓</span></div>
+            <div class="week-day"><span>F</span><span class="week-box" aria-label="Friday: not active"></span></div>
+            <div class="week-day"><span>S</span><span class="week-box" aria-label="Saturday: not active"></span></div>
+            <div class="week-day"><span>S</span><span class="week-box" aria-label="Sunday: not active"></span></div>
+          </div>
+          <p class="zn-meta week-note">A missed day is neutral. The goal is a rhythm, not a streak.</p>
+        </section>
+
+        <section class="zn-panel" aria-labelledby="swot-snap-title">
+          <div class="zn-panel-head">
+            <div>
+              <h2 class="zn-panel-title" id="swot-snap-title">SWOT snapshot</h2>
+              <p class="zn-panel-note">4 chapters placed · 1 unrated</p>
+            </div>
+            <a class="zn-link" href="swot.html">Open →</a>
+          </div>
+          <div data-error-slot></div>
+          <div class="swot-snap">
+            <div class="swot-snap-row">
+              <span class="swot-snap-letter" aria-hidden="true">S</span>
+              <div><h3>Motion</h3><p>84% accuracy · pace 0.9× expected</p></div>
+            </div>
+            <div class="swot-snap-row">
+              <span class="swot-snap-letter" aria-hidden="true">W</span>
+              <div><h3>Force and Laws of Motion</h3><p>46% accuracy · hints on 6 of 10</p></div>
+            </div>
+            <div class="swot-snap-row">
+              <span class="swot-snap-letter" aria-hidden="true">O</span>
+              <div><h3>Gravitation</h3><p>3 of 15 practice questions tried</p></div>
+            </div>
+            <div class="swot-snap-row">
+              <span class="swot-snap-letter" aria-hidden="true">T</span>
+              <div><h3>Sound</h3><p>2 of 12 questions · 38% on those</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="zn-panel" aria-labelledby="activity-title">
+          <div class="zn-panel-head">
+            <div>
+              <h2 class="zn-panel-title" id="activity-title">Recent activity</h2>
+              <p class="zn-panel-note">Last four sessions.</p>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div class="activity-row"><span class="activity-date">Today 09:12</span><span>Practice · 8 of 10 correct</span></div>
+            <div class="activity-row"><span class="activity-date">Yesterday 18:40</span><span>Lesson · net force</span></div>
+            <div class="activity-row"><span class="activity-date">Sat 11:05</span><span>Explain-back · saved</span></div>
+            <div class="activity-row"><span class="activity-date">Thu 17:20</span><span>Chapter test · 22 / 35</span></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <div data-banner="offline" class="zn-banner zn-banner--offline zn-mt-2" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">You're offline</p>
+        <p class="zn-meta">Your cached study log is shown. Lessons you have opened still read; practice, tests and voice need a connection. Nothing is lost.</p>
+      </div>
+    </div>
+
+    <div data-banner="quota" class="zn-banner zn-banner--quota zn-mt-2" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">Voice is used up for today</p>
+        <p class="zn-meta">0 of 30 credits left · resets at 00:00. Reading, simulations, practice and typing still work. An in-progress turn would always finish.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="state-injected" hidden></div>
+  <div id="state-templates" hidden>
+    <template data-state-template="loading">
+      <div class="zn-page-head">
+        <div class="zn-page-head-copy">
+          <div class="zn-skeleton" aria-hidden="true">
+            <div class="zn-skeleton-line zn-skeleton-line--short"></div>
+            <div class="zn-skeleton-line zn-skeleton-line--title"></div>
+            <div class="zn-skeleton-line" style="width:60%"></div>
+          </div>
+        </div>
+      </div>
+      <p class="zn-skeleton-status" role="status">Loading your study log…</p>
+      <div class="dash-grid zn-mt-2">
+        <div class="dash-main">
+          <div class="zn-skeleton-panel"></div>
+          <div class="zn-skeleton-panel"></div>
+          <div class="zn-skeleton-panel"></div>
+        </div>
+        <div class="dash-rail">
+          <div class="zn-skeleton-panel"></div>
+          <div class="zn-skeleton-panel"></div>
+        </div>
+      </div>
+    </template>
+
+    <template data-state-template="empty">
+      <div class="zn-page-head">
+        <div class="zn-page-head-copy">
+          <p class="zn-kicker">Dashboard · Class 9 Physics · CBSE</p>
+          <h1>Your study log starts with one chapter.</h1>
+          <p class="zn-lede">You have not opened a chapter yet. Start with Motion — it is the first Class 9 chapter and needs no signup.</p>
+        </div>
+      </div>
+      <div class="zn-panel">
+        <div class="zn-panel-head">
+          <div>
+            <h2 class="zn-panel-title">Start here</h2>
+            <p class="zn-panel-note">One lesson, one check, one practice set. Nothing else is required today.</p>
+          </div>
+        </div>
+        <div class="zn-empty-actions">
+          <a class="zn-btn zn-btn--primary" href="lesson.html">Start Motion</a>
+          <a class="zn-btn zn-btn--secondary" href="catalogue.html">Browse all courses</a>
+        </div>
+      </div>
+    </template>
+
+    <template data-state-template="error">
+      <div class="zn-error-box">
+        <div class="zn-error-title">Could not load your SWOT snapshot</div>
+        <p class="zn-error-copy">The rest of your study log is here. Your progress is safe; the snapshot needs the server. Try again, or open the full SWOT page.</p>
+        <div class="zn-error-actions">
+          <button class="zn-btn zn-btn--secondary" type="button" data-retry>Retry</button>
+          <a class="zn-btn zn-btn--quiet" href="swot.html">Open SWOT</a>
+        </div>
+      </div>
+    </template>
+
+    <template data-state-template="auth">
+      <div class="zn-auth-card">
+        <p class="zn-kicker">Session ended</p>
+        <h1>Log in to keep your progress</h1>
+        <p class="zn-lede">Your device progress is safe until you sign in. You can keep reading as a guest; practice and tests need an account.</p>
+        <div class="zn-auth-actions">
+          <button class="zn-btn zn-btn--primary zn-btn--block" type="button" data-open-dialog="login-note">Log in</button>
+          <a class="zn-btn zn-btn--secondary zn-btn--block" href="catalogue.html">Continue as guest</a>
+        </div>
+        <p class="zn-meta zn-auth-note">Sign-in and onboarding are F2 screens. This shell state only shows where the form will mount.</p>
+      </div>
+    </template>
+  </div>
+</main>
+
+<footer class="zn-shell">
+  <div class="zn-app-footer">
+    <span>Zivon · Physics you can talk to. · <a href="settings.html">Settings</a> · <a href="public-info.html#privacy">Privacy</a></span>
+    <span>Design example · no backend, no network, no microphone.</span>
+  </div>
+</footer>
+
+<dialog class="zn-drawer" id="app-drawer" aria-labelledby="app-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head">
+      <span class="zn-wordmark" id="app-drawer-title">Zivon</span>
+      <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+    </div>
+    <nav class="zn-drawer-nav" aria-label="App sections">
+      <a href="dashboard.html" aria-current="page">Dashboard</a>
+      <a href="catalogue.html">Courses</a>
+      <a href="practice.html">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html">Progress</a>
+      <a href="settings.html">Settings</a>
+    </nav>
+    <div class="zn-drawer-context">
+      <p class="zn-kicker">Class · Subject</p>
+      <p class="zn-context-value">Class 9 · Physics</p>
+      <p class="zn-meta">NCERT · CBSE · English</p>
+    </div>
+    <div class="zn-drawer-foot">
+      <span class="zn-credits" data-credits><span class="zn-credits-label">Voice</span> 24 / 30</span>
+      <button class="zn-btn zn-btn--secondary zn-btn--block" type="button" data-demo-action="Signed out (design example).">Log out</button>
+      <p class="zn-meta">Voice resets at 00:00. Reading, sims and typing stay free.</p>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="zn-dialog" id="login-note" aria-labelledby="login-note-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head">
+      <h2 class="zn-dialog-title" id="login-note-title">Sign-in is an F2 screen</h2>
+      <button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button>
+    </div>
+    <p class="zn-dialog-copy">This bundle has no backend or auth screen. The auth-required state shows where the form mounts; the signed-in app bar is already visible behind this dialog.</p>
+    <div class="zn-dialog-actions">
+      <a class="zn-btn zn-btn--secondary" href="states.html#auth-required">See the state plate</a>
+      <a class="zn-btn zn-btn--primary" href="catalogue.html">Continue as guest</a>
+    </div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>

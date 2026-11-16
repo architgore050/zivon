@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>State plates — Zivon design exploration</title>
+<meta name="description" content="Field Notes state plates: loading, empty, error, offline, auth, quota, permission, untranslated, reduced motion, and 360 px frames.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+</head>
+<body data-page="states" data-states="default">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html">Components</a>
+      <a href="states.html" aria-current="page">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-site-header">
+  <div class="zn-site-header-in zn-shell">
+    <a class="zn-wordmark" href="index.html">Zivon</a>
+    <nav class="zn-nav zn-site-nav" aria-label="Primary">
+      <a href="catalogue.html">Courses</a>
+      <a href="public-info.html#method">Method</a>
+      <a href="public-info.html#pricing">Pricing</a>
+    </nav>
+    <div class="zn-site-actions">
+      <a class="zn-btn zn-btn--quiet" href="components.html">Components</a>
+      <a class="zn-btn zn-btn--primary" href="dashboard.html">App shell</a>
+      <button class="zn-btn zn-btn--secondary zn-site-menu-btn" type="button" data-open-dialog="public-drawer" aria-label="Open menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="zn-shell" style="padding-top:1.75rem">
+  <div class="zn-page-head">
+    <div class="zn-page-head-copy">
+      <p class="zn-kicker">F0B · state kit · review evidence</p>
+      <h1>What the student sees when it fails.</h1>
+      <p class="zn-lede">The shared state kit at shell level: loading, empty, panel error, offline, auth-required, quota, mic denied, untranslated and reduced motion. Every plate names the rule; screen-specific copy lands with each workstream.</p>
+    </div>
+  </div>
+
+  <div class="state-toolbar">
+    <button class="zn-btn zn-btn--secondary" type="button" data-reduce-demo aria-pressed="false">Reduced motion: off</button>
+    <a class="zn-btn zn-btn--quiet" href="#frames">Jump to the 360 px frames</a>
+    <span class="zn-meta">Your OS setting is always respected; the button simulates it for this page.</span>
+  </div>
+
+  <div class="state-grid">
+    <section class="state-plate" aria-labelledby="loading-title">
+      <div class="state-plate-head"><h2 id="loading-title">Loading</h2><span class="zn-kicker">[ssr] + [island]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-skeleton" aria-hidden="true"><div class="zn-skeleton-line zn-skeleton-line--short"></div><div class="zn-skeleton-line zn-skeleton-line--title"></div><div class="zn-skeleton-line"></div><div class="zn-skeleton-panel"></div></div>
+        <p class="zn-skeleton-status zn-mt-1" role="status">Loading your study log…</p>
+      </div>
+      <p class="state-plate-note">Server paints the shell first; islands show a quiet inline status. No full-page spinner, no shimmer under reduced motion.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="empty-title">
+      <div class="state-plate-head"><h2 id="empty-title">Empty</h2><span class="zn-kicker">[ssr]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-empty">
+          <h3 class="zn-empty-title">No doubts yet</h3>
+          <p class="zn-empty-copy">Ask one from a lesson. The tutor keeps the page and block as the anchor.</p>
+          <div class="zn-empty-actions"><a class="zn-btn zn-btn--secondary" href="lesson.html">Open a lesson</a></div>
+        </div>
+      </div>
+      <p class="state-plate-note">Say what is missing, why, and one action. A blank panel is never an empty state.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="error-title">
+      <div class="state-plate-head"><h2 id="error-title">Panel error</h2><span class="zn-kicker">[ssr]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-error-box">
+          <div class="zn-error-title">Could not load your SWOT snapshot</div>
+          <p class="zn-error-copy">The rest of your study log is here. Your progress is safe; the snapshot needs the server.</p>
+          <div class="zn-error-actions"><button class="zn-btn zn-btn--secondary" type="button" data-toast="Retry started (design example).">Retry</button><a class="zn-btn zn-btn--quiet" href="dashboard.html">Back to dashboard</a></div>
+        </div>
+      </div>
+      <p class="state-plate-note">Panel-level errors stay local; one sentence, a retry, and a way back. No stack trace, no raw model text.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="offline-title">
+      <div class="state-plate-head"><h2 id="offline-title">Offline</h2><span class="zn-kicker">[shell]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-banner zn-banner--offline" role="status">
+          <div><p class="zn-banner-title">You're offline</p><p class="zn-meta">Cached lessons still read. Voice and saving need a connection; nothing is lost.</p></div>
+        </div>
+        <div class="zn-cluster zn-mt-2">
+          <button class="zn-btn zn-btn--secondary" type="button" disabled>Continue practice</button>
+          <a class="zn-btn zn-btn--quiet" href="lesson.html">Open a cached lesson</a>
+        </div>
+      </div>
+      <p class="state-plate-note">Keep the readable content; disable the network action with a reason. Never fake a success.</p>
+    </section>
+
+    <section class="state-plate" id="auth-required" aria-labelledby="auth-title">
+      <div class="state-plate-head"><h2 id="auth-title">Auth required</h2><span class="zn-kicker">[ssr]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-auth-card">
+          <p class="zn-kicker">Session ended</p>
+          <h3>Log in to keep your progress</h3>
+          <p class="zn-lede">Your device progress is safe. You can keep reading as a guest; practice and tests need an account.</p>
+          <div class="zn-auth-actions"><button class="zn-btn zn-btn--primary zn-btn--block" type="button" data-demo-action="Sign-in would open here (F2).">Log in</button><a class="zn-btn zn-btn--secondary zn-btn--block" href="catalogue.html">Continue as guest</a></div>
+        </div>
+      </div>
+      <p class="state-plate-note">Private pages redirect with a safe return path; no redirect loop. The auth screen itself is F2 scope.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="quota-title">
+      <div class="state-plate-head"><h2 id="quota-title">Quota exhausted</h2><span class="zn-kicker">[shell]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-banner zn-banner--quota" role="status">
+          <div><p class="zn-banner-title">Voice is used up for today</p><p class="zn-meta">30 credits/day · resets 00:00 · reading, sims, typing free.</p></div>
+        </div>
+        <div class="zn-mic-row zn-mt-2">
+          <button class="zn-mic" type="button" disabled aria-label="Microphone disabled: voice quota exhausted"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="12" rx="4"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button>
+          <div class="zn-mic-copy"><p class="recorder-status">Voice is off; typed input is open.</p><p class="zn-ledger">0 / 30 credits left · an in-progress turn always finishes.</p></div>
+        </div>
+      </div>
+      <p class="state-plate-note">The ledger line is exact; the mic is disabled with words. Practice, reading and typing keep working.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="permission-title">
+      <div class="state-plate-head"><h2 id="permission-title">Permission denied</h2><span class="zn-kicker">[island]</span></div>
+      <div class="state-plate-body">
+        <div class="permission-box">
+          <span class="zn-stamp">MIC OFF</span>
+          <p class="recorder-status">The microphone permission was declined.</p>
+          <p class="zn-meta">You can still read the prompt and the model answer. To try again, allow the microphone in your browser settings and reload.</p>
+          <div class="zn-mt-2"><a class="zn-btn zn-btn--secondary" href="lesson.html">Back to the lesson</a></div>
+        </div>
+      </div>
+      <p class="state-plate-note">Explain, offer the non-permission path, never re-prompt in a loop. No red toast.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="untranslated-title">
+      <div class="state-plate-head"><h2 id="untranslated-title">Untranslated</h2><span class="zn-kicker">[page]</span></div>
+      <div class="state-plate-body">
+        <span class="zn-untranslated">Hindi is not ready for this block — showing English</span>
+        <p class="zn-mono--bold zn-mt-2" style="margin-bottom:0">Only the net force decides the motion.</p>
+        <p class="zn-meta zn-mt-1">English is shown with a visible marker. The rest of the page stays in the selected language; nothing is silently mixed.</p>
+      </div>
+      <p class="state-plate-note">A missing translation is a publish failure for a live lesson. This plate shows the honest fallback, not a silent English page.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="motion-title">
+      <div class="state-plate-head"><h2 id="motion-title">Reduced motion</h2><span class="zn-kicker">[css]</span></div>
+      <div class="state-plate-body">
+        <div class="zn-wave" data-active="true" aria-hidden="true"><span style="--h:30%;--i:0"></span><span style="--h:60%;--i:1"></span><span style="--h:80%;--i:2"></span><span style="--h:45%;--i:3"></span><span style="--h:70%;--i:4"></span><span style="--h:35%;--i:5"></span><span style="--h:55%;--i:6"></span><span style="--h:75%;--i:7"></span><span style="--h:40%;--i:8"></span><span style="--h:65%;--i:9"></span></div>
+        <p class="zn-meta zn-mt-2">The waveform becomes a static frame; captions appear instantly; no caret, bars, sweep or count-up. Audio is unchanged.</p>
+      </div>
+      <p class="state-plate-note">Use the “Reduced motion” button above to simulate the OS setting on this page. The production components respect prefers-reduced-motion.</p>
+    </section>
+
+    <section class="state-plate" aria-labelledby="consent-title">
+      <div class="state-plate-head"><h2 id="consent-title">Consent missing</h2><span class="zn-kicker">§10.14</span></div>
+      <div class="state-plate-body">
+        <div class="zn-panel zn-panel--bare">
+          <p class="zn-kicker">Voice is off</p>
+          <p class="recorder-status">Before the microphone, Zivon explains what is recorded.</p>
+          <p class="zn-meta">Voice becomes text; audio is not kept; Gnani processes the speech; the lesson works without voice. Declining never re-nags and reading, sims and typing stay free.</p>
+          <div class="zn-mt-2"><a class="zn-btn zn-btn--secondary" href="lesson.html">See the full consent sheet</a></div>
+        </div>
+      </div>
+      <p class="state-plate-note">The gate is per device and founder-authored (§10.14). This bundle does not redesign it; the lesson page shows the sheet.</p>
+    </section>
+  </div>
+
+  <section class="zn-section" aria-labelledby="matrix-title">
+    <div class="zn-section-head">
+      <h2 id="matrix-title">The 11-state rule, at shell level</h2>
+      <span class="zn-meta">A screen-specific matrix is still required per workstream; this is the shared treatment only.</span>
+    </div>
+    <div class="zn-table-wrap">
+      <table class="zn-table">
+        <caption>Shared state kit — what changes and what must never happen</caption>
+        <thead><tr><th scope="col">State</th><th scope="col">Shell treatment</th><th scope="col">Never</th></tr></thead>
+        <tbody>
+          <tr><td>Default</td><td>The designed screen; one primary action where the screen has one.</td><td>Fake progress or a second primary action.</td></tr>
+          <tr><td>Loading</td><td>Shell first; skeleton shaped like the content; quiet inline status.</td><td>Full-page spinner, shimmer under reduced motion.</td></tr>
+          <tr><td>Empty</td><td>Explain what is missing and one next action.</td><td>Blank panel, fake “0%” data.</td></tr>
+          <tr><td>Partial</td><td>Render what exists; label the missing part; no dead link.</td><td>Stub a chapter that is not published.</td></tr>
+          <tr><td>Error</td><td>Panel-local sentence + retry + way back.</td><td>Stack trace, raw model text, silent failure.</td></tr>
+          <tr><td>Offline</td><td>Cached content stays; network actions disabled with a reason.</td><td>Fake save success; blank screen.</td></tr>
+          <tr><td>Permission denied</td><td>Explain; offer the non-permission path; typed input stays.</td><td>Re-prompt loop; red toast.</td></tr>
+          <tr><td>Reduced motion</td><td>Static frame; instant text; no caret or sweep.</td><td>Remove audio or the text path.</td></tr>
+          <tr><td>Untranslated</td><td>English + visible marker; rest of the page stays in locale.</td><td>Silent mixing; pretending Hindi is ready.</td></tr>
+          <tr><td>Quota exhausted</td><td>Ledger line; mic disabled; in-progress turn completes.</td><td>Cut a live turn; block reading or typing.</td></tr>
+          <tr><td>Consent missing</td><td>Explain first; decline never re-nags.</td><td>Open the mic without a gesture.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="zn-section" id="frames" aria-labelledby="frames-title">
+    <div class="zn-section-head">
+      <h2 id="frames-title">360 px, live</h2>
+      <span class="zn-meta">The same pages inside a 360 px frame — not screenshots. Resize the browser for desktop.</span>
+    </div>
+    <div class="device-stage">
+      <figure class="device-frame">
+        <div class="device-frame-bar"><span>Dashboard</span><span>360 × 720</span></div>
+        <iframe src="dashboard.html?embed=1" title="Dashboard at 360 pixels" width="360" height="720" loading="lazy"></iframe>
+      </figure>
+      <div class="device-caption">
+        <h3>Study log, offline</h3>
+        <p>The app bar collapses to wordmark, class context and Menu. The credits chip and user menu move into the drawer. The study-log cards stack; the right rail follows.</p>
+        <p><a href="dashboard.html?state=offline">Open the full offline state →</a></p>
+      </div>
+    </div>
+    <div class="device-stage zn-mt-3">
+      <figure class="device-frame">
+        <div class="device-frame-bar"><span>Lesson</span><span>360 × 720</span></div>
+        <iframe src="lesson.html?embed=1" title="Lesson at 360 pixels" width="360" height="720" loading="lazy"></iframe>
+      </figure>
+      <div class="device-caption">
+        <h3>Lesson shell, first visit</h3>
+        <p>The language bar wraps; the lesson title is two ruled rows; the collapsed dock is full width. The “Ask” tab waits for consent; no mic is shown before it.</p>
+        <p><a href="lesson.html">Open the full lesson →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="zn-section" aria-labelledby="review-note-title">
+    <div class="zn-section-head">
+      <h2 id="review-note-title">Review note</h2>
+      <span class="zn-meta">What is deliberately not in this bundle</span>
+    </div>
+    <div class="zn-panel">
+      <p class="zn-meta">Every screen still needs its own 11-state matrix; this page proves the shared kit, not every copy. The voice dock's full state machine is §10.12/F4; auth/onboarding is F2; admin is F10. No backend, network, microphone, localStorage or analytics exists here. The 360 px frames are the real pages at 360 px, not scaled images.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="zn-footer">
+  <div class="zn-footer-in">
+    <div class="zn-footer-brand">
+      <a class="zn-wordmark" href="index.html">Zivon</a>
+      <p class="zn-footer-tagline">Physics you can talk to.</p>
+      <p class="zn-footer-promise">Built in public. Lessons are paraphrased from NCERT and openly licensed sources, with citations on every page.</p>
+    </div>
+    <nav class="zn-footer-col" aria-label="Learn"><h2>Learn</h2><a href="catalogue.html">Courses</a><a href="public-info.html#method">Method</a><a href="public-info.html#pricing">Pricing</a></nav>
+    <nav class="zn-footer-col" aria-label="Trust"><h2>Trust</h2><a href="public-info.html#privacy">Privacy</a><a href="public-info.html#terms">Terms</a><a href="public-info.html#contact">Contact</a><a href="public-info.html#status">Status</a></nav>
+  </div>
+  <div class="zn-shell"><div class="zn-footer-fine"><span>© 2026 Zivon · Design exploration, not the live site.</span><span>F0B · feature/w1-f0b-design-shell · noindex</span></div></div>
+</footer>
+
+<dialog class="zn-drawer" id="public-drawer" aria-labelledby="public-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head"><span class="zn-wordmark" id="public-drawer-title">Zivon</span><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <nav class="zn-drawer-nav" aria-label="Public sections"><a href="catalogue.html">Courses</a><a href="public-info.html#method">Method</a><a href="public-info.html#pricing">Pricing</a><a href="public-info.html#privacy">Privacy</a></nav>
+    <div class="zn-drawer-foot"><a class="zn-btn zn-btn--primary zn-btn--block" href="dashboard.html">Open the app shell</a></div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>SWOT — Zivon design exploration</title>
+<meta name="description" content="Field Notes SWOT exploration: four labelled quadrants with evidence and one next action, relative to the student's own chapters.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/shell.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/screens.css">
+</head>
+<body data-page="swot" data-states="default,empty,error,offline,auth">
+<a class="zn-skip" href="#main">Skip to content</a>
+
+<div class="review-strip" role="region" aria-label="Design review controls">
+  <div class="review-strip-in">
+    <span class="review-strip-brand">F0B · shell exploration · not product chrome</span>
+    <nav class="review-strip-links" aria-label="Example pages">
+      <a href="index.html">Index</a>
+      <a href="components.html">Components</a>
+      <a href="states.html">States</a>
+    </nav>
+    <div class="review-strip-state">
+      <label for="review-state">State</label>
+      <select id="review-state" aria-label="Preview a state"></select>
+    </div>
+  </div>
+</div>
+
+<header class="zn-appbar">
+  <div class="zn-appbar-in zn-shell">
+    <a class="zn-wordmark" href="dashboard.html">Zivon</a>
+    <details class="zn-menu zn-context">
+      <summary class="zn-context-summary">
+        <span class="zn-context-copy"><span class="zn-context-label">Class · Subject</span><span class="zn-context-value">Class 9 · Physics</span></span>
+        <span class="zn-caret" aria-hidden="true"></span>
+      </summary>
+      <div class="zn-menu-panel">
+        <div class="zn-menu-head"><p class="zn-menu-title">Class 9 Physics</p><p class="zn-menu-note">NCERT · CBSE · English</p></div>
+        <a class="zn-menu-item" href="swot.html" aria-current="true">Class 9 · Physics <span class="zn-menu-check">✓</span></a>
+        <a class="zn-menu-item" href="catalogue.html?class=10">Class 10 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=11">Class 11 · Physics</a>
+        <a class="zn-menu-item" href="catalogue.html?class=12">Class 12 · Physics</a>
+      </div>
+    </details>
+    <nav class="zn-nav zn-app-nav" aria-label="App sections">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="catalogue.html">Courses</a>
+      <a href="practice.html">Practice</a>
+      <a href="test.html">Tests</a>
+      <a href="swot.html" aria-current="page">Progress</a>
+    </nav>
+    <div class="zn-app-actions">
+      <span class="zn-credits" data-credits aria-label="Voice credits: 24 of 30 left today"><span class="zn-credits-label">Voice</span> 24 / 30</span>
+      <details class="zn-menu zn-user-menu">
+        <summary>Aarav <span class="zn-caret" aria-hidden="true"></span></summary>
+        <div class="zn-menu-panel zn-menu-panel--right">
+          <div class="zn-menu-head"><p class="zn-menu-title">Aarav</p><p class="zn-menu-note">Class 9 · CBSE · English · signed in</p></div>
+          <a class="zn-menu-item" href="settings.html">Settings</a>
+          <a class="zn-menu-item" href="settings.html#privacy">Privacy &amp; data</a>
+          <div class="zn-menu-sep"></div>
+          <button class="zn-menu-item" type="button" data-demo-action="Signed out (design example).">Log out</button>
+        </div>
+      </details>
+      <button class="zn-btn zn-btn--secondary zn-app-menu-btn" type="button" data-open-dialog="app-drawer" aria-label="Open menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="zn-app-main zn-shell">
+  <div id="screen-body">
+    <nav class="zn-breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="dashboard.html">Progress</a></li>
+        <li><span aria-current="page">SWOT</span></li>
+      </ol>
+    </nav>
+
+    <div class="zn-page-head">
+      <div class="zn-page-head-copy">
+        <p class="zn-kicker">SWOT · Class 9 Physics · Updated 16 Nov 2026</p>
+        <h1>Where you are, and what to do next</h1>
+        <p class="zn-lede">Placed relative to your own chapters, never your classmates. Four chapters have enough evidence; one is unrated.</p>
+      </div>
+      <div class="zn-page-actions">
+        <button class="zn-btn zn-btn--quiet" type="button" data-open-dialog="swot-how">How this works</button>
+      </div>
+    </div>
+
+    <div class="swot-summary">
+      <p class="zn-meta">4 chapters placed · 1 unrated · recency-weighted, 21-day half-life · pace included</p>
+      <div class="zn-pill-row">
+        <span class="zn-mastery zn-mastery--confident"><span class="zn-mastery-mark" aria-hidden="true"></span>1 strength</span>
+        <span class="zn-mastery zn-mastery--learning"><span class="zn-mastery-mark" aria-hidden="true"></span>1 weakness</span>
+        <span class="zn-mastery zn-mastery--practising"><span class="zn-mastery-mark" aria-hidden="true"></span>1 opportunity</span>
+        <span class="zn-mastery zn-mastery--needs"><span class="zn-mastery-mark" aria-hidden="true"></span>1 threat</span>
+      </div>
+    </div>
+
+    <div class="zn-swot">
+      <section class="zn-quadrant" aria-labelledby="strengths-title">
+        <div class="zn-quadrant-head">
+          <span class="zn-quadrant-letter" aria-hidden="true">S</span>
+          <div><h2 id="strengths-title">Strengths</h2><p class="zn-quadrant-desc">High performance, enough coverage. Keep it warm.</p></div>
+        </div>
+        <article class="zn-quadrant-card">
+          <h3>Motion</h3>
+          <ul class="zn-evidence">
+            <li>84% weighted accuracy across 26 attempts.</li>
+            <li>Recent 5 attempts: 88% (up 6%).</li>
+            <li>Pace 0.9× expected: fast and accurate.</li>
+          </ul>
+          <a class="zn-next" href="test.html">Next: take the chapter test →</a>
+        </article>
+      </section>
+
+      <section class="zn-quadrant" aria-labelledby="weaknesses-title">
+        <div class="zn-quadrant-head">
+          <span class="zn-quadrant-letter" aria-hidden="true">W</span>
+          <div><h2 id="weaknesses-title">Weaknesses</h2><p class="zn-quadrant-desc">Effort without results. Worth a focused session.</p></div>
+        </div>
+        <article class="zn-quadrant-card">
+          <h3>Force and Laws of Motion</h3>
+          <ul class="zn-evidence">
+            <li>46% weighted accuracy across 18 attempts.</li>
+            <li>Hints on 6 of 10 questions.</li>
+            <li>Pace 1.8× expected: slow and inaccurate.</li>
+          </ul>
+          <a class="zn-next" href="practice.html">Next: revisit net force, then 5 questions →</a>
+        </article>
+      </section>
+
+      <section class="zn-quadrant" aria-labelledby="opportunities-title">
+        <div class="zn-quadrant-head">
+          <span class="zn-quadrant-letter" aria-hidden="true">O</span>
+          <div><h2 id="opportunities-title">Opportunities</h2><p class="zn-quadrant-desc">Strong when tried, but not tried enough. Cheap points.</p></div>
+        </div>
+        <article class="zn-quadrant-card">
+          <h3>Gravitation</h3>
+          <ul class="zn-evidence">
+            <li>Lesson checks: 5 of 5 correct.</li>
+            <li>Only 3 of 15 practice questions tried.</li>
+            <li>Curriculum weight: 10 marks.</li>
+          </ul>
+          <a class="zn-next" href="practice.html">Next: 10-question drill →</a>
+        </article>
+      </section>
+
+      <section class="zn-quadrant" aria-labelledby="threats-title">
+        <div class="zn-quadrant-head">
+          <span class="zn-quadrant-letter" aria-hidden="true">T</span>
+          <div><h2 id="threats-title">Threats <span class="zn-meta">(watch-outs)</span></h2><p class="zn-quadrant-desc">Unexplored risk. Exam weight raises the priority.</p></div>
+        </div>
+        <article class="zn-quadrant-card">
+          <h3>Work and Energy</h3>
+          <ul class="zn-evidence">
+            <li>1 of 6 lesson checks missed.</li>
+            <li>Practice bank is not open yet; evidence is thin.</li>
+            <li>Low coverage: 1 of 10 questions.</li>
+          </ul>
+          <a class="zn-next" href="lesson.html">Next: read the worked examples →</a>
+        </article>
+      </section>
+    </div>
+
+    <div class="unrated-row">
+      <div>
+        <h3>Sound is unrated, not weak</h3>
+        <p>The chapter is still in development, so there is no evidence to place it. It will appear here after the lesson and practice publish. Two other chapters have thin evidence; the next practice set will move them.</p>
+      </div>
+      <a class="zn-btn zn-btn--secondary" href="catalogue.html">See the chapter list</a>
+    </div>
+
+    <div class="swot-note">
+      <span class="zn-meta">Private to you. No parent access, no share links, no leaderboard, no public profile. Deleting your account deletes this evidence.</span>
+      <button class="zn-btn zn-btn--quiet" type="button" data-open-dialog="swot-how">How the placement works</button>
+    </div>
+
+    <div data-banner="offline" class="zn-banner zn-banner--offline zn-mt-2" role="status" hidden>
+      <div>
+        <p class="zn-banner-title">You're offline</p>
+        <p class="zn-meta">This cached snapshot was saved on 16 Nov 2026 at 09:12. Recomputing is disabled until the connection returns; the evidence below is readable.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="state-injected" hidden></div>
+  <div id="state-templates" hidden>
+    <template data-state-template="empty">
+      <div class="zn-empty">
+        <h2 class="zn-empty-title">Not enough data yet</h2>
+        <p class="zn-empty-copy">SWOT needs at least three chapters with enough evidence before it places anything. One chapter is not enough to call another “weak”.</p>
+        <div class="zn-empty-actions"><a class="zn-btn zn-btn--primary" href="practice.html">Practise 5 questions</a><a class="zn-btn zn-btn--secondary" href="catalogue.html">Open a chapter</a></div>
+      </div>
+    </template>
+    <template data-state-template="error">
+      <div class="zn-error-box">
+        <div class="zn-error-title">Could not recompute your SWOT</div>
+        <p class="zn-error-copy">The last snapshot is safe. Recomputing needs the server; the evidence from your last session is still readable below. Try again, or open the dashboard.</p>
+        <div class="zn-error-actions"><button class="zn-btn zn-btn--secondary" type="button" data-retry>Retry</button><a class="zn-btn zn-btn--quiet" href="dashboard.html">Back to dashboard</a></div>
+      </div>
+    </template>
+    <template data-state-template="auth">
+      <div class="zn-auth-card">
+        <p class="zn-kicker">Session ended</p>
+        <h1>Log in to see your SWOT</h1>
+        <p class="zn-lede">Progress is private to you. Your device evidence is safe; the snapshot needs an account.</p>
+        <div class="zn-auth-actions"><button class="zn-btn zn-btn--primary zn-btn--block" type="button" data-open-dialog="login-note">Log in</button><a class="zn-btn zn-btn--secondary zn-btn--block" href="catalogue.html">Continue as guest</a></div>
+      </div>
+    </template>
+  </div>
+</main>
+
+<footer class="zn-shell">
+  <div class="zn-app-footer">
+    <span>Zivon · Physics you can talk to. · <a href="settings.html">Settings</a> · <a href="public-info.html#privacy">Privacy</a></span>
+    <span>Design example · no backend, no network, no microphone.</span>
+  </div>
+</footer>
+
+<dialog class="zn-dialog" id="swot-how" aria-labelledby="swot-how-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head"><h2 class="zn-dialog-title" id="swot-how-title">How the placement works</h2><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <p class="zn-dialog-copy">Zivon looks at your own chapters, not a cohort. It ranks them on two axes: performance (weighted accuracy, adjusted by recent trend and pace) and coverage/effort (questions tried, hints used).</p>
+    <p class="zn-dialog-copy">The median split gives four quadrants: high performance + high coverage is a Strength; low performance + high coverage is a Weakness; high performance + low coverage is an Opportunity; low performance + low coverage is a Threat. Exam weight raises the priority, not the quadrant.</p>
+    <p class="zn-dialog-copy">Evidence decays with a 21-day half-life and every card shows 2–3 plain-language reasons, including pace. Fewer than three chapters with enough evidence shows “Not enough data yet”. There is no share, parent or cohort view.</p>
+    <div class="zn-dialog-actions"><button class="zn-btn zn-btn--primary" type="button" data-close-dialog>Close</button></div>
+  </div>
+</dialog>
+
+<dialog class="zn-drawer" id="app-drawer" aria-labelledby="app-drawer-title">
+  <div class="zn-drawer-in">
+    <div class="zn-drawer-head"><span class="zn-wordmark" id="app-drawer-title">Zivon</span><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <nav class="zn-drawer-nav" aria-label="App sections">
+      <a href="dashboard.html">Dashboard</a><a href="catalogue.html">Courses</a><a href="practice.html">Practice</a><a href="test.html">Tests</a><a href="swot.html" aria-current="page">Progress</a><a href="settings.html">Settings</a>
+    </nav>
+    <div class="zn-drawer-context"><p class="zn-kicker">Class · Subject</p><p class="zn-context-value">Class 9 · Physics</p><p class="zn-meta">NCERT · CBSE · English</p></div>
+    <div class="zn-drawer-foot"><span class="zn-credits" data-credits><span class="zn-credits-label">Voice</span> 24 / 30</span><button class="zn-btn zn-btn--secondary zn-btn--block" type="button" data-demo-action="Signed out (design example).">Log out</button></div>
+  </div>
+</dialog>
+
+<dialog class="zn-dialog" id="login-note" aria-labelledby="login-note-title">
+  <div class="zn-dialog-in">
+    <div class="zn-dialog-head"><h2 class="zn-dialog-title" id="login-note-title">Sign-in is an F2 screen</h2><button class="zn-btn zn-btn--quiet" type="button" data-close-dialog>Close</button></div>
+    <p class="zn-dialog-copy">This bundle has no backend or auth screen. The auth-required state shows where the form mounts.</p>
+    <div class="zn-dialog-actions"><a class="zn-btn zn-btn--secondary" href="states.html#auth-required">See the state plate</a><a class="zn-btn zn-btn--primary" href="catalogue.html">Continue as guest</a></div>
+  </div>
+</dialog>
+
+<script src="assets/shell.js" defer></script>
+</body>
+</html>
