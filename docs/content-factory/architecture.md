@@ -596,8 +596,10 @@ metadata"):
   monotone so a section owns a contiguous run. The same map is used for every
   locale (translation changes words, never structure).
 - `factory/hooks.py` is the hook contract as a checker (`hook_issues`); the
-  renderer refuses to ship a page that fails it, and it is the assertion P4
-  registers for the eval cards.
+  renderer refuses to ship a page that fails it, `08-fixloop`/`10-reviewfix`
+  re-emit through the same body builder (so a repair round cannot drop the
+  section wrappers or concept hooks), and it is the assertion P4 registers for
+  the eval cards.
 - `write_courses_js` also writes `catalogue.json` from the same manifest scan,
   so the browser file and the machine catalogue cannot drift.
 

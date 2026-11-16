@@ -174,6 +174,19 @@ _CHAPTER_NUMBER_WORDS = frozenset(
 _CHAPTER_LINE = re.compile(r"(?i)^chapter\s+(?:\d+|[a-z]+)\s*$")
 _CHAPTER_INLINE = re.compile(r"(?i)^chapter\s+(?:\d+|[a-z]+)\s+(.+)$")
 
+# Opener rubric labels NCERT prints under the display title ("Probe and
+# ponder", "Think It Over"). They are page furniture, not the chapter name,
+# so a line like this closes the title block. Grounded in the cached NCERT
+# corpus (the Curiosity 6-8 openers), not a general prose filter.
+_OPENER_LABELS = frozenset(
+    {
+        "probe and ponder",
+        "think it over",
+        "share your questions",
+        "before we begin",
+    }
+)
+
 
 def _looks_like_title(s: str) -> bool:
     """A line that could BE a chapter title, not prose about one. NCERT prints
@@ -215,6 +228,19 @@ def _opener_title(pages: list[dict[str, Any]]) -> str | None:
     split_word_ahead = False
     for line in lines[:14]:
         if line.isdigit():
+            if raw:
+                # The chapter number closes the display title ("Light:
+                # Mirrors and Lenses" / "10" / "Probe and ponder"). Before
+                # the title starts it is the page number and is skipped.
+                break
+            continue
+        if line.strip(" .:?").casefold() in _OPENER_LABELS:
+            # A rubric label under the title is never part of the name
+            # ("Exploring Forces" must not become "Exploring Forces Probe
+            # and ponder"). It only marks the end of the title block; before
+            # the title starts it is a sidebar label to skip.
+            if raw:
+                break
             continue
         single_letter = len(line) == 1 and line.isalpha()
         if dropcap and expect_rest and not single_letter:

@@ -98,6 +98,48 @@ class TestOpenerTitle(unittest.TestCase):
         ]
         self.assertIsNone(_opener_title(pages))
 
+    def test_a_bare_chapter_number_closes_the_display_title(self):
+        # Curiosity 8 ch10: the chapter number and the opener's rubric label
+        # follow the display title. Joining them published
+        # "Light: Mirrors and Lenses Probe and ponder" (and, because title
+        # matching is substring-based, it beat the clean candidate).
+        pages = [
+            page(
+                "152",
+                "Curiosity — Textbook of Science for Grade 8",
+                "Light: Mirrors and",
+                "Lenses",
+                "10",
+                "Probe and ponder",
+                "z Can we make mirrors which can give enlarged images?",
+            )
+        ]
+        self.assertEqual(_opener_title(pages), "Light: Mirrors and Lenses")
+
+    def test_an_opener_rubric_label_is_not_part_of_the_title(self):
+        pages = [
+            page(
+                "Exploring Forces",
+                "5",
+                "Probe and ponder",
+                "z Why does it feel harder to pedal a bicycle uphill?",
+            )
+        ]
+        self.assertEqual(_opener_title(pages), "Exploring Forces")
+
+    def test_a_number_before_the_title_is_the_page_number(self):
+        pages = [
+            page(
+                "170",
+                "Curiosity — Textbook of Science for Grade 8",
+                "Keeping Time",
+                "with the Skies",
+                "11",
+                "Probe and ponder",
+            )
+        ]
+        self.assertEqual(_opener_title(pages), "Keeping Time with the Skies")
+
 
 class TestTitleCandidates(unittest.TestCase):
     def test_the_opener_title_outranks_fragments(self):

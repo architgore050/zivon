@@ -287,7 +287,6 @@ def run(
         (topic_dir / "page.css").write_text(page_css, encoding="utf-8")
 
     manifest = _manifest_v2(
-        cfg=cfg,
         run_ctx=run_ctx,
         source_pack=source_pack,
         lesson=lesson,
@@ -408,7 +407,6 @@ def _manifest_block_map(
 
 def _manifest_v2(
     *,
-    cfg: Config,
     run_ctx: RunContext,
     source_pack: dict[str, Any],
     lesson: dict[str, Any],
@@ -422,7 +420,6 @@ def _manifest_v2(
     locales_available: list[str] | None = None,
 ) -> dict[str, Any]:
     """The topic manifest, v2 (additive over v1 - see ``schemas.MANIFEST_V2``)."""
-    del cfg  # language coverage is a fact about this artifact, not a config
     chapter = source_pack["chapter"]
     section_entries = _manifest_sections(lesson, blocks, chapter_key)
     return {
@@ -1115,8 +1112,13 @@ def _topic_manifests(frontend_dir: Path) -> list[tuple[Path, dict[str, Any]]]:
     for manifest_path in sorted(courses_dir.glob("*/*/manifest.json")):
         try:
             data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
+        except (OSError, ValueError) as exc:
+            # A topic that vanishes from the catalogue is worse than a failed
+            # publish: the page exists but no product surface can list it.
+            # Never skip silently (pre-P1 behavior raised too).
+            raise ValueError(
+                f"unreadable topic manifest {manifest_path}: {exc}"
+            ) from exc
         out.append((manifest_path.parent, data))
     return out
 
@@ -1360,18 +1362,26 @@ def render_localized(
     del chapter_query
     topic_dir = Path(render_out["topic_dir"])
     site_dir = Path(render_out["site_dir"])
-    display_title = chapter_display_title(
-        ident.repair_chapter_title(
-            source_pack["chapter"]["title"],
-            matched_line=source_pack["chapter"].get("matched_line"),
-            query=source_pack.get("query"),
+    # Page identity was fixed at 06-render. 10d must name the SAME page: a
+    # re-run of only this stage on an older run directory must not publish
+    # under a second slug (the duplicate-topic defect class), and every
+    # locale must carry the English page's chapter/concept ids.
+    identity = render_out.get("manifest") or {}
+    display_title = str(
+        identity.get("title")
+        or chapter_display_title(
+            ident.repair_chapter_title(
+                source_pack["chapter"]["title"],
+                matched_line=source_pack["chapter"].get("matched_line"),
+                query=source_pack.get("query"),
+            )
+            or source_pack["chapter"]["title"]
         )
-        or source_pack["chapter"]["title"]
     )
-    slug = slugify(display_title)
-    class_level = source_pack["chapter"]["class"]
-    course_id = f"class-{class_level}-physics"
-    chapter_key = ident.chapter_id(class_level, slug)
+    slug = str(identity.get("topic_slug") or slugify(display_title))
+    class_level = identity.get("class") or source_pack["chapter"]["class"]
+    course_id = str(identity.get("course_id") or f"class-{class_level}-physics")
+    chapter_key = str(identity.get("chapter_id") or ident.chapter_id(class_level, slug))
 
     page_js_path = topic_dir / "page.js"
     page_css_path = topic_dir / "page.css"
@@ -1612,6 +1622,14 @@ def render_localized(
         raise LintError(
             TRANSRENDER_STAGE_ID,
             "localized English index.html violates hard lints:\n" + "\n".join(en_hits),
+            artifacts_dir=str(run_ctx.stage_dir(TRANSRENDER_STAGE_ID)),
+        )
+    en_hook_problems = hook_issues(en_html_i18n)
+    if en_hook_problems:
+        raise LintError(
+            TRANSRENDER_STAGE_ID,
+            "localized English index.html violates the hook contract:\n"
+            + "\n".join(en_hook_problems),
             artifacts_dir=str(run_ctx.stage_dir(TRANSRENDER_STAGE_ID)),
         )
     (topic_dir / "index.html").write_text(en_html_i18n, encoding="utf-8")

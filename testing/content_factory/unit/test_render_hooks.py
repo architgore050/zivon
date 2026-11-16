@@ -272,6 +272,19 @@ class TestCatalogue(unittest.TestCase):
         self.assertNotIn("chapter_id", entry)
         self.assertNotIn("content_hash", entry)
 
+    def test_an_unreadable_manifest_fails_loudly(self):
+        # A topic that silently disappears from courses.js/catalogue.json is
+        # worse than a failed publish: the page exists but nothing can list
+        # it. The scan must raise, never skip.
+        tmp = Path(tempfile.mkdtemp())
+        frontend = tmp / "frontend"
+        topic = frontend / "courses" / "class-9-physics" / "motion"
+        topic.mkdir(parents=True)
+        (topic / "manifest.json").write_text("{not json", encoding="utf-8")
+        with self.assertRaises(ValueError) as ctx:
+            write_courses_js(frontend)
+        self.assertIn("manifest.json", str(ctx.exception))
+
 
 class TestSectionOwnership(unittest.TestCase):
     LESSON: ClassVar[dict] = {
@@ -378,10 +391,6 @@ class TestIdentity(unittest.TestCase):
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestHookContractChecker(unittest.TestCase):
     """`factory.hooks.hook_issues` is the assertion P4 registers for the eval
     cards (EV-SYN-001 render contract / EV-VIS-002 metadata conformance). Its
@@ -433,3 +442,7 @@ class TestHookContractChecker(unittest.TestCase):
             ),
             issues,
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

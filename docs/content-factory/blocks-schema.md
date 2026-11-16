@@ -124,9 +124,20 @@ Block metadata (all optional, validated by `factory/schemas.py`):
   data-concept-id="…">` wrappers that own their blocks, preserving every
   `b-NN` id. A wrapper is structure only: it adds no visible text and no new
   `data-i18n` string, so wrapping cannot change what the page looks like;
+- the same hooks survive a repair round: `08-fixloop` and `10-reviewfix`
+  re-emit `index.html` through `render._render_body` (via the manifest's
+  block -> section map), so a corrected block still lands inside its section
+  and the page keeps matching `manifest.json`;
 - `factory/hooks.py::hook_issues(html, manifest)` is the contract as code. The
-  renderer refuses to ship a page that fails it, and P4 registers the same
-  function as a deterministic eval checker (`EV-SYN-001`, `EV-VIS-002`).
+  renderer refuses to ship a page that fails it, `08-fixloop` refuses to re-emit
+  one, and P4 registers the same function as a deterministic eval checker
+  (`EV-SYN-001`, `EV-VIS-002`).
+
+Shell note: a section wrapper carries an `id`, so it is visible to consumers
+that select `.zn-page [id]` (today `zivon.js::buildContextSnapshot`). The shell
+must filter content blocks on `[data-block-type]`; F4 owns that one-line change
+(`frontend/assets/zivon.js`), until then a `sec-NN` id can appear in the
+context snapshot alongside the real `b-NN` blocks (no error, a weaker anchor).
 
 Known gap: `EL-LES-01-005` (the objectives list) is not emitted yet because
 `08-fixloop` re-extracts the objectives by matching `<ul class="zn-objectives">`
@@ -176,6 +187,11 @@ v2 core plus `href` and `generated_at` - and `write_courses_js` writes both
 file and the machine catalogue can never disagree. `courses.js` keeps its
 existing shape (`window.ZIVON_COURSES`); product layers that need identity,
 status, counts or concepts read `catalogue.json`.
+
+Publish handoff (P5): `catalogue.json` lands next to `courses.js` at the
+staging root, so `scripts/publish-frontend.sh` must copy it in the same step as
+`courses/` + `courses.js` (it currently copies only those two) and the publish
+verification must treat a stale/missing `catalogue.json` as a failure.
 
 ## Localization Contracts (`SP2-TRANS`, Implemented in Wave E)
 
