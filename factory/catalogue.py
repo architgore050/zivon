@@ -267,7 +267,7 @@ def _narration_report(
     if isinstance(flag_blocks, dict):
         speakable = [str(block_id) for block_id in flag_blocks]
     else:
-        manifest_blocks = manifest.get("blocks", [])
+        manifest_blocks = manifest.get("blocks") or []
         if isinstance(manifest_blocks, dict):
             speakable = [str(block_id) for block_id in manifest_blocks]
         else:
@@ -491,14 +491,17 @@ def _check_manifests(frontend_dir: Path, report: CatalogueReport) -> set[str]:
             if manifest.get(key) in (None, ""):
                 report.error(f"{rel}: manifest.json has no {key!r}")
         chapter = manifest.get("chapter")
-        chapter_title = chapter.get("title") if isinstance(chapter, dict) else chapter
+        if not isinstance(chapter, dict):
+            report.error(f"{rel}: manifest.json has no chapter object")
+            continue
+        chapter_title = chapter.get("title")
         if not identity.is_usable_chapter_title(chapter_title):
             report.error(
                 f"{rel}: chapter.title={chapter_title!r} is not a usable chapter name"
             )
         if not str(manifest.get("lesson_title") or "").strip():
             report.error(f"{rel}: manifest.json has no lesson_title")
-        number = chapter.get("number") if isinstance(chapter, dict) else None
+        number = chapter.get("number")
         if not isinstance(number, int):
             report.warn(f"{rel}: chapter_number unknown (catalogue sorts it last)")
 
