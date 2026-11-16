@@ -233,21 +233,32 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 "Math.max(0, document.documentElement.scrollWidth - window.innerWidth)"
             )
 
-            # Interaction latency: how long after navigation start does a
-            # synthetic click actually complete (handler + style/layout)?
-            interactive_ms = page.evaluate("""
+            # Interaction latency: how long after navigation start the synthetic
+            # click lands, and how long the page's own handler + forced layout
+            # takes (the input-response cost a student feels). The delta is the
+            # Q-4 hard signal; PerformanceObserver long-task entries are
+            # reported separately because on a shared CI runner they catch
+            # host/OS stalls that a blank page exhibits too (2026-11-16: the
+            # same page measured 0 ms and 287 ms in consecutive runs while its
+            # click/scroll input cost stayed at 5-10 ms).
+            interactive = page.evaluate("""
                 () => {
                   const el = document.querySelector(
                     '.zn-check-btn, .zn-sim-canvas, canvas, button, a, body'
                   );
-                  if (!el) return performance.now();
-                  try {
-                    el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
-                  } catch (e) {}
-                  void el.getBoundingClientRect();
-                  return performance.now();
+                  const t0 = performance.now();
+                  if (el) {
+                    try {
+                      el.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                    } catch (e) {}
+                    void el.getBoundingClientRect();
+                  }
+                  const t1 = performance.now();
+                  return {at: t1, input_ms: t1 - t0};
                 }
             """)
+            interactive_ms = float(interactive.get("at", 0.0))
+            interaction_input_ms = float(interactive.get("input_ms", 0.0))
             # Classify long tasks by their real start time, not by array index:
             # a PerformanceObserver entry arrives a task later, so a load-path
             # task can be delivered after the click probe and be miscounted as
@@ -295,6 +306,7 @@ def run_profile(url: str, profile_path: str | Path) -> dict[str, Any]:
                 "fcp_s": round((perf_obj.get("fcp") or 0) / 1000, 2),
                 "lcp_s": round((perf_obj.get("lcp") or 0) / 1000, 2),
                 "interactive_s": round(float(interactive_ms) / 1000, 2),
+                "interaction_input_ms": round(interaction_input_ms, 1),
                 "fps_median": round(fps, 1) if fps else None,
                 "longest_task_ms": longest_task_ms,
                 "load_longest_task_ms": load_task_ms,
@@ -514,35 +526,61 @@ def _soft_budget_report(
 
 
 def _judge(report: dict[str, Any]) -> None:
+    """Score one harness run.
+
+    Two verdicts on purpose:
+
+    - `load_pass` / `load_failures` - the pre-Q-4 budgets (load, FCP, RAM,
+      FPS, overflow, console/page errors). `testing/frontend` keeps asserting
+      this contract for the whole published snapshot.
+    - `pass` / `failures` - everything `load_pass` covers **plus** the Q-4
+      runtime gates (interactive <= 3 s, input response <= 200 ms, no long task
+      > 200 ms on the interaction path). The factory stage and `EV-PERF-001`
+      gate on this stricter verdict.
+
+    Both lists are always reported, so a Q-4 miss is never hidden by the
+    legacy assertion.
+    """
     m = report["measured"]
     budgets = report["budgets"]
-    failures = []
-    advisories = []
+    load_failures: list[str] = []
+    q4_failures: list[str] = []
+    advisories: list[str] = []
     if m["load_s"] > budgets["load_s"]:
-        failures.append(f"load {m['load_s']}s > budget {budgets['load_s']}s")
+        load_failures.append(f"load {m['load_s']}s > budget {budgets['load_s']}s")
     elif m["load_s"] > PHASE_4_LOAD_TARGET_S:
         advisories.append(
             f"load {m['load_s']}s exceeds Phase-4 target {PHASE_4_LOAD_TARGET_S}s"
         )
     if m["fcp_s"] and m["fcp_s"] > budgets["fcp_s"]:
-        failures.append(f"FCP {m['fcp_s']}s > budget {budgets['fcp_s']}s")
+        load_failures.append(f"FCP {m['fcp_s']}s > budget {budgets['fcp_s']}s")
     elif m["fcp_s"] and m["fcp_s"] > PHASE_4_FCP_TARGET_S:
         advisories.append(
             f"FCP {m['fcp_s']}s exceeds Phase-4 target {PHASE_4_FCP_TARGET_S}s"
         )
     if m["peak_browser_rss_mb"] > budgets["ram_mb"]:
-        failures.append(
+        load_failures.append(
             f"browser RSS {m['peak_browser_rss_mb']}MB > budget {budgets['ram_mb']}MB"
         )
     if m["fps_median"] is not None and m["fps_median"] < budgets["fps_min"]:
-        failures.append(f"FPS {m['fps_median']} < minimum {budgets['fps_min']}")
+        load_failures.append(f"FPS {m['fps_median']} < minimum {budgets['fps_min']}")
+    if m.get("overflow_px", 0) > 2:
+        load_failures.append(
+            f"horizontal overflow {m['overflow_px']}px at {report['viewport_width']}px "
+            "viewport (doctrine §10.8 frame check)"
+        )
+    if report["page_errors"]:
+        load_failures.append(f"page errors: {report['page_errors']}")
+    if report["console_errors"]:
+        load_failures.append(f"console errors: {report['console_errors'][:5]}")
+
     interactive_budget = budgets.get("interactive_s")
     if (
         interactive_budget is not None
         and m.get("interactive_s") is not None
         and m["interactive_s"] > interactive_budget
     ):
-        failures.append(
+        q4_failures.append(
             f"interactive {m['interactive_s']}s > budget {interactive_budget}s"
         )
     long_task_budget = budgets.get("long_task_ms")
@@ -562,22 +600,22 @@ def _judge(report: dict[str, Any]) -> None:
         )
     if (
         long_task_budget is not None
+        and m.get("interaction_input_ms") is not None
+        and m["interaction_input_ms"] > long_task_budget
+    ):
+        q4_failures.append(
+            f"interactive input {m['interaction_input_ms']}ms > budget "
+            f"{long_task_budget}ms (interaction path)"
+        )
+    if (
+        long_task_budget is not None
         and m.get("interaction_longest_task_ms")
         and m["interaction_longest_task_ms"] > long_task_budget
     ):
-        failures.append(
+        q4_failures.append(
             f"scroll/click long task {m['interaction_longest_task_ms']}ms > "
             f"budget {long_task_budget}ms (interaction path)"
         )
-    if m.get("overflow_px", 0) > 2:
-        failures.append(
-            f"horizontal overflow {m['overflow_px']}px at {report['viewport_width']}px "
-            "viewport (doctrine §10.8 frame check)"
-        )
-    if report["page_errors"]:
-        failures.append(f"page errors: {report['page_errors']}")
-    if report["console_errors"]:
-        failures.append(f"console errors: {report['console_errors'][:5]}")
     soft = report.get("soft_budgets") or {}
     if soft.get("measured") and not soft.get("within_soft_budget", True):
         advisories.append(
@@ -586,9 +624,12 @@ def _judge(report: dict[str, Any]) -> None:
             f"CSS {soft['css_gzip_kb']} KB (soft {soft['soft_css_budget_kb']} KB) "
             "- monitored, not blocking (Q-4)"
         )
-    report["failures"] = failures
+    report["load_failures"] = load_failures
+    report["q4_failures"] = q4_failures
+    report["failures"] = load_failures + q4_failures
     report["advisories"] = advisories
-    report["pass"] = not failures
+    report["load_pass"] = not load_failures
+    report["pass"] = not report["failures"]
 
 
 def _chromium_available() -> bool:

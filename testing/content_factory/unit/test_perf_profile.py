@@ -125,13 +125,36 @@ class TestJudge(unittest.TestCase):
         self.assertFalse(report["pass"])
         self.assertTrue(any("interactive" in f for f in report["failures"]))
 
-    def test_long_task_on_the_interaction_path_fails(self):
+    def test_interaction_input_over_budget_fails(self):
         report = self.base_report()
         report["budgets"]["long_task_ms"] = 200
-        report["measured"]["interaction_longest_task_ms"] = 260
+        report["measured"]["interaction_input_ms"] = 260
         _judge(report)
         self.assertFalse(report["pass"])
-        self.assertTrue(any("interaction path" in f for f in report["failures"]))
+        self.assertTrue(any("interactive input" in f for f in report["failures"]))
+
+    def test_observed_interaction_long_task_fails_the_q4_verdict(self):
+        report = self.base_report()
+        report["budgets"]["long_task_ms"] = 200
+        report["measured"]["interaction_input_ms"] = 8.0
+        report["measured"]["interaction_longest_task_ms"] = 287
+        _judge(report)
+        self.assertFalse(report["pass"])
+        self.assertTrue(
+            any("scroll/click long task" in f for f in report["q4_failures"])
+        )
+
+    def test_load_pass_keeps_the_pre_q4_contract_separate(self):
+        # A Q-4 miss must be visible in `pass`/`failures` without silently
+        # redefining the load-budget contract the frontend snapshot test uses.
+        report = self.base_report()
+        report["budgets"]["long_task_ms"] = 200
+        report["measured"]["interaction_input_ms"] = 260
+        _judge(report)
+        self.assertTrue(report["load_pass"])
+        self.assertEqual(report["load_failures"], [])
+        self.assertFalse(report["pass"])
+        self.assertTrue(report["q4_failures"])
 
     def test_load_path_long_task_is_an_advisory_not_a_failure(self):
         # Q-4 names the interaction path as the hard long-task gate; a
@@ -167,14 +190,12 @@ class TestJudge(unittest.TestCase):
 class TestBudgetFailEvents(unittest.TestCase):
     def test_interaction_long_task_failure_carries_measured_and_limit_ms(self):
         report = {
-            "failures": [
-                "scroll/click long task 432.0ms > budget 200ms (interaction path)"
-            ]
+            "failures": ["interactive input 432.0ms > budget 200ms (interaction path)"]
         }
         with mock.patch.object(factory_perf, "log_event") as log_event:
             factory_perf._emit_budget_fails(mock.Mock(run_id="r1"), report)
         fields = log_event.call_args.args[1]
-        self.assertEqual(fields["budget_name"], "interaction_long_task")
+        self.assertEqual(fields["budget_name"], "interaction_input")
         self.assertEqual(fields["measured_ms"], 432)
         self.assertEqual(fields["limit_ms"], 200)
         self.assertEqual(log_event.call_args.kwargs["latency_ms"], 432)

@@ -17,6 +17,7 @@ Measured by `evals/checkers/perf_harness.py` on the `weak-android` profile
 | Budget | Limit | Source |
 |---|---|---|
 | Interactive | ≤ **3.0 s** from navigation start to a completed synthetic input dispatch | Q-4 |
+| Interaction input response (click dispatch + forced layout) | ≤ **200 ms** | Q-4 |
 | Longest task on the interaction path (scroll + first check click) | ≤ **200 ms** | Q-4 |
 | Animation floor | ≥ **24 fps** median under 4× throttle | existing gate |
 | Page load | ≤ 6.0 s (Phase-4 target 2.0 s, advisory) | 2026-11-04 founder decision |
@@ -26,9 +27,10 @@ Measured by `evals/checkers/perf_harness.py` on the `weak-android` profile
 
 A hard miss on the topic page is a **fixable** `BudgetError` routed to
 `08-fixloop`; a landing-page miss is unfixable by the pipeline and stops the
-run (the shared shell is hand-maintained). A long task on the interaction path
-is reported by name (`scroll/click long task …ms > budget 200ms (interaction
-path)`) so the fix target is obvious.
+run (the shared shell is hand-maintained). A miss is reported by name
+(`interactive input …ms > budget 200ms (interaction path)` /
+`scroll/click long task …ms > budget 200ms (interaction path)`) so the fix
+target is obvious.
 
 The **load-path** long task (a task that starts before the interaction probe)
 is measured and reported as `load_longest_task_ms`, but it is **monitored, not
@@ -38,6 +40,24 @@ CI runner adds enough scheduler noise to make a load-path assertion flaky
 and 463 ms on CI, while its interaction probe stayed at 130–197 ms locally; the
 CI run's 432 ms "interaction" task was a late-delivered load task, which the
 `start`-timestamp classification now excludes).
+
+`run_profile()` reports **two verdicts**: `load_pass`/`load_failures` for the
+pre-Q-4 load/FCP/RAM/FPS/overflow contract (what `testing/frontend`'s snapshot
+sweep asserts) and `pass`/`failures` for the full contract including Q-4. The
+factory stage and `EV-PERF-001` gate on `pass`; a Q-4 miss is never hidden by a
+`load_pass`. `interaction_input_ms` is the page's synchronous click/layout
+cost; `interaction_longest_task_ms` is the PerformanceObserver evidence for the
+deferred work the click triggers (plus any host stall), and both are hard gates
+under the 200 ms budget.
+
+**Known debt (recorded 2026-11-16).** The live page
+`class-11-physics/laws-of-motion/hi` (16 checks, generated before Q-4) pays
+188–278 ms in its first check-click handler under 4× throttle (reproduced
+locally and on CI), so it fails the Q-4 interaction gate. It is not a golden
+page and predates this gate; it is gated on its next republish (P5/Q-3), where
+the factory/`EV-PERF-001` verdict is hard. Until then the frontend snapshot
+test asserts `load_pass`; the hard Q-4 verdict is enforced by `EV-PERF-001`
+and the factory `07-perf` stage (`factory/perf.py`).
 
 ## 2. Soft budget — reported, never blocks
 
@@ -59,18 +79,20 @@ performance task — do not block the feature (Q-4).
 
 `weak-android` profile, published pages as of `main` @ `55b6033`:
 
-| Page | interactive | load-path task (advisory) | interaction task (hard) | fps | RSS | shell JS gzip | per-topic JS gzip | CSS gzip |
-|---|---|---|---|---|---|---|---|---|
-| GT-01 `class-9-physics/how-forces-affect-motion` | 0.22 s | 52 ms | 0 ms | 59.9 | 469 MB | 58.4 KB | 1.9 KB | 11.4 KB |
-| GT-02 `class-11-physics/motion-in-a-straight-line` | 0.36 s | 77 ms | 62 ms | 59.9 | 490 MB | 58.4 KB | 32.9 KB | 11.3 KB |
-| Landing `frontend/index.html` | 0.08 s | 0 ms | 0 ms | 59.9 | 440 MB | 58.4 KB | — | 11.3 KB |
+| Page | interactive | input (hard) | interaction long task (hard) | load-path task (advisory) | fps | RSS | shell JS gzip | per-topic JS gzip | CSS gzip |
+|---|---|---|---|---|---|---|---|---|---|
+| GT-01 `class-9-physics/how-forces-affect-motion` | 0.50 s | 0.4 ms | 54 ms | 132 ms | 59.9 | 469 MB | 58.4 KB | 1.9 KB | 11.4 KB |
+| GT-02 `class-11-physics/motion-in-a-straight-line` | 0.76 s | 0.4 ms | 123 ms | 174 ms | 59.9 | 490 MB | 58.4 KB | 32.9 KB | 11.3 KB |
+| Landing `frontend/index.html` | 0.17 s | 0.4 ms | 0 ms | 0 ms | 59.9 | 440 MB | 58.4 KB | — | 11.3 KB |
 
 All three pass every hard and soft budget with wide margin. **Honesty note:**
 the harness loads `file://`, so load/FCP and interactive exclude network
 delivery; the runtime numbers above are the *runtime* budget, and the 6.0 s /
-3.5 s network budgets remain the separate gate for a served page. The largest
-load-path task measured on a published page was 77 ms (GT-02, a 16-check
-page); it is reported as an advisory per §1.
+3.5 s network budgets remain the separate gate for a served page. Load-path
+tasks up to 174 ms were observed on the golden pages; they are advisory per §1.
+These are single runs on a shared machine — host load moves the observer
+numbers by ~2×, which is why the hard input gate uses the page's own
+click/layout cost and the observer stays visible in the report.
 
 ## 4. Where the numbers live
 

@@ -43,6 +43,9 @@ _TIME_BUDGET = re.compile(
 _MS_BUDGET = re.compile(
     r"^(?P<name>[a-z/]+) long task (?P<measured>[\d.]+)ms > budget (?P<limit>[\d.]+)ms"
 )
+_INPUT_BUDGET = re.compile(
+    r"^interactive input (?P<measured>[\d.]+)ms > budget (?P<limit>[\d.]+)ms"
+)
 _SCORE_BUDGET = re.compile(
     r"^(?P<name>\w+) (?P<measured>[\d.]+) < minimum (?P<limit>[\d.]+)"
 )
@@ -64,22 +67,30 @@ def _emit_budget_fails(run_ctx: RunContext, report: dict[str, Any]) -> None:
             fields["limit_ms"] = int(float(match.group("limit")) * 1000)
             latency_ms = measured_ms
         else:
-            task = _MS_BUDGET.match(text)
-            if task:
-                measured_ms = int(float(task.group("measured")))
-                fields["budget_name"] = (
-                    "interaction_long_task"
-                    if task.group("name") == "scroll/click"
-                    else f"{task.group('name')}_long_task"
-                )
+            input_match = _INPUT_BUDGET.match(text)
+            if input_match:
+                measured_ms = int(float(input_match.group("measured")))
+                fields["budget_name"] = "interaction_input"
                 fields["measured_ms"] = measured_ms
-                fields["limit_ms"] = int(float(task.group("limit")))
+                fields["limit_ms"] = int(float(input_match.group("limit")))
                 latency_ms = measured_ms
             else:
-                score = _SCORE_BUDGET.match(text)
-                if score:
-                    fields["measured"] = float(score.group("measured"))
-                    fields["limit"] = float(score.group("limit"))
+                task = _MS_BUDGET.match(text)
+                if task:
+                    measured_ms = int(float(task.group("measured")))
+                    fields["budget_name"] = (
+                        "interaction_long_task"
+                        if task.group("name") == "scroll/click"
+                        else f"{task.group('name')}_long_task"
+                    )
+                    fields["measured_ms"] = measured_ms
+                    fields["limit_ms"] = int(float(task.group("limit")))
+                    latency_ms = measured_ms
+                else:
+                    score = _SCORE_BUDGET.match(text)
+                    if score:
+                        fields["measured"] = float(score.group("measured"))
+                        fields["limit"] = float(score.group("limit"))
         log_event(
             "factory.perf.budget_fail",
             fields,
