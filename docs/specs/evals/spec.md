@@ -62,7 +62,11 @@ evals/
 │   ├── curator_checks.py       # Source pack integrity, title-line provenance, citation & number traceability
 │   ├── synthesizer_checks.py   # Schema, block budget (4-45), teach-order structure, computed-geometry routing
 │   ├── visual_checks.py        # JS/CSS/HTML/SVG lints, kit scope, ZivonSim skeleton, static DOM/a11y probe
-│   ├── perf_harness.py         # Migrated from testing/content_factory/perf/harness.py (CDP throttle, RSS, FPS, overflow)
+│   ├── perf_harness.py         # Migrated from testing/content_factory/perf/harness.py (CDP throttle, RSS, FPS, overflow, Q-4 long tasks/interactive, soft byte report)
+│   ├── a11y_checks.py          # EV-VIS-002: dependency-free WCAG subset + optional real axe-core run
+│   ├── numeric_checks.py       # EV-SYN-003: worked-example/numeric recompute + unverified way-out
+│   ├── glossary_checks.py      # EV-E2E-002: launch-locale and per-page glossary coverage
+│   ├── publish_checks.py       # EV-E2E-002: catalogue/publish/sitemap integrity
 │   └── prompt_contract_checks.py # Prompt-contract invariants migrated from unit/test_agents_generate.py & test_review.py
 ├── judges/                     # LLM-as-judge graders via llm_manager/ (ADR-0028)
 │   ├── __init__.py
@@ -79,7 +83,10 @@ evals/
 │   ├── EV-REV-001.yaml
 │   ├── EV-REV-002.yaml
 │   ├── EV-E2E-001.yaml
-│   └── EV-KID-001.yaml
+│   ├── EV-E2E-002.yaml         # P4 (2026-11-15): catalogue/publish integrity + glossary coverage
+│   ├── EV-KID-001.yaml
+│   ├── EV-SYN-003.yaml         # P4: numeric/unit recompute + unverified way-out
+│   └── EV-VIS-002.yaml         # P4: accessibility + hook conformance
 └── goldens/                    # Versioned golden inputs, expected properties, profiles, and seeded defects
     ├── manifest.json           # Registry of golden topics + schema version + pipeline_version compatibility
     ├── profiles/
@@ -116,6 +123,19 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 | `EV-REV-002` | `09-review` (`facts`, `design`, `static`, `lint`) | Code Reviewer security, consistency & rendering calibration | `lint.py` + `_static_review_findings` on `5` security/scope defect samples (`0` calls) | Runs `factory.review.run` on `6` truth/rendering samples (`12` calls) | Yes (det. security defects) | Yes |
 | `EV-E2E-001` | `00-ingest` → `11-link` | End-to-end page quality, catcher convergence & human edit rate | Full artifact + manifest + ledger audit + `git diff` human edit counter | Aggregates stage judges (`0` extra calls when stage cards run) | Yes (golden artifacts) | Yes |
 | `EV-KID-001` | Post-`11-link` (Gate B) | Kid-comprehension sessions & defect promotion loop | Schema & completeness check on recorded `eval_kid_session` rows (`0` calls) | `0` calls (human-in-the-loop Gate B observations) | Yes (schema check) | Yes |
+| `EV-VIS-002` (P4) | `05-interactive`, `06-render` | Visual Builder a11y & hook conformance | `a11y_checks.py` (WCAG subset: names/roles/live regions/keyboard; optional axe-core) | `0` calls | Yes (det. only) | Yes |
+| `EV-SYN-003` (P4) | `02-generate.blocks` → `04-repair` | Synthesizer numeric/unit correctness | `numeric_checks.py` (`rule_numeric_recompute` chains, planted-error counter-proof, `unverified:` way-out) | `0` calls | Yes (det. only) | Yes |
+| `EV-E2E-002` (P4) | `00-ingest` → `11-link` | Catalogue/publish integrity + glossary coverage | `publish_checks.py` (hrefs, locale routes/bundles, sitemap, manifest identity) + `glossary_checks.py` (launch + per-page locales) | `0` calls | Yes (det. only) | Yes |
+
+**P4 additions (2026-11-15, Q-5).** `EV-VIS-002`, `EV-SYN-003`, `EV-E2E-002` close the
+accessibility/numeric/glossary/publish gap and prove `EVT-EVAL-*` map coverage (see
+[`perf-budgets.md`](perf-budgets.md) for the Q-4 runtime/byte budget and measured baseline).
+The schema stays additive: `EV-ASM-###`, `EV-EXM-###`, `EV-SER-###` prefixes and the
+assessment/exam/series stage + role enum values are registered in
+[`card-template.md`](card-template.md) §1 for the P2/P3 workstreams. Minor findings from
+`EV-E2E-002` (metadata/publish debt) and from the hand-maintained doctrine example in
+`EV-VIS-002` are deliberately non-blocking: the R1 gate blocks technical breakage, not debt
+(FEATURE-MAP item 14).
 
 ---
 
@@ -341,7 +361,7 @@ Following [`skills/zivon-systems-design-skills/`](../../../skills/zivon-systems-
 | Table Name | Primary Key | Purpose & Foreign Keys | Data Class & Tier (`storage-tiering.md`) | Traceability (`db-spec.md`) |
 |---|---|---|---|---|
 | `eval_run` | `id UUID` (UUIDv7) | One row per eval suite execution: `suite` (`smoke`\|`full`\|`calibration`), `pipeline_version` (`INT`), `factory_image_tag`, `generator_model`, `judge_model`, `git_sha`, `prompt_bundle_sha256`, `started_at`, `completed_at`, `duration_s`, `overall_pass`, `regression_detected`, `baseline_eval_run_id UUID NULL`, `model_calls_count`, `total_thinking_s`, `report_object_id UUID NULL`. | `C4` (Content-factory & eval evidence): Hot on Postgres + SSD PVC (`zivon-sources`) for 90 days; full bundle archived to Cold S3-compatible object store on completion via transactional outbox (`object` catalogue table). | `SYSTEMS-ORIGINATED` / `NEED-EVAL-TRACKING` |
-| `eval_card_result` | `id UUID` (UUIDv7) | One row per `(eval_run_id, card_id, topic_slug)`: `eval_run_id UUID NOT NULL REFERENCES eval_run(id)`, `card_id VARCHAR(32)` (`EV-CUR-001`..`EV-KID-001`), `topic_slug VARCHAR(128) NULL`, `lesson_version_id UUID NULL`, `verdict` (`pass`\|`fail`\|`skip`), `deterministic_score NUMERIC(5,4)`, `judge_score NUMERIC(5,4) NULL`, `fatal_count INT`, `major_count INT`, `minor_count INT`, `unverified_count INT`, `metrics JSONB` (FPS, RSS, load_s, recall, specificity), `issues JSONB`, `created_at TIMESTAMPTZ`. | `C4`: Hot in Postgres (indexed on `(card_id, topic_slug, created_at DESC)`); archived in `eval_run` cold bundle. | `SYSTEMS-ORIGINATED` / `NEED-EVAL-TRACKING` |
+| `eval_card_result` | `id UUID` (UUIDv7) | One row per `(eval_run_id, card_id, topic_slug)`: `eval_run_id UUID NOT NULL REFERENCES eval_run(id)`, `card_id VARCHAR(32)` (`EV-CUR-001`..`EV-KID-001` plus the P4 cards `EV-VIS-002`/`EV-SYN-003`/`EV-E2E-002`), `topic_slug VARCHAR(128) NULL`, `lesson_version_id UUID NULL`, `verdict` (`pass`\|`fail`\|`skip`), `deterministic_score NUMERIC(5,4)`, `judge_score NUMERIC(5,4) NULL`, `fatal_count INT`, `major_count INT`, `minor_count INT`, `unverified_count INT`, `metrics JSONB` (FPS, RSS, load_s, recall, specificity), `issues JSONB`, `created_at TIMESTAMPTZ`. | `C4`: Hot in Postgres (indexed on `(card_id, topic_slug, created_at DESC)`); archived in `eval_run` cold bundle. | `SYSTEMS-ORIGINATED` / `NEED-EVAL-TRACKING` |
 | `eval_defect_sample_result` | `id UUID` (UUIDv7) | Per-sample calibration outcome for `EV-REV-001` and `EV-REV-002`: `eval_card_result_id UUID REFERENCES eval_card_result(id)`, `sample_id VARCHAR(32)` (`SD-CHK-001`..), `expected_verdict`, `actual_verdict`, `expected_severity`, `actual_severity`, `target_block_matched BOOL`, `source_quoted BOOL`, `outcome_class` (`TP`\|`TN`\|`FP`\|`FN`), `latency_s NUMERIC(8,2)`, `thinking_s NUMERIC(8,2)`, `completion_tokens INT`. | `C4`: Hot in Postgres; archived with `eval_run`. | `SYSTEMS-ORIGINATED` / `NEED-JUDGE-CALIBRATION` |
 | `eval_human_edit` | `id UUID` (UUIDv7) | Tracks the founder's key pipeline metric (**human edit rate per generated topic**, `TIMELINE.md`): `topic_slug VARCHAR(128)`, `course_id VARCHAR(64)`, `class_level SMALLINT`, `factory_run_id VARCHAR(128)`, `pipeline_version INT`, `lesson_version_id UUID NULL`, `generated_git_sha CHAR(40)`, `published_git_sha CHAR(40)`, `total_generated_lines INT`, `manual_added_lines INT`, `manual_deleted_lines INT`, `human_edit_rate NUMERIC(6,4)`, `edit_categories JSONB` (`["content", "rendering", "css", "js"]`), `notes TEXT`, `recorded_at TIMESTAMPTZ`. | `C4`: Permanent in Postgres (`retention: forever`, zero PII, < 1 KB/row) + included in daily DB backups (`C14`). | `INF-HUMAN-EDIT-RATE` / `NEED-PIPELINE-RELIABILITY` |
 | `eval_kid_session` | `id UUID` (UUIDv7) | Gate B kid-comprehension observation row: `session_code VARCHAR(32)` (pseudonymous `kid-r1-01`), `consent_record_id UUID NULL REFERENCES consent_record(id)`, `topic_slug VARCHAR(128)`, `lesson_version_id UUID NULL`, `tester_class SMALLINT`, `topic_class SMALLINT`, `is_above_class_level BOOL`, `restated_in_own_words BOOL`, `followup_1_correct BOOL`, `followup_2_correct BOOL`, `gate_b_pass BOOL`, `confusion_blocks JSONB`, `notes TEXT` (redacted, no child PII), `promoted_defect_id VARCHAR(32) NULL`, `recorded_at TIMESTAMPTZ`. | `C10` / `C4` hybrid: Pseudonymous, linked to `C9` `consent_record`; hard-deletable (`ON DELETE CASCADE` or tombstoned) if guardian withdraws consent (`05-privacy-security-ops.md`). | `INF-GATE-B-RESULT` / `NEED-KID-VALIDATION` |
@@ -606,7 +626,7 @@ Every execution of `python -m evals run` writes two artifacts into `evals_runs/<
 {
   "eval_run_id": "eval-full-20261109-143000",
   "suite": "full",
-  "pipeline_version": 7,
+  "pipeline_version": 9,
   "factory_image_tag": "0.3.19",
   "git_sha": "0a43d9535749a22714804f2387efc8f2fe4e9252",
   "prompt_bundle_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

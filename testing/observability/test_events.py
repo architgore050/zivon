@@ -70,6 +70,12 @@ EMITTED_BY_THIS_BRANCH = [
     "voice.ws.heartbeat_lost",
     "voice.ws.oversized_frame",
     "voice.ws.unknown_message",
+    # evals/telemetry.py + runner.py + diff.py + store.py (P4, 2026-11-15)
+    "factory.eval.run_started",
+    "factory.eval.run_completed",
+    "factory.eval.regression_alert",
+    "factory.eval.human_edit_recorded",
+    "factory.eval.kid_session_logged",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming
@@ -89,7 +95,7 @@ class MapParsingTests(unittest.TestCase):
     def test_map_parses_rfc4180_with_consistent_columns(self) -> None:
         text = MAP_PATH.read_text(encoding="utf-8")
         rows = list(csv.DictReader(text.splitlines()))
-        self.assertEqual(len(rows), 73)
+        self.assertEqual(len(rows), 78)
         expected_columns = [
             "component",
             "event",

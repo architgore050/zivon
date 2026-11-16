@@ -43,6 +43,21 @@ from .store import EvalStore, utc_now_iso
 from .telemetry import emit_eval_event
 
 
+def _pipeline_version() -> int:
+    """The factory's real PIPELINE_VERSION (never a hardcoded 1).
+
+    A ledger row that says `pipeline_version: 1` while the artifacts were built
+    by version 9 is worse than no row: it makes cross-version comparisons and
+    the goldens' `pipeline_version_min` meaningless.
+    """
+    try:
+        from factory.stages import PIPELINE_VERSION
+
+        return int(str(PIPELINE_VERSION).strip())
+    except (ImportError, TypeError, ValueError):
+        return 1
+
+
 def _detect_git_sha(repo_root: Path) -> str:
     try:
         res = subprocess.run(
@@ -315,7 +330,7 @@ def run_eval_suite(
     report = EvalRunReport(
         eval_run_id=eval_run_id,
         suite=suite,
-        pipeline_version=1,
+        pipeline_version=_pipeline_version(),
         factory_image_tag=cfg.factory_image_tag,
         git_sha=git_sha,
         prompt_bundle_sha256=_compute_prompt_bundle_sha256(cfg.repo_root),

@@ -10,11 +10,13 @@ from pathlib import Path
 from unittest import mock
 
 from evals.telemetry import (
+    EVAL_EVENT_MAP,
     ErrorClass,
     Severity,
     emit_eval_event,
     format_prometheus_metrics,
 )
+from logging_manager import events as log_events
 
 
 class TestEvalTelemetry(unittest.TestCase):
@@ -83,6 +85,50 @@ class TestEvalTelemetry(unittest.TestCase):
             }
         )
         self.assertIn('zivon_eval_gate_b_pass_rate{round="current"} 0.6667', measured)
+
+
+class TestEvalEventMap(unittest.TestCase):
+    """Map-lint for every eval event (P-GAP-14 closure).
+
+    `emit_eval_event` routes through `logging_manager`, so a missing map row
+    lands as `log.event_unknown` with the wrong component. These assertions
+    make that impossible to merge.
+    """
+
+    def test_every_eval_event_resolves_to_an_evals_row(self) -> None:
+        for evt_id, (dot_event, severity) in EVAL_EVENT_MAP.items():
+            with self.subTest(evt_id=evt_id):
+                row = log_events.known_event(dot_event)
+                self.assertIsNotNone(row, f"{dot_event} has no map row")
+                assert row is not None
+                self.assertEqual(row.component, "evals")
+                self.assertEqual(row.severity, severity.value)
+                self.assertEqual(log_events.component_for(dot_event), "evals")
+
+    def test_evals_is_a_declared_component(self) -> None:
+        self.assertIn("evals", log_events.COMPONENTS)
+
+    def test_run_events_split_start_and_completion(self) -> None:
+        self.assertIn("EVT-EVAL-RUN-STARTED", EVAL_EVENT_MAP)
+        self.assertIn("EVT-EVAL-RUN-COMPLETED", EVAL_EVENT_MAP)
+        completed = log_events.known_event("factory.eval.run_completed")
+        self.assertIsNotNone(completed)
+        assert completed is not None
+        self.assertTrue(completed.latency_ms)
+
+    def test_regression_alert_carries_the_gate_fail_class(self) -> None:
+        row = log_events.known_event("factory.eval.regression_alert")
+        self.assertIsNotNone(row)
+        assert row is not None
+        self.assertEqual(row.error_class, "gate_fail")
+        self.assertEqual(row.severity, "ERROR")
+
+    def test_runner_records_the_real_pipeline_version(self) -> None:
+        from evals.runner import _pipeline_version
+        from factory.stages import PIPELINE_VERSION
+
+        self.assertEqual(_pipeline_version(), int(PIPELINE_VERSION))
+        self.assertNotEqual(int(PIPELINE_VERSION), 1)
 
 
 if __name__ == "__main__":

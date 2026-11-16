@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "pipeline_version_current": 7,
+  "pipeline_version_current": 9,
   "golden_topics": [
     {
       "golden_id": "GT-01",

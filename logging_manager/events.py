@@ -74,6 +74,7 @@ COMPONENTS: frozenset[str] = frozenset(
         "frontend",
         "dashboard",
         "credit",
+        "evals",
         "log",
     }
 )

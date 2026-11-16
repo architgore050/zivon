@@ -129,7 +129,7 @@ Header receiving rule: accept an inbound `X-Request-Id` only from same-cluster c
 
 - **Severity:** `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (§5 of [`spec.md`](spec.md) for the policy).
 - **ErrorClass:** `transport_error`, `validation_error`, `gate_fail`, `repair_exhausted`, `infra_error`, `quota_error`, `auth_error`, `client_error`, `privacy_violation`, `store_error` (meanings in `spec.md` §7; closed — additions are spec changes).
-- **Component:** `factory`, `llm` (model-call client events inside any consumer), `llm_node`, `voice`, `translator`, `frontend`, `dashboard`, `credit`, `log`.
+- **Component:** `factory`, `llm` (model-call client events inside any consumer), `llm_node`, `voice`, `translator`, `frontend`, `dashboard`, `credit`, `evals` (eval-suite events, Option A of `EVT-EVAL-*` mapping), `log`.
 
 ## 9. Schema versioning
 

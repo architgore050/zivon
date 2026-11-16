@@ -29,7 +29,7 @@ class TestDeterministicCheckers(unittest.TestCase):
                     f"{card_id} / {chk.id} reported unexpected blocking issues: {blocking}",
                 )
                 total_executed += 1
-        self.assertEqual(total_executed, 24)
+        self.assertEqual(total_executed, 31)
 
     def test_seeded_security_defects_sd_sec_001_to_005_all_caught(self) -> None:
         ctx: dict[str, Any] = {}
