@@ -51,6 +51,7 @@ def create_app(
     app.state.db = db_engine
     app.state.guard = credit_guard
     app.state.db_boot_error = None
+    app.state.auth = None
 
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
@@ -208,6 +209,27 @@ def _wire_components(
         app.state.verify_session_token = identity_mgr.verify_session_token
     except ImportError:
         pass
+
+    # Account auth is additive (ADR-0029): a broken email/Google config must not
+    # take the guest voice stack down with it, so the failure is loud in the log
+    # and the /v1/auth + /v1/me routes answer 503 until it is fixed.
+    if app.state.db is not None:
+        try:
+            from .auth.email import build_email_sender
+            from .auth.service import AuthService
+
+            app.state.auth = AuthService(
+                cfg, app.state.db, email_sender=build_email_sender(cfg)
+            )
+        except ImportError:
+            app.state.auth = None
+        except Exception as exc:
+            logger.exception(
+                "account auth disabled at boot (%s); /v1/auth and /v1/me will "
+                "answer 503",
+                type(exc).__name__,
+            )
+            app.state.auth = None
 
     try:
         from .abuse import AbuseRateLimiter

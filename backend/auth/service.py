@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import logging
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -60,6 +61,8 @@ _MAX_EMAIL_LENGTH: Final[int] = 254
 _MAX_DISPLAY_NAME: Final[int] = 80
 _MAX_BOARD: Final[int] = 40
 EXPORT_EVENT_LIMIT: Final[int] = 2000
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -324,6 +327,17 @@ class AuthService:
             "csrf_token": grant.csrf_token,
         }
 
+    def profile_payload_for_user(self, user: dict[str, Any]) -> dict[str, Any]:
+        user_id = str(user["user_id"])
+        return {
+            "user": self.user_public(user),
+            "password_set": self._has_provider(user_id, "password"),
+            "google_linked": self._has_provider(user_id, "google"),
+        }
+
+    def profile_payload(self, ctx: AuthContext) -> dict[str, Any]:
+        return self.profile_payload_for_user(ctx.user)
+
     def revoke_session(self, session_id: str) -> None:
         self.db.execute(
             "UPDATE auth_session SET revoked_at = ? WHERE session_id = ? AND revoked_at IS NULL",
@@ -524,6 +538,20 @@ class AuthService:
             ),
         )
 
+    def _safe_send(self, message: OutboundEmail) -> None:
+        """Deliver a transactional mail; a delivery failure never undoes the action.
+
+        A signup whose verification mail fails must still exist (the student can
+        request a new link once F2 ships the resend action); the failure is
+        logged for the operator rather than turned into a 500 after commit.
+        """
+        try:
+            self.email.send(message)
+        except Exception:
+            logger.exception(
+                "transactional email delivery failed (kind=%s)", message.kind
+            )
+
     def _send_verification(self, email: str, token: str) -> None:
         link = (
             f"{self.config.app_base_url.rstrip('/')}/verify-email?token={quote(token)}"
@@ -533,7 +561,7 @@ class AuthService:
             link=link,
             expires_hours=max(1, self.config.auth_verify_token_ttl_seconds // 3600),
         )
-        self.email.send(message)
+        self._safe_send(message)
 
     def _consume_email_token(self, raw_token: str, kind: str) -> dict[str, Any]:
         token = (raw_token or "").strip()
@@ -594,7 +622,7 @@ class AuthService:
         with self.db.transaction() as tx:
             self._insert_email_token(tx, str(row["user_id"]), "reset", token)
         link = f"{self.config.app_base_url.rstrip('/')}/reset-password?token={quote(token)}"
-        self.email.send(
+        self._safe_send(
             password_reset_email(
                 to=str(row["email"]),
                 link=link,
