@@ -35,10 +35,12 @@ No Hinglish on these notices. Voice: plain, short, no legalese, no apology.
 
 <!-- placeholder-contract:end -->
 
-Resolution rules: `paper_type` maps `main → "main exam"`, `compartment →
-"compartment exam"`, `sample → "sample paper"`, `marking_scheme → "marking
-scheme"`. `paper_ref` drops the `Set …` clause when `set_code` is null. Never
-render a raw enum, a slug, or an empty clause.
+Resolution rules: `paper_type` is the type of the *paper* the item came from and
+maps `main → "main exam"`, `compartment → "compartment exam"`, `sample →
+"sample paper"`. A marking-scheme item keeps its paper's type and is identified
+by `source_type: verbatim_cbse_ms`, not by a `paper_type`. `paper_ref` drops the
+`Set …` clause when `set_code` is null. Never render a raw enum, a slug, or an
+empty clause.
 
 ## N-01 — generated exam-pattern notice
 

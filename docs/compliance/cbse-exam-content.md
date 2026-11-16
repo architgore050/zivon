@@ -85,9 +85,9 @@ Government, a Legislature, or a court. CBSE describes itself as "an autonomous
 organisation under the Ministry of Education" (S-10 letterhead), not a Government
 department. *Agarwala* refused to treat a board's papers as Government works
 because the board did not direct or control how paper-setters worked (S-15).
-Agarwala also noted the separate route for public undertakings (s. 17(dd),
-s. 28A); the Delhi High Court later accepted that CBSE is a public undertaking
-for this purpose (S-16). Either classification keeps the 2022–2026 papers
+Section 17(dd) separately makes a public undertaking the first owner of works it
+makes, and the Delhi High Court accepted that CBSE is a public undertaking for
+this purpose (S-16). Either classification keeps the 2022–2026 papers
 protected for decades (60 years from publication under s. 28A, or the author's
 life plus 60 under s. 22). **[STRONG] on "still in copyright"; [MODERATE] on the
 classification**
@@ -337,7 +337,7 @@ source_ref:
   subject: Physics
   subject_code: "042"
   year: 2024
-  paper_type: main            # main | compartment | sample | marking_scheme
+  paper_type: main            # main | compartment | sample (the paper the item came from)
   set_code: "55/1/1"          # papers only; null for SQPs
   language: en                # en | hi
   question_no: "23"
