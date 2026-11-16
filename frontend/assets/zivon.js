@@ -4793,12 +4793,12 @@
 
   /* --------------- 8. event instrumentation (ZivonEvents) -----------------
      Implements spec.md §9 (C2), SP3 docs/specs/observability/instrumentation-map.csv
-     (EVT-F01..EVT-F12), and GAP-013 reconciliation:
+     (EVT-F01..EVT-F15), and GAP-013 reconciliation:
      - Capped in-memory queue (200 events, oldest dropped) with a no-op default
        sink so CSP connect-src 'none' is never violated.
      - Observable via console.debug when localStorage['zivon.evtdebug'] or
        window.__ZIVON_EVTDEBUG__ is truthy.
-     - Every emitted event carries canonical SP3 fields (evt_id: EVT-F01..F12,
+     - Every emitted event carries canonical SP3 fields (evt_id: EVT-F01..F15,
        event: frontend.*, client_session_id, privacy_class: L2) alongside the
        SP5 trigger name (evt: EVT-<verb_noun>) for 1:1 traceability.
      - Never logs child free-text or quiz option text; hashes sim error strings
@@ -5254,6 +5254,7 @@
     currentIndex: -1,
     dwellStart: {},
     emitted: {},
+    hydrated: {},
     seenCount: 0,
     totalSections: 0,
     maxScrollPct: 0,
@@ -5267,8 +5268,7 @@
   };
 
   function shellPad2(n) {
-    var s = String(n);
-    return s.length < 2 ? "0" + s : s;
+    return String(n).padStart(2, "0");
   }
 
   function shellTopicKey() {
@@ -5416,6 +5416,35 @@
 
   function shellProgressRecord() {
     return shellProgressStore().chapters[shellTopicKey()] || null;
+  }
+
+  /* Re-seed the in-memory counters from the device store before the shelf is
+     drawn: a returning student keeps their "N of M sections read" and their
+     progress rule (F3 reads the same record), and an already-read section is
+     never emitted again (the store is the single source of truth for "read";
+     the event is a usage signal, not a per-visit counter). */
+  function shellHydrateStoredProgress(sections) {
+    var rec = shellProgressRecord();
+    if (!rec) return;
+    if (
+      typeof rec.max_scroll_pct === "number" &&
+      rec.max_scroll_pct > lessonShellState.maxScrollPct
+    ) {
+      lessonShellState.maxScrollPct = Math.max(0, Math.min(100, rec.max_scroll_pct));
+    }
+    var stored = rec.sections && typeof rec.sections === "object" ? rec.sections : {};
+    sections.forEach(function (section, index) {
+      if (lessonShellState.hydrated[index]) return;
+      if (!Object.prototype.hasOwnProperty.call(stored, section.id)) return;
+      lessonShellState.hydrated[index] = true;
+      lessonShellState.emitted[index] = true;
+      if (lessonShellState.seenCount < lessonShellState.totalSections) {
+        lessonShellState.seenCount += 1;
+      }
+    });
+    /* Completion is a per-chapter fact: a reloaded finished lesson must not
+       emit `EVT-lesson_complete` again just because the counters are hydrated. */
+    if (rec.completed) lessonShellState.completeEmitted = true;
   }
 
   function shellNotifyProgressSink() {
@@ -5910,7 +5939,6 @@
     if (!drawer) return false;
     drawer.hidden = false;
     if (toggle) toggle.setAttribute("aria-expanded", "true");
-    if (document.body) document.body.classList.add("zn-drawer-open");
     shellSyncDrawerProgress();
     var target = drawer.querySelector('.zn-drawer-link[aria-current="location"]') ||
       drawer.querySelector(".zn-drawer-close");
@@ -5924,7 +5952,6 @@
     if (!drawer) return false;
     drawer.hidden = true;
     if (toggle) toggle.setAttribute("aria-expanded", "false");
-    if (document.body) document.body.classList.remove("zn-drawer-open");
     if (!options || options.restoreFocus !== false) shellFocus(toggle);
     return true;
   }
@@ -6299,6 +6326,7 @@
   function refreshLessonShellSections() {
     lessonShellState.sections = shellCollectSections();
     lessonShellState.totalSections = lessonShellState.sections.length;
+    shellHydrateStoredProgress(lessonShellState.sections);
     renderLessonDrawerList();
     renderLessonChapterLinks();
     renderLessonNextChapter();

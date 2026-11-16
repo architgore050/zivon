@@ -1898,6 +1898,10 @@ body[data-dock-containment="expanded"] .zn-page:not(.zn-home) {
   align-items: flex-start;
   gap: 0.15rem;
 }
+/* The row is `hidden` when the chapter has no successor (last chapter, no
+   catalogue); the list's display:flex would otherwise keep an empty 44 px
+   dashed row on the paper. */
+.zn-next-list li[hidden] { display: none; }
 .zn-next-chapter .zn-next-label {
   font-family: var(--notes);
   font-size: 0.75rem;

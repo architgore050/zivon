@@ -550,9 +550,9 @@ construction).
 | `NEED-018` | Student settings persistence (`localStorage` device-local) | dock/page controls | SATISFIED (client-local primary) |
 | `NEED-019` | Progress-event + bookmark sync (`POST /v1/progress/events`, `GET/POST/DELETE /v1/bookmarks`) for signed-in students | lesson shell (`ZivonLessonShell.getProgress`/`setProgressSink`, `zivon.bookmarks`) | PENDING (F3, W3) — the shell stays device-local until it lands |
 
-### 14.3 Event register (canonical EVT-001…018 + SP3 EVT-F01…F12 + SP5 triggers)
+### 14.3 Event register (canonical EVT-001…018 + SP3 EVT-F01…F15 + SP5 triggers)
 
-Canonical product events (`EVT-001`..`EVT-018` in `docs/product/backend-handoff.md` §4) and SP3 observability events (`EVT-F01`..`EVT-F12` in `docs/specs/observability/instrumentation-map.csv`) map to the client triggers in §9 (`EVT-lesson_viewed`, `EVT-lesson_opened`, `EVT-section_viewed`, `EVT-reveal_opened`, `EVT-sim_opened`, `EVT-sim_control_changed`, `EVT-check_answered`, `EVT-check_retried`, `EVT-mic_pressed`, `EVT-tutor_turn_completed`, `EVT-sim_error`, `EVT-client_error`, `EVT-lang_switched`, `EVT-session_ended`, `EVT-publish_viewed`, `EVT-heartbeat`, `EVT-read_aloud_played`, `EVT-consent_recorded`, `EVT-report_submitted`, `EVT-data_cleared`, `EVT-bookmark`, `EVT-ask_about_this`, `EVT-lesson_complete`).
+Canonical product events (`EVT-001`..`EVT-018` in `docs/product/backend-handoff.md` §4) and SP3 observability events (`EVT-F01`..`EVT-F15` in `docs/specs/observability/instrumentation-map.csv`) map to the client triggers in §9 (`EVT-lesson_viewed`, `EVT-lesson_opened`, `EVT-section_viewed`, `EVT-reveal_opened`, `EVT-sim_opened`, `EVT-sim_control_changed`, `EVT-check_answered`, `EVT-check_retried`, `EVT-mic_pressed`, `EVT-tutor_turn_completed`, `EVT-sim_error`, `EVT-client_error`, `EVT-lang_switched`, `EVT-session_ended`, `EVT-publish_viewed`, `EVT-heartbeat`, `EVT-read_aloud_played`, `EVT-consent_recorded`, `EVT-report_submitted`, `EVT-data_cleared`, `EVT-bookmark`, `EVT-ask_about_this`, `EVT-lesson_complete`).
 
 ### 14.4 Walk-through test (reconciled)
 
