@@ -25,9 +25,15 @@ message, and table cites a Stage-1 ID (`NEED-`/`INF-`/`ENT?-`/`EVT-`) or is labe
   factory = manual-trigger Job; frontend = nginx Deployment over `zivon-frontend` PVC;
   TLS terminates at the edge only; secrets runtime-only; CI key-free; `k8s/infra.env` is
   the config-values source of truth.
-- Identity: no accounts, no auth for students (TIMELINE out-of-scope). Anonymous
-  device-scoped pseudonymity with a nullable `guardian_ref` seam (T6). Consent gates the
-  ADD layer only (voice input, transcripts, coverage server sync).
+- Identity: **two layers** (amended 2026-11-16, ADR-0029 — supersedes the original
+  "no accounts" premise of ADR-0007 for the product runtime). Guests remain anonymous
+  device-scoped pseudonyms with a nullable `guardian_ref` seam (T6); consent is per device
+  and gates the ADD layer only (voice input, transcripts, coverage server sync). On top of
+  that, a student may hold **one account per email** (email+password and/or Google), used
+  for cross-device progress, settings, delete/export. Accounts are additive: `/v1/session`,
+  the voice session token, consent, and the credit guard are unchanged. Founder decisions
+  of 2026-11-15 moved the product to a startup track with the full consumer frontend;
+  ADR-0029 records the account decision and its threat model.
 - **Founder corrections 2026-11-07 (Stage-2 session, recorded in Stage-1 docs):**
   1. Credit guard = **1,000 credits/day global tranche** + **30 credits/user/day**
      (free-trial scale; the earlier 200 default was a misunderstanding) + togglable
@@ -351,8 +357,40 @@ every student credential; AC-6 audit on every action; NFR-30 aggregate-only disp
 | API-A10 | `GET /v1/admin/audit?from=` (P1) | audit log view (C13) | systems-originated |
 
 Parity rule (AGENTS.md): A7/A8/A9 must be behaviourally identical to the scripts (same Job/CronJob
-renders, same guards); CI parity test compares rendered manifests. Admin actions are async:
+renders, same guards); CI parity test compares renderer manifests. Admin actions are async:
 `202 {action_id}` + status via A5.
+
+### 6.4 Account auth, account self-service, and catalogue (ADR-0029, revision `0003`)
+
+Additive to §6.1–6.3; the device/voice contracts above are unchanged. All bodies are JSON,
+all errors use the §6 problem-details envelope, and every account-mutating call requires the
+`X-CSRF-Token` header returned by register/login/session.
+
+| ID | Route | Purpose | Auth / limits |
+|---|---|---|---|
+| API-010 | `POST /v1/auth/register` | create the one account for an email, sign in, send verification | public; 5/min/IP |
+| API-011 | `POST /v1/auth/login` | email+password login; generic failure (no enumeration) | public; 10/min/IP |
+| API-012 | `POST /v1/auth/logout` | revoke the current session, clear the cookie | session + CSRF |
+| API-013 | `GET /v1/auth/session` | `{authenticated, user, password_set, google_linked, csrf_token}`; guests get `authenticated:false` (200, not 401) | optional session |
+| API-014 | `POST /v1/auth/verify-email` | consume a single-use verification token | public; 10/min/IP |
+| API-015 | `POST /v1/auth/request-password-reset` | always `202 {ok:true}`; sends a token only for a verified account | public; 3/min/IP |
+| API-016 | `POST /v1/auth/reset-password` | consume a reset token, set the password, revoke all sessions | public; 3/min/IP |
+| API-017 | `GET /v1/auth/google/start` | redirect to Google with signed state + PKCE (`intent=login\|link`) | intent=link needs session + verified email; 503 if unconfigured |
+| API-018 | `GET /v1/auth/google/callback` | exchange code, resolve by `sub` then verified email, create/link, redirect | 303 to `/app` or `/login?error=<code>`; 10/min/IP |
+| API-019 | `GET /v1/me` | profile + `password_set`/`google_linked` | session |
+| API-020 | `PATCH /v1/me` | display name, class, board, language | session + CSRF |
+| API-021 | `POST /v1/me/password` | set (Google-created) or change the password; rotates the session | session + CSRF |
+| API-022 | `POST /v1/me/delete` | `{confirm:"DELETE", password?}`; deletes user-scoped data, unlinks devices, keeps an anonymised tombstone | session + CSRF |
+| API-023 | `GET /v1/me/export` | the student's own data as a JSON attachment (no hashes/tokens) | session |
+| API-024 | `POST /v1/me/device` | link a pseudonymous voice device to the account | session + CSRF |
+| API-025 | `GET /v1/catalog` | classes 9–12 with chapters, status, languages, lesson links | public (`max-age=300`) |
+| API-026 | `GET /v1/catalog/chapters/{slug}` | one chapter + concepts; `404 E-NOT-FOUND` otherwise | public (`max-age=300`) |
+
+Sources: `/v1/catalog` reads `syllabus_chapter`/`concept` (written by P1/P2) and falls back to
+the tracked fixture in `backend/catalog/fixtures/` while those tables are empty, so F1/F3/F4 can
+build against the real shape without invented data. New error codes: `E-AUTH-REQUIRED`,
+`E-AUTH-INVALID`, `E-AUTH-CSRF`, `E-EMAIL-UNVERIFIED`, `E-TOKEN-INVALID`, `E-CONFLICT`,
+`E-CONTENT-UNAVAILABLE`.
 
 ---
 
@@ -445,9 +483,35 @@ Long-pole rule: the first stage whose p90 exceeds its ceiling gets the fix befor
 `session_token` = HMAC-signed `{session_id, device_pseudo_id, iat, exp}` (exp 12 h, key from K8s
 Secret, rotated per deploy; not an account, not refreshable beyond session life). Carried as
 `?session_token=` on WSS connect and `Authorization: ZivonSession <token>` on REST calls that name
-a session. Revalidated at resume (API-009). **No student accounts anywhere** (TIMELINE out-of-scope;
-T6) — the token proves possession of the session, nothing more. Admin token is a separate K8s
-Secret, cluster-side only.
+a session. Revalidated at resume (API-009). The device session token proves possession of the
+session, nothing more; **account auth is a separate layer** (§8.1a). Admin token is a separate
+K8s Secret, cluster-side only.
+
+### 8.1a Account sessions (ADR-0029, added 2026-11-16)
+
+- **One account per email**; password identities and Google identities live in
+  `auth_identity`, never as two accounts.
+- **Cookie session:** opaque 256-bit token in `zivon_session` (`HttpOnly; Secure;
+  SameSite=Lax; Path=/`), 30-day TTL. Only `HMAC(key, "auth-session:"+token)` is stored;
+  logout/password change/reset revoke it, and password change/reset/link rotate the token.
+- **CSRF:** the client echoes the token returned by register/login/session in
+  `X-CSRF-Token` for authenticated state-changing calls; the server compares its keyed hash
+  to the stored one (`E-AUTH-CSRF` on mismatch).
+- **Hashing:** Argon2id m=64 MiB, t=3, p=4; ≥10 characters; common-password block list; no
+  composition rules.
+- **No enumeration:** unknown email and wrong password share `E-AUTH-INVALID` and the same
+  Argon2 cost; reset requests always return 202.
+- **Email tokens** (verify/reset) are single-use, hashed at rest, expiring (48 h / 1 h), and
+  reset requires a verified email and revokes every session.
+- **Google** resolves by `sub`, then by Google-verified email; it attaches to the one local
+  account and records verification. A Google-created account has no password until the
+  student sets one (`password_set:false`). Conflicting links are `E-CONFLICT`; accounts are
+  never merged.
+- **Rate limits** per family on the salted daily-rotating IP hash: register 5, login 10,
+  reset 3, verify 10, Google 10 per minute. The limiter is in-memory (single replica P0);
+  a multi-replica deployment must move it to a shared store (ADR-0029 revisit trigger).
+- **Deletion** hard-deletes sessions, identities, tokens, progress, events, and bookmarks,
+  unlinks devices, and keeps an anonymised tombstone plus an `audit_log` row.
 
 ### 8.2 Consent gating (server-side, not UI-side)
 
@@ -547,6 +611,11 @@ encryption for C9/C14/C10 uploads (A-13).
   `sim_state` capped at 4 KB; transcripts 7-d hard delete with no cold copy.
 - **Pseudonymity:** random client-generated `device_pseudo_id` (UUIDv4); no device fingerprinting;
   no third-party analytics SDKs (repo rule); IP stored only as salted daily-rotating HMAC (A-12).
+- **Account security (ADR-0029):** Argon2id passwords; opaque hashed session tokens in
+  `HttpOnly; Secure; SameSite=Lax` cookies; derived CSRF token on authenticated state-changing
+  calls; single-use hashed verify/reset tokens; no account enumeration; per-family auth rate
+  limits; Google identity attached only on a Google-verified email; delete/export are
+  user-scoped and never expose hashes or tokens.
 - **Consent as middleware** (§8.2), not UI: voice, coverage-sync, and gated EVT refuse without
   a granted record; withdrawal effective next call.
 - **No profiling by construction (T5):** `device` table has no behavioural columns; memory is
@@ -666,9 +735,12 @@ reserve · ≤ 1 500 narration build budget A-15); the only real money lines are
 
 ## 14. ADR index
 
-[`adr/README.md`](adr/README.md) — 16 records, 1:1 map to the eight features.md ADR flags
-(T2→0009, T3→0010, T5→0011, T6→0007, T7→0012, T8→0013, T11→0008, T12→0014) plus eight
-systems-origin decisions (0001, 0002, 0003, 0004, 0005, 0006, 0015, 0016).
+[`adr/README.md`](adr/README.md) — 29 records. 0001–0016 map 1:1 to the eight features.md ADR
+flags (T2→0009, T3→0010, T5→0011, T6→0007, T7→0012, T8→0013, T11→0008, T12→0014) plus the
+systems-origin decisions (0001–0006, 0015, 0016); 0017–0028 are the Wave-S1 spec decisions;
+**0029** is the Wave-1 F0 account decision (one account per email, cookie sessions + CSRF,
+device pseudonymity kept for guests) and supersedes ADR-0007's "no accounts" premise for the
+product runtime.
 
 ## 15. Open questions & unverified facts (consolidated — none smoothed over)
 
