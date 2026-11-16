@@ -233,7 +233,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: full page · loading: static HTML paint (no spinner) · empty: n/a (factory never ships an empty page — hard error upstream) · partial: a block whose sim JS failed shows the on-canvas error painter; text intact · error: kit-missing guard (lesson-kit throws in example; shell logs) · offline: cached full page · permission-denied: n/a · reduced-motion: static · untranslated: English + notice (P1) · quota-exhausted: n/a · consent-missing: n/a
 
-**Surfaces** SCR-LES-01.R1/R3/R7 · EL-LES-01-001…011, 032…036 · INF-009…013, 018, 019, 043…049 · NEED-001 · ENT?-PageMeta · EVT-001, EVT-002
+**Surfaces** SCR-LES-01.R0/R1/R3/R7/R13/R14/R15 · EL-LES-01-001…011, 032…036, 091…110 · INF-009…013, 018, 019, 043…049 · NEED-001 · ENT?-PageMeta · EVT-001, EVT-002. F4 shell (2026-11-16): app bar, chapter drawer, reading progress, bookmarks, end-of-lesson next steps — `docs/specs/frontend/lesson-shell.md`; shell identity is base §1–§9, the lesson body keeps §10.
 
 **Backend needs** NEED-001 (exists). No new capability for P0.
 
@@ -522,7 +522,7 @@ R12 onboarding hints; **SCR-PRIV-01** (Privacy summary); **SCR-ADM-01** (Admin d
 
 **States** | default: auto-anchor = block nearest viewport center · loading: n/a · empty: whole-page anchor when nothing focused · partial: missing sim values → tutor told "values unavailable" · error: payload fail → generic answer + visible note · offline: n/a (voice off) · permission-denied: n/a · reduced-motion: n/a · untranslated: chip label English fallback · quota-exhausted: n/a (typed mode carries the same payload) · consent-missing: n/a
 
-**Surfaces** SCR-LES-01.R9 (chip) + per-block buttons (P1) · EL-LES-01-013, 050, 056 · INF-021, 064 · NEED-005, NEED-007 · ENT?-VoiceTurn · EVT-005
+**Surfaces** SCR-LES-01.R9 (chip) + per-block buttons · EL-LES-01-013, 050, 056 · INF-021, 064 · NEED-005, NEED-007 · ENT?-VoiceTurn · EVT-005. Per-block "Ask about this" (EL-LES-01-013) is built in W2 F4 (2026-11-16): the press sets the explicit anchor for the next turn and opens the dock expanded (`docs/specs/frontend/lesson-shell.md` §6).
 
 **Backend needs** NEED-005 context payload composition into the LLM prompt (Gemma 4 26B A4B per Gate A outcome 2026-11-07; Stage 2 designs the prompt assembly; product states the payload contract above).
 

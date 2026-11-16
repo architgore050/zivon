@@ -151,6 +151,7 @@ Regions follow `docs/product/features.md` §4 and `ui-element-inventory.csv` (97
 | `SCR-HUB-01` (`SCR-HOME-01`) | `.R2` class-grouped catalogue | `EL-HUB-004`, `EL-HUB-005`, `EL-HUB-006` (`EL-HOME-01-005`, `EL-HOME-01-006`, `EL-HOME-01-007`) |
 | `SCR-HUB-01` (`SCR-HOME-01`) | `.R3` footer | `EL-HUB-007` (`EL-HOME-01-008`) |
 | `SCR-HUB-01` (`SCR-HOME-01`) | `global` status | `EL-HUB-008` |
+| `SCR-LES-01` | `.R0` lesson-shell app bar (F4) | `EL-LES-01-091`, `EL-LES-01-092`, `EL-LES-01-093`, `EL-LES-01-094`, `EL-LES-01-095`, `EL-LES-01-096`, `EL-LES-01-097`, `EL-LES-01-109` |
 | `SCR-LES-01` | `.R1` lesson header | `EL-LES-01-001`, `EL-LES-01-002`, `EL-LES-01-003`, `EL-LES-01-004`, `EL-LES-01-005` (`EL-LES-01-081` pen underline) |
 | `SCR-LES-01` | `.R2` language bar | `EL-LES-01-006`, `EL-LES-01-007`, `EL-LES-01-008`, `EL-LES-01-009` (`EL-LES-01-001..004` provisional bar/chips) |
 | `SCR-LES-01` | `.R3` text blocks + read-aloud + anchor | `EL-LES-01-010`, `EL-LES-01-011`, `EL-LES-01-012`, `EL-LES-01-013` (`EL-LES-01-080` ruled lines) |
@@ -163,6 +164,9 @@ Regions follow `docs/product/features.md` §4 and `ui-element-inventory.csv` (97
 | `SCR-LES-01` | `.R10` consent gate overlay (§10.14) | `EL-LES-01-057`, `EL-LES-01-058`, `EL-LES-01-059`, `EL-LES-01-060`, `EL-LES-01-061` |
 | `SCR-LES-01` | `.R11` student settings sheet (P1 deferred) | `EL-LES-01-062`, `EL-LES-01-063`, `EL-LES-01-064`, `EL-LES-01-065`, `EL-LES-01-066`, `EL-LES-01-067` |
 | `SCR-LES-01` | `.R12` first-use onboarding hints (P1 deferred) | `EL-LES-01-068`, `EL-LES-01-069` |
+| `SCR-LES-01` | `.R13` chapter drawer (F4) | `EL-LES-01-098`, `EL-LES-01-099`, `EL-LES-01-100`, `EL-LES-01-101`, `EL-LES-01-102` |
+| `SCR-LES-01` | `.R14` reading progress (F4) | `EL-LES-01-103` |
+| `SCR-LES-01` | `.R15` end-of-lesson next steps (F4) | `EL-LES-01-104`, `EL-LES-01-105`, `EL-LES-01-106`, `EL-LES-01-107`, `EL-LES-01-108`, `EL-LES-01-110` |
 | `SCR-LES-01` | `global` degraded & credit notices | `EL-LES-01-070`, `EL-LES-01-071`, `EL-LES-01-072` |
 | `SCR-PRIV-01` | `.R1..R3` privacy summary & clear data | `EL-PRV-001`, `EL-PRV-002`, `EL-PRV-003`, `EL-PRV-004`, `EL-PRV-005` |
 | `SCR-ADM-01` | `.R0..R5` admin dashboard v0 (`dashboard/`) | `EL-ADM-001..012` (`EL-ADM-001`, `EL-ADM-002`, `EL-ADM-003`, `EL-ADM-004`, `EL-ADM-005`, `EL-ADM-006`, `EL-ADM-007`, `EL-ADM-008`, `EL-ADM-009`, `EL-ADM-010`, `EL-ADM-011`, `EL-ADM-012`) |
@@ -305,6 +309,9 @@ its trigger; the full table lives in the register below (§14.3).
 | `EVT-lang_switched` | chip activation | `from`, `to` |
 | `EVT-sim_error` | error painter | `block_id`, `message_hash` (not the raw message) |
 | `EVT-mic_pressed` / tutor-session events | voice dock (founder-gated) | specified in `ws-client-contract.md` §6 |
+| `EVT-bookmark` | lesson-shell drawer save toggle (F4) | `section_id`, `bookmarked` (bool) — no free text |
+| `EVT-ask_about_this` | per-block chip (F4, `EL-LES-01-013`) | `block_id`, `block_type`, `opened` (bool) |
+| `EVT-lesson_complete` | every section read + ≥90 % scrolled (F4) | `sections_seen` (int), `scroll_pct` (int) |
 
 Transport — the hard constraint: **G2 (`connect-src 'none'`) forbids any sink
 today.** The spec'd design keeps the layer honest without violating CSP:
@@ -541,10 +548,11 @@ construction).
 | `NEED-016` | Language bundle delivery (`i18n.js` / `window.ZIVON_I18N`) | lesson language bar (`EL-LES-01-006..009`) | SATISFIED (stage 10d-transrender + `ZivonLocale`) |
 | `NEED-017` | Block read-aloud narration (`/audio/{course_id}/{block_id}.{lang}.{hash}.opus`) | read-aloud control (`EL-LES-01-012`) | SATISFIED (stage 12-narration + `ZivonReadAloud`) |
 | `NEED-018` | Student settings persistence (`localStorage` device-local) | dock/page controls | SATISFIED (client-local primary) |
+| `NEED-019` | Progress-event + bookmark sync (`POST /v1/progress/events`, `GET/POST/DELETE /v1/bookmarks`) for signed-in students | lesson shell (`ZivonLessonShell.getProgress`/`setProgressSink`, `zivon.bookmarks`) | PENDING (F3, W3) — the shell stays device-local until it lands |
 
 ### 14.3 Event register (canonical EVT-001…018 + SP3 EVT-F01…F12 + SP5 triggers)
 
-Canonical product events (`EVT-001`..`EVT-018` in `docs/product/backend-handoff.md` §4) and SP3 observability events (`EVT-F01`..`EVT-F12` in `docs/specs/observability/instrumentation-map.csv`) map to the client triggers in §9 (`EVT-lesson_viewed`, `EVT-lesson_opened`, `EVT-section_viewed`, `EVT-reveal_opened`, `EVT-sim_opened`, `EVT-sim_control_changed`, `EVT-check_answered`, `EVT-check_retried`, `EVT-mic_pressed`, `EVT-tutor_turn_completed`, `EVT-sim_error`, `EVT-client_error`, `EVT-lang_switched`, `EVT-session_ended`, `EVT-publish_viewed`, `EVT-heartbeat`, `EVT-read_aloud_played`, `EVT-consent_recorded`, `EVT-report_submitted`, `EVT-data_cleared`).
+Canonical product events (`EVT-001`..`EVT-018` in `docs/product/backend-handoff.md` §4) and SP3 observability events (`EVT-F01`..`EVT-F12` in `docs/specs/observability/instrumentation-map.csv`) map to the client triggers in §9 (`EVT-lesson_viewed`, `EVT-lesson_opened`, `EVT-section_viewed`, `EVT-reveal_opened`, `EVT-sim_opened`, `EVT-sim_control_changed`, `EVT-check_answered`, `EVT-check_retried`, `EVT-mic_pressed`, `EVT-tutor_turn_completed`, `EVT-sim_error`, `EVT-client_error`, `EVT-lang_switched`, `EVT-session_ended`, `EVT-publish_viewed`, `EVT-heartbeat`, `EVT-read_aloud_played`, `EVT-consent_recorded`, `EVT-report_submitted`, `EVT-data_cleared`, `EVT-bookmark`, `EVT-ask_about_this`, `EVT-lesson_complete`).
 
 ### 14.4 Walk-through test (reconciled)
 

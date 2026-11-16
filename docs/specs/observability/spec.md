@@ -106,7 +106,7 @@ The taxonomy is closed: adding a class is a spec change (row here + map column n
 
 The complete per-component inventory (events, severities, fields, latency measurements, privacy classes, emitter locations) is [`instrumentation-map.csv`](instrumentation-map.csv) — one row per (component, event), covering factory stages 00-ingest…11-link, the llm-manager node and client, the voice backend per-hop path, the translator, frontend client events, credit counters, dashboard audit events, and `logging_manager`'s own events. Components add rows in the same PR as their code.
 
-**Frontend event contract (EVT-Fxx):** the browser-originated events are named `frontend.<action>` with stable catalogue IDs `EVT-F01`…`EVT-F12` in the map. Exact names/properties (all fields pseudonymous or content-id references; privacy class **L2** per the map — the ADR-0025 usage/telemetry retention class; no free text, no transcripts, no audio):
+**Frontend event contract (EVT-Fxx):** the browser-originated events are named `frontend.<action>` with stable catalogue IDs `EVT-F01`…`EVT-F15` in the map. Exact names/properties (all fields pseudonymous or content-id references; privacy class **L2** per the map — the ADR-0025 usage/telemetry retention class; no free text, no transcripts, no audio):
 
 | EVT ID | Event | Required properties | Transport |
 |---|---|---|---|
@@ -122,6 +122,9 @@ The complete per-component inventory (events, severities, fields, latency measur
 | EVT-F10 | `frontend.session_end` | `client_session_id`, duration bucket, turn count | sendBeacon (pagehide) |
 | EVT-F11 | `frontend.publish_view` | `topic`, source (`pvc`/`snapshot`) — publish-status view aid | sendBeacon |
 | EVT-F12 | `frontend.heartbeat` | `client_session_id` — session liveness, 60 s | sendBeacon |
+| EVT-F13 | `frontend.bookmark` | `topic`, `section_id`, `bookmarked` (bool) — device-local bookmark toggle | sendBeacon |
+| EVT-F14 | `frontend.ask_about_this` | `topic`, `block_id`, `block_type`, `opened` (bool) — explicit tutor anchor | sendBeacon |
+| EVT-F15 | `frontend.lesson_complete` | `topic`, `sections_seen` (int), `scroll_pct` (int) — completion evidence | sendBeacon |
 
 Transport: `navigator.sendBeacon()` to `POST /api/v1/events` (batched `{events: [...]}`, ≤ 32 events or 16 KB per beacon; the voice backend ingests and re-emits through `logging_manager` with component=`frontend`), fallback `fetch(..., {keepalive: true})`; events do **not** ride the voice WebSocket (that channel is audio/control only). Ingest validation is strict: unknown event names and out-of-enum fields are rejected (`voice.events.ingest_rejected`, `client_error`, sampled 1/10) so the catalogue stays exact.
 
