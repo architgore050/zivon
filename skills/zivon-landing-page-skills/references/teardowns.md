@@ -77,9 +77,11 @@ nothing is sold. The page's confidence comes from how little it asks of the
 reader.
 
 **What to learn.** The plain-language evidence GOV.UK publishes is the best
-available argument for short sentences and everyday words: people read a fraction
-of a page, they scan in an F-shape, and plain English is preferred even by
-specialists `[E]`. A page can be authoritative without being ornate.
+available argument for short sentences and everyday words: plain English is
+preferred even by specialists, and the guidance sets hard limits on paragraph
+and sentence length `[E]`. The reading studies make the same case from the other
+direction: people scan in an F-shape and read only a fraction of a page `[E]`.
+A page can be authoritative without being ornate.
 
 **What not to copy.** The institutional flatness, the absence of a voice, the
 task-index structure. Zivon is a product with a maker and a point of view; GOV.UK

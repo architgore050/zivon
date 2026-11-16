@@ -97,8 +97,9 @@ The temptation we refused, and why:
 ## 7. Constraints
 
 ```
-Sections required by the frozen spec:  hero · real 20 s Hinglish demo · live mini-sim ·
-                                       how it works · syllabus coverage · privacy promise ·
+Sections required by the frozen spec:  top bar · hero · real 20 s Hinglish demo ·
+                                       live mini-sim · how it works · syllabus strip ·
+                                       practice/test-series block · privacy promise ·
                                        founder/build-in-public note · FAQ · footer
 Sections we propose to cut or merge (with reason):
 Sections we propose to add (with the objection they answer):
@@ -107,7 +108,8 @@ Compliance copy that must appear or be linked:  docs/compliance/notices.md
 
 Changing the frozen list is a decision, recorded — not a silent edit. If the
 brief proposes a different order, say so here and cite the argument rule it
-serves (`page-anatomy.md` §4).
+serves (`page-anatomy.md` §4). The practice/test-series block is a frozen
+section: merging it into Coverage is a proposal for the founder, not a default.
 
 ## 8. Success
 

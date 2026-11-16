@@ -368,6 +368,32 @@ class LandingPageBundleTests(unittest.TestCase):
         # A proposed change to the frozen section list is flagged, not taken.
         self.assertIn("flagged not taken", text)
 
+    def test_frozen_practice_section_is_not_silently_merged(self) -> None:
+        """The practice/test-series block is frozen; merging it needs a decision."""
+        for relative in (
+            "templates/landing-brief.md",
+            "templates/storyboard.md",
+            "templates/wireframe.md",
+            "references/page-anatomy.md",
+        ):
+            text = self._text(relative).lower()
+            self.assertIn("practice", text, f"{relative} omits the practice section")
+            self.assertTrue(
+                "test-series" in text or "test series" in text,
+                f"{relative} omits the test-series section",
+            )
+        example = " ".join(self._text("examples/zivon-landing-brief.md").split())
+        self.assertIn("proposed here and decided by the founder", example)
+        self.assertIn("flagged not taken", example)
+
+    def test_audience_choice_is_flagged_as_a_proposal(self) -> None:
+        """Referral-vs-search is a positioning proposal, not a frozen decision."""
+        audience = self._text("references/audience-and-emotion.md")
+        self.assertIn("Proposal, pending the founder's decision", audience)
+        example = self._text("examples/zivon-landing-brief.md")
+        self.assertIn("Open questions for the founder", example)
+        self.assertIn("referral traffic or for search", example)
+
     def test_no_competing_authority_is_created(self) -> None:
         """The bundle interprets the doctrine; it must not claim to own it."""
         readme = self._text("README.md")

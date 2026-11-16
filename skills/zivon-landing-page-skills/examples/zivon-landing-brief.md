@@ -46,9 +46,10 @@ Languages on this page: EN, हिन्दी, Hinglish (a real sample, not a b
 Device:                 360 px, shared connection, possibly someone else's data
 ```
 
-### Why not "search traffic"
+### Why not "search traffic" (a proposal, not a frozen decision)
 
-Search traffic mostly lands on chapter pages (PUB-04), not on `/`. A student
+This brief follows the proposal in `audience-and-emotion.md` §2: search traffic
+mostly lands on chapter pages (PUB-04), not on `/`. A student
 searching "refraction class 10 numericals" wants the answer, and sending them to
 a pitch would be a worse page for them and a worse bounce for us. The landing
 page's job is the reader who has *heard of it* and needs to be convinced; the
@@ -234,6 +235,9 @@ The decision rule, written before launch: *B ships if `chapter_open` rises by
    brief assumes a linked page, with one labelled line on the landing page.
 4. **Which chapter is the default deep link from "Open a chapter"?** It should be
    the strongest live page, not the first in the catalogue.
+5. **Is `/` written for referral traffic or for search?** This brief follows the
+   referral reading in `audience-and-emotion.md` §2. If search is expected to
+   land on `/`, the hero, the section order and the promise all change.
 
 ## 9. What this example is not
 

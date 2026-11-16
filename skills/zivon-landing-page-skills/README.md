@@ -91,11 +91,13 @@ step 5, not before: it is one solution to the method, not the method.
   The doctrine is founder-authored; this bundle interprets it and records any
   derivation (for example a web type scale) as a derivation for the founder's
   verdict, never as a new rule.
-- **Product authority:** `docs/product/features.md` (F1 public site, PUB-01
-  landing), `docs/product/decision-log.csv`, `docs/product/ui-element-inventory.csv`,
-  and the frozen full-frontend plan (`tmp/full-frontend/FEATURE-MAP.md`,
-  `REQUIREMENTS.md` §10.1). Those decisions are already made; this bundle does
-  not re-open them.
+- **Product authority:** `docs/product/features.md`,
+  `docs/product/decision-log.csv`, `docs/product/ui-element-inventory.csv`, and
+  the frozen full-frontend plan (`tmp/full-frontend/FEATURE-MAP.md` F1/PUB-01,
+  `REQUIREMENTS.md` §10.1). The `tmp/` files are workspace-local and not
+  committed; if they are absent, use `docs/product/features.md` +
+  `docs/specs/frontend/`. Those decisions are already made; this bundle does not
+  re-open them.
 - **Compliance authority:** `docs/compliance/` for NCERT attribution,
   CBSE non-affiliation, and user-facing notice copy.
 - **External research:** eighteen sources fetched 2026-11-16, listed with URL,

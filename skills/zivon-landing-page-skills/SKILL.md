@@ -22,7 +22,8 @@ ad, and cut it like an ad.
 
 Five claims this bundle is built on. Each is argued and sourced in
 [references/sources.md](references/sources.md); `[E]` marks research or a
-published standard, `[P]` marks practitioner opinion.
+published standard, `[P]` marks practitioner opinion, and `[R]` marks a rule
+this repo has already decided.
 
 1. **A landing page is an ad, not a site.** It has one job and one audience.
    Everything that serves a second job dilutes the first `[P]`.

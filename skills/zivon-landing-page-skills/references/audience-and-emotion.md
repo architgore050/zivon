@@ -40,15 +40,24 @@ describes buyer readiness well `[P]`. What matters for a landing page is that
 | **A build-in-public post** | curious about the maker | "I want to see what this person is building" | the maker's page (`/about`, the log) — not the landing page | a landing page pretending to be a blog |
 | **Returning visitor** | most-aware | "I know this; let me continue" | get out of the way: continue, resume, open the chapter | being re-sold the product they already chose |
 
-**Decision:** the landing page is written for entrances 1 and 2. Entrances 3, 4
-and 5 get their own surfaces (a parents/teachers page, `/about`, a resume
-affordance). Trying to absorb them by adding sections is how a page becomes a
-brochure.
+"The first screen" below means the page that entrance actually lands on, not
+necessarily `/`.
 
-This matters more than it looks. Search traffic is the largest cold source and
-the least patient: the reader wants the concept, not the company. A landing page
-that hides the answer behind a signup converts the *wrong* thing — it produces a
-bounce and a bad first impression, not a user.
+**Proposal, pending the founder's decision:** the landing page's primary reader
+is entrance 2 (a classmate's link), with entrance 1 (search) routed to the
+chapter pages that answer the specific query. Entrances 3, 4 and 5 get their own
+surfaces (a parents/teachers page, `/about`, a resume affordance). Trying to
+absorb them by adding sections is how a page becomes a brochure.
+
+This is a positioning proposal, not a frozen decision. The frozen spec makes `/`
+indexable, and the chapter pages are the SEO surface, so if brand or generic
+search is expected to land on `/`, the hero and the section order change. Record
+the choice in the brief's open questions before the hero is written.
+
+Search traffic is the largest cold source and the least patient: the reader
+wants the concept, not the company. Whether that reader lands on `/` or on a
+chapter page, a signup wall between them and the answer converts the *wrong*
+thing — it produces a bounce and a bad first impression, not a user.
 
 ## 3. Jobs to be done
 

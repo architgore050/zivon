@@ -20,7 +20,7 @@ These are not suggestions to be re-litigated per page.
 |---|---|
 | Paper-yellow ground (`--paper`), dark ink (`--ink`) | the page is warm paper with dark type, not white with grey cards |
 | Graphite (`--graphite`) for labels, captions, sources | secondary text is a *darker grey-brown*, never a lighter grey |
-| Pen-blue (`--pen-blue`) for the one annotation | one blue mark per screen, and it is the only blue on the page |
+| Pen-blue (`--pen-blue`) for the one annotation | one blue *mark* per screen; link colour is the kit's, not a second annotation |
 | Pencil-red (`--pencil-red`) only for gaps and honest corrections | never a red CTA, never a red "sale" badge |
 | Tick-green (`--tick-green`) only for done marks | no green success confetti |
 | Bricolage Grotesque for display and body | the brand voice is a characterful grotesque, not Inter |

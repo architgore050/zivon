@@ -28,9 +28,12 @@ optimised directly.
 ## 2. The event set
 
 The frozen spec already names the landing events (`landing_view`, `demo_play`,
-`cta_try`, `cta_login` in `REQUIREMENTS.md` §10.1 and the event register in
-`docs/product/backend-handoff.md`). Use those names; do not invent a parallel
-scheme.
+`cta_try`, `cta_login` in `REQUIREMENTS.md` §10.1; three of them are repeated in
+`skills/zivon-frontend-product-skills/references/screens-and-states.md`).
+Use those names; do not invent a parallel scheme. `chapter_open` is in the same
+document's public-event register. `faq_open` below is a proposed diagnostic: it
+must be added to `docs/specs/observability/instrumentation-map.csv` in the same
+PR that ships it, or it does not ship.
 
 | Event | Fires when | Useful properties | What it diagnoses |
 |---|---|---|---|

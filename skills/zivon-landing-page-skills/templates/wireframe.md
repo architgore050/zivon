@@ -48,6 +48,7 @@ Rules for this screen:
 [ mechanism: 3-5 numbered steps    ]
 [ proof: artifact / source / number]
 [ coverage: class -> chapters      ]
+[ practice/test series: one line ea]
 [ privacy: 3 specific facts        ]
 [ founder: one paragraph + link    ]
 [ FAQ: 4-6 <details>               ]

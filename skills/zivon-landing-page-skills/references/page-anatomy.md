@@ -2,9 +2,11 @@
 
 What each section is for, what order they go in, and when a section should not
 exist. The frozen product spec (`tmp/full-frontend/REQUIREMENTS.md` §10.1,
-PUB-01 in `FEATURE-MAP.md`) lists the landing page's contents. This file does not
-change that list; it decides **what each item has to accomplish** and **what
-deletes it**.
+PUB-01 in `FEATURE-MAP.md`) lists the landing page's contents. Those files are
+workspace-local and not committed; if they are absent, use
+`docs/product/features.md` + `docs/specs/frontend/`. This file does not change
+the list; it decides **what each item has to accomplish** and **what deletes
+it**.
 
 ## 1. The first screen
 
@@ -46,10 +48,11 @@ screen 2   "Does it actually work?"     -> live specimen / demo
 screen 3   "How does it do that?"       -> mechanism
 screen 4   "Can I trust it?"            -> sources, review, honest limits
 screen 5   "Is it for my class?"        -> coverage
-screen 6   "Is it safe?"                -> privacy and child safety
-screen 7   "Who made it, and why?"      -> founder / build-in-public note
-screen 8   "I still have a doubt"       -> objections / FAQ
-screen 9   "What do I do?"              -> final CTA
+screen 6   "Is there something to do?"  -> practice / test series
+screen 7   "Is it safe?"                -> privacy and child safety
+screen 8   "Who made it, and why?"      -> founder / build-in-public note
+screen 9   "I still have a doubt"       -> objections / FAQ
+screen 10  "What do I do?"              -> final CTA
 ```
 
 A section that answers nothing in this chain is furniture. Delete it before
@@ -134,7 +137,20 @@ Full rules in [proof-and-trust.md](proof-and-trust.md).
 - **Failure mode:** implying full coverage when only Class 9–10 is live. The
   reader finds out at the first click, and the whole page becomes suspect.
 
-### 3.7 Privacy and child safety
+### 3.7 Practice and test series
+
+- **Job:** answer "is there something to do after I read?"
+- **Carries:** the series that exist, one line each, what is live and what is
+  planned, and a dated count where a count appears.
+- **Value test:** does the reader learn whether practising here is possible?
+  If Coverage and the catalogue already answer it, link rather than duplicate.
+- **Omit when:** nothing is live yet and the catalogue says so better — link,
+  do not mock up a block.
+- **Failure mode:** promising exam-style series the product cannot serve; a
+  count with no date. This is a frozen section, not an optional one: merging it
+  into Coverage is a proposal for the founder, recorded in the brief.
+
+### 3.8 Privacy and child safety
 
 - **Job:** answer the parent's and the student's real question: what is kept,
   who sees it, how it is deleted.
@@ -144,7 +160,7 @@ Full rules in [proof-and-trust.md](proof-and-trust.md).
 - **Omit when:** never for a product used by minors.
 - **Failure mode:** "We value your privacy" with no facts; a shield icon.
 
-### 3.8 Founder / build-in-public note
+### 3.9 Founder / build-in-public note
 
 - **Job:** answer "who made this and why should I believe them?"
 - **Carries:** one short paragraph, a real name, a link to the log, and one
@@ -156,7 +172,7 @@ Full rules in [proof-and-trust.md](proof-and-trust.md).
 - **Failure mode:** a founding myth; a photo of a whiteboard; "we're passionate
   about education".
 
-### 3.9 Objections / FAQ
+### 3.10 Objections / FAQ
 
 - **Job:** remove the last specific doubts.
 - **Carries:** four to eight questions in the reader's words, each answered in
@@ -168,7 +184,7 @@ Full rules in [proof-and-trust.md](proof-and-trust.md).
 - **Failure mode:** "Is Zivon safe? Yes, absolutely!" — an answer with no
   information.
 
-### 3.10 Final CTA
+### 3.11 Final CTA
 
 - **Job:** the same action, restated once, at the point of maximum belief.
 - **Carries:** the same words as the primary CTA, plus what happens next.
@@ -177,7 +193,7 @@ Full rules in [proof-and-trust.md](proof-and-trust.md).
 - **Omit when:** the page is short enough that the first CTA is still on screen.
 - **Failure mode:** a different action from the hero's.
 
-### 3.11 Footer
+### 3.12 Footer
 
 - **Job:** legal, trust, and navigation to the non-marketing pages.
 - **Carries:** privacy, terms, child safety, contact, status, sources,
@@ -232,6 +248,7 @@ Mobile is the default, not the adaptation. At 360 px:
 | Mechanism | one column; steps as a numbered list, not cards |
 | Proof | one column; the strongest item first |
 | Coverage | a table that wraps, or a list — never a horizontally scrolling grid |
+| Practice / test series | one column; one line per series; no horizontally scrolling grid |
 | Privacy | short, factual, above the FAQ |
 | Founder note | after privacy, before the FAQ |
 | FAQ | `<details>` elements; the answers present without JS |

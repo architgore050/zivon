@@ -14,12 +14,17 @@ fill every column; a blank column is a decision not made.
 | 3 | Live specimen | | | | | | |
 | 4 | Mechanism | | | | | | |
 | 5 | Proof / sources | | | | | | |
-| 6 | Coverage | | | | | | |
-| 7 | Privacy | | | | | | |
-| 8 | Founder note | | | | | | |
-| 9 | FAQ | | | | | | |
-| 10 | Final CTA | | | | | | |
-| 11 | Footer | | | | | | |
+| 6 | Coverage (syllabus strip) | | | | | | |
+| 7 | Practice / test series | | | | | | |
+| 8 | Privacy | | | | | | |
+| 9 | Founder note | | | | | | |
+| 10 | FAQ | | | | | | |
+| 11 | Final CTA | | | | | | |
+| 12 | Footer | | | | | | |
+
+The practice/test-series row is a frozen section. If the brief proposes merging
+it into Coverage, keep both rows and record the merge in the brief's "sections
+we propose to cut or merge" field; do not delete the row silently.
 
 ## The value test
 
@@ -88,6 +93,7 @@ Demo
 Mechanism
 Proof
 Coverage
+Practice / test series
 Privacy
 Founder
 FAQ
