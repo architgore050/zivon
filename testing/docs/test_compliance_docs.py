@@ -144,6 +144,98 @@ class ComplianceDocsContract(unittest.TestCase):
         self.assertGreater(len(devanagari), 100, "Hindi notice copy is missing")
         self.assertIn("पेपर", text)
 
+    def test_notice_contract_declares_localized_labels(self) -> None:
+        """Every placeholder that renders words must have a Hindi value too."""
+        text = read(NOTICES)
+        for label in (
+            "मुख्य परीक्षा पेपर",
+            "नमूना प्रश्न-पत्र",
+            "सेट 55/1/1, प्रश्न 23",
+            "भौतिकी",
+        ):
+            with self.subTest(label=label):
+                self.assertIn(label, text, "missing localized notice value")
+
+    def _notice_block(self, text: str, notice_id: str, language: str) -> str:
+        heading = re.search(rf"^## {notice_id} .*$", text, re.MULTILINE)
+        if heading is None:
+            self.fail(f"{notice_id} has no heading")
+        rest = text[heading.end() :]
+        nxt = re.search(r"^## ", rest, re.MULTILINE)
+        section = rest[: nxt.start()] if nxt else rest
+        match = re.search(
+            rf"\*\*{language}\*\*\n\n```text\n(.*?)\n```", section, re.DOTALL
+        )
+        if match is None:
+            self.fail(f"{notice_id} has no {language} copy")
+        return match.group(1)
+
+    def test_notices_render_cleanly_in_both_modes_and_languages(self) -> None:
+        """Render every notice with real values: no doubled word, no leaked token."""
+        text = read(NOTICES)
+        base = {
+            "contact_email": "compliance@example.com",
+            "source_board": "CBSE",
+            "class_num": "12",
+            "subject_code": "042",
+            "paper_year": "2024",
+            "source_url": "https://www.cbse.gov.in/example-paper.pdf",
+        }
+        # (language, subject, series_name, {paper: (paper_type, paper_ref)}, ascii allowed)
+        languages: list[tuple[str, str, str, dict[str, tuple[str, str]], set[str]]] = [
+            (
+                "EN",
+                "Physics",
+                "Past-year questions (CBSE)",
+                {
+                    "main": ("main exam paper", "Set 55/1/1, Question 23"),
+                    "sample": ("sample paper", "Question 12"),
+                },
+                {"CBSE"},
+            ),
+            (
+                "HI",
+                "भौतिकी",
+                "पिछले वर्षों के प्रश्न (CBSE)",
+                {
+                    "main": ("मुख्य परीक्षा पेपर", "सेट 55/1/1, प्रश्न 23"),
+                    "sample": ("नमूना प्रश्न-पत्र", "प्रश्न 12"),
+                },
+                {"CBSE"},
+            ),
+        ]
+        for notice_id in ("N-01", "N-02", "N-03", "N-04"):
+            for language, subject, series_name, papers, ascii_allow in languages:
+                block = self._notice_block(text, notice_id, language)
+                for paper, (paper_type, paper_ref) in papers.items():
+                    resolved = dict(
+                        base,
+                        subject=subject,
+                        series_name=series_name,
+                        paper_type=paper_type,
+                        paper_ref=paper_ref,
+                    )
+                    with self.subTest(notice=notice_id, lang=language, paper=paper):
+                        rendered = block
+                        for name, value in resolved.items():
+                            rendered = rendered.replace("{{" + name + "}}", value)
+                        self.assertNotIn("{{", rendered, "unresolved placeholder")
+                        doubled = re.findall(r"\b(\w+) \1\b", rendered)
+                        self.assertEqual(
+                            doubled, [], f"notice renders a doubled word: {doubled}"
+                        )
+                        if language != "HI":
+                            continue
+                        scrubbed = rendered.replace(base["source_url"], "").replace(
+                            base["contact_email"], ""
+                        )
+                        leaked = set(re.findall(r"[A-Za-z]{4,}", scrubbed))
+                        self.assertLessEqual(
+                            leaked,
+                            ascii_allow,
+                            f"Hindi notice carries an English label: {leaked}",
+                        )
+
     def test_placeholders_are_declared_and_all_used(self) -> None:
         text = read(NOTICES)
         start = text.index("<!-- placeholder-contract:start -->")
@@ -193,6 +285,13 @@ class ComplianceDocsContract(unittest.TestCase):
         self.assertLessEqual(cited, defined, "memo cites an undefined source")
         orphans = defined - cited
         self.assertFalse(orphans, f"sources never cited in the memo: {sorted(orphans)}")
+
+    def test_secondary_sources_are_defined_before_use(self) -> None:
+        defined = set(re.findall(r"^\| (X-\d{2}) \|", read(SOURCES), re.MULTILINE))
+        cited = set(re.findall(r"\bX-\d{2}\b", read(MEMO)))
+        self.assertTrue(defined, "secondary-source register is empty")
+        self.assertLessEqual(cited, defined, "memo cites an undefined secondary source")
+        self.assertTrue(cited, "memo cites no secondary source")
 
     def test_relative_markdown_links_resolve(self) -> None:
         link = re.compile(r"\[[^\]]+\]\(([^)]+)\)")

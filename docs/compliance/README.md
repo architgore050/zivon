@@ -30,7 +30,8 @@ re-doing the research or guessing.
 ## Current status
 
 **`DEC-COMP-001` is active: `EXAM_CONTENT_MODE=blueprint_only` is the shipping
-default.** Verbatim CBSE items may not reach a student or a public page until a
+default.** No exam-content code exists yet (P3 builds it); this decision binds
+that build. Verbatim CBSE items may not reach a student or a public page until a
 clearance record exists in [`decision-log.md`](decision-log.md) — written CBSE
 permission or a written Indian-counsel opinion. A legal notice does not create
 that permission. See [`cbse-exam-content.md`](cbse-exam-content.md) §0 and §6.
@@ -73,7 +74,9 @@ S-NN  source (what we read, when, and whether it actually loaded)
 Review this folder **quarterly** (next: 2027-02-15) and immediately when any of
 these triggers fires:
 
-1. A new CBSE session's papers or SQPs are published (every spring).
+1. A new CBSE session's papers or SQPs are published (SQPs are notified before
+   the session — notification 132/2026 is dated 2026-09-21, S-10 — and past
+   papers follow the exams).
 2. CBSE updates its Website Policy or publishes a reuse circular.
 3. CBSE replies to the permission request (`Appendix A` of the memo).
 4. Counsel answers any `CQ-##`.

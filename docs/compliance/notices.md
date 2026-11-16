@@ -28,19 +28,34 @@ No Hinglish on these notices. Voice: plain, short, no legalese, no apology.
 | `{{subject}}` | `item.source_ref.subject` | `Physics` or `Science (Physics section)` | `N-01`, `N-02` |
 | `{{subject_code}}` | `item.source_ref.subject_code` | `042` | `N-02` |
 | `{{paper_year}}` | `item.source_ref.year` | `2024` | `N-02`, `N-04` |
-| `{{paper_type}}` | `item.source_ref.paper_type` mapped to a label | `main exam`, `compartment exam`, `sample paper` | `N-02`, `N-04` |
-| `{{paper_ref}}` | composed from `set_code` and `question_no` | `Set 55/1/1, Question 23` (board paper) / `Question 12` (sample paper, marking scheme) | `N-02` |
+| `{{paper_type}}` | `item.source_ref.paper_type` mapped to a localized label (table below) | `main exam paper`, `compartment exam paper`, `sample paper` | `N-02`, `N-04` |
+| `{{paper_ref}}` | composed from `set_code` and `question_no`, localized (table below) | `Set 55/1/1, Question 23` / `Question 12` | `N-02` |
 | `{{source_url}}` | `item.source_ref.source_url` | `https://www.cbse.gov.in/...` | `N-02` |
-| `{{series_name}}` | series display name | `Past-year questions (CBSE)` | `N-03` |
+| `{{series_name}}` | localized series display name | `Past-year questions (CBSE)` | `N-03` |
+
+Localized values — `{{subject}}`, `{{paper_type}}`, `{{paper_ref}}`, `{{series_name}}`:
+
+| Value | EN | HI |
+|---|---|---|
+| `subject: Physics` / `Science (Physics section)` | `Physics` / `Science (Physics section)` | `भौतिकी` / `विज्ञान (भौतिकी खंड)` |
+| `paper_type: main` | `main exam paper` | `मुख्य परीक्षा पेपर` |
+| `paper_type: compartment` | `compartment exam paper` | `कम्पार्टमेंट परीक्षा पेपर` |
+| `paper_type: sample` | `sample paper` | `नमूना प्रश्न-पत्र` |
+| `paper_ref` with `set_code` | `Set 55/1/1, Question 23` | `सेट 55/1/1, प्रश्न 23` |
+| `paper_ref` without `set_code` | `Question 12` | `प्रश्न 12` |
+| `series_name` | `Past-year questions (CBSE)` | `पिछले वर्षों के प्रश्न (CBSE)` |
 
 <!-- placeholder-contract:end -->
 
 Resolution rules: `paper_type` is the type of the *paper* the item came from and
-maps `main → "main exam"`, `compartment → "compartment exam"`, `sample →
-"sample paper"`. A marking-scheme item keeps its paper's type and is identified
-by `source_type: verbatim_cbse_ms`, not by a `paper_type`. `paper_ref` drops the
-`Set …` clause when `set_code` is null. Never render a raw enum, a slug, or an
-empty clause.
+maps `main → "main exam paper"`, `compartment → "compartment exam paper"`,
+`sample → "sample paper"`. The label already ends in "paper", so the notice
+strings never append one. A marking-scheme item keeps its paper's type and is
+identified by `source_type: verbatim_cbse_ms`, not by a `paper_type`. `paper_ref`
+drops the `Set …` clause when `set_code` is null. Every placeholder that renders
+words — `subject`, `paper_type`, `paper_ref`, `series_name` — resolves to the
+language of the notice, so a Hindi notice never carries an English label. Never
+render a raw enum, a slug, an untranslated label, or an empty clause.
 
 ## N-01 — generated exam-pattern notice
 
@@ -61,13 +76,13 @@ These practice questions are written by Zivon in the style of the CBSE Class {{c
 **EN**
 
 ```text
-Source: {{source_board}} Class {{class_num}} {{subject}} ({{subject_code}}), {{paper_year}} {{paper_type}} paper, {{paper_ref}}. Reproduced unchanged from the paper published by CBSE at {{source_url}}. Zivon is not affiliated with or endorsed by CBSE.
+Source: {{source_board}} Class {{class_num}} {{subject}} ({{subject_code}}), {{paper_year}} {{paper_type}}, {{paper_ref}}. Reproduced unchanged from the paper published by CBSE at {{source_url}}. Zivon is not affiliated with or endorsed by CBSE.
 ```
 
 **HI**
 
 ```text
-स्रोत: {{source_board}} कक्षा {{class_num}} {{subject}} ({{subject_code}}), {{paper_year}} {{paper_type}} पेपर, {{paper_ref}}। CBSE द्वारा {{source_url}} पर प्रकाशित पेपर से बिना किसी बदलाव के प्रस्तुत। ज़ीवोन CBSE से संबद्ध नहीं है और CBSE इसका अनुमोदन नहीं करता।
+स्रोत: {{source_board}} कक्षा {{class_num}} {{subject}} ({{subject_code}}), {{paper_year}} {{paper_type}}, {{paper_ref}}। CBSE द्वारा {{source_url}} पर प्रकाशित पेपर से बिना किसी बदलाव के प्रस्तुत। ज़ीवोन CBSE से संबद्ध नहीं है और CBSE इसका अनुमोदन नहीं करता।
 ```
 
 ## N-03 — verbatim series intro
@@ -89,13 +104,13 @@ Source: {{source_board}} Class {{class_num}} {{subject}} ({{subject_code}}), {{p
 **EN**
 
 ```text
-The answer shown is reproduced from the CBSE marking scheme for the {{paper_year}} {{paper_type}} paper. The explanation and any extra working are Zivon's own and are not part of the official marking scheme.
+The answer shown is reproduced from the CBSE marking scheme for the {{paper_year}} {{paper_type}}. The explanation and any extra working are Zivon's own and are not part of the official marking scheme.
 ```
 
 **HI**
 
 ```text
-दिखाया गया उत्तर CBSE की {{paper_year}} {{paper_type}} पेपर की मार्किंग स्कीम से लिया गया है। व्याख्या और अतिरिक्त हल ज़ीवोन के अपने हैं और आधिकारिक मार्किंग स्कीम का हिस्सा नहीं हैं।
+दिखाया गया उत्तर CBSE की {{paper_year}} {{paper_type}} की मार्किंग स्कीम से लिया गया है। व्याख्या और अतिरिक्त हल ज़ीवोन के अपने हैं और आधिकारिक मार्किंग स्कीम का हिस्सा नहीं हैं।
 ```
 
 ## N-05 — takedown / rights request

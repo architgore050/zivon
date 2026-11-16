@@ -85,12 +85,13 @@ Government, a Legislature, or a court. CBSE describes itself as "an autonomous
 organisation under the Ministry of Education" (S-10 letterhead), not a Government
 department. *Agarwala* refused to treat a board's papers as Government works
 because the board did not direct or control how paper-setters worked (S-15).
-Section 17(dd) separately makes a public undertaking the first owner of works it
-makes, and the Delhi High Court accepted that CBSE is a public undertaking for
-this purpose (S-16). Either classification keeps the 2022–2026 papers
-protected for decades (60 years from publication under s. 28A, or the author's
-life plus 60 under s. 22). **[STRONG] on "still in copyright"; [MODERATE] on the
-classification**
+Section 17(dd) separately makes a public undertaking the first owner of a work
+"made or first published by or under the direction or control of" it, and the
+Delhi High Court accepted both that CBSE is a public undertaking for this purpose
+and that its papers are set under its "direction or control" (S-16). Either
+classification keeps the 2022–2026 papers protected for decades (60 years from
+publication under s. 28A, or the author's life plus 60 under s. 22).
+**[STRONG] on "still in copyright"; [MODERATE] on the classification**
 
 **F-05 — Assume CBSE owns or controls the rights.** In *Rupendra Kashyap* the
 Delhi High Court accepted CBSE's evidence that paper-setters' rights vest in the
@@ -208,18 +209,20 @@ no implied endorsement, no "CBSE-approved". **[STRONG] on enforcement activity;
 [MODERATE] on the doctrinal outcome** → `CQ-05`.
 
 **F-17 — "Everyone else republishes them" is not a defence.** Dozens of
-commercial sites host CBSE papers. None of the ones checked publishes a
-permission record, and the presence of infringing copies on the web does not
-create a licence. This memo does not rely on industry practice. **[STRONG]**
+commercial sites host CBSE papers, and the presence of infringing copies on the
+web does not create a licence. This memo does not rely on industry practice; the
+informal survey behind that sentence is not evidence and is not cited as such.
+**[STRONG] on the legal point; the survey is unsourced.**
 
 **F-18 — Some CBSE question banks are partner-built.** CBSE Academic's own
-competency pages state that item banks were "developed in collaboration with Sri
-Aurobindo Society and ACER" and "with British Council and AlphaPlus", and that
-practice papers were "developed by Educational Initiatives in Collaboration with
-CBSE" (S-21). If P3 ever ingests those banks, the Website Policy's carve-out for
-"implementation partner and third party" material applies and permission must
-come from the partner. For board papers the same caution means an item-level
-check for externally owned diagrams or passages (`CQ-10`). **[STRONG]**
+competency pages state "Developed in collaboration with Sri Aurobindo Society and
+ACER" and "Developed in collaboration with British Council and AlphaPlus", and
+that practice papers were "developed by Education Initiatives in Collaboration
+with CBSE" (S-21; the page spells the company "Education Initiatives" — it is
+Educational Initiatives). If P3 ever ingests those banks, the Website Policy's
+carve-out for "implementation partner and third party" material applies and
+permission must come from the partner. For board papers the same caution means an
+item-level check for externally owned diagrams or passages (`CQ-10`). **[STRONG]**
 
 ---
 
@@ -296,11 +299,15 @@ to CBSE (`N-04`).
 acknowledgement, same-day hide, 5-business-day review, permanent removal with
 cache/CDN purge and sitemap refresh, register entry. Copy: `N-05`; process: §7.6.
 
-**What this does not change:** AGENTS.md still says "NCERT and public-domain
-sources only". This memo defines an exam-content policy that *could* widen that
-rule after clearance, but it does not edit the rule. If the founder approves
-verbatim mode, the AGENTS.md sourcing sentence must be amended in that same
-change (W0 owns AGENTS.md during this wave).
+**What this does not change:** the AGENTS.md content-sourcing rule. Since the W0
+reframe landed (2026-11-15), that rule reads "NCERT (officially free) and
+public-domain sources only", plus a CBSE clause: nothing is ingested, reproduced
+or published until this memo lands, and P3 ingest/publish stays behind a feature
+flag until then. This memo meets that condition, so the operative rule for exam
+content is now `DEC-COMP-001` — blueprint-only, with verbatim blocked on the
+clearance register — and the sourcing sentence still forbids verbatim
+publication. If the founder ever approves verbatim mode, that AGENTS.md sentence
+must be amended in the same change.
 
 ---
 
@@ -314,7 +321,7 @@ is the contract; nothing here is implemented by C0.
 | Flag | Values | Default | Behaviour |
 |---|---|---|---|
 | `EXAM_CONTENT_MODE` | `blueprint_only` \| `attributed_verbatim` | `blueprint_only` | Gates every verbatim publish path |
-| `EXAM_VERBATIM_CLEARANCE_ID` | string or empty | empty | Must reference a `DEC-COMP-001` clearance row; empty blocks `attributed_verbatim` |
+| `EXAM_VERBATIM_CLEARANCE_ID` | string or empty | empty | Must reference a row in the [clearance register](decision-log.md#clearance-register); empty blocks `attributed_verbatim` |
 | `SERIES_EXACT_PYQ_ENABLED` | `true` \| `false` | `false` | Hides the past-year series entirely until both the mode and clearance are set |
 
 The build must fail closed: an unknown value, a missing clearance id, or
@@ -345,7 +352,7 @@ source_ref:
   marks: 3
   source_url: https://www.cbse.gov.in/...
   retrieved_at: 2026-11-15
-  file_sha256: 23c665ad...
+  file_sha256: "<sha256 of the stored PDF>"   # example value, not a real digest
   page: 7
   third_party_content: false
 licence_basis: none           # none | cbse_website_policy | written_permission |
