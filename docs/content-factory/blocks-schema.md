@@ -16,6 +16,9 @@ Common block fields:
 | `spec` | object, shape per type below |
 | `citations` | `[{"claim_id": "claim-01"}]` - must reference ground-truth claim ids; required on all factual blocks (a text/worked_example/check/reveal block without citations is a fatal rule failure) |
 
+Optional metadata fields (additive, 2026-11-15) are listed in
+[Content identity and block metadata](#content-identity-and-block-metadata-2026-11-15).
+
 ## text
 
     {"paragraphs": ["...", ...]}
@@ -75,6 +78,104 @@ loud, never blank).
 
 First block is `text`; last block is `check`; at least 3 checks spread through
 the page; diagrams/simulations interleaved where a teacher would put them.
+
+## Content identity and block metadata (2026-11-15)
+
+The generated page must be **self-describing**: chapter/concept identity, section
+structure, stable machine hooks, and a catalogue the product layers can consume
+without re-parsing HTML. Everything in this section is additive - a
+`PIPELINE_VERSION`-9 draft still loads and renders (the renderer derives what an
+older draft does not carry), so this is not a schema-version break.
+
+### Identity fields
+
+| Field | Where | Rule |
+|---|---|---|
+| `chapter_id` | `manifest.json` | `class-<n>-<topic-slug>` (`class-9-motion`). Deterministic from the located chapter; the page directory slug and the manifest agree. |
+| `lesson_id` | `manifest.json` | Same value as `chapter_id`: a chapter owns exactly one lesson page. |
+| `concept_id` | section wrapper + every block + `manifest.json` | `<chapter_id>-<section_id>` (`class-9-motion-sec-03`). A **stable grouping key**, not a curated syllabus concept: P2's `concept-tag` stage may re-map it. Until then no block is an orphan. |
+| `section_id` | block (optional input), section wrapper, manifest | `sec-01`… owned by `lesson.sections`. |
+| `chapter.title` | `manifest.json` | Must name a chapter. Page furniture ("Grade", "Grade 7", "Chapter-04.indd 48", a running header) is rejected and repaired from the locator's matched line or the operator's query; if nothing usable is left the render **fails loudly** instead of publishing a placeholder (`factory/identity.py`). |
+
+Block metadata (all optional, validated by `factory/schemas.py`):
+
+| Field | Applies to | Rule |
+|---|---|---|
+| `section_id` | any block | `^sec-[0-9]{2}$`. The generation prompt asks the draft to name the lesson section each block teaches. When absent (older drafts, or a block the author left unattributed) `factory/sections.py` derives it from prose overlap and makes the assignment monotone, so a section owns a contiguous run of blocks. |
+| `concept_id` | any block | Stamped by the renderer from the owning section; never invented per block. |
+| `difficulty` | checks | `easy` \| `medium` \| `hard` (REQUIREMENTS §7.3). Optional. |
+| `expected_time_ms` | checks | Integer milliseconds, 1 000–1 800 000. Optional; the real time priors are P2's `time-priors` stage. |
+
+### Renderer hooks
+
+`factory/render.py` emits, on every generated page:
+
+- `data-block-type="<type>"` and `data-concept-id="<concept_id>"` on **every**
+  block element (a block is never identified by a CSS class alone);
+- `data-element-id="EL-LES-01-NNN"` on the content elements
+  `docs/product/ui-element-inventory.csv` defines and the page actually has
+  (text paragraph, diagram figure/caption, simulation card/title/control/canvas/
+  mirror, check fieldset/option/input/button/feedback/why, worked-example
+  problem/step/answer, reveal details, glossary, sources footer, page header
+  kicker/title/objectives). Product chrome ids (dock, consent, language bar,
+  report) stay with the shell kit - one emitter per element
+  (`docs/specs/frontend/shell-injection.md` §2);
+- `<section class="zn-section" id="sec-NN" data-section-id="sec-NN"
+  data-concept-id="…">` wrappers that own their blocks, preserving every
+  `b-NN` id. A wrapper is structure only: it adds no visible text and no new
+  `data-i18n` string, so wrapping cannot change what the page looks like;
+- `factory/hooks.py::hook_issues(html, manifest)` is the contract as code. The
+  renderer refuses to ship a page that fails it, and P4 registers the same
+  function as a deterministic eval checker (`EV-SYN-001`, `EV-VIS-002`).
+
+Known gap: `EL-LES-01-005` (the objectives list) is not emitted yet because
+`08-fixloop` re-extracts the objectives by matching `<ul class="zn-objectives">`
+exactly; the id lands when that rebuild path is hook-aware.
+
+### `manifest.json` v2
+
+Additive over v1 - old manifests still load, and a v2 reader treats every new
+key as optional. Unknown facts are **absent**, never placeholders.
+
+```json
+{
+  "manifest_version": 2,
+  "chapter_id": "class-9-motion",
+  "lesson_id": "class-9-motion",
+  "subject": "physics",
+  "status": "lesson_only",
+  "languages": {"default": "en", "available": ["en"], "missing": ["hi", "hi-Latn"]},
+  "counts": {"lesson_blocks": 42, "checks": 13, "worked_examples": 8,
+             "diagrams": 2, "simulations": 3, "reveals": 4, "text_blocks": 12},
+  "concepts": [{"concept_id": "class-9-motion-sec-01", "section_id": "sec-01", "title": "…"}],
+  "sections": [{"id": "sec-01", "title": "…", "concept_id": "…", "block_ids": ["b-01"]}],
+  "blocks": {"b-01": {"type": "text", "section_id": "sec-01", "concept_id": "…"}},
+  "pipeline_version": "9",
+  "content_hash": "sha256:…"
+}
+```
+
+- `status` is `live` | `lesson_only` | `in_development`. `06-render` writes
+  `lesson_only` (a lesson exists, no practice items or series yet); P2/P3 raise it.
+- `languages` reports coverage of **this artifact**; `10d-transrender` refreshes
+  it from the locale bundles it wrote. A locale in `missing` gets the visible
+  "not available yet" marker, never English pretending to be Hindi.
+- `counts` carries only what the artifact contains. `practice_items` /
+  `test_items` are absent until P2/P3 produce them - a fabricated `0` would read
+  as "no practice exists" when the truth is "not produced yet".
+- `exam_weight` is absent unless a syllabus source states it (P2).
+- `content_hash` is `sha256:` over the lesson + block content + `chapter_id`,
+  independent of render chrome and locale, so it is stable across re-renders and
+  usable as a cache key (narration, i18n).
+
+### `catalogue.json`
+
+`factory/render.py::write_catalogue` writes one entry per topic - the manifest
+v2 core plus `href` and `generated_at` - and `write_courses_js` writes both
+`catalogue.json` and `courses.js` from the same manifest scan, so the browser
+file and the machine catalogue can never disagree. `courses.js` keeps its
+existing shape (`window.ZIVON_COURSES`); product layers that need identity,
+status, counts or concepts read `catalogue.json`.
 
 ## Localization Contracts (`SP2-TRANS`, Implemented in Wave E)
 
