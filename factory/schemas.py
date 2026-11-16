@@ -189,6 +189,10 @@ LESSON: dict[str, Any] = {
                         "minItems": 1,
                         "items": {"type": "string", "minLength": 40},
                     },
+                    # Additive (P1, 2026-11-15): the section-scoped concept key.
+                    # The renderer derives it when absent; a concept-tag stage
+                    # (P2) may pin it. Optional, so v9 drafts stay valid.
+                    "concept_id": {"type": "string", "minLength": 3},
                 },
             },
         },
@@ -240,6 +244,9 @@ LOCALIZED_LESSON_SCHEMA: dict[str, Any] = {
                         "minItems": 1,
                         "items": {"type": "string", "minLength": 20},
                     },
+                    # Same additive section metadata as LESSON (P1): a localized
+                    # lesson may echo the section concept key, never invent it.
+                    "concept_id": {"type": "string", "minLength": 3},
                 },
             },
         },
@@ -297,6 +304,23 @@ BLOCKS: dict[str, Any] = {
                     "type": {"enum": BLOCK_TYPES},
                     "citations": {"type": "array", "items": CITATION},
                     "spec": {"type": "object"},
+                    # ---- additive block metadata (P1, 2026-11-15) -----------
+                    # Optional on purpose: every v9 draft stays valid, and the
+                    # renderer derives what an older draft does not carry.
+                    # `section_id` is the lesson section the block teaches
+                    # (`factory/sections.py` resolves it deterministically when
+                    # absent); `concept_id` is the section-scoped concept key the
+                    # harness stamps at render time; `difficulty` and
+                    # `expected_time_ms` describe a check (P2 owns real time
+                    # priors - this field just carries them when they exist).
+                    "section_id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
+                    "concept_id": {"type": "string", "minLength": 3},
+                    "difficulty": {"enum": ["easy", "medium", "hard"]},
+                    "expected_time_ms": {
+                        "type": "integer",
+                        "minimum": 1000,
+                        "maximum": 1800000,
+                    },
                 },
             },
         },
@@ -693,6 +717,115 @@ TRANSLATION_REVIEW_CALL_REPORT: dict[str, Any] = {
     },
 }
 
+# ---- manifest.json v2 (P1, 2026-11-15) --------------------------------------
+# The topic manifest is the product layers' handoff (FEATURE-MAP: catalogue,
+# drawer, block_view). v2 is ADDITIVE: every v1 key keeps its meaning, so an old
+# manifest still loads and a v2 reader must treat the new keys as optional.
+# `additionalProperties` stays open because later stages legitimately extend the
+# same file (10d adds CP-TRN-004 localization metadata, 12 adds narration).
+# Honesty rule: a value we do not know is ABSENT, never a placeholder - hence
+# nothing is required beyond what the artifact itself proves.
+MANIFEST_V2: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["course_id", "class", "topic_slug", "title", "chapter"],
+    "properties": {
+        "manifest_version": {"type": "integer", "minimum": 1},
+        "chapter_id": {"type": "string", "pattern": "^class-[0-9]{1,2}-[a-z0-9-]+$"},
+        "lesson_id": {"type": "string", "pattern": "^class-[0-9]{1,2}-[a-z0-9-]+$"},
+        "course_id": {"type": "string", "pattern": "^class-[0-9]{1,2}-[a-z]+$"},
+        "subject": {"type": "string"},
+        "class": {"type": "integer"},
+        "topic_slug": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "lesson_title": {"type": "string"},
+        "status": {"enum": ["live", "lesson_only", "in_development"]},
+        "languages": {
+            "type": "object",
+            "required": ["default", "available"],
+            "properties": {
+                "default": {"type": "string", "minLength": 2},
+                "available": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+                "missing": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
+            },
+        },
+        "counts": {
+            "type": "object",
+            "additionalProperties": {"type": "integer", "minimum": 0},
+        },
+        "concepts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["concept_id", "section_id", "title"],
+                "properties": {
+                    "concept_id": {"type": "string", "minLength": 3},
+                    "section_id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
+                    "title": {"type": "string"},
+                },
+            },
+        },
+        "sections": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "title", "concept_id", "block_ids"],
+                "properties": {
+                    "id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
+                    "title": {"type": "string"},
+                    "concept_id": {"type": "string", "minLength": 3},
+                    "block_ids": {
+                        "type": "array",
+                        "items": {"type": "string", "pattern": "^b-[0-9]{2}$"},
+                        "uniqueItems": True,
+                    },
+                },
+            },
+        },
+        "blocks": {
+            "type": "object",
+            "description": "block id -> {type, section_id, concept_id}: the block->section map.",
+            "additionalProperties": {
+                "type": "object",
+                "required": ["type", "section_id", "concept_id"],
+                "properties": {
+                    "type": {"enum": BLOCK_TYPES},
+                    "section_id": {"type": "string", "pattern": "^sec-[0-9]{2}$"},
+                    "concept_id": {"type": "string", "minLength": 3},
+                },
+            },
+        },
+        "exam_weight": {"type": "number", "minimum": 0},
+        "pipeline_version": {"type": "string", "minLength": 1},
+        "content_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "chapter": {
+            "type": "object",
+            "required": ["title", "book"],
+            "properties": {
+                "query": {"type": "string"},
+                "title": {"type": "string", "minLength": 1},
+                "book": {"type": "string"},
+                "pages": {"type": "array"},
+                "number": {"type": ["integer", "null"]},
+            },
+        },
+        "sources": {"type": "array"},
+        "generated_at": {"type": "string"},
+        "run_id": {"type": "string"},
+        "block_counts": {"type": "object"},
+    },
+}
+
+
 SCHEMAS = {
     "generated": GENERATED,
     "ground_truth": GROUND_TRUTH,
@@ -713,4 +846,5 @@ SCHEMAS = {
     "translated_diagram": TRANSLATED_DIAGRAM_PAYLOAD,
     "translated_simulation": TRANSLATED_SIMULATION_PAYLOAD,
     "translation_review_call": TRANSLATION_REVIEW_CALL_REPORT,
+    "manifest_v2": MANIFEST_V2,
 }

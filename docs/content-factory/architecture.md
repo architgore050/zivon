@@ -35,7 +35,7 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 03 | check | factory/agents.py + factory/checks.py | model + code | combined verdict + issues with a fixed severity ladder; blocking (fatal/major) routes to 04 |
 | 04 | repair | factory/agents.py (catcher) | model, progress-aware loop: keeps going while the blocking score improves, stops at `repair.stall_rounds` no-progress rechecks or the `repair.content_rounds` cap | replacement blocks for the flagged issues only (merged by id); recheck per round |
 | 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
-| 06 | render | factory/render.py | code | staging site + manifest + courses.js |
+| 06 | render | factory/render.py | code | staging site + **manifest v2** (`chapter_id`/`lesson_id`, `status`, `languages`, `counts`, `concepts`, `sections` + the block -> section map, `content_hash`) + **renderer hooks** (`data-block-type`, `data-concept-id`, `data-element-id`, `<section class="zn-section">` wrappers) + `catalogue.json`/`courses.js` |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
 | 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches; the post-fix index.html rebuild re-extracts the body and strips the old page shell first (idempotent; a shell-nesting rebuild fails loudly instead of shipping) | fixed topic files + history; rounds=0 (no model call) when 07 passed |
 | 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
@@ -43,7 +43,7 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 10a | translate | factory/translate.py + factory/tm_store.py | model (Evon v3.3 via `llm_manager`, 1 call per unit per locale when `translation.enabled` or `--locales` is set); per-block disk checkpoints + two-tier Translation Memory (`ADR-0021`, `ADR-0022`) | localized `b-00-meta` + `b-01..b-NN` blocks + per-unit checkpoints under `10a-translate/blocks/<locale>/<unit_id>.json` |
 | 10b | transcheck | factory/transcheck.py | model + code; 9 deterministic rules (`R1`..`R9`) + 1 calibrated Evon v3.3 reviewer call per locale (`TRANSLATION_REVIEW_CALL_REPORT`); passing units promoted to `sources/cache/tm/` | per-locale verdict + issues (`issues_ledger.jsonl`); blocking (`fatal`/`major`) routes to `10c-transrepair` |
 | 10c | transrepair | factory/transrepair.py (catcher) | model, progress-aware per-block loop (`repair.translation_rounds` cap, `repair.stall_rounds` plateau); re-translates ONLY flagged `(locale, unit_id)` items | replacement localized units merged by `unit_id` + recheck per round |
-| 10d | transrender | factory/render.py (`render_localized`) | code | `<locale>/index.html`, `i18n/<locale>.json`, `i18n/en.json`, `i18n.js`, locale hub pages, and `CP-TRN-004` manifest metadata |
+| 10d | transrender | factory/render.py (`render_localized`) | code | `<locale>/index.html`, `i18n/<locale>.json`, `i18n/en.json`, `i18n.js`, locale hub pages, `CP-TRN-004` manifest metadata, and the refreshed manifest-v2 `languages` coverage (the same block -> section map, so every locale has the English page's section structure) |
 | 11 | link | factory/link.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter** (2026-11-10: the chapter owns exactly one page — a pre-fix model-titled duplicate is removed when its chapter is republished), regenerate courses.js (entries carry `chapter_number` — NCERT's numbering runs continuously across parts — and sort (class → number → chapter → title), unnumbered last, so the catalogue reads in textbook order regardless of run order), smoke test |
 | 12 | narration | factory/narration/ (stage.py + select/spoken/timbre/audio/budget/publish) | code + **Gnani Timbre v3.0** (build-time TTS, opt-in via `ZIVON_NARRATION_ENABLED`; never an LLM call) | opus assets under `frontend/audio/{course_id}/` (ST-04 content-hash names), `narration` availability flag in the topic manifest + `narration-manifest.json`, A-15 budget ledger (`runs/narration-budget.json`) + `narration_usage.jsonl` |
 
@@ -576,6 +576,35 @@ prompts and model output only.
   calls. The linter enforces this mechanically.
 - Simulations are model-written but constrained: one `ZivonSim.register(...)`
   skeleton per block, canvas 2D only, CSS scoped under the block's own class.
+
+### Content identity, hooks and the catalogue (2026-11-15)
+
+The generated page is a handoff, so it names itself and its parts (block schema
+reference: `docs/content-factory/blocks-schema.md` § "Content identity and block
+metadata"):
+
+- `factory/identity.py` is the single place that derives `chapter_id` /
+  `lesson_id` (`class-9-motion`), `concept_id` (`class-9-motion-sec-03`),
+  `content_hash`, and repairs an unusable chapter title. Page furniture from a
+  PDF text layer ("Grade", "Grade 7", a running header) never reaches a
+  manifest; if no usable title is left the render fails loudly.
+- `factory/locate.py` reconstructs the chapter title from the opener's display
+  lines (wrapped titles, drop caps) instead of taking the first title-shaped
+  fragment it finds, and it rejects chapter-marker followers that are prose.
+- `factory/sections.py` resolves block -> section ownership: a block's authored
+  `section_id` wins, otherwise prose overlap derives it, and the assignment is
+  monotone so a section owns a contiguous run. The same map is used for every
+  locale (translation changes words, never structure).
+- `factory/hooks.py` is the hook contract as a checker (`hook_issues`); the
+  renderer refuses to ship a page that fails it, `08-fixloop`/`10-reviewfix`
+  re-emit through the same body builder (so a repair round cannot drop the
+  section wrappers or concept hooks), and it is the assertion P4 registers for
+  the eval cards.
+- `write_courses_js` also writes `catalogue.json` from the same manifest scan,
+  so the browser file and the machine catalogue cannot drift.
+
+`PIPELINE_VERSION` stays **9**: every field above is additive, so a version-9
+run directory remains resumable and its drafts render with derived metadata.
 
 ## Design doctrine flow (open-ended)
 

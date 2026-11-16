@@ -144,8 +144,48 @@ def _load_pages(cfg: Config, ch: dict[str, Any]) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+# NCERT prints chapter numbers as words on the opener ("CHAPTER FOUR"); the
+# number is part of the marker, never part of the title.
+_CHAPTER_NUMBER_WORDS = frozenset(
+    [
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen",
+        "twenty",
+    ]
+)
+
 _CHAPTER_LINE = re.compile(r"(?i)^chapter\s+(?:\d+|[a-z]+)\s*$")
 _CHAPTER_INLINE = re.compile(r"(?i)^chapter\s+(?:\d+|[a-z]+)\s+(.+)$")
+
+# Opener rubric labels NCERT prints under the display title ("Probe and
+# ponder", "Think It Over"). They are page furniture, not the chapter name,
+# so a line like this closes the title block. Grounded in the cached NCERT
+# corpus (the Curiosity 6-8 openers), not a general prose filter.
+_OPENER_LABELS = frozenset(
+    {
+        "probe and ponder",
+        "think it over",
+        "share your questions",
+        "before we begin",
+    }
+)
 
 
 def _looks_like_title(s: str) -> bool:
@@ -166,24 +206,160 @@ def _looks_like_title(s: str) -> bool:
     return sum(c.isupper() for c in letters) >= len(letters) * 0.7
 
 
+def _opener_title(pages: list[dict[str, Any]]) -> str | None:
+    """The chapter title as the OPENER prints it, one display line at a time.
+
+    NCERT openers wrap a long title across two or three lines ("Describing
+    Motion" / "Around Us"), so no single extracted line is the title. Reading
+    the top of page 1 until the body starts and joining the title-shaped lines
+    reconstructs it. Anything that is not a chapter name is skipped
+    (`factory/identity.py` owns the furniture rule), and the join is rejected
+    when it is drop-cap fragmentation ("C HAPTER F OUR ..."), which is what
+    the class-11 Physics openers produce.
+    """
+    from .identity import is_usable_chapter_title
+
+    if not pages:
+        return None
+    lines = [ln.strip() for ln in pages[0]["text"].splitlines() if ln.strip()]
+    raw: list[str] = []
+    dropcap = False  # inside a drop-cap word sequence ("C" / "HAPTER")
+    expect_rest = False
+    split_word_ahead = False
+    for line in lines[:14]:
+        if line.isdigit():
+            if raw:
+                # The chapter number closes the display title ("Light:
+                # Mirrors and Lenses" / "10" / "Probe and ponder"). Before
+                # the title starts it is the page number and is skipped.
+                break
+            continue
+        if line.strip(" .:?").casefold() in _OPENER_LABELS:
+            # A rubric label under the title is never part of the name
+            # ("Exploring Forces" must not become "Exploring Forces Probe
+            # and ponder"). It only marks the end of the title block; before
+            # the title starts it is a sidebar label to skip.
+            if raw:
+                break
+            continue
+        single_letter = len(line) == 1 and line.isalpha()
+        if dropcap and expect_rest and not single_letter:
+            raw.append(line)
+            expect_rest = False
+            continue
+        if single_letter:
+            if not dropcap and raw:
+                # A lone letter AFTER a complete line is letter-spaced display
+                # type ("C h a p t e r"), not the title.
+                break
+            dropcap = True
+            expect_rest = True
+            raw.append(line)
+            continue
+        if not is_usable_chapter_title(line):
+            # Page furniture ("Curiosity - Textbook of Science for Grade 8",
+            # "Chapter", a numbered subsection). Before the title it is a
+            # header to skip; after it, it marks the end of the title block.
+            if raw:
+                break
+            # "6.1 I" / "10.2 H": the next line is the TAIL of a word split by
+            # the type setter, not a title.
+            split_word_ahead = bool(re.search(r"(?:^|\s)[A-Z]$", line))
+            continue
+        if split_word_ahead:
+            return None
+        # Body prose starts: a wrapped sentence, a long line, or terminal
+        # punctuation.
+        if len(line.split()) > 6 or len(line) > 70 or line.endswith((".", "?", "!")):
+            break
+        # Letter-spaced fragments ("Ch ap t") are PDF noise, not title text.
+        if all(len(token) <= 2 for token in line.split()):
+            break
+        raw.append(line)
+    if not raw:
+        return None
+    # Drop caps: the class-11 Physics openers print "C" / "HAPTER", "L" /
+    # "AWS OF" - a one-letter line belongs to the word that follows it.
+    merged: list[str] = []
+    for line in raw:
+        if merged and len(merged[-1]) == 1 and merged[-1].isalpha():
+            merged[-1] = merged[-1] + line
+        else:
+            merged.append(line)
+    # A leading chapter marker is not part of the title ("CHAPTER", "FOUR",
+    # "LAWS OF", "MOTION"). An NCERT title wraps over a few display lines and
+    # stays short: a segment that would blow the length budget belongs to the
+    # page around the title (a sidebar heading), not to the title.
+    if merged and merged[0].casefold().strip(".:") == "chapter":
+        merged = merged[1:]
+        if merged and (
+            merged[0].isdigit() or merged[0].casefold() in _CHAPTER_NUMBER_WORDS
+        ):
+            merged = merged[1:]
+    kept: list[str] = []
+    for segment in merged[:4]:
+        candidate = " ".join([*kept, segment])
+        if kept and len(candidate) > 52:
+            break
+        kept.append(segment)
+    merged = kept
+    joined = " ".join(merged)
+    words = joined.split()
+    if not words:
+        return None
+    if sum(1 for word in words if len(word) <= 1) * 3 > len(words):
+        return None  # still fragmented, not a title
+    return joined if is_usable_chapter_title(joined) else None
+
+
 def _title_candidates(pages: list[dict[str, Any]]) -> list[str]:
-    """Title-shaped lines from a chapter's opening pages: the line after a
-    'CHAPTER N' line (NCERT prints chapter numbers as words - 'CHAPTER TWO'),
-    an inline 'CHAPTER N Title', and standalone title-shaped lines - the clean
-    title the opener's contents block prints, e.g. 'MOTION IN A STRAIGHT LINE
-    15'. Display-type fragments ('M', 'OTION IN A') may appear here; they are
-    harmless because a corrupted fragment can never contain the full query."""
+    """Title-shaped lines from a chapter's opening pages, best first.
+
+    Candidates are, in order: the reconstructed opener title (a wrapped NCERT
+    title split across display lines), the line after a 'CHAPTER N' line
+    (NCERT prints chapter numbers as words - 'CHAPTER TWO'), an inline
+    'CHAPTER N Title', and standalone title-shaped lines - the clean title the
+    opener's contents block prints, e.g. 'MOTION IN A STRAIGHT LINE 15'.
+    Display-type fragments ('M', 'OTION IN A') may appear here; they are
+    harmless because a corrupted fragment can never contain the full query.
+
+    2026-11-16 (the "Grade" defect class): the sidebar furniture a chapter PDF
+    carries in the same text layer as its opener ("Grade 7", "Curiosity",
+    "Chapter-04.indd 48") used to reach this list, and a body-phrase match then
+    published a page whose chapter title was "Grade". Every candidate must pass
+    the identity rule for a usable chapter title.
+    """
+    from .identity import is_usable_chapter_title
+
     blob = "\n".join(p["text"] for p in pages[:3])
     lines = [raw.strip() for raw in blob.splitlines() if raw.strip()]
     out: list[str] = []
+    opener = _opener_title(pages)
+    if opener:
+        out.append(opener)
     for i, s in enumerate(lines):
         m = _CHAPTER_INLINE.match(s)
         if m:
-            out.append(m.group(1).strip())
+            candidate = m.group(1).strip()
+            if is_usable_chapter_title(candidate):
+                out.append(candidate)
         elif _CHAPTER_LINE.match(s) and i + 1 < len(lines):
-            out.append(lines[i + 1])
-    out.extend(s for s in lines if _looks_like_title(s))
-    return out
+            # The follower must itself be title-shaped: on a chapter opener the
+            # next line is the title, but a sidebar can put body prose there
+            # ("Chapter 10" -> "Sound is an everyday sensory experience...").
+            candidate = lines[i + 1]
+            if _looks_like_title(candidate) and is_usable_chapter_title(candidate):
+                out.append(candidate)
+    out.extend(
+        s
+        for s in lines
+        # A single display word is as likely to be a truncated fragment
+        # ("NTRODUCTION", "HAPTER") as a chapter name; the opener path already
+        # covers one-word titles ("GRAVITATION").
+        if len(s.split()) >= 2 and _looks_like_title(s) and is_usable_chapter_title(s)
+    )
+    # De-duplicate while keeping the best-first order.
+    return list(dict.fromkeys(out))
 
 
 def _clean_title(line: str) -> str:

@@ -280,6 +280,50 @@ def _apply_plan(
     return rejected, merged
 
 
+def _body_from_blocks(
+    render_out: dict[str, Any], blocks: dict[str, Any]
+) -> tuple[str, bool]:
+    """Render the body from block specs, preserving the page's section map.
+
+    The draw metadata is resolved in ONE place (06-render) and written into
+    manifest v2; a repair round must reproduce the same structure instead of
+    re-deriving it. The draft blocks 08/10 hold are the RAW specs (no
+    `section_id`/`concept_id`), so the manifest's block map is the source of
+    truth here. A block the map does not know (a plan that invented an id)
+    inherits the section that is open where it sits, matching the renderer's
+    reader-order rule so the page stays addressable.
+
+    Returns (body_html, structured). `structured` is False for a pre-P1
+    manifest: that page had no wrappers, so a flat body is what 06 emitted.
+    """
+    from . import sections as section_map
+    from .render import _render_block, _render_body
+
+    manifest = render_out.get("manifest") or {}
+    section_ids = [
+        str(entry["id"]) for entry in manifest.get("sections", []) if entry.get("id")
+    ]
+    block_map = manifest.get("blocks") or {}
+    chapter_key = str(manifest.get("chapter_id") or "")
+    if not section_ids or not block_map or not chapter_key:
+        return ("\n".join(_render_block(b) for b in blocks["blocks"]), False)
+
+    by_block: dict[str, str] = {}
+    current = section_ids[0]
+    for block in blocks["blocks"]:
+        declared = str((block_map.get(str(block["id"])) or {}).get("section_id") or "")
+        if declared in section_ids:
+            current = declared
+        by_block[str(block["id"])] = current
+    enriched = section_map.apply_metadata(
+        blocks["blocks"],
+        section_map.SectionOwnership(by_block=by_block, authored=0, derived=0),
+        chapter_key,
+    )
+    lesson = {"sections": [{"id": sid} for sid in section_ids]}
+    return (_render_body(lesson, enriched, chapter_key), True)
+
+
 def _rebuild_html_if_needed(
     cfg: Config,
     render_out: dict[str, Any],
@@ -290,22 +334,27 @@ def _rebuild_html_if_needed(
     page.js/page.css script/link tags match the files that actually exist.
 
     When `blocks` is given, the page body is RE-RENDERED from the current
-    block specs (the same `_render_block` path 06-render used) instead of
+    block specs (the same renderer path 06-render used) instead of
     re-extracting the old body: corrected diagram geometry comes from the
     corrected specs, and re-wrapping the old body would carry the old
     broken content forward forever (the certified 2026-11-09 plateau: the
     fixer changed page.js but index.html kept the wrong SVGs, so the
-    reviewer never saw progress). When `blocks` is None the body is
-    re-extracted after first stripping every nested shell layer.
+    reviewer never saw progress). The rebuild goes through
+    `render._render_body`, so the `<section class="zn-section">` wrappers and
+    the `data-block-type` / `data-concept-id` hooks of manifest v2 survive a
+    repair round (P1, 2026-11-16): re-emitting a flat body would leave the
+    page disagreeing with its own block -> section map. When `blocks` is None
+    the body is re-extracted after first stripping every nested shell layer.
     """
-    from .render import _page_html, _render_block  # renderer owns the template
+    from .render import _page_html  # renderer owns the template
 
     html_path = topic_dir / "index.html"
     old = html_path.read_text(encoding="utf-8")
     title = render_out["manifest"]["title"]
     course_id = render_out["manifest"]["course_id"]
+    structured = False
     if blocks is not None:
-        body = "\n".join(_render_block(b) for b in blocks["blocks"])
+        body, structured = _body_from_blocks(render_out, blocks)
     else:
         # Fallback (callers without blocks): re-extract the body and
         # normalize any already-nested page first. A page rebuilt by
@@ -345,6 +394,19 @@ def _rebuild_html_if_needed(
             raise RuntimeError(
                 "fixloop rebuild produced a malformed page: "
                 f"{marker!r} appears {new_html.count(marker)} times (expected exactly 1)"
+            )
+    if structured:
+        # The renderer's public interface (P1): a re-emitted body must still
+        # carry every block's type/concept/section hooks, or the page stops
+        # being addressable by the drawer, the tutor anchor and the eval
+        # checkers. Loud, like the shell check above.
+        from .hooks import hook_issues
+
+        hook_problems = hook_issues(new_html)
+        if hook_problems:
+            raise RuntimeError(
+                "fixloop rebuild broke the renderer hook contract: "
+                + "; ".join(hook_problems)
             )
     html_path.write_text(new_html, encoding="utf-8")
     # copy into the staging landing tree as well

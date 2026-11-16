@@ -229,7 +229,12 @@ def run_generate(
         "by hand in an SVG (see the diagram rule above); 1-3 controls; a simulation "
         "with zero controls is an animation\n"
         "Order: text sections interleaved with checks and visuals the way a good teacher would "
-        "pace the lesson. First block must be text; last block must be a check.\n"
+        "pace the lesson. First block must be text; last block must be a check. "
+        'Every block also names the lesson section it teaches: "section_id": "sec-NN" '
+        "on the block object (not inside spec). Consecutive blocks for the same section "
+        "stay together - a section owns one run of blocks - so the page can be split "
+        "into its sections without guessing. Checks may also carry "
+        '"difficulty": "easy" | "medium" | "hard".\n'
         "Frame law (doctrine §10.2): the page is read on phones (~360 px), tablets and laptops. "
         "Write for reflow: keep sentences and list items short enough to wrap cleanly, keep "
         "diagram viewBoxes wide-friendly, and never assume a fixed pixel layout - the shell "
@@ -250,13 +255,16 @@ def run_generate(
         '"lesson": {"title": "...", "objectives": ["After this lesson you can ..."], '
         '"sections": [{"id": "sec-01", "title": "...", "paragraphs": ["..."]}], '
         '"glossary": [{"term": "...", "definition": "..."}]}, '
-        '"blocks": {"blocks": [{"id": "b-01", "type": "text", "spec": {"paragraphs": ["..."]}, '
+        '"blocks": {"blocks": [{"id": "b-01", "type": "text", "section_id": "sec-01", '
+        '"spec": {"paragraphs": ["..."]}, '
         '"citations": [{"claim_id": "claim-01"}]}, '
-        '{"id": "b-02", "type": "check", "spec": {"question": "...", "format": "mcq", '
+        '{"id": "b-02", "type": "check", "section_id": "sec-01", "difficulty": "easy", '
+        '"spec": {"question": "...", "format": "mcq", '
         '"options": ["2 m/s", "4 m/s", "6 m/s", "8 m/s"], "answer_index": 1, '
         '"explanation": "...", "expected_understanding": "..."}, '
         '"citations": [{"claim_id": "claim-02"}]}, '
-        '{"id": "b-03", "type": "simulation", "spec": {"title": "...", "description": "...", '
+        '{"id": "b-03", "type": "simulation", "section_id": "sec-01", '
+        '"spec": {"title": "...", "description": "...", '
         '"learning_goal": "...", "controls": [{"id": "speed", "label": "Speed (m/s)", '
         '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
         '"citations": [{"claim_id": "claim-03"}]}]}}'

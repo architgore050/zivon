@@ -160,7 +160,7 @@ class TestRender(unittest.TestCase):
         topic = Path(out["topic_dir"])
         self.assertEqual(topic.name, "motion")
         html = (topic / "index.html").read_text(encoding="utf-8")
-        self.assertIn('<h1 class="zn-title">Motion</h1>', html)
+        self.assertRegex(html, r'<h1 class="zn-title"[^>]*>Motion</h1>')
         self.assertIn("<title>Motion - Zivon</title>", html)
         self.assertNotIn("A Tagline Sneaks In Here</h1>", html)
         manifest = json.loads((topic / "manifest.json").read_text(encoding="utf-8"))
@@ -222,7 +222,7 @@ class TestRender(unittest.TestCase):
         html = (Path(out["topic_dir"]) / "index.html").read_text(encoding="utf-8")
         self.assertIn('class="zn-lang-bar"', html)
         self.assertIn('aria-checked="true">English</button>', html)
-        self.assertIn('<p class="zn-sim-read" aria-live="polite"></p>', html)
+        self.assertRegex(html, r'<p class="zn-sim-read"[^>]*aria-live="polite"></p>')
 
     def test_publish_prunes_stale_duplicate_topic_for_the_same_chapter(self):
         # 2026-11-10 founder bug report: two "Laws of Motion" cards on the
