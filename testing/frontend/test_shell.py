@@ -57,8 +57,18 @@ PUBLIC_PAGES: dict[str, Path] = {
 
 # The browser server serves paths, not nginx's exact-match route. /courses is
 # tested through its file path; the nginx routing is asserted separately.
-BROWSER_PAGES = ["/", "/catalogue/", "/class-9-physics/", "/method/", "/about/",
-                 "/pricing/", "/terms/", "/contact/", "/status/", "/privacy/"]
+BROWSER_PAGES = [
+    "/",
+    "/catalogue/",
+    "/class-9-physics/",
+    "/method/",
+    "/about/",
+    "/pricing/",
+    "/terms/",
+    "/contact/",
+    "/status/",
+    "/privacy/",
+]
 
 LESSON_DEVICE_MARKERS = [
     "zn-lang-bar",
@@ -112,7 +122,11 @@ class TestPublicSiteContract(unittest.TestCase):
         )
         files = list(CODE_FILES)
         files += [path for _, path in _public_html()]
-        files += [path for path in (FRONTEND / "courses").rglob("*") if path.suffix in {".html", ".js", ".css", ".json"}]
+        files += [
+            path
+            for path in (FRONTEND / "courses").rglob("*")
+            if path.suffix in {".html", ".js", ".css", ".json"}
+        ]
         for f in files:
             text = f.read_text(encoding="utf-8")
             for line_no, line in enumerate(text.splitlines(), 1):
@@ -327,7 +341,9 @@ class TestPublicSiteBehaviour(unittest.TestCase):
         cls._browser.close()
         cls._pw.stop()
 
-    def _new_page(self, *, javascript: bool = True, width: int = 1280) -> tuple[Page, list[str]]:
+    def _new_page(
+        self, *, javascript: bool = True, width: int = 1280
+    ) -> tuple[Page, list[str]]:
         context = self._browser.new_context(
             viewport={"width": width, "height": 900},
             java_script_enabled=javascript,
@@ -352,7 +368,10 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             self.assertIn("Ask the page", page.locator("h1").inner_text())
             self.assertGreaterEqual(page.locator(".pen .uline").count(), 1)
             self.assertEqual(page.locator('a.btn[href="/courses"]').count(), 3)
-            self.assertIn("not a recording", page.locator(".artifact-head .meta").first.inner_text())
+            self.assertIn(
+                "not a recording",
+                page.locator(".artifact-head .meta").first.inner_text(),
+            )
             self.assertIn("16 N", page.locator(".artifact--tilt").inner_text())
             self.assertEqual(page.locator("[data-coverage] tbody tr").count(), 4)
             self.assertFalse(page.locator("[data-coverage]").is_hidden())
@@ -367,7 +386,9 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             self.assertIn("net force", page.locator(".artifact--tilt").inner_text())
             self.assertEqual(page.locator(".pen .uline").count(), 0)
             self.assertTrue(page.locator('a.btn[href="/courses"]').first.is_visible())
-            self.assertIn("A video explains the step", page.locator(".pull").inner_text())
+            self.assertIn(
+                "A video explains the step", page.locator(".pull").inner_text()
+            )
             self.assertIn("Is my voice recorded?", page.locator(".faq").inner_text())
             self.assertEqual(errors, [])
         finally:
@@ -380,14 +401,22 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             page.wait_for_timeout(300)
             self.assertEqual(page.locator(".chapter-card").count(), 6)
             self.assertEqual(page.locator(".class-group-heading h3").count(), 2)
-            self.assertIn("6 chapters live", page.locator("#catalogue-count").inner_text())
-            self.assertIn("Class 10, Class 12", page.locator("#catalogue-coverage").inner_text())
+            self.assertIn(
+                "6 chapters live", page.locator("#catalogue-count").inner_text()
+            )
+            self.assertIn(
+                "Class 10, Class 12", page.locator("#catalogue-coverage").inner_text()
+            )
 
             page.click('[data-class-filter="9"]')
             page.wait_for_timeout(100)
             self.assertEqual(page.locator(".chapter-card").count(), 2)
-            self.assertIn("2 of 6 chapters shown", page.locator("#catalogue-count").inner_text())
-            self.assertIn("Class 9", page.locator(".class-group-heading h3").first.inner_text())
+            self.assertIn(
+                "2 of 6 chapters shown", page.locator("#catalogue-count").inner_text()
+            )
+            self.assertIn(
+                "Class 9", page.locator(".class-group-heading h3").first.inner_text()
+            )
 
             page.click('[data-class-filter="0"]')
             page.fill("#catalogue-search", "how forces")
@@ -427,7 +456,9 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             self.assertFalse(page.locator("#catalogue-error").is_hidden())
             self.assertEqual(page.locator(".chapter-card").count(), 0)
             self.assertIn("did not load", page.locator("#catalogue-count").inner_text())
-            self.assertEqual(page.locator("#catalogue-error a").get_attribute("href"), "/sitemap.xml")
+            self.assertEqual(
+                page.locator("#catalogue-error a").get_attribute("href"), "/sitemap.xml"
+            )
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -440,12 +471,16 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             self.assertEqual(page.locator(".chapter-card").count(), 2)
             self.assertIn("2 chapters live", page.locator("#class-count").inner_text())
             self.assertTrue(page.locator("#class-empty").is_hidden())
-            self.assertIn("Latest chapter published", page.locator("#class-latest").inner_text())
+            self.assertIn(
+                "Latest chapter published", page.locator("#class-latest").inner_text()
+            )
 
             page.goto(f"{self._base_url}/class-10-physics/")
             page.wait_for_timeout(300)
             self.assertEqual(page.locator(".chapter-card").count(), 0)
-            self.assertIn("No published chapter yet", page.locator("#class-count").inner_text())
+            self.assertIn(
+                "No published chapter yet", page.locator("#class-count").inner_text()
+            )
             self.assertFalse(page.locator("#class-empty").is_hidden())
 
             page.goto(f"{self._base_url}/class-11-physics/")
@@ -477,7 +512,8 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             page.goto(f"{self._base_url}/catalogue/")
             page.wait_for_timeout(300)
             hrefs = page.eval_on_selector_all(
-                ".chapter-card .chapter-title a", "els => els.map(e => e.getAttribute('href'))"
+                ".chapter-card .chapter-title a",
+                "els => els.map(e => e.getAttribute('href'))",
             )
             self.assertEqual(len(hrefs), 6)
             for href in hrefs:
@@ -511,9 +547,7 @@ class TestPublicSiteBehaviour(unittest.TestCase):
                 "polite",
             )
             self.assertEqual(
-                page.evaluate(
-                    "document.querySelector('[data-class-filter]').tagName"
-                ),
+                page.evaluate("document.querySelector('[data-class-filter]').tagName"),
                 "BUTTON",
             )
             self.assertEqual(errors, [])

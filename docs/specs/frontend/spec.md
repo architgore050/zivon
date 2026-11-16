@@ -86,9 +86,13 @@ v1.6 doctrine's building-blocks directive.
 
 | Screen id (canonical / alias) | Route | Files |
 |---|---|---|
-| `SCR-HUB-01` (alias `SCR-HOME-01`) — course catalogue / hub | `/` (`frontend/index.html`) | shell only |
+| `PUB-01` — landing page | `/` (`frontend/index.html`) | shell (`assets/product.css` + `product.js`) |
+| `PUB-02` — catalogue | `/courses` | `frontend/catalogue/index.html`, served by the exact nginx route; reads generated `courses.js` |
+| `PUB-03` — class/course page | `/class-<N>-physics/` (static equivalent of `/courses/<N>/physics`, which redirects) | the four `class-*-physics/` folders under `frontend/` |
+| `PUB-05`…`PUB-08` — method, about, pricing, trust | `/method/`, `/about/`, `/pricing/`, `/terms/`, `/contact/`, `/status/` | `frontend/<page>/index.html` |
+| `SCR-HUB-01` (alias `SCR-HOME-01`) — course catalogue / hub | `/courses` (was `/` before F1) | shell only; the public-site doc is `docs/frontend/public-site.md` |
 | `SCR-LES-01` — lesson page | `/courses/<course_id>/<topic_slug>/` (`index.html`) | generated page + kit + shell injection (`shell-injection.md`) |
-| `SCR-PRIV-01` — privacy summary & data wipe | `/privacy/` (`frontend/privacy/` or shell-injected view) | shell + `GET /v1/data/challenge` -> `DELETE /v1/data` |
+| `SCR-PRIV-01` — privacy summary & data wipe | `/privacy/` (`frontend/privacy/`) | public chrome + `zivon.js` clear-data wiring + `GET /v1/data/challenge` -> `DELETE /v1/data` |
 | `SCR-ADM-01` — admin dashboard v0 | `:8082` (`dashboard/`) | staff-only container (EX3-OBS, out of student shell scope) |
 | `SCR-404-01` — branded not found | `/404.html` (any unmatched URL) | shell (`frontend/404.html`) |
 
@@ -108,10 +112,13 @@ consent flow — the voice add-on introduces the first ones; §7).
   These path segments are stable publish-to-publish (the run id and
   `generated_at` live in `manifest.json`, not the URL) — crawlers and links can
   rely on them.
-- The landing page is the catalogue: `index.html` + `courses.js` render the list
-  client-side from the inline `window.ZIVON_COURSES` (no fetch; the file is a
-  `<script src>` — `courses.js` is `no-store` cached so a pipeline re-run shows
-  immediately, per the nginx cache map).
+- The landing page is `/` (`frontend/index.html`); the catalogue is `/courses`
+  (`frontend/catalogue/index.html`, served by an exact nginx location because
+  `frontend/courses/` is factory-owned). Both read the generated
+  `window.ZIVON_COURSES` array from a `<script src>` (no fetch; `courses.js` is
+  `no-store` cached so a pipeline re-run shows immediately, per the nginx cache
+  map). Classes 9–12 have static course pages at `/class-<N>-physics/`; the
+  documented `/courses/<N>/physics` URL is a 301 to that canonical page.
 
 ### 3.2 Future localized routes — the reserved hook (DCR-001 deferred; ADR-0009 absent)
 

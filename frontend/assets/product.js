@@ -381,10 +381,12 @@
       show(empty, false);
       show(partial, false);
       if (count) count.textContent = "The catalogue did not load.";
+      show(count, true);
       if (search) search.disabled = true;
       return;
     }
     show(error, false);
+    show(count, true);
     if (data.dropped > 0) {
       show(partial, true);
       setText("[data-catalogue-dropped]", String(data.dropped), partial || root);
@@ -532,9 +534,11 @@
       show(error, true);
       show(empty, false);
       if (count) count.textContent = "The chapter list did not load.";
+      show(count, true);
       return;
     }
     show(error, false);
+    show(count, true);
 
     var entries = data.entries.filter(function (entry) {
       return entry.class === klass;
