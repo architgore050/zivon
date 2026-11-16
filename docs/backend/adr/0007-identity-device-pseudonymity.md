@@ -1,5 +1,7 @@
 # ADR-0007: Identity = anonymous device-scoped pseudonymity with a nullable guardian_ref seam (T6)
-- Status: accepted
+- Status: accepted for the guest/voice layer; the "no student accounts" premise is superseded
+  for the product runtime by **ADR-0029** (2026-11-16). Device pseudonymity, consent-per-device,
+  and the voice session token remain in force.
 - Date / deciders: 2026-11-07, Stage-2 systems session, implementing the Stage-1 T6 decision (TIMELINE: accounts out of scope)
 - Driving NFRs / requirements: NFR-22/23/24 (privacy), NEED-003/012/013, founder correction 3 (login-free), C-087 (counsel flag)
 

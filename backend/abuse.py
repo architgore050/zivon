@@ -15,6 +15,7 @@ from __future__ import annotations
 import datetime
 import hashlib
 import hmac
+import ipaddress
 import threading
 from dataclasses import dataclass
 from typing import Any, Final
@@ -91,11 +92,37 @@ def classify_endpoint_family(method: str, path: str) -> str | None:
     return None
 
 
+def _valid_ip(value: str | None) -> str | None:
+    """Return a normalised IP literal, or None for an empty/non-IP value."""
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return None
+    try:
+        return str(ipaddress.ip_address(cleaned))
+    except ValueError:
+        return None
+
+
 def extract_client_ip(request: Request) -> str:
-    """Extract client IP from X-Forwarded-For (edge proxy) or socket peer."""
+    """Extract the proxy-observed client IP for rate limiting.
+
+    The edge nginx sets `X-Real-IP` to `$remote_addr` (overwriting whatever a
+    client sent) and appends the connection peer to `X-Forwarded-For` with
+    `$proxy_add_x_forwarded_for`. The **first** XFF element is therefore
+    client-controlled and keying a limiter on it lets an attacker bypass the
+    limit by rotating a spoofed header; the **last** element is the hop the
+    proxy actually saw. Prefer `X-Real-IP`, then the last valid XFF hop, then
+    the socket peer (voice/ws_api.py uses the same right-to-left rule).
+    """
+    real = _valid_ip(request.headers.get("X-Real-IP"))
+    if real is not None:
+        return real
     xff = request.headers.get("X-Forwarded-For", "").strip()
     if xff:
-        return xff.split(",")[0].strip()
+        for hop in reversed(xff.split(",")):
+            valid = _valid_ip(hop)
+            if valid is not None:
+                return valid
     if request.client and request.client.host:
         return str(request.client.host)
     return "127.0.0.1"

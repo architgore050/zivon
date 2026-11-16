@@ -26,6 +26,13 @@ ERROR_MESSAGE_KEYS: Final[dict[str, str]] = {
     "E-UNAUTHORIZED": "error.unauthorized",
     "E-FORBIDDEN": "error.forbidden",
     "E-SERVICE-UNAVAILABLE": "error.service_unavailable",
+    "E-AUTH-REQUIRED": "error.auth_required",
+    "E-AUTH-INVALID": "error.auth_invalid",
+    "E-AUTH-CSRF": "error.auth_csrf",
+    "E-EMAIL-UNVERIFIED": "error.email_unverified",
+    "E-TOKEN-INVALID": "error.token_invalid",
+    "E-CONFLICT": "error.conflict",
+    "E-CONTENT-UNAVAILABLE": "error.content_unavailable",
 }
 
 

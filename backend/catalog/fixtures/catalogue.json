@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "subject": "physics",
+  "note": "F0 catalogue stub. Mirrors the 7 topics published under frontend/courses/ on 2026-11-15. chapter_no 0 means the NCERT chapter number is not yet mapped (P1/P2 own that data); concepts are empty until P1/P2 publish them. The API reads syllabus_chapter/concept rows first and falls back to this file only when those tables are empty.",
+  "languages": ["en", "hi", "hi-Latn"],
+  "classes": [
+    {
+      "class_level": 9,
+      "chapters": [
+        {
+          "chapter_id": "class-9-motion",
+          "chapter_no": 8,
+          "slug": "motion",
+          "title_en": "Motion",
+          "title_hi": "गति",
+          "status": "live",
+          "languages": ["en", "hi", "hi-Latn"],
+          "lesson_url": "/courses/class-9-physics/motion/",
+          "concepts": []
+        },
+        {
+          "chapter_id": "class-9-describing-motion-around-us",
+          "chapter_no": 0,
+          "slug": "describing-motion-around-us",
+          "title_en": "Describing Motion Around Us",
+          "title_hi": "हमारे चारों ओर गति (motion) का वर्णन",
+          "status": "live",
+          "languages": ["en", "hi", "hi-Latn"],
+          "lesson_url": "/courses/class-9-physics/describing-motion-around-us/",
+          "concepts": []
+        },
+        {
+          "chapter_id": "class-9-how-forces-affect-motion",
+          "chapter_no": 0,
+          "slug": "how-forces-affect-motion",
+          "title_en": "How Forces Affect Motion",
+          "title_hi": null,
+          "status": "lesson_only",
+          "languages": ["en"],
+          "lesson_url": "/courses/class-9-physics/how-forces-affect-motion/",
+          "concepts": []
+        }
+      ]
+    },
+    {
+      "class_level": 10,
+      "chapters": []
+    },
+    {
+      "class_level": 11,
+      "chapters": [
+        {
+          "chapter_id": "class-11-units-and-measurement",
+          "chapter_no": 1,
+          "slug": "units-and-measurement",
+          "title_en": "Units and Measurement",
+          "title_hi": "मात्रक एवं मापन",
+          "status": "live",
+          "languages": ["en", "hi", "hi-Latn"],
+          "lesson_url": "/courses/class-11-physics/units-and-measurement/",
+          "concepts": []
+        },
+        {
+          "chapter_id": "class-11-motion-in-a-straight-line",
+          "chapter_no": 2,
+          "slug": "motion-in-a-straight-line",
+          "title_en": "Motion in a Straight Line",
+          "title_hi": "सरल रेखा में गति",
+          "status": "live",
+          "languages": ["en", "hi", "hi-Latn"],
+          "lesson_url": "/courses/class-11-physics/motion-in-a-straight-line/",
+          "concepts": []
+        },
+        {
+          "chapter_id": "class-11-motion-in-a-plane",
+          "chapter_no": 3,
+          "slug": "motion-in-a-plane",
+          "title_en": "Motion in a Plane",
+          "title_hi": "समतल में गति",
+          "status": "live",
+          "languages": ["en", "hi", "hi-Latn"],
+          "lesson_url": "/courses/class-11-physics/motion-in-a-plane/",
+          "concepts": []
+        },
+        {
+          "chapter_id": "class-11-laws-of-motion",
+          "chapter_no": 4,
+          "slug": "laws-of-motion",
+          "title_en": "Laws of Motion",
+          "title_hi": "गति के नियम",
+          "status": "live",
+          "languages": ["en", "hi", "hi-Latn"],
+          "lesson_url": "/courses/class-11-physics/laws-of-motion/",
+          "concepts": []
+        }
+      ]
+    },
+    {
+      "class_level": 12,
+      "chapters": []
+    }
+  ]
+}

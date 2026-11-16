@@ -11,3 +11,5 @@ sqlalchemy==2.0.36
 alembic==1.14.0
 asyncpg==0.30.0
 psycopg[binary]==3.2.3
+# Account auth (ADR-0029): Argon2id hashing for /v1/auth password identities.
+argon2-cffi==25.1.0

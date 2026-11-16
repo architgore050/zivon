@@ -1,23 +1,21 @@
 """Alembic migration runner and programmatic migration verification (ADR-0016).
 
-Maintains linear migration history (`0001` -> `0002`) per
-`skills/zivon-backend-engineering-skills/README.md` §1 (`alembic heads` returns
-a single head). Works with both the Alembic CLI (when installed) and direct
-execution via `python -m db.migrate` against PostgreSQL or SQLite.
+Maintains linear migration history (`0001` -> `0002` -> `0003_full_frontend`)
+per `skills/zivon-backend-engineering-skills/README.md` §1 (`alembic heads`
+returns a single head). Works with both the Alembic CLI (when installed) and
+direct execution via `python -m db.migrate` against PostgreSQL or SQLite.
 
 Relationship to Alembic's graph (EX6 weld, 2026-11-10): this runtime chain is
 what the cluster's migrate Job runs (`k8s/26` -> `python -m db.migrate upgrade
-head`), and it deliberately stops at `0002` because `0002` is a schema superset
-(and SQLite-portable — `0022`'s PostgreSQL-only DDL would not run on the SQLite
-path used by local dev/tests). Alembic's CLI graph extends it with EX2's
-`0022_translation_memory_c3` (down_revision `0002`, in `migrations/versions`,
-listed in alembic.ini's `version_locations`). On PostgreSQL, 0022 is a
-defensive no-op after 0002 (`CREATE TABLE IF NOT EXISTS` / seed `ON CONFLICT DO
-NOTHING`), so both tools converge on the same schema; only the recorded
-`alembic_version` value differs (`0002` here, `0022_translation_memory_c3`
-after an Alembic run). Any future revision chained onto 0022 must therefore
-also be reachable from this chain — or the cluster path switched to the
-Alembic CLI.
+head`). It deliberately carries SQLite-portable DDL only, because the SQLite
+path backs local dev and the containerless tests. Alembic's CLI graph carries
+the same chain plus EX2's `0022_translation_memory_c3` (down_revision `0002`,
+in `migrations/versions`, listed in alembic.ini's `version_locations`). On
+PostgreSQL, 0022 is a defensive no-op after 0002 (`CREATE TABLE IF NOT EXISTS`
+/ seed `ON CONFLICT DO NOTHING`), so both tools converge on the same schema and
+on the same recorded head (`0003_full_frontend`); a database still recorded at
+0022 is treated as `0002` by this chain via `REVISION_ALIASES`, so a CLI-
+migrated database can be continued by the runtime Job without a manual stamp.
 """
 
 from __future__ import annotations
@@ -32,6 +30,8 @@ from .schema import (
     get_revision_0001_up_sql,
     get_revision_0002_down_sql,
     get_revision_0002_up_sql,
+    get_revision_0003_down_sql,
+    get_revision_0003_up_sql,
 )
 
 if TYPE_CHECKING:
@@ -62,9 +62,23 @@ REVISION_CHAIN: Final[tuple[RevisionSpec, ...]] = (
         up_sql_fn=get_revision_0002_up_sql,
         down_sql_fn=get_revision_0002_down_sql,
     ),
+    RevisionSpec(
+        revision="0003_full_frontend",
+        down_revision="0002",
+        description="Full-frontend foundation: accounts, auth sessions, catalogue, progress tables",
+        up_sql_fn=get_revision_0003_up_sql,
+        down_sql_fn=get_revision_0003_down_sql,
+    ),
 )
 
 LATEST_REVISION: Final[str] = REVISION_CHAIN[-1].revision
+
+# Alembic-only revisions that are schema no-ops relative to a runtime revision
+# they sit on top of. A database migrated by the Alembic CLI can therefore be
+# continued by the runtime chain (the cluster's migrate Job) without a manual
+# `alembic stamp`. 0022 is EX2's translation contract; 0002 already ships its
+# tables (migrations/versions/0022_translation_memory_c3.py docstring).
+REVISION_ALIASES: Final[dict[str, str]] = {"0022_translation_memory_c3": "0002"}
 
 
 def get_heads() -> list[str]:
@@ -98,7 +112,7 @@ def get_current_revision(engine: DatabaseEngine) -> str | None:
 
 
 def upgrade_db(engine: DatabaseEngine, target: str = "head") -> str:
-    """Apply migrations linearly up to `target` ('head', '0001', or '0002')."""
+    """Apply migrations linearly up to `target` ('head', '0001', '0002', '0003_full_frontend')."""
     target_rev = LATEST_REVISION if target == "head" else target
     valid_revs = [r.revision for r in REVISION_CHAIN]
     if target_rev not in valid_revs:
@@ -108,6 +122,7 @@ def upgrade_db(engine: DatabaseEngine, target: str = "head") -> str:
     current = get_current_revision(engine)
     start_idx = 0
     if current is not None:
+        current = REVISION_ALIASES.get(current, current)
         if current not in valid_revs:
             raise RuntimeError(f"Database at unknown revision '{current}'")
         start_idx = valid_revs.index(current) + 1
@@ -138,6 +153,9 @@ def downgrade_db(engine: DatabaseEngine, target: str = "base") -> str | None:
     current = get_current_revision(engine)
     if current is None:
         return None
+    current = REVISION_ALIASES.get(current, current)
+    if current not in valid_revs:
+        raise RuntimeError(f"Database at unknown revision '{current}'")
 
     curr_idx = valid_revs.index(current)
     stop_idx = -1 if target == "base" else valid_revs.index(target)

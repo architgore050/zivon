@@ -1,6 +1,6 @@
 # ADR index — Stage-2 systems decisions (2026-11-07)
 
-28 records (0001–0028). The 8 `**ADR**` flags carried from `docs/product/features.md` §3 map 1:1 below (0001–0016); 0017–0028 were added by Wave S1 spec agents (SP1 voice 0017–0020, SP2 translation 0021–0023, SP3 observability 0024–0026, SP4 evals 0027–0028 — numbering reconciled by the WS1 merge agent after parallel-agent collisions on 0017+). [WS1/SP6 update 2026-11-09]
+29 records (0001–0029). The 8 `**ADR**` flags carried from `docs/product/features.md` §3 map 1:1 below (0001–0016); 0017–0028 were added by Wave S1 spec agents (SP1 voice 0017–0020, SP2 translation 0021–0023, SP3 observability 0024–0026, SP4 evals 0027–0028 — numbering reconciled by the WS1 merge agent after parallel-agent collisions on 0017+). [WS1/SP6 update 2026-11-09]. 0029 is the Wave-1 F0 account decision (2026-11-16): it supersedes ADR-0007's "no accounts" premise for the product runtime and keeps device pseudonymity for guests. [W1/F0 update 2026-11-16]
 the rest are systems-originated decisions (each states its reason in the record).
 
 | ADR | Decision | Traces to |
@@ -33,6 +33,7 @@ the rest are systems-originated decisions (each states its reason in the record)
 | [0026](0026-admin-auth.md) | Minimal admin auth (single-admin bearer Secret) | SP3-OBS |
 | [0027](0027-eval-result-store-and-tiering.md) | Eval store dual-write (PVC JSONL + Postgres, C4) | SP4-EVALS |
 | [0028](0028-eval-judge-model-and-calibration.md) | Judge model via llm_manager + calibration anchors | SP4-EVALS |
+| [0029](0029-accounts-and-session-cookies.md) | One student account per email (password + Google), cookie sessions + CSRF; device pseudonymity kept for guests | W1/F0 (REQUIREMENTS §6, §8.1, §9.1–2) |
 
 
 Not yet needed (triggers defined inside the records above): Redis (0002), LiveKit (0003),

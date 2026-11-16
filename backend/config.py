@@ -96,6 +96,28 @@ class BackendConfigError(RuntimeError):
     """Raised when required backend configuration is missing or invalid."""
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw in ("1", "true", "yes", "on")
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise BackendConfigError(f"{name} must be an integer") from exc
+
+
+def _optional_env(name: str) -> str | None:
+    value = os.environ.get(name, "").strip()
+    return value or None
+
+
 def normalize_locale(locale: str) -> str:
     """Normalize a UI or Gnani locale code to the canonical DB enum value."""
     cleaned = locale.strip()
@@ -136,6 +158,31 @@ class BackendConfig:
     rate_limit_delete_per_min: int = 3
     ws_max_concurrent_per_session: int = 1
     ws_max_concurrent_cluster: int = 10
+    # Account auth, email, and Google OAuth (ADR-0029). Secrets stay runtime-only.
+    auth_session_ttl_seconds: int = 30 * 24 * 3600
+    auth_verify_token_ttl_seconds: int = 48 * 3600
+    auth_reset_token_ttl_seconds: int = 3600
+    auth_cookie_name: str = "zivon_session"
+    auth_cookie_secure: bool = True
+    auth_cookie_domain: str | None = None
+    auth_register_per_min: int = 5
+    auth_login_per_min: int = 10
+    auth_reset_per_min: int = 3
+    auth_verify_per_min: int = 10
+    auth_google_per_min: int = 10
+    app_base_url: str = "http://localhost:8081"
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+    email_backend: str = "dev"
+    email_from: str = "Zivon <no-reply@zivon.local>"
+    dev_email_dir: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_starttls: bool = True
+    resend_api_key: str | None = None
 
     @classmethod
     def from_env(cls, *, strict_secrets: bool = False) -> BackendConfig:
@@ -209,4 +256,43 @@ class BackendConfig:
                 "ZIVON_VOICE_BRAIN_MODEL", "gemma-4-26b-a4b-it"
             ).strip()
             or "gemma-4-26b-a4b-it",
+            auth_session_ttl_seconds=_env_int(
+                "ZIVON_AUTH_SESSION_TTL_S", 30 * 24 * 3600
+            ),
+            auth_verify_token_ttl_seconds=_env_int(
+                "ZIVON_AUTH_VERIFY_TTL_S", 48 * 3600
+            ),
+            auth_reset_token_ttl_seconds=_env_int("ZIVON_AUTH_RESET_TTL_S", 3600),
+            auth_cookie_name=os.environ.get(
+                "ZIVON_AUTH_COOKIE_NAME", "zivon_session"
+            ).strip()
+            or "zivon_session",
+            auth_cookie_secure=_env_bool(
+                "ZIVON_AUTH_COOKIE_SECURE", env not in ("dev",)
+            ),
+            auth_cookie_domain=_optional_env("ZIVON_AUTH_COOKIE_DOMAIN"),
+            auth_register_per_min=_env_int("ZIVON_AUTH_REGISTER_PER_MIN", 5),
+            auth_login_per_min=_env_int("ZIVON_AUTH_LOGIN_PER_MIN", 10),
+            auth_reset_per_min=_env_int("ZIVON_AUTH_RESET_PER_MIN", 3),
+            auth_verify_per_min=_env_int("ZIVON_AUTH_VERIFY_PER_MIN", 10),
+            auth_google_per_min=_env_int("ZIVON_AUTH_GOOGLE_PER_MIN", 10),
+            app_base_url=os.environ.get(
+                "ZIVON_APP_BASE_URL", "http://localhost:8081"
+            ).strip()
+            or "http://localhost:8081",
+            google_client_id=_optional_env("GOOGLE_CLIENT_ID"),
+            google_client_secret=_optional_env("GOOGLE_CLIENT_SECRET"),
+            google_redirect_uri=_optional_env("GOOGLE_REDIRECT_URI"),
+            email_backend=os.environ.get("ZIVON_EMAIL_BACKEND", "dev").strip() or "dev",
+            email_from=os.environ.get(
+                "ZIVON_EMAIL_FROM", "Zivon <no-reply@zivon.local>"
+            ).strip()
+            or "Zivon <no-reply@zivon.local>",
+            dev_email_dir=_optional_env("ZIVON_DEV_EMAIL_DIR"),
+            smtp_host=_optional_env("ZIVON_SMTP_HOST"),
+            smtp_port=_env_int("ZIVON_SMTP_PORT", 587),
+            smtp_user=_optional_env("ZIVON_SMTP_USER"),
+            smtp_password=_optional_env("ZIVON_SMTP_PASSWORD"),
+            smtp_starttls=_env_bool("ZIVON_SMTP_STARTTLS", True),
+            resend_api_key=_optional_env("ZIVON_RESEND_API_KEY"),
         )

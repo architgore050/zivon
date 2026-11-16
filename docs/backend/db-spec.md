@@ -49,6 +49,8 @@ the tables themselves.
 | (narration asset — founder correction 2, NEED-017) | `narration_asset` | C2 | P0 |
 | (tiering machinery — systems-originated) | `object_catalog`, `outbox` | all C* | P0 (catalog) / P1 (outbox worker) |
 | (identity/privacy machinery — systems-originated) | `deletion_request`, `audit_log`, `abuse_bucket` | C18, C13, C19 | P0 |
+| **Student account (ADR-0029, 2026-11-16)** | `users`, `auth_identity`, `auth_session`, `email_token`; `device.user_id` | C21 | P0 (R1) |
+| **Catalogue + learning evidence (ADR-0029)** | `syllabus_chapter`, `concept`, `lesson_progress`, `progress_event`, `bookmark` | C21 | P0 (R1) |
 
 `device` is systems-originated: consent, guard caps, sessions, and deletion all key on
 `device_pseudo_id`, so the server needs one anchor row per device even though the *profile*
@@ -79,6 +81,15 @@ erDiagram
   device ||--o{ deletion_request : "erasure scope"
   guard_profile ||--o{ guard_counter : "limits apply"
   factory_run }o--o| object_catalog : "evidence archived"
+  users ||--o{ auth_identity : "holds"
+  users ||--o{ auth_session : "signs in"
+  users ||--o{ email_token : "verifies/resets"
+  users ||--o{ lesson_progress : "reads"
+  users ||--o{ progress_event : "emits"
+  users ||--o{ bookmark : "saves"
+  users |o--o{ device : "links (nullable)"
+  syllabus_chapter ||--o{ concept : "teaches"
+  syllabus_chapter ||--o{ lesson_progress : "tracked by"
 ```
 
 ---
@@ -443,6 +454,87 @@ The completed rows **are** the re-delete-on-restore list (storage-tiering §6).
 
 Written by the nightly roll-up job immediately before session rows age out (4.2).
 
+### 4.18 Full-frontend account, catalogue, and progress tables (revision `0003_full_frontend`, ADR-0029)
+
+Added 2026-11-16 by Wave-1 F0 for the full consumer product. Additive to §4.1–4.17: the
+device-pseudonymous tables and the voice contract are unchanged, and `device` gains only a
+nullable `user_id` link. All IDs are UUIDv7 (`db/uuid7.py`); timestamps are `timestamptz`
+(TEXT ISO on SQLite); DDL lives in `db/schema.py::get_revision_0003_up_sql` and is
+SQLite-portable for the containerless migration test.
+
+**`users`** (one row per account, REQUIREMENTS §8.1)
+
+| Column | Type | Null | Default | Notes |
+|---|---|---|---|---|
+| user_id | text PK | ✗ | — | UUIDv7 |
+| email | text | ✗ | — | stored case-folded, `UNIQUE`, `CHECK (email = lower(email))` |
+| email_verified_at | timestamptz | ✓ | — | set by `/v1/auth/verify-email` or Google's verified email |
+| display_name | text | ✓ | — | optional, ≤80 chars at the API |
+| class_level | int | ✓ | — | CHECK 6–12 |
+| board | text | ✗ | 'CBSE' | free text ≤40 chars at the API |
+| language | locale enum | ✗ | 'en-IN' | same 11-value enum as §4.1 |
+| role | text | ✗ | 'student' | CHECK ('student','staff'); staff accounts are not created by these endpoints |
+| created_at / updated_at | timestamptz | ✗ | now | |
+| deleted_at | timestamptz | ✓ | — | tombstone after account deletion; the row keeps no email/name/class |
+
+Password hashes are **not** on this table: the `password` identity owns the credential (one
+source of truth). Deletion rewrites `email` to `deleted+<id>@invalid`, clears
+`display_name`/`class_level`/`email_verified_at`, and stamps `deleted_at`.
+
+**`auth_identity`** — `identity_id` text PK; `user_id` FK → users ON DELETE CASCADE;
+`provider` CHECK ('password','google'); `provider_subject` (email for password, Google `sub`
+for google); `password_hash` (Argon2id, NULL for google); `created_at`/`updated_at`;
+`UNIQUE (provider, provider_subject)`; CHECK `(provider='password' AND password_hash IS NOT
+NULL) OR (provider='google' AND password_hash IS NULL)`; index on `user_id`.
+
+**`auth_session`** — `session_id` text PK; `user_id` FK ON DELETE CASCADE;
+`token_hash` UNIQUE (keyed BLAKE2b MAC of the token); `csrf_token_hash` (`MAC` of the
+derived CSRF token); `expires_at` NOT NULL; `created_at`/`last_seen_at`; `revoked_at`;
+`ip_hash` / `user_agent_hash` (salted hashes only, never raw); index
+`(user_id, revoked_at, expires_at)`.
+
+**`email_token`** — `token_id` text PK; `user_id` FK ON DELETE CASCADE; `kind` CHECK
+('verify','reset'); `token_hash` UNIQUE; `expires_at`; `created_at`; `used_at`; index
+`(user_id, kind, expires_at DESC)`. Issuing a new token of a kind marks the previous unused
+one used.
+
+**`syllabus_chapter`** — `chapter_id` text PK (stable slug, e.g. `class-9-motion`);
+`class_level` int CHECK 6–12; `subject` default 'physics'; `chapter_no` int; `slug`;
+`title_en`; `title_hi`; `status` CHECK ('live','lesson_only','in_development');
+`exam_weight` numeric; `lesson_url`; `languages` JSON array; `metadata` JSON object;
+`updated_at`; `UNIQUE (class_level, subject, chapter_no)` and `UNIQUE
+(class_level, subject, slug)`; index `(class_level, status)`. Source: P1/P2 import; `/v1/catalog`
+falls back to `backend/catalog/fixtures/catalogue.json` while the table is empty.
+
+**`concept`** — `concept_id` text PK; `chapter_id` FK ON DELETE CASCADE; `slug`; `title_en`;
+`title_hi`; `description`; `prerequisites` JSON array; `order_index`; `UNIQUE
+(chapter_id, slug)`; index `(chapter_id, order_index)`.
+
+**`lesson_progress`** — PK `(user_id, chapter_id)`; `user_id` FK ON DELETE CASCADE;
+`chapter_id`; `status` CHECK ('not_started','in_progress','completed'); `last_block_id`;
+`blocks_seen`; `blocks_total`; `updated_at`; `completed_at`; index `(user_id, updated_at
+DESC)`. This is the smallest shape that powers "continue" and reading progress; per-block
+detail stays in `progress_event`.
+
+**`progress_event`** — `event_id` text PK; `user_id` FK ON DELETE CASCADE; `kind` CHECK
+('lesson_block_view','lesson_complete','practice_answer','test_submit','speaking_attempt',
+'bookmark_add','bookmark_remove'); `chapter_id`/`concept_id`/`question_id` nullable refs;
+`payload` JSON; `created_at`; indexes `(user_id, created_at DESC)` and
+`(user_id, chapter_id)`. Append-only; F3/F5/F7 add kinds by a documented CHECK migration.
+
+**`bookmark`** — `bookmark_id` text PK; `user_id` FK ON DELETE CASCADE; `target_type` CHECK
+('chapter','concept','block','question'); `target_id`; `created_at`; `UNIQUE (user_id,
+target_type, target_id)`; index `(user_id, created_at DESC)`.
+
+**`device.user_id`** — nullable FK → users ON DELETE SET NULL, index `idx_device_user`.
+Linking is explicit (`POST /v1/me/device` or a register/login body); consent remains
+per device and is never inherited from the account. Downgrade drops the index first, then
+the column (SQLite requirement), then the new tables.
+
+Retention: account-scoped tables live until the student deletes the account; deletion
+hard-deletes them in the same transaction that writes the tombstone (§6). No cold copy is
+made of account rows; `log_events` carries no account free text (ADR-0025 redaction).
+
 ---
 
 ## 5. Access-pattern table (every index cites a NEED; every NEED query has an index)
@@ -484,6 +576,10 @@ Written by the nightly roll-up job immediately before session rows age out (4.2)
 | audit_log | 1 y | archive to cold with C9 snapshot | **not deleted** (staff evidence, documented) | n/a |
 | C1/C2/C3 content tables | forever per version | status='retired' flag only | n/a (public content) | n/a |
 | object_catalog | forever (row outlives object) | state transitions | subject_ref fan-out deletes objects | row kept |
+| users | until account deletion | none automatic | anonymised tombstone: email → `deleted+<id>@invalid`, name/class cleared, `deleted_at` set | yes (row kept, no PII) |
+| auth_identity / auth_session / email_token | token/session TTL; until deletion | expiry checked on every use; `revoked_at`/`used_at`; deletion hard-deletes | immediate delete | no |
+| lesson_progress / progress_event / bookmark | until account deletion | none automatic (F3/F4 may add windows) | immediate delete in the delete transaction | no |
+| syllabus_chapter / concept | forever per import | versioned re-import by P1/P2 | n/a (public content) | n/a |
 
 Backups: C14 ages out on a documented window; on any restore, the re-delete-on-restore list
 (4.16 completed rows) is re-applied before the DB accepts traffic (storage-tiering §6).
@@ -503,6 +599,12 @@ Backups: C14 ages out on a documented window; on any restore, the re-delete-on-r
   credit_ledger, guard_counter, guard_profile, telemetry_event, problem_report, content_page,
   page_version, live_pointer, narration_asset, object_catalog, outbox, factory_run,
   audit_log, abuse_bucket, deletion_request, daily_stats.
+- **Wave-1 F0 revision `0003_full_frontend`** (2026-11-16, ADR-0029): adds §4.18's nine
+  tables and the nullable `device.user_id`. Chain is `0001 → 0002 → 0022_translation_memory_c3
+  (no-op) → 0003_full_frontend`; the Alembic CLI path and `python -m db.migrate` converge on
+  the same head (the runtime runner treats the CLI-only `0022` as an alias of `0002`).
+  Empty→head and head→`0022`→head are exercised by `testing/backend/test_alembic_migrations.py`
+  on SQLite and by the CI Alembic job on PostgreSQL 16.
 - Target revisions (post-challenge, mechanical): partition `telemetry_event`/`voice_turn`/
   `credit_ledger` by day; hash-chain `audit_log`; per-subject encryption key columns;
   `language_bundle` + glossary tables with SC-01; `device` server mirror if C8 mirror ships.
@@ -538,3 +640,6 @@ systems-originated reason).
 | Q4 | Narration per-pace generation (0.75×/1.25× triples credit burn) | P0 generates 1.0× only; pace applied client-side playbackRate `[ASSUMPTION]` | content decision after kid testing |
 | Q5 | `class_level` CHECK 6–12 vs subject scope (Physics 9–12) | CHECK 6–12 matches the factory Job's existing class range (k8s trigger script) | factory owner |
 | Q6 | Row-count revisit thresholds | partition at > 1 M rows `[ASSUMPTION]`; at envelope the tables reach ~10 k rows/day max — years of headroom | re-measure post-challenge |
+| Q7 | Account tombstone keeps `users.role`/`board`/`language` after deletion | Accepted: no PII remains (email anonymised, name/class cleared), and the row preserves referential history for `audit_log`; purge the row itself if counsel requires | counsel/DPDP review |
+| Q8 | `progress_event.kind` is a closed CHECK list | F3/F5/F7 add kinds by an additive CHECK migration (SQLite rebuild, PostgreSQL `ALTER … DROP/ADD CONSTRAINT`); never insert an unlisted kind | owning F-agent + ADR-0016 |
+| Q9 | Auth rate limiting is in-memory (single replica) | Fine for the P0/R1 single-replica Deployment; move to Postgres-backed counters before scaling out (ADR-0029 revisit trigger) | infra/scale trigger |

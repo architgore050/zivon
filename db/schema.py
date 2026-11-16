@@ -48,7 +48,21 @@ ADDENDA_TABLES_0002: Final[tuple[str, ...]] = (
     "log_events",
 )
 
-ALL_TABLES: Final[tuple[str, ...]] = CORE_TABLES_0001 + ADDENDA_TABLES_0002
+FULL_FRONTEND_TABLES_0003: Final[tuple[str, ...]] = (
+    "users",
+    "auth_identity",
+    "auth_session",
+    "email_token",
+    "syllabus_chapter",
+    "concept",
+    "lesson_progress",
+    "progress_event",
+    "bookmark",
+)
+
+ALL_TABLES: Final[tuple[str, ...]] = (
+    CORE_TABLES_0001 + ADDENDA_TABLES_0002 + FULL_FRONTEND_TABLES_0003
+)
 
 LOCALE_ENUM_CHECK: Final[str] = (
     "('bn-IN','en-IN','gu-IN','hi-IN','kn-IN','ml-IN','mr-IN','pa-IN','ta-IN','te-IN','hinglish')"
@@ -710,3 +724,192 @@ def get_revision_0002_down_sql() -> list[str]:
         "locale_fallback",
     ]
     return [f"DROP TABLE IF EXISTS {tbl}" for tbl in ordered]
+
+
+def get_revision_0003_up_sql(dialect: str = "postgresql") -> list[str]:
+    """Return DDL for revision 0003 (full-frontend accounts, catalogue, progress).
+
+    Additive only (ADR-0016 expand/contract): the device-pseudonymous tables are
+    untouched apart from a nullable `device.user_id` link. Every table is
+    SQLite-portable so the empty->head migration test runs containerless.
+    """
+    ts_type = "TIMESTAMPTZ" if dialect == "postgresql" else "TEXT"
+    json_type = "JSONB" if dialect == "postgresql" else "TEXT"
+    now_default = "NOW()" if dialect == "postgresql" else "CURRENT_TIMESTAMP"
+    json_empty = "'{}'"
+    array_empty = "'[]'"
+    # `ADD COLUMN IF NOT EXISTS` is PostgreSQL-only; SQLite's ALTER TABLE has no
+    # IF NOT EXISTS and the migration runner applies each revision exactly once.
+    add_device_user = (
+        "ALTER TABLE device ADD COLUMN IF NOT EXISTS user_id TEXT "
+        "REFERENCES users(user_id) ON DELETE SET NULL"
+        if dialect == "postgresql"
+        else "ALTER TABLE device ADD COLUMN user_id TEXT "
+        "REFERENCES users(user_id) ON DELETE SET NULL"
+    )
+
+    stmts = [
+        f"""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id TEXT PRIMARY KEY,
+            email TEXT NOT NULL UNIQUE,
+            email_verified_at {ts_type},
+            display_name TEXT,
+            class_level INTEGER CHECK (class_level IS NULL OR (class_level >= 6 AND class_level <= 12)),
+            board TEXT NOT NULL DEFAULT 'CBSE',
+            language TEXT NOT NULL DEFAULT 'en-IN' CHECK (language IN {LOCALE_ENUM_CHECK}),
+            role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'staff')),
+            created_at {ts_type} NOT NULL DEFAULT {now_default},
+            updated_at {ts_type} NOT NULL DEFAULT {now_default},
+            deleted_at {ts_type},
+            CHECK (email = lower(email))
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_users_role_deleted ON users(role, deleted_at)",
+        f"""
+        CREATE TABLE IF NOT EXISTS auth_identity (
+            identity_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            provider TEXT NOT NULL CHECK (provider IN ('password', 'google')),
+            provider_subject TEXT NOT NULL,
+            password_hash TEXT,
+            created_at {ts_type} NOT NULL DEFAULT {now_default},
+            updated_at {ts_type} NOT NULL DEFAULT {now_default},
+            UNIQUE (provider, provider_subject),
+            CHECK (
+                (provider = 'password' AND password_hash IS NOT NULL)
+                OR (provider = 'google' AND password_hash IS NULL)
+            )
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_auth_identity_user ON auth_identity(user_id)",
+        f"""
+        CREATE TABLE IF NOT EXISTS auth_session (
+            session_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            token_hash TEXT NOT NULL UNIQUE,
+            csrf_token_hash TEXT NOT NULL,
+            expires_at {ts_type} NOT NULL,
+            created_at {ts_type} NOT NULL DEFAULT {now_default},
+            last_seen_at {ts_type} NOT NULL DEFAULT {now_default},
+            revoked_at {ts_type},
+            ip_hash TEXT,
+            user_agent_hash TEXT
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_auth_session_user ON auth_session(user_id, revoked_at, expires_at)",
+        f"""
+        CREATE TABLE IF NOT EXISTS email_token (
+            token_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            kind TEXT NOT NULL CHECK (kind IN ('verify', 'reset')),
+            token_hash TEXT NOT NULL UNIQUE,
+            expires_at {ts_type} NOT NULL,
+            created_at {ts_type} NOT NULL DEFAULT {now_default},
+            used_at {ts_type}
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_email_token_user_kind ON email_token(user_id, kind, expires_at DESC)",
+        f"""
+        CREATE TABLE IF NOT EXISTS syllabus_chapter (
+            chapter_id TEXT PRIMARY KEY,
+            class_level INTEGER NOT NULL CHECK (class_level >= 6 AND class_level <= 12),
+            subject TEXT NOT NULL DEFAULT 'physics',
+            chapter_no INTEGER NOT NULL,
+            slug TEXT NOT NULL,
+            title_en TEXT NOT NULL,
+            title_hi TEXT,
+            status TEXT NOT NULL DEFAULT 'in_development'
+                CHECK (status IN ('live', 'lesson_only', 'in_development')),
+            exam_weight NUMERIC,
+            lesson_url TEXT,
+            languages {json_type} NOT NULL DEFAULT {array_empty},
+            metadata {json_type} NOT NULL DEFAULT {json_empty},
+            updated_at {ts_type} NOT NULL DEFAULT {now_default},
+            UNIQUE (class_level, subject, chapter_no),
+            UNIQUE (class_level, subject, slug)
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_syllabus_chapter_status ON syllabus_chapter(class_level, status)",
+        f"""
+        CREATE TABLE IF NOT EXISTS concept (
+            concept_id TEXT PRIMARY KEY,
+            chapter_id TEXT NOT NULL REFERENCES syllabus_chapter(chapter_id) ON DELETE CASCADE,
+            slug TEXT NOT NULL,
+            title_en TEXT NOT NULL,
+            title_hi TEXT,
+            description TEXT,
+            prerequisites {json_type} NOT NULL DEFAULT {array_empty},
+            order_index INTEGER NOT NULL DEFAULT 0,
+            UNIQUE (chapter_id, slug)
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_concept_chapter_order ON concept(chapter_id, order_index)",
+        f"""
+        CREATE TABLE IF NOT EXISTS lesson_progress (
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            chapter_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'in_progress'
+                CHECK (status IN ('not_started', 'in_progress', 'completed')),
+            last_block_id TEXT,
+            blocks_seen INTEGER NOT NULL DEFAULT 0,
+            blocks_total INTEGER,
+            updated_at {ts_type} NOT NULL DEFAULT {now_default},
+            completed_at {ts_type},
+            PRIMARY KEY (user_id, chapter_id)
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_updated ON lesson_progress(user_id, updated_at DESC)",
+        f"""
+        CREATE TABLE IF NOT EXISTS progress_event (
+            event_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            kind TEXT NOT NULL CHECK (kind IN (
+                'lesson_block_view', 'lesson_complete', 'practice_answer',
+                'test_submit', 'speaking_attempt', 'bookmark_add', 'bookmark_remove'
+            )),
+            chapter_id TEXT,
+            concept_id TEXT,
+            question_id TEXT,
+            payload {json_type} NOT NULL DEFAULT {json_empty},
+            created_at {ts_type} NOT NULL DEFAULT {now_default}
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_progress_event_user_created ON progress_event(user_id, created_at DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_progress_event_user_chapter ON progress_event(user_id, chapter_id)",
+        f"""
+        CREATE TABLE IF NOT EXISTS bookmark (
+            bookmark_id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+            target_type TEXT NOT NULL
+                CHECK (target_type IN ('chapter', 'concept', 'block', 'question')),
+            target_id TEXT NOT NULL,
+            created_at {ts_type} NOT NULL DEFAULT {now_default},
+            UNIQUE (user_id, target_type, target_id)
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_user_created ON bookmark(user_id, created_at DESC)",
+        add_device_user,
+        "CREATE INDEX IF NOT EXISTS idx_device_user ON device(user_id)",
+    ]
+    return [s.strip() for s in stmts]
+
+
+def get_revision_0003_down_sql() -> list[str]:
+    """Revert revision 0003: drop the account/catalogue tables and the device link."""
+    # SQLite refuses to DROP a column referenced by an index; dropping the index
+    # first keeps the downgrade portable. PostgreSQL drops the index with the
+    # column, so the extra DROP INDEX is harmless there.
+    return [
+        "DROP INDEX IF EXISTS idx_device_user",
+        "ALTER TABLE device DROP COLUMN user_id",
+        "DROP TABLE IF EXISTS bookmark",
+        "DROP TABLE IF EXISTS progress_event",
+        "DROP TABLE IF EXISTS lesson_progress",
+        "DROP TABLE IF EXISTS concept",
+        "DROP TABLE IF EXISTS syllabus_chapter",
+        "DROP TABLE IF EXISTS email_token",
+        "DROP TABLE IF EXISTS auth_session",
+        "DROP TABLE IF EXISTS auth_identity",
+        "DROP TABLE IF EXISTS users",
+    ]

@@ -49,7 +49,7 @@ class TestBackendEndpoints(unittest.TestCase):
         body = r_v1.json()
         self.assertEqual(body["status"], "ok")
         self.assertEqual(body["db"], "ok")
-        self.assertEqual(body["schema_version"], "0002")
+        self.assertEqual(body["schema_version"], "0003_full_frontend")
         self.assertEqual(body["release"], "0.1.0")
         self.assertEqual(body["guard_profile_mode"], "normal")
 
