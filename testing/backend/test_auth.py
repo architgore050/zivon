@@ -348,6 +348,13 @@ class TestEmailLifecycle(AuthTestCase):
         self.assertEqual(response.json(), {"ok": True})
         self.assertEqual(self.sink.messages("reset"), [])
 
+    def test_reset_request_rejects_a_malformed_address(self) -> None:
+        response = self.client.post(
+            "/v1/auth/request-password-reset", json={"email": "not-an-email"}
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["reason"], "invalid_email")
+
     def test_unverified_account_gets_no_reset_mail(self) -> None:
         self.register()
         self.client.post(

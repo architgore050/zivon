@@ -500,7 +500,8 @@ K8s Secret, cluster-side only.
 - **Hashing:** Argon2id m=64 MiB, t=3, p=4; ≥10 characters; common-password block list; no
   composition rules.
 - **No enumeration:** unknown email and wrong password share `E-AUTH-INVALID` and the same
-  Argon2 cost; reset requests always return 202.
+  Argon2 cost; reset requests always return 202, with the lookup, token insert, and mail send
+  running after the response so latency does not reveal whether the address exists.
 - **Email tokens** (verify/reset) are single-use, hashed at rest, expiring (48 h / 1 h), and
   reset requires a verified email and revokes every session. SMTP STARTTLS verifies the
   server certificate, and the dev in-memory sink is refused in `cluster`/`prod` so mail is

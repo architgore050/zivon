@@ -6,11 +6,11 @@ All security decisions live in `backend/auth/service.py`.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict
 
-from ..auth.service import AuthContext, AuthService, SessionGrant
+from ..auth.service import AuthContext, AuthService, SessionGrant, normalize_email
 from ..auth.tokens import request_ip_hash_from_request, user_agent_hash
 from ..config import BackendConfig
 from ..errors import APIError
@@ -205,12 +205,21 @@ def verify_email(body: TokenRequest, request: Request) -> JSONResponse:
 
 
 @router.post("/request-password-reset")
-def request_password_reset(body: ResetRequest, request: Request) -> Response:
-    """Always 202: the response never reveals whether the address exists."""
+def request_password_reset(
+    body: ResetRequest, request: Request, background: BackgroundTasks
+) -> Response:
+    """Always 202: the response never reveals whether the address exists.
+
+    The lookup, token insert, and mail send run *after* the response so an
+    existing address cannot be distinguished by latency (and a slow mail
+    provider cannot stall the request). Malformed addresses still get 422;
+    that leaks format, not account existence.
+    """
     service = _service(request)
     config = _config(request)
     service.check_rate_limit("reset", request_ip_hash_from_request(config, request))
-    service.request_password_reset(body.email)
+    normalised = normalize_email(body.email)
+    background.add_task(service.request_password_reset, normalised)
     return JSONResponse(status_code=202, content={"ok": True})
 
 

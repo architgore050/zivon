@@ -54,7 +54,9 @@ An account is an additional identity a device can be linked to.
    authenticated state-changing calls. A stolen cookie alone cannot mutate state from a
    cross-site form.
 5. **No account enumeration.** Unknown email and wrong password return the same
-   `E-AUTH-INVALID` after the same Argon2 work; password-reset requests always return 202.
+   `E-AUTH-INVALID` after the same Argon2 work; password-reset requests always return 202,
+   and the lookup/insert/mail work runs after the response so latency does not reveal
+   whether the address exists.
 6. **Argon2id** (m=64 MiB, t=3, p=4), 128-bit salt per password, minimum 10 characters, a
    small static common-password block list, and a rejection when the password equals the
    email local part. No composition rules.
