@@ -400,12 +400,12 @@ class TestLessonShell(unittest.TestCase):
     def test_reading_progress_is_local_and_emits_section_views(self) -> None:
         context, page, _ = self._open_lesson()
         try:
-            start = int(page.get_attribute("#zn-read-progress", "aria-valuenow"))
+            start = int(page.get_attribute("#zn-read-progress", "aria-valuenow") or "0")
             page.evaluate("() => document.getElementById('sec-05').scrollIntoView()")
             page.wait_for_timeout(300)
             page.evaluate("() => document.getElementById('sec-08').scrollIntoView()")
             page.wait_for_timeout(300)
-            after = int(page.get_attribute("#zn-read-progress", "aria-valuenow"))
+            after = int(page.get_attribute("#zn-read-progress", "aria-valuenow") or "0")
             self.assertGreater(after, start, "the reading progress rule advances")
             self.assertLessEqual(after, 100)
 
@@ -522,7 +522,7 @@ class TestLessonShell(unittest.TestCase):
             )
             # WCAG 2.5.3 label-in-name: the accessible name starts with the
             # visible words, so speech-input users can say "Ask about this".
-            first_label = page.get_attribute(".zn-ask-block", "aria-label")
+            first_label = page.get_attribute(".zn-ask-block", "aria-label") or ""
             self.assertTrue(
                 first_label.startswith("Ask about this"),
                 f"accessible name must contain the visible label: {first_label}",
