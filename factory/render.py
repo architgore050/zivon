@@ -26,6 +26,8 @@ from typing import Any
 
 from logging_manager import Severity, log_event
 
+from . import identity as ident
+from . import sections as section_map
 from .artifacts import RunContext, slugify
 from .config import Config
 from .errors import LintError
@@ -41,6 +43,42 @@ from .translate import (
 
 STAGE_ID = "06-render"
 TRANSRENDER_STAGE_ID = "10d-transrender"
+
+# Element ids from docs/product/ui-element-inventory.csv (EL-LES-01-NNN).
+# The renderer marks only the CONTENT elements it actually emits; product
+# chrome ids (dock, consent, language bar, report) belong to the shell kit
+# (docs/specs/frontend/shell-injection.md §2). An id whose element does not
+# exist on a generated page is never emitted as a placeholder.
+EL_KICKER = "EL-LES-01-001"
+EL_TITLE = "EL-LES-01-002"
+EL_OBJECTIVES_LABEL = "EL-LES-01-004"
+EL_OBJECTIVES_LIST = "EL-LES-01-005"
+EL_TEXT_PARAGRAPH = "EL-LES-01-010"
+EL_DIAGRAM_FIGURE = "EL-LES-01-014"
+EL_DIAGRAM_CAPTION = "EL-LES-01-015"
+EL_SIM_CARD = "EL-LES-01-018"
+EL_SIM_TITLE = "EL-LES-01-019"
+EL_SIM_CONTROL = "EL-LES-01-020"
+EL_SIM_CANVAS = "EL-LES-01-021"
+EL_SIM_MIRROR = "EL-LES-01-022"
+EL_CHECK_FIELDSET = "EL-LES-01-025"
+EL_CHECK_OPTION = "EL-LES-01-026"
+EL_CHECK_NUMERIC = "EL-LES-01-027"
+EL_CHECK_BUTTON = "EL-LES-01-028"
+EL_CHECK_FEEDBACK = "EL-LES-01-029"
+EL_CHECK_WHY = "EL-LES-01-031"
+EL_EXAMPLE_PROBLEM = "EL-LES-01-032"
+EL_EXAMPLE_STEP = "EL-LES-01-033"
+EL_EXAMPLE_ANSWER = "EL-LES-01-034"
+EL_REVEAL_DETAILS = "EL-LES-01-035"
+EL_GLOSSARY = "EL-LES-01-036"
+EL_SOURCES_FOOTER = "EL-LES-01-037"
+
+# Product languages for a lesson (FEATURE-MAP #3 / REQUIREMENTS §7.6). Coverage
+# is reported, never promised: `languages.missing` names what does NOT exist in
+# this artifact, so a product surface can show the "not available yet" marker.
+LESSON_LOCALES = ("en", "hi", "hi-Latn")
+
 
 # Lesson pages are the ONLY pages that opt into a network connection: the voice
 # dock dials the same-origin `wss://<origin>/voice/ws` (ADR-0020 / EX5 client).
@@ -151,11 +189,37 @@ def run(
     # topic directory instead of publishing a model-invented duplicate (the
     # old lesson-title slug produced "laws-of-motion" AND
     # "laws-of-motion-from-aristotle-s-mistake" for one chapter).
-    display_title = chapter_display_title(source_pack["chapter"]["title"])
+    raw_title = source_pack["chapter"]["title"]
+    repaired_title = ident.repair_chapter_title(
+        raw_title,
+        matched_line=source_pack["chapter"].get("matched_line"),
+        query=chapter_query,
+    )
+    if repaired_title is None:
+        raise LintError(
+            STAGE_ID,
+            f"the located chapter title {raw_title!r} does not name a chapter "
+            "and no usable fallback exists (matched_line/query). Re-run 01-locate "
+            "with the exact chapter title - publishing a placeholder title is "
+            "not allowed.",
+            artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
+        )
+    display_title = chapter_display_title(repaired_title)
     slug = slugify(display_title)
     # The course folder follows the class of the chapter actually located -
     # the topic decides where it lives, never a config value (2026-11-06).
-    course_id = f"class-{source_pack['chapter']['class']}-physics"
+    class_level = source_pack["chapter"]["class"]
+    course_id = f"class-{class_level}-physics"
+
+    # Stable identity + block -> section ownership (P1, 2026-11-15): the page
+    # carries chapter/lesson/concept ids, and every block names the lesson
+    # section that owns it (authored by the draft when present, derived
+    # deterministically otherwise - see factory/sections.py).
+    chapter_key = ident.chapter_id(class_level, slug)
+    page_blocks = list(blocks["blocks"])
+    content_hash = ident.content_hash(chapter_key, lesson, page_blocks)
+    ownership = section_map.resolve_sections(lesson, page_blocks)
+    page_blocks = section_map.apply_metadata(page_blocks, ownership, chapter_key)
 
     page_js = "\n\n".join(
         out["files"].get("page.js", "")
@@ -168,7 +232,7 @@ def run(
         if out["files"].get("page.css")
     )
 
-    body = "\n".join(_render_block(b) for b in blocks["blocks"])
+    body = _render_body(lesson, page_blocks, chapter_key)
     html_text = _page_html(
         cfg,
         lesson,
@@ -208,29 +272,19 @@ def run(
     if page_css:
         (topic_dir / "page.css").write_text(page_css, encoding="utf-8")
 
-    manifest = {
-        "course_id": course_id,
-        "class": source_pack["chapter"]["class"],
-        "topic_slug": slug,
-        "title": display_title,
-        # Additive (2026-11-10): the model's own lesson headline stays on
-        # record, but it never names the page or the topic directory.
-        "lesson_title": lesson["title"],
-        "chapter": {
-            "query": chapter_query,
-            "title": source_pack["chapter"]["title"],
-            "book": source_pack["chapter"]["book_title"],
-            "pages": source_pack["chapter"]["pages"],
-            # NCERT numbers run continuously across parts (Part II starts at
-            # 8 in class 11 - founder confirmed 2026-11-09); the landing page
-            # orders by this. None for non-NCERT topics (sorts last).
-            "number": source_pack["chapter"].get("number"),
-        },
-        "sources": _sources_list(source_pack),
-        "run_id": run_ctx.run_id,
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "block_counts": _block_counts(blocks),
-    }
+    manifest = _manifest_v2(
+        cfg=cfg,
+        run_ctx=run_ctx,
+        source_pack=source_pack,
+        lesson=lesson,
+        blocks=page_blocks,
+        chapter_query=chapter_query,
+        chapter_key=chapter_key,
+        course_id=course_id,
+        slug=slug,
+        display_title=display_title,
+        content_hash=content_hash,
+    )
     (topic_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -246,12 +300,229 @@ def run(
         "site_dir": str(site),
         "manifest": manifest,
         "files": sorted(p.name for p in topic_dir.iterdir()),
+        # Honesty channel for the ownership map: how much of it the draft
+        # authored versus the renderer derived.
+        "hooks": {
+            "chapter_id": chapter_key,
+            "lesson_id": manifest["lesson_id"],
+            "sections": len(manifest["sections"]),
+            "blocks": len(page_blocks),
+            "sections_authored": ownership.authored,
+            "sections_derived": ownership.derived,
+            "content_hash": manifest["content_hash"],
+        },
+    }
+
+
+# ------------------------------------------------------- manifest / identity
+def _lesson_languages(available: list[str] | None = None) -> dict[str, Any]:
+    """Language coverage of THIS artifact (never a promise).
+
+    ``available`` lists the locale bundles that exist on disk; ``missing``
+    lists the product languages that do not. A surface that sees a locale in
+    ``missing`` shows the "not available yet" marker instead of English
+    pretending to be Hindi (REQUIREMENTS §7.6).
+    """
+    locales = ["en"]
+    for loc in available or []:
+        if loc and loc not in locales:
+            locales.append(loc)
+    return {
+        "default": "en",
+        "available": locales,
+        "missing": [loc for loc in LESSON_LOCALES if loc not in locales],
+    }
+
+
+def _manifest_counts(blocks: list[dict[str, Any]]) -> dict[str, int]:
+    """Counts of what the artifact actually contains.
+
+    Practice and test counts are deliberately ABSENT until P2/P3 produce those
+    items: a fabricated ``0`` would read as "this chapter has no practice" when
+    the truth is "no practice exists yet".
+    """
+    by_type: dict[str, int] = {}
+    for block in blocks:
+        by_type[str(block["type"])] = by_type.get(str(block["type"]), 0) + 1
+    return {
+        "lesson_blocks": len(blocks),
+        "checks": by_type.get("check", 0),
+        "worked_examples": by_type.get("worked_example", 0),
+        "diagrams": by_type.get("diagram", 0),
+        "simulations": by_type.get("simulation", 0),
+        "reveals": by_type.get("reveal", 0),
+        "text_blocks": by_type.get("text", 0),
+    }
+
+
+def _manifest_sections(
+    lesson: dict[str, Any], blocks: list[dict[str, Any]], chapter_key: str
+) -> list[dict[str, Any]]:
+    titles = {str(s["id"]): str(s.get("title", "")) for s in lesson.get("sections", [])}
+    out: list[dict[str, Any]] = []
+    for section_id, group in section_map.group_by_section(lesson, blocks):
+        if not section_id:
+            continue
+        out.append(
+            {
+                "id": section_id,
+                "title": titles.get(section_id, ""),
+                "concept_id": ident.concept_id(chapter_key, section_id),
+                "block_ids": [str(b["id"]) for b in group],
+            }
+        )
+    return out
+
+
+def _manifest_block_map(
+    blocks: list[dict[str, Any]],
+) -> dict[str, dict[str, str]]:
+    """block id -> {type, section_id, concept_id}: F4's drawer and LES-10
+    ``block_view`` read this instead of re-parsing HTML."""
+    out: dict[str, dict[str, str]] = {}
+    for block in blocks:
+        section_id = str(block.get("section_id") or "")
+        if not section_id:
+            continue
+        out[str(block["id"])] = {
+            "type": str(block["type"]),
+            "section_id": section_id,
+            "concept_id": str(block.get("concept_id") or ""),
+        }
+    return out
+
+
+def _manifest_v2(
+    *,
+    cfg: Config,
+    run_ctx: RunContext,
+    source_pack: dict[str, Any],
+    lesson: dict[str, Any],
+    blocks: list[dict[str, Any]],
+    chapter_query: str,
+    chapter_key: str,
+    course_id: str,
+    slug: str,
+    display_title: str,
+    content_hash: str,
+    locales_available: list[str] | None = None,
+) -> dict[str, Any]:
+    """The topic manifest, v2 (additive over v1 - see ``schemas.MANIFEST_V2``)."""
+    del cfg  # language coverage is a fact about this artifact, not a config
+    chapter = source_pack["chapter"]
+    section_entries = _manifest_sections(lesson, blocks, chapter_key)
+    return {
+        "manifest_version": 2,
+        "chapter_id": chapter_key,
+        "lesson_id": ident.lesson_id(chapter["class"], slug),
+        "course_id": course_id,
+        "subject": ident.SUBJECT,
+        "class": chapter["class"],
+        "topic_slug": slug,
+        "title": display_title,
+        # Additive (2026-11-10): the model's own lesson headline stays on
+        # record, but it never names the page or the topic directory.
+        "lesson_title": lesson["title"],
+        # Status describes what this artifact IS: a lesson page with no
+        # practice items or test series attached yet. P2/P3 raise it when they
+        # produce those artifacts; publish does not change it.
+        "status": "lesson_only",
+        "languages": _lesson_languages(locales_available),
+        "counts": _manifest_counts(blocks),
+        "concepts": [
+            {
+                "concept_id": entry["concept_id"],
+                "section_id": entry["id"],
+                "title": entry["title"],
+            }
+            for entry in section_entries
+        ],
+        "sections": section_entries,
+        "blocks": _manifest_block_map(blocks),
+        # `exam_weight` is absent on purpose: only a syllabus manifest (P2) can
+        # state a chapter's exam weight from a source. Unknown = absent.
+        "pipeline_version": ident.pipeline_version(),
+        "content_hash": content_hash,
+        "chapter": {
+            "query": chapter_query,
+            # The title the locator produced, repaired when it was page
+            # furniture ("Grade"): an unusable title never reaches a manifest.
+            "title": ident.repair_chapter_title(
+                chapter["title"],
+                matched_line=chapter.get("matched_line"),
+                query=chapter_query,
+            ),
+            "book": chapter["book_title"],
+            "pages": chapter["pages"],
+            # NCERT numbers run continuously across parts (Part II starts at
+            # 8 in class 11 - founder confirmed 2026-11-09); the landing page
+            # orders by this. None for non-NCERT topics (sorts last).
+            "number": chapter.get("number"),
+        },
+        "sources": _sources_list(source_pack),
+        "run_id": run_ctx.run_id,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "block_counts": _block_counts({"blocks": blocks}),
     }
 
 
 # ------------------------------------------------------------------ blocks
 def _esc(text: Any) -> str:
     return html_mod.escape(str(text), quote=True)
+
+
+def _block_attrs(block: dict[str, Any], attrs: str = "") -> str:
+    """The machine hooks every block element carries.
+
+    ``data-block-type`` is the schema's block type (never inferred from a class
+    name), ``data-concept-id`` is the section-scoped concept key. Both are part
+    of the shell contract (docs/specs/frontend/shell-injection.md §2).
+    """
+    block_type = _esc(block["type"])
+    concept = _esc(block.get("concept_id") or "")
+    out = f' data-block-type="{block_type}"'
+    if concept:
+        out += f' data-concept-id="{concept}"'
+    return out + attrs
+
+
+def _render_body(
+    lesson: dict[str, Any],
+    blocks: list[dict[str, Any]],
+    chapter_key: str,
+    *,
+    with_i18n_attrs: bool = False,
+    ui_copy: dict[str, str] | None = None,
+    fallback_block_ids: frozenset[str] = frozenset(),
+) -> str:
+    """Render the ordered blocks inside their owning ``<section>`` wrappers.
+
+    A section wrapper is structure only: it carries the section + concept ids
+    (and the shell can read the localized title from ``i18n/<locale>.json``),
+    never new visible prose - wrapping must not change what the page looks
+    like, only what it exposes to machines.
+    """
+    chunks: list[str] = []
+    for section_id, group in section_map.group_by_section(lesson, blocks):
+        inner = "\n".join(
+            _render_block(
+                block,
+                with_i18n_attrs=with_i18n_attrs,
+                ui_copy=ui_copy,
+                is_fallback_en=str(block["id"]) in fallback_block_ids,
+            )
+            for block in group
+        )
+        if not section_id:
+            chunks.append(inner)
+            continue
+        concept = _esc(ident.concept_id(chapter_key, section_id))
+        chunks.append(
+            f'  <section class="zn-section" id="{_esc(section_id)}" '
+            f'data-section-id="{_esc(section_id)}" data-concept-id="{concept}">\n'
+            f"{inner}\n  </section>"
+        )
+    return "\n".join(chunks)
 
 
 def _tag_svg_with_i18n(block_id: str, svg_str: str) -> str:
@@ -283,6 +554,7 @@ def _render_block(
     ui = {**DEFAULT_UI_STRINGS_EN, **(ui_copy or {})}
     t, spec = b["type"], b["spec"]
     bid = _esc(b["id"])
+    hooks = _block_attrs(b)
     fallback_attr = ' lang="en" data-fallback-en="true"' if is_fallback_en else ""
     fallback_banner = (
         f'    <p class="zn-untranslated-notice" data-i18n="ui.untranslated_block_notice">'
@@ -294,46 +566,58 @@ def _render_block(
     if t == "text":
         if with_i18n_attrs:
             paras = "\n".join(
-                f'    <p data-i18n="{bid}.paragraphs.{i}">{_esc(p)}</p>'
+                f'    <p data-element-id="{EL_TEXT_PARAGRAPH}" '
+                f'data-i18n="{bid}.paragraphs.{i}">{_esc(p)}</p>'
                 for i, p in enumerate(spec.get("paragraphs", []))
             )
             return (
-                f'  <section class="zn-text" id="{bid}"{fallback_attr}>\n'
+                f'  <section class="zn-text" id="{bid}"{hooks}{fallback_attr}>\n'
                 f"{fallback_banner}{paras}\n  </section>"
             )
-        paras = "\n".join(f"    <p>{_esc(p)}</p>" for p in spec.get("paragraphs", []))
+        paras = "\n".join(
+            f'    <p data-element-id="{EL_TEXT_PARAGRAPH}">{_esc(p)}</p>'
+            for p in spec.get("paragraphs", [])
+        )
         # Every rendered block element carries its stable block id: the shell
         # kit keys read-aloud controls (§10.13), the context snapshot and the
         # tutor highlight off it. The non-i18n path must not drop it.
-        return f'  <section class="zn-text" id="{bid}">\n{paras}\n  </section>'
+        return f'  <section class="zn-text" id="{bid}"{hooks}>\n{paras}\n  </section>'
 
     if t == "worked_example":
         if with_i18n_attrs:
             steps = "\n".join(
-                f'      <li><strong data-i18n="{bid}.steps.{i}.title">{_esc(s.get("title", ""))}</strong> '
+                f'      <li data-element-id="{EL_EXAMPLE_STEP}">'
+                f'<strong data-i18n="{bid}.steps.{i}.title">{_esc(s.get("title", ""))}</strong> '
                 f'<span data-i18n="{bid}.steps.{i}.detail">{_esc(s.get("detail", ""))}</span></li>'
                 for i, s in enumerate(spec.get("steps", []))
             )
             return (
-                f'  <section class="zn-example" id="{bid}"{fallback_attr}>\n'
+                f'  <section class="zn-example" id="{bid}"{hooks}{fallback_attr}>\n'
                 f"{fallback_banner}"
                 f'    <h3 data-i18n="ui.example_heading">{_esc(ui["lesson.example.heading"])}</h3>\n'
-                f'    <p class="zn-example-problem" data-i18n="{bid}.problem">{_esc(spec.get("problem", ""))}</p>\n'
+                f'    <p class="zn-example-problem" data-element-id="{EL_EXAMPLE_PROBLEM}" '
+                f'data-i18n="{bid}.problem">{_esc(spec.get("problem", ""))}</p>\n'
                 f"    <ol>\n{steps}\n    </ol>\n"
                 f'    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">'
                 f"{_esc(ui['lesson.answer.label'])}</span> "
-                f'<span data-i18n="{bid}.answer">{_esc(spec.get("answer", ""))}</span></p>\n'
+                f'<span data-element-id="{EL_EXAMPLE_ANSWER}" '
+                f'data-i18n="{bid}.answer">{_esc(spec.get("answer", ""))}</span></p>\n'
                 "  </section>"
             )
         steps = "\n".join(
-            f"      <li><strong>{_esc(s.get('title', ''))}</strong> {_esc(s.get('detail', ''))}</li>"
+            f'      <li data-element-id="{EL_EXAMPLE_STEP}">'
+            f"<strong>{_esc(s.get('title', ''))}</strong> {_esc(s.get('detail', ''))}</li>"
             for s in spec.get("steps", [])
         )
         return (
-            f'  <section class="zn-example" id="{bid}">\n'
-            f'    <h3>Worked example</h3>\n    <p class="zn-example-problem">{_esc(spec.get("problem", ""))}</p>\n'
+            f'  <section class="zn-example" id="{bid}"{hooks}>\n'
+            f"    <h3>Worked example</h3>\n"
+            f'    <p class="zn-example-problem" data-element-id="{EL_EXAMPLE_PROBLEM}">'
+            f"{_esc(spec.get('problem', ''))}</p>\n"
             f"    <ol>\n{steps}\n    </ol>\n"
-            f'    <p class="zn-answer"><span class="zn-answer-label">Answer</span> {_esc(spec.get("answer", ""))}</p>\n'
+            f'    <p class="zn-answer"><span class="zn-answer-label">Answer</span> '
+            f'<span data-element-id="{EL_EXAMPLE_ANSWER}">'
+            f"{_esc(spec.get('answer', ''))}</span></p>\n"
             "  </section>"
         )
 
@@ -349,23 +633,24 @@ def _render_block(
     if t == "reveal":
         if with_i18n_attrs:
             steps = "\n".join(
-                f'      <details class="zn-reveal-step">'
+                f'      <details class="zn-reveal-step" data-element-id="{EL_REVEAL_DETAILS}">'
                 f'<summary data-i18n="{bid}.steps.{i}.title">{_esc(s.get("title", ""))}</summary>'
                 f'<p data-i18n="{bid}.steps.{i}.detail">{_esc(s.get("detail", ""))}</p></details>'
                 for i, s in enumerate(spec.get("steps", []))
             )
             return (
-                f'  <section class="zn-reveal" id="{bid}"{fallback_attr}>\n'
+                f'  <section class="zn-reveal" id="{bid}"{hooks}{fallback_attr}>\n'
                 f"{fallback_banner}"
                 f'    <h3 data-i18n="{bid}.title">{_esc(spec.get("title", ""))}</h3>\n{steps}\n  </section>'
             )
         steps = "\n".join(
-            f'      <details class="zn-reveal-step"><summary>{_esc(s.get("title", ""))}</summary>'
+            f'      <details class="zn-reveal-step" data-element-id="{EL_REVEAL_DETAILS}">'
+            f"<summary>{_esc(s.get('title', ''))}</summary>"
             f"<p>{_esc(s.get('detail', ''))}</p></details>"
             for s in spec.get("steps", [])
         )
         return (
-            f'  <section class="zn-reveal" id="{bid}">\n'
+            f'  <section class="zn-reveal" id="{bid}"{hooks}>\n'
             f"    <h3>{_esc(spec.get('title', ''))}</h3>\n{steps}\n  </section>"
         )
 
@@ -373,15 +658,17 @@ def _render_block(
         if with_i18n_attrs:
             tagged_svg = _tag_svg_with_i18n(str(b["id"]), str(spec.get("svg", "")))
             return (
-                f'  <figure class="zn-diagram" id="{bid}"{fallback_attr}>\n'
+                f'  <figure class="zn-diagram" id="{bid}"{hooks}{fallback_attr}>\n'
                 f"{fallback_banner}"
                 f'    <div class="zn-diagram-svg">{tagged_svg}</div>\n'
-                f'    <figcaption data-i18n="{bid}.caption">{_esc(spec.get("caption", ""))}</figcaption>\n  </figure>'
+                f'    <figcaption data-element-id="{EL_DIAGRAM_CAPTION}" '
+                f'data-i18n="{bid}.caption">{_esc(spec.get("caption", ""))}</figcaption>\n  </figure>'
             )
         return (
-            f'  <figure class="zn-diagram" id="{bid}">\n'
+            f'  <figure class="zn-diagram" id="{bid}"{hooks}>\n'
             f'    <div class="zn-diagram-svg">{spec.get("svg", "")!s}</div>\n'
-            f"    <figcaption>{_esc(spec.get('caption', ''))}</figcaption>\n  </figure>"
+            f'    <figcaption data-element-id="{EL_DIAGRAM_CAPTION}">'
+            f"{_esc(spec.get('caption', ''))}</figcaption>\n  </figure>"
         )
 
     if t == "simulation":
@@ -406,18 +693,21 @@ def _render_check(
     ui_map = {**DEFAULT_UI_STRINGS_EN, **(ui or {})}
     spec = b["spec"]
     qid = _esc(b["id"])
+    hooks = _block_attrs(b)
     q = _esc(spec.get("question", ""))
     fmt = spec.get("format")
     if fmt == "mcq":
         if with_i18n_attrs:
             inputs = "\n".join(
-                f'      <label class="zn-opt"><input type="radio" name="check-{qid}" value="{i}"> '
+                f'      <label class="zn-opt" data-element-id="{EL_CHECK_OPTION}">'
+                f'<input type="radio" name="check-{qid}" value="{i}"> '
                 f'<span data-i18n="{qid}.options.{i}">{_esc(opt)}</span></label>'
                 for i, opt in enumerate(spec.get("options", []))
             )
         else:
             inputs = "\n".join(
-                f'      <label class="zn-opt"><input type="radio" name="check-{qid}" value="{i}"> '
+                f'      <label class="zn-opt" data-element-id="{EL_CHECK_OPTION}">'
+                f'<input type="radio" name="check-{qid}" value="{i}"> '
                 f"<span>{_esc(opt)}</span></label>"
                 for i, opt in enumerate(spec.get("options", []))
             )
@@ -426,36 +716,46 @@ def _render_check(
         prompt_lbl = _esc(ui_map["lesson.check.your_answer"])
         if with_i18n_attrs:
             inputs = (
-                f'      <label class="zn-opt zn-opt-numeric">'
+                f'      <label class="zn-opt zn-opt-numeric" '
+                f'data-element-id="{EL_CHECK_NUMERIC}">'
                 f'<span data-i18n="ui.check_your_answer">{prompt_lbl}</span> '
                 f'<input type="text" inputmode="decimal" class="zn-numeric-input" name="check-{qid}-input"></label>'
             )
         else:
             inputs = (
-                f'      <label class="zn-opt zn-opt-numeric">Your answer: '
+                f'      <label class="zn-opt zn-opt-numeric" '
+                f'data-element-id="{EL_CHECK_NUMERIC}">Your answer: '
                 f'<input type="text" inputmode="decimal" class="zn-numeric-input" name="check-{qid}-input"></label>'
             )
         data = f'data-answer="{_esc(spec.get("answer", ""))}"'
     explanation = _esc(spec.get("explanation", ""))
     if with_i18n_attrs:
         return (
-            f'  <fieldset class="zn-check" id="{qid}" data-format="{fmt}" {data}{fallback_attr}>\n'
+            f'  <fieldset class="zn-check" id="{qid}" data-element-id="{EL_CHECK_FIELDSET}" '
+            f'data-format="{fmt}" {data}{hooks}{fallback_attr}>\n'
             f"{fallback_banner}"
             f'    <legend data-i18n="{qid}.question">{q}</legend>\n{inputs}\n'
-            f'    <button type="button" class="zn-check-btn" data-i18n="ui.check_submit">'
+            f'    <button type="button" class="zn-check-btn" data-element-id="{EL_CHECK_BUTTON}" '
+            f'data-i18n="ui.check_submit">'
             f"{_esc(ui_map['lesson.check.submit'])}</button>\n"
-            f'    <p class="zn-check-feedback" aria-live="polite"></p>\n'
-            f'    <details class="zn-check-why"><summary data-i18n="ui.check_why">'
+            f'    <p class="zn-check-feedback" data-element-id="{EL_CHECK_FEEDBACK}" '
+            f'aria-live="polite"></p>\n'
+            f'    <details class="zn-check-why" data-element-id="{EL_CHECK_WHY}">'
+            f'<summary data-i18n="ui.check_why">'
             f"{_esc(ui_map['lesson.check.why'])}</summary>"
             f'<p data-i18n="{qid}.explanation">{explanation}</p></details>\n'
             "  </fieldset>"
         )
     return (
-        f'  <fieldset class="zn-check" id="{qid}" data-format="{fmt}" {data}>\n'
+        f'  <fieldset class="zn-check" id="{qid}" data-element-id="{EL_CHECK_FIELDSET}" '
+        f'data-format="{fmt}" {data}{hooks}>\n'
         f"    <legend>{q}</legend>\n{inputs}\n"
-        f'    <button type="button" class="zn-check-btn">Check</button>\n'
-        f'    <p class="zn-check-feedback" aria-live="polite"></p>\n'
-        f'    <details class="zn-check-why"><summary>Why?</summary><p>{explanation}</p></details>\n'
+        f'    <button type="button" class="zn-check-btn" '
+        f'data-element-id="{EL_CHECK_BUTTON}">Check</button>\n'
+        f'    <p class="zn-check-feedback" data-element-id="{EL_CHECK_FEEDBACK}" '
+        f'aria-live="polite"></p>\n'
+        f'    <details class="zn-check-why" data-element-id="{EL_CHECK_WHY}">'
+        f"<summary>Why?</summary><p>{explanation}</p></details>\n"
         "  </fieldset>"
     )
 
@@ -469,9 +769,10 @@ def _render_simulation(
 ) -> str:
     spec = b["spec"]
     sid = _esc(b["id"])
+    hooks = _block_attrs(b)
     if with_i18n_attrs:
         controls = "\n".join(
-            f'      <label class="zn-sim-control">'
+            f'      <label class="zn-sim-control" data-element-id="{EL_SIM_CONTROL}">'
             f'<span data-i18n="{sid}.controls.{_esc(c.get("id"))}.label">'
             f"{_esc(c.get('label', c.get('id')))}</span>"
             f'<input type="range" data-control="{_esc(c.get("id"))}" min="{_esc(c.get("min", 0))}" '
@@ -480,32 +781,38 @@ def _render_simulation(
             for c in spec.get("controls", [])
         )
         return (
-            f'  <section class="zn-sim zn-sim-{sid}" id="{sid}" data-sim-id="{sid}" '
-            f'aria-label="{_esc(spec.get("title", ""))}"{fallback_attr}>\n'
+            f'  <section class="zn-sim zn-sim-{sid}" id="{sid}" data-element-id="{EL_SIM_CARD}" '
+            f'data-sim-id="{sid}" '
+            f'aria-label="{_esc(spec.get("title", ""))}"{hooks}{fallback_attr}>\n'
             f"{fallback_banner}"
-            f'    <h3 data-i18n="{sid}.title">{_esc(spec.get("title", ""))}</h3>\n'
+            f'    <h3 data-element-id="{EL_SIM_TITLE}" '
+            f'data-i18n="{sid}.title">{_esc(spec.get("title", ""))}</h3>\n'
             f'    <div class="zn-sim-controls">\n{controls}\n    </div>\n'
-            f'    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" '
+            f'    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" '
+            f'data-element-id="{EL_SIM_CANVAS}" width="480" '
             f'height="320" tabindex="0" aria-label="{_esc(spec.get("title", ""))} drawing"></canvas></div>\n'
-            f'    <p class="zn-sim-read" aria-live="polite"></p>\n'
+            f'    <p class="zn-sim-read" data-element-id="{EL_SIM_MIRROR}" aria-live="polite"></p>\n'
             f'    <p class="zn-sim-desc" data-i18n="{sid}.description">{_esc(spec.get("description", ""))}</p>\n'
             "  </section>"
         )
     controls = "\n".join(
-        f'      <label class="zn-sim-control"><span>{_esc(c.get("label", c.get("id")))}</span>'
+        f'      <label class="zn-sim-control" data-element-id="{EL_SIM_CONTROL}">'
+        f"<span>{_esc(c.get('label', c.get('id')))}</span>"
         f'<input type="range" data-control="{_esc(c.get("id"))}" min="{_esc(c.get("min", 0))}" '
         f'max="{_esc(c.get("max", 100))}" step="{_esc(c.get("step", 1))}" value="{_esc(c.get("initial", 0))}">'
         f"<output>{_esc(c.get('initial', 0))}</output></label>"
         for c in spec.get("controls", [])
     )
     return (
-        f'  <section class="zn-sim zn-sim-{sid}" id="{sid}" data-sim-id="{sid}" '
-        f'aria-label="{_esc(spec.get("title", ""))}">\n'
-        f"    <h3>{_esc(spec.get('title', ''))}</h3>\n"
+        f'  <section class="zn-sim zn-sim-{sid}" id="{sid}" data-element-id="{EL_SIM_CARD}" '
+        f'data-sim-id="{sid}" '
+        f'aria-label="{_esc(spec.get("title", ""))}"{hooks}>\n'
+        f'    <h3 data-element-id="{EL_SIM_TITLE}">{_esc(spec.get("title", ""))}</h3>\n'
         f'    <div class="zn-sim-controls">\n{controls}\n    </div>\n'
-        f'    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" width="480" '
+        f'    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" '
+        f'data-element-id="{EL_SIM_CANVAS}" width="480" '
         f'height="320" tabindex="0" aria-label="{_esc(spec.get("title", ""))} drawing"></canvas></div>\n'
-        f'    <p class="zn-sim-read" aria-live="polite"></p>\n'
+        f'    <p class="zn-sim-read" data-element-id="{EL_SIM_MIRROR}" aria-live="polite"></p>\n'
         f'    <p class="zn-sim-desc">{_esc(spec.get("description", ""))}</p>\n'
         "  </section>"
     )
@@ -699,22 +1006,22 @@ def _page_html(
 {lang_bar}
 <main class="zn-page">
   <header class="zn-header">
-    <p class="zn-kicker">{_esc(course_id)}</p>
-    <h1 class="zn-title"{title_attr}>{_esc(title)}</h1>
-    <p class="zn-objectives-label"{obj_lbl_attr}>{_esc(ui["lesson.objectives.heading"])}</p>
-    <ul class="zn-objectives">
+    <p class="zn-kicker" data-element-id="{EL_KICKER}">{_esc(course_id)}</p>
+    <h1 class="zn-title" data-element-id="{EL_TITLE}"{title_attr}>{_esc(title)}</h1>
+    <p class="zn-objectives-label" data-element-id="{EL_OBJECTIVES_LABEL}"{obj_lbl_attr}>{_esc(ui["lesson.objectives.heading"])}</p>
+    <ul class="zn-objectives" data-element-id="{EL_OBJECTIVES_LIST}">
 {objectives}
     </ul>
   </header>
 {body}
-  <section class="zn-glossary">
+  <section class="zn-glossary" data-element-id="{EL_GLOSSARY}">
     <h2{gloss_lbl_attr}>{_esc(ui["lesson.glossary.heading"])}</h2>
     <dl>
 {glossary}
     </dl>
   </section>
   <footer class="zn-footer">
-    <p class="zn-sources"{sources_attr}>{_esc(ui["lesson.sources.footer"])}</p>
+    <p class="zn-sources" data-element-id="{EL_SOURCES_FOOTER}"{sources_attr}>{_esc(ui["lesson.sources.footer"])}</p>
   </footer>
 </main>
 {i18n_js_tag}<script src="{assets_prefix}/zivon.js"></script>
@@ -754,45 +1061,134 @@ def _block_counts(blocks: dict[str, Any]) -> dict[str, int]:
     return counts
 
 
-def write_courses_js(frontend_dir: Path) -> list[dict[str, Any]]:
-    """Regenerate courses.js from every manifest under frontend/courses/.
-    Exposed here so stage 11-link reuses exactly this logic."""
+CATALOGUE_NAME = "catalogue.json"
+
+# The manifest keys the machine catalogue reuses verbatim (manifest v2 core).
+# A v1 manifest simply lacks some of them: absence means "unknown", which is
+# exactly what the reader must treat it as - nothing is invented to fill a gap.
+_CATALOGUE_CORE_KEYS = (
+    "manifest_version",
+    "chapter_id",
+    "lesson_id",
+    "course_id",
+    "class",
+    "subject",
+    "title",
+    "lesson_title",
+    "chapter",
+    "status",
+    "languages",
+    "counts",
+    "concepts",
+    "exam_weight",
+    "pipeline_version",
+    "content_hash",
+    "default_locale",
+    "locales_available",
+    "titles_by_locale",
+    "translation_status",
+)
+
+
+def _topic_manifests(frontend_dir: Path) -> list[tuple[Path, dict[str, Any]]]:
+    """Every topic manifest under ``courses/`` (locale manifests live deeper)."""
     courses_dir = frontend_dir / "courses"
-    entries: list[dict[str, Any]] = []
-    if courses_dir.exists():
-        for mf in sorted(
-            courses_dir.glob("*/*/manifest.json")
-        ):  # topic manifests only; locale manifests live one level deeper
-            data = json.loads(mf.read_text(encoding="utf-8"))
-            # rel already starts with "courses/" (manifests only exist under courses/)
-            rel = mf.parent.relative_to(frontend_dir).as_posix()
-            entry: dict[str, Any] = {
-                "href": f"{rel}/index.html",
-                "course_id": data["course_id"],
-                "class": data["class"],
-                "chapter_number": data["chapter"].get("number"),
-                "title": data["title"],
-                "chapter": data["chapter"]["title"],
-                "generated_at": data["generated_at"],
-            }
-            for opt_key in (
-                "default_locale",
-                "locales_available",
-                "titles_by_locale",
-                "translation_status",
-            ):
-                if opt_key in data:
-                    entry[opt_key] = data[opt_key]
-            entries.append(entry)
-    entries.sort(
-        key=lambda e: (
-            e["class"],
-            e["chapter_number"] is None,
-            e["chapter_number"] or 0,
-            e["chapter"].casefold(),
-            e["title"],
-        )
+    if not courses_dir.exists():
+        return []
+    out: list[tuple[Path, dict[str, Any]]] = []
+    for manifest_path in sorted(courses_dir.glob("*/*/manifest.json")):
+        try:
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        out.append((manifest_path.parent, data))
+    return out
+
+
+def _topic_sort_key(entry: dict[str, Any]) -> tuple[Any, ...]:
+    """Catalogue order: class, then NCERT chapter number, then chapter, title."""
+    chapter = entry.get("chapter")
+    chapter_title = (
+        chapter if isinstance(chapter, str) else str((chapter or {}).get("title", ""))
     )
+    return (
+        entry["class"],
+        entry.get("chapter_number") is None,
+        entry.get("chapter_number") or 0,
+        chapter_title.casefold(),
+        entry.get("title", ""),
+    )
+
+
+def _courses_entry(
+    parent: Path, data: dict[str, Any], frontend_dir: Path
+) -> dict[str, Any]:
+    rel = parent.relative_to(frontend_dir).as_posix()
+    entry: dict[str, Any] = {
+        "href": f"{rel}/index.html",
+        "course_id": data["course_id"],
+        "class": data["class"],
+        "chapter_number": data["chapter"].get("number"),
+        "title": data["title"],
+        "chapter": data["chapter"]["title"],
+        "generated_at": data["generated_at"],
+    }
+    for opt_key in (
+        "default_locale",
+        "locales_available",
+        "titles_by_locale",
+        "translation_status",
+    ):
+        if opt_key in data:
+            entry[opt_key] = data[opt_key]
+    return entry
+
+
+def _catalogue_entry(
+    parent: Path, data: dict[str, Any], frontend_dir: Path
+) -> dict[str, Any]:
+    """One catalogue entry: the manifest v2 core + the two location fields."""
+    rel = parent.relative_to(frontend_dir).as_posix()
+    entry: dict[str, Any] = {"href": f"{rel}/index.html"}
+    for key in _CATALOGUE_CORE_KEYS:
+        if key in data:
+            entry[key] = data[key]
+    # Reuse the catalogue order keys without duplicating them in every read.
+    entry["chapter_number"] = data.get("chapter", {}).get("number")
+    entry["generated_at"] = data.get("generated_at")
+    return entry
+
+
+def write_catalogue(frontend_dir: Path) -> list[dict[str, Any]]:
+    """Write ``catalogue.json``: the machine-readable topic catalogue.
+
+    ``courses.js`` is the browser file (``window.ZIVON_COURSES``); both are
+    derived from the SAME topic manifests in one pass, so they can never
+    disagree. Product layers (catalogue pages, dashboards, imports) read
+    ``catalogue.json``; an entry that predates manifest v2 simply omits the
+    keys it does not carry.
+    """
+    topics = [
+        _catalogue_entry(parent, data, frontend_dir)
+        for parent, data in _topic_manifests(frontend_dir)
+    ]
+    topics.sort(key=_topic_sort_key)
+    payload = {"catalogue_version": 1, "topics": topics}
+    (frontend_dir / CATALOGUE_NAME).write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return topics
+
+
+def write_courses_js(frontend_dir: Path) -> list[dict[str, Any]]:
+    """Regenerate courses.js (and catalogue.json) from every manifest under
+    frontend/courses/. Exposed here so stage 11-link reuses exactly this
+    logic."""
+    entries = [
+        _courses_entry(parent, data, frontend_dir)
+        for parent, data in _topic_manifests(frontend_dir)
+    ]
+    entries.sort(key=_topic_sort_key)
     payload = json.dumps(entries, indent=2, ensure_ascii=False)
     (frontend_dir / "courses.js").write_text(
         "/* Generated by the Zivon content factory - do not edit by hand.\n"
@@ -802,6 +1198,7 @@ def write_courses_js(frontend_dir: Path) -> list[dict[str, Any]]:
         f"window.ZIVON_COURSES = {payload};\n",
         encoding="utf-8",
     )
+    write_catalogue(frontend_dir)
     return entries
 
 
@@ -947,9 +1344,18 @@ def render_localized(
     del chapter_query
     topic_dir = Path(render_out["topic_dir"])
     site_dir = Path(render_out["site_dir"])
-    display_title = chapter_display_title(source_pack["chapter"]["title"])
+    display_title = chapter_display_title(
+        ident.repair_chapter_title(
+            source_pack["chapter"]["title"],
+            matched_line=source_pack["chapter"].get("matched_line"),
+            query=source_pack.get("query"),
+        )
+        or source_pack["chapter"]["title"]
+    )
     slug = slugify(display_title)
-    course_id = f"class-{source_pack['chapter']['class']}-physics"
+    class_level = source_pack["chapter"]["class"]
+    course_id = f"class-{class_level}-physics"
+    chapter_key = ident.chapter_id(class_level, slug)
 
     page_js_path = topic_dir / "page.js"
     page_css_path = topic_dir / "page.css"
@@ -963,7 +1369,12 @@ def render_localized(
     all_ui_strings = load_ui_strings(cfg)
     en_ui = _ui_for_locale(all_ui_strings, "en")
     en_sim_strings = extract_sim_strings_from_js(page_js)
-    en_blocks_list = list(en_blocks.get("blocks", []))
+    # Section ownership is resolved ONCE, from the English draft, and then
+    # applied to every locale: a translated page must have exactly the same
+    # section structure as the page it translates (only the words differ).
+    en_raw_blocks = list(en_blocks.get("blocks", []))
+    ownership = section_map.resolve_sections(en_lesson, en_raw_blocks)
+    en_blocks_list = section_map.apply_metadata(en_raw_blocks, ownership, chapter_key)
     en_blocks_by_id = {b["id"]: b for b in en_blocks_list}
 
     i18n_dir = topic_dir / "i18n"
@@ -1034,6 +1445,9 @@ def render_localized(
                 effective_blocks.append(en_blocks_by_id[b["id"]])
             else:
                 effective_blocks.append(b)
+        effective_blocks = section_map.apply_metadata(
+            effective_blocks, ownership, chapter_key
+        )
 
         loc_strings = _flatten_strings_map(loc_lesson, effective_blocks, loc_ui)
         loc_status = "partial" if fallback_blocks else "verified"
@@ -1074,14 +1488,13 @@ def render_localized(
             "glossary_version": glossary_ver,
         }
 
-        loc_body = "\n".join(
-            _render_block(
-                b,
-                with_i18n_attrs=True,
-                ui_copy=loc_ui,
-                is_fallback_en=(b["id"] in fallback_set),
-            )
-            for b in effective_blocks
+        loc_body = _render_body(
+            loc_lesson,
+            effective_blocks,
+            chapter_key,
+            with_i18n_attrs=True,
+            ui_copy=loc_ui,
+            fallback_block_ids=frozenset(fallback_set),
         )
         loc_html = _page_html(
             cfg,
@@ -1152,8 +1565,8 @@ def render_localized(
     (topic_dir / "i18n.js").write_text(i18n_js_body, encoding="utf-8")
 
     # 4. Upgrade canonical English topic_dir / index.html with data-i18n attributes and i18n.js
-    en_body_i18n = "\n".join(
-        _render_block(b, with_i18n_attrs=True, ui_copy=en_ui) for b in en_blocks_list
+    en_body_i18n = _render_body(
+        en_lesson, en_blocks_list, chapter_key, with_i18n_attrs=True, ui_copy=en_ui
     )
     en_html_i18n = _page_html(
         cfg,
@@ -1191,6 +1604,9 @@ def render_localized(
     manifest["titles_by_locale"] = titles_by_locale
     manifest["translation_status"] = translation_status
     manifest["i18n_hashes"] = i18n_hashes
+    # Manifest v2 language coverage follows the bundles that now exist: the
+    # artifact, not the product promise, decides what `missing` says.
+    manifest["languages"] = _lesson_languages(locales_available)
     manifest_path.write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
     )
