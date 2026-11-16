@@ -216,7 +216,9 @@ def _labelled_control(node: Node, doc: _Document) -> bool:
 
 def _is_focusable(node: Node) -> bool:
     if node.tag in _FOCUSABLE:
-        if node.tag == "input" and node.attr("type").lower() in _INPUT_EXEMPT:
+        # Only a hidden input is non-focusable; submit/reset/button inputs are
+        # focusable even though they need no explicit label.
+        if node.tag == "input" and node.attr("type").lower() == "hidden":
             return False
         return not node.attrs.get("disabled")
     tabindex = node.attr("tabindex")
@@ -336,16 +338,19 @@ def audit_html(html: str) -> list[Finding]:
         if node.tag == "a" and node.attr("href") and not _accessible_name(node, doc):
             add("link-name", "serious", "<a href> has no accessible name", node)
 
-        if node.tag in ("input", "select", "textarea") and not _labelled_control(
-            node, doc
-        ):
-            kind = node.attr("type").lower() or node.tag
-            add(
-                "label",
-                "critical",
-                f"<{node.tag} type={kind!r}> has no label/aria-label",
-                node,
-            )
+        if node.tag in ("input", "select", "textarea"):
+            # Hidden/submit/reset/button inputs have no user-visible label to
+            # provide (implicit names or no UI); do not turn them into a fatal
+            # false positive.
+            exempt = node.tag == "input" and node.attr("type").lower() in _INPUT_EXEMPT
+            if not exempt and not _labelled_control(node, doc):
+                kind = node.attr("type").lower() or node.tag
+                add(
+                    "label",
+                    "critical",
+                    f"<{node.tag} type={kind!r}> has no label/aria-label",
+                    node,
+                )
 
         if (
             node.tag == "fieldset"

@@ -98,6 +98,16 @@ class TestStaticA11y(unittest.TestCase):
         self.assertEqual(findings.get("duplicate-id"), "serious")
         self.assertEqual(findings.get("tabindex-positive"), "serious")
 
+    def test_hidden_and_submit_inputs_do_not_require_an_explicit_label(self) -> None:
+        html = """
+        <html lang="en"><head><title>t</title></head><body><main><h1>x</h1>
+        <input type="hidden" name="answer" value="5">
+        <input type="submit" value="Send">
+        </main></body></html>
+        """
+        findings = a11y_checks.audit_html(html)
+        self.assertEqual([f for f in findings if f.rule == "label"], [])
+
     def test_golden_pages_have_no_blocking_findings(self) -> None:
         cfg = EvalConfig.from_env({})
         card = _card("EV-VIS-002", GOLDEN_TOPICS, "05-interactive..06-render")
