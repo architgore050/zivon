@@ -174,6 +174,18 @@ them to the shared kit rather than copy page-local markup:
 - **No screen spec or state matrix is in this bundle.** Those are PR artifacts for after the
   verdict, per `skills/zivon-frontend-product-skills/templates/`.
 
+## Quality evidence (this run)
+
+- 14 pages, zero console errors at 1280 px and 360 px (Chromium via Playwright).
+- No horizontal overflow at 360 px; the only wide elements are tables and the class tab
+  strip, each inside its own scroll container.
+- One `<h1>` per page; no unlabeled form control; skip link first on every page; native
+  dialogs/drawers for focus containment and return.
+- Shell bundle: JS ~42 KB raw / ~10 KB gzip; CSS ~109 KB raw / ~20 KB gzip; four local woff2
+  fonts (~252 KB total). No external hosts, analytics, storage, network, or microphone.
+- This is example evidence, not the product perf/a11y gate; the implementing PR still needs
+  axe, keyboard, state-coverage, and weak-Android evidence.
+
 ## Review checklist
 
 - [ ] Public header/footer feel like one Field Notes page, not SaaS.
