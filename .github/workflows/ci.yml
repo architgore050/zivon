@@ -55,6 +55,7 @@ jobs:
         run: |
           python3 scripts/check_skills.py
           python3 scripts/check_skills.py --strict --bundle skills/skill-creation
+          python3 scripts/check_skills.py --strict --bundle skills/zivon-landing-page-skills
       - name: Mypy type check
         run: |
           # Fixed core paths + guarded Wave-E extension paths: a package joins
