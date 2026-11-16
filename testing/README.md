@@ -4,6 +4,7 @@
 |---|---|---|
 | [`content_factory/`](content_factory/README.md) | the whole build-time pipeline: unit sets, end-to-end vs the mock inference server, and `perf/` - the weak-hardware harness (a TOOL imported by stage 08, not a test) | `python -m unittest discover -s testing/content_factory/unit -t .` |
 | `frontend/` | the hand-maintained site shell: load contract, self-containment, course-list rendering, quiz + ZivonSim behaviour in real Chromium | `python -m unittest discover -s testing/frontend -t .` |
+| `docs/` | the startup-track docs contract (W0, 2026-11-15): dated status banners, the model-routing table, the preserved challenge history, and the `docs/compliance/` map entry — stdlib only, no network, no browser | `python -m unittest discover -s testing/docs -t .` |
 | [`observability/`](observability/README.md) | the `logging_manager` contract harness + dashboard endpoint tests: redaction guarantees, JSON schema, correlation/headers, sinks + fallback, retention/store helpers, ADR-0026 auth flows, seeded-fixture views | `python -m unittest discover -s testing/observability -t .` |
 | `evals/` | unit and calibration tests for the `evals/` framework: EvalCard/Golden schemas, deterministic-first funnel, 19-sample seeded-defect reviewer calibration (`03-check` + `09-review`), regression diff engine, dual-write store + Alembic migration, and DPDP child-privacy guardrails | `python -m unittest discover -s testing/evals -t .` |
 | `voice/` | the voice loop (spec: `docs/specs/voice-agent/`): frame codec, chunker, brain/STT/TTS clients, session store + credit guard, WS state machine incl. failure modes F1–F8, latency-budget contract — all on mocks (`testing/voice/mocks/`), zero network, no keys | `python -m unittest discover -s testing/voice -t .` |
@@ -11,7 +12,7 @@
 
 Folder names use underscores (`content_factory`) because Python package names cannot contain hyphens; docs call it the content-factory test set.
 
-The `content_factory` and `frontend` sets run in CI (`.github/workflows/ci.yml`, `tests` job) and need **no API keys**; `testing/evals` runs via the eval-smoke job the CI/CD owner adds to the same workflow (`python -m evals run --suite smoke --fail-on-regression`). The frontend, integration, and eval-perf sets need a browser: `python -m playwright install chromium`.
+The `content_factory` and `frontend` sets run in CI (`.github/workflows/ci.yml`, `tests` job) and need **no API keys**; the `docs` set joins the path-guarded Wave-E loop there, so it runs once the folder exists; `testing/evals` runs via the eval-smoke job the CI/CD owner adds to the same workflow (`python -m evals run --suite smoke --fail-on-regression`). The frontend, integration, and eval-perf sets need a browser: `python -m playwright install chromium`.
 
 ## How the static frontend is tested (verdict + method)
 
