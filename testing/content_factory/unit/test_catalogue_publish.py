@@ -462,6 +462,27 @@ class TestPublishSmoke(unittest.TestCase):
             report.narration["missing_manifests"],
         )
 
+    def test_un_narrated_blocks_are_named_in_a_warning(self) -> None:
+        # A topic whose overall flag is truthful-but-partial must still spell
+        # out which speakable units have no audio, so a publish report never
+        # reads as full coverage.
+        topic = self.frontend / "courses" / "class-9-physics" / "motion"
+        manifest = json.loads((topic / "manifest.json").read_text(encoding="utf-8"))
+        manifest["narration"] = {
+            "available": True,
+            "lang": "en",
+            "blocks": {"b-02": {"available": False}},
+        }
+        (topic / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        (topic / "narration-manifest.json").write_text(
+            json.dumps({"lang": "en", "mode": "live", "blocks": []}), encoding="utf-8"
+        )
+        catalogue.build(self.frontend)
+        report = catalogue.validate(self.frontend)
+        gaps = [w for w in report.warnings if "narration gaps" in w]
+        self.assertEqual(len(gaps), 1, report.warnings)
+        self.assertIn("courses/class-9-physics/motion: b-02", gaps[0])
+
     def test_require_narration_promotes_the_gap_to_a_blocker(self) -> None:
         report = catalogue.validate(self.frontend, require_narration=True)
         self.assertFalse(report.ok)
@@ -535,10 +556,6 @@ class TestPublishScriptDryRun(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         combined = result.stdout + result.stderr
         self.assertIn("mixes pipeline_versions", combined)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class TestLinkPublish(unittest.TestCase):
@@ -700,3 +717,7 @@ class TestCommittedSnapshot(unittest.TestCase):
         payload = json.loads((frontend / "catalogue.json").read_text())
         self.assertEqual(payload["integrity"]["status"], "ok")
         self.assertEqual(payload["integrity"]["grades"], [])
+
+
+if __name__ == "__main__":
+    unittest.main()

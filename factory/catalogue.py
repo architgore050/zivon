@@ -712,7 +712,10 @@ def _check_narration(
             summary["missing_manifests"].append(rel)
         if coverage["missing_assets"]:
             summary["missing_assets"][rel] = coverage["missing_assets"]
-        if coverage["missing_blocks"]:
+        if coverage["missing_blocks"] and coverage["manifest"]:
+            # A topic with no narration manifest at all is already reported as
+            # a missing manifest; "gaps" is about a manifest whose individual
+            # speakable units have no usable audio.
             summary["missing_blocks"][rel] = coverage["missing_blocks"]
         if require and not coverage["available"]:
             report.error(
@@ -732,6 +735,19 @@ def _check_narration(
                 f"{topic}: {len(paths)} file(s)"
                 for topic, paths in summary["missing_assets"].items()
             )
+        )
+    if summary["missing_blocks"]:
+        # A topic can report ``available: true`` while individual speakable
+        # units have no audio (the flag means "the story is usable", not "every
+        # block is narrated"). Name them, so a publish report never reads as
+        # full coverage when it is not.
+        report.warn(
+            "narration gaps (speakable units with no usable audio): "
+            + "; ".join(
+                f"{topic}: {', '.join(blocks)}"
+                for topic, blocks in summary["missing_blocks"].items()
+            )
+            + " - re-run 12-narration for those blocks if full coverage is wanted"
         )
 
 
@@ -821,7 +837,15 @@ def main(argv: list[str] | None = None) -> int:
 
     check_parser = sub.add_parser("check", help="run the publish smoke")
     _common(check_parser)
-    check_parser.add_argument("--strict", action="store_true")
+    check_parser.add_argument(
+        "--strict",
+        action="store_true",
+        help=(
+            "documented intent flag: every check is already strict (any "
+            "technical breakage exits non-zero), so this changes nothing and "
+            "exists so a caller can say out loud that it wants the gate"
+        ),
+    )
     check_parser.add_argument(
         "--allow-placeholder",
         action="store_true",
