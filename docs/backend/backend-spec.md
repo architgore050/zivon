@@ -1,8 +1,9 @@
 # Backend specification — Zivon
 
 Stage-2 systems design (2026-11-07). Consumes `docs/product/backend-handoff.md` +
-`features.md` + inventories; does not re-derive them. Gate D is frozen: the P0 slice below
-is exactly the signed-off 16-P0 ladder's backend needs — nothing more. Every endpoint,
+`features.md` + inventories; does not re-derive them. The P0 slice below is the built backend
+scope (Gate D, approved 2026-11-07; the challenge track closed 2026-11-15 — see `TIMELINE.md`):
+exactly the signed-off 16-P0 ladder's backend needs — nothing more. Every endpoint,
 message, and table cites a Stage-1 ID (`NEED-`/`INF-`/`ENT?-`/`EVT-`) or is labelled
 *systems-originated* with a reason. All numbers `[ASSUMPTION]` until measured.
 
@@ -93,8 +94,9 @@ copy is on U1/U2/U3.
 
 ## 3. Phase plan — P0 slice vs target architecture
 
-Gate D is frozen and the deadline is 10 Nov. Everything is labelled:
-**P0** (must build now — serves the signed-off ladder), **P1** (Day-8/9 ladder: dashboard,
+Gate D and the 10 Nov deadline are historical (the challenge track closed 2026-11-15 — see
+`TIMELINE.md`); the slice labels are kept as written:
+**P0** (built slice — serves the signed-off ladder), **P1** (Day-8/9 ladder: dashboard,
 telemetry polish, language bar plumbing), **P2** (stretch), **post-challenge** (target
 architecture; specified so migration is mechanical, not built now).
 

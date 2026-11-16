@@ -103,7 +103,7 @@ The tutor personality: patient, clear, encouraging, step-by-step, Socratic. Voic
 
 ## Constraints that still bind
 
-Vendor lock-in is gone; these constraints are not.
+The challenge's vendor mandate is gone; these constraints are not.
 
 - **Real voice, end to end.** The product must work with real speech input and real speech output — mocks are test seams, never the shipped path.
 - **Simplicity and reliability over feature count.** A solid working loop beats a half-broken multi-feature app; prefer fewer, deeper features.
@@ -118,7 +118,8 @@ Vendor lock-in is gone; these constraints are not.
 
 The challenge's five-phase, day-numbered ladder is history (see "History" at the end of this
 file and the preserved plan in `TIMELINE.md`). Current work is organized as **waves** against
-the prototype milestone:
+the prototype milestone. The `P1`–`P5` labels below are content-pipeline workstreams from the
+frozen plan, not the retired challenge `P0/P1/P2` scope ladder:
 
 1. **W1 — foundations and quality:** P1 content metadata/hooks, P4 quality gates, F0 frontend
    foundation, C0 compliance research, plus the startup-reframe docs (W0).
@@ -130,8 +131,8 @@ the prototype milestone:
    tests/series.
 5. **W5 — insight and integration:** F8 SWOT, F10 admin, F11 end-to-end integration and evals.
 
-Release definitions (R1 launch, R1.5, R2, R3) and the wave exit gates live in the frozen
-full-frontend plan and `TIMELINE.md`. Do not pull a later wave forward, and do not re-open a
+Release definitions (R1 launch, R1.5, R2, R3) live in the frozen full-frontend plan; the wave
+exit gates are in `TIMELINE.md`. Do not pull a later wave forward, and do not re-open a
 frozen product decision to make a wave easier.
 
 ---
@@ -147,7 +148,7 @@ frozen product decision to make a wave easier.
 - Separate concerns:
   - Audio / session management
   - Gnani API clients (Prisma, Timbre)
-  - Evon inference / prompting (incl. expressive TTS tag emission)
+  - Gemini brain client / prompting (incl. expressive TTS tag emission)
   - Tutor personality and Physics subject logic
   - Page-context anchoring (what the student is reading/interacting with)
   - Usage / session logging (simple is fine)
