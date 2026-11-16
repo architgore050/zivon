@@ -271,9 +271,12 @@ def run(cfg: Config, run_ctx: RunContext, render_out: dict[str, Any]) -> dict[st
             artifacts_dir=str(run_ctx.stage_dir(STAGE_ID)),
         )
 
-    # Landing page must reference the shared assets that exist.
+    # Landing page must reference the shared assets that exist. The public
+    # surface owns its own base sheet + behaviour layer (`product.css` /
+    # `product.js`, F1); `zivon.css` / `zivon.js` are the lesson kit and are
+    # linked by topic pages, not by the landing.
     index_html = (frontend / "index.html").read_text(encoding="utf-8")
-    for ref in ("assets/zivon.css", "assets/zivon.js", "courses.js"):
+    for ref in ("assets/product.css", "assets/product.js", "courses.js"):
         if ref not in index_html:
             raise StageError(
                 STAGE_ID,

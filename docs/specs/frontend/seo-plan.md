@@ -29,7 +29,7 @@ agent / respective owners — listed in §8's assignment table.
 
 | Page | `<title>` | meta description | canonical | OG/Twitter |
 |---|---|---|---|---|
-| Landing (`SCR-HOME-01`) | `Zivon — Physics you can talk to` (copy key `home.seo.title`) | one sentence: NCERT-based interactive Physics pages + Hinglish voice tutor (copy key `home.seo.desc`) | `ZIVON_PUBLIC_BASE_URL + /` | `og:type=website`, `og:title`, `og:description`, `og:image=$BASE_URL/assets/og-card.png` |
+| Landing (`PUB-01`; alias `SCR-HOME-01`) | `Zivon — Ask the page. Out loud. In Hinglish.` (copy key retired with the F1 Concept A copy; the page owns its title) | one sentence: a Physics page with a tutor inside it; ask about the paragraph you are reading in English/Hindi/Hinglish | `/` (root-relative; the browser resolves it against the document URL, so no domain is hard-coded) | `og:type=website`, `og:title`, `og:description`, `og:image=$BASE_URL/assets/og-card.png` |
 | Lesson (`SCR-LES-01`) | `<Lesson title> - Zivon` (the renderer's existing shape, e.g. "Motion in a Straight Line - Zivon") | derived from the lesson's first text block / objectives (renderer rule, not hand-written per page) | `…/courses/<course_id>/<topic_slug>/` | `og:type=article`, plus `og:updated_time` from `manifest.generated_at` |
 | 404 | `Page not found — Zivon` | n/a | n/a | n/a |
 
@@ -39,6 +39,13 @@ description/canonical/OG — a factory change, assignment table §8). OG image:
 ONE shell-owned static asset (`assets/og-card.png`, Field-Notes look per the
 doctrine — founder reviews it; no child imagery). Twitter cards ride the same
 tags (`twitter:card=summary_large_image`) — no Twitter-specific files.
+
+The F1 public discovery pages (`/courses`, `/class-<N>-physics/`, method/about/
+pricing/terms/contact/status/privacy) carry their own title, description and
+root-relative self-canonical; their route map and states are in
+`docs/frontend/public-site.md`. They are not sitemap entries yet — the P5
+generator still emits the landing + lessons, and the catalogue/class pages are
+client-rendered from `courses.js` (see `public-site.md` "Known gaps").
 
 ## 3. hreflang + localized routes (GATED — do not build until ADR-0009/SP2 land)
 

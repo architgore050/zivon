@@ -43,9 +43,11 @@ Rules the execution agent must not break:
   ONLY and refuses to touch the shell. A re-publish wholesale-replaces a topic's
   previous version (git history is the version rotation).
 - `courses.js` is generated (`do not edit by hand` header) and holds the catalogue
-  array `window.ZIVON_COURSES`; the landing renderer (`zivon.js::renderCourses`) is
-  the only consumer. Field contract: `href`, `course_id`, `class`, `title`,
-  `chapter`, `generated_at` (all strings/int as in the current file).
+  array `window.ZIVON_COURSES`; the public catalogue/class pages
+  (`frontend/assets/product.js`) are its consumer, and the localized hubs keep
+  the older `zivon.js::renderCourses` path until P5. Field contract: `href`,
+  `course_id`, `class`, `title`, `chapter`, `generated_at` (all strings/int as in
+  the current file).
 - Every page (shell AND generated) is offline-capable: one HTML file + the shared
   shell assets + local fonts. No CDN, no Google Fonts at runtime (doctrine §10.11:
   the pipeline must vendor fonts into the page folder — already true for the shell's
@@ -86,9 +88,13 @@ v1.6 doctrine's building-blocks directive.
 
 | Screen id (canonical / alias) | Route | Files |
 |---|---|---|
-| `SCR-HUB-01` (alias `SCR-HOME-01`) — course catalogue / hub | `/` (`frontend/index.html`) | shell only |
+| `PUB-01` — landing page | `/` (`frontend/index.html`) | shell (`assets/product.css` + `product.js`) |
+| `PUB-02` — catalogue | `/courses` | `frontend/catalogue/index.html`, served by the exact nginx route; reads generated `courses.js` |
+| `PUB-03` — class/course page | `/class-<N>-physics/` (static equivalent of `/courses/<N>/physics`, which redirects) | the four `class-*-physics/` folders under `frontend/` |
+| `PUB-05`…`PUB-08` — method, about, pricing, trust | `/method/`, `/about/`, `/pricing/`, `/terms/`, `/contact/`, `/status/` | `frontend/<page>/index.html` |
+| `SCR-HUB-01` (alias `SCR-HOME-01`) — course catalogue / hub | `/courses` (was `/` before F1) | shell only; the public-site doc is `docs/frontend/public-site.md` |
 | `SCR-LES-01` — lesson page | `/courses/<course_id>/<topic_slug>/` (`index.html`) | generated page + kit + shell injection (`shell-injection.md`) |
-| `SCR-PRIV-01` — privacy summary & data wipe | `/privacy/` (`frontend/privacy/` or shell-injected view) | shell + `GET /v1/data/challenge` -> `DELETE /v1/data` |
+| `SCR-PRIV-01` — privacy summary & data wipe | `/privacy/` (`frontend/privacy/`) | public chrome + `zivon.js` clear-data wiring + `GET /v1/data/challenge` -> `DELETE /v1/data` |
 | `SCR-ADM-01` — admin dashboard v0 | `:8082` (`dashboard/`) | staff-only container (EX3-OBS, out of student shell scope) |
 | `SCR-404-01` — branded not found | `/404.html` (any unmatched URL) | shell (`frontend/404.html`) |
 
@@ -108,10 +114,13 @@ consent flow — the voice add-on introduces the first ones; §7).
   These path segments are stable publish-to-publish (the run id and
   `generated_at` live in `manifest.json`, not the URL) — crawlers and links can
   rely on them.
-- The landing page is the catalogue: `index.html` + `courses.js` render the list
-  client-side from the inline `window.ZIVON_COURSES` (no fetch; the file is a
-  `<script src>` — `courses.js` is `no-store` cached so a pipeline re-run shows
-  immediately, per the nginx cache map).
+- The landing page is `/` (`frontend/index.html`); the catalogue is `/courses`
+  (`frontend/catalogue/index.html`, served by an exact nginx location because
+  `frontend/courses/` is factory-owned). Both read the generated
+  `window.ZIVON_COURSES` array from a `<script src>` (no fetch; `courses.js` is
+  `no-store` cached so a pipeline re-run shows immediately, per the nginx cache
+  map). Classes 9–12 have static course pages at `/class-<N>-physics/`; the
+  documented `/courses/<N>/physics` URL is a 301 to that canonical page.
 
 ### 3.2 Future localized routes — the reserved hook (DCR-001 deferred; ADR-0009 absent)
 

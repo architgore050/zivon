@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Method — Zivon</title>
+<meta name="description" content="How a Zivon Physics page is made: source first, step-by-step explanations, simulations, retrieval checks, voice in three languages, and the limits we do not hide.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="/method/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Method — Zivon">
+<meta property="og:description" content="How a Zivon Physics page is made, and what it does not claim.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/product.css?v=20261116a">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Method — Zivon","description":"How a Zivon Physics page is made, and what it does not claim.","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"Zivon"}}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap site-head-in">
+    <a class="wordmark" href="/">Zivon<span class="wordmark-mark">physics</span></a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/courses">Courses</a>
+      <a href="/method/" aria-current="page">Method</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/about/">About</a>
+    </nav>
+    <div class="site-actions">
+      <a class="btn" href="/courses">Open a chapter</a>
+      <details class="menu menu--mobile">
+        <summary>Menu</summary>
+        <div class="menu-panel">
+          <a href="/courses">Courses</a>
+          <a href="/method/" aria-current="page">Method</a>
+          <a href="/pricing/">Pricing</a>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="wrap page-head" aria-labelledby="method-title">
+    <p class="kicker">Method</p>
+    <h1 id="method-title">A page, a tutor, and a check.</h1>
+    <p class="lede">Zivon is built around one loop: read the page, see the idea move, answer a question, and ask your own version of the doubt. This page explains how that loop is made and where it stops.</p>
+  </section>
+
+  <section class="wrap prose" aria-labelledby="source-title">
+    <h2 id="source-title">Start from the source.</h2>
+    <p>Every lesson is written from an NCERT chapter or an openly licensed source, and its source pack records the book and pages it came from. Sources are not decoration: the fact review compares the lesson against that pack, block by block.</p>
+    <p>Lessons are paraphrased, not reproduced. Zivon is not affiliated with NCERT or CBSE, and a Zivon page is not an official textbook page or an official exam paper.</p>
+
+    <h2>Explain the step, not just the answer.</h2>
+    <p>The tutor is patient and step-by-step. It points at the paragraph or diagram the student is looking at, explains the reasoning, and then asks a question back. It is not designed to hand over a final answer to copy.</p>
+    <p>It can still be wrong. That is why the source pack is recorded with the lesson and the problem report is available beside the content. A confident sentence is not proof; the source is.</p>
+
+    <h2>Make the idea move.</h2>
+    <p>Diagrams are drawn as clean geometry. Simulations compute their numbers from the equations in the lesson and show their readouts as text, so the page still makes sense to a screen reader or on a slow phone. Every interactive page has a performance budget on a low-end Android profile; a pretty simulation that janks is a defect.</p>
+
+    <h2>Ask the student to retrieve.</h2>
+    <p>Short checks sit after paragraphs. The feedback names the reasoning and explains the common slip, instead of showing only a tick. A check is not a score badge; it tells the student which idea to look at again.</p>
+    <p>Five-question practice, chapter tests and test series are not built yet. The catalogue marks what a chapter has instead of offering a link that cannot open.</p>
+
+    <h2>Voice, in the language the student thinks in.</h2>
+    <p>When the voice tutor ships, speech will be transcribed, answered, and spoken back in English, Hindi or Hinglish. The voice tutor is in development; the status page names exactly what works today. Raw audio will not be kept. The transcript will have a 7-day server retention window and can be deleted from the privacy page. Reading, simulations and checks do not depend on voice or a microphone.</p>
+    <p>Live lessons are fully translated. A missing translation is a publish failure, not a silent English fallback.</p>
+
+    <h2>How a page is made.</h2>
+    <ol>
+      <li><strong>Curate.</strong> Pick the NCERT chapter and build its source pack.</li>
+      <li><strong>Generate.</strong> Turn the chapter into structured text, diagram, simulation and check blocks.</li>
+      <li><strong>Build the visuals.</strong> Render the diagrams and simulations as self-contained HTML, SVG and canvas.</li>
+      <li><strong>Check the physics.</strong> Recompute the answers and compare the lesson with the source pack.</li>
+      <li><strong>Review the code and the page.</strong> No external calls, no broken accessibility, no performance regressions.</li>
+      <li><strong>Translate and publish.</strong> English, Hindi and Hinglish, then the published catalogue.</li>
+    </ol>
+    <p class="meta">This is the pipeline that runs today. It is not a claim that every page is perfect; it is the reason a page is allowed to be public.</p>
+
+    <h2>What we do not claim.</h2>
+    <ul>
+      <li>Zivon is not affiliated with CBSE or NCERT, and no page is an official board paper.</li>
+      <li>Zivon does not replace a teacher, a textbook, or solving problems with a pencil.</li>
+      <li>We do not promise a marks increase, a rank, or a guaranteed exam result.</li>
+      <li>Accounts, practice, chapter tests and test series are not built yet. The status page says so plainly.</li>
+    </ul>
+    <p class="mt-2"><a class="text-link" href="/courses">Open a chapter →</a> · <a class="text-link" href="/status/">See what works today →</a></p>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="wordmark" href="/">Zivon</a>
+        <p>Physics you can talk to. A page that answers where you are reading.</p>
+      </div>
+      <nav class="foot-col" aria-label="Learn">
+        <h3>Learn</h3>
+        <a href="/courses">Courses</a>
+        <a href="/method/">Method</a>
+        <a href="/pricing/">Pricing</a>
+      </nav>
+      <nav class="foot-col" aria-label="Trust">
+        <h3>Trust</h3>
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/contact/">Contact</a>
+        <a href="/status/">Status</a>
+      </nav>
+    </div>
+    <div class="legal">
+      <span>© 2026 Zivon · Lessons are paraphrased from NCERT and openly licensed sources. Not affiliated with CBSE or NCERT.</span>
+      <span>Field Notes · 16 Nov 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/product.js?v=20261116a" defer></script>
+</body>
+</html>

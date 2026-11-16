@@ -7,18 +7,26 @@ renders it** — an implementation view, not a wish list. `n/a (reason)` is a
 valid cell; a blank one is a defect. Budgets referenced here are in
 `perf-budget-tests.md`.
 
-Legend for code paths: `[shell]` = `frontend/index.html` / `404.html`;
-`[kit]` = `frontend/assets/zivon.js` + `zivon.css`; `[page]` = generated
+Legend for code paths: `[shell]` = the hand-maintained public pages
+(`frontend/index.html`, `catalogue/`, `class-<N>-physics/`, the trust pages,
+`404.html`) + `assets/product.css` / `product.js`; `[kit]` =
+`frontend/assets/zivon.js` + `zivon.css`; `[page]` = generated
 `courses/<…>/index.html` + `page.js` (renderer + Builder, kit-constrained).
 
-## SCR-HOME-01 (landing / catalogue)
+## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 
-| Row | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | over-credit-budget |
-|---|---|---|---|---|---|---|---|---|---|---|
-| `EL-HOME-01-001..004` head+header | `[shell]` static markup, first paint | n/a (all content inline — no fetch, nothing to await) | n/a (header is static copy, never data-driven) | n/a (no partial source exists) | n/a (no network, no runtime parser) | n/a (works from cache by construction — G2) | n/a (no permission consumed) | n/a (no animation; pen underline is static after draw) | English-only until localized routes land (§3.2 spec.md) — page stays English, `lang=en` correct | n/a (no credits consumed) |
-| `EL-HOME-01-005/006` course list + cards | `[kit] renderCourses()` builds one `a.zn-card` per entry | n/a (`courses.js` is a synchronous script tag — parse time only; perf budget covers it) | `#zn-courses` stays empty; **see empty row below** | renders the entries that exist; `partial` is the NORMAL catalogue state (a topic in progress is simply absent — the factory publishes only complete pages) | if `courses.js` fails to parse: list stays empty AND console error — surfaced by CI's clean-load test, never visible to a student (publish smoke re-serves the file) | n/a (same-origin inline script; served from cache) | n/a | n/a (hover/focus transitions are colour-only, no motion) | card fields as shipped by the factory (`INF-010`); English today | n/a |
-| `EL-HOME-01-007` empty state | hidden (`[hidden]`, `[shell]`) | n/a | `[kit] renderCourses()` removes `hidden` when `ZIVON_COURSES.length === 0`; honest copy: factory has not run yet | n/a (state is boolean by definition) | n/a (a broken `courses.js` is a CI failure, not a UI state) | n/a | n/a | n/a | English today | n/a |
-| `EL-HOME-01-008` footer | `[shell]` static | n/a | n/a | n/a | n/a | n/a | n/a | n/a | English today | n/a |
+The public discovery surfaces are specified in `docs/frontend/public-site.md`
+(route map, data contract, SEO and the full state table). This supersedes the
+P0 `SCR-HOME-01` landing/catalogue element rows: `/` is now a landing page with
+no course list, and `/courses` is the catalogue served from
+`frontend/catalogue/index.html` by an exact nginx location. The catalogue
+renderer is `product.js::initCatalogue`; `zivon.js::renderCourses` still serves
+the localized hubs `/hi/` and `/hi-Latn/` until P5 replaces them.
+
+Every state column — default, loading, empty, partial, error, offline,
+permission-denied, reduced-motion, untranslated, quota-exhausted,
+consent-missing — is named with its code path in `public-site.md` "States
+(public site)".
 
 ## SCR-LES-01 — language bar (`.R1`)
 

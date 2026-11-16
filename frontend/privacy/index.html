@@ -3,29 +3,64 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Privacy &amp; Data Summary — Zivon</title>
-<meta name="description" content="Plain-language summary of what Zivon stores on your device and servers, retention limits, and one-click data deletion.">
+<title>Privacy &amp; data summary — Zivon</title>
+<meta name="description" content="Plain-language summary of what Zivon stores on your device and servers, retention limits, and how to clear your data.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="/privacy/">
 <!-- Mirrors the docker/nginx.conf `location ^~ /privacy/` header: this page
      needs same-origin connect-src for the clear-my-data request; every other
      non-lesson page stays locked to connect-src 'none'. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'">
-<link rel="stylesheet" href="../assets/zivon.css?v=20261111b">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/product.css?v=20261116a">
 </head>
 <body>
-<main class="zn-page zn-home zn-privacy" data-screen-id="SCR-PRIV-01">
-  <header class="zn-header" data-region="SCR-PRIV-01.R1">
-    <p class="zn-kicker">Zivon · Field Notes · Privacy</p>
-    <h1 class="zn-title" id="zn-privacy-title" data-element-id="EL-PRV-001">Privacy &amp; Data Summary</h1>
-    <p class="zn-sub">Built for students and guardians: private by default, no accounts, no raw audio kept, and you can erase everything from this device anytime.</p>
-    <p class="zn-privacy-back-wrap">
-      <a class="zn-privacy-back" href="../index.html" data-element-id="EL-PRV-005">← Back to courses</a>
-    </p>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap site-head-in">
+    <a class="wordmark" href="/">Zivon<span class="wordmark-mark">physics</span></a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/courses">Courses</a>
+      <a href="/method/">Method</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/about/">About</a>
+    </nav>
+    <div class="site-actions">
+      <a class="btn" href="/courses">Open a chapter</a>
+      <details class="menu menu--mobile">
+        <summary>Menu</summary>
+        <div class="menu-panel">
+          <a href="/courses">Courses</a>
+          <a href="/method/">Method</a>
+          <a href="/pricing/">Pricing</a>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="wrap zn-privacy privacy-page" data-screen-id="SCR-PRIV-01">
+  <header aria-labelledby="zn-privacy-title">
+    <p class="kicker">Privacy · Field Notes</p>
+    <h1 id="zn-privacy-title" data-element-id="EL-PRV-001">Privacy &amp; data summary</h1>
+    <p class="lede">Private by default. No accounts yet, no raw audio kept, and you can erase everything from this device anytime.</p>
+    <p><a class="privacy-back" href="/" data-element-id="EL-PRV-005">← Back to courses</a></p>
   </header>
 
-  <section class="zn-privacy-section" data-region="SCR-PRIV-01.R2">
-    <p id="zn-privacy-consent-stamp" class="zn-privacy-stamp">Consent status: no consent record on this device.</p>
-    <div class="zn-privacy-table-wrap">
-      <table class="zn-privacy-table" data-element-id="EL-PRV-002" aria-label="Data classes and retention">
+  <section aria-labelledby="priv-consent-title">
+    <h2 id="priv-consent-title">Consent, in one line.</h2>
+    <p id="zn-privacy-consent-stamp" class="privacy-stamp">Consent status: no consent record on this device.</p>
+    <p>The voice tutor is not part of the public lesson page yet. When it is, the microphone stays off until you grant consent on this device; declining leaves reading, simulations and checks usable.</p>
+  </section>
+
+  <section aria-labelledby="priv-table-title">
+    <h2 id="priv-table-title">What is stored, and for how long.</h2>
+    <div class="privacy-table-wrap">
+      <table class="privacy-table" data-element-id="EL-PRV-002" aria-label="Data classes and retention">
         <thead>
           <tr>
             <th scope="col">Data class</th>
@@ -56,7 +91,7 @@
           <tr>
             <td>Consent &amp; device preferences</td>
             <td>Random device pseudonym (UUIDv4), language choice, consent timestamp</td>
-            <td>No login account, no hardware fingerprint, no third-party cookies</td>
+            <td>No login account yet, no hardware fingerprint, no third-party cookies</td>
             <td>Until you press Clear my data</td>
           </tr>
           <tr>
@@ -74,27 +109,60 @@
         </tbody>
       </table>
     </div>
+    <p class="meta">Accounts do not exist yet. When they arrive, they will be optional, private by default, and this table will name what changes before anyone signs up.</p>
   </section>
 
-  <section class="zn-privacy-actions" data-region="SCR-PRIV-01.R3">
-    <button type="button" id="zn-privacy-clear-btn" class="zn-privacy-clear-btn" data-element-id="EL-PRV-003">
-      Clear my data
-    </button>
-    <div id="zn-privacy-clear-dialog" class="zn-privacy-dialog" role="dialog" aria-modal="true" aria-labelledby="zn-privacy-dialog-title" data-element-id="EL-PRV-004" hidden>
-      <p id="zn-privacy-dialog-title" class="zn-privacy-dialog-title">Erase all Zivon data for this device?</p>
-      <p class="zn-privacy-dialog-desc">This clears your local preferences, consent record, and requests immediate server-side deletion of any session or transcript records tied to this device pseudonym.</p>
-      <div class="zn-privacy-dialog-btns">
-        <button type="button" id="zn-privacy-confirm-btn" class="zn-privacy-confirm-btn">Confirm erase</button>
-        <button type="button" id="zn-privacy-cancel-btn" class="zn-privacy-cancel-btn">Cancel</button>
+  <section class="privacy-actions" aria-labelledby="priv-actions-title">
+    <h2 id="priv-actions-title">Clear this device's data.</h2>
+    <p>This clears local preferences, consent and the device pseudonym, and asks the server to delete any transcript tied to that pseudonym. If the server cannot be reached, the page says so and keeps the local data so you can retry; it never claims a deletion that did not happen.</p>
+    <button type="button" id="zn-privacy-clear-btn" class="privacy-clear-btn" data-element-id="EL-PRV-003">Clear my data</button>
+    <div id="zn-privacy-clear-dialog" class="privacy-dialog" role="dialog" aria-modal="true" aria-labelledby="zn-privacy-dialog-title" data-element-id="EL-PRV-004" hidden>
+      <p id="zn-privacy-dialog-title" class="privacy-dialog-title">Erase all Zivon data for this device?</p>
+      <p class="privacy-dialog-desc">This clears your local preferences, consent record, and requests immediate server-side deletion of any session or transcript records tied to this device pseudonym.</p>
+      <div class="privacy-dialog-btns">
+        <button type="button" id="zn-privacy-confirm-btn" class="privacy-confirm-btn">Confirm erase</button>
+        <button type="button" id="zn-privacy-cancel-btn" class="privacy-cancel-btn">Cancel</button>
       </div>
     </div>
-    <p id="zn-privacy-clear-status" class="zn-privacy-status" role="status" aria-live="polite" hidden></p>
+    <p id="zn-privacy-clear-status" class="privacy-status" role="status" aria-live="polite" hidden></p>
   </section>
 
-  <footer class="zn-footer">
-    <p class="zn-sources">Built in public for the Great Indian AI Internship Challenge. Content is paraphrased from NCERT (free educational use) and openly licensed sources.</p>
-  </footer>
+  <section aria-labelledby="priv-contact-title">
+    <h2 id="priv-contact-title">Questions or a correction.</h2>
+    <p>Use the <a href="/contact/">contact page</a>. Do not send a child's name, phone number, school, or a screenshot with personal details. A monitored privacy mailbox is not published yet; the public issue tracker is the contact channel for now.</p>
+    <p class="meta mt-2">Last checked 16 November 2026.</p>
+  </section>
 </main>
-<script src="../assets/zivon.js?v=20261111b"></script>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="wordmark" href="/">Zivon</a>
+        <p>Physics you can talk to. A page that answers where you are reading.</p>
+      </div>
+      <nav class="foot-col" aria-label="Learn">
+        <h3>Learn</h3>
+        <a href="/courses">Courses</a>
+        <a href="/method/">Method</a>
+        <a href="/pricing/">Pricing</a>
+      </nav>
+      <nav class="foot-col" aria-label="Trust">
+        <h3>Trust</h3>
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/contact/">Contact</a>
+        <a href="/status/">Status</a>
+      </nav>
+    </div>
+    <div class="legal">
+      <span>© 2026 Zivon · Lessons are paraphrased from NCERT and openly licensed sources. Not affiliated with CBSE or NCERT.</span>
+      <span>Field Notes · 16 Nov 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/zivon.js?v=20261116a"></script>
 </body>
 </html>

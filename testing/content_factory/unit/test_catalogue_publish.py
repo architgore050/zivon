@@ -600,6 +600,23 @@ class TestLinkPublish(unittest.TestCase):
         self.assertIn('"pipeline_version": "9"', text)
         self.assertIn('"localized_hrefs"', text)
 
+    def test_link_refuses_a_landing_without_the_public_surface_assets(self) -> None:
+        # The landing links product.css/product.js (the public-surface base),
+        # not the lesson kit (zivon.css/zivon.js). If the shell stops linking
+        # an asset the site depends on, publish must stop, not ship a bare page.
+        from factory.errors import StageError
+
+        index = self.frontend / "index.html"
+        index.write_text(
+            index.read_text(encoding="utf-8").replace(
+                "assets/product.css", "assets/renamed.css"
+            ),
+            encoding="utf-8",
+        )
+        with self.assertRaises(StageError) as ctx:
+            self._render_and_link()
+        self.assertIn("assets/product.css", str(ctx.exception))
+
     def test_republish_prunes_a_same_run_duplicate_with_a_different_title(self) -> None:
         # One run produces one page: a pre-P1 model-titled duplicate carries the
         # same run_id but a different chapter title, so chapter-title pruning
