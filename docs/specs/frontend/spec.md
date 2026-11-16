@@ -43,9 +43,11 @@ Rules the execution agent must not break:
   ONLY and refuses to touch the shell. A re-publish wholesale-replaces a topic's
   previous version (git history is the version rotation).
 - `courses.js` is generated (`do not edit by hand` header) and holds the catalogue
-  array `window.ZIVON_COURSES`; the landing renderer (`zivon.js::renderCourses`) is
-  the only consumer. Field contract: `href`, `course_id`, `class`, `title`,
-  `chapter`, `generated_at` (all strings/int as in the current file).
+  array `window.ZIVON_COURSES`; the public catalogue/class pages
+  (`frontend/assets/product.js`) are its consumer, and the localized hubs keep
+  the older `zivon.js::renderCourses` path until P5. Field contract: `href`,
+  `course_id`, `class`, `title`, `chapter`, `generated_at` (all strings/int as in
+  the current file).
 - Every page (shell AND generated) is offline-capable: one HTML file + the shared
   shell assets + local fonts. No CDN, no Google Fonts at runtime (doctrine §10.11:
   the pipeline must vendor fonts into the page folder — already true for the shell's

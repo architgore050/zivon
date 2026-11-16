@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import re
 import unittest
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -104,6 +105,22 @@ def _resolve_ref(ref: str, page: Path) -> Path | None:
 
 def _public_html() -> list[tuple[str, Path]]:
     return list(PUBLIC_PAGES.items()) + [("/404.html", FRONTEND / "404.html")]
+
+
+def _courses_entries() -> list[dict[str, Any]]:
+    """The published entries the browser sees, parsed from the site manifest.
+
+    Browser tests assert the renderer against this data instead of freezing
+    today's chapter counts: a routine factory publish must not red the shell
+    suite (Class 10 is the next milestone), while a renderer that drops or
+    duplicates an entry still fails.
+    """
+    text = (FRONTEND / "courses.js").read_text(encoding="utf-8")
+    match = re.search(r"window\.ZIVON_COURSES\s*=\s*(\[.*\])\s*;", text, re.DOTALL)
+    if not match:
+        return []
+    data = json.loads(match.group(1))
+    return [entry for entry in data if isinstance(entry, dict)]
 
 
 class TestPublicSiteContract(unittest.TestCase):
@@ -248,6 +265,9 @@ class TestPublicSiteContract(unittest.TestCase):
         nginx = (REPO_ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
         self.assertIn("location = /courses {", nginx)
         self.assertIn("try_files /catalogue/index.html =404;", nginx)
+        # The Service maps 80 -> 8080; an absolute redirect would leak :8080
+        # into the public Location header and break the documented URL.
+        self.assertIn("absolute_redirect off;", nginx)
         for klass in (9, 10, 11, 12):
             self.assertRegex(
                 nginx,
@@ -373,8 +393,11 @@ class TestPublicSiteBehaviour(unittest.TestCase):
                 page.locator(".artifact-head .meta").first.inner_text(),
             )
             self.assertIn("16 N", page.locator(".artifact--tilt").inner_text())
-            self.assertEqual(page.locator("[data-coverage] tbody tr").count(), 4)
-            self.assertFalse(page.locator("[data-coverage]").is_hidden())
+            if _courses_entries():
+                self.assertEqual(page.locator("[data-coverage] tbody tr").count(), 4)
+                self.assertFalse(page.locator("[data-coverage]").is_hidden())
+            else:
+                self.assertTrue(page.locator("[data-coverage]").is_hidden())
         finally:
             page.close()
 
@@ -395,37 +418,59 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             page.close()
 
     def test_catalogue_filters_searches_and_states(self) -> None:
+        entries = _courses_entries()
+        if not entries:
+            self.skipTest("no published catalogue in this checkout")
+        by_class = Counter(int(entry["class"]) for entry in entries)
+        total = len(entries)
         page, errors = self._new_page()
         try:
             page.goto(f"{self._base_url}/catalogue/")
             page.wait_for_timeout(300)
-            self.assertEqual(page.locator(".chapter-card").count(), 6)
-            self.assertEqual(page.locator(".class-group-heading h3").count(), 2)
-            self.assertIn(
-                "6 chapters live", page.locator("#catalogue-count").inner_text()
+            self.assertEqual(page.locator(".chapter-card").count(), total)
+            self.assertEqual(
+                page.locator(".class-group-heading h3").count(), len(by_class)
             )
             self.assertIn(
-                "Class 10, Class 12", page.locator("#catalogue-coverage").inner_text()
+                f"{total} chapters live", page.locator("#catalogue-count").inner_text()
             )
+            missing = [klass for klass in (9, 10, 11, 12) if klass not in by_class]
+            if missing:
+                self.assertIn(
+                    "No published chapter yet: "
+                    + ", ".join(f"Class {klass}" for klass in missing),
+                    page.locator("#catalogue-coverage").inner_text(),
+                )
+            else:
+                self.assertTrue(page.locator("#catalogue-coverage").is_hidden())
 
-            page.click('[data-class-filter="9"]')
+            live_class = min(by_class)
+            page.click(f'[data-class-filter="{live_class}"]')
             page.wait_for_timeout(100)
-            self.assertEqual(page.locator(".chapter-card").count(), 2)
-            self.assertIn(
-                "2 of 6 chapters shown", page.locator("#catalogue-count").inner_text()
+            self.assertEqual(
+                page.locator(".chapter-card").count(), by_class[live_class]
             )
+            expected_count = (
+                f"{total} chapters live"
+                if by_class[live_class] == total
+                else f"{by_class[live_class]} of {total} chapters shown"
+            )
+            self.assertIn(expected_count, page.locator("#catalogue-count").inner_text())
             self.assertIn(
-                "Class 9", page.locator(".class-group-heading h3").first.inner_text()
+                f"Class {live_class}",
+                page.locator(".class-group-heading h3").first.inner_text(),
             )
 
             page.click('[data-class-filter="0"]')
-            page.fill("#catalogue-search", "how forces")
+            sample = entries[0]
+            page.fill("#catalogue-search", sample["title"])
             page.wait_for_timeout(300)
-            self.assertEqual(page.locator(".chapter-card").count(), 1)
-            self.assertIn(
-                "How Forces Affect Motion", page.locator(".chapter-card").inner_text()
+            visible_titles = page.eval_on_selector_all(
+                ".chapter-card .chapter-title",
+                "els => els.map(e => e.textContent.trim())",
             )
-            self.assertIn("q=how+forces", page.url)
+            self.assertIn(sample["title"], visible_titles)
+            self.assertIn("q=", page.url)
 
             page.fill("#catalogue-search", "zzzz")
             page.wait_for_timeout(300)
@@ -437,7 +482,7 @@ class TestPublicSiteBehaviour(unittest.TestCase):
 
             page.click("#catalogue-clear")
             page.wait_for_timeout(200)
-            self.assertEqual(page.locator(".chapter-card").count(), 6)
+            self.assertEqual(page.locator(".chapter-card").count(), total)
             self.assertEqual(errors, [], f"console/page errors: {errors}")
         finally:
             page.close()
@@ -464,28 +509,54 @@ class TestPublicSiteBehaviour(unittest.TestCase):
             page.close()
 
     def test_class_pages_render_live_and_empty_states(self) -> None:
+        entries = _courses_entries()
+        if not entries:
+            self.skipTest("no published catalogue in this checkout")
+        by_class = Counter(int(entry["class"]) for entry in entries)
+        live_class = min(by_class)
         page, errors = self._new_page()
         try:
-            page.goto(f"{self._base_url}/class-9-physics/")
+            page.goto(f"{self._base_url}/class-{live_class}-physics/")
             page.wait_for_timeout(300)
-            self.assertEqual(page.locator(".chapter-card").count(), 2)
-            self.assertIn("2 chapters live", page.locator("#class-count").inner_text())
-            self.assertTrue(page.locator("#class-empty").is_hidden())
-            self.assertIn(
-                "Latest chapter published", page.locator("#class-latest").inner_text()
+            self.assertEqual(
+                page.locator(".chapter-card").count(), by_class[live_class]
             )
+            self.assertIn(
+                f"{by_class[live_class]} chapter",
+                page.locator("#class-count").inner_text(),
+            )
+            self.assertTrue(page.locator("#class-empty").is_hidden())
+            if any(
+                entry.get("generated_at")
+                for entry in entries
+                if int(entry["class"]) == live_class
+            ):
+                self.assertIn(
+                    "Latest chapter published",
+                    page.locator("#class-latest").inner_text(),
+                )
 
-            page.goto(f"{self._base_url}/class-10-physics/")
+            # The empty state is a data condition, not "Class 10 happens to be
+            # empty today": force an empty manifest so this keeps holding after
+            # the next class publishes.
+            page.route(
+                "**/courses.js",
+                lambda route: route.fulfill(
+                    status=200,
+                    body="window.ZIVON_COURSES=[];",
+                    content_type="application/javascript",
+                ),
+            )
+            empty_class = next(
+                (klass for klass in (9, 10, 11, 12) if klass not in by_class), 12
+            )
+            page.goto(f"{self._base_url}/class-{empty_class}-physics/")
             page.wait_for_timeout(300)
             self.assertEqual(page.locator(".chapter-card").count(), 0)
             self.assertIn(
                 "No published chapter yet", page.locator("#class-count").inner_text()
             )
             self.assertFalse(page.locator("#class-empty").is_hidden())
-
-            page.goto(f"{self._base_url}/class-11-physics/")
-            page.wait_for_timeout(300)
-            self.assertEqual(page.locator(".chapter-card").count(), 4)
             self.assertEqual(errors, [])
         finally:
             page.close()
@@ -507,6 +578,9 @@ class TestPublicSiteBehaviour(unittest.TestCase):
                 page.close()
 
     def test_catalogue_lesson_links_resolve(self) -> None:
+        entries = _courses_entries()
+        if not entries:
+            self.skipTest("no published catalogue in this checkout")
         page, errors = self._new_page()
         try:
             page.goto(f"{self._base_url}/catalogue/")
@@ -515,7 +589,7 @@ class TestPublicSiteBehaviour(unittest.TestCase):
                 ".chapter-card .chapter-title a",
                 "els => els.map(e => e.getAttribute('href'))",
             )
-            self.assertEqual(len(hrefs), 6)
+            self.assertEqual(len(hrefs), len(entries))
             for href in hrefs:
                 response = page.request.get(f"{self._base_url}{href}")
                 self.assertEqual(response.status, 200, f"lesson link broke: {href}")

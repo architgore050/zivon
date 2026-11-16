@@ -2,9 +2,11 @@
 # the next file). The image bakes only the hand-maintained shell; generated
 # pages arrive on the PVC written by the pipeline run Job.
 #
-# The initContainer seeds the shell (index.html + assets/) into an empty PVC
-# with a NO-CLOBBER copy (cp -rn): the landing page exists before the first
-# pipeline run, and generated content is never overwritten.
+# The initContainer seeds the shell (landing, public-site folders, assets/) into
+# an empty PVC with a NO-CLOBBER copy (cp -rn): the landing page exists before the
+# first pipeline run, and generated content is never overwritten. On an existing
+# PVC, changed shell files need the re-seed procedure (docs/deployment/
+# kubernetes.md gotcha 14); new folders copy in on their own.
 #
 # Image: EDIT ME to the pushed GHCR tag once the publish pipeline exists
 # (same convention as the factory Job).

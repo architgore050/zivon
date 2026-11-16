@@ -559,13 +559,21 @@
         : "No published chapter yet";
     }
     if (latest && entries.length) {
-      var newest = entries
-        .map(function (entry) {
-          return formatDate(entry.generatedAt);
-        })
-        .filter(Boolean)
-        .pop();
-      if (newest) latest.textContent = "Latest chapter published " + newest + ".";
+      var newest = null;
+      entries.forEach(function (entry) {
+        var published = entry.generatedAt ? new Date(entry.generatedAt) : null;
+        if (
+          published &&
+          !isNaN(published.getTime()) &&
+          (!newest || published > newest)
+        ) {
+          newest = published;
+        }
+      });
+      if (newest) {
+        latest.textContent =
+          "Latest chapter published " + formatDate(newest.toISOString()) + ".";
+      }
     }
   }
 

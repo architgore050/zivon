@@ -206,6 +206,7 @@ jobs:
           curl -sf http://127.0.0.1:8080/courses | grep -q "Find your chapter"
           curl -sf http://127.0.0.1:8080/method/ | grep -q "A page, a tutor, and a check"
           curl -sf http://127.0.0.1:8080/class-9-physics/ | grep -q "Class 9 Physics"
+          curl -sfI http://127.0.0.1:8080/courses/9/physics | grep -qi '^location: /class-9-physics/'
           curl -sf http://127.0.0.1:8080/assets/product.css > /dev/null
           curl -sf http://127.0.0.1:8080/assets/product.js > /dev/null
           curl -sf http://127.0.0.1:8080/assets/zivon.css > /dev/null

@@ -38,6 +38,12 @@ deleted. The catalogue therefore lives at `frontend/catalogue/index.html` and
 location = /courses { try_files /catalogue/index.html =404; }
 ```
 
+The new page folders are baked into `Dockerfile.frontend` and seeded into the
+served root. The cluster seed is deliberately no-clobber (`cp -rn`, gotcha 14 in
+`docs/deployment/kubernetes.md`), so an existing `zivon-frontend` PVC needs the
+recorded re-seed procedure to pick up a new landing/404/privacy (new folders
+copy in on their own; changed files do not).
+
 The requirements route `/courses/{class}/physics` redirects to the canonical
 class page `/class-{class}-physics/`, which lives outside the factory tree for
 the same reason. The class pages are the static equivalent of the documented
@@ -63,10 +69,10 @@ route; one canonical URL per class.
 | State | Behaviour |
 |---|---|
 | default | Static argument renders; JS fills the catalogue/class lists and the landing coverage table. |
-| loading | No spinner. The catalogue count says it is reading the published catalogue; static copy is already readable. |
-| empty | “No published chapter for Class N yet” on a class page; “no chapter matches” on a filtered catalogue. |
+| loading | No spinner. The catalogue/class count and empty/error notices are hidden until the local manifest is read; the static copy is already readable. |
+| empty | “No published chapter for Class N yet” on a class page; “no chapter matches” on a filtered catalogue; an empty `window.ZIVON_COURSES` array shows the same empty state. |
 | partial | Some classes have chapters, others do not: a coverage line names the empty classes. A malformed manifest entry produces a partial warning. |
-| error | `courses.js` missing/empty: the catalogue and class page show an error notice and a link to the sitemap. The lesson pages remain readable. |
+| error | `courses.js` missing or does not define the `window.ZIVON_COURSES` array: the catalogue and class page show an error notice and a link to the sitemap. The lesson pages remain readable. |
 | offline | Static pages and already-cached lessons keep working. The catalogue reads its local manifest; there is no runtime fetch to fail. |
 | permission-denied | n/a — public pages require no permission. |
 | reduced-motion | No page animation; the only JS motion is the one-time pen underline. `prefers-reduced-motion` is still honoured by the shared layer. |
@@ -98,6 +104,11 @@ route; one canonical URL per class.
 - No testimonial, no fake logo, no “official CBSE/NCERT” claim. The sample voice
   turn is labelled as a sample, not a recording. The founder note is labelled as
   the founder's words.
+- The voice tutor is **in development** (status/privacy): the landing says so in
+  the founder note and the FAQ, and pricing lists it as “when it ships”, never as
+  a free feature today.
+- Provenance copy is precise: the source pack (book + pages) is recorded with
+  every lesson; it is not claimed to be printed on the lesson page.
 - The pricing page is explicitly free-during-launch with no paid plan or
   payment integration; it does not collect an email because no waitlist backend
   exists.
@@ -128,6 +139,7 @@ the weak-Android profile.
 | Gap | Owner | Notes |
 |---|---|---|
 | Sign-in / accounts nav | F2 | No `/login` link is shipped; a dead CTA is worse than its absence. |
+| Voice tutor runtime | S1 / F4 | Not on the public lesson page yet; status and privacy say so. Pricing and the landing FAQ say “when it ships”. |
 | Pro waitlist form | F2/F11 | Pricing says it is not open. Needs an endpoint, retention rule and consent copy first. |
 | Static catalogue/class HTML for crawlers | F1/P5 follow-up | Client-rendered from `courses.js` today; the sitemap is the static discovery path. |
 | Locale hubs (`/hi/`, `/hi-Latn/`) still use the old card renderer | F4/P5 | P5 handoff recorded in `TIMELINE.md`; `zivon.js::renderCard` is the seam. |
