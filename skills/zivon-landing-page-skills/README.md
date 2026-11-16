@@ -102,11 +102,11 @@ step 5, not before: it is one solution to the method, not the method.
   CBSE non-affiliation, and user-facing notice copy.
 - **External research:** eighteen sources fetched 2026-11-16, listed with URL,
   date, access status, and an evidence tag in
-  [`references/sources.md`](references/sources.md). Four are research or
-  standards bodies (Nielsen Norman Group, W3C/WAI, web.dev, Baymard), three are
-  regulators or public-service style guides (FTC, GOV.UK), one is vendor
-  benchmark data (Unbounce, labelled as such), and the narrative frameworks are
-  practitioner models, labelled `[P]` everywhere they are used.
+  [`references/sources.md`](references/sources.md). They are research and
+  standards bodies (Nielsen Norman Group, W3C/WAI, web.dev, Baymard, and
+  Lindgaard et al.), regulators and public-service guidance (FTC, GOV.UK), one
+  vendor benchmark (Unbounce, labelled as such), and two practitioner frameworks
+  (StoryBrand, Schwartz, labelled `[P]` everywhere they are used).
 - **No third-party prose was copied.** Frameworks are summarised and attributed;
   teardown pages are linked and described, never reproduced.
 

@@ -175,6 +175,12 @@ The lesson-page extension exists because a lesson is *studied*; a landing page i
 The reverse error is just as real: a lesson page that ignores §10 is not "on
 brand", it is incomplete. Both directions are doctrine §0 scope errors.
 
+**One scope clarification.** The doctrine's §4 paper texture — the graphite
+hairline every 36 px — belongs to §1–§9, and the kit's shell already draws it.
+The device §0 and §10 forbid here is the lesson's *measured* grid: text typed
+onto ruled baselines with row-quantised layout. Keep the paper's rule; do not add
+the lesson's baseline alignment.
+
 **The test:** if a device appears in doctrine §10 and not in §1–§9, it is a
 lesson device. Ask "would this appear on a build-in-public post visual?" — if
 yes, it belongs; if it only makes sense with a chapter open, it does not.
