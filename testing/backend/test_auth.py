@@ -108,9 +108,11 @@ class AuthTestCase(unittest.TestCase):
 
     def token_from_sink(self, kind: str) -> str:
         message = self.sink.last(kind)
-        self.assertIsNotNone(message, f"no {kind} email was queued")
+        if message is None:
+            self.fail(f"no {kind} email was queued")
         match = re.search(r"[?&]token=([A-Za-z0-9_\-]+)", message.body or "")
-        self.assertIsNotNone(match, f"{kind} email has no token link")
+        if match is None:
+            self.fail(f"{kind} email has no token link")
         return str(match.group(1))
 
     def verify_email(self, email: str = "kid@example.com") -> None:
@@ -209,6 +211,14 @@ class TestRegistrationAndSession(AuthTestCase):
         self.assertIn("max-age=0", response.headers["set-cookie"].lower())
         self.assertFalse(self.client.get("/v1/auth/session").json()["authenticated"])
 
+    def test_expired_session_is_rejected(self) -> None:
+        self.register()
+        self.db.execute(
+            "UPDATE auth_session SET expires_at = '2000-01-01T00:00:00.000Z'"
+        )
+        self.assertFalse(self.client.get("/v1/auth/session").json()["authenticated"])
+        self.assertEqual(self.client.get("/v1/me").status_code, 401)
+
 
 class TestLogin(AuthTestCase):
     def test_login_returns_a_session_for_the_right_password(self) -> None:
@@ -272,6 +282,7 @@ class TestEmailLifecycle(AuthTestCase):
         self.register()
         self.verify_email()
         old_cookie = self.client.cookies.get("zivon_session")
+        self.assertIsNotNone(old_cookie)
 
         self.assertEqual(
             self.client.post(
@@ -287,7 +298,7 @@ class TestEmailLifecycle(AuthTestCase):
         )
         self.assertEqual(reset.status_code, 200, reset.text)
 
-        self.client.cookies.set("zivon_session", old_cookie)
+        self.client.cookies.set("zivon_session", str(old_cookie))
         self.assertFalse(self.client.get("/v1/auth/session").json()["authenticated"])
         self.client.cookies.clear()
         self.assertEqual(
@@ -404,6 +415,37 @@ class TestGoogleAuth(AuthTestCase):
         response = self.finish_google(state)
         self.assertEqual(response.status_code, 303)
         self.assertTrue(self.client.get("/v1/auth/session").json()["google_linked"])
+
+    def test_google_only_account_sets_a_password_before_password_login(self) -> None:
+        _url, state = self.start_google(
+            transport=FakeGoogleTransport(subject="google-subject-4")
+        )
+        self.assertEqual(self.finish_google(state).status_code, 303)
+        self.assertFalse(self.client.get("/v1/auth/session").json()["password_set"])
+
+        set_password = self.client.post(
+            "/v1/me/password",
+            json={"new_password": "a-google-only-secret-9"},
+            headers={"X-CSRF-Token": self.csrf()},
+        )
+        self.assertEqual(set_password.status_code, 200, set_password.text)
+        self.assertTrue(set_password.json()["password_set"])
+        login = self.client.post(
+            "/v1/auth/login",
+            json={"email": "kid@example.com", "password": "a-google-only-secret-9"},
+        )
+        self.assertEqual(login.status_code, 200, login.text)
+
+    def test_google_start_is_503_when_not_configured(self) -> None:
+        import dataclasses
+
+        unconfigured = dataclasses.replace(
+            self.cfg, google_client_id=None, google_client_secret=None
+        )
+        client = TestClient(create_app(unconfigured), base_url="https://testserver")
+        response = client.get("/v1/auth/google/start", follow_redirects=False)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["code"], "E-SERVICE-UNAVAILABLE")
 
 
 class TestCsrfAndPassword(AuthTestCase):

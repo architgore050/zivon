@@ -1213,7 +1213,7 @@ def _validate_class_level(value: object) -> int | None:
     if value is None or value == "":
         return None
     try:
-        level = int(value)  # type: ignore[arg-type]
+        level = int(str(value).strip())
     except (TypeError, ValueError) as exc:
         raise APIError(
             "E-VALIDATION", status_code=422, extra={"reason": "invalid_class_level"}
