@@ -448,6 +448,11 @@ def run_pipeline(
                 "model_issues": model_report["issues"],
                 "rule_verdict": rule_report["verdict"],
                 "rule_issues": rule_report["rule_issues"],
+                # Coverage evidence, not a verdict: how much of the page's
+                # numeric content the deterministic rule could actually
+                # verify (checked/verified/unverifiable). Persisted so the
+                # run report can show it instead of implying full coverage.
+                "numeric_recompute": rule_report.get("numeric_recompute", {}),
                 "verdict": "fail"
                 if model_report["verdict"] == "fail" or rule_report["verdict"] == "fail"
                 else "pass",
