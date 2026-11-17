@@ -23,18 +23,29 @@ FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 # libcurl/libexpat. Round 2 (2026-11-09): musl + musl-utils (CVE-2026-107891,
 # regcomp integer overflow -> 1.2.6-r3) and zlib (CVE-2026-85091, gz_vacate
 # heap overflow -> 1.3.2-r1) — 1.31.7-alpine3.24 is still the newest micro
-# build of this base (last rebuilt 2026-10-19), so bumping the tag cannot
-# reach those fixes; this layer is the fix. Round 3 (2026-11-16, P5 CI):
-# libxslt (CVE-2026-125350 / -87636 / -9947 -> 1.1.43-r4).
+# build of this base (last rebuilt 2026-10-19; tag re-checked on Docker Hub
+# 2026-11-17), so bumping the tag cannot reach those fixes; this layer is the
+# fix. Round 3 (2026-11-16, P5 CI; mechanism pinned 2026-11-17, W4 ci-hygiene):
+# libxslt (CVE-2026-125350 / -87636 / -9947) — the base ships libxslt
+# 1.1.43-r3 (read from the image's apk DB; it enters as a soname dependency
+# of the baked nginx-module-xslt), the fix is 1.1.43-r4, and the Alpine v3.24
+# main repo carries exactly that build (APKINDEX checked 2026-11-17; its deps
+# are sonames already satisfied by the base), so libxslt is upgraded to that
+# EXACT PIN below.
 # The apk update is required: the base ships a frozen index from its build date,
-# so the newer fixes are invisible to apk upgrade without it. Targeted + unpinned
-# on purpose: Alpine repos keep only the newest -r revision, so exact pins rot
-# within days; nginx itself is deliberately NOT upgraded. The USER sandwich is
-# required: the unprivileged base runs as UID 101 and apk needs root; the final
-# USER stays non-root.
+# so the newer fixes are invisible to apk without it. The freshening upgrades
+# are targeted + unpinned on purpose: Alpine repos keep only the newest -r
+# revision, so exact pins rot within days; nginx itself is deliberately NOT
+# upgraded. libxslt is the one deliberate exception — its exact pin encodes
+# the Trivy-verified fix build the scan gate reads, and when Alpine supersedes
+# 1.1.43-r4 in v3.24 the pin fails the build loudly instead of silently
+# drifting: bump it to the new -r revision in the same PR (the same
+# bump-deliberately ritual as the CI tool pins). The USER sandwich is
+# required: the unprivileged base runs as UID 101 and apk needs root; the
+# final USER stays non-root.
 # hadolint ignore=DL3018
 USER 0
-RUN apk update && apk upgrade --no-cache brotli-libs curl libcurl libexpat libxslt musl musl-utils zlib
+RUN apk update && apk add --no-cache libxslt=1.1.43-r4 && apk upgrade --no-cache brotli-libs curl libcurl libexpat musl musl-utils zlib
 USER 101
 
 # Replace the stock default site with the Zivon site config.

@@ -167,12 +167,23 @@ CodeQL analyzes **our own Python code** (injection, path traversal, unsafe deser
 
 Weekly checks for pip, Docker base image, and GitHub Actions dependencies. Dependabot opens update PRs; security advisories surface as alerts. It also rotates our pinned action SHAs when new versions ship.
 
-Gotcha (Wave-E): the pip entries for `voice/` and `logging_manager/` are
-registered before their directories exist (the specs announce the files,
-GAP-001's consumers). Until then Dependabot logs a per-entry
-"directory not found" config warning while every other ecosystem keeps
-working; the entries activate on arrival. Do not delete them to silence the
-warning — deleting it re-opens the coverage gap it exists to close.
+Every pip entry is uniform: `schedule.interval: weekly` +
+`open-pull-requests-limit: 5`. The `/logging_manager/` entry was registered
+as a bare directory line — no schedule, no PR limit — so Dependabot would
+have applied its own defaults instead of the repo's cadence; fixed
+2026-11-17 (W4 ci-hygiene). Rule for future entries: register them COMPLETE
+(the schedule rides along from day one), even when the directory does not
+exist yet.
+
+Gotcha (Wave-E): the pip entries for `voice/` and `logging_manager/` were
+registered before their directories existed (the specs announce the files,
+GAP-001's consumers); both directories have since landed, so the entries are
+fully active. The registration-time behavior is kept here for the next time
+a directory is announced ahead of its code: until then Dependabot logs a
+per-entry "directory not found" config warning while every other ecosystem
+keeps working; the entries activate on arrival. Do not delete them to
+silence the warning — deleting it re-opens the coverage gap it exists to
+close.
 CodeQL needs no per-package config: it analyzes all Python in the repo, so
 new packages are covered automatically the day they land.
 
