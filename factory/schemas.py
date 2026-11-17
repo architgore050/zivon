@@ -856,3 +856,11 @@ SCHEMAS = {
 from .assessment.schemas import ASSESSMENT_SCHEMAS as _ASSESSMENT_SCHEMAS
 
 SCHEMAS.update(_ASSESSMENT_SCHEMAS)
+
+# Exam/series handoffs (P3, 2026-11-17): the separate factory.exam entrypoint
+# (stages E1-E4) keeps its schemas in factory/exam/schemas.py next to the stages
+# that produce them; registered here so every schema in the repo has ONE
+# registry (same rule as the assessment contracts above).
+from .exam.schemas import EXAM_SCHEMAS as _EXAM_SCHEMAS
+
+SCHEMAS.update(_EXAM_SCHEMAS)

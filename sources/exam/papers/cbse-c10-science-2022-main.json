@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "paper_id": "cbse-c10-science-2022-main",
+  "board": "CBSE",
+  "class_num": 10,
+  "subject": "Science",
+  "subject_code": "086",
+  "year": 2022,
+  "paper_type": "main",
+  "set_code": null,
+  "language": "en",
+  "scope": "physics_section",
+  "max_marks": 80,
+  "duration_min": 180,
+  "sections": [
+    {
+      "id": "A",
+      "marks_each": 1,
+      "question_count": 8
+    },
+    {
+      "id": "B",
+      "marks_each": 2,
+      "question_count": 2
+    },
+    {
+      "id": "C",
+      "marks_each": 3,
+      "question_count": 2
+    },
+    {
+      "id": "D",
+      "marks_each": 4,
+      "question_count": 1
+    },
+    {
+      "id": "E",
+      "marks_each": 5,
+      "question_count": 1
+    }
+  ],
+  "questions": [
+    {
+      "no": "1",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-10-electricity"
+    },
+    {
+      "no": "2",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-10-electricity"
+    },
+    {
+      "no": "3",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-10-electricity"
+    },
+    {
+      "no": "4",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-10-light-reflection-and-refraction"
+    },
+    {
+      "no": "5",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world"
+    },
+    {
+      "no": "6",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-10-electricity"
+    },
+    {
+      "no": "7",
+      "section": "A",
+      "type": "assertion_reason",
+      "marks": 1,
+      "chapter_id": "class-10-magnetic-effects-of-electric-current"
+    },
+    {
+      "no": "8",
+      "section": "A",
+      "type": "assertion_reason",
+      "marks": 1,
+      "chapter_id": "class-10-light-reflection-and-refraction"
+    },
+    {
+      "no": "9",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world"
+    },
+    {
+      "no": "10",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-10-electricity"
+    },
+    {
+      "no": "11",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-10-magnetic-effects-of-electric-current"
+    },
+    {
+      "no": "12",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-10-light-reflection-and-refraction"
+    },
+    {
+      "no": "13",
+      "section": "D",
+      "type": "case_based",
+      "marks": 4,
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world"
+    },
+    {
+      "no": "14",
+      "section": "E",
+      "type": "long",
+      "marks": 5,
+      "chapter_id": "class-10-electricity"
+    }
+  ],
+  "provenance": {
+    "basis": "public_blueprint",
+    "question_map_basis": "authored_estimate",
+    "source_url": "https://www.cbse.gov.in/cbsenew/question-paper.html",
+    "retrieved_at": "2026-11-17",
+    "verified": false,
+    "notes": "Section structure and question/type/marks template follow the published paper design. The question-to-chapter map is a curated estimate for the prototype, not a transcription of this paper; no question text is stored. Set code is null because no paper was ingested."
+  }
+}

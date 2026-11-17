@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "paper_id": "cbse-c12-physics-2024-main",
+  "board": "CBSE",
+  "class_num": 12,
+  "subject": "Physics",
+  "subject_code": "042",
+  "year": 2024,
+  "paper_type": "main",
+  "set_code": null,
+  "language": "en",
+  "scope": "full_paper",
+  "max_marks": 70,
+  "duration_min": 180,
+  "sections": [
+    {
+      "id": "A",
+      "marks_each": 1,
+      "question_count": 16
+    },
+    {
+      "id": "B",
+      "marks_each": 2,
+      "question_count": 5
+    },
+    {
+      "id": "C",
+      "marks_each": 3,
+      "question_count": 7
+    },
+    {
+      "id": "D",
+      "marks_each": 4,
+      "question_count": 2
+    },
+    {
+      "id": "E",
+      "marks_each": 5,
+      "question_count": 3
+    }
+  ],
+  "questions": [
+    {
+      "no": "1",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-current-electricity"
+    },
+    {
+      "no": "2",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-ray-optics-and-optical-instruments"
+    },
+    {
+      "no": "3",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-electrostatic-potential-and-capacitance"
+    },
+    {
+      "no": "4",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-current-electricity"
+    },
+    {
+      "no": "5",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-moving-charges-and-magnetism"
+    },
+    {
+      "no": "6",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-ray-optics-and-optical-instruments"
+    },
+    {
+      "no": "7",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-semiconductor-electronics-materials-devices-and-simple-circuits"
+    },
+    {
+      "no": "8",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-electric-charges-and-fields"
+    },
+    {
+      "no": "9",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-electrostatic-potential-and-capacitance"
+    },
+    {
+      "no": "10",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-current-electricity"
+    },
+    {
+      "no": "11",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-moving-charges-and-magnetism"
+    },
+    {
+      "no": "12",
+      "section": "A",
+      "type": "mcq",
+      "marks": 1,
+      "chapter_id": "class-12-electromagnetic-induction"
+    },
+    {
+      "no": "13",
+      "section": "A",
+      "type": "assertion_reason",
+      "marks": 1,
+      "chapter_id": "class-12-alternating-current"
+    },
+    {
+      "no": "14",
+      "section": "A",
+      "type": "assertion_reason",
+      "marks": 1,
+      "chapter_id": "class-12-ray-optics-and-optical-instruments"
+    },
+    {
+      "no": "15",
+      "section": "A",
+      "type": "assertion_reason",
+      "marks": 1,
+      "chapter_id": "class-12-wave-optics"
+    },
+    {
+      "no": "16",
+      "section": "A",
+      "type": "assertion_reason",
+      "marks": 1,
+      "chapter_id": "class-12-semiconductor-electronics-materials-devices-and-simple-circuits"
+    },
+    {
+      "no": "17",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-12-electric-charges-and-fields"
+    },
+    {
+      "no": "18",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-12-electrostatic-potential-and-capacitance"
+    },
+    {
+      "no": "19",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-12-current-electricity"
+    },
+    {
+      "no": "20",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-12-moving-charges-and-magnetism"
+    },
+    {
+      "no": "21",
+      "section": "B",
+      "type": "very_short",
+      "marks": 2,
+      "chapter_id": "class-12-magnetism-and-matter"
+    },
+    {
+      "no": "22",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-electromagnetic-induction"
+    },
+    {
+      "no": "23",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-alternating-current"
+    },
+    {
+      "no": "24",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-electromagnetic-waves"
+    },
+    {
+      "no": "25",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-ray-optics-and-optical-instruments"
+    },
+    {
+      "no": "26",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-wave-optics"
+    },
+    {
+      "no": "27",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-dual-nature-of-radiation-and-matter"
+    },
+    {
+      "no": "28",
+      "section": "C",
+      "type": "short",
+      "marks": 3,
+      "chapter_id": "class-12-semiconductor-electronics-materials-devices-and-simple-circuits"
+    },
+    {
+      "no": "29",
+      "section": "D",
+      "type": "case_based",
+      "marks": 4,
+      "chapter_id": "class-12-atoms"
+    },
+    {
+      "no": "30",
+      "section": "D",
+      "type": "case_based",
+      "marks": 4,
+      "chapter_id": "class-12-nuclei"
+    },
+    {
+      "no": "31",
+      "section": "E",
+      "type": "long",
+      "marks": 5,
+      "chapter_id": "class-12-electric-charges-and-fields"
+    },
+    {
+      "no": "32",
+      "section": "E",
+      "type": "long",
+      "marks": 5,
+      "chapter_id": "class-12-electrostatic-potential-and-capacitance"
+    },
+    {
+      "no": "33",
+      "section": "E",
+      "type": "long",
+      "marks": 5,
+      "chapter_id": "class-12-current-electricity"
+    }
+  ],
+  "provenance": {
+    "basis": "public_blueprint",
+    "question_map_basis": "authored_estimate",
+    "source_url": "https://www.cbse.gov.in/cbsenew/question-paper.html",
+    "retrieved_at": "2026-11-17",
+    "verified": false,
+    "notes": "Section structure and question/type/marks template follow the published paper design. The question-to-chapter map is a curated estimate for the prototype, not a transcription of this paper; no question text is stored. Set code is null because no paper was ingested."
+  }
+}
