@@ -8,7 +8,7 @@
 #
 # Install:  pip install -r llm_manager/requirements.txt
 
-langchain-openai==1.7.4
+langchain-openai==1.8.0
 langchain-core==1.7.6
 openai==3.46.0
 httpx==0.28.1
