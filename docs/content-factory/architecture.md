@@ -70,6 +70,22 @@ stages that consume it `stale`, so a later full run never resumes a pack built
 from the previous priors. Full contract, gate-rule table, time-prior formula,
 configuration and debt: [`assessment.md`](assessment.md).
 
+### The exam/series pipeline is a third entrypoint (2026-11-17, P3)
+
+Exam ingest, the blueprint and the six test series do **not** run in
+`pipeline.py` or in `factory.assessment`. They are a third, independent graph
+under `factory/exam/` (E1–E2) and `factory/series/` (E3–E4), with their own
+entrypoint (`python -m factory.exam`), their own run directory
+(`runs/exam/<run_id>/`) and their own stages `E1-ingest` → `E2-blueprint` →
+`E3-series` → `E4-publish`. It makes **no model calls**: the inputs are tracked
+paper *metadata* fixtures (`sources/exam/papers/`, pattern metadata only — no
+question text) plus the P2 assessment banks, and the compliance mode gate
+(`EXAM_CONTENT_MODE`, `EXAM_VERBATIM_CLEARANCE_ID`, `SERIES_EXACT_PYQ_ENABLED`)
+fails closed. The exact-PYQ series ships dark until `DEC-COMP-001` has a
+clearance record. A publishable pack is the only one mirrored; a blocked pack
+stays in the run directory with every blocker named. Full contract, rule ids,
+series table, volume gate and debt: [`exam.md`](exam.md).
+
 ### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
 
 Decision C-051: lesson narration is PRE-GENERATED at build time with Gnani
