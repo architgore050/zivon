@@ -223,6 +223,35 @@ def slot_accepts(item: Mapping[str, Any], slot: Mapping[str, Any]) -> bool:
     return str(item["type"]) in accepted and int(item["marks"]) == int(slot["marks"])
 
 
+def rotate_pool(
+    pool: Sequence[Mapping[str, Any]], *, paper_index: int, paper_count: int
+) -> list[Mapping[str, Any]]:
+    """Rotate every chapter's items for paper `paper_index`.
+
+    A single rotation of the whole pool only moves the one chapter whose block
+    straddles the cut, so every paper still chooses the same first item per
+    (chapter, type) and the "five papers" come out identical. Rotating inside
+    each chapter - by a stride derived from the paper count - changes the first
+    available item for every chapter, which is what makes the papers different.
+    The result is deterministic: chapter order is first appearance in the pool,
+    which `load_pool` sorts by chapter id.
+    """
+    blocks: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    order: list[str] = []
+    for item in pool:
+        chapter_id = str(item["chapter_id"])
+        if chapter_id not in blocks:
+            order.append(chapter_id)
+        blocks[chapter_id].append(item)
+    rotated: list[Mapping[str, Any]] = []
+    for chapter_id in order:
+        block = blocks[chapter_id]
+        stride = max(1, len(block) // max(1, paper_count))
+        shift = (paper_index * stride) % len(block)
+        rotated.extend(block[shift:] + block[:shift])
+    return rotated
+
+
 def fill_slots(
     slots: Sequence[Mapping[str, Any]],
     allocation: Sequence[str],
@@ -438,10 +467,10 @@ def _build_paper_series(
     used_items: list[Mapping[str, Any]] = []
     complete = 0
     for index in range(count):
-        # Rotate the pool per paper so five papers do not repeat the same items
-        # in the same order; the rotation is deterministic (index * remainder).
-        offset = (index * max(1, len(pool) // max(1, count))) % max(1, len(pool))
-        rotated = list(pool[offset:]) + list(pool[:offset])
+        # Rotate each chapter's block so five papers are five different papers,
+        # not the same questions in the same order (and a volume gate that
+        # counts papers cannot pass on duplicate copies).
+        rotated = rotate_pool(pool, paper_index=index, paper_count=count)
         chosen = fill_slots(slots, allocation, rotated)
         paper = build_paper(
             paper_id=f"{series_id.replace('_', '-')}-p{index + 1:02d}",
@@ -655,7 +684,15 @@ def _build_exact_pyq(
         )
         return manifest, []
     verbatim = [item for item in pool if item["source_type"].startswith("verbatim_")]
-    years = sorted({str(item.get("source_ref", {}).get("year")) for item in verbatim})
+    # Count real years only: an item without `source_ref.year` cannot make the
+    # "5 years" minimum, and `str(None)` must never be counted as a year.
+    years = sorted(
+        {
+            str((item.get("source_ref") or {}).get("year"))
+            for item in verbatim
+            if (item.get("source_ref") or {}).get("year") not in (None, "")
+        }
+    )
     delivered = {"past_years": len(years)}
     manifest = _manifest(
         spec,
@@ -873,6 +910,7 @@ __all__ = [
     "build_slot_plan",
     "fill_slots",
     "load_pool",
+    "rotate_pool",
     "slot_accepts",
     "validate_pack_items",
 ]

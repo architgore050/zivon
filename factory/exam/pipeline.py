@@ -61,11 +61,22 @@ def run_fingerprint(cfg: ExamConfig, class_num: int, syllabus_sha: str) -> str:
         if cfg.papers_dir.exists()
         else []
     )
+    # The series are assembled from the P2 item banks, so a bank edit must
+    # invalidate a resumed E3/E4 exactly like a paper-fixture edit does.
+    item_banks = (
+        sorted(
+            (path.name, _file_sha(path))
+            for path in cfg.chapters_dir.glob("*.items.json")
+        )
+        if cfg.chapters_dir.exists()
+        else []
+    )
     payload: dict[str, Any] = {
         "exam_pipeline_version": EXAM_PIPELINE_VERSION,
         "class_num": class_num,
         "syllabus_sha256": syllabus_sha,
         "papers": papers,
+        "item_banks": item_banks,
         "content_mode": cfg.compliance.content_mode,
         "clearance_id": cfg.compliance.clearance_id,
         "exact_pyq_enabled": cfg.compliance.exact_pyq_enabled,
@@ -454,21 +465,43 @@ def _run_class(
         content_hash = str(manifest["content_hash"])
         question_rows = int(manifest["counts"]["question_rows"])
 
-    run_ctx.finish(True)
-    elapsed_ms = int((time.monotonic() - started) * 1000)
-    log_event(
-        "factory.exam.run.completed",
-        {
-            "class_level": class_num,
-            "papers_count": papers_count,
-            "items_count": items_count,
-            "series_count": series_count,
-            "question_rows": question_rows,
-            "publishable": publishable,
-            "content_hash": content_hash,
-        },
-        latency_ms=elapsed_ms,
+    blocked_by_requirement = require_publishable and not publishable
+    # The run ledger must not say "ok" for a run the operator's gate rejected:
+    # `--require-publishable` makes the publish block a failed run, not a
+    # successful run with a warning.
+    run_ctx.finish(
+        not blocked_by_requirement,
+        detail=(
+            f"publish gate: class {class_num} pack is blocked (--require-publishable)"
+            if blocked_by_requirement
+            else ""
+        ),
     )
+    elapsed_ms = int((time.monotonic() - started) * 1000)
+    if blocked_by_requirement:
+        log_event(
+            "factory.exam.run.failed",
+            {
+                "failed_stage": "E4-publish",
+                "reason_code": _STAGE_IDS["E4-publish"],
+                "error_count": 1,
+            },
+            error_class=ErrorClass.GATE_FAIL,
+        )
+    else:
+        log_event(
+            "factory.exam.run.completed",
+            {
+                "class_level": class_num,
+                "papers_count": papers_count,
+                "items_count": items_count,
+                "series_count": series_count,
+                "question_rows": question_rows,
+                "publishable": publishable,
+                "content_hash": content_hash,
+            },
+            latency_ms=elapsed_ms,
+        )
     result = {
         "ok": publishable or not require_publishable,
         "class_num": class_num,
@@ -481,7 +514,7 @@ def _run_class(
         "content_hash": content_hash,
         "pack_dir": str(run_ctx.stage_dir("E4-publish") / "pack"),
     }
-    if require_publishable and not publishable:
+    if blocked_by_requirement:
         raise ExamStageError(
             f"class {class_num}: the pack is not publishable "
             f"({question_rows} question rows); see the pack manifest's blockers"

@@ -141,6 +141,20 @@ class ResumeTests(PipelineTestBase):
             run_exam(changed, [10])
         self.assertIn("different fingerprint", str(ctx.exception))
 
+    def test_an_item_bank_edit_invalidates_the_run(self) -> None:
+        # The series are assembled from the P2 banks; editing one must not be
+        # silently swallowed by a resume of E3/E4 built from the old bank.
+        banks = self.root / "banks"
+        banks.mkdir()
+        bank = banks / "class-10-light-reflection-and-refraction.items.json"
+        bank.write_text('{"items": []}', encoding="utf-8")
+        cfg = dataclasses.replace(self.cfg(), chapters_dir=banks)
+        run_exam(cfg, [10])
+        bank.write_text('{"items": [], "edited": true}', encoding="utf-8")
+        with self.assertRaises(ExamStageError) as ctx:
+            run_exam(cfg, [10])
+        self.assertIn("different fingerprint", str(ctx.exception))
+
     def test_fresh_wipes_and_rebuilds(self) -> None:
         cfg = self.cfg()
         run_exam(cfg, [10])
@@ -249,6 +263,15 @@ class CliTests(PipelineTestBase):
             ]
         )
         self.assertEqual(code, 1)
+        report = json.loads(
+            (self.runs / "exam-class-10" / "run_report.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertFalse(
+            report["ok"],
+            "a run the operator gate rejected must not be recorded as ok",
+        )
 
 
 if __name__ == "__main__":

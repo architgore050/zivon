@@ -30,9 +30,11 @@ Branch: `feature/w4-p3-exam-series` (based on `main` @ `dc2b972`).
   for Light only, Class 12 has none — and the manifest names every missing
   chapter and series. A synthetic full-syllabus bank (temp-only, labelled,
   never published) makes the same gate pass for both classes, so the bar is
-  real rather than impossible. `--require-publishable` turns a block into a
-  non-zero exit; a blocked pack is never mirrored.
-- **Tests:** `testing/content_factory/exam/` (149 tests: config/mode gate,
+  real rather than impossible; its five full papers must be five **distinct**
+  item sets (`series.paper_duplicate` blocks a repeated complete paper).
+  `--require-publishable` turns a block into a non-zero exit and records the
+  run as failed; a blocked pack is never mirrored.
+- **Tests:** `testing/content_factory/exam/` (153 tests: config/mode gate,
   ingest, blueprint, series, volume, notices, publish, pipeline/resume/CLI,
   evals, docs contract). `ruff`, `ruff format`, `mypy` clean.
 - **Evals:** `EV-EXM-001`, `EV-SER-001..003` cards + `evals/checkers/exam_checks.py`

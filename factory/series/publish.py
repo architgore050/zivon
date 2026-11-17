@@ -138,6 +138,7 @@ def build_coverage(
     chapter_counts: dict[str, dict[str, int]] = {
         str(chapter["chapter_id"]): {} for chapter in chapters
     }
+    chapter_of = {str(item["item_id"]): str(item["chapter_id"]) for item in items}
     for manifest in series:
         series_id = manifest["series_id"]
         for chapter in chapters:
@@ -145,10 +146,7 @@ def build_coverage(
             count = sum(
                 1
                 for item_id in manifest["item_ids"]
-                if any(
-                    item["item_id"] == item_id and item["chapter_id"] == chapter_id
-                    for item in items
-                )
+                if chapter_of.get(str(item_id)) == chapter_id
             )
             if count:
                 chapter_counts[chapter_id][series_id] = count
@@ -212,7 +210,9 @@ def _reason_codes(blockers: list[dict[str, Any]]) -> list[str]:
                 codes.add("schema")
         elif any(rule.startswith(prefix) for prefix in _VOLUME_RULES):
             codes.add("volume")
-        elif rule.startswith(("series.paper_structure", "series.language")):
+        elif rule.startswith(
+            ("series.paper_structure", "series.paper_duplicate", "series.language")
+        ):
             codes.add("structure")
         else:
             codes.add("schema")

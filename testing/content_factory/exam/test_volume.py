@@ -245,6 +245,25 @@ class FullSyllabusFixtureTests(unittest.TestCase):
         self.assertEqual(board["delivered"]["full_papers"], 5)
         self.assertEqual(board["papers"][0]["total_slots"], 33)
 
+    def test_five_full_papers_are_five_different_papers(self) -> None:
+        for class_num, per_chapter in ((10, 70), (12, 20)):
+            pack = self._pack(class_num, per_chapter=per_chapter)
+            for manifest_row in pack["payloads"]["series.json"]["series"]:
+                complete = [
+                    tuple(sorted(paper["item_ids"]))
+                    for paper in manifest_row["papers"]
+                    if paper["filled_slots"] == paper["total_slots"]
+                ]
+                with self.subTest(
+                    class_num=class_num, series=manifest_row["series_id"]
+                ):
+                    self.assertEqual(
+                        len(complete),
+                        len(set(complete)),
+                        "a complete paper is repeated; the volume gate would count "
+                        "one paper as several",
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()

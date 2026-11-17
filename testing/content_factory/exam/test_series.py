@@ -313,6 +313,34 @@ class CopyGateTests(SeriesTestBase):
         )
         self.assertEqual(issues, [])
 
+    def test_a_repeated_complete_paper_is_fatal(self) -> None:
+        manifest = copy.deepcopy(self.series["board_practice"])
+        first = manifest["papers"][0]
+        first["filled_slots"] = first["total_slots"]
+        second = copy.deepcopy(first)
+        second["paper_id"] = "board-practice-p02"
+        manifest["papers"] = [first, second]
+        issues = validate_series_manifest(
+            manifest,
+            items_by_id=self.items,
+            compliance=self.cfg.compliance.to_dict(),
+        )
+        self.assertIn("series.paper_duplicate", {i.rule for i in issues})
+
+    def test_two_honestly_incomplete_papers_are_not_duplicates(self) -> None:
+        manifest = copy.deepcopy(self.series["board_practice"])
+        for paper in manifest["papers"]:
+            paper["filled_slots"] = 0
+            paper["item_ids"] = []
+            for slot in paper["sections"]:
+                slot["item_id"] = None
+        issues = validate_series_manifest(
+            manifest,
+            items_by_id=self.items,
+            compliance=self.cfg.compliance.to_dict(),
+        )
+        self.assertNotIn("series.paper_duplicate", {i.rule for i in issues})
+
     def test_an_enabled_series_without_a_notice_is_fatal(self) -> None:
         manifest = copy.deepcopy(self.series["ai_lesson"])
         manifest["notice_id"] = None

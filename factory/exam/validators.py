@@ -1127,6 +1127,30 @@ def validate_series_manifest(
                     )
                 )
             seen.add(str(slot["item_id"]))
+    # A completed paper repeated under another paper_id is one paper counted
+    # twice: five copies must never satisfy "five full papers" (SER-13). Only
+    # complete papers are compared, so two honestly-empty drafts do not trip it.
+    complete: dict[tuple[str, ...], str] = {}
+    for paper in manifest["papers"]:
+        if int(paper["filled_slots"]) != int(paper["total_slots"]):
+            continue
+        key = tuple(sorted(str(item_id) for item_id in paper["item_ids"]))
+        if key in complete:
+            issues.append(
+                Issue(
+                    rule="series.paper_duplicate",
+                    severity="fatal",
+                    message=(
+                        f"{series_id}/{paper['paper_id']}: every item already "
+                        f"appears in {complete[key]}; one complete paper repeated "
+                        "is not a second paper"
+                    ),
+                    paper_id=str(paper["paper_id"]),
+                    series_id=series_id,
+                )
+            )
+        else:
+            complete[key] = str(paper["paper_id"])
     return issues
 
 

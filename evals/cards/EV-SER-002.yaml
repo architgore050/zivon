@@ -23,7 +23,9 @@ deterministic_checks:
     pipeline's minimums equal FEATURE-MAP 12.2, and that the shipped prototype is
     blocked with exactly the expected chapter-floor gaps named (two banks for four
     Class 10 chapters; none for Class 14 chapters). A synthetic full-syllabus bank
-    must make the same gate pass, so the bar is real rather than impossible. Two
+    must make the same gate pass, so the bar is real rather than impossible, and
+    its five full papers must be five distinct item sets - one complete paper
+    repeated is one paper counted twice, not volume. Two
     seeded defects (dropped Challenge items, a paper missing a section) must block
     publish with `series.minimum.challenge` and `series.paper_structure`.
 llm_judge: null

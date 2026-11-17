@@ -680,6 +680,25 @@ def check_series_coverage_volume(
                         f"publishable: {[b['rule'] for b in example]}",
                     )
                 )
+            # "5 full papers" must be five different papers: a repeated
+            # complete paper is one paper counted twice, not volume.
+            for manifest_row in full["payloads"]["series.json"]["series"]:
+                complete_sets: dict[tuple[str, ...], str] = {}
+                for paper in manifest_row["papers"]:
+                    if paper["filled_slots"] != paper["total_slots"]:
+                        continue
+                    key = tuple(sorted(str(item_id) for item_id in paper["item_ids"]))
+                    if key in complete_sets:
+                        issues.append(
+                            _record(
+                                CHECK_003,
+                                "series.paper_duplicate",
+                                f"class {class_num}/{manifest_row['series_id']}: "
+                                f"{paper['paper_id']} repeats every item of "
+                                f"{complete_sets[key]}",
+                            )
+                        )
+                    complete_sets[key] = str(paper["paper_id"])
         # Seeded defects: volume shortfall and a structure break must block.
         for sample_id in card.golden_inputs.get("seeded_defects", []):
             if class_num != 10:

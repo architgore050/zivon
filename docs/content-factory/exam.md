@@ -46,9 +46,10 @@ runs/exam/exam-class-10/
 
 Run ids are deterministic per class. Re-running resumes completed stages;
 `--fresh` wipes the run directory. The fingerprint covers the exam pipeline
-version, class, syllabus digest, every paper fixture's hash, the content mode,
-the clearance id, the exact-PYQ flag, and the blueprint/series/similarity
-policies — a mismatch refuses resume rather than mixing two shapes.
+version, class, syllabus digest, every paper fixture's hash, every item bank's
+hash, the content mode, the clearance id, the exact-PYQ flag, and the
+blueprint/series/similarity policies — a mismatch refuses resume rather than
+mixing two shapes.
 
 ---
 
@@ -117,9 +118,9 @@ publishing below the approved threshold (`SER-13`).
 `series.item.similarity_missing`, `series.item.concept`, `series.item.marks`,
 `series.item.chapter`, `series.item.language`, `series.item.answer`,
 `series.item.duplicate`, `series.item.missing`, `series.manifest.schema`,
-`series.copy.notice`, `series.copy.claim`, `series.status.exact_pyq`,
-`series.row.schema`, `series.row.language`, `pack.mode_mismatch`,
-`pack.verbatim_without_clearance`.
+`series.paper_duplicate`, `series.copy.notice`, `series.copy.claim`,
+`series.status.exact_pyq`, `series.row.schema`, `series.row.language`,
+`pack.mode_mismatch`, `pack.verbatim_without_clearance`.
 
 **Volume/coverage** — `series.minimum.<series_id>` (major),
 `series.chapter_coverage` (major), `series.chapter_floor` (major),
@@ -314,8 +315,10 @@ blueprint template.
 largest-remainder allocation over blueprint shares (so every weighted chapter
 appears before any chapter exceeds its target); item selection cycles through
 chapters and concepts (so coverage is by construction, not luck); each paper is
-filled from a rotated pool (so five papers are not the same five questions in
-the same order) and never repeats an item inside one paper.
+filled from a pool rotated inside every chapter (so five papers are not the
+same five questions in the same order) and never repeats an item inside one
+paper. `series.paper_duplicate` blocks a pack in which two complete papers are
+the same item set: one paper repeated is not a second paper.
 
 ---
 
@@ -394,8 +397,9 @@ The gate is built and proven in both directions:
 - `EV-SER-002` and `testing/content_factory/exam/test_volume.py` assemble a
   **synthetic full-syllabus bank** (clearly labelled, temp directory, never
   published) for every chapter of a class and assert the pack becomes
-  `publish: ready` — 5 complete full papers, 100 Challenge questions, 100 Loop
-  questions, every chapter in every paper at the approved minimums;
+  `publish: ready` — 5 complete and distinct full papers, 100 Challenge
+  questions, 100 Loop questions, every chapter in every paper at the approved
+  minimums;
 - the same gate on the **shipped prototype** fails, and the blockers name the
   gap: Class 10 has banks for Light only (`class-10-light-reflection-and-refraction`),
   so the human eye, electricity and magnetic effects chapters have zero
