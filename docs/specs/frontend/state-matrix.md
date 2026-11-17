@@ -111,6 +111,79 @@ Code path `[web]`: `web/templates/app/bookmarks.html` + the
 | untranslated | English copy + saved-language note |
 | over-credit-budget | n/a — no voice control |
 
+## APP-07 `/app/practice` practice hub (F5, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/practice/hub.html` +
+`web/practice_views.py`/`backend/practice/`. Contract:
+`docs/specs/frontend/practice.md` §7, §8.
+
+| State | What the student sees |
+|---|---|
+| default | Daily 5, chapter drills with imported banks, weak topics, retry mistakes, recent sets, honest notes |
+| loading | n/a — SSR completes before bytes |
+| empty | "No chapter has an imported practice bank yet" + no Start form; Daily 5 reason |
+| partial | Daily 5 needs a class; English-only chapter marker; no weak/retry yet |
+| error | panel `notice--error` + retry; no invented modes |
+| offline | browser offline page (practice needs the server) |
+| permission-denied | 303 `/login?next=/app/practice` |
+| reduced-motion | no animation; native forms |
+| untranslated | English UI copy + saved-language note; question-language fallback stated |
+| over-credit-budget | n/a — no voice control |
+
+## APP-08 `/app/practice/{id}` practice player (F5, 2026-11-17)
+
+Code path `[web]` + the `frontend/assets/practice.js` island; server form is the
+real path. Contract: `docs/specs/frontend/practice.md` §7, §8.
+
+| State | What the student sees |
+|---|---|
+| default | one question, options/numeric field, Check, nudge, `aria-live` feedback, Why?, Next/Finish |
+| loading | n/a — SSR; the island shows a disabled Check while the answer is in flight |
+| empty | n/a — a session always has questions |
+| partial | unanswered set; feedback shown for the last answered question when the set is not closed |
+| error | numeric parse miss re-renders with the value and a fixable message; 403/409/429/offline copy; feedback never shows a stack trace |
+| offline | browser offline page; a failed inline check says the answer was not saved |
+| permission-denied | 303 `/login?next=/app/practice/{id}`; another account's id is a branded 404 |
+| reduced-motion | no animation; native `<progress>` |
+| untranslated | English UI copy + saved-language note; fallback set marked |
+| over-credit-budget | n/a — no voice control |
+
+## APP-09 `/app/practice/{id}/summary` practice summary (F5, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/practice/summary.html` +
+`web/practice_views.py`. Contract: `docs/specs/frontend/practice.md` §7, §8.
+
+| State | What the student sees |
+|---|---|
+| default | score, accuracy, first attempts, time, hints, per-concept breakdown, next actions |
+| loading | n/a — SSR |
+| empty | zero answered: "Nothing was answered in this set"; concepts say Not answered |
+| partial | open set: "This set is still open" + Continue; unanswered note |
+| error | panel `notice--error` + retry |
+| offline | browser offline page |
+| permission-denied | 303 `/login?next=…`; foreign id is a branded 404 |
+| reduced-motion | no animation |
+| untranslated | English copy + fallback note |
+| over-credit-budget | n/a — no voice control |
+
+## APP-10 `/app/practice/history` practice history (F5, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/practice/history.html`. Contract:
+`docs/specs/frontend/practice.md` §7, §8.
+
+| State | What the student sees |
+|---|---|
+| default | newest-first sessions: mode, chapter, day, count, score or "still open", link |
+| loading | n/a — SSR |
+| empty | "No practice sets yet" + Start practising |
+| partial | open sets are labelled, not hidden |
+| error | panel `notice--error` + retry |
+| offline | browser offline page |
+| permission-denied | 303 `/login?next=/app/practice/history` |
+| reduced-motion | no animation |
+| untranslated | English copy + saved-language note |
+| over-credit-budget | n/a — no voice control |
+
 ## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 
 The public discovery surfaces are specified in `docs/frontend/public-site.md`

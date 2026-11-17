@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/practice.css">
+<script src="/assets/practice.js" defer></script>
+{% endblock %}
+{% block main %}
+<section class="wrap page-head practice-player-head" aria-labelledby="player-title">
+  <p class="kicker">
+    {{ practice.mode_label if practice.state == "ok" else "Practice" }}{% if practice.chapter %} · {{ practice.chapter.title }}{% endif %}
+  </p>
+  <h1 id="player-title">
+    {% if practice.state == "missing" %}Practice set not found
+    {% elif practice.state == "error" %}This set could not be read
+    {% elif practice.completed %}Set finished
+    {% else %}Question {{ practice.progress.position }} of {{ practice.progress.count }}{% endif %}
+  </h1>
+  {% if practice.state == "ok" and practice.question %}
+  <p class="meta">{{ practice.question_type_label }}{% if practice.difficulty_label %} · {{ practice.difficulty_label }}{% endif %}{% if practice.marks_label %} · {{ practice.marks_label }}{% endif %}{% if practice.expected_time_label %} · {{ practice.expected_time_label }}{% endif %}</p>
+  {% endif %}
+  {% if practice.state == "ok" and practice.language_note %}
+  <p class="meta">{{ practice.language_note }}</p>
+  {% endif %}
+</section>
+
+{% if practice.state == "missing" %}
+<section class="wrap band" aria-labelledby="player-missing-title">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="player-missing-title">That practice set is not here.</strong></p>
+    <p>It may belong to another account, or it never existed. Nothing was lost from your other sets.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/practice">Back to practice</a></p>
+</section>
+{% elif practice.state == "error" %}
+<section class="wrap band" aria-labelledby="player-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="player-error-title">This set could not be read.</strong></p>
+    <p>{{ practice.message }} <a class="text-link" href="/app/practice/{{ session_id }}">Try again</a></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/practice">Back to practice</a></p>
+</section>
+{% else %}
+<section class="wrap practice-player" data-practice-player data-session-id="{{ session_id }}" data-question-type="{{ practice.question.type if practice.question else '' }}" data-lesson-url="{{ practice.lesson_url or '' }}">
+  <div class="practice-status">
+    <progress class="practice-progress" max="{{ practice.progress.count }}" value="{{ practice.progress.answered }}">{{ practice.progress.answered }} of {{ practice.progress.count }}</progress>
+    <p class="meta">{{ practice.progress.answered }} of {{ practice.progress.count }} answered</p>
+  </div>
+
+  {% if practice.question %}
+  <form class="practice-answer-form" method="post" action="{{ answer_action }}" data-practice-form novalidate>
+    {{ csrf_field(csrf_token) }}
+    <input type="hidden" name="question_id" value="{{ practice.question.question_id }}">
+    <input type="hidden" name="answer_kind" value="{{ practice.answer_kind }}">
+    <input type="hidden" name="hints_used" value="0" data-hints-used>
+    <input type="hidden" name="time_ms" value="0" data-time-ms>
+
+    {% if practice.answer_kind == "index" %}
+    <fieldset class="practice-options" data-options>
+      <legend class="practice-prompt">{{ practice.question.prompt }}</legend>
+      {% for option in practice.options %}
+      <label class="practice-option">
+        <input type="radio" name="answer_index" value="{{ option.index }}"{% if practice.review and practice.feedback.chosen.index == option.index %} checked{% elif (practice.form_values or {}).get('answer_index') == option.index|string %} checked{% endif %}>
+        <span class="practice-option-text">{{ option.text }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    {% else %}
+    <fieldset class="practice-options practice-options--numeric">
+      <legend class="practice-prompt">{{ practice.question.prompt }}</legend>
+      <label class="practice-numeric-label" for="practice-answer-value">Your answer</label>
+      <input class="practice-numeric" id="practice-answer-value" name="answer_value" type="text" inputmode="decimal" autocomplete="off" value="{% if practice.review and practice.feedback.chosen.value is not none %}{{ practice.feedback.chosen.value }}{% else %}{{ (practice.form_values or {}).get('answer_value', '') }}{% endif %}">
+      <p class="meta">Enter the number only; the unit is in the question.</p>
+    </fieldset>
+    {% endif %}
+
+    <p class="practice-actions">
+      <button class="btn" type="submit" data-check>{% if practice.review %}Check again{% else %}Check answer{% endif %}</button>
+      <button class="btn btn--quiet" type="button" data-hint-toggle aria-expanded="false" aria-controls="practice-hint-panel">Need a nudge?</button>
+    </p>
+  </form>
+
+  <div class="practice-hint" id="practice-hint-panel" hidden data-hint-panel tabindex="-1">
+    <p class="notice notice--empty">
+      <strong>{% if practice.hint_available %}Hint{% else %}No authored hint for this question yet{% endif %}</strong>
+      {% if not practice.hint_available %}
+      Here is a general nudge that does not give the answer away: read the question once more, write down what is given and what is asked, then choose the one relationship that connects them.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="practice-feedback" data-feedback role="status" aria-live="polite" tabindex="-1">
+    {% if practice.feedback %}
+    <div class="practice-feedback-inner practice-feedback--{% if practice.feedback.correct %}correct{% else %}wrong{% endif %}">
+      <p class="practice-verdict"><strong>{{ practice.feedback.verdict }}</strong>{% if practice.feedback.answer_text %} The answer is {{ practice.feedback.answer_text }}.{% endif %}</p>
+      {% if practice.feedback.chosen_text and not practice.feedback.correct %}<p class="meta">You chose: {{ practice.feedback.chosen_text }}.</p>{% endif %}
+      {% if practice.feedback.misconception %}<p class="meta">Common mix-up: {{ practice.feedback.misconception }}</p>{% endif %}
+      {% if practice.feedback.explanation %}
+      <details class="why" open>
+        <summary>Why?</summary>
+        <div class="answer"><p>{{ practice.feedback.explanation }}</p></div>
+      </details>
+      {% endif %}
+      <p class="practice-tutor">
+        {% if practice.lesson_url %}
+        Still unsure? <a href="{{ practice.lesson_url }}">Ask the tutor on this chapter</a> — the voice dock lives on the lesson page.
+        {% else %}
+        Still unsure? This chapter's lesson is not published yet, so the voice tutor cannot open from here.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if practice.answer_error %}
+  <div class="notice notice--error" role="alert"><p>{{ practice.answer_error }}</p></div>
+  {% endif %}
+
+  <div class="practice-next" data-next-wrap>
+    <a class="btn" href="/app/practice/{{ session_id }}" data-next-link{% if not (practice.feedback and practice.next_href) %} hidden{% endif %}>Next question</a>
+    <form class="practice-finish" method="post" action="{{ complete_action }}" data-finish-form{% if not (practice.complete_available and practice.feedback) %} hidden{% endif %}>
+      {{ csrf_field(csrf_token) }}
+      <button class="btn{% if practice.next_href %} btn--outline{% endif %}" type="submit">Finish set and see summary</button>
+    </form>
+  </div>
+  {% else %}
+  <p class="lede">This set has no question to show. <a class="text-link" href="/app/practice">Start another drill</a>.</p>
+  {% endif %}
+
+  <p class="practice-player-foot">
+    <a class="text-link" href="/app/practice">All practice modes</a>
+    <a class="text-link" href="/app/practice/history">Practice history</a>
+  </p>
+</section>
+{% endif %}
+{% endblock %}

@@ -587,6 +587,194 @@ def list_practice_history(
     return [_practice_session_public(row) for row in rows]
 
 
+def list_practice_chapters(
+    db: DatabaseEngine, *, language: str = "en"
+) -> list[dict[str, Any]]:
+    """Return chapters that currently have servable questions, with counts.
+
+    The practice hub lists what can actually be practised instead of every
+    catalogue chapter: a chapter with no imported bank is absent here, never a
+    dead Start button.
+    """
+    lang = _language(language)
+    rows = db.fetchall(
+        """
+        SELECT chapter_id, MIN(class_level) AS class_level,
+               COUNT(*) AS question_count
+        FROM question_bank
+        WHERE language = ? AND status IN (?, ?)
+        GROUP BY chapter_id
+        ORDER BY MIN(class_level), chapter_id
+        """,
+        (lang, *SERVED_STATUSES),
+    )
+    return [
+        {
+            "chapter_id": str(row["chapter_id"]),
+            "class_level": int(row["class_level"]),
+            "question_count": int(row["question_count"]),
+        }
+        for row in rows
+    ]
+
+
+def select_daily_question_ids(
+    db: DatabaseEngine,
+    class_level: int,
+    *,
+    language: str = "en",
+    limit: int = 5,
+) -> list[str]:
+    """Return a class-level set spread across chapters, one per chapter a pass.
+
+    A Daily 5 should not be five questions from the first chapter in id order;
+    this round-robins the chapters so a class with two imported chapters gets
+    both. Selection is deterministic for the same bank.
+    """
+    level = int(class_level)
+    if level < 6 or level > 12:
+        raise AssessmentError("E-PRACTICE-CLASS")
+    lang = _language(language)
+    wanted = int(limit)
+    if wanted <= 0:
+        raise AssessmentError("E-PRACTICE-QUESTIONS")
+    rows = db.fetchall(
+        """
+        SELECT question_id, chapter_id FROM question_bank
+        WHERE class_level = ? AND language = ? AND status IN (?, ?)
+        ORDER BY chapter_id, question_id
+        """,
+        (level, lang, *SERVED_STATUSES),
+    )
+    by_chapter: dict[str, list[str]] = {}
+    for row in rows:
+        by_chapter.setdefault(str(row["chapter_id"]), []).append(
+            str(row["question_id"])
+        )
+    picked: list[str] = []
+    depth = 0
+    while len(picked) < wanted:
+        added = False
+        for chapter_ids in by_chapter.values():
+            if len(picked) >= wanted:
+                break
+            if depth < len(chapter_ids):
+                picked.append(chapter_ids[depth])
+                added = True
+        if not added:
+            break
+        depth += 1
+    return picked
+
+
+def list_missed_question_ids(
+    db: DatabaseEngine,
+    user_id: str,
+    *,
+    language: str = "en",
+    chapter_id: str | None = None,
+    limit: int = 20,
+) -> list[str]:
+    """Return questions whose **latest** attempt is wrong, newest first.
+
+    Retry means "still unresolved", not "was ever wrong": a question answered
+    wrong once and then right does not come back. Ids are deduplicated across
+    sessions so one item cannot fill a retry set twice. `chapter_id` filters on
+    the question's own chapter, not on the session that carried the attempt: a
+    retry/weak session stores no chapter, so a session-based filter would hide a
+    miss the student made inside one.
+    """
+    owner = _require_user(user_id)
+    lang = _language(language)
+    params: list[Any] = [owner, False, lang, *SERVED_STATUSES]
+    chapter = str(chapter_id or "").strip()
+    chapter_clause = ""
+    if chapter:
+        chapter_clause = " AND q.chapter_id = ?"
+        params.append(chapter)
+    rows = db.fetchall(
+        """
+        SELECT q.question_id AS question_id
+        FROM (
+            SELECT pa.session_id AS session_id,
+                   pa.question_id AS question_id,
+                   pa.correct AS correct,
+                   pa.created_at AS created_at,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY pa.question_id
+                       ORDER BY pa.created_at DESC, pa.attempt_id DESC
+                   ) AS rn
+            FROM practice_attempt pa
+            JOIN practice_session session
+              ON session.session_id = pa.session_id
+            WHERE session.user_id = ?
+        ) latest
+        JOIN question_bank q ON q.question_id = latest.question_id
+        WHERE latest.rn = 1 AND latest.correct = ?
+          AND q.language = ? AND q.status IN (?, ?)"""
+        + chapter_clause
+        + " ORDER BY latest.created_at DESC",
+        tuple(params),
+    )
+    wanted = _history_limit(limit)
+    picked: list[str] = []
+    seen: set[str] = set()
+    for row in rows:
+        question_id = str(row["question_id"])
+        if question_id in seen:
+            continue
+        seen.add(question_id)
+        picked.append(question_id)
+        if len(picked) >= wanted:
+            break
+    return picked
+
+
+def list_weak_concept_ids(
+    db: DatabaseEngine,
+    user_id: str,
+    *,
+    chapter_id: str,
+    language: str = "en",
+    limit: int = 10,
+) -> list[str]:
+    """Return the chapter's concepts with the most unresolved misses, worst first."""
+    owner = _require_user(user_id)
+    lang = _language(language)
+    chapter = str(chapter_id or "").strip()
+    if not chapter:
+        raise AssessmentError("E-PRACTICE-CHAPTER")
+    rows = db.fetchall(
+        """
+        SELECT q.concept_id AS concept_id, COUNT(*) AS missed
+        FROM (
+            SELECT pa.session_id AS session_id,
+                   pa.question_id AS question_id,
+                   pa.correct AS correct,
+                   pa.created_at AS created_at,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY pa.question_id
+                       ORDER BY pa.created_at DESC, pa.attempt_id DESC
+                   ) AS rn
+            FROM practice_attempt pa
+            JOIN practice_session session
+              ON session.session_id = pa.session_id
+            WHERE session.user_id = ?
+        ) latest
+        JOIN practice_session ps ON ps.session_id = latest.session_id
+        JOIN question_bank q ON q.question_id = latest.question_id
+        WHERE latest.rn = 1 AND latest.correct = ?
+          AND q.language = ? AND q.status IN (?, ?)
+          AND q.chapter_id = ?
+        GROUP BY q.concept_id
+        ORDER BY missed DESC, q.concept_id
+        LIMIT ?
+        """,
+        (owner, False, lang, *SERVED_STATUSES, chapter, _history_limit(limit)),
+    )
+    return [str(row["concept_id"]) for row in rows]
+
+
 # --- speaking (F6) ----------------------------------------------------------
 
 
@@ -1248,7 +1436,9 @@ __all__ = [
     "get_speaking_attempt",
     "get_test",
     "get_test_attempt",
+    "list_missed_question_ids",
     "list_practice_attempts",
+    "list_practice_chapters",
     "list_practice_history",
     "list_series",
     "list_speaking_attempts",
@@ -1257,9 +1447,11 @@ __all__ = [
     "list_test_attempts",
     "list_test_questions",
     "list_tests",
+    "list_weak_concept_ids",
     "record_practice_answer",
     "save_speaking_attempt",
     "save_test_answer",
+    "select_daily_question_ids",
     "select_question_ids",
     "submit_test_attempt",
 ]

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/practice.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="summary-title">
+  <p class="kicker">Practice summary{% if practice.state == "ok" %} · {{ practice.mode_label }}{% endif %}</p>
+  <h1 id="summary-title">
+    {% if practice.state == "missing" %}Practice set not found
+    {% elif practice.state == "error" %}This summary could not be read
+    {% elif not practice.completed %}This set is still open
+    {% elif practice.summary.answered_count == 0 %}Nothing was answered in this set
+    {% else %}You answered {{ practice.summary.correct_count }} of {{ practice.summary.answered_count }} correctly{% endif %}
+  </h1>
+  {% if practice.state == "ok" and practice.chapter %}
+  <p class="meta">{{ practice.chapter.title }}{% if practice.when %} · {{ practice.when }}{% endif %}</p>
+  {% endif %}
+  {% if practice.state == "ok" and practice.language_note %}<p class="meta">{{ practice.language_note }}</p>{% endif %}
+</section>
+
+{% if practice.state == "missing" %}
+<section class="wrap band" aria-labelledby="summary-missing-title">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="summary-missing-title">That practice set is not here.</strong></p>
+    <p>It may belong to another account, or it never existed. Your other sets are unaffected.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/practice">Back to practice</a></p>
+</section>
+{% elif practice.state == "error" %}
+<section class="wrap band" aria-labelledby="summary-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="summary-error-title">This summary could not be read.</strong></p>
+    <p>{{ practice.message }} <a class="text-link" href="/app/practice/{{ session_id }}/summary">Try again</a></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/practice">Back to practice</a></p>
+</section>
+{% else %}
+<div class="wrap practice-grid">
+  <div class="practice-main">
+    <section class="practice-panel" aria-labelledby="summary-figures-title">
+      <p class="kicker">The figures</p>
+      <h2 id="summary-figures-title">{% if practice.completed %}What this set recorded{% else %}So far{% endif %}</h2>
+      <dl class="practice-figures">
+        <div class="practice-figure">
+          <dt>Questions</dt>
+          <dd>{{ practice.summary.answered_count }} answered of {{ practice.summary.question_count }}</dd>
+        </div>
+        <div class="practice-figure">
+          <dt>Accuracy</dt>
+          <dd>{% if practice.summary.accuracy_pct is not none %}{{ practice.summary.accuracy_pct }}%{% else %}No answers yet{% endif %}</dd>
+        </div>
+        <div class="practice-figure">
+          <dt>First attempts</dt>
+          <dd>{% if practice.summary.first_attempt_accuracy_pct is not none %}{{ practice.summary.first_attempt_correct }} of {{ practice.summary.first_attempt_answered }} correct ({{ practice.summary.first_attempt_accuracy_pct }}%){% else %}None yet{% endif %}</dd>
+        </div>
+        <div class="practice-figure">
+          <dt>Time on task</dt>
+          <dd>{% if practice.summary.time_ms %}about {{ (practice.summary.time_ms // 60000) }} min {{ ((practice.summary.time_ms // 1000) % 60) }} s{% else %}Not recorded{% endif %}</dd>
+        </div>
+        <div class="practice-figure">
+          <dt>Hints opened</dt>
+          <dd>{{ practice.summary.hints_used }}</dd>
+        </div>
+        {% if practice.score_label and practice.summary.answered_count %}
+        <div class="practice-figure">
+          <dt>Set score</dt>
+          <dd>{{ practice.score_label }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+      {% if practice.summary.unanswered_count %}
+      <p class="meta">{{ practice.summary.unanswered_count }} question{% if practice.summary.unanswered_count != 1 %}s{% endif %} left unanswered. They count as unanswered, not wrong; the accuracy above is over what you answered.</p>
+      {% endif %}
+      {% if not practice.completed %}
+      <p class="notice notice--partial">The set is not finished, so this is a partial summary. Continue the set, then finish it to close the record.</p>
+      {% endif %}
+    </section>
+
+    <section class="practice-panel" aria-labelledby="summary-concepts-title">
+      <p class="kicker">Concepts</p>
+      <h2 id="summary-concepts-title">Where the marks came from</h2>
+      {% if practice.summary.concepts %}
+      <ul class="practice-concept-list">
+        {% for concept in practice.summary.concepts %}
+        <li class="practice-concept-row">
+          <span class="practice-concept-title">{{ concept.title }}</span>
+          <span class="meta">{% if concept.answered %}{{ concept.correct }} of {{ concept.answered }} correct{% if concept.accuracy_pct is not none %} ({{ concept.accuracy_pct }}%){% endif %}{% else %}Not answered yet{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <p class="meta">Concept labels are read from the question bank's concept ids until the catalogue vocabulary is reconciled; they are not invented titles.</p>
+      {% else %}
+      <p class="lede">No concept tags to show for this set.</p>
+      {% endif %}
+    </section>
+
+    <section class="practice-panel" aria-labelledby="summary-next-title">
+      <p class="kicker">Next</p>
+      <h2 id="summary-next-title">What to do now</h2>
+      <div class="practice-next-actions">
+        {% if not practice.completed %}
+        <a class="btn" href="/app/practice/{{ session_id }}">Continue this set</a>
+        {% endif %}
+        {% if practice.retry.available %}
+        <form class="practice-start" method="post" action="/app/practice/start">
+          {{ csrf_field(csrf_token) }}
+          <input type="hidden" name="mode" value="retry_mistakes">
+          <button class="btn{% if not practice.completed %} btn--outline{% endif %}" type="submit">Retry the {{ practice.retry.count }} unresolved question{% if practice.retry.count != 1 %}s{% endif %}</button>
+        </form>
+        {% endif %}
+        {% if practice.next_chapter %}
+        <a class="btn btn--outline" href="{{ practice.next_chapter.lesson_url }}">Next chapter: {{ practice.next_chapter.title }}</a>
+        {% elif practice.lesson_url %}
+        <a class="btn btn--outline" href="{{ practice.lesson_url }}">Back to this chapter's lesson</a>
+        {% endif %}
+        <a class="text-link" href="/app/practice">All practice modes</a>
+        <a class="text-link" href="/app/practice/history">Practice history</a>
+      </div>
+      <p class="meta">Tests open with their own release; this summary does not link to a test player that is not live.</p>
+      {% if practice.lesson_url %}
+      <p class="practice-tutor">A doubt that is still open? <a href="{{ practice.lesson_url }}">Ask the tutor on this chapter</a> — the voice dock lives on the lesson page.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="practice-side" aria-label="Reading the summary">
+    <section class="practice-panel" aria-labelledby="summary-reading-title">
+      <p class="kicker">Reading it</p>
+      <h2 id="summary-reading-title">No score without context</h2>
+      <ul class="practice-rules">
+        <li><strong>Accuracy</strong> uses your latest answer on each question.</li>
+        <li><strong>First attempts</strong> are the honest learning signal; retries are practice, not erasure.</li>
+        <li>Unanswered questions are not counted as wrong.</li>
+        <li>Nothing here is ranked, shared, or shown to a parent; the record is yours.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

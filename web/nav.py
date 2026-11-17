@@ -25,6 +25,7 @@ class NavItem:
 # every link here resolves; the rest land with their owning workstream.
 APP_NAV: Final[tuple[NavItem, ...]] = (
     NavItem("dashboard", "Dashboard", "/app"),
+    NavItem("practice", "Practice", "/app/practice"),
     NavItem("progress", "Progress", "/app/progress"),
     NavItem("courses", "Courses", "/courses"),
     NavItem("settings", "Settings", "/app/settings"),

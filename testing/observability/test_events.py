@@ -54,6 +54,11 @@ EMITTED_BY_THIS_BRANCH = [
     "progress.events.ingested",
     "progress.events.rejected",
     "progress.bookmark.changed",
+    # backend/routes/practice.py + backend/practice/service.py (F5)
+    "practice.session.created",
+    "practice.answer.recorded",
+    "practice.session.completed",
+    "practice.answer.progress_sync_failed",
     # logging_manager module-own events
     "log.store_fallback",
     "log.store_recovered",

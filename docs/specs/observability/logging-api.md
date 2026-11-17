@@ -84,7 +84,7 @@ Field table (types are enforced at serialization; `null`/absent means "not appli
 | `schema_version` | int | always | `1` today; bump rules §9 |
 | `severity` | enum | always | `DEBUG\|INFO\|WARNING\|ERROR\|CRITICAL` (stdlib names) |
 | `event` | string | always | dot.namespaced `<component>.<subject>.<action>`; the name IS the contract — map row must exist |
-| `component` | enum | always | `factory\|llm\|llm_node\|voice\|translator\|frontend\|dashboard\|credit\|log` (`log` = this module's own events) |
+| `component` | enum | always | `factory\|llm\|llm_node\|voice\|translator\|frontend\|dashboard\|progress\|practice\|credit\|evals\|log` (`log` = this module's own events; a map row's component wins per event) |
 | `env` | enum | always | `dev\|cluster\|prod` from `ZIVON_ENV` (default `dev`) |
 | `run_id` | string | when set | factory's existing `make_run_id` value (adopted verbatim) |
 | `session_id` | string (UUID4) | when set | pseudonymous voice session (ADR-0011) |

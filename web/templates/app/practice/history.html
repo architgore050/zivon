@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/practice.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="history-title">
+  <p class="kicker">Practice history</p>
+  <h1 id="history-title">Every set you have practised.</h1>
+  <p class="lede">Newest first. An open set can be continued; a finished one opens its summary. Nothing is deleted when a set is finished.</p>
+</section>
+
+{% if practice.state == "error" %}
+<section class="wrap band" aria-labelledby="history-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="history-error-title">Your practice history could not be read.</strong></p>
+    <p>{{ practice.message }} <a class="text-link" href="/app/practice/history">Try again</a></p>
+  </div>
+</section>
+{% elif practice.sessions %}
+<section class="wrap band" aria-labelledby="history-list-title">
+  <div class="section-head">
+    <p class="kicker">{{ practice.count }} set{% if practice.count != 1 %}s{% endif %}</p>
+    <h2 id="history-list-title">Saved sessions</h2>
+  </div>
+  <ol class="practice-history-list">
+    {% for item in practice.sessions %}
+    <li class="practice-history-row">
+      <div class="practice-history-text">
+        <p class="chapter-num">{{ item.mode_label }}</p>
+        <h3 class="chapter-title"><a href="{{ item.href }}">{{ item.title }}</a></h3>
+        <p class="meta">{{ item.when }} · {{ item.question_count }} question{% if item.question_count != 1 %}s{% endif %}{% if item.score_label %} · {{ item.score_label }}{% elif not item.completed %} · still open{% endif %}</p>
+      </div>
+      <a class="btn btn--outline btn--sm" href="{{ item.href }}">{% if item.completed %}Open summary{% else %}Continue{% endif %}</a>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="mt-2"><a class="text-link" href="/app/practice">All practice modes</a></p>
+</section>
+{% else %}
+<section class="wrap band" aria-labelledby="history-empty-title">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="history-empty-title">No practice sets yet.</strong></p>
+    <p>Start a chapter drill or the Daily 5 and the set appears here; an open set is never lost by coming back later.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/practice">Start practising</a></p>
+</section>
+{% endif %}
+{% endblock %}
