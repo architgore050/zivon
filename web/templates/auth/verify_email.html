@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block head %}<link rel="stylesheet" href="/assets/auth.css">
+<script src="/assets/auth.js" defer></script>{% endblock %}
+{% block main %}
+<section class="wrap auth-wrap" aria-labelledby="verify-title">
+  <div class="auth-card">
+    <p class="kicker">Account recovery</p>
+    <h1 id="verify-title">Verify your email</h1>
+
+    {% if has_token %}
+    <p class="lede">Confirm this address to finish setting up your account. Verification is what makes password recovery and Google sign-in possible.</p>
+    <form class="auth-form" method="post" action="/verify-email">
+      <input type="hidden" name="token" value="{{ token }}">
+      <button class="btn auth-submit" type="submit">Verify this email</button>
+    </form>
+    <p class="auth-switch">Wrong address? <a href="/app/settings">Open settings</a> or <a href="/login">sign in</a>.</p>
+    {% else %}
+    <p class="lede">Open the verification link from the email we sent. The link works once and expires after 48 hours.</p>
+
+    {% if signed_in %}
+    <p>Your account works while the address is unverified. Verification is needed before password recovery and before connecting Google.</p>
+    <p><a class="text-link" href="/app/settings">Open settings</a></p>
+    {% else %}
+    <p><a class="text-link" href="/login">Sign in</a></p>
+    {% endif %}
+
+    <div class="notice notice--partial">
+      <p><strong>Resending is not built yet.</strong> The account service sends the first verification email; a resend action needs an endpoint that does not exist yet. If the link never arrived, check the spam folder and contact us.</p>
+      <p><a class="text-link" href="/contact/">Contact us</a></p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

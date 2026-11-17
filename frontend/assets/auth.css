@@ -1,0 +1,363 @@
+/* ==========================================================================
+   Zivon auth and settings surfaces — base Field Notes §1–§9 (F2)
+   --------------------------------------------------------------------------
+   Served by the server-rendered pages under `web/templates/auth/` and
+   `web/templates/app/settings*.html`. It composes F1's `product.css` tokens
+   and components (`.wrap`, `.btn`, `.input`, `.field label`, `.notice`,
+   `.tag`, `.page-head`) and adds only the paper-card form layout those pages
+   need. It must never grow a §10 lesson device (no ruled grid, no taped
+   cards, no Caveat headings, no dock).
+
+   Doctrine: one paper card per auth screen; labels above fields; square
+   corners; 44 px minimum targets; pen-blue reserved for links and focus.
+   ========================================================================== */
+
+.auth-wrap {
+  max-width: 34rem;
+  margin-inline: auto;
+  padding-block: clamp(2rem, 6vw, 4rem);
+}
+
+.auth-wrap--wide {
+  max-width: 44rem;
+}
+
+.auth-card {
+  margin-top: 1.5rem;
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+}
+
+.auth-card h1 {
+  margin-top: 0.35rem;
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+}
+
+.auth-card .lede {
+  margin-top: 0.6rem;
+  font-size: 1.0625rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 1.4rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field label,
+.field legend {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.field .input,
+.field select.input {
+  min-height: 48px;
+  background: var(--paper);
+}
+
+.field input[type="checkbox"],
+.field input[type="radio"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--ink);
+}
+
+.field-error {
+  margin-top: 0.15rem;
+  padding-left: 0.55rem;
+  border-left: 3px solid var(--pencil-red);
+  color: var(--pencil-red);
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.auth-hint {
+  margin-top: 0.2rem;
+  color: var(--graphite);
+  font-family: var(--notes);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.auth-aside {
+  margin-top: -0.35rem;
+  text-align: right;
+}
+
+.auth-aside .text-link {
+  font-size: 0.875rem;
+}
+
+.auth-or {
+  position: relative;
+  margin-block: 1.5rem;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+}
+
+.auth-or span {
+  position: relative;
+  top: -0.8rem;
+  padding-inline: 0.6rem;
+  background: var(--paper-light);
+  color: var(--graphite);
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.auth-google {
+  width: 100%;
+  margin-top: 0.2rem;
+}
+
+.auth-switch {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+}
+
+.auth-merge {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--rule);
+  color: var(--graphite);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.auth-merge strong {
+  color: var(--ink);
+}
+
+/* Choice groups: class, board, language. One row per option, 48 px targets. */
+.auth-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.auth-fieldset legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.auth-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.auth-choices--column {
+  display: grid;
+}
+
+.auth-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  font-family: var(--display);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.auth-choice:hover {
+  border-width: 2px;
+  padding: calc(0.45rem - 1px) calc(0.8rem - 1px);
+}
+
+.auth-choice:focus-within {
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 2px;
+}
+
+.auth-choice:has(input:checked) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.auth-choice input {
+  margin: 0;
+}
+
+.auth-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-height: 44px;
+}
+
+.auth-check-row label {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.auth-check-row input {
+  margin-top: 0.2rem;
+  flex: none;
+}
+
+.auth-optional {
+  color: var(--graphite);
+  font-weight: 400;
+}
+
+.auth-skip {
+  margin-top: 0.9rem;
+}
+
+.auth-skip .btn {
+  width: 100%;
+}
+
+/* JS-added password reveal control (no button ships without JS). */
+.auth-reveal {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 0.15rem;
+  border: 0;
+  background: none;
+  color: var(--pen-blue);
+  font-family: var(--notes);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- settings ----------------------------------------------------------- */
+
+.settings-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-block: clamp(1.5rem, 4vw, 3rem);
+}
+
+@media (min-width: 60rem) {
+  .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.settings-card {
+  padding: clamp(1.1rem, 3vw, 1.75rem);
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+}
+
+.settings-card h2 {
+  font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+}
+
+.settings-card p,
+.settings-card .auth-list {
+  margin-top: 0.75rem;
+}
+
+.settings-card--danger {
+  border-left: 6px solid var(--pencil-red);
+}
+
+.settings-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.4rem 1rem;
+  margin-top: 0.9rem;
+}
+
+.settings-facts dt {
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+
+.settings-facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.auth-list {
+  padding-left: 1.15rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.auth-list li {
+  margin-bottom: 0.4rem;
+  list-style: square;
+}
+
+.auth-danger {
+  margin-top: 1rem;
+}
+
+.auth-danger summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: var(--notes);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--pencil-red);
+}
+
+.auth-danger-submit {
+  width: 100%;
+  border-color: var(--pencil-red);
+  background: transparent;
+  color: var(--pencil-red);
+}
+
+.auth-danger-submit:hover {
+  background: var(--pencil-red);
+  border-color: var(--pencil-red);
+  color: var(--paper);
+}
+
+/* ---- small screens (360 px is the base case) ---------------------------- */
+
+@media (max-width: 26rem) {
+  .auth-card {
+    padding: 1.1rem;
+  }
+
+  .auth-choice {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card,
+  .auth-choice,
+  .auth-danger-submit {
+    transition: none;
+  }
+}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf, field_error, form_error as form_alert %}
+{% block head %}<link rel="stylesheet" href="/assets/auth.css">
+<script src="/assets/auth.js" defer></script>{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="settings-title">
+  <p class="kicker">Your account</p>
+  <h1 id="settings-title">Settings</h1>
+  <p class="lede">Profile, sign-in, and the data attached to this account. Nothing here is required to keep reading chapters.</p>
+  <p class="meta">{{ user.class_label }} · {{ user.board }} · {{ user.language_name }}</p>
+</section>
+
+<div class="wrap settings-grid">
+  <section class="settings-card" aria-labelledby="profile-title">
+    <h2 id="profile-title">Profile</h2>
+    <dl class="settings-facts">
+      <dt>Email</dt>
+      <dd>
+        {{ profile.email }}
+        {% if profile.email_verified %}
+        <span class="tag tag--done">Verified</span>
+        {% else %}
+        <span class="tag tag--progress">Not verified</span>
+        {% endif %}
+      </dd>
+    </dl>
+    {% if not profile.email_verified %}
+    <div class="notice notice--partial">
+      <p>Verification is needed for password recovery and before connecting Google. Open the link from the email we sent.</p>
+      <p><a class="text-link" href="/verify-email">Open the verification screen</a></p>
+    </div>
+    {% endif %}
+
+    <form class="auth-form" method="post" action="/app/settings">
+      {{ csrf(csrf_token) }}
+      <div class="field">
+        <label for="settings-display-name">Display name</label>
+        <input class="input" id="settings-display-name" name="display_name" type="text"
+               maxlength="80" autocomplete="nickname" value="{{ form.get('display_name') }}"
+               {%- if field_errors.get('display_name') %} aria-invalid="true" aria-describedby="settings-name-error"{% endif %}>
+        <p class="auth-hint">The tutor greets you with this. Leave it blank to be greeted without a name.</p>
+        {{ field_error(field_errors.get("display_name"), "settings-name-error") }}
+      </div>
+      <div class="field">
+        <label for="settings-class">Class</label>
+        <select class="input" id="settings-class" name="class_level" required
+                {%- if field_errors.get('class_level') %} aria-invalid="true" aria-describedby="settings-class-error"{% endif %}>
+          <option value=""{% if not form.get('class_level') %} selected{% endif %} disabled>Choose your class</option>
+          {% for level in class_choices %}
+          <option value="{{ level }}"{% if form.get('class_level') == level|string %} selected{% endif %}>Class {{ level }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(field_errors.get("class_level"), "settings-class-error") }}
+      </div>
+      <div class="field">
+        <label for="settings-board">Board</label>
+        <select class="input" id="settings-board" name="board"
+                {%- if field_errors.get('board') %} aria-invalid="true" aria-describedby="settings-board-error"{% endif %}>
+          {% for board in board_choices %}
+          <option value="{{ board }}"{% if form.get('board') == board %} selected{% endif %}>{{ board }}</option>
+          {% endfor %}
+        </select>
+        {{ field_error(field_errors.get("board"), "settings-board-error") }}
+      </div>
+      <div class="field">
+        <label for="settings-language">Language</label>
+        <select class="input" id="settings-language" name="language"
+                {%- if field_errors.get('language') %} aria-invalid="true" aria-describedby="settings-language-error"{% endif %}>
+          {% for value, label in language_choices %}
+          <option value="{{ value }}"{% if form.get('language') == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <p class="auth-hint">Screens are in English for now; your choice is saved for when interface translation lands.</p>
+        {{ field_error(field_errors.get("language"), "settings-language-error") }}
+      </div>
+      <button class="btn auth-submit" type="submit">Save profile</button>
+    </form>
+  </section>
+
+  <section class="settings-card" id="password" aria-labelledby="password-title">
+    <h2 id="password-title">{% if password_set %}Change password{% else %}Set a password{% endif %}</h2>
+    {% if password_set %}
+    <p>Changing the password signs out every other device.</p>
+    {% else %}
+    <div class="notice notice--partial">
+      <p><strong>You signed in with Google, so this account has no password yet.</strong> Set one to also sign in with email. It is the same account either way.</p>
+    </div>
+    {% endif %}
+
+    {{ form_alert(password_error) }}
+
+    <form class="auth-form" method="post" action="/app/settings/password">
+      {{ csrf(csrf_token) }}
+      {% if password_set %}
+      <div class="field">
+        <label for="settings-current-password">Current password</label>
+        <input class="input" id="settings-current-password" name="current_password"
+               type="password" autocomplete="current-password" required>
+      </div>
+      {% endif %}
+      <div class="field">
+        <label for="settings-new-password">New password</label>
+        <input class="input" id="settings-new-password" name="new_password" type="password"
+               autocomplete="new-password" minlength="10" required>
+        <p class="auth-hint">At least 10 characters. No symbol or capital-letter rules.</p>
+      </div>
+      <div class="field">
+        <label for="settings-confirm-password">New password again</label>
+        <input class="input" id="settings-confirm-password" name="confirm_password"
+               type="password" autocomplete="new-password" minlength="10" required>
+      </div>
+      <button class="btn auth-submit" type="submit">{% if password_set %}Change password{% else %}Set password{% endif %}</button>
+    </form>
+  </section>
+
+  <section class="settings-card" aria-labelledby="google-title">
+    <h2 id="google-title">Google</h2>
+    {% if google_linked %}
+    <p><span class="tag tag--done">Connected</span> Google sign-in is linked to this account.</p>
+    <p class="small">Signing in with Google and with your password reach the same account.</p>
+    {% elif not profile.email_verified %}
+    <div class="notice notice--partial">
+      <p>Verify your email before connecting Google. An unverified address cannot be linked safely.</p>
+      <p><a class="text-link" href="/verify-email">Open the verification screen</a></p>
+    </div>
+    {% elif google_available %}
+    <p>Connect Google so you can sign in with it. You return to this page afterwards.</p>
+    <p><a class="btn btn--outline" href="{{ google_link_href }}">Connect Google</a></p>
+    {% else %}
+    <p>Google sign-in is not configured on this server, so there is nothing to connect. Email and password works.</p>
+    {% endif %}
+  </section>
+
+  <section class="settings-card" aria-labelledby="session-title">
+    <h2 id="session-title">This device</h2>
+    <p>Signing out revokes this session. Your progress stays on the account.</p>
+    <form class="auth-form" method="post" action="/logout">
+      {{ csrf(csrf_token) }}
+      <button class="btn btn--outline" type="submit">Sign out</button>
+    </form>
+    <p class="auth-switch"><a class="text-link" href="/app/settings/privacy">Privacy and data</a></p>
+    <p class="small">Voice consent is per device. The <a href="/privacy/">privacy page</a> shows what this device stores and clears it.</p>
+  </section>
+</div>
+{% endblock %}
