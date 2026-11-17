@@ -331,6 +331,14 @@ All key-free and offline; no model call exists on this path.
   P1/P2 import lands; until then development/CI reads `frontend/catalogue.json`
   and the cluster falls back to F0's fixture (chapters without concepts).
   Closing this is P1/P2's import, not an F3 rewrite.
+- **Concept ids are not one vocabulary yet.** The P5 catalogue and the lesson
+  pages use `<chapter_id>-sec-NN` (the shell emits those; the merge maps them),
+  while P1/P2's `sources/syllabus/syllabus.json` uses semantic slugs
+  (`…-position-distance-displacement`). The DB read model wins the moment
+  `syllabus_chapter`/`concept` are populated, so concept states would stop
+  matching lesson events until P1/P2 and P5 reconcile the ids (or `concept`
+  gains the section reference the merge needs). That reconciliation is
+  P1/P2/P5's; F3 must not paper over it by inventing a second map.
 - `blocks_total` (sections per chapter) is not carried by the published
   catalogue, so “N of M sections” shows `N sections read` until F4/P1 expose a
   section count. The progress API already accepts and stores it.
