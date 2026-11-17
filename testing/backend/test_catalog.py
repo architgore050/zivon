@@ -39,17 +39,28 @@ class TestCatalogStub(unittest.TestCase):
             [entry["class_level"] for entry in body["classes"]], [9, 10, 11, 12]
         )
         class_nine = body["classes"][0]["chapters"]
-        motion = next(chapter for chapter in class_nine if chapter["slug"] == "motion")
+        motion = next(
+            chapter
+            for chapter in class_nine
+            if chapter["slug"] == "describing-motion-around-us"
+        )
         self.assertEqual(motion["status"], "live")
         self.assertEqual(motion["languages"], ["en", "hi", "hi-Latn"])
-        self.assertEqual(motion["lesson_url"], "/courses/class-9-physics/motion/")
-        self.assertEqual(int(motion["chapter_no"]), 8)
+        self.assertEqual(
+            motion["lesson_url"],
+            "/courses/class-9-physics/describing-motion-around-us/",
+        )
+        # The removed `motion` placeholder must not come back as a dead link.
+        self.assertNotIn("motion", [chapter["slug"] for chapter in class_nine])
         self.assertEqual(body["classes"][1]["chapters"], [])
 
     def test_chapter_detail_and_unknown_slug(self) -> None:
-        detail = self.client.get("/v1/catalog/chapters/motion")
+        detail = self.client.get("/v1/catalog/chapters/describing-motion-around-us")
         self.assertEqual(detail.status_code, 200)
-        self.assertEqual(detail.json()["chapter"]["chapter_id"], "class-9-motion")
+        self.assertEqual(
+            detail.json()["chapter"]["chapter_id"],
+            "class-9-describing-motion-around-us",
+        )
         self.assertEqual(detail.json()["concepts"], [])
 
         missing = self.client.get("/v1/catalog/chapters/does-not-exist")

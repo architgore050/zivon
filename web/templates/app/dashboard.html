@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% from "partials/progress_macros.html" import state_tag, section_progress with context %}
+{% from "partials/language.html" import language_label %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<script src="/assets/app-progress.js" defer></script>
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="dash-title">
+  <p class="kicker">Your dashboard</p>
+  <h1 id="dash-title">{{ dashboard.greeting }}{% if user.display_name %}, {{ user.display_name }}{% endif %}.</h1>
+  <p class="meta">{{ user.class_label }} · {{ user.board }} · {{ language_label(user) }}</p>
+  {% if user.language_note %}<p class="meta">{{ user.language_note }}</p>{% endif %}
+</section>
+
+{% if dashboard.data_error %}
+<section class="wrap band" aria-labelledby="dash-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="dash-error-title">Your study log is unavailable right now.</strong></p>
+    <p>{{ dashboard.data_error }} <a class="text-link" href="/app">Try again</a></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/courses">Open the catalogue</a></p>
+</section>
+{% else %}
+{% include "partials/progress_sync.html" %}
+<div class="wrap app-grid">
+  <div class="app-main">
+    <section class="app-panel" aria-labelledby="continue-title">
+      <p class="kicker">Continue learning</p>
+      {% if dashboard.continue_chapter %}
+      <h2 id="continue-title">{{ dashboard.continue_chapter.title }}</h2>
+      <p class="meta">{{ section_progress(dashboard.continue_chapter) }}{% if dashboard.continue_chapter.when %} · last activity {{ dashboard.continue_chapter.when }}{% endif %}</p>
+      <p class="mt-2">
+        {% if dashboard.continue_chapter.lesson_url %}
+        <a class="btn" href="{{ dashboard.continue_chapter.lesson_url }}">Continue the chapter</a>
+        {% endif %}
+        <a class="text-link" href="/app/progress">See the progress map</a>
+      </p>
+      {% elif dashboard.is_new %}
+      <h2 id="continue-title">Nothing here yet — that is honest.</h2>
+      <p class="lede">Your dashboard fills from your own reading and practice. It never shows invented activity.</p>
+      <p class="mt-2">
+        {% if dashboard.first_chapter %}
+        <a class="btn" href="{{ dashboard.first_chapter.lesson_url }}">Start with {{ dashboard.first_chapter.title }}</a>
+        {% else %}
+        <a class="btn" href="/courses">Open the catalogue</a>
+        {% endif %}
+      </p>
+      {% else %}
+      <h2 id="continue-title">Every chapter you opened is finished.</h2>
+      <p class="lede">Open another chapter, or review the map for a chapter that needs revision.</p>
+      <p class="mt-2">
+        <a class="btn" href="/courses">Open the catalogue</a>
+        <a class="text-link" href="/app/progress">See the progress map</a>
+      </p>
+      {% endif %}
+    </section>
+
+    <section class="app-panel" aria-labelledby="plan-title">
+      <p class="kicker">Today</p>
+      <h2 id="plan-title">{{ dashboard.plan.title }}</h2>
+      <p class="lede">{{ dashboard.plan.text }}</p>
+      {% if dashboard.plan.chapter %}<p class="meta"><strong>{{ dashboard.plan.chapter }}</strong></p>{% endif %}
+      <p class="mt-2"><a class="btn btn--outline" href="{{ dashboard.plan.href }}">{{ dashboard.plan.action }}</a></p>
+      <div class="notice notice--empty" role="status">
+        <p><strong>Two steps are not live yet.</strong> Five practice questions and one explain-back arrive with their own releases. This plan lists only what you can do today.</p>
+      </div>
+    </section>
+
+    <section class="app-panel" aria-labelledby="map-title">
+      <p class="kicker">Physics map</p>
+      <h2 id="map-title">{% if dashboard.map_class %}Class {{ dashboard.map_class }} at a glance{% else %}Your chapters{% endif %}</h2>
+      {% if dashboard.map_chapters %}
+      <ol class="chapter-state-list">
+        {% for chapter in dashboard.map_chapters %}
+        <li class="chapter-state-row">
+          <div class="chapter-state-text">
+            {% if chapter.lesson_url %}<a href="{{ chapter.lesson_url }}">{{ chapter.title }}</a>{% else %}<span>{{ chapter.title }}</span>{% endif %}
+            <p class="meta">{{ section_progress(chapter) }}</p>
+          </div>
+          {{ state_tag(chapter.state, chapter.state_label) }}
+        </li>
+        {% endfor %}
+      </ol>
+      {% if dashboard.class_chapters_total > 4 %}
+      <p class="meta">and {{ dashboard.class_chapters_total - 4 }} more on the full map.</p>
+      {% endif %}
+      <p class="mt-2"><a class="text-link" href="/app/progress">Open the full progress map</a></p>
+      {% elif dashboard.map_class %}
+      <p class="lede">No Class {{ dashboard.map_class }} chapter is published yet. The catalogue shows every chapter that is live.</p>
+      <p class="mt-2"><a class="text-link" href="/courses">Open the catalogue</a></p>
+      {% else %}
+      <p class="lede">Your class is not set, so this snapshot has no class to show. Open the catalogue and choose a chapter to begin.</p>
+      <p class="mt-2"><a class="text-link" href="/courses">Open the catalogue</a></p>
+      {% endif %}
+    </section>
+
+    <section class="app-panel" aria-labelledby="recent-title">
+      <p class="kicker">Recent activity</p>
+      <h2 id="recent-title">What you actually did</h2>
+      {% if dashboard.recent %}
+      <ol class="activity-list">
+        {% for item in dashboard.recent %}
+        <li class="activity-row">
+          <span class="activity-label">{{ item.label }}</span>
+          <span class="activity-chapter">{% if item.chapter_title %}{{ item.chapter_title }}{% else %}A chapter{% endif %}</span>
+          <span class="meta">{{ item.when }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="lede">Nothing yet. Read a section and it will appear here.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="app-side" aria-label="This week and quick actions">
+    <section class="app-panel" aria-labelledby="week-title">
+      <p class="kicker">This week</p>
+      <h2 id="week-title">{{ dashboard.weekly.days_active }} of the last 7 days</h2>
+      <p class="meta">Goal: {{ dashboard.weekly.goal_days }} days a week.</p>
+      <ol class="week-strip" aria-label="Activity over the last seven days">
+        {% for day in dashboard.weekly.days %}
+        <li class="week-day{% if day.active %} week-day--on{% endif %}{% if day.is_today %} week-day--today{% endif %}">
+          <span aria-hidden="true">{{ day.initial }}</span>
+          <span class="visually-hidden">{{ day.date }}: {% if day.active %}studied{% else %}no study{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      <p class="meta">A rhythm, not a streak: a missed day does not reset anything.</p>
+    </section>
+
+    <section class="app-panel" aria-labelledby="counts-title">
+      <p class="kicker">So far</p>
+      <h2 id="counts-title">Your own numbers</h2>
+      <dl class="stat-grid">
+        <div class="stat"><dt>Chapters started</dt><dd>{{ dashboard.counts.chapters_started }}</dd></div>
+        <div class="stat"><dt>Chapters finished</dt><dd>{{ dashboard.counts.chapters_completed }}</dd></div>
+        <div class="stat"><dt>Saved sections</dt><dd>{{ dashboard.counts.bookmarks }}</dd></div>
+      </dl>
+      <p class="meta">Counts come from your activity only. No score, no comparison.</p>
+    </section>
+
+    <section class="app-panel" aria-labelledby="actions-title">
+      <p class="kicker">Quick actions</p>
+      <h2 id="actions-title">Where to go</h2>
+      <ul class="action-list">
+        <li><a class="text-link" href="/courses">Open a lesson</a></li>
+        <li><a class="text-link" href="/app/progress">Progress map</a></li>
+        <li><a class="text-link" href="/app/bookmarks">Saved sections</a></li>
+        <li><span class="action-soon">Practice</span> <span class="meta">not live yet</span></li>
+        <li><span class="action-soon">Tests</span> <span class="meta">not live yet</span></li>
+        <li><span class="action-soon">Explain-back</span> <span class="meta">not live yet</span></li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

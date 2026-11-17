@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "partials/progress_macros.html" import state_tag, section_progress, evidence_line with context %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<script src="/assets/app-progress.js" defer></script>
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="progress-title">
+  <p class="kicker">Progress map</p>
+  <h1 id="progress-title">Where you are, chapter by chapter.</h1>
+  <p class="lede">Five states, computed from your own reading and practice. No ability score, no comparison with anyone else, no parent or public profile.</p>
+</section>
+
+{% if progress.data_error %}
+<section class="wrap band" aria-labelledby="progress-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="progress-error-title">Your progress map is unavailable right now.</strong></p>
+    <p>{{ progress.data_error }} <a class="text-link" href="/app/progress">Try again</a></p>
+  </div>
+</section>
+{% else %}
+<section class="wrap band" aria-labelledby="rules-title">
+  <details class="why">
+    <summary id="rules-title">How these states work</summary>
+    <div class="answer">
+      <ul class="rule-list">
+        <li><strong>Not started</strong> — no activity on this chapter or concept yet.</li>
+        <li><strong>Learning</strong> — you have opened the lesson, read sections, or saved one; no practice answers yet.</li>
+        <li><strong>Practising</strong> — at least one practice answer, test, or explain-back.</li>
+        <li><strong>Confident</strong> — {{ progress.rules.confident_min_answers }} or more practice answers, {{ progress.rules.confident_min_accuracy_pct }}% or more correct, and at least {{ progress.rules.confident_recent_min_correct }} of your last {{ progress.rules.confident_recent_window }} answers correct.</li>
+        <li><strong>Needs revision</strong> — {{ progress.rules.revision_min_answers }} or more practice answers and under {{ progress.rules.revision_max_accuracy_pct }}% correct.</li>
+      </ul>
+      <p class="meta">Only practice answers carry a correct/incorrect bit today; tests and explain-backs count as practice activity but do not change the accuracy figure. Rules version {{ progress.rules.version }}. This page has no score, no ranking, no share link, and no parent view.</p>
+    </div>
+  </details>
+</section>
+
+{% include "partials/progress_sync.html" %}
+
+{% for group in progress.classes %}
+<section class="wrap band" aria-labelledby="class-{{ group.class_level or 'other' }}-title">
+  <div class="section-head">
+    <p class="kicker">{% if group.class_level %}Class {{ group.class_level }}{% else %}Other activity{% endif %}</p>
+    <h2 id="class-{{ group.class_level or 'other' }}-title">{% if group.class_level %}Class {{ group.class_level }} Physics{% else %}Chapters outside the published catalogue{% endif %}</h2>
+  </div>
+  {% if group.chapters %}
+  <ol class="progress-list">
+    {% for chapter in group.chapters %}
+    <li class="progress-chapter">
+      <div class="progress-chapter-head">
+        <p class="chapter-num">{% if chapter.chapter_no %}Chapter {{ chapter.chapter_no }}{% else %}Published lesson{% endif %}</p>
+        <h3 class="chapter-title">
+          {% if chapter.lesson_url %}<a href="{{ chapter.lesson_url }}">{{ chapter.title }}</a>{% else %}{{ chapter.title }}{% endif %}
+        </h3>
+        {{ state_tag(chapter.state, chapter.state_label) }}
+      </div>
+      <p class="meta">{{ section_progress(chapter) }} · {{ evidence_line(chapter.evidence) }}</p>
+      <p class="next-step">{{ chapter.next_step }}</p>
+      <details class="why"{% if chapter.state != "not_started" %} open{% endif %}>
+        <summary>Concepts{% if chapter.concept_count %} ({{ chapter.concept_count }}){% endif %}</summary>
+        <div class="answer">
+          {% if chapter.concepts %}
+          <ul class="concept-list">
+            {% for concept in chapter.concepts %}
+            <li class="concept-row">
+              <span class="concept-title">{{ concept.title }}</span>
+              {{ state_tag(concept.state, concept.state_label) }}
+              <span class="meta">{{ evidence_line(concept.evidence) }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="meta">Concept detail is not available for this chapter yet. The chapter state above is still computed from your activity.</p>
+          {% endif %}
+        </div>
+      </details>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="lede">{% if group.class_level %}No Class {{ group.class_level }} chapter is published yet.{% else %}No activity outside the catalogue.{% endif %}</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endif %}
+{% endblock %}

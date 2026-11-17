@@ -50,6 +50,7 @@ features are specified** — only surfaces the shell and doctrine already show.
 | [`lesson-shell.md`](lesson-shell.md) | F4 lesson shell: app bar, chapter drawer, reading progress, bookmarks, "Ask about this", end-of-lesson next steps, the context-snapshot block filter, and the F2/F3/F5/F6 handoffs |
 | [`web-shell.md`](web-shell.md) | F0 server-rendered shell: the `/app` route and guard, base-template slots, `ShellContext`/CSRF contract, CSP and nginx proxy rules, and the handoff to F2/F3/F5/F6/F7 |
 | [`identity-settings.md`](identity-settings.md) | F2 identity and settings: auth routes and flows, guest/session CSRF matrix, PII rules, error/rate-limit copy, screen states, guest-merge handoff, tests and debt |
+| [`dashboard-progress.md`](dashboard-progress.md) | F3 dashboard, progress map, saved sections, the progress/bookmark APIs, the five state rules, weekly rhythm and the guest -> account sync protocol |
 | [`open-questions.md`](open-questions.md) | every unresolved upstream reference, the decision needed, and the reconciliation procedure for provisional ids |
 
 ## Binding ground rules (inherited — restated because every section depends on them)
