@@ -65,5 +65,33 @@
       "SD-REV-005",
       "SD-REV-006"
     ]
+  },
+  "assessment_goldens": [
+    {
+      "golden_id": "GA-01",
+      "directory": "evals/goldens/assessment/class-9-describing-motion-around-us",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "status": "curated"
+    },
+    {
+      "golden_id": "GA-02",
+      "directory": "evals/goldens/assessment/class-10-light-reflection-and-refraction",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "status": "curated"
+    }
+  ],
+  "assessment_seeded_defect_sets": {
+    "A3-practice-items": [
+      "SD-ASM-001",
+      "SD-ASM-002",
+      "SD-ASM-003",
+      "SD-ASM-004",
+      "SD-ASM-005"
+    ],
+    "A5-time-priors": [
+      "SD-ASM-006"
+    ]
   }
 }

@@ -1,0 +1,15 @@
+{
+  "chapter_id": "class-9-describing-motion-around-us",
+  "lesson_topic_slug": "describing-motion-around-us",
+  "lesson_manifest": "frontend/courses/class-9-physics/describing-motion-around-us/manifest.json",
+  "section_concept_map": {
+    "sec-01": "class-9-describing-motion-around-us-position-distance-displacement",
+    "sec-03": "class-9-describing-motion-around-us-speed-and-velocity",
+    "sec-04": "class-9-describing-motion-around-us-acceleration",
+    "sec-05": "class-9-describing-motion-around-us-position-time-graphs",
+    "sec-06": "class-9-describing-motion-around-us-velocity-time-graphs",
+    "sec-07": "class-9-describing-motion-around-us-kinematic-equations",
+    "sec-08": "class-9-describing-motion-around-us-uniform-circular-motion"
+  },
+  "notes": "P1's published manifest has 7 sections (sec-02 'Distance travelled and displacement' was folded into sec-01 by the renderer, which is why sec-02 is absent and the distance/displacement blocks b-05/b-06 carry sec-01). The curated concept therefore merges position + distance/displacement. Every block is mapped by its section id; A2 fails on any unmapped section or orphan concept."
+}

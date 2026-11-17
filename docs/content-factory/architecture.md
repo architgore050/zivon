@@ -47,6 +47,29 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 | 11 | link | factory/link.py + factory/catalogue.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter (or the same run_id)**, preserve the previous read-aloud state (topic + per-locale manifests) across a re-render, write **catalogue v2** (`catalogue.json`: manifest-v2 core + `href` + `localized_hrefs` + `pipeline_version` + the version-guard integrity block) and derive `courses.js` from it (status/languages/counts/concepts/exam_weight, ordered class → chapter number → chapter → title), then smoke-test hrefs, locale routes and i18n bundles |
 | 12 | narration | factory/narration/ (stage.py + select/spoken/timbre/audio/budget/publish) | code + **Gnani Timbre v3.0** (build-time TTS, opt-in via `ZIVON_NARRATION_ENABLED`; never an LLM call) | opus assets under `frontend/audio/{course_id}/` (ST-04 content-hash names), `narration` availability flag in the topic manifest + `narration-manifest.json`, A-15 budget ledger (`runs/narration-budget.json`) + `narration_usage.jsonl` |
 
+### The assessment pipeline is a separate entrypoint (2026-11-17, Q-1)
+
+Practice items, speaking rubrics, concept tagging, time priors and the
+versioned assessment pack do **not** run in `pipeline.py`. They are a second,
+independent graph under `factory/assessment/` with its own entrypoint
+(`python -m factory.assessment`), its own run directory
+(`runs/assessment/<run_id>/`) and ledger, and its own stages `A1-syllabus` →
+`A2-concept-tag` → `A3-practice-items` → `A4-speaking-rubrics` →
+`A5-time-priors` → `A6-publish-export`. `STAGE_ORDER` is unchanged: a lesson
+run can never spend assessment credits, and stopping an assessment run can
+never touch a published page.
+
+The two graphs share the harness contracts (deterministic fingerprints and
+resume, gate reports with stable rule ids, `llm_manager` through
+`factory/llm.py`, `logging_manager` events with map rows, eval cards) — not
+their stage code. A2 consumes P1's published lesson manifest
+(`data-section-id`, `data-concept-id`, `blocks`) and owns the
+`section → curated concept` map; the pack is consumed by the practice/speaking
+frontends and, later, by F0's DB importer. A targeted stage re-run marks the
+stages that consume it `stale`, so a later full run never resumes a pack built
+from the previous priors. Full contract, gate-rule table, time-prior formula,
+configuration and debt: [`assessment.md`](assessment.md).
+
 ### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
 
 Decision C-051: lesson narration is PRE-GENERATED at build time with Gnani

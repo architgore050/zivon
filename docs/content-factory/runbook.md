@@ -80,6 +80,32 @@ is correct end to end and the only remaining variable is your real model.
   calls (generate / check / review) plus one per simulation - budget tens of
   minutes. Catchers (04, 08, 10) only add time when a gate finds something.
 
+## Generate assessment content (practice + speaking, separate entrypoint)
+
+    python -m factory.assessment --list-chapters
+    python -m factory.assessment --chapter class-9-describing-motion-around-us \
+        --chapter class-10-light-reflection-and-refraction
+    python -m factory.assessment --chapter <chapter_id> --export-dir runs/assessment-exports
+    python -m factory.assessment --chapter <chapter_id> --stages A5-time-priors
+
+- This is a **different pipeline** from `pipeline.py`: stages `A1-syllabus` ..
+  `A6-publish-export`, own run directory `runs/assessment/<run_id>/`, own ledger.
+  It never touches stages 00-12 or the published `frontend/` tree.
+- The default `--generator seed` is key-free: it reads the tracked curated banks
+  under `sources/syllabus/chapters/` and needs no model endpoint. Live
+  generation (`--generator llm`) goes through `llm_manager` and needs
+  `ZIVON_BASE_URL` + `ZIVON_MODEL` (Q-10 window: founder/infra-triggered).
+- A re-run RESUMES completed stages (`assessment-<chapter_id>`); `--fresh` wipes
+  the attempt. The fingerprint covers the syllabus digest, the tracked chapter
+  data, the lesson manifest A2 consumed, the generator and the model. A
+  targeted `--stages` re-run marks the stages that consume it `stale`, so the
+  next full run rebuilds them; a partial run reports no pack.
+- The pack lands under `A6-publish-export/pack/`; `--export-dir` mirrors it to
+  `<export_dir>/<chapter_id>/`. A gate failure writes the stage's full report
+  before the stage is marked failed.
+- Contract, rule ids, time-prior formula and current content/debt:
+  [`assessment.md`](assessment.md).
+
 ## Publish the repo snapshot (P5 catalogue/version/SEO gates)
 
 `scripts/publish-frontend.sh` is the one-way PVC -> repo bridge. It now gates on

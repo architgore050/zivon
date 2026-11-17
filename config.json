@@ -46,5 +46,23 @@
     "prompt_version": "1",
     "max_chars_neighbour_context": 600
   },
+  "assessment": {
+    "syllabus_path": "sources/syllabus/syllabus.json",
+    "chapters_dir": "sources/syllabus/chapters",
+    "export_dir": "",
+    "generator": "seed",
+    "languages": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "min_items_per_chapter": 15,
+    "max_items_per_chapter": 20,
+    "max_items_per_concept": 6,
+    "speaking_prompts_min": 3,
+    "item_repair_rounds": 2,
+    "time_prior_min_ms": 15000,
+    "time_prior_max_ms": 300000
+  },
   "stage_overrides": {}
 }

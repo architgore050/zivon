@@ -1,0 +1,14 @@
+{
+  "sample_id": "SD-ASM-003",
+  "chapter_id": "class-9-describing-motion-around-us",
+  "defect_class": "off_chapter_concept",
+  "expected_rule": "item.concept_unknown",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_item",
+    "item_id": "q-c9-motion-007",
+    "patch": {
+      "concept_id": "class-9-describing-motion-around-us-thermodynamics"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+card_id: EV-ASM-002
+version: 1
+title: Four-class syllabus integrity, concept coverage and lesson-block tagging
+stage: A1-syllabus..A6-publish-export
+agent_role: Assessment Author
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/assessment/class-9-describing-motion-around-us
+  - evals/goldens/assessment/class-10-light-reflection-and-refraction
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-ASM02-COVERAGE
+  entrypoint: evals.checkers.assessment_checks:check_chapter_concept_coverage
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.assessment.validators:validate_syllabus
+  description: Validates the four-class syllabus (unique chapter ids, contiguous
+    order, resolving prerequisites, honest exam-weight status, catalog books),
+    then asserts every curated concept of each golden chapter has at least one
+    practice item, no item points at an unknown concept, pack coverage.by_concept
+    agrees with the rows, and every published lesson block is tagged when a lesson
+    manifest exists. A chapter with no published lesson is recorded as a metric
+    (per-chapter block_tagging status set to pending_lesson, Q-6
+    content-quality debt), never as a pass for block coverage and never as a
+    failing finding.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

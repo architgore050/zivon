@@ -1,0 +1,37 @@
+card_id: EV-ASM-004
+version: 1
+title: EN/HI/Hinglish completeness for practice rows and speaking rubrics
+stage: A4-speaking-rubrics..A6-publish-export
+agent_role: Speaking Rubric Author
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/assessment/class-9-describing-motion-around-us
+  - evals/goldens/assessment/class-10-light-reflection-and-refraction
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-ASM04-LANGUAGES
+  entrypoint: evals.checkers.assessment_checks:check_language_completeness
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.assessment.validators:validate_speaking_bank
+  description: Asserts one row per base item and per speaking prompt in each of en,
+    hi and hi-Latn, that Hindi rows carry Devanagari and Latin-script rows do not,
+    that a speaking row's source section belongs to at least one of its concepts,
+    that every speaking row has 3-5 key ideas with the same count across languages,
+    and that the golden minimum number of speaking prompts exists. A missing
+    variant is a silent-fallback defect, so it fails the card.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

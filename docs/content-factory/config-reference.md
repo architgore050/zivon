@@ -206,6 +206,29 @@ Configures the build-time localization sub-graph (`10a-translate` → `10b-trans
 | `prompt_version` | str | Translation prompt contract version included in the content-addressed `tm_key` (`ADR-0022`). |
 | `max_chars_neighbour_context` | int (100..4000) | Character budget for adjacent block excerpts passed as read-only context to `10a-translate`. |
 
+## assessment
+
+The separate assessment-content pipeline (`python -m factory.assessment`,
+`factory/assessment/`; HANDSHAKE Q-1). It never runs inside `pipeline.py`.
+Full contract: [`assessment.md`](assessment.md).
+
+| Key | Type | Meaning |
+|---|---|---|
+| `syllabus_path` | str | Repo-relative path to the tracked four-class Physics map (`sources/syllabus/syllabus.json`). |
+| `chapters_dir` | str | Repo-relative directory holding the per-chapter seed banks and concept maps (`sources/syllabus/chapters`). |
+| `export_dir` | str | Optional mirror root for the versioned pack; each chapter lands in `<export_dir>/<chapter_id>/`. Empty = run directory only. `--export-dir` overrides it. |
+| `generator` | `seed` \| `llm` | `seed` (default) reads tracked curated banks and needs no model endpoint; `llm` generates through `llm_manager` and requires `ZIVON_BASE_URL` + `ZIVON_MODEL`. `--generator` overrides it. |
+| `languages` | list[str] | Fixed `["en", "hi", "hi-Latn"]` for practice and speaking (FEATURE-MAP #3); any other set is a config error. |
+| `min_items_per_chapter` / `max_items_per_chapter` | int | Practice-bank bounds (default `15`/`20`). |
+| `max_items_per_concept` | int | Density warning threshold (default `6`). |
+| `speaking_prompts_min` | int | Minimum speak-back prompts per chapter (default `3`). |
+| `item_repair_rounds` | int (0..5) | Bounded live-generation repair rounds when the A3 gate fails (default `2`). |
+| `time_prior_min_ms` / `time_prior_max_ms` | int | Prior bounds (default `15000`/`300000`). |
+
+The dry-run loader is `load_config(require_server=False)` — it validates the
+behaviour file without demanding a model endpoint. The lesson pipeline
+(`pipeline.py`) keeps the hard `ZIVON_BASE_URL`/`ZIVON_MODEL` tripwire.
+
 ## Resume and fingerprint (no config key — behaviour to know)
 
 Run ids are deterministic per (chapter, class). `status.json` stores a
@@ -225,7 +248,9 @@ Object keyed by stage id, values `{temperature?}`, e.g.:
 
 Valid stage ids: 00-ingest, 01-locate, 02-generate, 03-check, 04-repair,
 05-interactive, 06-render, 07-perf, 08-fixloop, 09-review, 10-reviewfix,
-10a-translate, 10b-transcheck, 10c-transrepair, 10d-transrender, 11-link.
+10a-translate, 10b-transcheck, 10c-transrepair, 10d-transrender, 11-link,
+12-narration, plus the assessment stages A1-syllabus, A2-concept-tag,
+A3-practice-items, A4-speaking-rubrics, A5-time-priors, A6-publish-export.
 
 Current committed value: `{}` — no per-stage overrides. History: the first
 cluster runs (graph v1 stage ids) died at 02-synth — first `structured output

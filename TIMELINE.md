@@ -509,3 +509,38 @@ Branch `fix/p0-voice-live` off `main` @ `51f03b6`.
   the local inference server (`:8080`) is down; `pipeline.py … --locales hi,hi-Latn` is the
   run once a model endpoint is available. The language-switcher UI is in the EX5B wave.
 
+
+### 2026-11-17 — W3 P2 assessment content (dry-run pack)
+
+**Done**
+- **Separate `factory.assessment` entrypoint** (`python -m factory.assessment`, HANDSHAKE Q-1):
+  stages `A1-syllabus` → `A6-publish-export`, own run directory
+  `runs/assessment/<run_id>/`, own ledger, deterministic fingerprint/resume, bounded A3 repair.
+  `pipeline.py`/`STAGE_ORDER` unchanged; no lesson stage can spend assessment credits.
+- **Syllabus manifest** for Classes 9–12 Physics: 36 chapters (chapter numbers/titles extracted
+  from the cached NCERT PDFs), 49 curated concepts for the eight Class 9/10 chapters, prerequisites
+  and section refs. Exam weight stays `null` with `pending_p3_blueprint` (P3 owns real weights).
+- **First two chapter packs**: `class-9-describing-motion-around-us` and
+  `class-10-light-reflection-and-refraction`, 15 items each (MCQ/numeric/assertion-reason;
+  easy/medium/hard mix), 3 speaking prompts each, **EN/HI/Hinglish**; 45 question rows per
+  chapter; deterministic time priors with a documented formula.
+- **Concept tagging**: every one of the 42 published Class 9 lesson blocks tagged through a
+  tracked P1 `section → curated concept` map; Class 10 Light has no published page, so block
+  tagging is recorded as debt (`pending_lesson`), not a pass.
+- **Evals**: `EV-ASM-001..004` (schema/answer integrity, coverage/tagging, difficulty/marks/time
+  priors, language completeness), deterministic-only, 6 seeded defects, goldens registered;
+  smoke suite 16 cards, 0 model calls, PASS.
+- **Logging**: four `factory.assessment.*` events with instrumentation-map rows; stage
+  transitions reuse `factory.stage.*` with A-stage ids.
+- **Tests**: `testing/content_factory/assessment/` (130 tests, key-free) wired into CI.
+
+**Not done / next**
+- **Live generation not run** (Q-10 window is founder/infra-triggered). The `--generator llm`
+  path is implemented and unit-tested with a fake client; the shipped pack is the key-free seed
+  dry run.
+- **No judged or human pedagogical review** of the banks yet; the deterministic gate is the only
+  review (Q-6 permits the v1 base batch to publish on technical gates, debt logged).
+- **Class 10 Light block tagging** waits for its lesson page.
+- **Exam weights** wait for P3's CBSE blueprint (SER-02).
+- **Six more curated Class 9/10 chapters** have concepts but no practice/speaking banks yet.
+- **DB import** (F0) is the pack's consumer; export is JSON-only today.

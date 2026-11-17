@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "chapter_id": "class-9-describing-motion-around-us",
+  "class": 9,
+  "prompts": [
+    {
+      "prompt_id": "spk-c9-motion-001",
+      "concept_ids": [
+        "class-9-describing-motion-around-us-position-distance-displacement"
+      ],
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.2",
+        "example": "Fig. 4.4"
+      },
+      "thresholds": {
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85,
+        "min_key_ideas": 3,
+        "max_duration_s": 45
+      },
+      "locales": {
+        "en": {
+          "prompt": "Explain the difference between distance and displacement, using a journey that starts and ends at the same place.",
+          "key_ideas": [
+            "Distance is the total length of the path travelled.",
+            "Displacement is the net change in position, with direction.",
+            "For a journey that returns to the start, displacement is zero but distance is not.",
+            "Displacement can be smaller than distance, never larger."
+          ],
+          "model_answer": "Distance counts every metre you actually travel, while displacement only compares where you started with where you finished. If you run around a track and stop where you began, you have covered a large distance but your displacement is zero. Displacement also needs a direction, which is why it can be negative or positive."
+        },
+        "hi": {
+          "prompt": "दूरी और विस्थापन के अंतर को समझाइए, ऐसी यात्रा का उदाहरण देकर जो एक ही स्थान पर शुरू और समाप्त होती है।",
+          "key_ideas": [
+            "दूरी तय किए गए रास्ते की कुल लंबाई है।",
+            "विस्थापन स्थिति में शुद्ध परिवर्तन है, जिसकी दिशा होती है।",
+            "जब यात्रा प्रारंभ बिंदु पर लौटती है, विस्थापन शून्य होता है परंतु दूरी शून्य नहीं।",
+            "विस्थापन दूरी से छोटा हो सकता है, बड़ा नहीं।"
+          ],
+          "model_answer": "दूरी आपके द्वारा वास्तव में तय किए गए हर मीटर को गिनती है, जबकि विस्थापन केवल प्रारंभ और अंत की स्थिति की तुलना करता है। यदि आप ट्रैक पर दौड़कर वहीं रुकते हैं जहाँ से शुरू किया था, तो दूरी बड़ी है परंतु विस्थापन शून्य है। विस्थापन की दिशा भी होती है, इसलिए वह ऋणात्मक या धनात्मक हो सकता है।"
+        },
+        "hi-Latn": {
+          "prompt": "Distance aur displacement ka difference samjhao, ek aisi journey ka example dekar jo same jagah se shuru aur khatam hoti hai.",
+          "key_ideas": [
+            "Distance poore raaste ki total lambai hai.",
+            "Displacement position ka net change hai, direction ke saath.",
+            "Jab journey start point par lautti hai, displacement zero hota hai lekin distance zero nahi.",
+            "Displacement distance se chhota ho sakta hai, bada nahi."
+          ],
+          "model_answer": "Distance aapke dwara actually tay kiye gaye har metre ko ginti hai, jabki displacement sirf start aur finish ki position compare karta hai. Agar aap track par daudkar wahin rukte hain jahan se shuru kiya tha, toh distance bada hai lekin displacement zero hai. Displacement ki direction bhi hoti hai, isliye woh negative ya positive ho sakta hai."
+        }
+      }
+    },
+    {
+      "prompt_id": "spk-c9-motion-002",
+      "concept_ids": [
+        "class-9-describing-motion-around-us-speed-and-velocity",
+        "class-9-describing-motion-around-us-acceleration"
+      ],
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.4",
+        "example": "Example 4.3"
+      },
+      "thresholds": {
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85,
+        "min_key_ideas": 3,
+        "max_duration_s": 45
+      },
+      "locales": {
+        "en": {
+          "prompt": "A bus speeds up from 10 m/s to 15 m/s in 10 s, then stops in 5 s. Explain how you find its average acceleration in each interval.",
+          "key_ideas": [
+            "Average acceleration = change in velocity divided by the time interval.",
+            "In the first interval the acceleration is (15 - 10) / 10 = 0.5 m/s².",
+            "In the braking interval it is (0 - 15) / 5 = -3 m/s².",
+            "The minus sign means the acceleration is opposite to the velocity."
+          ],
+          "model_answer": "Acceleration measures how quickly velocity changes, so I subtract the initial velocity from the final velocity and divide by the time. While speeding up, the bus gains 5 m/s in 10 s, giving 0.5 m/s². While braking, it loses 15 m/s in 5 s, giving -3 m/s²; the negative sign tells us the acceleration points opposite to the motion."
+        },
+        "hi": {
+          "prompt": "एक बस 10 s में 10 m/s से 15 m/s तक की गति पकड़ती है, फिर 5 s में रुक जाती है। दोनों अंतरालों में औसत त्वरण कैसे निकालेंगे, समझाइए।",
+          "key_ideas": [
+            "औसत त्वरण = वेग में परिवर्तन / समय अंतराल।",
+            "पहले अंतराल में त्वरण (15 - 10) / 10 = 0.5 m/s² है।",
+            "ब्रेक लगाने के अंतराल में यह (0 - 15) / 5 = -3 m/s² है।",
+            "ऋण चिह्न का अर्थ है कि त्वरण वेग की विपरीत दिशा में है।"
+          ],
+          "model_answer": "त्वरण बताता है कि वेग कितनी तेजी से बदलता है, इसलिए अंतिम वेग में से प्रारंभिक वेग घटाकर समय से भाग देते हैं। गति बढ़ते समय बस 10 s में 5 m/s बढ़ती है, अर्थात 0.5 m/s²। ब्रेक लगते समय वह 5 s में 15 m/s खोती है, अर्थात -3 m/s²; ऋण चिह्न बताता है कि त्वरण गति की विपरीत दिशा में है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek bus 10 s mein 10 m/s se 15 m/s tak speed up karti hai, phir 5 s mein ruk jaati hai. Dono intervals mein average acceleration kaise nikalenge, samjhao.",
+          "key_ideas": [
+            "Average acceleration = velocity change / time interval.",
+            "Pehle interval mein acceleration (15 - 10) / 10 = 0.5 m/s² hai.",
+            "Brake lagane ke interval mein yeh (0 - 15) / 5 = -3 m/s² hai.",
+            "Minus sign ka matlab hai ki acceleration velocity ke opposite direction mein hai."
+          ],
+          "model_answer": "Acceleration batata hai ki velocity kitni tezi se badalti hai, isliye final velocity mein se initial velocity ghata kar time se divide karte hain. Speed badhte waqt bus 10 s mein 5 m/s badhti hai, yaani 0.5 m/s². Brake lagte waqt woh 5 s mein 15 m/s khoti hai, yaani -3 m/s²; minus sign batata hai ki acceleration motion ke opposite direction mein hai."
+        }
+      }
+    },
+    {
+      "prompt_id": "spk-c9-motion-003",
+      "concept_ids": [
+        "class-9-describing-motion-around-us-velocity-time-graphs",
+        "class-9-describing-motion-around-us-kinematic-equations"
+      ],
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3",
+        "example": "Fig. 4.18"
+      },
+      "thresholds": {
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85,
+        "min_key_ideas": 3,
+        "max_duration_s": 45
+      },
+      "locales": {
+        "en": {
+          "prompt": "A car starts from rest and accelerates uniformly. Explain how its velocity-time graph gives both its acceleration and the distance it travels.",
+          "key_ideas": [
+            "The slope of the velocity-time graph is the acceleration.",
+            "The area between the graph and the time axis is the displacement.",
+            "A straight line means constant acceleration.",
+            "For a start from rest, v = at links the graph to the kinematic equations."
+          ],
+          "model_answer": "On a velocity-time graph, velocity is on the vertical axis and time on the horizontal axis. The slope, or rise over run, is the change in velocity divided by time, which is acceleration. The area under the line is velocity multiplied by time, which is displacement. For a car starting from rest with constant acceleration the line is straight, and the area is a triangle, so the distance is half the base times the height."
+        },
+        "hi": {
+          "prompt": "एक कार विराम से चलकर एकसमान त्वरण पाती है। उसका वेग-समय ग्राफ त्वरण और तय दूरी दोनों कैसे देता है, समझाइए।",
+          "key_ideas": [
+            "वेग-समय ग्राफ की ढाल त्वरण होती है।",
+            "ग्राफ और समय अक्ष के बीच का क्षेत्रफल विस्थापन होता है।",
+            "सरल रेखा का अर्थ नियत त्वरण है।",
+            "विराम से शुरू होने पर v = at ग्राफ को गति के समीकरणों से जोड़ता है।"
+          ],
+          "model_answer": "वेग-समय ग्राफ में वेग ऊर्ध्वाधर अक्ष पर और समय क्षैतिज अक्ष पर होता है। ढाल अर्थात ऊँचाई/चौड़ाई वेग परिवर्तन को समय से भाग देती है, जो त्वरण है। रेखा के नीचे का क्षेत्रफल वेग गुणा समय है, जो विस्थापन है। विराम से नियत त्वरण से चलने वाली कार की रेखा सरल होती है और क्षेत्रफल त्रिभुज, इसलिए दूरी आधार गुणा ऊँचाई का आधा होती है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek car rest se chalkar uniform acceleration paati hai. Uska velocity-time graph acceleration aur tay doori dono kaise deta hai, samjhao.",
+          "key_ideas": [
+            "Velocity-time graph ki slope acceleration hoti hai.",
+            "Graph aur time axis ke beech ka area displacement hota hai.",
+            "Straight line ka matlab constant acceleration hai.",
+            "Rest se shuru hone par v = at graph ko kinematic equations se jodta hai."
+          ],
+          "model_answer": "Velocity-time graph mein velocity vertical axis par aur time horizontal axis par hota hai. Slope yaani rise over run velocity change ko time se divide karti hai, jo acceleration hai. Line ke neeche ka area velocity times time hai, jo displacement hai. Rest se constant acceleration se chalne wali car ki line straight hoti hai aur area triangle, isliye distance base times height ka half hota hai."
+        }
+      }
+    }
+  ]
+}

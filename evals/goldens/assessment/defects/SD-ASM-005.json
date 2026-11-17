@@ -1,0 +1,12 @@
+{
+  "sample_id": "SD-ASM-005",
+  "chapter_id": "class-9-describing-motion-around-us",
+  "defect_class": "missing_language_variant",
+  "expected_rule": "item.language_missing",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "delete_locale",
+    "item_id": "q-c9-motion-009",
+    "locale": "hi-Latn"
+  }
+}

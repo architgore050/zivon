@@ -1,0 +1,9 @@
+{
+  "golden_id": "GA-02",
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "generator": "seed",
+  "source_bank": "sources/syllabus/chapters/class-10-light-reflection-and-refraction.items.json",
+  "speaking_bank": "sources/syllabus/chapters/class-10-light-reflection-and-refraction.speaking.json",
+  "status": "curated",
+  "note": "Expected properties for the deterministic assessment evals; the pack is rebuilt from tracked seed data on every run, so this file pins ranges, not generated output."
+}
