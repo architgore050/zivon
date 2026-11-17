@@ -113,3 +113,8 @@ speaking,speaking.attempt.ledger_failed,WARNING,request_id,prompt_id;points,no,s
 speaking,speaking.consent.blocked,WARNING,request_id,prompt_id;reason_code,no,auth_error,L2,backend/routes/speaking.py,device voice consent missing or stale; no frame was read
 speaking,speaking.quota.blocked,WARNING,request_id,prompt_id;requested;remaining;reason,no,quota_error,L2,backend/routes/speaking.py,existing CreditGuard refused the reserve; STT was not called
 speaking,speaking.mock.refused,ERROR,,reason_code,no,validation_error,L2,backend/speaking/pipeline.py,ZIVON_SPEAKING_MOCK was set with ZIVON_ENV=prod; mock is refused
+test,test.session.created,INFO,request_id,source;question_count;chapters;language;language_fallback,no,,L2,backend/routes/tests.py,F7 custom/chapter/retry paper created from a servable bank; counts and enum ids only (no prompt or answer)
+test,test.attempt.started,INFO,request_id,resumed;question_count,no,,L2,backend/routes/tests.py,F7 start or resume of the student's one live attempt; resumed=true is the DB-enforced resume
+test,test.answer.saved,INFO,request_id,flagged;answered;question_count,no,,L2,backend/routes/tests.py,F7 autosave upsert; the answer value/key/explanation never enter fields and autosave never grades
+test,test.attempt.submitted,INFO,request_id,question_count;answered;score;expired,no,,L2,backend/test_engine/service.py,F7 server-side grading once; score is the paper percentage and expired means the clock had run out
+test,test.attempt.progress_sync_failed,WARNING,request_id,reason_code,no,store_error,L2,backend/test_engine/service.py,the derivative F3 test_submit progress event could not be written; the submitted paper is not lost

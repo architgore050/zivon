@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/tests.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="history-title">
+  <p class="kicker">Test history</p>
+  <h1 id="history-title">Every paper you have opened.</h1>
+  <p class="lede">Live attempts resume with the same clock. Submitted papers keep their score and full review. Nothing here is ranked or shared.</p>
+</section>
+
+{% if tests.data_error %}
+<section class="wrap band" aria-labelledby="history-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="history-error-title">Your test history is unavailable right now.</strong></p>
+    <p>{{ tests.data_error }} <a class="text-link" href="/app/tests/history">Try again</a></p>
+  </div>
+</section>
+{% else %}
+<section class="wrap tests-filter-band" aria-label="History filters">
+  <div class="tests-filter-group">
+    <p class="kicker">Status</p>
+    <ul class="tests-filter-list">
+      {% for value, label in tests.filters.statuses %}
+      <li><a class="tests-filter{% if (tests.status_filter or '') == value %} tests-filter--on{% endif %}" href="/app/tests/history?status={{ value }}{% if tests.kind_filter %}&kind={{ tests.kind_filter }}{% endif %}"{% if (tests.status_filter or '') == value %} aria-current="true"{% endif %}>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="tests-filter-group">
+    <p class="kicker">Kind</p>
+    <ul class="tests-filter-list">
+      {% for value, label in tests.filters.kinds %}
+      <li><a class="tests-filter{% if (tests.kind_filter or '') == value %} tests-filter--on{% endif %}" href="/app/tests/history?kind={{ value }}{% if tests.status_filter %}&status={{ tests.status_filter }}{% endif %}"{% if (tests.kind_filter or '') == value %} aria-current="true"{% endif %}>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<div class="wrap tests-grid">
+  <div class="tests-main">
+    <section class="tests-panel" aria-labelledby="history-list-title">
+      <h2 id="history-list-title">{% if tests.count %}{{ tests.count }} attempt{% if tests.count != 1 %}s{% endif %}{% else %}No attempts for this filter{% endif %}</h2>
+      {% if tests.attempts %}
+      <ol class="tests-history-list">
+        {% for item in tests.attempts %}
+        <li class="tests-history-row">
+          <div class="tests-history-text">
+            <p class="tests-history-title"><a href="{{ item.href }}">{{ item.title }}</a></p>
+            <p class="meta">{{ item.kind_label }}{% if item.series_label %} · {{ item.series_label }}{% endif %}{% if item.chapters_label %} · {{ item.chapters_label }}{% endif %} · {{ item.when }}</p>
+            <p class="meta">{{ item.question_count }} question{% if item.question_count != 1 %}s{% endif %}{% if item.total_marks %} · {{ item.total_marks_label }}{% endif %}</p>
+          </div>
+          <div class="tests-history-side">
+            {% if item.can_resume %}
+            <span class="tests-status tests-status--in_progress">{{ item.status_label }}</span>
+            <a class="btn btn--outline btn--sm" href="{{ item.href }}">Resume</a>
+            {% elif item.score_label %}
+            <span class="tests-history-score">{{ item.score_label }}</span>
+            <a class="text-link" href="{{ item.href }}">Review</a>
+            {% else %}
+            <span class="tests-status tests-status--submitted">{{ item.status_label }}</span>
+            <a class="text-link" href="{{ item.href }}">Open</a>
+            {% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <div class="notice notice--empty" role="status">
+        <p><strong>Nothing matches this filter.</strong></p>
+        <p>Clear a filter or start a chapter test. A finished paper appears here with its score and review.</p>
+      </div>
+      <p class="mt-2"><a class="btn" href="/app/tests">Start a test</a> <a class="btn btn--outline" href="/app/tests/history">Clear filters</a></p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="tests-side" aria-label="Retry and links">
+    <section class="tests-panel" aria-labelledby="history-retry-title">
+      <p class="kicker">Retry mistakes</p>
+      <h2 id="history-retry-title">Go back to what you got wrong</h2>
+      {% if tests.retry.available %}
+      <p class="lede">{{ tests.retry.count }} question{% if tests.retry.count != 1 %}s{% endif %} whose latest submitted answer is still wrong. A retry is a new paper; your first attempt stays in the record.</p>
+      <form class="tests-retry" method="post" action="/app/tests/start">
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="kind" value="retry">
+        <button class="btn" type="submit">Retry these questions</button>
+      </form>
+      {% else %}
+      <p class="lede">No unresolved test mistake yet. Submit a test and a wrong answer will appear here.</p>
+      {% endif %}
+    </section>
+    <section class="tests-panel" aria-labelledby="history-links-title">
+      <h2 id="history-links-title">Elsewhere</h2>
+      <ul class="tests-link-list">
+        <li><a class="text-link" href="/app/tests">Tests hub</a></li>
+        <li><a class="text-link" href="/app/tests/new">Build a custom test</a></li>
+        <li><a class="text-link" href="/app/series">The six series</a></li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

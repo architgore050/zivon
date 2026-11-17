@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/tests.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="builder-title">
+  <p class="kicker">Custom test</p>
+  <h1 id="builder-title">Choose the chapters. The rest is honest.</h1>
+  <p class="lede">Pick up to four chapters, a question count, a difficulty, and a time. The paper is drawn from the imported bank; the key stays on the server until you submit.</p>
+</section>
+
+{% if tests.state == "error" %}
+<section class="wrap band" aria-labelledby="builder-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="builder-error-title">The builder is unavailable right now.</strong></p>
+    <p>{{ tests.data_error }} <a class="text-link" href="/app/tests/new">Try again</a></p>
+  </div>
+</section>
+{% elif tests.state == "empty" %}
+<section class="wrap band" aria-labelledby="builder-empty-title">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="builder-empty-title">No chapter has an imported question bank yet.</strong></p>
+    <p>A custom test needs at least three servable questions. The lessons and practice still work; this page fills in when an assessment pack is imported.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a> <a class="btn btn--outline" href="/app/practice">Practice instead</a></p>
+</section>
+{% else %}
+<div class="wrap tests-grid">
+  <div class="tests-main">
+    <section class="tests-panel" aria-labelledby="builder-form-title">
+      <h2 id="builder-form-title">Build the paper</h2>
+      {% if tests.error %}
+      <div class="notice notice--error" role="alert"><p>{{ tests.error }}</p></div>
+      {% endif %}
+      {% if tests.language_note %}<p class="meta">{{ tests.language_note }}</p>{% endif %}
+      <form class="tests-builder" method="post" action="/app/tests/start" novalidate>
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="kind" value="custom">
+
+        <fieldset class="tests-fieldset">
+          <legend>Chapters</legend>
+          <p class="meta">Choose one to four. Only chapters with an imported bank appear.</p>
+          <ul class="tests-chapter-picks">
+            {% for chapter in tests.chapters %}
+            <li class="tests-chapter-pick">
+              <label class="tests-check">
+                <input type="checkbox" name="chapter_{{ chapter.chapter_id }}" value="1"{% if chapter.chapter_id in tests.selected_ids %} checked{% endif %}>
+                <span>
+                  <span class="tests-check-title">{{ chapter.title }}</span>
+                  <span class="meta">Class {{ chapter.class_level }} · {{ chapter.question_count }} question{% if chapter.question_count != 1 %}s{% endif %}{% if chapter.chapter_no %} · Chapter {{ chapter.chapter_no }}{% endif %}</span>
+                </span>
+              </label>
+            </li>
+            {% endfor %}
+          </ul>
+        </fieldset>
+
+        <div class="tests-field-row">
+          <div class="field">
+            <label for="builder-count">Questions</label>
+            <select class="input" id="builder-count" name="count">
+              {% for choice in tests.count_choices %}
+              <option value="{{ choice }}"{% if choice == tests.count %} selected{% endif %}>{{ choice }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="builder-difficulty">Difficulty</label>
+            <select class="input" id="builder-difficulty" name="difficulty">
+              {% for option in tests.difficulties %}
+              <option value="{{ option.value }}"{% if option.value == tests.difficulty %} selected{% endif %}>{{ option.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="builder-minutes">Time</label>
+            <select class="input" id="builder-minutes" name="duration_min">
+              {% for minutes in tests.minute_choices %}
+              <option value="{{ minutes }}"{% if minutes * 60 == tests.duration_s %} selected{% endif %}>{{ minutes }} min</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <p class="tests-estimate">Estimated marks: {{ tests.estimated_marks_label }}. If a selected chapter has fewer questions than asked, the paper uses what exists and says so.</p>
+
+        <button class="btn" type="submit">Build the test</button>
+        <a class="btn btn--quiet" href="/app/tests">Cancel</a>
+      </form>
+    </section>
+  </div>
+
+  <aside class="tests-side" aria-label="Builder notes">
+    <section class="tests-panel" aria-labelledby="builder-notes-title">
+      <p class="kicker">What you get</p>
+      <h2 id="builder-notes-title">No hidden rules</h2>
+      <ul class="tests-rule-list">
+        <li>Every question is a real row from the chapter's imported bank.</li>
+        <li>The paper is fixed once built: it does not reshuffle mid-test.</li>
+        <li>No negative marking. Unanswered questions simply earn nothing.</li>
+        <li>The timer starts when the paper is opened, and resumes with the same clock.</li>
+        <li>After submit: score, accuracy, chapter and concept breakdown, every explanation.</li>
+      </ul>
+      <p class="meta"><a class="text-link" href="/app/tests/history">Your test history</a></p>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}
