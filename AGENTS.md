@@ -43,6 +43,7 @@ acceptance criteria.
 - `docs/specs/evals/` — consult before building or modifying the `evals/` framework, golden sets, reviewer calibration, or migrating tests out of `testing/content_factory/`.
 - `docs/backend/adr/` — architecture decision records (incl. eval store ADR-0027 and judge model choice ADR-0028). [WS1 renumber: eval ADRs 0017–0018 → 0027–0028]
 - `docs/specs/frontend/` — consult before any frontend build; `docs/specs/frontend/` is the frontend implementation spec (SP5-FRONT wave S1: component inventory, state matrix, WS client contract, perf-budget tests, SEO plan).
+- `docs/specs/personalized-learning/` — consult before building or changing personalized learning, account-level personal instructions, saved conversations, generated interactive artifacts, their teaching agent/RAG, quotas, or their security/eval work: the product flow, teaching state machine, RAG contract, artifact sandbox, data/API contract, threat model, `EV-PL-001…005`, the PL1–PL5 workstreams, the open founder decisions, and the feature-decision addendum that extends `docs/product/features.md` (the frozen map predates this feature).
 - `docs/specs/gaps/` — system-completeness audit: gap register (GAP-###, severity + owner + mini-spec) + Wave-E assignment; consult before any Wave-E execution work.
 - `docs/product/` — consult before any feature, screen, UI-element, information, or backend-handoff work: the decided features document (decision log, feature cards, inventories, traceability, backend handoff). Feature decisions here are already made — do not re-litigate them; extend through the same method (`skills/zivon-product-design-skills/`).
 - `docs/backend/` — consult before any voice-backend, API, database, storage-tiering, credit-guard, deployment-topology, or ADR work: the Stage-2 systems specs (backend spec, DB spec, storage tiering + sync policy, data classification, capacity & cost, 16 ADRs). Systems decisions here are already made — extend or revisit only through an ADR's stated revisit trigger. `runbooks/` in that folder holds operator procedures (e.g. `assessment-import.md` for the assessment-pack DB import).
@@ -66,15 +67,17 @@ feature or refactor PR.
 | Surface | Model / provider | Notes |
 |---|---|---|
 | Student-facing tutor | **Gemma 4 26B A4B** via the **Gemini API** | User-facing conversation, anchored to the lesson page. |
+| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route, separate from both the voice tutor and the factory (FD-PL-003). |
 | Voice STT / TTS | **Gnani Prisma v3.0** (STT) / **Timbre v3.0** (TTS) | Best available for Indian languages and code-mixed speech. |
-| Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; never user-facing. |
+| Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; not a student-facing surface (that is the personalized-learning row). |
 | Translation | **Gnani Evon** | Backs the `10a`–`10d` translation pipeline (EN/HI/Hinglish). |
 
 Rules that follow from the table:
 
-- **Two model paths stay separate.** The tutor calls the Gemini API. The factory calls the
-  OpenCode/DeepSeek endpoint through the existing `llm_manager` OpenAI-format path. Do not
-  point one at the other's credentials or config.
+- **Three model paths stay separate.** The tutor calls the Gemini API. Personalized
+  learning calls the OpenCode/DeepSeek endpoint through the existing `llm_manager`
+  OpenAI-format path with its own runtime secret. The factory keeps its own OpenCode
+  route and credentials. Do not point one at the other's credentials or config.
 - **Secrets are runtime-only** (env vars / K8s Secrets); never commit them, never print them.
   CI must pass key-free.
 - **A deployment deviation is recorded, never silent.** The challenge demo ran
@@ -130,6 +133,11 @@ frozen plan, not the retired challenge `P0/P1/P2` scope ladder:
 4. **W4 — practice, speaking, tests:** P3 exam/series content, F5 practice, F6 speaking, F7
    tests/series.
 5. **W5 — insight and integration:** F8 SWOT, F10 admin, F11 end-to-end integration and evals.
+6. **W5.5 — personalized learning and interactive artifacts:** account-level personal
+   instructions, the login-required `/app/personalized` teach → check → adapt loop, saved
+   conversations, sandboxed generated artifacts, and their free-tier quotas
+   (`docs/specs/personalized-learning/`). Runs after W4 and before W5 integration; the spec
+   folder carries the feature addendum, workstreams PL1–PL5, and the open founder decisions.
 
 Release definitions (R1 launch, R1.5, R2, R3) live in the frozen full-frontend plan; the wave
 exit gates are in `TIMELINE.md`. Do not pull a later wave forward, and do not re-open a
