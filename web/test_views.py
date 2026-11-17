@@ -215,6 +215,8 @@ def build_hub_view(
         item["chapters_label"] = ", ".join(chapter_titles[:2]) + (
             " +" + str(len(chapter_titles) - 2) if len(chapter_titles) > 2 else ""
         )
+        score = item.get("score")
+        item["score_label"] = f"{score:g}%" if isinstance(score, (int, float)) else None
     return {
         "data_error": None,
         "class_level": user.class_level,
@@ -789,6 +791,7 @@ def build_history_view(
                 "score_label": f"{score:g}%"
                 if isinstance(score, (int, float))
                 else None,
+                "total_marks_label": marks_label(item.get("total_marks")),
                 "href": (
                     f"/app/tests/{item['attempt_id']}"
                     if item["status"] == "in_progress"

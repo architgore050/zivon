@@ -12,7 +12,9 @@ beyond the local fixture and the stubbed same-origin call.
 
 from __future__ import annotations
 
+import datetime
 import importlib.util
+import re
 import sys
 import tempfile
 import unittest
@@ -194,29 +196,50 @@ class TestsLayoutTests(unittest.TestCase):
         assert review.status_code == 200, review.text
         (root / "tests-review.html").write_text(review.text, encoding="utf-8")
 
-    def _page(self, path: str) -> tuple[Any, Page, list[str]]:
+    def _serve_asset(self, route: Any) -> None:
+        requested = route.request.url.split("://", 1)[-1]
+        relative = requested.split("/", 1)[1] if "/" in requested else ""
+        target = (FRONTEND / relative).resolve()
+        if str(target).startswith(str(FRONTEND)) and target.is_file():
+            route.fulfill(path=str(target))
+        else:
+            route.fulfill(status=404, body="")
+
+    def _page(
+        self, path: str, *, deadline_seconds: int | None = None
+    ) -> tuple[Any, Page, list[str]]:
         context = self._browser.new_context(viewport={"width": 360, "height": 740})
         context.route(
             "**/favicon.ico", lambda route: route.fulfill(status=204, body="")
         )
-
-        def serve_asset(route: Any) -> None:
-            requested = route.request.url.split("://", 1)[-1]
-            relative = requested.split("/", 1)[1] if "/" in requested else ""
-            target = (FRONTEND / relative).resolve()
-            if str(target).startswith(str(FRONTEND)) and target.is_file():
-                route.fulfill(path=str(target))
-            else:
-                route.fulfill(status=404, body="")
-
-        context.route("**/assets/**", serve_asset)
+        context.route("**/assets/**", self._serve_asset)
         page = context.new_page()
         errors: list[str] = []
         page.on(
             "console", lambda m: errors.append(m.text) if m.type == "error" else None
         )
         page.on("pageerror", lambda e: errors.append(str(e)))
-        page.goto(f"{self._base_url}/{path}", wait_until="load")
+        if deadline_seconds is None:
+            page.goto(f"{self._base_url}/{path}", wait_until="load")
+        else:
+            # Serve the same page with the server clock near a threshold so the
+            # island's polite announcement can be observed deterministically.
+            html = (Path(self._tmp.name) / path).read_text(encoding="utf-8")
+            deadline = (
+                datetime.datetime.now(datetime.UTC)
+                + datetime.timedelta(seconds=deadline_seconds)
+            ).isoformat()
+            modified = re.sub(
+                r'data-deadline="[^"]*"', f'data-deadline="{deadline}"', html
+            )
+            self.assertNotEqual(modified, html, "the player carries a deadline")
+            context.route(
+                f"**/{path}",
+                lambda route: route.fulfill(
+                    status=200, content_type="text/html", body=modified
+                ),
+            )
+            page.goto(f"{self._base_url}/{path}", wait_until="load")
         page.wait_for_timeout(80)
         return context, page, errors
 
@@ -337,6 +360,18 @@ class TestsLayoutTests(unittest.TestCase):
             self._assert_no_overflow(page)
             self.assertIn("Every paper you have opened", page.inner_text("main"))
             self._assert_touch_sized(page, ".tests-filter")
+        finally:
+            context.close()
+
+    def test_the_timer_announces_thresholds_in_words(self) -> None:
+        context, page, errors = self._page("tests-player.html", deadline_seconds=61)
+        try:
+            self.assertEqual(errors, [])
+            page.wait_for_timeout(3200)
+            self.assertEqual(
+                page.inner_text("[data-tests-clock-announce]"),
+                "One minute left.",
+            )
         finally:
             context.close()
 

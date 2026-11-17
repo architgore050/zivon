@@ -282,9 +282,10 @@ template must extend `base.html`.
 - A URL under `/app` that matches no route answers FastAPI's JSON 404 (the
   shell registers no catch-all by design); a branded HTML 404 for the app
   surface lands with a feature PR that can own the route.
-- The app nav lists Dashboard, Practice, Progress, Courses, and Settings.
-  Practice landed 2026-11-17 (`docs/specs/frontend/practice.md`); Tests/Speak
-  stay unlinked until F6/F7 land their routes. Saved sections are a quick link
+- The app nav lists Dashboard, Practice, Tests, Progress, Speak, Courses, and
+  Settings. Practice, Tests, and Speak landed 2026-11-17
+  (`docs/specs/frontend/practice.md`, `docs/specs/frontend/tests.md`,
+  `docs/specs/frontend/speaking.md`). Saved sections are a quick link
   on the dashboard/progress pages rather than their own nav entry.
 - `/app` is not rate-limited by the API bucket (the abuse classifier returns
   no family for HTML paths); the JSON API it calls keeps its existing limits.

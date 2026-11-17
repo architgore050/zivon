@@ -551,6 +551,12 @@
   background: var(--ink);
 }
 
+.tests-swatch--answered-flagged {
+  background: var(--ink);
+  outline: 2px dashed var(--pen-blue);
+  outline-offset: 1px;
+}
+
 .tests-swatch--flagged {
   border: 2px dashed var(--pen-blue);
 }

@@ -414,21 +414,24 @@ consent-missing is n/a.
 ## 12. Tests
 
 ```bash
-python3 -m unittest testing.backend.test_web_tests -t .        # 39 tests
-python3 -m unittest testing.frontend.test_tests_layout -t .    # 7 browser tests
+python3 -m unittest testing.backend.test_web_tests -t .        # 43 tests
+python3 -m unittest testing.frontend.test_tests_layout -t .    # 8 browser tests
 python3 -m unittest discover -s testing/backend -t .           # full backend suite
 python3 -m unittest discover -s testing/frontend -t .          # full frontend suite
 ```
 
 `testing/backend/test_web_tests.py` covers the guard, CSRF, builder bounds and
-selection, answer-key withholding, autosave/resume, the clock, grading with no
-negative marking, idempotent submit, flag-only rows, review, history filters,
-retry, cross-account isolation, the series catalogue/pending/dark states, the
-series-start ownership check, the pipeline parity check, the compliance notice
-text, empty states, the Field Notes/no-inline contract, the a11y markup, and
-the no-secrets scan. `testing/frontend/test_tests_layout.py` renders the real
-pages at 360 px and exercises the autosave island against a stubbed same-origin
-endpoint (including the "not saved" state).
+selection, answer-key withholding, the contaminated-attempt refusal (player,
+submit, and review), autosave/resume, the clock, grading with no negative
+marking, idempotent submit, flag-only rows, review, history filters, retry, the
+graded `test_submit` progress rollup, cross-account isolation, the series
+catalogue/pending/dark states (including a dark detail that lists no papers),
+the series-start ownership check, the pipeline parity check, the compliance
+notice text (intro + footer placement on a detail page), empty states, the
+Field Notes/no-inline contract, the a11y markup, and the no-secrets scan.
+`testing/frontend/test_tests_layout.py` renders the real pages at 360 px and
+exercises the autosave island against a stubbed same-origin endpoint (including
+the "not saved" state) and the clock's threshold announcements in words.
 
 ## 13. Known debt
 
@@ -444,9 +447,6 @@ endpoint (including the "not saved" state).
   `docs/compliance/notices.md`, but the shell UI is English-only until the
   UI-translation workstream; the page renders the approved English notice. This
   is the same posture as every other shell page.
-- **Dashboard quick action.** F3's dashboard still labels Tests "not live yet"
-  in its quick-action list (template owned by F3); the nav entry and routes are
-  live now. F3 should drop the label in its next pass.
 - **No series progress event.** Series tests feed F3 through the same
   `test_submit` event as custom tests; there is no series-specific rollup.
 - **Sections.** The paper model carries `test_question.section`, and the player

@@ -174,6 +174,10 @@ def series_detail(
                 "recommended": index == 0,
             }
         )
+    if status == "disabled":
+        # The verbatim Exact PYQ series is dark under DEC-COMP-001: its paper
+        # rows never leave the server, not even as titles (docs/compliance/).
+        papers = []
     subject = "Physics" if class_num in (11, 12) else "Science (Physics section)"
     languages = definition.languages
     language_note = None

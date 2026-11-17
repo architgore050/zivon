@@ -762,7 +762,10 @@ def submit_attempt(
         result = submit_test_attempt(db, user.user_id, attempt_id, now=now or utc_now())
         if result is None:
             return None
-        _record_progress(db, user, state, result)
+        # The graded verdicts were written by submit_test_attempt's transaction;
+        # state's answer snapshot was read before grading and cannot show them.
+        graded = _answer_map(list_test_answers(db, user.user_id, attempt_id))
+        _record_progress(db, user, state["questions"], result, graded)
         log_event(
             "test.attempt.submitted",
             {
@@ -779,13 +782,13 @@ def submit_attempt(
 def _record_progress(
     db: DatabaseEngine,
     user: TestUser,
-    state: Mapping[str, Any],
+    questions: Sequence[Mapping[str, Any]],
     result: Mapping[str, Any],
+    answers: Mapping[str, Mapping[str, Any]],
 ) -> None:
     """Feed F3 with one `test_submit` event per chapter (counts, never answers)."""
-    answers = state["answers"]
     by_chapter: dict[str, dict[str, int]] = {}
-    for question in state["questions"]:
+    for question in questions:
         chapter = str(question.get("chapter_id") or "").strip()
         if not chapter:
             continue

@@ -244,8 +244,6 @@ def test_player(
         return _missing_page(request, account, attempt_id)
     if view["state"] == "submitted":
         return _redirect(f"/app/tests/{attempt_id}/review")
-    if view["state"] == "error":
-        return _render_player(request, account, view, attempt_id)
     return _render_player(request, account, view, attempt_id)
 
 
@@ -589,7 +587,7 @@ def _player_with_error(
     attempt_id: str,
     message: str,
     form: dict[str, str],
-) -> HTMLResponse:
+) -> Response:
     view = safe_player_view(
         getattr(request.app.state, "db", None),
         user_row=dict(_shell_account(account).user),
@@ -597,6 +595,12 @@ def _player_with_error(
         frontend_dir=_frontend_dir(request),
         question_id=(form.get("question_id") or "").strip() or None,
     )
+    if view["state"] == "error":
+        # The honest error state (a refused paper, a store hiccup) keeps its
+        # message and status; only a truly absent attempt is a 404 page.
+        return _render_player(request, account, view, attempt_id)
+    if view["state"] == "submitted":
+        return _redirect(f"/app/tests/{attempt_id}/review")
     if view["state"] != "ok":
         return _missing_page(request, account, attempt_id)
     view["answer_error"] = message

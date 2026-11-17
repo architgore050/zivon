@@ -101,8 +101,11 @@
       var remaining = Math.ceil((deadline - Date.now()) / 1000);
       clock.textContent = formatClock(remaining);
       if (firstTick) {
+        // Keep only the marks the countdown will still cross: a paper loaded
+        // with 45 s left must not announce "one minute left" or a stale
+        // 5/10-minute mark (announce: thresholds below the current remaining).
         announceAt = announceAt.filter(function (seconds) {
-          return remaining < seconds;
+          return seconds < remaining;
         });
         firstTick = false;
       }
@@ -115,7 +118,7 @@
           var seconds = announceAt.shift();
           if (announce) {
             announce.textContent =
-              seconds >= 60
+              seconds > 60
                 ? Math.round(seconds / 60) + " minutes left."
                 : "One minute left.";
           }

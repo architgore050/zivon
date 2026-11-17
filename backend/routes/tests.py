@@ -115,7 +115,8 @@ def get_series_detail(slug: str, request: Request) -> JSONResponse:
     detail = series_detail(db, _user(ctx.user), slug=slug)
     if detail is None:
         raise APIError("E-NOT-FOUND", status_code=404)
-    return _json({"schema_version": 1, **detail})
+    payload = {**detail, "definition": _definition_json(detail.get("definition"))}
+    return _json({"schema_version": 1, **payload})
 
 
 @router.post("/v1/tests/custom", status_code=201)
@@ -243,7 +244,12 @@ def post_test_submit(attempt_id: str, request: Request) -> JSONResponse:
     ctx = require_context(request)
     require_csrf(request, ctx)
     db = _db(request)
-    review = submit_attempt(db, _user(ctx.user), attempt_id=attempt_id)
+    try:
+        review = submit_attempt(db, _user(ctx.user), attempt_id=attempt_id)
+    except AssessmentError as exc:
+        # A contaminated attempt (E-TEST-CONTENT-MODE) is a mapped 409, a bad
+        # answer *key* is a server fault; both go through the closed envelope.
+        _raise_api(exc)
     if review is None:
         raise APIError("E-NOT-FOUND", status_code=404)
     return _json({"schema_version": 1, "review": _jsonable_review(review)})
@@ -322,6 +328,23 @@ def _jsonable_state(state: dict[str, Any]) -> dict[str, Any]:
     if deadline is not None:
         payload["deadline"] = deadline.isoformat()
     return payload
+
+
+def _definition_json(definition: Any) -> dict[str, Any]:
+    """The series definition as plain JSON fields (never the dataclass object)."""
+    if definition is None:
+        return {}
+    return {
+        "kind": getattr(definition, "kind", None),
+        "slug": getattr(definition, "slug", None),
+        "label": getattr(definition, "label", None),
+        "purpose": getattr(definition, "purpose", None),
+        "coverage": getattr(definition, "coverage", None),
+        "length": getattr(definition, "length", None),
+        "languages": list(getattr(definition, "languages", ()) or ()),
+        "notice_id": getattr(definition, "notice_id", None),
+        "board_style": bool(getattr(definition, "board_style", False)),
+    }
 
 
 def _jsonable_review(review: dict[str, Any]) -> dict[str, Any]:

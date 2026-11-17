@@ -12,6 +12,7 @@ compliance notice, and the no-inline/no-lesson-device template contract.
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 import sys
 import tempfile
@@ -438,11 +439,31 @@ class TestPagesTests(unittest.TestCase):
         response = self.client.get(f"/v1/tests/attempts/{attempt_id}")
         self.assertEqual(response.status_code, 409, response.text)
         self.assertEqual(response.json()["code"], "E-CONTENT-UNAVAILABLE")
+        # Submit hits the same runtime guard: a content fault is 409, not 500.
+        graded = self.client.post(
+            f"/v1/tests/attempts/{attempt_id}/submit", headers=self.headers()
+        )
+        self.assertEqual(graded.status_code, 409, graded.text)
+        self.assertEqual(graded.json()["code"], "E-CONTENT-UNAVAILABLE")
         page = self.client.get(f"/app/tests/{attempt_id}")
         self.assertEqual(page.status_code, 409)
         self.assertIn("not cleared for practice yet", page.text)
         self.assertNotIn(source.prompt, page.text)
         self.assertNotIn(verbatim_id, page.text)
+        # The submit route maps the same refusal to the same envelope; a 500
+        # here would leak an internal fault for a known compliance state.
+        submit = self.client.post(
+            f"/v1/tests/attempts/{attempt_id}/submit", headers=self.headers()
+        )
+        self.assertEqual(submit.status_code, 409, submit.text)
+        self.assertEqual(submit.json()["code"], "E-CONTENT-UNAVAILABLE")
+        html_submit = self.client.post(
+            f"/app/tests/{attempt_id}/submit",
+            data={"csrf_token": self.csrf},
+            follow_redirects=False,
+        )
+        self.assertEqual(html_submit.status_code, 409, html_submit.text)
+        self.assertIn("not cleared for practice yet", html_submit.text)
 
     def test_review_is_withheld_until_submit(self) -> None:
         created = self.create_custom()
@@ -573,6 +594,49 @@ class TestPagesTests(unittest.TestCase):
         self.assertGreaterEqual(review["summary"]["earned"], 0.0)
         assert review["summary"]["earned"] == 2.0, "a wrong answer adds nothing"
 
+    def test_submit_progress_events_carry_the_graded_counts(self) -> None:
+        """F3's test_submit rollup must reflect the graded verdicts, not the
+        pre-submit autosave snapshot (whose correct column is still NULL)."""
+        created = self.create_custom(count=5)
+        attempt_id = self.start(created["test"]["test_id"])["attempt"]["attempt_id"]
+        questions = self.state(attempt_id)["questions"]
+        self.answer(attempt_id, questions[0]["question_id"], correct=True)
+        self.answer(attempt_id, questions[1]["question_id"], correct=True)
+        self.answer(attempt_id, questions[2]["question_id"], correct=False)
+        review = self.submit(attempt_id)
+        rows = self.db.fetchall(
+            "SELECT payload FROM progress_event WHERE user_id = ? AND kind = 'test_submit'",
+            (self.session["user"]["user_id"],),
+        )
+        self.assertTrue(rows, "submit must roll one test_submit event per chapter")
+        payloads = [json.loads(row["payload"]) for row in rows]
+        self.assertEqual(
+            sum(entry["total"] for entry in payloads),
+            5,
+            "every paper question feeds exactly one chapter rollup",
+        )
+        self.assertEqual(
+            sum(entry["correct"] for entry in payloads),
+            review["summary"]["correct"],
+            "the progress rollup records the graded correct count",
+        )
+        self.assertEqual(
+            sum(entry["answered"] for entry in payloads),
+            review["summary"]["answered"],
+        )
+
+    def test_hub_recent_shows_the_submitted_score(self) -> None:
+        created = self.create_custom(count=5)
+        attempt_id = self.start(created["test"]["test_id"])["attempt"]["attempt_id"]
+        questions = self.state(attempt_id)["questions"]
+        self.answer(attempt_id, questions[0]["question_id"], correct=True)
+        self.answer(attempt_id, questions[1]["question_id"], correct=True)
+        self.answer(attempt_id, questions[2]["question_id"], correct=False)
+        self.submit(attempt_id)
+        html = self.page("/app/tests")
+        self.assertIn("40%", html, "the hub's recent list shows the graded score")
+        self.assertIn("Custom test", html)
+
     def test_submit_is_idempotent_and_locks_autosave(self) -> None:
         created = self.create_custom()
         attempt_id = self.start(created["test"]["test_id"])["attempt"]["attempt_id"]
@@ -692,6 +756,17 @@ class TestPagesTests(unittest.TestCase):
         html = self.page("/app/tests/history")
         self.assertIn("No unresolved test mistake yet", html)
 
+    def test_history_row_shows_marks_and_hub_recent_shows_the_score(self) -> None:
+        created = self.create_custom()
+        attempt_id = self.start(created["test"]["test_id"])["attempt"]["attempt_id"]
+        questions = self.state(attempt_id)["questions"]
+        self.answer(attempt_id, questions[0]["question_id"], correct=True)
+        self.submit(attempt_id)
+        history = self.page("/app/tests/history")
+        self.assertIn("5 marks", history)
+        hub = self.page("/app/tests")
+        self.assertIn("20%", hub)
+
     # -- isolation ----------------------------------------------------------
 
     def test_another_account_cannot_read_an_attempt(self) -> None:
@@ -737,7 +812,13 @@ class TestPagesTests(unittest.TestCase):
         html = self.page("/app/series/ai-lesson")
         self.assertIn("Light chapter test", html)
         self.assertIn("Start paper", html)
-        self.assertIn(n01_notice(10), html)
+        # notices.md Rendering rules: N-01 sits at the end of the series intro
+        # and again in the footer band — two placements of the same notice.
+        self.assertEqual(html.count(n01_notice(10)), 2, "N-01 intro + footer band")
+        detail = self.client.get("/v1/series/ai-lesson").json()
+        self.assertEqual(detail["status"], "live")
+        self.assertEqual(detail["definition"]["kind"], "ai_lesson")
+        self.assertEqual(detail["papers"][0]["test_id"], self.paper_id)
         pending = self.page("/app/series/pyq-pattern")
         self.assertIn("Content pending", pending)
         self.assertIn("Approved minimum for Class 10", pending)
@@ -799,6 +880,35 @@ class TestPagesTests(unittest.TestCase):
             f"/v1/tests/{test_id}/attempts", headers=self.headers()
         )
         self.assertEqual(response.status_code, 404, response.text)
+
+    def test_dark_series_detail_lists_no_papers(self) -> None:
+        """A mis-imported exact-PYQ row exposes no papers on the dark detail."""
+        self.register(f"dark-{uuid7_str()}@example.com", class_level=10)
+        series_id = uuid7_str()
+        dark_test_id = uuid7_str()
+        self.db.execute(
+            "INSERT INTO test_series (series_id, slug, class_level, kind, title, "
+            "language_set, status) VALUES (?, ?, 10, 'exact_pyq', "
+            "'Past-year questions (CBSE)', '[\"en\",\"hi\"]', 'published')",
+            (series_id, f"dark-{series_id}"),
+        )
+        self.db.execute(
+            "INSERT INTO test (test_id, series_id, title, language, duration_s, "
+            "total_marks, structure, status) VALUES (?, ?, 'Past paper 2024', "
+            "'en', 600, 1, '{}', 'published')",
+            (dark_test_id, series_id),
+        )
+        self.db.execute(
+            "INSERT INTO test_question (test_id, question_id, order_index, marks) "
+            "VALUES (?, ?, 1, 1)",
+            (dark_test_id, self.paper_questions[0]),
+        )
+        detail = self.client.get("/v1/series/exact-pyq").json()
+        self.assertEqual(detail["status"], "disabled")
+        self.assertEqual(detail["papers"], [])
+        dark = self.client.get("/app/series/exact-pyq")
+        self.assertIn("dark until the source clearance", dark.text)
+        self.assertNotIn("Past paper 2024", dark.text)
 
     def test_seeded_series_paper_grades_and_reviews_with_copy(self) -> None:
         session = self.register(f"paper-{uuid7_str()}@example.com", class_level=10)
@@ -953,6 +1063,7 @@ class TestPagesTests(unittest.TestCase):
         self.assertIn("Mark this question for review", html)
         self.assertIn("Not answered", html)
         self.assertIn("Marked for review", html)
+        self.assertIn("Answered, marked", html)
         questions = self.state(attempt_id)["questions"]
         self.answer(attempt_id, questions[0]["question_id"], correct=True)
         self.answer(attempt_id, questions[1]["question_id"], correct=False)
