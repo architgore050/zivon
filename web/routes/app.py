@@ -1,10 +1,10 @@
 """`/app` home: the signed-in dashboard (F3).
 
 The route, the guard, and the shell contract are F0C's and stay unchanged;
-this module now loads the dashboard view model instead of the shell proof.
-The dashboard is honest about what is live: reading, the progress map, and
-bookmarks exist; practice, tests, speaking, and SWOT are labelled as not live
-yet rather than linked to a 404.
+this module loads the dashboard view model. The dashboard is honest about
+what is live: reading, the progress map, bookmarks, practice, tests,
+speaking, and (since F8) the SWOT snapshot exist. The snapshot panel links
+`/app/swot`, which is a live route, so the link is real.
 """
 
 from __future__ import annotations
@@ -36,6 +36,7 @@ def app_home(
         user_id=str(account.user["user_id"]),
         user_class=_class_level(account.user.get("class_level")),
         frontend_dir=str(getattr(config, "frontend_dir", "frontend") or "frontend"),
+        mode=str(getattr(config, "swot_mode", "relative") or "relative"),
     )
     return render_page(
         request, "app/dashboard.html", shell=shell, extra={"dashboard": dashboard}

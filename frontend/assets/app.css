@@ -1,10 +1,12 @@
-/* Zivon app pages (F3): dashboard, progress map, saved sections.
+/* Zivon app pages (F3): dashboard, progress map, saved sections. F8 adds
+   the SWOT page styles (`.swot-*`), same base system.
    Field Notes base system (§1-§9) only: paper, ink rules, graphite notes,
    one pen-blue accent for "where you are". No §10 lesson device, no taped
    cards, no ruled body grid, no handwritten body text.
-   Loaded on top of `product.css` by the F3 templates; every class is scoped
+   Loaded on top of `product.css` by the F3/F8 templates; every class is scoped
    to `.app-*`, `.progress-*`, `.chapter-state-*`, `.activity-*`, `.week-*`,
-   `.stat-*`, `.action-*`, `.concept-*`, `.bookmark-*`, or `.state--*`. */
+   `.stat-*`, `.action-*`, `.concept-*`, `.bookmark-*`, `.swot-*`, or
+   `.state--*`. */
 
 /* ---- page frame ---- */
 .app-grid {
@@ -425,5 +427,246 @@
   .week-day {
     width: 2rem;
     height: 2rem;
+  }
+}
+
+/* ---- SWOT (F8): 2x2 grid, chapter cards, IMP marker, unrated row ---- */
+.swot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+  padding-bottom: 2rem;
+}
+
+.swot-quadrant {
+  border: 1px solid var(--rule);
+  padding: 1.1rem 1.1rem 0.4rem;
+}
+
+.swot-quadrant h2 {
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  line-height: 1.15;
+}
+
+.swot-quadrant > .meta {
+  margin-top: 0.3rem;
+}
+
+.swot-card-list {
+  list-style: none;
+  margin: 0.8rem 0 0.6rem;
+  border-top: 1px solid var(--rule);
+}
+
+.swot-card {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.swot-card:last-child {
+  border-bottom: 0;
+}
+
+.swot-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 0.75rem;
+  align-items: baseline;
+}
+
+.swot-card-title {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.swot-card-title a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.swot-card-title a:hover {
+  border-bottom-color: var(--ink);
+}
+
+/* IMP: a word + box marker, ink on paper — not a colour signal. */
+.swot-imp {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--ink);
+  font-family: var(--notes);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.swot-evidence {
+  list-style: square;
+  padding-left: 1.15rem;
+  margin: 0.45rem 0 0;
+}
+
+.swot-evidence li {
+  margin-top: 0.3rem;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+  line-height: 1.4;
+}
+
+.swot-action {
+  margin: 0.55rem 0 0;
+  font-weight: 700;
+}
+
+.swot-unrated-list {
+  list-style: none;
+  margin-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.swot-unrated-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem 1rem;
+  align-items: baseline;
+  padding: 0.85rem 0;
+  border-bottom: 1px dashed var(--rule);
+}
+
+.swot-unrated-title {
+  font-weight: 700;
+}
+
+.swot-unrated-title a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.swot-unrated-title a:hover {
+  border-bottom-color: var(--ink);
+}
+
+.swot-unrated-action {
+  margin: 0;
+}
+
+.swot-method-list {
+  list-style: decimal;
+  padding-left: 1.4rem;
+  margin-top: 0.6rem;
+}
+
+.swot-method-list li {
+  margin-top: 0.5rem;
+}
+
+.swot-metric-list {
+  margin-top: 0.8rem;
+}
+
+.swot-metric {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.swot-metric dt {
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.swot-metric dd {
+  margin: 0.2rem 0 0;
+  color: var(--graphite);
+}
+
+/* The numbers table on /app/swot/how: wide on purpose, scrollable in its own
+   container at 360 px (never stretching the page). */
+.swot-table-wrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.swot-table {
+  border-collapse: collapse;
+  min-width: 46rem;
+  font-size: 0.875rem;
+}
+
+.swot-table th,
+.swot-table td {
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.swot-table thead th {
+  font-family: var(--notes);
+  font-size: 0.72rem;
+  text-transform: none;
+  color: var(--graphite);
+  border-bottom: 1px solid var(--ink);
+}
+
+.swot-table tbody th {
+  font-weight: 700;
+}
+
+/* ---- dashboard SWOT snapshot (F8) ---- */
+.swot-snapshot-list {
+  list-style: none;
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+}
+
+.swot-snapshot-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  gap: 0.4rem 0.75rem;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.swot-snapshot-label {
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--graphite);
+}
+
+.swot-snapshot-row .meta {
+  grid-column: 2 / -1;
+}
+
+/* Responsive overrides for the F8 blocks: declared after their base rules so
+   source order cannot undo them (960 px stacks the quadrants like the app
+   grid; 480 px is the phone floor). */
+@media (max-width: 960px) {
+  .swot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .swot-card-head {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .swot-table-wrap {
+    overflow-x: auto;
+  }
+
+  .swot-snapshot-row {
+    grid-template-columns: 1fr;
+  }
+
+  .swot-snapshot-row .meta {
+    grid-column: 1 / -1;
   }
 }

@@ -430,6 +430,24 @@ consent-missing — is named with its code path in `public-site.md` "States
 |---|---|---|---|---|---|---|---|---|---|---|
 | `EL-404-01-001..003` | `[shell]` static page served by nginx `error_page 404 /404.html` (spec C1) | n/a (static) | n/a | n/a | n/a — it IS the error surface; no nested error state exists | n/a (cached) | n/a | n/a | English until localized routes (§3.2 spec.md) | n/a |
 
+## APP-20 `/app/swot` and `/app/swot/how` (F8, 2026-11-17)
+
+Specified in [`swot.md`](swot.md) (rules, contracts, admin calibration
+note); code path `[web]` (`web/templates/app/swot*.html`,
+`web/routes/swot.py`, `web/swot_views.py` reads `/v1/swot`'s domain
+directly). No island; no §10 lesson device. The 2×2 grid collapses to one
+column at 960 px (Strengths → Weaknesses → Opportunities → Threats) and the
+explainability table scrolls inside its own wrapper at 360 px
+(`testing/frontend/test_swot_pages_layout.py`).
+
+| Row | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | over-credit-budget |
+|---|---|---|---|---|---|---|---|---|---|---|
+| page header + rules disclosure | "Your SWOT" + one sentence on relative placement + "How this works" link | n/a (SSR completes before bytes) | n/a (the header always renders) | placement-mode line names the active mode from `rules()` | panel notice + retry, no grid claim | browser offline page | guest → 303 `/login?next=/app/swot` | no animation | English copy | n/a (SWOT spends no credits) |
+| 2×2 quadrant grid | four labelled boxes (words + ink borders, never colour alone), cards with 2–3 evidence bullets + IMP marker + one next action on a live route | n/a | <3 rated chapters → the whole grid is replaced by the honest "Not enough data yet" notice (no median claim) | empty box says "Nothing here right now." | panel error replaces the grid; snapshot unaffected | n/a | n/a | static cards, no reveal animation | English evidence | n/a |
+| unrated row | "Not enough evidence on these chapters" with each chapter's honest reason and action | n/a | absent when every catalogue chapter is unrated-and-untouched (the empty notice covers it) | mixed: rated chapters in the grid, the rest here — never forced into a box | hidden on panel error | n/a | n/a | n/a | English reasons | n/a |
+| `/app/swot/how` explainability | method list, metric definitions, medians, per-chapter numbers table | n/a | "No medians yet" + empty-table copy | "Not rated" rows in the table | panel notice + retry | browser offline page | guest → 303 | n/a | English copy | n/a |
+| dashboard SWOT snapshot (`/app`) | one strength/weakness/opportunity/threat line + "Open your full SWOT" link | n/a | "Not enough data yet" line before the grid exists | boxes without a card say so | panel degrades alone; the F3 dashboard keeps rendering | n/a | n/a | n/a | English copy | n/a |
+
 ## Cross-cutting rows (every screen)
 
 | Concern | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | over-credit-budget |

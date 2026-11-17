@@ -549,6 +549,65 @@ Branch `fix/p0-voice-live` off `main` @ `51f03b6`.
   run once a model endpoint is available. The language-switcher UI is in the EX5B wave.
 
 
+### 2026-11-17 — W5 F8 SWOT (first W5 slice)
+
+Branch `cloud/w5-f8-swot` off `main` @ `27897a3`. Spec:
+`docs/specs/frontend/swot.md` (state matrix row APP-20, admin calibration
+note §8).
+
+**Done**
+- **Relative placement engine** (`backend/swot/`): per-chapter metrics from
+  the student's own rows — recency-weighted accuracy and coverage with a
+  **21-day half-life**, the **14-day trend** against the older baseline,
+  attempt rate over the served question bank, hint rate, pace ratio, and the
+  recency-weighted speaking score; **median split** across the student's own
+  rated chapters (performance × coverage → Strengths / Weaknesses /
+  Opportunities / Threats), **unrated when < 3 rated chapters** (no median
+  claim), and exam weight as **priority inside a box (IMP marker), never a
+  fifth quadrant** (weights are NULL until P3's blueprint, so no chapter is
+  IMP today — honestly).
+- **Time prior**: the A5 AI prior (`topic_time_prior`) refined by an
+  **EWMA of all-student observed times** (alpha 0.3, each observation capped
+  at 3× the prior, bounded 200-row read per chapter, aggregate-only — no
+  identity leaves the read), **no all-history recompute**; the materialized
+  rollup (db-spec Q13) stays future work — **no new migration**.
+- **Absolute-threshold mode implemented but off**: `ZIVON_SWOT_MODE`
+  (`relative|absolute`, default relative, validated at boot, never a student
+  setting); the 75/60 constants are documented calibration placeholders
+  (`swot.md` §8, the IMP calibration note).
+- **APIs**: `GET /v1/swot` and `GET /v1/swot/explain` — authenticated
+  (F0 guard), user-scoped, `no-store`, the global `/v1/*` family rate limit;
+  a compute failure answers 503 after `swot.compute.failed` and invents
+  nothing. No parent/share/leaderboard surface anywhere in the payload.
+- **UI**: `/app/swot` (2×2 grid, chapter cards with 2–3 evidence bullets
+  including pace, one next action on a live route, the unrated row, the
+  rules disclosure) and `/app/swot/how` (method, metric definitions,
+  medians, the per-chapter numbers table); `SWOT` nav entry; **dashboard
+  snapshot** panel (one S/W/O/T line + link, honest empty/error states, F3's
+  own tests untouched apart from the deliberate dead-link row for
+  `/app/swot`); doctrine §0–§9 only — words and ink borders, no colour-only
+  quadrants, no chart library, no island.
+- **Observability**: four `swot.*` events with instrumentation-map rows and
+  the conformance-test names (component `swot`, L2, counts only).
+- **Tests**: `testing/backend/test_swot_stats.py` (24 rules tests),
+  `testing/backend/test_swot_api.py` (14 API/page tests),
+  `testing/frontend/test_swot_pages_layout.py` (360 px Chromium frame),
+  F3 dashboard pages green, full backend (427) + frontend (124) suites
+  green, observability (114) green; ruff + format + mypy (326 files) +
+  `check_specs` + key-free eval smoke PASS (0 model calls).
+
+**Not done / next**
+- Client analytics events (`swot_view`, `swot_card_open`, `swot_action`)
+  wait on the shared `VALID_EVT_IDS` contract owner, together with F3's four
+  deferred client events.
+- Exam weights stay `pending_p3_blueprint`; the IMP marker is invisible
+  until P3 lands real weights and the threshold is calibrated.
+- `coverage_pct` uses the served question bank where imported; the section
+  counter is the fallback. Chapters with practice evidence but no measurable
+  coverage stay unrated with their reason shown.
+- The chapter_stat materialization (REQUIREMENTS §8.4) remains the scaling
+  fix for the request-time EWMA read.
+
 ### 2026-11-17 — W3 P2 assessment content (dry-run pack)
 
 **Done**

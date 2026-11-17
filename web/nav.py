@@ -3,7 +3,7 @@
 A nav entry is added only when its route exists: a link that lands on a 404 is
 a dead control. Feature workstreams append their entry here in the same PR
 that lands the route (F3 dashboard/progress, F5 practice, F6 speaking,
-F7 tests/series).
+F7 tests/series, F8 SWOT).
 """
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ APP_NAV: Final[tuple[NavItem, ...]] = (
     NavItem("practice", "Practice", "/app/practice"),
     NavItem("tests", "Tests", "/app/tests"),
     NavItem("progress", "Progress", "/app/progress"),
+    NavItem("swot", "SWOT", "/app/swot"),
     NavItem("speaking", "Speak", "/app/speaking"),
     NavItem("courses", "Courses", "/courses"),
     NavItem("settings", "Settings", "/app/settings"),

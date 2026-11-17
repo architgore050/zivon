@@ -152,8 +152,11 @@ class DashboardPagesTests(unittest.TestCase):
             html,
             "tests are live, so the quick action is a link, not a soon marker",
         )
-        for dead in ("/app/swot",):
-            self.assertNotIn(f'href="{dead}"', html)
+        # `/app/swot` (F8) is live: the snapshot panel and the quick action
+        # link it, and the F8 snapshot degrades honestly before there is data.
+        self.assertIn('href="/app/swot"', html)
+        self.assertIn("SWOT snapshot", html)
+        self.assertIn("Not enough data yet", html)
         # The sync offer is server-rendered hidden and armed by the island.
         self.assertIn("data-progress-sync", html)
         self.assertIn("/assets/app-progress.js", html)

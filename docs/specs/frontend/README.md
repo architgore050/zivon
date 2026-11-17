@@ -54,6 +54,7 @@ features are specified** — only surfaces the shell and doctrine already show.
 | [`practice.md`](practice.md) | F5 practice hub, player, summary, history: the practice APIs, selection policy, answer-key withholding, hints, the tutor hand-off, states, tests and debt |
 | [`speaking.md`](speaking.md) | F6 explain-back: hub, recorder, history, the transient upload/STT/rubric APIs, consent and quota reuse, privacy, states, events, tests, debt |
 | [`tests.md`](tests.md) | F7 test hub, builder, exam-paper player, server clock/autosave, grading and review, history/retry, the six-series catalogue with its pending/dark states, the N-01 notice, JSON contracts, nav/event map, tests and debt |
+| [`swot.md`](swot.md) | F8 SWOT: the relative-placement rules (half-life, medians, quadrants), the time prior (AI prior + all-student EWMA, outlier-capped), the `/v1/swot` + `/v1/swot/explain` contracts, `/app/swot` + `/app/swot/how`, the dashboard snapshot, the dormant absolute mode and the admin calibration note, tests and debt |
 | [`open-questions.md`](open-questions.md) | every unresolved upstream reference, the decision needed, and the reconciliation procedure for provisional ids |
 
 ## Binding ground rules (inherited — restated because every section depends on them)
