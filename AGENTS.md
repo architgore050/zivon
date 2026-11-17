@@ -45,7 +45,7 @@ acceptance criteria.
 - `docs/specs/frontend/` — consult before any frontend build; `docs/specs/frontend/` is the frontend implementation spec (SP5-FRONT wave S1: component inventory, state matrix, WS client contract, perf-budget tests, SEO plan).
 - `docs/specs/gaps/` — system-completeness audit: gap register (GAP-###, severity + owner + mini-spec) + Wave-E assignment; consult before any Wave-E execution work.
 - `docs/product/` — consult before any feature, screen, UI-element, information, or backend-handoff work: the decided features document (decision log, feature cards, inventories, traceability, backend handoff). Feature decisions here are already made — do not re-litigate them; extend through the same method (`skills/zivon-product-design-skills/`).
-- `docs/backend/` — consult before any voice-backend, API, database, storage-tiering, credit-guard, deployment-topology, or ADR work: the Stage-2 systems specs (backend spec, DB spec, storage tiering + sync policy, data classification, capacity & cost, 16 ADRs). Systems decisions here are already made — extend or revisit only through an ADR's stated revisit trigger.
+- `docs/backend/` — consult before any voice-backend, API, database, storage-tiering, credit-guard, deployment-topology, or ADR work: the Stage-2 systems specs (backend spec, DB spec, storage tiering + sync policy, data classification, capacity & cost, 16 ADRs). Systems decisions here are already made — extend or revisit only through an ADR's stated revisit trigger. `runbooks/` in that folder holds operator procedures (e.g. `assessment-import.md` for the assessment-pack DB import).
 - `docs/logs/` — dated session logs (done / not done / next) for the build-in-public record.
 
 Rules:

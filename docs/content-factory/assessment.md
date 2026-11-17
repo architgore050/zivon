@@ -61,9 +61,13 @@ feeds A2–A6; A2/A4/A5 feed only A6; A3 feeds A5 and A6), so re-tagging blocks
 does not spend A3 model credits. A targeted run that does not include A6 reports
 `question_rows: 0` and an empty `content_hash`; it has not produced a pack.
 
-**DB import is a later consumer** (F0 owns the write path). Nothing in this
-pipeline touches `db/`, `backend/`, `frontend/`, `factory/render.py` or
-`factory/link.py`.
+**DB import** is the pack's runtime consumer and it landed with the W4 foundation
+(2026-11-17): `scripts/import_assessment_packs.py` verifies the pack and writes
+`question_bank`, `speaking_prompt`, `topic_time_prior`, and an `assessment_pack`
+provenance row (db-spec §4.19). Functionally that write path is a later consumer,
+so nothing in this pipeline touches `db/`, `backend/`, `frontend/`,
+`factory/render.py` or `factory/link.py`; the importer lives outside the
+pipeline's package.
 
 ---
 
@@ -380,7 +384,10 @@ Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
 4. **Exam weight is unpopulated** until P3's blueprint lands.
 5. **Only two chapters have banks.** The other six curated Class 9/10 chapters
    have concepts but no practice/speaking content yet.
-6. **No DB import.** The pack is JSON; F0's importer is the later consumer.
+6. **DB import is a manual operator step.** The importer exists and the two
+   tracked packs are imported by it, but nothing runs it automatically after an
+   A6 export yet: an operator runs `scripts/import_assessment_packs.py` (see
+   §11). Wiring it into the publish path is P5/F7's later work.
 7. **Class 9 chapter-count delta.** FEATURE-MAP's "5 chapters" counted the
    pre-2025 division; the 2025 textbook has four Physics chapters. The manifest
    follows the book.
@@ -388,3 +395,64 @@ Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
 Content-quality bar for later passes: per-option misconception feedback on
 every distractor, more assertion-reason coverage, and a judged alignment card
 against the source chapter.
+
+---
+
+## 11. Database import (W4 foundation)
+
+The pack is the pipeline's output; `scripts/import_assessment_packs.py` is the
+only write path from a pack into the hot database. It imports four things
+(db-spec §4.19):
+
+| Pack file | Table | Row key |
+|---|---|---|
+| `questions.json` | `question_bank` | `question_id` (one row per item per language) |
+| `speaking.json` | `speaking_prompt` | `(prompt_id, language)` |
+| `time-priors.json` → `topics` | `topic_time_prior` | `(chapter_id, scope, scope_id)` |
+| `manifest.json` | `assessment_pack` | deterministic id from chapter + content hash |
+
+Per-question priors from `time-priors.json` are already on
+`question_bank.expected_time_ms` (A5 fills them), so only the topic priors need
+their own table. `syllabus.json` and `concepts.json` are not imported by this
+script: the catalogue import (P1/P2) owns `syllabus_chapter`/`concept`.
+
+**Tracked packs.** The first two A6 exports are committed under
+`sources/assessment/packs/<chapter_id>/` (six files each, exactly as A6 wrote
+them). The exporter still writes to `runs/assessment/...`; mirroring a new pack
+into `sources/` is a deliberate, reviewable commit (same pattern as
+`publish-frontend.sh` for generated pages), so the DB import is reproducible
+from the repo alone.
+
+**Verification before any write** (all-or-nothing per pack):
+
+- every data file's SHA-256 and byte size match `manifest.json`;
+- the manifest `content_hash` is recomputed from the per-file hashes;
+- the gate verdict is `pass` with `error_count == 0`;
+- the manifest `chapter_id` matches the directory name, and every question,
+  speaking row, and prior agrees with it;
+- question rows carry the required fields, a known type/difficulty/language/
+  source type, positive marks, and an answer object; `(base_item_id, language)`
+  is unique; the manifest's `question_rows`/`speaking_prompts` counts agree.
+
+A tampered or stale pack is refused whole, so the DB never holds half a pack.
+
+**Idempotency.** Question and speaking rows are upserted by their stable ids and
+`assessment_pack` by chapter + content hash, so re-running an unchanged pack
+leaves the row counts unchanged. Question rows are never deleted by an import:
+learner evidence references `question_id`, and a withdrawn item is retired by
+`status`. A chapter's topic priors are replaced (nothing references them).
+
+**Not imported / not stored.** No raw audio (there is no audio column), no
+learner data, no attempt rows: the importer only writes content and provenance.
+
+Run it from the repo root (see
+`docs/backend/runbooks/assessment-import.md` for the full procedure):
+
+```bash
+python3 scripts/import_assessment_packs.py --dry-run        # verify only
+python3 scripts/import_assessment_packs.py --db-url sqlite:///zivon.db
+ZIVON_DB_URL=postgresql://... python3 scripts/import_assessment_packs.py
+```
+
+Tests: `testing/backend/test_assessment_import.py` (integrity, gate, counts,
+idempotency, content-hash parity with `factory.assessment.pack`).

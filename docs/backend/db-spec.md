@@ -51,6 +51,7 @@ the tables themselves.
 | (identity/privacy machinery — systems-originated) | `deletion_request`, `audit_log`, `abuse_bucket` | C18, C13, C19 | P0 |
 | **Student account (ADR-0029, 2026-11-16)** | `users`, `auth_identity`, `auth_session`, `email_token`; `device.user_id` | C21 | P0 (R1) |
 | **Catalogue + learning evidence (ADR-0029)** | `syllabus_chapter`, `concept`, `lesson_progress`, `progress_event`, `bookmark` | C21 | P0 (R1) |
+| **Practice, speaking, tests (W4 foundation, 2026-11-17)** | `question_bank`, `practice_session`, `practice_attempt`, `speaking_prompt`, `speaking_attempt`, `test_series`, `test`, `test_question`, `test_attempt`, `test_attempt_answer`, `assessment_pack`, `topic_time_prior` | C21 | P0 (R1) |
 
 `device` is systems-originated: consent, guard caps, sessions, and deletion all key on
 `device_pseudo_id`, so the server needs one anchor row per device even though the *profile*
@@ -90,6 +91,17 @@ erDiagram
   users |o--o{ device : "links (nullable)"
   syllabus_chapter ||--o{ concept : "teaches"
   syllabus_chapter ||--o{ lesson_progress : "tracked by"
+  assessment_pack ||--o{ question_bank : "imported as"
+  assessment_pack ||--o{ topic_time_prior : "prior source"
+  users ||--o{ practice_session : "practises"
+  practice_session ||--o{ practice_attempt : "answers"
+  users ||--o{ speaking_attempt : "explains back"
+  test_series ||--o{ test : "groups"
+  test ||--o{ test_question : "contains"
+  question_bank ||--o{ test_question : "used in"
+  test ||--o{ test_attempt : "attempted as"
+  users ||--o{ test_attempt : "sits"
+  test_attempt ||--o{ test_attempt_answer : "answers"
 ```
 
 ---
@@ -535,6 +547,150 @@ Retention: account-scoped tables live until the student deletes the account; del
 hard-deletes them in the same transaction that writes the tombstone (§6). No cold copy is
 made of account rows; `log_events` carries no account free text (ADR-0025 redaction).
 
+### 4.19 Practice, speaking, tests, and pack import (revision `0004_practice_speaking_tests`, W4 foundation)
+
+Added 2026-11-17 for F5 (practice), F6 (speaking), F7 (tests/series), and the assessment
+pack importer. Additive only: no §4.1–4.18 table is altered. DDL lives in
+`db/schema_assessment.py` and is SQLite-portable (containerless migration test) and valid
+PostgreSQL 16 (CI Alembic job). Row access goes through `backend/assessment/store.py`;
+routes and scoring policy belong to the owning feature.
+
+**Provenance: `assessment_pack`** — one row per imported pack (content, not per import).
+
+| Column | Type | Null | Default | Notes |
+|---|---|---|---|---|
+| pack_id | text PK | ✗ | — | deterministic `assessment-<chapter_id>-<hash12>`; re-import keeps the id |
+| kind | text CHECK ('assessment','exam','series') | ✗ | — | P3's exam/series packs reuse this table |
+| chapter_id | text | ✗ | — | pack chapter (validated against the directory name) |
+| class_level | int CHECK 6–12 | ✓ | — | |
+| subject | text | ✗ | 'physics' | |
+| pack_version | int CHECK ≥1 | ✗ | — | A6 `pack_version` |
+| content_hash | text | ✗ | — | A6 `content_hash` (`sha256:` over per-file hashes); **UNIQUE (kind, chapter_id, content_hash)** |
+| source_path, run_id, generator | text | ✓ | — | where the pack was read from, A6 run id, generator id |
+| gate_verdict | text CHECK ('pass','fail') | ✗ | 'pass' | the importer refuses a pack whose gate did not pass |
+| counts | jsonb | ✗ | '{}' | A6 counts (items, rows, prompts, concepts) |
+| generated_at / imported_at | timestamptz | ✓ / ✗ | — / now | |
+
+Index `assessment_pack(chapter_id, kind, imported_at desc)`.
+
+**`question_bank`** — one row per (item, language), REQUIREMENTS §7.3.
+
+| Column | Type | Null | Default | Notes |
+|---|---|---|---|---|
+| question_id | text PK | ✗ | — | `<base_item_id>-<language>`, stable per row |
+| base_item_id | text | ✗ | — | language-neutral item id; **UNIQUE (base_item_id, language)** |
+| class_level | int CHECK 6–12 | ✗ | — | |
+| chapter_id / concept_id | text | ✗ | — | **soft references** to the curated syllabus (§10 Q11) |
+| type | text CHECK ('mcq','numeric','assertion_reason') | ✗ | — | |
+| difficulty | text CHECK ('easy','medium','hard') | ✗ | — | |
+| marks | numeric CHECK > 0 | ✗ | — | |
+| language | text CHECK ('en','hi','hi-Latn') | ✗ | — | pack vocabulary, not the locale enum (§10 Q10) |
+| source_type | text CHECK ('generated','past_paper','sample_paper','curated_pyq') | ✗ | — | REQUIREMENTS §7.3 |
+| source_ref | jsonb | ✗ | '{}' | `{book_id, section, example}` |
+| prompt | text | ✗ | — | |
+| options | jsonb | ✗ | '[]' | MCQ and assertion-reason only; numeric rows carry `[]` |
+| answer | jsonb | ✗ | — | `{"index": n}` or `{"value", "tolerance", "unit"}` |
+| explanation | text | ✗ | — | |
+| misconception | text | ✓ | — | distractor rationale |
+| expected_time_ms | int CHECK > 0 | ✗ | — | A5 prior, not a measurement |
+| status | text CHECK ('draft','reviewed','published','retired') | ✗ | 'draft' | `reviewed` = deterministic gate only (Q-6 debt); only `reviewed`/`published` serve |
+| review_mode | text CHECK ('deterministic','judged','human') | ✗ | 'deterministic' | provenance of the review that produced the row |
+| version | int CHECK ≥1 | ✗ | 1 | content version |
+| generator, pack_id | text, text FK→assessment_pack ON DELETE SET NULL | ✓ | — | |
+| created_at / updated_at | timestamptz | ✗ | now | |
+
+Indexes: `(chapter_id, status)` (practice selection), `(concept_id)` (weak-topic drills).
+
+**`practice_session`** — one practice run (F5).
+
+`session_id` text PK; `user_id` FK→users ON DELETE CASCADE; `mode` CHECK
+('chapter','daily','weak_topic','retry_mistakes'); `chapter_id` (nullable: daily/weak sets
+can span chapters); `question_ids` jsonb (ordered, immutable at creation); `question_count`
+int; `config` jsonb (mode parameters); `score` numeric 0–100 (set at completion);
+`started_at`/`completed_at`. Indexes `(user_id, started_at desc)`, `(chapter_id)`.
+
+**`practice_attempt`** — one graded answer, append-only (a retry is a new row).
+
+`attempt_id` text PK; `session_id` FK→practice_session ON DELETE CASCADE; `question_id`
+text (**no FK**: learner evidence survives a retired question); `answer` jsonb;
+`correct` bool; `time_ms` int; `hints_used` int 0–20; `attempt_no` int ≥1; `created_at`.
+**UNIQUE (session_id, question_id, attempt_no)**; index `(session_id, created_at)`.
+
+**`speaking_prompt`** — one row per (prompt, language), REQUIREMENTS §8.2 + assessment.md §4.5.
+
+`prompt_id` text + `language` text CHECK ('en','hi','hi-Latn') = **composite PK**;
+`class_level`; `chapter_id`; `concept_ids` jsonb (a prompt can test several concepts);
+`prompt` text; `key_ideas` jsonb (`[{idea_id, text, concept_id?}]`); `model_answer` text;
+`model_answer_source` jsonb; `rubric` jsonb (the authored thresholds); `status`
+('draft','reviewed','published','retired'); `version`; `pack_id` FK; timestamps. Index
+`(chapter_id, language, status)`. The runtime list payload withholds `key_ideas` and
+`model_answer` (they are the expected answer); the recorder receives them after the
+attempt.
+
+**`speaking_attempt`** — one explain-back attempt (F6). **No audio column exists.**
+
+`attempt_id` text PK; `user_id` FK ON DELETE CASCADE; `prompt_id` + `language` (soft pair);
+`transcript` text (bounded at 4000 chars by the store; NULL when transcription failed);
+`rubric_scores`, `feedback`, `self_check` jsonb; `score` numeric 0–100; `duration_ms`;
+`created_at`. Indexes `(user_id, created_at desc)`, `(prompt_id, language)`. `DELETE
+/v1/speaking/attempts/{id}` is a **hard delete** so no transcript or feedback survives; the
+sketch's `deleted_at` is deliberately not used (§10 Q12).
+
+**`test_series`** — the catalogue row (six kinds, REQUIREMENTS §12.1).
+
+`series_id` text PK; `slug` text UNIQUE; `class_level` int CHECK 6–12; `kind` CHECK
+('ai_lesson','pyq_pattern','exact_pyq','board_practice','challenge','loop'); `title`;
+`description`; `language_set` jsonb; `status` ('draft','published','retired'); `metadata`
+jsonb; timestamps. Index `(class_level, kind, status)`.
+
+**`test`** — one paper: shared (belongs to a series) or a student's custom test.
+
+`test_id` text PK; `series_id` FK→test_series ON DELETE CASCADE (nullable); `user_id`
+FK→users ON DELETE CASCADE (nullable); `chapter_ids` jsonb; `title`; `language` CHECK
+('en','hi','hi-Latn') nullable; `duration_s` int > 0; `total_marks` numeric ≥ 0;
+`structure` jsonb (the paper shape: sections, blueprint snapshot); `status`; timestamps.
+**CHECK (series_id IS NOT NULL OR user_id IS NOT NULL)** — no orphan papers. Indexes
+`(series_id, status)`, `(user_id, created_at desc)`.
+
+**`test_question`** — the authored paper contents.
+
+PK `(test_id, question_id)`; `test_id` FK ON DELETE CASCADE; `question_id`
+FK→question_bank **ON DELETE RESTRICT** (a question used by a paper cannot be deleted);
+`order_index` int ≥1 with **UNIQUE (test_id, order_index)**; `section`; `marks` numeric > 0
+(the paper's marks, which may differ from the item's authored marks). Index `(question_id)`
+(retire check).
+
+**`test_attempt`** — one sitting/attempt (F7).
+
+`attempt_id` text PK; `test_id` FK ON DELETE CASCADE; `user_id` FK ON DELETE CASCADE;
+`status` ('in_progress','submitted','expired','abandoned'); `score` numeric 0–100;
+`time_spent_s`; `started_at`/`submitted_at`. **Partial unique index
+`(test_id, user_id) WHERE status = 'in_progress'`** — one live attempt per student, so a
+double start resumes instead of duplicating; the DB owns the guarantee. Indexes
+`(user_id, started_at desc)`, `(test_id)`.
+
+**`test_attempt_answer`** — autosaved answer (upsert on the PK).
+
+PK `(attempt_id, question_id)`; `attempt_id` FK ON DELETE CASCADE; `question_id` text
+(**no FK**: an answer survives a retired question); `answer` jsonb; `correct` bool (NULL
+until graded); `marks_awarded` numeric ≥ 0; `time_ms`; `flagged` bool; `updated_at`.
+
+**`topic_time_prior`** — A5 chapter/concept priors (per-question priors live on
+`question_bank.expected_time_ms`).
+
+PK `(chapter_id, scope, scope_id)`; `scope` CHECK ('chapter','concept'); `class_level`;
+`expected_time_ms` int > 0; `question_count` int; `formula_version` text; `pack_id` FK;
+`updated_at`. Index `(chapter_id)`. Re-import replaces a chapter's set (nothing references
+it); measured `question_time_stat`/`topic_time_stat` rows are a later SWOT table, not this.
+
+Retention: content rows (`question_bank`, `speaking_prompt`, `test_series`, `test`,
+`test_question`, `assessment_pack`, `topic_time_prior`) live until the content is retired
+(`status='retired'`) and are never cold-archived per student; learner rows
+(`practice_session`, `practice_attempt`, `speaking_attempt`, `test_attempt`,
+`test_attempt_answer`) live until the account is deleted (cascade) and speaking attempts
+additionally support a student-initiated hard delete. No raw audio is stored anywhere in
+this section (REQUIREMENTS §9.5, T11); a schema test asserts no audio-shaped column exists.
+
 ---
 
 ## 5. Access-pattern table (every index cites a NEED; every NEED query has an index)
@@ -556,6 +712,12 @@ made of account rows; `log_events` carries no account free text (ADR-0025 redact
 | AP-13 | abuse bucket upsert | systems-originated (founder correction 3) | every request | < 2 ms (memory-first) | UNIQUE (bucket_key, family, window_start) |
 | AP-14 | outbox poll (oldest unprocessed) | storage-tiering §3 | worker loop | backlog age alert > 15 min | partial index `processed_at IS NULL` |
 | AP-15 | catalogue lookup by key / scrub scan | storage-tiering §4–6 | per request for evicted objects; nightly scrub | cold fetch latency (not hot path) | `object_catalog(key)`; `(class_id, state)` |
+| AP-16 | practice candidate set: chapter + language + status (+ concept/difficulty) | F5 session create | per session | < 300 ms | `question_bank(chapter_id, status)`; `(concept_id)` |
+| AP-17 | practice resume: session row + its answers | F5 player | per question / resume | < 300 ms | `practice_session` PK + `user_id` scope; `practice_attempt(session_id, created_at)`; UNIQUE `(session_id, question_id, attempt_no)` |
+| AP-18 | speaking prompt list + a student's attempts | F6 hub/recorder | per visit | < 300 ms | `speaking_prompt(chapter_id, language, status)`; `speaking_attempt(user_id, created_at desc)` |
+| AP-19 | test start/resume (one live attempt) | F7 player | per visit | < 300 ms | partial UNIQUE `(test_id, user_id) WHERE status='in_progress'`; `test_attempt(user_id, started_at desc)` |
+| AP-20 | answer autosave (upsert) | F7 player | per answer | < 100 ms | `test_attempt_answer` PK `(attempt_id, question_id)` |
+| AP-21 | pack import upsert + provenance | operator / publish | per chapter per pack version | n/a (offline job) | `question_bank` PK; `speaking_prompt` PK; `assessment_pack` UNIQUE `(kind, chapter_id, content_hash)` |
 
 ---
 
@@ -580,6 +742,9 @@ made of account rows; `log_events` carries no account free text (ADR-0025 redact
 | auth_identity / auth_session / email_token | token/session TTL; until deletion | expiry checked on every use; `revoked_at`/`used_at`; deletion hard-deletes | immediate delete | no |
 | lesson_progress / progress_event / bookmark | until account deletion | none automatic (F3/F4 may add windows) | immediate delete in the delete transaction | no |
 | syllabus_chapter / concept | forever per import | versioned re-import by P1/P2 | n/a (public content) | n/a |
+| question_bank / speaking_prompt / test_series / test / test_question / assessment_pack / topic_time_prior | forever per pack version | `status='retired'`; a new pack version upserts rows and adds an `assessment_pack` row | n/a (public content) | n/a |
+| practice_session / practice_attempt / test_attempt / test_attempt_answer | until account deletion | none automatic | immediate delete in the delete transaction (cascade) | no |
+| speaking_attempt | until account deletion or student delete | student `DELETE /v1/speaking/attempts/{id}` is a hard delete; no cold copy ever | immediate delete in the delete transaction | no |
 
 Backups: C14 ages out on a documented window; on any restore, the re-delete-on-restore list
 (4.16 completed rows) is re-applied before the DB accepts traffic (storage-tiering §6).
@@ -605,6 +770,18 @@ Backups: C14 ages out on a documented window; on any restore, the re-delete-on-r
   the same head (the runtime runner treats the CLI-only `0022` as an alias of `0002`).
   Empty→head and head→`0022`→head are exercised by `testing/backend/test_alembic_migrations.py`
   on SQLite and by the CI Alembic job on PostgreSQL 16.
+- **W4 revision `0004_practice_speaking_tests`** (2026-11-17, W4 data foundation): adds
+  §4.19's twelve tables. The chain is now `0001 → 0002 → 0022 (no-op) → 0003 → 0004`, still
+  one head. Empty→head, `0003`→head (an existing frontend database keeps every row), and
+  `head`→`0003`→`head` are exercised on SQLite by `testing/backend/test_alembic_migrations.py`
+  and on PostgreSQL 16 by the CI `db-migrations` job (`alembic upgrade head` twice, then a
+  head/current post-condition). Store-level SQL parity (boolean columns, JSON round-trip,
+  jsonb defaults) runs in the CI `tests` job through
+  `testing/backend/test_assessment_postgres.py`, which imports the packs and drives the
+  practice/speaking/test flows against the job's PostgreSQL service (it skips with a reason
+  when no PostgreSQL URL is present). Content enters the tables only through
+  `scripts/import_assessment_packs.py` (runbook: `docs/backend/runbooks/assessment-import.md`);
+  nothing else writes `question_bank`/`speaking_prompt`.
 - Target revisions (post-challenge, mechanical): partition `telemetry_event`/`voice_turn`/
   `credit_ledger` by day; hash-chain `audit_log`; per-subject encryption key columns;
   `language_bundle` + glossary tables with SC-01; `device` server mirror if C8 mirror ships.
@@ -643,3 +820,7 @@ systems-originated reason).
 | Q7 | Account tombstone keeps `users.role`/`board`/`language` after deletion | Accepted: no PII remains (email anonymised, name/class cleared), and the row preserves referential history for `audit_log`; purge the row itself if counsel requires | counsel/DPDP review |
 | Q8 | `progress_event.kind` is a closed CHECK list | F3/F5/F7 add kinds by an additive CHECK migration (SQLite rebuild, PostgreSQL `ALTER … DROP/ADD CONSTRAINT`); never insert an unlisted kind | owning F-agent + ADR-0016 |
 | Q9 | Auth rate limiting is in-memory (single replica) | Fine for the P0/R1 single-replica Deployment; move to Postgres-backed counters before scaling out (ADR-0029 revisit trigger) | infra/scale trigger |
+| Q10 | `question_bank.language`/`speaking_prompt.language`/`test.language` use `en`, `hi`, `hi-Latn` — not the 11-value locale enum used by `device`/`users` | Deliberate: a question or prompt is authored per language variant (REQUIREMENTS §7.3/§7.6, assessment.md §5); a locale maps to a variant at the API edge. Adding a fourth variant is an additive CHECK migration | owning F-agent + content |
+| Q11 | `question_bank.chapter_id`/`concept_id` and `speaking_prompt.chapter_id` are text without an FK to `syllabus_chapter`/`concept` | The assessment pack is authored against tracked curated syllabus data, and the catalogue import (P1/P2) has not landed; a hard FK would make the pack import fail on an empty catalogue and couple wave order. The importer validates chapter identity against the pack and its own syllabus. Add the FK in an additive revision once `syllabus_chapter`/`concept` are populated | P1/P2 catalogue import |
+| Q12 | `speaking_attempt` has no `deleted_at` (the §8.2 sketch lists one) | The student delete is a hard delete so no transcript or feedback survives anywhere (REQUIREMENTS §9.5, DPDP minimisation); a tombstone row would keep the free text or require a second redaction path. `progress_event` retains the aggregate evidence | counsel/DPDP review |
+| Q13 | `series_blueprint`/`source_paper`/`question_time_stat`/`topic_time_stat` are not in `0004` | P3's exam/series packs arrive with their own blueprint/source tables and SWOT owns measured stats; `test.structure` carries the paper shape until then. `topic_time_prior` holds A5's priors (not measurements) | P3 + W5 F8 |
