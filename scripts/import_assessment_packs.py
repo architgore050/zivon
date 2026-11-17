@@ -191,6 +191,8 @@ def _verify_files(pack_dir: Path, manifest: Mapping[str, Any]) -> None:
     assert isinstance(files, dict)  # narrowing for mypy
     missing = [name for name in PACK_DATA_FILES if name not in files]
     _require(not missing, f"{pack_dir}: manifest.files omits {missing}")
+    unknown = sorted(set(files) - set(PACK_DATA_FILES))
+    _require(not unknown, f"{pack_dir}: manifest.files has unknown entries {unknown}")
     for name, entry in files.items():
         _require(isinstance(entry, dict), f"{pack_dir}: bad files entry for {name}")
         path = pack_dir / str(name)

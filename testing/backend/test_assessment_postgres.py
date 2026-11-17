@@ -130,7 +130,7 @@ class PostgresParityTests(unittest.TestCase):
             "INSERT INTO test_series (series_id, slug, class_level, kind, title, "
             "language_set, status) VALUES (?, ?, 9, 'ai_lesson', 'AI Lesson', "
             "'[\"en\"]', 'published')",
-            (series_id, f"parity-series-{series_id[:8]}"),
+            (series_id, f"parity-series-{series_id[-8:]}"),
         )
         self.db.execute(
             "INSERT INTO test (test_id, series_id, title, language, duration_s, "
@@ -235,6 +235,30 @@ class PostgresParityTests(unittest.TestCase):
         }
         self.assertTrue(graded[MCQ]["correct"])
         self.assertFalse(graded[NUMERIC]["correct"])
+
+    def test_a_malformed_saved_answer_scores_zero_on_postgres(self) -> None:
+        """The PostgreSQL boolean column rejects the integer `0` SQLite accepts."""
+        test_id = self._paper()
+        attempt_id = str(
+            create_test_attempt(self.db, self.user_id, test_id)["attempt_id"]
+        )
+        save_test_answer(
+            self.db,
+            self.user_id,
+            attempt_id,
+            question_id=MCQ,
+            answer={"index": 99},  # out of range: a stale/forged row
+        )
+        result = submit_test_attempt(self.db, self.user_id, attempt_id)
+        assert result is not None
+        self.assertEqual(result["status"], "submitted")
+        self.assertAlmostEqual(float(result["score"]), 0.0, places=2)
+        graded = {
+            row["question_id"]: row
+            for row in list_test_answers(self.db, self.user_id, attempt_id)
+        }
+        self.assertFalse(graded[MCQ]["correct"])
+        self.assertEqual(float(graded[MCQ]["marks_awarded"]), 0.0)
 
 
 if __name__ == "__main__":

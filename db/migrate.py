@@ -125,7 +125,11 @@ def get_current_revision(engine: DatabaseEngine) -> str | None:
 
 
 def upgrade_db(engine: DatabaseEngine, target: str = "head") -> str:
-    """Apply migrations linearly up to `target` ('head', '0001', '0002', '0003_full_frontend')."""
+    """Apply migrations linearly up to `target`.
+
+    Valid targets are `head`, `0001`, `0002`, `0003_full_frontend`, and
+    `0004_practice_speaking_tests`.
+    """
     target_rev = LATEST_REVISION if target == "head" else target
     valid_revs = [r.revision for r in REVISION_CHAIN]
     if target_rev not in valid_revs:

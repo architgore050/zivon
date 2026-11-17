@@ -207,6 +207,23 @@ class ImportIntegrityTests(unittest.TestCase):
         with self.assertRaises(importer.PackError):
             importer.import_packs(self.db, self.packs_dir)
 
+    def test_an_unknown_manifest_entry_is_refused_before_reading_it(self) -> None:
+        """The manifest cannot point the verifier at a file outside the pack."""
+        manifest = self.packs_dir / MOTION / "manifest.json"
+
+        def add_extra(payload: dict[str, object]) -> None:
+            files = payload["files"]
+            assert isinstance(files, dict)
+            files["../outside.json"] = files["questions.json"]
+
+        _rewrite_json(manifest, add_extra)
+        with self.assertRaises(importer.PackError) as caught:
+            importer.import_packs(self.db, self.packs_dir)
+        self.assertIn("unknown entries", str(caught.exception))
+        row = self.db.fetchone("SELECT COUNT(*) AS c FROM question_bank")
+        assert row is not None
+        self.assertEqual(int(row["c"]), 0)
+
     def test_an_empty_directory_is_refused(self) -> None:
         with self.assertRaises(importer.PackError) as caught:
             importer.import_packs(self.db, Path(self._tmp.name) / "nope")

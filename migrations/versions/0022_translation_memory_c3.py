@@ -12,8 +12,9 @@ revision after `0002` is a schema no-op on a fresh database — it stays as the
 record of EX2's translation contract and keeps every reference to
 `migrations/versions/0022_translation_memory_c3.py` valid. Order it AFTER
 `0002` (never as a second root) and the chain is linear: 0001 -> 0002 -> 0022.
-[2026-11-15 F0] `0003_full_frontend` now follows 0022 and is the single head; this
-revision stays a schema no-op in the middle of the chain.
+[2026-11-15 F0] `0003_full_frontend` follows 0022; [2026-11-17 W4]
+`0004_practice_speaking_tests` is the current head. This revision stays a
+schema no-op in the middle of the chain.
 
 Traces to:
 - ADR-0009 (11-locale model)

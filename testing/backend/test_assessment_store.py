@@ -162,6 +162,14 @@ class StoreTestCase(unittest.TestCase):
         with self.assertRaises(AssessmentError) as caught:
             select_question_ids(self.db, MOTION, language="ta")
         self.assertEqual(caught.exception.code, "E-LANGUAGE-INVALID")
+        with self.assertRaises(AssessmentError) as caught:
+            select_question_ids(
+                self.db,
+                MOTION,
+                language="en",
+                concept_ids=[f"concept-{index}" for index in range(201)],
+            )
+        self.assertEqual(caught.exception.code, "E-PRACTICE-CONCEPTS")
 
     def test_retired_and_draft_questions_never_serve(self) -> None:
         try:
@@ -489,6 +497,36 @@ class StoreTestCase(unittest.TestCase):
         assert row is not None
         self.assertEqual(int(row["c"]), 0, "delete is a hard delete, not a tombstone")
 
+    def test_a_draft_speaking_prompt_cannot_be_attempted(self) -> None:
+        """Only a served prompt can gate the answer material an attempt unlocks."""
+        self.db.execute(
+            "UPDATE speaking_prompt SET status = 'draft' "
+            "WHERE prompt_id = 'spk-c9-motion-002' AND language = 'en'"
+        )
+        try:
+            with self.assertRaises(AssessmentError) as caught:
+                save_speaking_attempt(
+                    self.db,
+                    self.user_id,
+                    prompt_id="spk-c9-motion-002",
+                    language="en",
+                    transcript="A draft prompt should not unlock a model answer.",
+                )
+            self.assertEqual(caught.exception.code, "E-SPEAKING-PROMPT-UNKNOWN")
+        finally:
+            self.db.execute(
+                "UPDATE speaking_prompt SET status = 'reviewed' "
+                "WHERE prompt_id = 'spk-c9-motion-002' AND language = 'en'"
+            )
+        saved = save_speaking_attempt(
+            self.db,
+            self.user_id,
+            prompt_id="spk-c9-motion-002",
+            language="en",
+            transcript="A served prompt records an attempt.",
+        )
+        self.assertEqual(saved["prompt_id"], "spk-c9-motion-002")
+
     def test_speaking_attempt_validation(self) -> None:
         with self.assertRaises(AssessmentError) as caught:
             save_speaking_attempt(
@@ -499,6 +537,16 @@ class StoreTestCase(unittest.TestCase):
                 transcript="hello",
             )
         self.assertEqual(caught.exception.code, "E-SPEAKING-PROMPT-UNKNOWN")
+        with self.assertRaises(AssessmentError) as caught:
+            save_speaking_attempt(
+                self.db,
+                self.user_id,
+                prompt_id="spk-c9-motion-001",
+                language="en",
+                transcript="hello",
+                self_check={"note": "x" * 5000},
+            )
+        self.assertEqual(caught.exception.code, "E-SPEAKING-PAYLOAD")
         with self.assertRaises(AssessmentError) as caught:
             save_speaking_attempt(
                 self.db,
@@ -557,6 +605,20 @@ class StoreTestCase(unittest.TestCase):
             ],
             [draft],
         )
+
+        draft_series = f"draft-series-{uuid7_str()[-8:]}"
+        self.db.execute(
+            "INSERT INTO test_series (series_id, slug, class_level, kind, title, status) "
+            "VALUES (?, ?, 9, 'ai_lesson', 'Unpublished series', 'draft')",
+            (uuid7_str(), draft_series),
+        )
+        self.assertIsNone(
+            get_series(self.db, draft_series),
+            "a draft series is not part of the public catalogue",
+        )
+        hidden = get_series(self.db, draft_series, include_unpublished=True)
+        assert hidden is not None
+        self.assertEqual(hidden["status"], "draft")
 
     def test_paper_questions_use_paper_marks_and_hide_the_key(self) -> None:
         test_id = self._paper()

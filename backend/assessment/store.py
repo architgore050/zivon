@@ -12,8 +12,10 @@ Rules this module enforces (db-spec §4.19, REQUIREMENTS §8.3/§9.5):
 
 - every learner read/write is scoped by `user_id`; a cross-account id reads as
   "not found", never as somebody else's row;
-- `speaking_attempt` has no audio column at all and transcript text is bounded
-  (`MAX_TRANSCRIPT_CHARS`); raw audio is never persisted anywhere;
+- `speaking_attempt` has no audio column at all, transcript text and the
+  rubric/feedback/self-check JSON are bounded, and an attempt may only be
+  recorded against a currently served prompt (a draft or retired prompt cannot
+  become an answer-material oracle); raw audio is never persisted anywhere;
 - question rows are served without the answer key (`Question.public()`); the
   review shape (`Question.review()`) is server-side only. A practice or test
   player must not ship the answer to the child before they answer.
@@ -272,11 +274,17 @@ def select_question_ids(
     lang = _language(language)
     clauses = ["chapter_id = ?", "language = ?", "status IN (?, ?)"]
     params: list[Any] = [chapter, lang, *SERVED_STATUSES]
-    concepts = [str(item) for item in (concept_ids or []) if str(item).strip()]
+    concepts = list(
+        dict.fromkeys(str(item) for item in (concept_ids or []) if str(item).strip())
+    )
+    if len(concepts) > MAX_QUESTION_IDS:
+        raise AssessmentError("E-PRACTICE-CONCEPTS")
     if concepts:
         clauses.append(f"concept_id IN ({', '.join('?' for _ in concepts)})")
         params.extend(concepts)
-    levels = [str(item) for item in (difficulties or []) if str(item).strip()]
+    levels = list(
+        dict.fromkeys(str(item) for item in (difficulties or []) if str(item).strip())
+    )
     if levels:
         unknown = [level for level in levels if level not in DIFFICULTIES]
         if unknown:
@@ -672,19 +680,31 @@ def save_speaking_attempt(
     duration_ms: int | None = None,
     now: datetime.datetime | None = None,
 ) -> dict[str, Any]:
-    """Persist one explain-back attempt (transcript + rubric + feedback only)."""
+    """Persist one explain-back attempt (transcript + bounded rubric/feedback only).
+
+    The prompt must be served (`reviewed`/`published`): the attempt is the gate
+    that unlocks `key_ideas` and `model_answer`, so a draft or retired prompt
+    must not be attemptable by id.
+    """
     owner = _require_user(user_id)
     lang = _language(language)
     text = None if transcript is None else str(transcript).strip()
     if text is not None and len(text) > MAX_TRANSCRIPT_CHARS:
         raise AssessmentError("E-SPEAKING-TRANSCRIPT")
+    rubric_payload = _bounded_payload(rubric_scores or {}, "E-SPEAKING-PAYLOAD")
+    feedback_payload = _bounded_payload(feedback or {}, "E-SPEAKING-PAYLOAD")
+    self_check_payload = _bounded_payload(self_check or {}, "E-SPEAKING-PAYLOAD")
     if score is not None and not 0.0 <= float(score) <= 100.0:
         raise AssessmentError("E-SPEAKING-SCORE")
     if duration_ms is not None and not 0 <= int(duration_ms) <= 600_000:
         raise AssessmentError("E-SPEAKING-DURATION")
+    # An attempt is the gate that unlocks key ideas + model answer, so it may
+    # only be recorded against a prompt that is currently served; a draft or
+    # retired prompt must not become an answer-material oracle by id.
     prompt = db.fetchone(
-        "SELECT prompt_id FROM speaking_prompt WHERE prompt_id = ? AND language = ?",
-        (str(prompt_id), lang),
+        "SELECT prompt_id FROM speaking_prompt WHERE prompt_id = ? AND language = ? "
+        "AND status IN (?, ?)",
+        (str(prompt_id), lang, *SERVED_STATUSES),
     )
     if prompt is None:
         raise AssessmentError("E-SPEAKING-PROMPT-UNKNOWN")
@@ -703,9 +723,9 @@ def save_speaking_attempt(
             str(prompt_id),
             lang,
             text,
-            _dumps(dict(rubric_scores or {})),
-            _dumps(dict(feedback or {})),
-            _dumps(dict(self_check or {})),
+            _dumps(rubric_payload),
+            _dumps(feedback_payload),
+            _dumps(self_check_payload),
             float(score) if score is not None else None,
             int(duration_ms) if duration_ms is not None else None,
             created,
@@ -808,11 +828,14 @@ def list_series(
     return [_series_public(row) for row in rows]
 
 
-def get_series(db: DatabaseEngine, slug: str) -> dict[str, Any] | None:
-    """Return one series by slug, or None."""
-    row = db.fetchone(
-        "SELECT * FROM test_series WHERE slug = ?", (str(slug or "").strip(),)
-    )
+def get_series(
+    db: DatabaseEngine, slug: str, *, include_unpublished: bool = False
+) -> dict[str, Any] | None:
+    """Return one published series by slug (or any status for an operator view)."""
+    sql = "SELECT * FROM test_series WHERE slug = ?"
+    if not include_unpublished:
+        sql += " AND status = 'published'"
+    row = db.fetchone(sql, (str(slug or "").strip(),))
     return _series_public(row) if row else None
 
 
@@ -1156,9 +1179,9 @@ def submit_test_attempt(
                 if exc.code != "E-ANSWER-INVALID":
                     raise
                 tx.execute(
-                    "UPDATE test_attempt_answer SET correct = 0, marks_awarded = 0 "
+                    "UPDATE test_attempt_answer SET correct = ?, marks_awarded = ? "
                     "WHERE attempt_id = ? AND question_id = ?",
-                    (str(attempt_id), question.question_id),
+                    (False, 0.0, str(attempt_id), question.question_id),
                 )
                 continue
             awarded = marks if check.correct else 0.0

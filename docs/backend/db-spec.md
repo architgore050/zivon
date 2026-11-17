@@ -625,23 +625,27 @@ text (**no FK**: learner evidence survives a retired question); `answer` jsonb;
 ('draft','reviewed','published','retired'); `version`; `pack_id` FK; timestamps. Index
 `(chapter_id, language, status)`. The runtime list payload withholds `key_ideas` and
 `model_answer` (they are the expected answer); the recorder receives them after the
-attempt.
+attempt. An attempt may only be recorded against a currently served (`reviewed`/
+`published`) prompt, so a draft or retired prompt cannot be used as an answer-material
+oracle by id.
 
 **`speaking_attempt`** — one explain-back attempt (F6). **No audio column exists.**
 
 `attempt_id` text PK; `user_id` FK ON DELETE CASCADE; `prompt_id` + `language` (soft pair);
 `transcript` text (bounded at 4000 chars by the store; NULL when transcription failed);
-`rubric_scores`, `feedback`, `self_check` jsonb; `score` numeric 0–100; `duration_ms`;
-`created_at`. Indexes `(user_id, created_at desc)`, `(prompt_id, language)`. `DELETE
-/v1/speaking/attempts/{id}` is a **hard delete** so no transcript or feedback survives; the
-sketch's `deleted_at` is deliberately not used (§10 Q12).
+`rubric_scores`, `feedback`, `self_check` jsonb (each bounded by the store); `score`
+numeric 0–100; `duration_ms`; `created_at`. Indexes `(user_id, created_at desc)`,
+`(prompt_id, language)`. `DELETE /v1/speaking/attempts/{id}` is a **hard delete** so no
+transcript or feedback survives; the sketch's `deleted_at` is deliberately not used
+(§10 Q12).
 
 **`test_series`** — the catalogue row (six kinds, REQUIREMENTS §12.1).
 
 `series_id` text PK; `slug` text UNIQUE; `class_level` int CHECK 6–12; `kind` CHECK
 ('ai_lesson','pyq_pattern','exact_pyq','board_practice','challenge','loop'); `title`;
 `description`; `language_set` jsonb; `status` ('draft','published','retired'); `metadata`
-jsonb; timestamps. Index `(class_level, kind, status)`.
+jsonb; timestamps. Index `(class_level, kind, status)`. The catalogue helpers serve
+`published` rows only by default; `include_unpublished` exists for an operator view.
 
 **`test`** — one paper: shared (belongs to a series) or a student's custom test.
 
@@ -767,7 +771,8 @@ Backups: C14 ages out on a documented window; on any restore, the re-delete-on-r
 - **Wave-1 F0 revision `0003_full_frontend`** (2026-11-16, ADR-0029): adds §4.18's nine
   tables and the nullable `device.user_id`. Chain is `0001 → 0002 → 0022_translation_memory_c3
   (no-op) → 0003_full_frontend`; the Alembic CLI path and `python -m db.migrate` converge on
-  the same head (the runtime runner treats the CLI-only `0022` as an alias of `0002`).
+  the same head (the runtime runner treats the CLI-only `0022` as an alias of `0002`; the
+  current head is `0004` below).
   Empty→head and head→`0022`→head are exercised by `testing/backend/test_alembic_migrations.py`
   on SQLite and by the CI Alembic job on PostgreSQL 16.
 - **W4 revision `0004_practice_speaking_tests`** (2026-11-17, W4 data foundation): adds

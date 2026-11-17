@@ -19,7 +19,7 @@ model or a vendor socket.
 
 | Need | How |
 |---|---|
-| Schema at head | the DB is at `0004_practice_speaking_tests` (`python -m db.migrate current`, or the cluster's `26-backend-migrate-job`). `--no-migrate` refuses a stale schema; the default runs the idempotent chain first |
+| Schema at head | the DB is at `0004_practice_speaking_tests` (`python -m db.migrate current`, or the cluster's `26-backend-migrate-job`). `--no-migrate` skips the migration step, so a stale schema then fails on its first write; the default runs the idempotent chain first |
 | Driver | SQLite needs nothing (stdlib). PostgreSQL needs `psycopg` (`pip install -r backend/requirements.txt` in the checkout) |
 | Content | `sources/assessment/packs/<chapter_id>/` contains `manifest.json` + the five data files, byte-identical to what A6 wrote |
 | DB URL | `--db-url` or `ZIVON_DB_URL`; the value is a secret in the cluster, so read it from the Secret/env — never paste it into a shell history on a shared host |
