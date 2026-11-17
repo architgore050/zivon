@@ -1,0 +1,42 @@
+card_id: EV-SER-002
+version: 1
+title: Series coverage and volume - approved minimums, chapter/concept coverage, structure
+stage: E3-series
+agent_role: Series Assembler
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/exam/class-10-science
+  - evals/goldens/exam/class-12-physics
+  seeded_defects:
+  - SD-SER-002
+  - SD-SER-003
+  source_catalog_ref: sources/exam/README.md
+deterministic_checks:
+- id: DET-SER02-COVERAGE-VOLUME
+  entrypoint: evals.checkers.exam_checks:check_series_coverage_volume
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.series.volume:check_volume
+  description: Asserts the six series exist in the approved order, that the
+    pipeline's minimums equal FEATURE-MAP 12.2, and that the shipped prototype is
+    blocked with exactly the expected chapter-floor gaps named (two banks for four
+    Class 10 chapters; none for Class 14 chapters). A synthetic full-syllabus bank
+    must make the same gate pass, so the bar is real rather than impossible, and
+    its five full papers must be five distinct item sets - one complete paper
+    repeated is one paper counted twice, not volume. Two
+    seeded defects (dropped Challenge items, a paper missing a section) must block
+    publish with `series.minimum.challenge` and `series.paper_structure`.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

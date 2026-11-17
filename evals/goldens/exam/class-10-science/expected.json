@@ -1,0 +1,88 @@
+{
+  "golden_id": "GX-01",
+  "class_num": 10,
+  "papers": {
+    "min": 7,
+    "by_type": {
+      "main": 5,
+      "compartment": 1,
+      "sample": 1
+    }
+  },
+  "blueprint": {
+    "chapter_ids": [
+      "class-10-light-reflection-and-refraction",
+      "class-10-the-human-eye-and-the-colourful-world",
+      "class-10-electricity",
+      "class-10-magnetic-effects-of-electric-current"
+    ],
+    "section_ids": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "scope_marks": 27,
+    "type_counts_min": {
+      "mcq": 25,
+      "assertion_reason": 8,
+      "very_short": 16,
+      "short": 25,
+      "case_based": 16,
+      "long": 20
+    }
+  },
+  "series": {
+    "ids": [
+      "ai_lesson",
+      "pyq_pattern",
+      "exact_pyq",
+      "board_practice",
+      "challenge",
+      "loop"
+    ],
+    "expected_minimums": {
+      "ai_lesson": {
+        "questions_per_chapter": 20,
+        "chapter_tests_per_chapter": 1,
+        "mixed_tests": 2
+      },
+      "pyq_pattern": {
+        "full_papers": 5,
+        "chapter_or_unit_tests": 10
+      },
+      "exact_pyq": {
+        "past_years": 5
+      },
+      "board_practice": {
+        "full_papers": 5
+      },
+      "challenge": {
+        "questions": 100,
+        "sets": 10
+      },
+      "loop": {
+        "questions": 100,
+        "sets": 10
+      }
+    },
+    "expected_gaps": {
+      "chapter_floor": [
+        "class-10-the-human-eye-and-the-colourful-world",
+        "class-10-electricity",
+        "class-10-magnetic-effects-of-electric-current"
+      ],
+      "below_minimum": [
+        "ai_lesson",
+        "pyq_pattern",
+        "board_practice",
+        "challenge",
+        "loop"
+      ]
+    },
+    "dark": [
+      "exact_pyq"
+    ]
+  }
+}

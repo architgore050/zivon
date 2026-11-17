@@ -1,0 +1,11 @@
+{
+  "sample_id": "SD-SER-002",
+  "defect_class": "volume_shortfall",
+  "expected_rule": "series.minimum.challenge",
+  "expected_severity": "major",
+  "mutations": {
+    "operation": "drop_series_items",
+    "series_id": "challenge",
+    "count": 5
+  }
+}

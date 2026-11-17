@@ -312,8 +312,11 @@ AGENTS.md sentence must be amended in the same change.
 
 ## 7. What P3 must build
 
-P3 owns `factory/exam/**`, `sources/exam/**`, and the exam test set. This section
-is the contract; nothing here is implemented by C0.
+P3 owns `factory/exam/**`, `factory/series/**`, `sources/exam/**`, and the exam
+test set. This section is the contract; nothing here is implemented by C0.
+**Status 2026-11-17 (P3):** implemented in blueprint-only mode; the operating
+contract is [`docs/content-factory/exam.md`](../content-factory/exam.md). The
+clearance-gated verbatim path exists in the schema and gate but is dark.
 
 ### 7.1 Modes and flags
 

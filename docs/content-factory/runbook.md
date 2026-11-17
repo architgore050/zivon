@@ -106,6 +106,34 @@ is correct end to end and the only remaining variable is your real model.
 - Contract, rule ids, time-prior formula and current content/debt:
   [`assessment.md`](assessment.md).
 
+## Build the exam blueprint and the six series (separate entrypoint)
+
+    python -m factory.exam --list-papers
+    python -m factory.exam --class 10
+    python -m factory.exam --class 10 --class 12
+    python -m factory.exam --class 10 --fresh
+    python -m factory.exam --class 10 --stages E4-publish
+    python -m factory.exam --class 10 --require-publishable
+
+- Another **separate pipeline**: stages `E1-ingest` .. `E4-publish`, own run
+  directory `runs/exam/<run_id>/`, no model calls. It reads paper *metadata*
+  fixtures (`sources/exam/papers/`, no question text), the syllabus and the
+  assessment banks; it never touches stages 00-12, A1-A6 or `frontend/`.
+- A run per class (`exam-class-<n>`); re-running RESUMES completed stages, and
+  the fingerprint covers the fixtures, syllabus, content mode, clearance id and
+  every policy. `--fresh` wipes the attempt.
+- The pack lands under `E4-publish/pack/`. **A blocked pack is not mirrored**
+  even with `--export-dir`: the volume/coverage gate (`FEATURE-MAP` §12.2)
+  blocks publish, and the manifest names every blocker. Use
+  `--require-publishable` when a script must fail on a blocked pack.
+- Compliance flags are environment-only: `EXAM_CONTENT_MODE` (default
+  `blueprint_only`), `EXAM_VERBATIM_CLEARANCE_ID`, `SERIES_EXACT_PYQ_ENABLED`.
+  An unknown mode or a verbatim mode without a clearance row is a startup
+  error, not a fallback. Never set `EXAM_CONTENT_MODE=attributed_verbatim`
+  without a clearance record in `docs/compliance/decision-log.md`.
+- Contract, rule ids, series table and current content/debt:
+  [`exam.md`](exam.md).
+
 ## Publish the repo snapshot (P5 catalogue/version/SEO gates)
 
 `scripts/publish-frontend.sh` is the one-way PVC -> repo bridge. It now gates on

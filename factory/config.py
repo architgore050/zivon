@@ -148,6 +148,26 @@ _SPEC: dict[str, Any] = {
         "prompt_version": str,
         "max_chars_neighbour_context": int,
     },
+    "exam": {
+        "papers_dir": str,
+        "syllabus_path": str,
+        "chapters_dir": str,
+        "decision_log_path": str,
+        "export_dir": str,
+        "content_mode": str,
+        "verbatim_clearance_id": str,
+        "exact_pyq_enabled": bool,
+        "blueprint_years": int,
+        "recency_decay": float,
+        "include_paper_types": list,
+        "chapter_question_floor": int,
+        "chapter_test_size": int,
+        "mixed_test_size": int,
+        "unit_test_size": int,
+        "set_size": int,
+        "similarity_ngram": int,
+        "similarity_max_overlap": float,
+    },
     "assessment": {
         "syllabus_path": str,
         "chapters_dir": str,
@@ -510,6 +530,13 @@ def load_config(path: Path | None = None, *, require_server: bool = True) -> Con
         from .assessment.config import DEFAULT_ASSESSMENT_SECTION
 
         data["assessment"] = json.loads(json.dumps(DEFAULT_ASSESSMENT_SECTION))
+    # Same rule for the exam section (2026-11-17): the P3 exam/series pipeline
+    # is a separate entrypoint (E1-E4); a config written before it existed
+    # keeps loading.
+    if "exam" not in data:
+        from .exam.config import DEFAULT_EXAM_SECTION
+
+        data["exam"] = json.loads(json.dumps(DEFAULT_EXAM_SECTION))
 
     _validate(data, _SPEC, cfg_path)
 

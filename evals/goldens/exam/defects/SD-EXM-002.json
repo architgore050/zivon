@@ -1,0 +1,14 @@
+{
+  "sample_id": "SD-EXM-002",
+  "defect_class": "unknown_chapter",
+  "expected_rule": "exam.question.chapter_unknown",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_question",
+    "paper_id": "cbse-c12-physics-2024-main",
+    "question_no": "2",
+    "patch": {
+      "chapter_id": "class-12-not-a-real-chapter"
+    }
+  }
+}

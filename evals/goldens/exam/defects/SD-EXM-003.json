@@ -1,0 +1,13 @@
+{
+  "sample_id": "SD-EXM-003",
+  "defect_class": "stored_source_text",
+  "expected_rule": "exam.paper.source_text",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "set_question_key",
+    "paper_id": "cbse-c12-physics-2024-main",
+    "question_no": "3",
+    "key": "text",
+    "value": "A verbatim question that must never be stored"
+  }
+}

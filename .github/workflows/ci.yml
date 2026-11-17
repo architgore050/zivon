@@ -364,6 +364,11 @@ jobs:
         # concept tagging, practice items, speaking rubrics, time priors and the
         # versioned pack. Zero network, zero keys, no Chromium.
         run: python -m unittest discover -s testing/content_factory/assessment -t . -v
+      - name: Exam/series pipeline tests (P3; E1-E4, key-free, no model, no browser)
+        # The separate factory.exam entrypoint (blueprint-only, DEC-COMP-001):
+        # paper metadata ingest, blueprint, the six series, volume/coverage gate
+        # and the pack. The eval cards are exercised by the eval-smoke job.
+        run: python -m unittest discover -s testing/content_factory/exam -t . -v
       - name: Content factory integration test (real orchestrator vs mock inference server + real headless Chromium)
         # first run downloads the all-MiniLM-L6-v2 embedder (~90 MB) from HuggingFace
         run: python -m unittest testing.content_factory.integration.test_end_to_end -v

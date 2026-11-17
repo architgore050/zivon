@@ -1,0 +1,12 @@
+{
+  "sample_id": "SD-SER-003",
+  "defect_class": "paper_structure_break",
+  "expected_rule": "series.paper_structure",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "drop_paper_slots",
+    "series_id": "board_practice",
+    "paper_id": "board-practice-p01",
+    "section_id": "E"
+  }
+}

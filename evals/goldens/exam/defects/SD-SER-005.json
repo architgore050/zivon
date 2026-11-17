@@ -1,0 +1,16 @@
+{
+  "sample_id": "SD-SER-005",
+  "defect_class": "dark_series_enabled",
+  "expected_rule": "series.status.exact_pyq",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_series",
+    "series_id": "exact_pyq",
+    "patch": {
+      "enabled": true,
+      "status": "active",
+      "notice_id": "N-03",
+      "disabled_reason": null
+    }
+  }
+}

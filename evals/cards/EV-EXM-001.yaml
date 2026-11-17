@@ -1,0 +1,43 @@
+card_id: EV-EXM-001
+version: 1
+title: Exam paper metadata ingest fidelity and source attribution (no source text)
+stage: E1-ingest
+agent_role: Exam Ingest Curator
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/exam/class-10-science
+  - evals/goldens/exam/class-12-physics
+  seeded_defects:
+  - SD-EXM-001
+  - SD-EXM-002
+  - SD-EXM-003
+  - SD-EXM-004
+  - SD-EXM-005
+  source_catalog_ref: sources/exam/README.md
+deterministic_checks:
+- id: DET-EXM01-INGEST-FIDELITY
+  entrypoint: evals.checkers.exam_checks:check_ingest_fidelity
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.exam.validators:validate_papers
+  description: Rebuilds E1 from the tracked paper metadata fixtures and asserts
+    the year/paper-type/section/marks/type extraction for both classes, that every
+    paper recomputes its own marks and section counts, that provenance is present
+    with an https URL, and that no text-bearing key exists anywhere in the ingest
+    artifact (DEC-COMP-001). Five seeded defects (wrong marks, unknown chapter,
+    stored question text, non-https provenance, section count mismatch) must each
+    make their declared rule fire.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

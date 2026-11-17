@@ -130,6 +130,10 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 | `EV-ASM-002` (P2) | `A1-syllabus` → `A6-publish-export` | Assessment Author: syllabus + concept coverage + block tagging | `assessment_checks.py` (`check_chapter_concept_coverage`: 4-class map integrity, every concept practised, coverage agrees, every published block tagged) | `0` calls | Yes (det. only) | Yes |
 | `EV-ASM-003` (P2) | `A5-time-priors` | Assessment Author: difficulty, marks and time priors | `assessment_checks.py` (`check_difficulty_marks_time_priors`: count/type/difficulty bands, marks, prior bounds, topic coverage, no orphan prior, hard≥easy median; 1 seeded prior defect) | `0` calls | Yes (det. only) | Yes |
 | `EV-ASM-004` (P2) | `A4-speaking-rubrics` → `A6-publish-export` | Speaking Rubric Author: EN/HI/Hinglish completeness | `assessment_checks.py` (`check_language_completeness`: one row per item/prompt per language, script rules, source-concept match, 3–5 key ideas, matching counts) | `0` calls | Yes (det. only) | Yes |
+| `EV-EXM-001` (P3) | `E1-ingest` | Exam Ingest Curator: metadata fidelity, provenance, no source text | `exam_checks.py` (`check_ingest_fidelity`: year/type/section/marks/type extraction, recomputed marks and section counts, provenance URL, zero text-bearing keys; 5 seeded defects) | `0` calls | Yes (det. only) | Yes |
+| `EV-SER-001` (P3) | `E2-blueprint` | Series Assembler: recency-weighted blueprint alignment | `exam_checks.py` (`check_blueprint_alignment`: syllabus chapter universe, shares sum to 1, weighted marks recomputed from raw rows, section template, type mix, honest confidence; 1 seeded share tamper) | `0` calls | Yes (det. only) | Yes |
+| `EV-SER-002` (P3) | `E3-series` | Series Assembler: coverage, volume and paper structure | `exam_checks.py` (`check_series_coverage_volume`: approved minimums equal FEATURE-MAP 12.2, six series in order, real gaps named, a synthetic full-syllabus pool makes the same gate pass; 2 seeded defects) | `0` calls | Yes (det. only) | Yes |
+| `EV-SER-003` (P3) | `E3-series` | Series Assembler: approved copy and source compliance | `exam_checks.py` (`check_series_copy_compliance`: notices byte-identical to `notices.md`, forbidden claims scanned while accepting the approved negation, no verbatim/third-party items, Exact PYQ dark, row-language policy; 3 seeded defects) | `0` calls | Yes (det. only) | Yes |
 
 **P4 additions (2026-11-15, Q-5).** `EV-VIS-002`, `EV-SYN-003`, `EV-E2E-002` close the
 accessibility/numeric/glossary/publish gap and prove `EVT-EVAL-*` map coverage (see
@@ -149,6 +153,20 @@ measures. Goldens live under `evals/goldens/assessment/` and are registered in
 `evals/goldens/manifest.json` (`assessment_goldens`, `assessment_seeded_defect_sets`).
 Content that has no published lesson (Class 10 Light in this wave) records block-tagging debt
 as a metric, never as a pass. Contract: `docs/content-factory/assessment.md`.
+
+**P3 additions (2026-11-17).** `EV-EXM-001` and `EV-SER-001..003` grade the
+separate exam/series pipeline (`factory/exam`, `factory/series`; E1–E4). Every
+checker rebuilds the artifact through the real stage functions
+(`factory.exam.pipeline.assemble_class_pack`, `factory.series.publish.assemble_pack`),
+so an eval cannot drift from the pipeline it measures. `EV-SER-002` deliberately
+asserts **both** directions: the shipped prototype is blocked and the blockers
+name the missing chapters; a synthetic full-syllabus pool (labelled, temp-only,
+never published) makes the same gate pass. Goldens live under
+`evals/goldens/exam/` and are registered in `evals/goldens/manifest.json`
+(`exam_goldens`, `exam_seeded_defect_sets`). No judge is registered: provenance,
+volume and copy checks are deterministic by nature, and a model would only add
+cost to a check the harness can already make. Contract:
+`docs/content-factory/exam.md`.
 
 ---
 

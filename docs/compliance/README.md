@@ -30,11 +30,15 @@ re-doing the research or guessing.
 ## Current status
 
 **`DEC-COMP-001` is active: `EXAM_CONTENT_MODE=blueprint_only` is the shipping
-default.** No exam-content code exists yet (P3 builds it); this decision binds
-that build. Verbatim CBSE items may not reach a student or a public page until a
-clearance record exists in [`decision-log.md`](decision-log.md) — written CBSE
-permission or a written Indian-counsel opinion. A legal notice does not create
-that permission. See [`cbse-exam-content.md`](cbse-exam-content.md) §0 and §6.
+default.** The P3 exam/series pipeline landed 2026-11-17 and enforces this
+structurally: paper fixtures carry pattern metadata only, the ingest gate
+rejects any text-bearing key, the Exact PYQ series ships `disabled`, and the
+mode flags fail closed. Implementation contract and current content:
+[`docs/content-factory/exam.md`](../content-factory/exam.md). Verbatim CBSE
+items may not reach a student or a public page until a clearance record exists
+in [`decision-log.md`](decision-log.md) — written CBSE permission or a written
+Indian-counsel opinion. A legal notice does not create that permission. See
+[`cbse-exam-content.md`](cbse-exam-content.md) §0 and §6.
 
 ## File map
 
@@ -44,6 +48,7 @@ that permission. See [`cbse-exam-content.md`](cbse-exam-content.md) §0 and §6.
 | [`decision-log.md`](decision-log.md) | The decisions (`DEC-COMP-001`…`008`), the clearance register, the ten counsel questions, and the takedown register | You need the current rule, or you are recording a clearance/takedown |
 | [`notices.md`](notices.md) | Exact EN/HI user-facing copy (`N-01`…`N-05`), the placeholder contract, and the removal path | You are rendering an exam surface or changing copy |
 | [`sources.md`](sources.md) | Source register (`S-01`…`S-21`) with URLs, dates, fetch status, hashes, and blocked-method notes | You are checking a claim, or re-verifying before a review |
+| [`../content-factory/exam.md`](../content-factory/exam.md) | The P3 implementation contract: modes, flags, clearance scope, publish gate, similarity control, series and copy rules | You are changing `factory/exam/` or `factory/series/`, or asking "may this ship?" |
 
 ## How decisions are recorded
 

@@ -1,0 +1,41 @@
+card_id: EV-SER-003
+version: 1
+title: Series copy and source compliance - approved notices, no paper claim, no verbatim
+stage: E3-series
+agent_role: Series Assembler
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/exam/class-10-science
+  - evals/goldens/exam/class-12-physics
+  seeded_defects:
+  - SD-SER-004
+  - SD-SER-005
+  - SD-SER-006
+  source_catalog_ref: docs/compliance/notices.md
+deterministic_checks:
+- id: DET-SER03-COPY-SOURCE-COMPLIANCE
+  entrypoint: evals.checkers.exam_checks:check_series_copy_compliance
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.exam.validators:validate_series_manifest
+  description: Compares every approved notice to docs/compliance/notices.md byte
+    for byte, scans series labels/purpose/copy and every item prompt for forbidden
+    paper claims (while accepting the approved negation "not an official CBSE
+    paper"), and asserts the pack carries no verbatim or third-party item, that the
+    Exact PYQ series is dark, and that every exported row's language is offered by
+    the series it names. Three seeded defects (an "official CBSE paper" claim, the
+    dark series switched on, a verbatim item in blueprint mode) must block publish.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

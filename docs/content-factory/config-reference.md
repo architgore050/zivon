@@ -229,6 +229,36 @@ The dry-run loader is `load_config(require_server=False)` — it validates the
 behaviour file without demanding a model endpoint. The lesson pipeline
 (`pipeline.py`) keeps the hard `ZIVON_BASE_URL`/`ZIVON_MODEL` tripwire.
 
+## exam
+
+The separate exam/series pipeline (`python -m factory.exam`, `factory/exam/` +
+`factory/series/`). Stages `E1-ingest` .. `E4-publish`; it never runs inside
+`pipeline.py` or `factory.assessment`, and it makes no model calls. Full
+contract and compliance posture: [`exam.md`](exam.md). The compliance state
+itself comes from the environment (`EXAM_CONTENT_MODE`,
+`EXAM_VERBATIM_CLEARANCE_ID`, `SERIES_EXACT_PYQ_ENABLED`), not from this file:
+a deployment can pin the mode without editing a committed file, and the
+build fails closed on an unknown value.
+
+| Key | Type | Meaning |
+|---|---|---|
+| `papers_dir` | str | Tracked paper **metadata** fixtures (`sources/exam/papers`). No papers, no text. |
+| `syllabus_path` | str | Chapter universe (`sources/syllabus/syllabus.json`, P2-owned). |
+| `chapters_dir` | str | Item pools produced by the assessment pipeline (`sources/syllabus/chapters`). |
+| `decision_log_path` | str | Source of the clearance register (`docs/compliance/decision-log.md`). |
+| `export_dir` | str | Optional mirror root; a **publishable** pack lands in `<export_dir>/class-<n>/`. Empty = run directory only. `--export-dir` overrides it. |
+| `content_mode` | `blueprint_only` \| `attributed_verbatim` | Default content mode (`blueprint_only`). Env `EXAM_CONTENT_MODE` overrides. |
+| `verbatim_clearance_id` | str | Default clearance id (empty). Env `EXAM_VERBATIM_CLEARANCE_ID` overrides; required for verbatim mode. |
+| `exact_pyq_enabled` | bool | Default `false`. Env `SERIES_EXACT_PYQ_ENABLED` overrides; `true` without a cleared verbatim mode is a startup error. |
+| `blueprint_years` | int | Recency window in years (default `5`). |
+| `recency_decay` | float (0,1] | Per-year weight multiplier (default `0.8`). |
+| `include_paper_types` | list[str] | Paper types that contribute to weightage (default `main` + `sample`; `compartment` papers are ingested but not weighted). |
+| `chapter_question_floor` | int | Distinct questions a chapter needs across all series (default `10`). |
+| `chapter_test_size` / `mixed_test_size` | int | AI Lesson test shapes (default `10` / `20`). |
+| `unit_test_size` | int | PYQ-pattern chapter/unit test size (default `10`). |
+| `set_size` | int | Challenge/Loop set size (default `10`). |
+| `similarity_ngram` / `similarity_max_overlap` | int / float | The `DEC-COMP-006` copying-prevention control (default `8` / `0.20`). |
+
 ## Resume and fingerprint (no config key — behaviour to know)
 
 Run ids are deterministic per (chapter, class). `status.json` stores a

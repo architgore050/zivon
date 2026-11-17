@@ -1,0 +1,14 @@
+{
+  "sample_id": "SD-EXM-001",
+  "defect_class": "wrong_question_marks",
+  "expected_rule": "exam.paper.marks_sum",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_question",
+    "paper_id": "cbse-c12-physics-2024-main",
+    "question_no": "1",
+    "patch": {
+      "marks": 5
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "sample_id": "SD-SER-006",
+  "defect_class": "verbatim_item_in_blueprint",
+  "expected_rule": "series.item.verbatim_in_blueprint",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_item",
+    "item_id": "exam-q-c10-light-001",
+    "patch": {
+      "source_type": "verbatim_cbse_paper",
+      "licence_basis": "written_permission",
+      "permission_ref": "CLEAR-001",
+      "source_ref": {
+        "source_url": "https://www.cbse.gov.in/x.pdf",
+        "retrieved_at": "2026-11-17",
+        "file_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "page": 3,
+        "third_party_content": false
+      }
+    }
+  }
+}

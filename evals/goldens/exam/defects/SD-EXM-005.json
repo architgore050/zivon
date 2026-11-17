@@ -1,0 +1,12 @@
+{
+  "sample_id": "SD-EXM-005",
+  "defect_class": "section_count_mismatch",
+  "expected_rule": "exam.paper.sections",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "set_section_count",
+    "paper_id": "cbse-c12-physics-2024-main",
+    "section_id": "A",
+    "value": 15
+  }
+}
