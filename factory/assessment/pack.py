@@ -106,7 +106,6 @@ def flatten_speaking(
                 {
                     "idea_id": f"{prompt['prompt_id']}-idea-{n + 1:02d}",
                     "text": text,
-                    "concept_id": prompt["concept_ids"][0],
                 }
                 for n, text in enumerate(locale["key_ideas"])
             ]

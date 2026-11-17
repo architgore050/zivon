@@ -52,6 +52,11 @@ class TestPackPayloads(PackTestBase):
             self.payloads["speaking.json"], ASSESSMENT_SPEAKING_ROWS, "speaking.json"
         )
 
+    def test_speaking_key_ideas_do_not_invent_a_concept_id(self) -> None:
+        for row in self.payloads["speaking.json"]["prompts"]:
+            for idea in row["key_ideas"]:
+                self.assertEqual(set(idea), {"idea_id", "text"}, idea["idea_id"])
+
     def test_time_priors_match_their_schema(self) -> None:
         validate_schema(self.payloads["time-priors.json"], TIME_PRIORS, "time-priors")
 

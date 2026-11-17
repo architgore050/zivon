@@ -437,12 +437,11 @@ ASSESSMENT_QUESTIONS: dict[str, Any] = {
 
 _SPEAKING_KEY_IDEA = {
     "type": "object",
-    "required": ["idea_id", "text", "concept_id"],
+    "required": ["idea_id", "text"],
     "additionalProperties": False,
     "properties": {
         "idea_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
         "text": {"type": "string", "minLength": 5},
-        "concept_id": {"type": "string", "minLength": 3},
     },
 }
 

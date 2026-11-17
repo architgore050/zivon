@@ -240,6 +240,11 @@ first pack passed the deterministic technical gate (Q-6 permits the v1 base
 batch to publish on technical gates alone). No human or judged pedagogical
 review has happened yet — that is recorded debt, not a claim.
 
+`speaking.json` rows carry the prompt-level `concept_ids` and
+`model_answer_source`; key ideas are `{idea_id, text}`. The authored bank does
+not carry a per-key-idea concept, so the pack does not invent one from the first
+prompt concept.
+
 `manifest.json` carries `pack_version`, the assessment pipeline version, the
 run id, counts, coverage (type / difficulty / language / concept / block
 tagging), the aggregate gate verdict, per-file SHA-256 + byte size, and a
