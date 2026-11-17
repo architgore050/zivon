@@ -1,0 +1,109 @@
+{
+  "golden_id": "GX-02",
+  "class_num": 12,
+  "papers": {
+    "min": 7,
+    "by_type": {
+      "main": 5,
+      "compartment": 1,
+      "sample": 1
+    }
+  },
+  "blueprint": {
+    "chapter_ids": [
+      "class-12-electric-charges-and-fields",
+      "class-12-electrostatic-potential-and-capacitance",
+      "class-12-current-electricity",
+      "class-12-moving-charges-and-magnetism",
+      "class-12-magnetism-and-matter",
+      "class-12-electromagnetic-induction",
+      "class-12-alternating-current",
+      "class-12-electromagnetic-waves",
+      "class-12-ray-optics-and-optical-instruments",
+      "class-12-wave-optics",
+      "class-12-dual-nature-of-radiation-and-matter",
+      "class-12-atoms",
+      "class-12-nuclei",
+      "class-12-semiconductor-electronics-materials-devices-and-simple-circuits"
+    ],
+    "section_ids": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "scope_marks": 70,
+    "type_counts_min": {
+      "mcq": 50,
+      "assertion_reason": 16,
+      "very_short": 42,
+      "short": 90,
+      "case_based": 33,
+      "long": 64
+    }
+  },
+  "series": {
+    "ids": [
+      "ai_lesson",
+      "pyq_pattern",
+      "exact_pyq",
+      "board_practice",
+      "challenge",
+      "loop"
+    ],
+    "expected_minimums": {
+      "ai_lesson": {
+        "questions_per_chapter": 20,
+        "chapter_tests_per_chapter": 1,
+        "mixed_tests": 2
+      },
+      "pyq_pattern": {
+        "full_papers": 5,
+        "chapter_or_unit_tests": 10
+      },
+      "exact_pyq": {
+        "past_years": 5
+      },
+      "board_practice": {
+        "full_papers": 5
+      },
+      "challenge": {
+        "questions": 100,
+        "sets": 10
+      },
+      "loop": {
+        "questions": 100,
+        "sets": 10
+      }
+    },
+    "expected_gaps": {
+      "chapter_floor": [
+        "class-12-electric-charges-and-fields",
+        "class-12-electrostatic-potential-and-capacitance",
+        "class-12-current-electricity",
+        "class-12-moving-charges-and-magnetism",
+        "class-12-magnetism-and-matter",
+        "class-12-electromagnetic-induction",
+        "class-12-alternating-current",
+        "class-12-electromagnetic-waves",
+        "class-12-ray-optics-and-optical-instruments",
+        "class-12-wave-optics",
+        "class-12-dual-nature-of-radiation-and-matter",
+        "class-12-atoms",
+        "class-12-nuclei",
+        "class-12-semiconductor-electronics-materials-devices-and-simple-circuits"
+      ],
+      "below_minimum": [
+        "ai_lesson",
+        "pyq_pattern",
+        "board_practice",
+        "challenge",
+        "loop"
+      ]
+    },
+    "dark": [
+      "exact_pyq"
+    ]
+  }
+}

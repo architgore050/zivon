@@ -1,0 +1,20 @@
+{
+  "sample_id": "SD-EXM-004",
+  "defect_class": "missing_provenance_url",
+  "expected_rule": "exam.paper.provenance",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_paper",
+    "paper_id": "cbse-c12-physics-2024-main",
+    "patch": {
+      "provenance": {
+        "basis": "public_blueprint",
+        "question_map_basis": "authored_estimate",
+        "source_url": "http://www.cbse.gov.in/cbsenew/question-paper.html",
+        "retrieved_at": "2026-11-17",
+        "verified": false,
+        "notes": "Seeded defect: the provenance URL is not https."
+      }
+    }
+  }
+}

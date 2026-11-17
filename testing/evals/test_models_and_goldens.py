@@ -54,7 +54,7 @@ class TestEvalConfigAndModels(unittest.TestCase):
         with self.assertRaises(EvalConfigError):
             EvalConfig.from_env({"ZIVON_TIMEOUT_S": "1.0"})
 
-    def test_all_twelve_eval_cards_load_and_validate_schema(self) -> None:
+    def test_all_eval_cards_load_and_validate_schema(self) -> None:
         cfg = EvalConfig.from_env({})
         cards = load_all_cards(cfg.cards_dir)
         expected_ids = {
@@ -75,6 +75,11 @@ class TestEvalConfigAndModels(unittest.TestCase):
             "EV-ASM-002",
             "EV-ASM-003",
             "EV-ASM-004",
+            # Exam/series cards (P3, 2026-11-17; additive per Q-5).
+            "EV-EXM-001",
+            "EV-SER-001",
+            "EV-SER-002",
+            "EV-SER-003",
         }
         self.assertEqual(set(cards.keys()), expected_ids)
 

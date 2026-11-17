@@ -93,5 +93,40 @@
     "A5-time-priors": [
       "SD-ASM-006"
     ]
+  },
+  "exam_goldens": [
+    {
+      "golden_id": "GX-01",
+      "directory": "evals/goldens/exam/class-10-science",
+      "class_num": 10,
+      "status": "curated"
+    },
+    {
+      "golden_id": "GX-02",
+      "directory": "evals/goldens/exam/class-12-physics",
+      "class_num": 12,
+      "status": "curated"
+    }
+  ],
+  "exam_seeded_defect_sets": {
+    "E1-ingest": [
+      "SD-EXM-001",
+      "SD-EXM-002",
+      "SD-EXM-003",
+      "SD-EXM-004",
+      "SD-EXM-005"
+    ],
+    "E2-blueprint": [
+      "SD-SER-001"
+    ],
+    "E3-series": [
+      "SD-SER-002",
+      "SD-SER-003"
+    ],
+    "E3-series-copy": [
+      "SD-SER-004",
+      "SD-SER-005",
+      "SD-SER-006"
+    ]
   }
 }

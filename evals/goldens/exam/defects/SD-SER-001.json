@@ -1,0 +1,13 @@
+{
+  "sample_id": "SD-SER-001",
+  "defect_class": "blueprint_share_tamper",
+  "expected_rule": "blueprint.share_sum",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_blueprint_chapter",
+    "chapter_id": "class-12-electric-charges-and-fields",
+    "patch": {
+      "share": 0.75
+    }
+  }
+}

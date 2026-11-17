@@ -1,0 +1,13 @@
+{
+  "sample_id": "SD-SER-004",
+  "defect_class": "forbidden_claim",
+  "expected_rule": "series.copy.claim",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_series",
+    "series_id": "board_practice",
+    "patch": {
+      "copy": "This is an official CBSE paper for Class 10."
+    }
+  }
+}
