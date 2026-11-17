@@ -1,0 +1,10 @@
+{% if error %}
+<div class="wrap">
+  <div class="notice notice--error" role="alert"><p><strong>{{ error }}</strong></p></div>
+</div>
+{% endif %}
+{% for message in flash %}
+<div class="wrap">
+  <div class="notice notice--{{ message.kind }}" role="status"><p>{{ message.text }}</p></div>
+</div>
+{% endfor %}

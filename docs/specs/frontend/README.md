@@ -48,6 +48,7 @@ features are specified** — only surfaces the shell and doctrine already show.
 | [`seo-plan.md`](seo-plan.md) | static multilingual SEO: meta + hreflang, sitemap/robots generation, JSON-LD, Open Graph, canonical URLs, the child-privacy guardrails that constrain all of it |
 | [`shell-injection.md`](shell-injection.md) | binding contract for injecting product chrome (consent, dock, read-aloud, report, notices) into content-only generated pages from the shell kit |
 | [`lesson-shell.md`](lesson-shell.md) | F4 lesson shell: app bar, chapter drawer, reading progress, bookmarks, "Ask about this", end-of-lesson next steps, the context-snapshot block filter, and the F2/F3/F5/F6 handoffs |
+| [`web-shell.md`](web-shell.md) | F0 server-rendered shell: the `/app` route and guard, base-template slots, `ShellContext`/CSRF contract, CSP and nginx proxy rules, and the handoff to F2/F3/F5/F6/F7 |
 | [`open-questions.md`](open-questions.md) | every unresolved upstream reference, the decision needed, and the reconciliation procedure for provisional ids |
 
 ## Binding ground rules (inherited — restated because every section depends on them)

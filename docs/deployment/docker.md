@@ -50,6 +50,35 @@ docker run --rm -p 8081:8080 -v "$PWD/frontend:/usr/share/nginx/html" zivon-fron
 - **Site config:** CSP + `nosniff` + `no-referrer` headers site-wide (topic pages keep their own stricter meta CSP); `no-store` for HTML and `courses.js` (demo-day freshness), 5-min revalidation otherwise; gzip; `/healthz` probe; autoindex off. Redirects are relative (`absolute_redirect off`) because the Service maps port 80 -> container 8080 and an absolute redirect would leak the pod port into the public `Location`.
 - CI builds it, serves it, curls it, and trivy-scans it (`frontend-image` job in `cicd.md`). The CI smoke reproduces the cluster serving path: the html root is a writable tmpfs (the PVC + fsGroup stand-in) seeded from `/opt/zivon-shell` with the same `cp -rn` glob copy the initContainer uses. A bare `docker run` of this image serves nginx's default page — the shell only appears in the root via mount or seed, so a smoke that curls the unseeded image can never see the site.
 
+## Server-rendered web shell (`web/`, `/app`)
+
+The authenticated app pages are HTML rendered by the **core-backend** image, not
+by the static frontend image. `web/` is a Python package inside that image:
+FastAPI routers + Jinja2 templates that `backend.app.create_app` mounts with
+`web.mount_web(app)`. `Dockerfile.backend` copies `web/`, and
+`backend/requirements.txt` pins `jinja2`; there is no new service, no Node
+build, and no second origin.
+
+- **`/app` and `/app/*`:** `docker/nginx.conf` proxies them to
+  `core-backend:8000` with the full forwarded-header set. The browser's
+  `HttpOnly` session cookie and the backend's `Set-Cookie` pass through
+  unchanged (no `proxy_set_header Cookie`, no `proxy_hide_header Set-Cookie`).
+- **`/login`:** the app guard redirects guests to `/login?next=...`, so that
+  exact location is proxied now; F2 owns the screen and adds the remaining auth
+  locations (`/signup`, `/verify-email`, `/reset-password`, `/onboarding`,
+  `/auth/google/*`) in its PR.
+- **CSP:** the app/login locations are the only non-lesson surface besides
+  `/privacy/` with `connect-src 'self'`; the policy is identical to
+  `web/render.py` (`CSP_POLICY`) and repeated in full because nginx drops
+  inherited `add_header` directives once a location declares its own.
+- **Caching and indexing:** `Cache-Control: no-store` and
+  `X-Robots-Tag: noindex, nofollow` on every app/login response, plus the
+  `meta robots` in the template.
+- **Static assets stay on the frontend image:** `/assets/product.css`,
+  `/assets/product.js`, and the local fonts are served by the frontend nginx
+  root. A bare backend port serves the HTML without CSS; the supported path is
+  the same-origin frontend route (compose `:8081`, cluster Service).
+
 ## Rules
 
 - API keys and all server wiring enter only via environment at runtime (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY` — see `.env.example`), never via image or `COPY`.

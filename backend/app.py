@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from voice.config import VoiceSettings
 from voice.ws_api import mount_voice
+from web import mount_web
 
 from .config import BackendConfig
 from .errors import (
@@ -133,6 +134,13 @@ def create_app(
         settings=_voice_settings(cfg),
         profile_for=(lambda _identity: "demo") if demo_profile else None,
     )
+
+    # The server-rendered consumer shell (`/app`, and later the auth/app pages
+    # from F2/F3/F5/F6/F7). It is HTML only: the JSON API stays under /v1 and
+    # the voice loop under /voice. Mounted last (after the API routers and the
+    # voice mount) so the shell can never shadow either (`web/` has no
+    # catch-all route).
+    mount_web(app)
     return app
 
 

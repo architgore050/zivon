@@ -101,6 +101,10 @@ v1.6 doctrine's building-blocks directive.
 Non-page surfaces owned by the shell today: none (no toasts, no dialogs, no
 consent flow — the voice add-on introduces the first ones; §7).
 
+The server-rendered app shell (`/app`, F0C) is specified in
+[`web-shell.md`](web-shell.md): it is not a static page and is mounted from
+`web/` by the backend, not served by this static tree.
+
 ---
 
 ## 3. Routing model

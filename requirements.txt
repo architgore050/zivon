@@ -37,3 +37,6 @@ psutil>=5.9
 # installs backend/requirements.txt). ADR-0029: /v1/auth hashes passwords with
 # Argon2id, so the backend suite needs the same library the image ships.
 argon2-cffi==25.1.0
+# The server-rendered shell (`web/`, F0) imports FastAPI's Jinja2Templates, so
+# the backend suite needs the template engine the backend image ships.
+jinja2==3.1.6

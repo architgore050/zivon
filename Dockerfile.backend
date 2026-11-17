@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 # Zivon core backend monolith image (ADR-0005, ADR-0020):
-# FastAPI modular monolith (`backend/`, `db/`, `guard/`, `alembic/`) with the
-# voice loop mounted in-process (`voice/`, EX1-VOICE — one image, no separate
-# voice deployment per ADR-0020).
+# FastAPI modular monolith (`backend/`, `db/`, `guard/`, `alembic/`, `web/`)
+# with the voice loop mounted in-process (`voice/`, EX1-VOICE — one image, no
+# separate voice deployment per ADR-0020). `web/` is the server-rendered
+# consumer shell (`/app`, Jinja2 templates); it needs no separate frontend
+# build or service.
 #
 #   Build:  docker build -f Dockerfile.backend -t zivon-backend:0.1.0 .
 #   Smoke:  docker run --rm zivon-backend:0.1.0 python -m backend --smoke
@@ -37,7 +39,8 @@ RUN pip install --no-cache-dir \
         -r voice/requirements.txt
 
 # Copy the backend monolith packages, the mounted voice package (which also
-# imports the shared logging_manager contract — no local fallback), and the
+# imports the shared logging_manager contract — no local fallback), the
+# server-rendered web shell (FastAPI routers + Jinja2 templates), and the
 # Alembic migration assets (alembic.ini's version_locations spans both
 # alembic/versions and migrations/versions).
 COPY alembic.ini ./alembic.ini
@@ -47,6 +50,7 @@ COPY db ./db
 COPY guard ./guard
 COPY logging_manager ./logging_manager
 COPY backend ./backend
+COPY web ./web
 COPY voice ./voice
 COPY scripts/trigger-tests.sh ./scripts/trigger-tests.sh
 COPY scripts/trigger-factory-run.sh ./scripts/trigger-factory-run.sh
