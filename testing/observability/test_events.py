@@ -87,6 +87,16 @@ EMITTED_BY_THIS_BRANCH = [
     "factory.assessment.run.completed",
     "factory.assessment.run.failed",
     "factory.assessment.pack.written",
+    # factory/exam/pipeline.py (P3, 2026-11-17) - the exam/series entrypoint's
+    # run edges; its stage transitions reuse factory.stage.start/ok/fail with
+    # E1-E4 stage ids.
+    "factory.exam.run.started",
+    "factory.exam.run.completed",
+    "factory.exam.run.failed",
+    "factory.exam.pack.written",
+    "exam.item.ingested",
+    "exam.publish.blocked",
+    "exam.series.blocked",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming
