@@ -25,33 +25,25 @@ ASSET = REPO_ROOT / "frontend" / "assets" / "app-progress.js"
 CHAPTER_KEY = "class-9-physics/describing-motion-around-us"
 CHAPTER_ID = "class-9-describing-motion-around-us"
 CONCEPT_ONE = f"{CHAPTER_ID}-sec-01"
-CONCEPT_TWO = f"{CHAPTER_ID}-sec-02"
+CONCEPT_TWO = f"{CHAPTER_ID}-sec-03"
 
-CATALOGUE = {
-    "topics": [
-        {
-            "chapter_id": CHAPTER_ID,
-            "course_id": "class-9-physics",
-            "topic_slug": "describing-motion-around-us",
-            "title": "Describing Motion Around Us",
-            "href": f"courses/{CHAPTER_KEY}/index.html",
-            "class": 9,
-            "chapter": {"number": 4},
-            "concepts": [
-                {
-                    "concept_id": CONCEPT_ONE,
-                    "section_id": "sec-01",
-                    "title": "Describing position",
-                },
-                {
-                    "concept_id": CONCEPT_TWO,
-                    "section_id": "sec-02",
-                    "title": "Average speed",
-                },
-            ],
-        }
-    ]
-}
+
+def _published_topic() -> dict[str, Any]:
+    """The real catalogue entry for the chapter this test merges.
+
+    Read from `frontend/catalogue.json` rather than hand-written: the island
+    maps `course/topic` -> `chapter_id` from the catalogue the app actually
+    serves, and a hand-written fixture can invent fields production does not
+    carry (it used to invent `topic_slug`).
+    """
+    catalogue = json.loads(
+        (REPO_ROOT / "frontend" / "catalogue.json").read_text(encoding="utf-8")
+    )
+    topics = catalogue["topics"]
+    return next(topic for topic in topics if topic.get("chapter_id") == CHAPTER_ID)
+
+
+CATALOGUE = {"topics": [_published_topic()]}
 
 SYNC_PAGE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -93,7 +85,7 @@ PROGRESS = {
     "v": 1,
     "chapters": {
         CHAPTER_KEY: {
-            "sections": {"sec-01": {"first_seen": 1}, "sec-02": {"first_seen": 2}},
+            "sections": {"sec-01": {"first_seen": 1}, "sec-03": {"first_seen": 2}},
             "max_scroll_pct": 80,
             "completed": True,
             "updated_at": 1_700_000_000_000,
@@ -107,7 +99,7 @@ BOOKMARKS = {
         {
             "course": "class-9-physics",
             "topic": CHAPTER_KEY,
-            "section_id": "sec-02",
+            "section_id": "sec-03",
             "block_id": "b-07",
             "title": "Average speed",
             "ts": 1_700_000_000_000,
@@ -153,6 +145,7 @@ class AppProgressSyncTests(unittest.TestCase):
         bookmarks: dict[str, Any] | None = None,
         shell: bool = False,
         api_status: int = 200,
+        rejected_event: bool = False,
         path: str = "/index.html",
     ) -> tuple[Any, Page, list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         context = self._browser.new_context()
@@ -206,6 +199,15 @@ class AppProgressSyncTests(unittest.TestCase):
                 route.fulfill(status=api_status, body="")
                 return
             if "/v1/progress/events" in request.url:
+                if rejected_event:
+                    route.fulfill(
+                        status=200,
+                        json={
+                            "accepted": 0,
+                            "rejected": [{"index": 0, "code": "E-EVT-SCHEMA"}],
+                        },
+                    )
+                    return
                 route.fulfill(
                     status=200,
                     json={"accepted": len(body["events"]), "rejected": []},
@@ -273,6 +275,13 @@ class AppProgressSyncTests(unittest.TestCase):
         finally:
             context.close()
 
+    def test_published_catalogue_carries_href_not_topic_slug(self) -> None:
+        # The mapping is derived from `href`; this pins the shape it derives
+        # from so a catalogue change cannot silently unmatch every chapter.
+        topic = _published_topic()
+        self.assertNotIn("topic_slug", topic)
+        self.assertEqual(topic["href"], f"courses/{CHAPTER_KEY}/index.html")
+
     def test_merge_is_additive_mapped_and_keeps_the_device_copy(self) -> None:
         context, page, events, bookmark_calls, errors = self._page(
             progress=PROGRESS, bookmarks=BOOKMARKS
@@ -300,14 +309,14 @@ class AppProgressSyncTests(unittest.TestCase):
                 for event in payload
                 if event["kind"] == "lesson_block_view"
             }
-            self.assertEqual(sections, {"sec-01", "sec-02"})
+            self.assertEqual(sections, {"sec-01", "sec-03"})
             concepts = {
                 event["payload"].get("section_id"): event.get("concept_id")
                 for event in payload
                 if event["kind"] == "lesson_block_view"
             }
             self.assertEqual(concepts["sec-01"], CONCEPT_ONE)
-            self.assertEqual(concepts["sec-02"], CONCEPT_TWO)
+            self.assertEqual(concepts["sec-03"], CONCEPT_TWO)
             self.assertEqual(events[0]["csrf"], "test-csrf")
             self.assertEqual(
                 bookmark_calls[0]["body"],
@@ -315,7 +324,7 @@ class AppProgressSyncTests(unittest.TestCase):
                     "items": [
                         {
                             "target_type": "block",
-                            "target_id": f"{CHAPTER_ID}:sec-02",
+                            "target_id": f"{CHAPTER_ID}:sec-03",
                         }
                     ]
                 },
@@ -353,6 +362,31 @@ class AppProgressSyncTests(unittest.TestCase):
                 page.evaluate("() => localStorage.getItem('zivon.progress')")
             )
             self.assertGreaterEqual(len(events), 1)
+        finally:
+            context.close()
+
+    def test_a_rejected_event_is_reported_and_never_marked_as_merged(self) -> None:
+        # The API accepts what it can and reports the rest in `rejected`; the
+        # island must not call that success, or the account silently misses
+        # rows the device believes it handed over.
+        context, page, events, _, _ = self._page(progress=PROGRESS, rejected_event=True)
+        try:
+            self._wait_offer(page)
+            page.click("[data-sync-merge]")
+            page.wait_for_function(
+                "() => (document.querySelector('[data-sync-status]')||{}).textContent"
+                ".indexOf('still on this device') !== -1",
+                timeout=5000,
+            )
+            self.assertGreaterEqual(len(events), 1)
+            self.assertIsNone(
+                page.evaluate("() => localStorage.getItem('zivon.sync.v1')"),
+                "a rejected event must not leave a merged fingerprint",
+            )
+            self.assertIsNotNone(
+                page.evaluate("() => localStorage.getItem('zivon.progress')")
+            )
+            self.assertFalse(page.locator("[data-progress-sync]").is_hidden())
         finally:
             context.close()
 

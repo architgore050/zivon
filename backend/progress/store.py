@@ -244,11 +244,11 @@ def _upsert_lesson_progress(tx: Any, user_id: str, event: EventInput) -> None:
     ):
         last_block_id = str(payload["section_id"])
     blocks_seen = int(row.get("blocks_seen") or 0) if row else 0
-    seen_value = payload.get("blocks_seen")
+    seen_value = read_count(payload, event.kind)
     if isinstance(seen_value, int):
         blocks_seen = max(blocks_seen, seen_value)
     blocks_total = int(row["blocks_total"]) if row and row.get("blocks_total") else None
-    total_value = payload.get("blocks_total")
+    total_value = total_count(payload, event.kind)
     if isinstance(total_value, int) and total_value > 0:
         blocks_total = total_value
     status = "completed" if completed else "in_progress"
@@ -290,6 +290,30 @@ def _upsert_lesson_progress(tx: Any, user_id: str, event: EventInput) -> None:
                 completed_at,
             ),
         )
+
+
+def read_count(payload: Mapping[str, Any], kind: str) -> int | None:
+    """The absolute "how far in" count a lesson event reports.
+
+    `lesson_block_view` reports `blocks_seen`; `lesson_complete` reports the
+    same fact as `sections_seen` (the surfaces label the stored counter
+    "sections read"). The caller keeps the maximum, so a stale merge cannot
+    lower it.
+    """
+    value = payload.get("sections_seen" if kind == "lesson_complete" else "blocks_seen")
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    return None
+
+
+def total_count(payload: Mapping[str, Any], kind: str) -> int | None:
+    """The absolute chapter total the event reports, if it reports one."""
+    value = payload.get(
+        "sections_total" if kind == "lesson_complete" else "blocks_total"
+    )
+    if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+        return value
+    return None
 
 
 def list_events(

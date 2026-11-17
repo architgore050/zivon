@@ -205,6 +205,24 @@
     return Math.max(0, Math.min(100, Math.round(number)));
   }
 
+  /* The catalogue entry carries `href` ("courses/<course>/<topic>/index.html"),
+     not a separate `topic_slug` (factory/render.py::_catalogue_entry). The
+     lesson shell keys its device store by "<course_id>/<topic_slug>" from the
+     route, so derive that key from `href` — without it every merged chapter
+     falls back to the raw key and lands as an unmatched chapter. */
+  function topicKeyFromHref(href) {
+    var raw = String(href || "")
+      .trim()
+      .replace(/^\/+/, "")
+      .replace(/\/?index\.html$/, "")
+      .replace(/\/+$/, "");
+    var parts = raw.split("/");
+    if (parts.length >= 3 && parts[0] === "courses") {
+      return parts.slice(1).join("/");
+    }
+    return null;
+  }
+
   function loadCatalogue() {
     return fetch(CATALOGUE_URL, { credentials: "same-origin" })
       .then(function (response) {
@@ -220,6 +238,8 @@
           if (topic.course_id && topic.topic_slug) {
             byKey[String(topic.course_id) + "/" + String(topic.topic_slug)] = topic;
           }
+          var derived = topicKeyFromHref(topic.href);
+          if (derived) byKey[derived] = topic;
         });
         return { topics: topics, byKey: byKey };
       })
@@ -426,7 +446,19 @@
         var chain = Promise.resolve();
         batches.forEach(function (batch) {
           chain = chain.then(function () {
-            return postJSON(EVENTS_URL, { events: batch });
+            return postJSON(EVENTS_URL, { events: batch }).then(function (result) {
+              /* A per-item schema rejection is a failed part, not a success:
+                 never mark the device merged while the account is missing
+                 rows. The failure copy already says nothing was deleted. */
+              if (
+                result &&
+                Array.isArray(result.rejected) &&
+                result.rejected.length > 0
+              ) {
+                throw new Error("rejected_events");
+              }
+              return result;
+            });
           });
         });
         chain = chain.then(function () {

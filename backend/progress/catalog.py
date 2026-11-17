@@ -187,7 +187,7 @@ def _from_published(frontend_dir: str) -> CatalogueSnapshot | None:
                 chapter_id=chapter_id,
                 class_level=int(topic.get("class") or 0),
                 chapter_no=int(chapter.get("number") or 0),
-                slug=str(topic.get("topic_slug") or ""),
+                slug=_published_slug(topic),
                 title=str(
                     topic.get("title") or topic.get("lesson_title") or chapter_id
                 ),
@@ -197,6 +197,16 @@ def _from_published(frontend_dir: str) -> CatalogueSnapshot | None:
             )
         )
     return _snapshot(chapters, "published") if chapters else None
+
+
+def _published_slug(topic: dict[str, Any]) -> str:
+    """The topic slug: the catalogue carries it as `href`, not as its own key."""
+    explicit = str(topic.get("topic_slug") or "").strip()
+    if explicit:
+        return explicit
+    raw = str(topic.get("href") or "").strip().strip("/")
+    raw = raw.removesuffix("index.html").strip("/")
+    return raw.split("/")[-1] if raw else ""
 
 
 def _published_lesson_url(href: object) -> str | None:

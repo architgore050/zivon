@@ -49,7 +49,40 @@ Branch: `feature/w3-f3-dashboard-progress` (based on `main` @ `d65b658`).
 - Practice/test/speaking players and their accuracy semantics (F5/F6/F7);
   SWOT (F8); settings/identity (F2).
 
+## Review pass (independent review agent, same day)
+
+- **Guest merge mapping (major).** The island looked up `course/topic` by
+  `topic_slug`, a key the published catalogue never carries
+  (`factory/render.py::_catalogue_entry` emits `href`). Every merged chapter
+  therefore fell back to the raw `course/topic` key and landed as an
+  *unmatched* chapter with no concept ids; the browser test hid it because its
+  fixture invented `topic_slug`. The key is now derived from `href`, the test
+  merges the **real** `frontend/catalogue.json` entry, and a second test pins
+  that entry's shape.
+- **Silent partial merge.** A per-item `rejected` in an otherwise-`200` events
+  response was counted as success and fingerprinted. It now fails that part
+  (copy already says the device copy is untouched), so the account never
+  quietly misses rows.
+- **Continue card count.** The card rendered “No sections read yet” beside a
+  map row saying “3 of 8 sections read”: the shared macro reads `blocks_*`, the
+  API names the same fact `sections_*`. The dashboard view now sets the alias;
+  a page test asserts the count.
+- **Lone `lesson_complete`.** Completion without per-section views left the
+  counter at zero; `sections_seen`/`sections_total` now feed the same
+  “sections read” counter and the evidence line.
+- **Import cycle.** `web.progress_views` reading `backend.progress` closed a
+  loop with `backend.app` importing `web`, so `import web` first raised a
+  circular import. `backend/__init__` resolves `create_app` lazily (PEP 562)
+  and a subprocess test pins either order.
+- **Published slug.** The read model derived `slug` from the absent
+  `topic_slug`; it now derives it from `href` (tested).
+- Extra tests: IST calendar-day boundary (pure `build_summary`), continue-card
+  count, lone completion, rejected-event merge, import order, catalogue `href`
+  shape. Key-free suites re-run: backend 130, observability 114, docs 27,
+  frontend 101 (7 pre-existing env failures identical to `main`), evals smoke,
+  ruff, mypy, `check_specs.py`.
+
 ## Next
 
-- Review PR, then merge (review agent). After F5/F6/F7 land, revisit the
-  “last 3 answers” window with their real score semantics.
+- Merge after CI. After F5/F6/F7 land, revisit the “last 3 answers” window with
+  their real score semantics.

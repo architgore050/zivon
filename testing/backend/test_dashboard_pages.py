@@ -9,6 +9,8 @@ existence, bookmark rendering, and the no-PII/no-lesson-device contracts.
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -77,15 +79,25 @@ class DashboardPagesTests(unittest.TestCase):
         self.assertEqual(response.json()["accepted"], len(events))
 
     def add_lesson(
-        self, *, chapter_id: str = CHAPTER, concept_id: str | None = CONCEPT
+        self,
+        *,
+        chapter_id: str = CHAPTER,
+        concept_id: str | None = CONCEPT,
+        blocks_seen: int | None = None,
+        blocks_total: int | None = None,
     ) -> None:
+        payload: dict[str, Any] = {"section_id": "sec-01", "source": "merge"}
+        if blocks_seen is not None:
+            payload["blocks_seen"] = blocks_seen
+        if blocks_total is not None:
+            payload["blocks_total"] = blocks_total
         self.post_events(
             [
                 {
                     "kind": "lesson_block_view",
                     "chapter_id": chapter_id,
                     "concept_id": concept_id,
-                    "payload": {"section_id": "sec-01", "source": "merge"},
+                    "payload": payload,
                 }
             ]
         )
@@ -143,6 +155,17 @@ class DashboardPagesTests(unittest.TestCase):
         self.assertRegex(html, r"<dd>1</dd>")
         self.assertIn("Read a section", html)
         self.assertIn("Learning", html)
+
+    def test_continue_card_reports_sections_read(self) -> None:
+        # The continue card speaks the API's `sections_*` names; the shared
+        # macro renders `blocks_*`. Without the alias it said "No sections
+        # read yet" next to a map row that said "2 of 9 sections read".
+        self.add_lesson(blocks_seen=2, blocks_total=9)
+        html = self.page("/app")
+        continue_panel = html.split('aria-labelledby="continue-title"', 1)[1]
+        continue_panel = continue_panel.split("</section>", 1)[0]
+        self.assertIn("2 of 9 sections read", continue_panel)
+        self.assertNotIn("No sections read yet", continue_panel)
 
     def test_dashboard_without_a_published_class_is_still_honest(self) -> None:
         snapshot = CatalogueSnapshot(
@@ -247,6 +270,24 @@ class DashboardPagesTests(unittest.TestCase):
         self.assertIn("Nothing saved yet.", self.page("/app/bookmarks"))
 
     # -- privacy, a11y, and shell rules ------------------------------------
+
+    def test_shell_and_backend_import_in_either_order(self) -> None:
+        # `web.progress_views` reads `backend.progress`; `backend.app` mounts
+        # the web shell. Importing the shell first must not deadlock on a
+        # cycle (it did while `backend/__init__` imported `.app` eagerly).
+        script = (
+            "import web; assert web.mount_web;"
+            "from backend import create_app; assert create_app;"
+            "from backend.progress import build_summary; assert build_summary"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr[-2000:])
 
     def test_pages_never_render_account_secrets_or_lesson_devices(self) -> None:
         self.add_lesson()

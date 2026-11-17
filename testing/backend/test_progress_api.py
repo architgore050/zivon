@@ -17,6 +17,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from backend import BackendConfig, create_app
+from backend.progress import EventRow, build_summary, catalogue_snapshot
 
 PASSWORD = "correct-horse-battery-staple"
 CHAPTER = "class-9-describing-motion-around-us"
@@ -335,6 +336,18 @@ class ProgressApiTests(unittest.TestCase):
         )
         self.assertEqual(concept["state"], "learning")
 
+    def test_published_catalogue_supplies_title_link_number_and_slug(self) -> None:
+        # The catalogue entry carries `href`, not `topic_slug`; the read model
+        # derives the slug and the lesson link from it.
+        chapter = self.chapter_map()
+        self.assertEqual(chapter["title"], "Describing Motion Around Us")
+        self.assertEqual(
+            chapter["lesson_url"],
+            "/courses/class-9-physics/describing-motion-around-us/",
+        )
+        self.assertEqual(chapter["slug"], "describing-motion-around-us")
+        self.assertEqual(chapter["chapter_no"], 4)
+
     def test_continue_counts_sections_from_events_without_an_absolute_total(
         self,
     ) -> None:
@@ -362,6 +375,29 @@ class ProgressApiTests(unittest.TestCase):
         summary = self.summary()
         self.assertEqual(summary["counts"]["chapters_completed"], 1)
         self.assertIsNone(summary["continue"])
+
+    def test_lesson_complete_alone_records_sections_read(self) -> None:
+        # F5/F7 may report completion without per-section views; the counter
+        # must take `sections_seen`/`sections_total` from `lesson_complete`.
+        response = self.post_events(
+            [
+                {
+                    "kind": "lesson_complete",
+                    "chapter_id": CHAPTER,
+                    "payload": {
+                        "sections_seen": 9,
+                        "sections_total": 9,
+                        "source": "lesson_shell",
+                    },
+                }
+            ]
+        )
+        self.assertEqual(response.status_code, 200, response.text)
+        chapter = self.chapter_map()
+        self.assertEqual(chapter["blocks_seen"], 9)
+        self.assertEqual(chapter["blocks_total"], 9)
+        self.assertEqual(chapter["evidence"]["sections_seen"], 9)
+        self.assertEqual(chapter["state"], "learning")
 
     def test_state_rules_confident_practising_and_revision(self) -> None:
         self.post_events(
@@ -436,6 +472,43 @@ class ProgressApiTests(unittest.TestCase):
         counts = self.summary()["counts"]
         self.assertEqual(counts["active_days_7d"], 3)
         self.assertEqual(counts["practice_answers_7d"], 3)
+
+    def test_weekly_rhythm_uses_ist_calendar_days(self) -> None:
+        # 20:00Z on the 17th is 01:30 IST on the 18th: the day belongs to the
+        # IST date, not the UTC one. 17:00Z on the 11th is 22:30 IST on the
+        # 11th, one day outside the 12-18 window.
+        now = datetime.datetime(2026, 11, 18, 12, 0, tzinfo=datetime.UTC)
+        events = [
+            EventRow(
+                event_id="e1",
+                kind="lesson_block_view",
+                chapter_id=CHAPTER,
+                concept_id=None,
+                question_id=None,
+                payload={},
+                created_at=datetime.datetime(2026, 11, 17, 20, 0, tzinfo=datetime.UTC),
+            ),
+            EventRow(
+                event_id="e2",
+                kind="practice_answer",
+                chapter_id=CHAPTER,
+                concept_id=None,
+                question_id=None,
+                payload={"correct": True},
+                created_at=datetime.datetime(2026, 11, 11, 17, 0, tzinfo=datetime.UTC),
+            ),
+        ]
+        summary = build_summary(
+            events=events,
+            progress_rows=[],
+            bookmark_count=0,
+            snapshot=catalogue_snapshot(None, "frontend"),
+            now=now,
+        )
+        days = {day["date"]: day for day in summary["weekly"]["days"]}
+        self.assertTrue(days["2026-11-18"]["active"])
+        self.assertFalse(days["2026-11-17"]["active"])
+        self.assertEqual(summary["weekly"]["days_active"], 1)
 
     # -- bookmarks ----------------------------------------------------------
 

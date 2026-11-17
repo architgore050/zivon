@@ -24,7 +24,7 @@ from collections import defaultdict
 from typing import Any, Final
 
 from .catalog import CatalogueSnapshot, ChapterMeta
-from .store import EventRow, as_utc, to_iso
+from .store import EventRow, as_utc, read_count, to_iso
 
 RULES_VERSION: Final[int] = 1
 WEEKLY_GOAL_DAYS: Final[int] = 4
@@ -334,13 +334,9 @@ def _state(events: list[EventRow]) -> tuple[str, dict[str, Any]]:
         for event in lesson_events
         if event.payload.get("section_id")
     }
+    reported = [read_count(event.payload, event.kind) for event in lesson_events]
     sections_seen = max(
-        [len(sections)]
-        + [
-            int(event.payload["blocks_seen"])
-            for event in lesson_events
-            if isinstance(event.payload.get("blocks_seen"), int)
-        ]
+        [len(sections)] + [count for count in reported if isinstance(count, int)]
     )
     answers_count = len(answers)
     correct = sum(1 for value in answers if value)

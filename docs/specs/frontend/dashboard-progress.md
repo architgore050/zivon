@@ -87,7 +87,11 @@ the F4 local key `course/topic`); concept/question ids match
 Writing a lesson event upserts `lesson_progress` for that chapter:
 `blocks_seen` is the **maximum** absolute value the client reported (a stale
 merge cannot lower it), `blocks_total` the latest positive total, completion
-is monotonic, and `updated_at` is the latest event time.
+is monotonic, and `updated_at` is the latest event time. Both kinds feed the
+same “sections read” counter the UI renders: `lesson_block_view` reports it as
+`blocks_seen`/`blocks_total`, `lesson_complete` as `sections_seen`/
+`sections_total`, so a client that only reports completion still records how
+far the student got.
 
 ### 2.2 `GET /v1/progress/summary`
 
@@ -214,7 +218,11 @@ island **never deletes or rewrites** `zivon.progress` / `zivon.bookmarks`.
    `partials/progress_sync.html` panel with counts (“N chapters (M sections
    read) and K saved sections”).
 3. “Bring them in” fetches `/catalogue.json` (same origin) to map
-   `course/topic → chapter_id` and `section_id → concept_id`, then:
+   `course/topic → chapter_id` and `section_id → concept_id`. The catalogue
+   entry carries `href` (`courses/<course>/<topic>/index.html`), not a
+   `topic_slug` (`factory/render.py::_catalogue_entry`); the island derives
+   the device-store key from `href` (falling back to `topic_slug` when a
+   future publish adds it). It then:
    - `lesson_block_view` per read section (absolute `blocks_seen`, source
      `merge`), plus `lesson_complete` when the local record says completed;
    - one `POST /v1/bookmarks` per saved section (`block`,
@@ -229,8 +237,11 @@ island **never deletes or rewrites** `zivon.progress` / `zivon.bookmarks`.
    message stays until the next load.
 5. On failure, no marker is written for the failed part, local data stays,
    and the copy says so (“They are still on this device; nothing was
-   deleted.”). A retry is safe: lesson counters are max-upserts, bookmark
-   posts are idempotent, and the weekly counts are distinct-day based.
+   deleted.”). A per-item `rejected` entry in an otherwise-`200` events
+   response counts as a failure for that part: the accounting must never say
+   “brought in” while rows were refused. A retry is safe: lesson counters are
+   max-upserts, bookmark posts are idempotent, and the weekly counts are
+   distinct-day based.
 6. “Not now” dismisses the offer for the current browser session
    (`sessionStorage`), not forever. A later change to the device progress
    (new fingerprint) re-offers it.
@@ -309,7 +320,7 @@ an `aria-live` status. Empty state points at the lesson Contents → Save path.
 |---|---|---|
 | Backend API | `python -m unittest discover -s testing/backend -t .` (also `testing/backend/test_progress_api.py`) | auth, CSRF, per-item validation, batch bounds, state rules, weekly rhythm, chapter detail, bookmark CRUD/idempotency, tenant isolation, no free text |
 | Pages | `testing/backend/test_dashboard_pages.py` | new/partial/error states, rules copy, bookmark page, no PII/lesson devices, a11y/viewport static checks |
-| Browser sync | `testing/frontend/test_app_progress_sync.py` | offer, additive mapped merge, CSRF, preserved local copy, failed merge, dismissal, F4 sink/`getProgress()`, bookmark removal |
+| Browser sync | `testing/frontend/test_app_progress_sync.py` | offer, additive mapped merge against the **real** `frontend/catalogue.json` entry (href-derived key; the fixture pins that the entry has no `topic_slug`), CSRF, preserved local copy, failed merge, per-item rejection, dismissal, F4 sink/`getProgress()`, bookmark removal |
 | Browser layout | `testing/frontend/test_app_pages_layout.py` | 360 px overflow, stacked rows, touch targets, clean console |
 
 All key-free and offline; no model call exists on this path.

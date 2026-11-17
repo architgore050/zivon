@@ -83,6 +83,10 @@ def build_dashboard_view(
         continue_item["when"] = _relative_day(
             _parse_iso(continue_item.get("last_activity_at")), current
         )
+        # The shared `progress_macros.section_progress` renders `blocks_*`; the
+        # API names the same fact `sections_*` on the continue card.
+        continue_item["blocks_seen"] = int(continue_item.get("sections_seen") or 0)
+        continue_item["blocks_total"] = continue_item.get("sections_total")
     return {
         "greeting": _greeting(current),
         "is_new": summary["is_new"],
