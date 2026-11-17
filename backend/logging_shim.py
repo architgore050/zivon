@@ -239,6 +239,7 @@ def _infer_component(event: str) -> str:
         "credit": "credit",
         "dashboard": "dashboard",
         "progress": "progress",
+        "practice": "practice",
         "log": "log",
         "privacy": "voice",
     }

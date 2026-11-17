@@ -135,8 +135,10 @@ class DashboardPagesTests(unittest.TestCase):
         self.assertIn("Not started", html)
         self.assertIn("Two steps are not live yet.", html)
         self.assertIn("not live yet", html)
-        # Quick actions never link to a route that does not exist.
-        for dead in ("/app/practice", "/app/tests", "/app/speaking", "/app/swot"):
+        # Practice is live (F5) and the nav links it; quick actions never link
+        # to a route that does not exist.
+        self.assertIn('href="/app/practice"', html)
+        for dead in ("/app/tests", "/app/speaking", "/app/swot"):
             self.assertNotIn(f'href="{dead}"', html)
         # The sync offer is server-rendered hidden and armed by the island.
         self.assertIn("data-progress-sync", html)

@@ -1,0 +1,405 @@
+/* Zivon practice pages (F5): hub, player, summary, history.
+   Field Notes base system (§1-§9) only: paper, ink rules, graphite notes, one
+   pen-blue accent for the current answer. No §10 lesson device, no taped
+   cards, no ruled body grid, no handwritten body text.
+
+   Loaded on top of `product.css` and `app.css`; every class is scoped to
+   `.practice-*` so it cannot restyle the shell, dashboard, or lesson pages. */
+
+/* ---- page frame ---- */
+.practice-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(16rem, 1fr);
+  gap: 2rem;
+  align-items: start;
+  padding-bottom: 3rem;
+}
+
+.practice-main,
+.practice-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.practice-panel {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--ink);
+}
+
+.practice-panel h2 {
+  font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+  line-height: 1.1;
+}
+
+.practice-panel .lede,
+.practice-panel .meta {
+  margin-top: 0.55rem;
+}
+
+/* ---- start forms ---- */
+.practice-start {
+  margin-top: 1rem;
+}
+
+.practice-start--inline {
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+
+/* ---- chapter drills ---- */
+.practice-chapter-list,
+.practice-weak-list,
+.practice-recent-list,
+.practice-concept-list,
+.practice-history-list,
+.practice-rules {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+.practice-chapter-row,
+.practice-weak-row,
+.practice-recent-row,
+.practice-history-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.practice-chapter-text,
+.practice-history-text {
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+
+.practice-weak-row h3,
+.practice-history-row h3 {
+  font-size: 1.1rem;
+}
+
+.practice-recent-row {
+  display: block;
+}
+
+.practice-recent-row a {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.practice-recent-row a:hover {
+  border-bottom-color: var(--ink);
+}
+
+.practice-rules {
+  display: grid;
+  gap: 0.7rem;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.practice-rules li {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--rule);
+}
+
+/* ---- player: status and progress ---- */
+.practice-player {
+  padding-bottom: 3rem;
+}
+
+.practice-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding-top: 1.25rem;
+}
+
+.practice-progress {
+  width: min(100%, 22rem);
+  height: 0.6rem;
+  appearance: none;
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+}
+
+.practice-progress::-webkit-progress-bar {
+  background: var(--paper-light);
+}
+
+.practice-progress::-webkit-progress-value {
+  background: var(--ink);
+}
+
+.practice-progress::-moz-progress-bar {
+  background: var(--ink);
+}
+
+/* ---- player: the question ---- */
+.practice-answer-form {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ink);
+}
+
+.practice-options {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.practice-prompt {
+  padding: 0;
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  font-weight: 700;
+  line-height: 1.25;
+  max-width: 54rem;
+}
+
+.practice-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  min-height: 48px;
+  background: var(--paper-light);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.practice-option:hover {
+  border-color: var(--ink);
+}
+
+.practice-option input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.2rem;
+  accent-color: var(--pen-blue);
+  flex: 0 0 auto;
+}
+
+.practice-option-text {
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.practice-option input:checked + .practice-option-text {
+  font-weight: 700;
+}
+
+.practice-option:has(input:checked) {
+  border-color: var(--pen-blue);
+}
+
+.practice-option input:focus-visible {
+  outline: 2px solid var(--pen-blue);
+  outline-offset: 2px;
+}
+
+.practice-options--numeric {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.practice-numeric-label {
+  margin-top: 0.9rem;
+  font-weight: 700;
+}
+
+.practice-numeric {
+  width: min(100%, 18rem);
+  min-height: 48px;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper-light);
+  color: var(--ink);
+  font-family: var(--notes);
+  font-size: 1.1rem;
+}
+
+.practice-numeric:focus-visible {
+  outline: 2px solid var(--pen-blue);
+  outline-offset: 2px;
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1.25rem;
+}
+
+/* ---- player: hint and feedback ---- */
+.practice-hint {
+  margin-top: 1rem;
+}
+
+.practice-hint .notice {
+  margin-top: 0;
+}
+
+.practice-feedback {
+  margin-top: 1.25rem;
+}
+
+.practice-feedback:focus {
+  outline: none;
+}
+
+.practice-feedback-inner {
+  padding: 1rem 1.1rem;
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-left-width: 6px;
+}
+
+.practice-feedback--correct {
+  border-left-color: var(--tick-green);
+}
+
+.practice-feedback--wrong {
+  border-left-color: var(--pencil-red);
+}
+
+.practice-verdict {
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.practice-feedback .why {
+  margin-top: 0.75rem;
+}
+
+.practice-tutor {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.975rem;
+}
+
+.practice-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1.25rem;
+}
+
+.practice-finish {
+  display: inline-flex;
+}
+
+.practice-player-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---- summary ---- */
+.practice-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1px;
+  margin-top: 1rem;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+
+.practice-figure {
+  padding: 0.9rem 1rem;
+  background: var(--paper);
+}
+
+.practice-figure dt {
+  font-family: var(--notes);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--graphite);
+  text-transform: uppercase;
+}
+
+.practice-figure dd {
+  margin: 0.3rem 0 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+
+.practice-concept-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.practice-concept-title {
+  font-weight: 700;
+}
+
+.practice-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+/* ---- 360 px: the base case ---- */
+@media (max-width: 56rem) {
+  .practice-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .practice-chapter-row,
+  .practice-weak-row,
+  .practice-history-row {
+    align-items: flex-start;
+  }
+
+  .practice-start--inline .btn,
+  .practice-history-row .btn {
+    width: 100%;
+  }
+
+  .practice-actions {
+    align-items: stretch;
+  }
+
+  .practice-actions .btn {
+    width: 100%;
+  }
+
+  .practice-next .btn,
+  .practice-finish,
+  .practice-finish .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .practice-option,
+  .practice-numeric {
+    transition: none;
+  }
+}

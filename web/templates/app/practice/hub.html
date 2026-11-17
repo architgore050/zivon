@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/practice.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="practice-title">
+  <p class="kicker">Practice</p>
+  <h1 id="practice-title">One question at a time, with the working shown.</h1>
+  <p class="lede">Chapter drills, a Daily 5, a weak-topic drill, and retry for what you missed. Answers are checked on the server, and nothing here is ranked or shared.</p>
+</section>
+
+{% if practice.data_error %}
+<section class="wrap band" aria-labelledby="practice-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="practice-error-title">Your practice sets are unavailable right now.</strong></p>
+    <p>{{ practice.data_error }} <a class="text-link" href="/app/practice">Try again</a></p>
+  </div>
+</section>
+{% else %}
+<div class="wrap practice-grid">
+  <div class="practice-main">
+
+    {% if practice.focus %}
+    <section class="practice-panel" aria-labelledby="practice-focus-title">
+      <p class="kicker">From the lesson</p>
+      <h2 id="practice-focus-title">{{ practice.focus.title }}</h2>
+      <p class="meta">{{ practice.focus.question_count }} question{% if practice.focus.question_count != 1 %}s{% endif %} ready{% if practice.focus.chapter_no %} · Chapter {{ practice.focus.chapter_no }}{% endif %}</p>
+      {% if practice.focus.language_fallback %}
+      <p class="meta">This chapter's bank is not in your saved language yet; the drill is in English.</p>
+      {% endif %}
+      <form class="practice-start" method="post" action="/app/practice/start">
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="mode" value="chapter">
+        <input type="hidden" name="chapter_id" value="{{ practice.focus.chapter_id }}">
+        {% if practice.focus.start_count %}<input type="hidden" name="count" value="{{ practice.focus.start_count }}">{% endif %}
+        <button class="btn" type="submit">Start this chapter's drill</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <section class="practice-panel" aria-labelledby="practice-daily-title">
+      <p class="kicker">Daily 5</p>
+      <h2 id="practice-daily-title">Five questions for today</h2>
+      {% if practice.daily.available %}
+      <p class="lede">{{ practice.daily.count }} question{% if practice.daily.count != 1 %}s{% endif %} drawn from Class {{ practice.daily.class_level }} chapters that have a bank. No timer; finish whenever you like.</p>
+      {% if practice.daily.language_fallback %}<p class="meta">Served in English because your saved language is not in the bank yet.</p>{% endif %}
+      <form class="practice-start" method="post" action="/app/practice/start">
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="mode" value="daily">
+        <button class="btn" type="submit">Start the Daily 5</button>
+      </form>
+      {% else %}
+      <p class="lede">{{ practice.daily.reason }}</p>
+      {% endif %}
+    </section>
+
+    <section class="practice-panel" aria-labelledby="practice-chapters-title">
+      <p class="kicker">Chapter drill</p>
+      <h2 id="practice-chapters-title">Practise one chapter</h2>
+      {% if practice.chapters %}
+      <ol class="practice-chapter-list">
+        {% for chapter in practice.chapters %}
+        <li class="practice-chapter-row">
+          <div class="practice-chapter-text">
+            <p class="chapter-num">{% if chapter.chapter_no %}Chapter {{ chapter.chapter_no }}{% else %}Published practice{% endif %}{% if chapter.class_level %} · Class {{ chapter.class_level }}{% endif %}</p>
+            <h3 class="chapter-title">{% if chapter.lesson_url %}<a href="{{ chapter.lesson_url }}">{{ chapter.title }}</a>{% else %}{{ chapter.title }}{% endif %}</h3>
+            <p class="meta">{{ chapter.question_count }} question{% if chapter.question_count != 1 %}s{% endif %} imported{% if chapter.language_fallback %} · English only for now{% endif %}</p>
+          </div>
+          <form class="practice-start practice-start--inline" method="post" action="/app/practice/start">
+            {{ csrf_field(csrf_token) }}
+            <input type="hidden" name="mode" value="chapter">
+            <input type="hidden" name="chapter_id" value="{{ chapter.chapter_id }}">
+            {% if chapter.start_count %}<input type="hidden" name="count" value="{{ chapter.start_count }}">{% endif %}
+            <button class="btn btn--outline btn--sm" type="submit">Start</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="lede">No chapter has an imported practice bank yet. The lesson pages still work; practice appears for a chapter when its pack is imported.</p>
+      {% endif %}
+    </section>
+
+    <section class="practice-panel" aria-labelledby="practice-weak-title">
+      <p class="kicker">Weak topics</p>
+      <h2 id="practice-weak-title">The concepts you are still missing</h2>
+      {% if practice.weak_chapters %}
+      <p class="lede">Built from your unresolved wrong answers. A concept leaves this list when your latest answer on it is right.</p>
+      <ul class="practice-weak-list">
+        {% for chapter in practice.weak_chapters %}
+        <li class="practice-weak-row">
+          <div>
+            <h3 class="chapter-title">{{ chapter.title }}</h3>
+            <p class="meta">{{ chapter.missed_count }} unresolved question{% if chapter.missed_count != 1 %}s{% endif %}{% if chapter.language_fallback %} · English only for now{% endif %}</p>
+          </div>
+          <form class="practice-start practice-start--inline" method="post" action="/app/practice/start">
+            {{ csrf_field(csrf_token) }}
+            <input type="hidden" name="mode" value="weak_topic">
+            <input type="hidden" name="chapter_id" value="{{ chapter.chapter_id }}">
+            <button class="btn btn--outline btn--sm" type="submit">Drill these</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="lede">Nothing is marked weak yet. Answer a few questions and a missed concept will appear here.</p>
+      {% endif %}
+    </section>
+
+    <section class="practice-panel" aria-labelledby="practice-retry-title">
+      <p class="kicker">Retry mistakes</p>
+      <h2 id="practice-retry-title">Go back to what you got wrong</h2>
+      {% if practice.retry.available %}
+      <p class="lede">{{ practice.retry.count }} question{% if practice.retry.count != 1 %}s{% endif %} whose latest answer is still wrong. Your first attempt stays in the record; this is another go, not an eraser.</p>
+      {% if practice.retry.language_fallback %}<p class="meta">The retry set is in English because the missed questions are English rows.</p>{% endif %}
+      <form class="practice-start" method="post" action="/app/practice/start">
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="mode" value="retry_mistakes">
+        <button class="btn" type="submit">Retry these questions</button>
+      </form>
+      {% else %}
+      <p class="lede">No unresolved mistakes yet. A wrong answer appears here until you answer that question correctly.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <aside class="practice-side" aria-label="Recent sets and how practice works">
+    <section class="practice-panel" aria-labelledby="practice-recent-title">
+      <p class="kicker">Recent sets</p>
+      <h2 id="practice-recent-title">What you have practised</h2>
+      {% if practice.recent %}
+      <ol class="practice-recent-list">
+        {% for item in practice.recent %}
+        <li class="practice-recent-row">
+          <a href="{{ item.href }}">{{ item.title }}</a>
+          <p class="meta">{{ item.mode_label }} · {{ item.when }}{% if item.score_label %} · {{ item.score_label }}{% elif not item.completed %} · still open{% endif %}</p>
+        </li>
+        {% endfor %}
+      </ol>
+      <p class="mt-2"><a class="text-link" href="/app/practice/history">Full practice history</a></p>
+      {% else %}
+      <p class="lede">No practice sets yet. Start a chapter drill or the Daily 5 and it will appear here.</p>
+      {% endif %}
+    </section>
+
+    <section class="practice-panel" aria-labelledby="practice-rules-title">
+      <p class="kicker">How this works</p>
+      <h2 id="practice-rules-title">Honest notes</h2>
+      <ul class="practice-rules">
+        <li>The question bank is imported from the NCERT-backed assessment packs; every answer ships with an explanation and a concept tag.</li>
+        <li><strong>Hints are not authored yet.</strong> The nudge button says so and offers a general study prompt, never the answer.</li>
+        <li>Retry is always allowed. Your progress record uses the first attempt on each question, so guess-until-right does not inflate it.</li>
+        <li>There is no timer and no public score. The summary is for you.</li>
+        <li>“Ask the tutor” opens the chapter's lesson page, where the real voice dock lives. Practice does not fake a second tutor.</li>
+        <li>Questions are in your saved language when the bank has it; otherwise this page says English is being used.</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

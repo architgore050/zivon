@@ -95,3 +95,7 @@ evals,factory.eval.kid_session_logged,INFO,run_id,session_code;topic_slug;gate_b
 progress,progress.events.ingested,INFO,request_id,accepted;rejected,no,,L2,backend/routes/progress.py,F3 batch accepted; counts only (no user id; no event content)
 progress,progress.events.rejected,WARNING,request_id,rejected;reason_code,no,client_error,L2,backend/routes/progress.py,F3 per-item schema rejection; reason_code enum (event_schema)
 progress,progress.bookmark.changed,INFO,request_id,target_type;added;created,no,,L2,backend/routes/progress.py,F3 bookmark add/remove (batch merges use target_type=batch); the target id is app data and never a log field
+practice,practice.session.created,INFO,request_id,mode;question_count;chapter_id;language;language_fallback,no,,L2,backend/routes/practice.py,F5 practice set created from a servable question bank; counts and ids only (no prompt or answer)
+practice,practice.answer.recorded,INFO,request_id,correct;attempt_no;time_ms;hints_used;answered_count;question_count,no,,L2,backend/routes/practice.py,F5 one committed answer graded server-side; the answer value/key/explanation never enter fields
+practice,practice.session.completed,INFO,request_id,answered;question_count;unanswered;score,no,,L2,backend/routes/practice.py,F5 set closed (idempotent); latest-attempt accuracy score
+practice,practice.answer.progress_sync_failed,WARNING,request_id,reason_code,no,store_error,L2,backend/practice/service.py,the derivative F3 practice_answer progress event could not be written; the committed answer is not lost
