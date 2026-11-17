@@ -99,3 +99,17 @@ practice,practice.session.created,INFO,request_id,mode;question_count;chapter_id
 practice,practice.answer.recorded,INFO,request_id,correct;attempt_no;time_ms;hints_used;answered_count;question_count,no,,L2,backend/routes/practice.py,F5 one committed answer graded server-side; the answer value/key/explanation never enter fields
 practice,practice.session.completed,INFO,request_id,answered;question_count;unanswered;score,no,,L2,backend/routes/practice.py,F5 set closed (idempotent); latest-attempt accuracy score
 practice,practice.answer.progress_sync_failed,WARNING,request_id,reason_code,no,store_error,L2,backend/practice/service.py,the derivative F3 practice_answer progress event could not be written; the committed answer is not lost
+speaking,speaking.prompts.listed,INFO,request_id,count;language;chapter_filtered,no,,L2,backend/routes/speaking.py,F6 prompt list; ids and counts only and never prompt text
+speaking,speaking.attempt.started,INFO,request_id,prompt_id;language;duration_ms;upload_bytes;mock,no,,L2,backend/routes/speaking.py,F6 one transient upload accepted for processing after the quota reserve; a refused request logs only speaking.quota.blocked and audio bytes are never a field
+speaking,speaking.attempt.transcribed,INFO,request_id,prompt_id;language;char_count;mock,stt_ms,,L2,backend/routes/speaking.py,Prisma final transcript; char count only and never transcript text
+speaking,speaking.attempt.evaluated,INFO,request_id,prompt_id;band;ideas_present;ideas_total;mock,eval_ms,,L2,backend/routes/speaking.py,tutor-model rubric verdict mapped to the authored band; counts only
+speaking,speaking.attempt.evaluation_unavailable,WARNING,request_id,prompt_id;reason_code,no,transport_error,L2,backend/routes/speaking.py,the transcript is saved and feedback is reported unavailable; no invented verdict
+speaking,speaking.attempt.no_speech,WARNING,request_id,prompt_id;duration_ms,no,client_error,L2,backend/routes/speaking.py,Prisma returned an empty final; no attempt row is written
+speaking,speaking.attempt.failed,ERROR,request_id,prompt_id;stage;reason_code,no,transport_error,L2,backend/routes/speaking.py,stt stage terminal failure; the student sees a retry state and nothing is saved
+speaking,speaking.attempt.saved,INFO,request_id,prompt_id;attempt_id;band;evaluation_available,no,,L2,backend/routes/speaking.py,text-only attempt row written; attempt_id is a reference id and no transcript is a field
+speaking,speaking.attempt.self_check,INFO,request_id,prompt_id;choice,no,,L2,backend/routes/speaking.py,student's own closed-choice reflection; never free text
+speaking,speaking.attempt.deleted,INFO,request_id,attempt_id,no,,L2,backend/routes/speaking.py,hard delete of transcript + feedback; the audio never existed as a stored object
+speaking,speaking.attempt.ledger_failed,WARNING,request_id,prompt_id;points,no,store_error,L2,backend/routes/speaking.py,credit-ledger write failed after the attempt was saved; the guard counter stands and the attempt survives
+speaking,speaking.consent.blocked,WARNING,request_id,prompt_id;reason_code,no,auth_error,L2,backend/routes/speaking.py,device voice consent missing or stale; no frame was read
+speaking,speaking.quota.blocked,WARNING,request_id,prompt_id;requested;remaining;reason,no,quota_error,L2,backend/routes/speaking.py,existing CreditGuard refused the reserve; STT was not called
+speaking,speaking.mock.refused,ERROR,,reason_code,no,validation_error,L2,backend/speaking/pipeline.py,ZIVON_SPEAKING_MOCK was set with ZIVON_ENV=prod; mock is refused

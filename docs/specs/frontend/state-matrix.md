@@ -183,6 +183,62 @@ Code path `[web]`: `web/templates/app/practice/history.html`. Contract:
 | reduced-motion | no animation |
 | untranslated | English copy + saved-language note |
 | over-credit-budget | n/a — no voice control |
+## APP-11 `/app/speaking` explain-back hub (F6, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/speaking/hub.html` +
+`web/speaking_views.py` (SSR). Contract: `docs/specs/frontend/speaking.md` §5.
+
+| State | What the student sees |
+|---|---|
+| default | chapter-grouped prompts with key-idea count, language, last attempt, Start/Try again; last-attempt summary; "How explain-back works" |
+| loading | n/a — SSR completes before bytes |
+| empty | "No explain-back prompt is loaded for your class yet." + catalogue link |
+| partial | a prompt missing the requested language shows in English with a visible "not loaded yet" note |
+| error | panel `notice--error` + retry; no prompt list |
+| offline | n/a server-side; navigation failure is the browser's offline page |
+| permission-denied | guest -> 303 `/login?next=/app/speaking` |
+| reduced-motion | no animation |
+| untranslated | English UI copy; prompt language labelled; missing variant disclosed |
+| over-credit-budget | n/a — no capture on the hub; quota is a recorder state |
+
+## APP-12 `/app/speaking/{prompt_id}` recorder (F6, 2026-11-17)
+
+Code path `[web]` + island: `web/templates/app/speaking/recorder.html`,
+`frontend/assets/app-speaking.js`. Contract: `speaking.md` §5.
+
+| State | What the student sees |
+|---|---|
+| default | prompt, 45 s limit, disabled mic until consent/support, timer, waveform, status, result region, earlier attempts |
+| loading | recorder island initializes after SSR; mic disabled with a status line |
+| empty | "Your feedback appears here after your first recording."; key ideas/model answer absent from HTML |
+| partial | evaluation failed -> transcript + model answer + honest "feedback could not be generated"; no invented band |
+| error | mic denied/no device/busy/unsupported; upload/format/transport; each names what was and was not saved |
+| prompt not served | unknown/draft/retired prompt -> 404 "That prompt is not available"; no recorder, no consent request |
+| offline | upload fails with "could not be sent … Nothing was saved"; no optimistic result |
+| permission-denied | consent missing -> in-flow gate; declined -> "Voice is off on this device" + explicit review button |
+| reduced-motion | waveform still shows level; the pen-blue live bar and transitions are omitted |
+| untranslated | prompt language labelled; missing variant note |
+| over-credit-budget | "Voice is resting for today's limit. Nothing was recorded." |
+| mock | visible demo banner; the result is labelled a sample |
+| mic unavailable | disabled mic with the reason; the consent card is not shown when capture cannot work |
+
+## APP-13 `/app/speaking/history` (F6, 2026-11-17)
+
+Code path `[web]` + delete island (`app-speaking.js`). Contract:
+`speaking.md` §5.
+
+| State | What the student sees |
+|---|---|
+| default | newest-first attempts: date, language, chapter, prompt, band, key-idea count, transcript/feedback/model-answer disclosure, Delete |
+| loading | n/a — SSR |
+| empty | "No explain-back attempt saved." + prompt link |
+| partial | prompt no longer served (retired or removed) -> stored transcript/feedback + "Prompt no longer served"; no model answer |
+| error | panel error + retry; no invented attempts |
+| offline | n/a server-side; delete failure is announced, nothing optimistically dropped |
+| permission-denied | 303 `/login?next=/app/speaking/history` |
+| reduced-motion | no animation |
+| untranslated | English UI copy; attempt language shown |
+| over-credit-budget | n/a |
 
 ## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 

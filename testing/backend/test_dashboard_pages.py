@@ -143,7 +143,9 @@ class DashboardPagesTests(unittest.TestCase):
             html,
             "practice is live, so the quick action is a link, not a soon marker",
         )
-        for dead in ("/app/tests", "/app/speaking", "/app/swot"):
+        # `/app/speaking` left this list when F6 landed its route and nav
+        # entry (the dashboard quick-action copy is F3's to update).
+        for dead in ("/app/tests", "/app/swot"):
             self.assertNotIn(f'href="{dead}"', html)
         # The sync offer is server-rendered hidden and armed by the island.
         self.assertIn("data-progress-sync", html)

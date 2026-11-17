@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/app-speaking.css">
+<script src="/assets/app-speaking.js" defer></script>
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="speak-history-title">
+  <p class="kicker">Explain-back history</p>
+  <h1 id="speak-history-title">Every explanation you kept.</h1>
+  <p class="lede">Each row is a transcript and the AI feedback written from it. The recordings were never stored. Delete any row and its text is gone.</p>
+  <p class="meta"><a class="text-link" href="/app/speaking">Back to the prompts</a></p>
+</section>
+
+{% if speaking.data_error %}
+<section class="wrap band" aria-labelledby="speak-history-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="speak-history-error-title">Your explain-back history is unavailable right now.</strong></p>
+    <p>{{ speaking.data_error }} <a class="text-link" href="/app/speaking/history">Try again</a></p>
+  </div>
+</section>
+{% elif speaking.empty %}
+<section class="wrap band" aria-labelledby="speak-history-empty-title">
+  <div class="section-head">
+    <p class="kicker">Nothing here yet</p>
+    <h2 id="speak-history-empty-title">No explain-back attempt saved.</h2>
+  </div>
+  <p class="lede">Record one explanation and it will appear here with the key ideas you covered. Nothing is invented to fill the page.</p>
+  <p class="mt-2"><a class="btn" href="/app/speaking">Choose a prompt</a></p>
+</section>
+{% else %}
+<section class="wrap band" aria-labelledby="speak-history-list-title">
+  <div class="section-head">
+    <p class="kicker">Your account</p>
+    <h2 id="speak-history-list-title">{{ speaking.count }} saved {{ 'attempt' if speaking.count == 1 else 'attempts' }}</h2>
+  </div>
+  <p class="status-line" data-speaking-history-status role="status" aria-live="polite"></p>
+  <p class="lede" data-speaking-history-empty hidden>No explain-back attempt saved. <a class="text-link" href="/app/speaking">Choose a prompt</a> to record one.</p>
+  <ol class="speak-attempt-list" data-speaking-attempt-list>
+    {% for item in speaking.attempts %}
+    <li class="speak-attempt-row" data-speaking-attempt-row data-attempt-id="{{ item.attempt_id }}">
+      <p class="meta">{{ item.when }} · {{ item.language_label }}{% if item.chapter_title %} · {{ item.chapter_title }}{% endif %}</p>
+      <h3 class="speak-attempt-prompt"{% if item.prompt_available %} lang="{{ item.lang }}"{% endif %}>{% if item.prompt_available %}{{ item.prompt_text }}{% else %}Prompt no longer served{% endif %}</h3>
+      {% if item.evaluation_available %}
+      <p class="speak-band"><span class="speak-band-label">{{ item.band_label }}</span> <span class="meta">{{ item.ideas_present }} of {{ item.ideas_total }} key ideas covered</span></p>
+      {% if item.mock %}<p class="meta">Demo mode sample.</p>{% endif %}
+      {% else %}
+      <p class="meta">Transcript saved; the AI feedback was unavailable.</p>
+      {% endif %}
+      <details class="speak-attempt-detail">
+        <summary>Transcript, feedback, and model answer</summary>
+        <p class="speak-transcript" lang="{{ item.lang }}">{{ item.transcript }}</p>
+        {% if item.evaluation_available %}
+        <p><strong>What went well.</strong> {{ item.what_went_well }}</p>
+        <p><strong>Next step.</strong> {{ item.next_step }}</p>
+        {% endif %}
+        {% if item.model_answer %}
+        <p class="speak-model-text" lang="{{ item.lang }}">{{ item.model_answer }}</p>
+        {% if item.model_answer_source %}<p class="meta">Source: {{ item.model_answer_source }}</p>{% endif %}
+        {% endif %}
+        {% if item.self_check_label %}<p class="meta">Your note: {{ item.self_check_label }}</p>{% endif %}
+      </details>
+      <div class="speak-actions">
+        <button class="text-link speak-delete" type="button" data-speaking-delete>Delete this attempt</button>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
+{% endblock %}

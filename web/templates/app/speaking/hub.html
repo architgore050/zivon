@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/app-speaking.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="speaking-title">
+  <p class="kicker">Explain it back</p>
+  <h1 id="speaking-title">Say it in your own words.</h1>
+  <p class="lede">Pick a prompt, speak for up to 45 seconds, and see which key ideas you covered. Zivon keeps the transcript and the feedback as text; the audio is discarded after it is transcribed.</p>
+  {% if speaking.language_note %}<p class="meta">{{ speaking.language_note }}</p>{% endif %}
+</section>
+
+{% if speaking.data_error %}
+<section class="wrap band" aria-labelledby="speaking-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="speaking-error-title">Your explain-back prompts are unavailable right now.</strong></p>
+    <p>{{ speaking.data_error }} <a class="text-link" href="/app/speaking">Try again</a></p>
+  </div>
+</section>
+{% else %}
+{% if speaking.last_attempt %}
+<section class="wrap band" aria-labelledby="last-attempt-title">
+  <div class="section-head">
+    <p class="kicker">Your last attempt</p>
+    <h2 id="last-attempt-title">{% if speaking.last_attempt.band_label %}{{ speaking.last_attempt.band_label }}{% else %}Transcript saved{% endif %}</h2>
+  </div>
+  <p class="meta">{{ speaking.last_attempt.when }}{% if speaking.last_attempt.evaluation_available %} · {{ speaking.last_attempt.ideas_present }} of {{ speaking.last_attempt.ideas_total }} key ideas{% endif %}</p>
+  <p class="mt-2"><a class="text-link" href="/app/speaking/history">See every attempt you kept</a></p>
+</section>
+{% endif %}
+
+{% if speaking.has_prompts %}
+{% for group in speaking.groups %}
+<section class="wrap band" aria-labelledby="speak-chapter-{{ group.chapter_id }}">
+  <div class="section-head">
+    <p class="kicker">{% if group.class_level %}Class {{ group.class_level }}{% else %}Physics{% endif %}</p>
+    <h2 id="speak-chapter-{{ group.chapter_id }}">{{ group.chapter_title }}</h2>
+  </div>
+  <ul class="speak-prompt-list">
+    {% for prompt in group.prompts %}
+    <li class="speak-prompt-row">
+      <div class="speak-prompt-text">
+        <p class="speak-prompt-title" lang="{{ prompt.lang }}">{{ prompt.prompt }}</p>
+        <p class="meta">{{ prompt.key_idea_count }} key {{ 'idea' if prompt.key_idea_count == 1 else 'ideas' }} · {{ prompt.language_label }}{% if prompt.last %} · last attempt {{ prompt.last.when }}{% if prompt.last.evaluation_available %} ({{ prompt.last.ideas_present }} of {{ prompt.last.ideas_total }}){% endif %}{% endif %}</p>
+        {% if prompt.language_note %}<p class="meta">{{ prompt.language_note }}</p>{% endif %}
+      </div>
+      <p class="speak-prompt-action"><a class="btn btn--sm" href="{{ prompt.href }}">{% if prompt.last %}Try again{% else %}Start explaining{% endif %}</a></p>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% else %}
+<section class="wrap band" aria-labelledby="speaking-empty-title">
+  <div class="section-head">
+    <p class="kicker">Nothing to practise yet</p>
+    <h2 id="speaking-empty-title">No explain-back prompt is loaded for your class yet.</h2>
+  </div>
+  <p class="lede">Explain-back prompts arrive with the Class 9 and Class 10 assessment packs. Until then, reading and the section checks still work.</p>
+  <p class="mt-2"><a class="btn" href="/courses">Open the catalogue</a></p>
+</section>
+{% endif %}
+
+<section class="wrap band" aria-labelledby="speaking-how-title">
+  <details class="why">
+    <summary id="speaking-how-title">How explain-back works</summary>
+    <div class="answer">
+      <ul class="rule-list">
+        <li>You speak for up to 45 seconds. The browser sends one short recording to Zivon.</li>
+        <li>Gnani Prisma transcribes it. The recording is dropped after transcription and is never stored as audio.</li>
+        <li>The tutor model marks which authored key ideas you covered. The app turns that into a band; it does not show a percentage or an exam mark.</li>
+        <li>Your transcript, the feedback, and your own note are kept in your account until you delete them. Deleting an attempt deletes the text.</li>
+        <li>Voice needs consent on this device. The first recording asks for it; reading and the rest of the app never require a microphone.</li>
+      </ul>
+      <p class="meta">The AI feedback is practice guidance, not a teacher's mark. <a class="text-link" href="/privacy/">Privacy summary</a></p>
+    </div>
+  </details>
+</section>
+{% endif %}
+{% endblock %}

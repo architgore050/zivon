@@ -55,6 +55,7 @@ from .store import (
     save_test_answer,
     select_daily_question_ids,
     select_question_ids,
+    set_speaking_self_check,
     submit_test_attempt,
 )
 
@@ -101,5 +102,6 @@ __all__ = [
     "save_test_answer",
     "select_daily_question_ids",
     "select_question_ids",
+    "set_speaking_self_check",
     "submit_test_attempt",
 ]

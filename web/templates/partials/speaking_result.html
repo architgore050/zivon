@@ -1,0 +1,68 @@
+{% if result %}
+<article class="speak-result" data-speaking-result-card data-attempt-id="{{ result.attempt_id }}" tabindex="-1" aria-labelledby="speak-result-title-{{ result.attempt_id }}">
+  <div class="speak-result-head">
+    <p class="kicker">Your attempt{% if result.when %} · {{ result.when }}{% endif %}</p>
+    <h2 id="speak-result-title-{{ result.attempt_id }}" class="speak-result-title">Feedback on your explanation</h2>
+  </div>
+
+  {% if result.mock %}
+  <div class="notice notice--empty" role="status">
+    <p><strong>Demo mode.</strong> The AI scorer is not connected on this deployment. The transcript and feedback below are a clearly labelled sample.</p>
+  </div>
+  {% endif %}
+
+  {% if result.evaluation_available %}
+  <p class="speak-band">
+    <span class="speak-band-label">{{ result.band_label }}</span>
+    <span class="meta">{{ result.ideas_present }} of {{ result.ideas_total }} key ideas covered</span>
+  </p>
+  <p class="speak-ai-label"><span class="speak-ai-tag">AI feedback</span> Written by the tutor model from your transcript. It is practice feedback, not a teacher's mark.</p>
+  <ul class="speak-ideas" aria-label="Key ideas in your explanation">
+    {% for idea in result.ideas %}
+    <li class="speak-idea speak-idea--{{ 'present' if idea.present else 'missing' }}">
+      <span class="speak-idea-mark">{{ 'Covered' if idea.present else 'Missing' }}</span>
+      <span class="speak-idea-text" lang="{{ result.lang }}">{{ idea.text }}</span>
+      {% if idea.evidence %}<q class="speak-idea-evidence">{{ idea.evidence }}</q>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="speak-feedback">
+    <p><strong>What went well.</strong> {{ result.what_went_well }}</p>
+    <p><strong>Next step.</strong> {{ result.next_step }}</p>
+  </div>
+  {% else %}
+  <div class="notice notice--partial" role="status">
+    <p><strong>Your transcript is saved.</strong> The AI feedback could not be generated just now. Try the prompt again to get feedback.</p>
+  </div>
+  {% endif %}
+
+  <section class="speak-transcript-block" aria-labelledby="speak-transcript-title-{{ result.attempt_id }}">
+    <h3 id="speak-transcript-title-{{ result.attempt_id }}">What you said</h3>
+    <p class="speak-transcript" lang="{{ result.lang }}">{{ result.transcript }}</p>
+  </section>
+
+  {% if result.model_answer %}
+  <details class="speak-model">
+    <summary>Model answer</summary>
+    <p class="speak-model-text" lang="{{ result.lang }}">{{ result.model_answer }}</p>
+    {% if result.model_answer_source %}<p class="meta">Source: {{ result.model_answer_source }}</p>{% endif %}
+  </details>
+  {% endif %}
+
+  {% if interactive %}
+  <fieldset class="speak-selfcheck">
+    <legend>How did that feel? <span class="meta">A note for you, not a grade.</span></legend>
+    <label class="speak-choice"><input type="radio" name="speak-self-check-{{ result.attempt_id }}" value="explained_fully"{% if result.self_check == "explained_fully" %} checked{% endif %}> I explained it fully</label>
+    <label class="speak-choice"><input type="radio" name="speak-self-check-{{ result.attempt_id }}" value="missed_a_part"{% if result.self_check == "missed_a_part" %} checked{% endif %}> I missed a part</label>
+    <label class="speak-choice"><input type="radio" name="speak-self-check-{{ result.attempt_id }}" value="practise_again"{% if result.self_check == "practise_again" %} checked{% endif %}> I need to practise again</label>
+    <p class="mt-1"><button class="btn btn--sm btn--outline" type="button" data-speaking-self-check-save>Save how it felt</button></p>
+  </fieldset>
+  <div class="speak-actions">
+    <button class="text-link speak-delete" type="button" data-speaking-delete>Delete this attempt</button>
+  </div>
+  <p class="status-line" data-speaking-result-status role="status" aria-live="polite"></p>
+  {% elif result.self_check_label %}
+  <p class="meta">{{ result.self_check_label }}</p>
+  {% endif %}
+</article>
+{% endif %}

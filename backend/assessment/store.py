@@ -828,13 +828,32 @@ def list_speaking_prompts(
 
 
 def fetch_speaking_prompt(
-    db: DatabaseEngine, prompt_id: str, language: str
+    db: DatabaseEngine,
+    prompt_id: str,
+    language: str,
+    *,
+    served_only: bool = False,
 ) -> dict[str, Any] | None:
-    """Return one prompt with its key ideas + model answer (server-side use)."""
-    row = db.fetchone(
-        "SELECT * FROM speaking_prompt WHERE prompt_id = ? AND language = ?",
-        (str(prompt_id), _language(language)),
-    )
+    """Return one prompt with its key ideas + model answer (server-side use).
+
+    `served_only` restricts the lookup to the statuses students may be served
+    (`reviewed`/`published`). The API and the recorder use it so a draft or
+    retired prompt can never be recorded against (or rendered as a page) — the
+    answer-material gate must not depend on a later write-time check. The
+    history surface keeps `served_only=False`: an attempt already made must
+    stay readable.
+    """
+    if served_only:
+        row = db.fetchone(
+            "SELECT * FROM speaking_prompt WHERE prompt_id = ? AND language = ? "
+            "AND status IN (?, ?)",
+            (str(prompt_id), _language(language), *SERVED_STATUSES),
+        )
+    else:
+        row = db.fetchone(
+            "SELECT * FROM speaking_prompt WHERE prompt_id = ? AND language = ?",
+            (str(prompt_id), _language(language)),
+        )
     return _speaking_prompt_public(row, include_answer=True) if row else None
 
 
@@ -935,6 +954,44 @@ def get_speaking_attempt(
         (str(attempt_id), _require_user(user_id)),
     )
     return _speaking_attempt_public(row) if row else None
+
+
+def set_speaking_self_check(
+    db: DatabaseEngine,
+    user_id: str,
+    attempt_id: str,
+    *,
+    self_check: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    """Store the student's own post-attempt note (owner-scoped, bounded).
+
+    Self-check is the learner's reflection ("I explained it fully"), not a
+    second grade: the route validates the closed choice set, the store only
+    bounds the JSON. A missing or somebody else's attempt returns None.
+    """
+    owner = _require_user(user_id)
+    payload = _bounded_payload(self_check, "E-SPEAKING-PAYLOAD")
+    with db.transaction() as tx:
+        row = tx.fetchone(
+            "SELECT attempt_id FROM speaking_attempt "
+            "WHERE attempt_id = ? AND user_id = ?",
+            (str(attempt_id), owner),
+        )
+        if row is None:
+            return None
+        tx.execute(
+            "UPDATE speaking_attempt SET self_check = ? "
+            "WHERE attempt_id = ? AND user_id = ?",
+            (_dumps(payload), str(attempt_id), owner),
+        )
+        updated = tx.fetchone(
+            "SELECT * FROM speaking_attempt WHERE attempt_id = ?", (str(attempt_id),)
+        )
+    if updated is None:
+        # A concurrent owner delete between the check and the update: report a
+        # miss, never a 500 from an assertion inside a request.
+        return None
+    return _speaking_attempt_public(updated)
 
 
 def list_speaking_attempts(
@@ -1453,5 +1510,6 @@ __all__ = [
     "save_test_answer",
     "select_daily_question_ids",
     "select_question_ids",
+    "set_speaking_self_check",
     "submit_test_attempt",
 ]
