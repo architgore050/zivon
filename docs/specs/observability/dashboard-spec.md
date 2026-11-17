@@ -12,7 +12,7 @@
 | Namespace/config | `zivon`; env via `k8s/infra.env` line-edits (`ZIVON_PUBLIC_BASE_URL`, `ZIVON_ENV`, `ZIVON_LOG_SYNC_SCHEDULE`), secret `zivon-admin-auth` (key `ZIVON_ADMIN_TOKEN`) and `zivon-backend-env` (key `ZIVON_LOG_DSN`) mounted env-only — secrets never in manifests, never in `infra.env` (AGENTS.md) |
 | Resources | requests 64 Mi / 50 m, limits 256 Mi / 250 m (a read-mostly UI; measured post-deploy, retuned with evidence) |
 | Probes | `/healthz` (liveness+readiness): 200 when the process is up and the store is reachable OR fallback is active (a dashboard that cannot read the store says so on the page — it does not flap) |
-| Data mounts | `runs/` PVC **read-only** (run artifacts, status.json, run_report.json); no other volumes; sessions in-memory (single replica, ADR-0026) |
+| Data mounts | `runs/` PVC **read-only** (run artifacts, status.json, run_report.json) + `evals/` PVC subPath **read-only** (the F10 eval panel reads the ledger, `k8s/52-eval-cronjob.yaml` writes it); no other volumes; sessions in-memory (single replica, ADR-0026) |
 
 Lints: kubeconform + kube-linter clean like every other manifest; hadolint on the new Dockerfile; the Deployment is `USER 1000` numeric like the factory image (gotcha 1).
 
@@ -36,8 +36,23 @@ Single-admin bearer secret in K8s Secret `zivon-admin-auth`; login sets an HttpO
 | GET | `/admin/credits` | session | View 4: credit usage vs tranche/cap |
 | GET | `/admin/errors` | session | View 5: error feed |
 | GET | `/admin/publish` | session | View 6: publish status |
+| GET | `/admin/content` | session | F10: content coverage (pages, versions, live pointers, bundles, narration) |
+| GET | `/admin/questions` | session | F10: question-bank health (bank shape, pack gates, concept gaps) |
+| GET | `/admin/series` | session | F10: series/blueprint status (six-series catalogue + exam/series packs) |
+| GET | `/admin/quality` | session | F10: content-quality debt ledger |
+| GET | `/admin/users` | session | F10: users delete/export support (aggregates + deletion queue; no PII, no performance) |
+| GET | `/admin/reports` | session | F10: report inbox (no free-text column) |
+| POST | `/admin/reports/{report_id}/status` | session + CSRF | F10: inbox status change (EARS 4; audited + `dashboard.report_status_changed`) |
+| GET | `/admin/flags` | session | F10: guard profile (live) + flip history + documented content modes |
+| GET | `/admin/evals` | session | ADM-10: eval results from the `evals_runs/` ledger |
+| GET | `/admin/evals/{eval_run_id}` | session | ADM-10: one run's card verdicts |
 | POST | `/admin/actions/tests-now` | session + CSRF | trigger button 1 |
 | POST | `/admin/actions/factory-run` | session + CSRF | trigger button 2 |
+
+The F10 product panels read the core-backend DB through `dashboard/product.py`
+(`ZIVON_PRODUCT_DSN`, falling back to `ZIVON_LOG_DSN` — one backend database);
+the route/view/state/privacy contract for them lives in
+`docs/specs/frontend/admin.md`.
 
 API conventions: server-rendered HTML (Jinja), `X-Request-Id` on every response; unauthenticated browser hits get `303 → /admin/login`, API clients `401`; no client-side framework, no external assets (CSP `default-src 'self'` for the dashboard's own pages).
 
@@ -55,6 +70,8 @@ API conventions: server-rendered HTML (Jinja), `X-Request-Id` on every response;
 
 **V6 — Publish status.** Current published page set per topic (from `factory.publish.*` + the frontend PVC listing), last publish time, source (`pvc`/`snapshot`), and per-page block counts from `runs/<run_id>/` artifacts.
 
+**V7–V13 — the F10 product panels** (content coverage, question-bank health, series/blueprint status, content-quality debt, users delete/export support, report inbox, flags & config) and **the ADM-10 eval panel**: specified in full — routes, data sources, the binding privacy contract, and the state matrix — in `docs/specs/frontend/admin.md`. Summary: aggregate-only reads over the product tables plus a read-only view of the `evals_runs/` evidence directory; the report inbox's status change is the panels' one sanctioned write (CSRF + audit row + `dashboard.report_status_changed`). A broken product store is a per-panel error, never a fake empty table; the eval evidence dir missing renders the honest "not mounted" state.
+
 Alert banner (all views): open `alert.*` conditions (spec §9) with the proving query; clears when the condition clears; acknowledgement is P1.
 
 ## 5. Trigger buttons (exact semantics — the dashboard adds no third path)
@@ -70,4 +87,4 @@ Guards: session + CSRF double-submit token (ADR-0026 §5); the factory Job keeps
 
 ## 6. Non-goals
 
-No model calls of any kind (no inference dependency); no writes to the store except its own audit/session events (the dashboard is not an emitter of business telemetry); no user management, no RBAC, no plugins, no alerting channels beyond the banner (email/Telegram P1); no Grafana replacement (link out); no public exposure beyond the admin gate (if `ZIVON_PUBLIC_BASE_URL` is unset, it is port-forward-only — the P1 "add edge route + TLS" step is a decision for the founder, not a default).
+No model calls of any kind (no inference dependency); no writes to the store except its own audit/session events (the dashboard is not an emitter of business telemetry) plus the F10 report-inbox status change (`admin.md` §4, audited); no user management — the F10 users panel is read-only account-support aggregates and the deletion-request queue (no emails, no user ids, no device pseudonyms; the student's own delete/export flows stay in `web` and `/v1/me`); no RBAC, no plugins, no alerting channels beyond the banner (email/Telegram P1); no Grafana replacement (link out); no public exposure beyond the admin gate (if `ZIVON_PUBLIC_BASE_URL` is unset, it is port-forward-only — the P1 "add edge route + TLS" step is a decision for the founder, not a default).

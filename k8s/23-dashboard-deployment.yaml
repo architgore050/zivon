@@ -90,12 +90,19 @@ spec:
                   optional: true               # absent -> JSONL fallback mode (honest)
             - name: ZIVON_RUNS_DIR
               value: /app/runs
+            - name: ZIVON_EVAL_RUNS_DIR
+              value: /app/evals_runs
           volumeMounts:
             - name: runs
               mountPath: /app/runs
               subPath: runs     # the factory writes runs/<run_id>/ artifacts at this path
                                 # on the same PVC (same layout as the factory Job's mount)
               readOnly: true    # V1/V6 read artifacts; the dashboard writes nothing here
+            - name: evals
+              mountPath: /app/evals_runs
+              subPath: evals    # the eval-suite CronJob (k8s/52) persists evidence here;
+                                # the ADM-10 eval panel (F10) reads the ledger read-only
+              readOnly: true
             - name: tmp
               mountPath: /tmp
           resources:
@@ -107,6 +114,9 @@ spec:
               memory: 256Mi     # a read-mostly UI; retune with measured evidence
       volumes:
         - name: runs
+          persistentVolumeClaim:
+            claimName: zivon-sources
+        - name: evals
           persistentVolumeClaim:
             claimName: zivon-sources
         - name: tmp

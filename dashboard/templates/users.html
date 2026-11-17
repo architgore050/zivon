@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}users (delete/export support){% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Users — delete / export support</h1>
+  <p class="hint">account aggregates + the deletion-request queue only. No emails, no user ids, no device pseudonyms, no performance or progress viewing — the student's own flows are /privacy and /v1/me (F-OPS-ADM-01; DPDP minimization)</p>
+</div>
+{% if panel_error %}
+<div class="empty panel-error" role="alert">users panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <div class="tiles">
+    <span class="tile">{% for row in overview.by_role %}<span class="s">active {{ row.role }} accounts: {{ row.n }}</span>{% else %}<span class="s">no active accounts yet</span>{% endfor %}</span>
+    <span class="tile"><span class="k">verified (active)</span><span class="v">{{ overview.verified }}</span><span class="s">email verified, not deleted</span></span>
+    <span class="tile"><span class="k">soft-deleted accounts</span><span class="v">{{ overview.deleted }}</span><span class="s">deleted_at set; learner evidence retained per the retention matrix</span></span>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>deletion-request queue (latest 50) — the DPDP erasure path's ledger</caption>
+    <thead><tr><th scope="col">request</th><th scope="col">scope</th><th scope="col">status</th><th scope="col">requested</th><th scope="col">completed</th><th scope="col">deleted (counts)</th></tr></thead>
+    <tbody>
+      {% for row in overview.deletion_queue %}<tr>
+        <td class="corr">{{ row.request_id }}</td>
+        <td>{{ row.scope }}</td>
+        <td><span class="state {{ 'ok' if row.status == 'completed' else ('failed' if row.status == 'failed' else 'running') }}">{{ row.status }}</span></td>
+        <td class="corr">{{ row.requested_at }}</td>
+        <td class="corr">{{ row.completed_at or '—' }}</td>
+        <td>{% for key, value in row.counts.items() %}{{ key }}: {{ value }}{% if not loop.last %} · {% endif %}{% endfor %}{% if not row.counts %}—{% endif %}</td>
+      </tr>
+      {% else %}<tr><td colspan="6">no deletion requests — the queue fills when a student clears their data from /privacy or deletes their account</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="hint">Support flows, on purpose, stay student-owned: deletion requests are processed by the retention service (docs/deployment/deletion-runbook.md), and account export is served by <code>GET /v1/me/export</code> to the signed-in account itself. This panel watches the queue; it does not perform erasure or hand out another account's data.</p>
+</section>
+{% endif %}
+{% endblock %}

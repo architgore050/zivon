@@ -82,6 +82,7 @@ dashboard,dashboard.auth_failure,WARNING,,ip_truncated;attempts,no,auth_error,L3
 dashboard,dashboard.auth_lockout,CRITICAL,,ip_truncated;window_min,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),5 failures/15min trigger; fail-closed
 dashboard,dashboard.auth_unconfigured,CRITICAL,,secret_present,no,auth_error,L3,dashboard app (SP3-OBS contract; manifests 23-24),Secret missing at boot; all admin routes 503 (ADR-0026 fail-closed)
 dashboard,dashboard.action_triggered,INFO,,action;args;result,no,,L3,dashboard app (SP3-OBS contract; manifests 23-24),tests-now / factory-run button invocations; exact script semantics (TIMELINE admin trigger commands)
+dashboard,dashboard.report_status_changed,INFO,report_id,from_status;to_status,no,,L3,dashboard app (F10 report inbox; F-OPS-ADM-01 EARS 4),the inbox's one sanctioned write; status enum mirrors API-A6; an audit_log row lands alongside; report text is never in fields
 log,log.store_fallback,WARNING,,dsn_set;target_path,no,store_error,L1,logging_manager/sink.py,Postgres unreachable or unset; JSONL fallback engaged (ADR-0025)
 log,log.store_recovered,INFO,,target_path,no,,L1,logging_manager/sink.py,Postgres write path restored
 log,log.redaction_violation,WARNING,,event_ref;key;kind,no,privacy_violation,L3,logging_manager/redact.py,payload NEVER included; per-call-site dedup (first + every 100th)

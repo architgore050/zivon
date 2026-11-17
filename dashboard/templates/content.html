@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}content coverage{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Content coverage</h1>
+  <p class="hint">aggregate page/coverage counts from the product DB — no page content, no learner data (F-OPS-ADM-01)</p>
+</div>
+{% if panel_error %}
+<div class="empty panel-error" role="alert">content panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>pages registered in the catalogue, by class</caption>
+    <thead><tr><th scope="col">class</th><th scope="col">pages</th></tr></thead>
+    <tbody>
+      {% for row in coverage.pages %}<tr><td>{{ row.class_level }}</td><td>{{ row.pages }}</td></tr>
+      {% else %}<tr><td colspan="2">no pages registered yet — the catalogue fills when the first run publishes</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>page versions by status (draft → reviewed → published → retired)</caption>
+    <thead><tr><th scope="col">class</th><th scope="col">status</th><th scope="col">versions</th></tr></thead>
+    <tbody>
+      {% for row in coverage.versions %}<tr><td>{{ row.class_level }}</td><td><span class="state {{ row.status }}">{{ row.status }}</span></td><td>{{ row.versions }}</td></tr>
+      {% else %}<tr><td colspan="3">no page versions yet</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>live pointers — which locales currently serve each class</caption>
+    <thead><tr><th scope="col">class</th><th scope="col">locale</th><th scope="col">live pages</th></tr></thead>
+    <tbody>
+      {% for row in coverage.live %}<tr><td>{{ row.class_level }}</td><td>{{ row.locale }}</td><td>{{ row.live_pages }}</td></tr>
+      {% else %}<tr><td colspan="3">nothing live yet — publish first</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>translation bundles per locale (reviewed / published of total)</caption>
+    <thead><tr><th scope="col">locale</th><th scope="col">bundles</th><th scope="col">reviewed</th><th scope="col">published</th></tr></thead>
+    <tbody>
+      {% for row in coverage.bundles %}<tr><td>{{ row.locale }}</td><td>{{ row.bundles }}</td><td>{{ row.reviewed or 0 }}</td><td>{{ row.published or 0 }}</td></tr>
+      {% else %}<tr><td colspan="4">no bundles yet — the translation stage writes them per published page</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>pre-generated narration assets per locale (build-time, C-051)</caption>
+    <thead><tr><th scope="col">locale</th><th scope="col">assets</th><th scope="col">courses covered</th></tr></thead>
+    <tbody>
+      {% for row in coverage.narration %}<tr><td>{{ row.locale }}</td><td>{{ row.assets }}</td><td>{{ row.courses }}</td></tr>
+      {% else %}<tr><td colspan="3">no narration assets yet (narration is opt-in at build time)</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}content-quality debt{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Content-quality debt</h1>
+  <p class="hint">the debt ledger: everything waiting on a human decision, aggregated — a nonempty row here is work, not noise</p>
+</div>
+{% if panel_error %}
+<div class="empty panel-error" role="alert">debt panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <div class="tiles">
+    <span class="tile"><span class="k">question-bank size</span><span class="v">{{ debt.bank.total or 0 }}</span><span class="s">total items</span></span>
+    <span class="tile"><span class="k">draft items</span><span class="v">{{ debt.bank.drafts or 0 }}</span><span class="s">not yet reviewed/published</span></span>
+    <span class="tile"><span class="k">retired items</span><span class="v">{{ debt.bank.retired or 0 }}</span><span class="s">kept for learner-evidence joins</span></span>
+    <span class="tile"><span class="k">misconception-flagged</span><span class="v">{{ debt.bank.misconception_flagged or 0 }}</span><span class="s">items carrying a misconception tag</span></span>
+    <span class="tile"><span class="k">judged-review items</span><span class="v">{{ debt.bank.judged_mode or 0 }}</span><span class="s">review_mode = judged</span></span>
+    <span class="tile"><span class="k">human-review items</span><span class="v">{{ debt.bank.human_mode or 0 }}</span><span class="s">review_mode = human</span></span>
+    <span class="tile"><span class="k">pages without a live pointer</span><span class="v">{{ debt.pages_without_live }}</span><span class="s">registered but never published</span></span>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>packs that failed their gate</caption>
+    <thead><tr><th scope="col">kind</th><th scope="col">failing packs</th></tr></thead>
+    <tbody>
+      {% for row in debt.failing_packs %}<tr><td>{{ row.kind }}</td><td><span class="state failed">{{ row.failing }}</span></td></tr>
+      {% else %}<tr><td colspan="2">no failed packs</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="table-scroll">
+  <table>
+    <caption>translation bundles not yet reviewed</caption>
+    <thead><tr><th scope="col">locale</th><th scope="col">unreviewed bundles</th></tr></thead>
+    <tbody>
+      {% for row in debt.unreviewed_bundles %}<tr><td>{{ row.locale }}</td><td><span class="state warning">{{ row.unreviewed }}</span></td></tr>
+      {% else %}<tr><td colspan="2">every bundle is reviewed — or none exist yet</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="table-scroll">
+  <table>
+    <caption>open content-debt reports (wrong-physics / bad-translation)</caption>
+    <thead><tr><th scope="col">category</th><th scope="col">open reports</th></tr></thead>
+    <tbody>
+      {% for row in debt.open_content_reports %}<tr><td>{{ row.category }}</td><td>{{ row.n }}</td></tr>
+      {% else %}<tr><td colspan="2">no open content reports — triage the inbox under Reports</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
