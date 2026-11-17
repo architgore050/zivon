@@ -126,6 +126,10 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 | `EV-VIS-002` (P4) | `05-interactive`, `06-render` | Visual Builder accessibility (hook assertions land with P1) | `a11y_checks.py` (WCAG subset: names/roles/live regions/keyboard; optional axe-core) | `0` calls | Yes (det. only) | Yes |
 | `EV-SYN-003` (P4) | `02-generate.blocks` → `04-repair` | Synthesizer numeric/unit correctness | `numeric_checks.py` (`rule_numeric_recompute` chains, planted-error counter-proof, `unverified:` way-out) | `0` calls | Yes (det. only) | Yes |
 | `EV-E2E-002` (P4) | `00-ingest` → `11-link` | Catalogue/publish integrity + glossary coverage | `publish_checks.py` (hrefs, locale routes/bundles, sitemap, manifest identity) + `glossary_checks.py` (launch + per-page locales) | `0` calls | Yes (det. only) | Yes |
+| `EV-ASM-001` (P2) | `A3-practice-items` → `A6-publish-export` | Assessment Author: practice item schema, answer keys, sources | `assessment_checks.py` (`check_practice_pack_integrity`: schema, one answer, explanation, source section, concept, unique ids, 3 language rows; 5 seeded defects) | `0` calls | Yes (det. only) | Yes |
+| `EV-ASM-002` (P2) | `A1-syllabus` → `A6-publish-export` | Assessment Author: syllabus + concept coverage + block tagging | `assessment_checks.py` (`check_chapter_concept_coverage`: 4-class map integrity, every concept practised, coverage agrees, every published block tagged) | `0` calls | Yes (det. only) | Yes |
+| `EV-ASM-003` (P2) | `A5-time-priors` | Assessment Author: difficulty, marks and time priors | `assessment_checks.py` (`check_difficulty_marks_time_priors`: count/type/difficulty bands, marks, prior bounds, topic priors, hard≥easy median; 1 seeded prior defect) | `0` calls | Yes (det. only) | Yes |
+| `EV-ASM-004` (P2) | `A4-speaking-rubrics` → `A6-publish-export` | Speaking Rubric Author: EN/HI/Hinglish completeness | `assessment_checks.py` (`check_language_completeness`: one row per item/prompt per language, script rules, 3–5 key ideas, matching counts) | `0` calls | Yes (det. only) | Yes |
 
 **P4 additions (2026-11-15, Q-5).** `EV-VIS-002`, `EV-SYN-003`, `EV-E2E-002` close the
 accessibility/numeric/glossary/publish gap and prove `EVT-EVAL-*` map coverage (see
@@ -136,6 +140,15 @@ assessment/exam/series stage + role enum values are registered in
 `EV-E2E-002` (metadata/publish debt) and from the hand-maintained doctrine example in
 `EV-VIS-002` are deliberately non-blocking: the R1 gate blocks technical breakage, not debt
 (FEATURE-MAP item 14).
+
+**P2 additions (2026-11-17).** `EV-ASM-001..004` grade the separate assessment pipeline's
+exported pack. Each checker rebuilds the chapter pack from the tracked seed data through the
+real A1-A6 stage functions (`factory/assessment/pipeline.py::assemble_chapter_pack`) and
+applies seeded defects as patches to the shipped bank, so an eval cannot drift from the code it
+measures. Goldens live under `evals/goldens/assessment/` and are registered in
+`evals/goldens/manifest.json` (`assessment_goldens`, `assessment_seeded_defect_sets`).
+Content that has no published lesson (Class 10 Light in this wave) records block-tagging debt
+as a metric, never as a pass. Contract: `docs/content-factory/assessment.md`.
 
 ---
 

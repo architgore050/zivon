@@ -282,9 +282,26 @@ Every seeded defect sample is a self-contained JSON bundle derived from a **real
 
 ---
 
-## 4. Storage Placement & Version Rotation Rules
+## 4. Assessment Goldens (`evals/goldens/assessment/`, P2 2026-11-17)
 
-### 4.1 Where Golden Sets Live
+The assessment pipeline (`factory.assessment`, separate entrypoint) uses a
+different golden shape: it rebuilds the pack from the tracked seed banks on every
+run, so the golden pins **ranges and expectations**, not generated output.
+
+| Asset | Path | Purpose |
+|---|---|---|
+| `GA-01` / `GA-02` | `evals/goldens/assessment/class-9-describing-motion-around-us/`, `.../class-10-light-reflection-and-refraction/` | `expected.json`: item-count range, per-type ranges, difficulty-share bands, `concepts_min`, language set, prior bounds, speaking-prompt minimum. `artifact_ref.json`: the tracked bank paths and generator. |
+| Assessment seeded defects | `evals/goldens/assessment/defects/SD-ASM-001..006.json` | **Patches** against the real shipped bank (`patch_item`, `delete_locale`, `duplicate_item`, `patch_prior`), each declaring the rule that must fire. Wrong answer, missing explanation, off-chapter concept, duplicate prompt, missing language variant, out-of-bounds prior. |
+
+Registration lives in `evals/goldens/manifest.json` under `assessment_goldens`
+and `assessment_seeded_defect_sets`. The assessment defect files are deliberately
+**outside** `evals/goldens/defects/`: that directory is the reviewer-calibration
+corpus with its own `SEEDED_DEFECT_SCHEMA` (`SD-(CHK|SEC|REV)-NNN`), and mixing
+the two would corrupt the 19-sample calibration count.
+
+## 5. Storage Placement & Version Rotation Rules
+
+### 5.1 Where Golden Sets Live
 
 | Asset Type | Storage Location | Size Budget | Sync / Backup Rule |
 |---|---|---|---|
@@ -292,7 +309,7 @@ Every seeded defect sample is a self-contained JSON bundle derived from a **real
 | Committed Golden Topic Renders (`GT-01`, `GT-02`, `GT-03`) | Committed in Git at `frontend/courses/` and `docs/frontend/design-doctrine-lesson-example.html` | `~150–300 KB` per topic | Mirrored via `scripts/publish-frontend.sh` (`C1`); git history is the version rotation. |
 | Full Historical Run Directories & Raw PDF Caches | `zivon-sources` PVC (`subPath: runs` and `subPath: evals`) → Cold Object Storage (`C4`) | `5–50 MB` per run | Synced to cold storage via transactional outbox (`ADR-0027`); never committed to Git. |
 
-### 4.2 How Goldens Rotate When Content or Pipeline Versions Change
+### 5.2 How Goldens Rotate When Content or Pipeline Versions Change
 
 1. **Authoring-Prompt-Only Change (`PIPELINE_VERSION` unchanged)**:
    - `expected.json` and `defects/` do **not** rotate. Run `python -m evals run --suite full` to verify the prompt change improves or preserves scores against the existing golden baseline.

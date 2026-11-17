@@ -359,6 +359,11 @@ jobs:
           fi
       - name: Content factory unit tests (fast, no network, no browser; embedder is a fixture)
         run: python -m unittest discover -s testing/content_factory/unit -t . -v
+      - name: Assessment-content pipeline tests (P2; key-free seed generator, no model)
+        # The separate factory.assessment entrypoint (HANDSHAKE Q-1): syllabus,
+        # concept tagging, practice items, speaking rubrics, time priors and the
+        # versioned pack. Zero network, zero keys, no Chromium.
+        run: python -m unittest discover -s testing/content_factory/assessment -t . -v
       - name: Content factory integration test (real orchestrator vs mock inference server + real headless Chromium)
         # first run downloads the all-MiniLM-L6-v2 embedder (~90 MB) from HuggingFace
         run: python -m unittest testing.content_factory.integration.test_end_to_end -v

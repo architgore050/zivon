@@ -125,7 +125,17 @@ Run ids are deterministic per (chapter, class): re-running the same command **re
 
 Running the factory **in a container or on the cluster** instead? Those can never see a host's loopback — start the inference router (`docker compose up -d inference-router`) AND the llm-manager node (`docker compose up -d llm-manager`), then point the factory at the node: in compose set `ZIVON_BASE_URL=http://llm-manager:8000/v1` **and** `ZIVON_NODE_UPSTREAM_URL=<server address>` (the node's own upstream — one variable for both would make the node call itself), plus `ZIVON_MAX_ATTEMPTS=1` on the factory side (the node owns transport retries). In the cluster the ConfigMaps already encode this split (factory → llm-manager Service → router). See [`docs/deployment/kubernetes.md`](docs/deployment/kubernetes.md).
 
-Every run keeps full evidence (requests, responses, retries, reports) under `runs/`. Tests: `python -m unittest discover -s testing/content_factory/unit -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`. The cluster also runs the full suite on a schedule (CronJob `test-suite`); trigger it on demand with `kubectl create job --from=cronjob/test-suite <name> -n zivon` — the standing "button" until the admin dashboard exists (see `docs/deployment/cicd.md`).
+Practice items and speak-back rubrics are a **separate** entrypoint (they never run inside a lesson run):
+
+```bash
+python -m factory.assessment --list-chapters
+python -m factory.assessment --chapter class-9-describing-motion-around-us \
+    --chapter class-10-light-reflection-and-refraction
+```
+
+The default `--generator seed` is key-free (tracked curated banks); live generation uses the same `llm_manager` endpoint with `--generator llm`. Contract: [`docs/content-factory/assessment.md`](docs/content-factory/assessment.md).
+
+Every run keeps full evidence (requests, responses, retries, reports) under `runs/` (assessment runs under `runs/assessment/`). Tests: `python -m unittest discover -s testing/content_factory/unit -t .` and `python -m unittest discover -s testing/content_factory/assessment -t .` — see `testing/README.md` and `docs/content-factory/runbook.md`. The cluster also runs the full suite on a schedule (CronJob `test-suite`); trigger it on demand with `kubectl create job --from=cronjob/test-suite <name> -n zivon` — the standing "button" until the admin dashboard exists (see `docs/deployment/cicd.md`).
 
 ## Tech Stack
 
@@ -212,14 +222,14 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
 | [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status — incl. the secrets registry (`secrets.md`) and the Wave-E reserved manifest numbering map |
-| [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status) |
+| [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status), and the separate assessment pipeline ([`assessment.md`](docs/content-factory/assessment.md): practice items, speaking rubrics, concept tagging, time priors, export pack) |
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | Full-frontend plan (frozen 2026-11-13) | Workspace-local `tmp/full-frontend/FEATURE-MAP.md` + `REQUIREMENTS.md` — gitignored and deliberately not committed: locked product decisions, R1/R1.5/R2 scope, routes, screens, states, workstreams. Committed restatement: `docs/product/`, `docs/specs/frontend/`, `skills/zivon-frontend-product-skills/` |
 | `docs/compliance/` (C0, 2026-11-15) | Compliance research memo for exam-paper use — copyright/CBSE terms, educational-use boundaries, the exact user-facing notice copy, and counsel-review flags. Lands with the C0 agent; nothing past-paper is ingested, reproduced, or published before it |
 | [`docs/backend/`](docs/backend/) | Stage-2 systems specs (2026-11-07): backend spec (APIs, voice WebSocket contract, guard), database spec (Postgres schema), storage-tiering spec (cache / hot DB / cold provider), capacity & cost model, 16 ADRs |
 | [`docs/logs/`](docs/logs/) | Dated session logs (done / not done / next) |
-| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + end-to-end vs mock inference server + perf harness tool), `translation/` (10a..10d localization + TM + reviewer rules), `frontend/` (site shell, behaviour, voice-client state machine and low-end-Android perf budgets in Chromium), `observability/` (the logging_manager contract harness + dashboard tests), `evals/` (unit + calibration tests for the evaluation framework), `backend/` (REST/admin contracts, credit guard concurrency, consent/wipe cascade, TTL, HMAC abuse, Alembic migrations), and `voice/` (voice-loop units on mocked Prisma/brain/Timbre seams — no network, no keys) |
-| `evals/` | Evaluation & reviewer-calibration framework: 9 Eval Cards (`evals/cards/EV-*.yaml`), 4 Golden Topics, 19 Seeded Defects, deterministic checkers, `llm_manager` judges (`ADR-0028`), dual-write store (`ADR-0027`), and CLI (`python -m evals`) |
+| [`testing/`](testing/README.md) | Test sets: `content_factory/` (unit + assessment-pipeline suite + end-to-end vs mock inference server + perf harness tool), `translation/` (10a..10d localization + TM + reviewer rules), `frontend/` (site shell, behaviour, voice-client state machine and low-end-Android perf budgets in Chromium), `observability/` (the logging_manager contract harness + dashboard tests), `evals/` (unit + calibration tests for the evaluation framework), `backend/` (REST/admin contracts, credit guard concurrency, consent/wipe cascade, TTL, HMAC abuse, Alembic migrations), and `voice/` (voice-loop units on mocked Prisma/brain/Timbre seams — no network, no keys) |
+| `evals/` | Evaluation & reviewer-calibration framework: 16 Eval Cards (`evals/cards/EV-*.yaml`, including the four `EV-ASM-*` assessment cards), 4 Golden Topics + 2 assessment goldens, 19 reviewer-calibration Seeded Defects + 6 assessment defects, deterministic checkers, `llm_manager` judges (`ADR-0028`), dual-write store (`ADR-0027`), and CLI (`python -m evals`) |
 | [`skills/content-creation/`](skills/content-creation/) | Agent skills for build-in-public posts; see the folder README for layout and rules |
 | [`skills/prompting-and-agent-design/`](skills/prompting-and-agent-design/) | The prompting + agent-design skill behind the factory's stage prompts; see the folder README |
 | [`skills/code-review/`](skills/code-review/) | Code-review skill suite (entry point + seven lenses) used for the agentic review step; see the folder README |
