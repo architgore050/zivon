@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/tests.css">
+{% if tests.state == "ok" %}<script src="/assets/tests.js" defer></script>{% endif %}
+{% endblock %}
+{% block main %}
+{% if tests.state == "missing" %}
+<section class="wrap page-head" aria-labelledby="player-missing-title">
+  <p class="kicker">Test</p>
+  <h1 id="player-missing-title">That test is not here.</h1>
+</section>
+<section class="wrap band" aria-labelledby="player-missing-body">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="player-missing-body">Nothing was lost from your other tests.</strong></p>
+    <p>This attempt may belong to another account, or it never existed. A live attempt is always the same link you started.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a></p>
+</section>
+{% elif tests.state == "error" %}
+<section class="wrap page-head" aria-labelledby="player-error-title">
+  <p class="kicker">Test</p>
+  <h1 id="player-error-title">This paper could not be read.</h1>
+</section>
+<section class="wrap band" aria-labelledby="player-error-body">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="player-error-body">Your answers are still stored.</strong></p>
+    <p>{{ tests.message }} <a class="text-link" href="/app/tests/{{ attempt_id }}">Try again</a></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a></p>
+</section>
+{% else %}
+<section class="wrap tests-player-head" aria-labelledby="player-title">
+  <p class="kicker">{% if tests.series %}{{ tests.series.label }}{% else %}{{ tests.kind_label }}{% endif %}{% if tests.section %} · Section {{ tests.section }}{% endif %}</p>
+  <h1 id="player-title">{{ tests.title }}</h1>
+  <p class="tests-player-meta">
+    <span>Question {{ tests.index }} of {{ tests.count }}</span>
+    {% if tests.type_label %}<span>{{ tests.type_label }}</span>{% endif %}
+    {% if tests.marks_label %}<span>{{ tests.marks_label }}</span>{% endif %}
+    <span>{{ tests.duration_label }} paper</span>
+  </p>
+  {% if tests.language_note %}<p class="meta">{{ tests.language_note }}</p>{% endif %}
+</section>
+
+<div class="wrap tests-player-layout" data-tests-player data-attempt-id="{{ attempt_id }}" data-deadline="{{ tests.timer.deadline }}" data-expired="{% if tests.expired %}1{% else %}0{% endif %}">
+  <div class="tests-player-main">
+    <div class="tests-clock-row">
+      <p class="tests-clock-line">
+        <span class="tests-clock" data-tests-clock role="timer" aria-live="off">{{ tests.timer.label }}</span>
+        <span class="tests-clock-label">left</span>
+      </p>
+      <p class="tests-save" data-tests-save aria-live="polite">{% if tests.expired %}Time is up{% else %}Saved answers are kept across reloads{% endif %}</p>
+      <p class="tests-sr" data-tests-clock-announce aria-live="polite"></p>
+    </div>
+
+    {% if tests.expired %}
+    <div class="notice notice--error" role="alert">
+      <p><strong>Time is up.</strong></p>
+      <p>This paper's clock has run out. Your saved answers will be graded; unanswered questions earn nothing. Open review and submit to see the result.</p>
+    </div>
+    <p class="mt-2"><a class="btn" href="{{ tests.submit_href }}">Review and submit</a></p>
+    {% else %}
+    {% if tests.question %}
+    <section class="tests-paper" aria-labelledby="question-title">
+      {% if tests.section %}<p class="tests-paper-section">Section {{ tests.section }}</p>{% endif %}
+      <form class="tests-answer-form" method="post" action="{{ tests.answer_action }}" data-tests-form novalidate>
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="question_id" value="{{ tests.question.question_id }}">
+        <input type="hidden" name="answer_kind" value="{{ tests.answer_kind }}">
+        <input type="hidden" name="time_ms" value="{{ tests.saved_time_ms }}" data-tests-time>
+        <input type="hidden" name="flagged" value="0">
+
+        {% if tests.answer_kind == "index" %}
+        <fieldset class="tests-options">
+          <legend id="question-title" class="tests-prompt">{{ tests.question.prompt }}</legend>
+          {% for option in tests.options %}
+          <label class="tests-option">
+            <input type="radio" name="answer_index" value="{{ option.index }}"{% if tests.saved.index == option.index %} checked{% elif (tests.form_values or {}).get('answer_index') == option.index|string %} checked{% endif %}>
+            <span class="tests-option-text">{{ option.text }}</span>
+          </label>
+          {% endfor %}
+        </fieldset>
+        {% else %}
+        <fieldset class="tests-options tests-options--numeric">
+          <legend id="question-title" class="tests-prompt">{{ tests.question.prompt }}</legend>
+          <label class="tests-numeric-label" for="tests-answer-value">Your answer</label>
+          <input class="input tests-numeric" id="tests-answer-value" name="answer_value" type="text" inputmode="decimal" autocomplete="off" value="{% if tests.saved.value is not none %}{{ tests.saved.value }}{% else %}{{ (tests.form_values or {}).get('answer_value', '') }}{% endif %}">
+          <p class="meta">Enter the number only; any unit is stated in the question.</p>
+        </fieldset>
+        {% endif %}
+
+        <label class="tests-check tests-flag">
+          <input type="checkbox" name="flagged" value="1" data-tests-flag{% if tests.flagged or (tests.form_values or {}).get('flagged') %} checked{% endif %}>
+          <span>Mark this question for review</span>
+        </label>
+
+        <div class="tests-actions">
+          <button class="btn" type="submit" name="action" value="save" data-tests-save-btn>Save answer</button>
+          <button class="btn btn--outline" type="submit" name="action" value="flag">Mark for review</button>
+          {% if tests.prev_href %}<a class="btn btn--quiet" href="{{ tests.prev_href }}">Previous</a>{% endif %}
+          {% if tests.next_href %}<a class="btn btn--quiet" href="{{ tests.next_href }}">Next</a>{% endif %}
+        </div>
+      </form>
+      {% if tests.answer_error %}
+      <div class="notice notice--error" role="alert"><p>{{ tests.answer_error }}</p></div>
+      {% endif %}
+    </section>
+    {% else %}
+    <div class="notice notice--empty" role="status">
+      <p>This paper has no question to show. <a class="text-link" href="/app/tests">Start another test</a>.</p>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <div class="tests-submit-row">
+      <a class="btn btn--outline" href="{{ tests.submit_href }}">Review and submit</a>
+      <a class="text-link" href="/app/tests">Leave and come back later</a>
+    </div>
+    <p class="meta">Leaving keeps the paper and its clock. A submitted paper cannot be reopened for answers.</p>
+  </div>
+
+  <aside class="tests-player-side" aria-label="Question palette">
+    <section class="tests-panel" aria-labelledby="palette-title">
+      <h2 id="palette-title">Questions</h2>
+      <p class="meta">{{ tests.counts.answered }} answered · {{ tests.counts.unanswered }} not answered · {{ tests.counts.flagged }} marked</p>
+      <ol class="tests-palette">
+        {% for entry in tests.palette %}
+        <li>
+          <a class="tests-palette-link tests-palette-link--{{ entry.state }}" href="{{ entry.href }}"{% if entry.current %} aria-current="true"{% endif %}>
+            <span class="tests-palette-number">{{ entry.number }}</span>
+            <span class="tests-sr">{{ entry.state_label }}{% if entry.current %}, current question{% endif %}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ol>
+      <ul class="tests-palette-legend">
+        <li><span class="tests-swatch tests-swatch--answered" aria-hidden="true"></span> Answered</li>
+        <li><span class="tests-swatch tests-swatch--answered-flagged" aria-hidden="true"></span> Answered, marked</li>
+        <li><span class="tests-swatch tests-swatch--flagged" aria-hidden="true"></span> Marked for review</li>
+        <li><span class="tests-swatch tests-swatch--unanswered" aria-hidden="true"></span> Not answered</li>
+        <li><span class="tests-swatch tests-swatch--current" aria-hidden="true"></span> Current question</li>
+      </ul>
+    </section>
+    <section class="tests-panel" aria-labelledby="player-note-title">
+      <h2 id="player-note-title">Before you submit</h2>
+      <p class="meta">Unanswered and marked questions are listed on the review screen. Nothing is graded until you press Submit test there.</p>
+      <p class="meta"><a class="text-link" href="/app/tests/history">Test history</a></p>
+    </section>
+  </aside>
+</div>
+
+{% if tests.series and tests.series.notice %}
+<section class="wrap band tests-notice-band" aria-labelledby="player-notice-title">
+  <h2 id="player-notice-title" class="tests-notice-title">Exam-pattern practice notice</h2>
+  <p class="tests-notice">{{ tests.series.notice }}</p>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

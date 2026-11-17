@@ -210,10 +210,20 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
 - **F5/F6/F7** own practice, speaking, and tests/series routes/templates; each
   adds its router module under `web/routes/`, a template under
   `web/templates/app/`, a `nav.py` entry, and a state table for its screens.
-  **F6 speaking** landed 2026-11-17 (`web/routes/speaking.py`,
+- **F5 practice** landed 2026-11-17 (`web/routes/practice.py`,
+  `web/practice_views.py`, `web/templates/app/practice/*`,
+  `frontend/assets/practice.css` + `frontend/assets/practice.js`,
+  `backend/practice/`), adding the `Practice` nav entry. Contract:
+  `docs/specs/frontend/practice.md`.
+- **F6 speaking** landed 2026-11-17 (`web/routes/speaking.py`,
   `web/templates/app/speaking/*`, `web/speaking_views.py`, the `Speak` nav
   entry, `frontend/assets/app-speaking.css` + `frontend/assets/app-speaking.js`); its contract is
   `speaking.md`.
+- **F7 tests/series** landed 2026-11-17 (`web/routes/tests.py`,
+  `web/test_views.py`, `web/templates/app/tests/*`, `frontend/assets/tests.css` + `frontend/assets/tests.js`,
+  `backend/test_engine/`), adding the `Tests` nav entry and `/app/series`. It
+  consumes the F0 guard/CSRF contract unchanged. Contract:
+  `docs/specs/frontend/tests.md`.
 - **F8/F10** do not use the student shell: SWOT may use it once F3's data
   exists; admin keeps its separate staff session and container/surface.
 - A feature PR never edits `base.html` chrome, the guard, or the CSP to make
@@ -272,9 +282,10 @@ template must extend `base.html`.
 - A URL under `/app` that matches no route answers FastAPI's JSON 404 (the
   shell registers no catch-all by design); a branded HTML 404 for the app
   surface lands with a feature PR that can own the route.
-- The app nav lists Dashboard, Practice, Progress, Courses, and Settings.
-  Practice landed 2026-11-17 (`docs/specs/frontend/practice.md`); Tests/Speak
-  stay unlinked until F6/F7 land their routes. Saved sections are a quick link
+- The app nav lists Dashboard, Practice, Tests, Progress, Speak, Courses, and
+  Settings. Practice, Tests, and Speak landed 2026-11-17
+  (`docs/specs/frontend/practice.md`, `docs/specs/frontend/tests.md`,
+  `docs/specs/frontend/speaking.md`). Saved sections are a quick link
   on the dashboard/progress pages rather than their own nav entry.
 - `/app` is not rate-limited by the API bucket (the abuse classifier returns
   no family for HTML paths); the JSON API it calls keeps its existing limits.

@@ -12,10 +12,11 @@ from .practice import router as practice_router
 from .progress import router as progress_router
 from .speaking import router as speaking_router
 from .student import router as student_router
+from .tests import router as tests_router
 
 
 def register_routes(app: FastAPI) -> None:
-    """Mount student, account/auth, catalogue, progress, practice, speaking, admin."""
+    """Mount student, account/auth, catalogue, progress, practice, speaking, tests, and admin."""
     app.include_router(student_router)
     app.include_router(auth_router)
     app.include_router(me_router)
@@ -23,4 +24,5 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(progress_router)
     app.include_router(practice_router)
     app.include_router(speaking_router)
+    app.include_router(tests_router)
     app.include_router(admin_router)

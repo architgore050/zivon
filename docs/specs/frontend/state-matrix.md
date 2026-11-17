@@ -239,6 +239,120 @@ Code path `[web]` + delete island (`app-speaking.js`). Contract:
 | reduced-motion | no animation |
 | untranslated | English UI copy; attempt language shown |
 | over-credit-budget | n/a |
+## APP-14 `/app/tests` test hub (F7, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/tests/hub.html` + `web/test_views.py` /
+`backend/test_engine/`. Contract: `docs/specs/frontend/tests.md` §1–§2, §9.
+
+| State | What the student sees |
+|---|---|
+| default | presets, chapter tests with real bank counts, series shortcuts with status, recent attempts |
+| loading | n/a — SSR completes before bytes |
+| empty | "No chapter has an imported question bank yet" + courses/practice links; no Start form |
+| partial | thin bank (fewer than asked), English-only fallback note, series pending/disabled cards |
+| error | panel `notice--error` + retry; no invented chapters or history |
+| offline | browser offline page (tests need the server) |
+| permission-denied | 303 `/login?next=/app/tests` |
+| reduced-motion | no animation; native forms |
+| untranslated | English copy + saved-language note; paper-language fallback stated |
+| over-credit-budget | n/a — no voice control |
+| consent-missing | n/a — no voice control |
+
+## APP-15 `/app/tests/new` builder (F7, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/tests/new.html` + `web/test_views.py`.
+Contract: `docs/specs/frontend/tests.md` §2.1, §9.
+
+| State | What the student sees |
+|---|---|
+| default | chapter checkboxes, count/difficulty/time selects, estimated marks |
+| loading | n/a — SSR |
+| empty | no bank: "A custom test needs at least three servable questions" + links |
+| partial | a selected chapter may have fewer rows than asked; stated before build |
+| error | validation re-render (422) with the student's picks kept and a fixable message |
+| offline | browser offline page |
+| permission-denied | 303 `/login?next=/app/tests/new` |
+| reduced-motion | no animation |
+| untranslated | English copy + saved-language note |
+| over-credit-budget | n/a |
+| consent-missing | n/a |
+
+## APP-16 `/app/tests/{attempt_id}` exam-paper player (F7, 2026-11-17)
+
+Code path `[web]` + `frontend/assets/tests.js`; the server form is the real
+path. Contract: `docs/specs/frontend/tests.md` §3, §9.
+
+| State | What the student sees |
+|---|---|
+| default | paper header, server clock, palette, one question, Save/Mark, autosave line, Review & submit |
+| loading | n/a — SSR; the island says "Saving…" only while a PATCH is in flight |
+| empty | n/a — a paper always has at least three questions |
+| partial | unanswered/marked palette; series section label; language fallback note |
+| error | save failure announced ("Not saved — press Save answer"); 404 branded page for a foreign id; 503 panel if the store is down |
+| offline | browser offline page; an in-flight save is not claimed saved |
+| permission-denied | 303 `/login?next=…`; a foreign attempt is a branded 404 |
+| reduced-motion | no animation; the clock is text with `aria-live="off"` and polite threshold announcements |
+| untranslated | English UI copy + saved-language note; paper language stated |
+| over-credit-budget | n/a |
+| consent-missing | n/a |
+
+## APP-17 `/app/tests/{attempt_id}/review` results (F7, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/tests/review.html` + `web/test_views.py`.
+Contract: `docs/specs/frontend/tests.md` §4, §9.
+
+| State | What the student sees |
+|---|---|
+| default | score %, marks, accuracy, time, flagged; concept/chapter tables; every question with key + explanation + Ask the tutor; retry |
+| loading | n/a — SSR |
+| empty | n/a — a submitted paper has questions |
+| partial | a missing explanation is labelled as a content gap; a chapter with no published lesson says the tutor cannot open |
+| error | 404 branded page; 503 panel; before submit, 303 back to the player (key withheld) |
+| offline | browser offline page |
+| permission-denied | 303 `/login?next=…`; foreign attempt 404 |
+| reduced-motion | no animation; native `<details>` |
+| untranslated | English copy + fallback note |
+| over-credit-budget | n/a |
+| consent-missing | n/a |
+
+## APP-18 `/app/tests/history` (F7, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/tests/history.html`. Contract:
+`docs/specs/frontend/tests.md` §5, §9.
+
+| State | What the student sees |
+|---|---|
+| default | newest-first attempts with kind, chapters, day, score/status, Resume/Review |
+| loading | n/a — SSR |
+| empty | "No attempts for this filter" + Start a test + Clear filters |
+| partial | in-progress rows labelled and resumable; submitted rows open review |
+| error | panel `notice--error` + retry |
+| offline | browser offline page |
+| permission-denied | 303 `/login?next=/app/tests/history` |
+| reduced-motion | no animation |
+| untranslated | English copy + saved-language note |
+| over-credit-budget | n/a |
+| consent-missing | n/a |
+
+## APP-19 `/app/series` and `/app/series/{slug}` (F7, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/tests/series*.html` +
+`backend/test_engine/series.py`. Contract: `docs/specs/frontend/tests.md` §6,
+§9; compliance copy `docs/compliance/notices.md` N-01.
+
+| State | What the student sees |
+|---|---|
+| default | six cards with purpose, coverage, length, languages, paper count, derived status; detail lists published papers with Start/Resume |
+| loading | n/a — SSR |
+| empty | no published row → "Content pending" + the approved minimum; no fake paper, no Start |
+| partial | some series live, some pending/disabled/not-open; class 9/11 see "opens for Class 10 and 12" |
+| error | panel `notice--error` + retry; a missing slug is a 404 page |
+| offline | browser offline page |
+| permission-denied | 303 `/login?next=/app/series` |
+| reduced-motion | no animation |
+| untranslated | English copy + saved-language note; the approved Hindi N-01 waits for the UI-translation workstream |
+| over-credit-budget | n/a |
+| consent-missing | n/a |
 
 ## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 

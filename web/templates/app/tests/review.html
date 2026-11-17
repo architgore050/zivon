@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/tests.css">
+{% endblock %}
+{% block main %}
+{% if tests.state == "missing" %}
+<section class="wrap page-head" aria-labelledby="review-missing-title">
+  <p class="kicker">Test review</p>
+  <h1 id="review-missing-title">That result is not here.</h1>
+</section>
+<section class="wrap band" aria-labelledby="review-missing-body">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="review-missing-body">Your other results are unaffected.</strong></p>
+    <p>This attempt may belong to another account, or it never existed.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a></p>
+</section>
+{% elif tests.state == "error" %}
+<section class="wrap page-head" aria-labelledby="review-error-title">
+  <p class="kicker">Test review</p>
+  <h1 id="review-error-title">This result could not be read.</h1>
+</section>
+<section class="wrap band" aria-labelledby="review-error-body">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="review-error-body">Your answers are still stored.</strong></p>
+    <p>{{ tests.message }} <a class="text-link" href="/app/tests/history">Open test history</a></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a></p>
+</section>
+{% else %}
+<section class="wrap page-head" aria-labelledby="review-title">
+  <p class="kicker">{% if tests.series %}{{ tests.series.label }}{% else %}{{ tests.test.title }}{% endif %}</p>
+  <h1 id="review-title">{{ tests.title }}</h1>
+  <p class="lede">Submitted {{ tests.when }}. The score below is the whole paper: {{ tests.summary.earned_label }} of {{ tests.summary.possible_label }} marks, no negative marking.</p>
+  {% if tests.series_blurb %}<p class="meta">{{ tests.series_blurb }}</p>{% endif %}
+  {% if tests.language_note %}<p class="meta">{{ tests.language_note }}</p>{% endif %}
+</section>
+
+<div class="wrap tests-score" aria-label="Score summary">
+  <div class="tests-score-main">
+    <p class="tests-score-value">{% if tests.summary.score_label %}{{ tests.summary.score_label }}{% else %}Not scored{% endif %}</p>
+    <p class="meta">Score</p>
+  </div>
+  <dl class="tests-score-grid">
+    <div><dt>Marks</dt><dd>{{ tests.summary.earned_label }} / {{ tests.summary.possible_label }}</dd></div>
+    <div><dt>Accuracy</dt><dd>{% if tests.summary.accuracy_label %}{{ tests.summary.accuracy_label }}{% else %}—{% endif %}</dd></div>
+    <div><dt>Answered</dt><dd>{{ tests.summary.correct }} right, {{ tests.summary.answered - tests.summary.correct }} wrong</dd></div>
+    <div><dt>Not answered</dt><dd>{{ tests.summary.unanswered }}</dd></div>
+    <div><dt>Marked</dt><dd>{{ tests.summary.flagged }}</dd></div>
+    <div><dt>Time</dt><dd>{{ tests.summary.time_label }}</dd></div>
+  </dl>
+</div>
+
+<div class="wrap tests-grid">
+  <div class="tests-main">
+    <section class="tests-panel" aria-labelledby="review-questions-title">
+      <h2 id="review-questions-title">Every question, with the working</h2>
+      <p class="lede">Open a question to see your answer, the key, and the explanation. Unanswered questions are labelled, not hidden.</p>
+      <ol class="tests-review-list">
+        {% for question in tests.questions %}
+        <li class="tests-review-item tests-review-item--{{ question.result }}">
+          <details class="tests-review-details"{% if question.result == "wrong" %} open{% endif %}>
+            <summary>
+              <span class="tests-review-number">Q{{ question.number }}</span>
+              <span class="tests-review-result">{{ question.result_label }}</span>
+              <span class="tests-review-marks">{{ question.awarded_label }} / {{ question.marks_label }}</span>
+            </summary>
+            <div class="tests-review-body">
+              <p class="tests-review-prompt">{{ question.prompt }}</p>
+              {% if question.type == "numeric" %}
+              <p class="tests-review-answer"><strong>Your answer:</strong> {% if question.chosen_text %}{{ question.chosen_text }}{% else %}Not answered{% endif %}</p>
+              <p class="tests-review-answer"><strong>Answer:</strong> {{ question.answer_text }}</p>
+              {% else %}
+              <p class="tests-review-answer"><strong>Your answer:</strong> {% if question.chosen_text %}{{ question.chosen_text }}{% else %}Not answered{% endif %}</p>
+              <p class="tests-review-answer"><strong>Answer:</strong> {{ question.answer_text }}</p>
+              {% endif %}
+              {% if question.flagged %}<p class="meta">You marked this question for review.</p>{% endif %}
+              {% if question.concept_title or question.chapter_title %}<p class="meta">{{ question.chapter_title }}{% if question.concept_title %} · {{ question.concept_title }}{% endif %} · {{ question.type_label }}</p>{% endif %}
+              {% if question.explanation %}
+              <div class="tests-review-explanation">
+                <h3>Why</h3>
+                <p>{{ question.explanation }}</p>
+              </div>
+              {% else %}
+              <p class="notice notice--partial">No explanation is stored for this question yet. That is a content gap, not your mistake.</p>
+              {% endif %}
+              {% if question.misconception %}<p class="meta">Common mix-up: {{ question.misconception }}</p>{% endif %}
+              <p class="meta">{{ question.source_note }}</p>
+              <p class="tests-review-actions">
+                {% if question.lesson_url %}
+                <a class="btn btn--outline btn--sm" href="{{ question.lesson_url }}">Ask the tutor on this chapter</a>
+                {% else %}
+                <span class="meta">The lesson for this chapter is not published yet, so the voice tutor cannot open from here.</span>
+                {% endif %}
+              </p>
+            </div>
+          </details>
+        </li>
+        {% endfor %}
+      </ol>
+    </section>
+  </div>
+
+  <aside class="tests-side" aria-label="Breakdowns and next steps">
+    <section class="tests-panel" aria-labelledby="review-concepts-title">
+      <h2 id="review-concepts-title">By concept</h2>
+      {% if tests.concepts %}
+      <table class="tests-table">
+        <caption class="tests-sr">Concept accuracy</caption>
+        <thead><tr><th scope="col">Concept</th><th scope="col">Right</th><th scope="col">Accuracy</th></tr></thead>
+        <tbody>
+          {% for concept in tests.concepts %}
+          <tr><th scope="row">{{ concept.title }}</th><td>{{ concept.correct }} / {{ concept.total }}</td><td>{% if concept.accuracy_pct is not none %}{{ concept.accuracy_pct }}%{% else %}—{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="meta">No concept tags on this paper.</p>
+      {% endif %}
+    </section>
+
+    <section class="tests-panel" aria-labelledby="review-chapters-title">
+      <h2 id="review-chapters-title">By chapter</h2>
+      {% if tests.chapters %}
+      <table class="tests-table">
+        <caption class="tests-sr">Chapter accuracy</caption>
+        <thead><tr><th scope="col">Chapter</th><th scope="col">Right</th><th scope="col">Accuracy</th></tr></thead>
+        <tbody>
+          {% for chapter in tests.chapters %}
+          <tr><th scope="row">{{ chapter.title }}</th><td>{{ chapter.correct }} / {{ chapter.total }}</td><td>{% if chapter.accuracy_pct is not none %}{{ chapter.accuracy_pct }}%{% else %}—{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="meta">No chapter tags on this paper.</p>
+      {% endif %}
+    </section>
+
+    <section class="tests-panel" aria-labelledby="review-next-title">
+      <h2 id="review-next-title">What next</h2>
+      <ul class="tests-link-list">
+        <li><a class="text-link" href="/app/tests">Take another test</a></li>
+        <li><a class="text-link" href="/app/tests/history">All test history</a></li>
+        <li><a class="text-link" href="/app/practice">Practise the weak concepts</a></li>
+      </ul>
+      {% if tests.retry_available %}
+      <form class="tests-retry" method="post" action="/app/tests/start">
+        {{ csrf_field(csrf_token) }}
+        <input type="hidden" name="kind" value="retry">
+        <button class="btn" type="submit">Retry the {{ tests.missed_count }} mistake{% if tests.missed_count != 1 %}s{% endif %}</button>
+      </form>
+      <p class="meta">A retry is a new paper from the questions whose latest answer was wrong. Your first attempt stays in the record.</p>
+      {% else %}
+      <p class="meta">No wrong answer on this paper is left to retry. Well done — the next step is a harder test or a new chapter.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+
+{% if tests.notice %}
+<section class="wrap band tests-notice-band" aria-labelledby="review-notice-title">
+  <h2 id="review-notice-title" class="tests-notice-title">Exam-pattern practice notice</h2>
+  <p class="tests-notice">{{ tests.notice }}</p>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -26,6 +26,7 @@ class NavItem:
 APP_NAV: Final[tuple[NavItem, ...]] = (
     NavItem("dashboard", "Dashboard", "/app"),
     NavItem("practice", "Practice", "/app/practice"),
+    NavItem("tests", "Tests", "/app/tests"),
     NavItem("progress", "Progress", "/app/progress"),
     NavItem("speaking", "Speak", "/app/speaking"),
     NavItem("courses", "Courses", "/courses"),

@@ -74,6 +74,12 @@ EMITTED_BY_THIS_BRANCH = [
     "speaking.consent.blocked",
     "speaking.quota.blocked",
     "speaking.mock.refused",
+    # backend/routes/tests.py + backend/test_engine/service.py (F7)
+    "test.session.created",
+    "test.attempt.started",
+    "test.answer.saved",
+    "test.attempt.submitted",
+    "test.attempt.progress_sync_failed",
     # logging_manager module-own events
     "log.store_fallback",
     "log.store_recovered",

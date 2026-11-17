@@ -104,6 +104,9 @@ class Question:
             "difficulty": self.difficulty,
             "marks": self.marks,
             "language": self.language,
+            # Provenance is not an answer: the player needs it for the
+            # DEC-COMP-001 runtime guard and the review's source note.
+            "source_type": self.source_type,
             "prompt": self.prompt,
             "options": list(self.options),
             "expected_time_ms": self.expected_time_ms,
@@ -1084,6 +1087,17 @@ def get_series(
     return _series_public(row) if row else None
 
 
+def get_series_by_id(
+    db: DatabaseEngine, series_id: str, *, include_unpublished: bool = False
+) -> dict[str, Any] | None:
+    """Return one series by its primary key (the test's foreign key)."""
+    sql = "SELECT * FROM test_series WHERE series_id = ?"
+    if not include_unpublished:
+        sql += " AND status = 'published'"
+    row = db.fetchone(sql, (str(series_id or "").strip(),))
+    return _series_public(row) if row else None
+
+
 def _test_public(row: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "test_id": str(row["test_id"]),
@@ -1112,13 +1126,245 @@ def list_tests(
     return [_test_public(row) for row in rows]
 
 
-def get_test(
-    db: DatabaseEngine, test_id: str, *, user_id: str | None = None
+def list_test_chapters(
+    db: DatabaseEngine,
+    *,
+    class_level: int | None = None,
+    language: str = "en",
+) -> list[dict[str, Any]]:
+    """Return chapters that have servable bank rows, with their counts.
+
+    A test builder may only offer what can actually be drawn into a paper; a
+    chapter with no imported bank is absent from this list, never a dead
+    checkbox. `language` is the pack language (`en`/`hi`/`hi-Latn`); the
+    caller decides whether to retry in English.
+    """
+    lang = _language(language)
+    clauses = ["language = ?", "status IN (?, ?)"]
+    params: list[Any] = [lang, *SERVED_STATUSES]
+    if class_level is not None:
+        level = int(class_level)
+        if level < 6 or level > 12:
+            raise AssessmentError("E-TEST-CLASS")
+        clauses.append("class_level = ?")
+        params.append(level)
+    rows = db.fetchall(
+        "SELECT chapter_id, MIN(class_level) AS class_level, COUNT(*) AS question_count "
+        "FROM question_bank WHERE "
+        + " AND ".join(clauses)
+        + " GROUP BY chapter_id ORDER BY MIN(class_level), chapter_id",
+        tuple(params),
+    )
+    return [
+        {
+            "chapter_id": str(row["chapter_id"]),
+            "class_level": int(row["class_level"]),
+            "question_count": int(row["question_count"]),
+        }
+        for row in rows
+    ]
+
+
+def list_live_test_attempts(db: DatabaseEngine, user_id: str) -> list[dict[str, Any]]:
+    """Return every in-progress attempt for the owner, newest first.
+
+    The series detail page needs the one live attempt per paper to offer
+    "Resume" rather than a second "Start"; the bounded history list cannot
+    guarantee that row is still inside its 20-entry window.
+    """
+    rows = db.fetchall(
+        "SELECT * FROM test_attempt WHERE user_id = ? AND status = 'in_progress' "
+        "ORDER BY started_at DESC",
+        (_require_user(user_id),),
+    )
+    return [_test_attempt_public(row) for row in rows]
+
+
+def find_live_test_attempt(
+    db: DatabaseEngine, user_id: str, test_id: str
 ) -> dict[str, Any] | None:
-    """Return a test the caller may see: shared+published, or their own custom test."""
+    """Return the owner's one live attempt on a paper, or None."""
+    row = db.fetchone(
+        "SELECT * FROM test_attempt WHERE test_id = ? AND user_id = ? "
+        "AND status = 'in_progress'",
+        (str(test_id), _require_user(user_id)),
+    )
+    return _test_attempt_public(row) if row else None
+
+
+def count_test_questions(db: DatabaseEngine, test_id: str) -> int:
+    """Return how many questions a paper holds (no row payload)."""
+    row = db.fetchone(
+        "SELECT COUNT(*) AS question_count FROM test_question WHERE test_id = ?",
+        (str(test_id),),
+    )
+    return int((row or {}).get("question_count") or 0)
+
+
+def create_test_with_questions(
+    db: DatabaseEngine,
+    user_id: str,
+    *,
+    title: str,
+    chapter_ids: Sequence[str],
+    language: str,
+    duration_s: int,
+    questions: Sequence[Mapping[str, Any] | tuple[str, float]],
+    structure: Mapping[str, Any] | None = None,
+    now: datetime.datetime | None = None,
+) -> dict[str, Any]:
+    """Create one practice test (a paper) and its ordered questions atomically.
+
+    This is the F7 builder's write path: a custom test is owned by the student
+    and is not a published series paper. Selection and display policy belong to
+    `backend.test_engine`; the store owns the SQL, the shape, and the one
+    transaction that cannot leave a paper without its questions.
+    """
+    owner = _require_user(user_id)
+    clean_title = str(title or "").strip()
+    if not clean_title or len(clean_title) > 120:
+        raise AssessmentError("E-TEST-TITLE")
+    chapters = list(
+        dict.fromkeys(str(item).strip() for item in chapter_ids if str(item).strip())
+    )
+    if not chapters or len(chapters) > 12:
+        raise AssessmentError("E-TEST-CHAPTERS")
+    lang = _language(language)
+    if not 60 <= int(duration_s) <= 7_200:
+        raise AssessmentError("E-TEST-DURATION")
+    items: list[tuple[str, float]] = []
+    for entry in questions:
+        if isinstance(entry, Mapping):
+            question_id = str(entry.get("question_id") or "").strip()
+            marks = float(entry.get("marks") or 0)
+        else:
+            question_id, raw_marks = entry
+            question_id = str(question_id or "").strip()
+            marks = float(raw_marks)
+        if not question_id or not math.isfinite(marks) or marks <= 0:
+            raise AssessmentError("E-TEST-QUESTIONS")
+        items.append((question_id, marks))
+    if not items or len(items) > MAX_QUESTION_IDS:
+        raise AssessmentError("E-TEST-QUESTIONS")
+    known = {
+        question.question_id: question
+        for question in fetch_questions(
+            db, [question_id for question_id, _marks in items]
+        )
+    }
+    if set(known) != {question_id for question_id, _marks in items}:
+        raise AssessmentError("E-TEST-QUESTIONS")
+    if any(question.chapter_id not in chapters for question in known.values()):
+        raise AssessmentError("E-TEST-CHAPTERS")
+    payload = _bounded_payload(structure or {}, "E-TEST-STRUCTURE")
+    total_marks = float(sum(marks for _question_id, marks in items))
+    test_id = uuid7_str()
+    stamp = to_iso(now or utc_now())
+    with db.transaction() as tx:
+        tx.execute(
+            """
+            INSERT INTO test (
+                test_id, series_id, user_id, chapter_ids, title, language,
+                duration_s, total_marks, structure, status, created_at, updated_at
+            ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
+            """,
+            (
+                test_id,
+                owner,
+                _dumps(chapters),
+                clean_title,
+                lang,
+                int(duration_s),
+                total_marks,
+                _dumps(payload),
+                stamp,
+                stamp,
+            ),
+        )
+        for index, (question_id, marks) in enumerate(items, start=1):
+            tx.execute(
+                "INSERT INTO test_question (test_id, question_id, order_index, "
+                "section, marks) VALUES (?, ?, ?, NULL, ?)",
+                (test_id, question_id, index, marks),
+            )
+        row = tx.fetchone("SELECT * FROM test WHERE test_id = ?", (test_id,))
+    assert row is not None
+    return _test_public(row)
+
+
+def list_missed_test_question_ids(
+    db: DatabaseEngine,
+    user_id: str,
+    *,
+    class_level: int | None = None,
+    language: str = "en",
+    limit: int = 20,
+) -> list[str]:
+    """Return questions whose **latest submitted answer** was wrong.
+
+    Retry means "still unresolved": a question answered wrong once and later
+    right does not come back. Only submitted attempts count, so a live paper's
+    autosaved answers cannot leak into a retry set. Order is newest miss first.
+    """
+    owner = _require_user(user_id)
+    lang = _language(language)
+    clauses = [
+        "latest.rn = 1",
+        "latest.correct = ?",
+        "q.language = ?",
+        "q.status IN (?, ?)",
+    ]
+    params: list[Any] = [owner, False, lang, *SERVED_STATUSES]
+    if class_level is not None:
+        level = int(class_level)
+        if level < 6 or level > 12:
+            raise AssessmentError("E-TEST-CLASS")
+        clauses.append("q.class_level = ?")
+        params.append(level)
+    params.append(_history_limit(limit))
+    rows = db.fetchall(
+        """
+        SELECT q.question_id AS question_id
+        FROM (
+            SELECT ta.question_id AS question_id,
+                   ta.correct AS correct,
+                   t.submitted_at AS submitted_at,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY ta.question_id
+                       ORDER BY t.submitted_at DESC, ta.updated_at DESC
+                   ) AS rn
+            FROM test_attempt_answer ta
+            JOIN test_attempt t ON t.attempt_id = ta.attempt_id
+            WHERE t.user_id = ? AND t.status = 'submitted'
+        ) latest
+        JOIN question_bank q ON q.question_id = latest.question_id
+        WHERE """
+        + " AND ".join(clauses)
+        + " ORDER BY latest.submitted_at DESC, q.question_id LIMIT ?",
+        tuple(params),
+    )
+    return [str(row["question_id"]) for row in rows]
+
+
+def get_test(
+    db: DatabaseEngine,
+    test_id: str,
+    *,
+    user_id: str | None = None,
+    include_unpublished: bool = False,
+) -> dict[str, Any] | None:
+    """Return a test the caller may see: shared+published, or their own custom test.
+
+    `include_unpublished` is the review path's escape hatch: an attempt's
+    evidence must stay readable after a series paper is retired, so the result
+    page may read the paper row it already attempted. It never widens the
+    player's access to somebody else's live paper.
+    """
     row = db.fetchone("SELECT * FROM test WHERE test_id = ?", (str(test_id),))
     if row is None:
         return None
+    if include_unpublished:
+        return _test_public(row)
     if str(row.get("status")) == "published":
         return _test_public(row)
     owner = row.get("user_id")
@@ -1146,10 +1392,12 @@ def list_test_questions(
     for row in rows:
         question = _question_from_row(row)
         entry = {
+            **(question.review() if include_answers else question.public()),
             "order_index": int(row["paper_order"]),
             "section": row.get("paper_section"),
+            # The sheet's marks win: a series paper may weight a bank item
+            # differently from its authored practice marks.
             "marks": float(row["paper_marks"]),
-            **(question.review() if include_answers else question.public()),
         }
         payload.append(entry)
     return payload
@@ -1415,6 +1663,10 @@ def submit_test_attempt(
             saved = answers.get(question.question_id)
             if saved is None:
                 continue
+            if not _json_object(saved.get("answer")):
+                # A mark-for-review row (or a cleared answer) is unanswered; it
+                # must not be graded as a wrong answer on submit.
+                continue
             try:
                 check = check_answer(question, _json_object(saved.get("answer")))
             except AssessmentError as exc:
@@ -1482,18 +1734,24 @@ __all__ = [
     "Question",
     "check_answer",
     "complete_practice_session",
+    "count_test_questions",
     "create_practice_session",
     "create_test_attempt",
+    "create_test_with_questions",
     "delete_speaking_attempt",
     "fetch_question",
     "fetch_questions",
     "fetch_speaking_prompt",
+    "find_live_test_attempt",
     "get_practice_session",
     "get_series",
+    "get_series_by_id",
     "get_speaking_attempt",
     "get_test",
     "get_test_attempt",
+    "list_live_test_attempts",
     "list_missed_question_ids",
+    "list_missed_test_question_ids",
     "list_practice_attempts",
     "list_practice_chapters",
     "list_practice_history",
@@ -1502,6 +1760,7 @@ __all__ = [
     "list_speaking_prompts",
     "list_test_answers",
     "list_test_attempts",
+    "list_test_chapters",
     "list_test_questions",
     "list_tests",
     "list_weak_concept_ids",

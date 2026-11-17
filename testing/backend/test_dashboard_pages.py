@@ -143,9 +143,16 @@ class DashboardPagesTests(unittest.TestCase):
             html,
             "practice is live, so the quick action is a link, not a soon marker",
         )
-        # `/app/speaking` left this list when F6 landed its route and nav
-        # entry (the dashboard quick-action copy is F3's to update).
-        for dead in ("/app/tests", "/app/swot"):
+        # `/app/speaking` (F6) and `/app/tests` (F7) are live routes: the Tests
+        # quick action is a link, and the dashboard never labels a live route
+        # "not live yet".
+        self.assertIn('href="/app/tests"', html)
+        self.assertNotIn(
+            '<span class="action-soon">Tests</span>',
+            html,
+            "tests are live, so the quick action is a link, not a soon marker",
+        )
+        for dead in ("/app/swot",):
             self.assertNotIn(f'href="{dead}"', html)
         # The sync offer is server-rendered hidden and armed by the island.
         self.assertIn("data-progress-sync", html)

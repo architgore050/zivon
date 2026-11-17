@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/tests.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="submit-title">
+  <p class="kicker">Review and submit</p>
+  <h1 id="submit-title">Once submitted, the key is shown.</h1>
+  <p class="lede">{{ tests.title }} · {{ tests.counts.question_count }} questions · {{ tests.counts.answered }} answered · {{ tests.counts.unanswered }} not answered.</p>
+</section>
+
+{% if tests.state == "missing" %}
+<section class="wrap band" aria-labelledby="submit-missing-title">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="submit-missing-title">That paper is not here.</strong></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a></p>
+</section>
+{% elif tests.state == "error" %}
+<section class="wrap band" aria-labelledby="submit-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="submit-error-title">This paper could not be read.</strong></p>
+    <p>{{ tests.message }} <a class="text-link" href="/app/tests">Try again</a></p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/tests">Back to tests</a></p>
+</section>
+{% else %}
+<div class="wrap tests-grid">
+  <div class="tests-main">
+    {% if tests.expired %}
+    <div class="notice notice--error" role="alert">
+      <p><strong>Time is up.</strong></p>
+      <p>The clock for this paper has run out. Submit now to see the graded result; unanswered questions earn nothing.</p>
+    </div>
+    {% elif tests.unanswered_numbers %}
+    <div class="notice notice--partial" role="status">
+      <p><strong>{{ tests.unanswered_numbers|length }} question{% if tests.unanswered_numbers|length != 1 %}s{% endif %} not answered.</strong></p>
+      <p>Question{% if tests.unanswered_numbers|length != 1 %}s{% endif %} {{ tests.unanswered_numbers|join(", ") }}. You can go back before submitting; there is no penalty for guessing or for leaving one blank.</p>
+    </div>
+    {% else %}
+    <div class="notice notice--empty" role="status">
+      <p><strong>Every question has an answer.</strong></p>
+      <p>Submit when you are ready. The paper is graded once, on the server.</p>
+    </div>
+    {% endif %}
+
+    {% if tests.flagged_numbers %}
+    <section class="tests-panel" aria-labelledby="submit-flagged-title">
+      <h2 id="submit-flagged-title">Marked for review</h2>
+      <p class="meta">Question{% if tests.flagged_numbers|length != 1 %}s{% endif %} {{ tests.flagged_numbers|join(", ") }}. A mark does not change the grade; it is your own reminder.</p>
+    </section>
+    {% endif %}
+
+    <section class="tests-panel" aria-labelledby="submit-action-title">
+      <h2 id="submit-action-title">Submit this paper</h2>
+      <form class="tests-submit-form" method="post" action="{{ tests.submit_href }}">
+        {{ csrf_field(csrf_token) }}
+        <button class="btn" type="submit">Submit test</button>
+        <a class="btn btn--quiet" href="{{ tests.back_href }}">Keep working</a>
+      </form>
+      <p class="meta">Grading is server-side. A correct answer earns its marks; a wrong or missing answer earns zero. The answer key and explanations appear on the review page.</p>
+    </section>
+  </div>
+
+  <aside class="tests-side" aria-label="Submit summary">
+    <section class="tests-panel" aria-labelledby="submit-counts-title">
+      <h2 id="submit-counts-title">At a glance</h2>
+      <dl class="tests-count-list">
+        <div><dt>Questions</dt><dd>{{ tests.counts.question_count }}</dd></div>
+        <div><dt>Answered</dt><dd>{{ tests.counts.answered }}</dd></div>
+        <div><dt>Not answered</dt><dd>{{ tests.counts.unanswered }}</dd></div>
+        <div><dt>Marked</dt><dd>{{ tests.counts.flagged }}</dd></div>
+        <div><dt>Time left</dt><dd>{% if tests.expired %}0{% else %}{{ tests.remaining_label }}{% endif %}</dd></div>
+      </dl>
+      {% if tests.series %}<p class="meta">Series: {{ tests.series.label }}.</p>{% endif %}
+    </section>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}
