@@ -27,6 +27,32 @@ shell), offline (n/a server-side), permission-denied (303 to `/login?next=`),
 reduced-motion (no shell animation), untranslated (English copy +
 saved-language note), quota-exhausted and consent-missing (not shell states).
 
+## APP-02 auth screens (`/login`, `/signup`, verify, reset, `/onboarding`) (F2, 2026-11-17)
+
+The full per-screen state table is in
+[`identity-settings.md`](identity-settings.md) §6; this row keeps the matrix
+complete. Code path is `[web]` only (`web/templates/auth/*`,
+`web/routes/auth.py` + `onboarding.py`). No static `[shell]` page and no §10
+device is involved.
+
+| Row | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | over-credit-budget |
+|---|---|---|---|---|---|---|---|---|---|---|
+| auth card (sign in, sign up, verify, reset, onboarding) | one paper card, fields labelled above, Google link when configured, guest link | n/a (SSR completes before bytes) | n/a (a form is never empty; the verify inbox state is the designed empty) | Google unconfigured → status text and no dead button; resend-not-built → honest status | 401/409/422/429/400/403 branded page or re-render with `role="alert"` + field errors | browser offline page; no server state | signed-in visitor on `/login`/`/signup` → 303 `next`; onboarding guest → 303 `/login?next=/onboarding` | no animation; nothing to reduce | English copy; the saved language is shown as data and noted | n/a (no voice in an auth screen) |
+| CSRF boundary | guest forms: signed double-submit cookie + hidden MAC; verify/reset: emailed one-time token; onboarding: session token | n/a | n/a | a stale tab re-renders "This form expired" | 403 branded page, nothing written | n/a | n/a | n/a | n/a | n/a |
+
+## APP-03 settings and privacy (`/app/settings`, `/app/settings/privacy`) (F2, 2026-11-17)
+
+Specified in [`identity-settings.md`](identity-settings.md) §1/§2/§6; code path
+`[web]` (`web/templates/app/settings*.html`, `web/routes/settings.py`). The
+screen shows the owner's email as an allow-listed field (REQUIREMENTS §10.21);
+no other page renders it.
+
+| Row | default | loading | empty | partial | error | offline | permission-denied | reduced-motion | untranslated | over-credit-budget |
+|---|---|---|---|---|---|---|---|---|---|---|
+| profile / password / Google / session cards | facts + three forms + sign-out, all CSRF-protected | n/a (SSR) | n/a | unverified email, Google unlinked, Google unconfigured, password unset (Google-created) each have a row state | 422 field errors, 401 wrong current password, 403 CSRF, 429 rate limit (all with the form still usable) | browser offline page | guest → 303 `/login?next=/app/settings` | no animated toggles; `prefers-reduced-motion` rule is a no-op guard | English labels; saved language as data | n/a |
+| privacy / data controls | what is stored, export link, collapsed delete disclosure, consent links | n/a | export may be empty but is valid JSON | delete form needs the exact word + password | 422 wrong confirmation, 401 wrong password, both leave the account intact | browser offline page | guest → 303 | no animation | as above | n/a |
+| mobile / a11y floor | one column at 360 px; 48 px inputs and choice rows; 44 px links; visible focus | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 
 The public discovery surfaces are specified in `docs/frontend/public-site.md`

@@ -138,7 +138,7 @@ the weak-Android profile.
 
 | Gap | Owner | Notes |
 |---|---|---|
-| Sign-in / accounts nav | F2 | No `/login` link is shipped; a dead CTA is worse than its absence. |
+| Sign-in / accounts nav | F1 follow-up | F2 now ships `/login`, `/signup`, and `/app/settings` (server-rendered), so a public-nav link is no longer a dead CTA; adding it to the static pages is F1's change. |
 | Voice tutor runtime | S1 / F4 | Not on the public lesson page yet; status and privacy say so. Pricing and the landing FAQ say “when it ships”. |
 | Pro waitlist form | F2/F11 | Pricing says it is not open. Needs an endpoint, retention rule and consent copy first. |
 | Static catalogue/class HTML for crawlers | F1/P5 follow-up | Client-rendered from `courses.js` today; the sitemap is the static discovery path. |
