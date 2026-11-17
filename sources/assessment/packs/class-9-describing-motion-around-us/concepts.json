@@ -1,0 +1,450 @@
+{
+  "block_tagging": "complete",
+  "blocks": {
+    "b-01": {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "type": "text"
+    },
+    "b-02": {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "type": "diagram"
+    },
+    "b-03": {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "type": "text"
+    },
+    "b-04": {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "type": "check"
+    },
+    "b-05": {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "type": "text"
+    },
+    "b-06": {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+      "section_id": "sec-01",
+      "type": "check"
+    },
+    "b-07": {
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-03",
+      "section_id": "sec-03",
+      "type": "text"
+    },
+    "b-08": {
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-03",
+      "section_id": "sec-03",
+      "type": "worked_example"
+    },
+    "b-09": {
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-03",
+      "section_id": "sec-03",
+      "type": "text"
+    },
+    "b-10": {
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-03",
+      "section_id": "sec-03",
+      "type": "worked_example"
+    },
+    "b-11": {
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-03",
+      "section_id": "sec-03",
+      "type": "check"
+    },
+    "b-12": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "text"
+    },
+    "b-13": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "worked_example"
+    },
+    "b-14": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "worked_example"
+    },
+    "b-15": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "check"
+    },
+    "b-16": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "text"
+    },
+    "b-17": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "reveal"
+    },
+    "b-18": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "worked_example"
+    },
+    "b-19": {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+      "section_id": "sec-04",
+      "type": "simulation"
+    },
+    "b-20": {
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-05",
+      "section_id": "sec-05",
+      "type": "text"
+    },
+    "b-21": {
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-05",
+      "section_id": "sec-05",
+      "type": "worked_example"
+    },
+    "b-22": {
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-05",
+      "section_id": "sec-05",
+      "type": "worked_example"
+    },
+    "b-23": {
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-05",
+      "section_id": "sec-05",
+      "type": "reveal"
+    },
+    "b-24": {
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-06",
+      "section_id": "sec-06",
+      "type": "text"
+    },
+    "b-25": {
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-06",
+      "section_id": "sec-06",
+      "type": "simulation"
+    },
+    "b-26": {
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-06",
+      "section_id": "sec-06",
+      "type": "reveal"
+    },
+    "b-27": {
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-07",
+      "section_id": "sec-07",
+      "type": "text"
+    },
+    "b-28": {
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-07",
+      "section_id": "sec-07",
+      "type": "reveal"
+    },
+    "b-29": {
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-07",
+      "section_id": "sec-07",
+      "type": "worked_example"
+    },
+    "b-30": {
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-07",
+      "section_id": "sec-07",
+      "type": "check"
+    },
+    "b-31": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "text"
+    },
+    "b-32": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "diagram"
+    },
+    "b-33": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "simulation"
+    },
+    "b-34": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "text"
+    },
+    "b-35": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-36": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-37": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-38": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-39": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-40": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-41": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-42": {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    }
+  },
+  "chapter_id": "class-9-describing-motion-around-us",
+  "class_level": 9,
+  "concepts": [
+    {
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "description": "Reference point, position on a straight line, total distance travelled and net displacement (NCERT 4.1.1-4.1.2).",
+      "prerequisites": [],
+      "section_refs": [
+        "4.1.1",
+        "4.1.2"
+      ],
+      "title": "Position, distance and displacement",
+      "title_hi": "स्थिति, दूरी और विस्थापन"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "description": "Average speed from distance, average velocity from displacement, and when their magnitudes differ (NCERT 4.1.3).",
+      "prerequisites": [
+        "class-9-describing-motion-around-us-position-distance-displacement"
+      ],
+      "section_refs": [
+        "4.1.3"
+      ],
+      "title": "Average speed and average velocity",
+      "title_hi": "औसत चाल और औसत वेग"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "description": "Change in velocity over a time interval, its sign and its SI unit (NCERT 4.1.4).",
+      "prerequisites": [
+        "class-9-describing-motion-around-us-speed-and-velocity"
+      ],
+      "section_refs": [
+        "4.1.4"
+      ],
+      "title": "Average acceleration",
+      "title_hi": "औसत त्वरण"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "description": "Reading position against time, and the slope of a position-time line as velocity (NCERT 4.2.1-4.2.2).",
+      "prerequisites": [
+        "class-9-describing-motion-around-us-speed-and-velocity"
+      ],
+      "section_refs": [
+        "4.2.1",
+        "4.2.2"
+      ],
+      "title": "Position-time graphs",
+      "title_hi": "स्थिति-समय ग्राफ"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "description": "Slope of a velocity-time graph as acceleration and the area under it as displacement (NCERT 4.2.3).",
+      "prerequisites": [
+        "class-9-describing-motion-around-us-acceleration",
+        "class-9-describing-motion-around-us-position-time-graphs"
+      ],
+      "section_refs": [
+        "4.2.3"
+      ],
+      "title": "Velocity-time graphs",
+      "title_hi": "वेग-समय ग्राफ"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "description": "The three equations for motion with constant acceleration and their use in numerical problems (NCERT 4.3).",
+      "prerequisites": [
+        "class-9-describing-motion-around-us-acceleration",
+        "class-9-describing-motion-around-us-velocity-time-graphs"
+      ],
+      "section_refs": [
+        "4.3"
+      ],
+      "title": "Kinematic equations",
+      "title_hi": "गति के समीकरण"
+    },
+    {
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "description": "Motion along a circle at constant speed, and why its velocity keeps changing (NCERT 4.4-4.4.1).",
+      "prerequisites": [
+        "class-9-describing-motion-around-us-speed-and-velocity"
+      ],
+      "section_refs": [
+        "4.4",
+        "4.4.1"
+      ],
+      "title": "Uniform circular motion",
+      "title_hi": "एकसमान वृत्तीय गति"
+    }
+  ],
+  "edges": [
+    {
+      "from": "class-9-describing-motion-around-us-acceleration",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-kinematic-equations"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-acceleration",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-velocity-time-graphs"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-position-distance-displacement",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-speed-and-velocity"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-position-time-graphs",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-velocity-time-graphs"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-speed-and-velocity",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-acceleration"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-speed-and-velocity",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-position-time-graphs"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-speed-and-velocity",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-uniform-circular-motion"
+    },
+    {
+      "from": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "kind": "prerequisite",
+      "to": "class-9-describing-motion-around-us-kinematic-equations"
+    }
+  ],
+  "lesson": {
+    "lesson_id": "class-9-describing-motion-around-us",
+    "manifest_path": "frontend/courses/class-9-physics/describing-motion-around-us/manifest.json",
+    "sections": [
+      {
+        "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+        "id": "sec-01",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-01",
+        "title": "Describing position in a straight line"
+      },
+      {
+        "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+        "id": "sec-03",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-03",
+        "title": "Average speed and average velocity"
+      },
+      {
+        "concept_id": "class-9-describing-motion-around-us-acceleration",
+        "id": "sec-04",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-04",
+        "title": "Average acceleration"
+      },
+      {
+        "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+        "id": "sec-05",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-05",
+        "title": "Position-time graphs"
+      },
+      {
+        "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+        "id": "sec-06",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-06",
+        "title": "Velocity-time graphs"
+      },
+      {
+        "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+        "id": "sec-07",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-07",
+        "title": "Kinematic equations"
+      },
+      {
+        "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+        "id": "sec-08",
+        "p1_concept_id": "class-9-describing-motion-around-us-sec-08",
+        "title": "Motion in a plane and uniform circular motion"
+      }
+    ],
+    "title": "Describing Motion Around Us"
+  },
+  "schema_version": 1,
+  "section_concept_map": {
+    "sec-01": "class-9-describing-motion-around-us-position-distance-displacement",
+    "sec-03": "class-9-describing-motion-around-us-speed-and-velocity",
+    "sec-04": "class-9-describing-motion-around-us-acceleration",
+    "sec-05": "class-9-describing-motion-around-us-position-time-graphs",
+    "sec-06": "class-9-describing-motion-around-us-velocity-time-graphs",
+    "sec-07": "class-9-describing-motion-around-us-kinematic-equations",
+    "sec-08": "class-9-describing-motion-around-us-uniform-circular-motion"
+  },
+  "stage": "A2-concept-tag"
+}

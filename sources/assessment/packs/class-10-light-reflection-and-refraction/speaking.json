@@ -1,0 +1,414 @@
+{
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "prompts": [
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-spherical-mirrors"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-01",
+          "text": "A ray parallel to the principal axis reflects through the focus."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-02",
+          "text": "An object beyond the focal point forms a real, inverted image."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-03",
+          "text": "An object between the pole and the focus forms a virtual, erect, magnified image."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-04",
+          "text": "The sign convention tells us which side of the mirror the image lies on."
+        }
+      ],
+      "language": "en",
+      "model_answer": "A concave mirror converges light. If the object is beyond the focus, the reflected rays actually meet and form a real, inverted image that can be caught on a screen. If the object is between the pole and the focus, the reflected rays diverge; they only appear to come from a point behind the mirror, so the image is virtual, erect and magnified. That is why a shaving mirror is concave.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Fig. 9.16",
+        "section": "9.2"
+      },
+      "prompt": "Explain how a concave mirror can form both a real image and a virtual image.",
+      "prompt_id": "spk-c10-light-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-spherical-mirrors"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-01",
+          "text": "मुख्य अक्ष के समांतर किरण परावर्तन के बाद फोकस से गुजरती है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-02",
+          "text": "फोकस से दूर रखी वस्तु का प्रतिबिंब वास्तविक और उल्टा होता है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-03",
+          "text": "ध्रुव और फोकस के बीच रखी वस्तु का प्रतिबिंब आभासी, सीधा और बड़ा होता है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-04",
+          "text": "चिह्न परिपाटी बताती है कि प्रतिबिंब दर्पण के किस ओर है।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "अवतल दर्पण प्रकाश को अभिसरित करता है। यदि वस्तु फोकस से दूर है, तो परावर्तित किरणें वास्तव में मिलकर वास्तविक, उल्टा प्रतिबिंब बनाती हैं जो पर्दे पर लिया जा सकता है। यदि वस्तु ध्रुव और फोकस के बीच है, तो परावर्तित किरणें अपसरित होती हैं; वे दर्पण के पीछे से आती प्रतीत होती हैं, इसलिए प्रतिबिंब आभासी, सीधा और बड़ा होता है। इसीलिए शेविंग दर्पण अवतल होता है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Fig. 9.16",
+        "section": "9.2"
+      },
+      "prompt": "समझाइए कि अवतल दर्पण वास्तविक और आभासी दोनों प्रकार के प्रतिबिंब कैसे बना सकता है।",
+      "prompt_id": "spk-c10-light-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-spherical-mirrors"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-01",
+          "text": "Principal axis ke parallel kiran reflect hokar focus se guzarti hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-02",
+          "text": "Focus se door rakhi object ka image real aur inverted hota hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-03",
+          "text": "Pole aur focus ke beech rakhi object ka image virtual, erect aur bada hota hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+          "idea_id": "spk-c10-light-001-idea-04",
+          "text": "Sign convention batati hai ki image mirror ke kis side hai."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Concave mirror light ko converge karta hai. Agar object focus se door hai, toh reflected rays actually mil kar real, inverted image banati hain jo screen par liya ja sakta hai. Agar object pole aur focus ke beech hai, toh reflected rays diverge hoti hain; woh mirror ke peeche se aati lagti hain, isliye image virtual, erect aur bada hota hai. Isliye shaving mirror concave hota hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Fig. 9.16",
+        "section": "9.2"
+      },
+      "prompt": "Samjhao ki concave mirror real aur virtual dono tarah ke image kaise bana sakta hai.",
+      "prompt_id": "spk-c10-light-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-mirror-formula-and-magnification"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-01",
+          "text": "A convex mirror has a positive focal length."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-02",
+          "text": "The object distance u is negative, so 1/v = 1/f - 1/u gives a small positive v."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-03",
+          "text": "A positive v for a convex mirror means a virtual image behind the mirror."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-04",
+          "text": "Magnification m = -v/u is positive and smaller than 1."
+        }
+      ],
+      "language": "en",
+      "model_answer": "For a convex mirror f is positive and u is negative. Substituting in 1/v + 1/u = 1/f gives 1/v = 1/f + 1/|u|, so v is positive and smaller than f: the image is always behind the mirror. The magnification m = -v/u is then positive and less than one, so the image is virtual, erect and diminished for every object position.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Example 9.1",
+        "section": "9.2.4"
+      },
+      "prompt": "A student says a convex mirror always makes a smaller image. Explain why, using the mirror formula.",
+      "prompt_id": "spk-c10-light-002",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-mirror-formula-and-magnification"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-01",
+          "text": "उत्तल दर्पण की फोकस दूरी धनात्मक होती है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-02",
+          "text": "वस्तु दूरी u ऋणात्मक है, इसलिए 1/v = 1/f - 1/u से छोटा धनात्मक v मिलता है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-03",
+          "text": "उत्तल दर्पण के लिए धनात्मक v का अर्थ दर्पण के पीछे आभासी प्रतिबिंब है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-04",
+          "text": "आवर्धन m = -v/u धनात्मक और 1 से छोटा होता है।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "उत्तल दर्पण के लिए f धनात्मक और u ऋणात्मक होता है। 1/v + 1/u = 1/f में रखने पर 1/v = 1/f + 1/|u| मिलता है, इसलिए v धनात्मक और f से छोटा है: प्रतिबिंब सदैव दर्पण के पीछे होता है। तब आवर्धन m = -v/u धनात्मक और एक से छोटा होता है, इसलिए हर स्थिति में प्रतिबिंब आभासी, सीधा और छोटा होता है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Example 9.1",
+        "section": "9.2.4"
+      },
+      "prompt": "एक विद्यार्थी कहता है कि उत्तल दर्पण सदैव छोटा प्रतिबिंब बनाता है। दर्पण सूत्र का उपयोग करके समझाइए।",
+      "prompt_id": "spk-c10-light-002",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-mirror-formula-and-magnification"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-01",
+          "text": "Convex mirror ki focal length positive hoti hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-02",
+          "text": "Object distance u negative hai, isliye 1/v = 1/f - 1/u se chhota positive v milta hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-03",
+          "text": "Convex mirror ke liye positive v ka matlab mirror ke peeche virtual image hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+          "idea_id": "spk-c10-light-002-idea-04",
+          "text": "Magnification m = -v/u positive aur 1 se chhota hota hai."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Convex mirror ke liye f positive aur u negative hota hai. 1/v + 1/u = 1/f mein rakhne par 1/v = 1/f + 1/|u| milta hai, isliye v positive aur f se chhota hai: image hamesha mirror ke peeche hota hai. Tab magnification m = -v/u positive aur ek se chhota hota hai, isliye har position mein image virtual, erect aur chhota hota hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Example 9.1",
+        "section": "9.2.4"
+      },
+      "prompt": "Ek student kehta hai ki convex mirror hamesha chhota image banata hai. Mirror formula use karke samjhao.",
+      "prompt_id": "spk-c10-light-002",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-power-of-a-lens",
+        "class-10-light-reflection-and-refraction-refraction-of-light"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-01",
+          "text": "A lens bends light by refraction at its two surfaces."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-02",
+          "text": "A shorter focal length means the rays converge or diverge more sharply."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-03",
+          "text": "Power is the reciprocal of focal length in metres, P = 1/f."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-04",
+          "text": "The unit of power is the dioptre; convex lenses have positive power, concave lenses negative."
+        }
+      ],
+      "language": "en",
+      "model_answer": "A lens bends light because the two surfaces refract it, and the curvature decides how strongly. A strongly curved lens brings parallel rays to a focus close to the lens, so its focal length is short. Power expresses exactly that strength as P = 1/f, measured in dioptres when f is in metres. A short focal length therefore means a large power, and the sign tells you whether the lens converges (positive) or diverges (negative).",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Example 9.3",
+        "section": "9.3.8"
+      },
+      "prompt": "Explain why a lens with a shorter focal length bends light more, and what its power tells you.",
+      "prompt_id": "spk-c10-light-003",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-power-of-a-lens",
+        "class-10-light-reflection-and-refraction-refraction-of-light"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-01",
+          "text": "लेंस अपनी दो सतहों पर अपवर्तन से प्रकाश मोड़ता है।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-02",
+          "text": "कम फोकस दूरी का अर्थ है किरणें अधिक तेजी से अभिसरित या अपसरित होती हैं।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-03",
+          "text": "क्षमता मीटर में फोकस दूरी का व्युत्क्रम है, P = 1/f।"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-04",
+          "text": "क्षमता का मात्रक डायोप्टर है; उत्तल लेंस की क्षमता धनात्मक और अवतल की ऋणात्मक होती है।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "लेंस प्रकाश को इसलिए मोड़ता है क्योंकि उसकी दो सतहें अपवर्तन करती हैं, और वक्रता तय करती है कि मोड़ कितना तीव्र होगा। अधिक वक्र लेंस समांतर किरणों को लेंस के पास फोकस पर लाता है, इसलिए उसकी फोकस दूरी कम होती है। क्षमता इसी सामर्थ्य को P = 1/f के रूप में व्यक्त करती है, और f मीटर में होने पर मात्रक डायोप्टर होता है। इसलिए कम फोकस दूरी का अर्थ अधिक क्षमता है, और चिह्न बताता है कि लेंस अभिसारी (धनात्मक) है या अपसारी (ऋणात्मक)।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Example 9.3",
+        "section": "9.3.8"
+      },
+      "prompt": "कम फोकस दूरी वाला लेंस प्रकाश को अधिक क्यों मोड़ता है, और उसकी क्षमता क्या बताती है, समझाइए।",
+      "prompt_id": "spk-c10-light-003",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-light-reflection-and-refraction-power-of-a-lens",
+        "class-10-light-reflection-and-refraction-refraction-of-light"
+      ],
+      "key_ideas": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-01",
+          "text": "Lens apni do surfaces par refraction se light modta hai."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-02",
+          "text": "Kam focal length ka matlab hai rays zyada tezi se converge ya diverge hoti hain."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-03",
+          "text": "Power metre mein focal length ka reciprocal hai, P = 1/f."
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+          "idea_id": "spk-c10-light-003-idea-04",
+          "text": "Power ka unit dioptre hai; convex lens ki power positive aur concave ki negative hoti hai."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Lens light ko isliye modta hai kyunki uski do surfaces refraction karti hain, aur curvature tay karti hai ki mod kitna tez hoga. Zyada curved lens parallel rays ko lens ke paas focus par laata hai, isliye uski focal length kam hoti hai. Power isi strength ko P = 1/f ke roop mein batati hai, aur f metre mein hone par unit dioptre hota hai. Isliye kam focal length ka matlab zyada power hai, aur sign batata hai ki lens converging (positive) hai ya diverging (negative).",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "example": "Example 9.3",
+        "section": "9.3.8"
+      },
+      "prompt": "Kam focal length wala lens light ko zyada kyun modta hai, aur uski power kya batati hai, samjhao.",
+      "prompt_id": "spk-c10-light-003",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    }
+  ],
+  "schema_version": 1
+}

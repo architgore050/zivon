@@ -1,0 +1,83 @@
+{
+  "assessment_pipeline_version": "1",
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "chapter_title": "Light – Reflection and Refraction",
+  "class_level": 10,
+  "content_hash": "sha256:2f1de4bd1714a59a1ccf388f828dc3c443d21a419ddf72942f21a98ba74fa05e",
+  "counts": {
+    "base_items": 15,
+    "blocks_tagged": 0,
+    "concepts": 7,
+    "question_rows": 45,
+    "speaking_prompts": 3
+  },
+  "coverage": {
+    "block_tagging": "pending_lesson",
+    "by_concept": {
+      "class-10-light-reflection-and-refraction-lens-formula-and-magnification": 1,
+      "class-10-light-reflection-and-refraction-mirror-formula-and-magnification": 4,
+      "class-10-light-reflection-and-refraction-power-of-a-lens": 2,
+      "class-10-light-reflection-and-refraction-reflection-of-light": 1,
+      "class-10-light-reflection-and-refraction-refraction-of-light": 3,
+      "class-10-light-reflection-and-refraction-spherical-lenses": 2,
+      "class-10-light-reflection-and-refraction-spherical-mirrors": 2
+    },
+    "by_difficulty": {
+      "easy": 5,
+      "hard": 4,
+      "medium": 6
+    },
+    "by_language": {
+      "en": 15,
+      "hi": 15,
+      "hi-Latn": 15
+    },
+    "by_type": {
+      "assertion_reason": 2,
+      "mcq": 7,
+      "numeric": 6
+    },
+    "speaking_by_language": {
+      "en": 3,
+      "hi": 3,
+      "hi-Latn": 3
+    }
+  },
+  "files": {
+    "concepts.json": {
+      "bytes": 4863,
+      "sha256": "d88df7a6fbfee08dc94ef78df87786e1c4debe3a26f69e477c7edeb00f905c1b"
+    },
+    "questions.json": {
+      "bytes": 64915,
+      "sha256": "6c0d7ebdb57acca0493da525a4cddaca3aa2252388878aa181350ee0624054e0"
+    },
+    "speaking.json": {
+      "bytes": 22492,
+      "sha256": "654751dc3eb31bee81f86d5e3282572c355608e662d998d0e207bfbb9760bc8b"
+    },
+    "syllabus.json": {
+      "bytes": 50475,
+      "sha256": "8eb496ae0245e3917067e0eab780322ffe1812267fa07d1721f4d3b114bc0296"
+    },
+    "time-priors.json": {
+      "bytes": 16130,
+      "sha256": "8c3a3c143f3a3b8f99e8382de7f53e191fc36fb73cec3534ab06bffe53ba1a55"
+    }
+  },
+  "gate": {
+    "error_count": 0,
+    "verdict": "pass",
+    "warning_count": 1
+  },
+  "generated_at": "2026-11-17T03:10:54+00:00",
+  "generator": "seed-asm-1",
+  "languages": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "pack_version": 1,
+  "run_id": "assessment-class-10-light-reflection-and-refraction",
+  "subject": "physics"
+}

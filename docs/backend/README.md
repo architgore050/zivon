@@ -22,6 +22,7 @@ storage units; IP-based abuse prevention).
 | [`sync-policy.csv`](sync-policy.csv) | One row per sync rule: trigger, mechanism, verification, on-failure, SLO, runbook |
 | [`capacity-and-cost.md`](capacity-and-cost.md) | Storage / egress / Gnani-credit capacity model reconciled against the 10,000-credit budget, the 1,000-credit daily tranche, the 30-credit per-user cap, and the demo profile |
 | [`adr/`](adr/) | Architecture Decision Records — one per significant decision; maps 1:1 to the 8 `**ADR**` flags in `features.md` §3 (T2, T3, T5, T6, T7, T8, T11, T12) plus systems-origin decisions (primary DB, session store, realtime transport, cold provider, layer isolation, sync schedule, guard architecture, migrations) |
+| [`runbooks/assessment-import.md`](runbooks/assessment-import.md) | Operator procedure for importing an assessment pack into `question_bank`/`speaking_prompt`/`topic_time_prior` (`0004_practice_speaking_tests`): verify-first, idempotency, verification queries, failure modes, deliberate rollback |
 
 Method: `skills/zivon-systems-design-skills/skills/zivon-systems-design/` 10-phase pipeline
 (0 Orient → 9 ADRs+review). Traceability rule throughout: every endpoint, table, column,

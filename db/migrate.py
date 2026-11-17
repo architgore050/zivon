@@ -1,9 +1,10 @@
 """Alembic migration runner and programmatic migration verification (ADR-0016).
 
-Maintains linear migration history (`0001` -> `0002` -> `0003_full_frontend`)
-per `skills/zivon-backend-engineering-skills/README.md` §1 (`alembic heads`
-returns a single head). Works with both the Alembic CLI (when installed) and
-direct execution via `python -m db.migrate` against PostgreSQL or SQLite.
+Maintains linear migration history (`0001` -> `0002` -> `0003_full_frontend` ->
+`0004_practice_speaking_tests`) per `skills/zivon-backend-engineering-skills/`
+README.md §1 (`alembic heads` returns a single head). Works with both the
+Alembic CLI (when installed) and direct execution via `python -m db.migrate`
+against PostgreSQL or SQLite.
 
 Relationship to Alembic's graph (EX6 weld, 2026-11-10): this runtime chain is
 what the cluster's migrate Job runs (`k8s/26` -> `python -m db.migrate upgrade
@@ -13,9 +14,10 @@ the same chain plus EX2's `0022_translation_memory_c3` (down_revision `0002`,
 in `migrations/versions`, listed in alembic.ini's `version_locations`). On
 PostgreSQL, 0022 is a defensive no-op after 0002 (`CREATE TABLE IF NOT EXISTS`
 / seed `ON CONFLICT DO NOTHING`), so both tools converge on the same schema and
-on the same recorded head (`0003_full_frontend`); a database still recorded at
-0022 is treated as `0002` by this chain via `REVISION_ALIASES`, so a CLI-
-migrated database can be continued by the runtime Job without a manual stamp.
+on the same recorded head (`0004_practice_speaking_tests`); a database still
+recorded at 0022 is treated as `0002` by this chain via `REVISION_ALIASES`, so
+a CLI-migrated database can be continued by the runtime Job without a manual
+stamp.
 """
 
 from __future__ import annotations
@@ -32,6 +34,10 @@ from .schema import (
     get_revision_0002_up_sql,
     get_revision_0003_down_sql,
     get_revision_0003_up_sql,
+)
+from .schema_assessment import (
+    get_revision_0004_down_sql,
+    get_revision_0004_up_sql,
 )
 
 if TYPE_CHECKING:
@@ -68,6 +74,13 @@ REVISION_CHAIN: Final[tuple[RevisionSpec, ...]] = (
         description="Full-frontend foundation: accounts, auth sessions, catalogue, progress tables",
         up_sql_fn=get_revision_0003_up_sql,
         down_sql_fn=get_revision_0003_down_sql,
+    ),
+    RevisionSpec(
+        revision="0004_practice_speaking_tests",
+        down_revision="0003_full_frontend",
+        description="W4 foundation: question bank, practice, speaking, test series/attempts, pack import",
+        up_sql_fn=get_revision_0004_up_sql,
+        down_sql_fn=get_revision_0004_down_sql,
     ),
 )
 
@@ -112,7 +125,11 @@ def get_current_revision(engine: DatabaseEngine) -> str | None:
 
 
 def upgrade_db(engine: DatabaseEngine, target: str = "head") -> str:
-    """Apply migrations linearly up to `target` ('head', '0001', '0002', '0003_full_frontend')."""
+    """Apply migrations linearly up to `target`.
+
+    Valid targets are `head`, `0001`, `0002`, `0003_full_frontend`, and
+    `0004_practice_speaking_tests`.
+    """
     target_rev = LATEST_REVISION if target == "head" else target
     valid_revs = [r.revision for r in REVISION_CHAIN]
     if target_rev not in valid_revs:

@@ -4,11 +4,17 @@ Supports both PostgreSQL 16 (production / CI cluster) and SQLite 3 (local unit
 and contract test execution in key-free / containerless environments). Every
 table, column, CHECK constraint, and index traces to `docs/backend/db-spec.md`
 and `docs/specs/gaps/gap-register.md` (GAP-014).
+
+Revision `0004_practice_speaking_tests` lives in `db/schema_assessment.py` (the
+W4 practice/speaking/test foundation); this module stays the 0001-0003 home and
+owns the single `ALL_TABLES` registry.
 """
 
 from __future__ import annotations
 
 from typing import Final
+
+from .schema_assessment import PRACTICE_TEST_TABLES_0004
 
 CORE_TABLES_0001: Final[tuple[str, ...]] = (
     "device",
@@ -61,7 +67,10 @@ FULL_FRONTEND_TABLES_0003: Final[tuple[str, ...]] = (
 )
 
 ALL_TABLES: Final[tuple[str, ...]] = (
-    CORE_TABLES_0001 + ADDENDA_TABLES_0002 + FULL_FRONTEND_TABLES_0003
+    CORE_TABLES_0001
+    + ADDENDA_TABLES_0002
+    + FULL_FRONTEND_TABLES_0003
+    + PRACTICE_TEST_TABLES_0004
 )
 
 LOCALE_ENUM_CHECK: Final[str] = (

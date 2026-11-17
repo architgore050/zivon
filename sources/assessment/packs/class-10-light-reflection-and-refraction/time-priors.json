@@ -1,0 +1,649 @@
+{
+  "formula_version": "tp-v1",
+  "questions": [
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 25
+      },
+      "expected_time_ms": 41000,
+      "question_id": "q-c10-light-001-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 33
+      },
+      "expected_time_ms": 48000,
+      "question_id": "q-c10-light-001-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 24
+      },
+      "expected_time_ms": 43000,
+      "question_id": "q-c10-light-001-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 21
+      },
+      "expected_time_ms": 40000,
+      "question_id": "q-c10-light-002-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 45
+      },
+      "expected_time_ms": 51000,
+      "question_id": "q-c10-light-002-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 21
+      },
+      "expected_time_ms": 42000,
+      "question_id": "q-c10-light-002-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 18
+      },
+      "expected_time_ms": 73000,
+      "question_id": "q-c10-light-003-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 24
+      },
+      "expected_time_ms": 84000,
+      "question_id": "q-c10-light-003-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 17
+      },
+      "expected_time_ms": 77000,
+      "question_id": "q-c10-light-003-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 72
+      },
+      "expected_time_ms": 76000,
+      "question_id": "q-c10-light-004-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 104
+      },
+      "expected_time_ms": 94000,
+      "question_id": "q-c10-light-004-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 66
+      },
+      "expected_time_ms": 78000,
+      "question_id": "q-c10-light-004-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 37
+      },
+      "expected_time_ms": 169000,
+      "question_id": "q-c10-light-005-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 55
+      },
+      "expected_time_ms": 197000,
+      "question_id": "q-c10-light-005-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 34
+      },
+      "expected_time_ms": 176000,
+      "question_id": "q-c10-light-005-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 64
+      },
+      "expected_time_ms": 89000,
+      "question_id": "q-c10-light-006-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 101
+      },
+      "expected_time_ms": 110000,
+      "question_id": "q-c10-light-006-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 64
+      },
+      "expected_time_ms": 93000,
+      "question_id": "q-c10-light-006-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 34
+      },
+      "expected_time_ms": 43000,
+      "question_id": "q-c10-light-007-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 71
+      },
+      "expected_time_ms": 57000,
+      "question_id": "q-c10-light-007-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 44
+      },
+      "expected_time_ms": 47000,
+      "question_id": "q-c10-light-007-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 33
+      },
+      "expected_time_ms": 108000,
+      "question_id": "q-c10-light-008-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 46
+      },
+      "expected_time_ms": 124000,
+      "question_id": "q-c10-light-008-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 31
+      },
+      "expected_time_ms": 112000,
+      "question_id": "q-c10-light-008-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 44
+      },
+      "expected_time_ms": 68000,
+      "question_id": "q-c10-light-009-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 57
+      },
+      "expected_time_ms": 80000,
+      "question_id": "q-c10-light-009-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 38
+      },
+      "expected_time_ms": 70000,
+      "question_id": "q-c10-light-009-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 32
+      },
+      "expected_time_ms": 167000,
+      "question_id": "q-c10-light-010-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 45
+      },
+      "expected_time_ms": 192000,
+      "question_id": "q-c10-light-010-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 29
+      },
+      "expected_time_ms": 174000,
+      "question_id": "q-c10-light-010-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 72
+      },
+      "expected_time_ms": 91000,
+      "question_id": "q-c10-light-011-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 110
+      },
+      "expected_time_ms": 113000,
+      "question_id": "q-c10-light-011-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 72
+      },
+      "expected_time_ms": 95000,
+      "question_id": "q-c10-light-011-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 26
+      },
+      "expected_time_ms": 52000,
+      "question_id": "q-c10-light-012-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 30
+      },
+      "expected_time_ms": 59000,
+      "question_id": "q-c10-light-012-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 25
+      },
+      "expected_time_ms": 54000,
+      "question_id": "q-c10-light-012-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 17
+      },
+      "expected_time_ms": 73000,
+      "question_id": "q-c10-light-013-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 24
+      },
+      "expected_time_ms": 84000,
+      "question_id": "q-c10-light-013-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 16
+      },
+      "expected_time_ms": 77000,
+      "question_id": "q-c10-light-013-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 51
+      },
+      "expected_time_ms": 79000,
+      "question_id": "q-c10-light-014-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 90
+      },
+      "expected_time_ms": 103000,
+      "question_id": "q-c10-light-014-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 52
+      },
+      "expected_time_ms": 83000,
+      "question_id": "q-c10-light-014-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 32
+      },
+      "expected_time_ms": 167000,
+      "question_id": "q-c10-light-015-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 50
+      },
+      "expected_time_ms": 195000,
+      "question_id": "q-c10-light-015-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 29
+      },
+      "expected_time_ms": 174000,
+      "question_id": "q-c10-light-015-hi-Latn"
+    }
+  ],
+  "schema_version": 1,
+  "topics": [
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 102167,
+      "questions": 15,
+      "scope": "chapter",
+      "scope_id": "class-10-light-reflection-and-refraction"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 167000,
+      "questions": 1,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-lens-formula-and-magnification"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 139500,
+      "questions": 4,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 62500,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-power-of-a-lens"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 41000,
+      "questions": 1,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-reflection-of-light"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 76667,
+      "questions": 3,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-refraction-of-light"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 79500,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-spherical-lenses"
+    },
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "expected_time_ms": 56500,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-10-light-reflection-and-refraction-spherical-mirrors"
+    }
+  ]
+}

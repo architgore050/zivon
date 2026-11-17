@@ -1,0 +1,83 @@
+{
+  "assessment_pipeline_version": "1",
+  "chapter_id": "class-9-describing-motion-around-us",
+  "chapter_title": "Describing Motion Around Us",
+  "class_level": 9,
+  "content_hash": "sha256:30e0c49e897dadd0d1c6a3092c9c60b1e56544b84d3babc93aa51be64f5250af",
+  "counts": {
+    "base_items": 15,
+    "blocks_tagged": 42,
+    "concepts": 7,
+    "question_rows": 45,
+    "speaking_prompts": 3
+  },
+  "coverage": {
+    "block_tagging": "complete",
+    "by_concept": {
+      "class-9-describing-motion-around-us-acceleration": 2,
+      "class-9-describing-motion-around-us-kinematic-equations": 3,
+      "class-9-describing-motion-around-us-position-distance-displacement": 2,
+      "class-9-describing-motion-around-us-position-time-graphs": 1,
+      "class-9-describing-motion-around-us-speed-and-velocity": 3,
+      "class-9-describing-motion-around-us-uniform-circular-motion": 2,
+      "class-9-describing-motion-around-us-velocity-time-graphs": 2
+    },
+    "by_difficulty": {
+      "easy": 4,
+      "hard": 4,
+      "medium": 7
+    },
+    "by_language": {
+      "en": 15,
+      "hi": 15,
+      "hi-Latn": 15
+    },
+    "by_type": {
+      "assertion_reason": 2,
+      "mcq": 8,
+      "numeric": 5
+    },
+    "speaking_by_language": {
+      "en": 3,
+      "hi": 3,
+      "hi-Latn": 3
+    }
+  },
+  "files": {
+    "concepts.json": {
+      "bytes": 17042,
+      "sha256": "2575520e302af363ddb66f9c18ae9c316ab70f71c938abc7928e956c1b7621b0"
+    },
+    "questions.json": {
+      "bytes": 61157,
+      "sha256": "d671c74f1e92f987a5252c79f7102109c4f1584e8cd4cf52218584f66331eebf"
+    },
+    "speaking.json": {
+      "bytes": 21724,
+      "sha256": "1ab8563b674980a8ac54df27683cb5ab30959b20b4223c9c3ae06736292ab40e"
+    },
+    "syllabus.json": {
+      "bytes": 50475,
+      "sha256": "8eb496ae0245e3917067e0eab780322ffe1812267fa07d1721f4d3b114bc0296"
+    },
+    "time-priors.json": {
+      "bytes": 16032,
+      "sha256": "525a4c19f5e54ed86dd7a54ba293ee08e06b3bbc62f1ecb6948384054213036e"
+    }
+  },
+  "gate": {
+    "error_count": 0,
+    "verdict": "pass",
+    "warning_count": 0
+  },
+  "generated_at": "2026-11-17T03:10:54+00:00",
+  "generator": "seed-asm-1",
+  "languages": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "pack_version": 1,
+  "run_id": "assessment-class-9-describing-motion-around-us",
+  "subject": "physics"
+}

@@ -11,6 +11,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from backend import BackendConfig, create_app
+from db import LATEST_REVISION
 from db.uuid7 import uuid7_str
 
 
@@ -49,7 +50,10 @@ class TestBackendEndpoints(unittest.TestCase):
         body = r_v1.json()
         self.assertEqual(body["status"], "ok")
         self.assertEqual(body["db"], "ok")
-        self.assertEqual(body["schema_version"], "0003_full_frontend")
+        # `/v1/health` reports whatever the chain's head is: asserting the chain's
+        # constant (not a frozen string) means every additive migration keeps this
+        # test meaningful instead of reddening it.
+        self.assertEqual(body["schema_version"], LATEST_REVISION)
         self.assertEqual(body["release"], "0.1.0")
         self.assertEqual(body["guard_profile_mode"], "normal")
 

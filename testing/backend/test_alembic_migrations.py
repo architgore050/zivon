@@ -20,6 +20,7 @@ from db.schema import (
     CORE_TABLES_0001,
     FULL_FRONTEND_TABLES_0003,
 )
+from db.schema_assessment import PRACTICE_TEST_TABLES_0004
 from db.uuid7 import uuid7_str
 
 
@@ -27,13 +28,15 @@ class TestAlembicMigrations(unittest.TestCase):
     def test_linear_history_single_head_and_version_files(self) -> None:
         heads = get_heads()
         self.assertEqual(
-            heads, ["0003_full_frontend"], "Alembic history must have exactly one head"
+            heads,
+            ["0004_practice_speaking_tests"],
+            "Alembic history must have exactly one head",
         )
-        self.assertEqual(LATEST_REVISION, "0003_full_frontend")
+        self.assertEqual(LATEST_REVISION, "0004_practice_speaking_tests")
 
         versions_dir = Path("alembic/versions")
         py_files = sorted(versions_dir.glob("*.py"))
-        self.assertEqual(len(py_files), 3)
+        self.assertEqual(len(py_files), 4)
         for path in py_files:
             tree = ast.parse(path.read_text(encoding="utf-8"))
             fn_names = {
@@ -59,7 +62,7 @@ class TestAlembicMigrations(unittest.TestCase):
 
         # Step 2: Upgrade to head -> all tables + seeds present
         rev2 = upgrade_db(eng, "head")
-        self.assertEqual(rev2, "0003_full_frontend")
+        self.assertEqual(rev2, "0004_practice_speaking_tests")
         tables_head = set(eng.list_tables())
         for tbl in ALL_TABLES:
             self.assertIn(tbl, tables_head)
@@ -76,7 +79,16 @@ class TestAlembicMigrations(unittest.TestCase):
         locales = eng.fetchall("SELECT locale FROM locale_fallback")
         self.assertEqual(len(locales), 11)
 
-        # Step 3: Downgrade to 0002 drops only the 0003 additions
+        # Step 3: Downgrade to 0003 drops only the 0004 additions
+        down3 = downgrade_db(eng, "0003_full_frontend")
+        self.assertEqual(down3, "0003_full_frontend")
+        tables_0003 = set(eng.list_tables())
+        for tbl in FULL_FRONTEND_TABLES_0003:
+            self.assertIn(tbl, tables_0003)
+        for tbl in PRACTICE_TEST_TABLES_0004:
+            self.assertNotIn(tbl, tables_0003)
+
+        # Step 4: Downgrade to 0002 drops only the 0003 additions
         down2 = downgrade_db(eng, "0002")
         self.assertEqual(down2, "0002")
         tables_0002 = set(eng.list_tables())
@@ -87,7 +99,7 @@ class TestAlembicMigrations(unittest.TestCase):
         device_cols = {row["name"] for row in eng.fetchall("PRAGMA table_info(device)")}
         self.assertNotIn("user_id", device_cols)
 
-        # Step 4: Downgrade to 0001, then base, then re-upgrade to head
+        # Step 5: Downgrade to 0001, then base, then re-upgrade to head
         down1 = downgrade_db(eng, "0001")
         self.assertEqual(down1, "0001")
         down_base = downgrade_db(eng, "base")
@@ -95,11 +107,27 @@ class TestAlembicMigrations(unittest.TestCase):
         self.assertEqual(set(eng.list_tables()), {"alembic_version"})
 
         re_up = upgrade_db(eng, "head")
-        self.assertEqual(re_up, "0003_full_frontend")
+        self.assertEqual(re_up, "0004_practice_speaking_tests")
         self.assertTrue(set(ALL_TABLES).issubset(set(eng.list_tables())))
 
+    def test_upgrade_from_0003_to_head_is_additive_only(self) -> None:
+        """A database already serving the frontend keeps every 0003 row and table."""
+        eng = DatabaseEngine.from_url("sqlite:///:memory:", auto_migrate=False)
+        self.assertEqual(upgrade_db(eng, "0003_full_frontend"), "0003_full_frontend")
+        user_id = uuid7_str()
+        eng.execute(
+            "INSERT INTO users (user_id, email, board, language, role) "
+            "VALUES (?, 'kept@example.com', 'CBSE', 'en-IN', 'student')",
+            (user_id,),
+        )
+        self.assertEqual(upgrade_db(eng, "head"), "0004_practice_speaking_tests")
+        kept = eng.fetchone("SELECT email FROM users WHERE user_id = ?", (user_id,))
+        assert kept is not None
+        self.assertEqual(kept["email"], "kept@example.com")
+        self.assertIn("question_bank", set(eng.list_tables()))
+
     def test_cli_only_revision_alias_continues_to_head(self) -> None:
-        """A DB left at EX2's Alembic-only 0022 continues to 0003, not an error."""
+        """A DB left at EX2's Alembic-only 0022 continues to head, not an error."""
         eng = DatabaseEngine.from_url("sqlite:///:memory:", auto_migrate=False)
         upgrade_db(eng, "0002")
         eng.execute("DELETE FROM alembic_version")
@@ -107,7 +135,7 @@ class TestAlembicMigrations(unittest.TestCase):
             "INSERT INTO alembic_version (version_num) "
             "VALUES ('0022_translation_memory_c3')"
         )
-        self.assertEqual(upgrade_db(eng, "head"), "0003_full_frontend")
+        self.assertEqual(upgrade_db(eng, "head"), "0004_practice_speaking_tests")
         self.assertIn("users", set(eng.list_tables()))
 
     def test_cli_only_revision_alias_downgrades_from_the_alias(self) -> None:
