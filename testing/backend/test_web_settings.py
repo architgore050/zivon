@@ -316,7 +316,7 @@ class SettingsPasswordTests(WebAuthSupport):
 
     def test_service_rejections_keep_their_own_status_and_copy(self) -> None:
         self.register_via_api()
-        cases = (
+        cases: tuple[tuple[str, dict[str, str], int, str], ...] = (
             ("E-VALIDATION", {"reason": "too_common"}, 422, "too common"),
             ("E-SERVICE-UNAVAILABLE", {}, 503, "could not be changed"),
         )
