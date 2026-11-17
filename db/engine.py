@@ -337,7 +337,7 @@ class DatabaseEngine:
                     device_pseudo_id,
                     consent_version,
                     notice_version,
-                    1 if guardian_flag else 0,
+                    bool(guardian_flag),
                     action,
                     source,
                     ts,
