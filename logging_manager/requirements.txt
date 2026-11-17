@@ -6,4 +6,4 @@
 # lazily, so a deployment that never sets the DSN never needs it.
 #
 # Install:  pip install -r logging_manager/requirements.txt
-psycopg[binary]>=3.2
+psycopg[binary]>=3.3.9
