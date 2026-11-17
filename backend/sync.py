@@ -286,7 +286,7 @@ class ColdStorageSync:
                         str(path),
                         self.config.cold_provider,
                         cold_key,
-                        1 if pinned else 0,
+                        bool(pinned),
                         now_iso,
                     ),
                 )
@@ -493,7 +493,7 @@ class ColdStorageSync:
                     object_id, class_id, key, sha256, size_bytes, content_type,
                     version_ref, cold_provider, cold_key, cold_verified_at,
                     pinned, encryption_key_ref, state, created_at
-                ) VALUES (?, 'C14', ?, ?, ?, 'application/octet-stream', ?, ?, ?, ?, 1, 'k8s:zivon-voice-env', 'cold_verified', ?)
+                ) VALUES (?, 'C14', ?, ?, ?, 'application/octet-stream', ?, ?, ?, ?, TRUE, 'k8s:zivon-voice-env', 'cold_verified', ?)
                 ON CONFLICT (key) DO UPDATE SET
                     cold_verified_at = excluded.cold_verified_at,
                     state = 'cold_verified'
@@ -574,7 +574,7 @@ class ColdStorageSync:
                     object_id, class_id, key, sha256, size_bytes, content_type,
                     version_ref, cold_provider, cold_key, cold_verified_at,
                     pinned, encryption_key_ref, state, created_at
-                ) VALUES (?, 'C9', ?, ?, ?, 'application/octet-stream', ?, ?, ?, ?, 1, 'k8s:zivon-voice-env', 'cold_verified', ?)
+                ) VALUES (?, 'C9', ?, ?, ?, 'application/octet-stream', ?, ?, ?, ?, TRUE, 'k8s:zivon-voice-env', 'cold_verified', ?)
                 ON CONFLICT (key) DO UPDATE SET
                     cold_verified_at = excluded.cold_verified_at,
                     state = 'cold_verified'
@@ -633,7 +633,7 @@ class ColdStorageSync:
                             object_id, class_id, key, sha256, size_bytes, content_type,
                             version_ref, ssd_path, cold_provider, cold_key,
                             cold_verified_at, pinned, state, created_at
-                        ) VALUES (?, 'C4', ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'cold_verified', ?)
+                        ) VALUES (?, 'C4', ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE, 'cold_verified', ?)
                         ON CONFLICT (key) DO UPDATE SET
                             cold_verified_at = excluded.cold_verified_at,
                             state = 'cold_verified'
