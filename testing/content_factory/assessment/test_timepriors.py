@@ -225,6 +225,27 @@ class TestPriorRules(unittest.TestCase):
         broken["questions"] = broken["questions"][:-1]
         self.assertIn("time_prior.missing", self.rules(broken))
 
+    def test_unknown_prior_row_fails(self) -> None:
+        broken = copy.deepcopy(self.priors)
+        row = copy.deepcopy(broken["questions"][0])
+        row["question_id"] = "q-not-in-the-bank-en"
+        broken["questions"].append(row)
+        self.assertIn("time_prior.unknown", self.rules(broken))
+
+    def test_missing_chapter_topic_prior_fails(self) -> None:
+        broken = copy.deepcopy(self.priors)
+        broken["topics"] = [
+            topic for topic in broken["topics"] if topic["scope"] != "chapter"
+        ]
+        self.assertIn("time_prior.topic_missing", self.rules(broken))
+
+    def test_missing_concept_topic_prior_fails(self) -> None:
+        broken = copy.deepcopy(self.priors)
+        broken["topics"] = [
+            topic for topic in broken["topics"] if topic["scope"] != "concept"
+        ]
+        self.assertIn("time_prior.topic_missing", self.rules(broken))
+
     def test_unknown_topic_scope_fails(self) -> None:
         broken = copy.deepcopy(self.priors)
         broken["topics"][1]["scope_id"] = "class-9-not-a-concept"

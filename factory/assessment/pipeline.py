@@ -122,6 +122,28 @@ def _stage_dir_path(run_ctx: RunContext, stage_id: str) -> Path:
     return run_ctx.stage_dir(stage_id)
 
 
+def _load_chapter_stage(
+    run_ctx: RunContext, stage_id: str, chapter_id: str
+) -> dict[str, Any]:
+    """Load an upstream stage output, refusing one that belongs to another
+    chapter.
+
+    `RunContext.load_stage_output` falls back to the newest sibling run that has
+    the stage (a deliberate convenience for targeted re-runs). Assessment run
+    dirs are one-per-chapter under a shared `runs/assessment/` root, so that
+    fallback could otherwise copy chapter B's items into chapter A's pack.
+    """
+    output = run_ctx.load_stage_output(stage_id)
+    actual = output.get("chapter_id")
+    if actual is not None and actual != chapter_id:
+        raise AssessmentStageError(
+            f"{stage_id} output belongs to chapter {actual!r}, not {chapter_id!r}; "
+            "refusing to mix two chapters' artifacts. Re-run the missing stages "
+            "for this chapter (or pass --fresh)."
+        )
+    return output
+
+
 def _run_one_stage(
     stage_id: str,
     cfg: AssessmentConfig,
@@ -133,20 +155,29 @@ def _run_one_stage(
 ) -> dict[str, Any]:
     if stage_id == "A1-syllabus":
         return syllabus_stage.run_stage(cfg)
-    syllabus_output = run_ctx.load_stage_output("A1-syllabus")
     if stage_id == "A2-concept-tag":
         return concepts_stage.run_stage(cfg, chapter)
-    graph = run_ctx.load_stage_output("A2-concept-tag")
     if stage_id == "A3-practice-items":
         return items_stage.run_stage(cfg, chapter, llm_client=llm_client)
-    items_output = run_ctx.load_stage_output("A3-practice-items")
     if stage_id == "A4-speaking-rubrics":
         return speaking_stage.run_stage(cfg, chapter, llm_client=llm_client)
-    speaking_output = run_ctx.load_stage_output("A4-speaking-rubrics")
     if stage_id == "A5-time-priors":
+        items_output = _load_chapter_stage(
+            run_ctx, "A3-practice-items", chapter["chapter_id"]
+        )
         return priors_stage.run_stage(cfg, chapter, items_output)
-    priors_output = run_ctx.load_stage_output("A5-time-priors")
     if stage_id == "A6-publish-export":
+        syllabus_output = run_ctx.load_stage_output("A1-syllabus")
+        graph = _load_chapter_stage(run_ctx, "A2-concept-tag", chapter["chapter_id"])
+        items_output = _load_chapter_stage(
+            run_ctx, "A3-practice-items", chapter["chapter_id"]
+        )
+        speaking_output = _load_chapter_stage(
+            run_ctx, "A4-speaking-rubrics", chapter["chapter_id"]
+        )
+        priors_output = _load_chapter_stage(
+            run_ctx, "A5-time-priors", chapter["chapter_id"]
+        )
         return pack_stage.run_stage(
             cfg,
             chapter,
@@ -288,8 +319,10 @@ def _run_chapter(
                 stage_id,
                 "ok",
                 detail=_stage_detail(stage_id, output),
-                blocks=int((output.get("counts") or {}).get("items", 0)),
+                blocks=_stage_blocks(stage_id, output),
+                attempts=_stage_attempts(stage_id, output),
             )
+            _invalidate_downstream(run_ctx, stage_id)
             if stage_id == "A6-publish-export":
                 manifest = output["manifest"]
                 log_event(
@@ -342,39 +375,65 @@ def _run_chapter(
         )
         raise
 
-    a6 = run_ctx.load_stage_output("A6-publish-export")
-    a6 = _export_resumed_pack(cfg, chapter, run_ctx, a6)
+    # A partial stage run (`--stages A5-time-priors`) need not have produced a
+    # pack. Summarise only stages that are still ok; a re-run upstream stage
+    # has just marked its downstream stale, so an old A6 pack is not reported.
+    a3 = (
+        _local_stage_output(run_ctx, "A3-practice-items")
+        if run_ctx.stage_ok("A3-practice-items")
+        else None
+    )
+    a4 = (
+        _local_stage_output(run_ctx, "A4-speaking-rubrics")
+        if run_ctx.stage_ok("A4-speaking-rubrics")
+        else None
+    )
+    a6 = (
+        _local_stage_output(run_ctx, "A6-publish-export")
+        if "A6-publish-export" in stages and run_ctx.stage_ok("A6-publish-export")
+        else None
+    )
+    if a6 is not None:
+        a6 = _export_resumed_pack(cfg, chapter, run_ctx, a6)
     run_ctx.finish(True)
-    a3 = run_ctx.load_stage_output("A3-practice-items")
-    a4 = run_ctx.load_stage_output("A4-speaking-rubrics")
+    items_count = len(a3["items"]) if a3 is not None else 0
+    speaking_count = len(a4["prompts"]) if a4 is not None else 0
+    question_rows = (
+        int(a6["manifest"]["counts"]["question_rows"]) if a6 is not None else 0
+    )
+    content_hash = str(a6["manifest"]["content_hash"]) if a6 is not None else ""
+    pack_dir = str(a6["pack_dir"]) if a6 is not None else None
     elapsed_ms = int((time.monotonic() - t0) * 1000)
     log_event(
         "factory.assessment.run.completed",
         {
             "chapters_count": 1,
-            "items_count": len(a3["items"]),
-            "speaking_prompts_count": len(a4["prompts"]),
-            "question_rows": a6["manifest"]["counts"]["question_rows"],
-            "content_hash": a6["manifest"]["content_hash"],
+            "items_count": items_count,
+            "speaking_prompts_count": speaking_count,
+            "question_rows": question_rows,
+            "content_hash": content_hash,
         },
         latency_ms=elapsed_ms,
     )
+    pack_detail = (
+        f"{question_rows} question rows -> {pack_dir}"
+        if pack_dir is not None
+        else "no pack in this partial stage run"
+    )
     print(
-        f"\n[assessment] {chapter_id}: {len(a3['items'])} items, "
-        f"{len(a4['prompts'])} speaking prompts, "
-        f"{a6['manifest']['counts']['question_rows']} question rows -> "
-        f"{a6['pack_dir']}"
+        f"\n[assessment] {chapter_id}: {items_count} items, "
+        f"{speaking_count} speaking prompts, {pack_detail}"
     )
     return {
         "ok": True,
         "chapter_id": chapter_id,
         "run_id": run_id,
-        "items": len(a3["items"]),
-        "speaking_prompts": len(a4["prompts"]),
-        "question_rows": a6["manifest"]["counts"]["question_rows"],
-        "content_hash": a6["manifest"]["content_hash"],
-        "pack_dir": a6["pack_dir"],
-        "exported_dir": a6.get("exported_dir"),
+        "items": items_count,
+        "speaking_prompts": speaking_count,
+        "question_rows": question_rows,
+        "content_hash": content_hash,
+        "pack_dir": pack_dir,
+        "exported_dir": a6.get("exported_dir") if a6 is not None else None,
         "stage_durations_s": run_ctx.stage_durations(),
     }
 
@@ -413,6 +472,78 @@ def _export_resumed_pack(
     )
     print(f"[A6-publish-export] exported the existing pack -> {target}")
     return a6
+
+
+def _local_stage_output(run_ctx: RunContext, stage_id: str) -> dict[str, Any] | None:
+    path = run_ctx.stage_dir(stage_id) / "output.json"
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+_STAGE_DEPENDENTS = {
+    "A1-syllabus": [
+        "A2-concept-tag",
+        "A3-practice-items",
+        "A4-speaking-rubrics",
+        "A5-time-priors",
+        "A6-publish-export",
+    ],
+    "A2-concept-tag": ["A6-publish-export"],
+    "A3-practice-items": ["A5-time-priors", "A6-publish-export"],
+    "A4-speaking-rubrics": ["A6-publish-export"],
+    "A5-time-priors": ["A6-publish-export"],
+}
+
+
+def _invalidate_downstream(run_ctx: RunContext, stage_id: str) -> None:
+    """A re-run upstream stage invalidates the stages that consume it.
+
+    Without this, `--stages A5-time-priors` on a completed run would leave the
+    old A6 pack marked ok, and the next full run would skip A6 and keep a pack
+    built from the previous priors. Stale, not deleted: the old artifact stays
+    as evidence, but `stage_ok` stops resuming it. The map is the real data
+    flow, not simply "everything after this stage": A2's graph feeds only A6,
+    so re-tagging blocks must not spend A3 model credits.
+    """
+    path = run_ctx.dir / "status.json"
+    if not path.exists():
+        return
+    try:
+        status = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return
+    changed = False
+    for downstream in _STAGE_DEPENDENTS.get(stage_id, []):
+        entry = status.get("stages", {}).get(downstream)
+        if entry and entry.get("state") in ("ok", "failed"):
+            entry["state"] = "stale"
+            entry["detail"] = f"upstream {stage_id} re-ran"
+            changed = True
+    if changed:
+        run_ctx.write_json(path, status)
+
+
+def _stage_blocks(stage_id: str, output: dict[str, Any]) -> int:
+    """The `blocks` field on `factory.stage.ok` is a block count, not an item
+    count: only A2 produces lesson-block output."""
+    if stage_id == "A2-concept-tag":
+        return int((output.get("counts") or {}).get("blocks", 0))
+    return 0
+
+
+def _stage_attempts(stage_id: str, output: dict[str, Any]) -> int:
+    """Model attempts this stage actually made. The seed generator makes none;
+    live A3 counts generation + repair rounds, live A4 counts its one call."""
+    generator = str(output.get("generator") or "")
+    if not generator.startswith("llm"):
+        return 0
+    if stage_id == "A3-practice-items":
+        rounds = int((output.get("repair") or {}).get("rounds", 0))
+        return rounds + 1
+    if stage_id == "A4-speaking-rubrics":
+        return 1
+    return 0
 
 
 def _stage_detail(stage_id: str, output: dict[str, Any]) -> str:

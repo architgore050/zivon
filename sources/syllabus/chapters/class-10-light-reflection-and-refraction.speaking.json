@@ -11,7 +11,7 @@
       "source_ref": {
         "book_id": "ncert-science-10",
         "section": "9.2",
-        "example": "Fig. 9.16"
+        "example": "Fig. 9.7"
       },
       "thresholds": {
         "pass_ratio": 0.6,
@@ -109,8 +109,7 @@
       ],
       "source_ref": {
         "book_id": "ncert-science-10",
-        "section": "9.3.8",
-        "example": "Example 9.3"
+        "section": "9.3.8"
       },
       "thresholds": {
         "pass_ratio": 0.6,

@@ -48,6 +48,19 @@ the assessment pipeline version, chapter id, syllabus digest, tracked chapter
 data, the lesson manifest A2 consumed, the generator and (live only) the model
 name refuses to resume a directory produced under different inputs.
 
+Every chapter has its own run directory under the shared `runs/assessment/`
+root. A targeted stage loads its upstream artifact only from this chapter; the
+generic "newest previous run" fallback is refused when the artifact names a
+different chapter, so two chapters can never mix in one pack.
+
+A targeted re-run (`--stages A5-time-priors`) marks every stage that consumes
+the re-run stage **stale** (`status.json` state `stale`): the old artifact stays
+as evidence, but the next full run re-derives it instead of resuming a pack
+built from the previous priors. The dependency map is the real data flow (A1
+feeds A2–A6; A2/A4/A5 feed only A6; A3 feeds A5 and A6), so re-tagging blocks
+does not spend A3 model credits. A targeted run that does not include A6 reports
+`question_rows: 0` and an empty `content_hash`; it has not produced a pack.
+
 **DB import is a later consumer** (F0 owns the write path). Nothing in this
 pipeline touches `db/`, `backend/`, `frontend/`, `factory/render.py` or
 `factory/link.py`.
@@ -89,9 +102,9 @@ founder/infra-triggered); the seed pack is the dry-run deliverable.
 |---|---|---|---|
 | `A1-syllabus` | `sources/syllabus/syllabus.json` + `sources/catalog.json` | validated syllabus + SHA-256 | unique chapter/concept ids, contiguous order, resolving prerequisites, catalog books, section refs inside the chapter, honest `exam_weight` status |
 | `A2-concept-tag` | syllabus chapter + `sources/syllabus/chapters/<chapter>.concept-map.json` + the P1 lesson manifest | concept graph, edges, block tags | every section mapped, every block tagged, no orphan concept, manifest chapter/class agreement |
-| `A3-practice-items` | source pack concepts + seed bank (or live generator) | 15–20 base items, tri-lingual | schema, one correct answer, explanation, source, known concept, 3 languages + script, no duplicate, count/type/difficulty mix, concept coverage |
-| `A4-speaking-rubrics` | concepts + seed bank (or live generator) | 3+ prompts, tri-lingual | 3–5 key ideas per language, key-idea counts agree across languages, model answer present, thresholds ordered, source + concept known |
-| `A5-time-priors` | A3 items | per-question + per-topic priors | every row has a prior inside the policy bounds; topic priors exist for the chapter and every concept |
+| `A3-practice-items` | source pack concepts + seed bank (or live generator) | 15–20 base items, tri-lingual | schema, one correct answer, explanation, source book + chapter + the item's own concept sections, known concept, 3 languages + script, no duplicate, count/type/difficulty mix, concept coverage |
+| `A4-speaking-rubrics` | concepts + seed bank (or live generator) | 3+ prompts, tri-lingual | 3–5 key ideas per language, key-idea counts agree across languages, model answer present, thresholds ordered, source + concept known, the cited section belongs to at least one of the prompt's concepts |
+| `A5-time-priors` | A3 items | per-question + per-topic priors | every row has a prior inside the policy bounds; no prior points at a question outside the bank; topic priors exist for the chapter and every concept |
 | `A6-publish-export` | A1–A5 | versioned pack + manifest | refuses to write a pack when any upstream gate failed; per-file hashes; deterministic `content_hash` |
 
 ### 3.1 Rule ids (stable; the eval cards assert on them)
@@ -109,7 +122,7 @@ founder/infra-triggered); the seed pack is the dry-run deliverable.
 `concept.manifest_missing`, `concept.hooks_missing`.
 
 **A3** — `item.schema`, `item.concept_unknown`, `item.source_unknown_book`,
-`item.source_off_chapter`, `item.answer.options`, `item.answer.index`,
+`item.source_off_chapter`, `item.source_concept`, `item.answer.options`, `item.answer.index`,
 `item.explanation`, `item.answer.numeric`, `item.answer.distractor`,
 `item.language_missing`, `item.language_script`, `bank.schema`,
 `bank.chapter_mismatch`, `bank.class_mismatch`, `bank.source_mismatch`,
@@ -119,11 +132,12 @@ founder/infra-triggered); the seed pack is the dry-run deliverable.
 
 **A4** — `rubric.schema`, `rubric.chapter_mismatch`, `rubric.prompt_count`,
 `rubric.duplicate_id`, `rubric.concept_unknown`, `rubric.source_unknown_book`,
-`rubric.source_off_chapter`, `rubric.key_ideas`, `rubric.thresholds`,
-`rubric.language_script`.
+`rubric.source_off_chapter`, `rubric.source_concept`, `rubric.key_ideas`,
+`rubric.thresholds`, `rubric.language_script`.
 
 **A5** — `time_prior.schema`, `time_prior.duplicate`, `time_prior.bounds`,
-`time_prior.missing`, `time_prior.topic_scope`.
+`time_prior.missing`, `time_prior.unknown`, `time_prior.topic_missing`,
+`time_prior.topic_scope`.
 
 Severity scale is the repo's: `fatal` / `major` block; `minor` is recorded
 debt. A gate failure writes the stage output (including the full gate report)
@@ -297,10 +311,10 @@ runs in CI.
 
 | Card | Checker | Asserts |
 |---|---|---|
-| `EV-ASM-001` | `check_practice_pack_integrity` | exported row schema, one correct answer, explanation, source inside the chapter, known concept, unique ids, three language rows per item; five seeded defects must fire their rules (wrong answer, missing explanation, off-chapter concept, duplicate prompt, missing variant) |
+| `EV-ASM-001` | `check_practice_pack_integrity` | exported row schema, one correct answer, explanation, source book/chapter/**item concept** section, known concept, unique ids, three language rows per item; five seeded defects must fire their rules (wrong answer, missing explanation, off-chapter concept, duplicate prompt, missing variant) |
 | `EV-ASM-002` | `check_chapter_concept_coverage` | four-class syllabus integrity, every curated concept practised, no unknown concept, pack coverage agrees with rows, every published lesson block tagged (no-lesson chapters are recorded as a metric, not a pass) |
-| `EV-ASM-003` | `check_difficulty_marks_time_priors` | item count, type minimums, difficulty shares, 1–2 marks band, prior bounds, topic priors, hard-not-faster-than-easy sanity; the 900 s seeded prior must fail |
-| `EV-ASM-004` | `check_language_completeness` | one row per base item/prompt per language, script rules, 3–5 key ideas with matching counts, golden speaking minimum |
+| `EV-ASM-003` | `check_difficulty_marks_time_priors` | item count, type minimums, difficulty shares, 1–2 marks band, prior bounds, no orphan prior row, topic priors for the chapter and every concept, hard-not-faster-than-easy sanity; the 900 s seeded prior must fail |
+| `EV-ASM-004` | `check_language_completeness` | one row per base item/prompt per language, script rules, source-concept match, 3–5 key ideas with matching counts, golden speaking minimum |
 
 Goldens: `evals/goldens/assessment/<chapter>/expected.json` (ranges, not
 generated output: the checker rebuilds the pack from tracked data) and

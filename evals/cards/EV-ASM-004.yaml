@@ -19,6 +19,7 @@ deterministic_checks:
   reuses_factory_rule: factory.assessment.validators:validate_speaking_bank
   description: Asserts one row per base item and per speaking prompt in each of en,
     hi and hi-Latn, that Hindi rows carry Devanagari and Latin-script rows do not,
+    that a speaking row's source section belongs to at least one of its concepts,
     that every speaking row has 3-5 key ideas with the same count across languages,
     and that the golden minimum number of speaking prompts exists. A missing
     variant is a silent-fallback defect, so it fails the card.

@@ -130,6 +130,20 @@ class TestFullRun(PipelineTestBase):
         self.assertEqual(started["fields"]["generator"], "seed")
         self.assertEqual(started["fields"]["languages"], "en,hi,hi-Latn")
 
+    def test_stage_events_report_blocks_and_attempts_honestly(self) -> None:
+        with capture_events() as events:
+            run_assessment(self.cfg(), [CHAPTER])
+        by_stage = {
+            e["stage"]: e
+            for e in events
+            if e["event"] == "factory.stage.ok" and e.get("stage")
+        }
+        self.assertEqual(by_stage["A2-concept-tag"]["fields"]["blocks"], 42)
+        # A3 produces items, not lesson blocks; the seed generator makes no
+        # model attempt. Reporting 15 "blocks" here was a field-semantics bug.
+        self.assertEqual(by_stage["A3-practice-items"]["fields"]["blocks"], 0)
+        self.assertEqual(by_stage["A3-practice-items"]["fields"]["attempts"], 0)
+
 
 class TestResume(PipelineTestBase):
     def test_second_run_reuses_every_stage(self) -> None:
@@ -193,6 +207,35 @@ class TestResume(PipelineTestBase):
             if event["event"] == "factory.stage.start"
         ]
         self.assertEqual(starts, [("A5-time-priors", "factory.stage.start")])
+
+    def test_time_prior_rerun_needs_only_the_item_bank(self) -> None:
+        cfg = self.cfg()
+        run_assessment(cfg, [CHAPTER])
+        run_id = make_run_id(CHAPTER)
+        status_path = self.runs / run_id / "status.json"
+        status = json.loads(status_path.read_text())
+        for stage in ("A2-concept-tag", "A4-speaking-rubrics", "A5-time-priors"):
+            status["stages"].pop(stage)
+            shutil.rmtree(self.stage_dir(run_id, stage))
+        status_path.write_text(json.dumps(status))
+        result = run_assessment(cfg, [CHAPTER], only_stages=["A5-time-priors"])
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["runs"][0]["question_rows"], 0)
+        after = json.loads(status_path.read_text())
+        self.assertEqual(after["stages"]["A6-publish-export"]["state"], "stale")
+        # The next full run must rebuild the pack, not resume the stale one.
+        full = run_assessment(cfg, [CHAPTER])
+        self.assertTrue(full["ok"])
+        self.assertEqual(full["runs"][0]["question_rows"], 45)
+        final = json.loads(status_path.read_text())
+        self.assertEqual(final["stages"]["A6-publish-export"]["state"], "ok")
+
+    def test_a_partial_rerun_refuses_another_chapters_artifacts(self) -> None:
+        other = "class-10-light-reflection-and-refraction"
+        run_assessment(self.cfg(), [other])
+        with self.assertRaises(AssessmentStageError) as ctx:
+            run_assessment(self.cfg(), [CHAPTER], only_stages=["A5-time-priors"])
+        self.assertIn("refusing to mix two chapters", str(ctx.exception))
 
 
 class TestGates(PipelineTestBase):

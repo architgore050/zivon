@@ -2,9 +2,9 @@
 
 One prompt per chapter/concept cluster: a student speaks for ~45 s, the
 assessor looks for 3-5 key ideas (not exact wording), and a model answer plus
-self-check is shown afterwards (SPK-04/SPK-05). Every key idea and model
-answer carries the NCERT section that justifies it, and every prompt exists in
-EN/HI/Hinglish.
+self-check is shown afterwards (SPK-04/SPK-05). The prompt's cited NCERT
+section is the source for its key ideas and model answer, and every prompt
+exists in EN/HI/Hinglish.
 """
 
 from __future__ import annotations

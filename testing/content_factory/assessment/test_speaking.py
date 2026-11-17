@@ -159,6 +159,16 @@ class TestSpeakingRuleFailures(SpeakingTestBase):
             self.rules(bank, "class-10-light-reflection-and-refraction"),
         )
 
+    def test_source_outside_the_prompt_concepts_fails(self) -> None:
+        bank = self.mutate(
+            "class-9-describing-motion-around-us",
+            lambda b: b["prompts"][0]["source_ref"].update({"section": "4.3"}),
+        )
+        self.assertIn(
+            "rubric.source_concept",
+            self.rules(bank, "class-9-describing-motion-around-us"),
+        )
+
     def test_inverted_thresholds_fail(self) -> None:
         bank = self.mutate(
             "class-9-describing-motion-around-us",

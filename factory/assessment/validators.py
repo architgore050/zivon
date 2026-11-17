@@ -108,6 +108,18 @@ def count_words(text: str) -> int:
     return len(re.findall(r"\w+", str(text), flags=re.UNICODE))
 
 
+def section_within(section: str, refs: Sequence[str]) -> bool:
+    """Whether a cited section belongs to one of a concept's curated refs.
+
+    NCERT numbering nests: a concept that owns ``4.2`` also owns ``4.2.3``.
+    A bare section and a more specific subsection both count.
+    """
+    return any(
+        section == ref or section.startswith(ref + ".") or ref.startswith(section + ".")
+        for ref in refs
+    )
+
+
 # ------------------------------------------------------------------ syllabus
 def validate_syllabus(
     syllabus: dict[str, Any],
@@ -424,6 +436,23 @@ def validate_item(
                 f"{item_id}: source section {source['section']!r} is not a section of "
                 f"chapter {chapter['number']}",
                 item_id=item_id,
+            )
+        )
+    concept = next(
+        (c for c in chapter["concepts"] if c["concept_id"] == concept_id), None
+    )
+    if concept is not None and not section_within(
+        source["section"], concept["section_refs"]
+    ):
+        issues.append(
+            Issue(
+                "item.source_concept",
+                "fatal",
+                f"{item_id}: source section {source['section']!r} is not one of "
+                f"concept {concept_id!r}'s curated sections "
+                f"{concept['section_refs']}",
+                item_id=item_id,
+                concept_id=concept_id,
             )
         )
 
@@ -802,6 +831,29 @@ def validate_speaking_bank(
                     f"chapter {chapter['number']}",
                 )
             )
+        known_concepts = {
+            c["concept_id"]: c for c in chapter["concepts"] if c["concept_id"] in known
+        }
+        if (
+            prompt["concept_ids"]
+            and all(
+                concept_id in known_concepts for concept_id in prompt["concept_ids"]
+            )
+            and not any(
+                section_within(
+                    source["section"], known_concepts[concept_id]["section_refs"]
+                )
+                for concept_id in prompt["concept_ids"]
+            )
+        ):
+            issues.append(
+                Issue(
+                    "rubric.source_concept",
+                    "fatal",
+                    f"{pid}: source section {source['section']!r} belongs to none "
+                    f"of the prompt's concepts {prompt['concept_ids']}",
+                )
+            )
         idea_counts = {
             lang: len(payload["key_ideas"])
             for lang, payload in prompt["locales"].items()
@@ -860,7 +912,8 @@ def validate_time_priors(
     issues_source: Sequence[dict[str, Any]],
     policy: ItemGatePolicy,
 ) -> list[Issue]:
-    """A5 gate: every question row has a sane prior; topic priors agree."""
+    """A5 gate: every question row has a sane prior; topic priors cover the
+    chapter and every curated concept, with no orphan prior rows."""
     try:
         validate_schema(priors, TIME_PRIORS, "TIME_PRIORS")
     except ValueError as exc:
@@ -900,7 +953,36 @@ def validate_time_priors(
                 f"{len(missing)} question rows have no prior (e.g. {missing[0]})",
             )
         )
+    extra = sorted(seen - expected_rows)
+    if extra:
+        issues.append(
+            Issue(
+                "time_prior.unknown",
+                "fatal",
+                f"{len(extra)} prior row(s) point at a question that is not in the "
+                f"bank (e.g. {extra[0]})",
+            )
+        )
     known_concepts = set(concept_ids_of(chapter))
+    topic_scopes = {(t["scope"], t["scope_id"]) for t in priors["topics"]}
+    if ("chapter", chapter["chapter_id"]) not in topic_scopes:
+        issues.append(
+            Issue(
+                "time_prior.topic_missing",
+                "fatal",
+                f"no chapter-level time prior for {chapter['chapter_id']}",
+            )
+        )
+    for concept_id in sorted(known_concepts):
+        if ("concept", concept_id) not in topic_scopes:
+            issues.append(
+                Issue(
+                    "time_prior.topic_missing",
+                    "fatal",
+                    f"no time prior for concept {concept_id}",
+                    concept_id=concept_id,
+                )
+            )
     for topic in priors["topics"]:
         if topic["scope"] == "chapter" and topic["scope_id"] != chapter["chapter_id"]:
             issues.append(
@@ -1035,6 +1117,7 @@ __all__ = [
     "gate_report",
     "issues_for_reasons",
     "normalize_text",
+    "section_within",
     "validate_concept_graph",
     "validate_item",
     "validate_item_bank",

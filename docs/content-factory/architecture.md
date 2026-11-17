@@ -65,8 +65,10 @@ resume, gate reports with stable rule ids, `llm_manager` through
 their stage code. A2 consumes P1's published lesson manifest
 (`data-section-id`, `data-concept-id`, `blocks`) and owns the
 `section → curated concept` map; the pack is consumed by the practice/speaking
-frontends and, later, by F0's DB importer. Full contract, gate-rule table,
-time-prior formula, configuration and debt: [`assessment.md`](assessment.md).
+frontends and, later, by F0's DB importer. A targeted stage re-run marks the
+stages that consume it `stale`, so a later full run never resumes a pack built
+from the previous priors. Full contract, gate-rule table, time-prior formula,
+configuration and debt: [`assessment.md`](assessment.md).
 
 ### Stage 12-narration: build-time read-aloud audio (2026-11-09, C-051 adopted)
 

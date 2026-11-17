@@ -217,6 +217,18 @@ class TestRuleFailures(ItemTestBase):
             self.rules(bank, "class-9-describing-motion-around-us"),
         )
 
+    def test_source_outside_the_items_concept_fails(self) -> None:
+        bank = self.mutate(
+            "class-9-describing-motion-around-us",
+            operation="patch_item",
+            item_id="q-c9-motion-001",
+            patch={"source_ref": {"book_id": "ncert-science-9", "section": "4.3"}},
+        )
+        self.assertIn(
+            "item.source_concept",
+            self.rules(bank, "class-9-describing-motion-around-us"),
+        )
+
     def test_unknown_source_book_fails(self) -> None:
         bank = self.mutate(
             "class-9-describing-motion-around-us",

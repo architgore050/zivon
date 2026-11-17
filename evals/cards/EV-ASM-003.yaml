@@ -20,9 +20,10 @@ deterministic_checks:
   reuses_factory_rule: factory.assessment.validators:validate_time_priors
   description: Asserts the golden item count, per-type minimums and ranges, the
     difficulty-share bands, the 1-2 practice marks band, one prior per question row
-    inside the golden bounds, topic priors for the chapter and every concept, and
-    that a hard item is never predicted to be faster than an easy item of the same
-    type. Seeded defect SD-ASM-006 (a 900 s prior) must fail with time_prior.bounds.
+    inside the golden bounds with no orphan row, topic priors for the chapter and
+    every concept, and that a hard item is never predicted to be faster than an
+    easy item of the same type. Seeded defect SD-ASM-006 (a 900 s prior) must fail
+    with time_prior.bounds.
 llm_judge: null
 thresholds:
   deterministic_pass_rate_min: 1.0

@@ -25,10 +25,11 @@ deterministic_checks:
   description: Rebuilds both golden chapter packs through the real A1-A6 stage
     functions, validates questions.json against ASSESSMENT_QUESTIONS, and asserts
     one correct answer per objective row, an explanation, a catalog source inside
-    the chapter's section range, a known concept, unique question ids, and exactly
-    three language rows per item. Five seeded defects (wrong answer index, missing
-    explanation, off-chapter concept, duplicate prompt, missing language variant)
-    must each make their declared rule fire.
+    the chapter's section range and inside the item's own concept sections, a
+    known concept, unique question ids, and exactly three language rows per item.
+    Five seeded defects (wrong answer index, missing explanation, off-chapter
+    concept, duplicate prompt, missing language variant) must each make their
+    declared rule fire.
 llm_judge: null
 thresholds:
   deterministic_pass_rate_min: 1.0

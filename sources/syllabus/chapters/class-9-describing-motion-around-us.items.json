@@ -185,7 +185,7 @@
         },
         "hi-Latn": {
           "prompt": "Sarang 50 s mein pool ke ek sire se doosre sire tak jaakar wapas aata hai aur total 50 m cover karta hai. 50 s ke interval mein uski average speed aur average velocity kya hain?",
-          "explanation": "Average speed mein tairа gaya 50 m liya jaata hai, isliye 1 m/s hai. Woh start point par lautta hai, isliye displacement zero aur average velocity 0 m/s hai.",
+          "explanation": "Average speed mein taira gaya 50 m liya jaata hai, isliye 1 m/s hai. Woh start point par lautta hai, isliye displacement zero aur average velocity 0 m/s hai.",
           "options": [
             "1 m/s aur 1 m/s",
             "1 m/s aur 0 m/s",
@@ -357,7 +357,7 @@
             "The object is at rest",
             "The object moves backwards"
           ],
-          "misconception": "Reading a flat line as 'zero velocity' is right, but it is not 'zero acceleration' information here."
+          "misconception": "A flat line means the object is at rest: zero velocity and zero acceleration. A constant non-zero slope would mean constant velocity."
         },
         "hi": {
           "prompt": "स्थिति-समय ग्राफ समय अक्ष के समांतर एक सरल रेखा है। यह क्या दर्शाता है?",
@@ -368,7 +368,7 @@
             "वस्तु विराम अवस्था में है",
             "वस्तु पीछे की ओर चलती है"
           ],
-          "misconception": "सपाट रेखा को 'शून्य वेग' पढ़ना सही है, परंतु यहाँ यह 'शून्य त्वरण' की जानकारी नहीं है।"
+          "misconception": "सपाट रेखा का अर्थ है वस्तु विराम में है: वेग शून्य और त्वरण भी शून्य। नियत अशून्य ढाल का अर्थ नियत वेग होता है।"
         },
         "hi-Latn": {
           "prompt": "Position-time graph time axis ke parallel ek straight line hai. Yeh kya dikhata hai?",
@@ -379,7 +379,7 @@
             "Object rest mein hai",
             "Object peeche ki taraf chalti hai"
           ],
-          "misconception": "Flat line ko 'zero velocity' padhna sahi hai, lekin yahan yeh 'zero acceleration' ki information nahi hai."
+          "misconception": "Flat line ka matlab object rest mein hai: velocity zero aur acceleration bhi zero. Constant non-zero slope ka matlab constant velocity hota hai."
         }
       },
       "distractor_index": 0

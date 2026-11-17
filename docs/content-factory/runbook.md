@@ -97,7 +97,9 @@ is correct end to end and the only remaining variable is your real model.
   `ZIVON_BASE_URL` + `ZIVON_MODEL` (Q-10 window: founder/infra-triggered).
 - A re-run RESUMES completed stages (`assessment-<chapter_id>`); `--fresh` wipes
   the attempt. The fingerprint covers the syllabus digest, the tracked chapter
-  data, the lesson manifest A2 consumed, the generator and the model.
+  data, the lesson manifest A2 consumed, the generator and the model. A
+  targeted `--stages` re-run marks the stages that consume it `stale`, so the
+  next full run rebuilds them; a partial run reports no pack.
 - The pack lands under `A6-publish-export/pack/`; `--export-dir` mirrors it to
   `<export_dir>/<chapter_id>/`. A gate failure writes the stage's full report
   before the stage is marked failed.
