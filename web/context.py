@@ -27,6 +27,8 @@ from .nav import NavItem, active_nav, nav_for
 logger = logging.getLogger(__name__)
 
 LOGIN_PATH: Final[str] = "/login"
+# Fallback `next` when the requested path is not a plain same-origin path.
+DEFAULT_NEXT_PATH: Final[str] = "/app"
 SHELL_KIND_APP: Final[str] = "app"
 SHELL_KIND_PUBLIC: Final[str] = "public"
 NOTICE_KINDS: Final[frozenset[str]] = frozenset({"empty", "partial", "error"})
@@ -207,6 +209,12 @@ def login_redirect(request: Request) -> RedirectResponse:
     target = request.url.path
     if request.url.query:
         target = f"{target}?{request.url.query}"
+    # The value must stay a same-origin path: a leading `//` is a
+    # protocol-relative URL and would send the browser to another host. F2
+    # re-validates the value with `safe_next_path`; this keeps the producer
+    # honest even if it does not.
+    if not target.startswith("/") or target.startswith("//"):
+        target = DEFAULT_NEXT_PATH
     response = RedirectResponse(
         url=f"{LOGIN_PATH}?next={quote(target, safe='/')}",
         status_code=303,
@@ -274,6 +282,7 @@ _LANGUAGE_BY_DB: Final[dict[str, tuple[str, str, str | None, str | None]]] = {
 
 
 __all__ = [
+    "DEFAULT_NEXT_PATH",
     "LOGIN_PATH",
     "AccountContext",
     "AuthUnavailable",

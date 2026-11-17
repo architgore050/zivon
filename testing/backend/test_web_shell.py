@@ -13,15 +13,18 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 from fastapi.testclient import TestClient
 from starlette.requests import Request
 
 from backend import BackendConfig, create_app
+from backend.auth.service import safe_next_path
 from web.context import (
     FlashMessage,
     ShellContext,
     ShellUser,
+    login_redirect,
 )
 from web.nav import APP_NAV, PUBLIC_NAV, active_nav
 from web.render import CSP_META, CSP_POLICY, csrf_field, render_page
@@ -116,6 +119,26 @@ class WebShellTests(unittest.TestCase):
         self.assertEqual(response.status_code, 303)
         self.assertEqual(response.headers["location"], "/login?next=/app")
 
+    def test_next_is_always_a_path_the_login_screen_accepts(self) -> None:
+        # A leading `//` is a protocol-relative URL (another host); the guard
+        # must fall back to the app path instead of forwarding it.
+        response = login_redirect(self._request("//evil.example/steal"))
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response.headers["location"], "/login?next=/app")
+
+        for path in (
+            "/app",
+            "/app?tab=today",
+            "/app/practice/sess-1",
+            "//evil.example/x",
+        ):
+            location = login_redirect(self._request(path)).headers["location"]
+            next_value = parse_qs(urlsplit(location).query)["next"][0]
+            # The consumer (F2's login screen) validates with `safe_next_path`;
+            # every value the shell emits must survive that check unchanged.
+            self.assertEqual(safe_next_path(next_value, default=""), next_value)
+            self.assertNotIn("evil.example", next_value)
+
     def test_unavailable_auth_service_renders_the_503_shell(self) -> None:
         self.app.state.auth = None
         response = self.client.get("/app")
@@ -203,6 +226,14 @@ class WebShellTests(unittest.TestCase):
         )
         assert match is not None, "shell must carry a meta CSP"
         self.assertEqual(match.group(1), CSP_META)
+
+    def test_meta_csp_is_the_header_policy_minus_frame_ancestors(self) -> None:
+        # Browsers ignore `frame-ancestors` in a meta policy; every other
+        # directive must match the header or the defense-in-depth copy lies.
+        without_frame_ancestors = CSP_POLICY.replace("frame-ancestors 'none'; ", "")
+        self.assertNotEqual(without_frame_ancestors, CSP_POLICY)
+        self.assertEqual(without_frame_ancestors, CSP_META)
+        self.assertNotIn("frame-ancestors", CSP_META)
 
     def test_display_name_is_escaped(self) -> None:
         self.register(display_name="<script>alert(1)</script>")
@@ -329,34 +360,44 @@ class WebShellStaticContracts(unittest.TestCase):
             self.assertNotRegex(text, r"\sstyle\s*=", f"{path.name}: style attr")
             self.assertNotRegex(
                 text,
-                r"\son(?:click|change|submit|load|error)\s*=",
+                r"\son[a-z]+\s*=",
                 f"{path.name}: inline handler",
+            )
+
+    def test_templates_load_nothing_from_a_third_party_host(self) -> None:
+        # Doctrine §0/§3: same-origin assets only — no CDN, font host, or
+        # analytics script on a surface that holds a session cookie.
+        for path in self.templates.rglob("*.html"):
+            text = path.read_text(encoding="utf-8")
+            self.assertNotRegex(
+                text,
+                r"\b(?:src|href)\s*=\s*[\"'](?:https?:)?//",
+                f"{path.name}: third-party host",
             )
 
     def test_nginx_proxies_app_and_login_with_cookies_and_scoped_csp(self) -> None:
         nginx = (REPO_ROOT / "docker" / "nginx.conf").read_text(encoding="utf-8")
-        for location in (
+        # Every HTML location repeats the full header set (nginx drops inherited
+        # add_headers once a location declares its own), so one edit that drops a
+        # header from `^~ /app/` is a regression, not a style choice.
+        for opener in (
             "location = /app {",
             "location ^~ /app/ {",
             "location = /login {",
         ):
-            self.assertIn(location, nginx)
-        block = self._nginx_block(nginx, "location = /app {")
-        self.assertIn(CSP_POLICY, block)
-        self.assertIn("proxy_pass http://core-backend:8000;", block)
-        self.assertIn("proxy_set_header Host $http_host;", block)
-        self.assertIn("proxy_set_header X-Real-IP $remote_addr;", block)
-        self.assertIn("proxy_set_header X-Forwarded-For", block)
-        self.assertIn("proxy_set_header X-Forwarded-Proto", block)
-        self.assertIn('Cache-Control "no-store"', block)
-        self.assertIn('X-Robots-Tag "noindex, nofollow"', block)
-        # Cookie and Set-Cookie pass through by default; a rewrite here would
-        # silently break the HttpOnly session on every app page.
-        self.assertNotIn("proxy_set_header Cookie", block)
-        self.assertNotIn("proxy_hide_header Set-Cookie", block)
-        login_block = self._nginx_block(nginx, "location = /login {")
-        self.assertIn("proxy_pass http://core-backend:8000;", login_block)
-        self.assertIn(CSP_POLICY, login_block)
+            block = self._nginx_block(nginx, opener)
+            self.assertIn(CSP_POLICY, block, opener)
+            self.assertIn("proxy_pass http://core-backend:8000;", block, opener)
+            self.assertIn("proxy_set_header Host $http_host;", block, opener)
+            self.assertIn("proxy_set_header X-Real-IP $remote_addr;", block, opener)
+            self.assertIn("proxy_set_header X-Forwarded-For", block, opener)
+            self.assertIn("proxy_set_header X-Forwarded-Proto", block, opener)
+            self.assertIn('Cache-Control "no-store"', block, opener)
+            self.assertIn('X-Robots-Tag "noindex, nofollow"', block, opener)
+            # Cookie and Set-Cookie pass through by default; a rewrite here would
+            # silently break the HttpOnly session on every app page.
+            self.assertNotIn("proxy_set_header Cookie", block, opener)
+            self.assertNotIn("proxy_hide_header Set-Cookie", block, opener)
 
     def test_backend_image_and_requirements_carry_the_web_shell(self) -> None:
         dockerfile = (REPO_ROOT / "Dockerfile.backend").read_text(encoding="utf-8")

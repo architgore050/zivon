@@ -11,7 +11,21 @@ Legend for code paths: `[shell]` = the hand-maintained public pages
 (`frontend/index.html`, `catalogue/`, `class-<N>-physics/`, the trust pages,
 `404.html`) + `assets/product.css` / `product.js`; `[kit]` =
 `frontend/assets/zivon.js` + `zivon.css`; `[page]` = generated
-`courses/<…>/index.html` + `page.js` (renderer + Builder, kit-constrained).
+`courses/<…>/index.html` + `page.js` (renderer + Builder, kit-constrained);
+`[web]` = the server-rendered app shell in `web/templates/` + `web/routes/`
+(Jinja2, mounted by the core backend).
+
+## APP-01 `/app` shell (F0C, 2026-11-17)
+
+The signed-in shell is specified in `docs/specs/frontend/web-shell.md`: the
+route/guard contract (§2, §4), the template slots (§3), the headers/CSP (§5)
+and the full state table for `/app` (§8). Its only code path is `[web]`; the
+shell renders no §10 lesson device and no static `[shell]` page. The state
+columns are answered there — default, loading (n/a: SSR completes before
+bytes), empty (honest "not built yet"), partial (language note), error (503
+shell), offline (n/a server-side), permission-denied (303 to `/login?next=`),
+reduced-motion (no shell animation), untranslated (English copy +
+saved-language note), quota-exhausted and consent-missing (not shell states).
 
 ## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 

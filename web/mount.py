@@ -58,7 +58,6 @@ async def _auth_unavailable_handler(request: Request, exc: AuthUnavailable) -> R
             "status_code": 503,
             "error_title": AUTH_UNAVAILABLE_TITLE,
             "error_text": AUTH_UNAVAILABLE_TEXT,
-            "error_actions": True,
         },
     )
 

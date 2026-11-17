@@ -152,7 +152,7 @@ the same-origin API, because F3/F5/F6/F7 render small islands over `/v1/*`.
 | Request | Served by | Notes |
 |---|---|---|
 | `/app`, `/app/*` | core backend (`web/`) through nginx | HTML, cookies pass through |
-| `/login` | core backend (F2's route) | the guard's redirect target; location exists so it is not a 404 |
+| `/login` | core backend (F2's route) | the guard's redirect target; the location is proxied now so the path reaches the backend instead of nginx's static 404. Until F2 lands the backend answers its own 404 (§10) |
 | `/assets/product.css`, `/assets/product.js`, fonts | frontend nginx static root | same origin; unchanged F1 assets |
 | `/v1/*`, `/voice/ws` | core backend | unchanged |
 
@@ -215,7 +215,8 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
 `testing/backend/test_web_shell.py`, which asserts:
 
 - guest `/app` → `303 /login?next=/app`, and `?tab=today` is preserved and
-  percent-encoded;
+  percent-encoded; every emitted `next` value survives `safe_next_path`, and a
+  `//host` path falls back to `/app` (no protocol-relative redirect);
 - a garbage cookie is a guest, not a 500;
 - unavailable auth → `503` HTML shell with no Sign-in control;
 - authenticated `/app` renders the user context, base doctrine classes,
@@ -226,7 +227,8 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
 - `/healthz`, `/v1/health`, `/v1/catalog`, `/v1/auth/session`, and `/voice/ws`
   still mount;
 - `docker/nginx.conf` has the app/login proxy locations with the exact CSP,
-  forwarded headers, cookie pass-through, `no-store`, and `noindex`;
+  forwarded headers, cookie pass-through, `no-store`, and `noindex` (asserted
+  for all three locations, so a header dropped from `^~ /app/` fails);
 - `Dockerfile.backend` copies `web/` and the requirements pin `jinja2`.
 
 A static template scan rejects inline script/style/handlers, and every page
@@ -240,6 +242,9 @@ template must extend `base.html`.
   Clearing the cookie in development is a manual step.
 - Shell copy is English-only; the language choice is displayed and noted, not
   translated. UI translation is its own workstream.
+- A URL under `/app` that matches no route answers FastAPI's JSON 404 (the
+  shell registers no catch-all by design); a branded HTML 404 for the app
+  surface lands with a feature PR that can own the route.
 - The app nav lists only Dashboard and Courses. Every other destination is
   added with the route, never before it.
 - `/app` is not rate-limited by the API bucket (the abuse classifier returns
