@@ -342,8 +342,9 @@ def _run_chapter(
         )
         raise
 
-    run_ctx.finish(True)
     a6 = run_ctx.load_stage_output("A6-publish-export")
+    a6 = _export_resumed_pack(cfg, chapter, run_ctx, a6)
+    run_ctx.finish(True)
     a3 = run_ctx.load_stage_output("A3-practice-items")
     a4 = run_ctx.load_stage_output("A4-speaking-rubrics")
     elapsed_ms = int((time.monotonic() - t0) * 1000)
@@ -376,6 +377,42 @@ def _run_chapter(
         "exported_dir": a6.get("exported_dir"),
         "stage_durations_s": run_ctx.stage_durations(),
     }
+
+
+def _export_resumed_pack(
+    cfg: AssessmentConfig,
+    chapter: dict[str, Any],
+    run_ctx: RunContext,
+    a6: dict[str, Any],
+) -> dict[str, Any]:
+    """Honour `--export-dir` even when A6 was resumed (no regeneration).
+
+    The export target is a runtime destination, not artifact semantics, so it
+    is not in the fingerprint. A completed run re-triggered with a new
+    `--export-dir` must still produce the mirror; it copies the existing pack
+    and updates A6's evidence instead of re-running the stage.
+    """
+    if cfg.export_dir is None:
+        return a6
+    target = cfg.export_dir / chapter["chapter_id"]
+    if a6.get("exported_dir") == str(target):
+        return a6
+    pack_stage.mirror_pack(Path(a6["pack_dir"]), target)
+    a6["exported_dir"] = str(target)
+    run_ctx.save_stage_output("A6-publish-export", a6)
+    manifest = a6["manifest"]
+    log_event(
+        "factory.assessment.pack.written",
+        {
+            "chapter_id": chapter["chapter_id"],
+            "base_items": manifest["counts"]["base_items"],
+            "question_rows": manifest["counts"]["question_rows"],
+            "content_hash": manifest["content_hash"],
+            "exported": True,
+        },
+    )
+    print(f"[A6-publish-export] exported the existing pack -> {target}")
+    return a6
 
 
 def _stage_detail(stage_id: str, output: dict[str, Any]) -> str:

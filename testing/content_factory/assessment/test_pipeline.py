@@ -155,6 +155,20 @@ class TestResume(PipelineTestBase):
                 stage,
             )
 
+    def test_export_dir_is_honoured_on_a_resumed_run(self) -> None:
+        cfg = self.cfg(export_dir=None)
+        run_assessment(cfg, [CHAPTER])
+        with capture_events():
+            result = run_assessment(self.cfg(), [CHAPTER])
+        exported = Path(result["runs"][0]["exported_dir"])
+        self.assertEqual(exported, self.exports / CHAPTER)
+        self.assertTrue((exported / "manifest.json").is_file())
+        run_id = make_run_id(CHAPTER)
+        stage_output = json.loads(
+            (self.stage_dir(run_id, "A6-publish-export") / "output.json").read_text()
+        )
+        self.assertEqual(stage_output["exported_dir"], str(exported))
+
     def test_a_different_fingerprint_refuses_resume(self) -> None:
         run_assessment(self.cfg(), [CHAPTER])
         with self.assertRaises(AssessmentStageError) as ctx:
