@@ -84,3 +84,6 @@ evals,factory.eval.run_completed,INFO,run_id,suite;overall_pass;cards_total;card
 evals,factory.eval.regression_alert,ERROR,run_id,eval_run_id;baseline_eval_run_id;blocking_reasons,no,gate_fail,L1,evals/diff.py + evals/telemetry.py::emit_eval_event,EVT-EVAL-REGRESSION-ALERT; blocking_reasons are card ids + reason codes (never content)
 evals,factory.eval.human_edit_recorded,INFO,run_id,topic_slug;class_level;human_edit_rate,no,,L1,evals/telemetry.py::emit_eval_event,EVT-EVAL-HUMAN-EDIT-RECORDED; references the ledger row (no diff text)
 evals,factory.eval.kid_session_logged,INFO,run_id,session_code;topic_slug;gate_b_pass,no,,L2,evals/telemetry.py::emit_eval_event,EVT-EVAL-KID-SESSION-LOGGED; pseudonymous session_code only (DPDP); no transcript
+progress,progress.events.ingested,INFO,request_id,accepted;rejected,no,,L2,backend/routes/progress.py,F3 batch accepted; counts only (no user id; no event content)
+progress,progress.events.rejected,WARNING,request_id,rejected;reason_code,no,client_error,L2,backend/routes/progress.py,F3 per-item schema rejection; reason_code enum (event_schema)
+progress,progress.bookmark.changed,INFO,request_id,target_type;added;created,no,,L2,backend/routes/progress.py,F3 bookmark add/remove (batch merges use target_type=batch); the target id is app data and never a log field

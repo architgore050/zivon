@@ -1,23 +1,12 @@
 {
   "schema_version": 1,
   "subject": "physics",
-  "note": "F0 catalogue stub. Mirrors the 7 topics published under frontend/courses/ on 2026-11-15. chapter_no 0 means the NCERT chapter number is not yet mapped (P1/P2 own that data); concepts are empty until P1/P2 publish them. The API reads syllabus_chapter/concept rows first and falls back to this file only when those tables are empty.",
+  "note": "F0 catalogue stub. Mirrors the 6 topics published under frontend/courses/ on 2026-11-17 (the earlier Motion placeholder was removed from the catalogue, not replaced with an invented chapter). chapter_no 0 means the NCERT chapter number is not yet mapped (P1/P2 own that data); concepts are empty until P1/P2 publish them. The API reads syllabus_chapter/concept rows first and falls back to this file only when those tables are empty.",
   "languages": ["en", "hi", "hi-Latn"],
   "classes": [
     {
       "class_level": 9,
       "chapters": [
-        {
-          "chapter_id": "class-9-motion",
-          "chapter_no": 8,
-          "slug": "motion",
-          "title_en": "Motion",
-          "title_hi": "गति",
-          "status": "live",
-          "languages": ["en", "hi", "hi-Latn"],
-          "lesson_url": "/courses/class-9-physics/motion/",
-          "concepts": []
-        },
         {
           "chapter_id": "class-9-describing-motion-around-us",
           "chapter_no": 0,

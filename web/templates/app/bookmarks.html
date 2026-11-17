@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<script src="/assets/app-progress.js" defer></script>
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="bookmarks-title">
+  <p class="kicker">Saved sections</p>
+  <h1 id="bookmarks-title">Everything you saved.</h1>
+  <p class="lede">Sections saved on a lesson page are kept on that device until you bring them into your account here.</p>
+</section>
+
+{% if bookmarks.data_error %}
+<section class="wrap band" aria-labelledby="bookmarks-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="bookmarks-error-title">Your saved sections are unavailable right now.</strong></p>
+    <p>{{ bookmarks.data_error }} <a class="text-link" href="/app/bookmarks">Try again</a></p>
+  </div>
+</section>
+{% else %}
+{% include "partials/progress_sync.html" %}
+<section class="wrap band" aria-labelledby="saved-list-title">
+  <div class="section-head">
+    <p class="kicker">Your account</p>
+    <h2 id="saved-list-title" data-bookmark-count data-count="{{ bookmarks.count }}">{{ bookmarks.count }} saved {% if bookmarks.count == 1 %}item{% else %}items{% endif %}</h2>
+  </div>
+  <p class="status-line" data-bookmark-status role="status" aria-live="polite"></p>
+  {% if bookmarks.saved %}
+  <ul class="bookmark-list">
+    {% for item in bookmarks.saved %}
+    <li class="bookmark-row" data-bookmark-row>
+      <div class="bookmark-text">
+        <p class="meta">{{ item.label }} · saved {{ item.when }}</p>
+        <p class="bookmark-title">{% if item.lesson_url %}<a href="{{ item.lesson_url }}">{{ item.chapter_title }}</a>{% else %}{{ item.chapter_title }}{% endif %}</p>
+        {% if item.section_id %}<p class="meta">Section {{ item.section_id }}</p>{% endif %}
+      </div>
+      <button class="text-link bookmark-remove" type="button" data-bookmark-remove data-target-type="{{ item.target_type }}" data-target-id="{{ item.target_id }}">Remove</button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="lede">Nothing saved yet. On a lesson page, open Contents and press Save on a section; it will appear here.</p>
+  <p class="mt-2"><a class="btn" href="/courses">Open a lesson</a></p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

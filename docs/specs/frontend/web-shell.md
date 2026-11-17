@@ -199,10 +199,10 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
   for every signed-in form; guest forms use the signed double-submit helper in
   `web/forms.py`. The guard's `/login?next=` target is the fixed contract.
 - **F3 dashboard/progress** owns the real dashboard body and
-  `web/routes/progress.py`. It replaces the `/app` body by rendering
-  `web/templates/app/dashboard.html` (or replacing `app/index.html` content)
-  and keeps the route + guard unchanged. It adds a nav entry to `web/nav.py`
-  only in the PR that lands the route.
+  `web/routes/progress.py`. It replaced the `/app` body with
+  `web/templates/app/dashboard.html` (route + guard unchanged), added
+  `/app/progress` + `/app/bookmarks`, and added the `Progress` nav entry in
+  the same PR. Contract: `dashboard-progress.md`.
 - **F5/F6/F7** own practice, speaking, and tests/series routes/templates; each
   adds its router module under `web/routes/`, a template under
   `web/templates/app/`, a `nav.py` entry, and a state table for its screens.
@@ -264,7 +264,8 @@ template must extend `base.html`.
 - A URL under `/app` that matches no route answers FastAPI's JSON 404 (the
   shell registers no catch-all by design); a branded HTML 404 for the app
   surface lands with a feature PR that can own the route.
-- The app nav lists only Dashboard and Courses. Every other destination is
-  added with the route, never before it.
+- The app nav lists Dashboard, Progress, and Courses. Saved sections are a
+  quick link on the dashboard/progress pages rather than a fourth nav entry;
+  Practice/Tests/Speak stay unlinked until F5/F6/F7 land their routes.
 - `/app` is not rate-limited by the API bucket (the abuse classifier returns
   no family for HTML paths); the JSON API it calls keeps its existing limits.

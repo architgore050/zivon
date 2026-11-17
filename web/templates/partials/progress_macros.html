@@ -1,0 +1,14 @@
+{% macro state_tag(state, label) -%}
+<span class="state state--{{ state }}">{{ label }}</span>
+{%- endmacro %}
+
+{% macro section_progress(chapter) -%}
+{% if chapter.blocks_total %}{{ chapter.blocks_seen }} of {{ chapter.blocks_total }} sections read
+{%- elif chapter.blocks_seen %}{{ chapter.blocks_seen }} sections read
+{%- else %}No sections read yet
+{%- endif %}
+{%- endmacro %}
+
+{% macro evidence_line(evidence) -%}
+{{ evidence.practice_answers }} practice answer{% if evidence.practice_answers != 1 %}s{% endif %}{% if evidence.accuracy_pct is not none %}, {{ evidence.accuracy_pct }}% correct{% endif %} · {{ evidence.concepts_touched }} concept{% if evidence.concepts_touched != 1 %}s{% endif %} touched{% if evidence.last_activity_at %} · last activity {{ evidence.last_activity_at[:10] }}{% endif %}
+{%- endmacro %}

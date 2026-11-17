@@ -50,6 +50,10 @@ EMITTED_BY_THIS_BRANCH = [
     "dashboard.auth_lockout",
     "dashboard.auth_unconfigured",
     "dashboard.action_triggered",
+    # backend/routes/progress.py (F3)
+    "progress.events.ingested",
+    "progress.events.rejected",
+    "progress.bookmark.changed",
     # logging_manager module-own events
     "log.store_fallback",
     "log.store_recovered",

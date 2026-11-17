@@ -176,7 +176,11 @@ class WebShellTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.text
 
-        self.assertIn("Hello, Asha.", html)
+        self.assertRegex(
+            html,
+            r"Good (morning|afternoon|evening), Asha\.",
+            "the dashboard greets the signed-in student",
+        )
         self.assertIn("Class 9 · CBSE · Hindi", html)
         self.assertIn("हिन्दी", html)
         # Sub-11px shell copy is English until the translation workstream, and
@@ -312,7 +316,7 @@ class WebShellTests(unittest.TestCase):
 
     def test_nav_active_item_is_the_most_specific_match(self) -> None:
         self.assertEqual(active_nav("/app", APP_NAV), "dashboard")
-        self.assertEqual(active_nav("/app/progress", APP_NAV), "dashboard")
+        self.assertEqual(active_nav("/app/progress", APP_NAV), "progress")
         self.assertEqual(active_nav("/courses", APP_NAV), "courses")
         self.assertIsNone(active_nav("/app", PUBLIC_NAV))
         self.assertEqual(active_nav("/method/", PUBLIC_NAV), "method")
