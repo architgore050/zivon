@@ -47,8 +47,9 @@ In scope:
 2. **Personalized learning** — a login-required `/app/personalized` hub and a
    teaching session: choose a chapter/concept or describe a weakness in free
    text; a short diagnostic; a teach → check → adapt loop; progressively harder
-   questions up to board-style difficulty; per-concept mastery evidence;
-   resume and history.
+   questions up to board-style difficulty; per-concept mastery evidence; resume
+   and history. "Coverage" means every concept of the chosen chapter is taught or
+   explicitly skipped (which chapters exist is the index-coverage rule, D-PL-02).
 3. **Saved conversations** — titled, chapter-tagged sessions with timestamps,
    resume, delete, and JSON export. Text/artifacts only; no raw audio.
 4. **Interactive artifacts** — a self-contained HTML/JS simulation or diagram

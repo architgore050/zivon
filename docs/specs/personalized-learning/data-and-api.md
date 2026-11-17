@@ -88,7 +88,8 @@ Append-only per session, one row per turn/event.
 | `role` | text | ✗ | — | CHECK ('student','tutor','system_event') |
 | `kind` | text | ✗ | — | CHECK ('text','check','check_result','artifact_ref','stage_change','diagnostic','summary') |
 | `text` | text | ✓ | NULL | student/tutor visible text; ≤ 8,000 chars (a turn) |
-| `payload` | json | ✗ | '{}' | structured turn (§4.6); never contains the answer key |
+| `payload` | json | ✗ | '{}' | structured turn (§4.6); the API serializer strips `answer_key` |
+| `answer_key` | text | ✓ | NULL | server-only key for the open check; never serialized; set NULL once scored (the result payload carries `expected`) |
 | `created_at` | timestamptz | ✗ | now | |
 
 Index `(session_id, turn_index)`. The message row is the unit of export and
@@ -106,13 +107,14 @@ Content-addressed cache + build record.
 | `title` | text | ✗ | — | ≤ 120 chars |
 | `spec` | json | ✗ | — | the validated artifact request |
 | `html` | text | ✓ | NULL | the self-contained document; NULL until ready |
-| `fallback` | json | ✓ | NULL | `{kind:'diagram'|'text', svg?: …}` |
+| `fallback` | json | ✓ | NULL | `{kind:'diagram' or 'text', svg?: …}` |
 | `status` | text | ✗ | 'pending' | CHECK ('pending','ready','failed') |
 | `failure_reason` | text | ✓ | NULL | CHECK in ('lint','render','timeout','budget','route','spec') when failed |
 | `model` | text | ✓ | NULL | |
 | `prompt_version` | text | ✗ | — | |
 | `doctrine_hash` | text | ✗ | — | SHA-256 of the doctrine file |
 | `schema_version` | int | ✗ | 1 | |
+| `lint_version` | text | ✗ | 'pl-artifact-1' | bump when the artifact lint rules change |
 | `lint_hits` | int | ✗ | 0 | count only (no rule text needed in the row) |
 | `render_ms` | int | ✓ | NULL | headless gate duration |
 | `created_at` / `ready_at` | timestamptz | ✗ / ✓ | now / NULL | |
@@ -209,7 +211,7 @@ change is an env/config change, not a migration.
 | `ENT-PL-Artifact` | `personalized_artifact` | `NEED-PL-06` artifact build/cache/viewer |
 | `ENT-PL-Usage` | `personalized_usage` | `NEED-PL-08` cost/latency ledger |
 | `ENT-PL-Quota` | `personalized_quota` | `NEED-PL-04` free-tier fairness |
-| — (file index) | `var/personalized-index/<version>/` | `NEED-PL-05` RAG retrieval |
+| — (file index) | `runs/personalized-index/<version>/` | `NEED-PL-05` RAG retrieval |
 | — (existing) | `question_bank`, `syllabus_chapter`, `concept` | `NEED-PL-09` bank-first items, coverage |
 
 Every column above traces to one of these needs. No table is "just in case".
@@ -293,8 +295,10 @@ deleting an empty value is still 204).
  "skip_diagnostic": false}
 ```
 
-- `chapter_id` required unless `weakness_text` maps to exactly one chapter;
-  ambiguous free text → `422` with the chapter picker hint (never a guess).
+- `chapter_id` required unless `weakness_text` maps to exactly one chapter by a
+  deterministic lexical/embedding match over the chapter and concept titles (no
+  model call); ambiguous free text → `422` with the chapter picker hint (never a
+  guess).
 - `concept_ids` optional; must belong to the chapter.
 - `skip_diagnostic` starts at the first concept, stage `teach`.
 - Response `201`:
@@ -322,8 +326,10 @@ The first diagnostic question never contains the answer key.
 ```
 
 The list never includes `weakness_text` or message text. `GET .../{id}` returns
-the session state, the last 50 messages (oldest first), and
-`quota`; `GET .../{id}/messages?before=<turn_index>&limit=50` pages earlier.
+the session state, the last 50 messages (oldest first), and `quota`; every
+artifact reference carries `src` (the same-origin route, or the signed URL in
+dedicated-origin mode) and `status`. `GET .../{id}/messages?before=<turn_index>&limit=50`
+pages earlier.
 
 ### 4.6 Turns (SSE)
 
@@ -342,7 +348,9 @@ The event catalogue is agent-and-rag §3.2. A client that sends
 Turn admission order (all before any model call):
 
 1. session lock (a DB-level row lock where the engine supports it; optimistic `updated_at` compare on SQLite tests);
-2. idempotency lookup by `client_turn_id` → replay stored result;
+2. idempotency lookup by `client_turn_id` → replay the stored result; if the row
+   exists but the turn is still in flight, return `409 E-PL-TURN-OPEN` (or replay
+   the stream) — never start a second model call;
 3. rate limit family;
 4. quota reservation (user + global, one transaction);
 5. state-machine transition validation (e.g. `answer` requires an open check);
@@ -385,8 +393,15 @@ student already saw the feedback; unsubmitted checks do not.)
 
 `GET /v1/personalized/artifacts/{id}`:
 
-- Requires a session; the artifact must be referenced by a message in one of the
-  caller's sessions, or the caller must be an admin (separate admin auth).
+- Same-origin mode: requires a session; the artifact must be referenced by a
+  message in one of the caller's sessions, or the caller must be an admin
+  (separate admin auth).
+- Dedicated-origin mode: the session/detail serializer (and
+  `turn.artifact.ready`) returns a signed `src` `?token=<HMAC>&exp=<unix>`
+  (10-minute TTL, `artifact_id|user_id|exp`, constant-time verify, issued only
+  after the reference check). The token is not a session credential and is never
+  logged. The `src` is the only URL the viewer uses; there is no client-side URL
+  construction.
 - Returns the HTML with the headers in
   [`interactive-artifacts.md`](interactive-artifacts.md) §5.2.
 - A `failed`/`pending` artifact returns `409 E-CONFLICT` with

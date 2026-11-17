@@ -128,6 +128,7 @@ REQUIRED_HEADINGS: dict[str, tuple[str, ...]] = {
         "## D-PL-08",
         "## D-PL-09",
         "## D-PL-10",
+        "## D-PL-11",
     ),
 }
 
@@ -221,7 +222,7 @@ class Links(unittest.TestCase):
 class Decisions(unittest.TestCase):
     def test_each_open_decision_has_recommendation_owner_and_status(self) -> None:
         text = read("decisions.md")
-        for number in range(1, 11):
+        for number in range(1, 12):
             with self.subTest(decision=f"D-PL-{number:02d}"):
                 start = text.find(f"## D-PL-{number:02d}")
                 self.assertNotEqual(start, -1)
@@ -233,10 +234,10 @@ class Decisions(unittest.TestCase):
                 self.assertIn("**Owner:**", block)
                 self.assertIn("**Status:**", block)
 
-    def test_decision_ids_are_exactly_one_to_ten(self) -> None:
+    def test_decision_ids_are_exactly_one_to_eleven(self) -> None:
         text = read("decisions.md")
         ids = re.findall(r"^## D-PL-(\d{2})", text, re.MULTILINE)
-        self.assertEqual(ids, [f"{n:02d}" for n in range(1, 11)])
+        self.assertEqual(ids, [f"{n:02d}" for n in range(1, 12)])
 
 
 class EvalsAndWorkstreams(unittest.TestCase):

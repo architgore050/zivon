@@ -86,12 +86,18 @@ request ─▶ validate spec ─▶ build call (model) ─▶ lint (hard) ─▶
      `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`,
      dynamic `import()`, `require`, `importScripts`, string-literal `http(s)://`,
      inline `<script>` creation, external `src`/`href`, `@import`,
-     `url(http…)`);
+     `url(http…)`); **one deliberate relaxation:** the artifact document may carry
+     one inline `<script>` block (it is self-contained; `lint_html`'s no-inline rule
+     is for lesson pages), while inline `on*=` handlers are rejected (use
+     `addEventListener`). Do **not** apply `lint_page_css_scope` — that contract is
+     for a lesson's `page.css`, not an artifact document;
    - artifact-specific: no `<form>`, no `localStorage`/`sessionStorage`/
      `indexedDB`/`document.cookie`, no `window.top`/`window.parent` navigation,
-     no `postMessage` to `*` except the one documented harness channel, no
-     `<iframe>`/`<object>`/`<embed>`, no `data:` URL except `img`/font, no
+     no `<iframe>`/`<object>`/`<embed>`, no `data:` URL except `img`/font, no
      `javascript:` URL, no clipboard APIs, no `Notification`, no fullscreen.
+     The **only** allowed `postMessage` is the harness channel:
+     `window.parent.postMessage(msg, '*')` — the parent is cross-origin and cannot
+     be named; any other `postMessage` call is rejected.
 4. **Headless render gate** (build-time, Playwright, key-free):
    - load the artifact document with **all network requests aborted**; any
      attempted request is a failure;
@@ -101,8 +107,12 @@ request ─▶ validate spec ─▶ build call (model) ─▶ lint (hard) ─▶
      if median < 24 fps or any long task > 200 ms;
    - assert the artifact posts `ready` within 5 s;
    - assert a `prefers-reduced-motion: reduce` context renders a static frame.
-5. **Store** — content-addressed (`artifact_id = sha256(canonical spec +
-   prompt_version + doctrine_hash + schema_version)[:32]`), status `ready`.
+5. **Store** — content-addressed (`artifact_id =
+   sha256(canonical_json(spec minus why) + prompt_version + doctrine_hash +
+   schema_version + lint_version)[:32]`), status `ready`.
+   The spec's `why` is a short misconception label (never the student's words)
+   and is **excluded from the hash**: two students with the same visual need share
+   one build; the label is not rendered into the document.
 6. **Failure** — status `failed` + a machine reason (`lint`, `render`,
    `timeout`, `budget`); the turn shows the fallback; one retry is allowed only
    for a transient route error, never for a lint failure.
@@ -208,7 +218,7 @@ required, `GET`, no CSRF needed):
 | `Content-Security-Policy` | `sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; media-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'self' <APP_ORIGIN>` |
 | `X-Content-Type-Options` | `nosniff` |
 | `Referrer-Policy` | `no-referrer` |
-| `Cache-Control` | `private, max-age=86400, immutable` (content-addressed) |
+| `Cache-Control` | `private, max-age=86400, immutable` (same-origin) / `private, max-age=600` (signed-URL mode, matching the token TTL) |
 | `X-Robots-Tag` | `noindex, nofollow` |
 | `Cross-Origin-Resource-Policy` | `same-origin` |
 
@@ -227,6 +237,17 @@ outside the iframe.
 The dedicated origin is a deployment decision (D-PL-09). Until it lands, the
 same-origin route + opaque-origin sandbox is the accepted posture; it is
 recorded, not silent.
+
+**Auth on a dedicated origin.** A host-only session cookie is not sent to
+`artifacts.<domain>`, so the artifact route must not depend on it there. The
+session/detail serializer (or `turn.artifact.ready`) returns `src` as either the
+same-origin route (cookie mode) or a **signed URL**
+`/v1/personalized/artifacts/{id}?token=<HMAC-SHA256(artifact_id|user_id|exp)>&exp=<unix>`
+with a 10-minute TTL, issued only after the caller's session reference check and
+verified in constant time. The token grants read of exactly one artifact and is
+not a session credential; it is never logged (the route logs the artifact id
+only, never the query string) and is not placed in a `Referer` (the iframe is
+`no-referrer`).
 
 ### 5.4 What the sandbox guarantees
 
@@ -269,8 +290,9 @@ doctrine + lint + render gate is the gate. The content-quality review lens
 
 ## 7. Cache, versioning, deletion
 
-- **Key:** `artifact_id = sha256(canonical_json(spec) + "|" + prompt_version +
-  "|" + doctrine_hash + "|" + schema_version)[:32]`.
+- **Key:** `artifact_id = sha256(canonical_json(spec minus why) + "|" +
+  prompt_version + "|" + doctrine_hash + "|" + schema_version + "|" +
+  lint_version)[:32]`.
   `doctrine_hash` is the SHA-256 of `docs/frontend/design-doctrine.md`; any
   doctrine edit invalidates the cache.
 - **Shared cache:** artifacts contain no student data, so identical specs reuse
@@ -283,8 +305,8 @@ doctrine + lint + render gate is the gate. The content-quality review lens
   purged after 7 days. Deleting a session drops its references; the artifact
   row survives until the cache window.
 - **Versioning:** `schema_version`, `prompt_version`, `doctrine_hash`,
-  `model`, `created_at` are stored per row; the viewer shows a provenance line,
-  not a version number.
+  `lint_version`, `model`, `created_at` are stored per row; the viewer shows a
+  provenance line, not a version number.
 - **Purge:** operator `DELETE /admin/personalized/artifacts/{id}` (admin auth,
   audit row) for a bad artifact; a purge also marks every referencing message
   `artifact_missing` so the fallback renders honestly.

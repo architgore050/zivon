@@ -34,7 +34,7 @@ grounding, privacy, scoring, or the spoken contract.
 | Max length | **500 characters** after normalization (Unicode NFC, trimmed) |
 | Line shape | up to 5 lines; newlines preserved as separators, repeated blank lines collapsed |
 | Allowed | "explain step by step", "use Hinglish", "give a worked example first", "keep answers short", "I like diagrams" |
-| Not allowed | personal contact details, addresses, school names, passwords/keys, attempts to instruct the system ("ignore your rules", "you are now…") |
+| Not allowed | personal contact details, addresses, school names, passwords/keys, and clear jailbreak phrases ("ignore previous instructions", "you are now…", "reveal the system prompt"). A physics phrase like "the system of equations" is allowed — the phrase list is narrow, never a bare "system" token |
 | Normalization | NFC; strip control chars (except newline); collapse >2 blank lines; strip a leading `system:` / `assistant:` / `user:` / `REF:` marker per line |
 | Validation result | `200 saved` · `422 rejected` (with the reason and the previous value untouched) |
 | Precedence | safety/system rules > grounding > spoken/format contract > **personal instructions** > session state |
@@ -96,7 +96,8 @@ silent.
 - Route: `/app/personalized` (hub) and `/app/personalized/{session_id}`
   (session). A guest gets `303 /login?next=/app/personalized`.
 - Login is required because sessions, mastery evidence, and preferences are
-  account-scoped. The lesson pages and the voice dock stay guest-first.
+  account-scoped. The lesson pages and the voice dock stay guest-first
+  (D-PL-11: the correction is read as this feature, not the whole product).
 - The hub is server-rendered; the live turn stream is a small same-origin JS
   island (no SPA).
 
@@ -116,7 +117,9 @@ The server resolves the input to a chapter + concept set:
 - A free-text weakness is mapped to the chapter's concepts by the decide call
   (lexical + embedding retrieval over concept titles/descriptions); the chosen
   concept is shown as a chip ("Starting with: Velocity-time graphs") and the
-  student can change it on the hub before starting.
+  student can ask for a different one in the first turn (a `message` action
+  re-maps it) or restart from the hub. The chapter itself is resolved
+  deterministically at create time (never guessed).
 - No class/chapter is guessed silently. If the profile class is unset, the hub
   asks for it in the picker.
 
@@ -231,6 +234,9 @@ emitted as a progress event so F3/SWOT can read it without a second store.
 
 ### 2.6 Session length and limits
 
+- **Coverage means the selected chapter.** "Full coverage" is every concept in
+  the chosen chapter taught or explicitly skipped; it is not a claim that every
+  syllabus chapter is available (that is the index-coverage rule, D-PL-02).
 - Soft nudge at **40 turns**: "You've done a lot — you can stop here and
   continue later." Not a modal, one line.
 - Hard cap at **60 turns** per session; the session ends with the mastery
@@ -588,7 +594,7 @@ above are normative for tone and claims, not final microcopy.
 - No voice in personalized sessions (R1), no parent/teacher view, no sharing,
   no search, no inferred profile, no tools/browsing, no verbatim CBSE items.
 - Feature cards: [`feature-addendum.md`](feature-addendum.md) `PL-F1…F6`.
-- Decisions: [`decisions.md`](decisions.md) `D-PL-01…10`.
+- Decisions: [`decisions.md`](decisions.md) `D-PL-01…11`.
 - Tables/APIs: [`data-and-api.md`](data-and-api.md).
 - Threats/tests: [`security-privacy.md`](security-privacy.md).
 - Evals: [`evals.md`](evals.md) `EV-PL-001…005`.

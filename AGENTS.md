@@ -21,7 +21,7 @@ acceptance criteria.
   specs that restate it — `docs/product/`, `docs/specs/frontend/`,
   `skills/zivon-frontend-product-skills/`. The map wins; do not re-litigate a frozen decision.
 - **Waves:** W1 = P1 metadata/hooks, P4 quality gates, F0 foundation, C0 compliance research,
-  plus this startup-reframe docs pass (W0). W2–W5 are restated in `TIMELINE.md`.
+  plus this startup-reframe docs pass (W0). W2–W5.5 are restated in `TIMELINE.md`.
 - **Vendor choice is a choice.** Gnani is the current voice/translation vendor because it is
   good at Indian languages and code-mixed speech, not because a challenge rule requires it.
   Changing the stack is a founder decision (see "Current stack" below).
@@ -67,7 +67,7 @@ feature or refactor PR.
 | Surface | Model / provider | Notes |
 |---|---|---|
 | Student-facing tutor | **Gemma 4 26B A4B** via the **Gemini API** | User-facing conversation, anchored to the lesson page. |
-| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route, separate from both the voice tutor and the factory (FD-PL-003). |
+| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route, separate from both the voice tutor and the factory (D-PL-07). |
 | Voice STT / TTS | **Gnani Prisma v3.0** (STT) / **Timbre v3.0** (TTS) | Best available for Indian languages and code-mixed speech. |
 | Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; not a student-facing surface (that is the personalized-learning row). |
 | Translation | **Gnani Evon** | Backs the `10a`–`10d` translation pipeline (EN/HI/Hinglish). |

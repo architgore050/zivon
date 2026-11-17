@@ -64,7 +64,7 @@ model routing).
 
 Workstreams and file ownership: [`workstreams.md`](docs/specs/personalized-learning/workstreams.md)
 (PL1 data/auth/preferences/chats/quota · PL2 RAG/agent/teaching loop · PL3 artifacts · PL4
-frontend · PL5 evals/security/QA). Open founder decisions D-PL-01…10 (quota numbers, RAG
+frontend · PL5 evals/security/QA). Open founder decisions D-PL-01…11 (quota numbers, RAG
 corpus scope, artifact limits, instructions availability, retention, latency/cost budget,
 routing, email verification, one-store/artifact-origin, doctrine) are in
 [`decisions.md`](docs/specs/personalized-learning/decisions.md); the build proceeds on the

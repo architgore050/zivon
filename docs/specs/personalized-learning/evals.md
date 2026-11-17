@@ -77,7 +77,7 @@ key-free.
 |---|---|
 | Title | Generated artifacts are sandbox-safe, accessible, performant, and always have a fallback |
 | Stage | PL3 artifact builder + viewer |
-| Suites | smoke, full (same checks; full adds the headless render) |
+| Suites | smoke, full (same checks; smoke runs the golden + 2 defects, full runs all 7) |
 | Golden inputs | `evals/goldens/personalized/artifacts/good-concave-mirror.html` (golden), `.../defects/` 7 seeded files: external-fetch, eval, localStorage, form, top-nav link, oversized, missing label; `.../specs/` 4 artifact specs (valid sim, valid diagram, too many controls, unknown claim ids) |
 | Deterministic checks | `DET-PL03-LINT` — each defect fails with its expected rule; the golden passes. `DET-PL03-DOC` — the golden has the meta CSP, `role="img"`, label/for pairs, reduced-motion branch, no external URL. `DET-PL03-RENDER` — headless Chromium: zero console errors, zero network requests (aborted), no 360 px overflow, `ready` ≤ 5 s, fps floor 24 under 4× throttle. `DET-PL03-SANDBOX` — a red-team artifact cannot read parent DOM/cookies/localStorage, navigate top, open a popup, or submit a form. `DET-PL03-CACHE` — same spec → same id; second build 0 model calls; doctrine hash change → new id. `DET-PL03-FALLBACK` — forced failure → payload has a fallback and the UI renders it. |
 | Judge | none (deterministic + browser only). The content-quality review lens applies to the **builder prompt**, not each artifact. |

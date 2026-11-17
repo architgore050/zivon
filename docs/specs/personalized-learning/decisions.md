@@ -1,6 +1,6 @@
 # Open founder decisions
 
-Status: **10 open decisions, each with a recommendation (2026-11-17).**
+Status: **11 open decisions, each with a recommendation (2026-11-17).**
 Nothing in this list blocks writing the spec; PL1/PL2 can start on the
 recommended defaults. A decision that changes a recommended number is a config
 change, not a rewrite; one that changes the model route or the retention
@@ -302,6 +302,38 @@ recommended. **Revisit:** at the first PL4 example review.
 
 ---
 
+## D-PL-11 — Login scope: personalized learning only, or the whole product
+
+**Question:** the founder correction says "login is required" for the free
+prototype. Does that mean login for this feature, or for the whole consumer
+product (lessons, practice, tests, voice dock too)?
+
+**Recommendation:** **this feature only.** Login is required for
+`/app/personalized`, personal instructions, saved sessions, and export/delete.
+The lesson pages, catalogue, voice dock, practice, speaking, and tests keep the
+frozen guest-first model (frozen plan #4, `AUTH-08`): a guest can read a lesson
+and ask a doubt without an account; signing in adds cross-device continuity.
+The rest of the product is unchanged.
+
+**Why:** the frozen plan is explicitly guest-first with an optional account;
+locking the whole product behind login is a much larger acquisition change
+that the founder did not ask for and that would break the existing lesson
+surfaces and the demo path. The account is genuinely required for the new
+feature (sessions, mastery, preferences), so the narrow reading satisfies the
+correction without re-litigating the identity model.
+
+**Alternatives:** login for the whole product (a deliberate acquisition/identity
+decision, not a side effect); guest personalized sessions with local storage
+(contradicts the correction and the account-scoped preferences).
+
+**Changes:** `/login` gating, the guest banner, the lesson CTA, onboarding copy.
+
+**Owner:** founder. **Status:** open — recommended (the spec is written on it).
+**Revisit:** if the founder clarifies that "login is required" means the whole
+prototype; then open a separate decision with the acquisition trade-off.
+
+---
+
 ## Assumptions to verify at build (not founder decisions)
 
 | Assumption | Why it matters | Verify by |
@@ -316,4 +348,4 @@ recommended. **Revisit:** at the first PL4 example review.
 
 | Date | Change |
 |---|---|
-| 2026-11-17 | Spec written; D-PL-01…10 opened with recommendations |
+| 2026-11-17 | Spec written; D-PL-01…11 opened with recommendations |

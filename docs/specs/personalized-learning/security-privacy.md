@@ -277,6 +277,7 @@ to lose your progress" guilt, no hidden delete.
 | Test | Asserts |
 |---|---|
 | `DET-PL04-INJECT` | seeded instruction/weakness/RAG injections do not change the safety contract; output stays Physics; no system-instruction compliance |
+| `DET-PL04-KEY` | no answer key reaches any client-bound payload before submission; the DB-only `answer_key` column is stripped by the serializer |
 | `DET-PL04-KEY` | no answer key in any client-bound payload before submission |
 | `DET-PL04-PII` | contact-detail instructions are rejected; the previous value survives |
 | `DET-PL05-IDOR` | every session endpoint returns 404 for another user's id |

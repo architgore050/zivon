@@ -162,6 +162,7 @@ Request body (one of):
 ```json
 {"client_turn_id": "c-01H...", "action": "answer", "check_id": "chk-...", "answer": "B"}
 {"client_turn_id": "c-...", "action": "continue"}
+{"client_turn_id": "c-...", "action": "retry_decide"}
 {"client_turn_id": "c-...", "action": "hint"}
 {"client_turn_id": "c-...", "action": "skip_concept"}
 {"client_turn_id": "c-...", "action": "end"}
@@ -179,7 +180,7 @@ SSE events (all `data:` JSON):
 | `turn.check` | `{check_id, kind, question, options?, unit?, level, concept_id}` | render the check (no answer) |
 | `turn.feedback` | `{correct, expected, explanation, misconception?}` | after scoring only |
 | `turn.artifact` | `{artifact_id, status: "pending"}` | show the building card |
-| `turn.artifact.ready` | `{artifact_id, title, kind}` | enable the iframe |
+| `turn.artifact.ready` | `{artifact_id, title, kind, src}` | enable the iframe (`src` is the same-origin route or a signed URL) |
 | `turn.next` | `{next_action, stage, concept_id, difficulty}` | meta line |
 | `turn.done` | `{message_id, quota: {remaining, reset_at}}` | close the turn |
 | `turn.error` | `{code, message_key, retryable, retry_after?}` | honest failure |
@@ -206,8 +207,9 @@ explanation, but the score and mastery update are code.
 - A retry with the same id returns the stored turn result (or resumes the
   stream from `turn.done`) instead of re-calling the model.
 - A failed teach call returns the quota reservation; a failed decide call keeps
-  the teaching slice and lets the student press "Continue" (the decide call is
-  retried alone).
+  the teaching slice and lets the student press "Continue"
+  (`action: "retry_decide"` with the same `client_turn_id`); only the decide
+  call is retried.
 - `last_turn_at` updates on `turn.done` only.
 
 ---
@@ -376,8 +378,10 @@ The `personalized_message.payload` of a tutor turn is the union of both calls:
 }
 ```
 
-The answer key, the model's full raw responses, and the prompt are **not** in
-this payload. Raw responses are kept only as call evidence (no student free
+The client-facing serializer strips `answer_key` (the DB row may hold it until
+the check is scored; then it moves into the result payload as `expected`). The
+model's full raw responses and the prompt are **not** stored in this payload.
+Raw responses are kept only as call evidence (no student free
 text beyond the turn itself, 7-day TTL, like the factory's call ledger? No —
 runtime call evidence is not needed; store token/latency counts only, not raw
 provider payloads, per minimization).
@@ -432,7 +436,7 @@ third-party text outside the source packs.
   Hindi/Hinglish query matching against English content.
 - **Index builder:** `scripts/build_personalized_index.py` (PL2), run at deploy
   or on demand, output:
-  `var/personalized-index/<version>/{chunks.jsonl, embeddings.npy, manifest.json}`.
+  `runs/personalized-index/<version>/{chunks.jsonl, embeddings.npy, manifest.json}`.
 - `version` = first 16 hex of `sha256` over: syllabus digest, published
   manifests' `content_hash` set, P2 pack `content_hash`, embedder model hash,
   chunker version. Every session stores the version it used.
@@ -501,7 +505,7 @@ Personalized learning is served by **DeepSeek V4.1 Flash** through the
 - the content factory (DeepSeek via the factory's own OpenCode secret/config).
 
 This is a founder-directed extension of the model-routing table (recorded as
-`FD-PL-003` in [`decisions.md`](decisions.md); it supersedes the "never
+`D-PL-07` in [`decisions.md`](decisions.md); it supersedes the "never
 user-facing" note for this surface only). It is a recorded decision, not a
 drive-by swap.
 
@@ -604,8 +608,12 @@ drive-by swap.
    artifact lint cannot be changed by text.
 6. **Save-time screen** for personal instructions: length, control chars, role
    markers, and obvious contact-detail patterns (email/phone/URL) → `422` with a
-   helpful message, previous value untouched. This is a privacy control, not a
-   content censor; benign style text is never blocked.
+   helpful message, previous value untouched. The system-instruction phrase list
+   is deliberately narrow (jailbreak patterns such as "ignore previous
+   instructions", "you are now", "reveal the system prompt", "act as"); never a
+   bare word like "system" or "instruction", so a legitimate physics preference
+   ("explain the system of equations first") is accepted. This is a privacy and
+   injection control, not a content censor.
 7. **Egress**: the model route has no tool channel; the artifact document CSP
    blocks network; the server never includes secrets/PII in a prompt.
 8. **No secrets in prompts**: system prompts contain no keys, no internal URLs,
