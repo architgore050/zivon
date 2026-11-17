@@ -1,0 +1,3 @@
+{% macro language_label(user) -%}
+{{ user.language_name }}{% if user.language_native %} (<span lang="{{ user.language_native_lang }}">{{ user.language_native }}</span>){% endif %}
+{%- endmacro %}

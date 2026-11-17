@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "partials/language.html" import language_label %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="app-title">
+  <p class="kicker">Your Physics room</p>
+  <h1 id="app-title">Hello, {{ user.display_name or "there" }}.</h1>
+  <p class="lede">This is the signed-in shell. Your session, class and language are real; the study screens are not built yet, and this page does not pretend they are.</p>
+  <p class="meta">{{ user.class_label }} · {{ user.board }} · {{ language_label(user) }}</p>
+  {% if user.language_note %}<p class="meta">{{ user.language_note }}</p>{% endif %}
+</section>
+
+<section class="wrap band" aria-labelledby="today-title">
+  <div class="section-head">
+    <p class="kicker">Today</p>
+    <h2 id="today-title">Reading works now.</h2>
+    <p class="lede">Every published chapter is open without a dashboard. Practice, tests, speaking and progress arrive in their own releases.</p>
+  </div>
+  <p class="mt-2"><a class="btn" href="/courses">Open the catalogue</a> <a class="text-link" href="/method/">How a lesson is made →</a></p>
+  <div class="notice notice--empty" role="status">
+    <p><strong>Empty on purpose.</strong> No streak, no score, no invented numbers. When the dashboard lands, it will show your real activity or an honest empty state.</p>
+  </div>
+</section>
+{% endblock %}

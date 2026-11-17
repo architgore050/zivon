@@ -1,0 +1,29 @@
+<header class="site-head">
+  <div class="wrap site-head-in">
+    <a class="wordmark" href="{{ '/app' if user else '/' }}">Zivon<span class="wordmark-mark">physics</span></a>
+    <nav class="site-nav" aria-label="Primary">
+      {% for item in nav_items %}
+      <a href="{{ item.href }}"{% if item.key == active_nav %} aria-current="page"{% endif %}>{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="site-actions">
+      {% if user %}
+      <span class="chip" title="{{ user.account_line }}">{{ user.class_label }}</span>
+      {% elif auth_available %}
+      <a class="btn btn--quiet" href="/login">Sign in</a>
+      {% endif %}
+      {% if not user %}
+      <a class="btn" href="/courses">Open a chapter</a>
+      {% endif %}
+      <details class="menu menu--mobile">
+        <summary>Menu</summary>
+        <div class="menu-panel">
+          {% for item in nav_items %}
+          <a href="{{ item.href }}"{% if item.key == active_nav %} aria-current="page"{% endif %}>{{ item.label }}</a>
+          {% endfor %}
+          {% if not user and auth_available %}<a href="/login">Sign in</a>{% endif %}
+        </div>
+      </details>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="error-title">
+  <p class="kicker">Error {{ status_code }}</p>
+  <h1 id="error-title">{{ error_title }}</h1>
+  {% if error_text %}<p class="lede">{{ error_text }}</p>{% endif %}
+  <p class="mt-2"><a class="btn" href="/courses">Open the catalogue</a> <a class="text-link" href="/">Back to the site</a></p>
+</section>
+{% endblock %}

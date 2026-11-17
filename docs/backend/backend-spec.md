@@ -218,6 +218,30 @@ Layer independence is enforced at deployment level (nginx Core survives everythi
 the module level (voice failure never imports into content serving; guard/telemetry failures
 are fire-and-forget with local queues).
 
+### 4.4 Web shell seam (`web/`, F0, 2026-11-17)
+
+The server-rendered consumer pages are a package inside the same monolith, not a second
+service: `backend.app.create_app` calls `web.mount_web(app)` after the JSON API routers and
+the voice mount. `web/` owns HTML routes (`/app` today; F2/F3/F5/F6/F7 add `/login`,
+`/app/practice`, `/app/tests`, …), the Jinja2 environment, and the account guard. `Dockerfile
+.backend` copies `web/`; `backend/requirements.txt` pins `jinja2`; no new image, port, or
+K8s object.
+
+- **Guard:** the shell reads the ADR-0029 cookie (`BackendConfig.auth_cookie_name`), validates
+  it through `AuthService.resolve`, and returns `303 /login?next=<same-origin path>` for a
+  guest. An unavailable auth service renders a `503` HTML shell, never the JSON error
+  envelope. No second auth path and no session row data in HTML (display name, class, board,
+  language, CSRF token only).
+- **Contract:** HTML routes never mount under `/v1`, `/voice`, or `/admin`, and the shell
+  registers no catch-all. `/v1/*` JSON shapes, error envelopes, rate-limit families, and the
+  voice WebSocket are unchanged; `classify_endpoint_family` returns no family for HTML paths,
+  so `/app` does not consume the API bucket.
+- **Headers:** app/login responses are `Cache-Control: no-store`,
+  `X-Robots-Tag: noindex, nofollow`, and a scoped CSP with `connect-src 'self'` (the future
+  app islands call `/v1/*`). The nginx app/login locations repeat the exact policy from
+  `web/render.py`. See `docs/specs/frontend/web-shell.md` for the template/context contract
+  and the F2/F3/F5/F6/F7 handoff.
+
 ---
 
 ## 5. NFR table (every row measurable, tagged, and traced)
