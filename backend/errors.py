@@ -33,6 +33,13 @@ ERROR_MESSAGE_KEYS: Final[dict[str, str]] = {
     "E-TOKEN-INVALID": "error.token_invalid",
     "E-CONFLICT": "error.conflict",
     "E-CONTENT-UNAVAILABLE": "error.content_unavailable",
+    "E-QUOTA-EXHAUSTED": "error.quota_exhausted",
+    "E-SPEAKING-PROMPT-UNKNOWN": "error.speaking_prompt_unknown",
+    "E-SPEAKING-UNAVAILABLE": "error.service_unavailable",
+    "E-SPEAKING-AUDIO": "error.speaking_audio",
+    "E-SPEAKING-AUDIO-SIZE": "error.speaking_audio_size",
+    "E-SPEAKING-NO-SPEECH": "error.speaking_no_speech",
+    "E-SPEAKING-EVALUATION": "error.speaking_evaluation",
 }
 
 

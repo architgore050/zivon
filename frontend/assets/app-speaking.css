@@ -1,0 +1,422 @@
+/* Zivon explain-back surfaces (F6): hub, recorder, history.
+   Field Notes base system (§1-§9) only: paper, ink rules, graphite notes,
+   one pen-blue focus/accent. No §10 lesson device. Composes F1's
+   product.css tokens and F3's app.css page frame; every class is scoped to
+   `.speak-*` so it can never restyle another workstream's page. */
+
+/* ---- hub prompt rows ---- */
+.speak-prompt-list {
+  list-style: none;
+  margin-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.speak-prompt-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.speak-prompt-title {
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.speak-prompt-action {
+  justify-self: end;
+}
+
+/* ---- recorder layout ---- */
+.speak-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(15rem, 1fr);
+  gap: 2rem;
+  align-items: start;
+  padding-bottom: 3rem;
+}
+
+.speak-main,
+.speak-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  min-width: 0;
+}
+
+.speak-aside-card {
+  padding: 1.25rem;
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+}
+
+.speak-aside-card h2 {
+  font-size: 1.15rem;
+}
+
+.speak-aside-card .meta + .meta {
+  margin-top: 0.65rem;
+}
+
+.speak-recorder-panel {
+  padding: 1.25rem;
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+}
+
+.speak-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.speak-mic {
+  min-height: 56px;
+  min-width: 12rem;
+}
+
+.speak-mic[aria-pressed="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 3px;
+}
+
+.speak-mic:disabled {
+  background: var(--graphite);
+  border-color: var(--graphite);
+  cursor: not-allowed;
+}
+
+.speak-timer {
+  font-family: var(--notes);
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.speak-wave {
+  display: block;
+  width: 100%;
+  height: 64px;
+  margin-top: 1rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.speak-status {
+  min-height: 1.5rem;
+  margin-top: 0.6rem;
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---- consent card ---- */
+.speak-consent {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.speak-consent h2 {
+  font-size: 1.2rem;
+}
+
+.speak-consent-notice {
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.speak-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-height: 44px;
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.speak-choice input {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.15rem;
+  accent-color: var(--ink);
+}
+
+.speak-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.75rem;
+}
+
+/* ---- result ---- */
+.speak-result {
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--ink);
+}
+
+.speak-result:focus {
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 6px;
+}
+
+.speak-result-head h2 {
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+  line-height: 1.15;
+}
+
+.speak-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.speak-band-label {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.speak-ai-label {
+  margin-top: 0.5rem;
+  color: var(--graphite);
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.speak-ai-tag {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--graphite);
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.speak-ideas {
+  list-style: none;
+  margin-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.speak-idea {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.25rem 0.9rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.speak-idea-mark {
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.speak-idea--present .speak-idea-mark {
+  color: var(--tick-green);
+}
+
+.speak-idea--missing .speak-idea-mark {
+  color: var(--pencil-red);
+}
+
+.speak-idea-text {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.speak-idea-evidence {
+  grid-column: 2 / 3;
+  color: var(--graphite);
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.speak-feedback {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.speak-transcript-block {
+  margin-top: 1.25rem;
+}
+
+.speak-transcript-block h3 {
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.speak-transcript {
+  margin-top: 0.4rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--ink);
+  background: var(--paper-light);
+  font-size: 1rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.speak-model {
+  margin-top: 1rem;
+}
+
+.speak-model summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speak-model-text {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.speak-selfcheck {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--rule);
+}
+
+.speak-selfcheck legend {
+  padding-inline: 0.3rem;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.speak-delete {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+}
+
+/* ---- earlier attempts ---- */
+.speak-earlier {
+  padding-top: 1rem;
+  border-top: 1px solid var(--ink);
+}
+
+.speak-history-list {
+  list-style: none;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+}
+
+.speak-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.speak-history-band {
+  font-weight: 700;
+}
+
+/* ---- history page ---- */
+.speak-attempt-list {
+  list-style: none;
+  margin-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.speak-attempt-row {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.speak-attempt-prompt {
+  margin-top: 0.3rem;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  line-height: 1.35;
+}
+
+.speak-attempt-detail {
+  margin-top: 0.75rem;
+}
+
+.speak-attempt-detail summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- 360 px is the base case ---- */
+@media (max-width: 960px) {
+  .speak-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .speak-prompt-row {
+    grid-template-columns: 1fr;
+  }
+
+  .speak-prompt-action {
+    justify-self: start;
+  }
+
+  .speak-idea {
+    grid-template-columns: 1fr;
+  }
+
+  .speak-idea-evidence {
+    grid-column: 1 / -1;
+  }
+
+  .speak-history-row {
+    grid-template-columns: 1fr;
+  }
+
+  .speak-timer {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speak-mic,
+  .speak-result {
+    transition: none;
+  }
+}

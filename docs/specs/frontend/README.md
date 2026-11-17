@@ -52,6 +52,7 @@ features are specified** — only surfaces the shell and doctrine already show.
 | [`identity-settings.md`](identity-settings.md) | F2 identity and settings: auth routes and flows, guest/session CSRF matrix, PII rules, error/rate-limit copy, screen states, guest-merge handoff, tests and debt |
 | [`dashboard-progress.md`](dashboard-progress.md) | F3 dashboard, progress map, saved sections, the progress/bookmark APIs, the five state rules, weekly rhythm and the guest -> account sync protocol |
 | [`practice.md`](practice.md) | F5 practice hub, player, summary, history: the practice APIs, selection policy, answer-key withholding, hints, the tutor hand-off, states, tests and debt |
+| [`speaking.md`](speaking.md) | F6 explain-back: hub, recorder, history, the transient upload/STT/rubric APIs, consent and quota reuse, privacy, states, events, tests, debt |
 | [`open-questions.md`](open-questions.md) | every unresolved upstream reference, the decision needed, and the reconciliation procedure for provisional ids |
 
 ## Binding ground rules (inherited — restated because every section depends on them)

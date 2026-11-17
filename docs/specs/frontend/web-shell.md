@@ -170,7 +170,9 @@ the same-origin API, because F3/F5/F6/F7 render small islands over `/v1/*`.
 | `/v1/*`, `/voice/ws` | core backend | unchanged |
 
 `docker/nginx.conf` adds exact/prefix locations for `= /app`, `^~ /app/`, and
-`= /login`, plus one anchored regex location for the rest of the F2 auth paths
+`= /login`, an exact `= /v1/speaking/attempts` location with
+`client_max_body_size 4m` (F6's one transient WAV; the route still caps at
+3 MB), plus one anchored regex location for the rest of the F2 auth paths
 (`/signup`, `/verify-email`, `/forgot-password`, `/reset-password`,
 `/onboarding`, `/logout`). Each proxies to `http://core-backend:8000` (the
 compose alias and the cluster Service name), forwarding `Host $http_host`,
@@ -206,6 +208,10 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
 - **F5/F6/F7** own practice, speaking, and tests/series routes/templates; each
   adds its router module under `web/routes/`, a template under
   `web/templates/app/`, a `nav.py` entry, and a state table for its screens.
+  **F6 speaking** landed 2026-11-17 (`web/routes/speaking.py`,
+  `web/templates/app/speaking/*`, `web/speaking_views.py`, the `Speak` nav
+  entry, `frontend/assets/app-speaking.css` + `frontend/assets/app-speaking.js`); its contract is
+  `speaking.md`.
 - **F8/F10** do not use the student shell: SWOT may use it once F3's data
   exists; admin keeps its separate staff session and container/surface.
 - A feature PR never edits `base.html` chrome, the guard, or the CSP to make

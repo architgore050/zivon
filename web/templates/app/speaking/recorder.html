@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/app-speaking.css">
+<script src="/assets/app-speaking.js" defer></script>
+{% endblock %}
+{% block main %}
+{% if speaking.not_found %}
+<section class="wrap page-head" aria-labelledby="speak-missing-title">
+  <p class="kicker">Explain it back</p>
+  <h1 id="speak-missing-title">That prompt is not available.</h1>
+</section>
+<section class="wrap band">
+  <div class="notice notice--error" role="alert">
+    <p><strong>The prompt may have been retired, or the link may be wrong.</strong></p>
+    <p>Nothing was recorded. <a class="text-link" href="/app/speaking">Choose another prompt</a>.</p>
+  </div>
+</section>
+{% elif speaking.data_error %}
+<section class="wrap page-head" aria-labelledby="speak-error-title">
+  <p class="kicker">Explain it back</p>
+  <h1 id="speak-error-title">This prompt cannot load right now.</h1>
+</section>
+<section class="wrap band" aria-labelledby="speak-error-panel-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="speak-error-panel-title">Your explain-back data is unavailable right now.</strong></p>
+    <p>{{ speaking.data_error }} <a class="text-link" href="/app/speaking">Back to the prompts</a></p>
+  </div>
+</section>
+{% else %}
+<section class="wrap page-head" aria-labelledby="speak-prompt-title">
+  <p class="kicker">Explain it back · {% if speaking.prompt.class_level %}Class {{ speaking.prompt.class_level }}{% endif %} {{ speaking.prompt.chapter_title }}</p>
+  <h1 id="speak-prompt-title" lang="{{ speaking.prompt.lang }}">{{ speaking.prompt.prompt }}</h1>
+  <p class="meta">{{ speaking.prompt.key_idea_count }} key {{ 'idea' if speaking.prompt.key_idea_count == 1 else 'ideas' }} · {{ speaking.prompt.language_label }} · up to {{ speaking.prompt.max_seconds }} seconds</p>
+  {% if speaking.language_note %}<p class="meta">{{ speaking.language_note }}</p>{% endif %}
+  <p class="meta"><a class="text-link" href="/app/speaking">All prompts</a></p>
+</section>
+
+<section class="wrap band speak-layout" data-speaking-recorder
+  data-prompt-id="{{ speaking.prompt.prompt_id }}"
+  data-language="{{ speaking.prompt.language }}"
+  data-max-seconds="{{ speaking.prompt.max_seconds }}"
+  data-speech-available="{{ 'true' if speaking.speech_available else 'false' }}"
+  data-mock="{{ 'true' if speaking.mock_mode else 'false' }}"
+  data-consent-notice-version="{{ speaking.consent_notice_version }}"
+  data-consent-version="{{ speaking.consent_version }}"
+  aria-labelledby="speak-recorder-title">
+  <div class="speak-main">
+    <div class="speak-recorder-panel">
+      <div class="section-head">
+        <p class="kicker">Your microphone</p>
+        <h2 id="speak-recorder-title">Record your explanation</h2>
+      </div>
+
+      {% if not speaking.speech_available %}
+      <div class="notice notice--partial" role="status">
+        <p><strong>Recording is not available on this deployment.</strong> Speech-to-text is not configured yet. You can read the prompt and any earlier attempt; nothing will capture audio.</p>
+      </div>
+      {% elif speaking.mock_mode %}
+      <div class="notice notice--empty" role="status">
+        <p><strong>Demo mode.</strong> The AI scorer is not connected on this deployment. A recording attempt returns a clearly labelled sample result.</p>
+      </div>
+      {% endif %}
+
+      <noscript>
+        <div class="notice notice--partial" role="status">
+          <p><strong>The recorder needs JavaScript.</strong> The prompt and any earlier attempts below are still readable. Nothing is captured without a working recorder.</p>
+        </div>
+      </noscript>
+
+      <section class="speak-consent" data-speaking-consent hidden aria-labelledby="speak-consent-title">
+        <h2 id="speak-consent-title">Voice tutor: before we start</h2>
+        <p class="speak-consent-notice">Before using voice: when you press the mic, your speech is sent to Gnani AI (Prisma STT &amp; Timbre TTS) to transcribe and speak the tutor's physics explanation. Raw voice audio is never kept; short text transcripts expire after 7 days. Reading, simulations, and checks work completely without voice.</p>
+        <p class="meta">Explain-back adds: your transcript and the AI feedback are saved in your account until you delete them. The recording itself is never kept.</p>
+        <label class="speak-choice"><input type="checkbox" data-consent-guardian> I am a parent/guardian, or I have my parent/guardian's permission to use the voice tutor.</label>
+        <div class="speak-actions">
+          <button class="btn" type="button" data-consent-continue disabled>Continue with voice</button>
+          <button class="btn btn--outline" type="button" data-consent-decline>Decline (read without voice)</button>
+        </div>
+        <p class="meta">The same consent applies to the lesson voice tutor on this device. <a class="text-link" href="/privacy/">Privacy summary &amp; clear data</a></p>
+      </section>
+
+      <div class="notice notice--empty" data-speaking-consent-off hidden role="status">
+        <p><strong>Voice is off on this device.</strong> The recorder stays off. You can still read the prompt, your earlier attempts, and the model answer for any attempt you already made.</p>
+        <p class="mt-1"><button class="btn btn--quiet" type="button" data-speaking-consent-review>Review the voice notice</button></p>
+      </div>
+
+      <div class="speak-controls">
+        <button class="btn speak-mic" type="button" data-speaking-mic aria-pressed="false" disabled>
+          <span data-speaking-mic-label>Start recording</span>
+        </button>
+        <p class="speak-timer" aria-hidden="true"><span data-speaking-timer>00:{{ '%02d'|format(speaking.prompt.max_seconds|int) }}</span></p>
+      </div>
+      <p class="visually-hidden" data-speaking-time-status role="status" aria-live="polite"></p>
+      <canvas class="speak-wave" data-speaking-wave width="640" height="96" aria-hidden="true"></canvas>
+      <p class="speak-status" data-speaking-status role="status" aria-live="polite">The recorder starts after you allow voice on this device.</p>
+      <p class="meta">Your words are transcribed to text and the recording is discarded. Nothing you say is stored as audio.</p>
+    </div>
+
+    <section class="speak-result-region" data-speaking-result-region aria-label="Your feedback">
+      {% if speaking.last_result %}
+        {% set result = speaking.last_result %}
+        {% set interactive = true %}
+        {% include "partials/speaking_result.html" %}
+      {% else %}
+        <p class="meta" data-speaking-result-placeholder>Your feedback appears here after your first recording. It is written from your transcript and shows which key ideas you covered.</p>
+      {% endif %}
+    </section>
+
+    {% if speaking.history %}
+    <section class="speak-earlier" aria-labelledby="speak-earlier-title">
+      <div class="section-head">
+        <p class="kicker">Earlier attempts</p>
+        <h2 id="speak-earlier-title">On this prompt</h2>
+      </div>
+      <ul class="speak-history-list">
+        {% for item in speaking.history %}
+        <li class="speak-history-row">
+          <div>
+            <p class="meta">{{ item.when }}{% if item.evaluation_available %} · {{ item.ideas_present }} of {{ item.ideas_total }} key ideas{% endif %}</p>
+            <p class="speak-history-band">{% if item.band_label %}{{ item.band_label }}{% else %}Transcript saved; feedback unavailable{% endif %}</p>
+          </div>
+          <a class="text-link" href="/app/speaking/history">Open</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="speak-side" aria-label="How this works">
+    <section class="speak-aside-card">
+      <h2>How it is judged</h2>
+      <p class="meta">The app gives you the prompt and a count of its key ideas. After an attempt, the tutor model marks which ideas you covered from your transcript.</p>
+      <p class="meta">The band is computed from the authored thresholds, not guessed by the model. The feedback is labelled AI because it is written by a model, not a teacher.</p>
+      <p class="meta">Your attempt is text only. Deleting it removes the transcript and feedback from your account.</p>
+    </section>
+  </aside>
+</section>
+
+<template data-speaking-result-template>
+  <article class="speak-result" data-speaking-result-card tabindex="-1">
+    <div class="speak-result-head">
+      <p class="kicker" data-field="when"></p>
+      <h2 class="speak-result-title">Feedback on your explanation</h2>
+    </div>
+    <div class="notice notice--empty" data-field="mock-notice" role="status" hidden>
+      <p><strong>Demo mode.</strong> The AI scorer is not connected on this deployment. The transcript and feedback below are a clearly labelled sample.</p>
+    </div>
+    <div data-field="evaluation">
+      <p class="speak-band"><span class="speak-band-label" data-field="band"></span> <span class="meta" data-field="count"></span></p>
+      <p class="speak-ai-label"><span class="speak-ai-tag">AI feedback</span> Written by the tutor model from your transcript. It is practice feedback, not a teacher's mark.</p>
+      <ul class="speak-ideas" data-field="ideas" aria-label="Key ideas in your explanation"></ul>
+      <div class="speak-feedback">
+        <p><strong>What went well.</strong> <span data-field="went-well"></span></p>
+        <p><strong>Next step.</strong> <span data-field="next-step"></span></p>
+      </div>
+    </div>
+    <div class="notice notice--partial" data-field="unavailable" role="status" hidden>
+      <p><strong>Your transcript is saved.</strong> The AI feedback could not be generated just now. Try the prompt again to get feedback.</p>
+    </div>
+    <section class="speak-transcript-block">
+      <h3>What you said</h3>
+      <p class="speak-transcript" data-field="transcript"></p>
+    </section>
+    <details class="speak-model" data-field="model" hidden>
+      <summary>Model answer</summary>
+      <p class="speak-model-text" data-field="model-answer"></p>
+      <p class="meta" data-field="model-source"></p>
+    </details>
+    <fieldset class="speak-selfcheck">
+      <legend>How did that feel? <span class="meta">A note for you, not a grade.</span></legend>
+      <label class="speak-choice"><input type="radio" value="explained_fully" data-self-check> I explained it fully</label>
+      <label class="speak-choice"><input type="radio" value="missed_a_part" data-self-check> I missed a part</label>
+      <label class="speak-choice"><input type="radio" value="practise_again" data-self-check> I need to practise again</label>
+      <p class="mt-1"><button class="btn btn--sm btn--outline" type="button" data-speaking-self-check-save>Save how it felt</button></p>
+    </fieldset>
+    <div class="speak-actions">
+      <button class="text-link speak-delete" type="button" data-speaking-delete>Delete this attempt</button>
+    </div>
+    <p class="status-line" data-speaking-result-status role="status" aria-live="polite"></p>
+  </article>
+</template>
+{% endif %}
+{% endblock %}

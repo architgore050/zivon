@@ -937,6 +937,41 @@ def get_speaking_attempt(
     return _speaking_attempt_public(row) if row else None
 
 
+def set_speaking_self_check(
+    db: DatabaseEngine,
+    user_id: str,
+    attempt_id: str,
+    *,
+    self_check: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    """Store the student's own post-attempt note (owner-scoped, bounded).
+
+    Self-check is the learner's reflection ("I explained it fully"), not a
+    second grade: the route validates the closed choice set, the store only
+    bounds the JSON. A missing or somebody else's attempt returns None.
+    """
+    owner = _require_user(user_id)
+    payload = _bounded_payload(self_check, "E-SPEAKING-PAYLOAD")
+    with db.transaction() as tx:
+        row = tx.fetchone(
+            "SELECT attempt_id FROM speaking_attempt "
+            "WHERE attempt_id = ? AND user_id = ?",
+            (str(attempt_id), owner),
+        )
+        if row is None:
+            return None
+        tx.execute(
+            "UPDATE speaking_attempt SET self_check = ? "
+            "WHERE attempt_id = ? AND user_id = ?",
+            (_dumps(payload), str(attempt_id), owner),
+        )
+        updated = tx.fetchone(
+            "SELECT * FROM speaking_attempt WHERE attempt_id = ?", (str(attempt_id),)
+        )
+    assert updated is not None
+    return _speaking_attempt_public(updated)
+
+
 def list_speaking_attempts(
     db: DatabaseEngine,
     user_id: str,
@@ -1453,5 +1488,6 @@ __all__ = [
     "save_test_answer",
     "select_daily_question_ids",
     "select_question_ids",
+    "set_speaking_self_check",
     "submit_test_attempt",
 ]
