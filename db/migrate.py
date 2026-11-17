@@ -1,7 +1,8 @@
 """Alembic migration runner and programmatic migration verification (ADR-0016).
 
 Maintains linear migration history (`0001` -> `0002` -> `0003_full_frontend` ->
-`0004_practice_speaking_tests`) per `skills/zivon-backend-engineering-skills/`
+`0004_practice_speaking_tests` -> `0005_personalized_learning`) per
+`skills/zivon-backend-engineering-skills/`
 README.md §1 (`alembic heads` returns a single head). Works with both the
 Alembic CLI (when installed) and direct execution via `python -m db.migrate`
 against PostgreSQL or SQLite.
@@ -14,7 +15,7 @@ the same chain plus EX2's `0022_translation_memory_c3` (down_revision `0002`,
 in `migrations/versions`, listed in alembic.ini's `version_locations`). On
 PostgreSQL, 0022 is a defensive no-op after 0002 (`CREATE TABLE IF NOT EXISTS`
 / seed `ON CONFLICT DO NOTHING`), so both tools converge on the same schema and
-on the same recorded head (`0004_practice_speaking_tests`); a database still
+on the same recorded head (`0005_personalized_learning`); a database still
 recorded at 0022 is treated as `0002` by this chain via `REVISION_ALIASES`, so
 a CLI-migrated database can be continued by the runtime Job without a manual
 stamp.
@@ -39,6 +40,10 @@ from .schema_assessment import (
     get_revision_0004_down_sql,
     get_revision_0004_up_sql,
 )
+from .schema_personalized import (
+    get_revision_0005_down_sql,
+    get_revision_0005_up_sql,
+)
 
 if TYPE_CHECKING:
     from .engine import DatabaseEngine
@@ -50,7 +55,10 @@ class RevisionSpec:
     down_revision: str | None
     description: str
     up_sql_fn: Callable[[str], list[str]]
-    down_sql_fn: Callable[[], list[str]]
+    # The dialect argument lets a revision emit engine-specific SQL on the way
+    # down too (0005 rebuilds CHECK tables on SQLite and swaps constraints on
+    # PostgreSQL); the 0001-0004 down functions ignore it (pure DROPs).
+    down_sql_fn: Callable[[str], list[str]]
 
 
 REVISION_CHAIN: Final[tuple[RevisionSpec, ...]] = (
@@ -59,28 +67,35 @@ REVISION_CHAIN: Final[tuple[RevisionSpec, ...]] = (
         down_revision=None,
         description="Initial 20 core backend tables (db-spec.md)",
         up_sql_fn=get_revision_0001_up_sql,
-        down_sql_fn=get_revision_0001_down_sql,
+        down_sql_fn=lambda _dialect: get_revision_0001_down_sql(),
     ),
     RevisionSpec(
         revision="0002",
         down_revision="0001",
         description="Wave-E addenda: C3 translation tables, C4 eval tables, and log_events (GAP-014)",
         up_sql_fn=get_revision_0002_up_sql,
-        down_sql_fn=get_revision_0002_down_sql,
+        down_sql_fn=lambda _dialect: get_revision_0002_down_sql(),
     ),
     RevisionSpec(
         revision="0003_full_frontend",
         down_revision="0002",
         description="Full-frontend foundation: accounts, auth sessions, catalogue, progress tables",
         up_sql_fn=get_revision_0003_up_sql,
-        down_sql_fn=get_revision_0003_down_sql,
+        down_sql_fn=lambda _dialect: get_revision_0003_down_sql(),
     ),
     RevisionSpec(
         revision="0004_practice_speaking_tests",
         down_revision="0003_full_frontend",
         description="W4 foundation: question bank, practice, speaking, test series/attempts, pack import",
         up_sql_fn=get_revision_0004_up_sql,
-        down_sql_fn=get_revision_0004_down_sql,
+        down_sql_fn=lambda _dialect: get_revision_0004_down_sql(),
+    ),
+    RevisionSpec(
+        revision="0005_personalized_learning",
+        down_revision="0004_practice_speaking_tests",
+        description="W5.5 PL1: personalized learning tables (C22-C25), mastery progress kind, personalized rate-limit families",
+        up_sql_fn=get_revision_0005_up_sql,
+        down_sql_fn=get_revision_0005_down_sql,
     ),
 )
 
@@ -127,8 +142,10 @@ def get_current_revision(engine: DatabaseEngine) -> str | None:
 def upgrade_db(engine: DatabaseEngine, target: str = "head") -> str:
     """Apply migrations linearly up to `target`.
 
-    Valid targets are `head`, `0001`, `0002`, `0003_full_frontend`, and
-    `0004_practice_speaking_tests`.
+    Applies migrations linearly up to `target`.
+
+    Valid targets are `head`, `0001`, `0002`, `0003_full_frontend`,
+    `0004_practice_speaking_tests`, and `0005_personalized_learning`.
     """
     target_rev = LATEST_REVISION if target == "head" else target
     valid_revs = [r.revision for r in REVISION_CHAIN]
@@ -180,7 +197,7 @@ def downgrade_db(engine: DatabaseEngine, target: str = "base") -> str | None:
     for idx in range(curr_idx, stop_idx, -1):
         spec = REVISION_CHAIN[idx]
         with engine.transaction() as tx:
-            for stmt in spec.down_sql_fn():
+            for stmt in spec.down_sql_fn(engine.dialect):
                 tx.execute(stmt)
             tx.execute("DELETE FROM alembic_version")
             if spec.down_revision is not None:

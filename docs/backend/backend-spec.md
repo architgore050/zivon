@@ -416,6 +416,35 @@ build against the real shape without invented data. New error codes: `E-AUTH-REQ
 `E-AUTH-INVALID`, `E-AUTH-CSRF`, `E-EMAIL-UNVERIFIED`, `E-TOKEN-INVALID`, `E-CONFLICT`,
 `E-CONTENT-UNAVAILABLE`.
 
+### 6.5 Personalized learning — PL1 surface (revision `0005_personalized_learning`, W5.5)
+
+Additive to §6.1–6.4; the authoritative endpoint contract (request/response shapes, quota
+semantics, error table `E-QUOTA-EXHAUSTED`/`E-PL-TURN-OPEN`/`E-PL-MODEL-DOWN`) is
+`docs/specs/personalized-learning/data-and-api.md` §4. All endpoints are session-auth +
+CSRF per §6.4 rules; owner scoping always derives `user_id` from the session, never from
+the URL (another user's id is `404 E-NOT-FOUND`). PL1 ships the storage and the non-model
+endpoints; the teaching turn is an honest `503 E-PL-MODEL-DOWN` until PL2 wires the
+`TurnEngine`, and the catalog is `503 E-CONTENT-UNAVAILABLE` until the RAG index exists.
+
+| ID | Route | Purpose | Auth / limits |
+|---|---|---|---|
+| API-PL-01 | `GET /v1/me/preferences` | instructions + `max_chars` + `available` | session; personalized_read 60/min |
+| API-PL-02 | `PUT /v1/me/preferences` | normalize + validate (≤500 chars; contact/system-instruction/control-char screen) | session + CSRF; personalized_ip 20/min |
+| API-PL-03 | `DELETE /v1/me/preferences` | clear (idempotent 204; row keeps a version bump) | session + CSRF; personalized_ip 20/min |
+| API-PL-04 | `GET /v1/personalized/catalog` | chapters with index coverage + tier | session; 503 until PL2's index |
+| API-PL-05 | `POST /v1/personalized/sessions` | start (chapter/concept/weakness; deterministic lexical chapter match; never a guess) | session + CSRF; personalized_create 5/h; 5 sessions/user/day → `403 E-QUOTA-EXHAUSTED` |
+| API-PL-06 | `GET /v1/personalized/sessions` | list (cursor; never weakness/message text) | session; personalized_read 60/min |
+| API-PL-07 | `GET /v1/personalized/sessions/{id}` | detail + state + last 50 messages + quota | session; personalized_read 60/min; owner-scoped 404 |
+| API-PL-08 | `DELETE /v1/personalized/sessions/{id}` | hard delete in one transaction | session + CSRF; personalized_ip 20/min |
+| API-PL-09 | `GET /v1/personalized/sessions/{id}/export` | schema-versioned JSON attachment, never the answer key | session; personalized_read 60/min |
+| API-PL-10 | `POST /v1/personalized/sessions/{id}/turns` | PL1 stub → `503 E-PL-MODEL-DOWN` (no quota reservation, no usage row) | session + CSRF; personalized_turn 6/min |
+| API-PL-11 | `POST /v1/personalized/sessions/{id}/end` | end + summary; idempotent | session + CSRF; personalized_ip 20/min |
+| API-PL-12 | `GET /v1/personalized/sessions/{id}/messages` | earlier turns (`before`/`limit ≤ 50`) | session; personalized_read 60/min |
+| API-PL-15 | `GET /v1/personalized/usage` | remaining turns/artifacts + reset (00:00 IST) + `enabled` | session; personalized_read 60/min |
+
+(API-PL-13/14 — artifact fetch/status — belong to PL3's artifact workstream and are not
+mounted in PL1; the `personalized_artifact` TABLE and its refcount/retention machinery are.)
+
 ---
 
 ## 7. WebSocket catalogue — the voice loop (NEED-004)
@@ -561,6 +590,7 @@ Two layers, both keyed on the **salted daily-rotating IP hash** (A-12; raw IP ne
 |---|---|---|
 | nginx `limit_req` (existing frontend Deployment) | static pages, `courses.js`, bundles, **narration audio** (ST-01…04) | static 100 req/min/IP burst 20; audio 60/min burst 10 |
 | app token buckets (`voice/abuse`, `abuse_bucket` table) | API-001…009, WSS connects, events, reports | api 30/min; ws 10 connects/min + 1 concurrent/session + 10 cluster-wide; events 12 batches/min; reports 5/min; DELETE /data 3/min |
+| personalized-learning families (W5.5 PL1, data-and-api.md §4.1 — window size per family) | API-PL-01…12 | `personalized_turn` 6/min; `personalized_create` 5/h; `personalized_read` 60/min; `personalized_ip` 20/min (the brake on the remaining writes). The `abuse_bucket.endpoint_family` CHECK is widened by revision 0005 |
 
 On breach: `429 {code: E-RATE-LIMIT, retry_after}`; WS close code 1013 + backoff hint. DDoS posture:
 limits are per-IP; cluster-level connection caps + edge WAF at hosting stage (phase plan §3).

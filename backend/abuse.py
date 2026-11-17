@@ -5,9 +5,13 @@ Rules (backend-spec §1.2 A-12, §8.3, db-spec §4.15):
 - Only `HMAC_SHA256(ip, f"{daily_salt}:{utc_date}")` is stored in `abuse_bucket`.
 - `abuse_bucket` rows expire after `<= 72 h` (`ABUSE_BUCKET_TTL_HOURS = 72`) and
   are NEVER joined to `device`, `session`, or any pseudonymous learner data.
-- Per-family rate limits (requests per 60s window per IP hash):
+- Per-family rate limits per IP hash, with per-family window sizes
+  (data-and-api.md §4.1 — "window size per family, not just per-minute"):
   `api`: 30/min, `ws`: 10/min, `events`: 12/min, `reports`: 5/min,
-  `delete`: 3/min, `static`: 100/min, `audio`: 60/min.
+  `delete`: 3/min, `static`: 100/min, `audio`: 60/min, and the
+  personalized-learning families: `personalized_turn`: 6/min,
+  `personalized_create`: 5/h, `personalized_read`: 60/min,
+  `personalized_ip`: 20/min.
 """
 
 from __future__ import annotations
@@ -25,6 +29,21 @@ from fastapi import Request
 from .config import BackendConfig
 
 ABUSE_BUCKET_TTL_HOURS: Final[int] = 72
+
+# Window size per family, in seconds (§4.1: the create family is hourly).
+FAMILY_WINDOW_SECONDS: Final[dict[str, int]] = {
+    "api": 60,
+    "ws": 60,
+    "events": 60,
+    "reports": 60,
+    "delete": 60,
+    "static": 60,
+    "audio": 60,
+    "personalized_turn": 60,
+    "personalized_create": 3600,
+    "personalized_read": 60,
+    "personalized_ip": 60,
+}
 
 EXEMPT_PATHS: Final[frozenset[str]] = frozenset(
     {
@@ -70,7 +89,14 @@ def compute_ip_hmac(
 
 
 def classify_endpoint_family(method: str, path: str) -> str | None:
-    """Map an HTTP method and path to its rate-limit family (`backend-spec.md` §8.3)."""
+    """Map an HTTP method and path to its rate-limit family (`backend-spec.md` §8.3).
+
+    The personalized-learning families (data-and-api.md §4.1) are matched
+    BEFORE the generic `/v1/*` catch-all: `personalized_turn` on the turn
+    endpoint, `personalized_create` on session create, `personalized_read` on
+    the surface's GETs, and `personalized_ip` as the brake on the remaining
+    writes (preferences save/clear, session delete, session end).
+    """
     if path in EXEMPT_PATHS:
         return None
     if path.startswith("/v1/admin"):
@@ -87,6 +113,15 @@ def classify_endpoint_family(method: str, path: str) -> str | None:
         return "static"
     if path in ("/v1/voice", "/voice/ws"):
         return "ws"
+    if path.startswith("/v1/personalized") or path == "/v1/me/preferences":
+        method_upper = method.upper()
+        if method_upper == "POST" and path.endswith("/turns"):
+            return "personalized_turn"
+        if method_upper == "POST" and path.rstrip("/") == "/v1/personalized/sessions":
+            return "personalized_create"
+        if method_upper == "GET":
+            return "personalized_read"
+        return "personalized_ip"
     if path.startswith("/v1/"):
         return "api"
     return None
@@ -147,8 +182,16 @@ class AbuseRateLimiter:
             "delete": self.config.rate_limit_delete_per_min,
             "static": 100,
             "audio": 60,
+            "personalized_turn": self.config.rate_limit_personalized_turn_per_min,
+            "personalized_create": self.config.rate_limit_personalized_create_per_hour,
+            "personalized_read": self.config.rate_limit_personalized_read_per_min,
+            "personalized_ip": self.config.rate_limit_personalized_ip_per_min,
         }
         return int(limits.get(family, self.config.rate_limit_api_per_min))
+
+    def family_window_seconds(self, family: str) -> int:
+        """Window size per family (§4.1): 60 s except the hourly create family."""
+        return FAMILY_WINDOW_SECONDS.get(family, 60)
 
     def check_and_increment(
         self,
@@ -164,12 +207,16 @@ class AbuseRateLimiter:
 
         day_str = now.strftime("%Y-%m-%d")
         bucket_key = compute_ip_hmac(raw_ip, self.config.ip_hash_salt, utc_date=day_str)
+        window_s = self.family_window_seconds(family)
         window_dt = now.replace(second=0, microsecond=0)
+        if window_s >= 3600:
+            window_dt = window_dt.replace(minute=0)
         window_start = window_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         expires_dt = window_dt + datetime.timedelta(hours=ABUSE_BUCKET_TTL_HOURS)
         expires_at = expires_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         limit = self.family_limit(family)
-        retry_after = max(1, 60 - now.second)
+        elapsed = (now - window_dt).total_seconds()
+        retry_after = max(1, int(window_s - elapsed))
 
         with self._lock:
             if self.db is not None:

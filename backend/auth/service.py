@@ -1106,6 +1106,39 @@ class AuthService:
         deleted: dict[str, int] = {}
         now = self._now_iso()
         with self.db.transaction() as tx:
+            # Personalized learning (data-and-api.md §2.7): the child free-text
+            # store dies with the account — messages first (they cascade, but
+            # the explicit fan-out keeps the delete honest with FKs off), then
+            # sessions, usage (counts survive, subject link dropped), quota
+            # rows, and the preferences row. Only the users tombstone remains.
+            tx.execute(
+                """
+                DELETE FROM personalized_message WHERE session_id IN (
+                    SELECT session_id FROM personalized_session WHERE user_id = ?
+                )
+                """,
+                (user_id,),
+            )
+            for label, table in (
+                ("preferences", "user_preferences"),
+                ("personalized_sessions", "personalized_session"),
+                ("personalized_usage", "personalized_usage"),
+            ):
+                row = tx.fetchone(
+                    f"SELECT COUNT(*) AS cnt FROM {table} WHERE user_id = ?", (user_id,)
+                )
+                deleted[label] = int(row["cnt"]) if row else 0
+                tx.execute(f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
+            # personalized_quota keys the user by scope_key (data-and-api.md §2.6).
+            quota_row = tx.fetchone(
+                "SELECT COUNT(*) AS cnt FROM personalized_quota WHERE scope = 'user' AND scope_key = ?",
+                (user_id,),
+            )
+            deleted["personalized_quota"] = int(quota_row["cnt"]) if quota_row else 0
+            tx.execute(
+                "DELETE FROM personalized_quota WHERE scope = 'user' AND scope_key = ?",
+                (user_id,),
+            )
             for label, table in (
                 ("sessions", "auth_session"),
                 ("identities", "auth_identity"),
@@ -1171,9 +1204,44 @@ class AuthService:
             "SELECT bookmark_id, target_type, target_id, created_at FROM bookmark WHERE user_id = ? ORDER BY created_at DESC",
             (user_id,),
         )
+        # Personalized learning (data-and-api.md §2.1: the preferences row is
+        # included in export; the sessions summary carries no message text —
+        # per-session export (API-PL-09) is the transcript's export path).
+        prefs_row = self.db.fetchone(
+            "SELECT personal_instructions, instructions_version, updated_at "
+            "FROM user_preferences WHERE user_id = ?",
+            (user_id,),
+        )
+        pl_sessions = self.db.fetchall(
+            "SELECT session_id, title, chapter_id, status, created_at, last_turn_at "
+            "FROM personalized_session WHERE user_id = ? ORDER BY updated_at DESC",
+            (user_id,),
+        )
+        pl_session_total = len(pl_sessions)
         return {
             "exported_at": self._now_iso(),
             "user": self.user_public(user),
+            "preferences": {
+                "personal_instructions": (
+                    prefs_row.get("personal_instructions") if prefs_row else None
+                ),
+                "instructions_version": (
+                    int(prefs_row["instructions_version"]) if prefs_row else 0
+                ),
+                "updated_at": prefs_row.get("updated_at") if prefs_row else None,
+            },
+            "personalized_sessions": [
+                {
+                    "session_id": str(row["session_id"]),
+                    "title": str(row["title"]),
+                    "chapter_id": str(row["chapter_id"]),
+                    "status": str(row["status"]),
+                    "created_at": row.get("created_at"),
+                    "last_turn_at": row.get("last_turn_at"),
+                }
+                for row in pl_sessions
+            ],
+            "personalized_sessions_total": pl_session_total,
             "identities": [
                 {
                     "provider": str(row["provider"]),

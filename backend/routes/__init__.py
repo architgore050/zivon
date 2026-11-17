@@ -17,7 +17,8 @@ from .tests import router as tests_router
 
 
 def register_routes(app: FastAPI) -> None:
-    """Mount student, account/auth, catalogue, progress, practice, speaking, swot, tests, and admin."""
+    """Mount student, account/auth, catalogue, progress, practice, speaking, swot, tests,
+    admin, and personalized."""
     app.include_router(student_router)
     app.include_router(auth_router)
     app.include_router(me_router)
@@ -28,3 +29,14 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(swot_router)
     app.include_router(tests_router)
     app.include_router(admin_router)
+    # Personalized learning (W5.5 PL1): preferences live under /v1/me, the
+    # session surface under /v1/personalized (data-and-api.md §4.2). Imported
+    # lazily: the personalized router reuses this package's auth helpers, so
+    # an eager import here would be circular.
+    from ..personalized.router import (
+        preferences_router as personalized_preferences_router,
+    )
+    from ..personalized.router import router as personalized_router
+
+    app.include_router(personalized_preferences_router)
+    app.include_router(personalized_router)

@@ -1,10 +1,23 @@
 # Data and API contract
 
-Status: **spec, not implemented (2026-11-17).** Migration target:
+Status: **PL1 implemented (2026-11-17); the teaching turn and artifact
+generation wait for PL2/PL3.** Migration target:
 `0005_personalized_learning` after `0004_practice_speaking_tests`. All DDL must
 be SQLite-portable (the containerless empty→head test) and valid PostgreSQL 16
 (the CI Alembic job). IDs are UUIDv7 (`db/uuid7.py`); timestamps are
 `timestamptz` (TEXT ISO on SQLite).
+
+**PL1 landed:** the six tables (§2), the `progress_event.kind` /
+`abuse_bucket.endpoint_family` CHECK widenings, the retention jobs (§2.7),
+`backend/personalized/{store,preferences,quota,retention,router}.py`, the
+preferences + session + usage endpoints (§4.1–§4.9 minus artifacts), and the
+voice prompt injection (§5). **Still spec, not code:** the SSE turn endpoint
+behaviour beyond its honest `503 E-PL-MODEL-DOWN` stub (§4.6's event catalogue
+is PL2), the artifact endpoints API-PL-13/14 (PL3), and the catalog coverage
+response body (§4.2 API-PL-04 answers `503 E-CONTENT-UNAVAILABLE` until the
+index exists). The per-endpoint hourly sub-caps of the endpoint table
+(preferences 10/h, delete/end 20/h) are enforced as the `personalized_ip`
+20/min family in PL1; the families and windows live in `backend/abuse.py`.
 
 **No paywall tables.** There is no `plan`, `subscription`, `payment`,
 `entitlement`, `price`, or `invoice` table anywhere in this migration. Free

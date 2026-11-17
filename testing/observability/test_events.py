@@ -129,6 +129,16 @@ EMITTED_BY_THIS_BRANCH = [
     "exam.item.ingested",
     "exam.publish.blocked",
     "exam.series.blocked",
+    # backend/personalized/ + voice injection (W5.5 PL1, 2026-11-17)
+    "personalized.prefs.saved",
+    "personalized.prefs.cleared",
+    "personalized.session.created",
+    "personalized.session.ended",
+    "personalized.session.deleted",
+    "personalized.quota.blocked",
+    "personalized.retention.purged",
+    "personalized.turn.unavailable",
+    "voice.prefs.unavailable",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming

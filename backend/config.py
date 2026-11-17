@@ -172,6 +172,12 @@ class BackendConfig:
     rate_limit_events_per_min: int = 12
     rate_limit_reports_per_min: int = 5
     rate_limit_delete_per_min: int = 3
+    # Personalized-learning families (data-and-api.md §4.1, D-PL-01): the
+    # create family uses a per-HOUR window, the rest per-minute (abuse.py).
+    rate_limit_personalized_turn_per_min: int = 6
+    rate_limit_personalized_create_per_hour: int = 5
+    rate_limit_personalized_read_per_min: int = 60
+    rate_limit_personalized_ip_per_min: int = 20
     ws_max_concurrent_per_session: int = 1
     ws_max_concurrent_cluster: int = 10
     # Account auth, email, and Google OAuth (ADR-0029). Secrets stay runtime-only.
@@ -200,6 +206,21 @@ class BackendConfig:
     smtp_starttls: bool = True
     resend_api_key: str | None = None
     swot_mode: str = DEFAULT_SWOT_MODE
+    # Personalized learning (W5.5 PL1, data-and-api.md §2.6/D-PL-01). The
+    # numbers are the open D-PL-01 recommendations: a founder change is an
+    # env/config change, never a migration. No paywall/plan fields exist.
+    personalized_enabled: bool = True
+    personalized_turn_engine_enabled: bool = False  # PL2 flips this with the real route
+    personalized_turns_per_user_per_day: int = 40
+    personalized_turn_concurrency: int = 2
+    personalized_sessions_per_user_per_day: int = 5
+    personalized_artifacts_per_user_per_day: int = 12
+    personalized_turns_global_per_day: int = 1500
+    personalized_artifacts_global_per_day: int = 300
+    personalized_retention_session_days: int = 90
+    personalized_retention_artifact_days: int = 30
+    personalized_retention_artifact_failed_days: int = 7
+    personalized_retention_usage_days: int = 90
 
     @classmethod
     def from_env(cls, *, strict_secrets: bool = False) -> BackendConfig:
@@ -313,4 +334,38 @@ class BackendConfig:
             smtp_starttls=_env_bool("ZIVON_SMTP_STARTTLS", True),
             resend_api_key=_optional_env("ZIVON_RESEND_API_KEY"),
             swot_mode=_swot_mode(os.environ.get("ZIVON_SWOT_MODE")),
+            personalized_enabled=_env_bool("ZIVON_PERSONALIZED_ENABLED", True),
+            personalized_turn_engine_enabled=_env_bool(
+                "ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED", False
+            ),
+            personalized_turns_per_user_per_day=_env_int(
+                "ZIVON_PERSONALIZED_TURNS_PER_USER_DAY", 40
+            ),
+            personalized_turn_concurrency=_env_int(
+                "ZIVON_PERSONALIZED_TURN_CONCURRENCY", 2
+            ),
+            personalized_sessions_per_user_per_day=_env_int(
+                "ZIVON_PERSONALIZED_SESSIONS_PER_USER_DAY", 5
+            ),
+            personalized_artifacts_per_user_per_day=_env_int(
+                "ZIVON_PERSONALIZED_ARTIFACTS_PER_USER_DAY", 12
+            ),
+            personalized_turns_global_per_day=_env_int(
+                "ZIVON_PERSONALIZED_TURNS_GLOBAL_DAY", 1500
+            ),
+            personalized_artifacts_global_per_day=_env_int(
+                "ZIVON_PERSONALIZED_ARTIFACTS_GLOBAL_DAY", 300
+            ),
+            personalized_retention_session_days=_env_int(
+                "ZIVON_PERSONALIZED_RETENTION_SESSION_DAYS", 90
+            ),
+            personalized_retention_artifact_days=_env_int(
+                "ZIVON_PERSONALIZED_RETENTION_ARTIFACT_DAYS", 30
+            ),
+            personalized_retention_artifact_failed_days=_env_int(
+                "ZIVON_PERSONALIZED_RETENTION_ARTIFACT_FAILED_DAYS", 7
+            ),
+            personalized_retention_usage_days=_env_int(
+                "ZIVON_PERSONALIZED_RETENTION_USAGE_DAYS", 90
+            ),
         )

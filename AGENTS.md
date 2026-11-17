@@ -13,6 +13,14 @@ longer being built to a challenge deadline: the **10 Nov 2026 deadline and the G
 are historical** — preserved in `TIMELINE.md`, `docs/logs/`, and the dated posts, not current
 acceptance criteria.
 
+- **W5.5 PL1 landed (2026-11-17):** the personalized-learning data foundation — migration
+  `0005_personalized_learning` (six tables, C22–C25, the mastery/abuse-family CHECK
+  widenings), account personal instructions (save/clear/versioned), owner-scoped saved
+  sessions with export/delete, D-PL-01 free-tier quota counters (00:00 IST), retention
+  jobs, the account-deletion cascade, and the voice-tutor personal-instruction injection
+  (delimited USER-role data block, never system). The teaching turn stays an honest
+  `503 E-PL-MODEL-DOWN` until PL2. Spec: `docs/specs/personalized-learning/`.
+
 - **Current milestone:** a **working prototype for product-market-fit testing** — Class 9/10
   content complete, live lessons translated (EN/HI/Hinglish), the full consumer frontend, and
   pipeline quality good enough to keep producing content.

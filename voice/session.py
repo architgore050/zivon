@@ -450,6 +450,11 @@ class VoiceSession:
     snapshot: dict[str, Any] | None = None  # context.snapshot (latest-wins)
     snapshot_at: float = 0.0
     user_key: str = ""
+    # PL1 personal instructions (data-and-api.md §5.1): runtime state like the
+    # snapshot, never persisted in voice_turn and never logged. Resolved once
+    # per session from the optional account cookie (60 s cache upstream).
+    account_user_id: str = ""
+    personal_block: str = ""
     turn_idx: int = 0
     last_state_message: dict[str, Any] | None = None
     last_turn_end: dict[str, Any] | None = None

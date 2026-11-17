@@ -204,6 +204,12 @@ class VoiceSettings:
     snapshot_stale_s: float = 10.0  # turn-length window; client resends at turn start
     context_block_text_max: int = 600  # prompt context bound (spec.md §7)
 
+    # --- personal instructions (PL1, data-and-api.md §5.1) -------------------
+    # ZIVON_VOICE_PERSONAL_INSTRUCTIONS_ENABLED=false disables the injection
+    # without touching the store; guests keep byte-identical prompts either way.
+    personal_instructions_enabled: bool = True
+    account_cookie_name: str = "zivon_session"
+
     # --- secrets (runtime env only; never logged, never in manifests) -------
     gemini_api_key: str = field(default="", repr=False)
     gnani_stt_api_key: str = field(default="", repr=False)
@@ -307,6 +313,10 @@ class VoiceSettings:
             ws_ping_interval_s=_env_float(e, "ZIVON_VOICE_PING_INTERVAL_S", 15.0),
             ws_ping_miss_max=_env_int(e, "ZIVON_VOICE_PING_MISS_MAX", 3),
             resume_window_s=_env_float(e, "ZIVON_VOICE_RESUME_WINDOW_S", 60.0),
+            personal_instructions_enabled=_env_bool(
+                e, "ZIVON_VOICE_PERSONAL_INSTRUCTIONS_ENABLED", True
+            ),
+            account_cookie_name=e.get("ZIVON_VOICE_ACCOUNT_COOKIE", "zivon_session"),
             gemini_api_key=_env(e, "ZIVON_VOICE_GEMINI_API_KEY", "GEMINI_API_KEY"),
             gnani_stt_api_key=_env(e, "GNANI_PRISMA_API_KEY", "GNANI_API_KEY"),
             gnani_tts_api_key=_env(e, "GNANI_TIMBRE_API_KEY", "GNANI_API_KEY"),
