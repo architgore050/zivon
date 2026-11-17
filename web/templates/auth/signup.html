@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf, field_error, form_error as form_alert %}
+{% block head %}<link rel="stylesheet" href="/assets/auth.css">
+<script src="/assets/auth.js" defer></script>{% endblock %}
+{% block main %}
+<section class="wrap auth-wrap" aria-labelledby="signup-title">
+  <div class="auth-card">
+    <p class="kicker">Your Zivon account</p>
+    <h1 id="signup-title">Create your account</h1>
+    <p class="lede">One account for your progress, doubts, and tests. Reading a chapter never needs an account.</p>
+
+    {{ form_alert(form_error) }}
+
+    <form class="auth-form" method="post" action="/signup">
+      {{ csrf(form_token) }}
+      <div class="field">
+        <label for="signup-email">Email</label>
+        <input class="input" id="signup-email" name="email" type="email"
+               autocomplete="email" inputmode="email" maxlength="254" required
+               value="{{ email }}"
+               {%- if field_errors.get('email') %} aria-invalid="true" aria-describedby="signup-email-error"{% endif %}>
+        {{ field_error(field_errors.get("email"), "signup-email-error") }}
+      </div>
+      <div class="field">
+        <label for="signup-password">Password</label>
+        <input class="input" id="signup-password" name="password" type="password"
+               autocomplete="new-password" minlength="10" required
+               {%- if field_errors.get('password') %} aria-invalid="true" aria-describedby="signup-password-error signup-password-hint"{% else %} aria-describedby="signup-password-hint"{% endif %}>
+        <p class="auth-hint" id="signup-password-hint">At least 10 characters. No symbol or capital-letter rules.</p>
+        {{ field_error(field_errors.get("password"), "signup-password-error") }}
+      </div>
+      <div class="field">
+        <label for="signup-confirm">Password again</label>
+        <input class="input" id="signup-confirm" name="confirm_password" type="password"
+               autocomplete="new-password" minlength="10" required
+               {%- if field_errors.get('confirm_password') %} aria-invalid="true" aria-describedby="signup-confirm-error"{% endif %}>
+        {{ field_error(field_errors.get("confirm_password"), "signup-confirm-error") }}
+      </div>
+      <div class="field auth-check">
+        <div class="auth-check-row">
+          <input id="signup-agree" name="agree" type="checkbox" value="yes"
+                 {%- if field_errors.get('agree') %} aria-invalid="true" aria-describedby="signup-agree-error"{% endif %}>
+          <label for="signup-agree">I agree to the Terms and Privacy Policy.</label>
+        </div>
+        <p class="auth-hint">Read the <a href="/terms/">Terms</a> and the <a href="/privacy/">Privacy Policy</a>.</p>
+        {{ field_error(field_errors.get("agree"), "signup-agree-error") }}
+      </div>
+      <button class="btn auth-submit" type="submit">Create account</button>
+    </form>
+
+    <div class="auth-or" role="separator" aria-label="or"><span>or</span></div>
+
+    {% if google_available %}
+    <a class="btn btn--outline auth-google" href="/v1/auth/google/start?intent=login&amp;next={{ google_next }}">Continue with Google</a>
+    <p class="small">Continuing with Google also accepts the <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>. Zivon never sees your Google password.</p>
+    {% else %}
+    <div class="notice notice--partial">
+      <p><strong>Google sign-in is not set up on this server.</strong> Email and password works; nothing else changes.</p>
+    </div>
+    {% endif %}
+
+    <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+
+    <div class="auth-merge">
+      <p><strong>Progress saved on this device stays here.</strong> Creating an account does not delete it; moving it into your account arrives with progress sync.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

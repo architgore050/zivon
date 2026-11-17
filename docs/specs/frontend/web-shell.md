@@ -102,8 +102,13 @@ The guard reuses the F0 account path; it is not a second auth implementation.
    `next` value is always a same-origin path, never a host, so it cannot become
    an open redirect.
 4. A valid cookie yields `AccountContext` with the user row and a CSRF token
-   derived by `AuthService.csrf_for`; the raw cookie is never copied into the
-   context.
+   derived by `AuthService.csrf_for`. One resolver, `resolve_auth_session` in
+   `web/context.py`, reads the cookie for every shell page: the guard uses its
+   `shell_account` slice, while the F2 form routes also receive the
+   `AuthContext` (the stored CSRF hash and the session id that
+   `verify_csrf`/`revoke_session` need) and the raw value long enough to derive
+   the token. The raw cookie is never rendered, logged, or passed to a
+   template.
 5. `app.state.auth is None`, a config error, or a session-store exception
    yields the 503 shell: an HTML page with a retry/completion path, no JSON
    stack trace, and no Sign-in control that would point back into the failed
@@ -113,8 +118,15 @@ What HTML may contain: display name, class label, board, language name and
 native label, CSRF token. What it must never contain: email address, user id,
 session id, token hash, expiry, raw cookie value, or any session row field.
 
-`ShellUser.from_user` is the only conversion from the `users` row to template
-data. A template never receives the row itself.
+One page is a deliberate, documented exception: `/app/settings` renders the
+signed-in student's own email address as an allow-listed profile field, because
+REQUIREMENTS §10.21 asks the screen to show which account is signed in
+(`docs/specs/frontend/identity-settings.md` §4). It does not come through
+`ShellUser`; `web/routes/settings.py` builds an explicit view dict. Every other
+shell page, including `/app`, still carries no email address.
+
+`ShellUser.from_user` is the only conversion from the `users` row to shell
+template data. A template never receives the row itself.
 
 Future server-rendered forms post the hidden input from `csrf_field()`
 (`name="csrf_token"`) and the route validates it with
@@ -152,14 +164,17 @@ the same-origin API, because F3/F5/F6/F7 render small islands over `/v1/*`.
 | Request | Served by | Notes |
 |---|---|---|
 | `/app`, `/app/*` | core backend (`web/`) through nginx | HTML, cookies pass through |
-| `/login` | core backend (F2's route) | the guard's redirect target; the location is proxied now so the path reaches the backend instead of nginx's static 404. Until F2 lands the backend answers its own 404 (§10) |
+| `/login` | core backend (F2's route) | the guard's redirect target; exact location with the full private header set |
+| `/signup`, `/verify-email`, `/forgot-password`, `/reset-password`, `/onboarding`, `/logout` | core backend (F2's routes) | one anchored regex location repeating the `/login` proxy and header contract (`identity-settings.md` §1) |
 | `/assets/product.css`, `/assets/product.js`, fonts | frontend nginx static root | same origin; unchanged F1 assets |
 | `/v1/*`, `/voice/ws` | core backend | unchanged |
 
 `docker/nginx.conf` adds exact/prefix locations for `= /app`, `^~ /app/`, and
-`= /login`, each proxying to `http://core-backend:8000` (the compose alias and
-the cluster Service name), forwarding `Host $http_host`, `X-Real-IP`,
-`X-Forwarded-For`, and `X-Forwarded-Proto`. No `proxy_set_header Cookie` and no
+`= /login`, plus one anchored regex location for the rest of the F2 auth paths
+(`/signup`, `/verify-email`, `/forgot-password`, `/reset-password`,
+`/onboarding`, `/logout`). Each proxies to `http://core-backend:8000` (the
+compose alias and the cluster Service name), forwarding `Host $http_host`,
+`X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto`. No `proxy_set_header Cookie` and no
 `proxy_hide_header Set-Cookie`: the HttpOnly session cookie and the backend's
 `Set-Cookie` pass through unchanged.
 
@@ -175,11 +190,14 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
 ## 7. Handoff to feature workstreams
 
 - **F2 identity** owns `/login`, `/signup`, the verify/reset screens, the
-  Google start/callback pages, onboarding, settings, and sign-out. It adds
-  `web/routes/auth.py` + `web/templates/auth/*`, and the remaining nginx auth
-  locations in the same PR. It consumes `ShellContext.for_public` for the
-  single-paper-card shell and `csrf_field()` for every form. The guard's
-  `/login?next=` target is the fixed contract.
+  Google start/callback links, onboarding, settings/settings-privacy, and
+  sign-out. It landed 2026-11-17 (`web/routes/auth.py`, `onboarding.py`,
+  `settings.py`, `web/templates/auth/*`, `app/settings*.html`,
+  `frontend/assets/auth.css|js`); routes, flows, the CSRF matrix, and states
+  are specified in `docs/specs/frontend/identity-settings.md`. It consumes
+  `ShellContext.for_public` for the single-paper-card shell and `csrf_field()`
+  for every signed-in form; guest forms use the signed double-submit helper in
+  `web/forms.py`. The guard's `/login?next=` target is the fixed contract.
 - **F3 dashboard/progress** owns the real dashboard body and
   `web/routes/progress.py`. It replaces the `/app` body by rendering
   `web/templates/app/dashboard.html` (or replacing `app/index.html` content)
@@ -228,7 +246,9 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
   still mount;
 - `docker/nginx.conf` has the app/login proxy locations with the exact CSP,
   forwarded headers, cookie pass-through, `no-store`, and `noindex` (asserted
-  for all three locations, so a header dropped from `^~ /app/` fails);
+  for all three locations, so a header dropped from `^~ /app/` fails); the F2
+  suite also asserts the anchored regex location for the remaining auth paths
+  carries the same header set and proxy contract;
 - `Dockerfile.backend` copies `web/` and the requirements pin `jinja2`.
 
 A static template scan rejects inline script/style/handlers, and every page
@@ -236,10 +256,9 @@ template must extend `base.html`.
 
 ## 10. Known debt
 
-- `/login` has no UI until F2 lands; the guard redirect is contract-correct
-  but the destination answers a backend 404 in the meantime.
-- There is no sign-out control in the shell; F2's identity screens own it.
-  Clearing the cookie in development is a manual step.
+- The header account chip is a label, not a menu; sign-out and account
+  settings live on `/app/settings` (F2). A header menu would be an F0 change
+  with its own test.
 - Shell copy is English-only; the language choice is displayed and noted, not
   translated. UI translation is its own workstream.
 - A URL under `/app` that matches no route answers FastAPI's JSON 404 (the

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf, field_error, form_error as form_alert %}
+{% block head %}<link rel="stylesheet" href="/assets/auth.css">
+<script src="/assets/auth.js" defer></script>{% endblock %}
+{% block main %}
+<section class="wrap auth-wrap auth-wrap--wide" aria-labelledby="onboarding-title">
+  <div class="auth-card">
+    <p class="kicker">One-time setup</p>
+    <h1 id="onboarding-title">Set up your class</h1>
+    <p class="lede">Three answers. They tune the chapters and the tutor, and you can change them later in Settings.</p>
+
+    {{ form_alert(form_error) }}
+
+    <form class="auth-form" method="post" action="/onboarding" data-onboarding-form>
+      {{ csrf(csrf_token) }}
+
+      <fieldset class="field auth-fieldset">
+        <legend>Step 1 · Which class are you in?</legend>
+        <div class="auth-choices">
+          {% for level in class_choices %}
+          <label class="auth-choice">
+            <input type="radio" name="class_level" value="{{ level }}" required
+                   {%- if form.get('class_level') == level|string %} checked{% endif %}
+                   {%- if field_errors.get('class_level') %} aria-invalid="true" aria-describedby="onboarding-class-error"{% endif %}>
+            <span>Class {{ level }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {{ field_error(field_errors.get("class_level"), "onboarding-class-error") }}
+      </fieldset>
+
+      <fieldset class="field auth-fieldset">
+        <legend>Step 2 · Which board?</legend>
+        <div class="auth-choices auth-choices--column">
+          {% for board in board_choices %}
+          <label class="auth-choice">
+            <input type="radio" name="board" value="{{ board }}" required
+                   {%- if form.get('board') == board %} checked{% endif %}
+                   {%- if field_errors.get('board') %} aria-invalid="true" aria-describedby="onboarding-board-error"{% endif %}>
+            <span>{{ board }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {{ field_error(field_errors.get("board"), "onboarding-board-error") }}
+      </fieldset>
+
+      <fieldset class="field auth-fieldset">
+        <legend>Step 3 · Which language should the app use?</legend>
+        <div class="auth-choices auth-choices--column">
+          {% for value, label in language_choices %}
+          <label class="auth-choice">
+            <input type="radio" name="language" value="{{ value }}" required
+                   {%- if form.get('language') == value %} checked{% endif %}
+                   {%- if field_errors.get('language') %} aria-invalid="true" aria-describedby="onboarding-language-error"{% endif %}>
+            <span>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {{ field_error(field_errors.get("language"), "onboarding-language-error") }}
+        <p class="auth-hint">Screens are in English for now. Your choice is saved and applied when the interface translation lands.</p>
+      </fieldset>
+
+      <div class="field">
+        <label for="onboarding-goal">What are you working towards? <span class="auth-optional">(optional)</span></label>
+        <input class="input" id="onboarding-goal" name="goal" type="text" maxlength="120"
+               placeholder="Example: score above 80 in the next Physics test" value="{{ form.get('goal') }}">
+        <p class="auth-hint">Saved on this device only for now; it is not sent to the server.</p>
+      </div>
+
+      <button class="btn auth-submit" type="submit">Save and continue</button>
+    </form>
+
+    <form class="auth-skip" method="post" action="/onboarding/skip">
+      {{ csrf(csrf_token) }}
+      <button class="btn btn--quiet" type="submit">Skip for now</button>
+    </form>
+    <p class="auth-hint">Skipping saves nothing. Settings keeps the same three answers.</p>
+  </div>
+</section>
+{% endblock %}

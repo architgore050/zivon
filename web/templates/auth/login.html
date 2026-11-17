@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf, field_error, form_error as form_alert %}
+{% block head %}<link rel="stylesheet" href="/assets/auth.css">
+<script src="/assets/auth.js" defer></script>{% endblock %}
+{% block main %}
+<section class="wrap auth-wrap" aria-labelledby="login-title">
+  <div class="auth-card">
+    <p class="kicker">Your Zivon account</p>
+    <h1 id="login-title">Sign in</h1>
+    <p class="lede">Email and password, or Google. Reading a chapter never needs an account.</p>
+
+    {{ form_alert(form_error) }}
+
+    <form class="auth-form" method="post" action="/login">
+      {{ csrf(form_token) }}
+      <input type="hidden" name="next" value="{{ next_path }}">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input class="input" id="login-email" name="email" type="email"
+               autocomplete="email" inputmode="email" maxlength="254" required
+               value="{{ email }}"
+               {%- if field_errors.get('email') %} aria-invalid="true" aria-describedby="login-email-error"{% endif %}>
+        {{ field_error(field_errors.get("email"), "login-email-error") }}
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input class="input" id="login-password" name="password" type="password"
+               autocomplete="current-password" required
+               {%- if field_errors.get('password') %} aria-invalid="true" aria-describedby="login-password-error"{% endif %}>
+        {{ field_error(field_errors.get("password"), "login-password-error") }}
+      </div>
+      <p class="auth-aside"><a class="text-link" href="/forgot-password">Forgot password?</a></p>
+      <button class="btn auth-submit" type="submit">Sign in</button>
+    </form>
+
+    <div class="auth-or" role="separator" aria-label="or"><span>or</span></div>
+
+    {% if google_available %}
+    <a class="btn btn--outline auth-google" href="/v1/auth/google/start?intent=login&amp;next={{ google_next }}">Continue with Google</a>
+    <p class="small">Google only confirms your email address. Zivon never sees your Google password.</p>
+    {% else %}
+    <div class="notice notice--partial">
+      <p><strong>Google sign-in is not set up on this server.</strong> Email and password works; nothing else changes.</p>
+    </div>
+    {% endif %}
+
+    <p class="auth-switch">New to Zivon? <a href="/signup">Create an account</a></p>
+    <p class="auth-switch"><a class="text-link" href="/courses">Continue as guest</a></p>
+
+    <div class="auth-merge">
+      <p><strong>Progress saved on this device stays here.</strong> Creating an account does not delete it; moving it into your account arrives with progress sync.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

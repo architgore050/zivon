@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf, form_error as form_alert %}
+{% block head %}<link rel="stylesheet" href="/assets/auth.css">
+<script src="/assets/auth.js" defer></script>{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="privacy-title">
+  <p class="kicker">Your account</p>
+  <h1 id="privacy-title">Privacy and data</h1>
+  <p class="lede">Everything on this page belongs to you. Export it or delete it; both actions are explained before they run.</p>
+  <p class="meta"><a class="text-link" href="/app/settings">Back to settings</a></p>
+</section>
+
+<div class="wrap settings-grid">
+  <section class="settings-card" aria-labelledby="stored-title">
+    <h2 id="stored-title">What this account holds</h2>
+    <ul class="auth-list">
+      <li>Your email address, display name, class, board, and language.</li>
+      <li>Sign-in sessions; each one can be revoked by signing out or changing the password.</li>
+      <li>Lesson progress, progress events, and bookmarks once those screens write them.</li>
+    </ul>
+    <p class="small">Voice consent is stored per device, not on the account. The <a href="/privacy/">privacy page</a> shows what this device keeps and clears it.</p>
+  </section>
+
+  <section class="settings-card" aria-labelledby="export-title">
+    <h2 id="export-title">Export</h2>
+    <p>Download a JSON file with your profile, linked sign-in methods, sessions, lesson progress, events, and bookmarks. It never includes passwords, password hashes, or session tokens.</p>
+    <p><a class="btn btn--outline" href="/v1/me/export" download>Download my data (JSON)</a></p>
+    <p class="small">The download needs this signed-in session. If it opens a sign-in page, your session ended; sign in again and retry.</p>
+  </section>
+
+  <section class="settings-card settings-card--danger" aria-labelledby="delete-title">
+    <h2 id="delete-title">Delete account</h2>
+    <p>Deleting removes the account, every session, lesson progress, progress events, and bookmarks. This device is unlinked. The action cannot be undone.</p>
+
+    {{ form_alert(delete_error) }}
+
+    <details class="auth-danger">
+      <summary>Show the delete form</summary>
+      <form class="auth-form" method="post" action="/app/settings/delete">
+        {{ csrf(csrf_token) }}
+        <div class="field">
+          <label for="delete-confirm">Type DELETE to confirm</label>
+          <input class="input" id="delete-confirm" name="confirm" type="text"
+                 autocomplete="off" spellcheck="false" required pattern="DELETE">
+          <p class="auth-hint">This exact word is required; a stray space will not match.</p>
+        </div>
+        {% if password_set %}
+        <div class="field">
+          <label for="delete-password">Your password</label>
+          <input class="input" id="delete-password" name="password" type="password"
+                 autocomplete="current-password" required>
+          <p class="auth-hint">Required because this account signs in with a password.</p>
+        </div>
+        {% endif %}
+        <button class="btn auth-danger-submit" type="submit">Delete my account and data</button>
+      </form>
+    </details>
+  </section>
+
+  <section class="settings-card" aria-labelledby="consent-title">
+    <h2 id="consent-title">Consent and notices</h2>
+    <ul class="auth-list">
+      <li><a href="/privacy/">Privacy notice</a>: what is stored, for how long, and how to clear it.</li>
+      <li><a href="/terms/">Terms of use</a>: the agreement you accepted when creating the account.</li>
+      <li>Voice consent stays on the device that granted it. Creating an account does not grant it.</li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

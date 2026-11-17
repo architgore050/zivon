@@ -21,11 +21,12 @@ class NavItem:
     href: str
 
 
-# The signed-in shell. Today `/app` is the only app route that exists; the
-# rest of the entries land with their owning workstream.
+# The signed-in shell. A nav entry is added with the route that serves it, so
+# every link here resolves; the rest land with their owning workstream.
 APP_NAV: Final[tuple[NavItem, ...]] = (
     NavItem("dashboard", "Dashboard", "/app"),
     NavItem("courses", "Courses", "/courses"),
+    NavItem("settings", "Settings", "/app/settings"),
 )
 
 # The public shell is used by the auth/error pages F0 renders. Public
