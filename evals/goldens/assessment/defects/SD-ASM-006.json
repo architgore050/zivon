@@ -1,0 +1,12 @@
+{
+  "sample_id": "SD-ASM-006",
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "defect_class": "time_prior_out_of_bounds",
+  "expected_rule": "time_prior.bounds",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_prior",
+    "question_id": "q-c10-light-005-en",
+    "value": 900000
+  }
+}

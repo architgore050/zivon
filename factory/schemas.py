@@ -848,3 +848,11 @@ SCHEMAS = {
     "translation_review_call": TRANSLATION_REVIEW_CALL_REPORT,
     "manifest_v2": MANIFEST_V2,
 }
+
+# Assessment-content handoffs (P2, 2026-11-17): the separate factory.assessment
+# entrypoint (HANDSHAKE Q-1) keeps its schemas in factory/assessment/schemas.py
+# so the A1-A6 contracts are reviewable next to the stages that produce them;
+# they are registered here so every schema in the repo has ONE registry.
+from .assessment.schemas import ASSESSMENT_SCHEMAS as _ASSESSMENT_SCHEMAS
+
+SCHEMAS.update(_ASSESSMENT_SCHEMAS)

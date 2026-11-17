@@ -1,0 +1,18 @@
+{
+  "sample_id": "SD-ASM-002",
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "defect_class": "missing_explanation",
+  "expected_rule": "item.explanation",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_item",
+    "item_id": "q-c10-light-002",
+    "patch": {
+      "locales": {
+        "en": {
+          "explanation": "Too short."
+        }
+      }
+    }
+  }
+}

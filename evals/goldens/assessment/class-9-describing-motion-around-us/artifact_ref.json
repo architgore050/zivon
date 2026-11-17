@@ -1,0 +1,9 @@
+{
+  "golden_id": "GA-01",
+  "chapter_id": "class-9-describing-motion-around-us",
+  "generator": "seed",
+  "source_bank": "sources/syllabus/chapters/class-9-describing-motion-around-us.items.json",
+  "speaking_bank": "sources/syllabus/chapters/class-9-describing-motion-around-us.speaking.json",
+  "status": "curated",
+  "note": "Expected properties for the deterministic assessment evals; the pack is rebuilt from tracked seed data on every run, so this file pins ranges, not generated output."
+}

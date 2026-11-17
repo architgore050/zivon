@@ -3,9 +3,9 @@ factory,factory.run.started,INFO,run_id,chapter;class_level;fresh;resumed,no,,L1
 factory,factory.run.resumed,INFO,run_id,resumed_stages_count,no,,L1,factory/stages.py::run_pipeline,emitted when a re-trigger reuses completed stages
 factory,factory.run.completed,INFO,run_id,stage_durations_present;blocks_published,run_wall_ms,,L1,factory/stages.py::run_pipeline,terminal ok; publish status derives from this + 11-link output
 factory,factory.run.failed,ERROR,run_id,failed_stage;reason_code,no,repair_exhausted,L1,factory/stages.py::run_pipeline,terminal fail; alert.pipeline_run_failed keys off this (spec 9)
-factory,factory.stage.start,INFO,run_id+stage,,no,,L1,factory/stages.py::run_pipeline,one per stage id 00-ingest..11-link
-factory,factory.stage.ok,INFO,run_id+stage,blocks;attempts,stage_ms,,L1,factory/stages.py::run_pipeline,elapsed accounting mirrors existing stage_durations_s
-factory,factory.stage.fail,ERROR,run_id+stage,reason_code;attempt,stage_ms,gate_fail,L1,factory/stages.py::run_pipeline,reason_code enum in fields; never exception text with page content
+factory,factory.stage.start,INFO,run_id+stage,,no,,L1,factory/stages.py::run_pipeline,one per stage id 00-ingest..11-link or A1-syllabus..A6-publish-export (assessment runs)
+factory,factory.stage.ok,INFO,run_id+stage,blocks;attempts,stage_ms,,L1,factory/stages.py::run_pipeline,elapsed accounting mirrors existing stage_durations_s; also emitted by factory/assessment/pipeline.py for A1-A6
+factory,factory.stage.fail,ERROR,run_id+stage,reason_code;attempt,stage_ms,gate_fail,L1,factory/stages.py::run_pipeline,reason_code enum in fields; never exception text with page content; also emitted by factory/assessment/pipeline.py for A1-A6
 factory,factory.call.started,INFO,run_id+stage+request_id,call_intent;attempt,no,,L1,factory/llm.py,call_intent enum (generate;check;repair;review;reviewfix;fixloop)
 factory,factory.call.finished,INFO,run_id+stage+request_id,first_token_s;chunks_received;finish_reason;usage_present,call_ms,,L1,factory/llm.py,usage_present=false when OpenRouter returns usage null (TIMELINE 2026-11-08)
 factory,factory.call.rejected,WARNING,run_id+stage+request_id,round;reason_code,no,validation_error,L1,factory/llm.py + factory/checks.py,schema/contract rejection; reason_code only
@@ -16,6 +16,10 @@ factory,factory.coverage.gap_fatal,ERROR,run_id+stage,missing_count,no,gate_fail
 factory,factory.perf.budget_fail,WARNING,run_id+stage,budget_name;measured_ms;limit_ms,measured_ms,gate_fail,L1,factory/perf.py,perf-harness gates (overflow; FCP; load budgets)
 factory,factory.publish.ok,INFO,run_id,target;asset_count,no,,L1,scripts/publish-frontend.sh,shell publish path; target enum (pvc;snapshot)
 factory,factory.publish.fail,ERROR,run_id,target;reason_code,no,infra_error,L1,scripts/publish-frontend.sh,publish status view input
+factory,factory.assessment.run.started,INFO,run_id,chapter_id;class_level;generator;languages;fresh;resumed,no,,L1,factory/assessment/pipeline.py::run_assessment,separate assessment entrypoint (HANDSHAKE Q-1); the lesson stages 00-12 are never touched
+factory,factory.assessment.run.completed,INFO,run_id,chapters_count;items_count;speaking_prompts_count;question_rows;content_hash,run_wall_ms,,L1,factory/assessment/pipeline.py::run_assessment,terminal ok; the pack hash joins this row to factory.assessment.pack.written
+factory,factory.assessment.run.failed,ERROR,run_id,failed_stage;reason_code;error_count,no,repair_exhausted,L1,factory/assessment/pipeline.py::run_assessment,terminal fail; a gate failure writes its report before this event
+factory,factory.assessment.pack.written,INFO,run_id,chapter_id;base_items;question_rows;content_hash;exported,no,,L1,factory/assessment/pipeline.py::run_assessment,versioned JSON pack + manifest; DB import is a later consumer (F0)
 llm_node,node.call.received,INFO,request_id;run_id,stream;attempt,no,,L1,llm_manager/service/,OpenAI-format relay entry; no payload fields ever
 llm_node,node.call.finished,INFO,request_id;run_id,first_token_s;chunks_received;finish_reason;usage_present,call_ms,,L1,llm_manager/service/,same field names as client side for join
 llm_node,node.call.transport_retry,WARNING,request_id;run_id,attempt;reason_code,no,transport_error,L1,llm_manager/service/,inactivity retry; reason enum (inactivity;status_5xx;rate_limited)

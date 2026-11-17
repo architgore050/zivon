@@ -76,6 +76,13 @@ EMITTED_BY_THIS_BRANCH = [
     "factory.eval.regression_alert",
     "factory.eval.human_edit_recorded",
     "factory.eval.kid_session_logged",
+    # factory/assessment/pipeline.py (P2, 2026-11-17) - the separate
+    # assessment entrypoint's run edges; its stage transitions reuse
+    # factory.stage.start/ok/fail with A1-A6 stage ids.
+    "factory.assessment.run.started",
+    "factory.assessment.run.completed",
+    "factory.assessment.run.failed",
+    "factory.assessment.pack.written",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming

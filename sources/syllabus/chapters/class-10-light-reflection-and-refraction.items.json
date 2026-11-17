@@ -1,0 +1,667 @@
+{
+  "schema_version": 1,
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "class": 10,
+  "generator": "seed-asm-1",
+  "source": {
+    "book_id": "ncert-science-10",
+    "chapter_number": 9,
+    "chapter_title": "Light – Reflection and Refraction",
+    "source_type": "generated",
+    "note": "Curated from the NCERT Class X chapter 9 sections; worked-example numbers are NCERT's own (Examples 9.1-9.4)."
+  },
+  "items": [
+    {
+      "item_id": "q-c10-light-001",
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "type": "mcq",
+      "difficulty": "easy",
+      "marks": 1,
+      "computation_steps": 0,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.1"
+      },
+      "answer": {
+        "index": 0
+      },
+      "locales": {
+        "en": {
+          "prompt": "A ray of light strikes a plane mirror with an angle of incidence of 30°. What is the angle of reflection?",
+          "explanation": "The first law of reflection says the angle of incidence equals the angle of reflection, so the reflected ray also makes 30° with the normal.",
+          "options": [
+            "30°",
+            "60°",
+            "15°",
+            "90°"
+          ],
+          "misconception": "Measuring the angle from the mirror surface instead of the normal gives 60°."
+        },
+        "hi": {
+          "prompt": "प्रकाश की एक किरण समतल दर्पण पर 30° के आपतन कोण से गिरती है। परावर्तन कोण क्या होगा?",
+          "explanation": "परावर्तन के पहले नियम के अनुसार आपतन कोण, परावर्तन कोण के बराबर होता है, इसलिए परावर्तित किरण भी अभिलंब से 30° का कोण बनाती है।",
+          "options": [
+            "30°",
+            "60°",
+            "15°",
+            "90°"
+          ],
+          "misconception": "कोण को अभिलंब के बजाय दर्पण की सतह से मापने पर 60° मिलता है।"
+        },
+        "hi-Latn": {
+          "prompt": "Light ki ek kiran plane mirror par 30° ke angle of incidence se girti hai. Angle of reflection kya hoga?",
+          "explanation": "Reflection ke pehle niyam ke anusaar angle of incidence, angle of reflection ke barabar hota hai, isliye reflected ray bhi normal se 30° ka angle banati hai.",
+          "options": [
+            "30°",
+            "60°",
+            "15°",
+            "90°"
+          ],
+          "misconception": "Angle ko normal ke bajaye mirror surface se maapne par 60° milta hai."
+        }
+      },
+      "distractor_index": 1
+    },
+    {
+      "item_id": "q-c10-light-002",
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "type": "mcq",
+      "difficulty": "easy",
+      "marks": 1,
+      "computation_steps": 0,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.2"
+      },
+      "answer": {
+        "index": 2
+      },
+      "locales": {
+        "en": {
+          "prompt": "Which type of mirror is used as a rear-view mirror in vehicles?",
+          "explanation": "A convex mirror always forms an erect, diminished image and gives a wider field of view, which is why it is used as a rear-view mirror.",
+          "options": [
+            "Concave mirror",
+            "Plane mirror",
+            "Convex mirror",
+            "Cylindrical mirror"
+          ],
+          "misconception": "A concave mirror would magnify and invert nearby traffic."
+        },
+        "hi": {
+          "prompt": "वाहनों में पीछे देखने वाले दर्पण के रूप में किस प्रकार का दर्पण प्रयोग होता है?",
+          "explanation": "उत्तल दर्पण सदैव सीधा, छोटा प्रतिबिंब बनाता है और अधिक चौड़ा दृश्य क्षेत्र देता है, इसलिए इसे पीछे देखने वाले दर्पण के रूप में प्रयोग करते हैं।",
+          "options": [
+            "अवतल दर्पण",
+            "समतल दर्पण",
+            "उत्तल दर्पण",
+            "बेलनाकार दर्पण"
+          ],
+          "misconception": "अवतल दर्पण पास के यातायात को बड़ा और उल्टा दिखाएगा।"
+        },
+        "hi-Latn": {
+          "prompt": "Vehicles mein rear-view mirror ke roop mein kaunsa mirror use hota hai?",
+          "explanation": "Convex mirror hamesha erect, chhota image banata hai aur wider field of view deta hai, isliye use rear-view mirror ke roop mein karte hain.",
+          "options": [
+            "Concave mirror",
+            "Plane mirror",
+            "Convex mirror",
+            "Cylindrical mirror"
+          ],
+          "misconception": "Concave mirror paas ke traffic ko bada aur ulta dikhayega."
+        }
+      },
+      "distractor_index": 0
+    },
+    {
+      "item_id": "q-c10-light-003",
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "type": "numeric",
+      "difficulty": "easy",
+      "marks": 1,
+      "computation_steps": 1,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.2.1"
+      },
+      "answer": {
+        "value": 16.0,
+        "tolerance": 0.1,
+        "unit": "cm"
+      },
+      "locales": {
+        "en": {
+          "prompt": "The radius of curvature of a concave mirror is 32 cm. What is its focal length in cm?",
+          "explanation": "For a spherical mirror the focal length is half the radius of curvature: f = R/2 = 32/2 = 16 cm."
+        },
+        "hi": {
+          "prompt": "एक अवतल दर्पण की वक्रता त्रिज्या 32 cm है। उसकी फोकस दूरी cm में क्या है?",
+          "explanation": "गोलीय दर्पण के लिए फोकस दूरी वक्रता त्रिज्या की आधी होती है: f = R/2 = 32/2 = 16 cm।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek concave mirror ki radius of curvature 32 cm hai. Uski focal length cm mein kya hai?",
+          "explanation": "Spherical mirror ke liye focal length radius of curvature ki aadhi hoti hai: f = R/2 = 32/2 = 16 cm."
+        }
+      }
+    },
+    {
+      "item_id": "q-c10-light-004",
+      "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+      "type": "mcq",
+      "difficulty": "medium",
+      "marks": 1,
+      "computation_steps": 1,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.2.4",
+        "example": "Example 9.1"
+      },
+      "answer": {
+        "index": 1
+      },
+      "locales": {
+        "en": {
+          "prompt": "A convex rear-view mirror has a radius of curvature of +3.00 m. A bus is 5.00 m from the mirror. Where is the image, and what is its nature?",
+          "explanation": "f = R/2 = +1.50 m. Using 1/v + 1/u = 1/f with u = -5.00 m gives 1/v = 1/1.50 + 1/5.00, so v = +1.15 m. A positive v behind a convex mirror means a virtual, erect, diminished image with magnification +0.23.",
+          "options": [
+            "1.15 m in front of the mirror, real and inverted",
+            "1.15 m behind the mirror, virtual and erect",
+            "3.00 m behind the mirror, virtual and enlarged",
+            "0.23 m in front of the mirror, real and diminished"
+          ],
+          "misconception": "Dropping the sign of u turns a convex-mirror image into a real one."
+        },
+        "hi": {
+          "prompt": "एक उत्तल पीछे-देखने वाले दर्पण की वक्रता त्रिज्या +3.00 m है। एक बस दर्पण से 5.00 m दूर है। प्रतिबिंब कहाँ बनेगा और उसकी प्रकृति क्या होगी?",
+          "explanation": "f = R/2 = +1.50 m। 1/v + 1/u = 1/f में u = -5.00 m रखने पर 1/v = 1/1.50 + 1/5.00, इसलिए v = +1.15 m। उत्तल दर्पण के पीछे धनात्मक v का अर्थ आभासी, सीधा और छोटा प्रतिबिंब है, आवर्धन +0.23।",
+          "options": [
+            "दर्पण के सामने 1.15 m, वास्तविक और उल्टा",
+            "दर्पण के पीछे 1.15 m, आभासी और सीधा",
+            "दर्पण के पीछे 3.00 m, आभासी और बड़ा",
+            "दर्पण के सामने 0.23 m, वास्तविक और छोटा"
+          ],
+          "misconception": "u का चिह्न छोड़ने पर उत्तल दर्पण का प्रतिबिंब वास्तविक हो जाता है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek convex rear-view mirror ki radius of curvature +3.00 m hai. Ek bus mirror se 5.00 m door hai. Image kahan banega aur uski nature kya hogi?",
+          "explanation": "f = R/2 = +1.50 m. 1/v + 1/u = 1/f mein u = -5.00 m rakhne par 1/v = 1/1.50 + 1/5.00, isliye v = +1.15 m. Convex mirror ke peeche positive v ka matlab virtual, erect aur chhota image hai, magnification +0.23.",
+          "options": [
+            "Mirror ke saamne 1.15 m, real aur inverted",
+            "Mirror ke peeche 1.15 m, virtual aur erect",
+            "Mirror ke peeche 3.00 m, virtual aur enlarged",
+            "Mirror ke saamne 0.23 m, real aur diminished"
+          ],
+          "misconception": "u ka sign chhodne par convex mirror ka image real ho jaata hai."
+        }
+      },
+      "distractor_index": 0
+    },
+    {
+      "item_id": "q-c10-light-005",
+      "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+      "type": "numeric",
+      "difficulty": "hard",
+      "marks": 2,
+      "computation_steps": 2,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.2.4",
+        "example": "Example 9.2"
+      },
+      "answer": {
+        "value": -37.5,
+        "tolerance": 0.5,
+        "unit": "cm"
+      },
+      "locales": {
+        "en": {
+          "prompt": "An object is placed 25.0 cm in front of a concave mirror of focal length 15.0 cm. At what distance from the mirror is the sharp image formed? (Answer in cm with the sign convention.)",
+          "explanation": "With u = -25.0 cm and f = -15.0 cm, 1/v = 1/f - 1/u = -1/15 + 1/25 = -2/75, so v = -37.5 cm. The negative sign means the image is real and in front of the mirror."
+        },
+        "hi": {
+          "prompt": "एक वस्तु 15.0 cm फोकस दूरी वाले अवतल दर्पण के सामने 25.0 cm पर रखी है। तीव्र प्रतिबिंब दर्पण से कितनी दूरी पर बनेगा? (चिह्न परिपाटी के साथ cm में उत्तर दें।)",
+          "explanation": "u = -25.0 cm और f = -15.0 cm के लिए, 1/v = 1/f - 1/u = -1/15 + 1/25 = -2/75, इसलिए v = -37.5 cm। ऋण चिह्न का अर्थ है प्रतिबिंब वास्तविक और दर्पण के सामने है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek object 15.0 cm focal length wale concave mirror ke saamne 25.0 cm par rakha hai. Sharp image mirror se kitni doori par banega? (Sign convention ke saath cm mein answer do.)",
+          "explanation": "u = -25.0 cm aur f = -15.0 cm ke liye, 1/v = 1/f - 1/u = -1/15 + 1/25 = -2/75, isliye v = -37.5 cm. Minus sign ka matlab hai image real aur mirror ke saamne hai."
+        }
+      }
+    },
+    {
+      "item_id": "q-c10-light-006",
+      "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+      "type": "assertion_reason",
+      "difficulty": "medium",
+      "marks": 1,
+      "computation_steps": 1,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.2.4"
+      },
+      "answer": {
+        "index": 0
+      },
+      "locales": {
+        "en": {
+          "prompt": "Assertion (A): The magnification produced by a plane mirror is +1. Reason (R): A plane mirror forms a virtual, erect image of the same size as the object.",
+          "explanation": "Magnification is image height divided by object height. A plane mirror shows an image of the same size (m = +1), and the positive sign matches the virtual, erect image. R explains A.",
+          "options": [
+            "Both A and R are true, and R explains A.",
+            "Both A and R are true, but R does not explain A.",
+            "A is true but R is false.",
+            "A is false but R is true."
+          ],
+          "misconception": "Thinking a plane mirror must invert the image; it laterally inverts, it does not turn it upside down."
+        },
+        "hi": {
+          "prompt": "अभिकथन (A): समतल दर्पण द्वारा उत्पन्न आवर्धन +1 होता है। कारण (R): समतल दर्पण वस्तु के समान आकार का आभासी और सीधा प्रतिबिंब बनाता है।",
+          "explanation": "आवर्धन प्रतिबिंब की ऊँचाई और वस्तु की ऊँचाई का अनुपात है। समतल दर्पण समान आकार का प्रतिबिंब दिखाता है (m = +1), और धनात्मक चिह्न आभासी, सीधे प्रतिबिंब से मेल खाता है। R, A की व्याख्या करता है।",
+          "options": [
+            "A और R दोनों सत्य हैं, और R, A की व्याख्या करता है।",
+            "A और R दोनों सत्य हैं, परंतु R, A की व्याख्या नहीं करता।",
+            "A सत्य है परंतु R असत्य है।",
+            "A असत्य है परंतु R सत्य है।"
+          ],
+          "misconception": "यह मानना कि समतल दर्पण प्रतिबिंब को उल्टा करता है; वह पार्श्व रूप से उलटता है, ऊपर-नीचे नहीं।"
+        },
+        "hi-Latn": {
+          "prompt": "Assertion (A): Plane mirror ka magnification +1 hota hai. Reason (R): Plane mirror object ke same size ka virtual aur erect image banata hai.",
+          "explanation": "Magnification image height aur object height ka ratio hai. Plane mirror same size ka image dikhata hai (m = +1), aur positive sign virtual, erect image se match karta hai. R, A ko explain karta hai.",
+          "options": [
+            "A aur R dono sach hain, aur R, A ko explain karta hai.",
+            "A aur R dono sach hain, lekin R, A ko explain nahi karta.",
+            "A sach hai lekin R galat hai.",
+            "A galat hai lekin R sach hai."
+          ],
+          "misconception": "Yeh maanna ki plane mirror image ko ulta karta hai; woh laterally invert karta hai, upar-neeche nahi."
+        }
+      },
+      "distractor_index": 1
+    },
+    {
+      "item_id": "q-c10-light-007",
+      "concept_id": "class-10-light-reflection-and-refraction-refraction-of-light",
+      "type": "mcq",
+      "difficulty": "easy",
+      "marks": 1,
+      "computation_steps": 0,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.2"
+      },
+      "answer": {
+        "index": 0
+      },
+      "locales": {
+        "en": {
+          "prompt": "When light passes from air into glass, it bends towards the normal because:",
+          "explanation": "Glass is optically denser than air, so light slows down and bends towards the normal. The refractive index of glass is greater than 1.",
+          "options": [
+            "its speed decreases in glass",
+            "its speed increases in glass",
+            "its frequency increases in glass",
+            "glass reflects most of the light"
+          ],
+          "misconception": "The frequency of light does not change when it enters a new medium."
+        },
+        "hi": {
+          "prompt": "जब प्रकाश वायु से काँच में जाता है तो अभिलंब की ओर मुड़ता है क्योंकि:",
+          "explanation": "काँच वायु से प्रकाशिक रूप से सघन है, इसलिए प्रकाश धीमा होकर अभिलंब की ओर मुड़ता है। काँच का अपवर्तनांक 1 से अधिक है।",
+          "options": [
+            "काँच में उसकी चाल घट जाती है",
+            "काँच में उसकी चाल बढ़ जाती है",
+            "काँच में उसकी आवृत्ति बढ़ जाती है",
+            "काँच अधिकांश प्रकाश परावर्तित करता है"
+          ],
+          "misconception": "नए माध्यम में प्रवेश करने पर प्रकाश की आवृत्ति नहीं बदलती।"
+        },
+        "hi-Latn": {
+          "prompt": "Jab light air se glass mein jaati hai toh normal ki taraf mudti hai kyunki:",
+          "explanation": "Glass air se optically denser hai, isliye light slow hokar normal ki taraf mudti hai. Glass ka refractive index 1 se zyada hai.",
+          "options": [
+            "Glass mein uski speed kam ho jaati hai",
+            "Glass mein uski speed badh jaati hai",
+            "Glass mein uski frequency badh jaati hai",
+            "Glass zyada tar light reflect karta hai"
+          ],
+          "misconception": "Naye medium mein jaane par light ki frequency nahi badalti."
+        }
+      },
+      "distractor_index": 1
+    },
+    {
+      "item_id": "q-c10-light-008",
+      "concept_id": "class-10-light-reflection-and-refraction-refraction-of-light",
+      "type": "numeric",
+      "difficulty": "medium",
+      "marks": 1,
+      "computation_steps": 2,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.2",
+        "example": "Exercise 2"
+      },
+      "answer": {
+        "value": 2.0,
+        "tolerance": 0.05,
+        "unit": "10^8 m/s"
+      },
+      "locales": {
+        "en": {
+          "prompt": "The refractive index of glass is 1.50. What is the speed of light in glass, in units of 10^8 m/s? (Speed of light in vacuum = 3 × 10^8 m/s.)",
+          "explanation": "The refractive index is n = c/v, so v = c/n = 3 × 10^8 / 1.50 = 2.0 × 10^8 m/s."
+        },
+        "hi": {
+          "prompt": "काँच का अपवर्तनांक 1.50 है। काँच में प्रकाश की चाल 10^8 m/s के मात्रक में क्या है? (निर्वात में प्रकाश की चाल = 3 × 10^8 m/s।)",
+          "explanation": "अपवर्तनांक n = c/v है, इसलिए v = c/n = 3 × 10^8 / 1.50 = 2.0 × 10^8 m/s।"
+        },
+        "hi-Latn": {
+          "prompt": "Glass ka refractive index 1.50 hai. Glass mein light ki speed 10^8 m/s ke units mein kya hai? (Vacuum mein light ki speed = 3 × 10^8 m/s.)",
+          "explanation": "Refractive index n = c/v hai, isliye v = c/n = 3 × 10^8 / 1.50 = 2.0 × 10^8 m/s."
+        }
+      }
+    },
+    {
+      "item_id": "q-c10-light-009",
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-lenses",
+      "type": "mcq",
+      "difficulty": "medium",
+      "marks": 1,
+      "computation_steps": 1,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.7",
+        "example": "Example 9.3"
+      },
+      "answer": {
+        "index": 2
+      },
+      "locales": {
+        "en": {
+          "prompt": "A concave lens of focal length 15 cm forms an image 10 cm from the lens. Where is the object?",
+          "explanation": "With v = -10 cm and f = -15 cm, 1/u = 1/v - 1/f = -1/10 + 1/15 = -1/30, so u = -30 cm: the object is 30 cm in front of the lens.",
+          "options": [
+            "30 cm behind the lens",
+            "6 cm in front of the lens",
+            "30 cm in front of the lens",
+            "10 cm behind the lens"
+          ],
+          "misconception": "A concave lens always forms a virtual image on the same side as the object."
+        },
+        "hi": {
+          "prompt": "15 cm फोकस दूरी वाला अवतल लेंस लेंस से 10 cm दूर प्रतिबिंब बनाता है। वस्तु कहाँ है?",
+          "explanation": "v = -10 cm और f = -15 cm के लिए, 1/u = 1/v - 1/f = -1/10 + 1/15 = -1/30, इसलिए u = -30 cm: वस्तु लेंस के सामने 30 cm पर है।",
+          "options": [
+            "लेंस के पीछे 30 cm",
+            "लेंस के सामने 6 cm",
+            "लेंस के सामने 30 cm",
+            "लेंस के पीछे 10 cm"
+          ],
+          "misconception": "अवतल लेंस सदैव वस्तु के उसी ओर आभासी प्रतिबिंब बनाता है।"
+        },
+        "hi-Latn": {
+          "prompt": "15 cm focal length wala concave lens lens se 10 cm door image banata hai. Object kahan hai?",
+          "explanation": "v = -10 cm aur f = -15 cm ke liye, 1/u = 1/v - 1/f = -1/10 + 1/15 = -1/30, isliye u = -30 cm: object lens ke saamne 30 cm par hai.",
+          "options": [
+            "Lens ke peeche 30 cm",
+            "Lens ke saamne 6 cm",
+            "Lens ke saamne 30 cm",
+            "Lens ke peeche 10 cm"
+          ],
+          "misconception": "Concave lens hamesha object ke usi side virtual image banata hai."
+        }
+      },
+      "distractor_index": 0
+    },
+    {
+      "item_id": "q-c10-light-010",
+      "concept_id": "class-10-light-reflection-and-refraction-lens-formula-and-magnification",
+      "type": "numeric",
+      "difficulty": "hard",
+      "marks": 2,
+      "computation_steps": 2,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.7",
+        "example": "Example 9.4"
+      },
+      "answer": {
+        "value": 30.0,
+        "tolerance": 0.5,
+        "unit": "cm"
+      },
+      "locales": {
+        "en": {
+          "prompt": "An object 2.0 cm tall is placed 15 cm from a convex lens of focal length 10 cm. At what distance from the lens is the image formed? (Answer in cm.)",
+          "explanation": "With u = -15 cm and f = +10 cm, 1/v = 1/f + 1/u = 1/10 - 1/15 = 1/30, so v = +30 cm. The positive sign means a real image on the far side of the lens."
+        },
+        "hi": {
+          "prompt": "2.0 cm ऊँची वस्तु 10 cm फोकस दूरी वाले उत्तल लेंस से 15 cm दूर रखी है। प्रतिबिंब लेंस से कितनी दूरी पर बनेगा? (cm में उत्तर दें।)",
+          "explanation": "u = -15 cm और f = +10 cm के लिए, 1/v = 1/f + 1/u = 1/10 - 1/15 = 1/30, इसलिए v = +30 cm। धनात्मक चिह्न का अर्थ है वास्तविक प्रतिबिंब लेंस के दूसरी ओर है।"
+        },
+        "hi-Latn": {
+          "prompt": "2.0 cm tall object 10 cm focal length wale convex lens se 15 cm door rakha hai. Image lens se kitni doori par banega? (cm mein answer do.)",
+          "explanation": "u = -15 cm aur f = +10 cm ke liye, 1/v = 1/f + 1/u = 1/10 - 1/15 = 1/30, isliye v = +30 cm. Positive sign ka matlab hai real image lens ke doosri taraf hai."
+        }
+      }
+    },
+    {
+      "item_id": "q-c10-light-011",
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-lenses",
+      "type": "assertion_reason",
+      "difficulty": "medium",
+      "marks": 1,
+      "computation_steps": 1,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.4"
+      },
+      "answer": {
+        "index": 0
+      },
+      "locales": {
+        "en": {
+          "prompt": "Assertion (A): A convex lens can form a virtual and erect image. Reason (R): When the object is placed between the lens and its focus, the image formed by a convex lens is virtual and erect.",
+          "explanation": "A convex lens is not always converging-to-a-real-image: with the object inside the focal length the rays diverge after the lens and a virtual, erect, magnified image is seen. R explains A.",
+          "options": [
+            "Both A and R are true, and R explains A.",
+            "Both A and R are true, but R does not explain A.",
+            "A is true but R is false.",
+            "A is false but R is true."
+          ],
+          "misconception": "Assuming a convex lens always forms a real image is the common error."
+        },
+        "hi": {
+          "prompt": "अभिकथन (A): उत्तल लेंस आभासी और सीधा प्रतिबिंब बना सकता है। कारण (R): जब वस्तु लेंस और उसके फोकस के बीच रखी हो, तो उत्तल लेंस आभासी और सीधा प्रतिबिंब बनाता है।",
+          "explanation": "उत्तल लेंस सदैव वास्तविक प्रतिबिंब नहीं बनाता: वस्तु फोकस दूरी के भीतर होने पर लेंस के बाद किरणें अपसरित होती हैं और आभासी, सीधा, बड़ा प्रतिबिंब दिखता है। R, A की व्याख्या करता है।",
+          "options": [
+            "A और R दोनों सत्य हैं, और R, A की व्याख्या करता है।",
+            "A और R दोनों सत्य हैं, परंतु R, A की व्याख्या नहीं करता।",
+            "A सत्य है परंतु R असत्य है।",
+            "A असत्य है परंतु R सत्य है।"
+          ],
+          "misconception": "यह मानना कि उत्तल लेंस सदैव वास्तविक प्रतिबिंब बनाता है, सामान्य भूल है।"
+        },
+        "hi-Latn": {
+          "prompt": "Assertion (A): Convex lens virtual aur erect image bana sakta hai. Reason (R): Jab object lens aur uske focus ke beech rakha ho, toh convex lens virtual aur erect image banata hai.",
+          "explanation": "Convex lens hamesha real image nahi banata: object focal length ke andar ho toh lens ke baad rays diverge hoti hain aur virtual, erect, bada image dikhta hai. R, A ko explain karta hai.",
+          "options": [
+            "A aur R dono sach hain, aur R, A ko explain karta hai.",
+            "A aur R dono sach hain, lekin R, A ko explain nahi karta.",
+            "A sach hai lekin R galat hai.",
+            "A galat hai lekin R sach hai."
+          ],
+          "misconception": "Yeh maanna ki convex lens hamesha real image banata hai, common galti hai."
+        }
+      },
+      "distractor_index": 1
+    },
+    {
+      "item_id": "q-c10-light-012",
+      "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+      "type": "mcq",
+      "difficulty": "medium",
+      "marks": 1,
+      "computation_steps": 0,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.8"
+      },
+      "answer": {
+        "index": 3
+      },
+      "locales": {
+        "en": {
+          "prompt": "A lens has a power of +2.0 D. What is its focal length?",
+          "explanation": "Power is the reciprocal of focal length in metres: f = 1/P = 1/2.0 = 0.50 m. The positive power tells us the lens is convex.",
+          "options": [
+            "+2.0 m",
+            "-0.50 m",
+            "+0.25 m",
+            "+0.50 m"
+          ],
+          "misconception": "Forgetting to invert the power; +2.0 D does not mean a 2 m focal length."
+        },
+        "hi": {
+          "prompt": "एक लेंस की क्षमता +2.0 D है। उसकी फोकस दूरी क्या है?",
+          "explanation": "क्षमता मीटर में फोकस दूरी का व्युत्क्रम है: f = 1/P = 1/2.0 = 0.50 m। धनात्मक क्षमता बताती है कि लेंस उत्तल है।",
+          "options": [
+            "+2.0 m",
+            "-0.50 m",
+            "+0.25 m",
+            "+0.50 m"
+          ],
+          "misconception": "क्षमता का व्युत्क्रम लेना भूलना; +2.0 D का अर्थ 2 m फोकस दूरी नहीं है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek lens ki power +2.0 D hai. Uski focal length kya hai?",
+          "explanation": "Power metre mein focal length ka reciprocal hai: f = 1/P = 1/2.0 = 0.50 m. Positive power batati hai ki lens convex hai.",
+          "options": [
+            "+2.0 m",
+            "-0.50 m",
+            "+0.25 m",
+            "+0.50 m"
+          ],
+          "misconception": "Power ka reciprocal lena bhoolna; +2.0 D ka matlab 2 m focal length nahi hai."
+        }
+      },
+      "distractor_index": 0
+    },
+    {
+      "item_id": "q-c10-light-013",
+      "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+      "type": "numeric",
+      "difficulty": "easy",
+      "marks": 1,
+      "computation_steps": 1,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.8"
+      },
+      "answer": {
+        "value": -2.5,
+        "tolerance": 0.05,
+        "unit": "D"
+      },
+      "locales": {
+        "en": {
+          "prompt": "A concave lens has a focal length of -0.40 m. What is its power in dioptres?",
+          "explanation": "P = 1/f = 1/(-0.40) = -2.5 D. The negative sign belongs to a diverging (concave) lens."
+        },
+        "hi": {
+          "prompt": "एक अवतल लेंस की फोकस दूरी -0.40 m है। उसकी क्षमता डायोप्टर में क्या है?",
+          "explanation": "P = 1/f = 1/(-0.40) = -2.5 D। ऋण चिह्न अपसारी (अवतल) लेंस का है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek concave lens ki focal length -0.40 m hai. Uski power dioptre mein kya hai?",
+          "explanation": "P = 1/f = 1/(-0.40) = -2.5 D. Minus sign diverging (concave) lens ka hai."
+        }
+      }
+    },
+    {
+      "item_id": "q-c10-light-014",
+      "concept_id": "class-10-light-reflection-and-refraction-refraction-of-light",
+      "type": "mcq",
+      "difficulty": "hard",
+      "marks": 1,
+      "computation_steps": 0,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.3.2",
+        "example": "Exercise 5"
+      },
+      "answer": {
+        "index": 1
+      },
+      "locales": {
+        "en": {
+          "prompt": "The refractive index of diamond is 2.42. What does this mean?",
+          "explanation": "The refractive index is the ratio of the speed of light in vacuum to its speed in the medium: n = c/v. A value of 2.42 means light travels 2.42 times slower in diamond than in vacuum.",
+          "options": [
+            "Light travels 2.42 times faster in diamond than in vacuum",
+            "Light travels 2.42 times slower in diamond than in vacuum",
+            "Diamond reflects 2.42 times more light than glass",
+            "Diamond's focal length is 2.42 m"
+          ],
+          "misconception": "Inverting the ratio: a larger refractive index means slower light, not faster."
+        },
+        "hi": {
+          "prompt": "हीरे का अपवर्तनांक 2.42 है। इसका क्या अर्थ है?",
+          "explanation": "अपवर्तनांक निर्वात में प्रकाश की चाल और माध्यम में उसकी चाल का अनुपात है: n = c/v। 2.42 का अर्थ है कि हीरे में प्रकाश निर्वात की तुलना में 2.42 गुना धीमा चलता है।",
+          "options": [
+            "हीरे में प्रकाश निर्वात की तुलना में 2.42 गुना तेज चलता है",
+            "हीरे में प्रकाश निर्वात की तुलना में 2.42 गुना धीमा चलता है",
+            "हीरा काँच से 2.42 गुना अधिक प्रकाश परावर्तित करता है",
+            "हीरे की फोकस दूरी 2.42 m है"
+          ],
+          "misconception": "अनुपात उलट देना: बड़ा अपवर्तनांक धीमा प्रकाश दर्शाता है, तेज नहीं।"
+        },
+        "hi-Latn": {
+          "prompt": "Diamond ka refractive index 2.42 hai. Iska kya matlab hai?",
+          "explanation": "Refractive index vacuum mein light ki speed aur medium mein uski speed ka ratio hai: n = c/v. 2.42 ka matlab hai ki diamond mein light vacuum se 2.42 guna dheemi chalti hai.",
+          "options": [
+            "Diamond mein light vacuum se 2.42 guna tez chalti hai",
+            "Diamond mein light vacuum se 2.42 guna dheemi chalti hai",
+            "Diamond glass se 2.42 guna zyada light reflect karta hai",
+            "Diamond ki focal length 2.42 m hai"
+          ],
+          "misconception": "Ratio ulat dena: bada refractive index dheemi light dikhata hai, tez nahi."
+        }
+      },
+      "distractor_index": 0
+    },
+    {
+      "item_id": "q-c10-light-015",
+      "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+      "type": "numeric",
+      "difficulty": "hard",
+      "marks": 2,
+      "computation_steps": 2,
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "section": "9.2.4",
+        "example": "Exercise 2"
+      },
+      "answer": {
+        "value": -30.0,
+        "tolerance": 0.5,
+        "unit": "cm"
+      },
+      "locales": {
+        "en": {
+          "prompt": "A concave mirror forms a real image three times the size of an object placed 10 cm in front of it. Where is the image? (Answer in cm with the sign convention.)",
+          "explanation": "A real image is inverted, so m = -3. With m = -v/u and u = -10 cm, -3 = -v/(-10), giving v = -30 cm: the image is 30 cm in front of the mirror."
+        },
+        "hi": {
+          "prompt": "एक अवतल दर्पण अपने सामने 10 cm पर रखी वस्तु का तीन गुना बड़ा वास्तविक प्रतिबिंब बनाता है। प्रतिबिंब कहाँ है? (चिह्न परिपाटी के साथ cm में उत्तर दें।)",
+          "explanation": "वास्तविक प्रतिबिंब उल्टा होता है, इसलिए m = -3। m = -v/u और u = -10 cm से, -3 = -v/(-10), इसलिए v = -30 cm: प्रतिबिंब दर्पण के सामने 30 cm पर है।"
+        },
+        "hi-Latn": {
+          "prompt": "Ek concave mirror apne saamne 10 cm par rakhi object ka teen guna bada real image banata hai. Image kahan hai? (Sign convention ke saath cm mein answer do.)",
+          "explanation": "Real image inverted hota hai, isliye m = -3. m = -v/u aur u = -10 cm se, -3 = -v/(-10), isliye v = -30 cm: image mirror ke saamne 30 cm par hai."
+        }
+      }
+    }
+  ]
+}

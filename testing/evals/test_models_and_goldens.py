@@ -70,6 +70,11 @@ class TestEvalConfigAndModels(unittest.TestCase):
             "EV-KID-001",
             "EV-SYN-003",
             "EV-VIS-002",
+            # Assessment-content cards (P2, 2026-11-17; additive per Q-5).
+            "EV-ASM-001",
+            "EV-ASM-002",
+            "EV-ASM-003",
+            "EV-ASM-004",
         }
         self.assertEqual(set(cards.keys()), expected_ids)
 

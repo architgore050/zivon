@@ -1,0 +1,37 @@
+card_id: EV-ASM-003
+version: 1
+title: Difficulty mix, marks band and time-prior sanity
+stage: A5-time-priors
+agent_role: Assessment Author
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/assessment/class-9-describing-motion-around-us
+  - evals/goldens/assessment/class-10-light-reflection-and-refraction
+  seeded_defects:
+  - SD-ASM-006
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-ASM03-TIME-PRIORS
+  entrypoint: evals.checkers.assessment_checks:check_difficulty_marks_time_priors
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.assessment.validators:validate_time_priors
+  description: Asserts the golden item count, per-type minimums and ranges, the
+    difficulty-share bands, the 1-2 practice marks band, one prior per question row
+    inside the golden bounds, topic priors for the chapter and every concept, and
+    that a hard item is never predicted to be faster than an easy item of the same
+    type. Seeded defect SD-ASM-006 (a 900 s prior) must fail with time_prior.bounds.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

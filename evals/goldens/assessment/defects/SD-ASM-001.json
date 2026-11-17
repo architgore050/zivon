@@ -1,0 +1,16 @@
+{
+  "sample_id": "SD-ASM-001",
+  "chapter_id": "class-9-describing-motion-around-us",
+  "defect_class": "wrong_answer_index",
+  "expected_rule": "item.answer.index",
+  "expected_severity": "fatal",
+  "mutations": {
+    "operation": "patch_item",
+    "item_id": "q-c9-motion-001",
+    "patch": {
+      "answer": {
+        "index": 7
+      }
+    }
+  }
+}

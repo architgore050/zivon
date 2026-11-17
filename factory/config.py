@@ -73,6 +73,18 @@ _STAGE_IDS = [
     "12-narration",
 ]
 
+# The separate assessment entrypoint's stages (Q-1). They are NOT in
+# STAGE_ORDER: a lesson run must never spend assessment credits. They are
+# listed here only so `stage_overrides` can tune their temperature.
+_ASSESSMENT_STAGE_IDS = [
+    "A1-syllabus",
+    "A2-concept-tag",
+    "A3-practice-items",
+    "A4-speaking-rubrics",
+    "A5-time-priors",
+    "A6-publish-export",
+]
+
 SUPPORTED_TARGET_LOCALES = {
     "hi",
     "hi-Latn",
@@ -135,6 +147,20 @@ _SPEC: dict[str, Any] = {
         "ui_strings_path": str,
         "prompt_version": str,
         "max_chars_neighbour_context": int,
+    },
+    "assessment": {
+        "syllabus_path": str,
+        "chapters_dir": str,
+        "export_dir": str,
+        "generator": str,
+        "languages": list,
+        "min_items_per_chapter": int,
+        "max_items_per_chapter": int,
+        "max_items_per_concept": int,
+        "speaking_prompts_min": int,
+        "item_repair_rounds": int,
+        "time_prior_min_ms": int,
+        "time_prior_max_ms": int,
     },
     "stage_overrides": dict,
 }
@@ -315,12 +341,18 @@ def _env_bool(name: str, default: bool) -> bool:
     )
 
 
-def _load_server_from_env() -> dict[str, Any]:
+def _load_server_from_env(*, require: bool = True) -> dict[str, Any]:
     """Build the server section from the environment. Missing required vars
-    are the tripwire: the pipeline refuses to start without them."""
+    are the tripwire: the pipeline refuses to start without them.
+
+    `require=False` exists for the assessment pipeline's key-free dry run
+    (`--generator seed`): it validates data and exports a pack without any
+    model call, so it must not need an endpoint. The lesson pipeline always
+    calls this with the default `True`.
+    """
     base_url = _env_raw("ZIVON_BASE_URL")
     model = _env_raw("ZIVON_MODEL")
-    if base_url is None or model is None:
+    if require and (base_url is None or model is None):
         missing = [
             name
             for name, value in (
@@ -342,7 +374,7 @@ def _load_server_from_env() -> dict[str, Any]:
             'ZIVON_MODEL is still the "CHANGE-ME" placeholder. Set it to the '
             "model name your server reports (e.g. via GET /v1/models)."
         )
-    if not base_url.startswith(("http://", "https://")):
+    if base_url is not None and not base_url.startswith(("http://", "https://")):
         raise ConfigError(
             f"ZIVON_BASE_URL={base_url!r} must start with http:// or https:// "
             "(the /chat/completions path is appended to it)"
@@ -388,9 +420,9 @@ def _load_server_from_env() -> dict[str, Any]:
             raise ConfigError("ZIVON_EXTRA_HEADERS must be a JSON object")
         extra_headers = {str(k): str(v) for k, v in parsed_headers.items()}
     return {
-        "base_url": base_url,
+        "base_url": base_url or "",
         "api_key": _env_raw("ZIVON_API_KEY"),
-        "model": model,
+        "model": model or "unconfigured",
         "json_mode": _env_bool("ZIVON_JSON_MODE", True),
         "temperature": temperature,
         "timeout_s": timeout_s,
@@ -426,7 +458,13 @@ def _validate_locale_list(locales: list[Any], field_name: str) -> None:
             )
 
 
-def load_config(path: Path | None = None) -> Config:
+def load_config(path: Path | None = None, *, require_server: bool = True) -> Config:
+    """Load and validate `config.json`.
+
+    `require_server=False` is for the assessment pipeline's key-free dry run
+    (`--generator seed`) and for its tests; every lesson-factory call site
+    keeps the default (missing endpoint = refuse to start).
+    """
     cfg_path = path or CONFIG_PATH
     if not cfg_path.exists():
         raise ConfigError(
@@ -466,6 +504,12 @@ def load_config(path: Path | None = None) -> Config:
         and "translation_rounds" not in data["repair"]
     ):
         data["repair"]["translation_rounds"] = 6
+    # Same rule for the assessment section (2026-11-17): a config written
+    # before the separate assessment entrypoint existed keeps loading.
+    if "assessment" not in data:
+        from .assessment.config import DEFAULT_ASSESSMENT_SECTION
+
+        data["assessment"] = json.loads(json.dumps(DEFAULT_ASSESSMENT_SECTION))
 
     _validate(data, _SPEC, cfg_path)
 
@@ -507,16 +551,49 @@ def load_config(path: Path | None = None) -> Config:
     if not trans["prompt_version"].strip():
         raise ConfigError("translation.prompt_version must not be empty")
 
+    assess = data["assessment"]
+    if assess["generator"] not in ("seed", "llm"):
+        raise ConfigError("assessment.generator must be 'seed' or 'llm'")
+    if assessment_languages(assess) != ["en", "hi", "hi-Latn"]:
+        raise ConfigError(
+            "assessment.languages is fixed to [en, hi, hi-Latn] for practice and "
+            "speaking (FEATURE-MAP #3); CBSE-style series are P3 and EN/HI only"
+        )
+    if assess["min_items_per_chapter"] < 1 or assess["max_items_per_chapter"] > 40:
+        raise ConfigError("assessment item bounds must be 1..40")
+    if assess["min_items_per_chapter"] > assess["max_items_per_chapter"]:
+        raise ConfigError(
+            "assessment.min_items_per_chapter must be <= max_items_per_chapter"
+        )
+    if assess["max_items_per_concept"] < 1:
+        raise ConfigError("assessment.max_items_per_concept must be >= 1")
+    if assess["speaking_prompts_min"] < 1:
+        raise ConfigError("assessment.speaking_prompts_min must be >= 1")
+    if assess["item_repair_rounds"] < 0 or assess["item_repair_rounds"] > 5:
+        raise ConfigError("assessment.item_repair_rounds must be 0..5")
+    if not 1000 <= assess["time_prior_min_ms"] < assess["time_prior_max_ms"]:
+        raise ConfigError(
+            "assessment.time_prior_min_ms must be >= 1000 and smaller than "
+            "assessment.time_prior_max_ms"
+        )
+
     for stage_id in data["stage_overrides"]:
-        if stage_id not in _STAGE_IDS:
+        if stage_id not in _STAGE_IDS + _ASSESSMENT_STAGE_IDS:
             raise ConfigError(
-                f"stage_overrides has unknown stage id '{stage_id}'. Valid ids: {_STAGE_IDS}"
+                f"stage_overrides has unknown stage id '{stage_id}'. Valid ids: "
+                f"{_STAGE_IDS + _ASSESSMENT_STAGE_IDS}"
             )
     return Config(
         data=data,
-        server=_load_server_from_env(),
+        server=_load_server_from_env(require=require_server),
         root=cfg_path.parent.resolve() if cfg_path != CONFIG_PATH else REPO_ROOT,
     )
+
+
+def assessment_languages(assess: dict[str, Any]) -> list[str]:
+    """Normalise the configured language list for the equality check."""
+    values = assess.get("languages") or []
+    return [str(value) for value in values]
 
 
 def _validate(data: dict, spec: dict, cfg_path: Path) -> None:

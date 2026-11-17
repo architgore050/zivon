@@ -1,0 +1,48 @@
+{
+  "golden_id": "GA-02",
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "class_level": 10,
+  "item_count": {
+    "min": 15,
+    "max": 20
+  },
+  "type_counts": {
+    "mcq": {
+      "min": 5,
+      "max": 12
+    },
+    "numeric": {
+      "min": 2,
+      "max": 8
+    },
+    "assertion_reason": {
+      "min": 1,
+      "max": 6
+    }
+  },
+  "difficulty_share": {
+    "easy": {
+      "min": 0.15,
+      "max": 0.45
+    },
+    "medium": {
+      "min": 0.3,
+      "max": 0.6
+    },
+    "hard": {
+      "min": 0.1,
+      "max": 0.35
+    }
+  },
+  "concepts_min": 7,
+  "languages": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "time_prior_ms": {
+    "min": 15000,
+    "max": 300000
+  },
+  "speaking_prompts_min": 3
+}
