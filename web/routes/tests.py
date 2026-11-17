@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import math
 from typing import Any, Final
+from urllib.parse import quote, urlsplit, urlunsplit
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -290,7 +291,7 @@ async def test_answer_submit(request: Request, attempt_id: str) -> Response:
         if exc.code == "E-TEST-ATTEMPT-NOT-FOUND":
             return _missing_page(request, account, attempt_id)
         return _player_with_error(request, account, attempt_id, _error_copy(exc), form)
-    return _redirect(f"/app/tests/{attempt_id}?q={question_id}")
+    return _redirect(f"/app/tests/{attempt_id}?q={quote(question_id, safe='')}")
 
 
 # -- submit ------------------------------------------------------------------
@@ -525,7 +526,17 @@ def _csrf_error(request: Request) -> HTMLResponse:
 
 
 def _redirect(url: str) -> RedirectResponse:
-    response = RedirectResponse(url=url, status_code=303)
+    """303 to a same-origin app path, never to an attacker-supplied host.
+
+    Every target is built from a fixed `/app/...` prefix plus a store id or a
+    path parameter; this guard makes the same-origin property explicit (and
+    keeps a future refactor from turning the helper into an open redirect).
+    """
+    parts = urlsplit(url)
+    if parts.scheme or parts.netloc or not parts.path.startswith("/app/"):
+        raise ValueError("refusing an off-origin redirect")
+    safe = urlunsplit(("", "", parts.path, parts.query, ""))
+    response = RedirectResponse(url=safe, status_code=303)
     response.headers["Cache-Control"] = "no-store"
     return response
 

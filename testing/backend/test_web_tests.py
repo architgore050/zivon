@@ -248,6 +248,15 @@ class TestPagesTests(unittest.TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertIn("This form expired", response.text)
 
+    def test_redirect_helper_refuses_off_origin_targets(self) -> None:
+        from web.routes.tests import _redirect
+
+        with self.assertRaises(ValueError):
+            _redirect("https://evil.example/app")
+        with self.assertRaises(ValueError):
+            _redirect("//evil.example/app")
+        self.assertEqual(_redirect("/app/tests").headers["location"], "/app/tests")
+
     def test_json_writes_require_csrf(self) -> None:
         created = self.create_custom()
         started = self.start(created["test"]["test_id"])
@@ -912,10 +921,14 @@ class TestPagesTests(unittest.TestCase):
         }
         for path, html in pages.items():
             self.assertNotIn("zivon.css", html, path)
-            self.assertIsNone(re.search(r'class="[^"]*\bzn-', html), path)
-            self.assertIsNone(re.search(r"<script(?![^>]*\bsrc=)[^>]*>", html), path)
-            self.assertIsNone(re.search(r"<style\b", html), path)
-            self.assertIsNone(re.search(r"\son[a-z]+\s*=", html), path)
+            self.assertIsNone(
+                re.search(r'class="[^"]*\bzn-', html, re.IGNORECASE), path
+            )
+            self.assertIsNone(
+                re.search(r"<script(?![^>]*\bsrc=)[^>]*>", html, re.IGNORECASE), path
+            )
+            self.assertIsNone(re.search(r"<style\b", html, re.IGNORECASE), path)
+            self.assertIsNone(re.search(r"\son[a-z]+\s*=", html, re.IGNORECASE), path)
             self.assertIn('class="skip"', html, path)
             self.assertIn(">Tests</a>", html, path)
             response = self.client.get(path)

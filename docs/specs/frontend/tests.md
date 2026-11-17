@@ -399,6 +399,9 @@ consent-missing is n/a.
   a 404 page / `404 E-NOT-FOUND`, never another student's row.
 - Every write needs the session CSRF token (`X-CSRF-Token` or the hidden form
   field). A stale form is a branded 403, nothing written.
+- Every HTML redirect is same-origin checked: `_redirect` refuses a scheme or
+  host and only emits an `/app/...` path, so a crafted id can never turn a
+  success redirect into an off-origin one.
 - The answer key, explanation, misconception, and source ref never enter the
   player payload or HTML before submit. The review is the only post-submit
   shape, and only for the owner.
@@ -411,7 +414,7 @@ consent-missing is n/a.
 ## 12. Tests
 
 ```bash
-python3 -m unittest testing.backend.test_web_tests -t .        # 38 tests
+python3 -m unittest testing.backend.test_web_tests -t .        # 39 tests
 python3 -m unittest testing.frontend.test_tests_layout -t .    # 7 browser tests
 python3 -m unittest discover -s testing/backend -t .           # full backend suite
 python3 -m unittest discover -s testing/frontend -t .          # full frontend suite
