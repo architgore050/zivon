@@ -79,11 +79,14 @@ container. Headers:
 The edge proxy allows this one path 4 MB and a 90 s read timeout
 (`docker/nginx.conf` exact location `= /v1/speaking/attempts`: STT + the brain's
 bounded deadline can exceed nginx's 60 s default); the route's own cap is
-3,000,000 bytes (`413 E-SPEAKING-AUDIO-SIZE`). Duration is 0.8–60 s and
+3,000,000 bytes (`413 E-SPEAKING-AUDIO-SIZE`). `client_body_buffer_size` is
+8m there, i.e. larger than the 4m cap, so nginx proxies the upload from memory
+and never spools audio to `client_body_temp_path` — "no audio is persisted" is
+true at the edge, not only inside the route. Duration is 0.8–60 s and
 ≤ the prompt’s `max_duration_s + 5 s` (`422 E-SPEAKING-AUDIO`); no samples, a
 wrong rate, stereo, or compressed audio is `422`/`415 E-SPEAKING-AUDIO`. Audio
 is held in memory for one request, streamed to Prisma as 100 ms frames, and
-dropped; no temporary file exists.
+dropped; no temporary file exists on either hop.
 
 Success `200`:
 
@@ -117,10 +120,11 @@ Error states are honest, not fabricated:
 | HTTP | Code | Meaning / UI |
 |---|---|---|
 | `403` | `E-CONSENT-REQUIRED` / `E-CONSENT-STALE` | no stored voice consent for this device, or an older notice version; the recorder reopens the gate. No frame was read. |
+| `404` | `E-SPEAKING-PROMPT-UNKNOWN` | the prompt id is unknown, or (prompt, language) is not served (`draft`/`retired`); refused before the body is read, so no vendor call is made. |
 | `429` | `E-QUOTA-EXHAUSTED` | the existing `CreditGuard` refused the reserve; STT was never called. |
 | `422` | `E-SPEAKING-NO-SPEECH` | Prisma returned an empty final; no attempt row is written. |
 | `503` | `E-SPEAKING-UNAVAILABLE` | STT or the tutor model is not configured (and mock mode is off). |
-| `503` | `E-SERVICE-UNAVAILABLE` | Prisma/model transport failed; retryable, nothing saved. |
+| `503` | `E-SERVICE-UNAVAILABLE` | Prisma/model transport failed, or the deployment has no credit guard; retryable, nothing saved, and an unmetered deployment never transcribes. |
 
 If STT succeeds but the rubric call fails or returns an unusable verdict, the
 **real transcript is still saved** and the response carries
@@ -163,16 +167,21 @@ shows a percentage — it shows `n of m key ideas` and a band label.
 **Mock / test mode.** `ZIVON_SPEAKING_MOCK=1` makes the pipeline return a
 clearly labelled sample transcript and a demo rubric (`mock: true` in the API,
 a visible demo banner on the page, “Demo mode sample” evidence). It is refused
-when `ZIVON_ENV=prod` (`speaking.mock.refused`), and the shipped default is
-off. If the live credentials are absent and mock is off, the route answers
-`503 E-SPEAKING-UNAVAILABLE`; it never fabricates a transcript.
+in every deployed environment — `ZIVON_ENV=cluster` (what
+`k8s/28-backend-config.yaml` ships) and
+`ZIVON_ENV=prod` (the promotion value) both count, and any other non-dev/test
+value is treated as production too — with `speaking.mock.refused`, and the
+shipped default is off. If the live credentials are absent and mock is off, the
+route answers `503 E-SPEAKING-UNAVAILABLE`; it never fabricates a transcript.
 
 **Credit guard.** The existing `guard.CreditGuard` is reserved **before** STT on
 the same device scope as the voice gate: points =
 `ceil(duration_s / ZIVON_VOICE_CREDIT_STT_SECONDS_PER_POINT)`, at least one.
 The ledger records the actual seconds with `model=prisma`. The brain call is
 the user-facing Gemini path and is not a Gnani credit. A refusal is
-`429 E-QUOTA-EXHAUSTED` and STT is not called.
+`429 E-QUOTA-EXHAUSTED` and STT is not called. The route fails closed when
+`app.state.guard` is absent (`503 E-SERVICE-UNAVAILABLE`): a deployment defect
+must not turn into an unmetered vendor path.
 
 ## 4. Consent and privacy
 
@@ -222,12 +231,14 @@ the user-facing Gemini path and is not a Gnani credit. A refusal is
 | empty (no attempt) | “Your feedback appears here after your first recording.”; key ideas and model answer are absent from the HTML |
 | partial (evaluation failed) | transcript + model answer + “Your transcript is saved; the AI feedback could not be generated”; no invented band |
 | error | coded states: mic denied / no device / busy / unsupported browser; upload/format/transport; each names what was and was not saved |
+| prompt not served | an unknown, draft, or retired prompt renders the 404 “That prompt is not available” page — no recorder, no consent request, nothing captured |
 | offline | the upload fails with “could not be sent … Nothing was saved”; no optimistic result |
 | permission-denied | consent missing → in-flow gate; declined → “Voice is off on this device” + explicit review button (no re-nagging) |
 | reduced-motion | the waveform still shows level (information), the pen-blue live bar is omitted; no transitions |
 | untranslated | prompt language is labelled; missing variant note |
 | quota-exhausted | “Voice is resting for today’s limit. Nothing was recorded.” |
 | mock | a visible demo banner; result is labelled a sample |
+| mic unavailable | STT unconfigured or no capture support: the mic is disabled with the reason and the consent card is not shown (no consent is asked for a microphone that cannot be used) |
 
 ### `/app/speaking/history`
 
@@ -236,7 +247,7 @@ the user-facing Gemini path and is not a Gnani credit. A refusal is
 | default | newest-first attempts: date, language, chapter, prompt, band, key-idea count, disclosure with transcript/feedback/model answer, Delete |
 | loading | n/a — SSR |
 | empty | “No explain-back attempt saved.” + prompt link |
-| partial | an attempt whose prompt is no longer served shows the stored transcript/feedback and “Prompt no longer served”; no model answer |
+| partial | an attempt whose prompt is no longer served (retired status, or the row is gone) keeps the stored transcript/feedback, shows “Prompt no longer served”, and withholds the model answer |
 | error | panel error + retry; no invented attempts |
 | offline | n/a server-side; delete failure is announced and nothing is optimistically dropped |
 | permission-denied | `303 /login?next=/app/speaking/history` |
@@ -269,8 +280,10 @@ All server-side through `logging_manager` (rows in
 `docs/specs/observability/instrumentation-map.csv`, component `speaking`):
 `speaking.prompts.listed`, `speaking.attempt.started`, `.transcribed`,
 `.evaluated`, `.evaluation_unavailable`, `.no_speech`, `.failed`, `.saved`,
-`.self_check`, `.deleted`, `speaking.consent.blocked`, `speaking.quota.blocked`,
-`speaking.mock.refused`. No transcript, prompt, or audio fields.
+`.self_check`, `.deleted`, `.ledger_failed`, `speaking.consent.blocked`,
+`speaking.quota.blocked`, `speaking.mock.refused`. `.started` is emitted after
+the quota reserve, so it counts attempts that will reach a vendor. No
+transcript, prompt, or audio fields.
 
 ## 8. Tests
 

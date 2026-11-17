@@ -184,7 +184,9 @@ def build_recorder_view(
     for language in (requested, "en", "hi", "hi-Latn"):
         if language in variants:
             continue
-        prompt = fetch_speaking_prompt(db, prompt_id, language)
+        # Served prompts only: a draft or retired prompt must not render a
+        # recorder page (and then fail after a 45 s recording).
+        prompt = fetch_speaking_prompt(db, prompt_id, language, served_only=True)
         if prompt is not None:
             variants[language] = prompt
     if not variants:
@@ -232,11 +234,20 @@ def build_history_view(
     attempts = list_speaking_attempts(db, user_id, limit=MAX_HISTORY)
     rows: list[dict[str, Any]] = []
     prompts: dict[tuple[str, str], dict[str, Any] | None] = {}
+    served: dict[tuple[str, str], bool] = {}
     for attempt in attempts:
         key = (str(attempt["prompt_id"]), str(attempt["language"]))
         if key not in prompts:
             prompts[key] = fetch_speaking_prompt(db, key[0], key[1])
+            # The attempt unlocked the answer; a prompt that has since been
+            # retired (or removed) must not keep teaching it. `served` is the
+            # second, cheap lookup so a retired prompt keeps its chapter label
+            # while its answer material stops rendering.
+            served[key] = (
+                fetch_speaking_prompt(db, key[0], key[1], served_only=True) is not None
+            )
         prompt = prompts[key]
+        is_served = served[key]
         chapter_id = str(prompt["chapter_id"]) if prompt else ""
         meta = snapshot.chapters.get(chapter_id) if chapter_id else None
         feedback = _object(attempt.get("feedback"))
@@ -248,18 +259,20 @@ def build_history_view(
                 "chapter_title": (
                     meta.title if meta else _humanize(chapter_id) if chapter_id else ""
                 ),
-                "prompt_text": str(prompt["prompt"]) if prompt else "",
-                "model_answer": str(prompt["model_answer"]) if prompt else "",
+                "prompt_text": str(prompt["prompt"]) if prompt and is_served else "",
+                "model_answer": (
+                    str(prompt["model_answer"]) if prompt and is_served else ""
+                ),
                 "model_answer_source": (
                     _model_source_label(prompt.get("model_answer_source"))
-                    if prompt
+                    if prompt and is_served
                     else ""
                 ),
                 "transcript": str(attempt.get("transcript") or ""),
                 "what_went_well": str(feedback.get("what_went_well") or ""),
                 "next_step": str(feedback.get("next_step") or ""),
                 "evaluation_available": bool(rubric.get("ideas_total")),
-                "prompt_available": prompt is not None,
+                "prompt_available": is_served,
                 "mock": bool(feedback.get("mock")),
             }
         )

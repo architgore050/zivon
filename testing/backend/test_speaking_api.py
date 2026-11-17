@@ -417,6 +417,25 @@ class SpeakingAttemptApiTests(SpeakingBase):
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()["code"], "E-SPEAKING-UNAVAILABLE")
 
+    def test_an_unserved_prompt_is_refused_before_stt(self) -> None:
+        """A draft/retired prompt must not spend a vendor call, then fail."""
+        self.db.execute(
+            "UPDATE speaking_prompt SET status = 'draft' WHERE prompt_id = ?",
+            (PROMPT_ID,),
+        )
+        response = self.post_attempt()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["code"], "E-SPEAKING-PROMPT-UNKNOWN")
+        self.assertEqual(self.pipeline.calls, [])
+
+    def test_a_missing_credit_guard_fails_closed(self) -> None:
+        """An unmetered deployment must not transcribe (STT costs credits)."""
+        self.app.state.guard = None
+        response = self.post_attempt()
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["code"], "E-SERVICE-UNAVAILABLE")
+        self.assertEqual(self.pipeline.calls, [])
+
     def test_attempt_get_self_check_and_delete_are_owner_scoped(self) -> None:
         created = self.post_attempt().json()
         attempt_id = created["attempt"]["attempt_id"]
@@ -488,6 +507,9 @@ class SpeakingProxyTests(unittest.TestCase):
         start = nginx.index(marker)
         block = nginx[start : nginx.index("}", start)]
         self.assertIn("client_max_body_size 4m;", block)
+        # The body buffer is larger than the cap, so nginx proxies the upload
+        # from memory and never spools audio to client_body_temp_path.
+        self.assertIn("client_body_buffer_size 8m;", block)
         self.assertIn("proxy_pass http://core-backend:8000;", block)
         self.assertIn("proxy_set_header X-Real-IP $remote_addr;", block)
         self.assertIn("proxy_set_header X-Forwarded-For", block)
@@ -551,6 +573,27 @@ class SpeakingPageTests(SpeakingBase):
         self.assertEqual(response.status_code, 404)
         self.assertIn("That prompt is not available.", response.text)
         self.assertIn("Nothing was recorded.", response.text)
+
+    def test_recorder_hides_an_unserved_prompt(self) -> None:
+        self.db.execute(
+            "UPDATE speaking_prompt SET status = 'retired' WHERE prompt_id = ?",
+            (PROMPT_ID,),
+        )
+        response = self.client.get(f"/app/speaking/{PROMPT_ID}")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("That prompt is not available.", response.text)
+        self.assertNotIn("data-speaking-mic", response.text)
+
+    def test_history_keeps_the_transcript_but_drops_a_retired_answer(self) -> None:
+        self.assertEqual(self.post_attempt().status_code, 200)
+        self.db.execute(
+            "UPDATE speaking_prompt SET status = 'retired' WHERE prompt_id = ?",
+            (PROMPT_ID,),
+        )
+        html = self.page("/app/speaking/history")
+        self.assertIn("Prompt no longer served", html)
+        self.assertIn("Distance is the whole path", html)
+        self.assertNotIn("Distance counts every metre you actually travel", html)
 
     def test_history_lists_then_deletes(self) -> None:
         created = self.post_attempt().json()

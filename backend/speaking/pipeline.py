@@ -16,8 +16,9 @@ Both clients keep their own deadlines and typed errors. This module maps them
 to the route's honest states and never fabricates a real result:
 
 - live credentials absent → `available` is false and the route answers 503;
-- `ZIVON_SPEAKING_MOCK=1` (dev/test only, never honoured with `ZIVON_ENV=prod`)
-  → a **clearly labelled** sample transcript + demo rubric (`mock: true`);
+- `ZIVON_SPEAKING_MOCK=1` (dev/test only; refused for every deployed
+  environment — `cluster` and `prod` both count) → a **clearly labelled**
+  sample transcript + demo rubric (`mock: true`);
 - a brain/rubric failure leaves the real transcript saved and reports feedback
   as unavailable, instead of inventing a verdict.
 """
@@ -30,7 +31,7 @@ import os
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Final
 
 from voice.brain_client import BrainClient, BrainRequest, StreamFactory
 from voice.config import VoiceSettings
@@ -119,6 +120,17 @@ class Transcript:
 
 ConnectFactory = Callable[[], Awaitable[SttTransport]]
 
+# Deployed environments (`ZIVON_ENV`): the cluster manifest ships
+# `ZIVON_ENV=cluster`, production promotion ships `prod`. A dev-only switch
+# (the mock transcript) must be refused in every one of them, not just in the
+# literal string "prod" — `backend/config.py`, `backend/__main__.py` and the
+# auth email gate all treat the pair as production.
+PRODUCTION_ENVS: Final[frozenset[str]] = frozenset({"cluster", "prod", "production"})
+
+
+def _is_production_env(env: str) -> bool:
+    return str(env or "").strip().lower() in PRODUCTION_ENVS
+
 
 def _env_flag(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() in ("1", "true", "on", "yes")
@@ -140,8 +152,9 @@ class SpeakingPipeline:
         self.env = env
         self._stt_factory = stt_connect_factory
         self._brain_factory = brain_stream_factory
-        self.mock = bool(mock) and env != "prod"
-        if mock and env == "prod":
+        refused = bool(mock) and _is_production_env(env)
+        self.mock = bool(mock) and not refused
+        if refused:
             log_event(
                 "speaking.mock.refused",
                 {"reason_code": "prod_environment"},

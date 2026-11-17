@@ -171,8 +171,10 @@ the same-origin API, because F3/F5/F6/F7 render small islands over `/v1/*`.
 
 `docker/nginx.conf` adds exact/prefix locations for `= /app`, `^~ /app/`, and
 `= /login`, an exact `= /v1/speaking/attempts` location with
-`client_max_body_size 4m` (F6's one transient WAV; the route still caps at
-3 MB), plus one anchored regex location for the rest of the F2 auth paths
+`client_max_body_size 4m` and `client_body_buffer_size 8m` (F6's one transient
+WAV; the route still caps at 3 MB, and the buffer keeps the upload in memory
+rather than nginx's temp path), plus one anchored regex location for the rest
+of the F2 auth paths
 (`/signup`, `/verify-email`, `/forgot-password`, `/reset-password`,
 `/onboarding`, `/logout`). Each proxies to `http://core-backend:8000` (the
 compose alias and the cluster Service name), forwarding `Host $http_host`,

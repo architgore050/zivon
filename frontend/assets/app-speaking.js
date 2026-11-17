@@ -299,17 +299,23 @@
 
     function refreshConsent() {
       var current = consentState();
+      if (!supported || !speechAvailable) {
+        // Never ask a child for microphone consent on a device/deployment that
+        // cannot record: the notice above already states why the mic is off.
+        if (consentCard) consentCard.hidden = true;
+        if (consentOff) consentOff.hidden = true;
+        disableMic(
+          !supported
+            ? "This browser cannot record audio. You can still read the prompt and any earlier attempt."
+            : "Recording is not configured on this deployment. Nothing will capture audio."
+        );
+        return;
+      }
       if (current === "granted") {
         if (consentCard) consentCard.hidden = true;
         if (consentOff) consentOff.hidden = true;
-        if (!supported) {
-          disableMic("This browser cannot record audio. You can still read the prompt and any earlier attempt.");
-        } else if (!speechAvailable) {
-          disableMic("Recording is not configured on this deployment. Nothing will capture audio.");
-        } else {
-          enableMic();
-          if (state === "idle") setStatus("Ready when you are. Press start and speak for up to " + maxSeconds + " seconds.");
-        }
+        enableMic();
+        if (state === "idle") setStatus("Ready when you are. Press start and speak for up to " + maxSeconds + " seconds.");
         return;
       }
       if (current === "declined") {

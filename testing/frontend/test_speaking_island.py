@@ -175,6 +175,12 @@ class SpeakingIslandTests(unittest.TestCase):
         cls._tmp = tempfile.TemporaryDirectory(prefix="zivon-speaking-")
         root = Path(cls._tmp.name)
         (root / "index.html").write_text(PAGE, encoding="utf-8")
+        (root / "unavailable.html").write_text(
+            PAGE.replace(
+                'data-speech-available="true"', 'data-speech-available="false"'
+            ),
+            encoding="utf-8",
+        )
         cls._server = serve_static(root)
         cls._base_url = cls._server.__enter__()
 
@@ -190,6 +196,7 @@ class SpeakingIslandTests(unittest.TestCase):
         *,
         consent: str | None = None,
         error: dict[str, Any] | None = None,
+        page_name: str = "index.html",
     ) -> tuple[Page, list[dict[str, Any]], list[dict[str, Any]]]:
         context = self._browser.new_context(permissions=["microphone"])
         context.route(
@@ -232,7 +239,7 @@ class SpeakingIslandTests(unittest.TestCase):
                 f"localStorage.setItem('zivon.consent', {json.dumps(consent)});"
             )
         page = context.new_page()
-        page.goto(self._base_url + "/index.html")
+        page.goto(self._base_url + "/" + page_name)
         return page, consent_calls, attempt_calls
 
     def _record(self, page: Page) -> None:
@@ -336,6 +343,19 @@ class SpeakingIslandTests(unittest.TestCase):
                 timeout=10_000,
             )
             self.assertTrue(page.is_visible("[data-speaking-result-placeholder]"))
+        finally:
+            page.context.close()
+
+    def test_unavailable_deployment_hides_the_consent_gate(self) -> None:
+        """No microphone consent is asked for on a deployment without STT."""
+        page, consent_calls, attempt_calls = self._page(page_name="unavailable.html")
+        try:
+            self.assertTrue(page.is_disabled("[data-speaking-mic]"))
+            self.assertFalse(page.is_visible("[data-speaking-consent]"))
+            status = page.inner_text("[data-speaking-status]")
+            self.assertIn("not configured", status)
+            self.assertEqual(consent_calls, [])
+            self.assertEqual(attempt_calls, [])
         finally:
             page.context.close()
 

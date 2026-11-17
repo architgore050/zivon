@@ -828,13 +828,32 @@ def list_speaking_prompts(
 
 
 def fetch_speaking_prompt(
-    db: DatabaseEngine, prompt_id: str, language: str
+    db: DatabaseEngine,
+    prompt_id: str,
+    language: str,
+    *,
+    served_only: bool = False,
 ) -> dict[str, Any] | None:
-    """Return one prompt with its key ideas + model answer (server-side use)."""
-    row = db.fetchone(
-        "SELECT * FROM speaking_prompt WHERE prompt_id = ? AND language = ?",
-        (str(prompt_id), _language(language)),
-    )
+    """Return one prompt with its key ideas + model answer (server-side use).
+
+    `served_only` restricts the lookup to the statuses students may be served
+    (`reviewed`/`published`). The API and the recorder use it so a draft or
+    retired prompt can never be recorded against (or rendered as a page) — the
+    answer-material gate must not depend on a later write-time check. The
+    history surface keeps `served_only=False`: an attempt already made must
+    stay readable.
+    """
+    if served_only:
+        row = db.fetchone(
+            "SELECT * FROM speaking_prompt WHERE prompt_id = ? AND language = ? "
+            "AND status IN (?, ?)",
+            (str(prompt_id), _language(language), *SERVED_STATUSES),
+        )
+    else:
+        row = db.fetchone(
+            "SELECT * FROM speaking_prompt WHERE prompt_id = ? AND language = ?",
+            (str(prompt_id), _language(language)),
+        )
     return _speaking_prompt_public(row, include_answer=True) if row else None
 
 
@@ -968,7 +987,10 @@ def set_speaking_self_check(
         updated = tx.fetchone(
             "SELECT * FROM speaking_attempt WHERE attempt_id = ?", (str(attempt_id),)
         )
-    assert updated is not None
+    if updated is None:
+        # A concurrent owner delete between the check and the update: report a
+        # miss, never a 500 from an assertion inside a request.
+        return None
     return _speaking_attempt_public(updated)
 
 

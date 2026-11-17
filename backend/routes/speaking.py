@@ -140,7 +140,7 @@ async def _read_bounded_body(request: Request) -> bytes:
 
 def _prompt_for(db: Any, prompt_id: str, language: str) -> dict[str, Any]:
     try:
-        prompt = fetch_speaking_prompt(db, prompt_id, language)
+        prompt = fetch_speaking_prompt(db, prompt_id, language, served_only=True)
     except AssessmentError as exc:
         raise _store_error(exc) from exc
     if prompt is None:
@@ -231,6 +231,12 @@ async def create_attempt(
     pipeline = pipeline_for(request.app)
     if not pipeline.available:
         raise APIError("E-SPEAKING-UNAVAILABLE", status_code=503)
+    guard = getattr(request.app.state, "guard", None)
+    if guard is None:
+        # Fail closed: STT costs real credits, so an unmetered deployment must
+        # not transcribe. A missing guard is a deployment defect, not a quota
+        # state, so this is the honest retryable 503 (nothing was read).
+        raise APIError("E-SERVICE-UNAVAILABLE", status_code=503, retryable=True)
     content_type = (
         request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
     )
@@ -244,6 +250,31 @@ async def create_attempt(
     max_ms = int(thresholds(prompt)["max_duration_s"] * 1000) + 5_000
     if audio.duration_ms > max_ms:
         raise APIError("E-SPEAKING-AUDIO", status_code=422)
+
+    settings = getattr(pipeline, "settings", None)
+    seconds_per_point = int(getattr(settings, "credit_stt_seconds_per_point", 30) or 30)
+    points = stt_credit_points(audio.duration_ms, seconds_per_point)
+    decision = await asyncio.to_thread(guard.check_and_reserve, device, points)
+    if not decision.allowed:
+        log_event(
+            "speaking.quota.blocked",
+            {
+                "prompt_id": prompt_id,
+                "requested": points,
+                "remaining": decision.status.global_remaining,
+                "reason": decision.reason,
+            },
+            severity=Severity.WARNING,
+            error_class=ErrorClass.QUOTA_ERROR,
+        )
+        raise APIError(
+            "E-QUOTA-EXHAUSTED",
+            status_code=429,
+            retryable=True,
+            retry_after=3600,
+        )
+    # Logged after the quota decision: "started" counts attempts that will
+    # actually reach a vendor, never a refused request.
     log_event(
         "speaking.attempt.started",
         {
@@ -255,31 +286,6 @@ async def create_attempt(
         },
         severity=Severity.INFO,
     )
-
-    guard = getattr(request.app.state, "guard", None)
-    settings = getattr(pipeline, "settings", None)
-    seconds_per_point = int(getattr(settings, "credit_stt_seconds_per_point", 30) or 30)
-    points = stt_credit_points(audio.duration_ms, seconds_per_point)
-    if guard is not None:
-        decision = await asyncio.to_thread(guard.check_and_reserve, device, points)
-        if not decision.allowed:
-            log_event(
-                "speaking.quota.blocked",
-                {
-                    "prompt_id": prompt_id,
-                    "requested": points,
-                    "remaining": decision.status.global_remaining,
-                    "reason": decision.reason,
-                },
-                severity=Severity.WARNING,
-                error_class=ErrorClass.QUOTA_ERROR,
-            )
-            raise APIError(
-                "E-QUOTA-EXHAUSTED",
-                status_code=429,
-                retryable=True,
-                retry_after=3600,
-            )
 
     try:
         transcript = await pipeline.transcribe(audio.pcm, language=language)
@@ -363,23 +369,22 @@ async def create_attempt(
         )
     except AssessmentError as exc:
         raise _store_error(exc) from exc
-    if guard is not None:
-        try:
-            await asyncio.to_thread(
-                guard.record_ledger_entry,
-                device_pseudo_id=device,
-                model="prisma",
-                units="seconds",
-                amount=audio.duration_ms / 1000.0,
-                cost_credits=points,
-            )
-        except Exception:  # noqa: BLE001 — the attempt is saved; accounting is not
-            log_event(
-                "speaking.attempt.ledger_failed",
-                {"prompt_id": prompt_id, "points": points},
-                severity=Severity.WARNING,
-                error_class=ErrorClass.STORE_ERROR,
-            )
+    try:
+        await asyncio.to_thread(
+            guard.record_ledger_entry,
+            device_pseudo_id=device,
+            model="prisma",
+            units="seconds",
+            amount=audio.duration_ms / 1000.0,
+            cost_credits=points,
+        )
+    except Exception:  # noqa: BLE001 — the attempt is saved; accounting is not
+        log_event(
+            "speaking.attempt.ledger_failed",
+            {"prompt_id": prompt_id, "points": points},
+            severity=Severity.WARNING,
+            error_class=ErrorClass.STORE_ERROR,
+        )
     log_event(
         "speaking.attempt.saved",
         {

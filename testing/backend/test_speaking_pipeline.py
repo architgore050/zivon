@@ -348,8 +348,22 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(evaluation.mock)
         self.assertEqual(evaluation.ideas_present, evaluation.ideas_total)
 
-        prod = SpeakingPipeline(self.settings(), env="prod", mock=True)
-        self.assertFalse(prod.mock)
+        # `cluster` is what k8s/28 actually ships, `prod` the promotion value,
+        # and `backend/config.py` treats both as production. A fabricated
+        # transcript must never be servable in any of them.
+        for deployed in ("prod", "cluster", "production", " CLUSTER "):
+            with self.subTest(env=deployed):
+                refused = SpeakingPipeline(self.settings(), env=deployed, mock=True)
+                self.assertFalse(refused.mock)
+                # Mock off with live keys configured: the live pipeline is
+                # what answers, never a fabricated sample.
+                self.assertTrue(refused.available)
+
+        for dev_env in ("dev", "test", ""):
+            with self.subTest(env=dev_env):
+                self.assertTrue(
+                    SpeakingPipeline(self.settings(), env=dev_env, mock=True).mock
+                )
 
     def test_unconfigured_live_pipeline_is_unavailable(self) -> None:
         pipeline = SpeakingPipeline(
