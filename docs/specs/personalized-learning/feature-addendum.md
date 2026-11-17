@@ -52,6 +52,11 @@ New product tensions resolved here:
 | **PL-T4** | Artifacts are untrusted content in a sandboxed iframe (`allow-scripts`, **no** same-origin), strict CSP, no network/storage/forms/top-nav; dedicated artifact origin in production. | Render generated HTML in the page; `srcdoc` with same-origin | Generated code is untrusted by definition; sandboxing is the only control that survives a lint miss | Any artifact reaches parent DOM/storage/network in a red-team test → blocker, rollback |
 | **PL-T5** | Saved sessions are retained **90 days from last activity** (recommended), hard-deleted after; no cold copy; export/delete anytime. | Keep forever; 7 days like voice transcripts | The loop needs continuity across sittings (`J5`); 90 days balances usefulness and minimization. Counsel reviews before scale-up | Retention job misses a row, or a student cannot find export/delete → blocker |
 
+Parent **principle** P2 ("subtract first — no chat history screen") is bounded here, not
+overturned: `J10` (continue exactly where I stopped) needs the session list, so the list
+exists — with no search, no filters, and no second doubts store until `D-PL-09` says
+otherwise.
+
 ## 3. Jobs and metrics added
 
 | ID | Job statement | Type |
@@ -230,7 +235,7 @@ consent-missing n/a (no mic).
 
 **Behaviour (EARS)**
 1. When the first tutor turn completes, the system shall title the session from
-   the chapter + concept (never from free text containing PII), ≤ 80 characters.
+   the chapter + concept (never from free text containing PII), ≤ 120 characters.
 2. When a session is opened, the system shall load its last 50 turns and offer
    "load earlier" for the rest.
 3. When the student exports, the system shall return JSON containing the
@@ -354,8 +359,8 @@ auth-required.
 | **SCR-PL-04** settings section | `/app/settings` | R1 title/help · R2 textarea + counter · R3 save/clear · R4 status copy |
 | **SCR-PL-05** quota strip | hub + session | remaining, reset time, warn/exhausted copy |
 
-The full state matrix (all 11 states per screen/region) is
-[`spec.md`](spec.md) §5.4.
+The full state matrix (all 11 canonical states plus `auth-required`, per screen/region) is
+[`spec.md`](spec.md) §7.
 
 ## 6. UI element inventory (compact)
 
@@ -436,8 +441,8 @@ Only elements this feature adds; existing shell/settings elements keep their
   exactly one screen region.
 - Every API in [`data-and-api.md`](data-and-api.md) §4 is consumed by an
   element or a workstream; every table in §2 traces to an entity above.
-- Every event in [`security-privacy.md`](security-privacy.md) §7 has a privacy
-  class and no free-text field.
+- Every event in [`agent-and-rag.md`](agent-and-rag.md) §10 has a privacy class
+  (`L1`/`L2`) and no free-text field.
 - Every eval card in [`evals.md`](evals.md) maps to at least one acceptance
   criterion above.
 
@@ -447,7 +452,7 @@ Only elements this feature adds; existing shell/settings elements keep their
 |---|---|
 | Value filter | 30 candidates; 15 KEEP, 1 MERGE, 4 DEFER, 10 KILL — all recorded in the CSV |
 | Layer independence | Pass: with PL off, lessons, practice, tests, voice dock unchanged |
-| All-states rule | Pass: 11 states per screen in `spec.md` §5.4 |
+| All-states rule | Pass: 11 canonical states + `auth-required` per screen in `spec.md` §7 |
 | Child-safety pass | Pass with one flag: stored session text is child free text → 90-day cap, no cold copy, no logs, export/delete, counsel review before scale-up (D-PL-05) |
 | Doctrine | Pass with one open item: the session screen has no doctrine section yet; it uses §1–§9 base components. If the founder wants lesson devices, a DCR is required (D-PL-10) |
 | No dark patterns | Pass: no streaks, no countdowns, no fake urgency; quota copy is factual; export/delete are not buried |

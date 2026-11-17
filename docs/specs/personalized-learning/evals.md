@@ -21,7 +21,7 @@ first; a judge call only in the full suite.
 | Goldens | `evals/goldens/personalized/{sessions,artifacts,instructions,injections}/` |
 | Smoke | `python -m evals run --suite smoke --mock` — key-free, deterministic only |
 | Full | `python -m evals run --suite full` — adds the judge calls |
-| Calibration | `python -m evals calibrate --stage pl` — judge vs seeded defects |
+| Calibration | `python -m evals calibrate --stage all --mock` — the existing seeded-defect stages (`03-check`/`09-review`/`all`; there is no `pl` stage, and adding one is a CLI change this spec does not assume). The PL judge calibration rides `EV-PL-003/004` goldens |
 | Result store | dual-write per ADR-0027: JSONL under `runs/evals/<YYYY-MM-DD>/<run_id>/` + Postgres `eval_run`/`eval_card_result` |
 | PVC path | `zivon-sources` PVC `subPath: evals` (cluster), mirrored by `scripts/publish-artifacts.sh` for human inspection |
 | Artefact | each card writes `EV-PL-00N.json` with per-check pass/fail, issue list, timings, token counts; **no student text** |
@@ -30,6 +30,10 @@ first; a judge call only in the full suite.
 Deterministic check ids are `DET-PL0N-*`; severity `fatal` fails the card. A
 judge may only produce `fatal`/`major`/`minor` per the stated ladder; an
 unverifiable suspicion is `minor` with a message starting `unverified:`.
+
+When the cards are authored (PL5), their rows are also added to the card inventory in
+[`docs/specs/evals/spec.md`](../evals/spec.md), following the "P3 additions (2026-11-17)"
+precedent there. This document is the contract; that table is the register of what exists.
 
 ---
 
@@ -79,7 +83,7 @@ key-free.
 | Stage | PL3 artifact builder + viewer |
 | Suites | smoke, full (same checks; smoke runs the golden + 2 defects, full runs all 7) |
 | Golden inputs | `evals/goldens/personalized/artifacts/good-concave-mirror.html` (golden), `.../defects/` 7 seeded files: external-fetch, eval, localStorage, form, top-nav link, oversized, missing label; `.../specs/` 4 artifact specs (valid sim, valid diagram, too many controls, unknown claim ids) |
-| Deterministic checks | `DET-PL03-LINT` — each defect fails with its expected rule; the golden passes. `DET-PL03-DOC` — the golden has the meta CSP, `role="img"`, label/for pairs, reduced-motion branch, no external URL. `DET-PL03-RENDER` — headless Chromium: zero console errors, zero network requests (aborted), no 360 px overflow, `ready` ≤ 5 s, fps floor 24 under 4× throttle. `DET-PL03-SANDBOX` — a red-team artifact cannot read parent DOM/cookies/localStorage, navigate top, open a popup, or submit a form. `DET-PL03-CACHE` — same spec → same id; second build 0 model calls; doctrine hash change → new id. `DET-PL03-FALLBACK` — forced failure → payload has a fallback and the UI renders it. |
+| Deterministic checks | `DET-PL03-LINT` — each defect fails with its expected rule; the golden passes. `DET-PL03-DOC` — the golden has the meta CSP, `role="img"`, label/for pairs, reduced-motion branch, no external URL. `DET-PL03-RENDER` — headless Chromium: zero console errors, zero network requests (aborted), no navigation (committed URL unchanged), no 360 px overflow, `ready` ≤ 5 s, fps floor 24 under 4× throttle. `DET-PL03-SANDBOX` — a red-team artifact cannot read parent DOM/cookies/localStorage, navigate top, navigate itself, open a popup, or submit a form. `DET-PL03-CACHE` — same spec → same id; second build 0 model calls; doctrine hash change → new id. `DET-PL03-NO-STUDENT` — a canary in the session's weakness/instructions never reaches the builder prompt, the stored spec, or the document (the artifact cache is shared across students, so this is also the cross-student-leak test). `DET-PL03-FALLBACK` — forced failure → payload has a fallback and the UI renders it. |
 | Judge | none (deterministic + browser only). The content-quality review lens applies to the **builder prompt**, not each artifact. |
 | Thresholds | all deterministic 1.0; any sandbox/escape failure is fatal and blocks the wave |
 | Cost | smoke 0 model calls + 1 headless browser; full same + 3 s per artifact run |

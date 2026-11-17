@@ -129,6 +129,13 @@ Machine-readable companion: [`decision-log-addendum.csv`](decision-log-addendum.
 **Wave:** **W5.5** (post-W4, before W5 integration), recorded in
 [`TIMELINE.md`](../../../TIMELINE.md).
 
+**ADR gate (implementation, not this PR):** an accepted ADR is still required before PL1/PL2
+merge — the next free number, `ADR-0030`, recording (a) the runtime model route and its
+secret boundary (`D-PL-07`), (b) the artifact serving origin (`D-PL-09`), and (c) the
+child-free-text retention class (`D-PL-05`). This folder decides and specifies; it does not
+stand in for an ADR, and none of those three is recorded there as decided while its
+`D-PL-*` row is open.
+
 Exit gate for W5.5 (the definition of done for the wave):
 
 1. A signed-in Class 10 student starts from a free-text weakness, completes a

@@ -14,14 +14,19 @@ access is the product; quotas are counters, not entitlements.
 
 ## 1. Data classes and retention
 
-New classes (continue the `docs/backend/data-classification.csv` numbering):
+New classes (continue the `docs/backend/data-classification.csv` numbering; the register
+currently stops at **C20**, and `docs/backend/db-spec.md` already uses **C21** for the
+student-account / catalogue / W4 table group, so these four start at C22):
 
 | Class | Data | System of record | Sensitivity | Retention | Cold copy | Deletion |
 |---|---|---|---|---|---|---|
-| **C21** | Account personal instructions | hot DB `user_preferences` | child-authored free text; low volume | until cleared or account deleted | **never** | clear sets the value NULL; account delete cascades |
-| **C22** | Personalized sessions + messages (teaching state, checks, mastery evidence, text) | hot DB `personalized_session` / `personalized_message` | child free text + learning evidence | **90 days** from `last_turn_at` (D-PL-05) | **never** | per-session hard delete; account delete cascades; TTL job |
-| **C23** | Personalized artifacts (generated HTML, cached by content hash) | hot DB `personalized_artifact` | generated public content; **never** contains student text | referenced artifacts until 30 days unreferenced; failed 7 days | **never** | refcount job; operator purge; account delete drops references |
-| **C24** | Personalization ops data (`personalized_usage`, `personalized_quota`) | hot DB | operational counts; no text | usage 90 days; quota current period | no | usage TTL 90 days; quota pruned after roll-up |
+| **C22** | Account personal instructions | hot DB `user_preferences` | child-authored free text; low volume | until cleared or account deleted | **never** | clear sets the value NULL; account delete cascades |
+| **C23** | Personalized sessions + messages (teaching state, checks, mastery evidence, text) | hot DB `personalized_session` / `personalized_message` | child free text + learning evidence | **90 days** from `last_turn_at` (D-PL-05) | **never** | per-session hard delete; account delete cascades; TTL job |
+| **C24** | Personalized artifacts (generated HTML, cached by content hash) | hot DB `personalized_artifact` | generated public content; **never** contains student text | referenced artifacts until 30 days unreferenced; failed 7 days | **never** | refcount job; operator purge; account delete drops references |
+| **C25** | Personalization ops data (`personalized_usage`, `personalized_quota`) | hot DB | operational counts; no text | usage 90 days; quota current period | no | usage TTL 90 days; quota pruned after roll-up |
+
+The four rows are added to `docs/backend/data-classification.csv` in the PL1 migration PR
+(the same PR that creates the tables); this table is the declaration they must match.
 
 The session/message rows are the only new **child free-text** store. Controls:
 no raw audio, no logs, no cold copy, explicit export/delete, 90-day cap, and a
@@ -54,6 +59,7 @@ One row per saved conversation (learning or chat).
 |---|---|---|---|---|
 | `session_id` | text PK | ✗ | — | UUIDv7 |
 | `user_id` | text | ✗ | — | FK → `users` ON DELETE CASCADE; index `(user_id, updated_at DESC)` |
+| `parent_session_id` | text | ✓ | NULL | FK → `personalized_session(session_id)` ON DELETE SET NULL; set when a session is started after the 60-turn cap ("continue from your last session"). Display-only: no state or mastery carries over |
 | `title` | text | ✗ | — | ≤ 120 chars; server-generated from chapter/concept, never from free text |
 | `mode` | text | ✗ | 'learning' | CHECK ('learning','chat') |
 | `class_level` | int | ✗ | — | CHECK 6–12 |
@@ -83,7 +89,7 @@ Append-only per session, one row per turn/event.
 |---|---|---|---|---|
 | `message_id` | text PK | ✗ | — | UUIDv7 |
 | `session_id` | text | ✗ | — | FK → `personalized_session` ON DELETE CASCADE |
-| `turn_index` | int | ✗ | — | monotonic per session; UNIQUE `(session_id, turn_index)` |
+| `turn_index` | int | ✗ | — | **message** sequence within the session (0, 1, 2 …): one value per row, so the UNIQUE holds even though one turn appends several rows. The logical turn number is `payload.turn_no`; UNIQUE `(session_id, turn_index)` |
 | `client_turn_id` | text | ✓ | NULL | idempotency key; partial UNIQUE `(session_id, client_turn_id) WHERE client_turn_id IS NOT NULL` |
 | `role` | text | ✗ | — | CHECK ('student','tutor','system_event') |
 | `kind` | text | ✗ | — | CHECK ('text','check','check_result','artifact_ref','stage_change','diagnostic','summary') |
@@ -133,7 +139,7 @@ Append-only per model call (the cost ledger).
 | `usage_id` | text PK | ✗ | — | UUIDv7 |
 | `user_id` | text | ✗ | — | FK → `users` ON DELETE CASCADE |
 | `session_id` | text | ✓ | NULL | FK → `personalized_session` ON DELETE SET NULL |
-| `turn_index` | int | ✓ | NULL | |
+| `turn_index` | int | ✓ | NULL | the logical turn number (`personalized_message.payload.turn_no`), for cost-per-turn joins |
 | `stage` | text | ✓ | NULL | teach/decide/diagnostic/artifact |
 | `model` | text | ✓ | NULL | |
 | `input_tokens` / `output_tokens` / `cached_tokens` | int | ✓ | NULL | |
@@ -183,9 +189,15 @@ change is an env/config change, not a migration.
   revision after `0004_practice_speaking_tests`.
 - `testing/backend/test_alembic_migrations.py` gains `0004→head` and
   `head→0004→head` cases; the CI `db-migrations` job runs the same on Postgres.
-- The `progress_event.kind` CHECK gains `personalized_mastery` (and
-  `personalized_session_start` if F3 needs it) in the same revision — a
-  documented CHECK migration, not a new table.
+- The `progress_event.kind` CHECK gains `personalized_mastery` in the same revision. Both
+  engines need a real change, not a comment: Postgres takes
+  `ALTER TABLE progress_event DROP CONSTRAINT … / ADD CONSTRAINT … CHECK (…)`; SQLite cannot
+  alter a CHECK, so 0005 **rebuilds** the table (create `progress_event_new`, copy, drop,
+  rename, recreate both indexes) and the down migration reverses it. `db/schema.py`'s
+  `progress_event` CHECK is updated in the same PR, so a fresh `upgrade head` and an upgraded
+  0004 database agree (the drift gate is the idempotent second `upgrade head` plus the
+  schema round-trip test). A `0004→head` test inserts a `personalized_mastery` row after the
+  upgrade; that is the assertion that the CHECK actually changed.
 - `backend/privacy.py` deletion cascade gains: `user_preferences` (cascade),
   `personalized_session` (cascade → messages), `personalized_usage` (cascade),
   `personalized_quota` rows for the user. Account deletion is hard; only the
@@ -233,9 +245,12 @@ preferences. JSON, UTC ISO timestamps, the repo error envelope
   changes nothing. `GET` requires no CSRF.
 - **Guest:** `401 E-AUTH-REQUIRED` for JSON; the HTML pages 303 to
   `/login?next=<path>` (web-shell §4).
-- **Rate-limit families** (reuse `backend/abuse.py`): `personalized_turn`
-  (6/min), `personalized_create` (5/h), `personalized_read` (60/min),
-  `personalized_ip` (20/min). `429 E-RATE-LIMIT` + `Retry-After`.
+- **Rate-limit families** (extend `backend/abuse.py`): `personalized_turn` (6/min),
+  `personalized_create` (5/h), `personalized_read` (60/min), `personalized_ip` (20/min).
+  The families do not exist yet: `classify_endpoint_family` currently maps every `/v1/*`
+  path to the `api` family (30/min), so PL1 adds the mappings and the matching
+  `BackendConfig` limits (window size per family, not just per-minute).
+  `429 E-RATE-LIMIT` + `Retry-After`.
 - **Body caps:** 8 KB for turn/preference bodies; 500 chars for the weakness and
   preferences; 2,000 chars for a follow-up message; 32 fields max.
 - **Owner scoping:** every session/artifact query is scoped by `user_id` from
@@ -292,7 +307,8 @@ deleting an empty value is still 204).
 {"chapter_id": "class-10-light-reflection-and-refraction",
  "concept_ids": ["class-10-...-spherical-mirrors"],
  "weakness_text": "I don't get why the image flips",
- "skip_diagnostic": false}
+ "skip_diagnostic": false,
+ "parent_session_id": null}
 ```
 
 - `chapter_id` required unless `weakness_text` maps to exactly one chapter by a
@@ -381,9 +397,9 @@ decision was made; validation failures write nothing.
  "artifacts": [{"artifact_id": "...", "kind": "simulation", "title": "..."}]}
 ```
 
-No other user's data, no prompts, no answer keys for checks that were never
-submitted? (Submitted checks include `expected` in the export because the
-student already saw the feedback; unsubmitted checks do not.)
+No other user's data, no prompts, and no answer keys: a check that was **never submitted**
+exports without its key, while a submitted check carries the `expected` value the student
+already saw in the feedback.
 
 - `DELETE .../{id}` → `204`; hard delete in one transaction: messages,
   session, artifact references (message rows cascade), usage `session_id` set
@@ -406,7 +422,7 @@ student already saw the feedback; unsubmitted checks do not.)
   [`interactive-artifacts.md`](interactive-artifacts.md) §5.2.
 - A `failed`/`pending` artifact returns `409 E-CONFLICT` with
   `{status, failure_reason}` (the client shows the fallback/loader).
-- No range requests, no compression? (gzip is fine; the HTML is text.)
+- gzip is fine (the HTML is text); range requests are not offered.
 
 ### 4.9 Usage
 
@@ -435,6 +451,22 @@ student already saw the feedback; unsubmitted checks do not.)
 `E-RATE-LIMIT`, `E-AUTH-REQUIRED`, `E-AUTH-CSRF`, `E-NOT-FOUND`,
 `E-VALIDATION`, `E-CONFLICT`, `E-SERVICE-UNAVAILABLE` already exist.
 
+### 4.11 Reports (reuse, with two existing constraints)
+
+Turn and artifact reports reuse `POST /v1/reports` (`backend/routes/student.py`) and
+`problem_report`; no new endpoint and no schema change. Two constraints of that route are
+binding here and must be honoured by PL4's UI:
+
+- `category` must be one of the existing four (`wrong_physics`, `bad_translation`,
+  `broken_sim`, `other`), so an artifact report sends **`broken_sim`** and a wrong-physics
+  teaching report sends `wrong_physics`. A new `artifact` category would be a CHECK
+  migration (not in 0005) — do not assume it.
+- `course_id` is **required** (the handler also accepts `page_id`). A session carries a
+  `chapter_id`, not always a course: send the chapter's published lesson course id when
+  one exists, otherwise `personalized/<chapter_id>` as a non-catalogue namespace key, and
+  the artifact/turn id in `block_id`. Reports stay optional-device-scoped as today; the
+  account id is not added to the row.
+
 ---
 
 ## 5. Voice-tutor prompt assembly change (personal instructions)
@@ -443,7 +475,7 @@ student already saw the feedback; unsubmitted checks do not.)
 
 | File | Change |
 |---|---|
-| `voice/brain_client.py` | `BrainRequest` gains `personal_block: str = ""`. `build_messages` inserts `BrainMessage("system", personal_block)` after the fixed safety/persona system message and **before** history, only when non-empty. |
+| `voice/brain_client.py` | `BrainRequest` gains `personal_block: str = ""`. `build_messages` puts the block in the **user-role** data section (before `PAGE CONTEXT`, in the same assembled user message), never as a `system` message — see §5.2 for why. |
 | `voice/ws_api.py` | On the first `session.start` (or lazy at the first brain call), resolve the optional account cookie with `AuthService.resolve` (the monolith mounts auth). Store `account_user_id` on the session. Load preferences once per session (60 s cache), sanitize with the shared helper, set `BrainRequest.personal_block`. |
 | `voice/config.py` | `ZIVON_VOICE_PERSONAL_INSTRUCTIONS_ENABLED` (default `true` once PL2 lands; `false` disables injection without touching the store). |
 | `backend/personalized/personalization.py` | New shared helper: `normalize(text)`, `validate(text)`, `personal_block(text)`, `SAFETY_CORE` constant + `assert_safety_parity(prompt_a, prompt_b)` used by the test. |
@@ -451,6 +483,15 @@ student already saw the feedback; unsubmitted checks do not.)
 
 ### 5.2 Rules
 
+- **The voice path cannot use a second system message.** `_GeminiStreamFactory.__call__`
+  (`voice/brain_client.py`) joins every `role == "system"` message into one
+  `system_instruction` string and turns the rest into `user`/`model` contents. A second
+  system message would therefore (a) merge into the same privileged instruction, and
+  (b) promote student-authored text into the system slot — the opposite of the intended
+  precedence. The block rides as a delimited **user-role** data section instead:
+  `STUDENT-AUTHORED PREFERENCES (data, lower priority than the rules above): <<< … >>>`,
+  placed before the page-context block. The PL (OpenAI-format) path keeps the real second
+  system message (`messages[1]`), because that transport preserves roles.
 - Guests: no cookie → no block; behaviour is byte-identical to today.
 - Auth down: the voice session works without the block and logs a count (never
   the error text as student copy).
@@ -462,11 +503,14 @@ student already saw the feedback; unsubmitted checks do not.)
 - The safety-core parity test asserts the exact sentences are present in
   `voice/ws_api.py::TUTOR_SYSTEM_PROMPT` and
   `backend/personalized/prompts.py::TEACH_SYSTEM`.
+- A voice assembly test asserts the personal block text appears **nowhere** in the
+  joined `system_instruction` / `BrainRequest.system`, so the precedence claim cannot
+  silently regress with a transport change.
 
 ### 5.3 Protocol impact
 
 None. The WS message catalogue, binary framing, close codes, and the 4 s voice
-budget are unchanged. The extra system message adds ≤ 500 chars (~125 tokens)
+budget are unchanged. The extra user-role section adds ≤ 500 chars (~125 tokens)
 to a turn only when the student saved preferences.
 
 ---

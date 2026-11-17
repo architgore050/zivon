@@ -67,17 +67,18 @@ feature or refactor PR.
 | Surface | Model / provider | Notes |
 |---|---|---|
 | Student-facing tutor | **Gemma 4 26B A4B** via the **Gemini API** | User-facing conversation, anchored to the lesson page. |
-| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route, separate from both the voice tutor and the factory (D-PL-07). |
+| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** — **recommended, not yet decided: D-PL-07 open** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route, separate from both the voice tutor and the factory. Do not ship a model call on this route until the founder answers D-PL-07. |
 | Voice STT / TTS | **Gnani Prisma v3.0** (STT) / **Timbre v3.0** (TTS) | Best available for Indian languages and code-mixed speech. |
-| Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; not a student-facing surface (that is the personalized-learning row). |
+| Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; the only student-facing use of this model would be the personalized-learning row above (D-PL-07, open). |
 | Translation | **Gnani Evon** | Backs the `10a`–`10d` translation pipeline (EN/HI/Hinglish). |
 
 Rules that follow from the table:
 
 - **Three model paths stay separate.** The tutor calls the Gemini API. Personalized
-  learning calls the OpenCode/DeepSeek endpoint through the existing `llm_manager`
-  OpenAI-format path with its own runtime secret. The factory keeps its own OpenCode
-  route and credentials. Do not point one at the other's credentials or config.
+  learning would call the OpenCode/DeepSeek endpoint through the existing `llm_manager`
+  OpenAI-format path with its own runtime secret (D-PL-07, **open** — the spec is written
+  on this recommendation). The factory keeps its own OpenCode route and credentials. Do
+  not point one at the other's credentials or config.
 - **Secrets are runtime-only** (env vars / K8s Secrets); never commit them, never print them.
   CI must pass key-free.
 - **A deployment deviation is recorded, never silent.** The challenge demo ran

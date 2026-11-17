@@ -168,6 +168,14 @@ volume and copy checks are deterministic by nature, and a model would only add
 cost to a check the harness can already make. Contract:
 `docs/content-factory/exam.md`.
 
+**W5.5 additions (specified 2026-11-17, not yet authored).** `EV-PL-001..005` grade
+personalized learning and its interactive artifacts. They are **specified only**:
+no card, checker, or golden exists yet, so they are deliberately absent from the
+inventory above until PL5's PR adds them (with rows here and goldens registered in
+`evals/goldens/manifest.json`). The normative contract — deterministic check ids,
+goldens, judges, thresholds, cost — is
+[`docs/specs/personalized-learning/evals.md`](../personalized-learning/evals.md).
+
 ---
 
 ### 2.2 Detailed Card Specifications

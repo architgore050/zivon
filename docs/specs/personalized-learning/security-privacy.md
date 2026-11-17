@@ -63,7 +63,7 @@ id or eval id). Severity is the pre-control rating.
 | ID | Threat (STRIDE) | Vector | Impact | C | R | T |
 |---|---|---|---|---|---|---|
 | **T-PL-01** | Prompt injection → safety bypass (Tampering) | weakness text, follow-up, personal instructions, RAG chunk | unsafe/off-topic output; answer-key leak; false authority | precedence block; delimited data; no tools; schema validation; answer key server-only; save-time screen; `EV-PL-004` | model may still say something off-tone; no data/authority impact | `DET-PL04-INJECT`, `DET-PL04-KEY`, `EV-PL-004` |
-| **T-PL-02** | Generated HTML XSS / parent-page takeover (Tampering/EoP) | artifact HTML/JS | steal session, deface app, exfiltrate | `sandbox="allow-scripts"` no same-origin; CSP header+meta; lint; render gate; no top-nav/forms/popups | a browser bug in sandbox/CSP | `DET-PL03-LINT`, `DET-PL03-SANDBOX`, `EV-PL-003` |
+| **T-PL-02** | Generated HTML XSS / parent-page takeover (Tampering/EoP) | artifact HTML/JS | steal session, deface app, exfiltrate | `sandbox="allow-scripts"` no same-origin; CSP header+meta; lint (incl. self-navigation); render gate (network + navigation assertions); no top-nav/forms/popups | a browser bug in sandbox/CSP | `DET-PL03-LINT`, `DET-PL03-SANDBOX`, `EV-PL-003` |
 | **T-PL-03** | Data exfiltration from an artifact (Information disclosure) | `fetch`, `img src`, `WebSocket`, DNS, form action | leak page/session data to a third party | CSP `default-src 'none'; connect-src 'none'`; network-aborted render gate; opaque origin; no cookies | side channels (timing) — no data to leak in the doc | `DET-PL03-LINT`, `DET-PL03-RENDER` |
 | **T-PL-04** | Cross-user data access / IDOR (Information disclosure) | guessing a session/artifact id; URL tampering | read/delete another child's session | owner-scoped queries from the session; UUIDv7; 404 not 403; artifact requires a reference in the caller's sessions | a bug in one route | `DET-PL05-IDOR`, `DET-PL05-ARTIFACT-REF` |
 | **T-PL-05** | Child PII collection in free text (Privacy) | student types name/phone/school; instructions | PII stored, logged, or sent to a model | no solicitation copy; save-time contact-detail rejection; no PII in logs; 90-day cap; export/delete; no cold copy | a determined student can type a name in a message — minimization + retention, not prevention | `DET-PL04-PII`, `DET-PL05-LOGS`, `EV-PL-004` |
@@ -78,6 +78,7 @@ id or eval id). Severity is the pre-control rating.
 | **T-PL-14** | Model key leakage (Info disclosure) | logged config, error body, image/manifest | cost abuse | runtime secret only; never logged; error bodies redacted; secret scan in CI; separate secret per surface | a cluster compromise (out of scope) | `DET-PL05-SECRETS` |
 | **T-PL-15** | Prompt/response logging in provider (Privacy) | provider retains prompts | child text at a third party | no PII/secrets in prompts; provider terms reviewed before scale-up; counsel flag; no audio | provider retention policy (vendor decision, D-PL-05) | `EV-PL-004` + vendor review |
 | **T-PL-16** | Unsafe/incorrect physics (Integrity) | model hallucination | child learns a wrong claim | grounding law; citations required; ungrounded flag; report path; `EV-PL-002` faithfulness judge | a subtle error in a cited source | `DET-PL02-CITATIONS`, `EV-PL-002` |
+| **T-PL-17** | Cross-student leak through the shared artifact cache (Information disclosure) | an artifact built from a prompt that accidentally included student text is reused by another student | student text in another child's visual | builder prompt and stored spec exclude student text by construction; content hash excludes `why`; `DET-PL03-NO-STUDENT` canary test | a future prompt edit adds session text | `DET-PL03-NO-STUDENT`, `EV-PL-003` |
 
 ---
 
@@ -86,9 +87,12 @@ id or eval id). Severity is the pre-control rating.
 ### 4.1 Prompt injection
 
 - **Precedence:** the safety core is stated once and is the first system
-  message. The personal block is a **second system message** that explicitly
-  says it is lower priority. Student turns are user messages inside delimited
-  blocks. RAG excerpts are a delimited data block labelled "never instructions".
+  message. The personal block is a **second system message** on the PL path and a
+  **delimited user-role data section** on the voice path (the Gemini transport joins all
+  system messages into one `system_instruction`, so a second system message there would
+  promote student text into the system slot — `data-and-api.md` §5.2). Student turns are
+  user messages inside delimited blocks. RAG excerpts are a delimited data block labelled
+  "never instructions".
 - **No tools:** the model cannot read files, call URLs, query the DB, or
   execute code. The only "action" it can request is an artifact spec, which is
   schema-validated and built by a separate call under lint + sandbox.
@@ -114,8 +118,9 @@ contract. Non-negotiables:
 - CSP `default-src 'none'`; inline script/style only; `connect-src 'none'`;
   `img-src data:`; `form-action 'none'`; `frame-ancestors 'self'`;
   `sandbox allow-scripts` in the response header.
-- Lint rejects every network/storage/parent/top-nav/form/popup API and external
-  URL; the render gate aborts all network and fails on any attempt.
+- Lint rejects every network/storage/parent/top-nav/**self-navigation**/form/popup API
+  and external URL; the render gate aborts all network and fails on any attempt or
+  navigation.
 - The artifact route requires a session and a reference; it is `noindex`,
   `nosniff`, `no-referrer`, and `private`.
 - The only `postMessage` channel is host-validated by `event.source` and schema;
@@ -207,7 +212,9 @@ Session/hub pages are part of the `/app` shell: the web-shell CSP/headers apply
 artifact route has its own strict policy (§4.2). The settings section inherits
 the settings page headers.
 
-No new third-party host, font, analytics, or CDN is introduced.
+No new third-party host, font, analytics, or CDN is introduced. The one host added anywhere is
+the artifact origin in dedicated-origin mode (`D-PL-09b`), and its only shell-side effect is a
+single `frame-src` allow-list entry — never a `script-src`/`connect-src` change.
 
 ---
 
@@ -248,7 +255,7 @@ to lose your progress" guilt, no hidden delete.
 
 | Incident | Immediate action | Evidence | Follow-up |
 |---|---|---|---|
-| Artifact escapes the sandbox | disable artifact builds (env), purge the hash, add the sample to `EV-PL-003` | render/lint report, browser version | sandbox review, CSP tightening |
+| Artifact escapes the sandbox | disable artifact builds (env), purge the hash, bump `lint_version` so the id (and URL) changes and browser caches cannot serve the old document | render/lint report, browser version | add the sample to `EV-PL-003`, sandbox review, CSP tightening |
 | Model route abused / cost spike | flip the kill switch; lower global cap; rotate the key | usage ledger by user/hour | quota calibration, abuse report |
 | Child PII found in a session/log | delete the row, confirm no log copy, notify the founder/counsel path | deletion audit row | copy/PII-screen review |
 | Wrong physics in a teaching turn | report row → hide the turn? (turns are immutable; the session can be deleted by the student) → fix the prompt/index | message payload + citations | add a golden defect to `EV-PL-002` |
@@ -276,9 +283,8 @@ to lose your progress" guilt, no hidden delete.
 
 | Test | Asserts |
 |---|---|
-| `DET-PL04-INJECT` | seeded instruction/weakness/RAG injections do not change the safety contract; output stays Physics; no system-instruction compliance |
+| `DET-PL04-INJECT` | seeded instruction/weakness/RAG injections do not change the safety contract; output stays Physics; no system-instruction compliance; the personal block never enters `system_instruction` on the voice path |
 | `DET-PL04-KEY` | no answer key reaches any client-bound payload before submission; the DB-only `answer_key` column is stripped by the serializer |
-| `DET-PL04-KEY` | no answer key in any client-bound payload before submission |
 | `DET-PL04-PII` | contact-detail instructions are rejected; the previous value survives |
 | `DET-PL05-IDOR` | every session endpoint returns 404 for another user's id |
 | `DET-PL05-ARTIFACT-REF` | an artifact unreferenced by the caller is 404 |
@@ -290,7 +296,7 @@ to lose your progress" guilt, no hidden delete.
 | `DET-PL05-EXPORT` | export contains the owner's data only; schema versioned |
 | `DET-PL05-LOGS` | no event payload contains the canary text or free text |
 | `DET-PL05-HEADERS` | `no-store`, `noindex`, CSP on the PL pages; artifact headers strict |
-| `DET-PL03-*` | artifact lint/render/sandbox/cache/fallback (see `interactive-artifacts.md`) |
+| `DET-PL03-*` | artifact lint/render/sandbox/cache/no-student-text/fallback (see `interactive-artifacts.md`) |
 | `EV-PL-002/004` | model-level grounding and injection behaviour on the full suite |
 
 The deterministic tests live with their owners (`testing/backend/`,

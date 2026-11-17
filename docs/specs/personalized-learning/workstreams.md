@@ -46,8 +46,9 @@ the whole feature can be tested before the model route exists.
 
 **Deliverables**
 
-1. Migration `0005_personalized_learning` (six tables + `progress_event.kind`
-   addition), down migration, SQLite/Postgres tests.
+1. Migration `0005_personalized_learning` (six tables + the `progress_event.kind` CHECK,
+   which needs the SQLite table rebuild and the Postgres constraint swap in
+   `data-and-api.md` §2.7), down migration, SQLite/Postgres tests.
 2. `backend/personalized/store.py`: owner-scoped CRUD, idempotency, export,
    hard delete, artifact refcount queries.
 3. `backend/personalized/preferences.py`: normalize/validate/save/clear; the
@@ -199,7 +200,7 @@ items; no blocker findings; docs current.
 
 | Surface | Integration | Owner of the edit |
 |---|---|---|
-| `/app` shell + guard + CSP | new pages under the same guard; no CSP relaxation; `connect-src 'self'` already allows the SSE fetch | PL4 (uses the contract, no shell edit) |
+| `/app` shell + guard + CSP | new pages under the same guard. **Same-origin mode needs no CSP change**: `/app`'s `default-src 'self'` already governs `frame-src`, so the same-origin artifact URL is allowed, and `connect-src 'self'` already allows the SSE fetch. **Dedicated-origin mode needs one allow-list entry** — `frame-src https://artifacts.<domain>` (D-PL-09b) — which is an addition to the frame allow-list, not a relaxation of `script-src`/`connect-src` | PL4 (uses the contract), deployment (b) |
 | Settings (`/app/settings`) | one included partial + route for the preferences form; the email/privacy rules unchanged | PL4 (partial), F2 (review) |
 | Lesson dock / voice prompt | `BrainRequest.personal_block` + the account resolution; no protocol change | PL2 (voice review) |
 | Lesson shell (F4) | one CTA on the lesson end (`Learn this chapter` → `/app/personalized?chapter=<id>`) and one on the chapter page; the lesson page itself stays static and guest-readable | F4 owner (link), PL4 (route) |
@@ -207,7 +208,7 @@ items; no blocker findings; docs current.
 | Catalogue | `/v1/catalog` + index coverage for the picker; no catalogue schema change | PL1/PL2 (read-only) |
 | P2 bank | bank-first selection; generated items never written to `question_bank` | PL2 |
 | Admin dashboard | usage/artifact/quota panels are a follow-up (PL1 emits the data; the dashboard PR owns the UI) | PL1 (data), dashboard owner (UI) |
-| Report path | artifact and turn reports reuse `/v1/reports` + `problem_report` | PL4 (link), existing API |
+| Report path | artifact and turn reports reuse `/v1/reports` + `problem_report` with the constraints in `data-and-api.md` §4.11 (`category='broken_sim'`, a non-empty `course_id`) | PL4 (link), existing API |
 | Privacy page | one row for personalized sessions + delete/export links | PL4 |
 | CI | no workflow edit; `testing/docs`, `testing/backend`, `testing/frontend`, `eval-smoke` already pick the suites up | PL5 (verifies) |
 

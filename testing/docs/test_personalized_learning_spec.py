@@ -279,10 +279,10 @@ class DataAndPrivacy(unittest.TestCase):
             with self.subTest(table=name):
                 self.assertIn(name, text)
 
-    def test_threat_model_has_sixteen_controls(self) -> None:
+    def test_threat_model_has_seventeen_controls(self) -> None:
         text = read("security-privacy.md")
         ids = re.findall(r"\*\*T-PL-(\d{2})\*\*", text)
-        self.assertEqual(ids, [f"{n:02d}" for n in range(1, 17)])
+        self.assertEqual(ids, [f"{n:02d}" for n in range(1, 18)])
 
     def test_privacy_and_legal_flags_are_present(self) -> None:
         text = read("security-privacy.md").lower()
@@ -325,6 +325,32 @@ class RepoPointers(unittest.TestCase):
     def test_readme_points_at_the_folder(self) -> None:
         text = (REPO / "README.md").read_text(encoding="utf-8")
         self.assertIn("docs/specs/personalized-learning/", text)
+
+
+class OpenDecisionsAreNotRecordedAsSettled(unittest.TestCase):
+    """An open founder decision must not read as settled in the binding docs."""
+
+    def test_agents_routing_row_marks_the_personalized_route_open(self) -> None:
+        text = (REPO / "AGENTS.md").read_text(encoding="utf-8")
+        rows = [
+            line
+            for line in text.splitlines()
+            if line.startswith("| Personalized learning (product runtime)")
+        ]
+        self.assertEqual(len(rows), 1, "the routing table carries exactly one PL row")
+        self.assertIn("D-PL-07", rows[0])
+        self.assertIn("open", rows[0].lower())
+
+    def test_timeline_does_not_present_the_route_as_decided(self) -> None:
+        text = " ".join((REPO / "TIMELINE.md").read_text(encoding="utf-8").split())
+        self.assertIn("D-PL-07", text)
+        self.assertIn("still open", text)
+
+
+class VoicePrecedence(unittest.TestCase):
+    def test_voice_block_is_kept_out_of_the_system_instruction(self) -> None:
+        """The Gemini transport merges system messages; the doc must say so."""
+        self.assertIn("system_instruction", read("data-and-api.md"))
 
 
 class NoPlaceholders(unittest.TestCase):

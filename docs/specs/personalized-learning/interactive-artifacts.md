@@ -22,9 +22,9 @@ Not artifacts: a generated page (that is the factory's job), a video, audio, a
 PDF, a chart that could be a static SVG in the turn text, or anything that
 needs data from another student, the network, or the account.
 
-One artifact per teaching slice, at most **4 per session** and **12 per user
-per day**. The agent may ask; the server may refuse (budget, quota, "text is
-enough") and the turn continues.
+One artifact per teaching slice, but no more than **one per 4 teaching turns**, at most
+**4 per session** and **12 per user per day** (`D-PL-03`). The agent may ask; the server
+may refuse (budget, quota, "text is enough") and the turn continues.
 
 ---
 
@@ -93,8 +93,11 @@ request ─▶ validate spec ─▶ build call (model) ─▶ lint (hard) ─▶
      for a lesson's `page.css`, not an artifact document;
    - artifact-specific: no `<form>`, no `localStorage`/`sessionStorage`/
      `indexedDB`/`document.cookie`, no `window.top`/`window.parent` navigation,
-     no `<iframe>`/`<object>`/`<embed>`, no `data:` URL except `img`/font, no
-     `javascript:` URL, no clipboard APIs, no `Notification`, no fullscreen.
+     **no self-navigation** (`location`, `location.href`/`assign`/`replace`,
+     `window.open`, `history` push beyond the initial entry,
+     `<meta http-equiv="refresh">`, `<base href>`), no `<iframe>`/`<object>`/`<embed>`,
+     no `data:` URL except `img`/font, no `javascript:` URL, no clipboard APIs, no
+     `Notification`, no fullscreen.
      The **only** allowed `postMessage` is the harness channel:
      `window.parent.postMessage(msg, '*')` — the parent is cross-origin and cannot
      be named; any other `postMessage` call is rejected.
@@ -102,6 +105,9 @@ request ─▶ validate spec ─▶ build call (model) ─▶ lint (hard) ─▶
    - load the artifact document with **all network requests aborted**; any
      attempted request is a failure;
    - capture console errors/warnings and unhandled rejections — any error fails;
+   - assert the document never navigates: the committed URL after 3 s equals the
+     requested URL and no additional document load occurred (sandbox permits a frame to
+     navigate *itself*; CSP does not stop that, so this is the check that does);
    - assert `scrollWidth <= clientWidth + 2` at 360 px;
    - run 3 s, collect a frame-time sample via the harness (`postMessage`), fail
      if median < 24 fps or any long task > 200 ms;
@@ -227,6 +233,20 @@ The CSP is enforced twice: the response header and the in-document `<meta>`
 navigation to the URL (if a student pastes it): the document is sandboxed even
 outside the iframe.
 
+Two per-environment notes:
+
+- **`Cross-Origin-Resource-Policy` is `same-origin` only in same-origin mode.** In
+  dedicated-origin mode the app origin is the embedder, so the artifact response sends
+  `cross-origin` (or omits the header) and `frame-ancestors` stays the embedding control.
+  Copying `same-origin` into dedicated-origin mode would block the frame in browsers that
+  apply CORP to framed navigations.
+- **`immutable` is honest for content-addressed ids and an obstacle for an emergency
+  purge.** A purged artifact can survive in a student's browser cache for up to 24 h.
+  Incident response therefore pairs an operator purge with a `lint_version`/`schema_version`
+  bump (new `artifact_id`, new URL) and, for the 60-minute window, a
+  `Cache-Control: no-store` override on the affected route (`security-privacy.md` §8,
+  incident row).
+
 ### 5.3 Origin strategy
 
 | Environment | Artifact origin | Why |
@@ -237,6 +257,11 @@ outside the iframe.
 The dedicated origin is a deployment decision (D-PL-09). Until it lands, the
 same-origin route + opaque-origin sandbox is the accepted posture; it is
 recorded, not silent.
+
+Embedding consequence: `/app`'s CSP has no `frame-src`, so `default-src 'self'` decides.
+Same-origin mode is allowed unchanged; dedicated-origin mode needs exactly one
+`frame-src https://artifacts.<domain>` allow-list entry on `/app` (an addition, not a
+relaxation of `script-src`/`connect-src`).
 
 **Auth on a dedicated origin.** A host-only session cookie is not sent to
 `artifacts.<domain>`, so the artifact route must not depend on it there. The
@@ -262,6 +287,13 @@ only, never the query string) and is not placed in a `Referer` (the iframe is
 - Crash containment: a runaway loop only freezes its own frame; the host
   watchdog unloads the iframe after 10 s without `ready` or after 60 s of
   runtime, then shows the fallback.
+- **Self-navigation is contained, not assumed away.** A sandboxed frame may still navigate
+  itself (`location.href = …`, `meta refresh`); the new document keeps the opaque origin, so
+  cookies/storage stay out of reach, but attacker content could replace the artifact inside
+  the trusted card (phishing copy). Three controls: the lint rejects every self-navigation
+  API and `meta refresh`; the render gate asserts the document never navigates; the host
+  treats a second `load` event, or a `ready` message with a foreign `event.source`, as a
+  crash — it unloads the iframe and shows the fallback.
 
 ---
 
@@ -273,7 +305,7 @@ only, never the query string) and is not placed in a `Referer` (the iframe is
 | Lint | in the build retry + final | any hit | `lint_hits` count + rule ids (no HTML) |
 | Headless render | after lint | console error, network attempt, overflow, fps floor, no `ready` | render report (counts, timings) |
 | Deterministic eval | CI (`EV-PL-003`) | seeded unsafe artifacts and a golden good artifact | `runs/evals/<date>/…/EV-PL-003.json` |
-| Student report | runtime | does not block; feeds the inbox | `problem_report` row (`category=artifact`) |
+| Student report | runtime | does not block; feeds the inbox | `problem_report` row (`category='broken_sim'`, the existing CHECK value — no migration) |
 | Operator purge | manual | removes a cached artifact by hash | audit log |
 
 The render gate runs **outside** the student request path (the turn has already
@@ -357,9 +389,10 @@ artifact, so a failed build always has something honest to show.
 |---|---|
 | `DET-PL03-LINT` | each seeded defect (external fetch, `eval`, `localStorage`, form, top-nav link, oversized, missing label) fails the lint with its expected rule |
 | `DET-PL03-DOC` | a golden good artifact passes lint, has the meta CSP, `role="img"`, label pairs, reduced-motion branch |
-| `DET-PL03-RENDER` | headless: zero console errors, zero network requests, no 360 px overflow, `ready` ≤ 5 s, fps floor under 4× throttle |
-| `DET-PL03-SANDBOX` | a red-team artifact cannot read parent DOM/cookies/localStorage, cannot navigate top, cannot open a popup, cannot submit a form (Playwright) |
+| `DET-PL03-RENDER` | headless: zero console errors, zero network requests, no 360 px overflow, no navigation (committed URL unchanged), `ready` ≤ 5 s, fps floor under 4× throttle |
+| `DET-PL03-SANDBOX` | a red-team artifact cannot read parent DOM/cookies/localStorage, cannot navigate top, cannot open a popup, cannot submit a form, **cannot navigate itself to a foreign document** (Playwright) |
 | `DET-PL03-CACHE` | same spec → same id, second build zero model calls; doctrine hash change → new id |
+| `DET-PL03-NO-STUDENT` | the builder prompt, the stored spec, and the document contain none of the session's free text (a canary string in the weakness/instructions never appears) — the cache is shared across students, so this is the cross-student-leak test |
 | `DET-PL03-FALLBACK` | forced build failure → the turn payload has a fallback and the UI renders it |
 
 Full card, goldens, and log paths: [`evals.md`](evals.md) §4.

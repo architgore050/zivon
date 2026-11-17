@@ -241,7 +241,8 @@ emitted as a progress event so F3/SWOT can read it without a second store.
   continue later." Not a modal, one line.
 - Hard cap at **60 turns** per session; the session ends with the mastery
   summary. Resuming after the hard cap starts a new session linked to the old
-  one ("continue from your last session").
+  one (`parent_session_id`, display-only — no state or mastery carries over),
+  shown as "continue from your last session".
 - Daily/per-minute limits are §5; an in-progress turn always finishes.
 - The student can end at any time; End is not buried and does not require a
   confirmation dialog (it is reversible by resuming).
@@ -454,8 +455,12 @@ content. On the session page it is next to the stage chip.
 
 ## 7. States (all 11, per screen)
 
-Legend: `n/a (reason)` is a valid cell. Copy is English at R1; translation
-follows the UI-translation workstream.
+The canonical vocabulary is the frontend 11-state rule
+(`skills/zivon-frontend-product-skills/`): default, loading, empty, partial, error, offline,
+permission-denied, reduced-motion, untranslated, quota-exhausted, consent-missing. Each
+table adds `auth-required` (the `/app` guard's 303) as a separate row so the guard state is
+never confused with a permission denial. Legend: `n/a (reason)` is a valid cell. Copy is
+English at R1; translation follows the UI-translation workstream.
 
 ### 7.1 `SCR-PL-01` hub
 
@@ -517,7 +522,8 @@ follows the UI-translation workstream.
 | partial | auth down → the field is disabled with a reason (503 shell) |
 | error | save failed → previous value stays, `role="alert"` retry |
 | offline | unsaved changes stay on screen; "Not saved — reconnect" |
-| permission-denied | guest → 303 `/login?next=/app/settings` |
+| auth-required | guest → `303 /login?next=/app/settings` |
+| permission-denied | n/a — the field is the caller's own account; it is absent for guests |
 | reduced-motion | n/a (no animation) |
 | untranslated | English copy; the field's text is the student's own language |
 | quota-exhausted | n/a (preferences are not metered) |

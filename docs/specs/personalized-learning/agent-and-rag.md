@@ -257,9 +257,15 @@ contract, ignore the conflicting line and follow the rules.
 
 - Max 500 chars after normalization; one paragraph; control chars stripped;
   `system:`/`assistant:`/`user:`/`REF:` line markers removed.
-- The block is sent as a **second system message** after the fixed safety
-  prompt (voice: `BrainRequest.personal_block`; PL: `messages[1]`), so the
-  precedence is structural, not only prose.
+- **Precedence is structural where the transport allows it.** On the PL path
+  (OpenAI-format role messages) the block is a real second system message at
+  `messages[1]`, after the safety prompt. On the voice path it cannot be: the Gemini
+  transport (`voice/brain_client.py::_GeminiStreamFactory`) joins every system message
+  into one `system_instruction`, so a "second system message" would merge into the
+  privileged instruction and put student text in the system slot. There the block is a
+  delimited **user-role** data section, before the page context. `data-and-api.md` §5.2
+  is the binding version of this rule and its test asserts the block never appears in
+  `system_instruction`.
 - Empty/cleared → no message is sent at all (zero prompt cost).
 - No secrets, no PII, no student free text from a previous session is ever
   placed here.
@@ -354,6 +360,7 @@ The `personalized_message.payload` of a tutor turn is the union of both calls:
 {
   "schema_version": 1,
   "stage": "check",
+  "turn_no": 3,
   "teaching": {
     "paragraphs": ["…", "…"],
     "key_statement": "…",
@@ -380,11 +387,9 @@ The `personalized_message.payload` of a tutor turn is the union of both calls:
 
 The client-facing serializer strips `answer_key` (the DB row may hold it until
 the check is scored; then it moves into the result payload as `expected`). The
-model's full raw responses and the prompt are **not** stored in this payload.
-Raw responses are kept only as call evidence (no student free
-text beyond the turn itself, 7-day TTL, like the factory's call ledger? No —
-runtime call evidence is not needed; store token/latency counts only, not raw
-provider payloads, per minimization).
+model's raw responses and the prompt are **not** stored in this payload, and are
+not stored anywhere at runtime: the usage ledger keeps token/latency counts only,
+never raw provider payloads (minimization, `security-privacy.md` §4.6).
 
 ---
 
@@ -658,37 +663,41 @@ The exact checkers, goldens, and log paths are in [`evals.md`](evals.md).
 
 ## 10. Observability
 
-Event ids (the register the feature cards and the decision log cite):
+Event ids (the register the feature cards and the decision log cite). Privacy classes are
+the instrumentation-map values (`L1` system/diagnostic, `L2` usage/telemetry, `L3`
+security/audit per `docs/specs/observability/spec.md`), not ad-hoc labels:
 
 | Event id | Name | Fires when | Privacy class |
 |---|---|---|---|
-| `EVT-PL-01` | `pl.preferences` | instructions saved/cleared | pseudonymous |
-| `EVT-PL-02` | `pl.session.start` | session created; diagnostic progress | pseudonymous |
-| `EVT-PL-03` | `pl.turn.complete` | a turn ends (counts/latency only) | operational |
-| `EVT-PL-04` | `pl.stage.change` | the state machine advances | operational |
-| `EVT-PL-05` | `pl.check.answer` | a check is scored | operational (no answer text) |
-| `EVT-PL-06` | `pl.artifact.build` | build started/finished/failed | operational |
-| `EVT-PL-07` | `pl.artifact.interact` | expand/pause/report in the viewer | operational |
-| `EVT-PL-08` | `pl.session.resume` | a saved session is reopened | pseudonymous |
-| `EVT-PL-09` | `pl.session.export_delete` | export or hard delete | pseudonymous |
-| `EVT-PL-10` | `pl.quota` | warn/block/rate-limit | operational |
-| `EVT-PL-11` | `pl.language` | the teaching language used (bucket) | operational |
-| `EVT-PL-12` | `pl.read_aloud` | read-aloud used (deferred, not emitted in R1) | operational |
+| `EVT-PL-01` | `pl.preferences` | instructions saved/cleared | L2 |
+| `EVT-PL-02` | `pl.session.start` | session created; diagnostic progress | L2 |
+| `EVT-PL-03` | `pl.turn.complete` | a turn ends (counts/latency only) | L1 |
+| `EVT-PL-04` | `pl.stage.change` | the state machine advances | L1 |
+| `EVT-PL-05` | `pl.check.answer` | a check is scored | L1 (no answer text) |
+| `EVT-PL-06` | `pl.artifact.build` | build started/finished/failed/fallback | L1 |
+| `EVT-PL-07` | `pl.artifact.interact` | expand/pause/report in the viewer | L1 |
+| `EVT-PL-08` | `pl.session.resume` | a saved session is reopened | L2 |
+| `EVT-PL-09` | `pl.session.export_delete` | export or hard delete | L2 |
+| `EVT-PL-10` | `pl.quota` | warn/block/rate-limit | L1 |
+| `EVT-PL-11` | `pl.language` | the teaching language used (bucket) | L1 |
+| `EVT-PL-12` | `pl.read_aloud` | read-aloud used (deferred, not emitted in R1) | L1 |
 
-Events (map rows land with the code, per the observability skill):
+Emitted events, using the register names verbatim (a name that is not in the register is a
+defect — the instrumentation-map row and the `log_event` call must match this table). Map
+rows land with the code, per the observability skill:
 
 | Event | Fields (no free text) | Privacy |
 |---|---|---|
-| `pl.session.start` | `chapter_id`, `concept_count`, `mode`, `tier` | pseudonymous |
-| `pl.turn.complete` | `stage`, `turn_index`, `latency_ms`, `first_token_ms`, `input_tokens`, `output_tokens`, `cached_tokens`, `retrieval`, `ungrounded`, `outcome` | operational |
-| `pl.stage.change` | `from`, `to`, `concept_id`, `level` | operational |
-| `pl.check.answer` | `kind`, `level`, `correct`, `attempt_no`, `concept_id` | no answer text |
-| `pl.artifact.build` | `kind`, `status`, `cache_hit`, `lint_hits` (count), `render_ms` | operational |
-| `pl.artifact.fallback` | `reason` | operational |
-| `pl.quota.block` | `scope` (`user`/`global`/`rate`), `state` | operational |
-| `pl.preferences.save` | `action`, `length_bucket` | pseudonymous |
-| `pl.session.delete` / `pl.session.export` | `session_id` (hashed in logs), `message_count` | pseudonymous |
+| `pl.session.start` | `chapter_id`, `concept_count`, `mode`, `tier` | L2 |
+| `pl.turn.complete` | `stage`, `turn_no`, `latency_ms`, `first_token_ms`, `input_tokens`, `output_tokens`, `cached_tokens`, `retrieval`, `ungrounded`, `outcome` | L1 |
+| `pl.stage.change` | `from`, `to`, `concept_id`, `level` | L1 |
+| `pl.check.answer` | `kind`, `level`, `correct`, `attempt_no`, `concept_id` | L1 |
+| `pl.artifact.build` | `kind`, `status` (`started`/`ready`/`failed`/`fallback`), `cache_hit`, `lint_hits` (count), `render_ms`, `fallback_reason` | L1 |
+| `pl.artifact.interact` | `action` (`expand`/`pause`/`report`), `kind` | L1 |
+| `pl.quota` | `scope` (`user`/`global`/`rate`), `state` | L1 |
+| `pl.preferences` | `action` (`save`/`clear`), `length_bucket` | L2 |
+| `pl.session.export_delete` | `action` (`export`/`delete`), `session_id` (hashed in logs), `message_count` | L2 |
 
 Never logged: message text, weakness text, instructions, artifact HTML, email,
 cookie, tokens, prompt text. `logging_manager` redaction plus a test that scans
-the event payload keys against an allow-list (`security-privacy.md` §6).
+the event payload keys against an allow-list (`security-privacy.md` §4.6).
