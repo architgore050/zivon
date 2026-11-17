@@ -532,7 +532,7 @@ Branch `fix/p0-voice-live` off `main` @ `51f03b6`.
   smoke suite 16 cards, 0 model calls, PASS.
 - **Logging**: four `factory.assessment.*` events with instrumentation-map rows; stage
   transitions reuse `factory.stage.*` with A-stage ids.
-- **Tests**: `testing/content_factory/assessment/` (129 tests, key-free) wired into CI.
+- **Tests**: `testing/content_factory/assessment/` (130 tests, key-free) wired into CI.
 
 **Not done / next**
 - **Live generation not run** (Q-10 window is founder/infra-triggered). The `--generator llm`
