@@ -20,6 +20,9 @@ and not committed; restated in `docs/product/`, `docs/specs/frontend/`, and
   path; a missing translation is a publish failure, not a silent fallback — Q-2).
 - The full consumer frontend: public site + catalogue, lesson shell, guest-first identity,
   dashboard/progress, practice, speaking, tests/series, SWOT, settings, admin.
+- Personalized learning (W5.5, added 2026-11-17): a login-required teach → check → adapt
+  loop with account-level personal instructions, saved conversations, and sandboxed
+  generated artifacts — free prototype, no paywall or payment.
 - Pipeline quality good enough to keep producing content unattended: metadata/hooks, quality
   gates, assessment/series stages, publish integrity (P1–P5).
 - Exam-paper content gated by the `docs/compliance/` memo (Q-8); it stays behind a feature
@@ -35,6 +38,42 @@ and not committed; restated in `docs/product/`, `docs/specs/frontend/`, and
 | **W3** | P2 assessment content · F2 identity/settings · F3 dashboard/progress | 1 chapter of practice + speaking rubrics; progress events land |
 | **W4** | P3 exam/series · F5 practice · F6 speaking · F7 tests/series | one Class 10 Physics-section paper + one Class 12 full paper; screens work on real data |
 | **W5** | F8 SWOT · F10 admin · F11 integration | end-to-end flow on one chapter; E2E evals; rehearsal |
+| **W5.5** | PL1 data/auth/preferences/chats/quota · PL2 RAG/teaching agent · PL3 artifacts · PL4 frontend · PL5 evals/security | one Class 10 chapter taught end-to-end with citations, resume, one sandboxed artifact, and honest quota states; `EV-PL-001…005` green |
+
+### W5.5 — Personalized Learning (added 2026-11-17)
+
+Founder correction that binds the wave: **pure free-tier prototype, login required, no
+paywall and no payment.** Quotas/rate limits and artifact caching control cost and fairness;
+there is no plan, subscription, entitlement, or pricing change. The spec is
+[`docs/specs/personalized-learning/`](docs/specs/personalized-learning/README.md).
+
+What ships: account-level **personal instructions** in `/app/settings` (injected into the
+lesson tutor and personalized learning, lower priority than safety); the login-required
+`/app/personalized` hub and **teach → check → adapt** session with a short diagnostic,
+citations on every teaching turn, progressive difficulty to board-style, explicit mastery
+evidence, and resume/history/export/delete; **saved conversations** as one store (text and
+artifacts only, no raw audio); and **sandboxed interactive artifacts** generated at runtime
+with the factory's doctrine/lint discipline and a text/diagram fallback.
+
+Dependencies: W1 F0 (accounts/sessions/CSRF, app shell), W2 F4 (lesson shell + published
+lesson manifests), W3 F2 (settings) + F3 (progress events), W4 P2 (`question_bank` import),
+the RAG index builder over cached NCERT text, and the `llm_manager` OpenCode route. The spec is
+written on the **recommendation** that the personalized agent runs on **DeepSeek V4.1 Flash via
+the OpenCode API key**, separate from the Gemma voice tutor and the factory credentials — that
+is `D-PL-07`, **still open**, and no model call ships on the route until the founder answers it
+(see `AGENTS.md` model routing, which labels the same row as pending).
+
+Workstreams and file ownership: [`workstreams.md`](docs/specs/personalized-learning/workstreams.md)
+(PL1 data/auth/preferences/chats/quota · PL2 RAG/agent/teaching loop · PL3 artifacts · PL4
+frontend · PL5 evals/security/QA). Open founder decisions D-PL-01…11 (quota numbers, RAG
+corpus scope, artifact limits, instructions availability, retention, latency/cost budget,
+routing, email verification, one-store/artifact-origin, doctrine, **login scope**) are in
+[`decisions.md`](docs/specs/personalized-learning/decisions.md); the build proceeds on the
+recommendations until the founder answers, and each is labelled a recommendation wherever the
+spec states it.
+
+**Not in this wave:** payments/plans, voice inside personalized learning, parent/teacher
+views, sharing, an inferred learner profile, model tools/browsing, verbatim CBSE items.
 
 **Historical boundary:** `## Reality Snapshot` through `## Definition of Submission-Ready`
 belong to the closed challenge plan — with one exception: **`## Infra & Deployment TODO` stays
