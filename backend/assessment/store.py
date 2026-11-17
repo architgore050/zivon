@@ -679,15 +679,18 @@ def list_missed_question_ids(
 
     Retry means "still unresolved", not "was ever wrong": a question answered
     wrong once and then right does not come back. Ids are deduplicated across
-    sessions so one item cannot fill a retry set twice.
+    sessions so one item cannot fill a retry set twice. `chapter_id` filters on
+    the question's own chapter, not on the session that carried the attempt: a
+    retry/weak session stores no chapter, so a session-based filter would hide a
+    miss the student made inside one.
     """
     owner = _require_user(user_id)
     lang = _language(language)
-    clauses = ["pa.correct = ?", "q.language = ?", "q.status IN (?, ?)"]
     params: list[Any] = [owner, False, lang, *SERVED_STATUSES]
     chapter = str(chapter_id or "").strip()
+    chapter_clause = ""
     if chapter:
-        clauses.append("ps.chapter_id = ?")
+        chapter_clause = " AND q.chapter_id = ?"
         params.append(chapter)
     rows = db.fetchall(
         """
@@ -706,13 +709,10 @@ def list_missed_question_ids(
               ON session.session_id = pa.session_id
             WHERE session.user_id = ?
         ) latest
-        JOIN practice_session ps ON ps.session_id = latest.session_id
         JOIN question_bank q ON q.question_id = latest.question_id
-        WHERE latest.rn = 1 AND """
-        + " AND ".join(
-            "latest.correct = ?" if clause == "pa.correct = ?" else clause
-            for clause in clauses
-        )
+        WHERE latest.rn = 1 AND latest.correct = ?
+          AND q.language = ? AND q.status IN (?, ?)"""
+        + chapter_clause
         + " ORDER BY latest.created_at DESC",
         tuple(params),
     )

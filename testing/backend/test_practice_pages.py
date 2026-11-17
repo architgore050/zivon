@@ -380,6 +380,16 @@ class PracticePageTests(unittest.TestCase):
         self.assertIn("This set is still open", response.text)
         self.assertIn("Continue this set", response.text)
 
+    def test_finished_set_with_no_answers_shows_no_score(self) -> None:
+        """A completed set nobody answered must not claim a 0% score."""
+        session_id = self._create_session()
+        complete_practice_session(self.db, self._user_id(), session_id, score=0.0)
+        response = self.client.get(f"/app/practice/{session_id}/summary")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Nothing was answered in this set", response.text)
+        self.assertNotIn("Set score", response.text)
+        self.assertIn("left unanswered", response.text)
+
     def test_history_empty_state(self) -> None:
         response = self.client.get("/app/practice/history")
         self.assertEqual(response.status_code, 200)

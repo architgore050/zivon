@@ -62,7 +62,7 @@
           <dt>Hints opened</dt>
           <dd>{{ practice.summary.hints_used }}</dd>
         </div>
-        {% if practice.score_label %}
+        {% if practice.score_label and practice.summary.answered_count %}
         <div class="practice-figure">
           <dt>Set score</dt>
           <dd>{{ practice.score_label }}</dd>

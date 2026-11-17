@@ -270,7 +270,7 @@ Empty state points at the hub.
 |---|---|---|---|---|
 | default | modes + recent | one question | score + concepts + next | session list |
 | loading | n/a (SSR completes before bytes) | n/a | n/a | n/a |
-| empty | no bank: honest "No chapter has an imported practice bank yet"; no start form | n/a (a session always has questions) | zero answered: "Nothing was answered in this set" | "No practice sets yet" |
+| empty | no bank: honest "No chapter has an imported practice bank yet"; no start form | n/a (a session always has questions) | zero answered: "Nothing was answered in this set", no score figure (a 0% would read as "all wrong") | "No practice sets yet" |
 | partial | Daily 5 unavailable reason; English-only chapter marker; no weak/retry yet | unanswered set, last question answered but set not closed | open set: "This set is still open"; unanswered count | open sets say "still open" |
 | error | panel `notice--error` + retry, no invented modes | panel error + retry | panel error + retry | panel error + retry |
 | offline | browser offline page (practice needs the server; no local pack in this slice) | same | same | same |
@@ -288,7 +288,7 @@ foreign session is a branded HTML `404`, never the JSON envelope.
 
 ## 9. Accessibility, mobile, privacy
 
-- One `main`, one `h1` per page; every section `aria-labelledby`; native
+- One `main`, one `h1` per page; every headed section is `aria-labelledby`; native
   `<fieldset>/<legend>` for the options and `<progress>` for progress; feedback
   is `role="status" aria-live="polite"` and receives focus after an inline
   check; the answer error is `role="alert"`.
@@ -337,11 +337,14 @@ All key-free, offline, deterministic; no model or voice call exists on this path
 
 ## 12. Known debt / next
 
-- **Stale cross-workstream copy.** F3's dashboard still says "five practice
-  questions … not live yet" and F4's lesson end-CTA still shows Practice as
-  "coming soon"; both are their owners' templates. The `Practice` nav entry and
-  `/app/practice` are live now, so those two copy blocks are the next small
-  follow-up (F3/F4), not an F5 edit.
+- **Stale cross-workstream copy.** F4's lesson end-CTA (the "What next?" block
+  in `frontend/assets/zivon.js`) still shows "Practise this chapter" as
+  "coming soon". That block is F4's shell and is shared with the public static
+  site, where `/app/practice` would be a login wall, so turning it into a link
+  is F4's decision, not an F5 edit. F3's dashboard copy *was* fixed in this PR:
+  it said "five practice questions … not live yet" and listed Practice as a
+  quick action marked "not live yet"; it now names one remaining step and links
+  `/app/practice`.
 - **Concept vocabulary.** The P2 import writes `question_bank` but not
   `syllabus_chapter`/`concept`; practice concept ids are semantic slugs while the
   published catalogue uses `…-sec-NN`. The summary therefore humanizes the

@@ -23,7 +23,12 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from backend import BackendConfig, create_app
-from backend.assessment import fetch_question, fetch_questions, select_question_ids
+from backend.assessment import (
+    fetch_question,
+    fetch_questions,
+    list_missed_question_ids,
+    select_question_ids,
+)
 from db.uuid7 import uuid7_str
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -472,6 +477,32 @@ class PracticeApiTests(unittest.TestCase):
         )
         self.assertEqual(
             self.create(mode="weak_topic", chapter_id=MOTION).status_code, 409
+        )
+
+    def test_missed_question_ids_filter_on_the_question_chapter(self) -> None:
+        """A miss recorded inside a chapter-less retry set still belongs to its chapter."""
+        session_id = self.create().json()["session"]["session_id"]
+        question_id = self.session(session_id).json()["question"]["question_id"]
+        self.answer(session_id, question_id, self.wrong_answer(question_id))
+        retry = self.create(mode="retry_mistakes", chapter_id=None).json()["session"]
+        self.assertIn(question_id, retry["question_ids"])
+        # Re-miss it inside the retry set, whose own chapter_id is NULL: the
+        # latest attempt now hangs off a session that carries no chapter.
+        self.answer(retry["session_id"], question_id, self.wrong_answer(question_id))
+        missed = list_missed_question_ids(
+            self.db, self._user_id(), language="en", chapter_id=MOTION
+        )
+        self.assertIn(
+            question_id,
+            missed,
+            "the filter is the question's chapter, not the attempt's session",
+        )
+        self.assertEqual(
+            list_missed_question_ids(
+                self.db, self._user_id(), language="en", chapter_id=LIGHT
+            ),
+            [],
+            "another chapter's misses stay out of the drill",
         )
 
     def test_empty_retry_and_weak_states_are_coded_errors(self) -> None:
