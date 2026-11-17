@@ -1,0 +1,134 @@
+{
+  "block_tagging": "pending_lesson",
+  "blocks": {},
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "class_level": 10,
+  "concepts": [
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "description": "The two laws of reflection and the image formed by a plane mirror (NCERT 9.1).",
+      "prerequisites": [],
+      "section_refs": [
+        "9.1"
+      ],
+      "title": "Reflection of light",
+      "title_hi": "प्रकाश का परावर्तन"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "description": "Concave and convex mirrors, pole, centre and radius of curvature, principal focus and ray diagrams (NCERT 9.2-9.2.2).",
+      "prerequisites": [
+        "class-10-light-reflection-and-refraction-reflection-of-light"
+      ],
+      "section_refs": [
+        "9.2",
+        "9.2.1",
+        "9.2.2"
+      ],
+      "title": "Spherical mirrors",
+      "title_hi": "गोलीय दर्पण"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+      "description": "The New Cartesian sign convention, 1/v + 1/u = 1/f and m = -v/u (NCERT 9.2.3-9.2.4).",
+      "prerequisites": [
+        "class-10-light-reflection-and-refraction-spherical-mirrors"
+      ],
+      "section_refs": [
+        "9.2.3",
+        "9.2.4"
+      ],
+      "title": "Mirror formula and magnification",
+      "title_hi": "दर्पण सूत्र और आवर्धन"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-refraction-of-light",
+      "description": "Bending at a transparent boundary, refraction through a glass slab and the refractive index (NCERT 9.3-9.3.2).",
+      "prerequisites": [
+        "class-10-light-reflection-and-refraction-reflection-of-light"
+      ],
+      "section_refs": [
+        "9.3",
+        "9.3.1",
+        "9.3.2"
+      ],
+      "title": "Refraction of light",
+      "title_hi": "प्रकाश का अपवर्तन"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-lenses",
+      "description": "Convex and concave lenses, focal length and image formation by ray diagrams (NCERT 9.3.3-9.3.5).",
+      "prerequisites": [
+        "class-10-light-reflection-and-refraction-refraction-of-light"
+      ],
+      "section_refs": [
+        "9.3.3",
+        "9.3.4",
+        "9.3.5"
+      ],
+      "title": "Spherical lenses",
+      "title_hi": "गोलीय लेंस"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-lens-formula-and-magnification",
+      "description": "The sign convention for lenses, 1/v - 1/u = 1/f and m = v/u (NCERT 9.3.6-9.3.7).",
+      "prerequisites": [
+        "class-10-light-reflection-and-refraction-spherical-lenses"
+      ],
+      "section_refs": [
+        "9.3.6",
+        "9.3.7"
+      ],
+      "title": "Lens formula and magnification",
+      "title_hi": "लेंस सूत्र और आवर्धन"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+      "description": "Power as the reciprocal of focal length, the dioptre, and powers in contact (NCERT 9.3.8).",
+      "prerequisites": [
+        "class-10-light-reflection-and-refraction-lens-formula-and-magnification"
+      ],
+      "section_refs": [
+        "9.3.8"
+      ],
+      "title": "Power of a lens",
+      "title_hi": "लेंस की क्षमता"
+    }
+  ],
+  "edges": [
+    {
+      "from": "class-10-light-reflection-and-refraction-lens-formula-and-magnification",
+      "kind": "prerequisite",
+      "to": "class-10-light-reflection-and-refraction-power-of-a-lens"
+    },
+    {
+      "from": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "kind": "prerequisite",
+      "to": "class-10-light-reflection-and-refraction-refraction-of-light"
+    },
+    {
+      "from": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "kind": "prerequisite",
+      "to": "class-10-light-reflection-and-refraction-spherical-mirrors"
+    },
+    {
+      "from": "class-10-light-reflection-and-refraction-refraction-of-light",
+      "kind": "prerequisite",
+      "to": "class-10-light-reflection-and-refraction-spherical-lenses"
+    },
+    {
+      "from": "class-10-light-reflection-and-refraction-spherical-lenses",
+      "kind": "prerequisite",
+      "to": "class-10-light-reflection-and-refraction-lens-formula-and-magnification"
+    },
+    {
+      "from": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "kind": "prerequisite",
+      "to": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification"
+    }
+  ],
+  "lesson": null,
+  "schema_version": 1,
+  "section_concept_map": {},
+  "stage": "A2-concept-tag"
+}

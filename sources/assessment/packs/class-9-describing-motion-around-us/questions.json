@@ -1,0 +1,1509 @@
+{
+  "chapter_id": "class-9-describing-motion-around-us",
+  "questions": [
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-001",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 47000,
+      "explanation": "Distance is the whole path: 40 m + 60 m + 60 m = 160 m. Displacement is only the net change from start O to finish B, which is 40 m.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Adding only the outward trip (100 m) forgets the run back; displacement is not the path length.",
+      "options": [
+        "160 m and 40 m",
+        "100 m and 60 m",
+        "160 m and 160 m",
+        "40 m and 160 m"
+      ],
+      "prompt": "An athlete runs from O to B (40 m), then to A (100 m), then back to B. What are the total distance travelled and the magnitude of displacement from O to B?",
+      "question_id": "q-c9-motion-001-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Fig. 4.4",
+        "section": "4.1.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-001",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 56000,
+      "explanation": "दूरी पूरे रास्ते की लंबाई है: 40 m + 60 m + 60 m = 160 m। विस्थापन केवल प्रारंभ O से अंत B तक का शुद्ध परिवर्तन है, जो 40 m है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "केवल जाने का रास्ता (100 m) जोड़ने से वापसी छूट जाती है; विस्थापन रास्ते की लंबाई नहीं है।",
+      "options": [
+        "160 m और 40 m",
+        "100 m और 60 m",
+        "160 m और 160 m",
+        "40 m और 160 m"
+      ],
+      "prompt": "एक खिलाड़ी O से B (40 m), फिर A (100 m) तक दौड़ता है और फिर B तक वापस आता है। कुल तय दूरी और O से B तक विस्थापन का परिमाण क्या है?",
+      "question_id": "q-c9-motion-001-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Fig. 4.4",
+        "section": "4.1.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-001",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 50000,
+      "explanation": "Distance poore raaste ki lambai hai: 40 m + 60 m + 60 m = 160 m. Displacement sirf start O se finish B tak ka net change hai, jo 40 m hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Sirf jaane ka raasta (100 m) jodne se wapsi chhoot jaati hai; displacement path length nahi hai.",
+      "options": [
+        "160 m aur 40 m",
+        "100 m aur 60 m",
+        "160 m aur 160 m",
+        "40 m aur 160 m"
+      ],
+      "prompt": "Ek athlete O se B (40 m), phir A (100 m) tak daudta hai aur phir B tak wapas aata hai. Total distance travelled aur O se B tak displacement ka magnitude kya hai?",
+      "question_id": "q-c9-motion-001-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Fig. 4.4",
+        "section": "4.1.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-002",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 68000,
+      "explanation": "Distance = 3 + 4 = 7 km. Displacement = 3 km east + 4 km west = 1 km west.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Distance and displacement are equal only when the direction never reverses.",
+      "options": [
+        "7 km and 1 km west",
+        "7 km and 7 km west",
+        "1 km and 1 km west",
+        "4 km and 3 km east"
+      ],
+      "prompt": "A cyclist rides 3 km east, then 4 km west. What are the distance travelled and the displacement?",
+      "question_id": "q-c9-motion-002-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-002",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 82000,
+      "explanation": "दूरी = 3 + 4 = 7 km। विस्थापन = 3 km पूर्व + 4 km पश्चिम = 1 km पश्चिम।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "दूरी और विस्थापन केवल तब बराबर होते हैं जब दिशा कभी न बदले।",
+      "options": [
+        "7 km और 1 km पश्चिम",
+        "7 km और 7 km पश्चिम",
+        "1 km और 1 km पश्चिम",
+        "4 km और 3 km पूर्व"
+      ],
+      "prompt": "एक साइकिल सवार 3 km पूर्व, फिर 4 km पश्चिम जाता है। तय दूरी और विस्थापन क्या हैं?",
+      "question_id": "q-c9-motion-002-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-002",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 71000,
+      "explanation": "Distance = 3 + 4 = 7 km. Displacement = 3 km east + 4 km west = 1 km west.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Distance aur displacement tabhi barabar hote hain jab direction kabhi na badle.",
+      "options": [
+        "7 km aur 1 km west",
+        "7 km aur 7 km west",
+        "1 km aur 1 km west",
+        "4 km aur 3 km east"
+      ],
+      "prompt": "Ek cyclist 3 km east, phir 4 km west jaata hai. Distance travelled aur displacement kya hai?",
+      "question_id": "q-c9-motion-002-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "m/s",
+        "value": 15.0
+      },
+      "base_item_id": "q-c9-motion-003",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "easy",
+      "expected_time_ms": 73000,
+      "explanation": "Average speed = distance / time = 120 m / 8 s = 15 m/s.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "prompt": "A car covers 120 m in 8 s. What is its average speed in m/s?",
+      "question_id": "q-c9-motion-003-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "m/s",
+        "value": 15.0
+      },
+      "base_item_id": "q-c9-motion-003",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "easy",
+      "expected_time_ms": 83000,
+      "explanation": "औसत चाल = दूरी / समय = 120 m / 8 s = 15 m/s।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "prompt": "एक कार 8 s में 120 m दूरी तय करती है। उसकी औसत चाल m/s में क्या है?",
+      "question_id": "q-c9-motion-003-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "m/s",
+        "value": 15.0
+      },
+      "base_item_id": "q-c9-motion-003",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "easy",
+      "expected_time_ms": 77000,
+      "explanation": "Average speed = distance / time = 120 m / 8 s = 15 m/s.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "prompt": "Ek car 8 s mein 120 m distance cover karti hai. Uski average speed m/s mein kya hai?",
+      "question_id": "q-c9-motion-003-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-004",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "medium",
+      "distractor_index": 0,
+      "expected_time_ms": 61000,
+      "explanation": "Average speed uses the 50 m actually swum, so it is 1 m/s. He returns to the start, so the displacement is zero and the average velocity is 0 m/s.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Speed and velocity differ whenever the displacement is smaller than the distance.",
+      "options": [
+        "1 m/s and 1 m/s",
+        "1 m/s and 0 m/s",
+        "0 m/s and 1 m/s",
+        "1 m/s and 0.5 m/s"
+      ],
+      "prompt": "Sarang swims from one end of the pool to the other and back in 50 s, covering 50 m in all. What are his average speed and average velocity for the 50 s interval?",
+      "question_id": "q-c9-motion-004-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.2",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-004",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "medium",
+      "distractor_index": 0,
+      "expected_time_ms": 73000,
+      "explanation": "औसत चाल में तैरा गया 50 m लिया जाता है, इसलिए 1 m/s है। वह प्रारंभ बिंदु पर लौटता है, इसलिए विस्थापन शून्य और औसत वेग 0 m/s है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "जब विस्थापन दूरी से छोटा होता है तब चाल और वेग भिन्न होते हैं।",
+      "options": [
+        "1 m/s और 1 m/s",
+        "1 m/s और 0 m/s",
+        "0 m/s और 1 m/s",
+        "1 m/s और 0.5 m/s"
+      ],
+      "prompt": "सरंग 50 s में पूल के एक सिरे से दूसरे सिरे तक जाकर वापस आता है और कुल 50 m तय करता है। 50 s के अंतराल में उसकी औसत चाल और औसत वेग क्या हैं?",
+      "question_id": "q-c9-motion-004-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.2",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-004",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "medium",
+      "distractor_index": 0,
+      "expected_time_ms": 65000,
+      "explanation": "Average speed mein tairа gaya 50 m liya jaata hai, isliye 1 m/s hai. Woh start point par lautta hai, isliye displacement zero aur average velocity 0 m/s hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Jab displacement distance se chhota hota hai tab speed aur velocity alag hote hain.",
+      "options": [
+        "1 m/s aur 1 m/s",
+        "1 m/s aur 0 m/s",
+        "0 m/s aur 1 m/s",
+        "1 m/s aur 0.5 m/s"
+      ],
+      "prompt": "Sarang 50 s mein pool ke ek sire se doosre sire tak jaakar wapas aata hai aur total 50 m cover karta hai. 50 s ke interval mein uski average speed aur average velocity kya hain?",
+      "question_id": "q-c9-motion-004-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.2",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-005",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 90000,
+      "explanation": "A closed trip (for example, swimming to the other end and back) has zero displacement but a non-zero path length, so the average velocity is zero and the average speed is not. R is the reason A is true.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Confusing the two quantities: velocity uses displacement, not the path length.",
+      "options": [
+        "Both A and R are true, and R explains A.",
+        "Both A and R are true, but R does not explain A.",
+        "A is true but R is false.",
+        "A is false but R is true."
+      ],
+      "prompt": "Assertion (A): The average velocity of an object can be zero while its average speed is not zero. Reason (R): Displacement can be zero even when the path length is not zero.",
+      "question_id": "q-c9-motion-005-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-005",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 113000,
+      "explanation": "बंद यात्रा (जैसे दूसरे सिरे तक तैरकर वापस आना) में विस्थापन शून्य होता है परंतु रास्ते की लंबाई शून्य नहीं होती, इसलिए औसत वेग शून्य और औसत चाल शून्य नहीं होती। R, A का कारण है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "दोनों राशियों में भ्रम: वेग विस्थापन पर आधारित है, रास्ते की लंबाई पर नहीं।",
+      "options": [
+        "A और R दोनों सत्य हैं, और R, A की व्याख्या करता है।",
+        "A और R दोनों सत्य हैं, परंतु R, A की व्याख्या नहीं करता।",
+        "A सत्य है परंतु R असत्य है।",
+        "A असत्य है परंतु R सत्य है।"
+      ],
+      "prompt": "अभिकथन (A): किसी वस्तु का औसत वेग शून्य हो सकता है जबकि उसकी औसत चाल शून्य न हो। कारण (R): रास्ते की लंबाई शून्य न होने पर भी विस्थापन शून्य हो सकता है।",
+      "question_id": "q-c9-motion-005-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-005",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 96000,
+      "explanation": "Band journey (jaise doosre sire tak tair kar wapas aana) mein displacement zero hota hai lekin path length zero nahi hoti, isliye average velocity zero aur average speed zero nahi hoti. R, A ka reason hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Dono quantities mein confusion: velocity displacement par based hai, path length par nahi.",
+      "options": [
+        "A aur R dono sach hain, aur R, A ko explain karta hai.",
+        "A aur R dono sach hain, lekin R, A ko explain nahi karta.",
+        "A sach hai lekin R galat hai.",
+        "A galat hai lekin R sach hai."
+      ],
+      "prompt": "Assertion (A): Kisi object ka average velocity zero ho sakta hai jabki uski average speed zero na ho. Reason (R): Raaste ki lambai zero na hone par bhi displacement zero ho sakta hai.",
+      "question_id": "q-c9-motion-005-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.1.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "m/s^2",
+        "value": 0.5
+      },
+      "base_item_id": "q-c9-motion-006",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "difficulty": "medium",
+      "expected_time_ms": 93000,
+      "explanation": "Average acceleration = (v - u) / t = (15 - 10) / 10 = 0.5 m/s².",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "prompt": "A bus speeds up from 10 m/s to 15 m/s in 10 s. What is its average acceleration in m/s²?",
+      "question_id": "q-c9-motion-006-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.3",
+        "section": "4.1.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "m/s^2",
+        "value": 0.5
+      },
+      "base_item_id": "q-c9-motion-006",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "difficulty": "medium",
+      "expected_time_ms": 106000,
+      "explanation": "औसत त्वरण = (v - u) / t = (15 - 10) / 10 = 0.5 m/s²।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "prompt": "एक बस 10 s में 10 m/s से 15 m/s तक की गति पकड़ती है। उसका औसत त्वरण m/s² में क्या है?",
+      "question_id": "q-c9-motion-006-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.3",
+        "section": "4.1.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "m/s^2",
+        "value": 0.5
+      },
+      "base_item_id": "q-c9-motion-006",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "difficulty": "medium",
+      "expected_time_ms": 98000,
+      "explanation": "Average acceleration = (v - u) / t = (15 - 10) / 10 = 0.5 m/s².",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "prompt": "Ek bus 10 s mein 10 m/s se 15 m/s tak speed up karti hai. Uski average acceleration m/s² mein kya hai?",
+      "question_id": "q-c9-motion-006-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.3",
+        "section": "4.1.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-007",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "difficulty": "hard",
+      "distractor_index": 0,
+      "expected_time_ms": 88000,
+      "explanation": "a = (0 - 15) / 5 = -3 m/s². The minus sign shows the acceleration is opposite to the velocity.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Reporting only the magnitude loses the direction of the change in velocity.",
+      "options": [
+        "3 m/s²",
+        "-3 m/s²",
+        "-0.33 m/s²",
+        "75 m/s²"
+      ],
+      "prompt": "A bus moving at 15 m/s comes to rest in 5 s. What is its average acceleration?",
+      "question_id": "q-c9-motion-007-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.3",
+        "section": "4.1.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-007",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "difficulty": "hard",
+      "distractor_index": 0,
+      "expected_time_ms": 100000,
+      "explanation": "a = (0 - 15) / 5 = -3 m/s²। ऋण चिह्न दिखाता है कि त्वरण वेग की विपरीत दिशा में है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "केवल परिमाण बताने से वेग परिवर्तन की दिशा छूट जाती है।",
+      "options": [
+        "3 m/s²",
+        "-3 m/s²",
+        "-0.33 m/s²",
+        "75 m/s²"
+      ],
+      "prompt": "15 m/s की गति से चलती बस 5 s में रुक जाती है। उसका औसत त्वरण क्या है?",
+      "question_id": "q-c9-motion-007-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.3",
+        "section": "4.1.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-007",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-acceleration",
+      "difficulty": "hard",
+      "distractor_index": 0,
+      "expected_time_ms": 93000,
+      "explanation": "a = (0 - 15) / 5 = -3 m/s². Minus sign dikhata hai ki acceleration velocity ke opposite hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Sirf magnitude batane se velocity change ki direction chhoot jaati hai.",
+      "options": [
+        "3 m/s²",
+        "-3 m/s²",
+        "-0.33 m/s²",
+        "75 m/s²"
+      ],
+      "prompt": "15 m/s ki speed se chalti bus 5 s mein ruk jaati hai. Uski average acceleration kya hai?",
+      "question_id": "q-c9-motion-007-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.3",
+        "section": "4.1.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-c9-motion-008",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "difficulty": "easy",
+      "distractor_index": 0,
+      "expected_time_ms": 43000,
+      "explanation": "Position does not change with time, so the object stays at the same place: it is at rest. A constant positive slope would mean constant velocity.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Reading a flat line as 'zero velocity' is right, but it is not 'zero acceleration' information here.",
+      "options": [
+        "The object moves with constant velocity",
+        "The object accelerates uniformly",
+        "The object is at rest",
+        "The object moves backwards"
+      ],
+      "prompt": "A position-time graph is a straight line parallel to the time axis. What does it show?",
+      "question_id": "q-c9-motion-008-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.6",
+        "section": "4.2.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-c9-motion-008",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "difficulty": "easy",
+      "distractor_index": 0,
+      "expected_time_ms": 54000,
+      "explanation": "स्थिति समय के साथ नहीं बदलती, इसलिए वस्तु एक ही स्थान पर रहती है: वह विराम में है। नियत धनात्मक ढाल का अर्थ नियत वेग होता है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "सपाट रेखा को 'शून्य वेग' पढ़ना सही है, परंतु यहाँ यह 'शून्य त्वरण' की जानकारी नहीं है।",
+      "options": [
+        "वस्तु नियत वेग से चलती है",
+        "वस्तु एकसमान त्वरण से चलती है",
+        "वस्तु विराम अवस्था में है",
+        "वस्तु पीछे की ओर चलती है"
+      ],
+      "prompt": "स्थिति-समय ग्राफ समय अक्ष के समांतर एक सरल रेखा है। यह क्या दर्शाता है?",
+      "question_id": "q-c9-motion-008-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.6",
+        "section": "4.2.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-c9-motion-008",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+      "difficulty": "easy",
+      "distractor_index": 0,
+      "expected_time_ms": 46000,
+      "explanation": "Position time ke saath nahi badalti, isliye object same jagah rehti hai: woh rest mein hai. Constant positive slope ka matlab constant velocity hota hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Flat line ko 'zero velocity' padhna sahi hai, lekin yahan yeh 'zero acceleration' ki information nahi hai.",
+      "options": [
+        "Object constant velocity se chalti hai",
+        "Object uniform acceleration se chalti hai",
+        "Object rest mein hai",
+        "Object peeche ki taraf chalti hai"
+      ],
+      "prompt": "Position-time graph time axis ke parallel ek straight line hai. Yeh kya dikhata hai?",
+      "question_id": "q-c9-motion-008-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.6",
+        "section": "4.2.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-009",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "difficulty": "hard",
+      "distractor_index": 0,
+      "expected_time_ms": 68000,
+      "explanation": "Velocity multiplied by time gives displacement, so the area under a velocity-time graph is the displacement. The slope of the same graph gives acceleration.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Confusing area (displacement) with slope (acceleration).",
+      "options": [
+        "Acceleration",
+        "Displacement",
+        "Average speed",
+        "Force"
+      ],
+      "prompt": "On a velocity-time graph, what does the area between the line and the time axis represent?",
+      "question_id": "q-c9-motion-009-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-009",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "difficulty": "hard",
+      "distractor_index": 0,
+      "expected_time_ms": 83000,
+      "explanation": "वेग को समय से गुणा करने पर विस्थापन मिलता है, इसलिए वेग-समय ग्राफ का क्षेत्रफल विस्थापन होता है। इसी ग्राफ की ढाल त्वरण देती है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "क्षेत्रफल (विस्थापन) और ढाल (त्वरण) में भ्रम।",
+      "options": [
+        "त्वरण",
+        "विस्थापन",
+        "औसत चाल",
+        "बल"
+      ],
+      "prompt": "वेग-समय ग्राफ में रेखा और समय अक्ष के बीच का क्षेत्रफल क्या दर्शाता है?",
+      "question_id": "q-c9-motion-009-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-009",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "difficulty": "hard",
+      "distractor_index": 0,
+      "expected_time_ms": 72000,
+      "explanation": "Velocity ko time se multiply karne par displacement milta hai, isliye velocity-time graph ka area displacement hota hai. Isi graph ki slope acceleration deti hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Area (displacement) aur slope (acceleration) mein confusion.",
+      "options": [
+        "Acceleration",
+        "Displacement",
+        "Average speed",
+        "Force"
+      ],
+      "prompt": "Velocity-time graph mein line aur time axis ke beech ka area kya represent karta hai?",
+      "question_id": "q-c9-motion-009-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.5,
+        "unit": "m",
+        "value": 125.0
+      },
+      "base_item_id": "q-c9-motion-010",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "difficulty": "hard",
+      "expected_time_ms": 166000,
+      "explanation": "Area under the graph: triangle (1/2 x 5 x 10 = 25 m) plus rectangle (10 x 10 = 100 m), so the displacement is 125 m.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 2,
+      "prompt": "A vehicle's velocity rises uniformly from 0 to 10 m/s in 5 s, then stays at 10 m/s for 10 s. What is the total displacement in m?",
+      "question_id": "q-c9-motion-010-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.5,
+        "unit": "m",
+        "value": 125.0
+      },
+      "base_item_id": "q-c9-motion-010",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "difficulty": "hard",
+      "expected_time_ms": 193000,
+      "explanation": "ग्राफ के नीचे का क्षेत्रफल: त्रिभुज (1/2 x 5 x 10 = 25 m) और आयत (10 x 10 = 100 m), इसलिए विस्थापन 125 m है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 2,
+      "prompt": "किसी वाहन का वेग 5 s में एकसमान रूप से 0 से 10 m/s तक बढ़ता है, फिर 10 s तक 10 m/s पर बना रहता है। कुल विस्थापन m में क्या है?",
+      "question_id": "q-c9-motion-010-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.5,
+        "unit": "m",
+        "value": 125.0
+      },
+      "base_item_id": "q-c9-motion-010",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+      "difficulty": "hard",
+      "expected_time_ms": 175000,
+      "explanation": "Graph ke neeche ka area: triangle (1/2 x 5 x 10 = 25 m) aur rectangle (10 x 10 = 100 m), isliye displacement 125 m hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 2,
+      "prompt": "Ek vehicle ki velocity 5 s mein uniformly 0 se 10 m/s tak badhti hai, phir 10 s tak 10 m/s par rehti hai. Total displacement m mein kya hai?",
+      "question_id": "q-c9-motion-010-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.2.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-c9-motion-011",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 42000,
+      "explanation": "For constant acceleration, velocity changes at the rate a, so v = u + at. With u = 0 this gives v = at.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "s = ut + ½at² gives displacement, not velocity.",
+      "options": [
+        "v = s/t",
+        "s = ut + ½at²",
+        "v = u + at",
+        "v² = u² + 2as"
+      ],
+      "prompt": "A body starts from rest and moves with constant acceleration a. Which equation gives its velocity after time t?",
+      "question_id": "q-c9-motion-011-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-c9-motion-011",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 51000,
+      "explanation": "नियत त्वरण के लिए वेग a की दर से बदलता है, इसलिए v = u + at। u = 0 पर यह v = at देता है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "s = ut + ½at² विस्थापन देता है, वेग नहीं।",
+      "options": [
+        "v = s/t",
+        "s = ut + ½at²",
+        "v = u + at",
+        "v² = u² + 2as"
+      ],
+      "prompt": "कोई वस्तु विराम से चलकर नियत त्वरण a से गति करती है। समय t के बाद उसका वेग कौन-सा समीकरण देता है?",
+      "question_id": "q-c9-motion-011-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-c9-motion-011",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 45000,
+      "explanation": "Constant acceleration ke liye velocity a ki rate se badalta hai, isliye v = u + at. u = 0 par yeh v = at deta hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "s = ut + ½at² displacement deta hai, velocity nahi.",
+      "options": [
+        "v = s/t",
+        "s = ut + ½at²",
+        "v = u + at",
+        "v² = u² + 2as"
+      ],
+      "prompt": "Koi body rest se chalkar constant acceleration a se move karti hai. Time t ke baad uska velocity kaunsa equation deta hai?",
+      "question_id": "q-c9-motion-011-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "m/s",
+        "value": 12.0
+      },
+      "base_item_id": "q-c9-motion-012",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "medium",
+      "expected_time_ms": 93000,
+      "explanation": "v = u + at = 0 + 3 x 4 = 12 m/s.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "prompt": "A body starts from rest with a constant acceleration of 3 m/s². What is its velocity after 4 s, in m/s?",
+      "question_id": "q-c9-motion-012-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "m/s",
+        "value": 12.0
+      },
+      "base_item_id": "q-c9-motion-012",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "medium",
+      "expected_time_ms": 106000,
+      "explanation": "v = u + at = 0 + 3 x 4 = 12 m/s।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "prompt": "एक वस्तु विराम से 3 m/s² के नियत त्वरण से चलती है। 4 s बाद उसका वेग m/s में क्या है?",
+      "question_id": "q-c9-motion-012-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "m/s",
+        "value": 12.0
+      },
+      "base_item_id": "q-c9-motion-012",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "medium",
+      "expected_time_ms": 98000,
+      "explanation": "v = u + at = 0 + 3 x 4 = 12 m/s.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "prompt": "Ek body rest se 3 m/s² ke constant acceleration se chalti hai. 4 s baad uska velocity m/s mein kya hai?",
+      "question_id": "q-c9-motion-012-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.4,
+        "unit": "m",
+        "value": 28.1
+      },
+      "base_item_id": "q-c9-motion-013",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "hard",
+      "expected_time_ms": 166000,
+      "explanation": "Using v² = u² + 2as with v = 0: 0 = 15² + 2(-4)s, so s = 225/8 = 28.1 m.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 2,
+      "prompt": "Brakes produce an acceleration of -4 m/s². If the car is moving at 15 m/s when the brakes are applied, how far does it travel before stopping, in m?",
+      "question_id": "q-c9-motion-013-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.8",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.4,
+        "unit": "m",
+        "value": 28.1
+      },
+      "base_item_id": "q-c9-motion-013",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "hard",
+      "expected_time_ms": 192000,
+      "explanation": "v² = u² + 2as में v = 0 रखने पर: 0 = 15² + 2(-4)s, इसलिए s = 225/8 = 28.1 m।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 2,
+      "prompt": "ब्रेक -4 m/s² का त्वरण उत्पन्न करते हैं। यदि ब्रेक लगाते समय कार 15 m/s से चल रही हो, तो रुकने से पहले वह कितनी दूरी तय करेगी, m में?",
+      "question_id": "q-c9-motion-013-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.8",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.4,
+        "unit": "m",
+        "value": 28.1
+      },
+      "base_item_id": "q-c9-motion-013",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+      "difficulty": "hard",
+      "expected_time_ms": 175000,
+      "explanation": "v² = u² + 2as mein v = 0 rakhne par: 0 = 15² + 2(-4)s, isliye s = 225/8 = 28.1 m.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 2,
+      "prompt": "Brakes -4 m/s² ka acceleration dete hain. Agar brake lagate waqt car 15 m/s se chal rahi ho, toh rukne se pehle woh kitni doori tay karegi, m mein?",
+      "question_id": "q-c9-motion-013-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "example": "Example 4.8",
+        "section": "4.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-014",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 89000,
+      "explanation": "Acceleration is the rate of change of velocity, and velocity is a vector. In a circle the direction changes every instant, so the velocity changes even at constant speed; R explains A.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Constant speed does not mean constant velocity when the direction changes.",
+      "options": [
+        "Both A and R are true, and R explains A.",
+        "Both A and R are true, but R does not explain A.",
+        "A is true but R is false.",
+        "A is false but R is true."
+      ],
+      "prompt": "Assertion (A): An object in uniform circular motion has a non-zero acceleration even though its speed is constant. Reason (R): The direction of its velocity changes continuously.",
+      "question_id": "q-c9-motion-014-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.4.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-014",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 110000,
+      "explanation": "त्वरण वेग परिवर्तन की दर है और वेग सदिश है। वृत्त पर दिशा हर क्षण बदलती है, इसलिए नियत चाल पर भी वेग बदलता है; R, A की व्याख्या करता है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "दिशा बदलने पर नियत चाल का अर्थ नियत वेग नहीं होता।",
+      "options": [
+        "A और R दोनों सत्य हैं, और R, A की व्याख्या करता है।",
+        "A और R दोनों सत्य हैं, परंतु R, A की व्याख्या नहीं करता।",
+        "A सत्य है परंतु R असत्य है।",
+        "A असत्य है परंतु R सत्य है।"
+      ],
+      "prompt": "अभिकथन (A): एकसमान वृत्तीय गति करती वस्तु का चाल नियत होने पर भी त्वरण शून्य नहीं होता। कारण (R): उसके वेग की दिशा लगातार बदलती है।",
+      "question_id": "q-c9-motion-014-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.4.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c9-motion-014",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 94000,
+      "explanation": "Acceleration velocity change ki rate hai aur velocity ek vector hai. Circle par direction har pal badalti hai, isliye constant speed par bhi velocity badalta hai; R, A ko explain karta hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Direction badalne par constant speed ka matlab constant velocity nahi hota.",
+      "options": [
+        "A aur R dono sach hain, aur R, A ko explain karta hai.",
+        "A aur R dono sach hain, lekin R, A ko explain nahi karta.",
+        "A sach hai lekin R galat hai.",
+        "A galat hai lekin R sach hai."
+      ],
+      "prompt": "Assertion (A): Uniform circular motion karti object ki speed constant hone par bhi acceleration zero nahi hota. Reason (R): Uske velocity ki direction lagatar badalti hai.",
+      "question_id": "q-c9-motion-014-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.4.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-015",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 79000,
+      "explanation": "One round covers 2 x pi x r = 2 x (22/7) x 7 = 44 m in 22 s, so the speed is 44/22 = 2 m/s.",
+      "generator": "seed-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Using the radius as the distance of one round instead of the circumference.",
+      "options": [
+        "1 m/s",
+        "2 m/s",
+        "7 m/s",
+        "44 m/s"
+      ],
+      "prompt": "A body moves on a circle of radius 7 m and completes one round in 22 s. What is its speed? (Take pi = 22/7.)",
+      "question_id": "q-c9-motion-015-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.4.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-015",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 91000,
+      "explanation": "एक चक्कर में 2 x pi x r = 2 x (22/7) x 7 = 44 m दूरी 22 s में तय होती है, इसलिए चाल 44/22 = 2 m/s है।",
+      "generator": "seed-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "एक चक्कर की दूरी के लिए परिधि के बजाय त्रिज्या लेना।",
+      "options": [
+        "1 m/s",
+        "2 m/s",
+        "7 m/s",
+        "44 m/s"
+      ],
+      "prompt": "एक वस्तु 7 m त्रिज्या के वृत्त पर चलकर 22 s में एक चक्कर पूरा करती है। उसकी चाल क्या है? (pi = 22/7 लें।)",
+      "question_id": "q-c9-motion-015-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.4.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c9-motion-015",
+      "chapter_id": "class-9-describing-motion-around-us",
+      "class_level": 9,
+      "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 83000,
+      "explanation": "Ek round mein 2 x pi x r = 2 x (22/7) x 7 = 44 m doori 22 s mein tay hoti hai, isliye speed 44/22 = 2 m/s hai.",
+      "generator": "seed-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Ek round ki doori ke liye circumference ke bajaye radius lena.",
+      "options": [
+        "1 m/s",
+        "2 m/s",
+        "7 m/s",
+        "44 m/s"
+      ],
+      "prompt": "Ek body 7 m radius ke circle par chalkar 22 s mein ek round poora karti hai. Uski speed kya hai? (pi = 22/7 lo.)",
+      "question_id": "q-c9-motion-015-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-9-describing-motion-around-us",
+      "source_ref": {
+        "book_id": "ncert-science-9",
+        "section": "4.4.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    }
+  ],
+  "schema_version": 1
+}

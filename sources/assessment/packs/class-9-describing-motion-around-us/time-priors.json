@@ -1,0 +1,649 @@
+{
+  "formula_version": "tp-v1",
+  "questions": [
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 53
+      },
+      "expected_time_ms": 47000,
+      "question_id": "q-c9-motion-001-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 69
+      },
+      "expected_time_ms": 56000,
+      "question_id": "q-c9-motion-001-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 54
+      },
+      "expected_time_ms": 50000,
+      "question_id": "q-c9-motion-001-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 42
+      },
+      "expected_time_ms": 68000,
+      "question_id": "q-c9-motion-002-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 64
+      },
+      "expected_time_ms": 82000,
+      "question_id": "q-c9-motion-002-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 41
+      },
+      "expected_time_ms": 71000,
+      "question_id": "q-c9-motion-002-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 16
+      },
+      "expected_time_ms": 73000,
+      "question_id": "q-c9-motion-003-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 23
+      },
+      "expected_time_ms": 83000,
+      "question_id": "q-c9-motion-003-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 19
+      },
+      "expected_time_ms": 77000,
+      "question_id": "q-c9-motion-003-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 63
+      },
+      "expected_time_ms": 61000,
+      "question_id": "q-c9-motion-004-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 78
+      },
+      "expected_time_ms": 73000,
+      "question_id": "q-c9-motion-004-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 65
+      },
+      "expected_time_ms": 65000,
+      "question_id": "q-c9-motion-004-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 68
+      },
+      "expected_time_ms": 90000,
+      "question_id": "q-c9-motion-005-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 112
+      },
+      "expected_time_ms": 113000,
+      "question_id": "q-c9-motion-005-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 73
+      },
+      "expected_time_ms": 96000,
+      "question_id": "q-c9-motion-005-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 23
+      },
+      "expected_time_ms": 93000,
+      "question_id": "q-c9-motion-006-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 28
+      },
+      "expected_time_ms": 106000,
+      "question_id": "q-c9-motion-006-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 25
+      },
+      "expected_time_ms": 98000,
+      "question_id": "q-c9-motion-006-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 31
+      },
+      "expected_time_ms": 88000,
+      "question_id": "q-c9-motion-007-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 36
+      },
+      "expected_time_ms": 100000,
+      "question_id": "q-c9-motion-007-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 32
+      },
+      "expected_time_ms": 93000,
+      "question_id": "q-c9-motion-007-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 36
+      },
+      "expected_time_ms": 43000,
+      "question_id": "q-c9-motion-008-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 60
+      },
+      "expected_time_ms": 54000,
+      "question_id": "q-c9-motion-008-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 37
+      },
+      "expected_time_ms": 46000,
+      "question_id": "q-c9-motion-008-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 22
+      },
+      "expected_time_ms": 68000,
+      "question_id": "q-c9-motion-009-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 37
+      },
+      "expected_time_ms": 83000,
+      "question_id": "q-c9-motion-009-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 21
+      },
+      "expected_time_ms": 72000,
+      "question_id": "q-c9-motion-009-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 31
+      },
+      "expected_time_ms": 166000,
+      "question_id": "q-c9-motion-010-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 47
+      },
+      "expected_time_ms": 193000,
+      "question_id": "q-c9-motion-010-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 32
+      },
+      "expected_time_ms": 175000,
+      "question_id": "q-c9-motion-010-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 31
+      },
+      "expected_time_ms": 42000,
+      "question_id": "q-c9-motion-011-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 46
+      },
+      "expected_time_ms": 51000,
+      "question_id": "q-c9-motion-011-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 34
+      },
+      "expected_time_ms": 45000,
+      "question_id": "q-c9-motion-011-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 23
+      },
+      "expected_time_ms": 93000,
+      "question_id": "q-c9-motion-012-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 31
+      },
+      "expected_time_ms": 106000,
+      "question_id": "q-c9-motion-012-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 23
+      },
+      "expected_time_ms": 98000,
+      "question_id": "q-c9-motion-012-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 31
+      },
+      "expected_time_ms": 166000,
+      "question_id": "q-c9-motion-013-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 45
+      },
+      "expected_time_ms": 192000,
+      "question_id": "q-c9-motion-013-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 31
+      },
+      "expected_time_ms": 175000,
+      "question_id": "q-c9-motion-013-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 64
+      },
+      "expected_time_ms": 89000,
+      "question_id": "q-c9-motion-014-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 101
+      },
+      "expected_time_ms": 110000,
+      "question_id": "q-c9-motion-014-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 66
+      },
+      "expected_time_ms": 94000,
+      "question_id": "q-c9-motion-014-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 37
+      },
+      "expected_time_ms": 79000,
+      "question_id": "q-c9-motion-015-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 47
+      },
+      "expected_time_ms": 91000,
+      "question_id": "q-c9-motion-015-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 37
+      },
+      "expected_time_ms": 83000,
+      "question_id": "q-c9-motion-015-hi-Latn"
+    }
+  ],
+  "schema_version": 1,
+  "topics": [
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 94000,
+      "questions": 15,
+      "scope": "chapter",
+      "scope_id": "class-9-describing-motion-around-us"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 90500,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-acceleration"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 116750,
+      "questions": 3,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-kinematic-equations"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 57500,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-position-distance-displacement"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 43000,
+      "questions": 1,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-position-time-graphs"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 74667,
+      "questions": 3,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-speed-and-velocity"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 84000,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-uniform-circular-motion"
+    },
+    {
+      "chapter_id": "class-9-describing-motion-around-us",
+      "expected_time_ms": 133333,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-9-describing-motion-around-us-velocity-time-graphs"
+    }
+  ]
+}
