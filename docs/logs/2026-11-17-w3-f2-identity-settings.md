@@ -46,6 +46,27 @@ Branch `feature/w3-f2-identity-settings`, based on `main` @ `d65b658`
 - Google-created accounts are prompted to set a password on Settings; a
   `/app` banner waits for F3's dashboard template.
 
+## Review fixes (2026-11-17, PR #56 review)
+
+- **One session resolver.** `web/context.py` now owns `config_for`,
+  `service_for`, and `resolve_auth_session`; the `/app` guard and the F2 form
+  routes both use it instead of keeping two cookie-read/lookup copies.
+- **Form-body cap is enforced while reading.** `web/forms.py::read_form` reads
+  the body in chunks and abandons it at 16 KB, so an unauthenticated oversized
+  post is not buffered whole (nginx's 1 MB default stays the outer bound).
+- **Settings password change** now passes `ip_hash`/`user_agent_hash` to
+  `set_or_change_password` (same as `/v1/me/password`), so the rotated session
+  keeps its audit binding; service rejections render their own status and copy
+  (422 for a rejected password, 503 for an unavailable service) instead of a
+  generic 401 and a misleading rate-limit sentence.
+- **Out-of-set board/locale preserved.** A value saved through `/v1/me`
+  (e.g. `ta-IN`) is offered and accepted unchanged, so saving another field
+  cannot silently rewrite it.
+- **Tests** grew to 75 in the F2 pair / 173 in `testing/backend`: non-form,
+  >16 KB, and >32-field bodies; the preserved locale; the rotated session's
+  metadata; service-rejection status/copy; a Google-created account deleting
+  without a password.
+
 ## Next
 
 - Review agent: merge gate + the security/tests/docs lenses.

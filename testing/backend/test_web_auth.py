@@ -207,6 +207,37 @@ class LoginSubmitTests(WebAuthSupport):
         self.assertIn("Sign-in is temporarily unavailable", response.text)
 
 
+class FormBodyTests(WebAuthSupport):
+    """The public form parser rejects what a browser never sends."""
+
+    def test_non_form_content_type_is_rejected(self) -> None:
+        response = self.client.post(
+            "/login", json={"email": "kid@example.com", "password": PASSWORD}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("That form did not arrive", response.text)
+
+    def test_oversized_body_is_rejected(self) -> None:
+        body = "email=" + ("a" * 17000) + "&password=x"
+        response = self.client.post(
+            "/login",
+            content=body,
+            headers={"content-type": "application/x-www-form-urlencoded"},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("That form did not arrive", response.text)
+
+    def test_too_many_fields_is_rejected(self) -> None:
+        body = "&".join(f"f{i}=x" for i in range(40))
+        response = self.client.post(
+            "/login",
+            content=body,
+            headers={"content-type": "application/x-www-form-urlencoded"},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("That form did not arrive", response.text)
+
+
 class SignupTests(WebAuthSupport):
     def test_signup_creates_the_account_and_moves_to_onboarding(self) -> None:
         token = self.guest_form("/signup")

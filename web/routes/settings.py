@@ -24,6 +24,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from starlette.concurrency import run_in_threadpool
 
 from backend.auth import AuthService
+from backend.auth.tokens import request_ip_hash_from_request, user_agent_hash
 from backend.config import BackendConfig
 from backend.errors import APIError
 
@@ -89,6 +90,12 @@ def _settings_values(
     board_options = list(BOARD_CHOICES)
     if board not in board_options:
         board_options.append(board)
+    language = str(profile.get("language") or "en-IN")
+    language_options = list(LANGUAGE_CHOICES)
+    if language not in {value for value, _ in language_options}:
+        # A locale saved through `/v1/me` (e.g. `ta-IN`) keeps its value here
+        # instead of re-saving the first option when another field changes.
+        language_options.append((language, language))
     return {
         "profile": profile,
         "password_set": bool(payload["password_set"]),
@@ -102,13 +109,13 @@ def _settings_values(
         ),
         "class_choices": CLASS_CHOICES,
         "board_choices": tuple(board_options),
-        "language_choices": LANGUAGE_CHOICES,
+        "language_choices": tuple(language_options),
         "form": form
         or {
             "display_name": str(profile.get("display_name") or ""),
             "class_level": str(profile.get("class_level") or ""),
             "board": board,
-            "language": str(profile.get("language") or "en-IN"),
+            "language": language,
         },
         "field_errors": field_errors or {},
         "password_error": password_error,
@@ -208,7 +215,15 @@ async def settings_profile_submit(request: Request) -> Response:
         return _csrf_error(request)
 
     board = (form.get("board") or "").strip()
-    language = _canonical_language(form.get("language") or "")
+    raw_language = (form.get("language") or "").strip()
+    language = _canonical_language(raw_language)
+    if language is None and raw_language == str(
+        account.context.user.get("language") or ""
+    ):
+        # A locale saved through `/v1/me` (e.g. `ta-IN`) is not one of the three
+        # shipped UI choices; keeping it unchanged is allowed, picking another
+        # unsupported value is not.
+        language = raw_language
     class_level = _parse_class(form.get("class_level") or "")
     display_name = (form.get("display_name") or "").strip()
     field_errors: dict[str, str] = {}
@@ -224,7 +239,7 @@ async def settings_profile_submit(request: Request) -> Response:
         "display_name": display_name,
         "class_level": form.get("class_level") or "",
         "board": board,
-        "language": form.get("language") or "",
+        "language": raw_language,
     }
     if field_errors:
         return render_page(
@@ -324,23 +339,30 @@ async def settings_password_submit(request: Request) -> Response:
                 ctx=account.context,
                 current_password=current_password,
                 new_password=new_password,
+                ip_hash=request_ip_hash_from_request(config, request),
+                user_agent_hash=user_agent_hash(
+                    config, request.headers.get("User-Agent")
+                ),
             )
         )
     except APIError as exc:
-        message = (
-            "Your current password is wrong. Nothing was changed."
-            if exc.code == "E-AUTH-INVALID"
-            else (
-                password_reason_copy(_reason(exc))
-                if exc.code == "E-VALIDATION"
-                else rate_limit_copy(exc)
-            )
-        )
+        if exc.code == "E-AUTH-INVALID":
+            message = "Your current password is wrong. Nothing was changed."
+            status = 401
+        elif exc.code == "E-VALIDATION":
+            message = password_reason_copy(_reason(exc))
+            status = 422
+        elif exc.code == "E-RATE-LIMIT":
+            message = rate_limit_copy(exc)
+            status = 429
+        else:
+            message = "The password could not be changed. Nothing was changed."
+            status = 503 if exc.code == "E-SERVICE-UNAVAILABLE" else 400
         response = render_page(
             request,
             "app/settings.html",
             shell=account_shell(request, account, SETTINGS_TITLE),
-            status_code=429 if exc.code == "E-RATE-LIMIT" else 401,
+            status_code=status,
             extra=_settings_values(
                 account.service, account, config, password_error=message
             ),

@@ -16,13 +16,17 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import quote
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 
 from .nav import NavItem, active_nav, nav_for
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from backend.auth import AuthContext, AuthService
+    from backend.config import BackendConfig
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +52,27 @@ class AccountContext:
 
     user: Mapping[str, Any]
     csrf_token: str
+
+
+@dataclass(frozen=True)
+class AuthSession:
+    """A resolved session plus the raw cookie, for routes that verify CSRF.
+
+    `AuthContext.session` carries the stored CSRF hash and the session id, so a
+    form route needs it; the raw token stays here only long enough to derive
+    the CSRF token and is never rendered or logged.
+    """
+
+    service: AuthService
+    context: AuthContext
+    raw_token: str
+
+    @property
+    def shell_account(self) -> AccountContext:
+        return AccountContext(
+            user=self.context.user,
+            csrf_token=self.service.csrf_for(self.raw_token),
+        )
 
 
 @dataclass(frozen=True)
@@ -168,17 +193,34 @@ class ShellContext:
         )
 
 
-def resolve_account(request: Request) -> AccountContext | None:
-    """Resolve the F0 cookie to an account, or None for a guest.
+def config_for(request: Request) -> BackendConfig:
+    """Return the app config; an unwired app cannot serve a session page."""
+    config = getattr(request.app.state, "config", None)
+    if config is None:
+        raise AuthUnavailable("application config is not available")
+    return config
 
-    Raises `AuthUnavailable` when the auth service is missing or its session
-    store fails, so an HTML route can render a 503 shell instead of leaking a
-    JSON 500. A present-but-invalid or expired cookie is simply a guest.
-    """
+
+def service_for(request: Request) -> AuthService:
     service = getattr(request.app.state, "auth", None)
     if service is None:
         raise AuthUnavailable("account auth service is not configured")
-    raw = request.cookies.get(_account_cookie_name(request))
+    return service
+
+
+def resolve_auth_session(request: Request) -> AuthSession | None:
+    """Resolve the F0 cookie to a session and its raw token, or None for a guest.
+
+    The one place the web shell reads the account cookie. Raises
+    `AuthUnavailable` when the auth service is missing or its session store
+    fails, so an HTML route can render a 503 shell instead of leaking a JSON
+    500. A present-but-invalid or expired cookie is simply a guest.
+    """
+    service = service_for(request)
+    cookie_name = config_for(request).auth_cookie_name
+    if not cookie_name:
+        raise AuthUnavailable("account cookie name is not configured")
+    raw = request.cookies.get(cookie_name)
     if not raw:
         return None
     try:
@@ -188,7 +230,13 @@ def resolve_account(request: Request) -> AccountContext | None:
         raise AuthUnavailable("account session store is unavailable") from exc
     if ctx is None:
         return None
-    return AccountContext(user=ctx.user, csrf_token=service.csrf_for(raw))
+    return AuthSession(service=service, context=ctx, raw_token=raw)
+
+
+def resolve_account(request: Request) -> AccountContext | None:
+    """Resolve the F0 cookie to the shell's safe account slice, or None."""
+    session = resolve_auth_session(request)
+    return None if session is None else session.shell_account
 
 
 def require_account(request: Request) -> AccountContext:
@@ -221,14 +269,6 @@ def login_redirect(request: Request) -> RedirectResponse:
     )
     response.headers["Cache-Control"] = "no-store"
     return response
-
-
-def _account_cookie_name(request: Request) -> str:
-    config = getattr(request.app.state, "config", None)
-    name = getattr(config, "auth_cookie_name", None)
-    if not name:
-        raise AuthUnavailable("account cookie name is not configured")
-    return str(name)
 
 
 def _class_level(value: Any) -> int | None:
@@ -285,12 +325,16 @@ __all__ = [
     "DEFAULT_NEXT_PATH",
     "LOGIN_PATH",
     "AccountContext",
+    "AuthSession",
     "AuthUnavailable",
     "FlashMessage",
     "LoginRequired",
     "ShellContext",
     "ShellUser",
+    "config_for",
     "login_redirect",
     "require_account",
     "resolve_account",
+    "resolve_auth_session",
+    "service_for",
 ]

@@ -12,6 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
 
@@ -167,6 +168,23 @@ class WebAuthSupport(unittest.TestCase):
         token = self.token_from_sink("verify")
         response = self.client.post("/v1/auth/verify-email", json={"token": token})
         self.assertEqual(response.status_code, 200, response.text)
+
+    # -- Google -------------------------------------------------------------
+
+    def login_with_google(self, *, email: str = "google.kid@example.com") -> None:
+        """Run the F0 Google flow with the fake transport (no network)."""
+        self.service.google.transport = FakeGoogleTransport(email=email)
+        start = self.client.get(
+            "/v1/auth/google/start?intent=login&next=/app/settings",
+            follow_redirects=False,
+        )
+        self.assertEqual(start.status_code, 302)
+        state = parse_qs(urlparse(start.headers["location"]).query)["state"][0]
+        callback = self.client.get(
+            f"/v1/auth/google/callback?code=fake&state={state}",
+            follow_redirects=False,
+        )
+        self.assertEqual(callback.status_code, 303, callback.text)
 
 
 __all__ = ["NEW_PASSWORD", "PASSWORD", "FakeGoogleTransport", "WebAuthSupport"]

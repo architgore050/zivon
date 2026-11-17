@@ -10,14 +10,14 @@ from __future__ import annotations
 import re
 import unittest
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from unittest import mock
 
 from fastapi.testclient import TestClient
 
+from backend.errors import APIError
 from testing.backend.web_auth_support import (
     NEW_PASSWORD,
     PASSWORD,
-    FakeGoogleTransport,
     WebAuthSupport,
 )
 
@@ -176,6 +176,35 @@ class SettingsProfileTests(WebAuthSupport):
         html = self.client.get(SETTINGS).text
         self.assertIn('<option value="hi-IN" selected>', html)
 
+    def test_saved_locale_outside_the_three_choices_is_preserved(self) -> None:
+        self.register_via_api()
+        patched = self.client.patch(
+            "/v1/me",
+            json={"language": "ta-IN"},
+            headers={"X-CSRF-Token": self.session_csrf()},
+        )
+        self.assertEqual(patched.status_code, 200, patched.text)
+        html = self.client.get(SETTINGS).text
+        # The saved locale is offered and selected, so saving another field
+        # cannot silently rewrite it to the first option.
+        self.assertIn('<option value="ta-IN" selected>ta-IN</option>', html)
+        saved = self.client.post(
+            SETTINGS,
+            data={
+                "csrf_token": self.session_csrf(),
+                "display_name": "Asha",
+                "class_level": "9",
+                "board": "CBSE",
+                "language": "ta-IN",
+            },
+            follow_redirects=False,
+        )
+        self.assertEqual(saved.status_code, 303)
+        row = self.db.fetchone(
+            "SELECT language FROM users WHERE email = ?", ("kid@example.com",)
+        )
+        self.assertEqual(row["language"], "ta-IN")
+
 
 class SettingsPasswordTests(WebAuthSupport):
     def test_password_change_rotates_the_session_and_signs_out_other_devices(
@@ -265,24 +294,53 @@ class SettingsPasswordTests(WebAuthSupport):
         )
         self.assertEqual(response.status_code, 403)
 
-    def _google_login(self) -> None:
-        self.service.google.transport = FakeGoogleTransport(
-            email="google.kid@example.com"
-        )
-        start = self.client.get(
-            "/v1/auth/google/start?intent=login&next=/app/settings",
+    def test_password_change_records_the_session_metadata(self) -> None:
+        self.register_via_api()
+        response = self.client.post(
+            "/app/settings/password",
+            data={
+                "csrf_token": self.session_csrf(),
+                "current_password": PASSWORD,
+                "new_password": NEW_PASSWORD,
+                "confirm_password": NEW_PASSWORD,
+            },
             follow_redirects=False,
         )
-        self.assertEqual(start.status_code, 302)
-        state = parse_qs(urlparse(start.headers["location"]).query)["state"][0]
-        callback = self.client.get(
-            f"/v1/auth/google/callback?code=fake&state={state}",
-            follow_redirects=False,
+        self.assertEqual(response.status_code, 303)
+        rows = self.db.fetchall(
+            "SELECT ip_hash, user_agent_hash FROM auth_session WHERE revoked_at IS NULL"
         )
-        self.assertEqual(callback.status_code, 303, callback.text)
+        self.assertEqual(len(rows), 1)
+        self.assertIsNotNone(rows[0]["ip_hash"])
+        self.assertIsNotNone(rows[0]["user_agent_hash"])
+
+    def test_service_rejections_keep_their_own_status_and_copy(self) -> None:
+        self.register_via_api()
+        cases = (
+            ("E-VALIDATION", {"reason": "too_common"}, 422, "too common"),
+            ("E-SERVICE-UNAVAILABLE", {}, 503, "could not be changed"),
+        )
+        for code, extra, status, copy in cases:
+            with mock.patch.object(
+                self.service,
+                "set_or_change_password",
+                side_effect=APIError(code, status_code=status, extra=extra),
+            ):
+                response = self.client.post(
+                    "/app/settings/password",
+                    data={
+                        "csrf_token": self.session_csrf(),
+                        "current_password": PASSWORD,
+                        "new_password": NEW_PASSWORD,
+                        "confirm_password": NEW_PASSWORD,
+                    },
+                )
+            self.assertEqual(response.status_code, status, code)
+            self.assertIn(copy, response.text, code)
+            self.assertNotIn("Too many attempts", response.text, code)
 
     def test_google_created_account_is_prompted_to_set_a_password(self) -> None:
-        self._google_login()
+        self.login_with_google()
         html = self.client.get(SETTINGS).text
         self.assertIn("Set a password", html)
         self.assertIn("You signed in with Google", html)
@@ -467,6 +525,28 @@ class PrivacyAndDeleteTests(WebAuthSupport):
         )
         self.assertEqual(response.status_code, 403)
         self.assertTrue(self.is_signed_in())
+
+    def test_google_created_account_deletes_without_a_password(self) -> None:
+        self.login_with_google()
+        page = self.client.get(PRIVACY).text
+        self.assertIn('action="/app/settings/delete"', page)
+        # No password identity exists, so the form must not ask for one.
+        self.assertNotIn('name="password"', page)
+        response = self.client.post(
+            "/app/settings/delete",
+            data={
+                "csrf_token": self.session_csrf_from_page(PRIVACY),
+                "confirm": "DELETE",
+            },
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response.headers["location"], "/login?deleted=1")
+        self.assertFalse(self.is_signed_in())
+        row = self.db.fetchone(
+            "SELECT deleted_at FROM users WHERE email LIKE 'deleted+%'"
+        )
+        self.assertIsNotNone(row["deleted_at"])
 
     def test_delete_removes_the_account_and_clears_the_session(self) -> None:
         self.register_via_api()

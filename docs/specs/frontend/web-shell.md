@@ -102,8 +102,13 @@ The guard reuses the F0 account path; it is not a second auth implementation.
    `next` value is always a same-origin path, never a host, so it cannot become
    an open redirect.
 4. A valid cookie yields `AccountContext` with the user row and a CSRF token
-   derived by `AuthService.csrf_for`; the raw cookie is never copied into the
-   context.
+   derived by `AuthService.csrf_for`. One resolver, `resolve_auth_session` in
+   `web/context.py`, reads the cookie for every shell page: the guard uses its
+   `shell_account` slice, while the F2 form routes also receive the
+   `AuthContext` (the stored CSRF hash and the session id that
+   `verify_csrf`/`revoke_session` need) and the raw value long enough to derive
+   the token. The raw cookie is never rendered, logged, or passed to a
+   template.
 5. `app.state.auth is None`, a config error, or a session-store exception
    yields the 503 shell: an HTML page with a retry/completion path, no JSON
    stack trace, and no Sign-in control that would point back into the failed

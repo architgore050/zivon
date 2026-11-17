@@ -30,6 +30,8 @@ from backend.auth.passwords import same_secret
 from backend.auth.tokens import keyed_hash, new_token
 from backend.config import BackendConfig
 
+from .context import config_for
+
 GUEST_FORM_COOKIE: Final[str] = "zivon_form_token"
 GUEST_FORM_COOKIE_MAX_AGE: Final[int] = 2 * 3600
 _FORM_TOKEN_DOMAIN: Final[str] = "form-csrf:"
@@ -44,14 +46,6 @@ class FormTooLarge(ValueError):
 
 class FormBadEncoding(ValueError):
     """The posted body is not a browser URL-encoded form."""
-
-
-def config_for(request: Request) -> BackendConfig:
-    """Return the app config; an unwired app cannot handle a session at all."""
-    config = getattr(request.app.state, "config", None)
-    if config is None:
-        raise FormBadEncoding("application config is not available")
-    return config
 
 
 def _sign(config: BackendConfig, nonce: str) -> str:
@@ -99,14 +93,18 @@ async def read_form(request: Request) -> dict[str, str]:
     """Parse a URL-encoded form body into one value per field.
 
     Rejects an oversized body and a non-form content type instead of guessing;
-    a browser form post always carries the URL-encoded type.
+    a browser form post always carries the URL-encoded type. The body is read
+    in chunks and abandoned as soon as it passes the budget, so an unauthenticated
+    oversized post cannot make the app buffer it whole.
     """
     content_type = (request.headers.get("content-type") or "").split(";", 1)[0]
     if content_type.strip().lower() != _URLENCODED:
         raise FormBadEncoding("form posts must be application/x-www-form-urlencoded")
-    body = await request.body()
-    if len(body) > _MAX_FORM_BYTES:
-        raise FormTooLarge("form body too large")
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > _MAX_FORM_BYTES:
+            raise FormTooLarge("form body too large")
     try:
         parsed = parse_qs(
             body.decode("utf-8"),
@@ -125,7 +123,6 @@ __all__ = [
     "FormBadEncoding",
     "FormTooLarge",
     "attach_guest_cookie",
-    "config_for",
     "guest_token_valid",
     "new_guest_token",
     "read_form",

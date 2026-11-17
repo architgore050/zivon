@@ -54,7 +54,7 @@ honest copy without echoing the code.
 | Reset password | The link carries a one-time token; the form posts token + new password + confirmation. Success revokes every session and 303s to `/login?reset=1`. The token is not consumed by a validation failure, so a mismatched confirmation can be corrected. |
 | Onboarding | Class (9–12), board (CBSE / ICSE / State Board), language (English / Hindi / Hinglish), optional goal. Saving calls `AuthService.update_profile`. Skip writes nothing and 303s to `/app`. |
 | Sign out | CSRF-checked POST; revokes this session through `AuthService.revoke_session` and clears the F0 cookie. A stale/absent session still clears the cookie (idempotent). |
-| Settings | Profile (email read-only, display name, class, board, language), password set/change, Google link state, sign-out, and a link to the privacy/data page. |
+| Settings | Profile (email read-only, display name, class, board, language), password set/change, Google link state, sign-out, and a link to the privacy/data page. A board or a locale saved through `/v1/me` that is not one of the shipped choices keeps its value: the saved option is offered and accepted unchanged, so editing another field cannot silently rewrite it. |
 | Data controls | Export is `GET /v1/me/export` (JSON attachment); delete requires the exact word `DELETE` plus the current password when the account has a password identity, then calls `AuthService.delete_account`, clears the cookie, and 303s to `/login?deleted=1`. |
 | Google-created account | `password_set: false` renders a "Set a password" panel with no current-password field; setting one keeps the same account. Google linking from settings requires a verified email (F0 rule) and is hidden with a reason when verification is missing or Google is unconfigured. |
 
@@ -73,7 +73,9 @@ without the session token cannot be forged from a stolen cookie alone.
 Form bodies are parsed with `parse_qs` (stdlib). Starlette's `request.form()`
 needs `python-multipart`, which the backend image does not ship; a browser form
 always uses `application/x-www-form-urlencoded`. Bodies over 16 KB and more
-than 32 fields are rejected.
+than 32 fields are rejected. The body is read in chunks and dropped at the cap,
+so an unauthenticated oversized post is never buffered whole; nginx's default
+1 MB `client_max_body_size` is the outer bound.
 
 ## 4. Rendered data and privacy
 
@@ -159,15 +161,18 @@ the "not sent to the server" hint visible. No F0 column exists for it.
   unsafe `next` values, rate-limit 429 + `Retry-After`, 503 shell; signup
   success/validation/duplicate/rate-limit/CSRF; verification inbox/token/used
   states and both redirect targets; reset no-enumeration, token consumption,
-  mismatch retry, session revocation; static template rules and the nginx auth
-  proxy block.
+  mismatch retry, session revocation; non-form, >16 KB, and >32-field bodies
+  rejected with the branded 400; static template rules and the nginx auth proxy
+  block.
 - `testing/backend/test_web_settings.py` — guest guard on GET/POST, owner
   profile render with no user id or raw cookie, unverified/verified Google
   states, escaping, CSRF field reuse, label/for pairing; profile save and
-  validation rollback; password rotation with other-device revocation, wrong
-  current password, mismatch, CSRF; Google-created account password prompt;
-  onboarding save/validation/skip/CSRF; logout and stale-tab logout; privacy
-  page, export attachment, delete confirmation/password/CSRF and tombstone;
+  validation rollback; an out-of-set locale preserved through a save; password
+  rotation with other-device revocation and recorded session metadata, wrong
+  current password, mismatch, CSRF, service-rejection status/copy; Google-created
+  account password prompt; onboarding save/validation/skip/CSRF; logout and
+  stale-tab logout; privacy page, export attachment, delete confirmation/password/
+  CSRF, a Google-created account deleting without a password, and the tombstone;
   static template rules.
 
 Shared hermetic setup: `testing/backend/web_auth_support.py` (SQLite in
@@ -184,4 +189,6 @@ memory, dev email sink, fake Google transport). No network, no keys.
 | Guest progress merge | F3 (`NEED-019`) | F2 shows the prompt; no local data is read or moved. |
 | Structured auth events | F11/observability | HTML auth routes emit no `log_event` rows yet; the F0 JSON routes do not either. Add map rows before instrumenting. |
 | Settings password-change limit | F0 | `/app/settings/password` and `/v1/me/password` share the same properties: session + CSRF + current password, but no dedicated rate-limit family. Add one if F0 adds it rather than inventing a family here. |
+| Two open auth tabs | F2 | Every GET of `/login`/`/signup`/`/forgot-password` issues a fresh nonce, so the older tab's hidden token fails closed with the 403 page and a reload instruction. Reusing an existing nonce would remove the stutter; not worth new state today. |
+| Google start with an expired session | F0 | `/v1/auth/google/start` answers the JSON `E-AUTH-REQUIRED` envelope when the session died between render and click; a `303` to `/login?next=` would be friendlier when F0 revisits that route. |
 | Public nav sign-in link | F1 | The static public pages do not yet link to `/login`; the server-rendered shell does. |

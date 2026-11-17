@@ -6,31 +6,29 @@ only the F0 account service (`AuthService.resolve`, `verify_csrf`, `csrf_for`,
 session logic; the routes translate HTML forms into service calls and service
 results into pages.
 
-`web/context.py` stays the guard for `/app` (F0). Settings and forms need the
-full `AuthContext` — its `session` row carries the CSRF hash that
-`AuthService.verify_csrf` checks — so this module resolves the same cookie with
-the same service and hands the route the raw value only long enough to derive
-the token.
+The cookie read and the session lookup live in `web/context.py`
+(`resolve_auth_session`), so the guard and the HTML forms share one resolver;
+this module only adds the view-model pieces the F2 pages need.
 """
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
 from typing import Final
 
 from fastapi import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from backend.auth import AuthContext, AuthService, SessionGrant
+from backend.auth import SessionGrant
 from backend.config import BackendConfig
 
 from .context import (
-    AccountContext,
-    AuthUnavailable,
+    AuthSession,
     FlashMessage,
     ShellContext,
+    config_for,
+    resolve_auth_session,
+    service_for,
 )
 from .render import render_page
 
@@ -44,57 +42,14 @@ CLASS_CHOICES: Final[tuple[int, ...]] = (9, 10, 11, 12)
 
 _NOTICE_OK: Final[str] = "empty"
 
-logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class PageAccount:
-    """A resolved account session plus the values the pages may render."""
-
-    service: AuthService
-    context: AuthContext
-    raw_token: str
-
-    @property
-    def shell_account(self) -> AccountContext:
-        return AccountContext(
-            user=self.context.user,
-            csrf_token=self.service.csrf_for(self.raw_token),
-        )
-
-
-def config_for(request: Request) -> BackendConfig:
-    config = getattr(request.app.state, "config", None)
-    if config is None:
-        raise AuthUnavailable("application config is not available")
-    return config
-
-
-def service_for(request: Request) -> AuthService:
-    service = getattr(request.app.state, "auth", None)
-    if service is None:
-        raise AuthUnavailable("account auth service is not configured")
-    return service
+# The route-facing name for a resolved session; `AuthSession` carries the
+# `AuthContext` (and its CSRF hash) that `AuthService.verify_csrf` needs.
+PageAccount = AuthSession
 
 
 def page_account(request: Request) -> PageAccount | None:
-    """Resolve the account cookie through the F0 service, or None for a guest.
-
-    A store failure is `AuthUnavailable`, so an HTML route renders the 503 shell
-    instead of leaking the JSON 500 handler (the same rule as `web/context.py`).
-    """
-    service = service_for(request)
-    raw = request.cookies.get(config_for(request).auth_cookie_name)
-    if not raw:
-        return None
-    try:
-        context = service.resolve(raw)
-    except Exception as exc:
-        logger.exception("account session resolution failed")
-        raise AuthUnavailable("account session store is unavailable") from exc
-    if context is None:
-        return None
-    return PageAccount(service=service, context=context, raw_token=raw)
+    """Resolve the account cookie through the shared F0C resolver."""
+    return resolve_auth_session(request)
 
 
 def public_shell(
