@@ -22,68 +22,11 @@ route/guard contract (§2, §4), the template slots (§3), the headers/CSP (§5)
 and the full state table for `/app` (§8). Its only code path is `[web]`; the
 shell renders no §10 lesson device and no static `[shell]` page. The shell
 frame's states are answered there — loading (n/a: SSR completes before bytes),
-empty (the page body owns it: APP-02/03/04 below), partial (language note),
+empty (the page body owns it: APP-04/05/06 below), partial (language note),
 error (503 shell for unavailable auth; panel errors are the body's), offline
 (n/a server-side), permission-denied (303 to `/login?next=`), reduced-motion
 (no shell animation), untranslated (English copy + saved-language note),
 quota-exhausted and consent-missing (not shell states).
-
-## APP-02 `/app` dashboard (F3, 2026-11-17)
-
-Code path `[web]`: `web/templates/app/dashboard.html` + `web/progress_views.py`
-reads `/v1/progress/*`'s domain directly (SSR). Contract and copy:
-`docs/specs/frontend/dashboard-progress.md` §6.
-
-| State | What the student sees |
-|---|---|
-| default | greeting + Continue/Today/Physics map/Recent activity; aside = 7-day rhythm, three counts, quick actions (live links + "not live yet") |
-| loading | n/a — SSR completes before bytes; a slow DB is the panel error |
-| empty | "Nothing here yet — that is honest." + a Start card for the first published chapter (or the catalogue) |
-| partial | class with no published chapter -> "No Class N chapter is published yet"; local sync offer when the device has unmerged data |
-| error | greeting stays; `notice--error` with "Your study log is unavailable right now." + retry; no invented data |
-| offline | n/a server-side; navigation failure is the browser's offline page |
-| permission-denied | guest -> 303 `/login?next=/app` (F0C guard) |
-| reduced-motion | no page animation (native links/details; the global reduced-motion rule covers any future island) |
-| untranslated | English copy + the saved-language note (shell contract) |
-| over-credit-budget | n/a — no voice control on this page; credits belong to the dock |
-
-## APP-03 `/app/progress` progress map (F3, 2026-11-17)
-
-Code path `[web]`: `web/templates/app/progress.html` +
-`web/progress_views.py`/`backend/progress/stats.py`. Contract:
-`docs/specs/frontend/dashboard-progress.md` §3, §7.
-
-| State | What the student sees |
-|---|---|
-| default | class -> chapter -> concept map; state tags + evidence; "How these states work" publishes the rules |
-| loading | n/a — SSR completes before bytes |
-| empty | all chapters "Not started" (the map is the content; no fake activity) |
-| partial | chapter without concept metadata says so; activity outside the catalogue is grouped under "Other activity"; F0 fixture has no concept lists |
-| error | panel `notice--error` + retry (map not rendered with invented states) |
-| offline | n/a server-side |
-| permission-denied | 303 `/login?next=/app/progress` |
-| reduced-motion | `<details>` is native; no animation |
-| untranslated | English copy + saved-language note |
-| over-credit-budget | n/a — no voice control |
-
-## APP-04 `/app/bookmarks` saved sections (F3, 2026-11-17)
-
-Code path `[web]`: `web/templates/app/bookmarks.html` + the
-`frontend/assets/app-progress.js` remove island. Contract:
-`docs/specs/frontend/dashboard-progress.md` §8.
-
-| State | What the student sees |
-|---|---|
-| default | saved list with type, chapter title, deep link, date, Remove |
-| loading | n/a — SSR completes before bytes |
-| empty | "Nothing saved yet." + lesson Contents -> Save explanation + catalogue link |
-| partial | item whose chapter is no longer in the catalogue shows its humanized chapter title and no link |
-| error | panel `notice--error` + retry; a failed remove keeps the row and says it is still saved |
-| offline | n/a server-side; a failed remove is announced, nothing is optimistically dropped |
-| permission-denied | 303 `/login?next=/app/bookmarks` |
-| reduced-motion | no animation |
-| untranslated | English copy + saved-language note |
-| over-credit-budget | n/a — no voice control |
 
 ## APP-02 auth screens (`/login`, `/signup`, verify, reset, `/onboarding`) (F2, 2026-11-17)
 
@@ -110,6 +53,63 @@ no other page renders it.
 | profile / password / Google / session cards | facts + three forms + sign-out, all CSRF-protected | n/a (SSR) | n/a | unverified email, Google unlinked, Google unconfigured, password unset (Google-created) each have a row state | 422 field errors, 401 wrong current password, 403 CSRF, 429 rate limit (all with the form still usable) | browser offline page | guest → 303 `/login?next=/app/settings` | no animated toggles; `prefers-reduced-motion` rule is a no-op guard | English labels; saved language as data | n/a |
 | privacy / data controls | what is stored, export link, collapsed delete disclosure, consent links | n/a | export may be empty but is valid JSON | delete form needs the exact word + password | 422 wrong confirmation, 401 wrong password, both leave the account intact | browser offline page | guest → 303 | no animation | as above | n/a |
 | mobile / a11y floor | one column at 360 px; 48 px inputs and choice rows; 44 px links; visible focus | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+
+## APP-04 `/app` dashboard (F3, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/dashboard.html` + `web/progress_views.py`
+reads `/v1/progress/*`'s domain directly (SSR). Contract and copy:
+`docs/specs/frontend/dashboard-progress.md` §6.
+
+| State | What the student sees |
+|---|---|
+| default | greeting + Continue/Today/Physics map/Recent activity; aside = 7-day rhythm, three counts, quick actions (live links + "not live yet") |
+| loading | n/a — SSR completes before bytes; a slow DB is the panel error |
+| empty | "Nothing here yet — that is honest." + a Start card for the first published chapter (or the catalogue) |
+| partial | class with no published chapter -> "No Class N chapter is published yet"; local sync offer when the device has unmerged data |
+| error | greeting stays; `notice--error` with "Your study log is unavailable right now." + retry; no invented data |
+| offline | n/a server-side; navigation failure is the browser's offline page |
+| permission-denied | guest -> 303 `/login?next=/app` (F0C guard) |
+| reduced-motion | no page animation (native links/details; the global reduced-motion rule covers any future island) |
+| untranslated | English copy + the saved-language note (shell contract) |
+| over-credit-budget | n/a — no voice control on this page; credits belong to the dock |
+
+## APP-05 `/app/progress` progress map (F3, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/progress.html` +
+`web/progress_views.py`/`backend/progress/stats.py`. Contract:
+`docs/specs/frontend/dashboard-progress.md` §3, §7.
+
+| State | What the student sees |
+|---|---|
+| default | class -> chapter -> concept map; state tags + evidence; "How these states work" publishes the rules |
+| loading | n/a — SSR completes before bytes |
+| empty | all chapters "Not started" (the map is the content; no fake activity) |
+| partial | chapter without concept metadata says so; activity outside the catalogue is grouped under "Other activity"; F0 fixture has no concept lists |
+| error | panel `notice--error` + retry (map not rendered with invented states) |
+| offline | n/a server-side |
+| permission-denied | 303 `/login?next=/app/progress` |
+| reduced-motion | `<details>` is native; no animation |
+| untranslated | English copy + saved-language note |
+| over-credit-budget | n/a — no voice control |
+
+## APP-06 `/app/bookmarks` saved sections (F3, 2026-11-17)
+
+Code path `[web]`: `web/templates/app/bookmarks.html` + the
+`frontend/assets/app-progress.js` remove island. Contract:
+`docs/specs/frontend/dashboard-progress.md` §8.
+
+| State | What the student sees |
+|---|---|
+| default | saved list with type, chapter title, deep link, date, Remove |
+| loading | n/a — SSR completes before bytes |
+| empty | "Nothing saved yet." + lesson Contents -> Save explanation + catalogue link |
+| partial | item whose chapter is no longer in the catalogue shows its humanized chapter title and no link |
+| error | panel `notice--error` + retry; a failed remove keeps the row and says it is still saved |
+| offline | n/a server-side; a failed remove is announced, nothing is optimistically dropped |
+| permission-denied | 303 `/login?next=/app/bookmarks` |
+| reduced-motion | no animation |
+| untranslated | English copy + saved-language note |
+| over-credit-budget | n/a — no voice control |
 
 ## PUB-01 landing / PUB-02 catalogue / PUB-03 class pages (F1, 2026-11-16)
 

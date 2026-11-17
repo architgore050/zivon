@@ -36,7 +36,8 @@ Branch: `feature/w3-f3-dashboard-progress` (based on `main` @ `d65b658`).
   send a student to a 404. F0's catalog test now asserts the live
   `describing-motion-around-us` entry and that `motion` stays gone.
 - **Docs**: `docs/specs/frontend/dashboard-progress.md` (full contract),
-  `state-matrix.md` APP-02/03/04, `web-shell.md` handoff/debt,
+  `state-matrix.md` APP-04/05/06 (renumbered on the rebase; F2 took
+  APP-02/APP-03 first), `web-shell.md` handoff/debt,
   `docs/specs/observability/instrumentation-map.csv` (3 progress rows) and
   the observability emitted list.
 
