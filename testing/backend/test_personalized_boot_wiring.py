@@ -136,10 +136,14 @@ class SlimDependencySmokeTest(unittest.TestCase):
         self,
     ) -> None:
         # Poison the optional backends exactly like the slim image (absent).
+        # A `None` entry in sys.modules is the sentinel that makes `import x`
+        # raise ImportError ("halted; None in sys.modules") even when the
+        # package is installed in the test environment (the CI tests job does
+        # install sentence-transformers from requirements.txt). Popping the
+        # entries afterwards would undo the poison and let the real backend
+        # load on those runners, so the sentinels must stay in place.
         poisoned = {"fastembed": None, "sentence_transformers": None}
         with mock.patch.dict(sys.modules, poisoned):
-            for name in ("fastembed", "sentence_transformers"):
-                sys.modules.pop(name, None)
             from backend.personalized.rag import (
                 EmbedderUnavailable,
                 FixtureEmbedder,
