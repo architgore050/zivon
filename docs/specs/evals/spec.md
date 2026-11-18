@@ -168,18 +168,28 @@ volume and copy checks are deterministic by nature, and a model would only add
 cost to a check the harness can already make. Contract:
 `docs/content-factory/exam.md`.
 
-**W5.5 additions (PL2 landed 2026-11-18; PL5 owns the rest).** `EV-PL-001..005` grade
-personalized learning and its interactive artifacts. **`EV-PL-001` (teaching flow,
-`PL2-agent`) and `EV-PL-002` (RAG grounding/citations, `PL2-retrieval`) are
-authored and green key-free**: cards in `evals/cards/`, deterministic checkers in
-`evals/checkers/personalized_checks.py` (`DET-PL01-*` / `DET-PL02-*`), goldens under
-`evals/goldens/personalized/` (recorded transcripts + a fixture rag-index, self-contained
-per the PL contract below — not registered in `evals/goldens/manifest.json`, which tracks
-factory golden topics). Both run with `llm_judge: null`: the judge is a full-suite,
-PL5-gated concern. `EV-PL-003..005` are **specified only** and stay deliberately absent
-from the inventory above until PL5's PR adds them (with rows here). The normative
-contract — deterministic check ids, goldens, judges, thresholds, cost — is
+**W5.5 additions (PL2 and PL3 landed 2026-11-18; PL5 owns the rest).**
+`EV-PL-001..005` grade personalized learning and its interactive artifacts.
+**`EV-PL-001` (teaching flow, `PL2-agent`) and `EV-PL-002` (RAG
+grounding/citations, `PL2-retrieval`) are authored and green key-free**: cards in
+`evals/cards/`, deterministic checkers in `evals/checkers/personalized_checks.py`
+(`DET-PL01-*` / `DET-PL02-*`), goldens under `evals/goldens/personalized/`
+(recorded transcripts + a fixture rag-index, self-contained per the PL contract
+below — not registered in `evals/goldens/manifest.json`, which tracks factory
+golden topics). Both run with `llm_judge: null`: the judge is a full-suite,
+PL5-gated concern. `EV-PL-004/005` are **specified only** and stay deliberately
+absent from the inventory above until PL5's PR adds them (with rows here). The
+normative contract — deterministic check ids, goldens, judges, thresholds,
+cost — is
 [`docs/specs/personalized-learning/evals.md`](../personalized-learning/evals.md).
+**Authored so far: `EV-PL-003` (PL3, 2026-11-18)** — artifact safety, design,
+and fallback (`PL3-artifacts` stage; deterministic only, no judge; goldens under
+`evals/goldens/personalized/artifacts/`: 1 golden artifact, 7 seeded defects,
+4 spec fixtures, the red-team probe). Its checkers reuse the production rules
+(`backend/personalized/artifacts.py` lint/validation/hash,
+`backend/personalized/artifact_sandbox.py` render gate + sandbox escape test),
+so the eval cannot drift from the code the build enforces. `EV-PL-004/005`
+remain specified only until PL5's PR adds them.
 
 ---
 

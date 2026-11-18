@@ -339,13 +339,28 @@ class WebShellStaticContracts(unittest.TestCase):
         self.templates = REPO_ROOT / "web" / "templates"
 
     def test_every_page_template_extends_the_base_shell(self) -> None:
-        pages = list((self.templates / "app").rglob("*.html")) + [
-            self.templates / "error.html"
-        ]
+        # Page templates extend the shell. `app/partials/*.html` are Jinja
+        # INCLUDES (PL3's artifact viewer partial is the first one) — they are
+        # fragments rendered inside a page, so they must NOT extend base;
+        # the no-inline-script/style scan below still covers them.
+        pages = [
+            path
+            for path in (self.templates / "app").rglob("*.html")
+            if "partials" not in path.parts
+        ] + [self.templates / "error.html"]
         self.assertTrue(pages)
         for path in pages:
             body = path.read_text(encoding="utf-8")
             self.assertIn('{% extends "base.html" %}', body, path.name)
+
+    def test_partial_templates_are_fragments_without_chrome(self) -> None:
+        partials = list((self.templates / "app" / "partials").glob("*.html"))
+        self.assertTrue(partials, "the partials folder holds the PL3 viewer")
+        for path in partials:
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("{% extends", text, path.name)
+            self.assertNotIn("<html", text.lower(), path.name)
+            self.assertNotIn("<script", text.lower(), path.name)
 
     def test_base_shell_links_f1_assets_and_is_noindex(self) -> None:
         base = (self.templates / "base.html").read_text(encoding="utf-8")

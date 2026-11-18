@@ -265,6 +265,16 @@ class BackendConfig:
     personalized_model_deadline_s: float = 30.0
     personalized_model_reasoning_effort: str = "low"
     personalized_index_dir: str | None = None
+    # The D-PL-07 route (ADR-0030): one DeepSeek/OpenCode config + secret for
+    # the personalized-learning model calls, separate from both the voice
+    # tutor and the factory. `personalized_artifact_build_enabled` is the PL3
+    # build switch: fail-closed OFF, and boot refuses the ON state without the
+    # route configured (loud, no silent default — ADR-0030 consequence).
+    personalized_artifact_build_enabled: bool = False
+    personalized_llm_base_url: str | None = None
+    personalized_llm_api_key: str | None = None
+    personalized_llm_model: str = "deepseek-v4.1-flash"
+    personalized_llm_call_deadline_s: int = 120
 
     @classmethod
     def from_env(cls, *, strict_secrets: bool = False) -> BackendConfig:
@@ -436,8 +446,29 @@ class BackendConfig:
             ).strip()
             or "low",
             personalized_index_dir=_optional_env("ZIVON_PERSONALIZED_INDEX_DIR"),
+            personalized_artifact_build_enabled=_env_bool(
+                "ZIVON_PERSONALIZED_ARTIFACT_BUILDS", False
+            ),
+            personalized_llm_base_url=_optional_env("ZIVON_PERSONALIZED_LLM_BASE_URL"),
+            personalized_llm_api_key=_optional_env("ZIVON_PERSONALIZED_API_KEY"),
+            personalized_llm_model=os.environ.get(
+                "ZIVON_PERSONALIZED_LLM_MODEL", "deepseek-v4.1-flash"
+            ).strip()
+            or "deepseek-v4.1-flash",
+            personalized_llm_call_deadline_s=_env_int(
+                "ZIVON_PERSONALIZED_CALL_DEADLINE_S", 120
+            ),
         )
         cls._validate_personalized_route(config)
+        if config.personalized_artifact_build_enabled and (
+            not config.personalized_llm_base_url
+            or not config.personalized_llm_api_key
+        ):
+            raise BackendConfigError(
+                "ZIVON_PERSONALIZED_ARTIFACT_BUILDS=true requires the D-PL-07 route "
+                "(ZIVON_PERSONALIZED_LLM_BASE_URL + ZIVON_PERSONALIZED_API_KEY); "
+                "boot refuses an enabled build path without its own secret"
+            )
         return config
 
     @staticmethod

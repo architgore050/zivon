@@ -46,6 +46,19 @@ acceptance criteria.
   jobs, the account-deletion cascade, and the voice-tutor personal-instruction injection
   (delimited USER-role data block, never system). The teaching turn stays an honest
   `503 E-PL-MODEL-DOWN` until PL2. Spec: `docs/specs/personalized-learning/`.
+  **W5.5 PL3 landed (2026-11-18):** the sandboxed interactive artifacts — the
+  artifact request contract (allow-listed spec, no student text by
+  construction), the content-addressed `personalized_artifact` cache, the hard
+  artifact lint (factory rules + forms/storage/parent/top-nav/self-navigation
+  as a thin wrapper), the D-PL-07 DeepSeek/OpenCode builder engine
+  (`ZIVON_PERSONALIZED_*`; builds fail-closed OFF until the route is
+  configured), the headless render gate + sandbox red-team test, API-PL-13/14
+  (same-origin serving with the §5.2 sandbox headers until the D-PL-09
+  dedicated origin deploys), the viewer host bridge, and eval `EV-PL-003`
+  (1 golden + 7 seeded defects + 4 specs, all green key-free). The artifact
+  generation interface for PL2 is `ensure_artifact` +
+  `app.state.personalized_artifact_builder`. Spec notes:
+  `docs/specs/personalized-learning/interactive-artifacts.md` §12.
   Founder decisions D-PL-05/07/09 are accepted and recorded in
   `docs/backend/adr/0030-personalized-learning.md` (2026-11-18): 90-day retention with
   no cold copy (counsel review before any scale-up), the DeepSeek/OpenCode route above,

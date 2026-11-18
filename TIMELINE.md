@@ -103,6 +103,15 @@ recorded in `docs/backend/adr/0030-personalized-learning.md` (2026-11-18); the r
 eight are open recommendations, and each open one is labelled a recommendation wherever the
 spec states it.
 
+**Progress (2026-11-18):** PL1 landed (2026-11-17) and **PL3 landed
+(2026-11-18)** — the sandboxed generated artifacts end to end (request
+contract, content-addressed cache, hard lint, D-PL-07 builder engine
+fail-closed, render gate + sandbox red-team, API-PL-13/14, viewer host bridge,
+`EV-PL-003` green key-free); PL2 wires `ensure_artifact` into the teaching
+turn, PL4 owns the session screens, PL5 the remaining evals. See
+`docs/specs/personalized-learning/workstreams.md` §4 and
+`interactive-artifacts.md` §12.
+
 **Not in this wave:** payments/plans, voice inside personalized learning, parent/teacher
 views, sharing, an inferred learner profile, model tools/browsing, verbatim CBSE items.
 

@@ -1,0 +1,20 @@
+{
+  "kind": "simulation",
+  "title": "Concave mirror: move the object",
+  "learning_goal": "See how the image moves as the object crosses the focus",
+  "controls": [
+    {
+      "id": "u",
+      "label": "Object distance (cm)",
+      "min": 5,
+      "max": 60,
+      "step": 1,
+      "initial": 30
+    }
+  ],
+  "cited_claim_ids": [
+    "c-03",
+    "c-07"
+  ],
+  "why": "treats the image as always real"
+}

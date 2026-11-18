@@ -1,0 +1,10 @@
+{
+  "kind": "diagram",
+  "title": "Ray diagram for a candle before a concave mirror",
+  "learning_goal": "Trace the parallel, focal and pole rays to locate the image",
+  "controls": [],
+  "cited_claim_ids": [
+    "c-03"
+  ],
+  "why": "cannot place the image on the axis"
+}

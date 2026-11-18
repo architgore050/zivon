@@ -1,9 +1,17 @@
 # Evals — `EV-PL-001…005`
 
-Status: **EV-PL-001/002 authored and green key-free (PL2, 2026-11-18); EV-PL-003…005 cards still to be authored by PL5.** PL5 authors the
+Status: **`EV-PL-001`/`002` authored and green key-free (PL2, 2026-11-18) and
+`EV-PL-003` authored and green (PL3, 2026-11-18); `EV-PL-004`/`005` are card
+specification, not yet authored.** PL5 authors the remaining
 YAML cards in `evals/cards/`, the checkers in `evals/checkers/`, and the
-goldens under `evals/goldens/personalized/` in the same PR that lands the first
-executable slice. This document is the contract those files must match.
+goldens under `evals/goldens/personalized/` in the same PR that lands their
+executable slice. This document is the contract those files must match. The
+`EV-PL-003` card (`evals/cards/EV-PL-003.yaml`), its deterministic checkers
+(`evals/checkers/personalized_checks.py`) and the artifact goldens
+(`evals/goldens/personalized/artifacts/`: 1 golden, 7 seeded defects, 4 specs,
+the red-team probe) landed with PL3, including the additive `PL` card-id
+family and the `PL3-artifacts` stage value in `evals/models.py` (the Q-5
+additive-extension rule).
 
 Method: [`docs/specs/evals/`](../evals/README.md) and
 [`skills/zivon-evals-and-observability-skills/SKILL.md`](../../../skills/zivon-evals-and-observability-skills/SKILL.md).

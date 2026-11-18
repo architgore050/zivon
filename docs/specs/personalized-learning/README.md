@@ -1,7 +1,7 @@
 # `docs/specs/personalized-learning/` — personalized learning + interactive artifacts
 
-Status: **spec complete; PL1 implemented (2026-11-17) and PL2 implemented (2026-11-18);
-PL3 in review, PL4–PL5 not started (2026-11-19).** This folder is the
+Status: **spec complete; PL1 implemented (2026-11-17), PL2 implemented (2026-11-18) and
+PL3 implemented (2026-11-18); PL4–PL5 not started.** This folder is the
 buildable contract for the login-required personalized-learning surface, the
 account-level personal instructions, saved conversations, and the sandboxed
 interactive artifacts the teaching agent may generate. Product code lands only
@@ -55,7 +55,10 @@ In scope:
    resume, delete, and JSON export. Text/artifacts only; no raw audio.
 4. **Interactive artifacts** — a self-contained HTML/JS simulation or diagram
    generated for a teaching turn, shown in a sandboxed viewer with a text /
-   diagram fallback.
+   diagram fallback. (Implemented in PL3, 2026-11-18: the request contract,
+   content-addressed cache, hard lint, D-PL-07 builder engine, headless render
+   gate, API-PL-13/14, and the viewer host bridge — see
+   [`interactive-artifacts.md`](interactive-artifacts.md) §12.)
 5. **Free-tier controls** — login required, per-user and global quotas, rate
    limits, artifact caching, cost logging, and an honest quota-exhausted state.
 6. **Quality and security contracts** — the teaching state machine, the RAG

@@ -1,9 +1,10 @@
 # Interactive artifacts — generation, sandbox, review, cache
 
-Status: **spec, not implemented (2026-11-17).** Owner workstream: PL3
-([`workstreams.md`](workstreams.md)). Product view:
+Status: **PL3 implemented (2026-11-18); PL2 wires the decide call.** Owner
+workstream: PL3 ([`workstreams.md`](workstreams.md)). Product view:
 [`spec.md`](spec.md) §4. The turn that requests an artifact is specified in
-[`agent-and-rag.md`](agent-and-rag.md) §4.4.
+[`agent-and-rag.md`](agent-and-rag.md) §4.4. The implementation notes in §12
+map every section of this document to the code that landed.
 
 An artifact is **untrusted generated code**. Every control below assumes the
 model will eventually produce something unsafe; the design must survive a lint
@@ -409,3 +410,40 @@ Full card, goldens, and log paths: [`evals.md`](evals.md) §4.
 - Whether the artifact builder should reuse the **factory model** (same
   DeepSeek route) or a cheaper image/JS-specialised model (no: one route, one
   secret, recorded in `D-PL-06`).
+
+---
+
+## 12. Implementation notes (PL3, 2026-11-18)
+
+This section records what landed, file by file, and the two deliberate
+interpretations taken where this document left a choice open. The spec text
+above stays the contract; nothing below relaxes it.
+
+| Section | Landed as |
+|---|---|
+| §2 request contract | `backend/personalized/artifacts.py::validate_artifact_spec` — allow-listed fields only (an unexpected field is a rejection, which is what makes "no student text" structural, T-PL-17), caps enforced as rejections (over-length `title`/`learning_goal`/`why` are errors, never truncations), unknown claim ids dropped → `weak_grounding`. |
+| §2 no-student-text | `ensure_no_student_text` hard-rejects a spec quoting the session's weakness/instructions (the canary test `DET-PL03-NO-STUDENT` runs it through prompt, spec, and document). |
+| §3 generation pipeline | `ensure_artifact` in `artifacts.py` (validate → hash → cache → quota → build → lint → store) + `artifact_prompt.py::LLMManagerArtifactBuilder` (one D-PL-07 route call at `reasoning_effort=medium`, 120 s deadline per the D-PL-06 recommendation, lint-in-retry via `llm_manager.run_validation_rounds`, ≤ 2 rebuilds). The engine re-lints the final document as a backstop (the 05-interactive pattern) — whatever produced the HTML, the row never marks `ready` past a failing lint. |
+| §3 hard lint | `lint_artifact_html` in `artifacts.py`: `factory/lint.py` rules reused as the base, artifact-specific rules added as a thin wrapper with stable rule ids (`LINT_*`); the one deliberate relaxation (one inline `<script>` block) and the a11y rules (label/for, canvas `role="img"` + `aria-label`, exactly one `<h1>`) are both enforced here. |
+| §3 step 4 render gate | `backend/personalized/artifact_sandbox.py::run_render_gate` — route-fulfilled load with all other requests aborted, console/network/navigation/overflow/`ready`/fps/long-task/reduced-motion assertions, timings-and-counts-only report. Dev/test dependency: without Chromium the gate raises `RenderGateUnavailable` and the build ships on lint alone (`render_ms = NULL`, recorded — not silent). |
+| §5 sandbox | API-PL-13 in `backend/personalized/artifact_router.py` serves the §5.2 header set byte-exact (CSP `sandbox allow-scripts` + `frame-ancestors 'self'`, `nosniff`, `no-referrer`, `private, max-age=86400, immutable`, `noindex`, CORP `same-origin`). Host side: `frontend/assets/personalized-artifact.js` creates the iframe (`sandbox="allow-scripts"`, `allow=""`, `no-referrer`, lazy), validates the harness channel by `event.source` + schema, and unloads on watchdog/second-load. Template: `web/templates/app/partials/artifact_viewer.html`. |
+| §6 review pipeline | Lint + render gate as above; `EV-PL-003` (`evals/cards/EV-PL-003.yaml` + `evals/checkers/personalized_checks.py`) pins lint, doc contract, spec validation, cache identity, no-student-text, fallback, render gate, and the sandbox red-team test (`evals/goldens/personalized/artifacts/` — 1 golden, 7 seeded defects, 4 specs, red-team probe). |
+| §7 cache/versioning | `compute_artifact_id` (the §7 key formula, `why` excluded); `ArtifactStore` (pending/ready/failed transitions, `touch_last_used`, the reference check, `purge` that marks referencing messages `artifact_missing`); the nightly refcount/failed TTL jobs were PL1's (`backend/personalized/retention.py`) and are unchanged. |
+| §8 fallback | `normalize_fallback` stores the decide payload's diagram only when the SVG is provably safe (no script/handlers/external URL) and downgrades to text otherwise; every rejection path (`ArtifactSpecError`/`ArtifactQuotaError`/`ArtifactBuildError`) carries the fallback in `extra` so the turn continues. |
+
+Interpretations recorded (not spec changes):
+
+1. **A `failed` row is rebuilt only for `failure_reason = 'route'`.** §3 step 6
+   allows one retry for a transient route error and none for lint/render; a new
+   request for an identical spec after a lint/render failure returns the failed
+   handle directly (the failure is deterministic and rebuilding would burn
+   quota). The row's own TTL (7 days) is the recovery path.
+2. **The render gate is not on the student request path and not wired into the
+   backend image.** It runs wherever Chromium exists (CI, the eval suite, a
+   build job) via the injectable `render_gate` argument; a build without it
+   ships on lint alone with `render_ms = NULL` (workstreams.md §4 risk note).
+3. **Quota accounting:** the reservation is committed when the build pipeline
+   attempted a model call (lint/render/timeout failures consume it) and
+   released on a transient route error so the allowed retry re-reserves.
+   Spec/quota/budget rejections write no artifact row (usage rows record
+   `rejected`/`quota_blocked` per §2.5).

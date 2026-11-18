@@ -54,9 +54,12 @@ def create_app(
     app.state.db_boot_error = None
     app.state.auth = None
     # Personalized learning (W5.5 PL1): the teaching turn and the RAG-backed
-    # catalog stay honest 503s until PL2 injects these seams.
+    # catalog stay honest 503s until PL2 injects these seams. The PL3 artifact
+    # builder joins them (backend/personalized/artifact_prompt.py wires the
+    # D-PL-07 route when the backend boots with builds enabled).
     app.state.personalized_turn_engine = None
     app.state.personalized_index_catalog = None
+    app.state.personalized_artifact_builder = None
 
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
@@ -139,6 +142,7 @@ def create_app(
         profile_for=(lambda _identity: "demo") if demo_profile else None,
     )
     _wire_voice_personal_instructions(app, cfg)
+    _wire_artifact_builder(app, cfg)
 
     # The server-rendered consumer shell (`/app`, and later the auth/app pages
     # from F2/F3/F5/F6/F7). It is HTML only: the JSON API stays under /v1 and
@@ -288,6 +292,42 @@ def _wire_personalized_agent(app: FastAPI, cfg: BackendConfig) -> None:
             "answers 503 E-PL-MODEL-DOWN",
             type(exc).__name__,
         )
+
+
+def _wire_artifact_builder(app: FastAPI, cfg: BackendConfig) -> None:
+    """PL3 (D-PL-07 route): when artifact builds are enabled AND the route is
+    configured, wire the default builder engine onto the app state so PL2's
+    turn loop can call `ensure_artifact` with `builder=app.state.
+    personalized_artifact_builder`. The config validation in `from_env`
+    already refused an enabled build path without base URL/key; the headless
+    render gate is NOT wired here (dev/test + build-job tooling, not a
+    per-student-request dependency — workstreams.md §4)."""
+    if not cfg.personalized_artifact_build_enabled:
+        return
+    try:
+        from llm_manager import LLMConfig as _RouteConfig
+
+        from .personalized.artifact_prompt import (
+            builder_from_config,
+            default_design_context,
+        )
+
+        route_cfg = _RouteConfig(
+            base_url=cfg.personalized_llm_base_url or "",
+            model=cfg.personalized_llm_model,
+            api_key=cfg.personalized_llm_api_key,
+            call_deadline_s=float(cfg.personalized_llm_call_deadline_s),
+        )
+        app.state.personalized_artifact_builder = builder_from_config(
+            route_cfg, default_design_context()
+        )
+    except Exception as exc:
+        logger.exception(
+            "artifact builder not wired (%s); artifact requests fail closed "
+            "with the fallback",
+            type(exc).__name__,
+        )
+        app.state.personalized_artifact_builder = None
 
 
 def _wire_components(

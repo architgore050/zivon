@@ -1,0 +1,72 @@
+{# PL3 artifact viewer partial (interactive-artifacts.md §5, spec.md §4).
+
+Included by PL4's session screen when a message carries kind="artifact_ref".
+Expected context (the session/detail serializer provides it; PL2 emits
+`src` — the same-origin route or signed URL — the viewer never constructs it):
+
+  artifact: {artifact_id, kind, title, status, src}   src only when ready
+  chapter_id: str                                     for the report path
+
+Markup only — behaviour lives in /assets/personalized-artifact.js
+(`window.ZivonArtifactViewer.mount(document)`), styling belongs to PL4's
+personalized.css (base §1–§9; this is not a §10 lesson page). The iframe is
+created by the JS with the exact sandbox contract: `sandbox="allow-scripts"`
+(opaque origin — never allow-same-origin), `allow=""` (no permissions-policy
+feature), `referrerpolicy="no-referrer"`, `loading="lazy"`. #}
+<div class="zn-art-viewer"
+     data-artifact-viewer
+     data-artifact-id="{{ artifact.artifact_id }}"
+     data-artifact-kind="{{ artifact.kind }}"
+     data-artifact-status="{{ artifact.status }}"
+     data-artifact-src="{{ artifact.src or '' }}"
+     data-status-url="/v1/personalized/artifacts/{{ artifact.artifact_id }}/status"
+     data-chapter-id="{{ chapter_id }}"
+     data-fallback-kind="{{ artifact.fallback_kind or 'text' }}"
+     role="group"
+     aria-labelledby="zn-art-title-{{ artifact.artifact_id }}">
+  <div class="zn-art-viewer-head">
+    <h3 class="zn-art-viewer-title" id="zn-art-title-{{ artifact.artifact_id }}">
+      {{ artifact.title }}
+    </h3>
+    <span class="zn-art-viewer-kind">{{ artifact.kind }}</span>
+  </div>
+
+  <div class="zn-art-viewer-frame" data-art-frame hidden>
+    {# the iframe element itself is created by personalized-artifact.js #}
+  </div>
+
+  <div class="zn-art-viewer-fallback" data-art-fallback hidden>
+    <p class="zn-art-viewer-fallback-note" data-art-fallback-note>
+      The visual didn't load. Here's the diagram instead.
+    </p>
+    <div class="zn-art-viewer-fallback-body" data-art-fallback-body>
+      {# The decide payload's validated fallback (normalize_fallback checked
+         it: no script/handlers/external URL). Rendered server-side as nodes;
+         the client JS reveals it, never injects markup. #}
+      {% if artifact.fallback_svg %}{{ artifact.fallback_svg | safe }}{% endif %}
+    </div>
+  </div>
+
+  <p class="zn-art-viewer-status" data-art-status role="status" aria-live="polite">
+    Building a visual…
+  </p>
+
+  <div class="zn-art-viewer-actions">
+    <button type="button" class="zn-art-viewer-btn" data-art-action="reload">
+      Reload
+    </button>
+    <button type="button" class="zn-art-viewer-btn" data-art-action="pause">
+      Pause
+    </button>
+    <button type="button" class="zn-art-viewer-btn" data-art-action="expand">
+      Expand
+    </button>
+    <button type="button" class="zn-art-viewer-btn" data-art-action="report">
+      Report
+    </button>
+  </div>
+
+  <p class="zn-art-viewer-meta">
+    Runs isolated — no network, no access to your account.
+  </p>
+</div>
