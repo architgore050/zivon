@@ -1,0 +1,135 @@
+{
+ "schema_version": 1,
+ "chapter_id": "class-9-motion",
+ "mode": "learning",
+ "weakness_text": "synthetic diagnostic",
+ "expected_stage_sequence": [
+  "diagnose",
+  "diagnose",
+  "diagnose",
+  "teach"
+ ],
+ "turns": [
+  {
+   "client_turn_id": "d-1",
+   "role": "tutor",
+   "kind": "check",
+   "text": "",
+   "payload": {
+    "check_id": "chk-d1",
+    "kind": "mcq",
+    "question": "A car covers equal distances in equal times. Its motion is...",
+    "options": [
+     {
+      "id": "A",
+      "text": "uniform"
+     },
+     {
+      "id": "B",
+      "text": "non-uniform"
+     }
+    ],
+    "level": 1,
+    "concept_id": "class-9-motion-uniform",
+    "source": {
+     "kind": "bank",
+     "item_id": "q-d-1"
+    }
+   },
+   "answer_key": {
+    "kind": "mcq",
+    "option": "A"
+   }
+  },
+  {
+   "client_turn_id": "d-2",
+   "role": "student",
+   "kind": "text",
+   "text": "A",
+   "payload": {
+    "correct": true
+   }
+  },
+  {
+   "client_turn_id": "d-3",
+   "role": "tutor",
+   "kind": "check",
+   "text": "",
+   "payload": {
+    "check_id": "chk-d2",
+    "kind": "mcq",
+    "question": "Slope of a distance-time graph gives...",
+    "options": [
+     {
+      "id": "A",
+      "text": "speed"
+     },
+     {
+      "id": "B",
+      "text": "acceleration"
+     }
+    ],
+    "level": 1,
+    "concept_id": "class-9-motion-graphs",
+    "source": {
+     "kind": "bank",
+     "item_id": "q-d-2"
+    }
+   },
+   "answer_key": {
+    "kind": "mcq",
+    "option": "A"
+   }
+  },
+  {
+   "client_turn_id": "d-4",
+   "role": "student",
+   "kind": "text",
+   "text": "A",
+   "payload": {
+    "correct": false
+   }
+  },
+  {
+   "client_turn_id": "d-5",
+   "role": "tutor",
+   "kind": "diagnostic",
+   "text": "",
+   "payload": {
+    "diagnostic": {
+     "item_ids": [
+      "q-d-1",
+      "q-d-2"
+     ],
+     "answers": {
+      "q-d-1": true,
+      "q-d-2": false
+     },
+     "verdict": {
+      "class-9-motion-graphs": "gap"
+     }
+    }
+   }
+  }
+ ],
+ "mastery_summary": [
+  {
+   "concept_id": "class-9-motion-graphs",
+   "status": "not_yet",
+   "attempts": 0,
+   "first_try_correct": 0,
+   "levels_passed": [],
+   "skipped": false
+  }
+ ],
+ "check_keys": {
+  "chk-d1": {
+   "kind": "mcq",
+   "option": "A"
+  },
+  "chk-d2": {
+   "kind": "mcq",
+   "option": "A"
+  }
+ }
+}

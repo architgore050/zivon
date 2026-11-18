@@ -38,5 +38,10 @@ def register_routes(app: FastAPI) -> None:
     )
     from ..personalized.router import router as personalized_router
 
+    # PL2: the teaching turn (API-PL-10, SSE) is its own router module,
+    # mounted after the session router so it owns the /turns path.
+    from ..personalized.turn_router import router as personalized_turn_router
+
     app.include_router(personalized_preferences_router)
     app.include_router(personalized_router)
+    app.include_router(personalized_turn_router)

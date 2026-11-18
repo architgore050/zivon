@@ -1,0 +1,49 @@
+card_id: EV-PL-001
+version: 1
+title: Personalized teaching flow and the deterministic state machine (PL2)
+stage: PL2-agent
+agent_role: Teaching Agent
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/personalized/sessions/class-10-light-weakness
+  - evals/goldens/personalized/sessions/class-9-motion-diagnostic
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-PL01-SM
+  entrypoint: evals.checkers.personalized_checks:check_state_machine
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.state
+  description: Replays each golden transcript through the real state machine and asserts the
+    expected stage sequence, no check before a teach/diagnostic arm, one open check at a time,
+    the coverage gate before `harder`, `mastered` only with L2+L3 evidence, `skipped` never
+    mastered, and the 60-turn cap.
+- id: DET-PL01-SCHEMA
+  entrypoint: evals.checkers.personalized_checks:check_turn_schema
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.state
+  description: Every golden turn payload validates against the assembled-turn shape (schema
+    version, citations list, ungrounded flag, check without any answer key, rag_index_version,
+    prompt_version).
+- id: DET-PL01-SCORE
+  entrypoint: evals.checkers.personalized_checks:check_scoring_rules
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.state:score_answer
+  description: The deterministic scoring contract - MCQ exact option, numeric tolerance
+    max(0.01, 0.5%), wrong unit is incorrect with a unit hint, scientific notation normalized,
+    blank answers never counted as attempts.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

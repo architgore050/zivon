@@ -13,6 +13,7 @@ longer being built to a challenge deadline: the **10 Nov 2026 deadline and the G
 are historical** — preserved in `TIMELINE.md`, `docs/logs/`, and the dated posts, not current
 acceptance criteria.
 
+- **W5.5 PL2 landed (2026-11-18):** the personalized teaching agent — the deterministic state machine (`backend/personalized/state.py`), the two-call streaming turn (`agent.py` + `turn_router.py`), bank-first checks scored server-side, the RAG index + retrieval + citations (`rag.py`, `scripts/build_personalized_index.py`), the DeepSeek V4.1 Flash route through the in-process `llm_manager` with its own `ZIVON_PERSONALIZED_*` secret (D-PL-07/ADR-0030), prompt-injection defenses, EV-PL-001/002 eval cards green key-free, and the map rows for the new events. The turn answers an honest `503 E-PL-MODEL-DOWN` until the route is configured. Artifacts (PL3) and the frontend (PL4) follow.
 - **W5.5 PL1 landed (2026-11-17):** the personalized-learning data foundation — migration
   `0005_personalized_learning` (six tables, C22–C25, the mastery/abuse-family CHECK
   widenings), account personal instructions (save/clear/versioned), owner-scoped saved

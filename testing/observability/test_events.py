@@ -139,6 +139,14 @@ EMITTED_BY_THIS_BRANCH = [
     "personalized.retention.purged",
     "personalized.turn.unavailable",
     "voice.prefs.unavailable",
+    # W5.5 PL2 (backend/personalized/agent.py, turn_router.py, app.py,
+    # router.py): the teaching turn, its state machine, the RAG boot wiring.
+    "personalized.turn.complete",
+    "personalized.stage.change",
+    "personalized.check.answer",
+    "personalized.session.resumed",
+    "personalized.index.loaded",
+    "personalized.index.missing",
 ]
 
 # Declared-but-not-yet-emitted rows (other agents / future wiring): naming

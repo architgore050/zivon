@@ -1,0 +1,20 @@
+{
+  "chunk_chars": 1200,
+  "chunk_count": 4,
+  "chunk_overlap": 120,
+  "chunker_version": "pl-rag-1",
+  "chunks_sha256": "c555d2500b820b0f581ed51bc12402242499822e344d1bd1285b19435d94d2d8",
+  "counts_by_source_kind": {
+    "glossary": 0,
+    "lesson": 1,
+    "ncert": 2,
+    "syllabus": 1
+  },
+  "dim": 64,
+  "embedder_id": "fixture-hashing-64",
+  "schema_version": 1,
+  "sources": {
+    "fixture": true
+  },
+  "version": "911e4eb9dbedd8d1"
+}

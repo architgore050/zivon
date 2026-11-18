@@ -1,6 +1,6 @@
 # Workstreams — PL1…PL5
 
-Status: **PL1 implemented (2026-11-17); PL2–PL5 not started.** This file is the
+Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3–PL5 not started.** This file is the
 execution split for **W5.5** in [`TIMELINE.md`](../../../TIMELINE.md). Each
 workstream is one agent-sized PR series; a PR never edits another workstream's
 owned files without the owner's review.
@@ -75,7 +75,7 @@ both rows together); retention deleting a live session (use `last_turn_at`, not
 
 ## 3. PL2 — RAG, agent, DeepSeek, teaching loop
 
-**Goal:** the teaching brain and the stream, behind the PL1 interface.
+**Goal:** the teaching brain and the stream, behind the PL1 interface. **Status: implemented 2026-11-18** (`state.py`, `prompts.py`, `rag.py`, `agent.py`, `turn_router.py`, `bank.py`, `scripts/build_personalized_index.py`; eval cards EV-PL-001/002 + checkers + goldens; the real-model manual run of §9's exit gate is still pending).
 
 **Deliverables**
 

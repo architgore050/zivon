@@ -185,6 +185,111 @@ def _wire_voice_personal_instructions(app: FastAPI, cfg: BackendConfig) -> None:
         )
 
 
+def _wire_personalized_agent(app: FastAPI, cfg: BackendConfig) -> None:
+    """PL2 boot wiring (agent-and-rag.md §6.4/§7.3): load the newest valid RAG
+    index, build the query embedder, and wire the teaching-turn engine.
+
+    Honest degradation (§7.5): no index ⇒ the catalog seam stays None (the
+    routes answer 503 E-CONTENT-UNAVAILABLE and the turn engine is not wired);
+    an unavailable embedding backend ⇒ lexical retrieval fallback, marked on
+    every turn; the turn engine is wired only when the DeepSeek route is
+    fully configured (`BackendConfig` already refuses an incomplete route at
+    boot)."""
+    if app.state.db is None:
+        return
+    from pathlib import Path
+
+    from .logging_shim import ErrorClass as _ErrorClass
+    from .logging_shim import log_event
+
+    index_dir = cfg.personalized_index_dir or str(
+        Path(cfg.runs_dir) / "personalized-index"
+    )
+    index = None
+    embedder = None
+    try:
+        from .personalized.rag import RagIndex
+
+        root = Path(index_dir)
+        if root.is_dir():
+            versions = sorted(
+                (d for d in root.iterdir() if d.is_dir()),
+                key=lambda d: d.name,
+                reverse=True,
+            )
+            for version_dir in versions:
+                try:
+                    index = RagIndex.load(version_dir)
+                    break
+                except Exception as exc:  # noqa: BLE001 — try the next version
+                    logger.warning(
+                        "personalized index version %s refused to load (%s)",
+                        version_dir.name,
+                        type(exc).__name__,
+                    )
+            if index is not None:
+                log_event(
+                    "personalized.index.loaded",
+                    {
+                        "index_version": index.version,
+                        "chunk_count": index.manifest.get("chunk_count"),
+                    },
+                )
+            else:
+                log_event(
+                    "personalized.index.missing",
+                    {},
+                    error_class=_ErrorClass.INFRA_ERROR,
+                )
+        else:
+            log_event(
+                "personalized.index.missing",
+                {},
+                error_class=_ErrorClass.INFRA_ERROR,
+            )
+    except ImportError:
+        return
+    if index is not None:
+        try:
+            from .personalized.rag import get_embedder
+
+            embedder = get_embedder("intfloat/multilingual-e5-small")
+        except Exception as exc:  # noqa: BLE001 — §7.5.5 lexical fallback
+            logger.warning(
+                "embedding backend unavailable (%s); personalized retrieval "
+                "runs in the marked lexical fallback",
+                type(exc).__name__,
+            )
+            embedder = None
+        from .personalized.rag import RetrievalPorts
+
+        retrieval = RetrievalPorts(index=index, embedder=embedder)
+        app.state.personalized_retrieval = retrieval
+        app.state.personalized_index_catalog = index.catalog
+
+    if not cfg.personalized_turn_engine_enabled or index is None:
+        return
+    try:
+        from .personalized.agent import LLMManagerClient, PersonalizedAgent
+        from .personalized.bank import QuestionBank
+        from .personalized.store import PersonalizedStore
+
+        store = PersonalizedStore(app.state.db)
+        app.state.personalized_turn_engine = PersonalizedAgent(
+            store=store,
+            config=cfg,
+            retrieval=app.state.personalized_retrieval,
+            model_client=LLMManagerClient(cfg),
+            bank=QuestionBank(app.state.db),
+        )
+    except Exception as exc:
+        logger.exception(
+            "personalized turn engine not wired (%s); the turn endpoint "
+            "answers 503 E-PL-MODEL-DOWN",
+            type(exc).__name__,
+        )
+
+
 def _wire_components(
     app: FastAPI,
     cfg: BackendConfig,
@@ -275,6 +380,11 @@ def _wire_components(
         app.state.rate_limiter = AbuseRateLimiter(cfg, app.state.db)
     except ImportError:
         pass
+
+    # Personalized learning PL2 (D-PL-07/ADR-0030): the RAG index + the
+    # teaching-turn engine. Additive by contract: a missing index or an
+    # unavailable embedder leaves the honest 503 seams in place (§7.5).
+    _wire_personalized_agent(app, cfg)
 
     try:
         from .routes import register_routes

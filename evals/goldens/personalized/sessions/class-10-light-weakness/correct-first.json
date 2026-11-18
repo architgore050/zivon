@@ -1,0 +1,117 @@
+{
+ "schema_version": 1,
+ "chapter_id": "class-10-light-reflection-and-refraction",
+ "mode": "learning",
+ "weakness_text": "the image flips and I cannot tell why",
+ "turns": [
+  {
+   "client_turn_id": "t-1",
+   "role": "tutor",
+   "kind": "text",
+   "text": "Light bounces off smooth surfaces. The angle of incidence equals the angle of reflection.\n\nKey statement: equal angles about the normal.\n\nNow answer the check that follows.",
+   "payload": {
+    "schema_version": 1,
+    "stage": "teach",
+    "turn_no": 2,
+    "teaching": {
+     "paragraphs": [
+      "Light bounces off smooth surfaces. The angle of incidence equals the angle of reflection.",
+      "Key statement: equal angles about the normal.",
+      "Now answer the check that follows."
+     ],
+     "key_statement": "equal angles about the normal",
+     "worked_example": null
+    },
+    "citations": [
+     {
+      "excerpt_id": "S1",
+      "chunk_id": "ncert-science-10#p0148c001",
+      "source_kind": "ncert",
+      "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+      "locator": "p. 148"
+     }
+    ],
+    "ungrounded": false,
+    "check": {
+     "check_id": "chk-1",
+     "kind": "mcq",
+     "question": "A ray strikes a plane mirror at 30 degrees. What is the angle of reflection?",
+     "options": [
+      {
+       "id": "A",
+       "text": "30 degrees"
+      },
+      {
+       "id": "B",
+       "text": "60 degrees"
+      },
+      {
+       "id": "C",
+       "text": "15 degrees"
+      },
+      {
+       "id": "D",
+       "text": "90 degrees"
+      }
+     ],
+     "level": 1,
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "source": {
+      "kind": "bank",
+      "item_id": "q-mcq-1"
+     }
+    },
+    "mastery": {
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "status": "practising",
+     "evidence": "first_try_correct"
+    },
+    "next_action": "ask_check",
+    "model": {
+     "teach": "deepseek-v4.1-flash",
+     "decide": "deepseek-v4.1-flash"
+    },
+    "rag_index_version": "911e4eb9dbedd8d1",
+    "prompt_version": "pl-1",
+    "retrieval": "vector"
+   }
+  },
+  {
+   "client_turn_id": "t-2",
+   "role": "student",
+   "kind": "text",
+   "text": "A",
+   "payload": {
+    "correct": true,
+    "check_id": "chk-1",
+    "attempt_no": 1
+   }
+  }
+ ],
+ "mastery_summary": [
+  {
+   "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+   "status": "getting_there",
+   "attempts": 1,
+   "first_try_correct": 1,
+   "levels_passed": [
+    1
+   ],
+   "skipped": false
+  },
+  {
+   "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+   "status": "not_yet",
+   "attempts": 0,
+   "first_try_correct": 0,
+   "levels_passed": [],
+   "skipped": false
+  }
+ ],
+ "check_keys": {
+  "chk-1": {
+   "kind": "mcq",
+   "option": "A"
+  }
+ }
+}

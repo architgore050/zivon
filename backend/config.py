@@ -6,6 +6,7 @@ variables (`ZIVON_*` / `GNANI_*`). Never hardcode secrets in code or manifests.
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass
 from typing import Final
@@ -124,6 +125,33 @@ def _optional_env(name: str) -> str | None:
     return value or None
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise BackendConfigError(f"{name} must be a number") from exc
+
+
+def _json_env(name: str) -> dict[str, str] | None:
+    """A JSON-object env var (§7.3 `ZIVON_PERSONALIZED_EXTRA_HEADERS`);
+    malformed JSON fails loudly at boot."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise BackendConfigError(f"{name} must be a JSON object") from exc
+    if not isinstance(parsed, dict) or not all(
+        isinstance(k, str) and isinstance(v, str) for k, v in parsed.items()
+    ):
+        raise BackendConfigError(f"{name} must be a JSON object of string pairs")
+    return parsed
+
+
 def _swot_mode(raw: str | None) -> str:
     """Validate `ZIVON_SWOT_MODE` at load time; a bad value refuses to boot."""
     mode = (raw or DEFAULT_SWOT_MODE).strip().lower()
@@ -221,6 +249,22 @@ class BackendConfig:
     personalized_retention_artifact_days: int = 30
     personalized_retention_artifact_failed_days: int = 7
     personalized_retention_usage_days: int = 90
+    # Personalized-learning model route (W5.5 PL2, D-PL-07 / ADR-0030):
+    # DeepSeek V4.1 Flash via the OpenCode OpenAI-format API, called through
+    # the in-process `llm_manager` library with its OWN secret/config —
+    # separate from the voice tutor (Gemini) and the factory. Secrets are
+    # runtime-only; the API key lives in the `zivon-personalized-env` K8s
+    # Secret. Boot refuses to wire the turn engine when the switch is on and
+    # the route is incomplete (loud, no silent default, §7.3).
+    personalized_model_base_url: str | None = None
+    personalized_model_api_key: str | None = None
+    personalized_model: str = "deepseek-v4.1-flash"
+    personalized_model_extra_headers: dict[str, str] | None = None
+    personalized_model_user_agent: str = "zivon-personalized/1"
+    personalized_model_timeout_s: float = 8.0
+    personalized_model_deadline_s: float = 30.0
+    personalized_model_reasoning_effort: str = "low"
+    personalized_index_dir: str | None = None
 
     @classmethod
     def from_env(cls, *, strict_secrets: bool = False) -> BackendConfig:
@@ -254,7 +298,7 @@ class BackendConfig:
         admin_token_raw = os.environ.get("ZIVON_ADMIN_TOKEN", "").strip()
         admin_token = admin_token_raw if admin_token_raw else None
 
-        return cls(
+        config = cls(
             db_url=db_url,
             env=env,
             release_tag=os.environ.get("ZIVON_BACKEND_RELEASE", "0.1.0").strip()
@@ -368,4 +412,51 @@ class BackendConfig:
             personalized_retention_usage_days=_env_int(
                 "ZIVON_PERSONALIZED_RETENTION_USAGE_DAYS", 90
             ),
+            personalized_model_base_url=_optional_env("ZIVON_PERSONALIZED_BASE_URL"),
+            personalized_model_api_key=_optional_env("ZIVON_PERSONALIZED_API_KEY"),
+            personalized_model=os.environ.get(
+                "ZIVON_PERSONALIZED_MODEL", "deepseek-v4.1-flash"
+            ).strip()
+            or "deepseek-v4.1-flash",
+            personalized_model_extra_headers=_json_env(
+                "ZIVON_PERSONALIZED_EXTRA_HEADERS"
+            ),
+            personalized_model_user_agent=os.environ.get(
+                "ZIVON_PERSONALIZED_USER_AGENT", "zivon-personalized/1"
+            ).strip()
+            or "zivon-personalized/1",
+            personalized_model_timeout_s=_env_float(
+                "ZIVON_PERSONALIZED_TIMEOUT_S", 8.0
+            ),
+            personalized_model_deadline_s=_env_float(
+                "ZIVON_PERSONALIZED_DEADLINE_S", 30.0
+            ),
+            personalized_model_reasoning_effort=os.environ.get(
+                "ZIVON_PERSONALIZED_REASONING_EFFORT", "low"
+            ).strip()
+            or "low",
+            personalized_index_dir=_optional_env("ZIVON_PERSONALIZED_INDEX_DIR"),
         )
+        cls._validate_personalized_route(config)
+        return config
+
+    @staticmethod
+    def _validate_personalized_route(config: BackendConfig) -> None:
+        """Boot refusal when the turn engine is switched on without a route
+        (§7.3: loud, no silent default). The error never quotes the key."""
+        if config.personalized_turn_engine_enabled and (
+            not config.personalized_model_base_url
+            or not config.personalized_model_api_key
+        ):
+            missing = [
+                name
+                for name, value in (
+                    ("ZIVON_PERSONALIZED_BASE_URL", config.personalized_model_base_url),
+                    ("ZIVON_PERSONALIZED_API_KEY", config.personalized_model_api_key),
+                )
+                if not value
+            ]
+            raise BackendConfigError(
+                "ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED is set but the "
+                f"personalized model route is incomplete; missing: {', '.join(missing)}"
+            )

@@ -1,0 +1,54 @@
+card_id: EV-PL-002
+version: 1
+title: RAG grounding, citation resolution, and honest fallbacks (PL2)
+stage: PL2-retrieval
+agent_role: Teaching Agent
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/personalized/rag-index
+  - evals/goldens/personalized/sessions/class-10-light-weakness
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-PL02-CITATIONS
+  entrypoint: evals.checkers.personalized_checks:check_citations
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.rag:resolve_citations
+  description: For every golden teaching turn, each citation excerpt id exists in the turn's
+    own retrieval scope, the stored label matches the chunk identity, zero resolved citations
+    implies ungrounded=true, and unknown ids are dropped (never invented).
+- id: DET-PL02-PROVENANCE
+  entrypoint: evals.checkers.personalized_checks:check_provenance
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.rag:RagIndex.load
+  description: The golden index manifest matches its chunks (hash + count); every ncert chunk's
+    page_from equals page_to and stays a positive page; no chunk carries an exam-paper source
+    kind or user content; the tier is lesson only for lesson blocks.
+- id: DET-PL02-SCOPE
+  entrypoint: evals.checkers.personalized_checks:check_retrieval_scope
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.rag:RagIndex.retrieve
+  description: Scoped retrieval over the fixture index keeps every excerpt inside the queried
+    concept scope or the chapter, honors the 4000-character excerpt budget, and assigns stable
+    S1..Sn ids.
+- id: DET-PL02-FALLBACK
+  entrypoint: evals.checkers.personalized_checks:check_lexical_fallback
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.rag:RagIndex.retrieve
+  description: With the embedder unavailable, retrieval still returns excerpts via lexical
+    scoring and marks the turn lexical_fallback; an empty index is ungrounded with no excerpts.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

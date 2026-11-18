@@ -16,3 +16,10 @@ psycopg[binary]==3.2.3
 jinja2==3.1.6
 # Account auth (ADR-0029): Argon2id hashing for /v1/auth password identities.
 argon2-cffi==25.1.0
+# Personalized-learning RAG (W5.5 PL2): the index loader and the lexical
+# fallback need numpy ONLY. The optional embedding backends (fastembed /
+# sentence-transformers) stay OUT of the slim image — they are imported
+# lazily inside backend/personalized/rag.py::get_embedder, and their absence
+# degrades retrieval to the honestly-marked lexical fallback (agent-and-rag.md
+# §7.5.5), never a silent 503 when an index exists.
+numpy>=2.0
