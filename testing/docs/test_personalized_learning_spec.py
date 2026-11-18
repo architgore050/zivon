@@ -327,10 +327,16 @@ class RepoPointers(unittest.TestCase):
         self.assertIn("docs/specs/personalized-learning/", text)
 
 
-class OpenDecisionsAreNotRecordedAsSettled(unittest.TestCase):
-    """An open founder decision must not read as settled in the binding docs."""
+class DecisionStateIsRecordedInBindingDocs(unittest.TestCase):
+    """The binding docs must state the founder decisions' current status.
 
-    def test_agents_routing_row_marks_the_personalized_route_open(self) -> None:
+    D-PL-05/07/09 were accepted by founder decision (2026-11-18, ADR-0030), so
+    the AGENTS.md routing row and TIMELINE.md must not present them as open and
+    the register must carry the ADR reference. Any still-open decision must
+    keep reading as open until the founder closes it.
+    """
+
+    def test_agents_routing_row_records_the_accepted_route(self) -> None:
         text = (REPO / "AGENTS.md").read_text(encoding="utf-8")
         rows = [
             line
@@ -338,13 +344,33 @@ class OpenDecisionsAreNotRecordedAsSettled(unittest.TestCase):
             if line.startswith("| Personalized learning (product runtime)")
         ]
         self.assertEqual(len(rows), 1, "the routing table carries exactly one PL row")
-        self.assertIn("D-PL-07", rows[0])
-        self.assertIn("open", rows[0].lower())
+        row = rows[0].lower()
+        self.assertIn("d-pl-07", row)
+        self.assertIn("adr-0030", row)
+        self.assertIn("accepted", row)
+        self.assertNotIn("not yet decided", row)
+        self.assertNotIn("d-pl-07 open", row)
 
-    def test_timeline_does_not_present_the_route_as_decided(self) -> None:
-        text = " ".join((REPO / "TIMELINE.md").read_text(encoding="utf-8").split())
-        self.assertIn("D-PL-07", text)
-        self.assertIn("still open", text)
+    def test_timeline_carries_the_closed_route_decision(self) -> None:
+        text = (REPO / "TIMELINE.md").read_text(encoding="utf-8")
+        # Scope to the live W5.5 section: the historical execution log (which
+        # is never edited) contains its own dated "Still open" notes.
+        start = text.index("### W5.5 — Personalized Learning")
+        end = text.index("\n## ", start)
+        section = " ".join(text[start:end].split())
+        self.assertIn("D-PL-07", section)
+        self.assertIn("ADR-0030", section)
+        self.assertNotIn("still open", section.lower())
+
+    def test_closed_decisions_reference_the_adr(self) -> None:
+        text = read("decisions.md")
+        for number in (5, 7, 9):
+            with self.subTest(decision=f"D-PL-{number:02d}"):
+                start = text.find(f"## D-PL-{number:02d}")
+                end = text.find("## D-PL-", start + 1)
+                block = text[start:end].lower()
+                self.assertIn("adr-0030", block)
+                self.assertIn("closed", block)
 
 
 class VoicePrecedence(unittest.TestCase):

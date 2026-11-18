@@ -797,12 +797,15 @@ reserve · ≤ 1 500 narration build budget A-15); the only real money lines are
 
 ## 14. ADR index
 
-[`adr/README.md`](adr/README.md) — 29 records. 0001–0016 map 1:1 to the eight features.md ADR
+[`adr/README.md`](adr/README.md) — 30 records. 0001–0016 map 1:1 to the eight features.md ADR
 flags (T2→0009, T3→0010, T5→0011, T6→0007, T7→0012, T8→0013, T11→0008, T12→0014) plus the
 systems-origin decisions (0001–0006, 0015, 0016); 0017–0028 are the Wave-S1 spec decisions;
 **0029** is the Wave-1 F0 account decision (one account per email, cookie sessions + CSRF,
 device pseudonymity kept for guests) and supersedes ADR-0007's "no accounts" premise for the
-product runtime.
+product runtime; **0030** is the W5.5 personalized-learning founder decision (2026-11-18:
+90-day child-free-text retention with no cold copy and counsel review before scale-up, the
+DeepSeek/OpenCode route through the in-process `llm_manager` path with its own secret and no
+paywall, one conversation store and a dedicated production artifact origin — D-PL-05/07/09).
 
 ## 15. Open questions & unverified facts (consolidated — none smoothed over)
 
