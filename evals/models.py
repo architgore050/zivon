@@ -43,7 +43,9 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
             # Additive Q-5 extension (2026-11-15): ASM (assessment/practice),
             # EXM (exam ingest) and SER (series) cards join the original seven
             # families. Existing ids stay stable; nothing is renumbered.
-            "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID|ASM|EXM|SER)-[0-9]{3}$",
+            # PL (personalized learning, W5.5) joins additively per Q-5; the
+            # spec contract is docs/specs/personalized-learning/evals.md.
+            "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID|ASM|EXM|SER|PL)-[0-9]{3}$",
         },
         "version": {"type": "integer", "minimum": 1},
         "title": {"type": "string", "minLength": 10},
@@ -78,6 +80,9 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "E3-series",
                 "E4-publish",
                 "E1-ingest..E4-publish",
+                # Personalized learning (W5.5 PL2; additive per Q-5).
+                "PL2-agent",
+                "PL2-retrieval",
             ],
         },
         "agent_role": {
@@ -96,6 +101,8 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "Speaking Rubric Author",
                 "Exam Ingest Curator",
                 "Series Assembler",
+                # Personalized learning (W5.5 PL2; additive per Q-5).
+                "Teaching Agent",
             ],
         },
         "suites": {

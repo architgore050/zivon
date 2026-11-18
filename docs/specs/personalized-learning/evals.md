@@ -1,6 +1,6 @@
 # Evals — `EV-PL-001…005`
 
-Status: **card specification, not yet authored (2026-11-17).** PL5 authors the
+Status: **EV-PL-001/002 authored and green key-free (PL2, 2026-11-18); EV-PL-003…005 cards still to be authored by PL5.** PL5 authors the
 YAML cards in `evals/cards/`, the checkers in `evals/checkers/`, and the
 goldens under `evals/goldens/personalized/` in the same PR that lands the first
 executable slice. This document is the contract those files must match.

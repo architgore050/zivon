@@ -132,3 +132,9 @@ personalized,personalized.quota.blocked,WARNING,,scope;counter;reason;period,no,
 personalized,personalized.retention.purged,INFO,,sessions_deleted;artifacts_unreferenced_deleted;artifacts_failed_deleted;usage_deleted;quota_periods_pruned,no,,L3,backend/personalized/retention.py,TTL job counts (C22-C25); ids never logged
 personalized,personalized.turn.unavailable,WARNING,request_id,reason_code,no,infra_error,L2,backend/personalized/router.py,teaching-turn stub answered 503 E-PL-MODEL-DOWN until PL2 wires the TurnEngine
 voice,voice.prefs.unavailable,WARNING,session_id,reason_code,no,store_error,L2,voice/ws_api.py,account-cookie resolution or preference load failed; the voice session continues without the personal block (no error text)
+personalized,personalized.turn.complete,INFO,request_id,stage;turn_no;latency_ms;first_token_ms;input_tokens;output_tokens;cached_tokens;retrieval;ungrounded;outcome,yes,,L1,backend/personalized/agent.py,EVT-PL-03 (pl.turn.complete); counts/latency only - never teaching text nor answers nor weakness
+personalized,personalized.stage.change,INFO,request_id,from;to;concept_id;level,no,,L1,backend/personalized/agent.py,EVT-PL-04 (pl.stage.change); the state-machine transition audit row (one stage_change message per transition)
+personalized,personalized.check.answer,INFO,request_id,kind;level;correct;attempt_no;concept_id,no,,L1,backend/personalized/agent.py,EVT-PL-05 (pl.check.answer); no answer text nor option ids
+personalized,personalized.session.resumed,INFO,request_id,chapter_id;turn_count,no,,L2,backend/personalized/router.py,EVT-PL-08 (pl.session.resume); a saved session is reopened
+personalized,personalized.index.loaded,INFO,,index_version;chunk_count,no,,L1,backend/app.py,PL2 boot wiring loaded the newest valid RAG index
+personalized,personalized.index.missing,WARNING,,,yes,infra_error,L1,backend/app.py,PL2 boot found no valid RAG index; the turn/catalog seams stay honest 503

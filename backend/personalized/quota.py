@@ -189,7 +189,11 @@ class QuotaService:
         user_row: dict[str, Any] | None,
         global_row: dict[str, Any],
     ) -> QuotaDecision:
-        """Log a quota-blocked event (counts/enums only — never student data)."""
+        """Build the refusal decision. The `personalized.quota.blocked` event
+        is logged by the CALLER after the transaction closes: the event's DB
+        sink opens its own engine transaction, and nesting that inside the
+        quota transaction breaks the atomic pair (found by the PL2 turn
+        tests). Counts/enums only — never student data."""
         user_used = int(user_row["turns_used"]) if user_row else 0
         user_reserved = int(user_row["turns_reserved"]) if user_row else 0
         user_state = (
@@ -201,16 +205,6 @@ class QuotaService:
                 caps.turns_per_user_per_day,
                 caps.warn_remaining_ratio,
             )
-        )
-        log_event(
-            "personalized.quota.blocked",
-            {
-                "scope": "user" if reason.startswith("user") else "global",
-                "counter": "turn",
-                "reason": reason,
-                "period": period,
-            },
-            error_class=ErrorClass.QUOTA_ERROR,
         )
         return QuotaDecision(
             allowed=False,
@@ -276,6 +270,8 @@ class QuotaService:
         caps = self.caps
         period = ist_period(now_dt)
         now = _utc_now_iso()
+        blocked: QuotaDecision | None = None
+        decision: QuotaDecision | None = None
         with self.db.transaction() as tx:
             user_row, global_row = self._ensure_rows_tx(tx, period, user_id)
             user_used = int(user_row["turns_used"])
@@ -285,73 +281,96 @@ class QuotaService:
 
             if user_used + user_reserved >= caps.turns_per_user_per_day:
                 self._flip_state_tx(tx, period, "user", user_id, "exhausted", now)
-                return self._blocked_decision(
+                blocked = self._blocked_decision(
                     period, caps, "user_turn_cap", user_row, global_row
                 )
-            if user_reserved >= caps.turn_concurrency:
-                return self._blocked_decision(
+            elif user_reserved >= caps.turn_concurrency:
+                blocked = self._blocked_decision(
                     period, caps, "user_concurrency", user_row, global_row
                 )
-            if global_used + global_reserved >= caps.turns_global_per_day:
+            elif global_used + global_reserved >= caps.turns_global_per_day:
                 self._flip_state_tx(tx, period, "global", "global", "exhausted", now)
-                return self._blocked_decision(
+                blocked = self._blocked_decision(
                     period, caps, "global_turn_cap", user_row, global_row
                 )
-
-            # The predicate IS the guard: a concurrent caller can never push
-            # `turns_reserved` past either cap (rowcount 0 ⇒ denied).
-            cur = tx.execute(
-                """
-                UPDATE personalized_quota
-                SET turns_reserved = turns_reserved + 1,
-                    state = CASE
-                        WHEN (? - turns_used - turns_reserved) <= CAST(? * ? AS INTEGER)
-                        THEN 'warn' ELSE 'ok' END,
-                    updated_at = ?
-                WHERE period = ? AND scope = 'user' AND scope_key = ?
-                  AND turns_used + turns_reserved < ?
-                  AND turns_reserved < ?
-                """,
-                (
-                    caps.turns_per_user_per_day,
-                    caps.turns_per_user_per_day,
-                    caps.warn_remaining_ratio,
-                    now,
-                    period,
-                    user_id,
-                    caps.turns_per_user_per_day,
-                    caps.turn_concurrency,
-                ),
-            )
-            if not self._rowcount(cur):
-                return self._blocked_decision(
-                    period, caps, "user_turn_cap", user_row, global_row
+            else:
+                # The predicate IS the guard: a concurrent caller can never
+                # push `turns_reserved` past either cap (rowcount 0 ⇒ denied).
+                cur = tx.execute(
+                    """
+                    UPDATE personalized_quota
+                    SET turns_reserved = turns_reserved + 1,
+                        state = CASE
+                            WHEN (? - turns_used - turns_reserved) <= CAST(? * ? AS INTEGER)
+                            THEN 'warn' ELSE 'ok' END,
+                        updated_at = ?
+                    WHERE period = ? AND scope = 'user' AND scope_key = ?
+                      AND turns_used + turns_reserved < ?
+                      AND turns_reserved < ?
+                    """,
+                    (
+                        caps.turns_per_user_per_day,
+                        caps.turns_per_user_per_day,
+                        caps.warn_remaining_ratio,
+                        now,
+                        period,
+                        user_id,
+                        caps.turns_per_user_per_day,
+                        caps.turn_concurrency,
+                    ),
                 )
-            cur = tx.execute(
-                """
-                UPDATE personalized_quota
-                SET turns_reserved = turns_reserved + 1, updated_at = ?
-                WHERE period = ? AND scope = 'global' AND scope_key = 'global'
-                  AND turns_used + turns_reserved < ?
-                """,
-                (now, period, caps.turns_global_per_day),
-            )
-            if not self._rowcount(cur):
-                # Roll BOTH reservations back: the raise unwinds
-                # `engine.transaction`, undoing the user-side update too.
-                raise _GlobalReservationLost()
-            updated_user = tx.fetchone(
-                """
-                SELECT period, scope, scope_key, turns_used, turns_reserved,
-                       artifact_used, artifact_reserved, state
-                FROM personalized_quota WHERE period = ? AND scope = 'user' AND scope_key = ?
-                """,
-                (period, user_id),
-            )
-            assert updated_user is not None
-            return self._allowed_decision(
-                period, caps, updated_user, global_row, str(updated_user["state"])
-            )
+                if not self._rowcount(cur):
+                    blocked = self._blocked_decision(
+                        period, caps, "user_turn_cap", user_row, global_row
+                    )
+                else:
+                    cur = tx.execute(
+                        """
+                        UPDATE personalized_quota
+                        SET turns_reserved = turns_reserved + 1, updated_at = ?
+                        WHERE period = ? AND scope = 'global' AND scope_key = 'global'
+                          AND turns_used + turns_reserved < ?
+                        """,
+                        (now, period, caps.turns_global_per_day),
+                    )
+                    if not self._rowcount(cur):
+                        # Roll BOTH reservations back: the raise unwinds
+                        # `engine.transaction`, undoing the user-side update.
+                        raise _GlobalReservationLost()
+                    updated_user = tx.fetchone(
+                        """
+                        SELECT period, scope, scope_key, turns_used, turns_reserved,
+                               artifact_used, artifact_reserved, state
+                        FROM personalized_quota WHERE period = ? AND scope = 'user' AND scope_key = ?
+                        """,
+                        (period, user_id),
+                    )
+                    assert updated_user is not None
+                    decision = self._allowed_decision(
+                        period,
+                        caps,
+                        updated_user,
+                        global_row,
+                        str(updated_user["state"]),
+                    )
+        if blocked is not None:
+            self._log_blocked(blocked, "turn", period)
+            return blocked
+        assert decision is not None
+        return decision
+
+    def _log_blocked(self, decision: QuotaDecision, counter: str, period: str) -> None:
+        """The blocked event, emitted AFTER the quota transaction closed."""
+        log_event(
+            "personalized.quota.blocked",
+            {
+                "scope": decision.reason.split("_", 1)[0],
+                "counter": counter,
+                "reason": decision.reason,
+                "period": period,
+            },
+            error_class=ErrorClass.QUOTA_ERROR,
+        )
 
     def commit_turn(
         self,
@@ -468,6 +487,7 @@ class QuotaService:
         caps = self.caps
         period = ist_period(now_dt)
         now = _utc_now_iso()
+        blocked_artifact: QuotaDecision | None = None
         with self.db.transaction() as tx:
             user_row, global_row = self._ensure_rows_tx(tx, period, user_id)
             if (
@@ -475,17 +495,7 @@ class QuotaService:
                 >= caps.artifacts_per_user_per_day
             ):
                 self._flip_state_tx(tx, period, "user", user_id, "exhausted", now)
-                log_event(
-                    "personalized.quota.blocked",
-                    {
-                        "scope": "user",
-                        "counter": "artifact",
-                        "reason": "user_artifact_cap",
-                        "period": period,
-                    },
-                    error_class=ErrorClass.QUOTA_ERROR,
-                )
-                return QuotaDecision(
+                blocked_artifact = QuotaDecision(
                     allowed=False,
                     reason="user_artifact_cap",
                     period=period,
@@ -494,22 +504,12 @@ class QuotaService:
                     turns_remaining=0,
                     artifacts_remaining=0,
                 )
-            if (
+            elif (
                 int(global_row["artifact_used"]) + int(global_row["artifact_reserved"])
                 >= caps.artifacts_global_per_day
             ):
                 self._flip_state_tx(tx, period, "global", "global", "exhausted", now)
-                log_event(
-                    "personalized.quota.blocked",
-                    {
-                        "scope": "global",
-                        "counter": "artifact",
-                        "reason": "global_artifact_cap",
-                        "period": period,
-                    },
-                    error_class=ErrorClass.QUOTA_ERROR,
-                )
-                return QuotaDecision(
+                blocked_artifact = QuotaDecision(
                     allowed=False,
                     reason="global_artifact_cap",
                     period=period,
@@ -518,6 +518,12 @@ class QuotaService:
                     turns_remaining=0,
                     artifacts_remaining=0,
                 )
+        if blocked_artifact is not None:
+            self._log_blocked(blocked_artifact, "artifact", period)
+            return blocked_artifact
+        decision_artifact: QuotaDecision | None = None
+        with self.db.transaction() as tx:
+            user_row, global_row = self._ensure_rows_tx(tx, period, user_id)
             cur = tx.execute(
                 """
                 UPDATE personalized_quota
@@ -528,7 +534,7 @@ class QuotaService:
                 (now, period, user_id, caps.artifacts_per_user_per_day),
             )
             if not self._rowcount(cur):
-                return QuotaDecision(
+                decision_artifact = QuotaDecision(
                     allowed=False,
                     reason="user_artifact_cap",
                     period=period,
@@ -537,45 +543,48 @@ class QuotaService:
                     turns_remaining=0,
                     artifacts_remaining=0,
                 )
-            cur = tx.execute(
-                """
-                UPDATE personalized_quota
-                SET artifact_reserved = artifact_reserved + 1, updated_at = ?
-                WHERE period = ? AND scope = 'global' AND scope_key = 'global'
-                  AND artifact_used + artifact_reserved < ?
-                """,
-                (now, period, caps.artifacts_global_per_day),
-            )
-            if not self._rowcount(cur):
-                raise _GlobalReservationLost()
-            updated_user = tx.fetchone(
-                """
-                SELECT period, scope, scope_key, turns_used, turns_reserved,
-                       artifact_used, artifact_reserved, state
-                FROM personalized_quota WHERE period = ? AND scope = 'user' AND scope_key = ?
-                """,
-                (period, user_id),
-            )
-            assert updated_user is not None
-            return QuotaDecision(
-                allowed=True,
-                reason="",
-                period=period,
-                user_state=str(updated_user["state"]),
-                global_state=str(global_row["state"]),
-                turns_remaining=max(
-                    0,
-                    caps.turns_per_user_per_day
-                    - int(updated_user["turns_used"])
-                    - int(updated_user["turns_reserved"]),
-                ),
-                artifacts_remaining=max(
-                    0,
-                    caps.artifacts_per_user_per_day
-                    - int(updated_user["artifact_used"])
-                    - int(updated_user["artifact_reserved"]),
-                ),
-            )
+            else:
+                cur = tx.execute(
+                    """
+                    UPDATE personalized_quota
+                    SET artifact_reserved = artifact_reserved + 1, updated_at = ?
+                    WHERE period = ? AND scope = 'global' AND scope_key = 'global'
+                      AND artifact_used + artifact_reserved < ?
+                    """,
+                    (now, period, caps.artifacts_global_per_day),
+                )
+                if not self._rowcount(cur):
+                    raise _GlobalReservationLost()
+                updated_user = tx.fetchone(
+                    """
+                    SELECT period, scope, scope_key, turns_used, turns_reserved,
+                           artifact_used, artifact_reserved, state
+                    FROM personalized_quota WHERE period = ? AND scope = 'user' AND scope_key = ?
+                    """,
+                    (period, user_id),
+                )
+                assert updated_user is not None
+                decision_artifact = QuotaDecision(
+                    allowed=True,
+                    reason="",
+                    period=period,
+                    user_state=str(updated_user["state"]),
+                    global_state=str(global_row["state"]),
+                    turns_remaining=max(
+                        0,
+                        caps.turns_per_user_per_day
+                        - int(updated_user["turns_used"])
+                        - int(updated_user["turns_reserved"]),
+                    ),
+                    artifacts_remaining=max(
+                        0,
+                        caps.artifacts_per_user_per_day
+                        - int(updated_user["artifact_used"])
+                        - int(updated_user["artifact_reserved"]),
+                    ),
+                )
+        assert decision_artifact is not None
+        return decision_artifact
 
     def commit_artifact(
         self,

@@ -35,7 +35,7 @@ from pydantic import BaseModel, ConfigDict
 from ..auth.service import AuthContext
 from ..config import BackendConfig
 from ..errors import APIError
-from ..logging_shim import ErrorClass, log_event
+from ..logging_shim import log_event
 from ..routes.auth import require_context, require_csrf
 from .personalization import PreferencesRejected
 from .preferences import clear_preferences, get_preferences, save_preferences
@@ -305,6 +305,13 @@ def _owned_session(
 def get_session_detail(request: Request, session_id: str) -> JSONResponse:
     ctx = require_context(request)
     session = _owned_session(request, ctx, session_id)
+    if session["turn_count"] > 0 and session["status"] == "active":
+        # EVT-PL-08 (pl.session.resume): a saved session is reopened. Counts
+        # only — never the title/weakness/message text.
+        log_event(
+            "personalized.session.resumed",
+            {"chapter_id": session["chapter_id"], "turn_count": session["turn_count"]},
+        )
     store = _store(request)
     messages = store.last_messages(_user_id(ctx), session_id, limit=50)
     usage = _quota(request).get_usage(
@@ -377,30 +384,9 @@ def end_session(request: Request, session_id: str) -> JSONResponse:
     )
 
 
-# --- turns (API-PL-10 stub) -------------------------------------------------------
-
-
-@router.post("/v1/personalized/sessions/{session_id}/turns")
-def next_turn(request: Request, session_id: str) -> JSONResponse:
-    """The teaching turn: an honest 503 until PL2's TurnEngine exists (§4.6).
-
-    Admission order stays contract-shaped: auth → CSRF → owner scope →
-    engine availability. No quota reservation is taken and no usage row is
-    written — §4.6 writes quota rows only when a quota/rate decision was made,
-    and PL1 reaches no model call. PL2 replaces this body with the injected
-    `TurnEngine` call (SSE + JSON fallback).
-    """
-    ctx = require_context(request)
-    require_csrf(request, ctx)
-    _owned_session(request, ctx, session_id)
-    engine = getattr(request.app.state, "personalized_turn_engine", None)
-    log_event(
-        "personalized.turn.unavailable",
-        {"reason_code": "engine_not_wired" if engine is None else "disabled"},
-        error_class=ErrorClass.INFRA_ERROR,
-    )
-    raise APIError("E-PL-MODEL-DOWN", status_code=503, retryable=True)
-
+# --- turns (API-PL-10): the SSE endpoint lives in turn_router.py (PL2) ---------
+# Mounted after this router by backend/routes/__init__.py; no stub remains —
+# an unconfigured engine answers the honest 503 E-PL-MODEL-DOWN from there.
 
 # --- usage (API-PL-15) --------------------------------------------------------------
 

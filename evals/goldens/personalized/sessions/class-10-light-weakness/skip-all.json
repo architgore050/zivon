@@ -1,0 +1,44 @@
+{
+ "schema_version": 1,
+ "chapter_id": "class-10-light-reflection-and-refraction",
+ "mode": "learning",
+ "weakness_text": "synthetic skip-all",
+ "turns": [
+  {
+   "client_turn_id": "t-skip1",
+   "role": "student",
+   "kind": "text",
+   "text": "skip",
+   "payload": {
+    "skipped": "class-10-light-reflection-and-refraction-reflection-of-light"
+   }
+  },
+  {
+   "client_turn_id": "t-skip2",
+   "role": "student",
+   "kind": "text",
+   "text": "skip",
+   "payload": {
+    "skipped": "class-10-light-reflection-and-refraction-spherical-mirrors"
+   }
+  }
+ ],
+ "mastery_summary": [
+  {
+   "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+   "status": "skipped",
+   "attempts": 0,
+   "first_try_correct": 0,
+   "levels_passed": [],
+   "skipped": true
+  },
+  {
+   "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+   "status": "skipped",
+   "attempts": 0,
+   "first_try_correct": 0,
+   "levels_passed": [],
+   "skipped": true
+  }
+ ]
+}

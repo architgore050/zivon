@@ -1,0 +1,325 @@
+{
+ "schema_version": 1,
+ "chapter_id": "class-10-light-reflection-and-refraction",
+ "mode": "learning",
+ "weakness_text": "synthetic weakness for the golden",
+ "turns": [
+  {
+   "client_turn_id": "t-1",
+   "role": "tutor",
+   "kind": "text",
+   "text": "first slice",
+   "payload": {
+    "schema_version": 1,
+    "stage": "teach",
+    "turn_no": 2,
+    "teaching": {
+     "paragraphs": [
+      "first slice"
+     ],
+     "key_statement": "equal angles about the normal",
+     "worked_example": null
+    },
+    "citations": [
+     {
+      "excerpt_id": "S1",
+      "chunk_id": "ncert-science-10#p0148c001",
+      "source_kind": "ncert",
+      "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+      "locator": "p. 148"
+     }
+    ],
+    "ungrounded": false,
+    "check": {
+     "check_id": "chk-1",
+     "kind": "mcq",
+     "question": "A ray strikes a plane mirror at 30 degrees. What is the angle of reflection?",
+     "options": [
+      {
+       "id": "A",
+       "text": "30 degrees"
+      },
+      {
+       "id": "B",
+       "text": "60 degrees"
+      },
+      {
+       "id": "C",
+       "text": "15 degrees"
+      },
+      {
+       "id": "D",
+       "text": "90 degrees"
+      }
+     ],
+     "level": 1,
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "source": {
+      "kind": "bank",
+      "item_id": "q-mcq-1"
+     }
+    },
+    "mastery": {
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "status": "practising",
+     "evidence": "first_try_correct"
+    },
+    "next_action": "ask_check",
+    "model": {
+     "teach": "deepseek-v4.1-flash",
+     "decide": "deepseek-v4.1-flash"
+    },
+    "rag_index_version": "911e4eb9dbedd8d1",
+    "prompt_version": "pl-1",
+    "retrieval": "vector"
+   }
+  },
+  {
+   "client_turn_id": "t-2",
+   "role": "student",
+   "kind": "text",
+   "text": "Z",
+   "payload": {
+    "correct": false,
+    "check_id": "chk-1",
+    "attempt_no": 1
+   }
+  },
+  {
+   "client_turn_id": "t-3",
+   "role": "tutor",
+   "kind": "text",
+   "text": "A DIFFERENT representation: a ball bouncing off a wall leaves at the angle it arrived.",
+   "payload": {
+    "schema_version": 1,
+    "stage": "adapt",
+    "turn_no": 2,
+    "teaching": {
+     "paragraphs": [
+      "A DIFFERENT representation: a ball bouncing off a wall leaves at the angle it arrived."
+     ],
+     "key_statement": "equal angles about the normal",
+     "worked_example": null
+    },
+    "citations": [
+     {
+      "excerpt_id": "S1",
+      "chunk_id": "ncert-science-10#p0148c001",
+      "source_kind": "ncert",
+      "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+      "locator": "p. 148"
+     }
+    ],
+    "ungrounded": false,
+    "check": {
+     "check_id": "chk-2",
+     "kind": "mcq",
+     "question": "A ray strikes a plane mirror at 30 degrees. What is the angle of reflection?",
+     "options": [
+      {
+       "id": "A",
+       "text": "30 degrees"
+      },
+      {
+       "id": "B",
+       "text": "60 degrees"
+      },
+      {
+       "id": "C",
+       "text": "15 degrees"
+      },
+      {
+       "id": "D",
+       "text": "90 degrees"
+      }
+     ],
+     "level": 1,
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "source": {
+      "kind": "bank",
+      "item_id": "q-mcq-2"
+     }
+    },
+    "mastery": {
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "status": "practising",
+     "evidence": "first_try_correct"
+    },
+    "next_action": "ask_check",
+    "model": {
+     "teach": "deepseek-v4.1-flash",
+     "decide": "deepseek-v4.1-flash"
+    },
+    "rag_index_version": "911e4eb9dbedd8d1",
+    "prompt_version": "pl-1",
+    "retrieval": "vector"
+   }
+  },
+  {
+   "client_turn_id": "t-4",
+   "role": "student",
+   "kind": "text",
+   "text": "Z",
+   "payload": {
+    "correct": false,
+    "check_id": "chk-2",
+    "attempt_no": 1
+   }
+  },
+  {
+   "client_turn_id": "t-5",
+   "role": "tutor",
+   "kind": "text",
+   "text": "Another representation: numbers \u2014 30 in, 30 out, measured from the normal.",
+   "payload": {
+    "schema_version": 1,
+    "stage": "adapt",
+    "turn_no": 2,
+    "teaching": {
+     "paragraphs": [
+      "Another representation: numbers \u2014 30 in, 30 out, measured from the normal."
+     ],
+     "key_statement": "equal angles about the normal",
+     "worked_example": null
+    },
+    "citations": [
+     {
+      "excerpt_id": "S1",
+      "chunk_id": "ncert-science-10#p0148c001",
+      "source_kind": "ncert",
+      "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+      "locator": "p. 148"
+     }
+    ],
+    "ungrounded": false,
+    "check": {
+     "check_id": "chk-3",
+     "kind": "mcq",
+     "question": "A ray strikes a plane mirror at 30 degrees. What is the angle of reflection?",
+     "options": [
+      {
+       "id": "A",
+       "text": "30 degrees"
+      },
+      {
+       "id": "B",
+       "text": "60 degrees"
+      },
+      {
+       "id": "C",
+       "text": "15 degrees"
+      },
+      {
+       "id": "D",
+       "text": "90 degrees"
+      }
+     ],
+     "level": 1,
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "source": {
+      "kind": "bank",
+      "item_id": "q-mcq-1"
+     }
+    },
+    "mastery": {
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "status": "practising",
+     "evidence": "first_try_correct"
+    },
+    "next_action": "ask_check",
+    "model": {
+     "teach": "deepseek-v4.1-flash",
+     "decide": "deepseek-v4.1-flash"
+    },
+    "rag_index_version": "911e4eb9dbedd8d1",
+    "prompt_version": "pl-1",
+    "retrieval": "vector"
+   }
+  },
+  {
+   "client_turn_id": "t-6",
+   "role": "student",
+   "kind": "text",
+   "text": "Z",
+   "payload": {
+    "correct": false,
+    "check_id": "chk-3",
+    "attempt_no": 1
+   }
+  },
+  {
+   "client_turn_id": "t-7",
+   "role": "tutor",
+   "kind": "text",
+   "text": "Full solution: measure both angles from the normal; they are equal; so 30 degrees.",
+   "payload": {
+    "schema_version": 1,
+    "stage": "worked_example",
+    "turn_no": 2,
+    "teaching": {
+     "paragraphs": [
+      "Full solution: measure both angles from the normal; they are equal; so 30 degrees."
+     ],
+     "key_statement": "equal angles about the normal",
+     "worked_example": null
+    },
+    "citations": [
+     {
+      "excerpt_id": "S1",
+      "chunk_id": "ncert-science-10#p0148c001",
+      "source_kind": "ncert",
+      "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+      "locator": "p. 148"
+     }
+    ],
+    "ungrounded": false,
+    "check": null,
+    "mastery": {
+     "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+     "status": "practising",
+     "evidence": "first_try_correct"
+    },
+    "next_action": "ask_check",
+    "model": {
+     "teach": "deepseek-v4.1-flash",
+     "decide": "deepseek-v4.1-flash"
+    },
+    "rag_index_version": "911e4eb9dbedd8d1",
+    "prompt_version": "pl-1",
+    "retrieval": "vector"
+   }
+  }
+ ],
+ "mastery_summary": [
+  {
+   "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+   "status": "not_yet",
+   "attempts": 3,
+   "first_try_correct": 0,
+   "levels_passed": [],
+   "skipped": false
+  },
+  {
+   "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+   "status": "not_yet",
+   "attempts": 0,
+   "first_try_correct": 0,
+   "levels_passed": [],
+   "skipped": false
+  }
+ ],
+ "check_keys": {
+  "chk-1": {
+   "kind": "mcq",
+   "option": "A"
+  },
+  "chk-2": {
+   "kind": "mcq",
+   "option": "A"
+  },
+  "chk-3": {
+   "kind": "mcq",
+   "option": "A"
+  }
+ }
+}

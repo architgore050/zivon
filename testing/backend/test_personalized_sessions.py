@@ -244,6 +244,7 @@ class PersonalizedSessionsTest(WebAuthSupport):
         self.assertEqual(
             guest.post(
                 f"/v1/personalized/sessions/{session_id}/turns",
+                json={"client_turn_id": "c-other", "action": "continue"},
                 headers={"X-CSRF-Token": other_csrf},
             ).status_code,
             404,
@@ -414,11 +415,13 @@ class PersonalizedSessionsTest(WebAuthSupport):
     # -- the honest turn stub + usage ---------------------------------------------------
 
     def test_turn_stub_is_503_model_down_without_quota_side_effects(self) -> None:
+        """PL2 keeps the honest 503 when no TurnEngine is wired (kill switch
+        off / no model route); the body contract itself is now enforced."""
         payload = self._create()
         session_id = payload["session_id"]
         response = self.client.post(
             f"/v1/personalized/sessions/{session_id}/turns",
-            json={"action": "answer", "text": "convex"},
+            json={"client_turn_id": "c-1", "action": "answer", "answer": "B"},
             headers={"X-CSRF-Token": self.csrf},
         )
         self.assertEqual(response.status_code, 503)
