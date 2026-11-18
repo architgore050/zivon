@@ -40,6 +40,13 @@ ERROR_MESSAGE_KEYS: Final[dict[str, str]] = {
     "E-SPEAKING-AUDIO-SIZE": "error.speaking_audio_size",
     "E-SPEAKING-NO-SPEECH": "error.speaking_no_speech",
     "E-SPEAKING-EVALUATION": "error.speaking_evaluation",
+    # Personalized learning (W5.5, data-and-api.md §4.10). The preferences
+    # rejection renders as E-VALIDATION with message_key
+    # "error.preferences_rejected" (§4.3's wire payload); this catalogue entry
+    # keeps the §4.10 code resolvable.
+    "E-PL-TURN-OPEN": "error.pl.turn_open",
+    "E-PL-MODEL-DOWN": "error.pl.model_down",
+    "E-PL-PREFS-REJECTED": "error.preferences_rejected",
 }
 
 

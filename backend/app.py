@@ -53,6 +53,10 @@ def create_app(
     app.state.guard = credit_guard
     app.state.db_boot_error = None
     app.state.auth = None
+    # Personalized learning (W5.5 PL1): the teaching turn and the RAG-backed
+    # catalog stay honest 503s until PL2 injects these seams.
+    app.state.personalized_turn_engine = None
+    app.state.personalized_index_catalog = None
 
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
@@ -134,6 +138,7 @@ def create_app(
         settings=_voice_settings(cfg),
         profile_for=(lambda _identity: "demo") if demo_profile else None,
     )
+    _wire_voice_personal_instructions(app, cfg)
 
     # The server-rendered consumer shell (`/app`, and later the auth/app pages
     # from F2/F3/F5/F6/F7). It is HTML only: the JSON API stays under /v1 and
@@ -153,6 +158,31 @@ def _voice_settings(cfg: BackendConfig) -> VoiceSettings:
     if not settings.ip_hash_salt:
         overrides["ip_hash_salt"] = cfg.ip_hash_salt
     return dataclasses.replace(settings, **overrides) if overrides else settings
+
+
+def _wire_voice_personal_instructions(app: FastAPI, cfg: BackendConfig) -> None:
+    """PL1 voice injection (data-and-api.md §5.1): resolve the account cookie on
+    the voice WS and hand the tutor the sanitized personal-instructions block.
+
+    Additive (ADR-0029 rule): a broken auth or store leaves the voice loop
+    untouched — the resolver is simply not wired and every session behaves as
+    a guest (no block, byte-identical prompts)."""
+    if app.state.auth is None or app.state.db is None:
+        return
+    try:
+        from .personalized.preferences import build_voice_preferences_resolver
+
+        voice_app = app.state.voice
+        voice_app.preferences_for = build_voice_preferences_resolver(
+            app.state.auth, app.state.db
+        )
+        voice_app.account_cookie_name = cfg.auth_cookie_name
+    except Exception as exc:  # noqa: BLE001 — same additive posture as the auth seam
+        logger.warning(
+            "personal-instructions injection not wired (%s); the voice tutor "
+            "runs without the personal block",
+            type(exc).__name__,
+        )
 
 
 def _wire_components(

@@ -6,8 +6,9 @@ table, column, CHECK constraint, and index traces to `docs/backend/db-spec.md`
 and `docs/specs/gaps/gap-register.md` (GAP-014).
 
 Revision `0004_practice_speaking_tests` lives in `db/schema_assessment.py` (the
-W4 practice/speaking/test foundation); this module stays the 0001-0003 home and
-owns the single `ALL_TABLES` registry.
+W4 practice/speaking/test foundation) and `0005_personalized_learning` in
+`db/schema_personalized.py` (the W5.5 PL1 data foundation); this module stays
+the 0001-0003 home and owns the single `ALL_TABLES` registry.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from __future__ import annotations
 from typing import Final
 
 from .schema_assessment import PRACTICE_TEST_TABLES_0004
+from .schema_personalized import PERSONALIZED_TABLES_0005
 
 CORE_TABLES_0001: Final[tuple[str, ...]] = (
     "device",
@@ -71,6 +73,7 @@ ALL_TABLES: Final[tuple[str, ...]] = (
     + ADDENDA_TABLES_0002
     + FULL_FRONTEND_TABLES_0003
     + PRACTICE_TEST_TABLES_0004
+    + PERSONALIZED_TABLES_0005
 )
 
 LOCALE_ENUM_CHECK: Final[str] = (
@@ -380,7 +383,10 @@ def get_revision_0001_up_sql(dialect: str = "postgresql") -> list[str]:
             bucket_id {auto_pk},
             bucket_key TEXT NOT NULL,
             endpoint_family TEXT NOT NULL CHECK (
-                endpoint_family IN ('static', 'audio', 'api', 'ws', 'events', 'reports', 'delete')
+                endpoint_family IN ('static', 'audio', 'api', 'ws', 'events',
+                                    'reports', 'delete', 'personalized_turn',
+                                    'personalized_create', 'personalized_read',
+                                    'personalized_ip')
             ),
             window_start {ts_type} NOT NULL,
             count INTEGER NOT NULL DEFAULT 0,
@@ -875,7 +881,8 @@ def get_revision_0003_up_sql(dialect: str = "postgresql") -> list[str]:
             user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
             kind TEXT NOT NULL CHECK (kind IN (
                 'lesson_block_view', 'lesson_complete', 'practice_answer',
-                'test_submit', 'speaking_attempt', 'bookmark_add', 'bookmark_remove'
+                'test_submit', 'speaking_attempt', 'bookmark_add', 'bookmark_remove',
+                'personalized_mastery'
             )),
             chapter_id TEXT,
             concept_id TEXT,

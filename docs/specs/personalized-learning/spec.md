@@ -271,10 +271,10 @@ timestamps, resume, delete, and export are the same operations.
 - No raw audio, ever (T11). The only media is generated artifact HTML.
 - Text and artifact references only; a deleted artifact leaves a text fallback.
 - The lesson-page voice dock's own doubt history (`TUT-05`) is **not** created
-  by this feature. D-PL-09 asks the founder whether to merge it into the same
-  store; the recommended answer is yes (one store, `origin='lesson_dock'`),
-  because two chat stores would confuse delete/export. Until that decision,
-  this feature owns only the personalized store.
+  by this feature. D-PL-09 is accepted (`ADR-0030`, 2026-11-18): it merges into
+  the same store (`origin='lesson_dock'`) because two chat stores would confuse
+  delete/export; the merge is a follow-up PR, so until it lands this feature
+  owns only the personalized store.
 - Search is deferred (`PL-C-026`); the list is short and ordered.
 - The transcript is private to the owner; no share links, no public profile, no
   parent/teacher view (`PL-C-016/017`).

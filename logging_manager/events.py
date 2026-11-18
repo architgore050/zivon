@@ -61,9 +61,11 @@ class ErrorClass(str, Enum):
 
 
 # The closed component enum (logging-api.md §8). The map may declare a row for
-# a name outside this set (found live: `privacy.subject_deleted` is mapped
-# with component `privacy`); per-event the MAP wins — the set below is the
-# vocabulary for events WITHOUT a row.
+# a name outside this set; per-event the MAP wins — the set below is the
+# vocabulary for events WITHOUT a row. Kept in lockstep with the doc's enum
+# (`speaking`/`privacy`/`progress`/`practice`/`test` map rows predate this
+# set; `personalized` joined with W5.5 PL1) so an undeclared event from those
+# packages still resolves honestly instead of falling back to `log`.
 COMPONENTS: frozenset[str] = frozenset(
     {
         "factory",
@@ -73,6 +75,12 @@ COMPONENTS: frozenset[str] = frozenset(
         "translator",
         "frontend",
         "dashboard",
+        "progress",
+        "practice",
+        "test",
+        "speaking",
+        "privacy",
+        "personalized",
         "credit",
         "evals",
         "log",

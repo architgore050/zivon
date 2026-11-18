@@ -695,6 +695,49 @@ Retention: content rows (`question_bank`, `speaking_prompt`, `test_series`, `tes
 additionally support a student-initiated hard delete. No raw audio is stored anywhere in
 this section (REQUIREMENTS §9.5, T11); a schema test asserts no audio-shaped column exists.
 
+### 4.20 Personalized learning tables (revision `0005_personalized_learning`, W5.5 PL1)
+
+Added 2026-11-17 for the personalized-learning data foundation. The full column
+specification is authoritative in
+[`docs/specs/personalized-learning/data-and-api.md`](../specs/personalized-learning/data-and-api.md)
+§2 (six tables, indexes, and the per-column traces); this section records the DB-spec-level
+facts. DDL lives in `db/schema_personalized.py`; it is SQLite-portable (containerless
+migration test) and valid PostgreSQL 16 (CI Alembic job). There is **no paywall/plan/
+subscription/entitlement table** in this revision — free access is the product and the
+quotas are counters, not entitlements.
+
+| Table | Data class | SoR notes |
+|---|---|---|
+| `user_preferences` | C22 | one row per account (`user_id` PK, FK `users` CASCADE); `personal_instructions` NULL-able `CHECK (length <= 500)`; `instructions_version` bumps on every save/clear (cache-busting); clear keeps the row with NULL |
+| `personalized_session` | C23 | one row per saved conversation; `title` ≤ 120 server-generated (never from free text); CHECKs on `mode`/`stage` (10 values)/`status`/`difficulty_level 1-4`/`class_level 6-12`/`turn_count 0-60`; `weakness_text` ≤ 500; `last_turn_at` drives the 90-day TTL and the list order; self-FK `parent_session_id` SET NULL (display-only continuation) |
+| `personalized_message` | C23 | append-only; `UNIQUE (session_id, turn_index)` where `turn_index` is the MESSAGE sequence (one value per row); partial unique index `(session_id, client_turn_id) WHERE client_turn_id IS NOT NULL` is the idempotency key; `answer_key` is server-only and never serialized |
+| `personalized_artifact` | C24 | content-addressed cache (`content_hash` UNIQUE; `artifact_id` = first 32 hex); NO `user_id` (shared public content; access authorized by a message reference); `status` pending/ready/failed with `failure_reason` CHECK; `last_used_at` feeds the refcount purge |
+| `personalized_usage` | C25 | append-only per-model-call ledger (counts/latency only — no text, no prompts); `session_id` FK SET NULL so counts survive a session delete; `outcome` CHECK (ok/model_error/quota_blocked/rate_limited/artifact_failed/cancelled/rejected) |
+| `personalized_quota` | C25 | hot counters PK `(period, scope, scope_key)`, `period` = `YYYY-MM-DD` in Asia/Kolkata; `turns_used/reserved` + `artifact_used/reserved` with `>= 0` CHECKs; the atomic reserve/commit/release discipline is `guard/service.py`'s pattern with user + global rows updated in ONE transaction (data-and-api.md §2.6) |
+
+**Two CHECK widenings ride in revision 0005** (both engines need a real change, not a
+comment; data-and-api.md §2.7):
+
+- `progress_event.kind` gains `'personalized_mastery'`: PostgreSQL swaps the named CHECK
+  constraint (`progress_event_kind_check`); SQLite cannot ALTER a CHECK, so 0005 rebuilds
+  the table (create `_new`, copy, drop, rename, recreate both indexes). `db/schema.py`'s
+  `progress_event` CHECK is updated in the same PR, so a fresh `upgrade head` and an
+  upgraded 0004 database agree (the drift gate is the idempotent second `upgrade head`
+  plus the schema round-trip in `testing/backend/test_alembic_migrations.py`).
+- `abuse_bucket.endpoint_family` gains the four personalized rate-limit families of
+  data-and-api.md §4.1 (`personalized_turn`, `personalized_create`, `personalized_read`,
+  `personalized_ip`) — same constraint swap on PostgreSQL, same rebuild on SQLite.
+
+Retention (data-and-api.md §2.7 job list, run by `run_all_ttl_jobs` via
+`backend/personalized/retention.py`): sessions 90 days from `last_turn_at` (never
+`updated_at`) → delete with messages; ready artifacts unreferenced 30 days and failed
+artifacts 7 days → delete; usage 90 days; quota periods older than yesterday (IST).
+Account deletion (ADR-0029) cascades: preferences, sessions → messages, usage counts
+(`session_id` NULL first), quota rows by `scope_key`; only the `users` tombstone remains.
+The downgrade is destructive by design and documented in `db/schema_personalized.py` (the
+six PL tables and the 0005-owned mastery events are deleted explicitly; no other
+`progress_event` row is touched).
+
 ---
 
 ## 5. Access-pattern table (every index cites a NEED; every NEED query has an index)
@@ -787,6 +830,16 @@ Backups: C14 ages out on a documented window; on any restore, the re-delete-on-r
   when no PostgreSQL URL is present). Content enters the tables only through
   `scripts/import_assessment_packs.py` (runbook: `docs/backend/runbooks/assessment-import.md`);
   nothing else writes `question_bank`/`speaking_prompt`.
+- **W5.5 PL1 revision `0005_personalized_learning`** (2026-11-17, personalized-learning data
+  foundation): adds §4.20's six tables plus the two CHECK widenings (the
+  `progress_event.kind` mastery value and the four personalized `abuse_bucket` families,
+  both via constraint swap on PostgreSQL and table rebuild on SQLite). The chain is now
+  `0001 → 0002 → 0022 (no-op) → 0003 → 0004 → 0005`, still one head. Empty→head,
+  `0004`→head, `head`→`0004`→`head`, the mastery-CHECK change assertions, and the
+  fresh-vs-upgraded schema agreement run on SQLite in
+  `testing/backend/test_alembic_migrations.py`; the CI `db-migrations` job runs the same
+  chain on PostgreSQL 16. Quota caps are config (`ZIVON_PERSONALIZED_*`), never a table —
+  a founder change is an env change, not a migration.
 - Target revisions (post-challenge, mechanical): partition `telemetry_event`/`voice_turn`/
   `credit_ledger` by day; hash-chain `audit_log`; per-subject encryption key columns;
   `language_bundle` + glossary tables with SC-01; `device` server mirror if C8 mirror ships.

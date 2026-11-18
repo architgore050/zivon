@@ -104,7 +104,7 @@ New jobs `J8`–`J10` and metrics `M8`–`M14` are defined in
 | 7 | [`security-privacy.md`](security-privacy.md) | Threat model, controls, redaction rules, deletion, and the tests that prove each control |
 | 8 | [`evals.md`](evals.md) | `EV-PL-001…005`: deterministic checkers, goldens, judges, log paths, cost |
 | 9 | [`workstreams.md`](workstreams.md) | PL1–PL5 ownership, file boundaries, dependencies, integration points |
-| 10 | [`decisions.md`](decisions.md) | Open founder decisions with recommendations, owners, and triggers |
+| 10 | [`decisions.md`](decisions.md) | Founder decisions — D-PL-05/07/09 accepted via ADR-0030 (2026-11-18); the rest open with recommendations, owners, and triggers |
 
 Machine-readable companion: [`decision-log-addendum.csv`](decision-log-addendum.csv)
 (same columns as `docs/product/decision-log.csv`).
@@ -129,12 +129,18 @@ Machine-readable companion: [`decision-log-addendum.csv`](decision-log-addendum.
 **Wave:** **W5.5** (post-W4, before W5 integration), recorded in
 [`TIMELINE.md`](../../../TIMELINE.md).
 
-**ADR gate (implementation, not this PR):** an accepted ADR is still required before PL1/PL2
-merge — the next free number, `ADR-0030`, recording (a) the runtime model route and its
-secret boundary (`D-PL-07`), (b) the artifact serving origin (`D-PL-09`), and (c) the
-child-free-text retention class (`D-PL-05`). This folder decides and specifies; it does not
-stand in for an ADR, and none of those three is recorded there as decided while its
-`D-PL-*` row is open.
+**ADR gate: satisfied (2026-11-18).** [`ADR-0030`](../../backend/adr/0030-personalized-learning.md)
+is accepted and records exactly what this gate required: (a) the runtime model route and its
+secret boundary (`D-PL-07` — DeepSeek V4.1 Flash via the OpenCode API through the in-process
+`llm_manager` OpenAI-format path, its own runtime secret, no paywall, login required), (b) the
+artifact serving origin (`D-PL-09` — dedicated origin in production, same-origin acceptable for
+local/compose, artifacts always sandboxed and never sharing the app origin), and (c) the
+child-free-text retention class (`D-PL-05` — 90 days from last activity, no cold copy, explicit
+export/delete, counsel review before any scale-up). The `D-PL-05/07/09` rows in
+[`decisions.md`](decisions.md) are closed with that reference; the remaining founder decisions
+stay open recommendations until the founder closes them. This folder still decides and
+specifies everything else; it does not stand in for an ADR, and no open `D-PL-*` row may be
+recorded as decided while it stays open.
 
 Exit gate for W5.5 (the definition of done for the wave):
 

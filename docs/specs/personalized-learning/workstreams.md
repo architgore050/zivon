@@ -1,9 +1,9 @@
 # Workstreams — PL1…PL5
 
-Status: **plan, not started (2026-11-17).** This file is the execution split
-for **W5.5** in [`TIMELINE.md`](../../../TIMELINE.md). Each workstream is one
-agent-sized PR series; a PR never edits another workstream's owned files without
-the owner's review.
+Status: **PL1 implemented (2026-11-17); PL2–PL5 not started.** This file is the
+execution split for **W5.5** in [`TIMELINE.md`](../../../TIMELINE.md). Each
+workstream is one agent-sized PR series; a PR never edits another workstream's
+owned files without the owner's review.
 
 Ordering rule: **PL1 and PL2 can start in parallel** (PL1 owns persistence/auth
 and a fake agent; PL2 owns the agent/RAG behind an interface). **PL3 starts

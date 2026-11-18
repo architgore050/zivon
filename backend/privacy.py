@@ -528,7 +528,7 @@ class DeletionAndRetentionService:
         self, *, now_dt: datetime.datetime | None = None
     ) -> dict[str, Any]:
         """Run all P0 TTL and rollup jobs in sequence."""
-        return {
+        results: dict[str, Any] = {
             "ttl_voice_turn": self.purge_expired_voice_turns(now_dt=now_dt),
             "ttl_coverage": self.purge_idle_coverage(now_dt=now_dt),
             "ttl_abuse_bucket": self.purge_expired_abuse_buckets(now_dt=now_dt),
@@ -537,6 +537,19 @@ class DeletionAndRetentionService:
             ),
             "ttl_telemetry": self.purge_expired_telemetry_and_reports(now_dt=now_dt),
         }
+        # Personalized-learning retention (data-and-api.md §2.7 job list):
+        # sessions 90 d, artifacts 30 d unreferenced / 7 d failed, usage 90 d,
+        # quota periods older than yesterday. Additive: if the personalized
+        # package is missing the rest of the jobs still run.
+        try:
+            from .personalized.retention import run_personalized_retention
+
+            results["personalized_retention"] = run_personalized_retention(
+                self.db, now_dt=now_dt
+            )
+        except ImportError:
+            pass
+        return results
 
 
 def main(argv: list[str] | None = None) -> int:

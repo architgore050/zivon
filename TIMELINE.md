@@ -57,19 +57,24 @@ with the factory's doctrine/lint discipline and a text/diagram fallback.
 
 Dependencies: W1 F0 (accounts/sessions/CSRF, app shell), W2 F4 (lesson shell + published
 lesson manifests), W3 F2 (settings) + F3 (progress events), W4 P2 (`question_bank` import),
-the RAG index builder over cached NCERT text, and the `llm_manager` OpenCode route. The spec is
-written on the **recommendation** that the personalized agent runs on **DeepSeek V4.1 Flash via
-the OpenCode API key**, separate from the Gemma voice tutor and the factory credentials — that
-is `D-PL-07`, **still open**, and no model call ships on the route until the founder answers it
-(see `AGENTS.md` model routing, which labels the same row as pending).
+the RAG index builder over cached NCERT text, and the `llm_manager` OpenCode route. The
+personalized agent runs on **DeepSeek V4.1 Flash via the OpenCode API key**, separate from
+the Gemma voice tutor and the factory credentials — that is `D-PL-07`, **accepted by founder
+decision (2026-11-18, ADR-0030)**: the route goes through the in-process `llm_manager`
+OpenAI-format path with its own runtime secret, there is no paywall, login is the only gate,
+and the teaching turn stays an honest `503 E-PL-MODEL-DOWN` until PL2 wires it (see
+`AGENTS.md` model routing, which records the same row as accepted).
 
 Workstreams and file ownership: [`workstreams.md`](docs/specs/personalized-learning/workstreams.md)
 (PL1 data/auth/preferences/chats/quota · PL2 RAG/agent/teaching loop · PL3 artifacts · PL4
-frontend · PL5 evals/security/QA). Open founder decisions D-PL-01…11 (quota numbers, RAG
+frontend · PL5 evals/security/QA). Founder decisions D-PL-01…11 (quota numbers, RAG
 corpus scope, artifact limits, instructions availability, retention, latency/cost budget,
 routing, email verification, one-store/artifact-origin, doctrine, **login scope**) are in
-[`decisions.md`](docs/specs/personalized-learning/decisions.md); the build proceeds on the
-recommendations until the founder answers, and each is labelled a recommendation wherever the
+[`decisions.md`](docs/specs/personalized-learning/decisions.md): **D-PL-05** (90-day
+retention, no cold copy, counsel review before any scale-up), **D-PL-07** (routing) and
+**D-PL-09** (one conversation store + dedicated production artifact origin) are accepted and
+recorded in `docs/backend/adr/0030-personalized-learning.md` (2026-11-18); the remaining
+eight are open recommendations, and each open one is labelled a recommendation wherever the
 spec states it.
 
 **Not in this wave:** payments/plans, voice inside personalized learning, parent/teacher

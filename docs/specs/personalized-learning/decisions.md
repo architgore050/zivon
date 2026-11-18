@@ -1,10 +1,14 @@
 # Open founder decisions
 
-Status: **11 open decisions, each with a recommendation (2026-11-17).**
-Nothing in this list blocks writing the spec; PL1/PL2 can start on the
+Status: **11 decisions (opened with recommendations 2026-11-17). D-PL-05, D-PL-07 and
+D-PL-09 are closed — accepted by founder decision on 2026-11-18 and recorded in
+[`docs/backend/adr/0030-personalized-learning.md`](../../backend/adr/0030-personalized-learning.md)
+(ADR-0030). The remaining eight are open recommendations.**
+Nothing in this list blocked writing the spec; PL1/PL2 started on the
 recommended defaults. A decision that changes a recommended number is a config
 change, not a rewrite; one that changes the model route or the retention
-posture is a recorded founder decision (also noted in `TIMELINE.md`).
+posture is a recorded founder decision (also noted in `TIMELINE.md`) — that is
+exactly what happened for D-PL-05/07/09.
 
 Format: each decision states the question, the recommendation, why, the
 alternatives, what it changes, who owns it, and the trigger to revisit. A
@@ -147,9 +151,14 @@ resume).
 **Changes:** `retention_sessions` job, privacy copy, export schema, `EV-PL-005`
 delete tests, counsel brief.
 
-**Owner:** founder + counsel. **Status:** open — recommended; **counsel review
-is a blocker for scale-up, not for the prototype cohort.** **Revisit:** counsel
-answer, or any guardian request that the 90-day window is too long.
+**Owner:** founder + counsel. **Status:** closed — **accepted** (founder,
+2026-11-18; recorded in
+[`ADR-0030`](../../backend/adr/0030-personalized-learning.md)): personalized
+chats are retained 90 days from last activity, no cold copy, explicit
+export/delete; **counsel review before any scale-up beyond the founder-supervised
+prototype cohort remains a binding condition of that acceptance, not for the
+cohort itself.** **Revisit:** counsel answer, or any guardian request that the
+90-day window is too long.
 
 ---
 
@@ -211,8 +220,14 @@ surfaces); the factory's key/config (shared blast radius); the llm-manager node
 **Changes:** `AGENTS.md` routing table, `k8s` secret name, PL2 config,
 `security-privacy.md` §4.7.
 
-**Owner:** founder. **Status:** open — recommended (the spec is written on this
-assumption). **Revisit:** cost/latency breach, or a second consumer.
+**Owner:** founder. **Status:** closed — **accepted** (founder, 2026-11-18;
+recorded in [`ADR-0030`](../../backend/adr/0030-personalized-learning.md) and in
+the `AGENTS.md` model-routing table, which no longer labels the row open):
+DeepSeek V4.1 Flash via the OpenCode API through the in-process `llm_manager`
+OpenAI-format path, its own runtime secret/config, separate from the Gemma/Gemini
+tutor and the factory; no paywall; login required. The teaching turn ships no
+model call on this route until PL2 wires it (`503 E-PL-MODEL-DOWN` until then).
+**Revisit:** cost/latency breach, or a second consumer.
 
 ---
 
@@ -267,7 +282,13 @@ artifact host. It is a deployment decision, not a blocker for the prototype.
 **Changes:** (a) `personalized_session.origin` enum + a dock history entry point
 (a follow-up PR, not W5.5 P0); (b) nginx/host + CSP `frame-ancestors` config.
 
-**Owner:** founder (+ deployment for b). **Status:** open — recommended.
+**Owner:** founder (+ deployment for b). **Status:** closed — **accepted**
+(founder, 2026-11-18; recorded in
+[`ADR-0030`](../../backend/adr/0030-personalized-learning.md)): (a) one
+conversation store — the dock's doubt history joins `personalized_session`
+(`origin='lesson_dock'`) in a follow-up PR, not W5.5 P0; (b) a dedicated artifact
+origin in production (`artifacts.<domain>`), same-origin acceptable for
+local/compose; artifacts stay sandboxed and never share the app origin.
 **Revisit:** before the dock history ships; before public launch for (b).
 
 ---
@@ -342,10 +363,11 @@ prototype; then open a separate decision with the acquisition trade-off.
 | The OpenCode gateway accepts `x-opencode-session` + `reasoning_effort=low` for this model | routing/latency | PL2 probe (the factory already probes this class) |
 | `question_bank` covers enough Class 9/10 concepts for a 3-item diagnostic | generated items fill gaps; quality risk | PL2 coverage report per chapter |
 | A 120 KB artifact is enough for the golden simulation | size cap | PL3 golden |
-| The 90-day retention is acceptable to the prototype cohort | privacy posture | founder + counsel review (D-PL-05) |
+| The 90-day retention is acceptable to the prototype cohort | privacy posture | founder accepted it with ADR-0030 (2026-11-18); counsel review still gates scale-up (D-PL-05) |
 
 ## Decision history
 
 | Date | Change |
 |---|---|
 | 2026-11-17 | Spec written; D-PL-01…11 opened with recommendations |
+| 2026-11-18 | Founder accepted **D-PL-05** (90-day retention, no cold copy, counsel before scale-up), **D-PL-07** (DeepSeek/OpenCode route via in-process `llm_manager`, own secret, no paywall) and **D-PL-09** (one conversation store + dedicated production artifact origin); recorded in `docs/backend/adr/0030-personalized-learning.md`; the `AGENTS.md` routing row, `TIMELINE.md`, the spec README ADR gate, and the docs contract test updated in the same patch. D-PL-01/02/03/04/06/08/10/11 remain open recommendations. |

@@ -1,6 +1,6 @@
 # ADR index — Stage-2 systems decisions (2026-11-07)
 
-29 records (0001–0029). The 8 `**ADR**` flags carried from `docs/product/features.md` §3 map 1:1 below (0001–0016); 0017–0028 were added by Wave S1 spec agents (SP1 voice 0017–0020, SP2 translation 0021–0023, SP3 observability 0024–0026, SP4 evals 0027–0028 — numbering reconciled by the WS1 merge agent after parallel-agent collisions on 0017+). [WS1/SP6 update 2026-11-09]. 0029 is the Wave-1 F0 account decision (2026-11-16): it supersedes ADR-0007's "no accounts" premise for the product runtime and keeps device pseudonymity for guests. [W1/F0 update 2026-11-16]
+30 records (0001–0030). The 8 `**ADR**` flags carried from `docs/product/features.md` §3 map 1:1 below (0001–0016); 0017–0028 were added by Wave S1 spec agents (SP1 voice 0017–0020, SP2 translation 0021–0023, SP3 observability 0024–0026, SP4 evals 0027–0028 — numbering reconciled by the WS1 merge agent after parallel-agent collisions on 0017+). [WS1/SP6 update 2026-11-09]. 0029 is the Wave-1 F0 account decision (2026-11-16): it supersedes ADR-0007's "no accounts" premise for the product runtime and keeps device pseudonymity for guests. [W1/F0 update 2026-11-16]. 0030 is the W5.5 personalized-learning founder decision (2026-11-18): it accepts D-PL-05 (90-day child-free-text retention, no cold copy, counsel before scale-up), D-PL-07 (DeepSeek/OpenCode route via in-process `llm_manager`, own secret, no paywall) and D-PL-09 (one conversation store + dedicated production artifact origin), satisfying the spec folder's ADR gate. [W5.5/PL1 update 2026-11-18]
 the rest are systems-originated decisions (each states its reason in the record).
 
 | ADR | Decision | Traces to |
@@ -34,8 +34,11 @@ the rest are systems-originated decisions (each states its reason in the record)
 | [0027](0027-eval-result-store-and-tiering.md) | Eval store dual-write (PVC JSONL + Postgres, C4) | SP4-EVALS |
 | [0028](0028-eval-judge-model-and-calibration.md) | Judge model via llm_manager + calibration anchors | SP4-EVALS |
 | [0029](0029-accounts-and-session-cookies.md) | One student account per email (password + Google), cookie sessions + CSRF; device pseudonymity kept for guests | W1/F0 (REQUIREMENTS §6, §8.1, §9.1–2) |
+| [0030](0030-personalized-learning.md) | Personalized learning: 90-day child-free-text retention (no cold copy, counsel before scale-up), DeepSeek/OpenCode route via in-process `llm_manager` with its own secret (no paywall), one conversation store + dedicated production artifact origin | W5.5 founder decisions (D-PL-05/07/09; personalized-learning spec ADR gate) |
 
 
 Not yet needed (triggers defined inside the records above): Redis (0002), LiveKit (0003),
 message broker (0006), India-residency provider swap (0004), audio-capture exception (0008),
-personalization tables (0011), `ui.hint` full spec (0012).
+`ui.hint` full spec (0012). The personalization-tables trigger of 0011 fired in W5.5:
+migration `0005_personalized_learning` stores explicit, student-visible mastery evidence
+(no inferred profile — ADR-0011's preclusion stands; see ADR-0030).

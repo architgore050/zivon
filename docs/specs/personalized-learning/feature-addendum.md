@@ -54,8 +54,8 @@ New product tensions resolved here:
 
 Parent **principle** P2 ("subtract first — no chat history screen") is bounded here, not
 overturned: `J10` (continue exactly where I stopped) needs the session list, so the list
-exists — with no search, no filters, and no second doubts store until `D-PL-09` says
-otherwise.
+exists — with no search, no filters, and no second doubts store (`D-PL-09` is accepted:
+one store; the lesson-dock merge is the follow-up PR).
 
 ## 3. Jobs and metrics added
 
@@ -225,7 +225,7 @@ consent-missing n/a (no mic).
 | Layer | ADD |
 | Summary | Every personalized session is a saved conversation with a title, chapter, stage, and timestamps; list, resume, export JSON, delete. Text and artifacts only; no audio. |
 | Priority | **P0** |
-| Decision ref | `PL-C-009`, `PL-C-010`, `PL-C-030`; merges `TUT-05` for the lesson dock only if D-PL-09 says so |
+| Decision ref | `PL-C-009`, `PL-C-010`, `PL-C-030`; merges `TUT-05` for the lesson dock per D-PL-09 (accepted, ADR-0030 — follow-up PR) |
 | Job + moment | J5, J10 · Returns |
 | Value hypothesis | If resume is one tap from the hub, repeat teaching drops and the product feels like a notebook, not a chat toy. |
 | Metrics | M9; `EVT-PL-08/09` |

@@ -45,7 +45,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 from urllib.parse import urlsplit
 
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
@@ -80,6 +80,10 @@ from .session import (
 )
 from .stt_client import SttClient, SttUnavailableError
 from .tts_client import TtsClient, TtsUnavailableError, strip_display_tags
+
+if TYPE_CHECKING:
+    # Type-only: voice keeps no runtime dependency on the backend package.
+    from backend.personalized.personalization import Personalization
 
 __all__ = ["TUTOR_SYSTEM_PROMPT", "VoiceApp", "mount_voice"]
 
@@ -170,6 +174,11 @@ Clock = Callable[[], float]
 # Profile seam: the core backend decides `demo` server-side (spec.md §11) —
 # never a client claim. Default: everyone is `normal`.
 ProfileFor = Callable[["SessionIdentity"], str]  # → "normal" | "demo"
+# PL1 personal-instructions seam (data-and-api.md §5.1): given the raw account
+# cookie value (or None), return the sanitized Personalization. The core
+# backend injects the resolver (cookie → AuthService.resolve → preferences
+# store, 60 s cache); the default absence means guests-only, byte-identical.
+PreferencesFor = Callable[[str | None], "Personalization"]
 
 
 def is_procedural_summary(line: str) -> bool:
@@ -223,6 +232,8 @@ class VoiceApp:
         brain_factory: BrainFactory | None = None,
         tts_factory: TtsFactory | None = None,
         profile_for: ProfileFor | None = None,
+        preferences_for: PreferencesFor | None = None,
+        account_cookie_name: str = "zivon_session",
         clock: Clock | None = None,
     ) -> None:
         self.settings = settings or VoiceSettings()
@@ -242,6 +253,8 @@ class VoiceApp:
         self.brain_factory: BrainFactory = brain_factory or (lambda s: BrainClient(s))
         self.tts_factory: TtsFactory = tts_factory or (lambda s: TtsClient(s))
         self.profile_for: ProfileFor = profile_for or (lambda identity: "normal")
+        self.preferences_for: PreferencesFor | None = preferences_for
+        self.account_cookie_name: str = account_cookie_name
         self._clock: Clock = clock
 
     async def endpoint(self, websocket: WebSocket) -> None:
@@ -524,6 +537,25 @@ async def _endpoint(app: VoiceApp, websocket: WebSocket) -> None:
     # profile is SERVER-asserted (spec.md §11); the server-side seam is the
     # ``profile_for`` dependency — the client can never claim it.
     conn.session = session
+
+    # PL1 personal instructions (data-and-api.md §5.1): resolve the OPTIONAL
+    # account cookie once per session. Guests (no cookie) and failures leave
+    # the block empty — the session works and the prompts stay byte-identical
+    # to pre-PL1. Only a count/enum lands in the log, never the error text.
+    if app.preferences_for is not None and settings.personal_instructions_enabled:
+        try:
+            personal = app.preferences_for(
+                websocket.cookies.get(app.account_cookie_name)
+            )
+            session.account_user_id = personal.account_user_id
+            session.personal_block = personal.block
+        except Exception:  # noqa: BLE001 — degrade honestly, never break the loop
+            log_event(
+                "voice.prefs.unavailable",
+                {"reason_code": "resolver_error"},
+                severity=Severity.WARNING,
+                error_class=ErrorClass.STORE_ERROR,
+            )
 
     if resume:
         await _replay(conn, session, str(first.get("last_turn_id") or ""))
@@ -1233,6 +1265,7 @@ async def _run_brain_turn(conn: _Connection, turn: _Turn, *, typed: bool) -> Non
         history=messages,
         transcript=turn.transcript,
         language_hint=language.reply_language_line(turn.reply_locale),
+        personal_block=session.personal_block,
     )
     turn.brain_called_at = now()
     turn.stamp("L2", turn.brain_called_at)

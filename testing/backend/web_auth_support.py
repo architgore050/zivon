@@ -11,7 +11,7 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 from urllib.parse import parse_qs, urlparse
 
 from fastapi.testclient import TestClient
@@ -69,6 +69,9 @@ class WebAuthSupport(unittest.TestCase):
     verify_limit = 20
     google_limit = 20
     google_configured = True
+    # Extra BackendConfig kwargs for suites that need a specific limiter
+    # posture (e.g. lifting a rate-limit family to reach a quota path).
+    config_overrides: ClassVar[dict[str, Any]] = {}
 
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
@@ -88,6 +91,7 @@ class WebAuthSupport(unittest.TestCase):
             auth_reset_per_min=self.reset_limit,
             auth_verify_per_min=self.verify_limit,
             auth_google_per_min=self.google_limit,
+            **self.config_overrides,
         )
         self.app = create_app(self.cfg)
         self.client = TestClient(self.app, base_url="https://testserver")

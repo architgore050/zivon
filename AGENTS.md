@@ -13,6 +13,18 @@ longer being built to a challenge deadline: the **10 Nov 2026 deadline and the G
 are historical** — preserved in `TIMELINE.md`, `docs/logs/`, and the dated posts, not current
 acceptance criteria.
 
+- **W5.5 PL1 landed (2026-11-17):** the personalized-learning data foundation — migration
+  `0005_personalized_learning` (six tables, C22–C25, the mastery/abuse-family CHECK
+  widenings), account personal instructions (save/clear/versioned), owner-scoped saved
+  sessions with export/delete, D-PL-01 free-tier quota counters (00:00 IST), retention
+  jobs, the account-deletion cascade, and the voice-tutor personal-instruction injection
+  (delimited USER-role data block, never system). The teaching turn stays an honest
+  `503 E-PL-MODEL-DOWN` until PL2. Spec: `docs/specs/personalized-learning/`.
+  Founder decisions D-PL-05/07/09 are accepted and recorded in
+  `docs/backend/adr/0030-personalized-learning.md` (2026-11-18): 90-day retention with
+  no cold copy (counsel review before any scale-up), the DeepSeek/OpenCode route above,
+  and one conversation store + a dedicated production artifact origin.
+
 - **Current milestone:** a **working prototype for product-market-fit testing** — Class 9/10
   content complete, live lessons translated (EN/HI/Hinglish), the full consumer frontend, and
   pipeline quality good enough to keep producing content.
@@ -67,17 +79,18 @@ feature or refactor PR.
 | Surface | Model / provider | Notes |
 |---|---|---|
 | Student-facing tutor | **Gemma 4 26B A4B** via the **Gemini API** | User-facing conversation, anchored to the lesson page. |
-| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** — **recommended, not yet decided: D-PL-07 open** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route, separate from both the voice tutor and the factory. Do not ship a model call on this route until the founder answers D-PL-07. |
+| Personalized learning (product runtime) | **DeepSeek V4.1 Flash** via the **OpenCode API key** — **accepted founder decision: D-PL-07 (ADR-0030, 2026-11-18)** | Login-required teach → check → adapt loop at `/app/personalized`; text-first; its own runtime secret and route through the in-process `llm_manager` OpenAI-format path, separate from both the voice tutor and the factory. No model call ships on this route outside its own secret/config, and no paywall: free prototype, login the only gate. The teaching turn stays an honest `503 E-PL-MODEL-DOWN` until PL2 wires it. |
 | Voice STT / TTS | **Gnani Prisma v3.0** (STT) / **Timbre v3.0** (TTS) | Best available for Indian languages and code-mixed speech. |
-| Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; the only student-facing use of this model would be the personalized-learning row above (D-PL-07, open). |
+| Internal content generation | **DeepSeek V4.1 Flash** via the **OpenCode API key** | Build-time pipeline generation only; the only student-facing use of this model is the personalized-learning row above (D-PL-07, accepted — ADR-0030). |
 | Translation | **Gnani Evon** | Backs the `10a`–`10d` translation pipeline (EN/HI/Hinglish). |
 
 Rules that follow from the table:
 
 - **Three model paths stay separate.** The tutor calls the Gemini API. Personalized
-  learning would call the OpenCode/DeepSeek endpoint through the existing `llm_manager`
-  OpenAI-format path with its own runtime secret (D-PL-07, **open** — the spec is written
-  on this recommendation). The factory keeps its own OpenCode route and credentials. Do
+  learning calls the OpenCode/DeepSeek endpoint through the in-process `llm_manager`
+  OpenAI-format path with its own runtime secret (D-PL-07, **accepted — ADR-0030**;
+  `ZIVON_PERSONALIZED_*` config, the key only in the `zivon-personalized-env` K8s
+  Secret). The factory keeps its own OpenCode route and credentials. Do
   not point one at the other's credentials or config.
 - **Secrets are runtime-only** (env vars / K8s Secrets); never commit them, never print them.
   CI must pass key-free.

@@ -123,3 +123,12 @@ swot,swot.view.served,INFO,request_id,mode;rated_count;unrated_count;enough_data
 swot,swot.explain.served,INFO,request_id,mode;rated_count;unrated_count;enough_data,no,,L2,backend/routes/swot.py,F8 GET /v1/swot/explain answered; same count-only fields as swot.view.served
 swot,swot.snapshot.served,INFO,no,mode;enough_data,no,,L2,web/swot_views.py,F8 dashboard snapshot panel computed during /app SSR; counts only
 swot,swot.compute.failed,WARNING,request_id,reason_code,no,store_error,L2,backend/routes/swot.py,SWOT computation could not read its inputs; the API answers 503 and nothing is invented
+personalized,personalized.prefs.saved,INFO,request_id,char_count;cleared,no,,L2,backend/personalized/preferences.py,account personal instructions saved (C22); counts only - never the text
+personalized,personalized.prefs.cleared,INFO,request_id,,no,,L2,backend/personalized/preferences.py,instructions cleared; the row survives with a NULL value and a version bump
+personalized,personalized.session.created,INFO,request_id,chapter_id;mode;stage;concept_count,no,,L2,backend/personalized/store.py,PL1 saved-session create; enum ids and counts only (C23) - never weakness text or the server title
+personalized,personalized.session.ended,INFO,request_id,chapter_id;turn_count,no,,L2,backend/personalized/store.py,session end summary event; counters only
+personalized,personalized.session.deleted,INFO,request_id+session_id,session_id,no,,L2,backend/personalized/store.py,hard delete of one saved conversation (DET-PL05-DELETE); the id is a reference only
+personalized,personalized.quota.blocked,WARNING,,scope;counter;reason;period,no,quota_error,L2,backend/personalized/quota.py,D-PL-01 free-tier quota refused a reservation (user or global); no student data
+personalized,personalized.retention.purged,INFO,,sessions_deleted;artifacts_unreferenced_deleted;artifacts_failed_deleted;usage_deleted;quota_periods_pruned,no,,L3,backend/personalized/retention.py,TTL job counts (C22-C25); ids never logged
+personalized,personalized.turn.unavailable,WARNING,request_id,reason_code,no,infra_error,L2,backend/personalized/router.py,teaching-turn stub answered 503 E-PL-MODEL-DOWN until PL2 wires the TurnEngine
+voice,voice.prefs.unavailable,WARNING,session_id,reason_code,no,store_error,L2,voice/ws_api.py,account-cookie resolution or preference load failed; the voice session continues without the personal block (no error text)
