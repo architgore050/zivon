@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}series and blueprint status{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Series &amp; blueprint status</h1>
+  <p class="hint">the six-series catalogue per class + the exam/series packs the E1–E4 pipeline imported — blueprint volumes only, never paper content (blueprint-only rule, DEC-COMP-001)</p>
+</div>
+{% if panel_error %}
+<div class="empty panel-error" role="alert">series panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>test series catalogue (tests / questions are authoring counts)</caption>
+    <thead><tr><th scope="col">slug</th><th scope="col">class</th><th scope="col">kind</th><th scope="col">status</th><th scope="col">languages</th><th scope="col">tests</th><th scope="col">questions</th></tr></thead>
+    <tbody>
+      {% for row in status.series %}<tr>
+        <td>{{ row.slug }}</td>
+        <td>{{ row.class_level }}</td>
+        <td>{{ row.kind }}</td>
+        <td><span class="state {{ row.status }}">{{ row.status }}</span></td>
+        <td>{{ row.language_set | join(', ') if row.language_set else '—' }}</td>
+        <td>{{ row.tests }}</td>
+        <td>{{ row.questions }}</td>
+      </tr>
+      {% else %}<tr><td colspan="7">no series yet — the exam pipeline assembles them from the blueprint + the P2 banks</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>exam / series packs (latest 20 imports; gate verdict + aggregate counts)</caption>
+    <thead><tr><th scope="col">pack</th><th scope="col">kind</th><th scope="col">chapter</th><th scope="col">class</th><th scope="col">version</th><th scope="col">gate</th><th scope="col">counts</th></tr></thead>
+    <tbody>
+      {% for row in status.packs %}<tr>
+        <td>{{ row.pack_id }}</td>
+        <td>{{ row.kind }}</td>
+        <td>{{ row.chapter_id }}</td>
+        <td>{{ row.class_level if row.class_level is not none else '—' }}</td>
+        <td>v{{ row.pack_version }}</td>
+        <td><span class="state {{ 'ok' if row.gate_verdict == 'pass' else 'failed' }}">{{ row.gate_verdict }}</span></td>
+        <td>{% for key, value in row.counts.items() %}{{ key }}: {{ value }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+      </tr>
+      {% else %}<tr><td colspan="7">no exam/series packs imported yet</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

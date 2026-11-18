@@ -10,7 +10,7 @@ The **spec** for this subsystem is [`docs/specs/observability/`](../specs/observ
 | Hot log store | Postgres `log_events` (day-partitioned, ADR-0025 DDL) | the backend DB (OQ-7 tenancy) | written ONLY by `logging_manager` (`ZIVON_LOG_DSN`); the DSN lives in the runtime Secret `zivon-backend-env`, never in `infra.env` |
 | JSONL fallback | `runs/logs/YYYYMMDD-<component>.jsonl` | the `zivon-sources` PVC (subPath `runs`) | byte-identical schema; a sync source for the daily Job; switch/recovery is loud (`log.store_fallback` / `log.store_recovered`) |
 | Log retention + cold sync | `python -m logging_manager.store sync` | CronJob `log-retention` (`k8s/51`), factory image | daily 03:30 IST (`ZIVON_LOG_SYNC_SCHEDULE` in `k8s/infra.env`); exports yesterday's UTC day + checksum manifest, ingests fallback JSONL, then sweeps (L1/L2/credit 7 hot days, L3 30); retain-until-synced — an unverified day is never dropped |
-| Admin dashboard | `dashboard/` | `zivon-dashboard:0.1.0` (`Dockerfile.dashboard`), `k8s/23` Deployment + `k8s/24` ClusterIP Service | six views, two trigger buttons (the SAME scripts), ADR-0026 auth; reached via `kubectl port-forward svc/dashboard 8082:80 -n zivon` unless `ZIVON_PUBLIC_BASE_URL` is set |
+| Admin dashboard | `dashboard/` | `zivon-dashboard:0.1.0` (`Dockerfile.dashboard`), `k8s/23` Deployment + `k8s/24` ClusterIP Service | six observability views + the F10 product panels (`docs/specs/frontend/admin.md`: content/bank/series/quality/users/reports/flags/evals) and two trigger buttons (the SAME scripts), ADR-0026 auth; reached via `kubectl port-forward svc/dashboard 8082:80 -n zivon` unless `ZIVON_PUBLIC_BASE_URL` is set |
 
 ## Deploy
 
@@ -24,7 +24,7 @@ scripts/apply-k8s.sh        # renders zivon-dashboard-config, applies 23/24, env
 kubectl -n zivon port-forward svc/dashboard 8082:80
 ```
 
-Config is env-only: `ZIVON_ENV`, `ZIVON_LOG_LEVEL`, `ZIVON_PUBLIC_BASE_URL`, `ZIVON_GRAFANA_URL` and `ZIVON_LOG_SYNC_SCHEDULE` come from `k8s/infra.env` (rendered by `scripts/apply-k8s.sh`); `ZIVON_ADMIN_TOKEN` and `ZIVON_LOG_DSN` come from runtime Secrets. The dashboard pod mounts the `runs/` PVC **read-only** and needs the RBAC grants from the EX3-OBS manifest's integration note I-1 (list/get Jobs, pods/log, create Jobs from the test CronJob) — until those land, Job views answer Forbidden and say so on the page.
+Config is env-only: `ZIVON_ENV`, `ZIVON_LOG_LEVEL`, `ZIVON_PUBLIC_BASE_URL`, `ZIVON_GRAFANA_URL` and `ZIVON_LOG_SYNC_SCHEDULE` come from `k8s/infra.env` (rendered by `scripts/apply-k8s.sh`); `ZIVON_ADMIN_TOKEN` and `ZIVON_LOG_DSN` come from runtime Secrets. `ZIVON_RUNS_DIR`/`ZIVON_EVAL_RUNS_DIR` are manifest-set paths (`/app/runs`, `/app/evals_runs`); the F10 product panels read the backend DB through `ZIVON_PRODUCT_DSN` falling back to `ZIVON_LOG_DSN` (one backend database — no second credential; `docs/specs/frontend/admin.md` §2). The dashboard pod mounts the `runs/` AND `evals/` PVC subPaths **read-only** (the latter is the eval-suite CronJob's evidence; until the first eval run lands, the eval panel says so honestly) and needs the RBAC grants from the EX3-OBS manifest's integration note I-1 (list/get Jobs, pods/log, create Jobs from the test CronJob) — until those land, Job views answer Forbidden and say so on the page.
 
 ## Troubleshoot
 
@@ -34,3 +34,5 @@ Config is env-only: `ZIVON_ENV`, `ZIVON_LOG_LEVEL`, `ZIVON_PUBLIC_BASE_URL`, `ZI
 - **Dashboard says `log store unreachable`** — the banner carries the driver error; `/healthz` answers `{"store": "unreachable"}`. Views degrade to honest empty states; nothing fabricated is shown.
 - **Voice/credit views show "no data"** — those events start when the voice backend ships (S2 contract rows in the instrumentation map). The dashboard never fakes a series.
 - **Buttons fail** — every invocation emits `dashboard.action_triggered` (action, args, result); the result carries the script's own output. Missing RBAC → Forbidden; a second factory run while one is active → refused (manual-only rule).
+- **F10 product panels show `panel error`** — the product-DB connection (Postgres, `ZIVON_PRODUCT_DSN` → `ZIVON_LOG_DSN`) failed mid-query; the panel says so instead of showing stale numbers, the observability views keep rendering, and the next request reconnects. An unset DSN is the honest empty state, not an error.
+- **Eval panel says `not mounted`** — `ZIVON_EVAL_RUNS_DIR` has no ledger yet (no eval run has landed on the PVC). Trigger one (`scripts/trigger-evals.sh smoke`) and the ledger row appears; the panel never invents runs.

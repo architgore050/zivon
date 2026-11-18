@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}eval results{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Eval results (ADM-10)</h1>
+  <p class="hint">read-only view of the eval evidence directory (evals_runs/ in the repo; the zivon-sources PVC subPath `evals` in-cluster) — the ledger + per-run card verdicts, no judge transcripts</p>
+</div>
+{% if not eval_dir_available %}
+<div class="empty" role="status">eval evidence directory not mounted — the panel stays honest instead of inventing runs. Expected at <code>{{ eval_dir }}</code> (k8s/52 writes it to the zivon-sources PVC, subPath `evals`).</div>
+{% elif not eval_runs %}
+<div class="empty" role="status">no eval runs recorded yet — run `python -m evals run --suite smoke --mock` (key-free) and the ledger row appears here</div>
+{% else %}
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>eval runs (latest 20 from the append-only ledger)</caption>
+    <thead><tr><th scope="col">run</th><th scope="col">suite</th><th scope="col">verdict</th><th scope="col">regression</th><th scope="col">started</th><th scope="col">duration</th><th scope="col">generator / judge</th><th scope="col">git sha</th></tr></thead>
+    <tbody>
+      {% for run in eval_runs %}<tr>
+        <td><a href="/admin/evals/{{ run.eval_run_id }}">{{ run.eval_run_id }}</a></td>
+        <td>{{ run.suite }}</td>
+        <td><span class="state {{ 'ok' if run.overall_pass else 'failed' }}">{{ 'pass' if run.overall_pass else 'fail' }}</span></td>
+        <td>{% if run.regression_detected %}<span class="state failed">detected</span>{% else %}<span class="state ok">clean</span>{% endif %}</td>
+        <td class="corr">{{ run.started_at }}</td>
+        <td>{{ run.duration_s }}s</td>
+        <td class="corr">{{ run.generator_model or '—' }} / {{ run.judge_model or '—' }}</td>
+        <td class="corr">{{ run.git_sha or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

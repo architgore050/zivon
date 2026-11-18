@@ -30,6 +30,12 @@ from logging_manager.context import bind_from_headers, current_context
 
 from .auth import SESSION_COOKIE, AdminAuth
 from .cluster import cluster_available, factory_run_in_progress, job_log_tail, test_jobs
+from .product import (
+    REPORT_CATEGORIES,
+    REPORT_STATUSES,
+    EvalRunsStore,
+    ProductStore,
+)
 from .queries import LogStore, RunsArtifacts
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -63,6 +69,43 @@ _FRESH_ALLOWED = re.compile(r"^(?:|1)$")
 # alphanumerics and hyphens, 63 chars max. Same slug as dashboard/queries.py;
 # validated at the route so an id can never reach a filesystem path.
 _RUN_ID_ALLOWED = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
+
+# Problem-report ids are uuid7 strings (backend/routes/student.py) — hex and
+# hyphens only. Validated at the route before any store write.
+_REPORT_ID_ALLOWED = re.compile(r"^[0-9a-fA-F][0-9a-fA-F-]{0,63}$")
+
+# Env/factory-side content-mode flags are FROZEN DECISIONS documented in the
+# docs (AGENTS.md, docs/compliance/, docs/content-factory/exam.md) — the
+# dashboard pod does not host the backend's environment, so their values are
+# rendered from the recorded decisions with the owning doc named, never read
+# from this process's env. The togglable guard profile below them is live
+# (guard_profile row, F-OPS-MET-01).
+DOCUMENTED_FLAGS = [
+    {
+        "name": "EXAM_CONTENT_MODE",
+        "value": "blueprint_only",
+        "source": "docs/content-factory/exam.md",
+        "note": "exam/series pipeline ingests paper metadata, never question text",
+    },
+    {
+        "name": "Exact-PYQ series",
+        "value": "dark",
+        "source": "docs/compliance/ (DEC-COMP-001)",
+        "note": "stays dark until the clearance record exists in the decision log",
+    },
+    {
+        "name": "P3 ingest/publish",
+        "value": "behind feature flag",
+        "source": "docs/compliance/ (Q-8)",
+        "note": "P3 content publish is flagged; publishing follows the compliance memo",
+    },
+    {
+        "name": "Course narration",
+        "value": "build-time only (C-051)",
+        "source": "AGENTS.md — stage 12-narration",
+        "note": "zero runtime credits; served statically, never per-student metering",
+    },
+]
 
 
 SECURITY_HEADERS = {
@@ -107,6 +150,17 @@ def create_app() -> FastAPI:
 
     def _store() -> LogStore:
         return LogStore.from_env()
+
+    def _product() -> ProductStore:
+        return ProductStore.from_env()
+
+    def _eval_runs() -> EvalRunsStore:
+        return EvalRunsStore()
+
+    def _panel_error(store: ProductStore | LogStore) -> str | None:
+        """A store that answered with an error is a per-panel error row; a
+        store that is simply absent (no DSN) renders honest empty states."""
+        return store.error if store.error else None
 
     def _wants_html(request: Request) -> bool:
         return "text/html" in request.headers.get("accept", "text/html")
@@ -368,6 +422,222 @@ def create_app() -> FastAPI:
             store=store,
             alerts=store.alerts(),
             publish=publish,
+        )
+
+    # ------------------------------------------------ F10 product panels
+    # Aggregate-only admin surfaces (F-OPS-ADM-01 + the W5 F10 scope), over
+    # the product DB via ProductStore and the eval evidence dir via
+    # EvalRunsStore. No student free text, transcripts, emails, user ids or
+    # device pseudonyms on any panel — see docs/specs/frontend/admin.md.
+
+    @app.get("/admin/content", response_class=HTMLResponse)
+    def content_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        log_store = _store()
+        coverage = product.content_coverage()
+        return _render(
+            request,
+            "content.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            coverage=coverage,
+            panel_error=_panel_error(product),
+        )
+
+    @app.get("/admin/questions", response_class=HTMLResponse)
+    def questions_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        log_store = _store()
+        health = product.question_bank_health()
+        return _render(
+            request,
+            "questions.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            health=health,
+            panel_error=_panel_error(product),
+        )
+
+    @app.get("/admin/series", response_class=HTMLResponse)
+    def series_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        log_store = _store()
+        status = product.series_status()
+        return _render(
+            request,
+            "series.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            status=status,
+            panel_error=_panel_error(product),
+        )
+
+    @app.get("/admin/quality", response_class=HTMLResponse)
+    def quality_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        log_store = _store()
+        debt = product.quality_debt()
+        return _render(
+            request,
+            "quality.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            debt=debt,
+            panel_error=_panel_error(product),
+        )
+
+    @app.get("/admin/users", response_class=HTMLResponse)
+    def users_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        log_store = _store()
+        overview = product.users_overview()
+        return _render(
+            request,
+            "users.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            overview=overview,
+            panel_error=_panel_error(product),
+        )
+
+    @app.get("/admin/reports", response_class=HTMLResponse)
+    def reports_view(request: Request, status: str = "") -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        # The free-text column is never selected (NFR-30); the filter only
+        # narrows the aggregate rows.
+        status_filter = status.strip() if status else None
+        if status_filter and status_filter not in REPORT_STATUSES:
+            status_filter = None
+        inbox = product.reports_inbox(status=status_filter)
+        log_store = _store()
+        return _render(
+            request,
+            "reports.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            inbox=inbox,
+            status_filter=status_filter or "",
+            statuses=REPORT_STATUSES,
+            categories=REPORT_CATEGORIES,
+            report_saved=request.query_params.get("saved") == "1",
+            panel_error=_panel_error(product),
+        )
+
+    @app.post("/admin/reports/{report_id}/status")
+    def report_status_action(
+        request: Request,
+        report_id: str,
+        new_status: str = Form(default="", alias="status"),
+        csrf: str = Form(default=""),
+    ) -> Any:
+        """The inbox's one sanctioned write (F-OPS-ADM-01 EARS 4): open →
+        fixed → shipped-next-run, CSRF-checked, audited, logged."""
+        denied = _guard(request)
+        if denied:
+            return denied
+        if not auth.csrf_valid(_session_id(request), csrf):
+            return JSONResponse(status_code=403, content={"error": "bad CSRF token"})
+        if (
+            not _REPORT_ID_ALLOWED.fullmatch(report_id)
+            or new_status not in REPORT_STATUSES
+        ):
+            return JSONResponse(
+                status_code=422, content={"error": "invalid report or status"}
+            )
+        product = _product()
+        result = product.set_report_status(report_id, new_status)
+        if result is None:
+            code = 503 if product.error else 404
+            return JSONResponse(
+                status_code=code,
+                content={"error": product.error or "unknown report"},
+            )
+        log_event(
+            "dashboard.report_status_changed",
+            {
+                # correlation key matches the map row (report_id); the report
+                # text is never in the fields (NFR-30).
+                "report_id": report_id,
+                "from_status": result["before"],
+                "to_status": result["after"],
+            },
+        )
+        if _wants_html(request):
+            return RedirectResponse("/admin/reports?saved=1", status_code=303)
+        return JSONResponse(status_code=200, content=result)
+
+    @app.get("/admin/flags", response_class=HTMLResponse)
+    def flags_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        product = _product()
+        flags = product.flags_view()
+        log_store = _store()
+        return _render(
+            request,
+            "flags.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            flags=flags,
+            documented_flags=DOCUMENTED_FLAGS,
+            panel_error=_panel_error(product),
+        )
+
+    @app.get("/admin/evals", response_class=HTMLResponse)
+    def evals_view(request: Request) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        eval_runs = _eval_runs()
+        runs = eval_runs.recent_runs(limit=20)
+        log_store = _store()
+        return _render(
+            request,
+            "evals.html",
+            store=log_store,
+            alerts=log_store.alerts(),
+            eval_runs=runs,
+            eval_dir_available=eval_runs.available(),
+            eval_dir=str(eval_runs.base),
+        )
+
+    @app.get("/admin/evals/{eval_run_id}", response_class=HTMLResponse)
+    def eval_detail_view(request: Request, eval_run_id: str) -> Any:
+        denied = _guard(request)
+        if denied:
+            return denied
+        eval_runs = _eval_runs()
+        detail = eval_runs.run_detail(eval_run_id)
+        if detail is None:
+            return JSONResponse(status_code=404, content={"error": "unknown eval run"})
+        return _render(
+            request,
+            "eval_detail.html",
+            store=_store(),
+            alerts=[],
+            run_id=eval_run_id,
+            report=detail["report"],
+            cards=detail["cards"],
+            summary=detail["summary"],
         )
 
     # -------------------------------------------------------- the buttons

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}report inbox{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Report inbox</h1>
+  <p class="hint">problem reports WITHOUT their free text — category + page/block reference + status is the triage signal; student words never render on an admin panel (NFR-30, F-OPS-ADM-01 AC-4)</p>
+</div>
+{% if report_saved %}<div class="banner ok" role="status">report status saved</div>{% endif %}
+{% if panel_error %}
+<div class="empty panel-error" role="alert">reports panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <div class="tiles">
+    <span class="tile">{% for row in inbox.by_status %}<span class="s">{{ row.status | replace('_', ' ') }}: {{ row.n }}</span>{% else %}<span class="s">no reports yet</span>{% endfor %}</span>
+    <span class="tile">{% for row in inbox.by_category %}<span class="s">{{ row.category }}: {{ row.n }}</span>{% else %}<span class="s">no reports yet</span>{% endfor %}</span>
+  </div>
+  <form method="get" action="/admin/reports" class="inline">
+    <label for="status-filter">filter by status</label>
+    <select id="status-filter" name="status">
+      <option value="">all statuses</option>
+      {% for s in statuses %}<option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s | replace('_', ' ') }}</option>{% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>reports (latest 100{{ ' · filtered: ' + status_filter if status_filter else '' }})</caption>
+    <thead><tr><th scope="col">report</th><th scope="col">page</th><th scope="col">class</th><th scope="col">block</th><th scope="col">category</th><th scope="col">status</th><th scope="col">created</th><th scope="col">set status</th></tr></thead>
+    <tbody>
+      {% for row in inbox.rows %}<tr>
+        <td class="corr">{{ row.report_id[:13] }}…</td>
+        <td>{{ row.course_id }}</td>
+        <td>{{ row.class_level if row.class_level is not none else '—' }}</td>
+        <td>{{ row.block_id or '—' }}</td>
+        <td>{{ row.category }}</td>
+        <td><span class="state {{ 'ok' if row.status != 'open' else 'running' }}">{{ row.status | replace('_', ' ') }}</span></td>
+        <td class="corr">{{ row.created_at }}</td>
+        <td>
+          <form method="post" action="/admin/reports/{{ row.report_id }}/status" class="inline">
+            <input type="hidden" name="csrf" value="{{ csrf_token }}">
+            <label class="visually-hidden" for="status-{{ loop.index }}">new status for {{ row.report_id }}</label>
+            <select id="status-{{ loop.index }}" name="status">
+              {% for s in statuses %}<option value="{{ s }}" {% if s == row.status %}selected{% endif %}>{{ s | replace('_', ' ') }}</option>{% endfor %}
+            </select>
+            <button type="submit">Save</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}<tr><td colspan="8">inbox empty — student reports land here from the lesson page's report form (NEED-014)</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

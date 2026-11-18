@@ -460,3 +460,17 @@ explainability table scrolls inside its own wrapper at 360 px
 permission-denied, over-credit-budget) concentrate in the two networked
 add-ons (voice dock, future event sink), which is exactly where the brief
 wants them.
+
+## ADM-01 `/admin/*` staff panels (F10, 2026-11-17)
+
+The staff cockpit is NOT a `[web]` surface: its code path is `[dashboard]`
+(`dashboard/templates/` + `dashboard/app.py`, ADR-0026 staff session, separate
+container). The full eleven-state matrix — including the partial-state split
+where a broken product store degrades only the F10 panels while the
+log-store views keep rendering — lives in `docs/specs/frontend/admin.md` §5.
+Summary: loading is n/a (SSR completes before bytes), empty states name the
+producer, error is the fail-closed 503 when the admin token is unset,
+permission-denied is `303 /admin/login` (browser) or `401` (API client),
+offline/quota/consent are n/a for a staff tool, and the staff UI is English
+by design. The privacy contract (no student free text, no PII, no
+performance columns) is §3 of the same doc and is test-pinned.

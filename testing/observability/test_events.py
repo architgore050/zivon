@@ -50,6 +50,7 @@ EMITTED_BY_THIS_BRANCH = [
     "dashboard.auth_lockout",
     "dashboard.auth_unconfigured",
     "dashboard.action_triggered",
+    "dashboard.report_status_changed",  # F10 report inbox (F-OPS-ADM-01 EARS 4)
     # backend/routes/progress.py (F3)
     "progress.events.ingested",
     "progress.events.rejected",

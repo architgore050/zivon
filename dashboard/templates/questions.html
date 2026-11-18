@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}question-bank health{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Question-bank health</h1>
+  <p class="hint">aggregate counts over `question_bank` / `speaking_prompt` / `assessment_pack` — item text, options and answers never leave the DB (NFR-30)</p>
+</div>
+{% if panel_error %}
+<div class="empty panel-error" role="alert">question-bank panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <div class="tiles">
+    <span class="tile"><span class="k">items by status</span>{% for row in health.by_status %}<span class="s">{{ row.status }}: {{ row.n }}</span>{% else %}<span class="s">bank empty — run the assessment pipeline + import</span>{% endfor %}</span>
+    <span class="tile"><span class="k">items by type</span>{% for row in health.by_type %}<span class="s">{{ row.type }}: {{ row.n }}</span>{% else %}<span class="s">no items</span>{% endfor %}</span>
+    <span class="tile"><span class="k">items by difficulty</span>{% for row in health.by_difficulty %}<span class="s">{{ row.difficulty }}: {{ row.n }}</span>{% else %}<span class="s">no items</span>{% endfor %}</span>
+    <span class="tile"><span class="k">items by language</span>{% for row in health.by_language %}<span class="s">{{ row.language }}: {{ row.n }}</span>{% else %}<span class="s">no items</span>{% endfor %}</span>
+    <span class="tile"><span class="k">items by class</span>{% for row in health.by_class %}<span class="s">class {{ row.class_level }}: {{ row.n }}</span>{% else %}<span class="s">no items</span>{% endfor %}</span>
+    <span class="tile"><span class="k">time priors</span><span class="v">{{ health.time_priors }}</span><span class="s">topic_time_prior rows</span></span>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>assessment packs by kind and gate verdict</caption>
+    <thead><tr><th scope="col">kind</th><th scope="col">gate verdict</th><th scope="col">packs</th></tr></thead>
+    <tbody>
+      {% for row in health.packs %}<tr><td>{{ row.kind }}</td><td><span class="state {{ 'ok' if row.gate_verdict == 'pass' else 'failed' }}">{{ row.gate_verdict }}</span></td><td>{{ row.n }}</td></tr>
+      {% else %}<tr><td colspan="3">no packs imported yet (python -m factory.assessment / python -m factory.exam, then the import runbook)</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>speaking prompts by status and language</caption>
+    <thead><tr><th scope="col">status</th><th scope="col">prompts</th></tr></thead>
+    <tbody>
+      {% for row in health.prompts %}<tr><td><span class="state {{ row.status }}">{{ row.status }}</span></td><td>{{ row.n }}</td></tr>
+      {% else %}<tr><td colspan="2">no speaking prompts yet</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="table-scroll">
+  <table>
+    <caption>speaking prompts by language</caption>
+    <thead><tr><th scope="col">language</th><th scope="col">prompts</th></tr></thead>
+    <tbody>
+      {% for row in health.prompt_languages %}<tr><td>{{ row.language }}</td><td>{{ row.n }}</td></tr>
+      {% else %}<tr><td colspan="2">no speaking prompts yet</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <div class="table-scroll">
+  <table>
+    <caption>concept coverage gaps — chapters whose concepts have no reviewed/published question</caption>
+    <thead><tr><th scope="col">chapter</th><th scope="col">concepts without questions</th></tr></thead>
+    <tbody>
+      {% for row in health.concept_gaps %}<tr><td>{{ row.chapter_id }}</td><td>{{ row.concepts_without_questions }}</td></tr>
+      {% else %}<tr><td colspan="2">every concept has at least one reviewed/published question — or no concepts exist yet</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

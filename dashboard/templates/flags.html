@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}flags and config{% endblock %}
+{% block body %}
+<div class="view-head">
+  <h1>Flags &amp; config</h1>
+  <p class="hint">the togglable guard profile is live from the DB; env-side content modes are frozen decisions rendered from the docs with their owning document named — this pod never claims another service's runtime values</p>
+</div>
+{% if panel_error %}
+<div class="empty panel-error" role="alert">flags panel error — showing no data rather than stale numbers ({{ panel_error }})</div>
+{% else %}
+<section>
+  <h2>Credit-guard profile (F-OPS-MET-01, togglable)</h2>
+  {% if flags.profile %}
+  <div class="table-scroll">
+  <table>
+    <caption>guard_profile row (id = 1) — flips via API-A4 POST /v1/admin/guard/profile are logged</caption>
+    <thead><tr><th scope="col">mode</th><th scope="col">global tranche</th><th scope="col">per-user cap</th><th scope="col">demo tranche</th><th scope="col">demo per-user cap</th><th scope="col">warn %</th><th scope="col">total budget</th><th scope="col">demo reserve</th><th scope="col">updated</th><th scope="col">by</th></tr></thead>
+    <tbody><tr>
+      <td><span class="state {{ 'warning' if flags.profile.mode == 'demo' else 'ok' }}">{{ flags.profile.mode }}</span></td>
+      <td>{{ flags.profile.global_tranche }}</td>
+      <td>{{ flags.profile.per_user_cap }}</td>
+      <td>{{ flags.profile.demo_global_tranche }}</td>
+      <td>{{ flags.profile.demo_per_user_cap }}</td>
+      <td>{{ flags.profile.warn_threshold_pct }}%</td>
+      <td>{{ flags.profile.total_budget_credits }}</td>
+      <td>{{ flags.profile.demo_reserve_pct }}%</td>
+      <td class="corr">{{ flags.profile.updated_at }}</td>
+      <td>{{ flags.profile.updated_by }}</td>
+    </tr></tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty">guard_profile row not found — the backend seeds it on first migration (guard_profile id=1)</div>
+  {% endif %}
+  <div class="table-scroll">
+  <table>
+    <caption>guard profile flip history (audit_log, latest 20)</caption>
+    <thead><tr><th scope="col">at</th><th scope="col">actor</th><th scope="col">from</th><th scope="col">to</th></tr></thead>
+    <tbody>
+      {% for row in flags.flips %}<tr><td class="corr">{{ row.at }}</td><td>{{ row.actor }}</td><td>{{ row.before_hash }}</td><td><span class="state {{ 'warning' if row.after_hash == 'demo' else 'ok' }}">{{ row.after_hash }}</span></td></tr>
+      {% else %}<tr><td colspan="4">no flips recorded — the profile has stayed at its seed value</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section>
+  <h2>Content-mode decisions (documented, founder-owned)</h2>
+  <div class="table-scroll">
+  <table>
+    <caption>frozen decisions that gate content behaviour — the owning pod applies them from its own env</caption>
+    <thead><tr><th scope="col">flag</th><th scope="col">documented value</th><th scope="col">source</th><th scope="col">note</th></tr></thead>
+    <tbody>
+      {% for flag in documented_flags %}<tr>
+        <td>{{ flag.name }}</td>
+        <td>{{ flag.value }}</td>
+        <td class="corr">{{ flag.source }}</td>
+        <td>{{ flag.note }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

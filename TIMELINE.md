@@ -642,3 +642,55 @@ note §8).
 - **Exam weights** wait for P3's CBSE blueprint (SER-02).
 - **Six more curated Class 9/10 chapters** have concepts but no practice/speaking banks yet.
 - **DB import** (F0) is the pack's consumer; export is JSON-only today.
+
+### 2026-11-17 — W5 F10 admin panels (staff cockpit product views)
+
+**Done**
+- **Eight F10 panels on the existing admin shell** (`dashboard/`, ADR-0026 staff
+  auth unchanged): `/admin/content` (coverage: pages per class, version statuses,
+  live pointers per locale, translation bundles, narration assets),
+  `/admin/questions` (bank shape by status/type/difficulty/language/class, pack
+  gate verdicts, concept-coverage gaps, time priors), `/admin/series` (the
+  six-series catalogue with test/question counts + exam/series packs with gate
+  verdicts and volume counts), `/admin/quality` (the content-quality debt
+  ledger: drafts/retired/misconception/judged/human counts, failing packs,
+  unreviewed bundles, unpublished pages, open content reports), `/admin/users`
+  (delete/export support ONLY: account aggregates + the `deletion_request`
+  queue — no emails, no user ids, no device pseudonyms, no performance),
+  `/admin/reports` (the inbox WITHOUT the free-text column + status triage),
+  `/admin/flags` (live `guard_profile` row + flip history from `audit_log` +
+  documented content-mode decisions), `/admin/evals` (+ per-run detail: the
+  ADM-10 panel — read-only over the `evals_runs/` ledger + `eval_report.json`).
+- **Data access** (`dashboard/product.py`): aggregate-only `ProductStore` over
+  the core-backend tables (`ZIVON_PRODUCT_DSN` → `ZIVON_LOG_DSN` fallback —
+  one backend database, no new service/migration/credential), `EvalRunsStore`
+  over the eval evidence dir. Honesty rules carried over from `queries.py`:
+  a broken store is a per-panel error (`role="alert"`), a missing DSN is an
+  honest empty state, never fake data.
+- **The panels' one sanctioned write** (`admin.md` §4): report-inbox status
+  change (`POST /admin/reports/{report_id}/status`), CSRF double-submit,
+  API-A6 enum, `audit_log` row + new L3 event `dashboard.report_status_changed`
+  (instrumentation-map row; `testing/observability/test_events.py` updated).
+- **Privacy contract test-pinned** (`testing/observability/test_dashboard_admin.py`,
+  35 tests, key-free): no student free text (`problem_report.text` /
+  `speaking_attempt.transcript` never selected), no PII on the users panel,
+  no item text from `question_bank`, no performance columns, fail-closed auth
+  on every panel, honest empty/partial states, a11y (captions, `scope="col"`,
+  labelled selects) and 360 px containment (`.table-scroll`, tiles collapse).
+- **Spec**: `docs/specs/frontend/admin.md` (route map, data sources, privacy
+  contract, the eleven-state matrix, a11y, tests, known debt); dashboard-spec
+  §3/§4/§6 updated; deployment ops doc updated (`evals/` PVC subPath mount on
+  `k8s/23`, `ZIVON_EVAL_RUNS_DIR`, `ZIVON_PRODUCT_DSN` fallback); README updated.
+
+**Not done / next**
+- The flags panel documents env-side content modes from the frozen decisions
+  instead of reading another pod's environment; a runtime flag registry is a
+  recorded backend change, not a drive-by.
+- `k8s/23` now mounts the `zivon-sources` PVC subPath `evals` read-only; a pod
+  started before the first eval run shows the honest "not mounted" state.
+- Alert acknowledgement, Grafana link-out for product aggregates, and the
+  dashboard RBAC/CI-image jobs (EX3-OBS notes I-1/I-2) stay open, unchanged.
+- No eval card added: the panels read existing evidence; quality is not a
+  model output here (the evals-vs-tests rule). Key-free smoke + regression
+  gate re-run green; the `testing/evals` zstd-outbox failure is a sandbox
+  environment gap (no `zstd` binary; base commit fails identically; CI has it).
