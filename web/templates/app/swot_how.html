@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="swot-how-title">
+  <p class="kicker">How this works</p>
+  <h1 id="swot-how-title">How your SWOT is computed.</h1>
+  <p class="lede">The exact method, in plain words, plus your own numbers for every chapter. No black box: if a card says something, the number behind it is on this page.</p>
+  <p class="meta"><a class="text-link" href="/app/swot">Back to your SWOT</a></p>
+</section>
+
+{% if how.mode_error %}
+<section class="wrap band" aria-labelledby="swot-how-mode-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="swot-how-mode-error-title">Unavailable right now.</strong></p>
+    <p>{{ how.mode_error }}</p>
+  </div>
+</section>
+{% elif how.data_error %}
+<section class="wrap band" aria-labelledby="swot-how-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="swot-how-error-title">Unavailable right now.</strong></p>
+    <p>{{ how.data_error }} <a class="text-link" href="/app/swot/how">Try again</a></p>
+  </div>
+</section>
+{% else %}
+
+<section class="wrap band" aria-labelledby="swot-method-title">
+  <div class="section-head">
+    <p class="kicker">The method</p>
+    <h2 id="swot-method-title">Six rules, applied in order</h2>
+  </div>
+  <ol class="swot-method-list">
+    {% for line in how.method %}
+    <li>{{ line }}</li>
+    {% endfor %}
+  </ol>
+  <p class="meta">Rules version {{ how.rules.version }}, formula {{ how.rules.formula_version }}, placement mode {{ how.mode }}. Constants: {{ how.rules.half_life_days }}-day half-life, {{ how.rules.trend_window_days }}-day trend window, {{ how.rules.rated_min_items }} scored items to rate a chapter, {{ how.rules.enough_data_min_chapters }} rated chapters to fill the grid.</p>
+</section>
+
+<section class="wrap band" aria-labelledby="swot-metrics-title">
+  <div class="section-head">
+    <p class="kicker">The metrics</p>
+    <h2 id="swot-metrics-title">What each number means</h2>
+  </div>
+  <dl class="swot-metric-list">
+    {% for metric in how.metric_definitions %}
+    <div class="swot-metric">
+      <dt>{{ metric.name }}</dt>
+      <dd>{{ metric.plain }}</dd>
+    </div>
+    {% endfor %}
+  </dl>
+</section>
+
+<section class="wrap band" aria-labelledby="swot-medians-title">
+  <div class="section-head">
+    <p class="kicker">Your medians</p>
+    <h2 id="swot-medians-title">The split points used for your placement</h2>
+  </div>
+  {% if how.medians %}
+  <p class="lede">Performance median {{ how.medians.performance_pct }}% · coverage median {{ how.medians.coverage_pct }}% — computed across your {{ how.rated_chapter_count }} rated chapters only.</p>
+  {% else %}
+  <p class="lede">No medians yet: placements need at least three rated chapters. Yours has {{ how.rated_chapter_count }} so far.</p>
+  {% endif %}
+</section>
+
+<section class="wrap band" aria-labelledby="swot-numbers-title">
+  <div class="section-head">
+    <p class="kicker">Your numbers</p>
+    <h2 id="swot-numbers-title">Every chapter, behind the cards</h2>
+  </div>
+  {% if how.chapters %}
+  <div class="swot-table-wrap">
+    <table class="swot-table">
+      <caption class="visually-hidden">Per-chapter SWOT metrics</caption>
+      <thead>
+        <tr>
+          <th scope="col">Chapter</th>
+          <th scope="col">Placement</th>
+          <th scope="col">Accuracy %</th>
+          <th scope="col">Coverage %</th>
+          <th scope="col">Hints/answer</th>
+          <th scope="col">Time ratio</th>
+          <th scope="col">Explain-back %</th>
+          <th scope="col">Trend</th>
+          <th scope="col">Scored items</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for chapter in how.chapters %}
+        <tr>
+          <th scope="row">{{ chapter.title }}</th>
+          <td>{{ chapter.quadrant or "Not rated" }}</td>
+          <td>{{ chapter.metrics.weighted_accuracy_pct if chapter.metrics.weighted_accuracy_pct is not none else "—" }}</td>
+          <td>{{ chapter.metrics.coverage_pct if chapter.metrics.coverage_pct is not none else "—" }}</td>
+          <td>{{ chapter.metrics.hint_rate if chapter.metrics.hint_rate is not none else "—" }}</td>
+          <td>{{ chapter.metrics.time_ratio if chapter.metrics.time_ratio is not none else "—" }}</td>
+          <td>{{ chapter.metrics.speaking_score_pct if chapter.metrics.speaking_score_pct is not none else "—" }}</td>
+          <td>{{ chapter.metrics.trend if chapter.metrics.trend else "—" }}</td>
+          <td>{{ chapter.metrics.scored_items }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="lede">No chapters with evidence yet. Do a practice set or a chapter test and this table fills in from your own activity.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

@@ -224,8 +224,11 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
   `backend/test_engine/`), adding the `Tests` nav entry and `/app/series`. It
   consumes the F0 guard/CSRF contract unchanged. Contract:
   `docs/specs/frontend/tests.md`.
-- **F8/F10** do not use the student shell: SWOT may use it once F3's data
-  exists; admin keeps its separate staff session and container/surface.
+- **F8** uses the shell once F3's data exists, which it does: SWOT landed
+  `/app/swot` + `/app/swot/how` as plain SSR pages with no island and no
+  shell change (`docs/specs/frontend/swot.md`). **F10** does not use the
+  student shell: admin keeps its separate staff session and
+  container/surface.
 - A feature PR never edits `base.html` chrome, the guard, or the CSP to make
   one page work. A new shell-level need is an F0 change with its own test.
 
@@ -282,10 +285,11 @@ template must extend `base.html`.
 - A URL under `/app` that matches no route answers FastAPI's JSON 404 (the
   shell registers no catch-all by design); a branded HTML 404 for the app
   surface lands with a feature PR that can own the route.
-- The app nav lists Dashboard, Practice, Tests, Progress, Speak, Courses, and
-  Settings. Practice, Tests, and Speak landed 2026-11-17
+- The app nav lists Dashboard, Practice, Tests, Progress, SWOT, Speak,
+  Courses, and Settings. Practice, Tests, Speak, and SWOT landed 2026-11-17
   (`docs/specs/frontend/practice.md`, `docs/specs/frontend/tests.md`,
-  `docs/specs/frontend/speaking.md`). Saved sections are a quick link
-  on the dashboard/progress pages rather than their own nav entry.
+  `docs/specs/frontend/speaking.md`, `docs/specs/frontend/swot.md`). Saved
+  sections are a quick link on the dashboard/progress pages rather than
+  their own nav entry.
 - `/app` is not rate-limited by the API bucket (the abuse classifier returns
   no family for HTML paths); the JSON API it calls keeps its existing limits.

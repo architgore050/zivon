@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/app.css">
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="swot-title">
+  <p class="kicker">Your SWOT</p>
+  <h1 id="swot-title">Where you are strong, and where to work next.</h1>
+  <p class="lede">Every placement is relative — compared with your own other chapters, never with another student. No score, no ranking, no share link, no parent view.</p>
+  <p class="meta"><a class="text-link" href="/app/swot/how">How this works</a></p>
+</section>
+
+{% if swot.mode_error %}
+<section class="wrap band" aria-labelledby="swot-mode-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="swot-mode-error-title">Your SWOT is unavailable right now.</strong></p>
+    <p>{{ swot.mode_error }}</p>
+  </div>
+</section>
+{% elif swot.data_error %}
+<section class="wrap band" aria-labelledby="swot-error-title">
+  <div class="notice notice--error" role="alert">
+    <p><strong id="swot-error-title">Your SWOT is unavailable right now.</strong></p>
+    <p>{{ swot.data_error }} <a class="text-link" href="/app/swot">Try again</a></p>
+  </div>
+  <p class="mt-2"><a class="text-link" href="/app/progress">Open the progress map instead</a></p>
+</section>
+{% else %}
+
+{% if not swot.enough_data %}
+<section class="wrap band" aria-labelledby="swot-empty-title">
+  <div class="notice notice--empty" role="status">
+    <p><strong id="swot-empty-title">Not enough data yet.</strong></p>
+    {% if swot.is_new %}
+    <p>Do a practice set or a chapter test, and your first placements will appear here. Nothing is invented in the meantime.</p>
+    {% else %}
+    <p>Placements need at least {{ swot.rated_min_chapters }} rated chapters; you have {{ swot.rated_chapter_count }}. Do a practice set or a chapter test in another chapter and this page will fill in.</p>
+    {% endif %}
+  </div>
+  <p class="mt-2"><a class="btn" href="/app/practice">Start a practice set</a></p>
+</section>
+{% endif %}
+
+{% if swot.enough_data %}
+<div class="wrap swot-grid">
+  {% for quadrant in swot.quadrants %}
+  <section class="swot-quadrant" aria-labelledby="swot-{{ quadrant.key }}-title">
+    <h2 id="swot-{{ quadrant.key }}-title">{{ quadrant.label }}</h2>
+    <p class="meta">{{ quadrant.blurb }}</p>
+    {% if quadrant.cards %}
+    <ul class="swot-card-list">
+      {% for card in quadrant.cards %}
+      <li class="swot-card">
+        <div class="swot-card-head">
+          <h3 class="swot-card-title">
+            {% if card.lesson_url %}<a href="{{ card.lesson_url }}">{{ card.title }}</a>{% else %}{{ card.title }}{% endif %}
+          </h3>
+          {% if card.exam_priority %}<span class="swot-imp" title="Board-weighted chapter">IMP</span>{% endif %}
+        </div>
+        <ul class="swot-evidence">
+          {% for line in card.evidence %}
+          <li>{{ line }}</li>
+          {% endfor %}
+        </ul>
+        <p class="swot-action">
+          <a class="text-link" href="{{ card.next_action.url }}">{{ card.next_action.text }}</a>
+        </p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="lede">Nothing here right now.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if swot.unrated %}
+<section class="wrap band" aria-labelledby="swot-unrated-title">
+  <div class="section-head">
+    <p class="kicker">Not rated yet</p>
+    <h2 id="swot-unrated-title">Not enough evidence on these chapters</h2>
+  </div>
+  <ul class="swot-unrated-list">
+    {% for card in swot.unrated %}
+    <li class="swot-unrated-row">
+      <div class="swot-unrated-text">
+        <span class="swot-unrated-title">{% if card.lesson_url %}<a href="{{ card.lesson_url }}">{{ card.title }}</a>{% else %}{{ card.title }}{% endif %}</span>
+        <p class="meta">{{ card.unrated_reason }}</p>
+      </div>
+      <p class="swot-unrated-action"><a class="text-link" href="{{ card.next_action.url }}">{{ card.next_action.text }}</a></p>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="wrap band" aria-labelledby="swot-rules-title">
+  <details class="why">
+    <summary id="swot-rules-title">How the placement works</summary>
+    <div class="answer">
+      <ul class="rule-list">
+        <li><strong>Relative placement</strong> — chapters are compared with your own other chapters by two medians: performance (weighted accuracy) and coverage. Nobody else's data is involved.</li>
+        <li><strong>Rated chapters</strong> — a chapter needs at least {{ swot.rules.rated_min_items }} scored items (practice answers, chapter tests, explain-backs) and a measurable coverage.</li>
+        <li><strong>Recency</strong> — every answer is weighted with a {{ "%.0f"|format(swot.rules.half_life_days) }}-day half-life; recent work counts more.</li>
+        <li><strong>Trend</strong> — the last {{ swot.rules.trend_window_days }} days against your own older answers, when there are at least {{ swot.rules.trend_min_recent }} recent items.</li>
+        <li><strong>Exam weight (IMP)</strong> — a board-heavy chapter is ordered first inside its box and marked IMP. It never adds a fifth box.</li>
+        <li><strong>Placement mode</strong> — {{ swot.mode }} (relative is the default; it compares your chapters with each other).</li>
+      </ul>
+      <p class="meta">Rules version {{ swot.rules.version }}, formula {{ swot.rules.formula_version }}. Weakness means effort without results — not "you are bad". Threat is a watch-out — not a prediction. The full method is on the <a class="text-link" href="/app/swot/how">How this works</a> page.</p>
+    </div>
+  </details>
+</section>
+{% endif %}
+{% endblock %}

@@ -95,6 +95,34 @@
       {% endif %}
     </section>
 
+    <section class="app-panel" aria-labelledby="swot-snapshot-title">
+      <p class="kicker">SWOT snapshot</p>
+      <h2 id="swot-snapshot-title">Where you stand</h2>
+      {% if dashboard.swot_snapshot and not dashboard.swot_snapshot.data_error and dashboard.swot_snapshot.enough_data %}
+      <ul class="swot-snapshot-list">
+        {% for row in dashboard.swot_snapshot.rows %}
+        <li class="swot-snapshot-row">
+          <span class="swot-snapshot-label">{{ row.label }}</span>
+          {% if row.card %}
+          <span>
+            {% if row.card.lesson_url %}<a href="{{ row.card.lesson_url }}">{{ row.card.title }}</a>{% else %}{{ row.card.title }}{% endif %}
+            {% if row.card.exam_priority %}<span class="swot-imp" title="Board-weighted chapter">IMP</span>{% endif %}
+          </span>
+          <span class="meta">{{ row.card.evidence[0] if row.card.evidence }}</span>
+          {% else %}
+          <span class="meta">Nothing in this box right now.</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% elif dashboard.swot_snapshot and not dashboard.swot_snapshot.data_error %}
+      <p class="lede">Not enough data yet — do a practice set or a chapter test and your first placements will appear here.</p>
+      {% else %}
+      <p class="lede">The SWOT snapshot is unavailable right now; nothing is lost. It will come back with the next successful load.</p>
+      {% endif %}
+      <p class="mt-2"><a class="text-link" href="/app/swot">Open your full SWOT</a></p>
+    </section>
+
     <section class="app-panel" aria-labelledby="recent-title">
       <p class="kicker">Recent activity</p>
       <h2 id="recent-title">What you actually did</h2>
@@ -147,6 +175,7 @@
       <ul class="action-list">
         <li><a class="text-link" href="/courses">Open a lesson</a></li>
         <li><a class="text-link" href="/app/progress">Progress map</a></li>
+        <li><a class="text-link" href="/app/swot">SWOT</a></li>
         <li><a class="text-link" href="/app/bookmarks">Saved sections</a></li>
         <li><a class="text-link" href="/app/practice">Practice</a></li>
         <li><a class="text-link" href="/app/tests">Tests</a></li>

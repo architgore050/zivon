@@ -25,6 +25,8 @@ from backend.progress import (
     utc_now,
 )
 
+from .swot_views import build_dashboard_snapshot
+
 logger = logging.getLogger(__name__)
 
 ACTIVITY_LABELS: dict[str, str] = {
@@ -55,6 +57,7 @@ def build_dashboard_view(
     user_id: str,
     user_class: int | None,
     frontend_dir: str,
+    mode: str = "relative",
     now: datetime.datetime | None = None,
 ) -> dict[str, Any]:
     """Return the dashboard view model (or raise; callers use `safe_*`)."""
@@ -103,6 +106,11 @@ def build_dashboard_view(
         "bookmark_count": len(bookmarks),
         "catalogue_source": snapshot.source,
         "catalogue_unavailable": snapshot.source == "fixture" and not snapshot.chapters,
+        # F8: one strength/weakness/opportunity/threat line each, plus the
+        # link to the full page. Never raises: failures degrade to data_error.
+        "swot_snapshot": build_dashboard_snapshot(
+            db, user_id=user_id, frontend_dir=frontend_dir, mode=mode, now=current
+        ),
     }
 
 
@@ -176,6 +184,7 @@ def safe_dashboard_view(
     user_id: str,
     user_class: int | None,
     frontend_dir: str,
+    mode: str = "relative",
 ) -> dict[str, Any]:
     now = utc_now()
     try:
@@ -184,6 +193,7 @@ def safe_dashboard_view(
             user_id=user_id,
             user_class=user_class,
             frontend_dir=frontend_dir,
+            mode=mode,
             now=now,
         )
     except Exception:

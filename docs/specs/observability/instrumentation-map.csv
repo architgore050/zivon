@@ -118,3 +118,7 @@ test,test.attempt.started,INFO,request_id,resumed;question_count,no,,L2,backend/
 test,test.answer.saved,INFO,request_id,flagged;answered;question_count,no,,L2,backend/routes/tests.py,F7 autosave upsert; the answer value/key/explanation never enter fields and autosave never grades
 test,test.attempt.submitted,INFO,request_id,question_count;answered;score;expired,no,,L2,backend/test_engine/service.py,F7 server-side grading once; score is the paper percentage and expired means the clock had run out
 test,test.attempt.progress_sync_failed,WARNING,request_id,reason_code,no,store_error,L2,backend/test_engine/service.py,the derivative F3 test_submit progress event could not be written; the submitted paper is not lost
+swot,swot.view.served,INFO,request_id,mode;rated_count;unrated_count;enough_data,no,,L2,backend/routes/swot.py,"F8 GET /v1/swot answered; counts and mode only (no chapter id, no user id, no metric value)"
+swot,swot.explain.served,INFO,request_id,mode;rated_count;unrated_count;enough_data,no,,L2,backend/routes/swot.py,F8 GET /v1/swot/explain answered; same count-only fields as swot.view.served
+swot,swot.snapshot.served,INFO,no,mode;enough_data,no,,L2,web/swot_views.py,F8 dashboard snapshot panel computed during /app SSR; counts only
+swot,swot.compute.failed,WARNING,request_id,reason_code,no,store_error,L2,backend/routes/swot.py,SWOT computation could not read its inputs; the API answers 503 and nothing is invented

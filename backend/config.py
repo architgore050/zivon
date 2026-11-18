@@ -91,6 +91,12 @@ CONSENT_ACTIONS: Final[frozenset[str]] = frozenset({"granted", "declined", "with
 DEFAULT_NOTICE_VERSION: Final[str] = "zivon-voice-notice-v1"
 DEFAULT_CONSENT_VERSION: Final[str] = "v1"
 
+# SWOT placement modes (F8). `relative` is the frozen default; `absolute`
+# exists behind the env var for calibration work and is never a student
+# setting. See docs/specs/frontend/swot.md §8.
+SWOT_MODES: Final[tuple[str, ...]] = ("relative", "absolute")
+DEFAULT_SWOT_MODE: Final[str] = "relative"
+
 
 class BackendConfigError(RuntimeError):
     """Raised when required backend configuration is missing or invalid."""
@@ -116,6 +122,16 @@ def _env_int(name: str, default: int) -> int:
 def _optional_env(name: str) -> str | None:
     value = os.environ.get(name, "").strip()
     return value or None
+
+
+def _swot_mode(raw: str | None) -> str:
+    """Validate `ZIVON_SWOT_MODE` at load time; a bad value refuses to boot."""
+    mode = (raw or DEFAULT_SWOT_MODE).strip().lower()
+    if mode not in SWOT_MODES:
+        raise BackendConfigError(
+            f"ZIVON_SWOT_MODE must be one of {'|'.join(SWOT_MODES)}"
+        )
+    return mode
 
 
 def normalize_locale(locale: str) -> str:
@@ -183,6 +199,7 @@ class BackendConfig:
     smtp_password: str | None = None
     smtp_starttls: bool = True
     resend_api_key: str | None = None
+    swot_mode: str = DEFAULT_SWOT_MODE
 
     @classmethod
     def from_env(cls, *, strict_secrets: bool = False) -> BackendConfig:
@@ -295,4 +312,5 @@ class BackendConfig:
             smtp_password=_optional_env("ZIVON_SMTP_PASSWORD"),
             smtp_starttls=_env_bool("ZIVON_SMTP_STARTTLS", True),
             resend_api_key=_optional_env("ZIVON_RESEND_API_KEY"),
+            swot_mode=_swot_mode(os.environ.get("ZIVON_SWOT_MODE")),
         )

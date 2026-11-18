@@ -80,6 +80,11 @@ EMITTED_BY_THIS_BRANCH = [
     "test.answer.saved",
     "test.attempt.submitted",
     "test.attempt.progress_sync_failed",
+    # backend/routes/swot.py + web/swot_views.py (F8)
+    "swot.view.served",
+    "swot.explain.served",
+    "swot.snapshot.served",
+    "swot.compute.failed",
     # logging_manager module-own events
     "log.store_fallback",
     "log.store_recovered",

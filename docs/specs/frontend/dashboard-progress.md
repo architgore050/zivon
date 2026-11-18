@@ -259,9 +259,11 @@ sections read and last activity); **Today** (one honest action — continue,
 start the first published chapter, or the catalogue; plus the explicit “five
 practice questions and one explain-back are not live yet” note); **Physics
 map** snapshot (up to four chapters of the student's class with state tags);
-**Recent activity** (last 8, label + chapter + relative day); aside with
-**This week** (7-day strip + goal), **So far** (3 counts, not a KPI wall), and
-**Quick actions** (live links + honest not-live statuses).
+**SWOT snapshot** (F8's panel, one strength / weakness / opportunity /
+threat line each, honest not-enough-data and unavailable copy —
+`swot.md` §5); **Recent activity** (last 8, label + chapter + relative day);
+aside with **This week** (7-day strip + goal), **So far** (3 counts, not a
+KPI wall), and **Quick actions** (live links + honest not-live statuses).
 
 New user: honest empty copy and a Start card; no invented activity.
 Class with no published chapter: “No Class N chapter is published yet.”
