@@ -150,7 +150,7 @@ fine" behaviour the features.md state matrix promises for SCR-ADM-01.
 ## 7. Tests
 
 `python -m unittest discover -s testing/observability -t .` runs
-`testing/observability/test_dashboard_admin.py` (34 tests, key-free):
+`testing/observability/test_dashboard_admin.py` (35 tests, key-free):
 fail-closed auth on every panel, browser/API guard split, CSRF enforcement,
 aggregate renders from seeded stub connections, honest empty states, the
 partial-failure split (broken product store vs healthy log store), the

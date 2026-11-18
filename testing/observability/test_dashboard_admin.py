@@ -345,6 +345,7 @@ class _FakeConnection:
         self.broken = broken
         self.last_params: tuple[Any, ...] = ()
         self.executed: list[str] = []
+        self.params: list[tuple[Any, ...]] = []
 
     def cursor(self) -> _FakeCursor:
         cursor = _FakeCursor(self)
@@ -352,6 +353,7 @@ class _FakeConnection:
 
         def record(sql: str, params: tuple[Any, ...] = ()) -> None:
             self.executed.append(_norm(sql))
+            self.params.append(params)
             self.last_params = params
             original(sql, params)
 
@@ -629,6 +631,10 @@ class ReportsInboxTests(ObservabilityTest):
             self.assertEqual(response.status_code, 303)
             self.assertEqual(response.headers["location"], "/admin/reports?saved=1")
             event = self.last_event("dashboard.report_status_changed")
+            # the correlation key matches the map row exactly (report_id, not
+            # a renamed field — the map is the per-event source of truth)
+            self.assertEqual(event["fields"]["report_id"], SEEDED_REPORT_ID)
+            self.assertNotIn("report_ref", event["fields"])
             self.assertEqual(event["fields"]["from_status"], "open")
             self.assertEqual(event["fields"]["to_status"], "fixed")
             self.assertNotIn(REPORT_TEXT, json.dumps(event["fields"]))
@@ -655,6 +661,31 @@ class ReportsInboxTests(ObservabilityTest):
                 data={"status": "fixed", "csrf": csrf},
             )
             self.assertIn(malformed.status_code, (404, 422))
+
+    def test_reopening_a_report_clears_resolved_at(self) -> None:
+        """admin.md §4: resolved_at is set for the two terminal statuses and
+        cleared back to NULL when a report reopens."""
+        store = _seeded_product()
+        self.assertEqual(
+            store.set_report_status(SEEDED_REPORT_ID, "fixed"),
+            {"before": "open", "after": "fixed"},
+        )
+        self.assertEqual(
+            store.set_report_status(SEEDED_REPORT_ID, "open"),
+            {"before": "open", "after": "open"},
+        )
+        updates = [
+            params
+            for sql, params in zip(
+                store.connection.executed,
+                store.connection.params,  # type: ignore[attr-defined]
+            )
+            if "UPDATE problem_report" in sql
+        ]
+        self.assertEqual(len(updates), 2, "two status writes, one per change")
+        # terminal status stamps the retention clock; reopen clears it again
+        self.assertIsNotNone(updates[0][1])
+        self.assertIsNone(updates[1][1])
 
     def test_status_change_on_broken_store_answers_503(self) -> None:
         with _seeded_app(product=_seeded_product(broken=True)) as client:

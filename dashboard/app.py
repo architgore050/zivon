@@ -573,7 +573,9 @@ def create_app() -> FastAPI:
         log_event(
             "dashboard.report_status_changed",
             {
-                "report_ref": report_id,
+                # correlation key matches the map row (report_id); the report
+                # text is never in the fields (NFR-30).
+                "report_id": report_id,
                 "from_status": result["before"],
                 "to_status": result["after"],
             },

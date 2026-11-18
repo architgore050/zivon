@@ -672,7 +672,7 @@ note §8).
   API-A6 enum, `audit_log` row + new L3 event `dashboard.report_status_changed`
   (instrumentation-map row; `testing/observability/test_events.py` updated).
 - **Privacy contract test-pinned** (`testing/observability/test_dashboard_admin.py`,
-  34 tests, key-free): no student free text (`problem_report.text` /
+  35 tests, key-free): no student free text (`problem_report.text` /
   `speaking_attempt.transcript` never selected), no PII on the users panel,
   no item text from `question_bank`, no performance columns, fail-closed auth
   on every panel, honest empty/partial states, a11y (captions, `scope="col"`,
