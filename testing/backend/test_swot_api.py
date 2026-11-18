@@ -11,6 +11,7 @@ additions (F3's own dashboard tests keep passing in `test_dashboard_pages.py`).
 from __future__ import annotations
 
 import datetime
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -242,6 +243,89 @@ class SwotApiTests(unittest.TestCase):
         by_id = {card["chapter_id"]: card for card in cards}
         self.assertEqual(by_id[CHAPTER_A]["metrics"]["scored_items"], 7)
         self.assertEqual(by_id[CHAPTER_A]["metrics"]["speaking_score_pct"], 88.0)
+
+    def test_coverage_counts_base_items_once_across_languages(self) -> None:
+        """Regression (F8R review): coverage shares the denominator's basis.
+
+        The bank is one row per (item, language) and the served denominator
+        counts DISTINCT base items. A student who answers the same item in
+        English and then in Hindi must add one item to the numerator, not two
+        — otherwise coverage crosses 100 % (here 5/4 would read 125 %) and
+        the median split misplaces the chapter.
+        """
+        session = self.register()
+        user_id = session["user"]["user_id"]
+        # Five served base items, each in two languages (the tri-lingual pack
+        # shape of docs/content-factory/assessment.md A3).
+        for item_no in range(5):
+            for language in ("en", "hi"):
+                self.db.execute(
+                    """
+                    INSERT INTO question_bank (
+                        question_id, base_item_id, class_level, chapter_id,
+                        concept_id, type, difficulty, marks, language,
+                        source_type, prompt, options, answer, explanation,
+                        expected_time_ms, status
+                    ) VALUES (?, ?, 9, ?, 'swot-concept', 'mcq', 'easy', 1,
+                              ?, 'generated', 'Pick one', '["a","b"]',
+                              '{"index": 0}', 'Because.', 30000, 'published')
+                    """,
+                    (
+                        f"swot-item-{item_no}-{language}",
+                        f"swot-item-{item_no}",
+                        CHAPTER_A,
+                        language,
+                    ),
+                )
+
+        def attempted_session(question_ids: list[str]) -> None:
+            session_id = f"swot-session-{question_ids[0]}"
+            self.db.execute(
+                """
+                INSERT INTO practice_session (session_id, user_id, mode,
+                      chapter_id, question_ids, question_count, config)
+                VALUES (?, ?, 'chapter', ?, ?, ?, '{}')
+                """,
+                (
+                    session_id,
+                    user_id,
+                    CHAPTER_A,
+                    json.dumps(question_ids),
+                    len(question_ids),
+                ),
+            )
+            for question_id in question_ids:
+                self.db.execute(
+                    """
+                    INSERT INTO practice_attempt (attempt_id, session_id,
+                          question_id, correct, time_ms, attempt_no)
+                    VALUES (?, ?, ?, 1, 30000, 1)
+                    """,
+                    (f"{session_id}-{question_id}", session_id, question_id),
+                )
+
+        # English: items 0-2. Hindi: item 0 again (the same base item) and 3.
+        attempted_session([f"swot-item-{n}-en" for n in range(3)])
+        attempted_session(["swot-item-0-hi", "swot-item-3-hi"])
+        # The event source (F5's first-attempt feed) counts item 4 once too.
+        self.post_events(
+            [
+                {
+                    "kind": "practice_answer",
+                    "chapter_id": CHAPTER_A,
+                    "question_id": "swot-item-4-hi",
+                    "payload": {"correct": True, "hints_used": 0, "time_ms": 30000},
+                }
+            ]
+        )
+        # Five distinct base items attempted of five served → 100 %, never
+        # the 120 % that raw per-language ids would produce.
+        payload = self.client.get("/v1/swot/explain").json()
+        entry = next(
+            entry for entry in payload["chapters"] if entry["chapter_id"] == CHAPTER_A
+        )
+        self.assertEqual(entry["metrics"]["attempt_rate_pct"], 100.0)
+        self.assertEqual(entry["metrics"]["coverage_pct"], 100.0)
 
     def test_explain_endpoint_carries_the_method_and_the_numbers(self) -> None:
         self.register()

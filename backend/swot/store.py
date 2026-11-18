@@ -105,18 +105,26 @@ def read_question_counts(db: DatabaseEngine) -> dict[str, int]:
 
 
 def read_attempted_questions(db: DatabaseEngine, user_id: str) -> dict[str, set[str]]:
-    """Distinct question ids the account attempted, per chapter.
+    """Distinct question-bank items the account attempted, per chapter.
 
     Sources: the practice rows this account wrote (`practice_attempt` through
-    `practice_session`, whose chapter is set for chapter-mode sets) — merged
-    with the caller's progress events, which already carry `question_id`.
+    `practice_session`, whose chapter is set for chapter-mode sets) and this
+    account's `practice_answer` progress events — the same two sources the
+    spec names. Both carry language-specific `question_id`s (the bank is one
+    row per (item, language)), so each id resolves to its `base_item_id` when
+    the bank knows it; the denominator (`read_question_counts`) counts the
+    same base items, and answering the same item in two languages counts once
+    instead of pushing coverage past 100%. An id the bank no longer knows (a
+    retired row) still counts under its raw id, so evidence is never dropped.
     """
     try:
         rows = db.fetchall(
             """
-            SELECT DISTINCT ps.chapter_id AS chapter_id, pa.question_id AS question_id
+            SELECT DISTINCT ps.chapter_id AS chapter_id,
+                   COALESCE(qb.base_item_id, pa.question_id) AS item_id
             FROM practice_attempt pa
             JOIN practice_session ps ON ps.session_id = pa.session_id
+            LEFT JOIN question_bank qb ON qb.question_id = pa.question_id
             WHERE ps.user_id = ? AND ps.chapter_id IS NOT NULL
             """,
             (user_id,),
@@ -126,9 +134,28 @@ def read_attempted_questions(db: DatabaseEngine, user_id: str) -> dict[str, set[
     attempted: dict[str, set[str]] = {}
     for row in rows:
         chapter = str(row.get("chapter_id") or "").strip()
-        question = str(row.get("question_id") or "").strip()
-        if chapter and question:
-            attempted.setdefault(chapter, set()).add(question)
+        item = str(row.get("item_id") or "").strip()
+        if chapter and item:
+            attempted.setdefault(chapter, set()).add(item)
+    try:
+        event_rows = db.fetchall(
+            """
+            SELECT DISTINCT pe.chapter_id AS chapter_id,
+                   COALESCE(qb.base_item_id, pe.question_id) AS item_id
+            FROM progress_event pe
+            LEFT JOIN question_bank qb ON qb.question_id = pe.question_id
+            WHERE pe.user_id = ? AND pe.kind = 'practice_answer'
+              AND pe.question_id IS NOT NULL AND pe.chapter_id IS NOT NULL
+            """,
+            (user_id,),
+        )
+    except Exception:  # noqa: BLE001 - progress events may predate the import
+        return attempted
+    for row in event_rows:
+        chapter = str(row.get("chapter_id") or "").strip()
+        item = str(row.get("item_id") or "").strip()
+        if chapter and item:
+            attempted.setdefault(chapter, set()).add(item)
     return attempted
 
 

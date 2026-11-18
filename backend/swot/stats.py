@@ -368,6 +368,9 @@ def _chapter_entry(
     observations: list[_Observation] = []
     hints = 0
     times: list[tuple[datetime.datetime, int]] = []
+    # The attempted set is the store's: base items from both the practice
+    # rows and the practice_answer events, language variants collapsed, so
+    # the numerator shares the denominator's item basis.
     question_ids: set[str] = set(data.attempted.get(chapter_id, set()))
     practice_count = 0
     test_count = 0
@@ -387,9 +390,6 @@ def _chapter_entry(
             time_ms = payload.get("time_ms")
             if isinstance(time_ms, int) and time_ms > 0:
                 times.append((at, time_ms))
-            question = event.question_id
-            if question:
-                question_ids.add(str(question))
         elif event.kind == "test_submit":
             answered = payload.get("answered")
             correct = payload.get("correct")

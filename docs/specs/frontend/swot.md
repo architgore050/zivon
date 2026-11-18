@@ -1,7 +1,7 @@
 # SWOT — strengths, weaknesses, opportunities, threats (F8)
 
 Status: implementation contract for the W5 F8 slice (branch
-`cloud/w5-f8-swot`, based on `main` @ `27897a3`). It describes code that
+`feature/intake-w5-f8-swot`, based on `main` @ `27897a3`). It describes code that
 exists: `backend/swot/`, `backend/routes/swot.py`, `backend/config.py`
 (`ZIVON_SWOT_MODE`), `web/swot_views.py`, `web/routes/swot.py`, the two app
 templates, the `SWOT` nav entry, the dashboard snapshot panel in
@@ -48,10 +48,13 @@ own rows plus two bounded chapter-level references:
   for the chapter (F6 never writes a speaking progress event), and
   `lesson_progress` counters.
 - **Coverage**: the share of the chapter's served `question_bank` items the
-  student has attempted (distinct question ids from progress events and the
-  student's own practice rows). When the bank is empty the section counter
-  (`blocks_seen` / `blocks_total`) is the denominator; when neither exists
-  the chapter is honestly unrated ("coverage is unknown"), never guessed.
+  student has attempted (distinct **base items** from progress events and the
+  student's own practice rows — the bank is one row per (item, language), so
+  answering the same item in two languages counts once, and the numerator
+  shares the denominator's item basis). When the bank is empty the section
+  counter (`blocks_seen` / `blocks_total`) is the denominator; when neither
+  exists the chapter is honestly unrated ("coverage is unknown"), never
+  guessed.
 - **Recency**: every observation is weighted `0.5 ** (age_days / 21)` — a
   **21-day half-life** (`HALF_LIFE_DAYS`).
 - **Trend**: the last **14 days** of accuracy against the student's older
@@ -217,7 +220,11 @@ For the operator; nothing here is a student setting.
   `chapter_stat` rollup), not from this PR's judgement. Calibrate by running
   the explain payload across anonymized aggregates, fixing the two constants
   in `backend/swot/stats.py`, and recording the decision; flipping the env
-  var alone is not a calibration.
+  var alone is not a calibration. In the JSON, `enough_data` keeps reporting
+  the 3-rated-chapter minimum in both modes, while absolute-mode placements
+  may exist below that minimum (absolute mode has no median to protect):
+  the field describes the relative grid's readiness, never placement
+  validity.
 - **IMP threshold** (`EXAM_WEIGHT_IMP_MIN = 1.0`): exam weights are NULL
   today (`pending_p3_blueprint` — P3 owns the real CBSE blueprint weights).
   When P3 lands them, revisit what "board-heavy" means in their scale
