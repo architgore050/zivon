@@ -11,6 +11,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any, ClassVar
 
 from backend.personalized.rag import (
     FixtureEmbedder,
@@ -25,7 +26,7 @@ from backend.personalized.rag import (
     resolve_citations,
 )
 
-SYLLABUS = {
+SYLLABUS: dict[str, Any] = {
     "classes": [
         {
             "class": 10,
@@ -185,7 +186,7 @@ class IndexTest(unittest.TestCase):
 
     def test_version_is_content_addressed_and_stable(self) -> None:
         embedder = FixtureEmbedder()
-        args = {
+        args: dict[str, Any] = {
             "syllabus_sha256": "s",
             "manifest_content_hashes": frozenset({"m1", "m2"}),
             "pack_sha256": "p",
@@ -330,7 +331,7 @@ class RetrievalTest(unittest.TestCase):
 
 
 class CitationTest(unittest.TestCase):
-    EXCERPTS = [
+    EXCERPTS: ClassVar[list[dict[str, str]]] = [
         {
             "excerpt_id": "S1",
             "chunk_id": "ncert-science-10#p0148c001",

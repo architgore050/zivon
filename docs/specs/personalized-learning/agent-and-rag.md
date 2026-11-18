@@ -715,7 +715,7 @@ The shipped code maps to this contract as follows (`backend/personalized/`):
 | §3 turn protocol | `agent.py` + `turn_router.py` | Two-call turn with live SSE deltas; the teaching anchor row is pre-id'd so `turn.teach.start` carries the id; admission order per §4.6 with idempotency before state validation. |
 | §4 prompts | `prompts.py` | `TEACH_SYSTEM` carries the shared safety-core sentences byte-verbatim (parity test `testing/voice/test_prompt_safety_parity.py`); the personal block is the real second system message (`messages[1]`); weakness/follow-up and excerpts ride as delimited data. |
 | §4.4 decide | `agent.py::_decide_phase` | JSON mode via `llm_manager.run_validation_rounds`; `mastery_signal`/`next_action` are advisory (the server recomputes both); unknown citation ids dropped; zero resolved ⇒ `ungrounded=true`. |
-| §6 RAG | `rag.py` + `scripts/build_personalized_index.py` | Corpus = syllabus + glossary + published lessons + cached NCERT pages (absent cache ⇒ recorded in the manifest, never substituted; `sources/exam/` is never read — DEC-COMP-001). Version = 16-hex sha256 over syllabus digest + lesson content hashes + pack digest + embedder id + chunker version. Embedder unavailable ⇒ marked `lexical_fallback`. |
+| §6 RAG | `rag.py` (owns `RetrievalPorts` and the `Embedder` protocol) + `scripts/build_personalized_index.py` | Corpus = syllabus + glossary + published lessons + cached NCERT pages (absent cache ⇒ recorded in the manifest, never substituted; `sources/exam/` is never read — DEC-COMP-001). Version = 16-hex sha256 over syllabus digest + lesson content hashes + pack digest + embedder id + chunker version. Embedder unavailable ⇒ marked `lexical_fallback`. |
 | §7 route | `config.py` + `agent.build_llm_config` | `ZIVON_PERSONALIZED_*`; boot refuses an enabled engine without base URL/key; no `max_tokens`; `x-opencode-session` is the hashed session id. |
 | §8 injection | `agent.py`, `prompts.py` | Bank-first arming: the model only selects the bank item — the key always comes from the `question_bank` row (or the server-only `answer_key` column for generated items); keys are stripped from every client payload. |
 | §10 events | map rows `personalized.turn.complete` / `.stage.change` / `.check.answer` / `.session.resumed` / `.index.loaded` / `.index.missing` | EVT-PL-03/04/05/08 register ids; emitted through `logging_manager.log_event` only; counts/latency only, never text. |
@@ -738,6 +738,14 @@ Deliberate readings (recorded, not silent):
 - **`artifact_request`** is validated then dropped: PL3 owns the builder.
 - `personalized_usage.reason` is not a column: a blocked reservation writes
   one `quota_blocked` row (§4.6).
+- **Slim-image dependency contract (intake fix, 2026-11-18):**
+  `backend/requirements.txt` pins **numpy only**; the optional embedding
+  backends (fastembed / sentence-transformers) stay out of the slim backend
+  and are imported lazily in `rag.py::get_embedder`. An index present without
+  an embedder degrades to the honestly-marked `lexical_fallback` — never a
+  silent 503. `testing/backend/test_personalized_boot_wiring.py` smoke-checks
+  the requirements file and the no-embedder fallback path (the sandbox has no
+  Docker daemon, so the Dockerfile build itself could not be run here).
 - Eval goldens: `EV-PL-001/002` run deterministic checkers only in this PR;
   `DET-PL01-SM` replays the teach→check→adapt→worked-example and skip
   transcripts (the diagnostic transcript's arming walk is a known gap; its

@@ -199,7 +199,8 @@ def _wire_personalized_agent(app: FastAPI, cfg: BackendConfig) -> None:
         return
     from pathlib import Path
 
-    from .logging_shim import ErrorClass as _ErrorClass, log_event
+    from .logging_shim import ErrorClass as _ErrorClass
+    from .logging_shim import log_event
 
     index_dir = cfg.personalized_index_dir or str(
         Path(cfg.runs_dir) / "personalized-index"
@@ -281,7 +282,7 @@ def _wire_personalized_agent(app: FastAPI, cfg: BackendConfig) -> None:
             model_client=LLMManagerClient(cfg),
             bank=QuestionBank(app.state.db),
         )
-    except Exception as exc:  # noqa: BLE001 — the honest 503 stays wired
+    except Exception as exc:
         logger.exception(
             "personalized turn engine not wired (%s); the turn endpoint "
             "answers 503 E-PL-MODEL-DOWN",

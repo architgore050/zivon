@@ -41,6 +41,7 @@ sys.path.insert(0, str(REPO_ROOT))
 import numpy as np
 
 from backend.personalized.rag import (
+    Embedder,
     FixtureEmbedder,
     IndexError_,
     chunks_from_glossary,
@@ -241,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
     syllabus_sha = sources_meta["syllabus"]["sha256"]
     pack_sha = _pack_sha256()
 
+    embedder: Embedder
     if args.embedder == "fixture":
         embedder = FixtureEmbedder()
     elif args.embedder == "fastembed":

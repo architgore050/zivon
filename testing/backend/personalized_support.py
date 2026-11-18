@@ -224,7 +224,7 @@ def default_bank() -> StaticBank:
 def build_fixture_index(tmp_dir: Path) -> RagIndex:
     """A tiny deterministic index (fixture embedder) with one chunk per
     source kind, scoped to the two probe concepts."""
-    chunks = [
+    chunks: list[dict[str, Any]] = [
         {
             "chunk_id": "ncert-science-10#p0148c001",
             "text": "The angle of incidence is equal to the angle of reflection. The image formed by a plane mirror is virtual and erect.",
@@ -343,6 +343,7 @@ class PersonalizedAgentSupport(unittest.TestCase):
         import json as _json
 
         session = self.store.get_session("u-1", self.session_id)
+        assert session is not None, "probe session must exist"
         state = _json.loads(_json.dumps(session["state"]))
         state["started_at_stage"] = "diagnose"
         self.db.execute(

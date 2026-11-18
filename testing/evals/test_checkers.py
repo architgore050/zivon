@@ -31,9 +31,11 @@ class TestDeterministicCheckers(unittest.TestCase):
                 total_executed += 1
         # 31 was the baseline before the four P2 assessment checkers landed
         # (EV-ASM-001..004), then 35 before the four P3 exam/series checkers
-        # (EV-EXM-001, EV-SER-001..003), both 2026-11-17. The count is pinned so
+        # (EV-EXM-001, EV-SER-001..003), both 2026-11-17, then 39 before the
+        # seven W5.5 PL2 checkers (DET-PL01-SM/SCHEMA/SCORE + DET-PL02-CITATIONS/
+        # PROVENANCE/SCOPE/FALLBACK), 2026-11-18. The count is pinned so
         # a checker silently disappearing fails here.
-        self.assertEqual(total_executed, 39)
+        self.assertEqual(total_executed, 46)
 
     def test_seeded_security_defects_sd_sec_001_to_005_all_caught(self) -> None:
         ctx: dict[str, Any] = {}

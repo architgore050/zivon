@@ -38,7 +38,7 @@ import hashlib
 import json
 import re
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Final, Protocol
 
@@ -47,7 +47,11 @@ from ..errors import APIError
 from ..logging_shim import log_event
 from . import state as sm
 from .prompts import PROMPT_VERSION, decide_messages, teach_messages
-from .rag import Embedder, EmbedderUnavailable, RagIndex, resolve_citations
+from .rag import (
+    EmbedderUnavailable,
+    RetrievalPorts,
+    resolve_citations,
+)
 from .store import PersonalizedStore
 
 if TYPE_CHECKING:
@@ -188,16 +192,6 @@ class BankSource(Protocol):
 
 
 @dataclass
-class RetrievalPorts:
-    """Everything retrieval needs; a `None` index ⇒ `E-CONTENT-UNAVAILABLE`."""
-
-    index: RagIndex | None = None
-    embedder: Embedder | None = None
-    last_mode: str = "n/a"
-    last_ungrounded: bool = False
-
-
-@dataclass
 class TurnContext:
     """Everything one turn may touch (the engine takes no other inputs)."""
 
@@ -289,8 +283,13 @@ class LLMManagerClient:
                     usage_row.output_tokens = int(
                         event.usage.get("completion_tokens", 0) or 0
                     )
-                    details = event.usage.get("prompt_tokens_details") or {}
-                    usage_row.cached_tokens = int(details.get("cached_tokens", 0) or 0)
+                    details = event.usage.get("prompt_tokens_details")
+                    cached = (
+                        int(details.get("cached_tokens", 0) or 0)
+                        if isinstance(details, dict)
+                        else 0
+                    )
+                    usage_row.cached_tokens = cached
             usage_row.latency_ms = int((time.monotonic() - started) * 1000)
             self._pending_usage.append(usage_row)
         except Exception:
@@ -355,7 +354,7 @@ class PersonalizedAgent:
         self,
         *,
         store: PersonalizedStore,
-        config: BackendConfig,
+        config: BackendConfig | None = None,
         retrieval: RetrievalPorts | None = None,
         model_client: ModelClient | None = None,
         bank: BankSource | None = None,
@@ -1174,7 +1173,7 @@ class PersonalizedAgent:
         ctx: TurnContext,
         build_messages: Callable[[list[dict[str, Any]]], list[dict[str, str]]],
         retrieval: dict[str, Any],
-    ) -> Iterator[str]:
+    ) -> Generator[str, None, str]:
         """Stream the teach call, yielding `turn.teach.delta` events live;
         one retry with a shorter excerpt set before first text (§7.5.2); after
         first text a failure fails the turn. Returns the full text."""
@@ -1188,7 +1187,7 @@ class PersonalizedAgent:
                 yield delta
         except APIError:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001 — any transport/backend failure maps to the honest TurnModelDown
             if pieces:
                 raise TurnModelDown() from None
             try:
@@ -1212,7 +1211,7 @@ class PersonalizedAgent:
         ctx: TurnContext,
         build_messages: Callable[[list[dict[str, Any]]], list[dict[str, str]]],
         retrieval: dict[str, Any],
-    ) -> Iterator[TurnEvent]:
+    ) -> Generator[TurnEvent, None, str]:
         """Yield deltas as `turn.teach.delta` events while delegating the
         stream/retry logic to `_stream_teach`; returns the joined text."""
         pieces: list[str] = []
@@ -1321,7 +1320,6 @@ class PersonalizedAgent:
             "source": {"kind": "bank", "item_id": str(item.get("base_item_id"))},
         }
         key: dict[str, Any]
-        expected: str
         if kind == "mcq":
             index = int(answer.get("index", 0))
             letter = "ABCDEFGHIJ"[index] if 0 <= index < len(options) else "A"

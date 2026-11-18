@@ -45,6 +45,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Final, Protocol
@@ -73,6 +74,18 @@ MAX_WRONG_STEM_QUERY_CHARS: Final[int] = 200
 
 _TOKEN_RE = re.compile(r"[a-z0-9]{2,}")
 _SENTENCE_END_RE = re.compile(r"(?<=[.!?।])\s+")
+
+
+@dataclass
+class RetrievalPorts:
+    """Everything retrieval needs at runtime; `None` index ⇒ the honest
+    `E-CONTENT-UNAVAILABLE`. Owned here (the retrieval module), consumed by
+    the agent and the boot wiring."""
+
+    index: RagIndex | None = None
+    embedder: Embedder | None = None
+    last_mode: str = "n/a"
+    last_ungrounded: bool = False
 
 
 class IndexError_(RuntimeError):
@@ -329,8 +342,8 @@ class _SectionTextParser(HTMLParser):
         self._concept_id = ""
         self._section_title = ""
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str]]) -> None:
-        attr_map = dict(attrs)
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_map = {k: (v or "") for k, v in attrs}
         block_id = attr_map.get("id", "")
         if tag == "section" and re.fullmatch(r"b-\d+", block_id or ""):
             self._current = block_id
@@ -583,7 +596,7 @@ class RagIndex:
         version: str,
         manifest: dict[str, Any],
         chunks: list[dict[str, Any]],
-        matrix: np.ndarray,
+        matrix: np.ndarray | None,
     ) -> None:
         self.version = version
         self.manifest = manifest

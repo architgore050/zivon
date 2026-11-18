@@ -412,12 +412,8 @@ class BackendConfig:
             personalized_retention_usage_days=_env_int(
                 "ZIVON_PERSONALIZED_RETENTION_USAGE_DAYS", 90
             ),
-            personalized_model_base_url=_optional_env(
-                "ZIVON_PERSONALIZED_BASE_URL"
-            ),
-            personalized_model_api_key=_optional_env(
-                "ZIVON_PERSONALIZED_API_KEY"
-            ),
+            personalized_model_base_url=_optional_env("ZIVON_PERSONALIZED_BASE_URL"),
+            personalized_model_api_key=_optional_env("ZIVON_PERSONALIZED_API_KEY"),
             personalized_model=os.environ.get(
                 "ZIVON_PERSONALIZED_MODEL", "deepseek-v4.1-flash"
             ).strip()
@@ -445,7 +441,7 @@ class BackendConfig:
         return config
 
     @staticmethod
-    def _validate_personalized_route(config: "BackendConfig") -> None:
+    def _validate_personalized_route(config: BackendConfig) -> None:
         """Boot refusal when the turn engine is switched on without a route
         (§7.3: loud, no silent default). The error never quotes the key."""
         if config.personalized_turn_engine_enabled and (

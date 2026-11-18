@@ -26,7 +26,7 @@ blocked reservation writes a `quota_blocked` usage row (§4.6).
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import Any
 
 from fastapi import APIRouter, Request
@@ -173,9 +173,13 @@ def _prevalidate(
         raise APIError("E-CONFLICT", status_code=409)
     if body.action != "answer" and open_check is not None:
         raise APIError("E-PL-TURN-OPEN", status_code=409)
-    if body.action == "answer" and body.check_id and open_check is not None:
-        if str(body.check_id) != str(open_check.get("check_id")):
-            raise APIError("E-CONFLICT", status_code=409)
+    if (
+        body.action == "answer"
+        and body.check_id
+        and open_check is not None
+        and str(body.check_id) != str(open_check.get("check_id"))
+    ):
+        raise APIError("E-CONFLICT", status_code=409)
     del request, ctx
 
 
@@ -296,7 +300,7 @@ def _personal_instructions(request: Request, user_id: str) -> str | None:
 
 def _respond(
     request: Request,
-    events: Iterator[TurnEvent],
+    events: Iterable[TurnEvent],
     *,
     replay: bool = False,
     quota: QuotaService | None = None,
@@ -307,14 +311,15 @@ def _respond(
     if wants_json:
         collected: list[TurnEvent] = []
         try:
-            for event in events:
-                collected.append(event)
+            collected.extend(events)
         except APIError as exc:
             if not collected and quota is not None and user_id is not None:
                 quota.release_turn(user_id)
             if not collected:
                 raise
             collected.append(_error_event(exc))
+        # An unexpected backend failure becomes an honest turn.error, never a
+        # bare 500 mid-body.
         except Exception:
             if quota is not None and user_id is not None:
                 quota.release_turn(user_id)
@@ -352,7 +357,7 @@ def _respond(
                 quota.release_turn(user_id)
             yield _sse(_error_event(exc))
             return
-        except Exception:
+        except Exception:  # noqa: BLE001 — same mapping on the SSE path
             if quota is not None and user_id is not None:
                 quota.release_turn(user_id)
             yield _sse(

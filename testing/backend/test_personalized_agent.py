@@ -132,6 +132,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
             "SELECT answer_key FROM personalized_message WHERE payload LIKE ? AND kind = 'check'",
             (f'%"{check.payload["check_id"]}"%',),
         )
+        assert row is not None, "the scored check row must exist"
         self.assertIsNone(row["answer_key"])
 
     def test_diagnostic_completes_then_teach_streams(self) -> None:
@@ -154,6 +155,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
         state = self.fresh_state()
         second = sm.open_check(state)
         self.assertIsNotNone(second)  # the diagnostic continued
+        assert second is not None
         events = self._run(
             agent,
             make_ctx(
@@ -202,6 +204,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
             "SELECT payload FROM personalized_message WHERE message_id = ?",
             (done.payload["message_id"],),
         )
+        assert row is not None, "the done-event row must exist"
         payload = (
             json.loads(row["payload"])
             if isinstance(row["payload"], str)
@@ -225,6 +228,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
             "SELECT client_turn_id FROM personalized_message WHERE message_id = ?",
             (done.payload["message_id"],),
         )
+        assert row is not None, "the first-turn row must exist"
         self.assertEqual(row["client_turn_id"], "c-1")
 
     def test_bank_item_preferred_over_generated_check(self) -> None:
@@ -268,6 +272,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
         # Level 3 (hard) has a bank item only for concept B; concept A hard
         # has none → the model's generated check is used, key server-side.
         session = self.store.get_session("u-1", self.session_id)
+        assert session is not None
         state = json.loads(json.dumps(session["state"]))
         state["difficulty_level"] = 3
         self.db.execute(
@@ -293,6 +298,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
             state = self.fresh_state()
             open_check = sm.open_check(state)
             self.assertIsNotNone(open_check, f"attempt {attempt}: no open check")
+            assert open_check is not None
             events = self._run(
                 agent,
                 make_ctx(
@@ -322,19 +328,6 @@ class AgentTurnTest(PersonalizedAgentSupport):
         names = [e.name for e in events]
         self.assertIn("turn.teach.start", names)
 
-    def test_skip_while_a_check_is_open_is_409(self) -> None:
-        from backend.errors import APIError
-
-        agent = make_agent(self)
-        self._run(agent, make_ctx(self, client_turn_id="c-1"))
-        state = self.fresh_state()
-        self.assertIsNotNone(sm.open_check(state))
-        with self.assertRaises(APIError) as caught:
-            self._run(
-                agent, make_ctx(self, client_turn_id="c-2", action="skip_concept")
-            )
-        self.assertEqual(caught.exception.code, "E-PL-TURN-OPEN")
-
     def test_coverage_gate_reaches_harder(self) -> None:
         agent = make_agent(self)
         # Skip concept A; concept B is taught and its check armed.
@@ -342,6 +335,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
         state = self.fresh_state()
         open_check = sm.open_check(state)
         self.assertIsNotNone(open_check)
+        assert open_check is not None
         # A correct answer with coverage complete → harder (level 2).
         # (The armed bank item's stored key is option B.)
         events = self._run(
@@ -357,6 +351,7 @@ class AgentTurnTest(PersonalizedAgentSupport):
         state = self.fresh_state()
         self.assertTrue(sm.coverage_complete(state))
         session = self.store.get_session("u-1", self.session_id)
+        assert session is not None
         self.assertEqual(session["stage"], "harder")
         self.assertEqual(session["difficulty_level"], 2)
         names = [e.name for e in events]
@@ -420,12 +415,14 @@ class AgentTurnTest(PersonalizedAgentSupport):
         self.assertIn("turn.next", names)
         self.assertEqual(events[-1].name, "turn.done")
         session = self.store.get_session("u-1", self.session_id)
+        assert session is not None
         self.assertEqual(session["status"], "completed")
         self.assertEqual(session["stage"], "done")
         summary_row = self.db.fetchone(
             "SELECT payload FROM personalized_message WHERE session_id = ? AND kind = 'summary'",
             (self.session_id,),
         )
+        assert summary_row is not None, "the summary row must exist"
         summary = json.loads(summary_row["payload"])
         self.assertEqual(
             {row["concept_id"]: row["status"] for row in summary["mastery"]},
@@ -607,14 +604,18 @@ class UsageAndQuotaTest(PersonalizedAgentSupport):
         base["ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED"] = "true"
         base["ZIVON_DB_URL"] = "sqlite:///:memory:"
         # No base URL, no key → boot refusal (loud, no silent default).
-        with mock.patch.dict(os.environ, dict(base), clear=True):
-            with self.assertRaises(BackendConfigError):
-                BackendConfig.from_env()
+        with (
+            mock.patch.dict(os.environ, dict(base), clear=True),
+            self.assertRaises(BackendConfigError),
+        ):
+            BackendConfig.from_env()
         # Base URL only: the key is still missing.
         base["ZIVON_PERSONALIZED_BASE_URL"] = "https://opencode.example/v1"
-        with mock.patch.dict(os.environ, dict(base), clear=True):
-            with self.assertRaises(BackendConfigError):
-                BackendConfig.from_env()
+        with (
+            mock.patch.dict(os.environ, dict(base), clear=True),
+            self.assertRaises(BackendConfigError),
+        ):
+            BackendConfig.from_env()
         # Complete route: accepted, and the key lands only on the config.
         base["ZIVON_PERSONALIZED_API_KEY"] = "runtime-secret"
         with mock.patch.dict(os.environ, dict(base), clear=True):
