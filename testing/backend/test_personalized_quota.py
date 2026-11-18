@@ -229,7 +229,10 @@ class QuotaServiceTest(unittest.TestCase):
 
     def test_retention_purges_expired_rows_and_keeps_referenced_artifacts(self) -> None:
         QuotaService(self.db, _caps())
-        now = datetime.datetime.now(datetime.UTC)
+        # Fixed clock: the IST "yesterday" boundary must not depend on the
+        # wall-clock time this suite happens to run at (UTC 00:00–18:30 and
+        # 18:30–24:00 disagree about which calendar day "yesterday" is).
+        now = datetime.datetime(2026, 11, 17, 12, 0, tzinfo=datetime.UTC)
         old = (now - datetime.timedelta(days=100)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         recent = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         # Expired session with a message; fresh session untouched.
@@ -279,11 +282,16 @@ class QuotaServiceTest(unittest.TestCase):
             "INSERT INTO personalized_usage (usage_id, user_id, created_at) VALUES (?, ?, ?)",
             (uuid7_str(), self.user, recent),
         )
+        # Quota periods: the retention rule keeps "current + yesterday" (IST)
+        # and prunes anything older — two days ago goes, yesterday survives.
+        two_days_ago = (now - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
         yesterday = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        self.db.execute(
-            "INSERT INTO personalized_quota (period, scope, scope_key) VALUES (?, 'user', ?)",
-            (yesterday, self.user),
-        )
+        for period in (two_days_ago, yesterday):
+            self.db.execute(
+                "INSERT INTO personalized_quota (period, scope, scope_key) "
+                "VALUES (?, 'user', ?)",
+                (period, self.user),
+            )
 
         counts = run_personalized_retention(self.db, now_dt=now)
         self.assertEqual(counts["sessions_deleted"], 1)
@@ -291,6 +299,16 @@ class QuotaServiceTest(unittest.TestCase):
         self.assertEqual(counts["artifacts_failed_deleted"], 1)
         self.assertEqual(counts["usage_deleted"], 1)
         self.assertEqual(counts["quota_periods_pruned"], 1)
+        kept = self.db.fetchone(
+            "SELECT COUNT(*) AS c FROM personalized_quota WHERE period = ?",
+            (yesterday,),
+        )
+        assert kept is not None
+        self.assertEqual(
+            int(kept["c"]),
+            1,
+            "the IST-yesterday quota period is retained (current + yesterday)",
+        )
 
         self.assertIsNone(
             self.db.fetchone(

@@ -8,6 +8,7 @@ owner's data only, schema-versioned, never the answer key.
 
 from __future__ import annotations
 
+import datetime
 import json
 import unittest
 from typing import Any, ClassVar
@@ -363,6 +364,52 @@ class PersonalizedSessionsTest(WebAuthSupport):
             headers={"X-CSRF-Token": self.csrf},
         )
         self.assertEqual(second.status_code, 404)
+
+    def test_last_turn_at_advances_on_every_appended_message(self) -> None:
+        """The 90-day TTL clock (data-and-api.md §2.2) tracks the LAST turn.
+
+        `last_turn_at` drives retention (D-PL-05: 90 days from last activity);
+        an appended message must advance it even when it already held an older
+        value — a clock stuck on the session's first turn would delete a live
+        session mid-use.
+        """
+        from backend.personalized.store import PersonalizedStore
+
+        payload = self._create()
+        session_id = payload["session_id"]
+        stale = "2026-05-01T00:00:00.000Z"
+        self.db.execute(
+            "UPDATE personalized_session SET last_turn_at = ? WHERE session_id = ?",
+            (stale, session_id),
+        )
+        store = PersonalizedStore(self.db)
+        store.append_message(
+            session_id=session_id, role="tutor", kind="text", text="hello"
+        )
+        row = self.db.fetchone(
+            "SELECT last_turn_at FROM personalized_session WHERE session_id = ?",
+            (session_id,),
+        )
+        assert row is not None
+        advanced = str(row["last_turn_at"])
+        self.assertGreater(
+            advanced,
+            stale,
+            "appending a message must advance last_turn_at (the retention clock)",
+        )
+        # The list summary's deletes_at moves with the advanced clock too:
+        # advanced last_turn_at + the 90-day retention window.
+        last_dt = datetime.datetime.fromisoformat(advanced)
+        expected_day = (last_dt + datetime.timedelta(days=90)).date().isoformat()
+        listing = self.client.get("/v1/personalized/sessions").json()
+        summary = next(
+            item for item in listing["items"] if item["session_id"] == session_id
+        )
+        self.assertIsNotNone(summary["deletes_at"])
+        self.assertTrue(
+            str(summary["deletes_at"]).startswith(expected_day),
+            "deletes_at must track the last turn, not the first one",
+        )
 
     # -- the honest turn stub + usage ---------------------------------------------------
 

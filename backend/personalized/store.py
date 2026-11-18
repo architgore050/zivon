@@ -425,7 +425,7 @@ class PersonalizedStore:
             tx.execute(
                 """
                 UPDATE personalized_session
-                SET updated_at = ?, last_turn_at = COALESCE(last_turn_at, ?)
+                SET updated_at = ?, last_turn_at = ?
                 WHERE session_id = ?
                 """,
                 (_utc_now_iso(), _utc_now_iso(), session_id),
@@ -645,12 +645,6 @@ class PersonalizedStore:
             "payload": _load_json(row.get("payload")) or {},
             "created_at": row.get("created_at"),
         }
-
-
-_MESSAGE_COLS = """
-    message_id, session_id, turn_index, client_turn_id, role, kind, text,
-    payload, answer_key, created_at
-"""
 
 
 def _uuid7_str() -> str:
