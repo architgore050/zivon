@@ -4,7 +4,7 @@
   "integrity": {
     "status": "ok",
     "versions": {
-      "9": 6
+      "9": 7
     },
     "mixed_versions": [],
     "missing_versions": [],
@@ -249,6 +249,176 @@
         "blocks_available": 38,
         "missing_assets": [],
         "missing_blocks": []
+      }
+    },
+    {
+      "href": "courses/class-10-physics/light-reflection-and-refraction/index.html",
+      "manifest_version": 2,
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "lesson_id": "class-10-light-reflection-and-refraction",
+      "course_id": "class-10-physics",
+      "class": 10,
+      "subject": "physics",
+      "title": "Light – Reflection and Refraction",
+      "lesson_title": "Light – Reflection and Refraction",
+      "chapter": {
+        "query": "Light – Reflection and Refraction",
+        "title": "Light – Reflection and Refraction",
+        "book": "Science - Textbook for Class X",
+        "pages": [
+          1,
+          27
+        ],
+        "number": 9
+      },
+      "status": "lesson_only",
+      "languages": {
+        "default": "en",
+        "available": [
+          "en",
+          "hi",
+          "hi-Latn"
+        ],
+        "missing": []
+      },
+      "counts": {
+        "lesson_blocks": 46,
+        "checks": 31,
+        "worked_examples": 5,
+        "diagrams": 2,
+        "simulations": 0,
+        "reveals": 0,
+        "text_blocks": 8
+      },
+      "concepts": [
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-01",
+          "section_id": "sec-01",
+          "title": "Light, reflection, and the plane mirror"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-02",
+          "section_id": "sec-02",
+          "title": "Spherical mirrors and their images"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-03",
+          "section_id": "sec-03",
+          "title": "Drawing ray diagrams for mirrors"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-04",
+          "section_id": "sec-04",
+          "title": "Sign convention and the mirror formula"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-05",
+          "section_id": "sec-05",
+          "title": "Refraction and the rectangular glass slab"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-06",
+          "section_id": "sec-06",
+          "title": "Laws of refraction and refractive index"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-07",
+          "section_id": "sec-07",
+          "title": "Lenses and their images"
+        },
+        {
+          "concept_id": "class-10-light-reflection-and-refraction-sec-08",
+          "section_id": "sec-08",
+          "title": "Lens formula, magnification, and power"
+        }
+      ],
+      "pipeline_version": "9",
+      "content_hash": "sha256:927ba27aff8607d658d4080cd5fb32f219ec0567332736588d9208638c5a1e85",
+      "default_locale": "en",
+      "locales_available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "titles_by_locale": {
+        "en": "Light – Reflection and Refraction",
+        "hi": "प्रकाश – परावर्तन और अपवर्तन",
+        "hi-Latn": "Light – Reflection aur Refraction"
+      },
+      "translation_status": {
+        "hi": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        },
+        "hi-Latn": {
+          "status": "verified",
+          "fallback_blocks": [],
+          "glossary_version": "1.0.0"
+        }
+      },
+      "chapter_number": 9,
+      "generated_at": "2026-11-18T22:50:18Z",
+      "localized_hrefs": {
+        "en": "courses/class-10-physics/light-reflection-and-refraction/index.html",
+        "hi": "courses/class-10-physics/light-reflection-and-refraction/hi/index.html",
+        "hi-Latn": "courses/class-10-physics/light-reflection-and-refraction/hi-Latn/index.html"
+      },
+      "missing_locales": [],
+      "narration": {
+        "available": false,
+        "manifest": false,
+        "blocks_total": 46,
+        "blocks_available": 0,
+        "missing_assets": [],
+        "missing_blocks": [
+          "b-01",
+          "b-02",
+          "b-03",
+          "b-04",
+          "b-05",
+          "b-06",
+          "b-07",
+          "b-08",
+          "b-09",
+          "b-10",
+          "b-11",
+          "b-12",
+          "b-13",
+          "b-14",
+          "b-15",
+          "b-16",
+          "b-17",
+          "b-18",
+          "b-19",
+          "b-20",
+          "b-21",
+          "b-22",
+          "b-23",
+          "b-24",
+          "b-25",
+          "b-26",
+          "b-27",
+          "b-28",
+          "b-29",
+          "b-30",
+          "b-31",
+          "b-32",
+          "b-33",
+          "b-34",
+          "b-35",
+          "b-36",
+          "b-37",
+          "b-38",
+          "b-39",
+          "b-40",
+          "b-41",
+          "b-42",
+          "b-43",
+          "b-44",
+          "b-45",
+          "b-46"
+        ]
       }
     },
     {
