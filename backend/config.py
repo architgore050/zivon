@@ -461,8 +461,7 @@ class BackendConfig:
         )
         cls._validate_personalized_route(config)
         if config.personalized_artifact_build_enabled and (
-            not config.personalized_llm_base_url
-            or not config.personalized_llm_api_key
+            not config.personalized_llm_base_url or not config.personalized_llm_api_key
         ):
             raise BackendConfigError(
                 "ZIVON_PERSONALIZED_ARTIFACT_BUILDS=true requires the D-PL-07 route "

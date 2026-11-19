@@ -19,12 +19,6 @@ from pathlib import Path
 from typing import Any
 
 from backend.personalized import state as sm
-from backend.personalized.rag import FixtureEmbedder, RagIndex, resolve_citations
-
-from ..config import EvalConfig
-from ..models import EvalCard, IssueRecord
-
-
 from backend.personalized.artifact_prompt import build_user_message
 from backend.personalized.artifact_sandbox import (
     RenderGateUnavailable,
@@ -42,6 +36,10 @@ from backend.personalized.artifacts import (
     normalize_fallback,
     validate_artifact_spec,
 )
+from backend.personalized.rag import FixtureEmbedder, RagIndex, resolve_citations
+
+from ..config import EvalConfig
+from ..models import EvalCard, IssueRecord
 
 CHECK_SM = "DET-PL01-SM"
 CHECK_SCHEMA = "DET-PL01-SCHEMA"
