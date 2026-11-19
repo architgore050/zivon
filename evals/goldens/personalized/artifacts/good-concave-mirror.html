@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; media-src 'none'; form-action 'none'; base-uri 'none'">
+  <style>
+    :root { --paper-light: #F6F0CF; --ink: #1C1B18; --graphite: #5A5748; --pen-blue: #1F3A9E; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--paper-light); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+    .zn-art { margin: 0; padding: 12px 16px 16px; }
+    h1 { font-size: 20px; line-height: 1.2; margin: 0 0 10px; }
+    .zn-art-controls { margin: 0 0 8px; }
+    label[for="u"] { display: block; font-size: 14px; min-height: 40px; line-height: 40px; }
+    input[type="range"] { display: block; width: 100%; min-height: 40px; accent-color: var(--pen-blue); margin: 0; }
+    canvas { display: block; width: 100%; height: auto; border: 1px solid var(--ink); background: var(--paper-light); touch-action: manipulation; }
+    .zn-art-read { font-size: 14px; margin: 8px 0 0; color: var(--ink); min-height: 1.4em; }
+    .zn-art-play { font-size: 14px; min-height: 40px; min-width: 40px; padding: 4px 16px; margin-top: 8px;
+      background: transparent; border: 1px solid var(--ink); border-radius: 2px; color: var(--ink); }
+    .zn-art-play:focus-visible { outline: 3px solid var(--pen-blue); outline-offset: 3px; }
+    .zn-art-note { font-size: 12px; color: var(--graphite); margin: 6px 0 0; }
+  </style>
+</head>
+<body>
+  <main class="zn-art" aria-labelledby="art-title">
+    <h1 id="art-title">Concave mirror: move the object</h1>
+    <div class="zn-art-controls">
+      <label for="u">Object distance u (cm)</label>
+      <input id="u" type="range" min="5" max="60" step="1" value="30">
+    </div>
+    <canvas id="art-canvas" width="480" height="320" role="img"
+            aria-label="Ray diagram: object arrow, concave mirror arc, focal points, and the image arrow for the chosen object distance"></canvas>
+    <p class="zn-art-read" id="art-read" aria-live="polite">u = 30 cm</p>
+    <button type="button" class="zn-art-play" id="art-play">Play</button>
+    <p class="zn-art-note">Image position follows the mirror equation 1/v = 1/f − 1/u with f = 15 cm.</p>
+  </main>
+  <script>
+    (function () {
+      'use strict';
+      var F = 15;                 // focal length, cm (cited claim)
+      var SCALE = 5.2;            // cm -> canvas px, axis is data-driven
+      var canvas = document.getElementById('art-canvas');
+      var g = canvas.getContext('2d');
+      var read = document.getElementById('art-read');
+      var play = document.getElementById('art-play');
+      var slider = document.getElementById('u');
+      var running = false;
+      var rafId = 0;
+      var lastFpsPost = 0;
+      var frames = 0;
+      var framesStartedAt = 0;
+
+      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Mirror equation from the cited claim: 1/v = 1/f - 1/u  =>  v = f*u/(u - f)
+      function imageDistance(u) {
+        return (F * u) / (u - F);
+      }
+
+      function axisX(cm) {
+        return canvas.width / 2 + cm * SCALE;
+      }
+
+      function draw() {
+        var u = Number(slider.value);
+        var v = imageDistance(u);
+        g.clearRect(0, 0, canvas.width, canvas.height);
+        g.save();
+        g.lineWidth = 2.6; g.strokeStyle = '#1C1B18'; g.fillStyle = '#1C1B18';
+
+        // principal axis (graphite guide, dashed)
+        g.strokeStyle = '#5A5748'; g.setLineDash([6, 4]); g.lineWidth = 1.5;
+        g.beginPath(); g.moveTo(10, canvas.height / 2); g.lineTo(canvas.width - 10, canvas.height / 2); g.stroke();
+        g.setLineDash([]);
+
+        // concave mirror arc at x = 0
+        g.strokeStyle = '#1C1B18'; g.lineWidth = 3;
+        g.beginPath();
+        g.ellipse(axisX(0), canvas.height / 2, 26, 90, 0, Math.PI / 2, (3 * Math.PI) / 2, false);
+        g.stroke();
+
+        // focal points C = 2f, F = f
+        drawPoint(axisX(2 * F), canvas.height / 2, 'C');
+        drawPoint(axisX(F), canvas.height / 2, 'F');
+
+        // object arrow (upright, pen-blue: the live quantity)
+        drawArrow(axisX(u), canvas.height / 2, axisX(u), canvas.height / 2 - 60, '#1F3A9E', 3);
+
+        // image arrow: real inverted beyond C when u > f, virtual behind mirror when u < f
+        var imgLen = (60 * Math.abs(v)) / Math.max(u, 1);
+        var real = v > 0;
+        if (real) {
+          drawArrow(axisX(v), canvas.height / 2, axisX(v), canvas.height / 2 + imgLen, '#1F3A9E', 3);
+        } else {
+          g.strokeStyle = '#1F3A9E'; g.setLineDash([4, 4]); g.lineWidth = 3;
+          g.beginPath(); g.moveTo(axisX(v), canvas.height / 2); g.lineTo(axisX(v), canvas.height / 2 - imgLen); g.stroke();
+          g.setLineDash([]);
+        }
+
+        read.textContent = describe(u, v);
+        canvas.setAttribute('aria-label', describe(u, v));
+        g.restore();
+      }
+
+      function drawArrow(x1, y1, x2, y2, color, width) {
+        g.strokeStyle = color; g.fillStyle = color; g.lineWidth = width;
+        g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+        var head = 9;
+        var ang = Math.atan2(y2 - y1, x2 - x1);
+        g.beginPath();
+        g.moveTo(x2, y2);
+        g.lineTo(x2 - head * Math.cos(ang - Math.PI / 7), y2 - head * Math.sin(ang - Math.PI / 7));
+        g.lineTo(x2 - head * Math.cos(ang + Math.PI / 7), y2 - head * Math.sin(ang + Math.PI / 7));
+        g.closePath(); g.fill();
+      }
+
+      function drawPoint(x, y, name) {
+        g.strokeStyle = '#1C1B18'; g.fillStyle = '#1C1B18'; g.lineWidth = 2;
+        g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill();
+        g.fillText(name, x - 4, y - 10);
+      }
+
+      function describe(u, v) {
+        var kind;
+        if (v > 0 && u > 2 * F) { kind = 'real, inverted, smaller (between F and C)'; }
+        else if (v > 0 && u === 2 * F) { kind = 'real, inverted, same size (at C)'; }
+        else if (v > 0 && u > F) { kind = 'real, inverted, enlarged (beyond C)'; }
+        else if (u === F) { kind = 'reflected rays parallel: no image'; }
+        else { kind = 'virtual, upright, enlarged (behind the mirror)'; }
+        return 'u = ' + u + ' cm, v = ' + (u === F ? '∞' : round1(Math.abs(v)) + ' cm') + ' — ' + kind;
+      }
+
+      function round1(n) { return Math.round(n * 10) / 10; }
+
+      function postHarness(type, extra) {
+        var msg = { source: 'zivon-artifact', v: 1, type: type };
+        for (var key in extra) { if (extra.hasOwnProperty(key)) { msg[key] = extra[key]; } }
+        window.parent.postMessage(msg, '*');
+      }
+
+      function frame(now) {
+        if (!running) { return; }
+        frames += 1;
+        if (now - framesStartedAt >= 1000) {
+          postHarness('fps', { frames: frames, elapsed_ms: Math.round(now - framesStartedAt) });
+          frames = 0; framesStartedAt = now;
+        }
+        draw();
+        rafId = window.requestAnimationFrame(frame);
+      }
+
+      function start() {
+        if (running) { return; }
+        running = true;
+        frames = 0; framesStartedAt = performance.now();
+        play.textContent = 'Pause';
+        rafId = window.requestAnimationFrame(frame);
+      }
+
+      function stop() {
+        running = false;
+        if (rafId) { window.cancelAnimationFrame(rafId); rafId = 0; }
+        play.textContent = 'Play';
+        draw();
+      }
+
+      slider.addEventListener('input', function () {
+        draw();
+        var now = Date.now();
+        if (now - lastFpsPost >= 250) {   // throttle the state mirror >= 250 ms (§4)
+          lastFpsPost = now;
+          postHarness('state', { summary: read.textContent });
+        }
+      });
+      play.addEventListener('click', function () { if (running) { stop(); } else { start(); } });
+
+      draw();
+      postHarness('ready', { kind: 'simulation' });
+      if (reduced) {
+        // prefers-reduced-motion: render the static first frame; Play starts it.
+        return;
+      }
+      start();
+    })();
+  </script>
+</body>
+</html>

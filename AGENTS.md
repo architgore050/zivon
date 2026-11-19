@@ -27,9 +27,9 @@ environment-variable names.
 
 **Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
 merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
-merged** (PR #77, 2026-11-17) and **PL2 merged** (PR #79, 2026-11-18); **PL3 (generated
-artifacts) in review** on a feature branch, not merged to `main`; **PL4 (frontend) and
-PL5 (evals/security/QA) pending.** Durable deployment pending.
+merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18) and **PL3 (generated
+artifacts) merging** with this PR; **PL4 (frontend) and PL5 (evals/security/QA)
+pending.** Durable deployment pending.
 
 ## Status 2026-11-15 — startup track
 
@@ -46,6 +46,19 @@ acceptance criteria.
   jobs, the account-deletion cascade, and the voice-tutor personal-instruction injection
   (delimited USER-role data block, never system). The teaching turn stays an honest
   `503 E-PL-MODEL-DOWN` until PL2. Spec: `docs/specs/personalized-learning/`.
+  **W5.5 PL3 landed (2026-11-18):** the sandboxed interactive artifacts — the
+  artifact request contract (allow-listed spec, no student text by
+  construction), the content-addressed `personalized_artifact` cache, the hard
+  artifact lint (factory rules + forms/storage/parent/top-nav/self-navigation
+  as a thin wrapper), the D-PL-07 DeepSeek/OpenCode builder engine
+  (`ZIVON_PERSONALIZED_*`; builds fail-closed OFF until the route is
+  configured), the headless render gate + sandbox red-team test, API-PL-13/14
+  (same-origin serving with the §5.2 sandbox headers until the D-PL-09
+  dedicated origin deploys), the viewer host bridge, and eval `EV-PL-003`
+  (1 golden + 7 seeded defects + 4 specs, all green key-free). The artifact
+  generation interface for PL2 is `ensure_artifact` +
+  `app.state.personalized_artifact_builder`. Spec notes:
+  `docs/specs/personalized-learning/interactive-artifacts.md` §12.
   Founder decisions D-PL-05/07/09 are accepted and recorded in
   `docs/backend/adr/0030-personalized-learning.md` (2026-11-18): 90-day retention with
   no cold copy (counsel review before any scale-up), the DeepSeek/OpenCode route above,

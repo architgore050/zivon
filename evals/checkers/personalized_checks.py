@@ -1,4 +1,4 @@
-"""Deterministic checkers for the PL cards `EV-PL-001`/`EV-PL-002`.
+"""Deterministic checkers for the PL cards `EV-PL-001`/`EV-PL-002`/`EV-PL-003`.
 
 Zero model calls, zero network, zero secrets (the deterministic-first funnel,
 `docs/specs/personalized-learning/evals.md`). The state-machine checker
@@ -6,7 +6,10 @@ REPLAYS the golden transcripts through the real machine
 (`backend/personalized/state.py`) — the same functions the runtime uses — so
 an eval cannot drift from the code it claims to measure. Scoring rules are
 reused verbatim via `state.score_answer`; citation resolution via
-`rag.resolve_citations`.
+`rag.resolve_citations`. The artifact checkers (PL3) reuse the production
+lint/spec/cache rules (`backend/personalized/artifacts.py`) instead of
+re-implementing them; the two browser-backed checks run the real headless
+render gate when Chromium is available and record an honest SKIP otherwise.
 """
 
 from __future__ import annotations
@@ -16,6 +19,23 @@ from pathlib import Path
 from typing import Any
 
 from backend.personalized import state as sm
+from backend.personalized.artifact_prompt import build_user_message
+from backend.personalized.artifact_sandbox import (
+    RenderGateUnavailable,
+    run_render_gate,
+    run_sandbox_escape_test,
+)
+from backend.personalized.artifacts import (
+    ARTIFACT_META_CSP,
+    MAX_HTML_BYTES,
+    ArtifactBuildError,
+    ArtifactSpecError,
+    compute_artifact_id,
+    ensure_no_student_text,
+    lint_artifact_html,
+    normalize_fallback,
+    validate_artifact_spec,
+)
 from backend.personalized.rag import FixtureEmbedder, RagIndex, resolve_citations
 
 from ..config import EvalConfig
@@ -540,5 +560,470 @@ def check_lexical_fallback(
     if not result["ungrounded"] or result["excerpts"]:
         issues.append(
             _issue(CHECK_FALLBACK, "fatal", "an empty index must be ungrounded")
+        )
+    return issues
+
+
+GOLDENS_REL = "evals/goldens/personalized/artifacts"
+
+# The seeded-defect corpus (README in the goldens dir): name -> expected rule.
+EXPECTED_DEFECT_RULES: dict[str, str] = {
+    "external-fetch": "LINT_NETWORK_FETCH",
+    "eval": "LINT_EVAL",
+    "localstorage": "LINT_STORAGE",
+    "form": "LINT_FORM",
+    "topnav-link": "LINT_ANCHOR",
+    "oversized": "LINT_SIZE",
+    "missing-label": "LINT_LABEL_MISSING",
+}
+
+# The fixed claim universe the spec fixtures cite against (README).
+SPEC_CLAIM_UNIVERSE = {f"c-{i:02d}" for i in range(1, 9)}
+
+# DET-PL03-NO-STUDENT: the synthetic session free text the artifact path must
+# never see (spec.md: the weakness and the personal instructions).
+NO_STUDENT_CANARY = (
+    "PII_CANARY_7f3a my weakness is that I mix up the image with the object"
+)
+NO_STUDENT_INSTRUCTIONS = "PII_CANARY_9d2e always mention my school name"
+
+
+def _golden_dir(cfg: EvalConfig) -> Path:
+    return cfg.repo_root / GOLDENS_REL
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def check_artifact_lint_defects(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-LINT`: the golden passes; every seeded defect fails with its
+    expected rule."""
+    issues: list[IssueRecord] = []
+    golden_dir = _golden_dir(cfg)
+    golden_path = golden_dir / "good-concave-mirror.html"
+    if not golden_path.is_file():
+        context.setdefault("skipped_checks", {})["DET-PL03-LINT"] = (
+            "golden artifact missing"
+        )
+        return issues
+    golden_hits = lint_artifact_html(_read(golden_path))
+    for hit in golden_hits:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-LINT",
+                category="artifact_lint",
+                message=f"golden artifact must pass the hard lint: {hit}",
+            )
+        )
+    for name, expected_rule in EXPECTED_DEFECT_RULES.items():
+        defect_path = golden_dir / "defects" / f"{name}.html"
+        if not defect_path.is_file():
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-LINT",
+                    category="artifact_lint",
+                    message=f"seeded defect {name}.html is missing from the corpus",
+                )
+            )
+            continue
+        hits = lint_artifact_html(_read(defect_path))
+        rules = {h.split("[")[-1].rstrip("]") for h in hits}
+        if expected_rule not in rules:
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-LINT",
+                    category="artifact_lint",
+                    message=f"seeded defect {name}.html did not fail with "
+                    f"{expected_rule}; got {sorted(rules) or 'no hits'}",
+                )
+            )
+    return issues
+
+
+def check_artifact_doc_contract(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-DOC`: the golden carries the meta CSP, the canvas a11y pair,
+    label/for pairs, the reduced-motion branch, one h1, and no external URL;
+    it stays inside the size/DOM budgets."""
+    issues: list[IssueRecord] = []
+    golden_path = _golden_dir(cfg) / "good-concave-mirror.html"
+    if not golden_path.is_file():
+        context.setdefault("skipped_checks", {})["DET-PL03-DOC"] = (
+            "golden artifact missing"
+        )
+        return issues
+    html = _read(golden_path)
+    meta_csp = ""
+    import re as _re
+
+    for match in _re.finditer(
+        r"""<meta[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>""",
+        html,
+        _re.IGNORECASE,
+    ):
+        # The CSP value quotes 'none'/'unsafe-inline' internally, so capture
+        # by the outer quote style: try double-quoted first, then single.
+        content = _re.search(r'content="([^"]+)"', match.group(0), _re.IGNORECASE)
+        if not content:
+            content = _re.search(r"content='([^']+)'", match.group(0), _re.IGNORECASE)
+        if content:
+            meta_csp = content.group(1)
+    checks: list[tuple[bool, str]] = [
+        (
+            meta_csp == ARTIFACT_META_CSP,
+            "the document must carry the §4 meta CSP byte-exact",
+        ),
+        (
+            'role="img"' in html and "aria-label=" in html and "<canvas" in html,
+            "the canvas must carry role=img + an aria-label",
+        ),
+        ("<h1" in html, "exactly one h1 is required"),
+        (
+            "prefers-reduced-motion" in html,
+            "the reduced-motion branch (static frame + Play) is required",
+        ),
+        ('aria-live="polite"' in html, "the text mirror must be aria-live=polite"),
+        ("<label" in html and "for=" in html, "every control needs a label/for pair"),
+        ("matchMedia" in html, "reduced motion is detected via matchMedia"),
+        ("addEventListener" in html, "handlers must use addEventListener (no on*=)"),
+    ]
+    for ok, why in checks:
+        if not ok:
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-DOC",
+                    category="artifact_a11y",
+                    message=f"golden artifact contract: {why}",
+                )
+            )
+    if len(html.encode("utf-8")) > MAX_HTML_BYTES:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-DOC",
+                category="artifact_size",
+                message="golden artifact exceeds the 120 KB budget",
+            )
+        )
+    return issues
+
+
+def check_artifact_spec_validation(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-SPEC`: valid sim + diagram validate; too-many-controls and
+    unknown-claim-ids behave per contract (reject / drop + weak_grounding)."""
+    issues: list[IssueRecord] = []
+    specs_dir = _golden_dir(cfg) / "specs"
+    expected = {
+        "valid-simulation.json": ("ok", "simulation"),
+        "valid-diagram.json": ("ok", "diagram"),
+        "too-many-controls.json": ("reject", None),
+        "unknown-claim-ids.json": ("weak", None),
+    }
+    for name, (outcome, kind) in expected.items():
+        path = specs_dir / name
+        if not path.is_file():
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-SPEC",
+                    category="artifact_spec",
+                    message=f"spec fixture {name} is missing",
+                )
+            )
+            continue
+        raw = json.loads(_read(path))
+        try:
+            spec, weak_grounding = validate_artifact_spec(
+                raw, available_claim_ids=SPEC_CLAIM_UNIVERSE
+            )
+        except ArtifactSpecError:
+            if outcome == "reject":
+                continue
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-SPEC",
+                    category="artifact_spec",
+                    message=f"{name} was rejected but should validate",
+                )
+            )
+            continue
+        if outcome == "reject":
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-SPEC",
+                    category="artifact_spec",
+                    message=f"{name} validated but must be rejected",
+                )
+            )
+            continue
+        if kind is not None and spec["kind"] != kind:
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-SPEC",
+                    category="artifact_spec",
+                    message=f"{name}: unexpected kind {spec['kind']}",
+                )
+            )
+        if outcome == "weak" and not weak_grounding:
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-SPEC",
+                    category="artifact_spec",
+                    message=f"{name}: dropped unknown claims must mark weak_grounding",
+                )
+            )
+    return issues
+
+
+def check_artifact_cache_identity(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-CACHE`: same spec → same id; `why` excluded; a doctrine/
+    prompt/lint change yields a new id."""
+    issues: list[IssueRecord] = []
+    path = _golden_dir(cfg) / "specs" / "valid-simulation.json"
+    if not path.is_file():
+        context.setdefault("skipped_checks", {})["DET-PL03-CACHE"] = (
+            "spec fixture missing"
+        )
+        return issues
+    spec = json.loads(_read(path))
+    spec.pop("why", None)
+    id_a, hash_a = compute_artifact_id(spec, doctrine_hash="doctrine-a")
+    id_b, hash_b = compute_artifact_id(spec, doctrine_hash="doctrine-a")
+    if (id_a, hash_a) != (id_b, hash_b):
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-CACHE",
+                category="artifact_cache",
+                message="the same spec must produce the same content id",
+            )
+        )
+    id_c, _ = compute_artifact_id(spec, doctrine_hash="doctrine-b")
+    if id_c == id_a:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-CACHE",
+                category="artifact_cache",
+                message="a doctrine hash change must invalidate the cache id",
+            )
+        )
+    spec_with_why = dict(spec)
+    spec_with_why["why"] = "totally different misconception label"
+    id_d, _ = compute_artifact_id(spec_with_why, doctrine_hash="doctrine-a")
+    if id_d != id_a:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-CACHE",
+                category="artifact_cache",
+                message="the why label must be excluded from the content id",
+            )
+        )
+    return issues
+
+
+def check_artifact_no_student_text(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-NO-STUDENT`: the canary weakness/instructions never reach the
+    builder prompt, the stored spec, or the document (T-PL-17)."""
+    issues: list[IssueRecord] = []
+    spec_path = _golden_dir(cfg) / "specs" / "valid-simulation.json"
+    if not spec_path.is_file():
+        context.setdefault("skipped_checks", {})["DET-PL03-NO-STUDENT"] = (
+            "spec fixture missing"
+        )
+        return issues
+    spec = json.loads(_read(spec_path))
+
+    # The structural guard: a spec quoting the student is a hard rejection.
+    quoting = dict(spec)
+    quoting["title"] = f"{spec['title']} — {NO_STUDENT_CANARY}"
+    try:
+        ensure_no_student_text(quoting, [NO_STUDENT_CANARY, NO_STUDENT_INSTRUCTIONS])
+    except ArtifactSpecError:
+        pass
+    else:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-NO-STUDENT",
+                category="artifact_privacy",
+                message="a spec quoting the session's weakness must be rejected",
+            )
+        )
+
+    # The build prompt for the clean spec carries no canary either way.
+    from backend.personalized.artifact_prompt import ArtifactDesignContext
+
+    design = ArtifactDesignContext(
+        doctrine_block="", palette_block="", doctrine_hash="h"
+    )
+    prompt = build_user_message(spec, [], design)
+    for canary in (NO_STUDENT_CANARY, NO_STUDENT_INSTRUCTIONS):
+        if canary in prompt:
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-NO-STUDENT",
+                    category="artifact_privacy",
+                    message="the builder prompt must never contain session free text",
+                )
+            )
+
+    # The clean spec passes the guard (the guard must not over-reject).
+    try:
+        ensure_no_student_text(spec, [NO_STUDENT_CANARY, NO_STUDENT_INSTRUCTIONS])
+    except ArtifactSpecError as exc:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-NO-STUDENT",
+                category="artifact_privacy",
+                message=f"the clean spec must pass the no-student-text guard: {exc.problems}",
+            )
+        )
+    return issues
+
+
+def check_artifact_fallback_payload(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-FALLBACK`: the stored fallback is always honest — a diagram
+    fallback that is not provably safe downgrades to text, and a build
+    failure carries the fallback for the turn (§8)."""
+    issues: list[IssueRecord] = []
+    safe = {
+        "kind": "diagram",
+        "svg": "<svg viewBox='0 0 10 10'><circle cx='5' cy='5' r='4'/></svg>",
+    }
+    unsafe = {"kind": "diagram", "svg": "<svg><script>alert(1)</script></svg>"}
+    text_only = {"kind": "text"}
+    if normalize_fallback(safe).get("kind") != "diagram":
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-FALLBACK",
+                category="artifact_fallback",
+                message="a safe diagram fallback must survive normalization",
+            )
+        )
+    if normalize_fallback(unsafe).get("kind") != "text":
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-FALLBACK",
+                category="artifact_fallback",
+                message="an unsafe fallback SVG must downgrade to the text fallback",
+            )
+        )
+    if normalize_fallback(text_only).get("kind") != "text":
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-FALLBACK",
+                category="artifact_fallback",
+                message="a text fallback must pass through",
+            )
+        )
+    try:
+        raise ArtifactBuildError(
+            "lint", "forced", extra={"fallback": normalize_fallback(safe)}
+        )
+    except ArtifactBuildError as exc:
+        if exc.extra.get("fallback", {}).get("kind") != "diagram":
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id="DET-PL03-FALLBACK",
+                    category="artifact_fallback",
+                    message="a forced build failure must carry the fallback payload",
+                )
+            )
+    return issues
+
+
+def check_artifact_render_gate(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-RENDER`: the golden in headless Chromium with network aborted —
+    zero console errors, zero network attempts, no navigation, no 360 px
+    overflow, `ready` ≤ 5 s, fps floor. SKIPPED (never passed) when Chromium
+    is unavailable."""
+    issues: list[IssueRecord] = []
+    golden_path = _golden_dir(cfg) / "good-concave-mirror.html"
+    if not golden_path.is_file():
+        context.setdefault("skipped_checks", {})["DET-PL03-RENDER"] = (
+            "golden artifact missing"
+        )
+        return issues
+    try:
+        report = run_render_gate(_read(golden_path))
+    except RenderGateUnavailable as exc:
+        context.setdefault("skipped_checks", {})["DET-PL03-RENDER"] = str(exc)
+        return issues
+    context["render_report"] = {
+        "render_ms": report.render_ms,
+        "ready_ms": report.ready_ms,
+        "dom_nodes": report.dom_nodes,
+        "median_fps": report.median_fps,
+        "network_attempts": report.network_attempts,
+    }
+    for failure in report.failures:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-RENDER",
+                category="artifact_render",
+                message=f"render gate: {failure}",
+            )
+        )
+    return issues
+
+
+def check_artifact_sandbox_redteam(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-PL03-SANDBOX`: the red-team artifact runs inside a real sandboxed
+    iframe (opaque origin) and cannot read the parent, navigate the top,
+    open a popup, or navigate itself. SKIPPED when Chromium is unavailable."""
+    issues: list[IssueRecord] = []
+    golden_dir = _golden_dir(cfg)
+    redteam_path = golden_dir / "redteam.html"
+    if not redteam_path.is_file():
+        context.setdefault("skipped_checks", {})["DET-PL03-SANDBOX"] = (
+            "red-team artifact missing"
+        )
+        return issues
+    try:
+        report = run_sandbox_escape_test(_read(redteam_path))
+    except RenderGateUnavailable as exc:
+        context.setdefault("skipped_checks", {})["DET-PL03-SANDBOX"] = str(exc)
+        return issues
+    for failure in report.get("failures", []):
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id="DET-PL03-SANDBOX",
+                category="artifact_sandbox",
+                message=f"sandbox escape: {failure}",
+            )
         )
     return issues

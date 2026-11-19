@@ -11,11 +11,19 @@ be SQLite-portable (the containerless empty→head test) and valid PostgreSQL 16
 `abuse_bucket.endpoint_family` CHECK widenings, the retention jobs (§2.7),
 `backend/personalized/{store,preferences,quota,retention,router}.py`, the
 preferences + session + usage endpoints (§4.1–§4.9 minus artifacts), and the
-voice prompt injection (§5). **Still spec, not code:** the SSE turn endpoint
-behaviour beyond its honest `503 E-PL-MODEL-DOWN` stub (§4.6's event catalogue
-is PL2), the artifact endpoints API-PL-13/14 (PL3), and the catalog coverage
-response body (§4.2 API-PL-04 answers `503 E-CONTENT-UNAVAILABLE` until the
-index exists). The per-endpoint hourly sub-caps of the endpoint table
+voice prompt injection (§5). **PL3 landed (2026-11-18):** the artifact
+endpoints API-PL-13/14 (`backend/personalized/artifact_router.py`), the
+content-addressed cache + hard lint + status machine
+(`backend/personalized/artifacts.py`), the D-PL-07 builder engine
+(`backend/personalized/artifact_prompt.py`, fail-closed off until
+`ZIVON_PERSONALIZED_ARTIFACT_BUILDS=true` with the route configured), the
+headless render gate (`backend/personalized/artifact_sandbox.py`), and the
+viewer host bridge (`frontend/assets/personalized-artifact.js` +
+`web/templates/app/partials/artifact_viewer.html`). **Still spec, not code:**
+the SSE turn endpoint behaviour beyond its honest `503 E-PL-MODEL-DOWN` stub
+(§4.6's event catalogue is PL2), and the catalog coverage response body (§4.2
+API-PL-04 answers `503 E-CONTENT-UNAVAILABLE` until the index exists). The
+per-endpoint hourly sub-caps of the endpoint table
 (preferences 10/h, delete/end 20/h) are enforced as the `personalized_ip`
 20/min family in PL1; the families and windows live in `backend/abuse.py`.
 

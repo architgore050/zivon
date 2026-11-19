@@ -1,6 +1,11 @@
 # Workstreams — PL1…PL5
 
-Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3 in review on a feature branch, not merged (2026-11-19); PL4–PL5 not started.** This file is the
+Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3
+implemented (2026-11-18); PL4–PL5 not started.** PL3 landed against this
+document's decide contract as the internal generation interface
+(`ensure_artifact` + the `ArtifactBuilder` seam on
+`app.state.personalized_artifact_builder`); PL2 wires it into the teaching turn.
+This file is the
 execution split for **W5.5** in [`TIMELINE.md`](../../../TIMELINE.md). Each
 workstream is one agent-sized PR series; a PR never edits another workstream's
 owned files without the owner's review.
@@ -109,6 +114,20 @@ time on the OpenCode route (measure, then tune effort/deadline).
 ---
 
 ## 4. PL3 — artifacts
+
+**Status: implemented (2026-11-18).** Files:
+`backend/personalized/{artifacts,artifact_prompt,artifact_sandbox,artifact_router}.py`,
+`web/templates/app/partials/artifact_viewer.html`,
+`frontend/assets/personalized-artifact.js`,
+`evals/cards/EV-PL-003.yaml`,
+`evals/checkers/personalized_checks.py`,
+`evals/goldens/personalized/artifacts/`. Config: `ZIVON_PERSONALIZED_*`
+(D-PL-07 route; builds fail-closed off until the route is configured).
+Exit-gate evidence: the golden artifact passes lint + the render gate
+(0 console errors, 0 network attempts, ~60 fps median, `ready` in ms), all 7
+seeded defects fail with their expected lint rules, the red-team probe cannot
+escape the opaque-origin sandbox, cache/refcount/purge and the API contract
+are unit-tested, and `EV-PL-003` passes the smoke suite key-free.
 
 **Goal:** the safest possible generated visual, with a fallback that always
 works.

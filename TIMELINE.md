@@ -24,9 +24,9 @@ environment-variable names.
 
 **Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
 merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
-merged** (PR #77, 2026-11-17) and **PL2 merged** (PR #79, 2026-11-18); **PL3 (generated
-artifacts) in review** on a feature branch, not merged to `main`; **PL4 (frontend) and
-PL5 (evals/security/QA) pending.** Durable deployment also pending (the challenge demo
+merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18) and **PL3 (generated
+artifacts) merging** with this PR; **PL4 (frontend) and PL5 (evals/security/QA)
+pending.** Durable deployment also pending (the challenge demo
 tunnel is historical). The status block and dated log below are preserved as written.
 
 ## Status 2026-11-15 — startup track
@@ -102,6 +102,16 @@ retention, no cold copy, counsel review before any scale-up), **D-PL-07** (routi
 recorded in `docs/backend/adr/0030-personalized-learning.md` (2026-11-18); the remaining
 eight are open recommendations, and each open one is labelled a recommendation wherever the
 spec states it.
+
+**Progress (2026-11-19):** PL1 landed (2026-11-17), **PL2 landed (2026-11-18)** and
+**PL3 landed (2026-11-18)** — the sandboxed generated artifacts end to end (request
+contract, content-addressed cache, hard lint, D-PL-07 builder engine
+fail-closed, render gate + sandbox red-team, API-PL-13/14, viewer host bridge,
+`EV-PL-003` green key-free), with PL2's teaching turn calling `ensure_artifact`
+through `app.state.personalized_artifact_builder`; PL4 owns the session
+screens, PL5 the remaining evals. See
+`docs/specs/personalized-learning/workstreams.md` §4 and
+`interactive-artifacts.md` §12.
 
 **Not in this wave:** payments/plans, voice inside personalized learning, parent/teacher
 views, sharing, an inferred learner profile, model tools/browsing, verbatim CBSE items.

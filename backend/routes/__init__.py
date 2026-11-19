@@ -33,6 +33,9 @@ def register_routes(app: FastAPI) -> None:
     # session surface under /v1/personalized (data-and-api.md §4.2). Imported
     # lazily: the personalized router reuses this package's auth helpers, so
     # an eager import here would be circular.
+    # PL3 (API-PL-13/14): the artifact fetch/status routes live in their own
+    # module — same lazy mount, same auth helpers.
+    from ..personalized.artifact_router import router as artifact_router
     from ..personalized.router import (
         preferences_router as personalized_preferences_router,
     )
@@ -45,3 +48,4 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(personalized_preferences_router)
     app.include_router(personalized_router)
     app.include_router(personalized_turn_router)
+    app.include_router(artifact_router)

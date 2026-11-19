@@ -1,0 +1,91 @@
+card_id: EV-PL-003
+version: 1
+title: Artifact safety, design, and fallback (sandboxed generated visuals)
+stage: PL3-artifacts
+agent_role: Visual Builder
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/personalized/artifacts
+  seeded_defects:
+  - external-fetch
+  - eval
+  - localstorage
+  - form
+  - topnav-link
+  - oversized
+  - missing-label
+  source_catalog_ref: docs/frontend/design-doctrine.md
+deterministic_checks:
+- id: DET-PL03-LINT
+  entrypoint: evals.checkers.personalized_checks:check_artifact_lint_defects
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifacts:lint_artifact_html (wraps factory.lint)
+  description: The golden good artifact passes the hard artifact lint with zero
+    hits and each of the seven seeded defects (external fetch, eval, localStorage,
+    form, top-nav anchor, oversized, missing label) fails with its expected rule
+    id. Any lint hit is a failure, never a warning (interactive-artifacts.md §3).
+- id: DET-PL03-DOC
+  entrypoint: evals.checkers.personalized_checks:check_artifact_doc_contract
+  severity_on_fail: fatal
+  reuses_factory_rule: null
+  description: The golden carries the §4 meta CSP byte-exact, role=img + aria-label
+    on the canvas, label/for pairs, the aria-live text mirror, the reduced-motion
+    branch, addEventListener-only handlers, and stays inside the 120 KB budget.
+- id: DET-PL03-SPEC
+  entrypoint: evals.checkers.personalized_checks:check_artifact_spec_validation
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifacts:validate_artifact_spec
+  description: The two valid specs (simulation, diagram) validate against the fixed
+    claim universe; too-many-controls is rejected (cap 3); unknown claim ids are
+    dropped and the empty remainder marks weak_grounding while the build proceeds.
+- id: DET-PL03-CACHE
+  entrypoint: evals.checkers.personalized_checks:check_artifact_cache_identity
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifacts:compute_artifact_id
+  description: The same spec produces the same content id, the why label is excluded
+    from the hash, and a doctrine-hash change yields a new id (cache invalidation).
+- id: DET-PL03-NO-STUDENT
+  entrypoint: evals.checkers.personalized_checks:check_artifact_no_student_text
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifacts:ensure_no_student_text
+  description: A canary weakness/instructions string never reaches the builder
+    prompt, the stored spec, or the document; a spec quoting the session text is
+    hard-rejected and the clean spec passes (cross-student-leak guard, T-PL-17).
+- id: DET-PL03-FALLBACK
+  entrypoint: evals.checkers.personalized_checks:check_artifact_fallback_payload
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifacts:normalize_fallback
+  description: A safe diagram fallback survives normalization, an unsafe SVG
+    downgrades to text, and a forced build failure carries the fallback payload
+    for the turn (§8).
+- id: DET-PL03-RENDER
+  entrypoint: evals.checkers.personalized_checks:check_artifact_render_gate
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifact_sandbox:run_render_gate
+  description: Headless Chromium with all network aborted — zero console errors,
+    zero network attempts, no navigation, no 360 px overflow, ready <= 5 s, fps
+    floor 24, no long task > 200 ms, reduced-motion static frame. SKIPPED (never
+    passed) when Chromium is unavailable.
+- id: DET-PL03-SANDBOX
+  entrypoint: evals.checkers.personalized_checks:check_artifact_sandbox_redteam
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifact_sandbox:run_sandbox_escape_test
+  description: The red-team artifact inside a real sandbox="allow-scripts" iframe
+    cannot read parent DOM/storage, navigate the top, open a popup, submit a form,
+    or replace itself without tripping the second-load contract. Any escape is
+    fatal and blocks the wave. SKIPPED (never passed) when Chromium is unavailable.
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

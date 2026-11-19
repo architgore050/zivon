@@ -1,0 +1,43 @@
+{
+  "kind": "simulation",
+  "title": "Four-slider sandbox",
+  "learning_goal": "Should be rejected: a simulation carries at most three controls",
+  "controls": [
+    {
+      "id": "a",
+      "label": "Object distance (cm)",
+      "min": 5,
+      "max": 60,
+      "step": 1,
+      "initial": 30
+    },
+    {
+      "id": "b",
+      "label": "Focal length (cm)",
+      "min": 5,
+      "max": 40,
+      "step": 1,
+      "initial": 15
+    },
+    {
+      "id": "c",
+      "label": "Aperture (cm)",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "initial": 10
+    },
+    {
+      "id": "d",
+      "label": "Wavelength (nm)",
+      "min": 380,
+      "max": 780,
+      "step": 10,
+      "initial": 589
+    }
+  ],
+  "cited_claim_ids": [
+    "c-03"
+  ],
+  "why": "wants everything at once"
+}

@@ -1,0 +1,20 @@
+{
+  "kind": "simulation",
+  "title": "Ungrounded sim",
+  "learning_goal": "Unknown claim ids are dropped; an empty citation set marks weak grounding",
+  "controls": [
+    {
+      "id": "u",
+      "label": "Object distance (cm)",
+      "min": 5,
+      "max": 60,
+      "step": 1,
+      "initial": 30
+    }
+  ],
+  "cited_claim_ids": [
+    "c-99",
+    "c-42"
+  ],
+  "why": "guesses the claim ids"
+}

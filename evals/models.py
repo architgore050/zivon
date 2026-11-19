@@ -44,7 +44,8 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
             # EXM (exam ingest) and SER (series) cards join the original seven
             # families. Existing ids stay stable; nothing is renumbered.
             # PL (personalized learning, W5.5) joins additively per Q-5; the
-            # spec contract is docs/specs/personalized-learning/evals.md.
+            # spec contract is docs/specs/personalized-learning/evals.md and
+            # the ids EV-PL-001..005 are fixed there.
             "pattern": "^EV-(CUR|SYN|VIS|PERF|REV|E2E|KID|ASM|EXM|SER|PL)-[0-9]{3}$",
         },
         "version": {"type": "integer", "minimum": 1},
@@ -80,9 +81,11 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "E3-series",
                 "E4-publish",
                 "E1-ingest..E4-publish",
-                # Personalized learning (W5.5 PL2; additive per Q-5).
+                # Personalized learning (W5.5; additive per Q-5; the spec
+                # names the stages in docs/specs/personalized-learning/evals.md).
                 "PL2-agent",
                 "PL2-retrieval",
+                "PL3-artifacts",
             ],
         },
         "agent_role": {
