@@ -27,7 +27,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ISLAND_JS = (REPO_ROOT / "frontend" / "assets" / "personalized.js").resolve()
@@ -137,7 +137,7 @@ class IslandSupport(unittest.TestCase):
         self._pw.stop()
         self._tmp.cleanup()
 
-    def open_page(self, html: str, stub: str | None = None) -> "object":  # noqa: UP037
+    def open_page(self, html: str, stub: str | None = None) -> Page:
         page_path = self.tmp_path / "fixture.html"
         page_path.write_text(html, encoding="utf-8")
         page = self.browser.new_page()
@@ -164,6 +164,7 @@ class TeachStreamTests(IslandSupport):
         card_text = page.inner_text(".pl-card--teach")
         self.assertIn("A concave mirror curves inward", card_text)
         check = page.wait_for_selector("[data-pl-check]")
+        assert check is not None
         self.assertEqual(check.get_attribute("data-check-id"), "chk-9")
         options = page.inner_text(".pl-options")
         self.assertIn("Focus", options)
@@ -234,6 +235,7 @@ class ErrorAndOfflineTests(IslandSupport):
         page = self.open_page(session_fixture(), fetch_stub([SSE_ERROR]))
         page.click("[data-pl-action='explain_directly']")
         retry = page.wait_for_selector("[data-pl-retry]", state="attached")
+        assert retry is not None
         error_card = page.inner_text(".pl-card--error")
         self.assertIn("can't think right now", error_card)
         # The retry replays the SAME client_turn_id (idempotency, §3.4).
@@ -272,6 +274,7 @@ class ArtifactBridgeTests(IslandSupport):
         viewer = page.wait_for_selector(
             "[data-artifact-viewer][data-artifact-id='art42']", state="attached"
         )
+        assert viewer is not None
         self.assertEqual(viewer.get_attribute("data-artifact-status"), "pending")
         self.assertEqual(viewer.get_attribute("data-artifact-src"), "")
         self.assertIn("/v1/personalized/artifacts/art42/status", page.content())

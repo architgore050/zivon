@@ -505,7 +505,9 @@ class SessionPageTests(PersonalizedPageSupport):
             f'name="parent_session_id" value="{self.session_id}"', response.text
         )
         # Starting from the cap form links the new session (display-only).
-        csrf = re.search(r'name="csrf_token" value="([^"]+)"', response.text).group(1)
+        match = re.search(r'name="csrf_token" value="([^"]+)"', response.text)
+        assert match is not None
+        csrf = match.group(1)
         start = self.client.post(
             "/app/personalized/start",
             data={
@@ -543,9 +545,12 @@ class SessionPageTests(PersonalizedPageSupport):
 
     def test_delete_of_another_users_session_is_a_404(self) -> None:
         other = self.other_client()
-        other_csrf = re.search(
-            r'name="csrf_token" value="([^"]+)"', other.get("/app/personalized").text
-        ).group(1)
+        match = re.search(
+            r'name="csrf_token" value="([^"]+)"',
+            other.get("/app/personalized").text,
+        )
+        assert match is not None
+        other_csrf = match.group(1)
         response = other.post(
             f"/app/personalized/{self.session_id}/delete",
             data={"csrf_token": other_csrf},

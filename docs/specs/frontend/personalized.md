@@ -15,7 +15,7 @@ Consumes: `docs/specs/frontend/web-shell.md` (guard/CSP/template seam),
 device**), `docs/specs/personalized-learning/spec.md` (SCR-PL-01…05 and the
 copy rules), `data-and-api.md` §4 (endpoint contract), `agent-and-rag.md` §3.2
 (event catalogue), `interactive-artifacts.md` §5/§12 (the PL3 viewer partial +
-host bridge), and `workstreams.md` §5 (PL4 ownership).
+host bridge), and the personalized-learning workstreams §5 (PL4 ownership).
 
 ## 1. Routes and code paths
 
@@ -93,16 +93,17 @@ Server-rendered transcript (the last 50 messages) + one island
   serialize it; a test pins `answer_key`/key text absence).
 - Header: title, stage tag, quota strip, and the personalization line
   "Using your learning preferences · Edit" only when the account has saved
-  instructions (spec.md §1.5). Notices: soft nudge at 40 turns, the 60-turn
-  cap ("continue from your last session" from the hub), the completed state
-  (read-only transcript, no composer), and the quota/kill-switch copies.
+  instructions (personalized-learning spec §1.5). Notices: soft nudge at 40
+  turns, the 60-turn cap ("continue from your last session" from the hub),
+  the completed state (read-only transcript, no composer), and the
+  quota/kill-switch copies.
 - Composer: `Explain directly` / `I'm stuck` (`explain_directly` / `hint`) —
   both disabled server-side with the title "Submit the open check first" when
   a check is open, because `turn_router` prevalidation rejects those actions
   while a check is armed (§4.6); the island mirrors the same rule after every
   event. The message input (`message` action, 2000 chars, never graded) and
   Send. End session is a plain CSRF form — not buried, no confirmation dialog,
-  reversible by resuming (spec.md §2.6).
+  reversible by resuming (personalized-learning spec §2.6).
 - The island (`window.ZivonPersonalized.mount`, idempotent): fetch + SSE
   parsing of the §3.2 catalogue with `X-CSRF-Token` from the meta tag, one
   `aria-live="polite"` announcement per turn ("Zivon is writing…" then the
@@ -283,7 +284,7 @@ delegation, instructions counter).
 | Item | Owner | Note |
 |---|---|---|
 | Founder visual verdict | founder (same-agent protocol) | The example-first protocol was not run for this slice; the screens follow the base system and the spec's layout sketches. Record the verdict before public launch. |
-| Dashboard quick action | F3 owner | workstreams.md §5 leaves the "Learn" quick action to F3; only the nav entry landed here. |
+| Dashboard quick action | F3 owner | the personalized-learning workstreams §5 leaves the "Learn" quick action to F3; only the nav entry landed here. |
 | No-JS session turns | F11/PL follow-up | Turns need the island; without JS the transcript is readable and the check card says submitting needs JavaScript. A server-side answer route would duplicate PL2 admission and was deliberately not built. |
 | Untranslated UI | UI-translation workstream | Copy is English; the shell carries the saved-language note. |
 | Concept pick without JS | PL follow-up | The concept select stays disabled until a chapter is chosen; with JS it filters. The weakness field covers the same intent server-side. |
