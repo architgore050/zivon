@@ -15,16 +15,69 @@
 # surface for the trivy gate. kubectl is baked in because the run/test views
 # and the two buttons talk to the cluster API (RBAC: integration note I-1).
 
-FROM python:3.12-slim
+# ---- Stage 1 — the kubectl builder (discarded; only the binary ships) ----
+# Since DEP2 (2026-11-19) kubectl is BUILT FROM SOURCE in this stage instead
+# of downloaded from dl.k8s.io. Reason: the prebuilt v1.37.2 binary embeds
+# the go1.26.10 stdlib of the upstream release build (the k8s repo's
+# .go-version), and trivy flags that net/http with HIGH CVE-2026-97054
+# (GO-2026-6854: an HTTP/1 server can crash when its handler reads a request
+# body past the MaxBytesReader limit; fixed in Go 1.26.11; no kubectl patch
+# release carries the fixed toolchain yet). The gate stays hard — no new
+# .trivyignore-dashboard line: the SAME upstream source tag is rebuilt with
+# the patched compiler, which re-embeds the fixed stdlib and zeroes the
+# finding. Every layer of this stage is discarded; the runtime stage gains
+# exactly one static binary and loses curl (nothing is downloaded for the
+# runtime image anymore). Rationale + rebuild ritual: docs/deployment/docker.md.
+#
+# Builder base pinned by tag like every base in this repo (tag pins +
+# freshening layers are the documented convention; a digest re-pin was
+# considered and rejected for Dockerfile.frontend for the same reasons that
+# apply here). The builder never ships, so its layers are not a runtime CVE
+# surface and need no apt freshening. go1.26.11 is deliberately ABOVE the
+# k8s repo's .go-version (1.26.10) — that is the entire point of this stage.
+FROM golang:1.26.11 AS kubectl-builder
 
-# Kubectl version pinned like every other tool (a floating pin would let an
-# upstream release change the gate under us). args so the pin is visible and
-# overridable in one place. Bumped v1.31.2 -> v1.37.2 on 2026-11-10: the old
-# binary's embedded Go stdlib carried fixable HIGH CVEs (net/http, crypto/tls,
-# html/template) that the trivy gate rejects; the current release ships a
-# patched Go. kubectl stays within +/-1 minor of the cluster version at apply
+# kubectl version pinned like every other tool (a floating pin would let an
+# upstream release change the gate under us). Bumped v1.31.2 -> v1.37.2 on
+# 2026-11-10 as a prebuilt download (the old binary's embedded Go stdlib
+# carried fixable HIGH CVEs); on 2026-11-19 the SAME v1.37.2 moved from that
+# download to this source build (CVE-2026-97054, stdlib of the release
+# build). kubectl stays within +/-1 minor of the cluster version at apply
 # time - re-pin together with the cluster upgrade.
 ARG KUBECTL_VERSION=v1.37.2
+# The commit the tag dereferences to — and the gitCommit the OFFICIAL
+# v1.37.2 binary stamps (kubectl version --client=true --output=yaml,
+# checked 2026-11-19). A tag can be retagged; a commit cannot — the same
+# SHA-over-tag rule the third-party CI actions follow. The test below fails
+# the build loudly if the tag ever moves (bump-deliberately ritual).
+ARG KUBECTL_COMMIT=c50e5395f1ae2d4a2c05f28fdcc38c0916cc1a32
+
+WORKDIR /src
+
+# Shallow clone of the exact release tag: deterministic content (the tag
+# pins vendor/ too, so the vendored module versions are exactly upstream's —
+# the three documented .trivyignore-dashboard entries survive this change),
+# git describe stamps the release version, and the checkout is ~10x smaller
+# than a full clone. git ships in the golang image; nothing is installed
+# here — the builder runs upstream's build scripts unmodified.
+RUN git clone --depth 1 --branch "${KUBECTL_VERSION}" \
+      https://github.com/kubernetes/kubernetes.git . \
+    && test "$(git rev-parse HEAD)" = "${KUBECTL_COMMIT}"
+
+# The upstream-supported single-binary build: build/root/Makefile's
+# `make kubectl` -> hack/make-rules/build.sh cmd/kubectl, which stamps
+# gitVersion/gitCommit/gitTreeState from the clone and builds kubectl with
+# CGO_ENABLED=0 (kubectl is in hack/lib/golang.sh's KUBE_STATIC_BINARIES).
+# FORCE_HOST_GO=y makes hack/lib/golang.sh set GOTOOLCHAIN=local so the
+# image's go1.26.11 is used — WITHOUT it the script forces
+# GOTOOLCHAIN=go1.26.10 (the repo's .go-version) and downloads that
+# toolchain, which would rebuild the very stdlib this stage exists to
+# replace.
+RUN FORCE_HOST_GO=y make kubectl
+# Output: /src/_output/local/bin/linux/amd64/kubectl
+
+# ---- Stage 2 — the dashboard runtime (unchanged shape, one binary better) ----
+FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -34,26 +87,29 @@ WORKDIR /app
 
 # Freshen the Debian layer under the floating python:3.12-slim base (the same
 # reasoning as Dockerfile.llm-manager: the base's frozen apt index hides
-# published fixes from trivy). curl + ca-certificates are needed only to
-# fetch kubectl below; tini-free (uvicorn handles its own signals).
+# published fixes from trivy). curl is GONE: kubectl no longer arrives by
+# download. ca-certificates stays an explicit install — kubectl's TLS client
+# for the cluster API resolves the system trust store; the base ships it,
+# spelling it out keeps that true even if the base trims it.
+# tini-free (uvicorn handles its own signals).
 # Whole-tree and unpinned on purpose: Debian drops old point revisions from the
 # archive, so exact pins rot within days — the same call Dockerfile documents
 # for its own apt layer (hadolint DL3008).
 # hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get upgrade -y --no-install-recommends \
-    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# kubectl: the architecture is resolved from dpkg (amd64 on the runners and
-# minikube hosts this repo ships on).
-RUN set -eux; \
-    arch="$(dpkg --print-architecture)"; \
-    curl -fsSL -o /usr/local/bin/kubectl \
-      "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${arch}/kubectl"; \
-    chmod 0555 /usr/local/bin/kubectl; \
-    kubectl version --client=true --output=yaml > /dev/null
+# Only the static kubectl crosses the stage boundary: root-owned 0555 via
+# --chmod (the same pattern as the scripts COPY below — non-root can run it,
+# never write it). The client smoke test runs at build time exactly as it
+# did on the old dl.k8s.io fetch, and the CI dashboard-image job repeats it
+# on the booted container.
+COPY --from=kubectl-builder --chmod=0555 \
+    /src/_output/local/bin/linux/amd64/kubectl /usr/local/bin/kubectl
+RUN kubectl version --client=true --output=yaml > /dev/null
 
 # Install dependencies BEFORE copying code (layer cache: code edits do not
 # re-download the wheels).
