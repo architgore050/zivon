@@ -196,6 +196,107 @@ window.ZIVON_COURSES = [
     "chapter": "How Forces Affect Motion"
   },
   {
+    "href": "courses/class-10-physics/light-reflection-and-refraction/index.html",
+    "course_id": "class-10-physics",
+    "class": 10,
+    "chapter_number": 9,
+    "title": "Light – Reflection and Refraction",
+    "generated_at": "2026-11-18T22:50:18Z",
+    "lesson_title": "Light – Reflection and Refraction",
+    "status": "lesson_only",
+    "languages": {
+      "default": "en",
+      "available": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "missing": []
+    },
+    "counts": {
+      "lesson_blocks": 46,
+      "checks": 31,
+      "worked_examples": 5,
+      "diagrams": 2,
+      "simulations": 0,
+      "reveals": 0,
+      "text_blocks": 8
+    },
+    "concepts": [
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-01",
+        "section_id": "sec-01",
+        "title": "Light, reflection, and the plane mirror"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-02",
+        "section_id": "sec-02",
+        "title": "Spherical mirrors and their images"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-03",
+        "section_id": "sec-03",
+        "title": "Drawing ray diagrams for mirrors"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-04",
+        "section_id": "sec-04",
+        "title": "Sign convention and the mirror formula"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-05",
+        "section_id": "sec-05",
+        "title": "Refraction and the rectangular glass slab"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-06",
+        "section_id": "sec-06",
+        "title": "Laws of refraction and refractive index"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-07",
+        "section_id": "sec-07",
+        "title": "Lenses and their images"
+      },
+      {
+        "concept_id": "class-10-light-reflection-and-refraction-sec-08",
+        "section_id": "sec-08",
+        "title": "Lens formula, magnification, and power"
+      }
+    ],
+    "pipeline_version": "9",
+    "default_locale": "en",
+    "locales_available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "titles_by_locale": {
+      "en": "Light – Reflection and Refraction",
+      "hi": "प्रकाश – परावर्तन और अपवर्तन",
+      "hi-Latn": "Light – Reflection aur Refraction"
+    },
+    "translation_status": {
+      "hi": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      },
+      "hi-Latn": {
+        "status": "verified",
+        "fallback_blocks": [],
+        "glossary_version": "1.0.0"
+      }
+    },
+    "localized_hrefs": {
+      "en": "courses/class-10-physics/light-reflection-and-refraction/index.html",
+      "hi": "courses/class-10-physics/light-reflection-and-refraction/hi/index.html",
+      "hi-Latn": "courses/class-10-physics/light-reflection-and-refraction/hi-Latn/index.html"
+    },
+    "missing_locales": [],
+    "chapter": "Light – Reflection and Refraction"
+  },
+  {
     "href": "courses/class-11-physics/units-and-measurement/index.html",
     "course_id": "class-11-physics",
     "class": 11,

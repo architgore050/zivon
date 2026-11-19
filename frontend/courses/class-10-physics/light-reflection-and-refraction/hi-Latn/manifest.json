@@ -1,0 +1,33 @@
+{
+  "course_id": "class-10-physics",
+  "topic_slug": "light-reflection-and-refraction",
+  "locale": "hi-Latn",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Light – Reflection and Refraction",
+    "hi": "प्रकाश – परावर्तन और अपवर्तन",
+    "hi-Latn": "Light – Reflection aur Refraction"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "narration": {
+    "available": false,
+    "lang": "hi-Latn",
+    "blocks": {}
+  }
+}

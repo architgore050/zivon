@@ -1,0 +1,463 @@
+{
+  "manifest_version": 2,
+  "chapter_id": "class-10-light-reflection-and-refraction",
+  "lesson_id": "class-10-light-reflection-and-refraction",
+  "course_id": "class-10-physics",
+  "subject": "physics",
+  "class": 10,
+  "topic_slug": "light-reflection-and-refraction",
+  "title": "Light – Reflection and Refraction",
+  "lesson_title": "Light – Reflection and Refraction",
+  "status": "lesson_only",
+  "languages": {
+    "default": "en",
+    "available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "missing": []
+  },
+  "counts": {
+    "lesson_blocks": 46,
+    "checks": 31,
+    "worked_examples": 5,
+    "diagrams": 2,
+    "simulations": 0,
+    "reveals": 0,
+    "text_blocks": 8
+  },
+  "concepts": [
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-01",
+      "section_id": "sec-01",
+      "title": "Light, reflection, and the plane mirror"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02",
+      "section_id": "sec-02",
+      "title": "Spherical mirrors and their images"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-03",
+      "section_id": "sec-03",
+      "title": "Drawing ray diagrams for mirrors"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04",
+      "section_id": "sec-04",
+      "title": "Sign convention and the mirror formula"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-05",
+      "section_id": "sec-05",
+      "title": "Refraction and the rectangular glass slab"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06",
+      "section_id": "sec-06",
+      "title": "Laws of refraction and refractive index"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07",
+      "section_id": "sec-07",
+      "title": "Lenses and their images"
+    },
+    {
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08",
+      "section_id": "sec-08",
+      "title": "Lens formula, magnification, and power"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "Light, reflection, and the plane mirror",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-01",
+      "block_ids": [
+        "b-01",
+        "b-02"
+      ]
+    },
+    {
+      "id": "sec-02",
+      "title": "Spherical mirrors and their images",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02",
+      "block_ids": [
+        "b-03",
+        "b-04",
+        "b-05",
+        "b-06",
+        "b-07",
+        "b-08",
+        "b-09",
+        "b-10",
+        "b-11"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "Drawing ray diagrams for mirrors",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-03",
+      "block_ids": [
+        "b-12",
+        "b-13"
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Sign convention and the mirror formula",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04",
+      "block_ids": [
+        "b-14",
+        "b-15",
+        "b-16",
+        "b-17",
+        "b-18",
+        "b-19",
+        "b-20"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "title": "Refraction and the rectangular glass slab",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-05",
+      "block_ids": [
+        "b-21",
+        "b-22",
+        "b-23",
+        "b-24"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Laws of refraction and refractive index",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06",
+      "block_ids": [
+        "b-25",
+        "b-26",
+        "b-27",
+        "b-28",
+        "b-29",
+        "b-30"
+      ]
+    },
+    {
+      "id": "sec-07",
+      "title": "Lenses and their images",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07",
+      "block_ids": [
+        "b-31",
+        "b-32",
+        "b-33",
+        "b-34",
+        "b-35"
+      ]
+    },
+    {
+      "id": "sec-08",
+      "title": "Lens formula, magnification, and power",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08",
+      "block_ids": [
+        "b-36",
+        "b-37",
+        "b-38",
+        "b-39",
+        "b-40",
+        "b-41",
+        "b-42",
+        "b-43",
+        "b-44",
+        "b-45",
+        "b-46"
+      ]
+    }
+  ],
+  "blocks": {
+    "b-01": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-01"
+    },
+    "b-02": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-01"
+    },
+    "b-03": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-04": {
+      "type": "diagram",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-05": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-06": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-07": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-08": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-09": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-10": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-11": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-02"
+    },
+    "b-12": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-03"
+    },
+    "b-13": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-03"
+    },
+    "b-14": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-15": {
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-16": {
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-17": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-18": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-19": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-20": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-04"
+    },
+    "b-21": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-05"
+    },
+    "b-22": {
+      "type": "diagram",
+      "section_id": "sec-05",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-05"
+    },
+    "b-23": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-05"
+    },
+    "b-24": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-05"
+    },
+    "b-25": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06"
+    },
+    "b-26": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06"
+    },
+    "b-27": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06"
+    },
+    "b-28": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06"
+    },
+    "b-29": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06"
+    },
+    "b-30": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-06"
+    },
+    "b-31": {
+      "type": "text",
+      "section_id": "sec-07",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07"
+    },
+    "b-32": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07"
+    },
+    "b-33": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07"
+    },
+    "b-34": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07"
+    },
+    "b-35": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-07"
+    },
+    "b-36": {
+      "type": "text",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-37": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-38": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-39": {
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-40": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-41": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-42": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-43": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-44": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-45": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    },
+    "b-46": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-light-reflection-and-refraction-sec-08"
+    }
+  },
+  "pipeline_version": "9",
+  "content_hash": "sha256:927ba27aff8607d658d4080cd5fb32f219ec0567332736588d9208638c5a1e85",
+  "chapter": {
+    "query": "Light – Reflection and Refraction",
+    "title": "Light – Reflection and Refraction",
+    "book": "Science - Textbook for Class X",
+    "pages": [
+      1,
+      27
+    ],
+    "number": 9
+  },
+  "sources": [
+    {
+      "id": "ncert-science-10",
+      "title": "Science - Textbook for Class X",
+      "license": "NCERT (free educational use)"
+    }
+  ],
+  "run_id": "light-reflection-and-refraction-c10",
+  "generated_at": "2026-11-18T22:50:18Z",
+  "block_counts": {
+    "text": 8,
+    "check": 31,
+    "diagram": 2,
+    "worked_example": 5
+  },
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Light – Reflection and Refraction",
+    "hi": "प्रकाश – परावर्तन और अपवर्तन",
+    "hi-Latn": "Light – Reflection aur Refraction"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "i18n_hashes": {
+    "en": "2984579e92af9340c5f03a6ff0e0adc63268247e5e8f1bd5c5feefc071ebdd83",
+    "hi": "f8b419e47ab667cf51dc4abe249c99356ba46513dc57a2508f47e7ccd769641e",
+    "hi-Latn": "6d4bdcc460a7d0cc219084211b195a2729eb610ab97494563e8fd1300c2193c9"
+  }
+}
