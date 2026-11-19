@@ -1,0 +1,333 @@
+# ============================================================================
+# Zivon PROTOTYPE/PRODUCTION compose path — small-VPS deployment of the
+# product runtime (frontend nginx + core-backend monolith + Postgres 16).
+#
+#   This file is the non-cluster deployment path for the prototype milestone.
+#   It does NOT touch or replace the K8s manifests (k8s/) — that remains the
+#   decided cluster stack (docs/deployment/kubernetes.md). Runbook:
+#   docs/deployment/prototype-deployment.md.
+#
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
+#
+# What is deliberately DIFFERENT from docker-compose.yml (the dev runner):
+#   - ZIVON_ENV=prod hard-set: BackendConfig.from_env(strict_secrets) refuses
+#     to boot without ZIVON_DB_URL / ZIVON_SESSION_TOKEN_KEY /
+#     ZIVON_IP_HASH_SALT (backend/config.py — fail loud, no silent defaults).
+#   - No POSTGRES_HOST_AUTH_METHOD=trust: password auth only.
+#   - Postgres, core-backend bind ONLY 127.0.0.1 on the host; the public
+#     entry is the edge (Caddy `edge` profile here, or Cloudflare Tunnel /
+#     a host reverse proxy — see the runbook). Zivon services serve plain
+#     HTTP behind the edge; TLS terminates at the edge ONLY (locked posture,
+#     docs/deployment/README.md "HTTPS posture").
+#   - Migrations are a one-shot service (`python -m db.migrate upgrade head`,
+#     the same command as the cluster's k8s/26-backend-migrate-job.yaml) that
+#     gates core-backend on service_completed_successfully.
+#   - The admin dashboard / llm-manager node / factory / evals runner are
+#     NOT part of this path: this file deploys the PRODUCT RUNTIME only.
+#
+# Secrets: values come ONLY from the environment file (.env.prod, copied from
+# .env.prod.example, never committed — AGENTS.md). No real value anywhere in
+# this file; the "required" interpolation form (colon-question-mark) makes
+# `up` fail loudly when a value is missing.
+# ============================================================================
+
+name: zivon-prod
+
+services:
+  # --------------------------------------------------------------------------
+  # Hot database (U2, ADR-0001): PostgreSQL 16, image pinned to the SAME tag
+  # as the cluster manifest (k8s/25-postgres.yaml) so a prototype host and the
+  # cluster run the identical engine. PGDATA in a subdirectory, like the
+  # cluster config, so the volume root stays clean for future WAL archives.
+  # Password auth only (POSTGRES_HOST_AUTH_METHOD is deliberately absent —
+  # `trust` is the documented dev posture and must never leak into prod).
+  # The port is published on 127.0.0.1 only: psql, pg_dump backups, and the
+  # assessment-pack import script reach it from the host; nothing else does.
+  postgres:
+    image: postgres:16.6-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-zivon}
+      - POSTGRES_USER=${POSTGRES_USER:-zivon}
+      # Required secret. Fail loud instead of booting a passwordless DB.
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?set-POSTGRES_PASSWORD-in-.env.prod}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - zivon-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-zivon} -d $${POSTGRES_DB:-zivon}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # --------------------------------------------------------------------------
+  # One-shot Alembic migration (ADR-0016): `python -m db.migrate upgrade head`
+  # — the exact command the cluster Job runs (k8s/26). Runs BEFORE
+  # core-backend; the backend starts only after migrations succeed
+  # (service_completed_successfully), so a failed migration is loud and the
+  # old containers keep serving. Idempotent: re-running a completed chain is
+  # a no-op. Linear history, one head (skills/zivon-backend-engineering-skills
+  # §1); expand/contract only — no downgrade path is offered on prod data.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: zivon-backend:0.1.0
+    command: ["python", "-m", "db.migrate", "upgrade", "head"]
+    environment:
+      - ZIVON_ENV=prod
+      # Derived from the POSTGRES_* values above: one source of truth for the
+      # password. Do not set ZIVON_DB_URL separately in .env.prod.
+      - ZIVON_DB_URL=postgresql://${POSTGRES_USER:-zivon}:${POSTGRES_PASSWORD:?set-POSTGRES_PASSWORD-in-.env.prod}@postgres:5432/${POSTGRES_DB:-zivon}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # --------------------------------------------------------------------------
+  # Core backend monolith (ADR-0005, ADR-0020, ADR-0029, D-PL-07/ADR-0030):
+  # FastAPI REST (/v1/*), admin API (/v1/admin/*), the server-rendered web
+  # shell (web/, /app + auth pages), the voice loop mounted in-process
+  # (voice/, /voice/ws), and the personalized-learning turn engine. The
+  # service NAME is `core-backend` so docker/nginx.conf's upstream
+  # (http://core-backend:8000) resolves by name — same contract as the
+  # cluster Service (k8s/27); do not fork the nginx config.
+  #
+  # Liveness stays dumb (/healthz — no external deps; a DB outage must not
+  # restart-storm the container); real readiness is /readyz, which the
+  # edge/nginx layer and the smoke tests in the runbook check explicitly
+  # (skills/zivon-backend-engineering-skills §6 probe pattern).
+  core-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: zivon-backend:0.1.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      # --- runtime posture (strict secrets enforced at boot) ----------------
+      - ZIVON_ENV=prod
+      - ZIVON_BACKEND_HOST=0.0.0.0
+      - ZIVON_BACKEND_PORT=8000
+      - ZIVON_BACKEND_RELEASE=${ZIVON_BACKEND_RELEASE:-0.1.0}
+      - ZIVON_LOG_LEVEL=${ZIVON_LOG_LEVEL:-INFO}
+      - ZIVON_RUNS_DIR=/app/runs
+      # log_events store DSN (logging_manager → Postgres sink). Same DB as the
+      # backend (the cluster pattern, k8s/25-28). Derived — do not set it in
+      # .env.prod. Unset would fall back to runs/logs JSONL; the volume below
+      # keeps that fallback writable, but the DSN store is the prod posture.
+      - ZIVON_LOG_DSN=postgresql://${POSTGRES_USER:-zivon}:${POSTGRES_PASSWORD:?set-POSTGRES_PASSWORD-in-.env.prod}@postgres:5432/${POSTGRES_DB:-zivon}
+
+      # --- DB (secret: POSTGRES_PASSWORD, via the derived ZIVON_DB_URL) -----
+      - ZIVON_DB_URL=postgresql://${POSTGRES_USER:-zivon}:${POSTGRES_PASSWORD:?set-POSTGRES_PASSWORD-in-.env.prod}@postgres:5432/${POSTGRES_DB:-zivon}
+
+      # --- session + abuse counters (REQUIRED secrets in prod) --------------
+      # Boot REFUSES without these when ZIVON_ENV=prod (backend/config.py).
+      # Generate: python3 -c "import secrets; print(secrets.token_hex(32))"
+      - ZIVON_SESSION_TOKEN_KEY=${ZIVON_SESSION_TOKEN_KEY:?set-ZIVON_SESSION_TOKEN_KEY-in-.env.prod}
+      - ZIVON_IP_HASH_SALT=${ZIVON_IP_HASH_SALT:?set-ZIVON_IP_HASH_SALT-in-.env.prod}
+      # Single-admin bearer (ADR-0026). Empty = admin routes answer 503 — set
+      # it in .env.prod for the prototype too.
+      - ZIVON_ADMIN_TOKEN=${ZIVON_ADMIN_TOKEN:-}
+
+      # --- public origin (REQUIRED: email links, OAuth redirect, cookies) ---
+      # e.g. https://zivon.example.com — must match the DNS name at the edge.
+      # ZIVON_AUTH_COOKIE_SECURE keeps its code default (true when env != dev).
+      - ZIVON_APP_BASE_URL=${ZIVON_APP_BASE_URL:?set-ZIVON_APP_BASE_URL-in-.env.prod}
+
+      # --- Google OAuth (ADR-0029; optional until configured) ---------------
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-}
+
+      # --- email (REQUIRED in prod: the dev mail sink is refused) -----------
+      # smtp | resend (backend/auth/email.py refuses ZIVON_EMAIL_BACKEND=dev
+      # when ZIVON_ENV is cluster/prod — mail is never silently discarded).
+      - ZIVON_EMAIL_BACKEND=${ZIVON_EMAIL_BACKEND:?set-ZIVON_EMAIL_BACKEND-to-smtp-or-resend-in-.env.prod}
+      - ZIVON_EMAIL_FROM=${ZIVON_EMAIL_FROM:-}
+      - ZIVON_SMTP_HOST=${ZIVON_SMTP_HOST:-}
+      - ZIVON_SMTP_PORT=${ZIVON_SMTP_PORT:-587}
+      - ZIVON_SMTP_USER=${ZIVON_SMTP_USER:-}
+      - ZIVON_SMTP_PASSWORD=${ZIVON_SMTP_PASSWORD:-}
+      - ZIVON_SMTP_STARTTLS=${ZIVON_SMTP_STARTTLS:-true}
+      - ZIVON_RESEND_API_KEY=${ZIVON_RESEND_API_KEY:-}
+
+      # --- voice loop: non-secret config (mirrors k8s/28-backend-config) ----
+      - ZIVON_VOICE_PROFILE=${ZIVON_VOICE_PROFILE:-demo}
+      - ZIVON_VOICE_BRAIN_TRANSPORT=${ZIVON_VOICE_BRAIN_TRANSPORT:-gemini-direct}
+      # Code default is Gemma 4 26B A4B (Gate A). The recorded demo deviation
+      # (docs/specs/voice-agent/open-questions.md OQ-04) is the one-env-var
+      # switch below — set ZIVON_VOICE_BRAIN_MODEL=gemini-2.5-flash +
+      # ZIVON_VOICE_BRAIN_THINKING_BUDGET=0 in .env.prod to apply it, and
+      # record the deviation like the cluster did (AGENTS.md rule).
+      - ZIVON_VOICE_BRAIN_MODEL=${ZIVON_VOICE_BRAIN_MODEL:-gemma-4-26b-a4b-it}
+      - ZIVON_VOICE_BRAIN_THINKING_BUDGET=${ZIVON_VOICE_BRAIN_THINKING_BUDGET:-0}
+      - ZIVON_VOICE_BRAIN_FIRST_EVENT_S=${ZIVON_VOICE_BRAIN_FIRST_EVENT_S:-6}
+      - ZIVON_VOICE_BRAIN_INACTIVITY_S=${ZIVON_VOICE_BRAIN_INACTIVITY_S:-4}
+      - ZIVON_VOICE_BRAIN_TURN_DEADLINE_S=${ZIVON_VOICE_BRAIN_TURN_DEADLINE_S:-30}
+      - ZIVON_VOICE_STT_URL=${ZIVON_VOICE_STT_URL:-wss://api.vachana.ai/stt/v3/stream}
+      - ZIVON_VOICE_STT_MODEL=${ZIVON_VOICE_STT_MODEL:-prisma-v3.0}
+      - ZIVON_VOICE_STT_LANGUAGE=${ZIVON_VOICE_STT_LANGUAGE:-indic-auto}
+      - ZIVON_VOICE_TTS_URL=${ZIVON_VOICE_TTS_URL:-wss://api.vachana.ai/api/v1/tts}
+      - ZIVON_VOICE_TTS_MODEL=${ZIVON_VOICE_TTS_MODEL:-timbre-v3.0}
+      - ZIVON_VOICE_TTS_LANGUAGE=${ZIVON_VOICE_TTS_LANGUAGE:-hi-en}
+      - ZIVON_VOICE_TTS_VOICE=${ZIVON_VOICE_TTS_VOICE:-Shivani}
+      - ZIVON_VOICE_TTS_SAMPLE_RATE=${ZIVON_VOICE_TTS_SAMPLE_RATE:-48000}
+      - ZIVON_VOICE_TTS_TAG_MAX_PER_TURN=${ZIVON_VOICE_TTS_TAG_MAX_PER_TURN:-8}
+      - ZIVON_VOICE_TTS_CHAR_CAP_TURN=${ZIVON_VOICE_TTS_CHAR_CAP_TURN:-1200}
+      - ZIVON_VOICE_THINKING_SUMMARIES=${ZIVON_VOICE_THINKING_SUMMARIES:-off}
+      # Credit-guard knobs (founder calibration; 1 point = 30 s Prisma audio =
+      # 300 Timbre chars until OQ-06 pins the vendor unit).
+      - ZIVON_VOICE_CREDIT_DAILY_TRANCHE=${ZIVON_VOICE_CREDIT_DAILY_TRANCHE:-1000}
+      - ZIVON_VOICE_CREDIT_PER_USER_CAP=${ZIVON_VOICE_CREDIT_PER_USER_CAP:-30}
+      - ZIVON_VOICE_CREDIT_DEMO_TRANCHE=${ZIVON_VOICE_CREDIT_DEMO_TRANCHE:-1000}
+      - ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP=${ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP:-100}
+
+      # --- voice loop: secrets (runtime-only; empty = honest degradation) ---
+      # The Gemini tutor brain + the Gnani voice vendors. Empty keys keep the
+      # container ALIVE: the voice path degrades honestly (F1/F4 text path,
+      # no mic) instead of guessing endpoints (k8s/28 posture).
+      - ZIVON_VOICE_GEMINI_API_KEY=${ZIVON_VOICE_GEMINI_API_KEY:-}
+      - GNANI_PRISMA_API_KEY=${GNANI_PRISMA_API_KEY:-}
+      - GNANI_TIMBRE_API_KEY=${GNANI_TIMBRE_API_KEY:-}
+      # OpenRouter fallback transport (optional; ADR-0017 seam).
+      - ZIVON_OPENROUTER_API_KEY=${ZIVON_OPENROUTER_API_KEY:-}
+      - ZIVON_VOICE_BRAIN_FALLBACK_TRANSPORT=${ZIVON_VOICE_BRAIN_FALLBACK_TRANSPORT:-gemini-direct}
+      - ZIVON_VOICE_BRAIN_FALLBACK_MODEL=${ZIVON_VOICE_BRAIN_FALLBACK_MODEL:-gemini-3.5-flash}
+      - ZIVON_VOICE_BRAIN_FALLBACK_BASE_URL=${ZIVON_VOICE_BRAIN_FALLBACK_BASE_URL:-}
+      - ZIVON_VOICE_BRAIN_FALLBACK_API_KEY=${ZIVON_VOICE_BRAIN_FALLBACK_API_KEY:-}
+
+      # --- personalized learning (PL1/PL2, D-PL-01/D-PL-07, ADR-0030) -------
+      # The turn engine stays OFF until both route values exist; enabling it
+      # without them makes boot REFUSE (backend/config.py §7.3 — loud, no
+      # silent default). OFF = the teach route answers 503 E-PL-MODEL-DOWN.
+      - ZIVON_PERSONALIZED_ENABLED=${ZIVON_PERSONALIZED_ENABLED:-true}
+      - ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED=${ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED:-false}
+      - ZIVON_PERSONALIZED_BASE_URL=${ZIVON_PERSONALIZED_BASE_URL:-}
+      - ZIVON_PERSONALIZED_API_KEY=${ZIVON_PERSONALIZED_API_KEY:-}
+      - ZIVON_PERSONALIZED_MODEL=${ZIVON_PERSONALIZED_MODEL:-deepseek-v4.1-flash}
+      - ZIVON_PERSONALIZED_INDEX_DIR=/app/personalized-index
+      # Free-tier quotas (D-PL-01 recommendations; a founder change is an env
+      # change, never a migration — data-and-api.md §2.6).
+      - ZIVON_PERSONALIZED_TURNS_PER_USER_DAY=${ZIVON_PERSONALIZED_TURNS_PER_USER_DAY:-40}
+      - ZIVON_PERSONALIZED_TURN_CONCURRENCY=${ZIVON_PERSONALIZED_TURN_CONCURRENCY:-2}
+      - ZIVON_PERSONALIZED_SESSIONS_PER_USER_DAY=${ZIVON_PERSONALIZED_SESSIONS_PER_USER_DAY:-5}
+      - ZIVON_PERSONALIZED_ARTIFACTS_PER_USER_DAY=${ZIVON_PERSONALIZED_ARTIFACTS_PER_USER_DAY:-12}
+      - ZIVON_PERSONALIZED_TURNS_GLOBAL_DAY=${ZIVON_PERSONALIZED_TURNS_GLOBAL_DAY:-1500}
+      - ZIVON_PERSONALIZED_ARTIFACTS_GLOBAL_DAY=${ZIVON_PERSONALIZED_ARTIFACTS_GLOBAL_DAY:-300}
+      # Retention (D-PL-05: 90-day child-free-text retention, no cold copy).
+      - ZIVON_PERSONALIZED_RETENTION_SESSION_DAYS=${ZIVON_PERSONALIZED_RETENTION_SESSION_DAYS:-90}
+      - ZIVON_PERSONALIZED_RETENTION_ARTIFACT_DAYS=${ZIVON_PERSONALIZED_RETENTION_ARTIFACT_DAYS:-30}
+      - ZIVON_PERSONALIZED_RETENTION_ARTIFACT_FAILED_DAYS=${ZIVON_PERSONALIZED_RETENTION_ARTIFACT_FAILED_DAYS:-7}
+      - ZIVON_PERSONALIZED_RETENTION_USAGE_DAYS=${ZIVON_PERSONALIZED_RETENTION_USAGE_DAYS:-90}
+    ports:
+      # localhost-only: direct /healthz / /readyz curl and log inspection from
+      # the host. The browser never hits this port — nginx owns the same-origin
+      # route (/app, /login, /v1/, /voice/).
+      - "127.0.0.1:18085:8000"
+    volumes:
+      # runs/: the JSONL fallback log sink (only used when ZIVON_LOG_DSN is
+      # unset) and read-side artifacts; the personalized RAG index lives in
+      # its own volume below. Writable: an unset DSN must still be able to
+      # write its fallback store (cluster mounts runs ro because it ALWAYS
+      # sets the DSN; this path stays safe either way).
+      - zivon-runs:/app/runs
+      # Personalized-learning RAG index (scripts/build_personalized_index.py
+      # output; populated per the runbook § Migrations & import). A missing
+      # index degrades retrieval to the marked lexical fallback — never a 503.
+      - zivon-personalized-index:/app/personalized-index
+    healthcheck:
+      # Liveness only: process alive and serving (no external deps).
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Static frontend: nginx serving the committed standalone-deployable
+  # snapshot (frontend/ = hand-maintained shell + published generated pages)
+  # and proxying /app, /login, the F2 auth paths, /v1/, /api/ and /voice/ to
+  # core-backend:8000 (docker/nginx.conf — identical file as the cluster).
+  # Generated pages are NEVER baked into an image (repo rule): they arrive on
+  # this volume, refreshed by git pull / scripts/publish-frontend.sh output.
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: zivon-frontend:0.1.6
+    # started (not healthy): the static lesson pages must stay readable while
+    # the backend is down — the honest-degradation core path (backend-spec §6).
+    depends_on:
+      - core-backend
+    ports:
+      # localhost-only: the edge (Caddy profile below, Cloudflare Tunnel, or a
+      # host reverse proxy) is the only public door. 8080 on the host matches
+      # the cluster's public origin shape; change the host side here if it
+      # collides, not in docker/nginx.conf.
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    healthcheck:
+      # nginx-unprivileged (alpine) ships busybox wget; /healthz is the
+      # config's plain-200 probe.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # OPTIONAL edge (profile "edge"): Caddy terminates TLS in front of the site
+  # — the locked HTTPS posture (docs/deployment/README.md: TLS terminates at
+  # the edge; Zivon services serve plain HTTP and never implement TLS).
+  #
+  #   docker compose --env-file .env.prod -f docker-compose.prod.yml \
+  #     --profile edge up -d
+  #
+  # Requires ZIVON_DOMAIN (an A/AAAA record pointing at this host, ports 80 +
+  # 443 reachable) and ZIVON_ACME_EMAIL (Let's Encrypt notices) in .env.prod;
+  # the Caddyfile (docker/caddy/Caddyfile) reads both. Without the profile,
+  # put Cloudflare Tunnel or a host Caddy in front of 127.0.0.1:8080 instead
+  # (runbook § DNS & TLS). With `--profile edge`, do NOT also run cloudflared
+  # on the same host ports.
+  edge:
+    image: caddy:2.10.2-alpine
+    profiles: ["edge"]
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      # Interpolated into the Caddyfile site address + ACME email. Empty
+      # values make Caddy exit loudly at start (empty site address) — that is
+      # the intended fail-loud; set both in .env.prod before enabling edge.
+      - ZIVON_DOMAIN=${ZIVON_DOMAIN:-}
+      - ZIVON_ACME_EMAIL=${ZIVON_ACME_EMAIL:-}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+volumes:
+  # Postgres 16 data directory (PGDATA lives in the pgdata subdir, cluster
+  # parity). The ONLY state that must never be lost — see the backup section.
+  zivon-db-data:
+  # Backend run artifacts + JSONL log fallback (logging_manager).
+  zivon-runs:
+  # Personalized-learning RAG index (loaded by backend.personalized.rag).
+  zivon-personalized-index:
+  # Caddy certificates/state (edge profile only).
+  caddy-data:
+  caddy-config:

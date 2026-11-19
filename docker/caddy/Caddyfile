@@ -1,0 +1,45 @@
+# Zivon prototype edge proxy (optional compose profile "edge") — TLS
+# terminates HERE and only here. Locked HTTPS posture (docs/deployment/
+# README.md "HTTPS posture", 2026-11-04): the app serves plain HTTP behind
+# the edge and never implements TLS itself; browsers grant microphone access
+# only in a secure context, so the voice dock REQUIRES this HTTPS origin on
+# real devices (wss://<origin>/voice/ws).
+#
+# Values come from .env.prod (placeholders only — never commit a domain you
+# consider secret here; a domain name is not a secret but keep it consistent
+# with ZIVON_APP_BASE_URL):
+#   ZIVON_DOMAIN      the public DNS name (A/AAAA record at this host)
+#   ZIVON_ACME_EMAIL  Let's Encrypt expiry-notice address
+#
+# Both are required when the "edge" profile is enabled; empty values make
+# Caddy exit loudly at start (empty site address) instead of serving a
+# wrong/unexpected origin.
+#
+# Caddy provisions and renews the ACME certificate automatically (HTTP-01 on
+# :80 + TLS-ALPN on :443). No other config: the Zivon contract is one origin
+# — everything below is plain HTTP to web:8080 (nginx-unprivileged), which
+# serves the static site and proxies /app, /login, /v1/, /api/ and /voice/
+# to core-backend:8000 with its own header/timeout contract (docker/nginx.conf).
+#
+# WebSocket upgrade (/voice/ws) is handled transparently by reverse_proxy —
+# no extra directives. gzip here is transport-level compression for the
+# static site; nginx applies its own application-level gzip first.
+{
+	email {$ZIVON_ACME_EMAIL}
+}
+
+{$ZIVON_DOMAIN} {
+	encode gzip
+
+	# One upstream, one origin: web nginx (static + backend proxy paths).
+	# Do NOT bypass nginx to core-backend:8000 here — the forwarded-header
+	# set, the per-location CSP headers, the cookie pass-through, the
+	# speaking-upload body-size carve-out and the /voice/ WebSocket proxy
+	# all live in docker/nginx.conf and are asserted by tests
+	# (docs/specs/frontend/web-shell.md §6).
+	reverse_proxy web:8080
+
+	# HSTS after the first successful HTTPS deployment; remove during initial
+	# ACME debugging if needed (it pins browsers to HTTPS for a year).
+	header Strict-Transport-Security "max-age=31536000"
+}

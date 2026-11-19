@@ -11,6 +11,7 @@ Everything about how Zivon is packaged, run, and shipped: containers, orchestrat
 | [`secrets.md`](secrets.md) | The secrets registry (GAP-001): every K8s Secret by name + keys + creator + consumer, the founder's create/rotation runbook — values never committed |
 | [`restore-drill.md`](restore-drill.md) | Timed cold-storage DB + content restore drill procedure (`RB-12`, `DRILL-01`, `GAP-004`, `REDEL-01`) |
 | [`deletion-runbook.md`](deletion-runbook.md) | DPDP guardian/device erasure pipeline (`NEED-013`, `GAP-007`), TTL CronJobs (`GAP-005`), and breach response (`RB-11`) |
+| [`prototype-deployment.md`](prototype-deployment.md) | The non-cluster small-VPS path for the prototype milestone: `docker-compose.prod.yml` (frontend nginx + core-backend + Postgres + one-shot migrate), `.env.prod` placeholder template, edge TLS (Caddy/Cloudflare), smoke tests, backups, rollback — the `k8s/` manifests are untouched |
 
 Pending infra work lives in **`TIMELINE.md` (repo root) — the centralized task list**. No separate TODO files in this folder.
 
