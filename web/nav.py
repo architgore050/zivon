@@ -29,6 +29,7 @@ APP_NAV: Final[tuple[NavItem, ...]] = (
     NavItem("tests", "Tests", "/app/tests"),
     NavItem("progress", "Progress", "/app/progress"),
     NavItem("swot", "SWOT", "/app/swot"),
+    NavItem("personalized", "Learn", "/app/personalized"),
     NavItem("speaking", "Speak", "/app/speaking"),
     NavItem("courses", "Courses", "/courses"),
     NavItem("settings", "Settings", "/app/settings"),

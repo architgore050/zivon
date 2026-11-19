@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf %}
+{% block head %}
+<link rel="stylesheet" href="/assets/personalized.css">
+<script src="/assets/personalized-artifact.js" defer></script>
+<script src="/assets/personalized.js" defer></script>
+{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="pl-session-title">
+  <p class="kicker">Personalized learning</p>
+  <h1 id="pl-session-title">{{ session.title }}</h1>
+  <p class="meta pl-session-meta">
+    <span class="tag {{ 'tag--done' if not session.active else 'tag--progress' }}" data-pl-stage>{{ session.stage_label }}</span>
+    {% if quota %}
+    <span class="pl-quota" role="status" data-pl-quota>
+      {%- if quota.exhausted_scope == "disabled" -%}
+      Personalized learning is paused.
+      {%- elif quota.exhausted_scope == "global" -%}
+      Zivon is at its daily limit.
+      {%- elif quota.exhausted_scope == "user" -%}
+      You've used today's turns.
+      {%- else -%}
+      {{ quota.turns_remaining }} turns left today
+      {%- endif %} · resets 00:00 IST
+    </span>
+    {% endif %}
+  </p>
+  {% if preferences_active %}
+  <p class="meta pl-prefs-line">Using your learning preferences · <a class="text-link" href="/app/settings">Edit</a></p>
+  {% endif %}
+</section>
+
+{% if page_error %}
+<div class="wrap"><div class="notice notice--error" role="alert"><p>{{ page_error }}</p></div></div>
+{% endif %}
+{% if quota and quota.exhausted_scope == "user" %}
+<div class="wrap"><div class="notice notice--partial"><p>{{ quota.quota_copy }} This session is saved.</p></div></div>
+{% elif quota and quota.exhausted_scope == "global" %}
+<div class="wrap"><div class="notice notice--partial"><p>{{ quota.quota_copy }}</p></div></div>
+{% elif quota and not quota.enabled %}
+<div class="wrap"><div class="notice notice--partial"><p>{{ quota.quota_copy }}</p></div></div>
+{% endif %}
+{% if soft_nudge %}
+<div class="wrap"><div class="notice notice--empty"><p>You've done a lot — you can stop here and continue later.</p></div></div>
+{% endif %}
+{% if at_cap and session.active %}
+<div class="wrap"><div class="notice notice--partial">
+  <p>This session reached its 60-turn limit and shows the mastery summary below. You can continue the chapter in a new session — nothing carries over, and this transcript stays here.</p>
+  <form class="pl-inline-form" method="post" action="/app/personalized/start">
+    {{ csrf(csrf_token) }}
+    <input type="hidden" name="parent_session_id" value="{{ session.session_id }}">
+    <input type="hidden" name="chapter_id" value="{{ session.chapter_id }}">
+    <input type="hidden" name="mode" value="beginning">
+    <button class="btn btn--outline btn--sm" type="submit">Continue in a new session</button>
+  </form>
+</div></div>
+{% endif %}
+{% if not session.active %}
+<div class="wrap"><div class="notice notice--empty">
+  <p>This session is finished. The transcript and the mastery summary stay here; starting a new session won't carry them over.</p>
+  <p><a class="text-link" href="/app/personalized">Back to the hub</a></p>
+</div></div>
+{% endif %}
+
+<div class="wrap pl-session-grid" data-pl-session
+     data-session-id="{{ session.session_id }}"
+     data-session-status="{{ session.status }}"
+     data-can-send="{{ 'true' if can_send else 'false' }}"
+     data-report-course="{{ session.report_course_id }}"
+     data-open-check="{{ open_check.check_id if open_check else '' }}">
+  <section class="pl-transcript-wrap" aria-label="Session transcript">
+    {% if cards | length >= 50 %}
+    <p class="pl-load-earlier-wrap"><button class="btn btn--outline btn--sm" type="button" data-pl-load-earlier
+       data-before="{{ cards[0].turn_index }}">Load earlier</button></p>
+    {% endif %}
+    <ol class="pl-transcript" data-pl-transcript>
+      {% for card in cards %}
+      <li class="pl-item pl-item--{{ card.type }}">
+        {% if card.type == 'stage_change' %}
+        <p class="pl-stage-line">{% if card.label %}{{ card.label }}{% if card.concept %}: {{ card.concept }}{% endif %}{% else %}Stage changed{% endif %}</p>
+        {% elif card.type == 'teach' %}
+        <article class="pl-card pl-card--teach" data-pl-card-teach data-message-id="{{ card.message_id }}">
+          {% for paragraph_text in card.paragraphs %}
+          <p>{{ paragraph_text }}</p>
+          {% endfor %}
+          {% if card.key_statement %}<p class="pl-key-statement">{{ card.key_statement }}</p>{% endif %}
+          {% if card.citations %}
+          <p class="pl-citations">
+            {% for c in card.citations %}<span class="chip chip--soft pl-citation">{{ c.label }}{% if c.locator %} · {{ c.locator }}{% endif %}</span> {% endfor %}
+          </p>
+          {% elif card.ungrounded %}
+          <p class="pl-honest-note">No page reference was found for this part, so treat it as Zivon's own explanation.</p>
+          {% endif %}
+          <p class="pl-card-actions"><button class="pl-report btn--quiet btn btn--sm" type="button" data-pl-report data-report-category="wrong_physics" data-report-block="{{ card.message_id }}">Report a physics mistake</button></p>
+        </article>
+        {% elif card.type == 'student' %}
+        <article class="pl-card pl-card--student"><p>{{ card.text }}</p></article>
+        {% elif card.type == 'check' %}
+        <article class="pl-card pl-card--check" data-pl-check
+                 data-check-id="{{ card.check_id }}" data-check-kind="{{ card.kind }}"
+                 data-check-unit="{{ card.unit or '' }}"
+                 data-check-answered="{{ 'true' if card.feedback else 'false' }}">
+          <p class="pl-check-kicker">Check{% if card.generated %} · AI-generated practice{% endif %}</p>
+          <p class="pl-check-question">{{ card.question }}</p>
+          {% if card.kind == 'mcq' %}
+          <div class="pl-options" role="radiogroup" aria-label="Answer options" data-pl-options>
+            {% for option in card.options %}
+            <label class="pl-option"><input type="radio" name="answer_{{ card.check_id }}" value="{{ option.id }}"
+                 data-pl-answer {{ 'disabled' if card.feedback or not can_send }}><span>{{ option.text }}</span></label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="pl-numeric">
+            <label class="pl-option" for="answer-{{ card.check_id }}">Your answer</label>
+            <input class="input pl-numeric-input" id="answer-{{ card.check_id }}" type="text" inputmode="decimal"
+                   name="answer_{{ card.check_id }}" data-pl-answer {{ 'disabled' if card.feedback or not can_send }}>
+            {% if card.unit %}<span class="pl-unit">{{ card.unit }}</span>{% endif %}
+          </div>
+          {% endif %}
+          {% if card.feedback %}
+          <div class="pl-feedback {{ 'pl-feedback--ok' if card.feedback.correct else 'pl-feedback--no' }}" data-pl-feedback>
+            <p>{{ 'Correct.' if card.feedback.correct else "Not yet — let's look again." }}
+               {% if card.feedback.expected %} Expected: {{ card.feedback.expected }}.{% endif %}</p>
+            {% if card.feedback.explanation %}<p>{{ card.feedback.explanation }}</p>{% endif %}
+            {% if card.feedback.misconception %}<p>{{ card.feedback.misconception }}</p>{% endif %}
+          </div>
+          {% else %}
+          <div class="pl-check-actions">
+            <button class="btn btn--sm" type="button" data-pl-check-submit {{ 'disabled' if not can_send }}>Check</button>
+            <button class="btn btn--sm btn--outline" type="button" data-pl-not-sure {{ 'disabled' if not can_send }}>Not sure</button>
+          </div>
+          <noscript><p class="auth-hint">Submitting an answer needs JavaScript in this prototype. The teaching text stays readable, and nothing was sent.</p></noscript>
+          {% endif %}
+        </article>
+        {% elif card.type == 'feedback' %}
+        <div class="pl-feedback {{ 'pl-feedback--ok' if card.feedback.correct else 'pl-feedback--no' }}">
+          <p>{{ 'Correct.' if card.feedback.correct else "Not yet — let's look again." }}
+             {% if card.feedback.expected %} Expected: {{ card.feedback.expected }}.{% endif %}</p>
+          {% if card.feedback.explanation %}<p>{{ card.feedback.explanation }}</p>{% endif %}
+        </div>
+        {% elif card.type == 'artifact' %}
+          {% with artifact = card.artifact, chapter_id = session.chapter_id %}
+            {% if artifact.status == 'failed' %}
+            <article class="pl-card pl-art-failed">
+              <p class="pl-honest-note">The visual didn't build. Here's the diagram instead.</p>
+              {% if artifact.fallback_svg %}<div class="pl-art-fallback-body">{{ artifact.fallback_svg | safe }}</div>
+              {% else %}<p>Ask the tutor to explain with text or a diagram.</p>{% endif %}
+            </article>
+            {% else %}
+            {% include "app/partials/artifact_viewer.html" %}
+            {% endif %}
+          {% endwith %}
+        {% elif card.type == 'summary' %}
+        <article class="pl-card pl-card--summary" aria-labelledby="pl-summary-{{ loop.index }}">
+          <h2 class="pl-summary-title" id="pl-summary-{{ loop.index }}">Mastery summary</h2>
+          <ul class="pl-mastery">
+            {% for m in card.mastery %}
+            <li><span class="tag {{ 'tag--done' if m.status in ('mastered', 'board_ready') else ('tag--not' if m.status in ('skipped', 'not_started') else 'tag--progress') }}">{{ m.label }}</span>
+              {% if m.concept_id %}<span class="pl-mastery-concept">{{ m.concept_id }}</span>{% endif %}
+              <span class="pl-mastery-counts">{{ m.attempts }} attempt{{ 's' if m.attempts != 1 }} · first-try correct {{ m.first_try_correct }} · levels passed {{ m.levels_passed | join(', ') if m.levels_passed else 'none' }}</span></li>
+            {% endfor %}
+          </ul>
+        </article>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    <p class="pl-live" data-pl-live role="status" aria-live="polite"></p>
+  </section>
+
+  {% if session.active and can_send %}
+  <section class="pl-composer" aria-label="Ask Zivon" data-pl-composer>
+    <div class="pl-composer-actions">
+      <button class="btn btn--outline btn--sm" type="button" data-pl-action="explain_directly"
+              {% if open_check %}disabled title="Submit the open check first"{% endif %}>Explain directly</button>
+      <button class="btn btn--outline btn--sm" type="button" data-pl-action="hint"
+              {% if open_check %}disabled title="Submit the open check first"{% endif %}>I'm stuck</button>
+    </div>
+    <div class="pl-composer-row">
+      <label class="pl-visually-hidden" for="pl-message">Ask something else</label>
+      <input class="input" id="pl-message" type="text" maxlength="{{ message_max_chars }}"
+             data-pl-message autocomplete="off" placeholder="Ask something else…">
+      <button class="btn btn--sm" type="button" data-pl-send>Send</button>
+    </div>
+    <p class="pl-error" data-pl-error role="alert" hidden></p>
+    <p class="auth-hint pl-sandbox-note">Free while Zivon is a prototype — no payment, no plan.</p>
+    <noscript><p class="auth-hint">Talking to Zivon in a session needs JavaScript in this prototype. The transcript above stays readable.</p></noscript>
+  </section>
+  {% elif session.active %}
+  <section class="pl-composer" aria-label="Asking Zivon">
+    <p class="auth-hint">This session can't take new turns right now{% if at_cap %} — it reached the 60-turn limit{% elif quota and quota.exhausted_scope in ("user", "global", "disabled") %} — {{ quota.quota_copy | lower }}{% endif %}. Everything here is saved.</p>
+    <noscript><p class="auth-hint">Talking to Zivon in a session needs JavaScript in this prototype.</p></noscript>
+  </section>
+  {% endif %}
+</div>
+
+{% if session.active %}
+<div class="wrap pl-session-footer">
+  <form class="pl-inline-form" method="post" action="/app/personalized/{{ session.session_id }}/end">
+    {{ csrf(csrf_token) }}
+    <button class="btn btn--outline btn--sm" type="submit">End session</button>
+    <span class="auth-hint">Ending keeps the transcript and mastery summary; you can resume later.</span>
+  </form>
+  <p class="small">Report a wrong answer or a broken visual from its card. Practice questions are AI-generated in the board-exam style — not official CBSE questions.</p>
+</div>
+{% endif %}
+{% endblock %}

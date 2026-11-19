@@ -27,6 +27,7 @@ from backend.auth import AuthService
 from backend.auth.tokens import request_ip_hash_from_request, user_agent_hash
 from backend.config import BackendConfig
 from backend.errors import APIError
+from backend.personalized.preferences import get_preferences_row  # PL4: C22 field
 
 from ..context import FlashMessage, LoginRequired
 from ..flow import (
@@ -76,6 +77,13 @@ def _settings_values(
 ) -> dict[str, object]:
     payload = service.profile_payload_for_user(account.context.user)
     public = payload["user"]
+    # PL4 (personalized learning): the account's own personal instructions
+    # (C22) feed the included `personal_instructions` partial. A missing row
+    # renders the empty state; no other field or row is exposed here.
+    prefs_row = get_preferences_row(service.db, str(account.context.user["user_id"]))
+    personal_instructions = (
+        str(prefs_row.get("personal_instructions") or "") if prefs_row else ""
+    )
     # The template gets an explicit allow-list, never the user row or
     # `user_id`; the settings page only needs the fields it renders.
     profile = {
@@ -98,6 +106,7 @@ def _settings_values(
         language_options.append((language, language))
     return {
         "profile": profile,
+        "personal_instructions": personal_instructions,
         "password_set": bool(payload["password_set"]),
         "google_linked": bool(payload["google_linked"]),
         "google_available": bool(
