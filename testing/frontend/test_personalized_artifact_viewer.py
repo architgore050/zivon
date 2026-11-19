@@ -177,7 +177,12 @@ class ArtifactViewerBridgeTest(unittest.TestCase):
             "() => { window.__reports = []; document.addEventListener("
             "'zivon-artifact:report', (e) => window.__reports.push(e.detail)); }"
         )
-        page.click("[data-art-action='report']")
+        # The 480px fixture viewport puts the action bar below the fold; scroll
+        # it into view so the click reaches the button (Playwright refuses clicks
+        # on an off-screen element in some versions, and a real tap scrolls too).
+        report_button = page.locator("[data-art-action='report']")
+        report_button.scroll_into_view_if_needed()
+        report_button.click()
         reports = page.evaluate("() => window.__reports")
         self.assertEqual(len(reports), 1)
         self.assertEqual(reports[0]["artifactId"], "art123")
