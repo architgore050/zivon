@@ -1,17 +1,29 @@
 # Trivy ignores for the DASHBOARD image only (ci.yml "Dashboard image" job).
 #
-# Scope rule: entries here are allowed ONLY when the vulnerable code is
-# shipped inside an upstream prebuilt binary we do not compile, and no
+# Scope rule: entries here are allowed ONLY when the vulnerable code is (a)
+# vendored inside the upstream kubectl source tag we build from (the tag's
+# vendor/ pins the module versions — we do not fork upstream to bump them),
+# or (b) inside an upstream prebuilt binary we do not compile — and no
 # upstream release fixes it yet. Application/dependency CVEs are fixed by
-# upgrading - never ignored. Each entry states the binary, why we cannot fix
+# upgrading - never ignored. Each entry states the code, why we cannot fix
 # it, and the condition that removes it.
 #
+# Since DEP2 (2026-11-19) the dashboard's kubectl is BUILT FROM SOURCE
+# (Dockerfile.dashboard stage 1: the kubernetes v1.37.2 tag + Go 1.26.11),
+# not downloaded from dl.k8s.io. The stdlib CVE that forced that change
+# (CVE-2026-97054 — net/http, GO-2026-6854, fixed in go1.26.11; the prebuilt
+# binary embeds the release build's go1.26.10) is eliminated by the compiler
+# version and is deliberately NOT ignored here: the gate still fails on it.
+# The entries below remain because the v1.37.2 tag's vendor/ pins
+# golang.org/x/net 0.57.0 and golang.org/x/text 0.40.0 — the same module
+# versions the prebuilt binary carried; a source build with a newer Go does
+# not change them.
+#
 # kubectl v1.37.2 is the NEWEST upstream release (dl.k8s.io/release/stable.txt,
-# checked 2026-11-10). Its vendored Go modules predate the fixes, so the
-# vulnerabilities cannot be patched without a new kubectl release. The binary
-# is used for read-only job views and the two trigger buttons, behind admin
-# auth (ADR-0026), and the DoS classes below require hostile input to the
-# kubectl HTTP client - not a reachable surface for this dashboard.
+# checked 2026-11-10). The binary is used for read-only job views and the two
+# trigger buttons, behind admin auth (ADR-0026), and the DoS classes below
+# require hostile input to the kubectl HTTP client - not a reachable surface
+# for this dashboard.
 #
 # REMOVE each line when kubectl publishes a release built with the fixed
 # modules (the trivy table names the fixed versions).

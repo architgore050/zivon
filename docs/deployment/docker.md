@@ -80,6 +80,79 @@ build, and no second origin.
   root. A bare backend port serves the HTML without CSS; the supported path is
   the same-origin frontend route (compose `:8081`, cluster Service).
 
+## Admin dashboard image (`Dockerfile.dashboard`)
+
+The admin dashboard ships as its own slim image: the FastAPI app (`dashboard/`), the
+`logging_manager` contract package it reads through, the two trigger scripts and the
+k8s/20 Job template the factory-run button renders. kubectl is baked in because the
+run/test views and the two buttons talk to the cluster API (integration note I-1).
+Runtime shape is the repo's standard: `python:3.12-slim`, deps-before-code, fixed UID
+1000 numeric `USER` (gotcha 1), env-only config, a build-time `kubectl version
+--client=true --output=yaml` smoke that CI repeats on the booted container.
+
+- **kubectl is built from source in the image (DEP2, 2026-11-19).** Until this change
+  the Dockerfile downloaded the prebuilt `dl.k8s.io` binary, so the trivy gate read
+  whatever Go stdlib the upstream release build had embedded. kubectl v1.37.2 was
+  released on a `go1.26.10` toolchain (the k8s repo's `.go-version`; confirmed by
+  `kubectl version --client=true --output=yaml` on the official artifact), and
+  CVE-2026-97054 (GO-2026-6854 — an HTTP/1 server can crash when its handler reads a
+  request body past the `MaxBytesReader` limit; HIGH, fix available) flags that
+  embedded stdlib. No kubectl release built with the fixed Go exists yet, and the repo
+  never weakens a gate to get green: the fix is the compiler, not an ignore. The image
+  now has two stages — a **`golang:1.26.11` builder** (stage 1) and the unchanged
+  `python:3.12-slim` runtime (stage 2) that receives exactly one file:
+  `COPY --from=kubectl-builder --chmod=0555` the static binary.
+- **The build recipe is upstream's own.** Stage 1 shallow-clones the exact
+  `v1.37.2` tag, pins the dereferenced commit (`KUBECTL_COMMIT=c50e5395…` — the
+  `gitCommit` the official binary stamps; the build fails loudly if the tag ever
+  moves, the same SHA-over-tag rule as the third-party CI action pins), then runs
+  `FORCE_HOST_GO=y make kubectl` — `build/root/Makefile`'s `make kubectl` calls
+  `hack/make-rules/build.sh cmd/kubectl`, which stamps `gitVersion`/`gitCommit`/
+  `gitTreeState` from the clone and builds kubectl with `CGO_ENABLED=0` (kubectl is
+  in `hack/lib/golang.sh`'s `KUBE_STATIC_BINARIES`). **`FORCE_HOST_GO=y` is the load-
+  bearing env var**: without it `hack/lib/golang.sh` sets `GOTOOLCHAIN=go1.26.10`
+  (the repo's `.go-version`) and downloads that toolchain, rebuilding the very
+  stdlib this stage exists to replace; with it the script sets `GOTOOLCHAIN=local`
+  and uses the image's go1.26.11. Verified natively 2026-11-19 (same commands as
+  stage 1, outside Docker): the built binary reports `gitVersion v1.37.2`,
+  `gitCommit c50e5395…`, `gitTreeState clean`, **`goVersion go1.26.11`**, static ELF,
+  61,890,722 bytes — the same size as the official v1.37.2 artifact, one patch level
+  newer in the only thing that changed, the compiler.
+- **Why the prebuilt binary is no longer used:** a prebuilt download freezes the
+  release build's toolchain into the image until upstream ships a new kubectl — a
+  Go stdlib CVE in it is unfixable by us except through `docker/.trivyignore-dashboard`,
+  whose scope rule says prebuilt-binary ignores are the last resort. Building the
+  same source tag with a newer Go patch is the upstream-supported equivalent of
+  "wait for the patch release", available today: the binary stays v1.37.2 (no
+  behavior change), the embedded stdlib is patched (the finding clears), and the
+  gate stays untouched — no entry was added to the ignore file for CVE-2026-97054.
+  The ignore file's three existing entries remain REQUIRED: they are vendored-module
+  findings (x/net 0.57.0, x/text 0.40.0) pinned by the tag's `vendor/`, which a
+  compiler bump does not change; its scope rule now covers both code paths
+  (source-built tag + prebuilt binary).
+- **Determinism and supply chain:** the clone is content-pinned twice (tag for
+  humans, `KUBECTL_COMMIT` for the gate — `test "$(git rev-parse HEAD)" = "${KUBECTL_COMMIT}"`),
+  `vendor/` ships in the tag so module versions are exactly upstream's, and the
+  ldflags version stamping is derived from the clone itself. What varies is build
+  metadata only (`buildDate`), same as upstream's own artifacts. The old fetch
+  trusted a mutable tag URL on `dl.k8s.io` with TLS and no checksum; the new build
+  verifies the commit — strictly stronger. The `golang:1.26.11` builder tag follows
+  the repo's tag-pin convention (digest re-pin considered and rejected for the
+  same reasons documented on the frontend base above); the builder never ships, so
+  its layers are not a runtime CVE surface and need no apt freshening.
+- **Cost discipline:** the runtime stage is the old one minus `curl` (kubectl is no
+  longer downloaded) — the shipped image loses bytes, gains none. What the builder
+  adds is CI build time: a shallow clone of the k8s source plus a single-binary
+  compile (minutes on the runner; the `dashboard-image` job's `type=gha` layer cache
+  holds the builder layers after the first build).
+- **Rebuild ritual (the next stdlib CVE):** bump the builder tag
+  (`golang:1.26.11` → the fixed Go patch), rebuild, and let trivy's table name the
+  fixed version it no longer sees — the same bump-deliberately ritual as the CI
+  tool pins in `cicd.md`. When upstream ships a kubectl release built with the
+  fixed vendored modules, re-pin `KUBECTL_VERSION` (staying within ±1 minor of the
+  cluster version, together with the cluster upgrade) and re-check the three
+  vendored-module ignores.
+
 ## Rules
 
 - API keys and all server wiring enter only via environment at runtime (`ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY` — see `.env.example`), never via image or `COPY`.
