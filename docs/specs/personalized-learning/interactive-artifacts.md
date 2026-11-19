@@ -111,7 +111,8 @@ request ─▶ validate spec ─▶ build call (model) ─▶ lint (hard) ─▶
      navigate *itself*; CSP does not stop that, so this is the check that does);
    - assert `scrollWidth <= clientWidth + 2` at 360 px;
    - run 3 s, collect a frame-time sample via the harness (`postMessage`), fail
-     if median < 24 fps or any long task > 200 ms;
+     if median < 24 fps or any long task > 200 ms, measured under the 4× CPU
+     throttle the §4 performance budget names;
    - assert the artifact posts `ready` within 5 s;
    - assert a `prefers-reduced-motion: reduce` context renders a static frame.
 5. **Store** — content-addressed (`artifact_id =
@@ -125,9 +126,10 @@ request ─▶ validate spec ─▶ build call (model) ─▶ lint (hard) ─▶
    for a transient route error, never for a lint failure.
 
 The build is **asynchronous** relative to the teaching stream: the turn emits
-`turn.artifact {status: pending}` immediately and the client polls
-`GET /v1/personalized/artifacts/{id}` (or receives `turn.artifact.ready` on the
-same SSE if it finishes within the stream window).
+`turn.artifact {status: pending}` immediately and the client polls the status
+endpoint `GET /v1/personalized/artifacts/{id}/status` (API-PL-14; a `ready`
+response carries the server-issued `src`), or receives `turn.artifact.ready`
+on the same SSE if it finishes within the stream window.
 
 ---
 
@@ -293,8 +295,10 @@ only, never the query string) and is not placed in a `Referer` (the iframe is
   cookies/storage stay out of reach, but attacker content could replace the artifact inside
   the trusted card (phishing copy). Three controls: the lint rejects every self-navigation
   API and `meta refresh`; the render gate asserts the document never navigates; the host
-  treats a second `load` event, or a `ready` message with a foreign `event.source`, as a
-  crash — it unloads the iframe and shows the fallback.
+  treats a second `load` event, or a second `ready` from the same frame, as a
+  crash — it unloads the iframe and shows the fallback. A message whose
+  `event.source` is not the frame's own window is ignored, never acted on (a
+  multi-viewer page cannot let one card's message crash another).
 
 ---
 
@@ -429,7 +433,7 @@ above stays the contract; nothing below relaxes it.
 | §5 sandbox | API-PL-13 in `backend/personalized/artifact_router.py` serves the §5.2 header set byte-exact (CSP `sandbox allow-scripts` + `frame-ancestors 'self'`, `nosniff`, `no-referrer`, `private, max-age=86400, immutable`, `noindex`, CORP `same-origin`). Host side: `frontend/assets/personalized-artifact.js` creates the iframe (`sandbox="allow-scripts"`, `allow=""`, `no-referrer`, lazy), validates the harness channel by `event.source` + schema, and unloads on watchdog/second-load. Template: `web/templates/app/partials/artifact_viewer.html`. |
 | §6 review pipeline | Lint + render gate as above; `EV-PL-003` (`evals/cards/EV-PL-003.yaml` + `evals/checkers/personalized_checks.py`) pins lint, doc contract, spec validation, cache identity, no-student-text, fallback, render gate, and the sandbox red-team test (`evals/goldens/personalized/artifacts/` — 1 golden, 7 seeded defects, 4 specs, red-team probe). |
 | §7 cache/versioning | `compute_artifact_id` (the §7 key formula, `why` excluded); `ArtifactStore` (pending/ready/failed transitions, `touch_last_used`, the reference check, `purge` that marks referencing messages `artifact_missing`); the nightly refcount/failed TTL jobs were PL1's (`backend/personalized/retention.py`) and are unchanged. |
-| §8 fallback | `normalize_fallback` stores the decide payload's diagram only when the SVG is provably safe (no script/handlers/external URL) and downgrades to text otherwise; every rejection path (`ArtifactSpecError`/`ArtifactQuotaError`/`ArtifactBuildError`) carries the fallback in `extra` so the turn continues. |
+| §8 fallback | `normalize_fallback` stores the decide payload's diagram only when the SVG is provably safe — the factory's diagram-svg rule (`factory/checks.py::rule_diagram_svg`) plus the wrapper's script-scheme check (`javascript:`/`vbscript:`/`data:text/html`, because the fallback is injected raw into the app-origin page) — and downgrades to text otherwise; every rejection path (`ArtifactSpecError`/`ArtifactQuotaError`/`ArtifactBuildError`) carries the fallback in `extra` so the turn continues. |
 
 Interpretations recorded (not spec changes):
 

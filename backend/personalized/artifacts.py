@@ -357,33 +357,34 @@ def ensure_no_student_text(spec: dict[str, Any], forbidden_texts: list[str]) -> 
 def normalize_fallback(fallback: object) -> dict[str, Any]:
     """§8: the server-stored fallback, downgraded to `text` when unsafe.
 
-    A diagram fallback is a model-supplied static SVG rendered in the session
-    page (outside the artifact sandbox), so it carries the diagram-block SVG
-    rules (blocks-schema.md): no script, no external URL, no event handlers —
-    anything else downgrades to the honest text fallback.
+    A diagram fallback is a model-supplied static SVG rendered into the
+    session page (outside the artifact sandbox), so it carries the
+    diagram-block SVG rules (blocks-schema.md) — enforced by reusing the
+    factory's own rule (`factory/checks.py::rule_diagram_svg`: starts with
+    `<svg`, no script, no style, no external URL, no image/use/foreignObject
+    embeds, no event handlers). On top of it this wrapper rejects
+    script-scheme URLs (`javascript:`/`vbscript:`) and `data:text/html`:
+    the factory rule's "no external URL" does not cover them, but the
+    fallback is injected raw (server-side `| safe`) into the app-origin
+    page, where a script scheme is a code-execution vector, not a fetch.
+    Anything else downgrades to the honest text fallback.
     """
     if not isinstance(fallback, dict):
         return {"kind": "text"}
     kind = fallback.get("kind")
     svg = fallback.get("svg")
     if kind == "diagram" and isinstance(svg, str) and svg.strip():
-        if _svg_is_safe(svg):
-            return {"kind": "diagram", "svg": svg}
-        log_event(
-            "personalized.artifact.failed",
-            {"stage": "fallback", "reason_code": "unsafe_fallback_svg"},
+        from factory.checks import rule_diagram_svg
+
+        low = svg.lower()
+        script_scheme = (
+            "javascript:" in low or "vbscript:" in low or "data:text/html" in low
         )
+        if not script_scheme and not rule_diagram_svg(
+            [{"type": "diagram", "spec": {"svg": svg}}]
+        ):
+            return {"kind": "diagram", "svg": svg}
     return {"kind": "text"}
-
-
-def _svg_is_safe(svg: str) -> bool:
-    low = svg.lower()
-    if "<script" in low or "javascript:" in low or " foreignobject" in low:
-        return False
-    return not (
-        re.search(r"\son[a-z]+\s*=", low)
-        or re.search(r"""(?:src|href|xlink:href)\s*=\s*["']\s*(?:https?:)?//""", low)
-    )
 
 
 # --- content addressing (§7) ---------------------------------------------------
@@ -1038,10 +1039,10 @@ def ensure_artifact(
             outcome="rejected",
         )
         exc.extra = {**exc.extra, "fallback": norm_fallback}
-        log_event(
-            "personalized.artifact.failed",
-            {"reason_code": "spec"},
-        )
+        # §6's evidence for a spec rejection is the usage row (outcome=
+        # rejected) — no artifact row exists, so the row-backed
+        # `personalized.artifact.failed` event (required fields artifact_id,
+        # reason_code, lint_hits) is not emitted here.
         raise
     artifact_id, content_hash = compute_artifact_id(spec, doctrine_hash=doctrine_hash)
     store = ArtifactStore(db)

@@ -11,8 +11,10 @@ miss: with every network request aborted it asserts the document
   CSP `frame-src 'none'` and this assertion are what stop it, §5.4),
 - has no horizontal overflow at 360 px (`scrollWidth <= clientWidth + 2`),
 - posts the harness `ready` message within 5 s,
-- keeps the median sampled fps >= 24 with no long task > 200 ms (artifacts
-  that never post an `fps` sample — static diagrams — pass trivially),
+- keeps the median sampled fps >= 24 with no long task > 200 ms — measured
+  under the 4x CPU throttle the doctrine names (interactive-artifacts.md §4
+  "floor 24 fps at 4x CPU throttle"; artifacts that never post an `fps`
+  sample — static diagrams — pass trivially),
 - stays inside the 1,500-node DOM cap measured in the real browser.
 
 The report carries timings and counts only — never the artifact HTML (§6).
@@ -35,6 +37,8 @@ RUN_MS = 3000
 FPS_FLOOR = 24.0
 LONG_TASK_MS = 200
 OVERFLOW_SLACK_PX = 2
+# The fps/long-task budget is measured under the 4x CPU throttle (§4).
+CPU_THROTTLE_RATE = 4.0
 
 # The gate loads the document from a reserved, route-fulfilled URL so the
 # "committed URL equals the requested URL" assertion is meaningful; every
@@ -150,9 +154,23 @@ def report_requests(page: Any) -> None:
         report.network_attempts += 1
 
 
+def _throttle_cpu(page: Any) -> None:
+    """Apply the §4 4x CPU throttle via CDP for the fps/long-task window.
+    A browser without the CDP domain would make the throttle a no-op, so a
+    failure here is swallowed only when the domain is genuinely missing."""
+    try:
+        session = page.context.new_cdp_session(page)
+        session.send("Emulation.setCPUThrottlingRate", {"rate": CPU_THROTTLE_RATE})
+    except Exception as exc:
+        raise RenderGateUnavailable(
+            f"CPU throttling unavailable for the render gate: {type(exc).__name__}"
+        ) from exc
+
+
 def _gate_page(context: Any, html: str, report: RenderReport, run_ms: int) -> None:
     page = _open_gate_page(context, html)
     page._zivon_gate_report = report  # the request handler records attempts
+    _throttle_cpu(page)
 
     def on_console(msg: Any) -> None:
         if msg.type in ("error", "warning"):

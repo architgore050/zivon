@@ -89,7 +89,10 @@ def _sandbox_headers(response: Any, *, cacheable: bool) -> None:
 @router.get("/v1/personalized/artifacts/{artifact_id}")
 def fetch_artifact(request: Request, artifact_id: str) -> Any:
     """API-PL-13: the sandboxed artifact document (or its 409 conflict state)."""
-    resolve_context(request)  # guests 401 before any artifact question
+    # Resolve (not require) the account: a guest falls through to the
+    # admin-token path below, which fails closed (401/503) — the outcome is
+    # still an authentication error before any artifact question.
+    resolve_context(request)
     row = _owner_or_admin(request, artifact_id)
     if row["status"] != "ready":
         # §4.8: the client shows the fallback/loader for a half-built artifact;
@@ -117,7 +120,13 @@ def fetch_artifact(request: Request, artifact_id: str) -> Any:
 @router.get("/v1/personalized/artifacts/{artifact_id}/status")
 def artifact_status(request: Request, artifact_id: str) -> JSONResponse:
     """API-PL-14: pending/ready/failed — what the polling client needs, with
-    no HTML and no artifact content."""
+    no HTML and no artifact content.
+
+    A `ready` response carries the server-issued `src` (data-and-api.md §4.8:
+    the src is the only URL the viewer uses; there is no client-side URL
+    construction). Same-origin mode serves the route path; dedicated-origin
+    mode (D-PL-09) will issue the signed URL here instead — the viewer code
+    does not change."""
     resolve_context(request)
     row = _owner_or_admin(request, artifact_id)
     payload: dict[str, Any] = {
@@ -126,7 +135,9 @@ def artifact_status(request: Request, artifact_id: str) -> JSONResponse:
         "kind": str(row["kind"]),
         "title": str(row["title"]),
     }
-    if row["status"] == "failed":
+    if row["status"] == "ready":
+        payload["src"] = f"/v1/personalized/artifacts/{artifact_id}"
+    elif row["status"] == "failed":
         payload["failure_reason"] = row["failure_reason"]
     response = JSONResponse(content=payload)
     response.headers["Cache-Control"] = "no-store"

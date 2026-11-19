@@ -12,10 +12,18 @@ the deterministic contracts.
 
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, ClassVar
+from unittest.mock import patch
 
+from backend.personalized.artifact_prompt import (
+    MAX_BUILD_ROUNDS,
+    ArtifactDesignContext,
+    LLMManagerArtifactBuilder,
+)
 from backend.personalized.artifacts import (
     MAX_CONTROLS,
     MAX_DOM_NODES,
@@ -33,6 +41,7 @@ from backend.personalized.artifacts import (
 from backend.personalized.quota import QuotaCaps, QuotaService
 from backend.personalized.store import PersonalizedStore
 from db.engine import DatabaseEngine
+from llm_manager import LLMConfig
 from testing.backend.web_auth_support import PASSWORD, WebAuthSupport
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -468,6 +477,18 @@ class ArtifactFallbackTest(unittest.TestCase):
             "<svg onload='x'></svg>",
             "<svg><a xlink:href='https://x.test'>y</a></svg>",
             "<svg><script>1</script></svg>",
+            # Script schemes are not "external URLs", but the fallback is
+            # injected raw into the app-origin page (server-side `| safe`),
+            # so a click-activated scheme is a code-execution vector there.
+            "<svg><a href='javascript:alert(1)'>x</a></svg>",
+            "<svg><a xlink:href='JAVASCRIPT:alert(1)'>x</a></svg>",
+            "<svg><a href='vbscript:msgbox(1)'>x</a></svg>",
+            "<svg><a href='data:text/html,<script>1</script>'>x</a></svg>",
+            # The factory diagram-svg rule's extra bans (style / embeds /
+            # not starting with <svg) apply too — one source of truth.
+            "<svg><style>*{fill:red}</style><circle r='1'/></svg>",
+            "<svg><image href='x.png'/></svg>",
+            "<div><svg><circle r='1'/></svg></div>",
         ):
             with self.subTest(svg=svg[:30]):
                 self.assertEqual(
@@ -847,6 +868,32 @@ class ArtifactApiTest(WebAuthSupport):
         self.assertEqual(body["status"], "ready")
         self.assertEqual(body["kind"], "simulation")
         self.assertNotIn("html", body)
+        # The poll flow's contract with the viewer (data-and-api.md §4.8: the
+        # src is the only URL the viewer uses; no client-side construction):
+        # a ready response carries the server-issued src and never the HTML.
+        self.assertEqual(body["src"], f"/v1/personalized/artifacts/{artifact_id}")
+
+    def test_status_pending_payload_has_no_src(self) -> None:
+        self.register_via_api()
+        pending_id = self._pending_artifact()
+        session = self.hstore.create_session(
+            user_id=self._current_user_id(),
+            chapter_id="class-10-light",
+            class_level=10,
+            title="t",
+        )
+        self.hstore.append_message(
+            session_id=session["session_id"],
+            role="tutor",
+            kind="artifact_ref",
+            payload={"artifact_id": pending_id, "src": f"/x/{pending_id}"},
+        )
+        response = self.client.get(f"/v1/personalized/artifacts/{pending_id}/status")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["status"], "pending")
+        self.assertNotIn("src", body)
+        self.assertNotIn("html", body)
 
     def test_serving_touches_last_used(self) -> None:
         self.register_via_api()
@@ -888,6 +935,118 @@ class ArtifactApiTest(WebAuthSupport):
         self.assertEqual(
             self.client.get("/v1/personalized/artifacts/deadbeef00").status_code, 404
         )
+
+
+def _golden_payload() -> str:
+    return json.dumps({"html": GOLDEN_HTML})
+
+
+def _dirty_payload() -> str:
+    dirty = GOLDEN_HTML.replace(
+        "requestAnimationFrame(frame);",
+        "eval('bad'); requestAnimationFrame(frame);",
+        1,
+    )
+    return json.dumps({"html": dirty})
+
+
+class _FakeLLMManager:
+    """The llm_manager seam: scripted per-call responses, no network.
+
+    The real `run_validation_rounds` loop runs unchanged above it, so the
+    engine's lint-in-retry contract is exercised for real."""
+
+    responses: ClassVar[list[str]] = []
+    transcripts: ClassVar[list[list[dict[str, str]]]] = []
+
+    @classmethod
+    def script(cls, responses: list[str]) -> None:
+        cls.responses = responses
+        cls.transcripts = []
+
+    def __init__(self, config: LLMConfig) -> None:
+        self.config = config
+
+    def complete(
+        self, transcript: list[dict[str, str]], *, temperature: float | None = None
+    ) -> Any:
+        del temperature
+        _FakeLLMManager.transcripts.append([dict(m) for m in transcript])
+        idx = min(
+            len(_FakeLLMManager.transcripts) - 1, len(_FakeLLMManager.responses) - 1
+        )
+        return SimpleNamespace(
+            text=_FakeLLMManager.responses[idx],
+            finish_reason=None,
+            model="fake-model-9",
+        )
+
+
+class ArtifactBuilderEngineTest(unittest.TestCase):
+    """`LLMManagerArtifactBuilder.build` — lint-in-retry over the real
+    `run_validation_rounds`, the exhaustion → `lint` mapping, and the
+    single-emission-point telemetry contract (the builder seam itself emits
+    only `personalized.artifact.retry`)."""
+
+    def _engine(self) -> LLMManagerArtifactBuilder:
+        return LLMManagerArtifactBuilder(
+            LLMConfig(base_url="http://127.0.0.1:9", model="fake", api_key="unused"),
+            ArtifactDesignContext(
+                doctrine_block="", palette_block="", doctrine_hash="h"
+            ),
+            render_gate=None,  # the headless gate is EV-PL-003's job
+        )
+
+    def test_clean_first_round_builds_without_builder_events(self) -> None:
+        _FakeLLMManager.script([_golden_payload()])
+        engine = self._engine()
+        with (
+            patch("backend.personalized.artifact_prompt.LLMManager", _FakeLLMManager),
+            patch("backend.personalized.artifact_prompt.log_event") as events,
+        ):
+            html, lint_hits, render_ms, model = engine.build(_spec(), [])
+        self.assertEqual(html, GOLDEN_HTML)
+        self.assertEqual(lint_hits, 0)
+        self.assertIsNone(render_ms)  # no render gate wired → NULL, recorded
+        self.assertEqual(model, "fake-model-9")
+        self.assertEqual(len(_FakeLLMManager.transcripts), 1)
+        # One emission point: ensure_artifact owns requested/ready/failed.
+        events.assert_not_called()
+
+    def test_lint_violation_is_fed_back_and_second_round_builds(self) -> None:
+        _FakeLLMManager.script([_dirty_payload(), _golden_payload()])
+        engine = self._engine()
+        with (
+            patch("backend.personalized.artifact_prompt.LLMManager", _FakeLLMManager),
+            patch("backend.personalized.artifact_prompt.log_event") as events,
+        ):
+            html, lint_hits, _, model = engine.build(_spec(), [])
+        self.assertEqual(html, GOLDEN_HTML)
+        self.assertEqual(lint_hits, 0)
+        self.assertEqual(model, "fake-model-9")
+        self.assertEqual(len(_FakeLLMManager.transcripts), 2)
+        feedback = _FakeLLMManager.transcripts[1][-1]
+        self.assertEqual(feedback["role"], "user")
+        self.assertIn("eval() is forbidden", feedback["content"])
+        # The rejected round is observable exactly once, as the retry event.
+        self.assertEqual(events.call_count, 1)
+        name, kwargs = events.call_args[0][0], events.call_args[0][1]
+        self.assertEqual(name, "personalized.artifact.retry")
+        self.assertEqual(kwargs["reason_code"], "lint")
+        self.assertEqual(kwargs["round"], 1)
+
+    def test_exhausted_rebuilds_map_to_a_lint_failure(self) -> None:
+        _FakeLLMManager.script([_dirty_payload()])
+        engine = self._engine()
+        with (
+            patch("backend.personalized.artifact_prompt.LLMManager", _FakeLLMManager),
+            self.assertRaises(ArtifactBuildError) as ctx,
+        ):
+            engine.build(_spec(), [])
+        self.assertEqual(ctx.exception.failure_reason, "lint")
+        self.assertGreaterEqual(ctx.exception.lint_hits, 1)
+        # §3.2: the first build plus at most 2 rebuilds.
+        self.assertEqual(len(_FakeLLMManager.transcripts), MAX_BUILD_ROUNDS)
 
 
 if __name__ == "__main__":

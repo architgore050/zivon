@@ -316,10 +316,11 @@ class LLMManagerArtifactBuilder(ArtifactBuilder):
             except NonRetryableHTTPError as exc:
                 raise ArtifactBuildError("route", str(exc)) from exc
             model_seen = result.model
-            log_event(
-                "personalized.artifact.requested",
-                {"stage": STAGE_ID, "round": round_no, "cache_hit": False},
-            )
+            # No per-round event here: `personalized.artifact.requested` is the
+            # map-declared request edge emitted once by ensure_artifact (its
+            # required fields artifact_id/kind/weak_grounding are unknown at
+            # this seam), and a rejected round already rides
+            # `personalized.artifact.retry` via on_reject below.
             return result.text, result.finish_reason
 
         def lint_feedback(parsed: dict[str, Any]) -> list[str]:
@@ -377,11 +378,9 @@ class LLMManagerArtifactBuilder(ArtifactBuilder):
                     render_ms=render_ms,
                     model=model_seen,
                 )
-        log_event(
-            "personalized.artifact.ready",
-            {"stage": STAGE_ID, "lint_hits": 0, "render_ms": render_ms},
-            latency_ms=render_ms,
-        )
+        # No `personalized.artifact.ready` here: the row-backed event is
+        # emitted once by ensure_artifact when the row is actually marked
+        # ready (its required fields ride the row, not the builder seam).
         return html, 0, render_ms, model_seen
 
 
