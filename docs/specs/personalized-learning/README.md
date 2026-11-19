@@ -130,7 +130,7 @@ Machine-readable companion: [`decision-log-addendum.csv`](decision-log-addendum.
 ## Status and exit gate
 
 **Spec status:** complete for build; PL1 implemented (2026-11-17), PL2 implemented
-(2026-11-18), PL3 in review, PL4–PL5 not started (2026-11-19).
+(2026-11-18), PL3 implemented (2026-11-18), PL4–PL5 not started (2026-11-19).
 **Wave:** **W5.5** (post-W4, before W5 integration), recorded in
 [`TIMELINE.md`](../../../TIMELINE.md).
 

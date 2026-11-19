@@ -27,9 +27,9 @@ environment-variable names.
 
 **Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
 merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
-merged** (PR #77, 2026-11-17) and **PL2 merged** (PR #79, 2026-11-18); **PL3 (generated
-artifacts) in review** on a feature branch, not merged to `main`; **PL4 (frontend) and
-PL5 (evals/security/QA) pending.** Durable deployment pending.
+merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18) and **PL3 (generated
+artifacts) merging** with this PR; **PL4 (frontend) and PL5 (evals/security/QA)
+pending.** Durable deployment pending.
 
 ## Status 2026-11-15 — startup track
 
