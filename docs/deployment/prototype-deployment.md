@@ -117,7 +117,7 @@ them (web-shell.md §9) — adding a second header layer invites drift.
 ```bash
 # on the VPS, as a non-root sudo user
 git clone https://github.com/architgore050/zivon.git && cd zivon
-git checkout 07d98a4856af358dcf9c7b76244086a2a985ec9a   # pin the reviewed SHA
+git checkout 06b00d41d064b73f47324be83712b2866e03e7ca   # pin the reviewed SHA (the head this runbook shipped with — it is where docker-compose.prod.yml landed; 07d98a4 and earlier predate the compose path)
 cp .env.prod.example .env.prod && chmod 600 .env.prod
 $EDITOR .env.prod     # fill every REQUIRED value; placeholders only in git
 ```
@@ -261,6 +261,9 @@ how they were built instead of snapshotting them.
 - **Nightly logical backup** (cron on the host) — matches the cluster's
   base-backup intent (`k8s/infra.env` `BASE_BACKUP_CRON_SCHEDULE`, 21:00 UTC):
   ```bash
+  # one-time: create the target dir INSIDE the volume (pg_dump makes the file,
+  # not parent dirs — without this the first cron run fails)
+  docker exec zivon-prod-postgres-1 mkdir -p /var/lib/postgresql/data/backups
   0 21 * * * docker exec zivon-prod-postgres-1 \
       pg_dump -U zivon -d zivon -Fc -f /var/lib/postgresql/data/backups/zivon-$(date -u +\%Y\%m\%d).dump
   30 21 * * * find /var/lib/docker/volumes/zivon-prod_zivon-db-data/_data/backups -name '*.dump' -mtime +13 -delete
@@ -283,6 +286,8 @@ how they were built instead of snapshotting them.
   cat zivon-YYYYMMDD.dump | docker exec -i zivon-prod-postgres-1 pg_restore -U zivon -d zivon --clean --if-exists
   docker compose ... up -d && re-run the § 6 smoke tests
   ```
+  (A fresh volume has no `backups/` dir — re-create it per § 7 before the next
+  nightly cron.)
   An untested backup is not a backup. Time it, record RPO/RTO, fix what hurt.
 - **Rotation:** rotate secrets on the cadence in `docs/deployment/secrets.md`
   (Gemini 90 d, DB password quarterly, session key/IP salt on compromise only —
@@ -296,6 +301,7 @@ how they were built instead of snapshotting them.
 | Bad migration already applied | **No downgrade path.** Forward-only (Alembic discipline, backend-engineering skill §1): restore last night's dump if the schema/data is unusable, then fix forward. This is why migrations gate the backend on `service_completed_successfully` — a failed migrate never replaces the running containers. |
 | Bad env change | `git checkout .env.prod` is impossible (untracked) — keep a host-side copy (`cp .env.prod /root/backups/.env.prod.bak-<date>` outside the repo) and restore it; `docker compose up -d` re-reads env only on container recreation. |
 | Config broken at boot | The backend refuses to boot on silent defaults (missing `ZIVON_ENV`/strict secrets → exit before listening). `docker compose ps` shows the restart loop; `docker compose logs core-backend` names the exact missing variable. Fix `.env.prod`, recreate. |
+| Host reboot leaves the backend degraded | The docker daemon restarts `restart: unless-stopped` containers individually on boot and does NOT re-evaluate `depends_on` ordering — core-backend can come up before Postgres accepts connections, latch its recorded `db boot_failed` state (no in-process retry, same posture as the cluster), and keep serving `/readyz` 503 even after Postgres is healthy. After any host reboot: `curl http://127.0.0.1:18085/readyz`; if it says `db: boot_failed`, `docker compose --env-file .env.prod -f docker-compose.prod.yml restart core-backend` once `postgres` is healthy, then re-run § 6. |
 | Whole-host loss | New host: § 2→5 in order, restore the newest dump (§ 7), re-copy the PL index, repoint DNS. Everything else is in git or rebuildable. |
 
 The rollback story in one sentence: images are pinned and rebuilt from git SHAs,
