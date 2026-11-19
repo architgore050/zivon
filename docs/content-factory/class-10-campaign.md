@@ -91,8 +91,9 @@ python pipeline.py "Light – Reflection and Refraction" --class 10 --locales hi
 
 - Run ids are deterministic per (chapter, class): re-running the same command **resumes**
   the previous attempt with zero model re-calls; `--fresh` wipes the attempt.
-- A full happy-path run costs roughly three big model calls plus one per simulation —
-  tens of minutes on a ~20 tok/s single-slot local server.
+- A full happy-path run costs four model calls plus one per simulation (generate,
+  check, review-facts, review-design — [`architecture.md`](architecture.md)) — tens of
+  minutes on a ~20 tok/s single-slot local server.
 - What the rule does **not** change: CI still passes key-free; the cluster test/eval
   CronJobs are untouched; secrets stay runtime-only (env vars / K8s Secrets, never
   files, manifests, or run artifacts).
@@ -131,8 +132,11 @@ runtime credits). It is opt-in via `ZIVON_NARRATION_ENABLED=true`; live synthesi
 (`ZIVON_NARRATION_BUDGET_CREDITS`) refuses spend before it exceeds the cap. One locale
 per run (`ZIVON_NARRATION_LANGS`). Mock assets (labelled `mode: "mock"`) are never
 published to the live site; residual block failures degrade read-aloud to the disabled
-copy honestly. Runbook: ["Narration builds"](runbook.md). Reference bar: the six
-published topics carry 185 opus assets generated at ~1,525 credits `[STRONG]`.
+copy honestly. Runbook: ["Narration builds"](runbook.md). Reference bar: the committed snapshot
+carries 623 opus assets under `frontend/audio/` for the six published topics (149
+under `class-9-physics/`, 474 under `class-11-physics/`) `[STRONG]`; the tranche's
+credit spend is founder-local ledger data (`runs/narration-budget.json`, gitignored,
+~1,525 credits) `[ASSUMPTION]`.
 
 ### 5.4 Assessment gate — practice and speaking banks per chapter
 
