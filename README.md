@@ -5,8 +5,11 @@
 **Status: post-challenge startup track (since 2026-11-15).** Zivon began as a
 **Great Indian AI Internship Challenge** entry; it is now a startup build with no external
 deadline. The current milestone is a **working prototype for product-market-fit testing** —
-Class 9/10 Physics content complete, live lessons in English/Hindi/Hinglish, and the full
-consumer frontend. Milestone, wave order, and the definition of done live in
+and, per the founder scope decision of 2026-11-19, the prototype covers **one class only:
+Class 10** — the four NCERT Physics chapters (campaign record:
+[`docs/content-factory/class-10-campaign.md`](docs/content-factory/class-10-campaign.md)) —
+with live lessons in English/Hindi/Hinglish and the full consumer frontend. Milestone,
+wave order, and the definition of done live in
 [`TIMELINE.md`](TIMELINE.md) and [`AGENTS.md`](AGENTS.md).
 
 The voice loop (current stack by choice, revisable by founder decision — see "Current stack" in
@@ -18,7 +21,7 @@ The voice loop (current stack by choice, revisable by founder decision — see "
 Build-time content generation runs on **DeepSeek V4.1 Flash** through the OpenCode API;
 translation uses **Gnani Evon**.
 
-**Focus:** academic Physics, Class 9–12 — taught through interactive animations, simulations, and diagrams, with a patient spoken Hinglish tutor anchored to every page.
+**Focus:** academic Physics, Class 9–12 — taught through interactive animations, simulations, and diagrams, with a patient spoken Hinglish tutor anchored to every page. *(Prototype build scope, founder decision 2026-11-19: **Class 10 only** — [`docs/content-factory/class-10-campaign.md`](docs/content-factory/class-10-campaign.md).)*
 
 ---
 
@@ -223,7 +226,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md`](docs/DECISIONS-and-RESEARCH/03-project-idea-physics-voice-tutor.md) | Product idea (Physics, confirmed scope) |
 | [`docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md`](docs/DECISIONS-and-RESEARCH/04-product-naming-methodology.md) | Brand naming process → **Zivon** |
 | [`docs/deployment/`](docs/deployment/) | Docker, Kubernetes, and CI/CD setup; see the folder README for layout and status — incl. the secrets registry (`secrets.md`) and the Wave-E reserved manifest numbering map |
-| [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status), and the separate assessment pipeline ([`assessment.md`](docs/content-factory/assessment.md): practice items, speaking rubrics, concept tagging, time priors, export pack) |
+| [`docs/content-factory/`](docs/content-factory/) | Content factory: architecture, config reference, block schema, runbook, source catalog (public PDF sources for classes 6-12 — research + licensing + verification status), the separate assessment pipeline ([`assessment.md`](docs/content-factory/assessment.md): practice items, speaking rubrics, concept tagging, time priors, export pack), and the Class 10 campaign record ([`class-10-campaign.md`](docs/content-factory/class-10-campaign.md): the prototype's one-class scope decision, the four chapters, current state, the local-only generation rule, per-chapter gates and env names) |
 | [`docs/product/`](docs/product/) | Features document: decided feature list + decision log, feature cards, screen/element/information inventories, traceability matrix, backend handoff for the systems-design stage |
 | Full-frontend plan (frozen 2026-11-13) | Workspace-local `tmp/full-frontend/FEATURE-MAP.md` + `REQUIREMENTS.md` — gitignored and deliberately not committed: locked product decisions, R1/R1.5/R2 scope, routes, screens, states, workstreams. Committed restatement: `docs/product/`, `docs/specs/frontend/`, `skills/zivon-frontend-product-skills/` |
 | `docs/compliance/` (C0, 2026-11-15) | Compliance research memo for exam-paper use — copyright/CBSE terms, educational-use boundaries, the exact user-facing notice copy, and counsel-review flags. Lands with the C0 agent; nothing past-paper is ingested, reproduced, or published before it |
@@ -247,7 +250,7 @@ Branch protection on `main` (Settings → Branches): require PR + these checks g
 | [`docs/specs/evals/`](docs/specs/evals/) | Evaluation framework spec (`evals/` package, test-to-eval migration map, stage & E2E eval cards, golden sets, regression tracking) |
 | [`docs/backend/adr/`](docs/backend/adr/) | Backend and evaluation Architecture Decision Records (ADRs) |
 | [`docs/specs/frontend/`](docs/specs/frontend/) | Frontend implementation spec (wave S1): component inventory, state matrix, WS client contract, perf-budget tests, SEO plan |
-| [`docs/specs/personalized-learning/`](docs/specs/personalized-learning/) | Personalized learning + interactive artifacts (W5.5, 2026-11-17): login-required teach → check → adapt loop, account-level personal instructions, saved conversations, sandboxed generated artifacts, free-tier quotas, threat model, `EV-PL-001…005`, PL1–PL5 workstreams, open founder decisions, and the feature addendum that extends `docs/product/features.md`. **PL1 (the data/auth/preferences/quota foundation) is implemented** — migration `0005_personalized_learning`, the `/v1/me/preferences` + `/v1/personalized/*` APIs, D-PL-01 quotas, retention/deletion cascade, and the lesson-page voice-tutor personal-instruction injection; the teaching turn answers an honest `503` until PL2 |
+| [`docs/specs/personalized-learning/`](docs/specs/personalized-learning/) | Personalized learning + interactive artifacts (W5.5, 2026-11-17): login-required teach → check → adapt loop, account-level personal instructions, saved conversations, sandboxed generated artifacts, free-tier quotas, threat model, `EV-PL-001…005`, PL1–PL5 workstreams, open founder decisions, and the feature addendum that extends `docs/product/features.md`. **PL1 and PL2 are implemented** — migration `0005_personalized_learning`, the `/v1/me/preferences` + `/v1/personalized/*` APIs, D-PL-01 quotas, retention/deletion cascade, the lesson-page voice-tutor personal-instruction injection, and the PL2 teaching agent (deterministic state machine, two-call streaming turn, RAG index + citations, bank-first checks, the D-PL-07 DeepSeek route); PL3 is in review and PL4–PL5 pending (2026-11-19) |
 | [`docs/specs/gaps/`](docs/specs/gaps/) | Gap register + Wave-E assignment (SP6) |
 
 ## Engineering Process

@@ -1,6 +1,6 @@
 # Workstreams — PL1…PL5
 
-Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3–PL5 not started.** This file is the
+Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3 in review on a feature branch, not merged (2026-11-19); PL4–PL5 not started.** This file is the
 execution split for **W5.5** in [`TIMELINE.md`](../../../TIMELINE.md). Each
 workstream is one agent-sized PR series; a PR never edits another workstream's
 owned files without the owner's review.

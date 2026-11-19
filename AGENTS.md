@@ -3,8 +3,33 @@
 You are implementing **Zivon**, a voice-first AI tutor for Indian learners.
 
 **Subject scope (confirmed): academic Physics, Class 9–12.** Not Python, not general chat.
+*(Prototype build scope — founder decision 2026-11-19: **Class 10 only**, see Status
+2026-11-19 below; the older multi-class prototype scope is superseded.)*
 
 **Execution plan: `TIMELINE.md` (repo root) — the centralized task list, infra TODO included. No separate TODO files anywhere; pending work gets merged into `TIMELINE.md`.** The milestone and wave order are in the status block below.
+
+## Status 2026-11-19 — startup track
+
+**Founder scope decision (2026-11-19): the working prototype covers one class only —
+Class 10** — the four NCERT Physics chapters (Light – Reflection and Refraction, The
+Human Eye and the Colourful World, Electricity, Magnetic Effects of Electric Current) —
+**not all four classes.** The multi-class prototype scope in the 2026-11-15 block below
+(the "Class 9/10 content complete" milestone wording) is **superseded** for the
+prototype and stays as written for the record; the product's long-term subject scope
+(Class 9–12) is unchanged. Campaign execution record:
+[`docs/content-factory/class-10-campaign.md`](docs/content-factory/class-10-campaign.md) —
+read it before any content-factory work on the prototype: the four chapter ids, the
+current state (**Light generated founder-local, three pending**), the **local-only
+generation rule** (campaign runs on the founder's machine through `llm_manager`, never
+as cluster `k8s/20` Jobs; still manual-only, never scheduled), and the per-chapter
+translation / narration / assessment / series / publish gates with their exact
+environment-variable names.
+
+**Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
+merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
+merged** (PR #77, 2026-11-17) and **PL2 merged** (PR #79, 2026-11-18); **PL3 (generated
+artifacts) in review** on a feature branch, not merged to `main`; **PL4 (frontend) and
+PL5 (evals/security/QA) pending.** Durable deployment pending.
 
 ## Status 2026-11-15 — startup track
 
@@ -28,7 +53,9 @@ acceptance criteria.
 
 - **Current milestone:** a **working prototype for product-market-fit testing** — Class 9/10
   content complete, live lessons translated (EN/HI/Hinglish), the full consumer frontend, and
-  pipeline quality good enough to keep producing content.
+  pipeline quality good enough to keep producing content. *(Superseded 2026-11-19: the
+  prototype's content scope is **Class 10 only** — see Status 2026-11-19 above; this line
+  stays as written for the record.)*
 - **Scope source:** the frozen full-frontend plan (2026-11-13; workspace-local
   `tmp/full-frontend/FEATURE-MAP.md` + `REQUIREMENTS.md`, not committed) and the committed
   specs that restate it — `docs/product/`, `docs/specs/frontend/`,
@@ -48,7 +75,7 @@ acceptance criteria.
 - `docs/DECISIONS-and-RESEARCH/` — consult before making product, positioning, or Gnani-related decisions.
 - `docs/frontend/` — consult before any frontend or design work.
 - `docs/deployment/` — consult before any Docker, Kubernetes, CI/CD, or infrastructure work; the folder holds the decided infra stack and pipeline inventory.
-- `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog, the separate assessment pipeline (`assessment.md`: practice items, speaking rubrics, concept tagging, time priors, export pack), and the separate exam/series pipeline (`exam.md`: paper metadata ingest, blueprint, the six series, volume/coverage gate, blueprint-only compliance)).
+- `docs/content-factory/` — consult before any content-factory or pipeline work (architecture, config reference, block schema, runbook, source catalog, the separate assessment pipeline (`assessment.md`: practice items, speaking rubrics, concept tagging, time priors, export pack), the separate exam/series pipeline (`exam.md`: paper metadata ingest, blueprint, the six series, volume/coverage gate, blueprint-only compliance), and the Class 10 campaign record (`class-10-campaign.md`: the prototype's one-class scope decision, the four chapter ids, current state, the local-only generation rule, the per-chapter publish gates, and the exact env names)).
 - `docs/compliance/` — consult before any exam-paper ingest, reproduction, attribution, or user-facing notice work: the compliance research memo (Indian copyright, CBSE past/sample-paper terms, government-work exceptions, educational-use boundaries), the source register, the exact EN/HI notice copy, the decisions (`DEC-COMP-*`) and counsel flags. Landed 2026-11-15; the operative rule is blueprint-only (`DEC-COMP-001`), P3 ingest/publish stays behind a feature flag, and verbatim publishing needs a clearance record.
 - `docs/specs/` — consult before any product-runtime backend or voice work; `docs/specs/voice-agent/` is the voice-tutor architecture spec (wave S1: pipeline, WebSocket contract, latency budget, ADRs 0017–0020, open questions).
 - `docs/specs/translation/` — consult before any translation pipeline, localization, or locale-switcher work; see its README for layout and `docs/backend/adr/` (0021–0023) for translation ADRs. [WS1 renumber: translation ADRs 0017–0019 → 0021–0023]
@@ -407,7 +434,9 @@ Content-creation non-negotiables: interview before drafting (Depth Gate), never 
 ## Definition of done — prototype milestone (startup track)
 
 - Class 9/10 Physics content generated by the factory is published, with live lessons in
-  EN/HI/Hinglish and no silent untranslated fallback.
+  EN/HI/Hinglish and no silent untranslated fallback. *(Superseded 2026-11-19: the
+  prototype's content DoD is the four Class 10 chapters —
+  `docs/content-factory/class-10-campaign.md` §7 tracker.)*
 - The full consumer frontend specified for R1 exists: public site + catalogue, lesson shell,
   guest-first identity, dashboard/progress, practice, speaking, tests/series, SWOT, settings,
   admin.
