@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.prod.example
 *.pem
 # exception: public pinned CA chains (e.g. ncert.nic.in) are not secrets and must ship
 !sources/certs/*.pem
