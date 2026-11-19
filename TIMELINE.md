@@ -6,6 +6,29 @@
 > The challenge plan and the dated execution log are preserved as the record, not the current
 > plan (the only edits are the status block and the historical markers on closed sections).
 
+## Status 2026-11-19 — startup track
+
+**Founder scope decision (2026-11-19): the working prototype covers one class only —
+Class 10** — the four NCERT Physics chapters (Light – Reflection and Refraction, The
+Human Eye and the Colourful World, Electricity, Magnetic Effects of Electric Current) —
+**not all four classes.** The older multi-class prototype scope in the 2026-11-15 block
+below ("Class 9/10 Physics content complete") is **superseded** for the prototype; it
+stays as written for the record. The product's subject scope (academic Physics,
+Class 9–12) is unchanged. Execution record:
+[`docs/content-factory/class-10-campaign.md`](docs/content-factory/class-10-campaign.md) —
+the four chapter ids, the current state (**Light generated in a founder-local run, three
+pending**), the **local-only generation rule** (campaign runs on the founder's machine
+through `llm_manager`, never as cluster `k8s/20` Jobs), and the per-chapter
+translation / narration / assessment / series / publish gates with their exact
+environment-variable names.
+
+**Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
+merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
+merged** (PR #77, 2026-11-17) and **PL2 merged** (PR #79, 2026-11-18); **PL3 (generated
+artifacts) in review** on a feature branch, not merged to `main`; **PL4 (frontend) and
+PL5 (evals/security/QA) pending.** Durable deployment also pending (the challenge demo
+tunnel is historical). The status block and dated log below are preserved as written.
+
 ## Status 2026-11-15 — startup track
 
 Founder decision Q-0 (2026-11-15): the challenge deadline and its P0/demo ladder are history;
@@ -18,6 +41,9 @@ and not committed; restated in `docs/product/`, `docs/specs/frontend/`, and
 
 - Class 9/10 Physics content complete, with live lessons in EN/HI/Hinglish (full translation
   path; a missing translation is a publish failure, not a silent fallback — Q-2).
+  *(Superseded 2026-11-19: the prototype covers **Class 10 only** — see the Status 2026-11-19
+  block above and `docs/content-factory/class-10-campaign.md`; this line stays as written
+  for the record.)*
 - The full consumer frontend: public site + catalogue, lesson shell, guest-first identity,
   dashboard/progress, practice, speaking, tests/series, SWOT, settings, admin.
 - Personalized learning (W5.5, added 2026-11-17): a login-required teach → check → adapt
