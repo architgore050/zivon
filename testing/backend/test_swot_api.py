@@ -190,11 +190,26 @@ class SwotApiTests(unittest.TestCase):
             payload["quadrants"]["opportunity"][0]["chapter_id"], CHAPTER_C
         )
         self.assertEqual(payload["quadrants"]["threat"], [])
-        # The lesson-only chapter plus the two untouched fixture chapters
-        # wait in the unrated row; none is forced into a box.
-        self.assertEqual(len(payload["unrated"]), 3)
-        self.assertEqual(payload["unrated"][0]["chapter_id"], CHAPTER_D)
-        self.assertIsNone(payload["unrated"][0]["quadrant"])
+        # Every chapter with no scored evidence waits in the unrated row — none
+        # is forced into a box. The expected set is derived from the published
+        # catalogue the backend reads, so a newly published chapter (the Class
+        # 10 Light lesson) joins the row without a test edit.
+        catalogue_path = (
+            Path(__file__).resolve().parents[2] / "frontend" / "catalogue.json"
+        )
+        catalogue_ids = {
+            str(topic["chapter_id"])
+            for topic in json.loads(catalogue_path.read_text(encoding="utf-8"))[
+                "topics"
+            ]
+        }
+        self.assertEqual(
+            {entry["chapter_id"] for entry in payload["unrated"]},
+            catalogue_ids - {CHAPTER_A, CHAPTER_B, CHAPTER_C},
+        )
+        unrated_by_id = {entry["chapter_id"]: entry for entry in payload["unrated"]}
+        self.assertIn(CHAPTER_D, unrated_by_id)
+        self.assertIsNone(unrated_by_id[CHAPTER_D]["quadrant"])
 
     def test_speaking_attempts_reach_the_chapter_metrics(self) -> None:
         session = self.register()
