@@ -32,6 +32,8 @@ FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 # main repo carries exactly that build (APKINDEX checked 2026-11-17; its deps
 # are sonames already satisfied by the base), so libxslt is upgraded to that
 # EXACT PIN below.
+# Round 4 (2026-11-21, CI unblock): libxml2 (CVE-2026-86144, information
+# disclosure/SSRF/DoS; base ships 2.13.9-r2, Alpine v3.24 carries 2.13.9-r3).
 # The apk update is required: the base ships a frozen index from its build date,
 # so the newer fixes are invisible to apk without it. The freshening upgrades
 # are targeted + unpinned on purpose: Alpine repos keep only the newest -r
@@ -45,7 +47,7 @@ FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 # final USER stays non-root.
 # hadolint ignore=DL3018
 USER 0
-RUN apk update && apk add --no-cache libxslt=1.1.43-r4 && apk upgrade --no-cache brotli-libs curl libcurl libexpat musl musl-utils zlib
+RUN apk update && apk add --no-cache libxslt=1.1.43-r4 && apk upgrade --no-cache brotli-libs curl libcurl libexpat libxml2 musl musl-utils zlib
 USER 101
 
 # Replace the stock default site with the Zivon site config.

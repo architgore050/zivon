@@ -46,18 +46,16 @@ them; the assessment and exam pipelines key on the ids):
 | 1 | `class-10-light-reflection-and-refraction` | Light – Reflection and Refraction | 7 | **generated** (founder-local, 2026-11-19) `[ASSUMPTION]` | seed bank tracked (15 items + 3 speaking prompts, EN/HI/Hinglish) `[STRONG]` | pending | pending |
 | 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
 | 3 | `class-10-electricity` | Electricity | 5 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
-| 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | pending | none (0 questions) `[STRONG]` | pending | pending |
+| 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
 
-State summary: **three generated, one pending.**
+State summary: **all four chapters generated.**
 
 ## 3. Current state (2026-11-19), against the committed snapshot
 
-- **Light is generated** in a founder-local run `[ASSUMPTION]` — the committed snapshot
-  cannot show a local run's artifacts (`runs/` is gitignored). Snapshot evidence
-  `[STRONG]`: `frontend/catalogue.json` still lists six topics (Class 9 ×2, Class 11 ×4)
-  and no Class 10 topic; `frontend/audio/` has only `class-9-physics/` and
-  `class-11-physics/`. The Light page enters the committed snapshot only when its
-  publish gates (§5) pass and `scripts/publish-frontend.sh` mirrors it.
+- **All four Class 10 lessons are generated and in the committed snapshot** — 10 topics
+  in `frontend/catalogue.json` (Class 9 ×2, Class 10 ×4, Class 11 ×4), each Class 10
+  chapter with `missing_locales: []`. The runs themselves stay founder-local
+  (`runs/` is gitignored); the committed pages are the snapshot evidence `[STRONG]`.
 - **The Human Eye is generated** in a founder-local run on 2026-11-20 (43 blocks,
   EN/HI/Hinglish, `03-check` and `09-review` pass, translation `10b` pass). Its earlier
   failure was the provider output default, not reasoning quality: with
@@ -69,7 +67,7 @@ State summary: **three generated, one pending.**
   (`ZIVON_REASONING_EFFORT`, 0=none, 1=low default, 2=high, 3=max), so it can be raised on
   quality grounds without changing the output ceiling. See `TIMELINE.md` (2026-11-20).
 - **Electricity is generated** in a founder-local run on 2026-11-21 (45 blocks, EN/HI/Hinglish, one interactive simulation; `03-check` and `09-review` pass, `10b` pass after one bounded `10c` repair).
-- **Magnetic Effects is pending** — no run, no bank, no locales, no audio.
+- **Magnetic Effects is generated** in a founder-local run on 2026-11-21 (42 published blocks, one interactive simulation; `03-check` and `09-review` pass, `10b` pass after one bounded `10c` repair).
 - **Assessment:** only Light has a tracked seed bank
   (`sources/syllabus/chapters/class-10-light-reflection-and-refraction.items.json` +
   `.speaking.json`); the other three chapters have no items, which is exactly what the
@@ -217,10 +215,10 @@ catalogue with `missing_locales: []`.
 
 | Gate → | Lesson (00–10) | Translation (10a–10d) | Narration (12) | Assessment bank | Series pack contribution | Published in snapshot |
 |---|---|---|---|---|---|---|
-| Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ⬜ (pack blocked: coverage) | ⬜ |
-| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ⬜ |
-| Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ⬜ |
-| Magnetic Effects of Electric Current | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ⬜ (pack blocked: coverage) | ✅ |
+| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ✅ |
+| Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ✅ |
+| Magnetic Effects of Electric Current | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ✅ |
 
 ## 8. Records
 

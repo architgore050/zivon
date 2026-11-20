@@ -1,0 +1,33 @@
+{
+  "course_id": "class-10-physics",
+  "topic_slug": "magnetic-effects-of-electric-current",
+  "locale": "hi",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Magnetic Effects of Electric Current",
+    "hi": "विद्युत धारा के चुम्बकीय प्रभाव",
+    "hi-Latn": "Electric Current ke Magnetic Effects"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "narration": {
+    "available": false,
+    "lang": "hi",
+    "blocks": {}
+  }
+}
