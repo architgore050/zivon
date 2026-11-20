@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="hi" data-script="Deva">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; base-uri 'none'">
+<title>Electricity - Zivon</title>
+<link rel="canonical" href="../index.html">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="alternate" hreflang="hi" href="index.html">
+<link rel="alternate" hreflang="hi-Latn" href="../hi-Latn/index.html">
+<link rel="stylesheet" href="../../../../assets/zivon.css">
+
+</head>
+<body>
+<header class="zn-lang-bar" data-current-locale="hi"><div class="zn-lang-in"><span class="zn-lang-lab" data-i18n="ui.lang_label">भाषा</span><div class="zn-lang-row" role="radiogroup" aria-label="Language"><button type="button" class="zn-chip" role="radio" data-locale="en" data-href="../index.html" aria-checked="false">English</button><button type="button" class="zn-chip" role="radio" data-locale="hi" data-href="index.html" lang="hi" aria-checked="true">हिन्दी</button><button type="button" class="zn-chip" role="radio" data-locale="hi-Latn" data-href="../hi-Latn/index.html" lang="hi-Latn" aria-checked="false">Hinglish</button></div><span class="zn-trans-badge" data-i18n="ui.trans_badge">AI-अनुवादित · समीक्षित</span></div></header>
+<main class="zn-page">
+  <header class="zn-header">
+    <p class="zn-kicker" data-element-id="EL-LES-01-001">class-10-physics</p>
+    <h1 class="zn-title" data-element-id="EL-LES-01-002" data-i18n="b-00-meta.title">Electricity</h1>
+    <p class="zn-objectives-label" data-element-id="EL-LES-01-004" data-i18n="ui.objectives_heading">इस पाठ के बाद आप सीखेंगे:</p>
+    <ul class="zn-objectives">
+      <li data-i18n="b-00-meta.objectives.0">इस पाठ के बाद आप समझा सकते हैं कि विद्युत धारा क्या है, उसका मात्रक बता सकते हैं, और किसी परिपथ में बहने वाले आवेश को ज्ञात करने के लिए I = Q/t का उपयोग कर सकते हैं।</li>
+      <li data-i18n="b-00-meta.objectives.1">इस पाठ के बाद आप विभवांतर और प्रतिरोध को परिभाषित कर सकते हैं, ओम का नियम बता सकते हैं, और V = IR तथा R = ρl/A से गणना कर सकते हैं।</li>
+      <li data-i18n="b-00-meta.objectives.2">इस पाठ के बाद आप श्रेणीक्रम या समांतर क्रम में जोड़े गए प्रतिरोधकों का तुल्य प्रतिरोध (Equivalent resistance) ज्ञात कर सकते हैं और उनसे परिपथ के प्रश्न हल कर सकते हैं।</li>
+      <li data-i18n="b-00-meta.objectives.3">इस पाठ के बाद आप H = I²Rt का उपयोग करके धारा से उत्पन्न ऊष्मा, और किसी यंत्र द्वारा उपयोग की गई शक्ति तथा ऊर्जा की गणना कर सकते हैं, जिसमें किलोवाट घंटा (Kilowatt hour) में लागत भी शामिल है।</li>
+    </ul>
+  </header>
+  <section class="zn-section" id="sec-01" data-section-id="sec-01" data-concept-id="class-10-electricity-sec-01">
+  <section class="zn-text" id="b-01" data-block-type="text" data-concept-id="class-10-electricity-sec-01">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-01.paragraphs.0">आपने टॉर्च को काम करते देखा है। इसके अंदर की सेलें बल्ब के माध्यम से आवेश को धकेलती हैं, और बल्ब केवल तब तक चमकता है जब तक स्विच चालू रहता है। नदी में बहते पानी को जल धारा कहा जाता है; उसी तरह, जब विद्युत आवेश किसी चालक जैसे धात्विक तार के माध्यम से बहता है, तो हम कहते हैं कि चालक में विद्युत धारा है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-01.paragraphs.1">एक स्विच सेल और बल्ब के बीच एक चालकीय संपर्क बनाता है। यदि परिपथ कहीं भी टूट जाता है, तो धारा बहना बंद हो जाती है और बल्ब नहीं चमकता। विद्युत धारा के एक सतत और बंद पथ को विद्युत परिपथ कहा जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-01.paragraphs.2">विद्युत धारा इकाई समय में किसी विशेष क्षेत्रफल से प्रवाहित होने वाले आवेश की मात्रा है; दूसरे शब्दों में यह विद्युत आवेशों के प्रवाह की दर है। धात्विक तारों में, इलेक्ट्रॉन वे आवेश हैं जो प्रवाहित होते हैं। जब बिजली का पहली बार अवलोकन किया गया था तब इलेक्ट्रॉनों का ज्ञान नहीं था, इसलिए धारा को धनात्मक आवेशों के प्रवाह के रूप में लिया गया था, और परंपरा से विद्युत धारा की दिशा इलेक्ट्रॉनों के प्रवाह की दिशा के विपरीत होती है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-01.paragraphs.3">यदि किसी चालक के किसी अनुप्रस्थ काट से समय t में नेट आवेश Q प्रवाहित होता है, तो I = Q/t। आवेश का SI मात्रक कूलॉम (Coulomb) (C) है, जो लगभग 6 × 10^18 इलेक्ट्रॉनों के आवेश के बराबर है, और एक इलेक्ट्रॉन पर 1.6 × 10^-19 C का ऋणात्मक आवेश होता है। धारा का SI मात्रक एम्पियर (Ampere) (A) है, जहाँ 1 A = 1 C/1 s; छोटी धाराओं को 1 mA = 10^-3 A या 1 µA = 10^-6 A के रूप में लिखा जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-01.paragraphs.4">एक उपकरण जिसे अमीटर कहा जाता है, विद्युत धारा को मापता है, और इसे सदैव उस परिपथ में श्रेणीक्रम में जोड़ा जाता है जिसके माध्यम से धारा मापी जानी है। टॉर्च परिपथ में धारा सेल के धनात्मक टर्मिनल से ऋणात्मक टर्मिनल तक बल्ब और अमीटर के माध्यम से प्रवाहित होती है।</p>
+  </section>
+  <figure class="zn-diagram" id="b-02" data-element-id="EL-LES-01-014" data-block-type="diagram" data-concept-id="class-10-electricity-sec-01">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" role="img" aria-label="एक सेल, एक बल्ब, एक अमीटर और एक बंद प्लग कुंजी वाला एक परिपथ, जिसमें धारा धनात्मक टर्मिनल से निकल रही है"><g stroke="#1C1B18" stroke-width="2.6" fill="none" stroke-linecap="round"><line x1="50" y1="60" x2="182" y2="60" /><line x1="218" y1="60" x2="320" y2="60" /><line x1="320" y1="60" x2="320" y2="102" /><line x1="320" y1="138" x2="320" y2="180" /><line x1="320" y1="180" x2="207" y2="180" /><line x1="193" y1="180" x2="50" y2="180" /><line x1="50" y1="180" x2="50" y2="140" /><line x1="50" y1="100" x2="50" y2="60" /><line x1="50" y1="140" x2="50" y2="100" /><circle cx="200" cy="60" r="18" /><circle cx="320" cy="120" r="18" /><line x1="193" y1="166" x2="193" y2="194" /><line x1="207" y1="172" x2="207" y2="188" /><circle cx="50" cy="140" r="3" fill="#1C1B18" /><circle cx="50" cy="100" r="3" fill="#1C1B18" /></g><polygon points="268,54 284,60 268,66" fill="#1F3A9E" /><text x="200" y="32" text-anchor="middle" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18" data-i18n="b-02.svg_texts.t-0">बल्ब</text><text x="320" y="126" text-anchor="middle" font-family="Courier Prime, monospace" font-size="16" font-weight="700" fill="#1C1B18">A</text><text x="334" y="114" text-anchor="start" font-family="Courier Prime, monospace" font-size="12" fill="#5A5748" data-i18n="b-02.svg_texts.t-1">अमीटर</text><text x="200" y="216" text-anchor="middle" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18" data-i18n="b-02.svg_texts.t-2">सेल</text><text x="186" y="160" text-anchor="end" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">+</text><text x="216" y="160" text-anchor="start" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">-</text><text x="64" y="126" text-anchor="start" font-family="Courier Prime, monospace" font-size="12" fill="#5A5748" data-i18n="b-02.svg_texts.t-3">प्लग कुंजी</text><text x="262" y="44" text-anchor="middle" font-family="Caveat, cursive" font-size="20" font-weight="700" fill="#1F3A9E" data-i18n="b-02.svg_texts.t-4">धारा I</text></svg></div>
+    <figcaption data-element-id="EL-LES-01-015" data-i18n="b-02.caption">एक साधारण परिपथ: एक सेल, एक बल्ब, एक अमीटर और एक प्लग कुंजी, सभी एक बंद लूप में। धारा सेल के धनात्मक टर्मिनल से निकलती है, बल्ब और अमीटर से होकर गुजरती है, और ऋणात्मक टर्मिनल पर वापस आती है।</figcaption>
+  </figure>
+  <section class="zn-example" id="b-03" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-01">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-03.problem">एक विद्युत बल्ब के तंतु द्वारा 10 मिनट तक 0.5 A की धारा ली जाती है। परिपथ से प्रवाहित विद्युत आवेश की मात्रा ज्ञात कीजिए।</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-03.steps.0.title">दी गई जानकारी लिखिए</strong> <span data-i18n="b-03.steps.0.detail">धारा I = 0.5 A। समय t = 10 मिनट।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-03.steps.1.title">समय को सेकंड में बदलिए</strong> <span data-i18n="b-03.steps.1.detail">t = 10 मिनट = 10 × 60 s = 600 s, क्योंकि ऐम्पियर (Ampere) कूलॉम (Coulomb) प्रति सेकंड होता है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-03.steps.2.title">धारा की परिभाषा का उपयोग कीजिए</strong> <span data-i18n="b-03.steps.2.detail">I = Q/t, इसलिए Q = I × t।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-03.steps.3.title">मान रखिए</strong> <span data-i18n="b-03.steps.3.detail">Q = 0.5 A × 600 s = 300 C।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-03.answer">परिपथ से प्रवाहित आवेश की मात्रा 300 C है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-04" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="0" data-block-type="check" data-concept-id="class-10-electricity-sec-01">
+    <legend data-i18n="b-04.question">विद्युत परिपथ का क्या अर्थ है?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-04" value="0"> <span data-i18n="b-04.options.0">विद्युत धारा का एक सतत और बंद पथ</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-04" value="1"> <span data-i18n="b-04.options.1">वह पथ जो स्विच पर टूटा हुआ है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-04" value="2"> <span data-i18n="b-04.options.2">कोई भी धातु का टुकड़ा जो आवेश वहन करता है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-04" value="3"> <span data-i18n="b-04.options.3">धनात्मक टर्मिनल से ऋणात्मक टर्मिनल की ओर इलेक्ट्रॉनों का प्रवाह</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-04.explanation">स्विच सेल और बल्ब के बीच एक चालक संयोजन बनाता है, इसलिए पथ बंद होना चाहिए; यदि परिपथ कहीं भी टूट जाए तो धारा रुक जाती है और बल्ब नहीं चमकता। यह भी ध्यान दें कि इलेक्ट्रॉन ऋणात्मक होते हैं, इसलिए पारंपरिक धारा को इलेक्ट्रॉन प्रवाह की दिशा के विपरीत लिया जाता है, उसके अनुदिश नहीं।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-05" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="0" data-block-type="check" data-concept-id="class-10-electricity-sec-01">
+    <legend data-i18n="b-05.question">एक कूलॉम (Coulomb) आवेश बनाने वाले इलेक्ट्रॉनों की संख्या की गणना कीजिए।</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-05" value="0"> <span data-i18n="b-05.options.0">6 × 10^18</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-05" value="1"> <span data-i18n="b-05.options.1">1.6 × 10^19</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-05" value="2"> <span data-i18n="b-05.options.2">6 × 10^19</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-05" value="3"> <span data-i18n="b-05.options.3">1.6 × 10^-19</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-05.explanation">एक इलेक्ट्रॉन पर 1.6 × 10^-19 C आवेश होता है। इसलिए 1 C में इलेक्ट्रॉनों की संख्या 1 / (1.6 × 10^-19) है, जो लगभग 6.25 × 10^18 है, अर्थात लगभग 6 × 10^18 इलेक्ट्रॉन। यही कारण है कि एक कूलॉम को लगभग 6 × 10^18 इलेक्ट्रॉनों में निहित आवेश कहा जाता है।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-02" data-section-id="sec-02" data-concept-id="class-10-electricity-sec-02">
+  <section class="zn-text" id="b-06" data-block-type="text" data-concept-id="class-10-electricity-sec-02">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-06.paragraphs.0">आवेश ताँबे के तार में स्वयं नहीं बहते, जैसे पूर्णतः क्षैतिज नली में जल नहीं बहता। यदि नली का एक सिरा ऊँचे स्तर पर रखे टैंक से जोड़ दिया जाए, जिससे दोनों सिरों के बीच दाब-अंतर हो, तो जल दूसरे सिरे से बह निकलता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-06.paragraphs.1">धात्विक तार में आवेशों के लिए गुरुत्वाकर्षण की कोई भूमिका नहीं है। इलेक्ट्रॉन केवल तभी गति करते हैं जब चालक के अनुदिश विद्युत दाब का अंतर हो, जिसे विभवांतर कहते हैं। एक बैटरी, जो एक या अधिक सेलों से बनी होती है, यह अंतर उत्पन्न करती है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-06.paragraphs.2">सेल के भीतर रासायनिक क्रिया इसके टर्मिनलों के बीच विभवांतर उत्पन्न करती है, भले ही इससे कोई धारा न ली जाए। जब सेल को किसी चालक परिपथ अवयव से जोड़ा जाता है, तो विभवांतर आवेशों को गति (motion) में ला देता है और विद्युत धारा उत्पन्न करता है, और धारा को बहते रहने के लिए सेल को अपनी संचित रासायनिक ऊर्जा व्यय करनी पड़ती है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-06.paragraphs.3">किसी धारा वाले परिपथ में दो बिंदुओं के बीच विभवांतर वह कार्य है जो एकांक आवेश को एक बिंदु से दूसरे बिंदु तक ले जाने में किया जाता है, अतः V = W/Q। इसका SI मात्रक वोल्ट (Volt) है: एक वोल्ट वह विभवांतर है जब 1 कूलॉम (Coulomb) आवेश को ले जाने में 1 जूल कार्य किया जाता है, अर्थात् 1 V = 1 J C^-1।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-06.paragraphs.4">वोल्टमीटर विभवांतर मापता है, और इसे सदैव उन बिंदुओं के बीच समांतर क्रम में जोड़ा जाता है जिनके बीच विभवांतर मापना होता है।</p>
+  </section>
+  <section class="zn-example" id="b-07" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-02">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-07.problem">2 C के आवेश (charge) को 12 V विभवांतर (potential difference) वाले दो बिंदुओं के बीच ले जाने में कितना कार्य (work) किया जाता है?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-07.steps.0.title">दिया गया मान लिखिए</strong> <span data-i18n="b-07.steps.0.detail">आवेश Q = 2 C, विभवांतर V = 12 V।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-07.steps.1.title">विभवांतर की परिभाषा का उपयोग कीजिए</strong> <span data-i18n="b-07.steps.1.detail">V = W/Q, अतः किया गया कार्य W = V × Q है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-07.steps.2.title">मान रखिए</strong> <span data-i18n="b-07.steps.2.detail">W = 12 V × 2 C = 24 J।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-07.answer">किया गया कार्य 24 J है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-08" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="0" data-block-type="check" data-concept-id="class-10-electricity-sec-02">
+    <legend data-i18n="b-08.question">6 V की बैटरी से गुजरने वाले प्रत्येक कूलॉम (Coulomb) आवेश को कितनी ऊर्जा दी जाती है?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-08" value="0"> <span data-i18n="b-08.options.0">6 J</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-08" value="1"> <span data-i18n="b-08.options.1">1/6 J</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-08" value="2"> <span data-i18n="b-08.options.2">12 J</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-08" value="3"> <span data-i18n="b-08.options.3">3 J</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-08.explanation">एक वोल्ट (Volt) का अर्थ है प्रति कूलॉम एक जूल कार्य; इसलिए 6 V की बैटरी उससे गुजरने वाले प्रत्येक कूलॉम को 6 J ऊर्जा देती है। बैटरी वह युक्ति है जो चालक के सिरों पर यह विभवांतर (potential difference) बनाए रखती है।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-03" data-section-id="sec-03" data-concept-id="class-10-electricity-sec-03">
+  <section class="zn-text" id="b-09" data-block-type="text" data-concept-id="class-10-electricity-sec-03">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-09.paragraphs.0">किसी परिपथ में एक सेल या बैटरी, एक प्लग कुंजी, विद्युत अवयव और संयोजक तार होते हैं। वास्तविक वस्तुओं को चित्रित करने के बजाय, हम एक योजनाबद्ध आरेख बनाते हैं जिसमें प्रत्येक अवयव को एक पारंपरिक प्रतीक से प्रतिस्थापित किया जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-09.paragraphs.1">आप जिन प्रतीकों से मिलेंगे वे हैं: विद्युत सेल (electric cell); बैटरी (battery), जो सेलों का संयोजन है; प्लग कुंजी (plug key) या स्विच (switch), जिसे खुला या बंद दिखाया जाता है; तार जोड़ (wire joint); बिना जुड़े एक-दूसरे को काटते तार (wires crossing without joining); विद्युत बल्ब (electric bulb); प्रतिरोध R वाला प्रतिरोधक (resistor); चर प्रतिरोध (variable resistance) या रिओस्टेट (rheostat); अमीटर (ammeter); और वोल्टमीटर (voltmeter)।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-09.paragraphs.2">इनमें से दो प्रतीकों के साथ एक नियम जुड़ा है। अमीटर उस भाग के साथ श्रेणीक्रम में जोड़ा जाता है जिसकी धारा आप माप रहे हैं, और वोल्टमीटर उस भाग के समांतर क्रम में जोड़ा जाता है जिसका विभवांतर आप माप रहे हैं।</p>
+  </section>
+  <fieldset class="zn-check" id="b-10" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="0" data-block-type="check" data-concept-id="class-10-electricity-sec-03">
+    <legend data-i18n="b-10.question">दो बिंदुओं के बीच विभवांतर मापने के लिए परिपथ में वोल्टमीटर (voltmeter) को कैसे जोड़ा जाता है?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-10" value="0"> <span data-i18n="b-10.options.0">दोनों बिंदुओं के बीच समांतर में</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-10" value="1"> <span data-i18n="b-10.options.1">अवयव के साथ श्रेणी में</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-10" value="2"> <span data-i18n="b-10.options.2">सेल के स्थान पर</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-10" value="3"> <span data-i18n="b-10.options.3">केवल प्लग कुंजी के आर-पार</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-10.explanation">वोल्टमीटर को सदैव उन बिंदुओं के बीच समांतर में जोड़ा जाता है जिनके बीच विभवांतर मापना होता है। अमीटर (ammeter) वह उपकरण है जो श्रेणी में जोड़ा जाता है, क्योंकि उसे वही धारा प्रवाहित करनी होती है जिसे वह माप रहा है।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-04" data-section-id="sec-04" data-concept-id="class-10-electricity-sec-04">
+  <section class="zn-text" id="b-11" data-block-type="text" data-concept-id="class-10-electricity-sec-04">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-11.paragraphs.0">लगभग 0.5 m लंबाई के नाइक्रोम तार XY, एक अमीटर, एक वोल्टमीटर और 1.5 V के चार सेलों वाला एक परिपथ बनाइए। एक सेल से शुरू कीजिए और अमीटर का पाठ्यांक I तथा XY के सिरों के बीच वोल्टमीटर का पाठ्यांक V नोट कीजिए; फिर दो, तीन और चार सेलों के साथ दोहराइए। प्रत्येक युग्म के लिए V/I परिकलित कीजिए और I के सापेक्ष V का ग्राफ खींचिए।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-11.paragraphs.1">इस क्रियाकलाप में आप पाते हैं कि प्रत्येक स्थिति में V/I का मान लगभग समान है, और V-I ग्राफ मूल बिंदु से गुजरने वाली एक सीधी रेखा है। इसलिए उस तार के लिए V/I एक नियत अनुपात है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-11.paragraphs.2">1827 में जर्मन भौतिकविद् Georg Simon Ohm ने किसी धात्विक तार में धारा और उसके सिरों के बीच विभवांतर के बीच संबंध पाया। किसी दिए गए धात्विक तार के सिरों के बीच विभवांतर V उसमें प्रवाहित धारा I के सीधे समानुपाती होता है, बशर्ते उसका तापमान समान रहे। यह ओम (Ohm) का नियम है: V, I के समानुपाती है, इसलिए V/I = constant = R, और V = IR।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-11.paragraphs.3">किसी दिए गए ताप पर किसी दिए गए धात्विक तार के लिए R एक नियतांक है और इसे उसका प्रतिरोध (resistance) कहते हैं, अर्थात् किसी चालक का वह गुण जिसके कारण वह अपने में से आवेशों के प्रवाह का विरोध करता है। इसका SI मात्रक ओम (Ω) है। यदि किसी चालक के सिरों के बीच विभवांतर 1 V है और उसमें से प्रवाहित धारा 1 A है, तो उसका प्रतिरोध 1 Ω होता है, अर्थात् 1 ओम = 1 वोल्ट (Volt)/1 एम्पियर (Ampere)।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-11.paragraphs.4">चूँकि V = IR को I = V/R लिखा जा सकता है, इसलिए किसी प्रतिरोधक से प्रवाहित धारा उसके प्रतिरोध के व्युत्क्रमानुपाती होती है: यदि प्रतिरोध दोगुना कर दिया जाए तो धारा आधी हो जाती है। अनेक व्यावहारिक स्थितियों में हमें धारा को बढ़ाना या घटाना होता है, और वोल्टता स्रोत को बदले बिना धारा को नियंत्रित करने के लिए प्रयुक्त घटक को परिवर्ती प्रतिरोध कहते हैं; परिपथ में प्रतिरोध बदलने के लिए प्रायः रियोस्टैट नामक युक्ति का उपयोग किया जाता है।</p>
+  </section>
+  <section class="zn-sim zn-sim-b-12" id="b-12" data-element-id="EL-LES-01-018" data-sim-id="b-12" aria-label="नाइक्रोम तार का V-I ग्राफ" data-block-type="simulation" data-concept-id="class-10-electricity-sec-04">
+    <h3 data-element-id="EL-LES-01-019" data-i18n="b-12.title">नाइक्रोम तार का V-I ग्राफ</h3>
+    <div class="zn-sim-controls">
+      <label class="zn-sim-control" data-element-id="EL-LES-01-020"><span data-i18n="b-12.controls.cells.label">परिपथ में सेल (प्रत्येक 1.5 V)</span><input type="range" data-control="cells" min="1" max="4" step="1" value="1"><output>1</output></label>
+      <label class="zn-sim-control" data-element-id="EL-LES-01-020"><span data-i18n="b-12.controls.resistance.label">तार का प्रतिरोध (ohm)</span><input type="range" data-control="resistance" min="1" max="10" step="1" value="4"><output>4</output></label>
+    </div>
+    <div class="zn-sim-canvas-wrap"><canvas class="zn-sim-canvas" data-element-id="EL-LES-01-021" width="480" height="320" tabindex="0" aria-label="नाइक्रोम तार का V-I ग्राफ drawing"></canvas></div>
+    <p class="zn-sim-read" data-element-id="EL-LES-01-022" aria-live="polite"></p>
+    <p class="zn-sim-desc" data-i18n="b-12.description">एक नाइक्रोम तार को कई 1.5 V सेलों से जोड़ा गया है, साथ में एक अमीटर (ammeter) और एक वोल्टमीटर (voltmeter) है। सेल जोड़िए और तार का प्रतिरोध (resistance) बदलिए, और देखिए कि धारा (current) और विभवांतर (potential difference) का प्रत्येक युग्म ग्राफ पर कहाँ पड़ता है।</p>
+  </section>
+  <section class="zn-example" id="b-13" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-04">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-13.problem">(a) यदि बल्ब के फिलामेंट का प्रतिरोध 1200 Ω है, तो एक विद्युत बल्ब 220 V के स्रोत से कितनी धारा लेगा? (b) यदि हीटर कॉइल का प्रतिरोध 100 Ω है, तो एक विद्युत हीटर कॉइल 220 V के स्रोत से कितनी धारा लेगी?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-13.steps.0.title">बल्ब के लिए दिए गए मान लिखें</strong> <span data-i18n="b-13.steps.0.detail">V = 220 V, R = 1200 Ω.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-13.steps.1.title">ओम (Ohm) के नियम का I = V/R के रूप में उपयोग करें</strong> <span data-i18n="b-13.steps.1.detail">I = 220 V / 1200 Ω = 0.18 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-13.steps.2.title">हीटर के लिए दिए गए मान लिखें</strong> <span data-i18n="b-13.steps.2.detail">V = 220 V, R = 100 Ω.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-13.steps.3.title">I = V/R का फिर से उपयोग करें</strong> <span data-i18n="b-13.steps.3.detail">I = 220 V / 100 Ω = 2.2 A.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-13.answer">बल्ब लगभग 0.18 A और हीटर कॉइल उसी 220 V स्रोत से 2.2 A धारा लेते हैं। एक ही स्रोत से बल्ब और हीटर द्वारा ली जाने वाली धारा में अंतर पर ध्यान दें: प्रतिरोध जितना छोटा होगा, धारा उतनी ही बड़ी होगी।</span></p>
+  </section>
+  <section class="zn-example" id="b-14" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-04">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-14.problem">एक विद्युत हीटर के टर्मिनलों के बीच विभवांतर 60 V है जब यह स्रोत से 4 A की धारा लेता है। यदि विभवांतर को बढ़ाकर 120 V कर दिया जाए तो हीटर कितनी धारा लेगा?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-14.steps.0.title">पहले प्रतिरोध ज्ञात करें</strong> <span data-i18n="b-14.steps.0.detail">हीटर का प्रतिरोध समान रहता है। ओम (Ohm) के नियम से, R = V/I = 60 V / 4 A = 15 Ω।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-14.steps.1.title">अब विभवांतर बदलें</strong> <span data-i18n="b-14.steps.1.detail">V = 120 V और R = 15 Ω के साथ, धारा I = V/R है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-14.steps.2.title">प्रतिस्थापित करें</strong> <span data-i18n="b-14.steps.2.detail">I = 120 V / 15 Ω = 8 A।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-14.answer">जब विभवांतर दोगुना कर दिया जाता है तो हीटर के माध्यम से धारा 8 A हो जाती है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-15" data-element-id="EL-LES-01-025" data-format="numeric" data-answer="4800" data-block-type="check" data-concept-id="class-10-electricity-sec-04">
+    <legend data-i18n="b-15.question">जब 12 V की बैटरी को किसी अज्ञात प्रतिरोधक के सिरों पर जोड़ा जाता है, तो परिपथ में 2.5 mA की धारा प्रवाहित होती है। प्रतिरोधक के प्रतिरोध का मान ओम (Ohm) में ज्ञात कीजिए।</legend>
+      <label class="zn-opt zn-opt-numeric" data-element-id="EL-LES-01-027"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-15-input"></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-15.explanation">पहले धारा को ऐम्पियर (Ampere) में बदलिए: 2.5 mA = 2.5 × 10^-3 A। फिर R = V/I = 12 V / (2.5 × 10^-3 A) = 4800 Ω।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-05" data-section-id="sec-05" data-concept-id="class-10-electricity-sec-05">
+  <section class="zn-text" id="b-16" data-block-type="text" data-concept-id="class-10-electricity-sec-05">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-16.paragraphs.0">एक सेल, एक अमीटर, लंबाई l के नाइक्रोम तार और एक प्लग कुंजी वाला परिपथ लीजिए और धारा नोट कीजिए। अब तार को उसी मोटाई के परंतु दोगुनी लंबाई के दूसरे नाइक्रोम तार से बदलिए और धारा फिर से नोट कीजिए: अमीटर का पाठ आधा हो जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-16.paragraphs.1">उसी लंबाई के अधिक मोटे नाइक्रोम तार के साथ दोहराइए, जिससे उसका अनुप्रस्थ काट क्षेत्रफल बड़ा हो जाए: अमीटर का पाठ बढ़ जाता है। अब पहले नाइक्रोम तार के समान लंबाई और समान अनुप्रस्थ काट क्षेत्रफल के ताँबे के तार का उपयोग कीजिए, और पाठ फिर से बदल जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-16.paragraphs.2">ये प्रेक्षण दर्शाते हैं कि किसी चालक का प्रतिरोध उसकी लंबाई, उसके अनुप्रस्थ काट क्षेत्रफल तथा उसके पदार्थ की प्रकृति पर निर्भर करता है। सटीक मापन दर्शाते हैं कि किसी एकसमान धात्विक चालक का प्रतिरोध उसकी लंबाई l के सीधे समानुपाती और उसके अनुप्रस्थ काट क्षेत्रफल A के व्युत्क्रमानुपाती होता है, अतः R = ρl/A।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-16.paragraphs.3">नियतांक ρ (rho) को चालक के पदार्थ की विद्युत प्रतिरोधकता (Resistivity) कहते हैं। इसका SI मात्रक Ω m है, और यह पदार्थ का एक अभिलक्षणिक गुण है। धातुओं और मिश्रातुओं की प्रतिरोधकता बहुत कम, 10^-8 Ω m से 10^-6 Ω m के परिसर में, होती है और वे विद्युत के अच्छे चालक हैं; रबर और काँच जैसे विद्युतरोधी पदार्थों की प्रतिरोधकता 10^12 से 10^17 Ω m की कोटि की होती है। किसी पदार्थ का प्रतिरोध और प्रतिरोधकता दोनों तापमान के साथ परिवर्तित होते हैं।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-16.paragraphs.4">किसी मिश्रातु की प्रतिरोधकता सामान्यतः उसके घटक धातुओं की प्रतिरोधकता से अधिक होती है, और मिश्रातुएँ उच्च तापमानों पर शीघ्र ऑक्सीकृत (जलती) नहीं होतीं; इस कारण वे विद्युत इस्त्री और टोस्टर जैसे विद्युत तापन उपकरणों में सामान्यतः उपयोग की जाती हैं। टंगस्टन का उपयोग लगभग विशेष रूप से विद्युत बल्बों के तंतुओं के लिए किया जाता है, जबकि ताँबा और ऐलुमिनियम सामान्यतः विद्युत संचरण लाइनों के लिए उपयोग किए जाते हैं।</p>
+  </section>
+  <section class="zn-example" id="b-17" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-05">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-17.problem">1 m लंबे धातु के तार का 20 डिग्री C पर प्रतिरोध 26 Ω है। यदि तार का व्यास 0.3 mm है, तो उस ताप पर धातु की प्रतिरोधकता (Resistivity) क्या होगी? प्रतिरोधकताओं की सारणी का उपयोग करके तार की धातु का अनुमान लगाइए।</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-17.steps.0.title">दिए गए मान लिखिए</strong> <span data-i18n="b-17.steps.0.detail">R = 26 Ω, लंबाई l = 1 m, व्यास d = 0.3 mm = 3 × 10^-4 m।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-17.steps.1.title">अनुप्रस्थ काट का क्षेत्रफल ज्ञात कीजिए</strong> <span data-i18n="b-17.steps.1.detail">तार गोल है, इसलिए A = πd²/4।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-17.steps.2.title">R = ρl/A को पुनर्व्यवस्थित कीजिए</strong> <span data-i18n="b-17.steps.2.detail">प्रतिरोधकता ρ = RA/l = Rπd²/(4l) है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-17.steps.3.title">मान रखिए</strong> <span data-i18n="b-17.steps.3.detail">मान रखने पर ρ = 1.84 × 10^-6 Ω m प्राप्त होता है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-17.steps.4.title">पदार्थ का नाम बताइए</strong> <span data-i18n="b-17.steps.4.detail">20 डिग्री C पर प्रतिरोधकताओं की सारणी देखने पर, मान 1.84 × 10^-6 Ω m मैंगनीज़ की प्रतिरोधकता है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-17.answer">20 डिग्री C पर धातु की प्रतिरोधकता 1.84 × 10^-6 Ω m है, जो मैंगनीज़ की प्रतिरोधकता है।</span></p>
+  </section>
+  <section class="zn-example" id="b-18" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-05">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-18.problem">किसी दिए गए पदार्थ (material) के तार (wire) की लंबाई (length) l और अनुप्रस्थ काट का क्षेत्रफल (area of cross-section) A है तथा उसका प्रतिरोध (resistance) 4 Ω है। उसी पदार्थ के एक अन्य तार, जिसकी लंबाई l/2 और अनुप्रस्थ काट का क्षेत्रफल 2A है, का प्रतिरोध क्या होगा?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-18.steps.0.title">पहले तार के लिए व्यंजक लिखिए</strong> <span data-i18n="b-18.steps.0.detail">पहले तार के लिए, R1 = ρl/A = 4 Ω।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-18.steps.1.title">दूसरे तार के लिए व्यंजक लिखिए</strong> <span data-i18n="b-18.steps.1.detail">दूसरे तार के लिए, R2 = ρ(l/2)/(2A) = (1/4) ρl/A।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-18.steps.2.title">दोनों की तुलना कीजिए</strong> <span data-i18n="b-18.steps.2.detail">अतः R2 = (1/4) R1।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-18.steps.3.title">मान रखिए</strong> <span data-i18n="b-18.steps.3.detail">R2 = (1/4) × 4 Ω = 1 Ω।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-18.answer">नए तार का प्रतिरोध 1 Ω है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-19" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="0" data-block-type="check" data-concept-id="class-10-electricity-sec-05">
+    <legend data-i18n="b-19.question">क्या एक ही पदार्थ के मोटे तार या पतले तार में से विद्युत धारा अधिक आसानी से प्रवाहित होगी, जब उन्हें एक ही स्रोत से जोड़ा जाए? क्यों?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-19" value="0"> <span data-i18n="b-19.options.0">मोटा तार, क्योंकि बड़ा अनुप्रस्थ काट क्षेत्रफल छोटा प्रतिरोध देता है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-19" value="1"> <span data-i18n="b-19.options.1">पतला तार, क्योंकि छोटा अनुप्रस्थ काट क्षेत्रफल छोटा प्रतिरोध देता है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-19" value="2"> <span data-i18n="b-19.options.2">दोनों समान रूप से, क्योंकि पदार्थ एक ही है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-19" value="3"> <span data-i18n="b-19.options.3">मोटा तार, क्योंकि मोटे तार के पदार्थ की प्रतिरोधकता (Resistivity) कम होती है</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-19.explanation">प्रतिरोध अनुप्रस्थ काट के क्षेत्रफल के व्युत्क्रमानुपाती होता है, R = ρl/A। एक ही पदार्थ और लंबाई के मोटे तार का क्षेत्रफल बड़ा होता है, इसलिए उसका प्रतिरोध छोटा और विद्युत धारा बड़ी होती है। प्रतिरोधकता केवल पदार्थ पर निर्भर करती है, मोटाई पर नहीं।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-06" data-section-id="sec-06" data-concept-id="class-10-electricity-sec-06">
+  <section class="zn-text" id="b-20" data-block-type="text" data-concept-id="class-10-electricity-sec-06">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-20.paragraphs.0">जब तीन प्रतिरोधक R1, R2 और R3 को एक-दूसरे के सिरे से सिरा जोड़ा जाता है, तो कहा जाता है कि वे श्रेणीक्रम (series) में जुड़े हैं। यदि ऐसे परिपथ में अमीटर (ammeter) को किसी भी स्थान पर ले जाएँ, तो उसका पाठ्यांक नहीं बदलता: श्रेणी संयोजन में परिपथ के प्रत्येक भाग में धारा समान होती है, इसलिए प्रत्येक प्रतिरोधक से वही धारा प्रवाहित होती है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-20.paragraphs.1">पूरे संयोजन के सिरों के बीच विभवांतर (potential difference) मापिए और उसे V कहिए, फिर तीनों प्रतिरोधकों के सिरों के बीच अलग-अलग विभवांतर V1, V2 और V3 मापिए। आप पाएँगे कि V = V1 + V2 + V3: श्रेणी संयोजन के सिरों के बीच कुल विभवांतर अलग-अलग प्रतिरोधकों के सिरों के बीच के विभवांतरों का योग होता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-20.paragraphs.2">अब तीनों प्रतिरोधकों को एक तुल्य प्रतिरोधक (equivalent resistor) से बदलिए जिसका प्रतिरोध R है और जिससे वही धारा I प्रवाहित होती है तथा जिसके सिरों के बीच वही विभवांतर V है, अर्थात् V = IR। तीनों प्रतिरोधकों पर अलग-अलग ओम (Ohm) के नियम लगाने पर V1 = IR1, V2 = IR2 और V3 = IR3 प्राप्त होता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-20.paragraphs.3">इन्हें V = V1 + V2 + V3 में रखने पर IR = IR1 + IR2 + IR3 मिलता है, और I से भाग देने पर Rs = R1 + R2 + R3 प्राप्त होता है। इसलिए जब कई प्रतिरोधक श्रेणीक्रम में जोड़े जाते हैं, तो संयोजन का प्रतिरोध उनके अलग-अलग प्रतिरोधों के योग के बराबर होता है, और यह किसी भी अलग-अलग प्रतिरोध से अधिक होता है।</p>
+  </section>
+  <figure class="zn-diagram" id="b-21" data-element-id="EL-LES-01-014" data-block-type="diagram" data-concept-id="class-10-electricity-sec-06">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" role="img" aria-label="बिंदुओं X और Y के बीच एक बैटरी (battery) और एक अमीटर (ammeter) के साथ श्रेणीक्रम में सिरे से सिरा जुड़े तीन प्रतिरोधक R1, R2 और R3"><g stroke="#1C1B18" stroke-width="2.6" fill="none" stroke-linecap="round"><line x1="50" y1="60" x2="100" y2="60" /><line x1="140" y1="60" x2="180" y2="60" /><line x1="220" y1="60" x2="260" y2="60" /><line x1="300" y1="60" x2="350" y2="60" /><line x1="350" y1="60" x2="350" y2="150" /><line x1="350" y1="150" x2="208" y2="150" /><line x1="192" y1="150" x2="50" y2="150" /><line x1="50" y1="150" x2="50" y2="121" /><line x1="50" y1="89" x2="50" y2="60" /><circle cx="50" cy="105" r="16" /><line x1="192" y1="138" x2="192" y2="162" /><line x1="208" y1="144" x2="208" y2="156" /><rect x="100" y="52" width="40" height="16" /><rect x="180" y="52" width="40" height="16" /><rect x="260" y="52" width="40" height="16" /></g><polygon points="232,54 245,60 232,66" fill="#1F3A9E" /><text x="120" y="42" text-anchor="middle" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">R1</text><text x="200" y="42" text-anchor="middle" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">R2</text><text x="280" y="42" text-anchor="middle" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">R3</text><text x="36" y="54" text-anchor="middle" font-family="Caveat, cursive" font-size="20" font-weight="700" fill="#1C1B18">X</text><text x="364" y="54" text-anchor="middle" font-family="Caveat, cursive" font-size="20" font-weight="700" fill="#1C1B18">Y</text><text x="200" y="182" text-anchor="middle" font-family="Courier Prime, monospace" font-size="12" fill="#5A5748" data-i18n="b-21.svg_texts.t-0">बैटरी</text><text x="50" y="111" text-anchor="middle" font-family="Courier Prime, monospace" font-size="14" font-weight="700" fill="#1C1B18">A</text><text x="72" y="110" text-anchor="start" font-family="Courier Prime, monospace" font-size="12" fill="#5A5748" data-i18n="b-21.svg_texts.t-1">अमीटर</text></svg></div>
+    <figcaption data-element-id="EL-LES-01-015" data-i18n="b-21.caption">श्रेणीक्रम (series) में प्रतिरोधक (resistors): तीनों प्रतिरोधक X और Y के बीच सिरे से सिरा जोड़े गए हैं, इसलिए उनमें से प्रत्येक में समान धारा (current) I प्रवाहित होती है। विभवांतर (potential differences) का योग होता है: V = V1 + V2 + V3।</figcaption>
+  </figure>
+  <section class="zn-reveal" id="b-22" data-block-type="reveal" data-concept-id="class-10-electricity-sec-06">
+    <h3 data-i18n="b-22.title">क्यों Rs = R1 + R2 + R3?</h3>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-22.steps.0.title">प्रेक्षित योग से शुरू करें</summary><p data-i18n="b-22.steps.0.detail">प्रयोग दर्शाता है कि श्रेणी संयोजन के सिरों पर कुल विभवांतर V = V1 + V2 + V3 है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-22.steps.1.title">संयोजन को एक प्रतिरोधक से बदलें</summary><p data-i18n="b-22.steps.1.detail">मान लीजिए तुल्य प्रतिरोध (Equivalent resistance) वाला एक प्रतिरोधक R उसी कुल विभवांतर V पर वही धारा I प्रवाहित करता है, इसलिए पूरे परिपथ के लिए ओम (Ohm) के नियम से V = IR मिलता है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-22.steps.2.title">प्रत्येक प्रतिरोधक पर ओम के नियम लागू करें</summary><p data-i18n="b-22.steps.2.detail">प्रत्येक प्रतिरोधक से प्रवाहित धारा समान I है, इसलिए V1 = IR1, V2 = IR2 और V3 = IR3।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-22.steps.3.title">प्रतिस्थापित करें और I को काटें</summary><p data-i18n="b-22.steps.3.detail">IR = IR1 + IR2 + IR3, और दोनों पक्षों को I से भाग देने पर Rs = R1 + R2 + R3 प्राप्त होता है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-22.steps.4.title">परिणाम का अर्थ समझें</summary><p data-i18n="b-22.steps.4.detail">तुल्य प्रतिरोध साधारण योग होता है, इसलिए यह संयोजन के किसी भी अकेले प्रतिरोध से बड़ा होता है।</p></details>
+  </section>
+  <section class="zn-example" id="b-23" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-06">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-23.problem">एक विद्युत लैंप, जिसका प्रतिरोध 20 Ω है, और 4 Ω प्रतिरोध का एक चालक 6 V की बैटरी से जोड़े गए हैं। गणना करें (a) परिपथ का कुल प्रतिरोध, (b) परिपथ से प्रवाहित धारा, और (c) विद्युत लैंप तथा चालक के सिरों के बीच विभवांतर।</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-23.steps.0.title">श्रेणी प्रतिरोधों को जोड़ें</strong> <span data-i18n="b-23.steps.0.detail">लैंप R1 = 20 Ω और चालक R2 = 4 Ω श्रेणी में हैं, इसलिए Rs = 20 Ω + 4 Ω = 24 Ω।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-23.steps.1.title">धारा ज्ञात करें</strong> <span data-i18n="b-23.steps.1.detail">बैटरी V = 6 V देती है, इसलिए I = V/Rs = 6 V / 24 Ω = 0.25 A। यही धारा दोनों में प्रवाहित होती है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-23.steps.2.title">लैंप के सिरों पर विभवांतर</strong> <span data-i18n="b-23.steps.2.detail">V1 = R1 × I = 20 Ω × 0.25 A = 5 V।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-23.steps.3.title">चालक के सिरों पर विभवांतर</strong> <span data-i18n="b-23.steps.3.detail">V2 = R2 × I = 4 Ω × 0.25 A = 1 V। जाँचें: 5 V + 1 V = 6 V, जो बैटरी का विभव है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-23.steps.4.title">तुल्य प्रतिरोध (Equivalent resistance) की जाँच करें</strong> <span data-i18n="b-23.steps.4.detail">दोनों के स्थान पर एक अकेला प्रतिरोध 6 V पर 0.25 A देगा, इसलिए R = V/I = 6 V / 0.25 A = 24 Ω, जो कुल श्रेणी प्रतिरोध के समान है।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-23.answer">कुल प्रतिरोध 24 Ω, धारा 0.25 A, लैंप के सिरों पर विभवांतर 5 V और चालक के सिरों पर 1 V।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-24" data-element-id="EL-LES-01-025" data-format="numeric" data-answer="0.24" data-block-type="check" data-concept-id="class-10-electricity-sec-06">
+    <legend data-i18n="b-24.question">2 V के तीन सेलों की एक बैटरी को 5 Ω प्रतिरोधक, 8 Ω प्रतिरोधक, 12 Ω प्रतिरोधक और एक प्लग कुंजी के साथ श्रेणी में जोड़ा गया है। प्रतिरोधकों से कितनी धारा प्रवाहित होती है? उत्तर ऐम्पियर (Ampere) में दें।</legend>
+      <label class="zn-opt zn-opt-numeric" data-element-id="EL-LES-01-027"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-24-input"></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-24.explanation">2 V के तीन सेल मिलकर 6 V देते हैं। श्रेणी प्रतिरोध 5 + 8 + 12 = 25 Ω है। अतः I = V/Rs = 6 V / 25 Ω = 0.24 A, और यही धारा प्रत्येक प्रतिरोधक से प्रवाहित होती है। 12 Ω प्रतिरोधक के सिरों के बीच जोड़ा गया वोल्टमीटर 12 Ω × 0.24 A = 2.88 V पढ़ेगा।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-07" data-section-id="sec-07" data-concept-id="class-10-electricity-sec-07">
+  <section class="zn-text" id="b-25" data-block-type="text" data-concept-id="class-10-electricity-sec-07">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-25.paragraphs.0">जब तीन प्रतिरोधकों को एक ही दो बिंदुओं X और Y के बीच जोड़ा जाता है, तो कहा जाता है कि वे समांतर क्रम में जुड़े हैं। अब प्रत्येक प्रतिरोधक के सिरों के बीच विभवांतर समान होता है, परंतु धारा विभाजित हो जाती है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-25.paragraphs.1">संयोजन में प्रवेश करने वाली कुल धारा I तथा तीनों शाखाओं से प्रवाहित अलग-अलग धाराओं I1, I2 और I3 को मापिए। आप पाएँगे कि I = I1 + I2 + I3: अर्थात् कुल धारा संयोजन की प्रत्येक शाखा से प्रवाहित अलग-अलग धाराओं का योग है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-25.paragraphs.2">मान लीजिए समांतर संयोजन का तुल्य प्रतिरोध (equivalent resistance) Rp है। पूरे संयोजन पर ओम (Ohm) के नियम को लागू करने से I = V/Rp प्राप्त होता है, तथा प्रत्येक प्रतिरोधक पर लागू करने से I1 = V/R1, I2 = V/R2 और I3 = V/R3 प्राप्त होता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-25.paragraphs.3">इन्हें I = I1 + I2 + I3 में प्रतिस्थापित करने पर V/Rp = V/R1 + V/R2 + V/R3 प्राप्त होता है, और V से भाग देने पर 1/Rp = 1/R1 + 1/R2 + 1/R3 प्राप्त होता है। समांतर क्रम में जुड़े प्रतिरोधकों के समूह के तुल्य प्रतिरोध का व्युत्क्रम अलग-अलग प्रतिरोधों के व्युत्क्रमों के योग के बराबर होता है, इसलिए समांतर परिपथ में कुल प्रतिरोध कम हो जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-25.paragraphs.4">ये दोनों व्यवस्थाएँ बहुत भिन्न प्रकार से व्यवहार करती हैं। श्रेणी परिपथ में धारा सर्वत्र एकसमान रहती है, इसलिए विद्युत बल्ब और विद्युत हीटर को श्रेणी क्रम में जोड़ना व्यावहारिक नहीं है, क्योंकि उनके समुचित संचालन के लिए बहुत भिन्न मानों की धाराओं की आवश्यकता होती है। श्रेणी परिपथ की एक और हानि यह है कि जब कोई एक अवयव खराब हो जाता है तो परिपथ टूट जाता है और कोई भी अवयव कार्य नहीं करता, जैसा आप तब देखते हैं जब झिलमिलाती रोशनी की एक लड़ी में एक ही बल्ब फुँक जाने से पूरी लड़ी बुझ जाती है। दूसरी ओर, समांतर परिपथ उपकरणों के बीच धारा को विभाजित करता है, जो तब सहायक होता है जब प्रत्येक उपकरण का प्रतिरोध भिन्न हो और उसे भिन्न धारा की आवश्यकता हो।</p>
+  </section>
+  <figure class="zn-diagram" id="b-26" data-element-id="EL-LES-01-014" data-block-type="diagram" data-concept-id="class-10-electricity-sec-07">
+    <div class="zn-diagram-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" role="img" aria-label="दो पटरियों के बीच समांतर क्रम में जुड़े तीन प्रतिरोधक R1, R2 और R3, एक बैटरी (battery) के साथ"><g stroke="#1C1B18" stroke-width="2.6" fill="none" stroke-linecap="round"><line x1="110" y1="60" x2="310" y2="60" /><line x1="110" y1="180" x2="310" y2="180" /><line x1="160" y1="60" x2="160" y2="78" /><line x1="160" y1="122" x2="160" y2="180" /><line x1="210" y1="60" x2="210" y2="78" /><line x1="210" y1="122" x2="210" y2="180" /><line x1="260" y1="60" x2="260" y2="78" /><line x1="260" y1="122" x2="260" y2="180" /><line x1="110" y1="60" x2="110" y2="110" /><line x1="110" y1="126" x2="110" y2="180" /><line x1="94" y1="110" x2="126" y2="110" /><line x1="100" y1="126" x2="120" y2="126" /><rect x="152" y="78" width="16" height="44" /><rect x="202" y="78" width="16" height="44" /><rect x="252" y="78" width="16" height="44" /></g><polygon points="224,54 237,60 224,66" fill="#1F3A9E" /><text x="176" y="104" text-anchor="start" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">R1</text><text x="226" y="104" text-anchor="start" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">R2</text><text x="276" y="104" text-anchor="start" font-family="Courier Prime, monospace" font-size="14" fill="#1C1B18">R3</text><text x="124" y="52" text-anchor="middle" font-family="Caveat, cursive" font-size="20" font-weight="700" fill="#1C1B18">X</text><text x="124" y="200" text-anchor="middle" font-family="Caveat, cursive" font-size="20" font-weight="700" fill="#1C1B18">Y</text><text x="52" y="114" text-anchor="middle" font-family="Courier Prime, monospace" font-size="12" fill="#5A5748" data-i18n="b-26.svg_texts.t-0">बैटरी</text></svg></div>
+    <figcaption data-element-id="EL-LES-01-015" data-i18n="b-26.caption">समांतर क्रम में प्रतिरोधक (resistors in parallel): तीनों प्रतिरोधक एक ही दो बिंदुओं X और Y के बीच जोड़े गए हैं, इसलिए प्रत्येक प्रतिरोधक के सिरों के बीच समान विभवांतर (potential difference) V होता है, जबकि कुल धारा (total current) I1, I2 और I3 में विभाजित हो जाती है।</figcaption>
+  </figure>
+  <section class="zn-reveal" id="b-27" data-block-type="reveal" data-concept-id="class-10-electricity-sec-07">
+    <h3 data-i18n="b-27.title">क्यों 1/Rp = 1/R1 + 1/R2 + 1/R3</h3>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-27.steps.0.title">प्रेक्षित योग से प्रारंभ करें</summary><p data-i18n="b-27.steps.0.detail">प्रयोग दर्शाता है कि समांतर संयोजन में कुल धारा I = I1 + I2 + I3 है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-27.steps.1.title">संयोजन को एक प्रतिरोधक से प्रतिस्थापित करें</summary><p data-i18n="b-27.steps.1.detail">मान लीजिए एक समतुल्य प्रतिरोध (equivalent resistance) Rp समान विभवांतर V पर समान कुल धारा I ले जाता है, इसलिए I = V/Rp।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-27.steps.2.title">प्रत्येक शाखा पर ओम (Ohm) के नियम का अनुप्रयोग करें</summary><p data-i18n="b-27.steps.2.detail">प्रत्येक शाखा पर समान विभवांतर V है, इसलिए I1 = V/R1, I2 = V/R2 और I3 = V/R3।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-27.steps.3.title">प्रतिस्थापित करें और V को काटें</summary><p data-i18n="b-27.steps.3.detail">V/Rp = V/R1 + V/R2 + V/R3, और दोनों पक्षों को V से विभाजित करने पर 1/Rp = 1/R1 + 1/R2 + 1/R3 प्राप्त होता है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-27.steps.4.title">परिणाम का अर्थ समझें</summary><p data-i18n="b-27.steps.4.detail">हम व्युत्क्रमों को जोड़ते हैं, इसलिए समतुल्य प्रतिरोध सबसे छोटे व्यक्तिगत प्रतिरोध से भी छोटा प्राप्त होता है।</p></details>
+  </section>
+  <section class="zn-example" id="b-28" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-07">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-28.problem">तीन प्रतिरोधक (resistors) R1, R2 और R3 के मान क्रमशः 5 Ω, 10 Ω और 30 Ω हैं, और ये 12 V की बैटरी (battery) के साथ समांतर (parallel) में जोड़े गए हैं। गणना करें: (a) प्रत्येक प्रतिरोधक से प्रवाहित धारा (current), (b) परिपथ (circuit) में कुल धारा, और (c) कुल परिपथ प्रतिरोध (total circuit resistance)।</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-28.steps.0.title">विभवांतर (potential difference) को ध्यान में रखें</strong> <span data-i18n="b-28.steps.0.detail">बैटरी V = 12 V देती है, और चूँकि प्रतिरोधक समांतर में हैं, यही विभवांतर प्रत्येक अलग-अलग प्रतिरोधक के सिरों के बीच भी होता है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-28.steps.1.title">R1 से प्रवाहित धारा</strong> <span data-i18n="b-28.steps.1.detail">I1 = V/R1 = 12 V / 5 Ω = 2.4 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-28.steps.2.title">R2 से प्रवाहित धारा</strong> <span data-i18n="b-28.steps.2.detail">I2 = V/R2 = 12 V / 10 Ω = 1.2 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-28.steps.3.title">R3 से प्रवाहित धारा</strong> <span data-i18n="b-28.steps.3.detail">I3 = V/R3 = 12 V / 30 Ω = 0.4 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-28.steps.4.title">कुल धारा</strong> <span data-i18n="b-28.steps.4.detail">I = I1 + I2 + I3 = 2.4 + 1.2 + 0.4 = 4 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-28.steps.5.title">कुल प्रतिरोध</strong> <span data-i18n="b-28.steps.5.detail">1/Rp = 1/5 + 1/10 + 1/30 = 1/3, अतः Rp = 3 Ω। जाँच: V/I = 12 V / 4 A = 3 Ω।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-28.answer">शाखा धाराएँ 2.4 A, 1.2 A और 0.4 A हैं; कुल धारा 4 A है; समांतर संयोजन का कुल प्रतिरोध 3 Ω है।</span></p>
+  </section>
+  <section class="zn-example" id="b-29" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-07">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-29.problem">12 V की बैटरी (battery) वाले परिपथ (circuit) में, R1 = 10 Ω और R2 = 40 Ω एक-दूसरे के समांतर (parallel) हैं, तथा R3 = 30 Ω, R4 = 20 Ω और R5 = 60 Ω एक-दूसरे के समांतर हैं; दोनों समांतर समूहों (parallel groups) को श्रेणी (series) में जोड़ा गया है। गणना करें: (a) परिपथ में कुल प्रतिरोध (total resistance) और (b) परिपथ में प्रवाहित कुल धारा (total current)।</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-29.steps.0.title">पहले समांतर युग्म (parallel pair) को प्रतिस्थापित करें</strong> <span data-i18n="b-29.steps.0.detail">1/R&#x27; = 1/10 + 1/40 = 5/40, अतः R&#x27; = 8 Ω।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-29.steps.1.title">दूसरे समांतर समूह (parallel group) को प्रतिस्थापित करें</strong> <span data-i18n="b-29.steps.1.detail">1/R&#x27;&#x27; = 1/30 + 1/20 + 1/60 = 6/60, अतः R&#x27;&#x27; = 10 Ω।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-29.steps.2.title">दोनों समूहों को श्रेणी (series) में जोड़ें</strong> <span data-i18n="b-29.steps.2.detail">कुल प्रतिरोध (total resistance) R = R&#x27; + R&#x27;&#x27; = 8 Ω + 10 Ω = 18 Ω है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-29.steps.3.title">कुल धारा (total current) ज्ञात करें</strong> <span data-i18n="b-29.steps.3.detail">ओम (Ohm) के नियम से, I = V/R = 12 V / 18 Ω = 0.67 A।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-29.answer">कुल प्रतिरोध (total resistance) 18 Ω है और कुल धारा (total current) लगभग 0.67 A है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-30" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="0" data-block-type="check" data-concept-id="class-10-electricity-sec-07">
+    <legend data-i18n="b-30.question">विद्युत उपकरणों को बैटरी के साथ श्रेणी (series) में जोड़ने के बजाय समांतर (parallel) में जोड़ने के क्या लाभ हैं?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-30" value="0"> <span data-i18n="b-30.options.0">प्रत्येक उपकरण पूर्ण स्रोत वोल्टता के साथ और स्वतंत्र रूप से कार्य करता है, और परिपथ का कुल प्रतिरोध घट जाता है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-30" value="1"> <span data-i18n="b-30.options.1">प्रत्येक उपकरण से समान धारा प्रवाहित होती है</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-30" value="2"> <span data-i18n="b-30.options.2">जब एक उपकरण खराब हो जाता है, तो अन्य सभी उपकरण काम करना बंद कर देते हैं</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-30" value="3"> <span data-i18n="b-30.options.3">जैसे-जैसे अधिक उपकरण जोड़े जाते हैं, परिपथ का कुल प्रतिरोध बढ़ जाता है</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-30.explanation">समांतर परिपथ (parallel circuit) में प्रत्येक उपकरण को समान विभवांतर (potential difference) और अपनी अलग धारा मिलती है, जो भिन्न प्रतिरोधों वाले उपकरणों के लिए उपयुक्त है, और कुल प्रतिरोध घट जाता है। श्रेणी परिपथ (series circuit) में एक ही खराबी परिपथ को तोड़ देती है और कुछ भी काम नहीं करता, इसी कारण घरेलू परिपथों (domestic circuits) में श्रेणी वायरिंग (series wiring) का उपयोग नहीं किया जाता।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-08" data-section-id="sec-08" data-concept-id="class-10-electricity-sec-08">
+  <section class="zn-text" id="b-31" data-block-type="text" data-concept-id="class-10-electricity-sec-08">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-31.paragraphs.0">एक सेल या बैटरी विद्युत ऊर्जा का स्रोत है, और धारा (current) बनाए रखने के लिए स्रोत ऊर्जा व्यय करता रहता है। उस ऊर्जा का कुछ भाग उपयोगी कार्य में प्रयुक्त हो सकता है, जैसे किसी विद्युत पंखे के ब्लेड घुमाने में, और शेष ऊष्मा (heat) के रूप में व्यय हो सकता है, इसीलिए लंबे समय तक लगातार उपयोग करने पर पंखा गर्म हो जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-31.paragraphs.1">यदि विद्युत परिपथ (circuit) पूर्णतः प्रतिरोधक (resistive) है, अर्थात् केवल प्रतिरोधकों (resistors) का एक विन्यास जो बैटरी से जुड़ा है, तो स्रोत की ऊर्जा लगातार पूरी तरह से ऊष्मा के रूप में क्षय हो जाती है। इसे विद्युत धारा का तापन प्रभाव (heating effect) कहते हैं, और इसका उपयोग विद्युत हीटर और विद्युत प्रेस जैसे उपकरणों में किया जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-31.paragraphs.2">मान लीजिए कि प्रतिरोध R के एक प्रतिरोधक से होकर धारा I प्रवाहित हो रही है और इसके सिरों पर विभवांतर (potential difference) V है, तथा समय t में आवेश (charge) Q प्रवाहित होता है। आवेश Q को विभवांतर V के माध्यम से ले जाने में किया गया कार्य VQ है, इसलिए स्रोत को समय t में ऊर्जा VQ प्रदान करनी होगी, और परिपथ में शक्ति (power) का इनपुट P = VQ/t = VI है। इसलिए स्रोत द्वारा समय t में प्रदान की गई ऊर्जा VIt है, और यह ऊर्जा प्रतिरोधक में ऊष्मा के रूप में क्षय हो जाती है, अतः H = VIt।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-31.paragraphs.3">इस पर ओम (Ohm) का नियम V = IR लागू करने से H = I²Rt प्राप्त होता है। यह जूल का तापन नियम (Joule&#x27;s law of heating) है, और यह कहता है कि किसी प्रतिरोधक में उत्पन्न ऊष्मा किसी दिए गए प्रतिरोध के लिए धारा के वर्ग के समानुपाती होती है, किसी दिए गए धारा के लिए प्रतिरोध के समानुपाती होती है, और जितने समय तक धारा प्रवाहित होती है उस समय के समानुपाती होती है।</p>
+  </section>
+  <section class="zn-reveal" id="b-32" data-block-type="reveal" data-concept-id="class-10-electricity-sec-08">
+    <h3 data-i18n="b-32.title">H = VIt से जूल के नियम H = I²Rt तक</h3>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-32.steps.0.title">स्रोत द्वारा दी गई ऊर्जा</summary><p data-i18n="b-32.steps.0.detail">समय t में आवेश Q प्रवाहित होता है, और विभवांतर V के माध्यम से इसे स्थानांतरित करने में किया गया कार्य VQ है, इसलिए स्रोत समय t में ऊर्जा VQ प्रदान करता है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-32.steps.1.title">शक्ति इनपुट लिखें</summary><p data-i18n="b-32.steps.1.detail">चूँकि I = Q/t, शक्ति इनपुट P = VQ/t = VI है, इसलिए समय t में आपूर्ति की गई ऊर्जा VIt है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-32.steps.2.title">यह ऊर्जा ऊष्मा में बदल जाती है</summary><p data-i18n="b-32.steps.2.detail">पूर्णतः प्रतिरोधक परिपथ में यह सम्पूर्ण ऊर्जा प्रतिरोधक में ऊष्मा के रूप में व्यय हो जाती है, इसलिए H = VIt।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-32.steps.3.title">V को हटाने के लिए Ohm (Ohm) का नियम लागू करें</summary><p data-i18n="b-32.steps.3.detail">H = VIt में V = IR रखने पर, H = (IR)It = I²Rt प्राप्त होता है।</p></details>
+      <details class="zn-reveal-step" data-element-id="EL-LES-01-035"><summary data-i18n="b-32.steps.4.title">तीन आनुपातिकताओं को पढ़ें</summary><p data-i18n="b-32.steps.4.detail">स्थिर प्रतिरोध के लिए, ऊष्मा धारा के वर्ग के समानुपाती होती है; स्थिर धारा के लिए, ऊष्मा प्रतिरोध के समानुपाती होती है; और जब दोनों स्थिर हों, तो ऊष्मा समय के समानुपाती होती है।</p></details>
+  </section>
+  <section class="zn-example" id="b-33" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-08">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-33.problem">एक विद्युत इस्त्री अधिकतम तापन दर पर 840 W की दर से ऊर्जा खपत करती है और न्यूनतम तापन दर पर 360 W की दर से। वोल्टता 220 V है। प्रत्येक स्थिति में धारा और प्रतिरोध क्या हैं?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-33.steps.0.title">शक्ति संबंध से प्रारंभ करें</strong> <span data-i18n="b-33.steps.0.detail">शक्ति इनपुट P = VI है, इसलिए धारा I = P/V है, और प्रतिरोध R = V/I से प्राप्त होता है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-33.steps.1.title">अधिकतम तापन दर: धारा</strong> <span data-i18n="b-33.steps.1.detail">I = 840 W / 220 V = 3.82 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-33.steps.2.title">अधिकतम तापन दर: प्रतिरोध</strong> <span data-i18n="b-33.steps.2.detail">R = V/I = 220 V / 3.82 A = 57.60 Ω.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-33.steps.3.title">न्यूनतम तापन दर: धारा</strong> <span data-i18n="b-33.steps.3.detail">I = 360 W / 220 V = 1.64 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-33.steps.4.title">न्यूनतम तापन दर: प्रतिरोध</strong> <span data-i18n="b-33.steps.4.detail">R = V/I = 220 V / 1.64 A = 134.15 Ω.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-33.answer">अधिकतम दर पर धारा 3.82 A और प्रतिरोध 57.60 Ω है; न्यूनतम दर पर धारा 1.64 A और प्रतिरोध 134.15 Ω है।</span></p>
+  </section>
+  <section class="zn-example" id="b-34" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-08">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-34.problem">4 Ω के प्रतिरोध में प्रत्येक सेकंड 100 J ऊष्मा उत्पन्न होती है। प्रतिरोधक के सिरों के बीच विभवांतर ज्ञात कीजिए।</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-34.steps.0.title">ज्ञात राशियाँ लिखिए</strong> <span data-i18n="b-34.steps.0.detail">ऊष्मा H = 100 J, प्रतिरोध R = 4 Ω, समय t = 1 s। हमें V ज्ञात करना है।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-34.steps.1.title">धारा ज्ञात करने के लिए जूल के नियम का उपयोग कीजिए</strong> <span data-i18n="b-34.steps.1.detail">H = I²Rt, इसलिए I = (H / (Rt)) का वर्गमूल = (100 J / (4 Ω × 1 s)) का वर्गमूल = 5 A।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-34.steps.2.title">विभवांतर ज्ञात कीजिए</strong> <span data-i18n="b-34.steps.2.detail">ओम (Ohm) के नियम से V = IR = 5 A × 4 Ω = 20 V।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-34.answer">प्रतिरोधक के सिरों के बीच विभवांतर 20 V है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-35" data-element-id="EL-LES-01-025" data-format="numeric" data-answer="15000" data-block-type="check" data-concept-id="class-10-electricity-sec-08">
+    <legend data-i18n="b-35.question">20 Ω के प्रतिरोध वाला एक विद्युत प्रेस 5 A की धारा लेता है। 30 s में उत्पन्न ऊष्मा की गणना कीजिए। उत्तर जूल में दीजिए।</legend>
+      <label class="zn-opt zn-opt-numeric" data-element-id="EL-LES-01-027"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-35-input"></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-35.explanation">जूल के नियम का उपयोग करें: H = I²Rt = (5 A)² × 20 Ω × 30 s = 25 × 20 × 30 = 15000 J.</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-09" data-section-id="sec-09" data-concept-id="class-10-electricity-sec-09">
+  <section class="zn-text" id="b-36" data-block-type="text" data-concept-id="class-10-electricity-sec-09">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-36.paragraphs.0">किसी चालक में ऊष्मा उत्पन्न होना विद्युत धारा का अनिवार्य परिणाम है, और अनेक स्थितियों में यह अनुपयुक्त होता है क्योंकि उपयोगी विद्युत ऊर्जा ऊष्मा में बदल जाती है और अवयव गर्म हो जाते हैं। परंतु ऊष्मीय प्रभाव के अनेक उपयोगी अनुप्रयोग हैं: विद्युत प्रेस, विद्युत टोस्टर, विद्युत भट्टी, विद्युत केतली और विद्युत हीटर सभी जूल के तापन पर आधारित हैं।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-36.paragraphs.1">विद्युत बल्ब प्रकाश उत्पन्न करने के लिए तापन का उपयोग करता है। फिलामेंट को उत्पन्न ऊष्मा का अधिकतम भाग बनाए रखना चाहिए ताकि वह बहुत गर्म होकर प्रकाश उत्सर्जित करे, और उस ताप पर पिघले नहीं। बल्ब के फिलामेंट के लिए टंगस्टन (गलनांक 3380 °C) जैसे उच्च गलनांक वाले मजबूत धातु का उपयोग किया जाता है, फिलामेंट को विद्युतरोधी आधारों की सहायता से यथासंभव ऊष्मीय रूप से विलगित किया जाता है, और फिलामेंट की आयु बढ़ाने के लिए बल्ब को रासायनिक रूप से निष्क्रिय नाइट्रोजन तथा आर्गन गैसों से भरा जाता है। फिलामेंट द्वारा उपभुक्त अधिकांश शक्ति ऊष्मा के रूप में प्रकट होती है, और केवल एक छोटा भाग प्रकाश के रूप में विकिरित होता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-36.paragraphs.2">फ्यूज़ (Fuse) जूल के तापन का एक अन्य सामान्य अनुप्रयोग है। यह किसी भी अत्यधिक उच्च धारा के प्रवाह को रोककर परिपथों और उपकरणों की रक्षा करता है, और इसे युक्ति के साथ श्रेणी में लगाया जाता है। यह उपयुक्त गलनांक वाली किसी धातु या मिश्रातु, जैसे ऐलुमिनियम, तांबा, लोहा या सीसा, से बने तार के एक टुकड़े से बनता है, जो सामान्यतः धातु के सिरों वाले पोर्सलीन या समान पदार्थ के कार्ट्रिज में बंद रहता है। यदि निर्दिष्ट मान से अधिक धारा प्रवाहित होती है, तो फ्यूज़ तार का तापमान बढ़ता है, तार पिघल जाता है और परिपथ टूट जाता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-36.paragraphs.3">घरेलू उपयोग के फ्यूज़ 1 A, 2 A, 3 A, 5 A, 10 A इत्यादि अनुमतांकों में उपलब्ध होते हैं, और अनुमतांक उस धारा के आधार पर चुना जाना चाहिए जो उपकरण लेता है। 220 V पर संचालित होने पर 1 kW विद्युत शक्ति उपभोग करने वाले विद्युत प्रेस के लिए परिपथ में (1000/220) A, अर्थात् 4.54 A, की धारा प्रवाहित होगी। इस स्थिति में 5 A का फ्यूज़ उपयोग करना चाहिए: फ्यूज़ तार केवल तब पिघलता है जब उसके निर्दिष्ट मान से अधिक धारा प्रवाहित होती है, इसलिए अनुमतांक 4.54 A की कार्यशील धारा से ऊपर होना चाहिए, और 3 A बहुत कम होगा।</p>
+  </section>
+  <fieldset class="zn-check" id="b-37" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="3" data-block-type="check" data-concept-id="class-10-electricity-sec-09">
+    <legend data-i18n="b-37.question">एक विद्युत इस्त्री 220 V पर संचालित होने पर 1 kW विद्युत शक्ति की खपत करती है। इसके साथ किस फ्यूज (Fuse) रेटिंग का उपयोग करना चाहिए?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-37" value="0"> <span data-i18n="b-37.options.0">1 A</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-37" value="1"> <span data-i18n="b-37.options.1">2 A</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-37" value="2"> <span data-i18n="b-37.options.2">3 A</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-37" value="3"> <span data-i18n="b-37.options.3">5 A</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-37.explanation">परिपथ में (1000/220) A की धारा, अर्थात 4.54 A, प्रवाहित होती है। फ्यूज का तार केवल तब पिघलता है जब उसके निर्धारित मान से अधिक धारा प्रवाहित होती है, इसलिए 3 A का फ्यूज कार्यशील धारा से कम होगा और 5 A का फ्यूज उपयोग करना चाहिए।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-10" data-section-id="sec-10" data-concept-id="class-10-electricity-sec-10">
+  <section class="zn-text" id="b-38" data-block-type="text" data-concept-id="class-10-electricity-sec-10">
+    <p data-element-id="EL-LES-01-010" data-i18n="b-38.paragraphs.0">कार्य करने की दर शक्ति है, और यह ऊर्जा की खपत की दर भी है। किसी विद्युत परिपथ में विद्युत ऊर्जा के क्षय या खपत होने की दर को विद्युत शक्ति (electric power) कहते हैं, और इसे P = VI से व्यक्त किया जाता है। ओम (Ohm) के नियम का उपयोग करके इसे P = I²R या P = V²/R के रूप में भी लिखा जा सकता है।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-38.paragraphs.1">विद्युत शक्ति का SI मात्रक वाट (watt, W) है। यह उस उपकरण द्वारा खपत की गई शक्ति है जो 1 V के विभवांतर पर संचालित होने पर 1 A धारा लेता है; अतः 1 W = 1 वोल्ट (volt) × 1 एम्पियर (ampere) = 1 V A।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-38.paragraphs.2">वाट बहुत छोटा मात्रक है, इसलिए वास्तविक व्यवहार में हम किलोवाट (kilowatt) नामक बहुत बड़ा मात्रक उपयोग करते हैं, जो 1000 वाट के बराबर होता है। विद्युत ऊर्जा शक्ति और समय का गुणनफल है, इसलिए इसका मात्रक वाट घंटा (W h) है, अर्थात् 1 वाट शक्ति 1 घंटे तक उपयोग होने पर खपत ऊर्जा। विद्युत ऊर्जा का वाणिज्यिक मात्रक किलोवाट घंटा (kilowatt hour, kW h) है, जिसे सामान्यतः एक यूनिट कहा जाता है: 1 kW h = 1000 watt × 3600 second = 3.6 × 10^6 watt second = 3.6 × 10^6 joule।</p>
+    <p data-element-id="EL-LES-01-010" data-i18n="b-38.paragraphs.3">एक सावधानी: बहुत से लोग सोचते हैं कि विद्युत परिपथ में इलेक्ट्रॉन खपत हो जाते हैं। यह गलत है। हम विद्युत बोर्ड या विद्युत कंपनी को विद्युत बल्ब, पंखा और इंजन जैसे उपकरणों से होकर इलेक्ट्रॉनों को गति देने के लिए ऊर्जा प्रदान करने का भुगतान करते हैं; हम उस ऊर्जा का भुगतान करते हैं जिसका हम उपयोग करते हैं।</p>
+  </section>
+  <section class="zn-example" id="b-39" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-10">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-39.problem">एक विद्युत बल्ब (electric bulb) 220 V के जनित्र (generator) से जोड़ा गया है। धारा (current) 0.50 A है। बल्ब की शक्ति (power) क्या है?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-39.steps.0.title">दिया गया मान लिखिए</strong> <span data-i18n="b-39.steps.0.detail">V = 220 V, I = 0.50 A.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-39.steps.1.title">शक्ति संबंध का उपयोग कीजिए</strong> <span data-i18n="b-39.steps.1.detail">P = VI.</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-39.steps.2.title">मान रखिए</strong> <span data-i18n="b-39.steps.2.detail">P = 220 V × 0.50 A = 110 J/s = 110 W.</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-39.answer">बल्ब की शक्ति 110 W है।</span></p>
+  </section>
+  <section class="zn-example" id="b-40" data-block-type="worked_example" data-concept-id="class-10-electricity-sec-10">
+    <h3 data-i18n="ui.example_heading">हल किया गया उदाहरण (Worked example)</h3>
+    <p class="zn-example-problem" data-element-id="EL-LES-01-032" data-i18n="b-40.problem">एक विद्युत रेफ़्रिजरेटर जिसकी रेटिंग 400 W है, 8 घंटे/दिन चलता है। इसे 30 दिनों तक चलाने पर, रु 3.00 प्रति kW h की दर से ऊर्जा की लागत क्या होगी?</p>
+    <ol>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-40.steps.0.title">कुल ऊर्जा वाट (Watt)-घंटे में ज्ञात करें</strong> <span data-i18n="b-40.steps.0.detail">400 W × 8.0 घंटे/दिन × 30 दिन = 96000 W h।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-40.steps.1.title">किलोवाट-घंटे (Kilowatt hour) में बदलें</strong> <span data-i18n="b-40.steps.1.detail">96000 W h = 96 kW h, क्योंकि 1 kW h = 1000 W h।</span></li>
+      <li data-element-id="EL-LES-01-033"><strong data-i18n="b-40.steps.2.title">दर से गुणा करें</strong> <span data-i18n="b-40.steps.2.detail">96 kW h × रु 3.00 प्रति kW h = रु 288.00।</span></li>
+    </ol>
+    <p class="zn-answer"><span class="zn-answer-label" data-i18n="ui.answer_label">उत्तर</span> <span data-element-id="EL-LES-01-034" data-i18n="b-40.answer">रेफ़्रिजरेटर को 30 दिनों तक चलाने की लागत रु 288.00 है।</span></p>
+  </section>
+  <fieldset class="zn-check" id="b-41" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="1" data-block-type="check" data-concept-id="class-10-electricity-sec-10">
+    <legend data-i18n="b-41.question">निम्नलिखित में से कौन-सा पद किसी परिपथ में विद्युत शक्ति को निरूपित नहीं करता है?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-41" value="0"> <span data-i18n="b-41.options.0">I²R</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-41" value="1"> <span data-i18n="b-41.options.1">IR²</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-41" value="2"> <span data-i18n="b-41.options.2">VI</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-41" value="3"> <span data-i18n="b-41.options.3">V²/R</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-41.explanation">विद्युत शक्ति P = VI है, जो V = IR रखने पर P = I²R हो जाती है, और I = V/R रखने पर P = V²/R हो जाती है। संयोजन IR² में I और R की घातें गलत हैं, इसलिए यह शक्ति नहीं है।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-section" id="sec-11" data-section-id="sec-11" data-concept-id="class-10-electricity-sec-11">
+  <fieldset class="zn-check" id="b-42" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="3" data-block-type="check" data-concept-id="class-10-electricity-sec-11">
+    <legend data-i18n="b-42.question">प्रतिरोध R के एक तार के टुकड़े को पाँच बराबर भागों में काटा जाता है। फिर इन भागों को समांतर क्रम में जोड़ा जाता है। यदि इस संयोजन का तुल्य प्रतिरोध (Equivalent resistance) R&#x27; है, तो अनुपात R/R&#x27; क्या है?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-42" value="0"> <span data-i18n="b-42.options.0">1/25</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-42" value="1"> <span data-i18n="b-42.options.1">1/5</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-42" value="2"> <span data-i18n="b-42.options.2">5</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-42" value="3"> <span data-i18n="b-42.options.3">25</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-42.explanation">पाँचों बराबर भागों में से प्रत्येक का प्रतिरोध R/5 है। ऐसे पाँच प्रतिरोधकों को समांतर क्रम में जोड़ने पर 1/R&#x27; = 5/(R/5) = 25/R होता है, इसलिए R&#x27; = R/25। अतः R/R&#x27; = 25।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-43" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="3" data-block-type="check" data-concept-id="class-10-electricity-sec-11">
+    <legend data-i18n="b-43.question">एक विद्युत बल्ब पर 220 V और 100 W अंकित हैं। जब इसे 110 V पर संचालित किया जाता है, तो यह कितनी शक्ति की खपत करेगा?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-43" value="0"> <span data-i18n="b-43.options.0">100 W</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-43" value="1"> <span data-i18n="b-43.options.1">75 W</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-43" value="2"> <span data-i18n="b-43.options.2">50 W</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-43" value="3"> <span data-i18n="b-43.options.3">25 W</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-43.explanation">बल्ब का प्रतिरोध निश्चित होता है: R = V²/P = (220 V)² / 100 W = 484 Ω। 110 V पर शक्ति P = V²/R = (110 V)² / 484 Ω = 25 W होती है। वोल्टता के आधे होने पर शक्ति चौथाई हो जाती है, क्योंकि निश्चित प्रतिरोध के लिए शक्ति V² के अनुपात में होती है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-44" data-element-id="EL-LES-01-025" data-format="mcq" data-answer-index="2" data-block-type="check" data-concept-id="class-10-electricity-sec-11">
+    <legend data-i18n="b-44.question">एक ही पदार्थ के, समान लंबाई और समान व्यास वाले दो चालक तारों को पहले श्रेणीक्रम में और फिर समांतर क्रम में एक ही विभवांतर के आर-पार किसी परिपथ में जोड़ा जाता है। श्रेणी संयोजन में उत्पन्न ऊष्मा का समांतर संयोजन में उत्पन्न ऊष्मा से अनुपात क्या है?</legend>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-44" value="0"> <span data-i18n="b-44.options.0">1:2</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-44" value="1"> <span data-i18n="b-44.options.1">2:1</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-44" value="2"> <span data-i18n="b-44.options.2">1:4</span></label>
+      <label class="zn-opt" data-element-id="EL-LES-01-026"><input type="radio" name="check-b-44" value="3"> <span data-i18n="b-44.options.3">4:1</span></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-44.explanation">प्रत्येक तार का प्रतिरोध R है। श्रेणी में प्रतिरोध 2R होता है; समांतर में यह R/2 होता है। समान विभवांतर V और समान समय t के लिए, ऊष्मा V²t/R होती है, इसलिए यह प्रतिरोध के व्युत्क्रमानुपाती होती है। ऊष्माओं का अनुपात (1/2R) : (1/(R/2)) = 1 : 4 है।</p></details>
+  </fieldset>
+  <fieldset class="zn-check" id="b-45" data-element-id="EL-LES-01-025" data-format="numeric" data-answer="4" data-block-type="check" data-concept-id="class-10-electricity-sec-11">
+    <legend data-i18n="b-45.question">220 V की लाइन पर 5 A धारा प्रवाहित करने के लिए 176 Ω के कितने प्रतिरोधकों को समांतर क्रम में जोड़ना आवश्यक है?</legend>
+      <label class="zn-opt zn-opt-numeric" data-element-id="EL-LES-01-027"><span data-i18n="ui.check_your_answer">आपका उत्तर:</span> <input type="text" inputmode="decimal" class="zn-numeric-input" name="check-b-45-input"></label>
+    <button type="button" class="zn-check-btn" data-element-id="EL-LES-01-028" data-i18n="ui.check_submit">जाँचें</button>
+    <p class="zn-check-feedback" data-element-id="EL-LES-01-029" aria-live="polite"></p>
+    <details class="zn-check-why" data-element-id="EL-LES-01-031"><summary data-i18n="ui.check_why">क्यों?</summary><p data-i18n="b-45.explanation">इस संयोजन का तुल्य प्रतिरोध (Equivalent resistance) R = V/I = 220 V / 5 A = 44 Ω होना चाहिए। यदि 176 Ω के n प्रतिरोधक समांतर क्रम में जोड़े जाएँ, तो R = 176/n, अतः n = 176/44 = 4।</p></details>
+  </fieldset>
+  </section>
+  <section class="zn-glossary">
+    <h2 data-i18n="ui.glossary_heading">शब्दावली (Glossary)</h2>
+    <dl data-element-id="EL-LES-01-036">
+      <dt data-i18n="b-00-meta.glossary.0.term">कूलॉम</dt><dd data-i18n="b-00-meta.glossary.0.definition">आवेश का SI मात्रक; एक कूलॉम लगभग 6 × 10^18 इलेक्ट्रॉनों के आवेश के बराबर है।</dd>
+      <dt data-i18n="b-00-meta.glossary.1.term">ऐम्पियर</dt><dd data-i18n="b-00-meta.glossary.1.definition">विद्युत धारा का SI मात्रक; एक ऐम्पियर प्रति सेकंड बहने वाला एक कूलॉम आवेश है।</dd>
+      <dt data-i18n="b-00-meta.glossary.2.term">वोल्ट</dt><dd data-i18n="b-00-meta.glossary.2.definition">विभवांतर का SI मात्रक; एक वोल्ट एक कूलॉम आवेश को स्थानांतरित करने में किया गया एक जूल कार्य है।</dd>
+      <dt data-i18n="b-00-meta.glossary.3.term">ओम</dt><dd data-i18n="b-00-meta.glossary.3.definition">प्रतिरोध का SI मात्रक; किसी चालक का प्रतिरोध 1 ओम होता है जब 1 वोल्ट का विभवांतर उससे 1 ऐम्पियर धारा बहाता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.4.term">प्रतिरोधकता</dt><dd data-i18n="b-00-meta.glossary.4.definition">किसी चालक के पदार्थ का गुण, जिसका SI मात्रक Ω m है, जो बताता है कि दी गई लंबाई और क्षेत्रफल के लिए वह पदार्थ धारा का कितनी दृढ़ता से विरोध करता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.5.term">तुल्य प्रतिरोध</dt><dd data-i18n="b-00-meta.glossary.5.definition">वह एकल प्रतिरोध जो प्रतिरोधकों के संयोजन को प्रतिस्थापित कर सकता है और पूरे परिपथ के लिए समान धारा तथा विभवांतर बनाए रखता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.6.term">जूल का तापन नियम</dt><dd data-i18n="b-00-meta.glossary.6.definition">नियम H = I²Rt जो स्थिर धारा द्वारा किसी प्रतिरोधक में उत्पन्न ऊष्मा देता है।</dd>
+      <dt data-i18n="b-00-meta.glossary.7.term">वाट</dt><dd data-i18n="b-00-meta.glossary.7.definition">शक्ति का SI मात्रक; 1 वाट तब उपभुक्त होता है जब 1 वोल्ट के विभवांतर पर 1 ऐम्पियर धारा बहती है।</dd>
+      <dt data-i18n="b-00-meta.glossary.8.term">किलोवाट घंटा</dt><dd data-i18n="b-00-meta.glossary.8.definition">विद्युत ऊर्जा का व्यापारिक मात्रक, जो 3.6 × 10^6 J के बराबर है।</dd>
+      <dt data-i18n="b-00-meta.glossary.9.term">फ्यूज</dt><dd data-i18n="b-00-meta.glossary.9.definition">उपयुक्त गलनांक वाला एक छोटा तार जो किसी यंत्र के श्रेणीक्रम में लगाया जाता है, और जब धारा बहुत अधिक हो जाती है तो पिघलकर परिपथ तोड़ देता है।</dd>
+    </dl>
+  </section>
+  <footer class="zn-footer">
+    <p class="zn-sources" data-element-id="EL-LES-01-037" data-i18n="ui.sources_footer">Zivon कंटेंट फ़ैक्टरी द्वारा निर्मित। स्रोत कोर्स इंडेक्स में सूचीबद्ध हैं।</p>
+  </footer>
+</main>
+<script src="../i18n.js"></script>
+<script src="../../../../assets/zivon.js"></script>
+<script src="../page.js"></script>
+</body>
+</html>

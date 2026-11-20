@@ -1,0 +1,1884 @@
+{
+  "locale": "hi-Latn",
+  "script": "Latn",
+  "status": "verified",
+  "glossary_version": "1.0.0",
+  "fallback_blocks": [],
+  "strings": {
+    "ui.lang_label": "Language",
+    "ui.objectives_heading": "Is lesson ke baad aap seekhenge:",
+    "ui.example_heading": "Solved example (Worked example)",
+    "ui.answer_label": "Uttar (Answer)",
+    "ui.check_submit": "Check karein",
+    "ui.check_why": "Kyon?",
+    "ui.check_pick_first": "Pehle ek option chunein.",
+    "ui.check_correct": "✓ Sahi!",
+    "ui.check_wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "ui.check_your_answer": "Aapka answer:",
+    "ui.glossary_heading": "Glossary (Shabdavali)",
+    "ui.sources_footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "ui.untranslated_block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "ui.untranslated_page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "ui.report_issue": "Issue report karein",
+    "ui.trans_badge": "AI-translated · Reviewed",
+    "b-00-meta.title": "Electricity: current, resistance, circuits aur power",
+    "b-00-meta.objectives.0": "Is lesson ke baad aap explain kar sakte hain ki electric current kya hai, uska unit bata sakte hain, aur circuit mein flowing charge nikalne ke liye I = Q/t use kar sakte hain.",
+    "b-00-meta.objectives.1": "Is lesson ke baad aap potential difference aur resistance define kar sakte hain, Ohm's law state kar sakte hain, aur V = IR aur R = ρl/A se calculate kar sakte hain.",
+    "b-00-meta.objectives.2": "Is lesson ke baad aap series ya parallel mein jude resistors ka equivalent resistance nikal sakte hain aur unse circuit problems solve kar sakte hain.",
+    "b-00-meta.objectives.3": "Is lesson ke baad aap current se produce heat H = I²Rt se calculate kar sakte hain, aur kisi device dwara use kiye gaye power aur energy calculate kar sakte hain, jisme kilowatt hours mein cost bhi shamil hai.",
+    "b-00-meta.glossary.0.term": "Coulomb",
+    "b-00-meta.glossary.0.definition": "Electric charge ka SI unit; one coulomb lagbhag 6 × 10^18 electrons ke charge ke barabar hai.",
+    "b-00-meta.glossary.1.term": "Ampere",
+    "b-00-meta.glossary.1.definition": "Electric current ka SI unit; one ampere ek second mein flow hone wala one coulomb charge hai.",
+    "b-00-meta.glossary.2.term": "Volt",
+    "b-00-meta.glossary.2.definition": "Potential difference ka SI unit; one volt ek coulomb charge ko move karne mein one joule work ke barabar hai.",
+    "b-00-meta.glossary.3.term": "Ohm",
+    "b-00-meta.glossary.3.definition": "Resistance ka SI unit; conductor ka resistance 1 ohm hota hai jab 1 volt ka potential difference uske through 1 ampere current drive karta hai.",
+    "b-00-meta.glossary.4.term": "Resistivity",
+    "b-00-meta.glossary.4.definition": "Conductor ke material ki property, jiska SI unit Ω m hai, jo batati hai ki given length aur area ke liye wo material current ko kitni strongly resist karta hai.",
+    "b-00-meta.glossary.5.term": "Equivalent resistance",
+    "b-00-meta.glossary.5.definition": "Wo single resistance jo resistors ke combination ko replace kar sakta hai aur poore circuit ke liye same current aur potential difference rakhta hai.",
+    "b-00-meta.glossary.6.term": "Joule's law of heating",
+    "b-00-meta.glossary.6.definition": "Rule H = I²Rt jo steady current dwara resistor mein produce heat deta hai.",
+    "b-00-meta.glossary.7.term": "Watt",
+    "b-00-meta.glossary.7.definition": "Power ka SI unit; one watt tab consume hota hai jab 1 volt potential difference par 1 ampere current flow karta hai.",
+    "b-00-meta.glossary.8.term": "Kilowatt hour",
+    "b-00-meta.glossary.8.definition": "Electrical energy ka commercial unit, jo 3.6 × 10^6 J ke barabar hai.",
+    "b-00-meta.glossary.9.term": "Fuse",
+    "b-00-meta.glossary.9.definition": "Suitable melting point ki chhoti wire jo device ke series mein lagayi jati hai, aur jab current bahut zyada ho jata hai to pighal kar circuit tod deti hai.",
+    "b-01.paragraphs.0": "Aapne torch kaam karte dekha hoga. Andar ke cells bulb ke through charge push karte hain, aur bulb sirf tab glow karta hai jab switch on ho. Nadi mein behta paani water current kahlata hai; usi tarah, jab electric charge kisi conductor (jaise metallic wire) ke through flow karta hai, to hum kehte hain ki conductor mein electric current hai.",
+    "b-01.paragraphs.1": "Ek switch cell aur bulb ke beech conducting link banata hai. Agar circuit kahin bhi toot jaye, to current behta band ho jata hai aur bulb glow nahi karta. Electric current ka continuous aur closed path electric circuit kahlata hai.",
+    "b-01.paragraphs.2": "Electric current kisi particular area se unit time mein flow hone wale charge ki amount hai; dusre shabdon mein ye electric charges ke flow ka rate hai. Metallic wires mein electrons hi charges hote hain jo flow karte hain. Jab electricity pehli baar observe hui thi tab electrons ke baare mein pata nahi tha, isliye current ko positive charges ke flow ke roop mein liya gaya, aur convention se electric current ki direction electrons ke flow ki direction ke opposite hoti hai.",
+    "b-01.paragraphs.3": "Agar kisi conductor ke kisi cross-section se time t mein net charge Q flow hota hai, to I = Q/t. Charge ka SI unit coulomb (C) hai, jo lagbhag 6 × 10^18 electrons ke charge ke barabar hai, aur electron par 1.6 × 10^-19 C ka negative charge hota hai. Current ka SI unit ampere (A) hai, jahan 1 A = 1 C/1 s; small currents ko 1 mA = 10^-3 A ya 1 µA = 10^-6 A likha jata hai.",
+    "b-01.paragraphs.4": "Ammeter naam ka instrument electric current measure karta hai, aur ise hamesha us circuit mein series mein connect kiya jata hai jisme current measure karna hai. Torch circuit mein current cell ke positive terminal se negative terminal tak bulb aur ammeter ke through flow karta hai.",
+    "b-02.caption": "Ek simple circuit: ek cell, ek bulb, ek ammeter aur ek plug key, sab ek hi closed loop mein. Current cell ke positive terminal se nikalta hai, bulb aur ammeter ke through jaata hai, aur negative terminal par wapas aata hai.",
+    "b-02.svg_texts.t-0": "bulb",
+    "b-02.svg_texts.t-1": "ammeter",
+    "b-02.svg_texts.t-2": "cell",
+    "b-02.svg_texts.t-3": "plug key",
+    "b-02.svg_texts.t-4": "current I",
+    "b-03.problem": "Ek electric bulb ke filament dwara 0.5 A current 10 minutes tak draw kiya jata hai. Circuit se flow hone wala electric charge ka amount find karo.",
+    "b-03.steps.0.title": "Jo given hai use likho",
+    "b-03.steps.0.detail": "Current I = 0.5 A. Time t = 10 minutes.",
+    "b-03.steps.1.title": "Time ko seconds mein badlo",
+    "b-03.steps.1.detail": "t = 10 min = 10 × 60 s = 600 s, kyunki ampere coulombs per second hota hai.",
+    "b-03.steps.2.title": "Current ki definition use karo",
+    "b-03.steps.2.detail": "I = Q/t, isliye Q = I × t.",
+    "b-03.steps.3.title": "Substitute karo",
+    "b-03.steps.3.detail": "Q = 0.5 A × 600 s = 300 C.",
+    "b-03.answer": "Circuit se flow hone wala charge ka amount 300 C hai.",
+    "b-04.question": "Electric circuit ka matlab kya hota hai?",
+    "b-04.options.0": "Electric current ka ek continuous aur closed path",
+    "b-04.options.1": "Ek path jo switch par broken hai",
+    "b-04.options.2": "Koi bhi metal ka tukda jo charge carry karta hai",
+    "b-04.options.3": "Electrons ka flow positive terminal se negative terminal tak",
+    "b-04.explanation": "Switch cell aur bulb ke beech conducting link banata hai, isliye path closed hona chahiye; agar circuit kahin bhi broken ho to current ruk jata hai aur bulb glow nahi karta. Ye bhi dhyan rakho ki electrons negative hote hain, isliye conventional current ko electron flow ki direction ke opposite liya jata hai, uske along nahi.",
+    "b-05.question": "Calculate karo ki one coulomb of charge me kitne electrons hote hain.",
+    "b-05.options.0": "6 × 10^18",
+    "b-05.options.1": "1.6 × 10^19",
+    "b-05.options.2": "6 × 10^19",
+    "b-05.options.3": "1.6 × 10^-19",
+    "b-05.explanation": "Ek electron par charge 1.6 × 10^-19 C hota hai. Isliye 1 C me electrons ki sankhya 1 / (1.6 × 10^-19) hoti hai, jo lagbhag 6.25 × 10^18 hai, yani nearly 6 × 10^18 electrons. Bilkul isi wajah se kaha jata hai ki one coulomb charge lagbhag 6 × 10^18 electrons me contained hota hai.",
+    "b-06.paragraphs.0": "Charges copper wire me apne aap flow nahi karte, jaise perfectly horizontal tube me paani apne aap flow nahi karta. Agar tube ka ek end higher level par rakhe tank se joda jaye, taaki dono ends ke beech pressure difference ho, to paani doosre end se bahar flow karta hai.",
+    "b-06.paragraphs.1": "Metallic wire ke charges ke liye gravity ka koi role nahi hai. Electrons tabhi move karte hain jab conductor ke along electric pressure ka difference ho, jise potential difference kehte hain. Ek ya zyada cells se bani battery yahi difference produce karti hai.",
+    "b-06.paragraphs.2": "Ek cell ke andar chemical action uske terminals ke across potential difference generate karta hai, chahe usse koi current na draw ho. Jab cell ko conducting circuit element se connect kiya jata hai, potential difference charges ko motion (gati) me set karta hai aur electric current produce karta hai, aur current ko flowing rakhne ke liye cell ko apni stored chemical energy expend karni padti hai.",
+    "b-06.paragraphs.3": "Circuit me kuch current carry kar rahe do points ke beech potential difference wo work hai jo unit charge ko ek point se doosre tak move karne me kiya jata hai, isliye V = W/Q. Iski SI unit volt (V) hai: one volt do points ke beech ka potential difference hai jab 1 coulomb charge ko move karne ke liye 1 joule work kiya jata hai, that is 1 V = 1 J C^-1.",
+    "b-06.paragraphs.4": "Voltmeter potential difference measure karta hai, aur ise hamesha un points ke across parallel me connect kiya jata hai jinke beech potential difference measure karna hai.",
+    "b-07.problem": "2 C ke charge ko aise do points ke beech move karne me kitna work hota hai jinme potential difference (potential antar) 12 V hai?",
+    "b-07.steps.0.title": "Diya hua likhiye",
+    "b-07.steps.0.detail": "Charge Q = 2 C hai, potential difference V = 12 V hai.",
+    "b-07.steps.1.title": "Potential difference ki definition use kijiye",
+    "b-07.steps.1.detail": "V = W/Q, isliye kiya gaya work W = V × Q hai.",
+    "b-07.steps.2.title": "Values substitute kijiye",
+    "b-07.steps.2.detail": "W = 12 V × 2 C = 24 J.",
+    "b-07.answer": "Kiya gaya work 24 J hai.",
+    "b-08.question": "6 V battery se pass hone wale har coulomb charge ko kitni energy di jati hai?",
+    "b-08.options.0": "6 J",
+    "b-08.options.1": "1/6 J",
+    "b-08.options.2": "12 J",
+    "b-08.options.3": "3 J",
+    "b-08.explanation": "Ek volt ka matlab hai ek joule work per coulomb, isliye 6 V battery har us coulomb ko 6 J energy deti hai jo isse pass hota hai. Battery wahi device hai jo conductor ke across ye potential difference maintain karti hai.",
+    "b-09.paragraphs.0": "Ek circuit (paripath) mein ek cell ya battery, ek plug key, electrical components aur connecting wires hote hain. Real objects draw karne ke bajay, hum ek schematic diagram banate hain jisme har component ko ek conventional symbol se replace kiya jata hai.",
+    "b-09.paragraphs.1": "Aapko milne wale symbols hain: ek electric cell; ek battery, jo cells ka combination hai; ek plug key ya switch, jo open ya closed dikhaya jata hai; ek wire joint; bina joining ke cross hoti wires; ek electric bulb; resistance R ka ek resistor; ek variable resistance ya rheostat; ek ammeter; aur ek voltmeter.",
+    "b-09.paragraphs.2": "In symbols mein se do ke saath ek rule hai. Ammeter us part ke series mein lagta hai jiska current aap measure kar rahe hain, aur voltmeter us part ke parallel mein lagta hai jiska potential difference aap measure kar rahe hain.",
+    "b-10.question": "Do points ke beech potential difference measure karne ke liye voltmeter circuit mein kaise connect kiya jata hai?",
+    "b-10.options.0": "Do points ke across parallel mein",
+    "b-10.options.1": "Component ke saath series mein",
+    "b-10.options.2": "Cell ki jagah",
+    "b-10.options.3": "Sirf plug key ke across",
+    "b-10.explanation": "Voltmeter hamesha un points ke across parallel mein connect kiya jata hai jinke beech potential difference measure karna hota hai. Ammeter ko series mein lagaya jata hai, kyunki usko woh current carry karna hota hai jo woh measure kar raha hai.",
+    "b-11.paragraphs.0": "Ek circuit banaiye jisme nichrome wire XY ho jiski length lagbhag 0.5 m hai, ek ammeter, ek voltmeter aur 1.5 V ke chaar cells hon. Ek cell se shuru kariye aur XY ke across ammeter reading I aur voltmeter reading V note kariye; phir do, teen aur chaar cells ke saath repeat kariye. Har pair ke liye V/I nikaaliye, aur V ko I ke against plot kariye.",
+    "b-11.paragraphs.1": "Activity mein aapko har case mein V/I ka lagbhag same value milta hai, aur V-I graph origin se guzarne wali straight line hoti hai. Isliye us wire ke liye V/I ek constant ratio hai.",
+    "b-11.paragraphs.2": "1827 mein German physicist Georg Simon Ohm ne metallic wire mein current aur uske ends ke across potential difference ke beech relationship khoja. Kisi di gayi metallic wire ke ends ke across potential difference V uske through current I ke directly proportional hota hai, provided uska temperature same rahe. Yeh Ohm's law hai: V, I ke proportional hai, isliye V/I = constant = R, aur V = IR.",
+    "b-11.paragraphs.3": "R di gayi metallic wire ke liye diye gaye temperature par constant hota hai aur ise uski resistance kaha jata hai, yaani conductor ki wo property jisse wo charges ke flow ko resist karta hai. Iski SI unit ohm (Ω) hai. Agar conductor ke across potential difference 1 V hai aur uske through current 1 A hai, to uski resistance 1 Ω hai, that is 1 ohm = 1 volt/1 ampere.",
+    "b-11.paragraphs.4": "Kyunki V = IR ko I = V/R likha ja sakta hai, resistor ke through current uski resistance ke inversely proportional hota hai: agar resistance double ho jaye to current half ho jata hai. Kai practical cases mein humein current badhana ya ghatana hota hai, aur voltage source badle bina current regulate karne ke liye use hone wala component variable resistance kaha jata hai; circuit mein resistance badalne ke liye rheostat naam ka device aksar use kiya jata hai.",
+    "b-12.title": "Nichrome wire ka V-I graph",
+    "b-12.description": "Ek nichrome wire ko kai 1.5 V cells se joda gaya hai, ek ammeter aur ek voltmeter ke saath. Cells add karein aur wire ka resistance change karein, aur dekhein ki har (current (dhara), potential difference (vibhav antar)) point graph par kahan girta hai.",
+    "b-12.controls.cells.label": "Circuit mein cells (1.5 V each)",
+    "b-12.controls.resistance.label": "Wire ka resistance (ohm)",
+    "b-13.problem": "(a) Ek electric bulb 220 V source se kitna current draw karega, agar bulb filament ka resistance 1200 Ω hai? (b) Ek electric heater coil 220 V source se kitna current draw karega, agar heater coil ka resistance 100 Ω hai?",
+    "b-13.steps.0.title": "Bulb ke liye diya gaya data likhiye",
+    "b-13.steps.0.detail": "V = 220 V, R = 1200 Ω.",
+    "b-13.steps.1.title": "Ohm's law ko I = V/R ke form mein use kijiye",
+    "b-13.steps.1.detail": "I = 220 V / 1200 Ω = 0.18 A.",
+    "b-13.steps.2.title": "Heater ke liye diya gaya data likhiye",
+    "b-13.steps.2.detail": "V = 220 V, R = 100 Ω.",
+    "b-13.steps.3.title": "Phir se I = V/R use kijiye",
+    "b-13.steps.3.detail": "I = 220 V / 100 Ω = 2.2 A.",
+    "b-13.answer": "Bulb lagbhag 0.18 A draw karta hai aur heater coil usi 220 V source se 2.2 A draw karti hai. Dhyan dijiye ki same source se bulb aur heater ka current draw alag hai: resistance jitna chhota, current utna bada.",
+    "b-14.problem": "Ek electric heater ke terminals ke beech potential difference 60 V hai jab woh source se 4 A current draw karta hai. Agar potential difference ko badhakar 120 V kar diya jaye, to heater kitna current draw karega?",
+    "b-14.steps.0.title": "Pehle resistance nikaalein",
+    "b-14.steps.0.detail": "Heater ka resistance same rehta hai. Ohm's law (Ohm ka niyam) se, R = V/I = 60 V / 4 A = 15 Ω.",
+    "b-14.steps.1.title": "Ab potential difference badal dein",
+    "b-14.steps.1.detail": "V = 120 V aur R = 15 Ω ke saath, current I = V/R hai.",
+    "b-14.steps.2.title": "Substitute karein",
+    "b-14.steps.2.detail": "I = 120 V / 15 Ω = 8 A.",
+    "b-14.answer": "Jab potential difference double ho jata hai, heater ke through current 8 A ho jata hai.",
+    "b-15.question": "Jab ek 12 V battery ko ek unknown resistor ke across connect kiya jata hai, to circuit mein 2.5 mA ka current hota hai. Resistor ke resistance ki value ohms mein find karo.",
+    "b-15.explanation": "Pehle current ko amperes mein badlo: 2.5 mA = 2.5 × 10^-3 A. Phir R = V/I = 12 V / (2.5 × 10^-3 A) = 4800 Ω.",
+    "b-16.paragraphs.0": "Ek circuit lo jisme ek cell, ek ammeter, length l ki nichrome wire aur ek plug key ho, aur current note karo. Ab wire ko same thickness ki lekin double length ki doosri nichrome wire se replace karo, aur current phir se note karo: ammeter reading half ho jati hai.",
+    "b-16.paragraphs.1": "Same length ki ek moti nichrome wire se repeat karo, jiska cross-sectional area zyada ho: ammeter reading badh jati hai. Ab same length aur same area of cross-section wali copper wire use karo jo pehli nichrome wire jaisi ho, aur reading phir se change hoti hai.",
+    "b-16.paragraphs.2": "Ye observations dikhate hain ki conductor ka resistance uski length, uske area of cross-section, aur uske material ki nature par depend karta hai. Precise measurements dikhate hain ki ek uniform metallic conductor ka resistance uski length l ke directly proportional aur uske area of cross-section A ke inversely proportional hota hai, isliye R = ρl/A.",
+    "b-16.paragraphs.3": "Constant ρ (rho) ko conductor ke material ki electrical resistivity kehte hain. Iski SI unit Ω m hai, aur ye material ki characteristic property hai. Metals aur alloys ki resistivity bahut kam hoti hai, 10^-8 Ω m se 10^-6 Ω m ke range mein, aur ye electricity ke good conductors hain; insulators jaise rubber aur glass ki resistivity 10^12 se 10^17 Ω m ke order ki hoti hai. Kisi material ka resistance aur resistivity dono temperature ke saath vary karte hain.",
+    "b-16.paragraphs.4": "Ek alloy ki resistivity generally uske constituent metals se zyada hoti hai, aur alloys high temperatures par readily oxidise (burn) nahi hote; isi wajah se ye commonly electrical heating devices jaise electric irons aur toasters mein use hote hain. Tungsten almost exclusively electric bulbs ke filaments ke liye use hota hai, jabki copper aur aluminium generally electrical transmission lines ke liye use hote hain.",
+    "b-17.problem": "1 m length ke metal wire ki Resistance 20 degrees C par 26 Ω hai. Agar wire ka diameter 0.3 mm hai, to us temperature par metal ki Resistivity kya hogi? Resistivities ki table ka use karke, wire ka material predict karo.",
+    "b-17.steps.0.title": "Jo diya gaya hai use likho",
+    "b-17.steps.0.detail": "R = 26 Ω, length l = 1 m, diameter d = 0.3 mm = 3 × 10^-4 m.",
+    "b-17.steps.1.title": "Cross-section ka area nikalo",
+    "b-17.steps.1.detail": "Wire round hai, isliye A = πd²/4.",
+    "b-17.steps.2.title": "R = ρl/A ko rearrange karo",
+    "b-17.steps.2.detail": "Resistivity ρ = RA/l = Rπd²/(4l) hai.",
+    "b-17.steps.3.title": "Substitute karo",
+    "b-17.steps.3.detail": "Values daalne par ρ = 1.84 × 10^-6 Ω m milta hai.",
+    "b-17.steps.4.title": "Material ka naam batao",
+    "b-17.steps.4.detail": "20 degrees C par resistivities ki table dekhne par, value 1.84 × 10^-6 Ω m manganese ki resistivity hai.",
+    "b-17.answer": "20 degrees C par metal ki resistivity 1.84 × 10^-6 Ω m hai, jo manganese ki resistivity hai.",
+    "b-18.problem": "Ek diye gaye material ke wire ki length l aur area of cross-section A hai aur resistance 4 Ω hai. Usi material ke doosre wire ki resistance kya hogi jiski length l/2 aur area of cross-section 2A hai?",
+    "b-18.steps.0.title": "Pehla wire likho",
+    "b-18.steps.0.detail": "Pehle wire ke liye, R1 = ρl/A = 4 Ω.",
+    "b-18.steps.1.title": "Doosra wire likho",
+    "b-18.steps.1.detail": "Doosre wire ke liye, R2 = ρ(l/2)/(2A) = (1/4) ρl/A.",
+    "b-18.steps.2.title": "Dono ko compare karo",
+    "b-18.steps.2.detail": "Isliye R2 = (1/4) R1.",
+    "b-18.steps.3.title": "Substitute karo",
+    "b-18.steps.3.detail": "R2 = (1/4) × 4 Ω = 1 Ω.",
+    "b-18.answer": "Naye wire ki resistance 1 Ω hai.",
+    "b-19.question": "Kya same material ke thick wire ya thin wire mein se current zyada aasani se flow karega, jab dono same source se connected hon? Kyun?",
+    "b-19.options.0": "Ek thick wire, kyunki larger area of cross-section se smaller resistance milta hai",
+    "b-19.options.1": "Ek thin wire, kyunki smaller area of cross-section se smaller resistance milta hai",
+    "b-19.options.2": "Dono equally, kyunki material same hai",
+    "b-19.options.3": "Ek thick wire, kyunki thick wire ke material ki resistivity kam hoti hai",
+    "b-19.explanation": "Resistance area of cross-section ke inversely proportional hota hai, R = ρl/A. Same material aur length ke thicker wire ka area bada hota hai, isliye uska resistance chhota hota hai aur current bada hota hai. Resistivity sirf material par depend karti hai, thickness par nahi.",
+    "b-20.paragraphs.0": "Jab teen resistors R1, R2 aur R3 ko end to end joda jata hai, to unhe series mein connected kaha jata hai. Agar aap aise circuit mein ammeter ko kisi bhi position par le jayein, to uska reading nahi badalta: series combination mein current circuit ke har part mein same rehta hai, isliye same current har resistor se pass hota hai.",
+    "b-20.paragraphs.1": "Poore combination ke across potential difference measure karein aur use V kahein, phir teen resistors ke across potential differences V1, V2 aur V3 alag-alag measure karein. Aap paate hain ki V = V1 + V2 + V3: series combination ke across total potential difference individual resistors ke across potential differences ka sum hota hai.",
+    "b-20.paragraphs.2": "Ab teen resistors ko ek equivalent resistor se replace karein jiski resistance R hai, jo same current I carry karta hai aur jiske across same potential difference V hai, taaki V = IR. Teen resistors par alag-alag Ohm's law (Ohm ka niyam) apply karne se V1 = IR1, V2 = IR2 aur V3 = IR3 milta hai.",
+    "b-20.paragraphs.3": "Inhe V = V1 + V2 + V3 mein rakhne se IR = IR1 + IR2 + IR3 milta hai, aur I se divide karne par Rs = R1 + R2 + R3. Isliye jab kai resistors series mein jode jate hain, combination ki resistance unki individual resistances ke sum ke barabar hoti hai, aur ye kisi bhi individual resistance se greater hoti hai.",
+    "b-21.caption": "Series mein resistors: teen resistors X aur Y ke beech end to end jode gaye hain, isliye har ek ke through same current I pass hota hai. Potential differences add hote hain: V = V1 + V2 + V3.",
+    "b-21.svg_texts.t-0": "battery",
+    "b-21.svg_texts.t-1": "ammeter",
+    "b-22.title": "Rs = R1 + R2 + R3 kyun hai",
+    "b-22.steps.0.title": "Observed sum se shuru karein",
+    "b-22.steps.0.detail": "Experiment dikhata hai ki series combination ke across total potential difference V = V1 + V2 + V3 hai.",
+    "b-22.steps.1.title": "Combination ko ek resistor se replace karein",
+    "b-22.steps.1.detail": "Maan lijiye ek equivalent resistor R same current I carry karta hai with same total potential difference V, isliye poore circuit ke liye Ohm's law V = IR deta hai.",
+    "b-22.steps.2.title": "Har resistor par Ohm's law apply karein",
+    "b-22.steps.2.detail": "Har resistor ke through current same I hai, isliye V1 = IR1, V2 = IR2 aur V3 = IR3.",
+    "b-22.steps.3.title": "Substitute karein aur I cancel karein",
+    "b-22.steps.3.detail": "IR = IR1 + IR2 + IR3, aur dono sides ko I se divide karne par Rs = R1 + R2 + R3 milta hai.",
+    "b-22.steps.4.title": "Result padhein",
+    "b-22.steps.4.detail": "Equivalent resistance plain sum hai, isliye yeh combination ke kisi bhi single resistance se larger hai.",
+    "b-23.problem": "Ek electric lamp, jiska resistance 20 Ω hai, aur 4 Ω resistance ka ek conductor, 6 V battery se connected hain. Calculate karo (a) circuit ka total resistance, (b) circuit se current, aur (c) electric lamp aur conductor ke across potential difference.",
+    "b-23.steps.0.title": "Series resistances ko add karo",
+    "b-23.steps.0.detail": "Lamp R1 = 20 Ω aur conductor R2 = 4 Ω series mein hain, isliye Rs = 20 Ω + 4 Ω = 24 Ω.",
+    "b-23.steps.1.title": "Current nikaalo",
+    "b-23.steps.1.detail": "Battery V = 6 V deti hai, isliye I = V/Rs = 6 V / 24 Ω = 0.25 A. Yahi same current dono mein flow karta hai.",
+    "b-23.steps.2.title": "Lamp ke across potential difference",
+    "b-23.steps.2.detail": "V1 = R1 × I = 20 Ω × 0.25 A = 5 V.",
+    "b-23.steps.3.title": "Conductor ke across potential difference",
+    "b-23.steps.3.detail": "V2 = R2 × I = 4 Ω × 0.25 A = 1 V. Check: 5 V + 1 V = 6 V, battery voltage.",
+    "b-23.steps.4.title": "Equivalent resistance check karo",
+    "b-23.steps.4.detail": "Dono ki jagah ek single resistor 6 V par 0.25 A dena chahiye, isliye R = V/I = 6 V / 0.25 A = 24 Ω, total series resistance ke same.",
+    "b-23.answer": "Total resistance 24 Ω, current 0.25 A, lamp ke across potential difference 5 V aur conductor ke across 1 V.",
+    "b-24.question": "2 V ke teen cells ki ek battery 5 Ω resistor, 8 Ω resistor, 12 Ω resistor aur ek plug key ke saath series mein connected hai. Resistors ke through kitna current flow karta hai? Answer amperes mein do.",
+    "b-24.explanation": "2 V ke teen cells milkar 6 V dete hain. Series resistance 5 + 8 + 12 = 25 Ω hai. Isliye I = V/Rs = 6 V / 25 Ω = 0.24 A, aur yahi same current har resistor ke through flow karta hai. 12 Ω resistor ke across connected voltmeter 12 Ω × 0.24 A = 2.88 V read karega.",
+    "b-25.paragraphs.0": "Jab teen resistors ko same do points X aur Y ke beech together connected kiya jata hai, to unhe parallel mein connected kaha jata hai. Ab har resistor ke across potential difference same hota hai, lekin current divide ho jata hai.",
+    "b-25.paragraphs.1": "Combination mein entering total current I ko measure karo, aur phir teen branches ke through separate currents I1, I2 aur I3 ko measure karo. Aap paoge I = I1 + I2 + I3: total current combination ki har branch ke through separate currents ka sum hai.",
+    "b-25.paragraphs.2": "Maan lijiye Rp parallel combination ki equivalent resistance hai. Poori combination par Ohm's law apply karne se I = V/Rp milta hai, aur har resistor par apply karne se I1 = V/R1, I2 = V/R2 aur I3 = V/R3 milta hai.",
+    "b-25.paragraphs.3": "Inhe I = I1 + I2 + I3 mein substitute karne se V/Rp = V/R1 + V/R2 + V/R3 milta hai, aur V se divide karne se 1/Rp = 1/R1 + 1/R2 + 1/R3 milta hai. Parallel mein joined resistors ke group ki equivalent resistance ka reciprocal individual resistances ke reciprocals ke sum ke barabar hota hai, isliye parallel circuit mein total resistance kam ho jata hai.",
+    "b-25.paragraphs.4": "Ye do arrangements bahut different behave karte hain. Series circuit mein current throughout constant hota hai, isliye ek electric bulb aur ek electric heater ko series mein connect karna impractical hai, kyunki proper operation ke liye unhe widely different values ke currents chahiye. Series circuit ka ek aur disadvantage ye hai ki jab ek component fail hota hai to circuit break ho jata hai aur koi bhi component kaam nahi karta, jaise aap dekhte hain jab fairy lights ki string mein ek dead bulb poori string ko put out kar deta hai. Doosri taraf, parallel circuit gadgets ke through current ko divide karta hai, jo tab helpful hota hai jab har gadget ki resistance different ho aur usse different current chahiye ho.",
+    "b-26.caption": "Resistors in parallel: teen resistors same do points X aur Y ke beech connected hain, isliye har ek ke across same potential difference V hota hai, jabki total current I1, I2 aur I3 mein divide ho jata hai.",
+    "b-26.svg_texts.t-0": "battery",
+    "b-27.title": "Kyun 1/Rp = 1/R1 + 1/R2 + 1/R3",
+    "b-27.steps.0.title": "Observed sum se shuru karein",
+    "b-27.steps.0.detail": "Experiment dikhata hai ki parallel combination mein total current I = I1 + I2 + I3 hai.",
+    "b-27.steps.1.title": "Combination ko ek resistor se replace karein",
+    "b-27.steps.1.detail": "Maan lijiye ek equivalent resistor Rp same total current I ko same potential difference V par carry karta hai, isliye I = V/Rp.",
+    "b-27.steps.2.title": "Har branch par Ohm's law apply karein",
+    "b-27.steps.2.detail": "Har branch ke across same potential difference V hai, isliye I1 = V/R1, I2 = V/R2 aur I3 = V/R3.",
+    "b-27.steps.3.title": "Substitute karein aur V cancel karein",
+    "b-27.steps.3.detail": "V/Rp = V/R1 + V/R2 + V/R3, aur dono sides ko V se divide karne par 1/Rp = 1/R1 + 1/R2 + 1/R3 milta hai.",
+    "b-27.steps.4.title": "Result ko samjhein",
+    "b-27.steps.4.detail": "Hum reciprocals add karte hain, isliye equivalent resistance (tulya pratirodh) sabse chhote individual resistance se bhi chhota hota hai.",
+    "b-28.problem": "Teen resistors R1, R2 aur R3 ke values respectively 5 Ω, 10 Ω aur 30 Ω hain, aur ye 12 V ki battery ke parallel connected hain. Calculate kijiye (a) har resistor ke through current, (b) circuit me total current, aur (c) total circuit resistance.",
+    "b-28.steps.0.title": "Potential difference note kijiye",
+    "b-28.steps.0.detail": "Battery V = 12 V deti hai, aur kyunki resistors parallel me hain, yehi potential difference har individual resistor ke across bhi hai.",
+    "b-28.steps.1.title": "R1 ke through current",
+    "b-28.steps.1.detail": "I1 = V/R1 = 12 V / 5 Ω = 2.4 A.",
+    "b-28.steps.2.title": "R2 ke through current",
+    "b-28.steps.2.detail": "I2 = V/R2 = 12 V / 10 Ω = 1.2 A.",
+    "b-28.steps.3.title": "R3 ke through current",
+    "b-28.steps.3.detail": "I3 = V/R3 = 12 V / 30 Ω = 0.4 A.",
+    "b-28.steps.4.title": "Total current",
+    "b-28.steps.4.detail": "I = I1 + I2 + I3 = 2.4 + 1.2 + 0.4 = 4 A.",
+    "b-28.steps.5.title": "Total resistance",
+    "b-28.steps.5.detail": "1/Rp = 1/5 + 1/10 + 1/30 = 1/3, isliye Rp = 3 Ω. Check kijiye: V/I = 12 V / 4 A = 3 Ω.",
+    "b-28.answer": "Branch currents 2.4 A, 1.2 A aur 0.4 A hain; total current 4 A hai; parallel combination ka total resistance 3 Ω hai.",
+    "b-29.problem": "12 V ki battery wale circuit me, R1 = 10 Ω aur R2 = 40 Ω ek dusre ke parallel hain, aur R3 = 30 Ω, R4 = 20 Ω aur R5 = 60 Ω ek dusre ke parallel hain; ye do parallel groups series me jode gaye hain. Calculate kijiye (a) circuit me total resistance aur (b) circuit me flowing total current.",
+    "b-29.steps.0.title": "Pehle parallel pair ko replace kijiye",
+    "b-29.steps.0.detail": "1/R' = 1/10 + 1/40 = 5/40, isliye R' = 8 Ω.",
+    "b-29.steps.1.title": "Dusre parallel group ko replace kijiye",
+    "b-29.steps.1.detail": "1/R'' = 1/30 + 1/20 + 1/60 = 6/60, isliye R'' = 10 Ω.",
+    "b-29.steps.2.title": "Do groups ko series me add kijiye",
+    "b-29.steps.2.detail": "Total resistance R = R' + R'' = 8 Ω + 10 Ω = 18 Ω hai.",
+    "b-29.steps.3.title": "Total current nikaaliye",
+    "b-29.steps.3.detail": "Ohm's law ke according, I = V/R = 12 V / 18 Ω = 0.67 A.",
+    "b-29.answer": "Total resistance 18 Ω hai aur total current lagbhag 0.67 A hai.",
+    "b-30.question": "Battery ke saath electrical devices ko series me jodne ke bajay parallel me jodne ke kya advantages hain?",
+    "b-30.options.0": "Har device full source voltage ke saath aur independently kaam karta hai, aur circuit ka total resistance kam ho jata hai",
+    "b-30.options.1": "Har device me same current flow karta hai",
+    "b-30.options.2": "Jab ek device fail ho jata hai, to baaki sab devices kaam karna band kar dete hain",
+    "b-30.options.3": "Jaise-jaise zyada devices add hote hain, circuit ka total resistance badh jata hai",
+    "b-30.explanation": "Parallel circuit me har gadget ko same potential difference aur apna current milta hai, jo different resistances wale gadgets ke liye suit karta hai, aur total resistance kam ho jata hai. Series circuit me ek hi failure circuit ko break kar deta hai aur kuch bhi kaam nahi karta, isi liye domestic circuits ke liye series wiring use nahi hoti.",
+    "b-31.paragraphs.0": "Ek cell ya battery electrical energy ka source hai, aur current maintain karne ke liye source energy kharch karta rehta hai. Is energy ka kuch hissa useful work me use ho sakta hai, jaise electric fan ke blades ghumane me, aur baaki heat ke roop me kharch ho sakta hai; isi wajah se fan lambi der tak continuously use karne par warm ho jata hai.",
+    "b-31.paragraphs.1": "Agar electric circuit purely resistive hai, yani sirf resistors ka configuration jo battery se connected hai, to source energy continuously poori tarah heat ke form me dissipate ho jati hai. Ise electric current ka heating effect kaha jata hai, aur yah electric heaters aur electric irons jaise devices me use hota hai.",
+    "b-31.paragraphs.2": "Maan lijiye current I resistance R ke resistor se flow kar raha hai aur uske across potential difference V hai, aur time t me charge Q flow karta hai. Charge Q ko potential difference V ke through move karne me kiya gaya work VQ hai, isliye source ko time t me energy VQ supply karni padti hai, aur circuit me power input P = VQ/t = VI hai. Isliye source dwara time t me supplied energy VIt hai, aur yah energy resistor me heat ke roop me dissipate hoti hai, isliye H = VIt.",
+    "b-31.paragraphs.3": "Is par Ohm's law V = IR apply karne se H = I²Rt milta hai. Yah Joule's law of heating hai, aur yah kehta hai ki kisi resistor me produce heat kisi diye gaye resistance ke liye current ke square ke directly proportional hoti hai, kisi diye gaye current ke liye resistance ke directly proportional hoti hai, aur jitni der current flow karta hai us time ke directly proportional hoti hai.",
+    "b-32.title": "H = VIt se Joule's law H = I²Rt tak",
+    "b-32.steps.0.title": "Source dwara di gayi energy",
+    "b-32.steps.0.detail": "Time t me charge Q flow hota hai, aur ise potential difference V ke through move karne me kiya gaya work VQ hai, isliye source time t me energy VQ supply karta hai.",
+    "b-32.steps.1.title": "Power input likhiye",
+    "b-32.steps.1.detail": "Kyunki I = Q/t, power input P = VQ/t = VI hai, isliye time t me supplied energy VIt hai.",
+    "b-32.steps.2.title": "Yeh energy heat ban jati hai",
+    "b-32.steps.2.detail": "Purely resistive circuit me yeh poori energy resistor me heat ke roop me dissipate ho jati hai, isliye H = VIt.",
+    "b-32.steps.3.title": "V hataane ke liye Ohm's law use karein",
+    "b-32.steps.3.detail": "H = VIt me V = IR rakhein, to H = (IR)It = I²Rt milta hai.",
+    "b-32.steps.4.title": "Teen proportionalities samjhiye",
+    "b-32.steps.4.detail": "Fixed resistance ke liye, heat current ke square ke proportional hoti hai; fixed current ke liye, heat resistance ke proportional hoti hai; aur dono fixed ho to heat time ke proportional hoti hai.",
+    "b-33.problem": "Ek electric iron maximum heating par 840 W rate se energy consume karta hai aur minimum heating par 360 W. Voltage 220 V hai. Har case mein current aur resistance kya hai?",
+    "b-33.steps.0.title": "Power relation se shuru karein",
+    "b-33.steps.0.detail": "Power input P = VI hai, isliye current I = P/V, aur resistance R = V/I se milti hai.",
+    "b-33.steps.1.title": "Maximum heating rate: current",
+    "b-33.steps.1.detail": "I = 840 W / 220 V = 3.82 A.",
+    "b-33.steps.2.title": "Maximum heating rate: resistance",
+    "b-33.steps.2.detail": "R = V/I = 220 V / 3.82 A = 57.60 Ω.",
+    "b-33.steps.3.title": "Minimum heating rate: current",
+    "b-33.steps.3.detail": "I = 360 W / 220 V = 1.64 A.",
+    "b-33.steps.4.title": "Minimum heating rate: resistance",
+    "b-33.steps.4.detail": "R = V/I = 220 V / 1.64 A = 134.15 Ω.",
+    "b-33.answer": "Maximum rate par current 3.82 A hai aur resistance 57.60 Ω; minimum rate par current 1.64 A hai aur resistance 134.15 Ω.",
+    "b-34.problem": "100 J heat har second 4 Ω resistance mein produce hota hai. Resistor ke across potential difference nikalo.",
+    "b-34.steps.0.title": "Jo given hai use likho",
+    "b-34.steps.0.detail": "Heat H = 100 J, resistance R = 4 Ω, time t = 1 s. Humein V chahiye.",
+    "b-34.steps.1.title": "Current nikalne ke liye Joule's law use karo",
+    "b-34.steps.1.detail": "H = I²Rt, so I = square root of (H / (Rt)) = square root of (100 J / (4 Ω × 1 s)) = 5 A.",
+    "b-34.steps.2.title": "Potential difference nikalo",
+    "b-34.steps.2.detail": "Ohm's law se V = IR = 5 A × 4 Ω = 20 V.",
+    "b-34.answer": "Resistor ke across potential difference 20 V hai.",
+    "b-35.question": "Ek electric iron jiska resistance 20 Ω hai, 5 A current leta hai. 30 s mein develop hone wala heat calculate karo. Answer joules mein do.",
+    "b-35.explanation": "Joule's law use karo: H = I²Rt = (5 A)² × 20 Ω × 30 s = 25 × 20 × 30 = 15000 J.",
+    "b-36.paragraphs.0": "Conductor mein heat ka generate hona electric current ka ek inevitable consequence hai, aur kai cases mein ye undesirable hota hai kyunki useful electrical energy heat mein badal jaati hai aur components garam ho jaate hain. Lekin heating effect ke kai useful applications hain: electric laundry iron, electric toaster, electric oven, electric kettle aur electric heater sab Joule's heating par based hain.",
+    "b-36.paragraphs.1": "Electric bulb light produce karne ke liye heating ka use karta hai. Filament ko generated heat ka jitna possible ho utna retain karna chahiye taaki wo bahut hot ho jaye aur light emit kare, aur us temperature par melt na ho. High melting point wali strong metal, jaise tungsten (melting point 3380 °C), bulb filaments ke liye use hoti hai, filament ko insulating supports se as much as possible thermally isolate kiya jaata hai, aur filament ki life badhane ke liye bulb ko chemically inactive nitrogen aur argon gases se fill kiya jaata hai. Filament jo power consume karta hai uska most part heat ke roop mein appear hota hai, aur sirf small part light ke roop mein radiate hota hai.",
+    "b-36.paragraphs.2": "Fuse Joule's heating ka another common application hai. Ye circuits aur appliances ko kisi bhi unduly high current ke flow ko rok kar protect karta hai, aur device ke saath series mein lagaya jaata hai. Ye appropriate melting point wale metal ya alloy ki wire ka ek piece hota hai, for example aluminium, copper, iron ya lead, usually porcelain ya similar material ke cartridge mein metal ends ke saath encased hota hai. Agar specified value se larger current flow hota hai, to fuse wire ka temperature rise hota hai, wire melt hoti hai aur circuit break ho jaata hai.",
+    "b-36.paragraphs.3": "Domestic purposes ke liye fuses 1 A, 2 A, 3 A, 5 A, 10 A, aur so on rated hote hain, aur rating appliance jo current draw karta hai usse choose karni hoti hai. Electric iron jo 220 V par operate karne par 1 kW electric power consume karta hai, uske liye circuit mein (1000/220) A, yaani 4.54 A, current flow karega. Is case mein 5 A fuse use karna chahiye: fuse wire sirf tab melt hoti hai jab uski specified value se larger current flow hota hai, isliye rating working current 4.54 A ke above honi chahiye, aur 3 A too low hoga.",
+    "b-37.question": "Ek electric iron 220 V par operate hone par 1 kW electric power consume karta hai. Iske saath kaun sa fuse rating use karna chahiye?",
+    "b-37.options.0": "1 A",
+    "b-37.options.1": "2 A",
+    "b-37.options.2": "3 A",
+    "b-37.options.3": "5 A",
+    "b-37.explanation": "Circuit mein (1000/220) A, yani 4.54 A, current flow karta hai. Fuse wire sirf tab pighalta hai jab uske specified value se zyada current flow ho, isliye 3 A fuse working current se kam hoga aur 5 A fuse hi use karna chahiye.",
+    "b-38.paragraphs.0": "Karya karne ki dar power hai, aur yah energy ke consumption ki bhi dar hai. Electric circuit mein electric energy jis dar se dissipate ya consume hoti hai use electric power kehte hain, aur yah P = VI se di jaati hai. Ohm's law ka use karke ise P = I²R ya P = V²/R bhi likha ja sakta hai.",
+    "b-38.paragraphs.1": "Electric power ka SI unit watt (W) hai. Yah us device dwara consume ki gayi power hai jo 1 V ke potential difference par operate hone par 1 A current carry karta hai, isliye 1 W = 1 volt × 1 ampere = 1 V A.",
+    "b-38.paragraphs.2": "Watt bahut chhota unit hai, isliye actual practice mein hum kilowatt naam ka kaafi bada unit use karte hain, jo 1000 watts ke barabar hai. Electrical energy power aur time ka product hai, isliye iska unit watt hour (W h) hai, yani 1 watt power ko 1 hour tak use karne par consume hone wali energy. Electric energy ka commercial unit kilowatt hour (kW h) hai, jise aam taur par unit kaha jata hai: 1 kW h = 1000 watt × 3600 second = 3.6 × 10^6 watt second = 3.6 × 10^6 joule.",
+    "b-38.paragraphs.3": "Ek savdhani: kai log sochte hain ki electric circuit mein electrons consume ho jate hain. Yah galat hai. Hum electricity board ya electric company ko isliye pay karte hain taaki ve electric bulb, fan aur engines jaise gadgets ke through electrons ko move karne ke liye energy dein; hum us energy ke liye pay karte hain jo hum use karte hain.",
+    "b-39.problem": "Ek electric bulb 220 V generator se connected hai. Current 0.50 A hai. Bulb ki power kya hai?",
+    "b-39.steps.0.title": "Jo diya gaya hai use likho",
+    "b-39.steps.0.detail": "V = 220 V, I = 0.50 A.",
+    "b-39.steps.1.title": "Power relation ka use karo",
+    "b-39.steps.1.detail": "P = VI.",
+    "b-39.steps.2.title": "Substitute karo",
+    "b-39.steps.2.detail": "P = 220 V × 0.50 A = 110 J/s = 110 W.",
+    "b-39.answer": "Bulb ki power 110 W hai.",
+    "b-40.problem": "Ek electric refrigerator jiski rating 400 W hai, 8 hour/day chalta hai. Isse 30 days tak chalane ki energy ka cost kya hoga at Rs 3.00 per kW h?",
+    "b-40.steps.0.title": "Watt hours mein total energy find karein",
+    "b-40.steps.0.detail": "400 W × 8.0 hour/day × 30 days = 96000 W h.",
+    "b-40.steps.1.title": "Kilowatt hours mein convert karein",
+    "b-40.steps.1.detail": "96000 W h = 96 kW h, since 1 kW h = 1000 W h.",
+    "b-40.steps.2.title": "Rate se multiply karein",
+    "b-40.steps.2.detail": "96 kW h × Rs 3.00 per kW h = Rs 288.00.",
+    "b-40.answer": "Refrigerator ko 30 days tak chalane ka cost Rs 288.00 hai.",
+    "b-41.question": "In terms mein se kaun sa circuit mein electrical power ko represent nahi karta?",
+    "b-41.options.0": "I²R",
+    "b-41.options.1": "IR²",
+    "b-41.options.2": "VI",
+    "b-41.options.3": "V²/R",
+    "b-41.explanation": "Electric power P = VI hota hai; jab V = IR rakhte hain to P = I²R ban jata hai, aur jab I = V/R rakhte hain to P = V²/R ban jata hai. Combination IR² mein I aur R ki powers galat hain, isliye ye power nahi hai.",
+    "b-42.question": "Resistance R wala ek piece of wire paanch equal parts mein cut kiya jata hai. Ye parts phir parallel mein connect kiye jate hain. Agar is combination ki equivalent resistance R' hai, to ratio R/R' kya hai?",
+    "b-42.options.0": "1/25",
+    "b-42.options.1": "1/5",
+    "b-42.options.2": "5",
+    "b-42.options.3": "25",
+    "b-42.explanation": "Paanch equal parts mein se har ek ki resistance R/5 hoti hai. Aise paanch resistors parallel mein hain to 1/R' = 5/(R/5) = 25/R, isliye R' = R/25. Isliye R/R' = 25.",
+    "b-43.question": "Ek electric bulb 220 V aur 100 W rated hai. Jab ise 110 V par operate kiya jata hai, to ye kitni power consume karega?",
+    "b-43.options.0": "100 W",
+    "b-43.options.1": "75 W",
+    "b-43.options.2": "50 W",
+    "b-43.options.3": "25 W",
+    "b-43.explanation": "Bulb ka resistance fixed hai: R = V²/P = (220 V)² / 100 W = 484 Ω. 110 V par power P = V²/R = (110 V)² / 484 Ω = 25 W. Voltage half hone se power quarter ho jati hai, kyunki fixed resistance ke liye power V² ke proportional hoti hai.",
+    "b-44.question": "Same material ki do conducting wires, jinki lengths aur diameters barabar hain, ko pehle series mein aur phir parallel mein same potential difference ke across ek circuit mein connect kiya jata hai. Series combination mein produce hui heat aur parallel combination mein produce hui heat ka ratio kya hai?",
+    "b-44.options.0": "1:2",
+    "b-44.options.1": "2:1",
+    "b-44.options.2": "1:4",
+    "b-44.options.3": "4:1",
+    "b-44.explanation": "Har wire ki resistance R hai. Series mein resistance 2R hoti hai; parallel mein ye R/2 hoti hai. Same potential difference V aur same time t ke liye, heat V²t/R hoti hai, isliye ye resistance ke inversely proportional hoti hai. Heats ka ratio (1/2R) : (1/(R/2)) = 1 : 4 hota hai.",
+    "b-45.question": "220 V line par 5 A carry karne ke liye kitne 176 Ω resistors (parallel mein) chahiye?",
+    "b-45.explanation": "Combination ka resistance R = V/I = 220 V / 5 A = 44 Ω hona chahiye. Agar 176 Ω ke n resistors parallel mein jode jayein, to R = 176/n, isliye n = 176/44 = 4."
+  },
+  "ui_strings": {
+    "lesson.lang.label": "Language",
+    "lesson.objectives.heading": "Is lesson ke baad aap seekhenge:",
+    "lesson.example.heading": "Solved example (Worked example)",
+    "lesson.answer.label": "Uttar (Answer)",
+    "lesson.check.submit": "Check karein",
+    "lesson.check.why": "Kyon?",
+    "lesson.check.pick_first": "Pehle ek option chunein.",
+    "lesson.check.correct": "✓ Sahi!",
+    "lesson.check.wrong": "✗ Abhi nahi - phir se koshish karein.",
+    "lesson.check.your_answer": "Aapka answer:",
+    "lesson.glossary.heading": "Glossary (Shabdavali)",
+    "lesson.sources.footer": "Zivon content factory dwara nirmit. Sources course index mein listed hain.",
+    "lesson.untranslated.block_notice": "Yeh bhaag abhi sirf English mein uplabdh hai (Shown in English)",
+    "lesson.untranslated.page_notice": "Yeh paath abhi is bhasha mein uplabdh nahi hai — English mein dikhaya ja raha hai.",
+    "lesson.report.translation_issue": "Issue report karein",
+    "lesson.trans.badge": "AI-translated · Reviewed"
+  },
+  "sim_strings": {},
+  "lesson": {
+    "title": "Electricity: current, resistance, circuits aur power",
+    "objectives": [
+      "Is lesson ke baad aap explain kar sakte hain ki electric current kya hai, uska unit bata sakte hain, aur circuit mein flowing charge nikalne ke liye I = Q/t use kar sakte hain.",
+      "Is lesson ke baad aap potential difference aur resistance define kar sakte hain, Ohm's law state kar sakte hain, aur V = IR aur R = ρl/A se calculate kar sakte hain.",
+      "Is lesson ke baad aap series ya parallel mein jude resistors ka equivalent resistance nikal sakte hain aur unse circuit problems solve kar sakte hain.",
+      "Is lesson ke baad aap current se produce heat H = I²Rt se calculate kar sakte hain, aur kisi device dwara use kiye gaye power aur energy calculate kar sakte hain, jisme kilowatt hours mein cost bhi shamil hai."
+    ],
+    "sections": [
+      {
+        "id": "sec-01",
+        "title": "Electric current aur electric circuit",
+        "paragraphs": [
+          "Aapne torch kaam karti dekhi hai. Andar ke cells charge ko bulb ke through push karte hain, aur bulb tabhi glow karta hai jab switch on hota hai. Nadi mein behta paani water current kahlata hai; isi tarah, jab electric charge kisi conductor jaise metallic wire ke through flow karta hai, to hum kehte hain ki conductor mein electric current (vidyut dhara) hai.",
+          "Switch cell aur bulb ke beech conducting link banata hai. Agar circuit kahin bhi toot jaye, to current behna band ho jata hai aur bulb glow nahi karta. Electric current ka continuous aur closed path electric circuit kahlata hai.",
+          "Electric current kisi particular area se unit time mein flow hone wale charge ki amount hai; doosre shabdon mein ye electric charges ke flow ki rate hai. Metallic wires mein electrons hi charges hain jo flow karte hain. Jab electricity pehli baar observe hui thi tab electrons ke baare mein pata nahi tha, isliye current ko positive charges ka flow maana gaya, aur convention ke hisaab se electric current ki direction electrons ke flow ki direction ke opposite hoti hai.",
+          "Agar kisi conductor ke kisi cross-section se time t mein net charge Q flow karta hai, to I = Q/t. Charge ka SI unit coulomb (C) hai, jo lagbhag 6 × 10^18 electrons ke charge ke barabar hai, aur electron par 1.6 × 10^-19 C ka negative charge hota hai. Current ka SI unit ampere (A) hai, jahan 1 A = 1 C/1 s; chhoti currents ko 1 mA = 10^-3 A ya 1 µA = 10^-6 A likha jata hai.",
+          "Ammeter naam ka instrument electric current measure karta hai, aur jis circuit mein current measure karna ho usme ye hamesha series mein connect kiya jata hai. Torch circuit mein current cell ke positive terminal se negative terminal ki taraf bulb aur ammeter ke through flow karta hai."
+        ]
+      },
+      {
+        "id": "sec-02",
+        "title": "Electric potential aur potential difference",
+        "paragraphs": [
+          "Copper wire mein charges apne aap flow nahi karte, jaise perfectly horizontal tube mein paani apne aap flow nahi karta. Agar tube ka ek end upar rakhe tank se jod diya jaye, taaki dono ends ke beech pressure difference ho, to paani doosre end se bahar flow karta hai.",
+          "Metallic wire ke charges ke liye gravity ka koi role nahi hai. Electrons tabhi move karte hain jab conductor ke along electric pressure ka difference ho, jise potential difference (potential antar) kehte hain. Ek ya zyada cells se bani battery ye difference produce karti hai.",
+          "Cell ke andar ka chemical action uske terminals ke across potential difference generate karta hai, chahe usse koi current draw na ho. Jab cell ko conducting circuit element se connect kiya jata hai, to potential difference charges ko motion mein set karta hai aur electric current produce karta hai, aur current ko flow karte rehne ke liye cell ko apni stored chemical energy kharch karni padti hai.",
+          "Current carry kar rahe circuit ke do points ke beech potential difference wo work hai jo unit charge ko ek point se doosre point tak move karne mein kiya jata hai, isliye V = W/Q. Iska SI unit volt (V) hai: ek volt un do points ke beech potential difference hai jab 1 coulomb charge ko move karne mein 1 joule work kiya jata hai, yani 1 V = 1 J C^-1.",
+          "Voltmeter potential difference measure karta hai, aur jin points ke beech potential difference measure karna ho unke across ye hamesha parallel mein connect kiya jata hai."
+        ]
+      },
+      {
+        "id": "sec-03",
+        "title": "Circuit diagrams aur hum jo symbols use karte hain",
+        "paragraphs": [
+          "Circuit mein ek cell ya battery, plug key, electrical components aur connecting wires hote hain. Real objects draw karne ke bajaye hum schematic diagram banate hain jisme har component ko conventional symbol se replace kiya jata hai.",
+          "Aapko ye symbols milenge: electric cell; battery, jo cells ka combination hai; plug key ya switch, jo open ya closed dikhaya jata hai; wire joint; bina join kiye cross karti wires; electric bulb; resistance R ka resistor; variable resistance ya rheostat; ammeter; aur voltmeter.",
+          "Inme se do symbols ke saath ek rule hai. Ammeter us part ke series mein jata hai jiska current aap measure kar rahe hain, aur voltmeter us part ke parallel mein jata hai jiska potential difference aap measure kar rahe hain."
+        ]
+      },
+      {
+        "id": "sec-04",
+        "title": "Ohm's law aur resistance",
+        "paragraphs": [
+          "Ek circuit set karo jisme lagbhag 0.5 m lambi nichrome wire XY, ek ammeter, ek voltmeter aur 1.5 V ke chaar cells hon. Ek cell se shuru karo aur XY ke across ammeter reading I aur voltmeter reading V note karo; phir do, teen aur chaar cells ke saath repeat karo. Har pair ke liye V/I nikaalo, aur V ko I ke against plot karo.",
+          "Activity mein aapko har case mein lagbhag same V/I value milegi, aur V-I graph origin se guzarti straight line hogi. Isliye us wire ke liye V/I ek constant ratio hai.",
+          "1827 mein German physicist Georg Simon Ohm ne metallic wire mein current aur uske ends ke across potential difference ke beech relationship find kiya. Kisi di gayi metallic wire ke ends ke across potential difference V usme se flow hone wale current I ke directly proportional hota hai, bas uska temperature same rahe. Yahi Ohm's law hai: V ∝ I, isliye V/I = constant = R, aur V = IR.",
+          "Kisi di gayi metallic wire ke liye given temperature par R constant hota hai aur ise uska resistance (pratirodh) kehte hain, yani conductor ki wo property jo uske through charges ke flow ko resist karti hai. Iska SI unit ohm (Ω) hai. Agar conductor ke across potential difference 1 V hai aur uske through current 1 A hai, to uska resistance 1 Ω hai, yani 1 ohm = 1 volt/1 ampere.",
+          "Kyunki V = IR ko I = V/R likha ja sakta hai, resistor ke through current uska resistance ke inversely proportional hota hai: agar resistance double ho jaye to current half ho jata hai. Kai practical cases mein humein current badhana ya ghatana hota hai, aur voltage source badle bina current regulate karne wale component ko variable resistance kehte hain; resistance badalne ke liye circuit mein aksar rheostat naam ka device use kiya jata hai."
+        ]
+      },
+      {
+        "id": "sec-05",
+        "title": "Conductor ka resistance kya decide karta hai",
+        "paragraphs": [
+          "Ek circuit lo jisme cell, ammeter, length l ki nichrome wire aur plug key ho. Current note karo. Ab wire ko same thickness ki lekin double length ki doosri nichrome wire se replace karo, aur current phir note karo: ammeter reading aadhi ho jati hai.",
+          "Same length ki moti nichrome wire se repeat karo, taaki uska cross-sectional area zyada ho: ammeter reading badh jati hai. Ab pehli nichrome wire jitni hi length aur same area of cross-section wali copper wire use karo, aur reading phir badal jati hai.",
+          "Ye observations dikhate hain ki conductor ka resistance uski length, uske area of cross-section, aur uske material ki nature par depend karta hai. Precise measurements dikhate hain ki uniform metallic conductor ka resistance uski length l ke directly proportional aur uske area of cross-section A ke inversely proportional hota hai, isliye R = ρl/A.",
+          "Constant ρ (rho) ko conductor ke material ki electrical resistivity (pratirodhakta) kehte hain. Iska SI unit Ω m hai, aur ye material ki characteristic property hai. Metals aur alloys ki resistivity bahut kam hoti hai, 10^-8 Ω m se 10^-6 Ω m range mein, aur ye electricity ke good conductors hote hain; rubber aur glass jaise insulators ki resistivity 10^12 se 10^17 Ω m ke order ki hoti hai. Kisi material ka resistance aur resistivity dono temperature ke saath badalte hain.",
+          "Alloy ki resistivity generally uske constituent metals se zyada hoti hai, aur alloys high temperatures par aasani se oxidise (burn) nahi hote; isi karan ye electric irons aur toasters jaise electrical heating devices mein commonly use hote hain. Tungsten lagbhag sirf electric bulbs ke filaments ke liye use hota hai, jabki copper aur aluminium generally electrical transmission lines ke liye use hote hain. In experiments mein common wire nichrome nickel, chromium, manganese aur iron ka alloy hai."
+        ]
+      },
+      {
+        "id": "sec-06",
+        "title": "Series mein jude resistors",
+        "paragraphs": [
+          "Jab teen resistors R1, R2 aur R3 end to end jode jate hain, to unhe series mein connected kaha jata hai. Aise circuit mein ammeter ko kisi bhi position par le jao, uski reading nahi badalti: series combination mein circuit ke har part mein current same hota hai, isliye har resistor se same current pass hota hai.",
+          "Poori combination ke across potential difference measure karo aur ise V kaho, phir teen resistors ke across alag-alag potential differences V1, V2 aur V3 measure karo. Aapko milega V = V1 + V2 + V3: series combination ke across total potential difference individual resistors ke potential differences ka sum hota hai.",
+          "Ab teen resistors ko resistance R ke ek equivalent resistor (tulya pratirodh) se replace karo jo same current I carry kare aur uske across same potential difference V ho, taaki V = IR. Teen resistors par alag-alag Ohm's law lagane se V1 = IR1, V2 = IR2 aur V3 = IR3 milta hai.",
+          "Inhe V = V1 + V2 + V3 mein rakhne se IR = IR1 + IR2 + IR3 milta hai, aur I se divide karne par Rs = R1 + R2 + R3 milta hai. Isliye jab kai resistors series mein jode jate hain, combination ka resistance unke individual resistances ke sum ke barabar hota hai, aur ye kisi bhi individual resistance se zyada hota hai."
+        ]
+      },
+      {
+        "id": "sec-07",
+        "title": "Parallel mein jude resistors",
+        "paragraphs": [
+          "Jab teen resistors same do points X aur Y ke beech ek saath connect kiye jate hain, to unhe parallel mein connected kaha jata hai. Ab har resistor ke across potential difference same hota hai, lekin current divide ho jata hai.",
+          "Combination mein enter hone wala total current I measure karo, phir teen branches se alag-alag currents I1, I2 aur I3 measure karo. Aapko milega I = I1 + I2 + I3: total current combination ki har branch se flow hone wale alag-alag currents ka sum hota hai.",
+          "Maan lo parallel combination ka equivalent resistance Rp hai. Poori combination par Ohm's law lagane se I = V/Rp milta hai, aur har resistor par lagane se I1 = V/R1, I2 = V/R2 aur I3 = V/R3 milta hai.",
+          "Inhe I = I1 + I2 + I3 mein substitute karne se V/Rp = V/R1 + V/R2 + V/R3 milta hai, aur V se divide karne par 1/Rp = 1/R1 + 1/R2 + 1/R3 milta hai. Parallel mein jude resistors ke group ka equivalent resistance ka reciprocal individual resistances ke reciprocals ke sum ke barabar hota hai, isliye parallel circuit mein total resistance kam ho jata hai.",
+          "Ye do arrangements bahut alag behave karte hain. Series circuit mein current poore circuit mein constant hota hai, isliye electric bulb aur electric heater ko series mein connect karna practical nahi hai, kyunki proper operate karne ke liye unhe bahut alag values ke currents chahiye. Series circuit ka doosra disadvantage ye hai ki jab ek component fail hota hai to circuit toot jata hai aur koi bhi component kaam nahi karta, jaise fairy lights ki string mein ek dead bulb poori string ko bujha deta hai. Doosri taraf, parallel circuit gadgets ke through current divide karta hai, jo tab madad karta hai jab har gadget ka resistance alag ho aur usse alag current chahiye ho."
+        ]
+      },
+      {
+        "id": "sec-08",
+        "title": "Electric current ka heating effect",
+        "paragraphs": [
+          "Cell ya battery electrical energy ka source hai, aur current maintain karne ke liye source energy kharch karta rehta hai. Us energy ka kuch part useful work mein use ho sakta hai, jaise electric fan ke blades ghumane mein, aur baaki heat ke roop mein kharch ho sakta hai, isi liye fan lambi der tak continuously use karne par garam ho jata hai.",
+          "Agar electric circuit purely resistive hai, yani sirf battery se jude resistors ka configuration hai, to source energy lagatar poori tarah heat ke roop mein dissipate hoti rehti hai. Ise electric current ka heating effect kehte hain, aur ye electric heaters aur electric irons jaise devices mein use hota hai.",
+          "Maan lo resistance R ke resistor se current I flow ho raha hai aur uske across potential difference V hai, aur time t mein charge Q flow karta hai. Charge Q ko potential difference V ke through move karne mein kiya gaya work VQ hai, isliye source ko time t mein energy VQ supply karni padti hai, aur circuit mein power input P = VQ/t = VI hai. Isliye source dwara time t mein supplied energy VIt hai, aur ye energy resistor mein heat ke roop mein dissipate hoti hai, isliye H = VIt.",
+          "Is par Ohm's law V = IR lagane se H = I²Rt milta hai. Yahi Joule's law of heating hai, aur ye kehta hai ki resistor mein produce heat given resistance ke liye current ke square ke directly proportional hoti hai, given current ke liye resistance ke directly proportional hoti hai, aur jitni der current flow karta hai us time ke directly proportional hoti hai."
+        ]
+      },
+      {
+        "id": "sec-09",
+        "title": "Heating effect ka use: heaters, bulbs aur fuses",
+        "paragraphs": [
+          "Conductor mein heat paida hona electric current ka ek inevitable consequence hai, aur kai cases mein ye undesirable hai kyunki useful electrical energy heat mein badal jati hai aur components garam ho jate hain. Lekin heating effect ke kai useful applications hain: electric laundry iron, electric toaster, electric oven, electric kettle aur electric heater sab Joule's heating par based hain.",
+          "Electric bulb light produce karne ke liye heating use karta hai. Filament ko generated heat jitna possible ho utna retain karna chahiye taaki wo bahut garam ho kar light emit kare, aur us temperature par pighalna nahi chahiye. High melting point wali strong metal, jaise tungsten (melting point 3380 °C), bulb filaments ke liye use hoti hai, filament ko insulating supports se jitna possible ho thermally isolate kiya jata hai, aur filament ki life badhane ke liye bulb ko chemically inactive nitrogen aur argon gases se bhara jata hai. Filament jo power consume karta hai uska zyada part heat ke roop mein aata hai, aur sirf chhota part light ke roop mein radiate hota hai.",
+          "Fuse Joule's heating ka doosra common application hai. Ye kisi bhi unduly high current ke flow ko rok kar circuits aur appliances ko protect karta hai, aur device ke series mein lagaya jata hai. Ye appropriate melting point wali metal ya alloy ke wire ka ek piece hota hai, jaise aluminium, copper, iron ya lead, jo usually porcelain ya similar material ke cartridge mein metal ends ke saath encased hota hai. Agar specified value se zyada current flow kare, to fuse wire ka temperature badh jata hai, wire pighal jati hai aur circuit toot jata hai. Domestic purposes ke liye fuses 1 A, 2 A, 3 A, 5 A, 10 A, aur aage rated hote hain: 220 V par 1 kW consume karne wala electric iron 1000/220 A, yani 4.54 A draw karta hai, isliye 5 A fuse use karna chahiye."
+        ]
+      },
+      {
+        "id": "sec-10",
+        "title": "Electric power aur kilowatt hour",
+        "paragraphs": [
+          "Work karne ki rate power hai, aur ye energy consumption ki rate bhi hai. Electric circuit mein electric energy jis rate par dissipate ya consume hoti hai use electric power kehte hain, aur ye P = VI se di jati hai. Ohm's law use karne par ise P = I²R ya P = V²/R bhi likha ja sakta hai.",
+          "Electric power ka SI unit watt (W) hai. Ye us device dwara consume ki gayi power hai jo 1 V potential difference par operate hote waqt 1 A current carry karta hai, isliye 1 W = 1 volt × 1 ampere = 1 V A.",
+          "Watt bahut chhota unit hai, isliye actual practice mein hum bahut bada unit use karte hain jise kilowatt kehte hain, jo 1000 watts ke barabar hai. Electrical energy power aur time ka product hai, isliye iska unit watt hour (W h) hai, yani 1 watt power ko 1 hour tak use karne par consume hui energy. Electric energy ka commercial unit kilowatt hour (kW h) hai, jise commonly unit kehte hain: 1 kW h = 1000 watt × 3600 second = 3.6 × 10^6 watt second = 3.6 × 10^6 joule.",
+          "Ek caution: bahut log sochte hain ki electric circuit mein electrons consume ho jate hain. Ye galat hai. Hum electricity board ya electric company ko electrons ko electric bulb, fan aur engines jaise gadgets ke through move karne ke liye energy provide karne ka paisa dete hain; hum jo energy use karte hain uske liye pay karte hain."
+        ]
+      },
+      {
+        "id": "sec-11",
+        "title": "Practice: poore chapter ke mixed problems",
+        "paragraphs": [
+          "Neeche diye questions chapter ke ideas ko mix karte hain. Pehle har question ko paper par solve karo: jo given hai use likho, given quantities ko jodne wala relation choose karo, aur tab hi numbers substitute karo.",
+          "Values plug karne se pehle socho ki kaunsi quantity same rehti hai. Series circuit mein ye current hota hai; parallel combination ke across ye potential difference hota hai; fixed source voltage ke liye heat aur power 1/R ke hisaab se change hote hain."
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "Coulomb",
+        "definition": "Electric charge ka SI unit; one coulomb lagbhag 6 × 10^18 electrons ke charge ke barabar hai."
+      },
+      {
+        "term": "Ampere",
+        "definition": "Electric current ka SI unit; one ampere ek second mein flow hone wala one coulomb charge hai."
+      },
+      {
+        "term": "Volt",
+        "definition": "Potential difference ka SI unit; one volt ek coulomb charge ko move karne mein one joule work ke barabar hai."
+      },
+      {
+        "term": "Ohm",
+        "definition": "Resistance ka SI unit; conductor ka resistance 1 ohm hota hai jab 1 volt ka potential difference uske through 1 ampere current drive karta hai."
+      },
+      {
+        "term": "Resistivity",
+        "definition": "Conductor ke material ki property, jiska SI unit Ω m hai, jo batati hai ki given length aur area ke liye wo material current ko kitni strongly resist karta hai."
+      },
+      {
+        "term": "Equivalent resistance",
+        "definition": "Wo single resistance jo resistors ke combination ko replace kar sakta hai aur poore circuit ke liye same current aur potential difference rakhta hai."
+      },
+      {
+        "term": "Joule's law of heating",
+        "definition": "Rule H = I²Rt jo steady current dwara resistor mein produce heat deta hai."
+      },
+      {
+        "term": "Watt",
+        "definition": "Power ka SI unit; one watt tab consume hota hai jab 1 volt potential difference par 1 ampere current flow karta hai."
+      },
+      {
+        "term": "Kilowatt hour",
+        "definition": "Electrical energy ka commercial unit, jo 3.6 × 10^6 J ke barabar hai."
+      },
+      {
+        "term": "Fuse",
+        "definition": "Suitable melting point ki chhoti wire jo device ke series mein lagayi jati hai, aur jab current bahut zyada ho jata hai to pighal kar circuit tod deti hai."
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "b-01",
+      "type": "text",
+      "section_id": "sec-01",
+      "spec": {
+        "paragraphs": [
+          "Aapne torch kaam karte dekha hoga. Andar ke cells bulb ke through charge push karte hain, aur bulb sirf tab glow karta hai jab switch on ho. Nadi mein behta paani water current kahlata hai; usi tarah, jab electric charge kisi conductor (jaise metallic wire) ke through flow karta hai, to hum kehte hain ki conductor mein electric current hai.",
+          "Ek switch cell aur bulb ke beech conducting link banata hai. Agar circuit kahin bhi toot jaye, to current behta band ho jata hai aur bulb glow nahi karta. Electric current ka continuous aur closed path electric circuit kahlata hai.",
+          "Electric current kisi particular area se unit time mein flow hone wale charge ki amount hai; dusre shabdon mein ye electric charges ke flow ka rate hai. Metallic wires mein electrons hi charges hote hain jo flow karte hain. Jab electricity pehli baar observe hui thi tab electrons ke baare mein pata nahi tha, isliye current ko positive charges ke flow ke roop mein liya gaya, aur convention se electric current ki direction electrons ke flow ki direction ke opposite hoti hai.",
+          "Agar kisi conductor ke kisi cross-section se time t mein net charge Q flow hota hai, to I = Q/t. Charge ka SI unit coulomb (C) hai, jo lagbhag 6 × 10^18 electrons ke charge ke barabar hai, aur electron par 1.6 × 10^-19 C ka negative charge hota hai. Current ka SI unit ampere (A) hai, jahan 1 A = 1 C/1 s; small currents ko 1 mA = 10^-3 A ya 1 µA = 10^-6 A likha jata hai.",
+          "Ammeter naam ka instrument electric current measure karta hai, aur ise hamesha us circuit mein series mein connect kiya jata hai jisme current measure karna hai. Torch circuit mein current cell ke positive terminal se negative terminal tak bulb aur ammeter ke through flow karta hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        },
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-07"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-01"
+    },
+    {
+      "id": "b-02",
+      "type": "diagram",
+      "section_id": "sec-01",
+      "spec": {
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 240\" role=\"img\" aria-label=\"Ek circuit jisme ek cell, ek bulb, ek ammeter aur ek closed plug key hai, aur current positive terminal se nikal raha hai.\"><g stroke=\"#1C1B18\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"><line x1=\"50\" y1=\"60\" x2=\"182\" y2=\"60\" /><line x1=\"218\" y1=\"60\" x2=\"320\" y2=\"60\" /><line x1=\"320\" y1=\"60\" x2=\"320\" y2=\"102\" /><line x1=\"320\" y1=\"138\" x2=\"320\" y2=\"180\" /><line x1=\"320\" y1=\"180\" x2=\"207\" y2=\"180\" /><line x1=\"193\" y1=\"180\" x2=\"50\" y2=\"180\" /><line x1=\"50\" y1=\"180\" x2=\"50\" y2=\"140\" /><line x1=\"50\" y1=\"100\" x2=\"50\" y2=\"60\" /><line x1=\"50\" y1=\"140\" x2=\"50\" y2=\"100\" /><circle cx=\"200\" cy=\"60\" r=\"18\" /><circle cx=\"320\" cy=\"120\" r=\"18\" /><line x1=\"193\" y1=\"166\" x2=\"193\" y2=\"194\" /><line x1=\"207\" y1=\"172\" x2=\"207\" y2=\"188\" /><circle cx=\"50\" cy=\"140\" r=\"3\" fill=\"#1C1B18\" /><circle cx=\"50\" cy=\"100\" r=\"3\" fill=\"#1C1B18\" /></g><polygon points=\"268,54 284,60 268,66\" fill=\"#1F3A9E\" /><text x=\"200\" y=\"32\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\" data-i18n=\"b-02.svg_texts.t-0\">bulb</text><text x=\"320\" y=\"126\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"16\" font-weight=\"700\" fill=\"#1C1B18\">A</text><text x=\"334\" y=\"114\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"12\" fill=\"#5A5748\" data-i18n=\"b-02.svg_texts.t-1\">ammeter</text><text x=\"200\" y=\"216\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\" data-i18n=\"b-02.svg_texts.t-2\">cell</text><text x=\"186\" y=\"160\" text-anchor=\"end\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">+</text><text x=\"216\" y=\"160\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">-</text><text x=\"64\" y=\"126\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"12\" fill=\"#5A5748\" data-i18n=\"b-02.svg_texts.t-3\">plug key</text><text x=\"262\" y=\"44\" text-anchor=\"middle\" font-family=\"Caveat, cursive\" font-size=\"20\" font-weight=\"700\" fill=\"#1F3A9E\" data-i18n=\"b-02.svg_texts.t-4\">current I</text></svg>",
+        "caption": "Ek simple circuit: ek cell, ek bulb, ek ammeter aur ek plug key, sab ek hi closed loop mein. Current cell ke positive terminal se nikalta hai, bulb aur ammeter ke through jaata hai, aur negative terminal par wapas aata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-08"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-01"
+    },
+    {
+      "id": "b-03",
+      "type": "worked_example",
+      "section_id": "sec-01",
+      "spec": {
+        "problem": "Ek electric bulb ke filament dwara 0.5 A current 10 minutes tak draw kiya jata hai. Circuit se flow hone wala electric charge ka amount find karo.",
+        "steps": [
+          {
+            "title": "Jo given hai use likho",
+            "detail": "Current I = 0.5 A. Time t = 10 minutes."
+          },
+          {
+            "title": "Time ko seconds mein badlo",
+            "detail": "t = 10 min = 10 × 60 s = 600 s, kyunki ampere coulombs per second hota hai."
+          },
+          {
+            "title": "Current ki definition use karo",
+            "detail": "I = Q/t, isliye Q = I × t."
+          },
+          {
+            "title": "Substitute karo",
+            "detail": "Q = 0.5 A × 600 s = 300 C."
+          }
+        ],
+        "answer": "Circuit se flow hone wala charge ka amount 300 C hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-01"
+        },
+        {
+          "claim_id": "claim-04"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-01"
+    },
+    {
+      "id": "b-04",
+      "type": "check",
+      "section_id": "sec-01",
+      "difficulty": "easy",
+      "spec": {
+        "question": "Electric circuit ka matlab kya hota hai?",
+        "format": "mcq",
+        "options": [
+          "Electric current ka ek continuous aur closed path",
+          "Ek path jo switch par broken hai",
+          "Koi bhi metal ka tukda jo charge carry karta hai",
+          "Electrons ka flow positive terminal se negative terminal tak"
+        ],
+        "answer_index": 0,
+        "answer": "Electric current ka ek continuous aur closed path",
+        "explanation": "Switch cell aur bulb ke beech conducting link banata hai, isliye path closed hona chahiye; agar circuit kahin bhi broken ho to current ruk jata hai aur bulb glow nahi karta. Ye bhi dhyan rakho ki electrons negative hote hain, isliye conventional current ko electron flow ki direction ke opposite liya jata hai, uske along nahi.",
+        "expected_understanding": "Learner ko pata hai ki circuit ek closed loop hona chahiye aur conventional current ki direction ko electron flow ki direction se confuse nahi karta."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-05"
+        },
+        {
+          "claim_id": "claim-06"
+        },
+        {
+          "claim_id": "claim-07"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-01"
+    },
+    {
+      "id": "b-05",
+      "type": "check",
+      "section_id": "sec-01",
+      "difficulty": "medium",
+      "spec": {
+        "question": "Calculate karo ki one coulomb of charge me kitne electrons hote hain.",
+        "format": "mcq",
+        "options": [
+          "6 × 10^18",
+          "1.6 × 10^19",
+          "6 × 10^19",
+          "1.6 × 10^-19"
+        ],
+        "answer_index": 0,
+        "answer": "6 × 10^18",
+        "explanation": "Ek electron par charge 1.6 × 10^-19 C hota hai. Isliye 1 C me electrons ki sankhya 1 / (1.6 × 10^-19) hoti hai, jo lagbhag 6.25 × 10^18 hai, yani nearly 6 × 10^18 electrons. Bilkul isi wajah se kaha jata hai ki one coulomb charge lagbhag 6 × 10^18 electrons me contained hota hai.",
+        "expected_understanding": "Learner one electron ke charge aur one coulomb ke charge ke beech samajh ke move kar sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-02"
+        },
+        {
+          "claim_id": "claim-03"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-01"
+    },
+    {
+      "id": "b-06",
+      "type": "text",
+      "section_id": "sec-02",
+      "spec": {
+        "paragraphs": [
+          "Charges copper wire me apne aap flow nahi karte, jaise perfectly horizontal tube me paani apne aap flow nahi karta. Agar tube ka ek end higher level par rakhe tank se joda jaye, taaki dono ends ke beech pressure difference ho, to paani doosre end se bahar flow karta hai.",
+          "Metallic wire ke charges ke liye gravity ka koi role nahi hai. Electrons tabhi move karte hain jab conductor ke along electric pressure ka difference ho, jise potential difference kehte hain. Ek ya zyada cells se bani battery yahi difference produce karti hai.",
+          "Ek cell ke andar chemical action uske terminals ke across potential difference generate karta hai, chahe usse koi current na draw ho. Jab cell ko conducting circuit element se connect kiya jata hai, potential difference charges ko motion (gati) me set karta hai aur electric current produce karta hai, aur current ko flowing rakhne ke liye cell ko apni stored chemical energy expend karni padti hai.",
+          "Circuit me kuch current carry kar rahe do points ke beech potential difference wo work hai jo unit charge ko ek point se doosre tak move karne me kiya jata hai, isliye V = W/Q. Iski SI unit volt (V) hai: one volt do points ke beech ka potential difference hai jab 1 coulomb charge ko move karne ke liye 1 joule work kiya jata hai, that is 1 V = 1 J C^-1.",
+          "Voltmeter potential difference measure karta hai, aur ise hamesha un points ke across parallel me connect kiya jata hai jinke beech potential difference measure karna hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-12"
+        },
+        {
+          "claim_id": "claim-13"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-02"
+    },
+    {
+      "id": "b-07",
+      "type": "worked_example",
+      "section_id": "sec-02",
+      "spec": {
+        "problem": "2 C ke charge ko aise do points ke beech move karne me kitna work hota hai jinme potential difference (potential antar) 12 V hai?",
+        "steps": [
+          {
+            "title": "Diya hua likhiye",
+            "detail": "Charge Q = 2 C hai, potential difference V = 12 V hai."
+          },
+          {
+            "title": "Potential difference ki definition use kijiye",
+            "detail": "V = W/Q, isliye kiya gaya work W = V × Q hai."
+          },
+          {
+            "title": "Values substitute kijiye",
+            "detail": "W = 12 V × 2 C = 24 J."
+          }
+        ],
+        "answer": "Kiya gaya work 24 J hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-09"
+        },
+        {
+          "claim_id": "claim-10"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-02"
+    },
+    {
+      "id": "b-08",
+      "type": "check",
+      "section_id": "sec-02",
+      "difficulty": "easy",
+      "spec": {
+        "question": "6 V battery se pass hone wale har coulomb charge ko kitni energy di jati hai?",
+        "format": "mcq",
+        "options": [
+          "6 J",
+          "1/6 J",
+          "12 J",
+          "3 J"
+        ],
+        "answer_index": 0,
+        "answer": "6 J",
+        "explanation": "Ek volt ka matlab hai ek joule work per coulomb, isliye 6 V battery har us coulomb ko 6 J energy deti hai jo isse pass hota hai. Battery wahi device hai jo conductor ke across ye potential difference maintain karti hai.",
+        "expected_understanding": "Learner volt ko joules per coulomb ke roop me padhta hai aur potential difference ko energy per unit charge me convert kar sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-10"
+        },
+        {
+          "claim_id": "claim-12"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-02"
+    },
+    {
+      "id": "b-09",
+      "type": "text",
+      "section_id": "sec-03",
+      "spec": {
+        "paragraphs": [
+          "Ek circuit (paripath) mein ek cell ya battery, ek plug key, electrical components aur connecting wires hote hain. Real objects draw karne ke bajay, hum ek schematic diagram banate hain jisme har component ko ek conventional symbol se replace kiya jata hai.",
+          "Aapko milne wale symbols hain: ek electric cell; ek battery, jo cells ka combination hai; ek plug key ya switch, jo open ya closed dikhaya jata hai; ek wire joint; bina joining ke cross hoti wires; ek electric bulb; resistance R ka ek resistor; ek variable resistance ya rheostat; ek ammeter; aur ek voltmeter.",
+          "In symbols mein se do ke saath ek rule hai. Ammeter us part ke series mein lagta hai jiska current aap measure kar rahe hain, aur voltmeter us part ke parallel mein lagta hai jiska potential difference aap measure kar rahe hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-11"
+        },
+        {
+          "claim_id": "claim-17"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-03"
+    },
+    {
+      "id": "b-10",
+      "type": "check",
+      "section_id": "sec-03",
+      "difficulty": "easy",
+      "spec": {
+        "question": "Do points ke beech potential difference measure karne ke liye voltmeter circuit mein kaise connect kiya jata hai?",
+        "format": "mcq",
+        "options": [
+          "Do points ke across parallel mein",
+          "Component ke saath series mein",
+          "Cell ki jagah",
+          "Sirf plug key ke across"
+        ],
+        "answer_index": 0,
+        "answer": "Do points ke across parallel mein",
+        "explanation": "Voltmeter hamesha un points ke across parallel mein connect kiya jata hai jinke beech potential difference measure karna hota hai. Ammeter ko series mein lagaya jata hai, kyunki usko woh current carry karna hota hai jo woh measure kar raha hai.",
+        "expected_understanding": "Learner do instruments aur unke connection rules ko alag-alag samajh kar rakhta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-08"
+        },
+        {
+          "claim_id": "claim-11"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-03"
+    },
+    {
+      "id": "b-11",
+      "type": "text",
+      "section_id": "sec-04",
+      "spec": {
+        "paragraphs": [
+          "Ek circuit banaiye jisme nichrome wire XY ho jiski length lagbhag 0.5 m hai, ek ammeter, ek voltmeter aur 1.5 V ke chaar cells hon. Ek cell se shuru kariye aur XY ke across ammeter reading I aur voltmeter reading V note kariye; phir do, teen aur chaar cells ke saath repeat kariye. Har pair ke liye V/I nikaaliye, aur V ko I ke against plot kariye.",
+          "Activity mein aapko har case mein V/I ka lagbhag same value milta hai, aur V-I graph origin se guzarne wali straight line hoti hai. Isliye us wire ke liye V/I ek constant ratio hai.",
+          "1827 mein German physicist Georg Simon Ohm ne metallic wire mein current aur uske ends ke across potential difference ke beech relationship khoja. Kisi di gayi metallic wire ke ends ke across potential difference V uske through current I ke directly proportional hota hai, provided uska temperature same rahe. Yeh Ohm's law hai: V, I ke proportional hai, isliye V/I = constant = R, aur V = IR.",
+          "R di gayi metallic wire ke liye diye gaye temperature par constant hota hai aur ise uski resistance kaha jata hai, yaani conductor ki wo property jisse wo charges ke flow ko resist karta hai. Iski SI unit ohm (Ω) hai. Agar conductor ke across potential difference 1 V hai aur uske through current 1 A hai, to uski resistance 1 Ω hai, that is 1 ohm = 1 volt/1 ampere.",
+          "Kyunki V = IR ko I = V/R likha ja sakta hai, resistor ke through current uski resistance ke inversely proportional hota hai: agar resistance double ho jaye to current half ho jata hai. Kai practical cases mein humein current badhana ya ghatana hota hai, aur voltage source badle bina current regulate karne ke liye use hone wala component variable resistance kaha jata hai; circuit mein resistance badalne ke liye rheostat naam ka device aksar use kiya jata hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        },
+        {
+          "claim_id": "claim-16"
+        },
+        {
+          "claim_id": "claim-17"
+        },
+        {
+          "claim_id": "claim-35"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-04"
+    },
+    {
+      "id": "b-12",
+      "type": "simulation",
+      "section_id": "sec-04",
+      "spec": {
+        "title": "Nichrome wire ka V-I graph",
+        "description": "Ek nichrome wire ko kai 1.5 V cells se joda gaya hai, ek ammeter aur ek voltmeter ke saath. Cells add karein aur wire ka resistance change karein, aur dekhein ki har (current (dhara), potential difference (vibhav antar)) point graph par kahan girta hai.",
+        "learning_goal": "Dekhein ki har measured point origin se guzarne wali straight line par sthit hai, isliye V/I constant rehta hai: yahi Ohm's law (Ohm ka niyam) hai.",
+        "controls": [
+          {
+            "id": "cells",
+            "label": "Circuit mein cells (1.5 V each)",
+            "min": 1,
+            "max": 4,
+            "step": 1,
+            "initial": 1
+          },
+          {
+            "id": "resistance",
+            "label": "Wire ka resistance (ohm)",
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "initial": 4
+          }
+        ],
+        "default_behaviour": "Ek cell ke saath graph V = 1.5 V par ek single point dikhata hai aur current I = V/R hota hai chosen R ke liye. Origin se guzarne wali straight line chosen R ke liye draw ki gayi hai, aur readout V, I aur ratio V/I dikhata hai, jo ki zyada cells add karne par change nahi hota."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-04"
+    },
+    {
+      "id": "b-13",
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "spec": {
+        "problem": "(a) Ek electric bulb 220 V source se kitna current draw karega, agar bulb filament ka resistance 1200 Ω hai? (b) Ek electric heater coil 220 V source se kitna current draw karega, agar heater coil ka resistance 100 Ω hai?",
+        "steps": [
+          {
+            "title": "Bulb ke liye diya gaya data likhiye",
+            "detail": "V = 220 V, R = 1200 Ω."
+          },
+          {
+            "title": "Ohm's law ko I = V/R ke form mein use kijiye",
+            "detail": "I = 220 V / 1200 Ω = 0.18 A."
+          },
+          {
+            "title": "Heater ke liye diya gaya data likhiye",
+            "detail": "V = 220 V, R = 100 Ω."
+          },
+          {
+            "title": "Phir se I = V/R use kijiye",
+            "detail": "I = 220 V / 100 Ω = 2.2 A."
+          }
+        ],
+        "answer": "Bulb lagbhag 0.18 A draw karta hai aur heater coil usi 220 V source se 2.2 A draw karti hai. Dhyan dijiye ki same source se bulb aur heater ka current draw alag hai: resistance jitna chhota, current utna bada."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-16"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-04"
+    },
+    {
+      "id": "b-14",
+      "type": "worked_example",
+      "section_id": "sec-04",
+      "spec": {
+        "problem": "Ek electric heater ke terminals ke beech potential difference 60 V hai jab woh source se 4 A current draw karta hai. Agar potential difference ko badhakar 120 V kar diya jaye, to heater kitna current draw karega?",
+        "steps": [
+          {
+            "title": "Pehle resistance nikaalein",
+            "detail": "Heater ka resistance same rehta hai. Ohm's law (Ohm ka niyam) se, R = V/I = 60 V / 4 A = 15 Ω."
+          },
+          {
+            "title": "Ab potential difference badal dein",
+            "detail": "V = 120 V aur R = 15 Ω ke saath, current I = V/R hai."
+          },
+          {
+            "title": "Substitute karein",
+            "detail": "I = 120 V / 15 Ω = 8 A."
+          }
+        ],
+        "answer": "Jab potential difference double ho jata hai, heater ke through current 8 A ho jata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-04"
+    },
+    {
+      "id": "b-15",
+      "type": "check",
+      "section_id": "sec-04",
+      "difficulty": "medium",
+      "spec": {
+        "question": "Jab ek 12 V battery ko ek unknown resistor ke across connect kiya jata hai, to circuit mein 2.5 mA ka current hota hai. Resistor ke resistance ki value ohms mein find karo.",
+        "format": "numeric",
+        "answer": "4800",
+        "explanation": "Pehle current ko amperes mein badlo: 2.5 mA = 2.5 × 10^-3 A. Phir R = V/I = 12 V / (2.5 × 10^-3 A) = 4800 Ω.",
+        "expected_understanding": "Learner Ohm's law use karne se pehle milliampere ko ampere mein convert karta hai, aur V = IR ko rearrange karke R = V/I banata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-04"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-04"
+    },
+    {
+      "id": "b-16",
+      "type": "text",
+      "section_id": "sec-05",
+      "spec": {
+        "paragraphs": [
+          "Ek circuit lo jisme ek cell, ek ammeter, length l ki nichrome wire aur ek plug key ho, aur current note karo. Ab wire ko same thickness ki lekin double length ki doosri nichrome wire se replace karo, aur current phir se note karo: ammeter reading half ho jati hai.",
+          "Same length ki ek moti nichrome wire se repeat karo, jiska cross-sectional area zyada ho: ammeter reading badh jati hai. Ab same length aur same area of cross-section wali copper wire use karo jo pehli nichrome wire jaisi ho, aur reading phir se change hoti hai.",
+          "Ye observations dikhate hain ki conductor ka resistance uski length, uske area of cross-section, aur uske material ki nature par depend karta hai. Precise measurements dikhate hain ki ek uniform metallic conductor ka resistance uski length l ke directly proportional aur uske area of cross-section A ke inversely proportional hota hai, isliye R = ρl/A.",
+          "Constant ρ (rho) ko conductor ke material ki electrical resistivity kehte hain. Iski SI unit Ω m hai, aur ye material ki characteristic property hai. Metals aur alloys ki resistivity bahut kam hoti hai, 10^-8 Ω m se 10^-6 Ω m ke range mein, aur ye electricity ke good conductors hain; insulators jaise rubber aur glass ki resistivity 10^12 se 10^17 Ω m ke order ki hoti hai. Kisi material ka resistance aur resistivity dono temperature ke saath vary karte hain.",
+          "Ek alloy ki resistivity generally uske constituent metals se zyada hoti hai, aur alloys high temperatures par readily oxidise (burn) nahi hote; isi wajah se ye commonly electrical heating devices jaise electric irons aur toasters mein use hote hain. Tungsten almost exclusively electric bulbs ke filaments ke liye use hota hai, jabki copper aur aluminium generally electrical transmission lines ke liye use hote hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        },
+        {
+          "claim_id": "claim-20"
+        },
+        {
+          "claim_id": "claim-21"
+        },
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-23"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-05"
+    },
+    {
+      "id": "b-17",
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "spec": {
+        "problem": "1 m length ke metal wire ki Resistance 20 degrees C par 26 Ω hai. Agar wire ka diameter 0.3 mm hai, to us temperature par metal ki Resistivity kya hogi? Resistivities ki table ka use karke, wire ka material predict karo.",
+        "steps": [
+          {
+            "title": "Jo diya gaya hai use likho",
+            "detail": "R = 26 Ω, length l = 1 m, diameter d = 0.3 mm = 3 × 10^-4 m."
+          },
+          {
+            "title": "Cross-section ka area nikalo",
+            "detail": "Wire round hai, isliye A = πd²/4."
+          },
+          {
+            "title": "R = ρl/A ko rearrange karo",
+            "detail": "Resistivity ρ = RA/l = Rπd²/(4l) hai."
+          },
+          {
+            "title": "Substitute karo",
+            "detail": "Values daalne par ρ = 1.84 × 10^-6 Ω m milta hai."
+          },
+          {
+            "title": "Material ka naam batao",
+            "detail": "20 degrees C par resistivities ki table dekhne par, value 1.84 × 10^-6 Ω m manganese ki resistivity hai."
+          }
+        ],
+        "answer": "20 degrees C par metal ki resistivity 1.84 × 10^-6 Ω m hai, jo manganese ki resistivity hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-05"
+    },
+    {
+      "id": "b-18",
+      "type": "worked_example",
+      "section_id": "sec-05",
+      "spec": {
+        "problem": "Ek diye gaye material ke wire ki length l aur area of cross-section A hai aur resistance 4 Ω hai. Usi material ke doosre wire ki resistance kya hogi jiski length l/2 aur area of cross-section 2A hai?",
+        "steps": [
+          {
+            "title": "Pehla wire likho",
+            "detail": "Pehle wire ke liye, R1 = ρl/A = 4 Ω."
+          },
+          {
+            "title": "Doosra wire likho",
+            "detail": "Doosre wire ke liye, R2 = ρ(l/2)/(2A) = (1/4) ρl/A."
+          },
+          {
+            "title": "Dono ko compare karo",
+            "detail": "Isliye R2 = (1/4) R1."
+          },
+          {
+            "title": "Substitute karo",
+            "detail": "R2 = (1/4) × 4 Ω = 1 Ω."
+          }
+        ],
+        "answer": "Naye wire ki resistance 1 Ω hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-05"
+    },
+    {
+      "id": "b-19",
+      "type": "check",
+      "section_id": "sec-05",
+      "difficulty": "easy",
+      "spec": {
+        "question": "Kya same material ke thick wire ya thin wire mein se current zyada aasani se flow karega, jab dono same source se connected hon? Kyun?",
+        "format": "mcq",
+        "options": [
+          "Ek thick wire, kyunki larger area of cross-section se smaller resistance milta hai",
+          "Ek thin wire, kyunki smaller area of cross-section se smaller resistance milta hai",
+          "Dono equally, kyunki material same hai",
+          "Ek thick wire, kyunki thick wire ke material ki resistivity kam hoti hai"
+        ],
+        "answer_index": 0,
+        "answer": "Ek thick wire, kyunki larger area of cross-section se smaller resistance milta hai",
+        "explanation": "Resistance area of cross-section ke inversely proportional hota hai, R = ρl/A. Same material aur length ke thicker wire ka area bada hota hai, isliye uska resistance chhota hota hai aur current bada hota hai. Resistivity sirf material par depend karti hai, thickness par nahi.",
+        "expected_understanding": "Learner resistance (jo size par depend karta hai) ko resistivity (jo material par depend karti hai) se alag karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-19"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-05"
+    },
+    {
+      "id": "b-20",
+      "type": "text",
+      "section_id": "sec-06",
+      "spec": {
+        "paragraphs": [
+          "Jab teen resistors R1, R2 aur R3 ko end to end joda jata hai, to unhe series mein connected kaha jata hai. Agar aap aise circuit mein ammeter ko kisi bhi position par le jayein, to uska reading nahi badalta: series combination mein current circuit ke har part mein same rehta hai, isliye same current har resistor se pass hota hai.",
+          "Poore combination ke across potential difference measure karein aur use V kahein, phir teen resistors ke across potential differences V1, V2 aur V3 alag-alag measure karein. Aap paate hain ki V = V1 + V2 + V3: series combination ke across total potential difference individual resistors ke across potential differences ka sum hota hai.",
+          "Ab teen resistors ko ek equivalent resistor se replace karein jiski resistance R hai, jo same current I carry karta hai aur jiske across same potential difference V hai, taaki V = IR. Teen resistors par alag-alag Ohm's law (Ohm ka niyam) apply karne se V1 = IR1, V2 = IR2 aur V3 = IR3 milta hai.",
+          "Inhe V = V1 + V2 + V3 mein rakhne se IR = IR1 + IR2 + IR3 milta hai, aur I se divide karne par Rs = R1 + R2 + R3. Isliye jab kai resistors series mein jode jate hain, combination ki resistance unki individual resistances ke sum ke barabar hoti hai, aur ye kisi bhi individual resistance se greater hoti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-06"
+    },
+    {
+      "id": "b-21",
+      "type": "diagram",
+      "section_id": "sec-06",
+      "spec": {
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 200\" role=\"img\" aria-label=\"Teen resistors R1, R2 aur R3 points X aur Y ke beech battery aur ammeter ke saath series mein end to end jode gaye hain\"><g stroke=\"#1C1B18\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"><line x1=\"50\" y1=\"60\" x2=\"100\" y2=\"60\" /><line x1=\"140\" y1=\"60\" x2=\"180\" y2=\"60\" /><line x1=\"220\" y1=\"60\" x2=\"260\" y2=\"60\" /><line x1=\"300\" y1=\"60\" x2=\"350\" y2=\"60\" /><line x1=\"350\" y1=\"60\" x2=\"350\" y2=\"150\" /><line x1=\"350\" y1=\"150\" x2=\"208\" y2=\"150\" /><line x1=\"192\" y1=\"150\" x2=\"50\" y2=\"150\" /><line x1=\"50\" y1=\"150\" x2=\"50\" y2=\"121\" /><line x1=\"50\" y1=\"89\" x2=\"50\" y2=\"60\" /><circle cx=\"50\" cy=\"105\" r=\"16\" /><line x1=\"192\" y1=\"138\" x2=\"192\" y2=\"162\" /><line x1=\"208\" y1=\"144\" x2=\"208\" y2=\"156\" /><rect x=\"100\" y=\"52\" width=\"40\" height=\"16\" /><rect x=\"180\" y=\"52\" width=\"40\" height=\"16\" /><rect x=\"260\" y=\"52\" width=\"40\" height=\"16\" /></g><polygon points=\"232,54 245,60 232,66\" fill=\"#1F3A9E\" /><text x=\"120\" y=\"42\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">R1</text><text x=\"200\" y=\"42\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">R2</text><text x=\"280\" y=\"42\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">R3</text><text x=\"36\" y=\"54\" text-anchor=\"middle\" font-family=\"Caveat, cursive\" font-size=\"20\" font-weight=\"700\" fill=\"#1C1B18\">X</text><text x=\"364\" y=\"54\" text-anchor=\"middle\" font-family=\"Caveat, cursive\" font-size=\"20\" font-weight=\"700\" fill=\"#1C1B18\">Y</text><text x=\"200\" y=\"182\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"12\" fill=\"#5A5748\" data-i18n=\"b-21.svg_texts.t-0\">battery</text><text x=\"50\" y=\"111\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"14\" font-weight=\"700\" fill=\"#1C1B18\">A</text><text x=\"72\" y=\"110\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"12\" fill=\"#5A5748\" data-i18n=\"b-21.svg_texts.t-1\">ammeter</text></svg>",
+        "caption": "Series mein resistors: teen resistors X aur Y ke beech end to end jode gaye hain, isliye har ek ke through same current I pass hota hai. Potential differences add hote hain: V = V1 + V2 + V3."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-06"
+    },
+    {
+      "id": "b-22",
+      "type": "reveal",
+      "section_id": "sec-06",
+      "spec": {
+        "title": "Rs = R1 + R2 + R3 kyun hai",
+        "steps": [
+          {
+            "title": "Observed sum se shuru karein",
+            "detail": "Experiment dikhata hai ki series combination ke across total potential difference V = V1 + V2 + V3 hai."
+          },
+          {
+            "title": "Combination ko ek resistor se replace karein",
+            "detail": "Maan lijiye ek equivalent resistor R same current I carry karta hai with same total potential difference V, isliye poore circuit ke liye Ohm's law V = IR deta hai."
+          },
+          {
+            "title": "Har resistor par Ohm's law apply karein",
+            "detail": "Har resistor ke through current same I hai, isliye V1 = IR1, V2 = IR2 aur V3 = IR3."
+          },
+          {
+            "title": "Substitute karein aur I cancel karein",
+            "detail": "IR = IR1 + IR2 + IR3, aur dono sides ko I se divide karne par Rs = R1 + R2 + R3 milta hai."
+          },
+          {
+            "title": "Result padhein",
+            "detail": "Equivalent resistance plain sum hai, isliye yeh combination ke kisi bhi single resistance se larger hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-06"
+    },
+    {
+      "id": "b-23",
+      "type": "worked_example",
+      "section_id": "sec-06",
+      "spec": {
+        "problem": "Ek electric lamp, jiska resistance 20 Ω hai, aur 4 Ω resistance ka ek conductor, 6 V battery se connected hain. Calculate karo (a) circuit ka total resistance, (b) circuit se current, aur (c) electric lamp aur conductor ke across potential difference.",
+        "steps": [
+          {
+            "title": "Series resistances ko add karo",
+            "detail": "Lamp R1 = 20 Ω aur conductor R2 = 4 Ω series mein hain, isliye Rs = 20 Ω + 4 Ω = 24 Ω."
+          },
+          {
+            "title": "Current nikaalo",
+            "detail": "Battery V = 6 V deti hai, isliye I = V/Rs = 6 V / 24 Ω = 0.25 A. Yahi same current dono mein flow karta hai."
+          },
+          {
+            "title": "Lamp ke across potential difference",
+            "detail": "V1 = R1 × I = 20 Ω × 0.25 A = 5 V."
+          },
+          {
+            "title": "Conductor ke across potential difference",
+            "detail": "V2 = R2 × I = 4 Ω × 0.25 A = 1 V. Check: 5 V + 1 V = 6 V, battery voltage."
+          },
+          {
+            "title": "Equivalent resistance check karo",
+            "detail": "Dono ki jagah ek single resistor 6 V par 0.25 A dena chahiye, isliye R = V/I = 6 V / 0.25 A = 24 Ω, total series resistance ke same."
+          }
+        ],
+        "answer": "Total resistance 24 Ω, current 0.25 A, lamp ke across potential difference 5 V aur conductor ke across 1 V."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-06"
+    },
+    {
+      "id": "b-24",
+      "type": "check",
+      "section_id": "sec-06",
+      "difficulty": "medium",
+      "spec": {
+        "question": "2 V ke teen cells ki ek battery 5 Ω resistor, 8 Ω resistor, 12 Ω resistor aur ek plug key ke saath series mein connected hai. Resistors ke through kitna current flow karta hai? Answer amperes mein do.",
+        "format": "numeric",
+        "answer": "0.24",
+        "explanation": "2 V ke teen cells milkar 6 V dete hain. Series resistance 5 + 8 + 12 = 25 Ω hai. Isliye I = V/Rs = 6 V / 25 Ω = 0.24 A, aur yahi same current har resistor ke through flow karta hai. 12 Ω resistor ke across connected voltmeter 12 Ω × 0.24 A = 2.88 V read karega.",
+        "expected_understanding": "Learner cell voltages ko add karta hai, series mein resistances ko add karta hai, aur poore circuit ke liye ek baar Ohm's law apply karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-24"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-06"
+    },
+    {
+      "id": "b-25",
+      "type": "text",
+      "section_id": "sec-07",
+      "spec": {
+        "paragraphs": [
+          "Jab teen resistors ko same do points X aur Y ke beech together connected kiya jata hai, to unhe parallel mein connected kaha jata hai. Ab har resistor ke across potential difference same hota hai, lekin current divide ho jata hai.",
+          "Combination mein entering total current I ko measure karo, aur phir teen branches ke through separate currents I1, I2 aur I3 ko measure karo. Aap paoge I = I1 + I2 + I3: total current combination ki har branch ke through separate currents ka sum hai.",
+          "Maan lijiye Rp parallel combination ki equivalent resistance hai. Poori combination par Ohm's law apply karne se I = V/Rp milta hai, aur har resistor par apply karne se I1 = V/R1, I2 = V/R2 aur I3 = V/R3 milta hai.",
+          "Inhe I = I1 + I2 + I3 mein substitute karne se V/Rp = V/R1 + V/R2 + V/R3 milta hai, aur V se divide karne se 1/Rp = 1/R1 + 1/R2 + 1/R3 milta hai. Parallel mein joined resistors ke group ki equivalent resistance ka reciprocal individual resistances ke reciprocals ke sum ke barabar hota hai, isliye parallel circuit mein total resistance kam ho jata hai.",
+          "Ye do arrangements bahut different behave karte hain. Series circuit mein current throughout constant hota hai, isliye ek electric bulb aur ek electric heater ko series mein connect karna impractical hai, kyunki proper operation ke liye unhe widely different values ke currents chahiye. Series circuit ka ek aur disadvantage ye hai ki jab ek component fail hota hai to circuit break ho jata hai aur koi bhi component kaam nahi karta, jaise aap dekhte hain jab fairy lights ki string mein ek dead bulb poori string ko put out kar deta hai. Doosri taraf, parallel circuit gadgets ke through current ko divide karta hai, jo tab helpful hota hai jab har gadget ki resistance different ho aur usse different current chahiye ho."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-07"
+    },
+    {
+      "id": "b-26",
+      "type": "diagram",
+      "section_id": "sec-07",
+      "spec": {
+        "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 220\" role=\"img\" aria-label=\"Teen resistors R1, R2 aur R3 do rails ke beech parallel mein connected hain, ek battery ke saath.\"><g stroke=\"#1C1B18\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"><line x1=\"110\" y1=\"60\" x2=\"310\" y2=\"60\" /><line x1=\"110\" y1=\"180\" x2=\"310\" y2=\"180\" /><line x1=\"160\" y1=\"60\" x2=\"160\" y2=\"78\" /><line x1=\"160\" y1=\"122\" x2=\"160\" y2=\"180\" /><line x1=\"210\" y1=\"60\" x2=\"210\" y2=\"78\" /><line x1=\"210\" y1=\"122\" x2=\"210\" y2=\"180\" /><line x1=\"260\" y1=\"60\" x2=\"260\" y2=\"78\" /><line x1=\"260\" y1=\"122\" x2=\"260\" y2=\"180\" /><line x1=\"110\" y1=\"60\" x2=\"110\" y2=\"110\" /><line x1=\"110\" y1=\"126\" x2=\"110\" y2=\"180\" /><line x1=\"94\" y1=\"110\" x2=\"126\" y2=\"110\" /><line x1=\"100\" y1=\"126\" x2=\"120\" y2=\"126\" /><rect x=\"152\" y=\"78\" width=\"16\" height=\"44\" /><rect x=\"202\" y=\"78\" width=\"16\" height=\"44\" /><rect x=\"252\" y=\"78\" width=\"16\" height=\"44\" /></g><polygon points=\"224,54 237,60 224,66\" fill=\"#1F3A9E\" /><text x=\"176\" y=\"104\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">R1</text><text x=\"226\" y=\"104\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">R2</text><text x=\"276\" y=\"104\" text-anchor=\"start\" font-family=\"Courier Prime, monospace\" font-size=\"14\" fill=\"#1C1B18\">R3</text><text x=\"124\" y=\"52\" text-anchor=\"middle\" font-family=\"Caveat, cursive\" font-size=\"20\" font-weight=\"700\" fill=\"#1C1B18\">X</text><text x=\"124\" y=\"200\" text-anchor=\"middle\" font-family=\"Caveat, cursive\" font-size=\"20\" font-weight=\"700\" fill=\"#1C1B18\">Y</text><text x=\"52\" y=\"114\" text-anchor=\"middle\" font-family=\"Courier Prime, monospace\" font-size=\"12\" fill=\"#5A5748\" data-i18n=\"b-26.svg_texts.t-0\">battery</text></svg>",
+        "caption": "Resistors in parallel: teen resistors same do points X aur Y ke beech connected hain, isliye har ek ke across same potential difference V hota hai, jabki total current I1, I2 aur I3 mein divide ho jata hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-25"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-07"
+    },
+    {
+      "id": "b-27",
+      "type": "reveal",
+      "section_id": "sec-07",
+      "spec": {
+        "title": "Kyun 1/Rp = 1/R1 + 1/R2 + 1/R3",
+        "steps": [
+          {
+            "title": "Observed sum se shuru karein",
+            "detail": "Experiment dikhata hai ki parallel combination mein total current I = I1 + I2 + I3 hai."
+          },
+          {
+            "title": "Combination ko ek resistor se replace karein",
+            "detail": "Maan lijiye ek equivalent resistor Rp same total current I ko same potential difference V par carry karta hai, isliye I = V/Rp."
+          },
+          {
+            "title": "Har branch par Ohm's law apply karein",
+            "detail": "Har branch ke across same potential difference V hai, isliye I1 = V/R1, I2 = V/R2 aur I3 = V/R3."
+          },
+          {
+            "title": "Substitute karein aur V cancel karein",
+            "detail": "V/Rp = V/R1 + V/R2 + V/R3, aur dono sides ko V se divide karne par 1/Rp = 1/R1 + 1/R2 + 1/R3 milta hai."
+          },
+          {
+            "title": "Result ko samjhein",
+            "detail": "Hum reciprocals add karte hain, isliye equivalent resistance (tulya pratirodh) sabse chhote individual resistance se bhi chhota hota hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-07"
+    },
+    {
+      "id": "b-28",
+      "type": "worked_example",
+      "section_id": "sec-07",
+      "spec": {
+        "problem": "Teen resistors R1, R2 aur R3 ke values respectively 5 Ω, 10 Ω aur 30 Ω hain, aur ye 12 V ki battery ke parallel connected hain. Calculate kijiye (a) har resistor ke through current, (b) circuit me total current, aur (c) total circuit resistance.",
+        "steps": [
+          {
+            "title": "Potential difference note kijiye",
+            "detail": "Battery V = 12 V deti hai, aur kyunki resistors parallel me hain, yehi potential difference har individual resistor ke across bhi hai."
+          },
+          {
+            "title": "R1 ke through current",
+            "detail": "I1 = V/R1 = 12 V / 5 Ω = 2.4 A."
+          },
+          {
+            "title": "R2 ke through current",
+            "detail": "I2 = V/R2 = 12 V / 10 Ω = 1.2 A."
+          },
+          {
+            "title": "R3 ke through current",
+            "detail": "I3 = V/R3 = 12 V / 30 Ω = 0.4 A."
+          },
+          {
+            "title": "Total current",
+            "detail": "I = I1 + I2 + I3 = 2.4 + 1.2 + 0.4 = 4 A."
+          },
+          {
+            "title": "Total resistance",
+            "detail": "1/Rp = 1/5 + 1/10 + 1/30 = 1/3, isliye Rp = 3 Ω. Check kijiye: V/I = 12 V / 4 A = 3 Ω."
+          }
+        ],
+        "answer": "Branch currents 2.4 A, 1.2 A aur 0.4 A hain; total current 4 A hai; parallel combination ka total resistance 3 Ω hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-14"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-07"
+    },
+    {
+      "id": "b-29",
+      "type": "worked_example",
+      "section_id": "sec-07",
+      "spec": {
+        "problem": "12 V ki battery wale circuit me, R1 = 10 Ω aur R2 = 40 Ω ek dusre ke parallel hain, aur R3 = 30 Ω, R4 = 20 Ω aur R5 = 60 Ω ek dusre ke parallel hain; ye do parallel groups series me jode gaye hain. Calculate kijiye (a) circuit me total resistance aur (b) circuit me flowing total current.",
+        "steps": [
+          {
+            "title": "Pehle parallel pair ko replace kijiye",
+            "detail": "1/R' = 1/10 + 1/40 = 5/40, isliye R' = 8 Ω."
+          },
+          {
+            "title": "Dusre parallel group ko replace kijiye",
+            "detail": "1/R'' = 1/30 + 1/20 + 1/60 = 6/60, isliye R'' = 10 Ω."
+          },
+          {
+            "title": "Do groups ko series me add kijiye",
+            "detail": "Total resistance R = R' + R'' = 8 Ω + 10 Ω = 18 Ω hai."
+          },
+          {
+            "title": "Total current nikaaliye",
+            "detail": "Ohm's law ke according, I = V/R = 12 V / 18 Ω = 0.67 A."
+          }
+        ],
+        "answer": "Total resistance 18 Ω hai aur total current lagbhag 0.67 A hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-07"
+    },
+    {
+      "id": "b-30",
+      "type": "check",
+      "section_id": "sec-07",
+      "difficulty": "easy",
+      "spec": {
+        "question": "Battery ke saath electrical devices ko series me jodne ke bajay parallel me jodne ke kya advantages hain?",
+        "format": "mcq",
+        "options": [
+          "Har device full source voltage ke saath aur independently kaam karta hai, aur circuit ka total resistance kam ho jata hai",
+          "Har device me same current flow karta hai",
+          "Jab ek device fail ho jata hai, to baaki sab devices kaam karna band kar dete hain",
+          "Jaise-jaise zyada devices add hote hain, circuit ka total resistance badh jata hai"
+        ],
+        "answer_index": 0,
+        "answer": "Har device full source voltage ke saath aur independently kaam karta hai, aur circuit ka total resistance kam ho jata hai",
+        "explanation": "Parallel circuit me har gadget ko same potential difference aur apna current milta hai, jo different resistances wale gadgets ke liye suit karta hai, aur total resistance kam ho jata hai. Series circuit me ek hi failure circuit ko break kar deta hai aur kuch bhi kaam nahi karta, isi liye domestic circuits ke liye series wiring use nahi hoti.",
+        "expected_understanding": "Learner current, voltage aur failure par behaviour ke basis par series aur parallel circuits ki comparison kar sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-26"
+        },
+        {
+          "claim_id": "claim-27"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-07"
+    },
+    {
+      "id": "b-31",
+      "type": "text",
+      "section_id": "sec-08",
+      "spec": {
+        "paragraphs": [
+          "Ek cell ya battery electrical energy ka source hai, aur current maintain karne ke liye source energy kharch karta rehta hai. Is energy ka kuch hissa useful work me use ho sakta hai, jaise electric fan ke blades ghumane me, aur baaki heat ke roop me kharch ho sakta hai; isi wajah se fan lambi der tak continuously use karne par warm ho jata hai.",
+          "Agar electric circuit purely resistive hai, yani sirf resistors ka configuration jo battery se connected hai, to source energy continuously poori tarah heat ke form me dissipate ho jati hai. Ise electric current ka heating effect kaha jata hai, aur yah electric heaters aur electric irons jaise devices me use hota hai.",
+          "Maan lijiye current I resistance R ke resistor se flow kar raha hai aur uske across potential difference V hai, aur time t me charge Q flow karta hai. Charge Q ko potential difference V ke through move karne me kiya gaya work VQ hai, isliye source ko time t me energy VQ supply karni padti hai, aur circuit me power input P = VQ/t = VI hai. Isliye source dwara time t me supplied energy VIt hai, aur yah energy resistor me heat ke roop me dissipate hoti hai, isliye H = VIt.",
+          "Is par Ohm's law V = IR apply karne se H = I²Rt milta hai. Yah Joule's law of heating hai, aur yah kehta hai ki kisi resistor me produce heat kisi diye gaye resistance ke liye current ke square ke directly proportional hoti hai, kisi diye gaye current ke liye resistance ke directly proportional hoti hai, aur jitni der current flow karta hai us time ke directly proportional hoti hai."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-08"
+    },
+    {
+      "id": "b-32",
+      "type": "reveal",
+      "section_id": "sec-08",
+      "spec": {
+        "title": "H = VIt se Joule's law H = I²Rt tak",
+        "steps": [
+          {
+            "title": "Source dwara di gayi energy",
+            "detail": "Time t me charge Q flow hota hai, aur ise potential difference V ke through move karne me kiya gaya work VQ hai, isliye source time t me energy VQ supply karta hai."
+          },
+          {
+            "title": "Power input likhiye",
+            "detail": "Kyunki I = Q/t, power input P = VQ/t = VI hai, isliye time t me supplied energy VIt hai."
+          },
+          {
+            "title": "Yeh energy heat ban jati hai",
+            "detail": "Purely resistive circuit me yeh poori energy resistor me heat ke roop me dissipate ho jati hai, isliye H = VIt."
+          },
+          {
+            "title": "V hataane ke liye Ohm's law use karein",
+            "detail": "H = VIt me V = IR rakhein, to H = (IR)It = I²Rt milta hai."
+          },
+          {
+            "title": "Teen proportionalities samjhiye",
+            "detail": "Fixed resistance ke liye, heat current ke square ke proportional hoti hai; fixed current ke liye, heat resistance ke proportional hoti hai; aur dono fixed ho to heat time ke proportional hoti hai."
+          }
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-28"
+        },
+        {
+          "claim_id": "claim-29"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-08"
+    },
+    {
+      "id": "b-33",
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "spec": {
+        "problem": "Ek electric iron maximum heating par 840 W rate se energy consume karta hai aur minimum heating par 360 W. Voltage 220 V hai. Har case mein current aur resistance kya hai?",
+        "steps": [
+          {
+            "title": "Power relation se shuru karein",
+            "detail": "Power input P = VI hai, isliye current I = P/V, aur resistance R = V/I se milti hai."
+          },
+          {
+            "title": "Maximum heating rate: current",
+            "detail": "I = 840 W / 220 V = 3.82 A."
+          },
+          {
+            "title": "Maximum heating rate: resistance",
+            "detail": "R = V/I = 220 V / 3.82 A = 57.60 Ω."
+          },
+          {
+            "title": "Minimum heating rate: current",
+            "detail": "I = 360 W / 220 V = 1.64 A."
+          },
+          {
+            "title": "Minimum heating rate: resistance",
+            "detail": "R = V/I = 220 V / 1.64 A = 134.15 Ω."
+          }
+        ],
+        "answer": "Maximum rate par current 3.82 A hai aur resistance 57.60 Ω; minimum rate par current 1.64 A hai aur resistance 134.15 Ω."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-08"
+    },
+    {
+      "id": "b-34",
+      "type": "worked_example",
+      "section_id": "sec-08",
+      "spec": {
+        "problem": "100 J heat har second 4 Ω resistance mein produce hota hai. Resistor ke across potential difference nikalo.",
+        "steps": [
+          {
+            "title": "Jo given hai use likho",
+            "detail": "Heat H = 100 J, resistance R = 4 Ω, time t = 1 s. Humein V chahiye."
+          },
+          {
+            "title": "Current nikalne ke liye Joule's law use karo",
+            "detail": "H = I²Rt, so I = square root of (H / (Rt)) = square root of (100 J / (4 Ω × 1 s)) = 5 A."
+          },
+          {
+            "title": "Potential difference nikalo",
+            "detail": "Ohm's law se V = IR = 5 A × 4 Ω = 20 V."
+          }
+        ],
+        "answer": "Resistor ke across potential difference 20 V hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        },
+        {
+          "claim_id": "claim-14"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-08"
+    },
+    {
+      "id": "b-35",
+      "type": "check",
+      "section_id": "sec-08",
+      "difficulty": "medium",
+      "spec": {
+        "question": "Ek electric iron jiska resistance 20 Ω hai, 5 A current leta hai. 30 s mein develop hone wala heat calculate karo. Answer joules mein do.",
+        "format": "numeric",
+        "answer": "15000",
+        "explanation": "Joule's law use karo: H = I²Rt = (5 A)² × 20 Ω × 30 s = 25 × 20 × 30 = 15000 J.",
+        "expected_understanding": "Learner current ka square karke resistance aur time se multiply karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-29"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-08"
+    },
+    {
+      "id": "b-36",
+      "type": "text",
+      "section_id": "sec-09",
+      "spec": {
+        "paragraphs": [
+          "Conductor mein heat ka generate hona electric current ka ek inevitable consequence hai, aur kai cases mein ye undesirable hota hai kyunki useful electrical energy heat mein badal jaati hai aur components garam ho jaate hain. Lekin heating effect ke kai useful applications hain: electric laundry iron, electric toaster, electric oven, electric kettle aur electric heater sab Joule's heating par based hain.",
+          "Electric bulb light produce karne ke liye heating ka use karta hai. Filament ko generated heat ka jitna possible ho utna retain karna chahiye taaki wo bahut hot ho jaye aur light emit kare, aur us temperature par melt na ho. High melting point wali strong metal, jaise tungsten (melting point 3380 °C), bulb filaments ke liye use hoti hai, filament ko insulating supports se as much as possible thermally isolate kiya jaata hai, aur filament ki life badhane ke liye bulb ko chemically inactive nitrogen aur argon gases se fill kiya jaata hai. Filament jo power consume karta hai uska most part heat ke roop mein appear hota hai, aur sirf small part light ke roop mein radiate hota hai.",
+          "Fuse Joule's heating ka another common application hai. Ye circuits aur appliances ko kisi bhi unduly high current ke flow ko rok kar protect karta hai, aur device ke saath series mein lagaya jaata hai. Ye appropriate melting point wale metal ya alloy ki wire ka ek piece hota hai, for example aluminium, copper, iron ya lead, usually porcelain ya similar material ke cartridge mein metal ends ke saath encased hota hai. Agar specified value se larger current flow hota hai, to fuse wire ka temperature rise hota hai, wire melt hoti hai aur circuit break ho jaata hai.",
+          "Domestic purposes ke liye fuses 1 A, 2 A, 3 A, 5 A, 10 A, aur so on rated hote hain, aur rating appliance jo current draw karta hai usse choose karni hoti hai. Electric iron jo 220 V par operate karne par 1 kW electric power consume karta hai, uske liye circuit mein (1000/220) A, yaani 4.54 A, current flow karega. Is case mein 5 A fuse use karna chahiye: fuse wire sirf tab melt hoti hai jab uski specified value se larger current flow hota hai, isliye rating working current 4.54 A ke above honi chahiye, aur 3 A too low hoga."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-22"
+        },
+        {
+          "claim_id": "claim-23"
+        },
+        {
+          "claim_id": "claim-32"
+        },
+        {
+          "claim_id": "claim-33"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-09"
+    },
+    {
+      "id": "b-37",
+      "type": "check",
+      "section_id": "sec-09",
+      "difficulty": "medium",
+      "spec": {
+        "question": "Ek electric iron 220 V par operate hone par 1 kW electric power consume karta hai. Iske saath kaun sa fuse rating use karna chahiye?",
+        "format": "mcq",
+        "options": [
+          "1 A",
+          "2 A",
+          "3 A",
+          "5 A"
+        ],
+        "answer_index": 3,
+        "answer": "5 A",
+        "explanation": "Circuit mein (1000/220) A, yani 4.54 A, current flow karta hai. Fuse wire sirf tab pighalta hai jab uske specified value se zyada current flow ho, isliye 3 A fuse working current se kam hoga aur 5 A fuse hi use karna chahiye.",
+        "expected_understanding": "Learner appliance ka working current nikalta hai aur uske bilkul upar wala fuse rating chunta hai, neeche wala nahi."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-33"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-09"
+    },
+    {
+      "id": "b-38",
+      "type": "text",
+      "section_id": "sec-10",
+      "spec": {
+        "paragraphs": [
+          "Karya karne ki dar power hai, aur yah energy ke consumption ki bhi dar hai. Electric circuit mein electric energy jis dar se dissipate ya consume hoti hai use electric power kehte hain, aur yah P = VI se di jaati hai. Ohm's law ka use karke ise P = I²R ya P = V²/R bhi likha ja sakta hai.",
+          "Electric power ka SI unit watt (W) hai. Yah us device dwara consume ki gayi power hai jo 1 V ke potential difference par operate hone par 1 A current carry karta hai, isliye 1 W = 1 volt × 1 ampere = 1 V A.",
+          "Watt bahut chhota unit hai, isliye actual practice mein hum kilowatt naam ka kaafi bada unit use karte hain, jo 1000 watts ke barabar hai. Electrical energy power aur time ka product hai, isliye iska unit watt hour (W h) hai, yani 1 watt power ko 1 hour tak use karne par consume hone wali energy. Electric energy ka commercial unit kilowatt hour (kW h) hai, jise aam taur par unit kaha jata hai: 1 kW h = 1000 watt × 3600 second = 3.6 × 10^6 watt second = 3.6 × 10^6 joule.",
+          "Ek savdhani: kai log sochte hain ki electric circuit mein electrons consume ho jate hain. Yah galat hai. Hum electricity board ya electric company ko isliye pay karte hain taaki ve electric bulb, fan aur engines jaise gadgets ke through electrons ko move karne ke liye energy dein; hum us energy ke liye pay karte hain jo hum use karte hain."
+        ]
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-31"
+        },
+        {
+          "claim_id": "claim-34"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-10"
+    },
+    {
+      "id": "b-39",
+      "type": "worked_example",
+      "section_id": "sec-10",
+      "spec": {
+        "problem": "Ek electric bulb 220 V generator se connected hai. Current 0.50 A hai. Bulb ki power kya hai?",
+        "steps": [
+          {
+            "title": "Jo diya gaya hai use likho",
+            "detail": "V = 220 V, I = 0.50 A."
+          },
+          {
+            "title": "Power relation ka use karo",
+            "detail": "P = VI."
+          },
+          {
+            "title": "Substitute karo",
+            "detail": "P = 220 V × 0.50 A = 110 J/s = 110 W."
+          }
+        ],
+        "answer": "Bulb ki power 110 W hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-10"
+    },
+    {
+      "id": "b-40",
+      "type": "worked_example",
+      "section_id": "sec-10",
+      "spec": {
+        "problem": "Ek electric refrigerator jiski rating 400 W hai, 8 hour/day chalta hai. Isse 30 days tak chalane ki energy ka cost kya hoga at Rs 3.00 per kW h?",
+        "steps": [
+          {
+            "title": "Watt hours mein total energy find karein",
+            "detail": "400 W × 8.0 hour/day × 30 days = 96000 W h."
+          },
+          {
+            "title": "Kilowatt hours mein convert karein",
+            "detail": "96000 W h = 96 kW h, since 1 kW h = 1000 W h."
+          },
+          {
+            "title": "Rate se multiply karein",
+            "detail": "96 kW h × Rs 3.00 per kW h = Rs 288.00."
+          }
+        ],
+        "answer": "Refrigerator ko 30 days tak chalane ka cost Rs 288.00 hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-31"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-10"
+    },
+    {
+      "id": "b-41",
+      "type": "check",
+      "section_id": "sec-10",
+      "difficulty": "easy",
+      "spec": {
+        "question": "In terms mein se kaun sa circuit mein electrical power ko represent nahi karta?",
+        "format": "mcq",
+        "options": [
+          "I²R",
+          "IR²",
+          "VI",
+          "V²/R"
+        ],
+        "answer_index": 1,
+        "answer": "IR²",
+        "explanation": "Electric power P = VI hota hai; jab V = IR rakhte hain to P = I²R ban jata hai, aur jab I = V/R rakhte hain to P = V²/R ban jata hai. Combination IR² mein I aur R ki powers galat hain, isliye ye power nahi hai.",
+        "expected_understanding": "Learner power relation ke teen forms ke beech move kar sakta hai aur galat form ko pehchan sakta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-10"
+    },
+    {
+      "id": "b-42",
+      "type": "check",
+      "section_id": "sec-11",
+      "difficulty": "hard",
+      "spec": {
+        "question": "Resistance R wala ek piece of wire paanch equal parts mein cut kiya jata hai. Ye parts phir parallel mein connect kiye jate hain. Agar is combination ki equivalent resistance R' hai, to ratio R/R' kya hai?",
+        "format": "mcq",
+        "options": [
+          "1/25",
+          "1/5",
+          "5",
+          "25"
+        ],
+        "answer_index": 3,
+        "answer": "25",
+        "explanation": "Paanch equal parts mein se har ek ki resistance R/5 hoti hai. Aise paanch resistors parallel mein hain to 1/R' = 5/(R/5) = 25/R, isliye R' = R/25. Isliye R/R' = 25.",
+        "expected_understanding": "Learner wire ko cut karne ke effect (length kam hoti hai, isliye resistance kam hoti hai) ko parallel rule ke saath combine karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-18"
+        },
+        {
+          "claim_id": "claim-25"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-11"
+    },
+    {
+      "id": "b-43",
+      "type": "check",
+      "section_id": "sec-11",
+      "difficulty": "hard",
+      "spec": {
+        "question": "Ek electric bulb 220 V aur 100 W rated hai. Jab ise 110 V par operate kiya jata hai, to ye kitni power consume karega?",
+        "format": "mcq",
+        "options": [
+          "100 W",
+          "75 W",
+          "50 W",
+          "25 W"
+        ],
+        "answer_index": 3,
+        "answer": "25 W",
+        "explanation": "Bulb ka resistance fixed hai: R = V²/P = (220 V)² / 100 W = 484 Ω. 110 V par power P = V²/R = (110 V)² / 484 Ω = 25 W. Voltage half hone se power quarter ho jati hai, kyunki fixed resistance ke liye power V² ke proportional hoti hai.",
+        "expected_understanding": "Learner rating se resistance nikalta hai aur phir naye voltage par power recompute karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-30"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-11"
+    },
+    {
+      "id": "b-44",
+      "type": "check",
+      "section_id": "sec-11",
+      "difficulty": "hard",
+      "spec": {
+        "question": "Same material ki do conducting wires, jinki lengths aur diameters barabar hain, ko pehle series mein aur phir parallel mein same potential difference ke across ek circuit mein connect kiya jata hai. Series combination mein produce hui heat aur parallel combination mein produce hui heat ka ratio kya hai?",
+        "format": "mcq",
+        "options": [
+          "1:2",
+          "2:1",
+          "1:4",
+          "4:1"
+        ],
+        "answer_index": 2,
+        "answer": "1:4",
+        "explanation": "Har wire ki resistance R hai. Series mein resistance 2R hoti hai; parallel mein ye R/2 hoti hai. Same potential difference V aur same time t ke liye, heat V²t/R hoti hai, isliye ye resistance ke inversely proportional hoti hai. Heats ka ratio (1/2R) : (1/(R/2)) = 1 : 4 hota hai.",
+        "expected_understanding": "Learner dekhta hai ki fixed source voltage ke liye, chhoti resistance zyada heat produce karti hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-24"
+        },
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-28"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-11"
+    },
+    {
+      "id": "b-45",
+      "type": "check",
+      "section_id": "sec-11",
+      "difficulty": "hard",
+      "spec": {
+        "question": "220 V line par 5 A carry karne ke liye kitne 176 Ω resistors (parallel mein) chahiye?",
+        "format": "numeric",
+        "answer": "4",
+        "explanation": "Combination ka resistance R = V/I = 220 V / 5 A = 44 Ω hona chahiye. Agar 176 Ω ke n resistors parallel mein jode jayein, to R = 176/n, isliye n = 176/44 = 4.",
+        "expected_understanding": "Learner required current se required equivalent resistance tak backwards kaam karta hai, phir identical resistors ke liye parallel rule use karta hai."
+      },
+      "citations": [
+        {
+          "claim_id": "claim-25"
+        },
+        {
+          "claim_id": "claim-15"
+        }
+      ],
+      "concept_id": "class-10-electricity-sec-11"
+    }
+  ]
+}
