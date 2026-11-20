@@ -44,11 +44,11 @@ them; the assessment and exam pipelines key on the ids):
 | # | chapter_id | NCERT chapter | Curated concepts | Lesson | Assessment bank | Translation | Narration |
 |---|---|---|---|---|---|---|---|
 | 1 | `class-10-light-reflection-and-refraction` | Light – Reflection and Refraction | 7 | **generated** (founder-local, 2026-11-19) `[ASSUMPTION]` | seed bank tracked (15 items + 3 speaking prompts, EN/HI/Hinglish) `[STRONG]` | pending | pending |
-| 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | pending | none (0 questions) `[STRONG]` | pending | pending |
+| 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
 | 3 | `class-10-electricity` | Electricity | 5 | pending | none (0 questions) `[STRONG]` | pending | pending |
 | 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | pending | none (0 questions) `[STRONG]` | pending | pending |
 
-State summary: **one generated, three pending.**
+State summary: **two generated, two pending.**
 
 ## 3. Current state (2026-11-19), against the committed snapshot
 
@@ -58,8 +58,17 @@ State summary: **one generated, three pending.**
   and no Class 10 topic; `frontend/audio/` has only `class-9-physics/` and
   `class-11-physics/`. The Light page enters the committed snapshot only when its
   publish gates (§5) pass and `scripts/publish-frontend.sh` mirrors it.
-- **The Human Eye, Electricity, Magnetic Effects are pending** — no run, no bank, no
-  locales, no audio.
+- **The Human Eye is generated** in a founder-local run on 2026-11-20 (43 blocks,
+  EN/HI/Hinglish, `03-check` and `09-review` pass, translation `10b` pass). Its earlier
+  failure was the provider output default, not reasoning quality: with
+  `reasoning_effort=none` the Go gateway capped output at 8,192 tokens
+  (`LengthFinishReasonError`), while `minimal`/`low` spent ~49k reasoning tokens and still
+  hit 65,536. The founder-approved fix (`ZIVON_CONTENT_MAX_TOKENS`, default 131,072; the
+  model's output limit is 384,000) let the same run finish with `completion_tokens=83,927`
+  and `finish_reason=stop`. Thinking effort is now a separate numeric knob
+  (`ZIVON_REASONING_EFFORT`, 0=none, 1=low default, 2=high, 3=max), so it can be raised on
+  quality grounds without changing the output ceiling. See `TIMELINE.md` (2026-11-20).
+- **Electricity and Magnetic Effects are pending** — no run, no bank, no locales, no audio.
 - **Assessment:** only Light has a tracked seed bank
   (`sources/syllabus/chapters/class-10-light-reflection-and-refraction.items.json` +
   `.speaking.json`); the other three chapters have no items, which is exactly what the
@@ -129,14 +138,27 @@ locales `[STRONG]`.
 Stage `12-narration` pre-generates per-block read-aloud at build time (C-051: zero
 runtime credits). It is opt-in via `ZIVON_NARRATION_ENABLED=true`; live synthesis needs
 `ZIVON_TIMBRE_BASE_URL` + `ZIVON_TIMBRE_API_KEY` and ffmpeg on PATH; the A-15 tranche
-(`ZIVON_NARRATION_BUDGET_CREDITS`) refuses spend before it exceeds the cap. One locale
-per run (`ZIVON_NARRATION_LANGS`). Mock assets (labelled `mode: "mock"`) are never
-published to the live site; residual block failures degrade read-aloud to the disabled
-copy honestly. Runbook: ["Narration builds"](runbook.md). Reference bar: the committed snapshot
-carries 623 opus assets under `frontend/audio/` for the six published topics (149
-under `class-9-physics/`, 474 under `class-11-physics/`) `[STRONG]`; the tranche's
-credit spend is founder-local ledger data (`runs/narration-budget.json`, gitignored,
-~1,525 credits) `[ASSUMPTION]`.
+(`ZIVON_NARRATION_BUDGET_CREDITS`) refuses spend before it exceeds the cap. Mock assets
+(labelled `mode: "mock"`) are never published to the live site; residual block failures
+degrade read-aloud to the disabled copy honestly. Runbook: ["Narration builds"](runbook.md).
+Reference bar: the committed snapshot carries 623 opus assets under `frontend/audio/` for
+the six published topics (149 under `class-9-physics/`, 474 under `class-11-physics/`)
+`[STRONG]`; the tranche's credit spend is founder-local ledger data
+(`runs/narration-budget.json`, gitignored) `[ASSUMPTION]`.
+
+**Two hard limits, both hit on 2026-11-19 (Light narration attempt):**
+
+- **Single-locale v1.** `ZIVON_NARRATION_LANGS` must name **exactly one** locale — the
+  stage raises a `NarrationError` before any synthesis on `en,hi,hi-Latn`
+  (`factory/narration/stage.py`). The speakable units are the English lesson forms, so
+  `hi`/`hi-Latn` audio needs the translated-block payload (EX2) that does not exist yet:
+  per-locale narration is **not** a config flag today, it is unimplemented work.
+- **The A-15 tranche is spent.** The ledger stood at **5,997.68 of 6,000** credits before
+  the Light attempt; the run narrated 1 of its 44 blocks (81 chars, 1.35 credits) and the
+  guard refused the remaining 43 (~418 credits) with the documented
+  refuse-before-exceed message. Finishing Light needs ~420 more credits, i.e. a
+  founder-approved tranche raise plus a re-trigger (completed blocks skip by content
+  hash). Narration does not publish on a partial pass: a 1-of-44 page is not a build.
 
 ### 5.4 Assessment gate — practice and speaking banks per chapter
 
@@ -194,8 +216,8 @@ catalogue with `missing_locales: []`.
 
 | Gate → | Lesson (00–10) | Translation (10a–10d) | Narration (12) | Assessment bank | Series pack contribution | Published in snapshot |
 |---|---|---|---|---|---|---|
-| Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ⬜ | ⬜ | ✅ seed bank | ⬜ (pack blocked: coverage) | ⬜ |
-| The Human Eye and the Colourful World | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ⬜ (pack blocked: coverage) | ⬜ |
+| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ⬜ |
 | Electricity | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | Magnetic Effects of Electric Current | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 

@@ -1,0 +1,33 @@
+{
+  "course_id": "class-10-physics",
+  "topic_slug": "the-human-eye-and-the-colourful-world",
+  "locale": "hi-Latn",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "The Human Eye and the Colourful World",
+    "hi": "मानव नेत्र तथा रंग-बिरंगा संसार",
+    "hi-Latn": "Human Eye aur Colourful World"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "narration": {
+    "available": false,
+    "lang": "hi-Latn",
+    "blocks": {}
+  }
+}
