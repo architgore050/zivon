@@ -1,7 +1,9 @@
 # Personalized learning frontend — hub, session, settings section, artifact viewer (PL4)
 
 Status: implementation contract for the W5.5 PL4 slice (branch
-`feature/intake-w5-5-pl4-frontend`, based on `main` @ `9e07400`). It describes code that
+`feature/intake-w5-5-pl4-frontend`, based on `main` @ `9e07400`); the resume
+slice (W5.5 PL6, 2026-11-20) extended it with the real Resume action and the
+cap-exhausted state. It describes code that
 exists: `web/routes/personalized.py`, `web/personalized_views.py`,
 `web/templates/app/personalized_hub.html`, `web/templates/app/personalized_session.html`,
 `web/templates/app/partials/personal_instructions.html`, the `Learn` nav entry,
@@ -25,6 +27,7 @@ host bridge), and the personalized-learning workstreams §5 (PL4 ownership).
 | `/app/personalized/start` | POST | start a session from the form (API-PL-05 rules) | `personalized_start` |
 | `/app/personalized/{session_id}` | GET | the session screen: transcript, check, composer, artifact cards | `personalized_session` |
 | `/app/personalized/{session_id}/end` | POST | end the session (API-PL-11's store path) | `personalized_end` |
+| `/app/personalized/{session_id}/resume` | POST | reopen a completed session (API-PL-16's store path) and redirect back to it | `personalized_resume` |
 | `/app/personalized/{session_id}/delete` | POST | hard-delete after the confirm disclosure (API-PL-08) | `personalized_delete` |
 | `/app/settings/instructions` | POST | save/clear personal instructions (API-PL-02/03 rules) | `settings_instructions_submit` |
 
@@ -40,7 +43,7 @@ The read models are computed in Python (`web/personalized_views.py`):
 the same callable `API-PL-04` reads); a storage failure degrades to the honest
 error view, never a JSON 500. The write routes call the same PL1 domain
 functions the JSON API uses (`PersonalizedStore.create_session/end_session/
-delete_session`, `save_preferences`/`clear_preferences`) with
+resume_session/delete_session`, `save_preferences`/`clear_preferences`) with
 `AuthService.verify_csrf` — there is no second write path, and **no route here
 re-implements turn admission, quota reservation, or scoring**: the teaching
 turn is always the island calling `API-PL-10`.
@@ -71,6 +74,17 @@ turn is always the island calling `API-PL-10`.
   ("Deletes in 7 days · export it"), Continue, Export (the `API-PL-09`
   attachment link), and Delete behind a confirm-then-do `<details>`
   disclosure with CSRF.
+- **Completed rows carry a real Resume action** (API-PL-16): a CSRF form
+  posting `/app/personalized/{id}/resume` that reopens the session
+  (`completed → active`) and redirects back to it with the truthful
+  "Session reopened" flash. A **cap-exhausted** row (60 turns used) never
+  renders a dead Resume button: it shows the honest start-new explanation
+  ("Used all 60 turns — start a new session to continue the chapter. Nothing
+  carries over; this transcript stays here.") plus the same linked
+  "Continue in a new session" form the session screen offers
+  (`parent_session_id`, display-only). A refused resume (direct API call or
+  a race) lands back on the hub with the `?resume=cap` flash — the same
+  explanation, never a pretend success.
 - Empty: "No sessions yet. Start with the chapter you're studying." — no fake
   cards. Footer line: "Practice questions are AI-generated in the board-exam
   style. They are not official CBSE questions." (spec.md §9).
@@ -95,8 +109,11 @@ Server-rendered transcript (the last 50 messages) + one island
   "Using your learning preferences · Edit" only when the account has saved
   instructions (personalized-learning spec §1.5). Notices: soft nudge at 40
   turns, the 60-turn cap ("continue from your last session" from the hub),
-  the completed state (read-only transcript, no composer), and the
-  quota/kill-switch copies.
+  the completed state (read-only transcript, no composer — with the **Resume
+  session** action when the session can honestly reopen, or the start-new
+  explanation when it is cap-exhausted), the truthful end/resume flashes
+  ("Session ended… you can resume it" / "Session reopened. Pick up where you
+  left off."), and the quota/kill-switch copies.
 - Composer: `Explain directly` / `I'm stuck` (`explain_directly` / `hint`) —
   both disabled server-side with the title "Submit the open check first" when
   a check is open, because `turn_router` prevalidation rejects those actions
@@ -182,7 +199,7 @@ the `auth-required` row (spec.md §7).
 | permission-denied | n/a — a valid session owns its own list; another owner's id never appears | — |
 | reduced-motion | no animation; CSS guard present | `prefers-reduced-motion` block |
 | untranslated | English copy; saved language shown in the shell | shell note |
-| quota-exhausted | Start disabled + honest copy; Continue/Export/Delete stay enabled | `start_blocked` / `start_note` |
+| quota-exhausted | Start disabled + honest copy; Continue/Resume/Export/Delete stay enabled | `start_blocked` / `start_note` |
 | consent-missing | n/a — no microphone on this surface | — |
 
 ### 6.2 Session
@@ -200,6 +217,7 @@ the `auth-required` row (spec.md §7).
 | reduced-motion | no animation; artifacts start paused via the PL3 bridge | CSS guard + bridge |
 | untranslated | English UI; teaching text follows the session language (PL2 contract) | — |
 | quota-exhausted | turn blocked before spend: honest strip + copy; the in-progress turn finishes | quota view + `E-QUOTA-EXHAUSTED` card |
+| cap-exhausted | finished session at 60 turns: read-only transcript, the start-new explanation + linked "Continue in a new session" form, no composer, no Resume | `session.cap_exhausted` notice branch |
 | consent-missing | n/a (no mic) | — |
 
 ### 6.3 Artifact viewer
@@ -269,8 +287,12 @@ the `auth-required` row (spec.md §7).
 chapter), owner scoping (404 for another user's session, GET and DELETE), the
 no-answer-key rule, artifact pending/ready/failed rendering, feedback
 attachment, mastery summary, the 83-day warning, the settings
-save/clear/rejection matrix, the log-sink redaction scan, and the a11y checks
-(one `h1`, labels, live region, no inline script, no `zn-` lesson device).
+save/clear/rejection matrix, the log-sink redaction scan, the a11y checks
+(one `h1`, labels, live region, no inline script, no `zn-` lesson device),
+and the resume matrix (`ResumeWebTests`: the hub's real Resume form +
+redirect, the truthful reopened flash, the finished notice's Resume button,
+cap-exhausted hub/session states with the start-new explanation, CSRF/guest/
+owner-404 on the resume route, and no false flash on a double submit).
 
 `python -m unittest discover -s testing/frontend -t .` runs
 `testing/frontend/test_personalized_assets.py` (asset + template contracts)

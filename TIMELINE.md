@@ -30,8 +30,13 @@ artifacts) merged** (PR #80, 2026-11-19), and **PL4 (frontend) landed 2026-11-19
 login-required `/app/personalized` hub and session screens, the settings
 personal-instructions section, saved-session resume/export/delete UI, the sandboxed
 artifact viewer integration, and every honest state (contract:
-`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) in review with this
-PR.** Durable
+`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) merged** (PR #86,
+2026-11-20). The W5.5 resume slice (2026-11-20) replaced the hub's dead
+completed-row Continue with the real resume path: `API-PL-16` `POST …/resume`
+(completed → active, state/messages/checks/turn_count preserved), the
+hub/session Resume action with the cap-exhausted start-new state
+(`E-PL-TURN-CAP` — the 60-turn cap is never bypassed by resuming), and the
+`personalized.session.resumed` event. Durable
 deployment also pending (the challenge demo tunnel is historical). The status block
 and dated log below are preserved as written.
 
@@ -116,8 +121,12 @@ fail-closed, render gate + sandbox red-team, API-PL-13/14, viewer host bridge,
 `EV-PL-003` green key-free), with PL2's teaching turn calling `ensure_artifact`
 through `app.state.personalized_artifact_builder` — and **PL4 landed (2026-11-19)**:
 the session screens, the hub, the settings section, and the artifact viewer
-integration (`docs/specs/frontend/personalized.md`); PL5's evals/security slice is the
-remaining W5.5 workstream and sits in review with this PR.
+integration (`docs/specs/frontend/personalized.md`); PL5's evals/security slice landed
+(PR #86, 2026-11-20) — see below.
+**Resume slice landed (2026-11-20):** the real resume path (API-PL-16, the
+hub/session Resume action, `E-PL-TURN-CAP` for cap-exhausted sessions,
+`personalized.session.resumed`); docs: `data-and-api.md` §4.2/§4.7/§4.10,
+`spec.md` §2.6/§2.7, `docs/specs/frontend/personalized.md`.
 See `docs/specs/personalized-learning/workstreams.md` §4–§5 and
 `interactive-artifacts.md` §12.
 
@@ -132,7 +141,7 @@ tests (`testing/evals/test_personalized_eval_cards.py`), the registry pins
 (25 cards, 72 checks), and the key-free merge gate `scripts/pl-smoke.sh`.
 The full-suite judge run and the two PL judge authorships are the
 founder-local live gate recorded in the spec's evals.md §10 — never CI.
-PL5 is the remaining W5.5 workstream (in review with this PR).
+PL5 was the last of the W5.5 workstreams (merged, PR #86, 2026-11-20).
 
 **Not in this wave:** payments/plans, voice inside personalized learning, parent/teacher
 views, sharing, an inferred learner profile, model tools/browsing, verbatim CBSE items.

@@ -255,6 +255,11 @@ def build_hub_view(
     try:
         rows, _cursor = PersonalizedStore(db).list_sessions(user_id)
         for row in rows:
+            # Completed rows carry a real Resume action (API-PL-16); a
+            # cap-exhausted one shows the start-new explanation instead of a
+            # dead Resume button (spec.md §2.6, frontend personalized.md §2).
+            completed = str(row["status"]) == "completed"
+            cap_exhausted = completed and int(row["turn_count"]) >= HARD_TURN_CAP
             sessions.append(
                 {
                     "session_id": str(row["session_id"]),
@@ -265,6 +270,12 @@ def build_hub_view(
                     ),
                     "status": str(row["status"]),
                     "turn_count": int(row["turn_count"]),
+                    "can_resume": completed and not cap_exhausted,
+                    "cap_exhausted": cap_exhausted,
+                    "resume_url": (
+                        "/app/personalized/" + str(row["session_id"]) + "/resume"
+                    ),
+                    "chapter_id": str(row["chapter_id"]),
                     "when": _relative_when(row.get("last_turn_at"), current),
                     "deletes_at": row.get("deletes_at"),
                     "delete_soon": _delete_warning(row, current),
@@ -585,6 +596,8 @@ def build_session_view(
     turn_count = int(session["turn_count"])
     active = str(session["status"]) == "active"
     at_cap = turn_count >= HARD_TURN_CAP
+    completed = str(session["status"]) == "completed"
+    cap_exhausted = completed and at_cap
     has_ready_artifacts = any(
         card["type"] == "artifact" and card["artifact"]["status"] == "ready"
         for card in cards
@@ -602,6 +615,10 @@ def build_session_view(
             "active": active,
             "mode": str(session["mode"]),
             "turn_count": turn_count,
+            # The finished notice offers the real Resume action only when the
+            # session can honestly reopen (completed, under the 60-turn cap).
+            "can_resume": completed and not cap_exhausted,
+            "cap_exhausted": cap_exhausted,
             "report_course_id": f"personalized/{session['chapter_id']}",
         },
         "cards": cards,

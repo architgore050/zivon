@@ -47,6 +47,9 @@ ERROR_MESSAGE_KEYS: Final[dict[str, str]] = {
     "E-PL-TURN-OPEN": "error.pl.turn_open",
     "E-PL-MODEL-DOWN": "error.pl.model_down",
     "E-PL-PREFS-REJECTED": "error.preferences_rejected",
+    # W5.5 resume (API-PL-16): a cap-exhausted session cannot be reopened;
+    # the copy points at the linked start-new path (spec.md §2.6).
+    "E-PL-TURN-CAP": "error.pl.turn_cap",
 }
 
 

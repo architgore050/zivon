@@ -7,11 +7,14 @@ store/quota view models (`web/personalized_views.py`); the teaching turn is
 `API-PL-10`) called by `frontend/assets/personalized.js` — no route here
 re-implements admission, quota reservation, or scoring (data-and-api.md §4.6).
 
-The small HTML write routes (start, end, delete, preferences save/clear) call
-the same PL1 domain functions the JSON API uses (`PersonalizedStore`,
-`save_preferences`/`clear_preferences`) with the session-derived CSRF token —
-there is no second write path, no answer key in any page, and no student text
-in any log line (the domain functions already emit counts-only events).
+The small HTML write routes (start, end, resume, delete, preferences
+save/clear) call the same PL1 domain functions the JSON API uses
+(`PersonalizedStore`, `save_preferences`/`clear_preferences`) with the
+session-derived CSRF token — there is no second write path, no answer key in
+any page, and no student text in any log line (the domain functions already
+emit counts-only events). Resume (API-PL-16) reopens a completed session and
+lands back on the session screen; a cap-exhausted one is refused by the store
+and lands on the hub with the truthful start-new explanation.
 
 Guests get the shell's `303 /login?next=…`; another user's session id is a
 branded 404, never a 403 (data-and-api.md §4.1, no existence oracle). The
@@ -94,23 +97,6 @@ QUOTA_SESSIONS_NOTICE: Final[str] = (
 # -- shared helpers ------------------------------------------------------------
 
 
-def _session_title(db: Any, chapter: dict[str, Any], concept_ids: list[str]) -> str:
-    """The server-generated title: chapter title + the chosen concept's title
-    (data-and-api.md §4.4's example shape). Never the raw concept/chapter ids
-    and never the weakness text — the title is shown in the hub list and the
-    session page <h1> (PL1's store rule: server-generated, never free text)."""
-    chapter_title = str(chapter["title_en"])
-    if not concept_ids:
-        return chapter_title[:120]
-    row = db.fetchone(
-        "SELECT title_en FROM concept WHERE concept_id = ?", (concept_ids[0],)
-    )
-    concept_title = concept_ids[0]
-    if row is not None and row.get("title_en"):
-        concept_title = str(row["title_en"])
-    return f"{chapter_title} · {concept_title}"[:120]
-
-
 def _require_account(request: Request) -> PageAccount:
     account = page_account(request)
     if account is None:
@@ -188,6 +174,17 @@ def _hub_page(
     saved = (request.query_params.get("saved") or "").strip()
     if saved == "deleted":
         flash = (notice("Session deleted. It is removed for good."),)
+    if (request.query_params.get("resume") or "").strip() == "cap":
+        # The store refused the resume: this session used all 60 turns. The
+        # copy is the honest start-new explanation (spec.md §2.6), never a
+        # suggestion that the button "failed".
+        flash = (
+            notice(
+                "That session used all 60 turns. Start a new session to "
+                "continue the chapter — nothing carries over, and the old "
+                "transcript stays here."
+            ),
+        )
     return render_page(
         request,
         "app/personalized_hub.html",
@@ -345,7 +342,9 @@ async def personalized_start(request: Request) -> Response:
             )
 
         assert chapter is not None
-        title = _session_title(db, chapter, concept_ids)
+        # The shared server-generated title (GAP-PL2R-1: the concept's TITLE,
+        # never the raw id — one helper with the JSON create route).
+        title = store.session_title(chapter, concept_ids)
         session = store.create_session(
             user_id=_user(account),
             chapter_id=str(chapter["chapter_id"]),
@@ -389,6 +388,8 @@ def personalized_session(request: Request, session_id: str) -> Response:
     flash: tuple[Any, ...] = ()
     if (request.query_params.get("ended") or "").strip():
         flash = (notice("Session ended. Your transcript is saved; you can resume it."),)
+    if (request.query_params.get("resumed") or "").strip():
+        flash = (notice("Session reopened. Pick up where you left off."),)
     return render_page(
         request,
         "app/personalized_session.html",
@@ -422,6 +423,50 @@ async def personalized_end(request: Request, session_id: str) -> Response:
         return _unavailable(request)
     return RedirectResponse(
         url=f"{SESSION_PATH_PREFIX}{session['session_id']}?ended=1", status_code=303
+    )
+
+
+@router.post(
+    SESSION_PATH_PREFIX + "{session_id}/resume",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+async def personalized_resume(request: Request, session_id: str) -> Response:
+    """Reopen a completed session (API-PL-16's store path) and go back to it.
+
+    The hub's Resume button posts here and the redirect lands on the session
+    screen, open again. The store refuses anything that is not a completed
+    session: another owner's id is the branded 404, a cap-exhausted session
+    lands back on the hub with the truthful start-new explanation (`?resume=cap`),
+    and an already-active id simply shows the session (a double submit changed
+    nothing, so no "reopened" flash).
+    """
+    account = _require_account(request)
+    form = await _read_or_error(request)
+    if isinstance(form, HTMLResponse):
+        return form
+    if not account.service.verify_csrf(account.context, form.get("csrf_token")):
+        return _csrf_error(request)
+    db = _db(request)
+    if db is None:
+        return _unavailable(request)
+    try:
+        PersonalizedStore(db).resume_session(_user(account), session_id)
+    except APIError as exc:
+        if exc.code == "E-NOT-FOUND":
+            return _not_found(request)
+        if exc.code == "E-PL-TURN-CAP":
+            return RedirectResponse(url=f"{HUB_PATH}?resume=cap", status_code=303)
+        # E-CONFLICT: already active (or abandoned) — the session screen is
+        # the honest landing either way.
+        return RedirectResponse(
+            url=f"{SESSION_PATH_PREFIX}{session_id}", status_code=303
+        )
+    except Exception:  # HTML routes render the honest 503 shell, never a JSON 500
+        logger.exception("personalized session resume failed")
+        return _unavailable(request)
+    return RedirectResponse(
+        url=f"{SESSION_PATH_PREFIX}{session_id}?resumed=1", status_code=303
     )
 
 

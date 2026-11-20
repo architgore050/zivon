@@ -7,6 +7,13 @@ be SQLite-portable (the containerless empty→head test) and valid PostgreSQL 16
 (the CI Alembic job). IDs are UUIDv7 (`db/uuid7.py`); timestamps are
 `timestamptz` (TEXT ISO on SQLite).
 
+**Resume landed (2026-11-20):** the real resume path — `API-PL-16`
+(`POST /v1/personalized/sessions/{id}/resume` + the HTML hub/session route),
+`PersonalizedStore.resume_session` (completed → active; the cap-exhausted
+refusal `409 E-PL-TURN-CAP`), and the `personalized.session.resumed` event
+emitted by the resume write itself (§4.7). No migration: the transition uses
+the existing `status` / `completed_at` columns.
+
 **PL1 landed:** the six tables (§2), the `progress_event.kind` /
 `abuse_bucket.endpoint_family` CHECK widenings, the retention jobs (§2.7),
 `backend/personalized/{store,preferences,quota,retention,router}.py`, the
@@ -24,8 +31,9 @@ the SSE turn endpoint behaviour beyond its honest `503 E-PL-MODEL-DOWN` stub
 (§4.6's event catalogue is PL2), and the catalog coverage response body (§4.2
 API-PL-04 answers `503 E-CONTENT-UNAVAILABLE` until the index exists). The
 per-endpoint hourly sub-caps of the endpoint table
-(preferences 10/h, delete/end 20/h) are enforced as the `personalized_ip`
-20/min family in PL1; the families and windows live in `backend/abuse.py`.
+(preferences 10/h, delete/end/resume 20/h) are enforced as the
+`personalized_ip` 20/min family in PL1; the families and windows live in
+`backend/abuse.py`.
 
 **No paywall tables.** There is no `plan`, `subscription`, `payment`,
 `entitlement`, `price`, or `invoice` table anywhere in this migration. Free
@@ -296,6 +304,7 @@ preferences. JSON, UTC ISO timestamps, the repo error envelope
 | `API-PL-13` | GET | `/v1/personalized/artifacts/{id}` | artifact HTML (sandbox headers) | read limit | 401, 404 |
 | `API-PL-14` | GET | `/v1/personalized/artifacts/{id}/status` | pending/ready/failed | read limit | 401, 404 |
 | `API-PL-15` | GET | `/v1/personalized/usage` | remaining turns/artifacts + reset | read limit | 401 |
+| `API-PL-16` | POST | `/v1/personalized/sessions/{id}/resume` | reopen a completed session (§4.7) | read limit family (`personalized_ip` 20/min) | 401, 403 CSRF, 404, 409 `E-CONFLICT`, 409 `E-PL-TURN-CAP` |
 
 ### 4.3 Preferences
 
@@ -368,6 +377,13 @@ artifact reference carries `src` (the same-origin route, or the signed URL in
 dedicated-origin mode) and `status`. `GET .../{id}/messages?before=<turn_index>&limit=50`
 pages earlier.
 
+The `title` on every row (GAP-PL2R-1) is the server-generated composite
+`chapter title · concept title` of §4.4's example — the concept's **title**,
+never the raw concept id and never the chapter slug; with no concept chosen it
+is the chapter title alone. Both create paths (`API-PL-05` and the hub form)
+share `PersonalizedStore.session_title`, so the JSON API and the hub cannot
+drift apart.
+
 ### 4.6 Turns (SSE)
 
 `POST /v1/personalized/sessions/{id}/turns` with the body in
@@ -398,10 +414,33 @@ Any failure before the model calls releases the reservation and writes a
 `quota_blocked`/`rate_limited`/`rejected` usage row only when a quota/rate
 decision was made; validation failures write nothing.
 
-### 4.7 End, export, delete
+### 4.7 End, resume, export, delete
 
 - `POST .../{id}/end` → `200 {status:"completed", summary:{...}}`; idempotent
   (ending a completed session returns the same summary).
+- `POST .../{id}/resume` (API-PL-16) → `200 {session_id, status:"active",
+  stage, turn_count}`; the real resume path for a saved conversation.
+
+  - Authenticated + CSRF + owner-scoped (§4.1): another user's id is a **404**
+    (no existence oracle).
+  - Only `status='completed'` resumes; an already-active (or abandoned) id is
+    `409 E-CONFLICT` — there is nothing to reopen.
+  - **The 60-turn cap is never bypassed by resuming:** a completed session
+    whose effective turn count (the machine's `state.turn_count`, maxed with
+    the `turn_count` column) is ≥ 60 is refused with `409 E-PL-TURN-CAP` and
+    the "start a new session" copy; the linked start-new path
+    (`parent_session_id`, display-only) is the only way forward (spec.md
+    §2.6).
+  - The transition sets exactly `status='active'`, `completed_at=NULL`,
+    `updated_at=now`; stage, state, messages, checks (open ones included),
+    `turn_count`, and artifact references are preserved untouched. The next
+    turn replans the stage from the machine's state.
+  - Not metered (§5.2: resume is not a teaching turn and consumes no
+    allowance), and no quota reservation is taken.
+  - Emits `personalized.session.resumed` (EVT-PL-08) from the resume write
+    with `chapter_id` + `turn_count` only — never the title, weakness, or any
+    student text. A page reload of an already-active session is not a resume
+    and emits nothing.
 - `GET .../{id}/export` → `Content-Disposition: attachment;
   filename="zivon-session-<id>.json"`, body:
 
@@ -468,6 +507,7 @@ already saw in the feedback.
 | `E-PL-TURN-OPEN` | 409 | a check is open; submit it first | `error.pl.turn_open` |
 | `E-PL-MODEL-DOWN` | 503 | model route unavailable | `error.pl.model_down` |
 | `E-PL-PREFS-REJECTED` | 422 | instructions rejected (reason field) | `error.pl.prefs_rejected` |
+| `E-PL-TURN-CAP` | 409 | the session used all 60 turns; start a new session | `error.pl.turn_cap` |
 
 `E-RATE-LIMIT`, `E-AUTH-REQUIRED`, `E-AUTH-CSRF`, `E-NOT-FOUND`,
 `E-VALIDATION`, `E-CONFLICT`, `E-SERVICE-UNAVAILABLE` already exist.

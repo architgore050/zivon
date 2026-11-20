@@ -2,7 +2,13 @@
 
 Status: **spec complete; PL1 implemented (2026-11-17), PL2 implemented (2026-11-18),
 PL3 implemented (2026-11-18) and PL4 implemented (2026-11-19 — the frontend
-contract is `docs/specs/frontend/personalized.md`); PL5 not started.** This folder is the
+contract is `docs/specs/frontend/personalized.md`); PL5 implemented
+(PR #86, 2026-11-20).** The
+W5.5 resume slice (2026-11-20) landed the real resume path: `API-PL-16`
+(`POST /v1/personalized/sessions/{id}/resume`), the hub/session Resume action
+with the cap-exhausted start-new state (`E-PL-TURN-CAP`, never a bypass of
+the 60-turn cap), and the `personalized.session.resumed` event — see
+`data-and-api.md` §4.7. This folder is the
 buildable contract for the login-required personalized-learning surface, the
 account-level personal instructions, saved conversations, and the sandboxed
 interactive artifacts the teaching agent may generate. Product code lands only
@@ -132,7 +138,7 @@ Machine-readable companion: [`decision-log-addendum.csv`](decision-log-addendum.
 
 **Spec status:** complete for build; PL1 implemented (2026-11-17), PL2 implemented
 (2026-11-18), PL3 implemented (2026-11-18), PL4 implemented (2026-11-19),
-PL5 not started (2026-11-19).
+the resume slice implemented (2026-11-20), PL5 implemented (PR #86, 2026-11-20).
 **Wave:** **W5.5** (post-W4, before W5 integration), recorded in
 [`TIMELINE.md`](../../../TIMELINE.md).
 

@@ -558,6 +558,95 @@ class TurnEndpointTest(WebAuthSupport):
         )
         self.assertEqual([r["outcome"] for r in rows], ["quota_blocked"])
 
+    # -- resume (API-PL-16) interplay ---------------------------------------
+
+    def test_turn_succeeds_after_resume_and_continues_the_count(self) -> None:
+        """A resumed session takes turns again: the machine state — including
+        the open check — continues exactly where the completed session left
+        it, and the turn count carries on."""
+        session_id = self._create_session()
+        first = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r1", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(
+            next(
+                e["payload"]
+                for e in first.json()["events"]
+                if e["event"] == "turn.done"
+            )["turn_no"],
+            1,
+        )
+        check = next(
+            e["payload"] for e in first.json()["events"] if e["event"] == "turn.check"
+        )
+        ended = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/end",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(ended.status_code, 200)
+        resumed = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(resumed.status_code, 200, resumed.text)
+        self.assertEqual(resumed.json()["status"], "active")
+        self.assertEqual(resumed.json()["turn_count"], 1)
+        # The check armed before the end is still open after the resume
+        # (state preserved), so a teaching action stays blocked until it is
+        # submitted — the admission order applies unchanged.
+        blocked = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r2", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(blocked.status_code, 409)
+        self.assertEqual(blocked.json()["code"], "E-PL-TURN-OPEN")
+        answered = self._post_turn(
+            session_id,
+            {
+                "client_turn_id": "c-r3",
+                "action": "answer",
+                "check_id": check["check_id"],
+                "answer": "A",  # the bank key is option A
+            },
+            Accept="application/json",
+        )
+        self.assertEqual(answered.status_code, 200, answered.text)
+        names = [e["event"] for e in answered.json()["events"]]
+        self.assertIn("turn.feedback", names)
+        self.assertIn("turn.done", names)
+        done = next(
+            e["payload"] for e in answered.json()["events"] if e["event"] == "turn.done"
+        )
+        self.assertEqual(done["turn_no"], 2, "the count continues after resume")
+
+    def test_turn_on_a_completed_session_is_409_until_resumed(self) -> None:
+        session_id = self._create_session()
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/end",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        blocked = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-x1", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(blocked.status_code, 409)
+        self.assertEqual(blocked.json()["code"], "E-CONFLICT")
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        after = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-x2", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(after.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()

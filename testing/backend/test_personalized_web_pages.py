@@ -587,6 +587,214 @@ class SessionPageTests(PersonalizedPageSupport):
         self.assertIn("Deletes in 7 days", response.text)
 
 
+class ResumeWebTests(PersonalizedPageSupport):
+    """The hub's real Resume action and the cap-exhausted honest state
+    (API-PL-16 through the HTML route; `docs/specs/frontend/personalized.md`
+    §2/§3/§6)."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.session_id = self.seed_session()
+        self.store.append_message(
+            session_id=self.session_id,
+            role="tutor",
+            kind="text",
+            text=(
+                "A concave mirror curves inward. Parallel rays meet at the focus [S1]."
+            ),
+            payload={
+                "schema_version": 1,
+                "teaching": {
+                    "paragraphs": ["A concave mirror curves inward."],
+                    "key_statement": "Parallel rays meet at the focus.",
+                },
+                "citations": [
+                    {"label": "NCERT Class 10 Science, Ch. 10", "locator": "p. 148"}
+                ],
+                "ungrounded": False,
+            },
+            client_turn_id="c-teach-1",
+        )
+        self.store.append_message(
+            session_id=self.session_id,
+            role="tutor",
+            kind="check",
+            payload={
+                "check_id": "chk-1",
+                "kind": "mcq",
+                "question": "Where do parallel rays meet in a concave mirror?",
+                "options": [
+                    {"id": "A", "text": "The centre of curvature"},
+                    {"id": "B", "text": "The principal focus"},
+                ],
+                "level": 1,
+                "concept_id": CONCEPT_A,
+                "source": {"kind": "generated", "item_id": None},
+            },
+            answer_key='{"kind": "mcq", "option": "B"}',
+            client_turn_id="c-check-1",
+        )
+
+    def _completed_session(self) -> str:
+        self.store.end_session(self.user_id(), self.session_id)
+        return self.session_id
+
+    def _cap_exhausted_session(self) -> str:
+        self._completed_session()
+        # The runtime path: the turn engine persists the count inside state.
+        self.db.execute(
+            "UPDATE personalized_session SET state = ? WHERE session_id = ?",
+            ('{"schema_version": 1, "turn_count": 60}', self.session_id),
+        )
+        return self.session_id
+
+    def test_hub_completed_row_offers_a_real_resume_form(self) -> None:
+        session_id = self._completed_session()
+        html = self.client.get("/app/personalized").text
+        self.assertIn(f'action="/app/personalized/{session_id}/resume"', html)
+        self.assertIn(">Resume</button>", html)
+        self.assertNotIn("Continue</a>", html.split("pl-session-actions")[1])
+
+    def test_hub_resume_post_reopens_and_lands_on_the_session(self) -> None:
+        session_id = self._completed_session()
+        response = self.client.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": self.csrf},
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(
+            response.headers["location"], f"/app/personalized/{session_id}?resumed=1"
+        )
+        session = self.store.get_session(self.user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "active")
+        self.assertIsNone(session["completed_at"])
+
+    def test_session_page_after_resume_shows_the_truthful_flash(self) -> None:
+        session_id = self._completed_session()
+        self.client.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": self.csrf},
+        )
+        page = self.client.get(f"/app/personalized/{session_id}?resumed=1")
+        self.assertIn("Session reopened. Pick up where you left off.", page.text)
+        self.assertIn("data-pl-composer", page.text)
+
+    def test_finished_session_notice_offers_resume(self) -> None:
+        session_id = self._completed_session()
+        page = self.client.get(f"/app/personalized/{session_id}")
+        self.assertIn("This session is finished", page.text)
+        self.assertIn(f'action="/app/personalized/{session_id}/resume"', page.text)
+        self.assertIn("Resume session", page.text)
+        self.assertNotIn("data-pl-composer", page.text)
+
+    def test_web_resume_without_csrf_changes_nothing(self) -> None:
+        session_id = self._completed_session()
+        response = self.client.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": "forged"},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("This form expired", response.text)
+        session = self.store.get_session(self.user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "completed")
+
+    def test_web_resume_guest_is_guarded_and_other_owner_is_404(self) -> None:
+        session_id = self._completed_session()
+        guest = self.other_client()
+        # The other account's own CSRF token, extracted from its own hub page:
+        other_page = guest.get("/app/personalized").text
+        other_csrf = re.search(r'name="csrf_token" value="([^"]+)"', other_page)
+        assert other_csrf is not None
+        response = guest.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": other_csrf.group(1)},
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Session not found", response.text)
+        from fastapi.testclient import TestClient
+
+        stranger = TestClient(self.app, base_url="https://testserver")
+        guarded = stranger.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": "x"},
+            follow_redirects=False,
+        )
+        self.assertEqual(guarded.status_code, 303)
+        self.assertTrue(guarded.headers["location"].startswith("/login?next="))
+
+    def test_web_resume_of_an_active_session_shows_it_without_false_flash(self) -> None:
+        session_id = self.seed_session()  # active
+        response = self.client.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": self.csrf},
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(
+            response.headers["location"], f"/app/personalized/{session_id}"
+        )
+
+    def test_cap_exhausted_hub_row_explains_start_new_instead_of_resume(self) -> None:
+        session_id = self._cap_exhausted_session()
+        html = self.client.get("/app/personalized").text
+        self.assertIn("Used all 60 turns", html)
+        self.assertIn("Continue in a new session", html)
+        self.assertIn(f'name="parent_session_id" value="{session_id}"', html)
+        self.assertNotIn(">Resume</button>", html)
+        # The linked start-new path works from the hub (display-only link).
+        match = re.search(r'name="csrf_token" value="([^"]+)"', html)
+        assert match is not None
+        start = self.client.post(
+            "/app/personalized/start",
+            data={
+                "csrf_token": match.group(1),
+                "parent_session_id": session_id,
+                "chapter_id": CHAPTER,
+                "mode": "beginning",
+            },
+            follow_redirects=False,
+        )
+        self.assertEqual(start.status_code, 303)
+
+    def test_cap_exhausted_session_page_shows_start_new_no_composer(self) -> None:
+        session_id = self._cap_exhausted_session()
+        page = self.client.get(f"/app/personalized/{session_id}")
+        self.assertIn("used all 60 turns", page.text)
+        self.assertIn("Continue in a new session", page.text)
+        self.assertNotIn("data-pl-composer", page.text)
+        self.assertNotIn('/resume"', page.text)
+        # The transcript (and the mastery summary when present) stays readable.
+        self.assertIn("A concave mirror curves inward", page.text)
+
+    def test_hub_cap_flash_after_a_refused_resume_is_truthful(self) -> None:
+        self._cap_exhausted_session()
+        response = self.client.post(
+            "/app/personalized/whatever/resume",
+            data={"csrf_token": self.csrf},
+            follow_redirects=False,
+        )
+        # A non-owned id is a 404 before any cap logic runs.
+        self.assertEqual(response.status_code, 404)
+        hub = self.client.get("/app/personalized?resume=cap")
+        self.assertIn("That session used all 60 turns", hub.text)
+        self.assertIn("Start a new session", hub.text)
+
+    def test_resume_keeps_the_transcript_readable_after_reopen(self) -> None:
+        session_id = self._completed_session()
+        self.client.post(
+            f"/app/personalized/{session_id}/resume",
+            data={"csrf_token": self.csrf},
+        )
+        page = self.client.get(f"/app/personalized/{session_id}")
+        self.assertIn("A concave mirror curves inward", page.text)
+        self.assertIn("Where do parallel rays meet", page.text)
+        self.assertIn("Session", page.text)  # the stage tag renders
+
+
 class SettingsInstructionsTests(PersonalizedPageSupport):
     def section(self) -> str:
         return self.client.get("/app/settings").text

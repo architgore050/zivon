@@ -108,6 +108,20 @@
   align-items: center;
 }
 
+/* The cap-exhausted hub row's honest explanation (it replaces the dead
+   Resume button; spec.md §2.6). */
+.pl-cap-note {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.875rem;
+}
+
+.pl-session-actions .pl-inline-form {
+  display: inline-flex;
+  margin: 0;
+}
+
 .pl-empty {
   color: var(--graphite);
   margin: 0.5rem 0;
