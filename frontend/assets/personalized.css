@@ -1,0 +1,611 @@
+/* Zivon personalized-learning pages (PL4): hub, session, artifact cards, and
+   the settings instructions section.
+   Field Notes base system (§1–§9) only: paper, ink, graphite notes, Bricolage
+   + Courier, flat cards, square corners. No §10 lesson device, no taped
+   cards, no ruled body grid, no handwritten body text.
+
+   Loaded on top of `product.css` (and `auth.css` on settings); every class is
+   scoped to `.pl-*` (plus the PL3-owned `.zn-art-viewer` box sizing below) so
+   it cannot restyle the shell, dashboard, or lesson pages. Correctness is
+   never colour alone: feedback carries shape words ("Correct." / "Not yet")
+   and the tags carry their own labels. */
+
+/* ---- hub ---- */
+.pl-hub-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+  padding-bottom: 3rem;
+}
+
+.pl-quota {
+  font-family: var(--notes);
+  font-size: 0.875rem;
+  color: var(--graphite);
+}
+
+.pl-optional {
+  color: var(--graphite);
+  font-weight: 400;
+}
+
+.pl-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.pl-notice-line {
+  margin-top: 1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.75rem;
+}
+
+.pl-session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pl-session-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.pl-session-row:last-child {
+  border-bottom: 0;
+}
+
+.pl-session-main {
+  min-width: 0;
+  flex: 1 1 14rem;
+}
+
+.pl-session-title {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.pl-session-title:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--pen-blue);
+}
+
+.pl-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+
+.pl-when {
+  font-family: var(--notes);
+}
+
+.pl-warning {
+  color: var(--pencil-red);
+  font-weight: 500;
+}
+
+.pl-session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pl-empty {
+  color: var(--graphite);
+  margin: 0.5rem 0;
+}
+
+/* confirm-then-do disclosures (session delete, preferences clear) */
+.pl-confirm {
+  display: inline-block;
+}
+
+.pl-confirm-summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.pl-confirm-summary::-webkit-details-marker {
+  display: none;
+}
+
+.pl-confirm[open] .pl-confirm-summary {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+.pl-confirm-form {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--ink);
+  background: var(--paper-light);
+  max-width: 20rem;
+}
+
+.pl-confirm-form .auth-hint {
+  margin-top: 0;
+}
+
+/* ---- session ---- */
+.pl-session-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  padding-bottom: 2rem;
+}
+
+.pl-session-meta .pl-quota {
+  margin-left: 0.5rem;
+}
+
+.pl-prefs-line {
+  color: var(--graphite);
+}
+
+.pl-transcript-wrap {
+  min-width: 0;
+}
+
+.pl-transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pl-stage-line {
+  margin: 0;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+
+.pl-card {
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 1rem 1.125rem;
+}
+
+.pl-card p {
+  margin: 0 0 0.625rem;
+}
+
+.pl-card p:last-child {
+  margin-bottom: 0;
+}
+
+.pl-card--student {
+  background: var(--paper);
+  border-style: dashed;
+  color: var(--ink);
+}
+
+.pl-card--teach {
+  max-width: 46rem;
+}
+
+.pl-key-statement {
+  font-weight: 700;
+  border-left: 3px solid var(--pen-blue);
+  padding-left: 0.75rem;
+}
+
+.pl-citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.pl-citation {
+  font-size: 0.75rem;
+}
+
+.pl-honest-note {
+  color: var(--graphite);
+  font-style: italic;
+}
+
+.pl-card-actions {
+  margin-top: 0.5rem;
+}
+
+.pl-card--check .pl-check-kicker {
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--graphite);
+  margin-bottom: 0.375rem;
+}
+
+.pl-check-question {
+  font-weight: 500;
+}
+
+.pl-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.pl-option {
+  display: flex;
+  gap: 0.625rem;
+  align-items: baseline;
+  min-height: 44px;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.pl-option:has(input:checked) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+.pl-option:has(input:focus-visible) {
+  outline: 3px solid var(--pen-blue);
+  outline-offset: 2px;
+}
+
+.pl-option input {
+  accent-color: var(--pen-blue);
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+}
+
+.pl-option input[disabled] {
+  cursor: default;
+}
+
+.pl-numeric {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.75rem 0;
+}
+
+.pl-numeric .pl-option {
+  flex: 0 0 auto;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+.pl-numeric-input {
+  max-width: 10rem;
+}
+
+.pl-unit {
+  font-family: var(--notes);
+  color: var(--graphite);
+}
+
+.pl-check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.pl-feedback {
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-left: 3px solid var(--ink);
+  background: var(--paper);
+}
+
+.pl-feedback p {
+  margin: 0 0 0.375rem;
+}
+
+.pl-feedback p:last-child {
+  margin-bottom: 0;
+}
+
+/* shape + words, never colour alone (doctrine §3/§10.6): the left rule and
+   the sentence carry the verdict; colour only reinforces. */
+.pl-feedback--ok {
+  border-left-color: var(--tick-green);
+}
+
+.pl-feedback--no {
+  border-left-color: var(--pencil-red);
+}
+
+.pl-card--summary .pl-summary-title {
+  margin: 0 0 0.625rem;
+  font-size: 1.125rem;
+}
+
+.pl-mastery {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pl-mastery li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.pl-mastery-concept {
+  font-weight: 500;
+}
+
+.pl-mastery-counts {
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+
+.pl-live {
+  min-height: 1.5rem;
+  margin: 0.5rem 0 0;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+
+.pl-load-earlier-wrap {
+  margin: 0 0 0.75rem;
+}
+
+/* artifact cards (the PL3 partial) — box sizing only; behaviour is
+   personalized-artifact.js and the viewer never leaves the card. */
+.zn-art-viewer {
+  background: var(--paper-light);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 1rem 1.125rem;
+  max-width: 46rem;
+}
+
+.zn-art-viewer-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.zn-art-viewer-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.zn-art-viewer-kind {
+  font-family: var(--notes);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--graphite);
+}
+
+.zn-art-viewer-frame {
+  margin-top: 0.75rem;
+  /* a fixed-aspect box, a whole number of rows deep enough to read, and
+     never a layout shift: the iframe fills it, the page does not reflow. */
+  aspect-ratio: 3 / 2;
+  max-height: 22rem;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.zn-art-viewer--expanded .zn-art-viewer-frame {
+  aspect-ratio: auto;
+  height: min(75vh, 32rem);
+  max-height: none;
+}
+
+.zn-art-viewer-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.zn-art-viewer-fallback {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--rule);
+}
+
+.zn-art-viewer-fallback-note {
+  margin: 0 0 0.5rem;
+  color: var(--graphite);
+}
+
+.zn-art-viewer-fallback-body svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.zn-art-viewer-status {
+  margin: 0.5rem 0 0;
+  font-family: var(--notes);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+}
+
+.zn-art-viewer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.zn-art-viewer-meta {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  color: var(--graphite);
+}
+
+.pl-art-failed {
+  max-width: 46rem;
+}
+
+.pl-art-fallback-body {
+  margin-top: 0.5rem;
+  overflow-x: auto;
+}
+
+.pl-art-fallback-body svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- composer ---- */
+.pl-composer {
+  border-top: 1px solid var(--ink);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pl-composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pl-composer-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.pl-composer-row .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pl-composer-row .btn {
+  flex: 0 0 auto;
+}
+
+.pl-error {
+  margin: 0;
+  color: var(--pencil-red);
+  font-weight: 500;
+}
+
+.pl-sandbox-note {
+  margin: 0;
+}
+
+.pl-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pl-session-footer {
+  padding-bottom: 3rem;
+}
+
+.pl-session-footer .pl-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+}
+
+/* ---- settings partial ---- */
+.pl-status {
+  font-weight: 500;
+  border-left: 3px solid var(--tick-green);
+  padding-left: 0.75rem;
+}
+
+/* ---- narrow screens (the 360 px contract: no horizontal overflow) ---- */
+@media (max-width: 46rem) {
+  .pl-hub-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .pl-card,
+  .zn-art-viewer,
+  .pl-card--teach,
+  .pl-art-failed {
+    max-width: none;
+  }
+
+  .pl-composer-row {
+    flex-wrap: wrap;
+  }
+
+  .pl-composer-row .btn {
+    width: 100%;
+  }
+
+  .pl-session-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pl-session-actions .btn,
+  .pl-session-actions .pl-confirm {
+    flex: 1 1 auto;
+  }
+
+  .pl-session-actions .pl-confirm-summary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .zn-art-viewer-frame {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-option,
+  .pl-confirm-summary,
+  .pl-card {
+    transition: none;
+    animation: none;
+  }
+}

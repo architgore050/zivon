@@ -30,6 +30,7 @@ device.
 | `/app/settings/password` | POST | required | — (303 to `/app/settings`) | F2 |
 | `/app/settings/privacy` | GET | required | `app/settings_privacy.html` | F2 |
 | `/app/settings/delete` | POST | required | — (303 to `/login?deleted=1`) | F2 |
+| `/app/settings/instructions` | POST | required | — (303 to `/app/settings`) | PL4 (the personal-instructions partial) |
 
 The HTML routes call the same `AuthService` methods the JSON endpoints use
 (`register`, `login`, `verify_email`, `request_password_reset`,
@@ -192,3 +193,4 @@ memory, dev email sink, fake Google transport). No network, no keys.
 | Two open auth tabs | F2 | Every GET of `/login`/`/signup`/`/forgot-password` issues a fresh nonce, so the older tab's hidden token fails closed with the 403 page and a reload instruction. Reusing an existing nonce would remove the stutter; not worth new state today. |
 | Google start with an expired session | F0 | `/v1/auth/google/start` answers the JSON `E-AUTH-REQUIRED` envelope when the session died between render and click; a `303` to `/login?next=` would be friendlier when F0 revisits that route. |
 | Public nav sign-in link | F1 | The static public pages do not yet link to `/login`; the server-rendered shell does. |
+| Personal-instructions section | PL4 (landed 2026-11-19) | The settings page gained the `personal_instructions` partial (one include + the two asset lines), one allow-listed view key in `web/routes/settings.py::_settings_values`, and the `/app/settings/instructions` POST route; contract and states: `docs/specs/frontend/personalized.md` §5. |

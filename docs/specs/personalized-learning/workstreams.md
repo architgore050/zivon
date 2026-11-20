@@ -1,7 +1,8 @@
 # Workstreams — PL1…PL5
 
 Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3
-implemented (2026-11-18); PL4–PL5 not started.** PL3 landed against this
+implemented (2026-11-18); PL4 implemented (2026-11-19,
+`docs/specs/frontend/personalized.md` is the landed contract); PL5 not started.** PL3 landed against this
 document's decide contract as the internal generation interface
 (`ensure_artifact` + the `ArtifactBuilder` seam on
 `app.state.personalized_artifact_builder`); PL2 wires it into the teaching turn.
@@ -159,6 +160,23 @@ student request); iframe focus/Escape behaviour (manual a11y test).
 ---
 
 ## 5. PL4 — frontend
+
+**Status: implemented 2026-11-19.** Files:
+`web/routes/personalized.py` (hub/session/start/end/delete + the
+`/app/settings/instructions` route), `web/personalized_views.py`,
+`web/templates/app/personalized_hub.html`, `personalized_session.html`,
+`app/partials/personal_instructions.html`, the one-line include + assets in
+`app/settings.html`, the privacy-page row, the `Learn` nav entry
+(`web/nav.py`), `frontend/assets/personalized.css`, `frontend/assets/personalized.js`.
+The landed contract and the full state matrix:
+`docs/specs/frontend/personalized.md`. Tests:
+`testing/backend/test_personalized_web_pages.py`,
+`testing/frontend/test_personalized_assets.py`,
+`testing/frontend/test_personalized_session_island.py`. Deliberate
+interpretations recorded there: the chapter picker is one native select
+with per-class optgroups (the sketch's class tabs carried no extra
+capability), and the session turn loop is island-only — a server-side
+answer route would have duplicated PL2's admission order.
 
 **Goal:** the hub, the session, the settings section, and the artifact viewer,
 in the Field Notes base system, with every state.

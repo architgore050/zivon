@@ -1,7 +1,9 @@
 # Product flow — personal instructions, personalized learning, saved conversations, artifacts
 
-Status: **spec, not implemented (2026-11-17).** Read
-[`agent-and-rag.md`](agent-and-rag.md) for the teaching brain,
+Status: **implemented (the PL4 frontend landed 2026-11-19; the landed
+frontend contract and state matrix are
+[`docs/specs/frontend/personalized.md`](../frontend/personalized.md)).**
+Read [`agent-and-rag.md`](agent-and-rag.md) for the teaching brain,
 [`interactive-artifacts.md`](interactive-artifacts.md) for the artifact
 pipeline, and [`data-and-api.md`](data-and-api.md) for the exact contracts.
 

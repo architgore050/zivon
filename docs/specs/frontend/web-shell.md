@@ -224,6 +224,11 @@ same-origin nginx route on `8081` (compose) or the Service (cluster).
   `backend/test_engine/`), adding the `Tests` nav entry and `/app/series`. It
   consumes the F0 guard/CSRF contract unchanged. Contract:
   `docs/specs/frontend/tests.md`.
+- **PL4 personalized learning** landed 2026-11-19: `/app/personalized` (hub +
+  session) as SSR pages with two same-origin islands, the settings partial
+  include, and the `Learn` nav entry; contract and state matrix:
+  `docs/specs/frontend/personalized.md`. The teaching turn stays the PL2
+  JSON/SSE API; the shell, guard, and CSP are unchanged.
 - **F8** uses the shell once F3's data exists, which it does: SWOT landed
   `/app/swot` + `/app/swot/how` as plain SSR pages with no island and no
   shell change (`docs/specs/frontend/swot.md`). **F10** does not use the
@@ -285,11 +290,12 @@ template must extend `base.html`.
 - A URL under `/app` that matches no route answers FastAPI's JSON 404 (the
   shell registers no catch-all by design); a branded HTML 404 for the app
   surface lands with a feature PR that can own the route.
-- The app nav lists Dashboard, Practice, Tests, Progress, SWOT, Speak,
-  Courses, and Settings. Practice, Tests, Speak, and SWOT landed 2026-11-17
-  (`docs/specs/frontend/practice.md`, `docs/specs/frontend/tests.md`,
-  `docs/specs/frontend/speaking.md`, `docs/specs/frontend/swot.md`). Saved
-  sections are a quick link on the dashboard/progress pages rather than
-  their own nav entry.
+- The app nav lists Dashboard, Practice, Tests, Progress, SWOT, Learn,
+  Speak, Courses, and Settings. Practice, Tests, Speak, and SWOT landed
+  2026-11-17 (`docs/specs/frontend/practice.md`, `docs/specs/frontend/tests.md`,
+  `docs/specs/frontend/speaking.md`, `docs/specs/frontend/swot.md`); the
+  personalized `Learn` entry landed with PL4 (2026-11-19,
+  `docs/specs/frontend/personalized.md`). Saved sections are a quick link on
+  the dashboard/progress pages rather than their own nav entry.
 - `/app` is not rate-limited by the API bucket (the abuse classifier returns
   no family for HTML paths); the JSON API it calls keeps its existing limits.

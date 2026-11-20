@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% from "partials/form_macros.html" import csrf, field_error %}
+{% block head %}<link rel="stylesheet" href="/assets/personalized.css">{% endblock %}
+{% block main %}
+<section class="wrap page-head" aria-labelledby="pl-hub-title">
+  <p class="kicker">Personalized learning</p>
+  <h1 id="pl-hub-title">Learn what's weak</h1>
+  <p class="lede">Pick a chapter, or tell Zivon what's confusing. It teaches a little, checks, and adjusts. Free while Zivon is a prototype — signing in is the only gate.</p>
+  {% if quota %}
+  <p class="meta pl-quota" role="status" data-pl-quota>
+    {%- if quota.exhausted_scope == "disabled" -%}
+    Personalized learning is paused.
+    {%- elif quota.exhausted_scope == "global" -%}
+    Zivon is at its daily limit.
+    {%- elif quota.exhausted_scope == "user" -%}
+    You've used today's turns.
+    {%- else -%}
+    {{ quota.turns_remaining }} turns left today
+    {%- endif %} · resets 00:00 IST
+  </p>
+  {% endif %}
+</section>
+
+{% if page_error %}
+<div class="wrap"><div class="notice notice--error" role="alert"><p>{{ page_error }}</p></div></div>
+{% endif %}
+{% if quota and not quota.enabled %}
+<div class="wrap"><div class="notice notice--partial"><p>{{ quota.quota_copy }}</p></div></div>
+{% endif %}
+{% if quota and quota.exhausted_scope == "global" %}
+<div class="wrap"><div class="notice notice--partial"><p>{{ quota.quota_copy }}</p></div></div>
+{% endif %}
+
+<div class="wrap pl-hub-grid">
+  <section class="settings-card" aria-labelledby="pl-start-title">
+    <h2 id="pl-start-title">Start a session</h2>
+    {% if not catalog_available %}
+    <div class="notice notice--partial">
+      {% if no_content %}
+      <p>{{ no_content_copy }}</p>
+      {% else %}
+      <p>The teaching content isn't ready right now (the study index is missing). Saved sessions still work; new ones need the index.</p>
+      {% endif %}
+      <p><a class="text-link" href="/courses">Open the catalogue</a></p>
+    </div>
+    {% endif %}
+    {% if field_errors.get('input') %}
+    <div class="notice notice--error" role="alert"><p>{{ field_errors['input'] }}</p></div>
+    {% endif %}
+
+    <form class="auth-form" method="post" action="/app/personalized/start" data-pl-start>
+      {{ csrf(csrf_token) }}
+      <div class="field">
+        <label for="pl-chapter">Chapter</label>
+        <select class="input" id="pl-chapter" name="chapter_id" data-pl-chapter-select
+                {%- if not catalog_available %} disabled{% endif %}
+                {%- if field_errors.get('chapter') %} aria-invalid="true" aria-describedby="pl-chapter-error"{% endif %}>
+          <option value="" {% if not form.get('chapter_id') %}selected{% endif %}>Choose your chapter</option>
+          {% for group in class_groups %}
+          <optgroup label="Class {{ group.class_level }}">
+            {% for chapter in group.chapters %}
+            <option value="{{ chapter.chapter_id }}"
+                    data-pl-source-only="{{ 'true' if chapter.source_only else 'false' }}"
+                    {% if form.get('chapter_id') == chapter.chapter_id %}selected{% endif %}>
+              {{ chapter.title }}{% if chapter.source_only %} (source only){% endif %}
+            </option>
+            {% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+        <p class="auth-hint">Chapters marked “source only” teach from the NCERT source text — no published lesson page yet.</p>
+        {{ field_error(field_errors.get("chapter"), "pl-chapter-error") }}
+      </div>
+      <div class="field">
+        <label for="pl-concept">Concept <span class="pl-optional">(optional)</span></label>
+        <select class="input" id="pl-concept" name="concept_id" data-pl-concept-select
+                {% if not form.get('chapter_id') or not catalog_available %}disabled{% endif %}>
+          {% if form.get('chapter_id') %}
+          <option value="" {% if not form.get('concept_id') %}selected{% endif %}>Any concept in the chapter</option>
+          {% for group in class_groups %}
+            {% for chapter in group.chapters %}
+              {% if chapter.chapter_id == form.get('chapter_id') %}
+                {% for concept in chapter.concepts %}
+                <option value="{{ concept.concept_id }}" {% if form.get('concept_id') == concept.concept_id %}selected{% endif %}>{{ concept.title }}</option>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+          {% else %}
+          <option value="">Choose a chapter first</option>
+          {% for group in class_groups %}
+            {% for chapter in group.chapters %}
+            <optgroup label="{{ chapter.title }}" data-pl-concepts-for="{{ chapter.chapter_id }}" hidden>
+              {% for concept in chapter.concepts %}
+              <option value="{{ concept.concept_id }}">{{ concept.title }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endfor %}
+          {% endfor %}
+          {% endif %}
+        </select>
+        <p class="auth-hint">Leave it on “any” and the diagnostic finds where to start.</p>
+        {{ field_error(field_errors.get("concept"), "pl-concept-error") }}
+      </div>
+      <div class="field">
+        <label for="pl-weakness">What's confusing? <span class="pl-optional">(optional)</span></label>
+        <textarea class="input" id="pl-weakness" name="weakness" rows="3" maxlength="{{ weakness_max_chars }}"
+                  data-pl-weakness aria-describedby="pl-weakness-count{{ ' pl-weakness-error' if field_errors.get('weakness') else '' }}"
+                  {%- if field_errors.get('weakness') %} aria-invalid="true"{% endif %}>{{ form.get('weakness') }}</textarea>
+        <p class="auth-hint"><span data-pl-weakness-count>{{ form.get('weakness') | length }}</span>/{{ weakness_max_chars }} characters. Your words are saved with the session and are never logged.</p>
+        {{ field_error(field_errors.get("weakness"), "pl-weakness-error") }}
+      </div>
+      <div class="pl-start-actions">
+        <button class="btn auth-submit" type="submit" name="mode" value="diagnose"
+                {% if start_blocked %}disabled{% endif %}>Start</button>
+        <button class="btn btn--outline" type="submit" name="mode" value="beginning"
+                {% if start_blocked %}disabled{% endif %}>Start from the chapter beginning</button>
+      </div>
+      {% if start_note %}
+      <p class="auth-hint" role="status">{{ start_note }}</p>
+      {% endif %}
+    </form>
+    <p class="small pl-notice-line">Practice questions are AI-generated in the board-exam style. They are not official CBSE questions.</p>
+  </section>
+
+  <section class="settings-card" aria-labelledby="pl-sessions-title">
+    <h2 id="pl-sessions-title">Your sessions</h2>
+    {% if sessions_error %}
+    <div class="notice notice--error" role="alert"><p>{{ page_error or "Saved sessions could not be read just now. They are not lost." }}</p></div>
+    {% elif not sessions %}
+    <p class="pl-empty">No sessions yet. Start with the chapter you're studying.</p>
+    {% else %}
+    <ul class="pl-session-list">
+      {% for s in sessions %}
+      <li class="pl-session-row">
+        <div class="pl-session-main">
+          <a class="pl-session-title" href="{{ s.session_url }}">{{ s.title }}</a>
+          <p class="pl-session-meta">
+            <span class="tag {{ 'tag--done' if s.status == 'completed' else 'tag--progress' }}">{{ s.stage_label }}</span>
+            <span class="pl-when">{{ s.when }}</span>
+            {% if s.delete_soon %}<span class="pl-warning">Deletes in 7 days · export it</span>{% endif %}
+          </p>
+        </div>
+        <div class="pl-session-actions">
+          <a class="btn btn--sm" href="{{ s.session_url }}">Continue</a>
+          <a class="btn btn--sm btn--outline" href="{{ s.export_url }}" download>Export</a>
+          <details class="pl-confirm">
+            <summary class="btn btn--sm btn--outline pl-confirm-summary">Delete</summary>
+            <form class="pl-confirm-form" method="post" action="/app/personalized/{{ s.session_id }}/delete">
+              {{ csrf(csrf_token) }}
+              <p class="auth-hint">Delete “{{ s.title }}” for good? This cannot be undone.</p>
+              <button class="btn btn--sm auth-danger-submit" type="submit">Delete session</button>
+            </form>
+          </details>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="small">Sessions are private to your account and auto-delete 90 days after your last turn. Export downloads a JSON copy.</p>
+  </section>
+</div>
+{% endblock %}

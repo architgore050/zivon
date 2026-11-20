@@ -1,7 +1,8 @@
 # `docs/specs/personalized-learning/` — personalized learning + interactive artifacts
 
-Status: **spec complete; PL1 implemented (2026-11-17), PL2 implemented (2026-11-18) and
-PL3 implemented (2026-11-18); PL4–PL5 not started.** This folder is the
+Status: **spec complete; PL1 implemented (2026-11-17), PL2 implemented (2026-11-18),
+PL3 implemented (2026-11-18) and PL4 implemented (2026-11-19 — the frontend
+contract is `docs/specs/frontend/personalized.md`); PL5 not started.** This folder is the
 buildable contract for the login-required personalized-learning surface, the
 account-level personal instructions, saved conversations, and the sandboxed
 interactive artifacts the teaching agent may generate. Product code lands only
@@ -130,7 +131,8 @@ Machine-readable companion: [`decision-log-addendum.csv`](decision-log-addendum.
 ## Status and exit gate
 
 **Spec status:** complete for build; PL1 implemented (2026-11-17), PL2 implemented
-(2026-11-18), PL3 implemented (2026-11-18), PL4–PL5 not started (2026-11-19).
+(2026-11-18), PL3 implemented (2026-11-18), PL4 implemented (2026-11-19),
+PL5 not started (2026-11-19).
 **Wave:** **W5.5** (post-W4, before W5 integration), recorded in
 [`TIMELINE.md`](../../../TIMELINE.md).
 
