@@ -1150,13 +1150,10 @@ class PersonalizedAgent:
             payload["next_action"] = decide.get("next_action", "ask_check")
             client_check = decide.get("client_check")
             if client_check:
-                payload["check"] = {
-                    k: v for k, v in client_check.items() if k != "message_event"
-                }
-                if run_teach:
-                    # The teaching row is already persisted; keep its payload
-                    # authoritative for replay by appending the check event.
-                    pass
+                # Store the flat §3.2 check payload: replay (§3.4) rebuilds
+                # turn.check from this stored payload, so it must be the same
+                # shape the live event carried — never the arm wrapper.
+                payload["check"] = client_check["client"]
         if client_check:
             yield client_check["message_event"]
         if run_teach and client_check:

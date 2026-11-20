@@ -305,6 +305,166 @@ class TurnEndpointTest(WebAuthSupport):
         # No second model call: the replay rebuilt the stream from the rows.
         self.assertEqual(len(model.teach_prompts), 1)
 
+    # -- replay contract (PL2R: GAP-PL4R-2) --------------------------------------
+    # A replay must rebuild exactly what the live turn streamed (§3.4): the
+    # flat §3.2 check shape and the closing turn.done on both transports.
+
+    def test_replayed_turn_check_is_the_flat_client_shape(self) -> None:
+        session_id = self._create_session()
+        self._wire_agent()
+        first = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r1", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(first.status_code, 200, first.text)
+        stored_check = next(
+            e["payload"] for e in first.json()["events"] if e["event"] == "turn.check"
+        )
+        self.assertNotIn("client", stored_check)
+        second = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r1", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(second.status_code, 200, second.text)
+        replayed_check = next(
+            e["payload"] for e in second.json()["events"] if e["event"] == "turn.check"
+        )
+        # The replayed turn.check is the flat §3.2 payload — no legacy
+        # {"client": ...} wrapper — and identical to what the live turn sent.
+        self.assertNotIn("client", replayed_check)
+        self.assertEqual(replayed_check, stored_check)
+        self.assertTrue(replayed_check.get("check_id"))
+        self.assertEqual(replayed_check.get("source", {}).get("kind"), "bank")
+
+    def test_json_replay_includes_turn_done(self) -> None:
+        session_id = self._create_session()
+        self._wire_agent()
+        self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r2", "action": "continue"},
+            Accept="application/json",
+        )
+        second = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r2", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(second.status_code, 200, second.text)
+        names = [e["event"] for e in second.json()["events"]]
+        # The stored text replays as one 240-char delta (the live stream sent
+        # two smaller ones; §3.4 rebuilds the same contract, not the same wire).
+        self.assertEqual(
+            names,
+            [
+                "turn.stage",
+                "turn.teach.start",
+                "turn.teach.delta",
+                "turn.check",
+                "turn.next",
+                "turn.done",
+            ],
+        )
+        done = next(
+            e["payload"] for e in second.json()["events"] if e["event"] == "turn.done"
+        )
+        self.assertTrue(done.get("replayed"))
+        self.assertIsNone(done.get("quota"))
+        self.assertIsNone(done.get("message_id"))
+        # The completion marker hoists to the body so clients can settle the
+        # quota strip without scanning the event list.
+        self.assertIs(second.json().get("replayed"), True)
+
+    def test_sse_replay_keeps_the_complete_event_stream(self) -> None:
+        session_id = self._create_session()
+        model = self._wire_agent()
+        self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r3", "action": "continue"},
+            Accept="text/event-stream",
+        )
+        self.assertEqual(len(model.teach_prompts), 1)
+        second = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r3", "action": "continue"},
+            Accept="text/event-stream",
+        )
+        self.assertEqual(second.status_code, 200, second.text)
+        self.assertIn("text/event-stream", second.headers["content-type"])
+        frames = [f for f in second.text.split("\n\n") if f.startswith("event: ")]
+        names = [f.split("event: ", 1)[1].split("\n", 1)[0] for f in frames]
+        self.assertEqual(
+            names,
+            [
+                "turn.stage",
+                "turn.teach.start",
+                "turn.teach.delta",
+                "turn.check",
+                "turn.next",
+                "turn.done",
+            ],
+        )
+        # No second model call: the replay rebuilt the stream from the rows.
+        self.assertEqual(len(model.teach_prompts), 1)
+        check = json.loads(
+            next(f for f in frames if f.startswith("event: turn.check")).split(
+                "data: ", 1
+            )[1]
+        )
+        self.assertNotIn("client", check)
+        self.assertTrue(check.get("check_id"))
+        done = json.loads(
+            next(f for f in frames if f.startswith("event: turn.done")).split(
+                "data: ", 1
+            )[1]
+        )
+        self.assertIs(done.get("replayed"), True)
+
+    def test_replay_unwraps_a_legacy_wrapped_check_payload(self) -> None:
+        """Rows stored by the pre-fix writer carry the check wrapped as
+        {"client": ...}; replay must still emit the flat §3.2 shape."""
+        session_id = self._create_session()
+        self._wire_agent()
+        first = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r4", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(first.status_code, 200, first.text)
+        live_check = next(
+            e["payload"] for e in first.json()["events"] if e["event"] == "turn.check"
+        )
+        row = self.db.fetchone(
+            "SELECT message_id, payload FROM personalized_message "
+            "WHERE session_id = ? AND client_turn_id = ?",
+            (session_id, "c-r4"),
+        )
+        assert row is not None, "the teaching anchor row must exist"
+        payload = json.loads(row["payload"])
+        assert isinstance(payload.get("check"), dict)
+        payload["check"] = {"client": live_check}
+        self.db.execute(
+            "UPDATE personalized_message SET payload = ? WHERE message_id = ?",
+            (json.dumps(payload), row["message_id"]),
+        )
+        second = self._post_turn(
+            session_id,
+            {"client_turn_id": "c-r4", "action": "continue"},
+            Accept="application/json",
+        )
+        self.assertEqual(second.status_code, 200, second.text)
+        replayed_check = next(
+            e["payload"] for e in second.json()["events"] if e["event"] == "turn.check"
+        )
+        self.assertNotIn("client", replayed_check)
+        self.assertEqual(replayed_check, live_check)
+        # turn.next resolves the concept from the unwrapped check, not None.
+        nxt = next(
+            e["payload"] for e in second.json()["events"] if e["event"] == "turn.next"
+        )
+        self.assertEqual(nxt.get("concept_id"), live_check.get("concept_id"))
+
     # -- quota ------------------------------------------------------------------
 
     def test_quota_commit_on_done_and_release_on_failure(self) -> None:
