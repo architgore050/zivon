@@ -191,6 +191,22 @@ and fallback (`PL3-artifacts` stage; deterministic only, no judge; goldens under
 so the eval cannot drift from the code the build enforces. `EV-PL-004/005`
 remain specified only until PL5's PR adds them.
 
+**W5.5 PL5 additions (2026-11-19): `EV-PL-004` (personal instructions,
+injection precedence, saved-chat privacy; `PL1-preferences` stage, 6
+deterministic checks: `DET-PL04-NORMALIZE/PII/KEY/INJECT/PARITY/SAVE-PRIVACY`,
+goldens `evals/goldens/personalized/instructions/` — 15 synthetic fixtures)
+and `EV-PL-005` (free-tier quota, abuse, honest states, no paywall;
+`PL1-quota` stage, 12 deterministic checks: `DET-PL05-QUOTA/RATE/CSRF/IDOR/
+ARTIFACT-REF/DELETE/EXPORT/LOGS/HEADERS/NO-PAYWALL/NEXT/SECRETS`, goldens
+`evals/goldens/personalized/quota/` — 6 scenarios + tenant/CSRF/next
+fixtures) are authored and green key-free.** Their checkers reuse the
+production seams (`personalization`, `prompts`, `voice.brain_client`,
+`PersonalizedStore`, `QuotaService`, the real FastAPI app over in-memory
+SQLite, `db.schema.ALL_TABLES`) instead of re-implementing any rule, and run
+with `llm_judge: null` like every PL card. The deterministic checker count
+pinned by `testing/evals/test_checkers.py` moved 54 → 72. The key-free
+smoke/regression gate for the stack is `bash scripts/pl-smoke.sh`.
+
 ---
 
 ### 2.2 Detailed Card Specifications

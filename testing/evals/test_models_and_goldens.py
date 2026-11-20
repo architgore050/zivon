@@ -80,11 +80,13 @@ class TestEvalConfigAndModels(unittest.TestCase):
             "EV-SER-001",
             "EV-SER-002",
             "EV-SER-003",
-            # Personalized-learning cards (W5.5 PL2/PL3; additive per Q-5 —
+            # Personalized-learning cards (W5.5 PL2/PL3/PL5; additive per Q-5 —
             # the ids are fixed by docs/specs/personalized-learning/evals.md).
             "EV-PL-001",
             "EV-PL-002",
             "EV-PL-003",
+            "EV-PL-004",
+            "EV-PL-005",
         }
         self.assertEqual(set(cards.keys()), expected_ids)
 

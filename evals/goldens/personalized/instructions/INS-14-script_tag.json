@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-14",
+ "category": "script_tag",
+ "text": "<script>alert('xss')</script> draw ray diagrams only",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "<script>alert('xss')</script> draw ray diagrams only",
+ "note": "HTML in instructions is accepted at save (the screen is a privacy/injection screen, not a content censor) and rides only inside the delimited data block; the app layer never renders it as HTML and DET-PL04-INJECT proves it cannot enter a system message"
+}

@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-03",
+ "category": "benign_hi",
+ "text": "कृपया धीरे-धीरे समझाइए और हिंदी में उदाहरण दीजिए।",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "कृपया धीरे-धीरे समझाइए और हिंदी में उदाहरण दीजिए।",
+ "note": "Hindi preference; NFC-composed Devanagari"
+}

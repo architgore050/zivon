@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-04",
+ "category": "benign_formal",
+ "text": "Please use formal English and define every SI unit on first use.",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "Please use formal English and define every SI unit on first use.",
+ "note": "formal register preference"
+}

@@ -83,6 +83,8 @@ EVAL_CARD_SCHEMA: dict[str, Any] = {
                 "E1-ingest..E4-publish",
                 # Personalized learning (W5.5; additive per Q-5; the spec
                 # names the stages in docs/specs/personalized-learning/evals.md).
+                "PL1-preferences",
+                "PL1-quota",
                 "PL2-agent",
                 "PL2-retrieval",
                 "PL3-artifacts",

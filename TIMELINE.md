@@ -24,12 +24,14 @@ environment-variable names.
 
 **Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
 merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
-merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18), **PL3 (generated
-artifacts) merging** with that PR, and **PL4 (frontend) landed 2026-11-19** — the
+merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18; the replay-contract
+fix landed as PR #87, 2026-11-20), **PL3 (generated
+artifacts) merged** (PR #80, 2026-11-19), and **PL4 (frontend) landed 2026-11-19** — the
 login-required `/app/personalized` hub and session screens, the settings
 personal-instructions section, saved-session resume/export/delete UI, the sandboxed
 artifact viewer integration, and every honest state (contract:
-`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) pending.** Durable
+`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) in review with this
+PR.** Durable
 deployment also pending (the challenge demo tunnel is historical). The status block
 and dated log below are preserved as written.
 
@@ -114,9 +116,23 @@ fail-closed, render gate + sandbox red-team, API-PL-13/14, viewer host bridge,
 `EV-PL-003` green key-free), with PL2's teaching turn calling `ensure_artifact`
 through `app.state.personalized_artifact_builder` — and **PL4 landed (2026-11-19)**:
 the session screens, the hub, the settings section, and the artifact viewer
-integration (`docs/specs/frontend/personalized.md`); PL5 owns the remaining evals.
+integration (`docs/specs/frontend/personalized.md`); PL5's evals/security slice is the
+remaining W5.5 workstream and sits in review with this PR.
 See `docs/specs/personalized-learning/workstreams.md` §4–§5 and
 `interactive-artifacts.md` §12.
+
+**PL5 evals/security slice landed (2026-11-19):** `EV-PL-001…005` authored and
+green key-free — cards + 18 deterministic security checkers (`DET-PL04-*`
+instructions/injection/parity/saved-chat-privacy; `DET-PL05-*` quota/race/
+429/CSRF/IDOR/artifact-ref/delete/export/log-canary/headers/no-paywall/next/
+secrets) reusing the production seams, goldens `instructions/` (15 fixtures) +
+`quota/` (6 scenarios + tenant/CSRF/next), the security matrix tests
+(`testing/backend/test_personalized_security.py`), checker fault-detection
+tests (`testing/evals/test_personalized_eval_cards.py`), the registry pins
+(25 cards, 72 checks), and the key-free merge gate `scripts/pl-smoke.sh`.
+The full-suite judge run and the two PL judge authorships are the
+founder-local live gate recorded in the spec's evals.md §10 — never CI.
+PL5 is the remaining W5.5 workstream (in review with this PR).
 
 **Not in this wave:** payments/plans, voice inside personalized learning, parent/teacher
 views, sharing, an inferred learner profile, model tools/browsing, verbatim CBSE items.

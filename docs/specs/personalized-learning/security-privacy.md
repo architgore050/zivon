@@ -1,6 +1,8 @@
 # Security and privacy — threat model, controls, tests
 
-Status: **spec, not implemented (2026-11-17).** Owner workstream: PL5 with PL1
+Status: **controls implemented and the deterministic test matrix landed
+(PL5, 2026-11-19); the model-level evals (`EV-PL-002/004` judges) run
+founder-local per `evals.md` §10.** Owner workstream: PL5 with PL1
 (API/auth), PL2 (model/RAG), PL3 (artifacts). This is a child-facing feature:
 a control that cannot be tested is treated as absent.
 
@@ -295,11 +297,29 @@ to lose your progress" guilt, no hidden delete.
 | `DET-PL05-DELETE` | session/account deletes remove every row and reference |
 | `DET-PL05-EXPORT` | export contains the owner's data only; schema versioned |
 | `DET-PL05-LOGS` | no event payload contains the canary text or free text |
-| `DET-PL05-HEADERS` | `no-store`, `noindex`, CSP on the PL pages; artifact headers strict |
+| `DET-PL05-HEADERS` | `no-store`, `noindex`, CSP on the personalized signed-in surfaces (hub, session page hosting the artifact viewer, settings) plus the SSE contract; artifact headers strict (`DET-PL05-ARTIFACT-REF`) |
 | `DET-PL03-*` | artifact lint/render/sandbox/cache/no-student-text/fallback (see `interactive-artifacts.md`) |
 | `EV-PL-002/004` | model-level grounding and injection behaviour on the full suite |
 
 The deterministic tests live with their owners (`testing/backend/`,
 `testing/frontend/`, `testing/content_factory/` for lint reuse) and run
 key-free. The model-level evals run through `evals/` with a mocked model in
-smoke mode and the real route in the full suite.
+smoke mode and the real route in the full suite (founder-local; `evals.md`
+§10). The landing map, as of PL5 (2026-11-19):
+
+| Test id | Where it lives |
+|---|---|
+| `DET-PL04-*` (NORMALIZE/PII/KEY/INJECT/PARITY/SAVE-PRIVACY) | `evals/checkers/personalized_checks.py` (card `EV-PL-004`) |
+| `DET-PL05-*` (QUOTA/RATE/CSRF/IDOR/ARTIFACT-REF/DELETE/EXPORT/LOGS/HEADERS/NO-PAYWALL/NEXT/SECRETS) | `evals/checkers/personalized_checks.py` (card `EV-PL-005`) |
+| The poisoned-RAG turn, turn-event privacy, provider-error hygiene, turn `no-store`, the `next` chain | `testing/backend/test_personalized_security.py` |
+| The checker fault-detection mutations (tampered goldens, weakened screen, merged block, key leak, paywall table + web paywall copy, dropped shell/SSE headers, backslash-permitting `next`) | `testing/evals/test_personalized_eval_cards.py` |
+| The quota race, release/retry arithmetic, retention jobs | `testing/backend/test_personalized_quota.py` |
+| Session IDOR/CSRF/export/delete, list privacy, family 429 | `testing/backend/test_personalized_sessions.py` |
+| Preferences screen/kill switch/previous-value-preserved | `testing/backend/test_personalized_preferences.py` |
+| The log canary + the account-deletion cascade | `testing/backend/test_personalized_logging.py` |
+| Artifact lint seeded defects, self-navigation/parent/storage/external-fetch rejection, the red-team probe, the canary no-student-text guard | `testing/backend/test_personalized_artifacts.py` + `EV-PL-003` |
+| Voice block-out-of-system, the 60 s cache, the parity guard | `testing/voice/test_personal_instructions.py`, `testing/voice/test_prompt_safety_parity.py` |
+
+The key-free merge gate for the whole stack is `bash scripts/pl-smoke.sh`;
+the full-suite judge layer is the founder-local gate documented in
+`evals.md` §10.

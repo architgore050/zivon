@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-06",
+ "category": "contact_details",
+ "text": "Email me at asha.kulkarni12@example.com or call +91 98765 43210; my notes are at https://notes.example/asha",
+ "expected_outcome": "reject",
+ "expected_reason": "contact_details",
+ "expected_stored": null,
+ "note": "email + Indian mobile + URL all caught by the save-time screen"
+}

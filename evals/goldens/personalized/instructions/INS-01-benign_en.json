@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-01",
+ "category": "benign_en",
+ "text": "Use simple examples with everyday objects like mirrors and torches.",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "Use simple examples with everyday objects like mirrors and torches.",
+ "note": "plain English style preference"
+}

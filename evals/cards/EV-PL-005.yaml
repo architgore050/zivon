@@ -1,0 +1,112 @@
+card_id: EV-PL-005
+version: 1
+title: Free-tier quota, abuse, honest states, and no paywall (PL5)
+stage: PL1-quota
+agent_role: Teaching Agent
+suites:
+- smoke
+- full
+golden_inputs:
+  topics:
+  - evals/goldens/personalized/quota
+  seeded_defects: []
+  source_catalog_ref: sources/catalog.json
+deterministic_checks:
+- id: DET-PL05-QUOTA
+  entrypoint: evals.checkers.personalized_checks:check_quota_race
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.quota:QuotaService
+  description: The golden quota scenarios through the real QuotaService - ok/warn(15%)/
+    user-exhausted/global-exhausted states and reasons; 20 concurrent reserves against
+    cap 5 admit exactly 5 with the counter matching; failed turns release; a retried
+    client_turn_id charges once. Any cap violation is fatal (evals.md §6).
+- id: DET-PL05-RATE
+  entrypoint: evals.checkers.personalized_checks:check_rate_limit_typed
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.abuse:AbuseRateLimiter
+  description: Exceeding the personalized_read family limit over the real app answers
+    the typed 429 E-RATE-LIMIT with a Retry-After header, in-window reads stay 200.
+- id: DET-PL05-CSRF
+  entrypoint: evals.checkers.personalized_checks:check_csrf_blocked
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.routes.auth:require_csrf
+  description: A missing and an invalid X-CSRF-Token both answer 403 E-AUTH-CSRF and
+    write nothing (no preferences row, no session row); the valid token still works
+    (T-PL-11).
+- id: DET-PL05-IDOR
+  entrypoint: evals.checkers.personalized_checks:check_tenant_isolation
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.store:PersonalizedStore.get_session
+  description: Every session endpoint (detail, messages, export, end, delete, turns)
+    answers 404 E-NOT-FOUND for another user's id - no existence oracle - and the
+    owner's session is unharmed; quota rows stay scoped per user (T-PL-04).
+- id: DET-PL05-ARTIFACT-REF
+  entrypoint: evals.checkers.personalized_checks:check_artifact_reference_isolation
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.artifact_router:_owner_or_admin
+  description: An artifact referenced only by one user is 404 for another user and for
+    a guest/admin-less caller; the owner fetch serves the strict sandbox headers
+    (default-src 'none', sandbox allow-scripts, noindex) (§4.8).
+- id: DET-PL05-DELETE
+  entrypoint: evals.checkers.personalized_checks:check_delete_cascade
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.store:PersonalizedStore.delete_session
+  description: The session hard delete removes messages, the session, and the artifact
+    references; usage rows keep their counts with session_id NULL; the shared artifact
+    row stays; a late retry cannot resurrect the deleted session (T-PL-09).
+- id: DET-PL05-EXPORT
+  entrypoint: evals.checkers.personalized_checks:check_export_owner_only
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.store:PersonalizedStore.export_session
+  description: The export endpoint and store helper are owner-only (other user 404/None),
+    schema-versioned, served as an attachment, and carry only the owner's session.
+- id: DET-PL05-LOGS
+  entrypoint: evals.checkers.personalized_checks:check_log_canary
+  severity_on_fail: fatal
+  reuses_factory_rule: logging_manager.log_event
+  description: With a canary seeded into the weakness, the instructions, a message, and
+    the preference save, no structured event payload contains the canary or free text,
+    and every payload key stays on the §4.6 allow-list (T-PL-10).
+- id: DET-PL05-HEADERS
+  entrypoint: evals.checkers.personalized_checks:check_security_headers
+  severity_on_fail: fatal
+  reuses_factory_rule: web.render:page_headers
+  description: The personalized signed-in surfaces — the PL4 hub, a real session page
+    (the artifact viewer's host), and the settings page carrying the preferences
+    section — keep no-store/noindex/CSP default-src 'self', and the SSE turn contract
+    keeps no-store + no-buffering (§5, T-PL-06); the artifact document's strict sandbox
+    policy is graded separately by DET-PL05-ARTIFACT-REF.
+- id: DET-PL05-NO-PAYWALL
+  entrypoint: evals.checkers.personalized_checks:check_no_paywall
+  severity_on_fail: fatal
+  reuses_factory_rule: db.schema:ALL_TABLES
+  description: The table registry and every migration CREATE TABLE contain no
+    plan/subscription/payment/entitlement/price/invoice token, and no personalized
+    route offers an upgrade/price/billing path - the free prototype rule cannot rot
+    silently (README non-goals).
+- id: DET-PL05-NEXT
+  entrypoint: evals.checkers.personalized_checks:check_safe_next_only
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.auth.service:safe_next_path
+  description: Golden next values resolve same-origin only - protocol-relative and
+    absolute URLs fall back to /app; javascript:, backslash, and host-prefixed values
+    never survive (T-PL-12).
+- id: DET-PL05-SECRETS
+  entrypoint: evals.checkers.personalized_checks:check_no_secrets_in_logs
+  severity_on_fail: fatal
+  reuses_factory_rule: backend.personalized.agent:build_llm_config
+  description: The configured route key lands only on the config object - a boot with
+    the canary key configured writes the value into no structured event or JSONL sink
+    - and an enabled engine without its route refuses loudly at boot (T-PL-14).
+llm_judge: null
+thresholds:
+  deterministic_pass_rate_min: 1.0
+  fatal_issues_max: 0
+  major_issues_max: 0
+  regression_drop_tolerance: 0.0
+cost_budget:
+  smoke_model_calls: 0
+  full_model_calls_per_topic: 0
+  calibration_model_calls_total: 0
+  max_completion_tokens_per_call: 1000
+  call_deadline_s: 60

@@ -1,0 +1,128 @@
+{
+ "schema_version": 1,
+ "description": "EV-PL-005 free-tier quota/abuse golden scenarios (data-and-api.md §2.6, §4.1; D-PL-01 recommendations). Caps in the fixtures are the probe caps the checkers inject (QuotaCaps overrides), not the product defaults — the product reads caps from ZIVON_PERSONALIZED_* config, never a table.",
+ "scenarios": [
+  {
+   "scenario_id": "normal",
+   "kind": "quota_reserve",
+   "probe": {
+    "cap_user": 5,
+    "used_before": 0,
+    "attempts": 1
+   },
+   "expected": {
+    "allowed": true,
+    "user_state": "ok",
+    "reason": ""
+   }
+  },
+  {
+   "scenario_id": "warn_at_15_percent",
+   "kind": "quota_reserve",
+   "probe": {
+    "cap_user": 10,
+    "used_before": 9,
+    "attempts": 1
+   },
+   "expected": {
+    "allowed": true,
+    "user_state": "warn",
+    "reason": ""
+   }
+  },
+  {
+   "scenario_id": "user_exhausted",
+   "kind": "quota_reserve",
+   "probe": {
+    "cap_user": 5,
+    "used_before": 5,
+    "attempts": 1
+   },
+   "expected": {
+    "allowed": false,
+    "user_state": "exhausted",
+    "reason": "user_turn_cap",
+    "api_status": 403,
+    "api_code": "E-QUOTA-EXHAUSTED"
+   }
+  },
+  {
+   "scenario_id": "global_exhausted",
+   "kind": "quota_reserve",
+   "probe": {
+    "cap_global": 2,
+    "used_global_before": 2
+   },
+   "expected": {
+    "allowed": false,
+    "reason": "global_turn_cap",
+    "global_state": "exhausted",
+    "api_status": 503,
+    "api_code": "E-QUOTA-EXHAUSTED"
+   }
+  },
+  {
+   "scenario_id": "rate_limited",
+   "kind": "rate_limit",
+   "probe": {
+    "family": "personalized_read",
+    "limit_per_min": 2,
+    "requests": 4
+   },
+   "expected": {
+    "first_requests_status": 200,
+    "exceeded_status": 429,
+    "code": "E-RATE-LIMIT",
+    "retry_after_header": true
+   }
+  },
+  {
+   "scenario_id": "cache_hit",
+   "kind": "artifact_cache",
+   "probe": {
+    "same_spec_twice": true
+   },
+   "expected": {
+    "second_build_model_calls": 0,
+    "second_build_quota_charged": 0,
+    "graded_by": "DET-PL03-CACHE + the artifacts suite (test_cache_hit_costs_zero_model_calls_and_zero_quota); DET-PL05-QUOTA grades the shared no-double-charge invariant"
+   }
+  }
+ ],
+ "tenant_isolation": {
+  "user_a": "tenant-a-canary",
+  "user_b": "tenant-b-canary",
+  "expected": {
+   "cross_user_status": 404,
+   "code": "E-NOT-FOUND",
+   "endpoints": [
+    "detail",
+    "messages",
+    "export",
+    "delete",
+    "end",
+    "turns"
+   ]
+  }
+ },
+ "csrf": {
+  "expected": {
+   "missing_status": 403,
+   "invalid_status": 403,
+   "code": "E-AUTH-CSRF",
+   "rows_written": 0
+  }
+ },
+ "next_redirect": {
+  "inputs": [
+   "//evil.example/phish",
+   "http://evil.example/x",
+   "/app/personalized"
+  ],
+  "expected": {
+   "allowed": "/app/personalized",
+   "fallback": "/app",
+   "helper": "backend.auth.service.safe_next_path"
+  }
+ }
+}

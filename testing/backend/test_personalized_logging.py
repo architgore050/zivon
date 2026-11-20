@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import unittest
 
+from evals.checkers.personalized_checks import PL_EVENT_ALLOWED_KEYS
 from testing.backend.web_auth_support import PASSWORD, WebAuthSupport
 
 _CANARY = "PII_CANARY_7f3a"
@@ -19,39 +20,11 @@ _WEAKNESS = f"I hide {_CANARY} inside my weakness about mirrors"
 _MESSAGE_TEXT = "my secret sentence about the focal length and the mirror"
 
 # Fields allowed in personalized/privacy event payloads (§4.6: ids, enums,
-# counts; never text).
-_ALLOWED_KEYS = {
-    "char_count",
-    "cleared",
-    "chapter_id",
-    "concept_count",
-    "counts_before_failure",
-    "mode",
-    "period",
-    "reason",
-    "reason_code",
-    "scope",
-    "counter",
-    "session_id",
-    "session_count",
-    "stage",
-    "stores_touched",
-    "target",
-    "tombstone_id",
-    "turn_count",
-    "sessions_deleted",
-    "artifacts_unreferenced_deleted",
-    "artifacts_failed_deleted",
-    "usage_deleted",
-    "quota_periods_pruned",
-    "days_rolled_up",
-    "pruned_sessions",
-    "pruned_guard_counters",
-    "telemetry_deleted",
-    "reports_deleted",
-    "deleted",
-    "unreadable_log_files",
-}
+# counts; never text). ONE contract: imported from the PL5 checker so this
+# suite and `testing/backend/test_personalized_security.py` (which pins the
+# equality) can never drift from it — the turn/usage/retention keys are part
+# of the same §4.6 allow-list.
+_ALLOWED_KEYS = set(PL_EVENT_ALLOWED_KEYS)
 
 
 class PersonalizedLoggingCanaryTest(WebAuthSupport):
