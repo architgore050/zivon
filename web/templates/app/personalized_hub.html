@@ -105,7 +105,7 @@
       <div class="field">
         <label for="pl-weakness">What's confusing? <span class="pl-optional">(optional)</span></label>
         <textarea class="input" id="pl-weakness" name="weakness" rows="3" maxlength="{{ weakness_max_chars }}"
-                  data-pl-weakness aria-describedby="pl-weakness-count {{ 'pl-weakness-error' if field_errors.get('weakness') else 'pl-weakness-count' }}"
+                  data-pl-weakness aria-describedby="pl-weakness-count{{ ' pl-weakness-error' if field_errors.get('weakness') else '' }}"
                   {%- if field_errors.get('weakness') %} aria-invalid="true"{% endif %}>{{ form.get('weakness') }}</textarea>
         <p class="auth-hint"><span data-pl-weakness-count>{{ form.get('weakness') | length }}</span>/{{ weakness_max_chars }} characters. Your words are saved with the session and are never logged.</p>
         {{ field_error(field_errors.get("weakness"), "pl-weakness-error") }}

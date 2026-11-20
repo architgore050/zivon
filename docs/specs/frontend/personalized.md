@@ -1,7 +1,7 @@
 # Personalized learning frontend — hub, session, settings section, artifact viewer (PL4)
 
 Status: implementation contract for the W5.5 PL4 slice (branch
-`cloud/w5-5-pl4-frontend`, based on `main` @ `9e07400`). It describes code that
+`feature/intake-w5-5-pl4-frontend`, based on `main` @ `9e07400`). It describes code that
 exists: `web/routes/personalized.py`, `web/personalized_views.py`,
 `web/templates/app/personalized_hub.html`, `web/templates/app/personalized_session.html`,
 `web/templates/app/partials/personal_instructions.html`, the `Learn` nav entry,

@@ -17,6 +17,7 @@ import os
 import re
 from pathlib import Path
 from typing import Any, ClassVar
+from unittest import mock
 
 from backend.personalized.store import PersonalizedStore
 
@@ -104,6 +105,14 @@ class PersonalizedPageSupport(WebAuthSupport):
             skip_diagnostic=True,
         )
         return str(session["session_id"])
+
+    def start(self, **overrides: str):
+        """POST the hub start form as the signed-in student (CSRF included)."""
+        data = {"csrf_token": self.csrf, "chapter_id": CHAPTER, "mode": "beginning"}
+        data.update(overrides)
+        return self.client.post(
+            "/app/personalized/start", data=data, follow_redirects=False
+        )
 
 
 class HubAccessTests(PersonalizedPageSupport):
@@ -208,13 +217,6 @@ class HubKillSwitchTests(PersonalizedPageSupport):
 
 
 class StartSessionTests(PersonalizedPageSupport):
-    def start(self, **overrides: str):
-        data = {"csrf_token": self.csrf, "chapter_id": CHAPTER, "mode": "beginning"}
-        data.update(overrides)
-        return self.client.post(
-            "/app/personalized/start", data=data, follow_redirects=False
-        )
-
     def test_start_creates_the_session_and_redirects_to_it(self) -> None:
         response = self.start()
         self.assertEqual(response.status_code, 303)
@@ -733,6 +735,112 @@ class SettingsInstructionsTests(PersonalizedPageSupport):
         )
         self.assertEqual(response.status_code, 303)
         self.assertTrue(response.headers["location"].startswith("/login?next="))
+
+
+class StartTitleTests(PersonalizedPageSupport):
+    """The hub-generated title is honest chapter/concept wording
+    (data-and-api.md §4.4's example shape), never a raw id."""
+
+    def test_title_uses_the_concept_title_not_the_raw_id(self) -> None:
+        response = self.start(concept_id=CONCEPT_A)
+        self.assertEqual(response.status_code, 303)
+        session_id = response.headers["location"].rsplit("/", 1)[-1]
+        session = self.store.get_session(self.user_id(), session_id)
+        assert session is not None
+        self.assertEqual(
+            session["title"],
+            "Light - Reflection and Refraction · Reflection of light",
+        )
+        self.assertNotIn(CONCEPT_A, session["title"])
+
+    def test_title_without_a_concept_is_the_chapter_title(self) -> None:
+        response = self.start()
+        self.assertEqual(response.status_code, 303)
+        session_id = response.headers["location"].rsplit("/", 1)[-1]
+        session = self.store.get_session(self.user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["title"], "Light - Reflection and Refraction")
+
+
+class StorageFailureTests(PersonalizedPageSupport):
+    """A storage failure on an HTML write route degrades to the honest HTML
+    state — the 503 page or the `instructions_error=unavailable` redirect —
+    never the JSON 500 envelope (docs/specs/frontend/personalized.md §1 and
+    the §6.4 error row)."""
+
+    def test_start_store_failure_is_the_503_page(self) -> None:
+        with mock.patch("web.routes.personalized.PersonalizedStore") as failing:
+            failing.return_value.match_chapter_by_weakness.side_effect = RuntimeError(
+                "store down"
+            )
+            response = self.start(chapter_id="", weakness="Light reflection basics")
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("Personalized learning is unavailable right now", response.text)
+
+    def test_start_create_failure_is_the_503_page(self) -> None:
+        with mock.patch("web.routes.personalized.PersonalizedStore") as failing:
+            failing.return_value.create_session.side_effect = RuntimeError("store down")
+            response = self.start()
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("Personalized learning is unavailable right now", response.text)
+
+    def test_delete_store_failure_is_the_503_page(self) -> None:
+        session_id = self.seed_session()
+        with mock.patch("web.routes.personalized.PersonalizedStore") as failing:
+            failing.return_value.delete_session.side_effect = RuntimeError("store down")
+            response = self.client.post(
+                f"/app/personalized/{session_id}/delete",
+                data={"csrf_token": self.csrf},
+                follow_redirects=False,
+            )
+        self.assertEqual(response.status_code, 503)
+        # The failed delete changed nothing: the session still exists.
+        self.assertIsNotNone(self.store.get_session(self.user_id(), session_id))
+
+    def test_instructions_save_store_failure_redirects_unavailable(self) -> None:
+        with mock.patch(
+            "web.routes.personalized.save_preferences",
+            side_effect=RuntimeError("store down"),
+        ):
+            response = self.client.post(
+                "/app/settings/instructions",
+                data={
+                    "csrf_token": self.csrf,
+                    "intent": "save",
+                    "personal_instructions": "explain slowly",
+                },
+                follow_redirects=True,
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("your learning preferences are unchanged", response.text)
+
+    def test_instructions_clear_store_failure_redirects_unavailable(self) -> None:
+        self.client.post(
+            "/app/settings/instructions",
+            data={
+                "csrf_token": self.csrf,
+                "intent": "save",
+                "personal_instructions": "keep it short",
+            },
+        )
+        with mock.patch(
+            "web.routes.personalized.clear_preferences",
+            side_effect=RuntimeError("store down"),
+        ):
+            response = self.client.post(
+                "/app/settings/instructions",
+                data={"csrf_token": self.csrf, "intent": "clear"},
+                follow_redirects=True,
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("your learning preferences are unchanged", response.text)
+        row = self.db.fetchone(
+            "SELECT personal_instructions FROM user_preferences WHERE user_id = ?",
+            (self.user_id(),),
+        )
+        assert row is not None
+        # The failed clear changed nothing.
+        self.assertEqual(row["personal_instructions"], "keep it short")
 
 
 class PrivacyLogTests(PersonalizedPageSupport):

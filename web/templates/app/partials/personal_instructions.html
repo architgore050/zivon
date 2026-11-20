@@ -21,7 +21,7 @@ cannot do; the stored value is the account's own (C22), never logged. #}
     {% elif pl_error == 'contact_details' %}That looks like a personal detail, so nothing was saved. Try describing how you like to learn instead — no phone numbers, emails, or addresses.
     {% elif pl_error == 'system_instruction' %}That reads like an instruction to the system, so nothing was saved. Describe how you like to learn instead; it can't change safety rules.
     {% elif pl_error == 'control_chars' %}That text has characters we can't save. Nothing was saved.
-    {% else %}The account store is unavailable right now; nothing was saved. Try again in a moment.{% endif %}</p>
+    {% else %}The account store is unavailable right now; your learning preferences are unchanged. Try again in a moment.{% endif %}</p>
   </div>
   {% endif %}
 

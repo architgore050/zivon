@@ -22,6 +22,7 @@ edit beyond the one sanctioned include.
 
 from __future__ import annotations
 
+import logging
 from functools import partial
 from typing import Any, Final
 
@@ -57,6 +58,8 @@ from ..render import render_page
 
 router = APIRouter(tags=["web"])
 
+logger = logging.getLogger(__name__)
+
 HUB_PATH: Final[str] = "/app/personalized"
 SESSION_PATH_PREFIX: Final[str] = HUB_PATH + "/"
 SESSION_TITLE: Final[str] = "Personalized session"
@@ -78,6 +81,9 @@ START_ERROR_COPY: Final[dict[str, str]] = {
         "We won't guess the chapter from those words. Pick the chapter below and "
         "keep your description."
     ),
+    "parent_unknown": (
+        "That session can no longer be continued. Start a new session instead."
+    ),
 }
 
 QUOTA_SESSIONS_NOTICE: Final[str] = (
@@ -85,29 +91,24 @@ QUOTA_SESSIONS_NOTICE: Final[str] = (
     "teaching turns reset at 00:00 IST."
 )
 
-PREFS_STATUS: Final[dict[str, str]] = {
-    "instructions": "Saved. Zivon will use this from your next question.",
-    "instructions-cleared": "Cleared. Lessons use the default style again.",
-}
-PREFS_ERROR_COPY: Final[dict[str, str]] = {
-    "too_long": "Keep it to 500 characters or fewer — nothing was saved.",
-    "contact_details": (
-        "That looks like a personal detail, so nothing was saved. Try describing "
-        "how you like to learn instead — no phone numbers, emails, or addresses."
-    ),
-    "system_instruction": (
-        "That reads like an instruction to the system, so nothing was saved. "
-        "Describe how you like to learn instead; it can't change safety rules."
-    ),
-    "control_chars": "That text has characters we can't save. Nothing was saved.",
-    "unavailable": (
-        "The account store is unavailable right now; nothing was saved. Try again "
-        "in a moment."
-    ),
-}
-
-
 # -- shared helpers ------------------------------------------------------------
+
+
+def _session_title(db: Any, chapter: dict[str, Any], concept_ids: list[str]) -> str:
+    """The server-generated title: chapter title + the chosen concept's title
+    (data-and-api.md §4.4's example shape). Never the raw concept/chapter ids
+    and never the weakness text — the title is shown in the hub list and the
+    session page <h1> (PL1's store rule: server-generated, never free text)."""
+    chapter_title = str(chapter["title_en"])
+    if not concept_ids:
+        return chapter_title[:120]
+    row = db.fetchone(
+        "SELECT title_en FROM concept WHERE concept_id = ?", (concept_ids[0],)
+    )
+    concept_title = concept_ids[0]
+    if row is not None and row.get("title_en"):
+        concept_title = str(row["title_en"])
+    return f"{chapter_title} · {concept_title}"[:120]
 
 
 def _require_account(request: Request) -> PageAccount:
@@ -255,54 +256,29 @@ async def personalized_start(request: Request) -> Response:
     elif len(weakness) > WEAKNESS_MAX_CHARS:
         field_errors["weakness"] = START_ERROR_COPY["weakness_too_long"]
 
-    store = PersonalizedStore(db)
-    if not field_errors and not chapter_id:
-        matched, _candidates = store.match_chapter_by_weakness(weakness)
-        if matched is None:
-            field_errors["weakness"] = START_ERROR_COPY["chapter_required"]
-        else:
-            chapter_id = matched
+    try:
+        store = PersonalizedStore(db)
+        if not field_errors and not chapter_id:
+            matched, _candidates = store.match_chapter_by_weakness(weakness)
+            if matched is None:
+                field_errors["weakness"] = START_ERROR_COPY["chapter_required"]
+            else:
+                chapter_id = matched
 
-    chapter = None
-    if not field_errors:
-        chapter = store.get_chapter(chapter_id)
-        if chapter is None:
-            field_errors["chapter"] = START_ERROR_COPY["chapter_unknown"]
+        chapter = None
+        if not field_errors:
+            chapter = store.get_chapter(chapter_id)
+            if chapter is None:
+                field_errors["chapter"] = START_ERROR_COPY["chapter_unknown"]
 
-    concept_ids: list[str] = []
-    if not field_errors and concept_id:
-        if concept_id not in set(store.concepts_of_chapter(chapter_id)):
-            field_errors["concept"] = START_ERROR_COPY["concept_not_in_chapter"]
-        else:
-            concept_ids = [concept_id]
+        concept_ids: list[str] = []
+        if not field_errors and concept_id:
+            if concept_id not in set(store.concepts_of_chapter(chapter_id)):
+                field_errors["concept"] = START_ERROR_COPY["concept_not_in_chapter"]
+            else:
+                concept_ids = [concept_id]
 
-    if field_errors:
-        view = safe_hub_view(
-            db,
-            user_id=_user(account),
-            index_catalog=_index_catalog(request),
-            enabled=True,
-            caps=caps_from_config(config_for(request)),
-        )
-        view["field_errors"] = field_errors
-        view["form"] = {
-            "class_level": (form.get("class_level") or "").strip(),
-            "chapter_id": chapter_id,
-            "concept_id": concept_id,
-            "weakness": weakness,
-        }
-        return _hub_page(
-            request,
-            account,
-            view,
-            status_code=422,
-            error="Check the highlighted fields.",
-        )
-
-    if parent_session_id:
-        parent = store.get_session(_user(account), parent_session_id)
-        if parent is None:
-            field_errors = {"parent": START_ERROR_COPY["chapter_unknown"]}
+        if field_errors:
             view = safe_hub_view(
                 db,
                 user_id=_user(account),
@@ -312,9 +288,9 @@ async def personalized_start(request: Request) -> Response:
             )
             view["field_errors"] = field_errors
             view["form"] = {
-                "class_level": "",
-                "chapter_id": "",
-                "concept_id": "",
+                "class_level": (form.get("class_level") or "").strip(),
+                "chapter_id": chapter_id,
+                "concept_id": concept_id,
                 "weakness": weakness,
             }
             return _hub_page(
@@ -325,39 +301,67 @@ async def personalized_start(request: Request) -> Response:
                 error="Check the highlighted fields.",
             )
 
-    sessions_cap = int(
-        getattr(config_for(request), "personalized_sessions_per_user_per_day", 5)
-    )
-    if (
-        sessions_cap <= 0
-        or QuotaService(db).sessions_created_today(_user(account)) >= sessions_cap
-    ):
-        view = safe_hub_view(
-            db,
-            user_id=_user(account),
-            index_catalog=_index_catalog(request),
-            enabled=True,
-        )
-        return _hub_page(
-            request, account, view, status_code=403, error=QUOTA_SESSIONS_NOTICE
-        )
+        if parent_session_id:
+            parent = store.get_session(_user(account), parent_session_id)
+            if parent is None:
+                field_errors = {"parent": START_ERROR_COPY["parent_unknown"]}
+                view = safe_hub_view(
+                    db,
+                    user_id=_user(account),
+                    index_catalog=_index_catalog(request),
+                    enabled=True,
+                    caps=caps_from_config(config_for(request)),
+                )
+                view["field_errors"] = field_errors
+                view["form"] = {
+                    "class_level": "",
+                    "chapter_id": "",
+                    "concept_id": "",
+                    "weakness": weakness,
+                }
+                return _hub_page(
+                    request,
+                    account,
+                    view,
+                    status_code=422,
+                    error="Check the highlighted fields.",
+                )
 
-    assert chapter is not None
-    title_source = concept_ids[0] if concept_ids else str(chapter["slug"])
-    title = f"{chapter['title_en']} · {title_source}"[:120]
-    session = store.create_session(
-        user_id=_user(account),
-        chapter_id=str(chapter["chapter_id"]),
-        class_level=int(chapter["class_level"]),
-        title=title,
-        concept_ids=concept_ids,
-        weakness_text=weakness or None,
-        skip_diagnostic=skip,
-        parent_session_id=parent_session_id,
-    )
-    return RedirectResponse(
-        url=f"{SESSION_PATH_PREFIX}{session['session_id']}", status_code=303
-    )
+        sessions_cap = int(
+            getattr(config_for(request), "personalized_sessions_per_user_per_day", 5)
+        )
+        if (
+            sessions_cap <= 0
+            or QuotaService(db).sessions_created_today(_user(account)) >= sessions_cap
+        ):
+            view = safe_hub_view(
+                db,
+                user_id=_user(account),
+                index_catalog=_index_catalog(request),
+                enabled=True,
+            )
+            return _hub_page(
+                request, account, view, status_code=403, error=QUOTA_SESSIONS_NOTICE
+            )
+
+        assert chapter is not None
+        title = _session_title(db, chapter, concept_ids)
+        session = store.create_session(
+            user_id=_user(account),
+            chapter_id=str(chapter["chapter_id"]),
+            class_level=int(chapter["class_level"]),
+            title=title,
+            concept_ids=concept_ids,
+            weakness_text=weakness or None,
+            skip_diagnostic=skip,
+            parent_session_id=parent_session_id,
+        )
+        return RedirectResponse(
+            url=f"{SESSION_PATH_PREFIX}{session['session_id']}", status_code=303
+        )
+    except Exception:  # HTML routes render the honest 503 shell, never a JSON 500
+        logger.exception("personalized session start failed")
+        return _unavailable(request)
 
 
 # -- session (SCR-PL-02) -------------------------------------------------------
@@ -413,7 +417,8 @@ async def personalized_end(request: Request, session_id: str) -> Response:
         session = PersonalizedStore(db).end_session(_user(account), session_id)
     except APIError:
         return _not_found(request)
-    except Exception:  # noqa: BLE001 — HTML routes render the 503 shell, never a JSON 500
+    except Exception:  # HTML routes render the honest 503 shell, never a JSON 500
+        logger.exception("personalized session end failed")
         return _unavailable(request)
     return RedirectResponse(
         url=f"{SESSION_PATH_PREFIX}{session['session_id']}?ended=1", status_code=303
@@ -436,7 +441,11 @@ async def personalized_delete(request: Request, session_id: str) -> Response:
     db = _db(request)
     if db is None:
         return _unavailable(request)
-    deleted = PersonalizedStore(db).delete_session(_user(account), session_id)
+    try:
+        deleted = PersonalizedStore(db).delete_session(_user(account), session_id)
+    except Exception:  # HTML routes render the honest 503 shell, never a JSON 500
+        logger.exception("personalized session delete failed")
+        return _unavailable(request)
     if not deleted:
         return _not_found(request)
     return RedirectResponse(url=f"{HUB_PATH}?saved=deleted", status_code=303)
@@ -479,7 +488,13 @@ async def settings_instructions_submit(request: Request) -> Response:
 
     intent = (form.get("intent") or "save").strip()
     if intent == "clear":
-        await run_in_threadpool(partial(clear_preferences, db, _user(account)))
+        try:
+            await run_in_threadpool(partial(clear_preferences, db, _user(account)))
+        except Exception:  # the honest unavailable redirect, not a JSON 500
+            logger.exception("personalized preferences clear failed")
+            return RedirectResponse(
+                url=f"{SETTINGS_PATH}?instructions_error=unavailable", status_code=303
+            )
         return RedirectResponse(
             url=f"{SETTINGS_PATH}?saved=instructions-cleared", status_code=303
         )
@@ -490,6 +505,11 @@ async def settings_instructions_submit(request: Request) -> Response:
     except PreferencesRejected as exc:
         return RedirectResponse(
             url=f"{SETTINGS_PATH}?instructions_error={exc.reason}", status_code=303
+        )
+    except Exception:  # the honest unavailable redirect, not a JSON 500
+        logger.exception("personalized preferences save failed")
+        return RedirectResponse(
+            url=f"{SETTINGS_PATH}?instructions_error=unavailable", status_code=303
         )
     return RedirectResponse(url=f"{SETTINGS_PATH}?saved=instructions", status_code=303)
 
