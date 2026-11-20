@@ -87,6 +87,15 @@ def _error_event(exc: APIError) -> TurnEvent:
     )
 
 
+def _replay_done() -> TurnEvent:
+    """The completion marker every replay closes with (§3.4): the stored
+    quota is historical, so the payload carries nulls, never stale numbers."""
+    return TurnEvent(
+        "turn.done",
+        {"message_id": None, "quota": None, "replayed": True},
+    )
+
+
 def _find_anchor(
     db: Any, session_id: str, client_turn_id: str
 ) -> dict[str, Any] | None:
@@ -123,6 +132,12 @@ def _replay_events(db: Any, session_id: str, anchor: dict[str, Any]) -> list[Tur
         )
     check_payload = payload.get("check")
     if isinstance(check_payload, dict):
+        # Rows written before the flat-shape fix stored the §3.2 payload
+        # wrapped as {"client": ...}; unwrap defensively so a replay always
+        # emits the same shape the live turn.check event carried.
+        legacy = check_payload.get("client")
+        if isinstance(legacy, dict):
+            check_payload = legacy
         events.append(TurnEvent("turn.check", check_payload))
     feedback = db.fetchone(
         "SELECT payload FROM personalized_message WHERE session_id = ? AND kind = 'check_result' "
@@ -336,6 +351,8 @@ def _respond(
                 )
             )
         _settle_quota(collected, quota, user_id)
+        if replay:
+            collected.append(_replay_done())
         payload: dict[str, Any] = {
             "events": [{"event": e.name, "payload": e.payload} for e in collected],
         }
@@ -373,12 +390,7 @@ def _respond(
             return
         _settle_quota(emitted, quota, user_id)
         if replay:
-            yield _sse(
-                TurnEvent(
-                    "turn.done",
-                    {"message_id": None, "quota": None, "replayed": True},
-                )
-            )
+            yield _sse(_replay_done())
 
     return StreamingResponse(
         stream(), media_type="text/event-stream", headers=SSE_HEADERS
