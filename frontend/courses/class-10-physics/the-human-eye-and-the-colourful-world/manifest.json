@@ -1,0 +1,446 @@
+{
+  "manifest_version": 2,
+  "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+  "lesson_id": "class-10-the-human-eye-and-the-colourful-world",
+  "course_id": "class-10-physics",
+  "subject": "physics",
+  "class": 10,
+  "topic_slug": "the-human-eye-and-the-colourful-world",
+  "title": "The Human Eye and the Colourful World",
+  "lesson_title": "The Human Eye and the Colourful World",
+  "status": "lesson_only",
+  "languages": {
+    "default": "en",
+    "available": [
+      "en",
+      "hi",
+      "hi-Latn"
+    ],
+    "missing": []
+  },
+  "counts": {
+    "lesson_blocks": 43,
+    "checks": 17,
+    "worked_examples": 3,
+    "diagrams": 6,
+    "simulations": 0,
+    "reveals": 1,
+    "text_blocks": 16
+  },
+  "concepts": [
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01",
+      "section_id": "sec-01",
+      "title": "The human eye"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02",
+      "section_id": "sec-02",
+      "title": "Power of accommodation, near point and far point"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03",
+      "section_id": "sec-03",
+      "title": "Defects of vision and their correction"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-04",
+      "section_id": "sec-04",
+      "title": "Refraction of light through a prism"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-05",
+      "section_id": "sec-05",
+      "title": "Dispersion of white light and the rainbow"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06",
+      "section_id": "sec-06",
+      "title": "Atmospheric refraction"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-07",
+      "section_id": "sec-07",
+      "title": "Scattering of light"
+    },
+    {
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-08",
+      "section_id": "sec-08",
+      "title": "Eye donation"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-01",
+      "title": "The human eye",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01",
+      "block_ids": [
+        "b-01",
+        "b-02",
+        "b-03",
+        "b-04",
+        "b-05"
+      ]
+    },
+    {
+      "id": "sec-02",
+      "title": "Power of accommodation, near point and far point",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02",
+      "block_ids": [
+        "b-06",
+        "b-07",
+        "b-08",
+        "b-09",
+        "b-10",
+        "b-11",
+        "b-12",
+        "b-13",
+        "b-14"
+      ]
+    },
+    {
+      "id": "sec-03",
+      "title": "Defects of vision and their correction",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03",
+      "block_ids": [
+        "b-15",
+        "b-16",
+        "b-17",
+        "b-18",
+        "b-19",
+        "b-20",
+        "b-21",
+        "b-22",
+        "b-23",
+        "b-24",
+        "b-25",
+        "b-26"
+      ]
+    },
+    {
+      "id": "sec-04",
+      "title": "Refraction of light through a prism",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-04",
+      "block_ids": [
+        "b-27",
+        "b-28",
+        "b-29"
+      ]
+    },
+    {
+      "id": "sec-05",
+      "title": "Dispersion of white light and the rainbow",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-05",
+      "block_ids": [
+        "b-30",
+        "b-31",
+        "b-32",
+        "b-33"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Atmospheric refraction",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06",
+      "block_ids": [
+        "b-34",
+        "b-35",
+        "b-36",
+        "b-37",
+        "b-38"
+      ]
+    },
+    {
+      "id": "sec-07",
+      "title": "Scattering of light",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-07",
+      "block_ids": [
+        "b-39",
+        "b-40",
+        "b-41"
+      ]
+    },
+    {
+      "id": "sec-08",
+      "title": "Eye donation",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-08",
+      "block_ids": [
+        "b-42",
+        "b-43"
+      ]
+    }
+  ],
+  "blocks": {
+    "b-01": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01"
+    },
+    "b-02": {
+      "type": "diagram",
+      "section_id": "sec-01",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01"
+    },
+    "b-03": {
+      "type": "text",
+      "section_id": "sec-01",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01"
+    },
+    "b-04": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01"
+    },
+    "b-05": {
+      "type": "check",
+      "section_id": "sec-01",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-01"
+    },
+    "b-06": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-07": {
+      "type": "text",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-08": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-09": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-10": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-11": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-12": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-13": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-14": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-02"
+    },
+    "b-15": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-16": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-17": {
+      "type": "diagram",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-18": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-19": {
+      "type": "diagram",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-20": {
+      "type": "text",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-21": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-22": {
+      "type": "check",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-23": {
+      "type": "reveal",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-24": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-25": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-26": {
+      "type": "worked_example",
+      "section_id": "sec-03",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-03"
+    },
+    "b-27": {
+      "type": "text",
+      "section_id": "sec-04",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-04"
+    },
+    "b-28": {
+      "type": "diagram",
+      "section_id": "sec-04",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-04"
+    },
+    "b-29": {
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-04"
+    },
+    "b-30": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-05"
+    },
+    "b-31": {
+      "type": "diagram",
+      "section_id": "sec-05",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-05"
+    },
+    "b-32": {
+      "type": "text",
+      "section_id": "sec-05",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-05"
+    },
+    "b-33": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-05"
+    },
+    "b-34": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06"
+    },
+    "b-35": {
+      "type": "text",
+      "section_id": "sec-06",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06"
+    },
+    "b-36": {
+      "type": "diagram",
+      "section_id": "sec-06",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06"
+    },
+    "b-37": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06"
+    },
+    "b-38": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-06"
+    },
+    "b-39": {
+      "type": "text",
+      "section_id": "sec-07",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-07"
+    },
+    "b-40": {
+      "type": "text",
+      "section_id": "sec-07",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-07"
+    },
+    "b-41": {
+      "type": "check",
+      "section_id": "sec-07",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-07"
+    },
+    "b-42": {
+      "type": "text",
+      "section_id": "sec-08",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-08"
+    },
+    "b-43": {
+      "type": "check",
+      "section_id": "sec-08",
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-sec-08"
+    }
+  },
+  "pipeline_version": "9",
+  "content_hash": "sha256:51fea51ae775b162890cc6018de166f1a3b70de26438d31ee5428f797cdb96a1",
+  "chapter": {
+    "query": "The Human Eye and the Colourful World",
+    "title": "The Human Eye and the Colourful World",
+    "book": "Science - Textbook for Class X",
+    "pages": [
+      1,
+      10
+    ],
+    "number": 10
+  },
+  "sources": [
+    {
+      "id": "ncert-science-10",
+      "title": "Science - Textbook for Class X",
+      "license": "NCERT (free educational use)"
+    }
+  ],
+  "run_id": "the-human-eye-and-the-colourful-world-c10",
+  "generated_at": "2026-11-20T16:41:34Z",
+  "block_counts": {
+    "text": 16,
+    "diagram": 6,
+    "check": 17,
+    "reveal": 1,
+    "worked_example": 3
+  },
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "The Human Eye and the Colourful World",
+    "hi": "मानव नेत्र तथा रंग-बिरंगा संसार",
+    "hi-Latn": "Human Eye aur Colourful World"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "i18n_hashes": {
+    "en": "38aaf27d4cd1fc37cf4f99009293cd227f9b0a5277c6ea6e7c6644856894cd38",
+    "hi": "518dc05d60c75f6ac2ced5b54b7c54d382e50fcbbfd247c0f2672857ab74879c",
+    "hi-Latn": "8d68782ad234c31a528d1a67faa4a4fd85f65d76800329c52a47308024a7e50d"
+  }
+}
