@@ -2,8 +2,8 @@
 
 Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3
 implemented (2026-11-18); PL4 implemented (2026-11-19,
-`docs/specs/frontend/personalized.md` is the landed contract); PL5's evals/security
-slice is in review (2026-11-19 — `EV-PL-001…005` green key-free, the security
+`docs/specs/frontend/personalized.md` is the landed contract); PL5 implemented
+(PR #86, 2026-11-20 — `EV-PL-001…005` green key-free, the security
 matrix tests, the key-free merge gate; the founder-local judge run stays open).**
 PL3 landed against this
 document's decide contract as the internal generation interface
@@ -164,8 +164,9 @@ student request); iframe focus/Escape behaviour (manual a11y test).
 
 ## 5. PL4 — frontend
 
-**Status: implemented 2026-11-19.** Files:
-`web/routes/personalized.py` (hub/session/start/end/delete + the
+**Status: implemented 2026-11-19; the W5.5 resume slice (2026-11-20) added the
+resume route.** Files:
+`web/routes/personalized.py` (hub/session/start/end/resume/delete + the
 `/app/settings/instructions` route), `web/personalized_views.py`,
 `web/templates/app/personalized_hub.html`, `personalized_session.html`,
 `app/partials/personal_instructions.html`, the one-line include + assets in

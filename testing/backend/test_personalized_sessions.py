@@ -12,7 +12,9 @@ import datetime
 import json
 import unittest
 from typing import Any, ClassVar
+from unittest import mock
 
+from backend.errors import APIError
 from backend.personalized.store import PersonalizedStore
 from testing.backend.web_auth_support import PASSWORD, WebAuthSupport
 
@@ -718,6 +720,69 @@ class ResumeEndpointTests(WebAuthSupport):
         messages = self.store.last_messages(self._user_id(), session_id, limit=50)
         kinds = [m["kind"] for m in messages]
         self.assertIn("artifact_ref", kinds)
+
+    def test_resume_race_loser_does_not_claim_a_transition(self) -> None:
+        """A resume that loses the race — a concurrent resume already reopened
+        the session between the loser's read and the guarded UPDATE — raises
+        the contract's 409 and emits no `resumed` event for a change that
+        never happened (§4.7: the event belongs to the transition itself)."""
+        session_id = self._create()
+        self._end(session_id)
+        stale = self.store.get_session(self._user_id(), session_id)
+        assert stale is not None
+
+        def racing_get(user_id: str, sid: str) -> dict[str, Any]:
+            # The snapshot the loser read, taken before the concurrent winner
+            # moved the row to active behind it.
+            return stale
+
+        self.db.execute(
+            "UPDATE personalized_session SET status = 'active', "
+            "completed_at = NULL WHERE session_id = ?",
+            (session_id,),
+        )
+        with (
+            mock.patch.object(self.store, "get_session", racing_get),
+            self.assertRaises(APIError) as caught,
+        ):
+            self.store.resume_session(self._user_id(), session_id)
+        self.assertEqual(caught.exception.code, "E-CONFLICT")
+        rows = self.db.fetchall("SELECT event FROM log_events")
+        events = [str(r["event"]) for r in rows]
+        self.assertIn(
+            "personalized.session.ended", events, "the log sink is live in this suite"
+        )
+        self.assertEqual(
+            [e for e in events if e == "personalized.session.resumed"],
+            [],
+            "a lost-race resume must not emit the resumed event",
+        )
+
+    def test_resume_race_against_a_delete_is_404(self) -> None:
+        """The other interleaving: the session is deleted between the loser's
+        read and the write — the re-read answers the contract's 404."""
+        session_id = self._create()
+        self._end(session_id)
+        stale = self.store.get_session(self._user_id(), session_id)
+        assert stale is not None
+        real_get = self.store.get_session
+        reads = {"n": 0}
+
+        def racing_get(user_id: str, sid: str) -> dict[str, Any] | None:
+            if reads["n"] == 0:
+                reads["n"] += 1
+                return stale
+            return real_get(user_id, sid)
+
+        self.db.execute(
+            "DELETE FROM personalized_session WHERE session_id = ?", (session_id,)
+        )
+        with (
+            mock.patch.object(self.store, "get_session", racing_get),
+            self.assertRaises(APIError) as caught,
+        ):
+            self.store.resume_session(self._user_id(), session_id)
+        self.assertEqual(caught.exception.code, "E-NOT-FOUND")
 
 
 if __name__ == "__main__":

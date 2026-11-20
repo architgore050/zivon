@@ -126,6 +126,54 @@ class PersonalizedLoggingCanaryTest(WebAuthSupport):
                     f"event {row['event']} has no instrumentation-map row",
                 )
 
+    def _resumed_event_count(self) -> int:
+        return len(
+            [
+                row
+                for row in self._log_rows()
+                if row["event"] == "personalized.session.resumed"
+            ]
+        )
+
+    def test_a_page_reload_of_an_active_session_is_not_a_resume(self) -> None:
+        """§4.7 / the map row: the resumed event belongs to the resume POST —
+        a detail GET (a page reload) of an already-active session emits
+        nothing. The session has turns taken, the shape the old
+        emit-on-read behaviour keyed on."""
+        created = self.client.post(
+            "/v1/personalized/sessions",
+            json={"chapter_id": "class-10-light"},
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(created.status_code, 201, created.text)
+        session_id = created.json()["session_id"]
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/end",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        # A session the machine has advanced (turn_count > 0 lives in state).
+        self.db.execute(
+            "UPDATE personalized_session SET state = ? WHERE session_id = ?",
+            ('{"schema_version": 1, "turn_count": 5}', session_id),
+        )
+        self.assertEqual(
+            self._resumed_event_count(),
+            1,
+            "one resume POST emits exactly one resumed event",
+        )
+        for _ in range(2):
+            detail = self.client.get(f"/v1/personalized/sessions/{session_id}")
+            self.assertEqual(detail.status_code, 200)
+        self.assertEqual(
+            self._resumed_event_count(),
+            1,
+            "a detail read of an active session must not emit the resumed event",
+        )
+
 
 class AccountDeletionCascadeTest(WebAuthSupport):
     def setUp(self) -> None:

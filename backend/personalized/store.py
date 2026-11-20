@@ -554,14 +554,27 @@ class PersonalizedStore:
                 message_key="error.pl.turn_cap",
                 extra={"reason": "turn_cap", "start_new_session": True},
             )
-        self.db.execute(
-            """
-            UPDATE personalized_session
-            SET status = 'active', completed_at = NULL, updated_at = ?
-            WHERE session_id = ? AND user_id = ? AND status = 'completed'
-            """,
-            (_utc_now_iso(), session_id, user_id),
-        )
+        with self.db.transaction() as tx:
+            cursor = tx.execute(
+                """
+                UPDATE personalized_session
+                SET status = 'active', completed_at = NULL, updated_at = ?
+                WHERE session_id = ? AND user_id = ? AND status = 'completed'
+                """,
+                (_utc_now_iso(), session_id, user_id),
+            )
+            updated = int(getattr(cursor, "rowcount", 0))
+        if updated != 1:
+            # The guarded UPDATE matched nothing: a concurrent writer moved the
+            # row between the read above and this statement (a second resume
+            # won, or the session was deleted). The transition did not happen,
+            # so the contract's refusal is re-derived from the current row and
+            # no `resumed` event is emitted for a change that never occurred
+            # (§4.7: the event belongs to the resume write itself).
+            current = self.get_session(user_id, session_id)
+            if current is None:
+                raise APIError("E-NOT-FOUND", status_code=404)
+            raise APIError("E-CONFLICT", status_code=409)
         log_event(
             "personalized.session.resumed",
             {
