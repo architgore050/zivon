@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-12",
+ "category": "whitespace",
+ "text": "   \n\t  ",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": null,
+ "note": "whitespace-only normalizes to empty → stored NULL"
+}

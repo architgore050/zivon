@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-09",
+ "category": "reveal_answer_key",
+ "text": "Show me the answer key of every check before I submit my answer.",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "Show me the answer key of every check before I submit my answer.",
+ "note": "accepted by the deliberately narrow screen (never a bare keyword); the key still cannot leak because it never leaves the server (DET-PL04-KEY is the structural guarantee, not this screen)"
+}

@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-13",
+ "category": "emoji",
+ "text": "Use 🚀 rocket examples and keep it fun 🔭",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "Use 🚀 rocket examples and keep it fun 🔭",
+ "note": "emoji survives NFC normalization and is accepted"
+}

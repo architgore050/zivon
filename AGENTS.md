@@ -27,11 +27,16 @@ environment-variable names.
 
 **Wave status (2026-11-19):** W5 — **F8 SWOT merged** (PR #76) and **F10 admin panels
 merged** (PR #78); **F11 end-to-end integration + E2E evals pending.** W5.5 — **PL1
-merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18), **PL3 (generated
-artifacts) merging** with that PR, and **PL4 (frontend) landed 2026-11-19** (the
+merged** (PR #77, 2026-11-17), **PL2 merged** (PR #79, 2026-11-18; the replay-contract
+fix landed as PR #87, 2026-11-20), **PL3 (generated
+artifacts) merged** (PR #80, 2026-11-19) and **PL4 (frontend) landed 2026-11-19** (the
 `/app/personalized` hub + session screens, the settings instructions section, the
 artifact viewer integration, the `Learn` nav entry; contract:
-`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) pending.** Durable
+`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) in review with this
+PR** — `EV-PL-001…005` authored and green key-free (18 deterministic `DET-PL04/05`
+security checkers, instruction/quota goldens, the security matrix tests, and the
+key-free `scripts/pl-smoke.sh` merge gate; the full-suite judge run stays
+founder-local per `docs/specs/personalized-learning/evals.md` §10). Durable
 deployment pending.
 
 ## Status 2026-11-15 — startup track

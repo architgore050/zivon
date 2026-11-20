@@ -2,7 +2,10 @@
 
 Status: **PL1 implemented (2026-11-17); PL2 implemented (2026-11-18); PL3
 implemented (2026-11-18); PL4 implemented (2026-11-19,
-`docs/specs/frontend/personalized.md` is the landed contract); PL5 not started.** PL3 landed against this
+`docs/specs/frontend/personalized.md` is the landed contract); PL5's evals/security
+slice is in review (2026-11-19 — `EV-PL-001…005` green key-free, the security
+matrix tests, the key-free merge gate; the founder-local judge run stays open).**
+PL3 landed against this
 document's decide contract as the internal generation interface
 (`ensure_artifact` + the `ArtifactBuilder` seam on
 `app.state.personalized_artifact_builder`); PL2 wires it into the teaching turn.
@@ -211,6 +214,19 @@ R1).
 ---
 
 ## 6. PL5 — evals, security, QA
+
+**Status: the evals/security slice landed (2026-11-19):** cards/checkers/
+goldens `EV-PL-001…005` (all green key-free, `llm_judge: null` with the
+full-suite judge gap documented in `evals.md` §10), the 18 deterministic
+security checkers, the golden fixtures (`instructions/` 15, `quota/` 6
+scenarios + tenant/CSRF/next), the security matrix tests
+(`testing/backend/test_personalized_security.py`), the checker
+fault-detection tests (`testing/evals/test_personalized_eval_cards.py`), the
+registry pins (25 cards, 72 checks), and the key-free merge gate
+(`scripts/pl-smoke.sh`). **Still open in PL5:** the founder-local full-suite
+judge run + the two judge authorships (§10 of evals.md), the PL4 screen-state
+test file (`testing/frontend/test_personalized_states.py` lands with PL4's
+frontend), and the wave-evidence review pass.
 
 **Goal:** the merge gate and the evidence.
 

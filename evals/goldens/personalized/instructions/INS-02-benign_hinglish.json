@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-02",
+ "category": "benign_hinglish",
+ "text": "Har answer ke baad ek chhota example dena, aur Hindi gloss karo.",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": "Har answer ke baad ek chhota example dena, aur Hindi gloss karo.",
+ "note": "code-mixed Hinglish preference (the common case)"
+}

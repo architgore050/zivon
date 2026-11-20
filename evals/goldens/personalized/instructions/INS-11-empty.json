@@ -1,0 +1,9 @@
+{
+ "fixture_id": "INS-11",
+ "category": "empty",
+ "text": "",
+ "expected_outcome": "accept",
+ "expected_reason": null,
+ "expected_stored": null,
+ "note": "empty save stores NULL and bumps the version (a save-shaped clear)"
+}

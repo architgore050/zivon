@@ -34,9 +34,12 @@ class TestDeterministicCheckers(unittest.TestCase):
         # (EV-EXM-001, EV-SER-001..003), both 2026-11-17, then 39 before the
         # seven W5.5 PL2 checkers (DET-PL01-SM/SCHEMA/SCORE + DET-PL02-CITATIONS/
         # PROVENANCE/SCOPE/FALLBACK) and eight EV-PL-003 artifact checkers
-        # (W5.5 PL3), both 2026-11-18. The count is pinned so a checker
-        # silently disappearing fails here.
-        self.assertEqual(total_executed, 54)
+        # (W5.5 PL3), both 2026-11-18, then 54 before the six EV-PL-004
+        # (NORMALIZE/PII/KEY/INJECT/PARITY/SAVE-PRIVACY) and twelve EV-PL-005
+        # (QUOTA/RATE/CSRF/IDOR/ARTIFACT-REF/DELETE/EXPORT/LOGS/HEADERS/
+        # NO-PAYWALL/NEXT/SECRETS) security checkers (W5.5 PL5, 2026-11-19).
+        # The count is pinned so a checker silently disappearing fails here.
+        self.assertEqual(total_executed, 72)
 
     def test_seeded_security_defects_sd_sec_001_to_005_all_caught(self) -> None:
         ctx: dict[str, Any] = {}
