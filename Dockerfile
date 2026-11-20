@@ -3,7 +3,7 @@
 #   Build:  docker build -t zivon-factory:0.3.22 .
 #   Smoke:  docker run --rm zivon-factory:0.3.22
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 # Python writes logs immediately (critical inside containers) and skips .pyc files.
 # Playwright browsers and HuggingFace models live in fixed, non-home paths so the
