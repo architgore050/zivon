@@ -32,12 +32,17 @@ fix landed as PR #87, 2026-11-20), **PL3 (generated
 artifacts) merged** (PR #80, 2026-11-19) and **PL4 (frontend) landed 2026-11-19** (the
 `/app/personalized` hub + session screens, the settings instructions section, the
 artifact viewer integration, the `Learn` nav entry; contract:
-`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) in review with this
-PR** — `EV-PL-001…005` authored and green key-free (18 deterministic `DET-PL04/05`
-security checkers, instruction/quota goldens, the security matrix tests, and the
-key-free `scripts/pl-smoke.sh` merge gate; the full-suite judge run stays
-founder-local per `docs/specs/personalized-learning/evals.md` §10). Durable
-deployment pending.
+`docs/specs/frontend/personalized.md`); **PL5 (evals/security/QA) merged** (PR #86,
+2026-11-20) — `EV-PL-001…005` authored and green key-free (18 deterministic
+`DET-PL04/05` security checkers, instruction/quota goldens, the security matrix
+tests, and the key-free `scripts/pl-smoke.sh` merge gate; the full-suite judge run
+stays founder-local per `docs/specs/personalized-learning/evals.md` §10). The
+**resume slice landed (2026-11-20):** the real resume path (`API-PL-16`
+`POST /v1/personalized/sessions/{id}/resume`, completed → active with
+stage/state/messages/checks/turn_count preserved), the hub/session Resume
+action, the cap-exhausted start-new state (`409 E-PL-TURN-CAP` — the 60-turn
+cap is never bypassed by resuming), and the `personalized.session.resumed`
+event. Durable deployment pending.
 
 ## Status 2026-11-15 — startup track
 

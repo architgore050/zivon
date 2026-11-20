@@ -676,7 +676,7 @@ security/audit per `docs/specs/observability/spec.md`), not ad-hoc labels:
 | `EVT-PL-05` | `pl.check.answer` | a check is scored | L1 (no answer text) |
 | `EVT-PL-06` | `pl.artifact.build` | build started/finished/failed/fallback | L1 |
 | `EVT-PL-07` | `pl.artifact.interact` | expand/pause/report in the viewer | L1 |
-| `EVT-PL-08` | `pl.session.resume` | a saved session is reopened | L2 |
+| `EVT-PL-08` | `pl.session.resume` | a completed session is reopened (the resume POST, `completed→active`) | L2 |
 | `EVT-PL-09` | `pl.session.export_delete` | export or hard delete | L2 |
 | `EVT-PL-10` | `pl.quota` | warn/block/rate-limit | L1 |
 | `EVT-PL-11` | `pl.language` | the teaching language used (bucket) | L1 |

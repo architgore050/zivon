@@ -242,8 +242,11 @@ emitted as a progress event so F3/SWOT can read it without a second store.
 - Soft nudge at **40 turns**: "You've done a lot — you can stop here and
   continue later." Not a modal, one line.
 - Hard cap at **60 turns** per session; the session ends with the mastery
-  summary. Resuming after the hard cap starts a new session linked to the old
-  one (`parent_session_id`, display-only — no state or mastery carries over),
+  summary. A cap-exhausted session can never be reopened — resuming it is
+  refused with `409 E-PL-TURN-CAP` ("start a new session"), and the hub and
+  the session screen show the start-new explanation instead of a dead Resume
+  button. Starting a new session after the cap links it to the old one
+  (`parent_session_id`, display-only — no state or mastery carries over),
   shown as "continue from your last session".
 - Daily/per-minute limits are §5; an in-progress turn always finishes.
 - The student can end at any time; End is not buried and does not require a
@@ -251,6 +254,13 @@ emitted as a progress event so F3/SWOT can read it without a second store.
 
 ### 2.7 Resume and history
 
+- **Resume is real (API-PL-16):** a `completed` session reopens with
+  `POST /v1/personalized/sessions/{id}/resume` — `status='active'`,
+  `completed_at=NULL`, `updated_at=now`; stage, state, messages, checks,
+  `turn_count`, and artifact references are preserved (§4.7). The hub's
+  completed rows and the session screen's finished notice carry the Resume
+  action and land back on the session. Resuming does not extend the retention
+  clock — only turns advance `last_turn_at`.
 - The hub lists sessions ordered by `last_turn_at desc`, with title, chapter,
   stage chip, and a relative date.
 - Continue loads the session at the exact stage, concept, and difficulty; the

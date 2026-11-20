@@ -16,7 +16,10 @@ document is the contract those files must match. The
 the red-team probe) landed with PL3, including the additive `PL` card-id
 family and the `PL3-artifacts` stage value in `evals/models.py` (the Q-5
 additive-extension rule); PL5 adds the `PL1-preferences`/`PL1-quota` stage
-values the same way.
+values the same way. The W5.5 resume slice (2026-11-20) records the
+`E-PL-TURN-CAP` honest state (cap-exhausted resume refusal) for `EV-PL-005`;
+its deterministic coverage is the session/web test matrix, not a new card —
+the quota goldens stay at PL5's six scenarios.
 
 Method: [`docs/specs/evals/`](../evals/README.md) and
 [`skills/zivon-evals-and-observability-skills/SKILL.md`](../../../skills/zivon-evals-and-observability-skills/SKILL.md).
@@ -127,7 +130,7 @@ key-free.
 | Title | Quotas are race-free, honest, and impossible to exceed; no plan/entitlement path exists |
 | Stage | PL1 quota/auth + PL4 UI states (`PL1-quota` since PL5) |
 | Suites | smoke, full |
-| Golden inputs | `evals/goldens/personalized/quota/` — 6 scenarios: normal, warn at 15%, per-user exhausted, global exhausted, rate-limited, cache-hit; a two-user IDOR fixture; a CSRF fixture; a `next`-redirect fixture |
+| Golden inputs | `evals/goldens/personalized/quota/` — 6 scenarios: normal, warn at 15%, per-user exhausted, global exhausted, rate-limited, cache-hit; a two-user IDOR fixture; a CSRF fixture; a `next`-redirect fixture. The cap-exhausted resume refusal (`E-PL-TURN-CAP`, the 60-turn state) is covered by the deterministic session/web test matrix, not a golden scenario |
 | Deterministic checks | `DET-PL05-QUOTA` — 20 concurrent turn attempts against cap 5 admit exactly 5; failed turns release; retry with the same `client_turn_id` charges once. `DET-PL05-RATE` — 429 + `Retry-After`; `DET-PL05-CSRF` — missing/invalid token 403 and no write; `DET-PL05-IDOR` — every session endpoint 404 for another user; `DET-PL05-ARTIFACT-REF` — an artifact referenced only by another user is 404 and the owner fetch carries the strict sandbox headers; `DET-PL05-DELETE` — delete removes messages/session/refs and usage is unlinked; `DET-PL05-EXPORT` — owner-only, schema-versioned; `DET-PL05-LOGS` — no canary/free text in events; `DET-PL05-HEADERS` — `no-store`/`noindex`/CSP on the personalized signed-in surfaces (the PL4 hub, a real session page hosting the artifact viewer, the settings page) plus the SSE `no-store`/no-buffering contract — the artifact document's strict sandbox policy is `DET-PL05-ARTIFACT-REF`'s surface; `DET-PL05-NO-PAYWALL` — the migration/table list contains no plan/subscription/payment/entitlement table and the personalized routes (JSON API and the PL4 web surface incl. templates) contain no upgrade/price/billing path (docs + code scan); `DET-PL05-NEXT` — `next` values are same-origin paths only; `DET-PL05-SECRETS` — the configured route key never reaches a log/event and an enabled route without config refuses at boot. |
 | Judge | none |
 | Thresholds | all deterministic 1.0; any cap violation is fatal |

@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 from ..errors import APIError
 from ..logging_shim import log_event
 from .personalization import normalize_instructions
+from .state import MAX_TURNS
 from .state import initial_state as state_initial_state
 
 if TYPE_CHECKING:
@@ -137,6 +138,22 @@ def _load_json(value: object) -> Any:
         return None
 
 
+def _effective_turn_count(row: dict[str, Any]) -> int:
+    """The real turn count: the machine's `state.turn_count` is authoritative
+    once turns run; the `turn_count` column carries it for summaries.
+
+    Taking the max keeps every consumer (list, detail, resume cap check) on
+    the same truthful number whichever writer last touched a source.
+    """
+    column = int(row.get("turn_count") or 0)
+    state = _load_json(row.get("state")) or {}
+    try:
+        machine = int(state.get("turn_count") or 0)
+    except (TypeError, ValueError):
+        machine = 0
+    return max(column, machine)
+
+
 class PersonalizedStore:
     """Owner-scoped CRUD, idempotent message append, export, hard delete."""
 
@@ -195,6 +212,33 @@ class PersonalizedStore:
             (chapter_id,),
         )
         return [str(r["concept_id"]) for r in rows]
+
+    def session_title(self, chapter: dict[str, Any], concept_ids: list[str]) -> str:
+        """The server-generated title: chapter title · concept **title** —
+        never the raw concept id or the chapter slug, never free text
+        (data-and-api.md §4.4's shape, §2.2's rule; GAP-PL2R-1).
+
+        Fallback chain: an unresolvable concept title falls back to the
+        chapter title alone; a missing chapter title falls back to the slug.
+        Both create paths (the JSON `API-PL-05` route and the hub form) share
+        this one helper so the two shapes cannot drift apart again.
+        """
+        chapter_title = str(
+            chapter.get("title_en") or chapter.get("slug") or ""
+        ).strip()
+        if not concept_ids:
+            return chapter_title[:MAX_TITLE_CHARS]
+        row = self.db.fetchone(
+            "SELECT title_en FROM concept WHERE concept_id = ?", (concept_ids[0],)
+        )
+        concept_title = (
+            str(row["title_en"]).strip()
+            if row is not None and row.get("title_en")
+            else ""
+        )
+        if not concept_title:
+            return chapter_title[:MAX_TITLE_CHARS]
+        return f"{chapter_title} · {concept_title}"[:MAX_TITLE_CHARS]
 
     # --- create / read --------------------------------------------------------
 
@@ -311,7 +355,7 @@ class PersonalizedStore:
         params.append(min(max(1, limit), 50) + 1)
         rows = self.db.fetchall(
             "SELECT session_id, title, chapter_id, mode, stage, status, "
-            "turn_count, concept_ids, created_at, updated_at, last_turn_at, "
+            "turn_count, concept_ids, state, created_at, updated_at, last_turn_at, "
             "completed_at FROM personalized_session WHERE "
             + where
             + " ORDER BY updated_at DESC, session_id DESC LIMIT ?",
@@ -476,6 +520,57 @@ class PersonalizedStore:
             )
         return self.get_session(user_id, session_id)  # type: ignore[return-value]
 
+    def resume_session(self, user_id: str, session_id: str) -> dict[str, Any]:
+        """The real resume path (API-PL-16): `completed` → `active`.
+
+        Only a `completed` session resumes; the transition flips exactly the
+        three fields the contract names — `status='active'`,
+        `completed_at=NULL`, `updated_at=now` — and touches nothing else, so
+        stage, state, messages, checks, `turn_count`, and artifact references
+        survive byte-identical. The 60-turn cap is re-checked here: a
+        cap-exhausted session can never be reopened into a live composer
+        (`E-PL-TURN-CAP`; "start a new session" — spec.md §2.6). Another
+        user's id stays a 404 (no existence oracle), like every other
+        owner-scoped store call.
+        """
+        session = self.get_session(user_id, session_id)
+        if session is None:
+            raise APIError("E-NOT-FOUND", status_code=404)
+        if session["status"] != "completed":
+            # Already active (a double submit) or abandoned: there is nothing
+            # to reopen, and the transition set is defined only from
+            # `completed`.
+            raise APIError("E-CONFLICT", status_code=409)
+        turn_count = _effective_turn_count(
+            {
+                "turn_count": session["turn_count"],
+                "state": session["state"],
+            }
+        )
+        if turn_count >= MAX_TURNS:
+            raise APIError(
+                "E-PL-TURN-CAP",
+                status_code=409,
+                message_key="error.pl.turn_cap",
+                extra={"reason": "turn_cap", "start_new_session": True},
+            )
+        self.db.execute(
+            """
+            UPDATE personalized_session
+            SET status = 'active', completed_at = NULL, updated_at = ?
+            WHERE session_id = ? AND user_id = ? AND status = 'completed'
+            """,
+            (_utc_now_iso(), session_id, user_id),
+        )
+        log_event(
+            "personalized.session.resumed",
+            {
+                "chapter_id": session["chapter_id"],
+                "turn_count": turn_count,
+            },
+        )
+        return self.get_session(user_id, session_id)  # type: ignore[return-value]
+
     def delete_session(self, user_id: str, session_id: str) -> bool:
         """API-PL-08: hard delete in ONE transaction (§4.7).
 
@@ -604,7 +699,10 @@ class PersonalizedStore:
             "difficulty_level": int(row["difficulty_level"]),
             "status": str(row["status"]),
             "state": _load_json(row.get("state")) or {},
-            "turn_count": int(row["turn_count"]),
+            # The truthful count (the machine's state counter included); the
+            # raw column alone would read 0 for every session that ever took
+            # a turn (the turn engine persists the count inside `state`).
+            "turn_count": _effective_turn_count(row),
             "rag_index_version": row.get("rag_index_version"),
             "prompt_version": str(row["prompt_version"]),
             "model": row.get("model"),
@@ -634,7 +732,7 @@ class PersonalizedStore:
             "mode": str(row["mode"]),
             "stage": str(row["stage"]),
             "status": str(row["status"]),
-            "turn_count": int(row["turn_count"]),
+            "turn_count": _effective_turn_count(row),
             "concept_count": len(_load_json(row.get("concept_ids")) or []),
             "created_at": row.get("created_at"),
             "updated_at": row.get("updated_at"),

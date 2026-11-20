@@ -57,7 +57,24 @@
 {% endif %}
 {% if not session.active %}
 <div class="wrap"><div class="notice notice--empty">
+  {% if session.can_resume %}
+  <p>This session is finished. The transcript and the mastery summary stay here — resume it to pick up where you left off.</p>
+  <form class="pl-inline-form" method="post" action="/app/personalized/{{ session.session_id }}/resume">
+    {{ csrf(csrf_token) }}
+    <button class="btn btn--sm" type="submit">Resume session</button>
+  </form>
+  {% elif session.cap_exhausted %}
+  <p>This session used all 60 turns and shows the mastery summary below. Continue the chapter in a new session — nothing carries over, and this transcript stays here.</p>
+  <form class="pl-inline-form" method="post" action="/app/personalized/start">
+    {{ csrf(csrf_token) }}
+    <input type="hidden" name="parent_session_id" value="{{ session.session_id }}">
+    <input type="hidden" name="chapter_id" value="{{ session.chapter_id }}">
+    <input type="hidden" name="mode" value="beginning">
+    <button class="btn btn--outline btn--sm" type="submit">Continue in a new session</button>
+  </form>
+  {% else %}
   <p>This session is finished. The transcript and the mastery summary stay here; starting a new session won't carry them over.</p>
+  {% endif %}
   <p><a class="text-link" href="/app/personalized">Back to the hub</a></p>
 </div></div>
 {% endif %}

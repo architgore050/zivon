@@ -13,6 +13,7 @@ import json
 import unittest
 from typing import Any, ClassVar
 
+from backend.personalized.store import PersonalizedStore
 from testing.backend.web_auth_support import PASSWORD, WebAuthSupport
 
 _CHAPTER = "class-10-light-reflection-and-refraction"
@@ -78,11 +79,13 @@ class PersonalizedSessionsTest(WebAuthSupport):
     def test_create_returns_server_generated_title_and_quota(self) -> None:
         payload = self._create()
         self.assertTrue(payload["session_id"])
-        # The title comes from the chapter/concept, never from the free text.
+        # The title comes from the chapter/concept TITLES, never from the
+        # free text and never from the raw concept id (GAP-PL2R-1).
         self.assertEqual(
             payload["title"],
-            "Light – Reflection and Refraction · class-10-spherical-mirrors",
+            "Light – Reflection and Refraction · Spherical mirrors",
         )
+        self.assertNotIn("class-10-spherical-mirrors", payload["title"])
         self.assertNotIn("image flips", payload["title"])
         self.assertEqual(payload["stage"], "diagnose")
         self.assertEqual(payload["class_level"], 10)
@@ -90,6 +93,16 @@ class PersonalizedSessionsTest(WebAuthSupport):
         self.assertIsNone(payload["diagnostic"]["first_question"])
         self.assertIn("turns_remaining", payload["quota"])
         self.assertIn("reset_at", payload["quota"])
+
+    def test_create_without_concept_titles_with_the_chapter(self) -> None:
+        payload = self.client.post(
+            "/v1/personalized/sessions",
+            json={"chapter_id": _CHAPTER},
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(payload.status_code, 201, payload.text)
+        # No concept chosen → the chapter title alone (not "title · slug").
+        self.assertEqual(payload.json()["title"], "Light – Reflection and Refraction")
 
     def test_create_with_weakness_only_resolves_one_chapter_lexically(self) -> None:
         response = self.client.post(
@@ -461,6 +474,250 @@ class PersonalizedSessionsTest(WebAuthSupport):
         assert seen_429 is not None
         self.assertEqual(seen_429.json()["code"], "E-RATE-LIMIT")
         self.assertIn("Retry-After", seen_429.headers)
+
+
+class ResumeEndpointTests(WebAuthSupport):
+    """API-PL-16 — the real resume path (`POST .../sessions/{id}/resume`).
+
+    Only a `completed` session reopens, and the transition touches exactly
+    `status`/`completed_at`/`updated_at`: stage, state, messages, checks,
+    `turn_count`, and artifact references survive. The 60-turn cap is never
+    bypassed by resuming (`E-PL-TURN-CAP`); owner scoping, auth, and CSRF
+    follow §4.1 like every other write.
+    """
+
+    config_overrides: ClassVar[dict[str, Any]] = {
+        "rate_limit_personalized_create_per_hour": 50
+    }
+
+    def setUp(self) -> None:
+        super().setUp()
+        _seed_chapters(self.db)
+        self.register_via_api()
+        self.csrf = self.session_csrf()
+        self.store = PersonalizedStore(self.db)
+
+    def _create(self) -> str:
+        payload = self.client.post(
+            "/v1/personalized/sessions",
+            json={
+                "chapter_id": _CHAPTER,
+                "concept_ids": ["class-10-spherical-mirrors"],
+                "skip_diagnostic": True,
+            },
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(payload.status_code, 201, payload.text)
+        return str(payload.json()["session_id"])
+
+    def _seed_history(self, session_id: str) -> None:
+        """A teaching slice, an open check, and the machine state at turn 5."""
+        self.store.append_message(
+            session_id=session_id,
+            role="tutor",
+            kind="text",
+            text="A concave mirror converges parallel rays at its focus.",
+            client_turn_id="c-teach-1",
+        )
+        self.store.append_message(
+            session_id=session_id,
+            role="tutor",
+            kind="check",
+            payload={"check_id": "chk-1", "kind": "mcq", "question": "Where?"},
+            answer_key="B",
+            client_turn_id="c-check-1",
+        )
+        state_json = (
+            '{"schema_version": 1, "turn_count": 5, "difficulty_level": 2, '
+            '"concepts": {}, "coverage": {"taught": [], "skipped": [], '
+            '"remaining": ["class-10-spherical-mirrors"]}}'
+        )
+        self.db.execute(
+            "UPDATE personalized_session SET state = ? WHERE session_id = ?",
+            (state_json, session_id),
+        )
+
+    def _end(self, session_id: str) -> None:
+        response = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/end",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(response.status_code, 200, response.text)
+        session = self.store.get_session(self._user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "completed")
+
+    def _user_id(self) -> str:
+        ctx = self.service.resolve(self.client.cookies.get("zivon_session"))
+        assert ctx is not None
+        return str(ctx.user["user_id"])
+
+    def test_resume_reopens_a_completed_session_preserving_everything(self) -> None:
+        session_id = self._create()
+        self._seed_history(session_id)
+        self._end(session_id)
+        completed = self.store.get_session(self._user_id(), session_id)
+        assert completed is not None
+        response = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["session_id"], session_id)
+        self.assertEqual(body["status"], "active")
+        # Stage is preserved exactly as the completed row held it ('done' —
+        # resume must not rewrite history).
+        self.assertEqual(body["stage"], completed["stage"])
+        # The truthful turn count survived (state counter 5, not a reset 0).
+        self.assertEqual(body["turn_count"], 5)
+        session = self.store.get_session(self._user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "active")
+        self.assertIsNone(session["completed_at"], "resume clears completed_at")
+        self.assertEqual(session["stage"], completed["stage"])
+        self.assertEqual(session["state"], completed["state"])
+        self.assertEqual(session["difficulty_level"], completed["difficulty_level"])
+        self.assertEqual(session["chapter_id"], completed["chapter_id"])
+        self.assertEqual(session["title"], completed["title"])
+        self.assertEqual(session["concept_ids"], completed["concept_ids"])
+        self.assertGreaterEqual(
+            str(session["updated_at"]), str(completed["updated_at"])
+        )
+        # Messages and the check (with its server-side key) survived.
+        messages = self.store.last_messages(self._user_id(), session_id, limit=50)
+        self.assertEqual(len(messages), 2)
+        self.assertEqual(messages[1]["kind"], "check")
+
+    def test_detail_after_resume_is_active_with_quota(self) -> None:
+        session_id = self._create()
+        self._end(session_id)
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        detail = self.client.get(f"/v1/personalized/sessions/{session_id}")
+        self.assertEqual(detail.status_code, 200)
+        self.assertEqual(detail.json()["session"]["status"], "active")
+
+    def test_resume_is_owner_scoped_404_for_another_user(self) -> None:
+        session_id = self._create()
+        self._end(session_id)
+        guest = type(self.client)(app=self.app, base_url="https://testserver")
+        guest.post(
+            "/v1/auth/register",
+            json={"email": "other@example.com", "password": PASSWORD},
+        )
+        other_csrf = guest.get("/v1/auth/session").json()["csrf_token"]
+        response = guest.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": other_csrf},
+        )
+        self.assertEqual(response.status_code, 404)
+        session = self.store.get_session(self._user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "completed")
+
+    def test_resume_guest_401_and_csrf_403_change_nothing(self) -> None:
+        session_id = self._create()
+        self._end(session_id)
+        guest = type(self.client)(app=self.app, base_url="https://testserver")
+        self.assertEqual(
+            guest.post(f"/v1/personalized/sessions/{session_id}/resume").status_code,
+            401,
+        )
+        missing = self.client.post(f"/v1/personalized/sessions/{session_id}/resume")
+        self.assertEqual(missing.status_code, 403)
+        self.assertEqual(missing.json()["code"], "E-AUTH-CSRF")
+        session = self.store.get_session(self._user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "completed")
+        self.assertIsNotNone(session["completed_at"])
+
+    def test_resume_of_an_active_session_is_409_conflict(self) -> None:
+        session_id = self._create()
+        response = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["code"], "E-CONFLICT")
+        session = self.store.get_session(self._user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "active")
+
+    def test_resume_at_the_60_turn_cap_is_409_turn_cap(self) -> None:
+        """Resume must never bypass the 60-turn cap (spec.md §2.6)."""
+        session_id = self._create()
+        self._end(session_id)
+        # The runtime path: the turn engine persists the count inside state.
+        self.db.execute(
+            "UPDATE personalized_session SET state = ? WHERE session_id = ?",
+            ('{"schema_version": 1, "turn_count": 60}', session_id),
+        )
+        response = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["code"], "E-PL-TURN-CAP")
+        self.assertEqual(response.json()["message_key"], "error.pl.turn_cap")
+        session = self.store.get_session(self._user_id(), session_id)
+        assert session is not None
+        self.assertEqual(session["status"], "completed")
+        # The column-carried count (summaries/imports) is capped equally.
+        self.db.execute(
+            "UPDATE personalized_session SET state = ?, turn_count = 60 "
+            "WHERE session_id = ?",
+            ('{"schema_version": 1, "turn_count": 0}', session_id),
+        )
+        column_only = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(column_only.status_code, 409)
+        self.assertEqual(column_only.json()["code"], "E-PL-TURN-CAP")
+
+    def test_end_then_resume_then_end_completes_the_cycle(self) -> None:
+        """Resume is repeatable session management, not a one-shot."""
+        session_id = self._create()
+        self._end(session_id)
+        first = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["status"], "active")
+        self._end(session_id)
+        again = self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        self.assertEqual(again.status_code, 200)
+        self.assertEqual(again.json()["status"], "active")
+
+    def test_artifact_reference_survives_end_and_resume(self) -> None:
+        session_id = self._create()
+        self.store.append_message(
+            session_id=session_id,
+            role="tutor",
+            kind="artifact_ref",
+            payload={
+                "artifact_id": "abc123def4567890",
+                "status": "ready",
+                "title": "Concave mirror",
+                "kind": "simulation",
+                "src": "/v1/personalized/artifacts/abc123def4567890",
+            },
+        )
+        self._end(session_id)
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
+        messages = self.store.last_messages(self._user_id(), session_id, limit=50)
+        kinds = [m["kind"] for m in messages]
+        self.assertIn("artifact_ref", kinds)
 
 
 if __name__ == "__main__":

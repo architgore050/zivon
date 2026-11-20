@@ -1,7 +1,8 @@
 """Personalized-learning JSON API (PL1, data-and-api.md §4).
 
-Endpoints `API-PL-01…09`, `API-PL-12`, `API-PL-15` plus the honest `API-PL-10`
-turn stub and `API-PL-04` catalog stub. Contract rules (§4.1):
+Endpoints `API-PL-01…09`, `API-PL-12`, `API-PL-15`, `API-PL-16` (resume) plus
+the honest `API-PL-10` turn stub and `API-PL-04` catalog stub. Contract rules
+(§4.1):
 
 - **Session auth** via the opaque `zivon_session` cookie resolved by
   `AuthService.resolve` (ADR-0029); guests get `401 E-AUTH-REQUIRED`.
@@ -13,7 +14,7 @@ turn stub and `API-PL-04` catalog stub. Contract rules (§4.1):
   `personalized_turn` (6/min) on the turn stub, `personalized_create` (5/h) on
   session create, `personalized_read` (60/min) on the GETs, and
   `personalized_ip` (20/min) as the surface brake on the remaining writes
-  (preferences save/clear, session delete/end — the per-endpoint hourly
+  (preferences save/clear, session delete/end/resume — the per-endpoint hourly
   sub-caps of the endpoint table ride on PL2's turn-router work).
 - **Body caps**: 8 KB preference/session bodies; 500-char preference and
   weakness values; 32 fields max (pydantic `extra="forbid"` models).
@@ -35,7 +36,6 @@ from pydantic import BaseModel, ConfigDict
 from ..auth.service import AuthContext
 from ..config import BackendConfig
 from ..errors import APIError
-from ..logging_shim import log_event
 from ..routes.auth import require_context, require_csrf
 from .personalization import PreferencesRejected
 from .preferences import clear_preferences, get_preferences, save_preferences
@@ -245,9 +245,9 @@ def create_session(body: SessionCreateBody, request: Request) -> JSONResponse:
                 "E-VALIDATION", status_code=422, extra={"reason": "invalid_parent"}
             )
 
-    first_concept = concept_ids[0] if concept_ids else None
-    title_source = first_concept or chapter["slug"]
-    title = f"{chapter['title_en']} · {title_source}"[:120]
+    # The server-generated title shares the hub form's helper (GAP-PL2R-1):
+    # chapter title · concept TITLE — never the raw concept id or the slug.
+    title = store.session_title(chapter, concept_ids)
     session = store.create_session(
         user_id=user,
         chapter_id=chapter_id,
@@ -305,13 +305,10 @@ def _owned_session(
 def get_session_detail(request: Request, session_id: str) -> JSONResponse:
     ctx = require_context(request)
     session = _owned_session(request, ctx, session_id)
-    if session["turn_count"] > 0 and session["status"] == "active":
-        # EVT-PL-08 (pl.session.resume): a saved session is reopened. Counts
-        # only — never the title/weakness/message text.
-        log_event(
-            "personalized.session.resumed",
-            {"chapter_id": session["chapter_id"], "turn_count": session["turn_count"]},
-        )
+    # (The `personalized.session.resumed` event is emitted by the real resume
+    # write — `POST .../resume` via `PersonalizedStore.resume_session` — not
+    # by this read: a page reload of an already-active session is not a
+    # resume.)
     store = _store(request)
     messages = store.last_messages(_user_id(ctx), session_id, limit=50)
     usage = _quota(request).get_usage(
@@ -380,6 +377,33 @@ def end_session(request: Request, session_id: str) -> JSONResponse:
                 "concept_total": len(session["concept_ids"]),
                 "stage": session["stage"],
             },
+        }
+    )
+
+
+@router.post("/v1/personalized/sessions/{session_id}/resume")
+def resume_session(request: Request, session_id: str) -> JSONResponse:
+    """API-PL-16: reopen a completed session (data-and-api.md §4.7).
+
+    Authenticated + CSRF + owner-scoped (§4.1): another user's id is a 404.
+    Only `status='completed'` resumes (an already-active id is `409
+    E-CONFLICT`); a cap-exhausted one is `409 E-PL-TURN-CAP` — the 60-turn
+    cap is never bypassed by resuming, the linked start-new path is the only
+    way forward (spec.md §2.6). The transition is `status='active',
+    completed_at=NULL, updated_at=now`; stage, state, messages, checks,
+    `turn_count`, and artifact references are preserved (store §resume).
+    Like end/delete this is session management, not a metered action — no
+    quota reservation and no kill-switch gate (§5.2: resume is not metered).
+    """
+    ctx = require_context(request)
+    require_csrf(request, ctx)
+    session = _store(request).resume_session(_user_id(ctx), session_id)
+    return _no_store(
+        {
+            "session_id": session["session_id"],
+            "status": session["status"],
+            "stage": session["stage"],
+            "turn_count": session["turn_count"],
         }
     )
 

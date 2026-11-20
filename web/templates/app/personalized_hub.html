@@ -142,7 +142,23 @@
           </p>
         </div>
         <div class="pl-session-actions">
+          {% if s.can_resume %}
+          <form class="pl-inline-form" method="post" action="{{ s.resume_url }}">
+            {{ csrf(csrf_token) }}
+            <button class="btn btn--sm" type="submit">Resume</button>
+          </form>
+          {% elif s.cap_exhausted %}
+          <p class="pl-cap-note">Used all 60 turns — start a new session to continue the chapter. Nothing carries over; this transcript stays here.</p>
+          <form class="pl-inline-form" method="post" action="/app/personalized/start">
+            {{ csrf(csrf_token) }}
+            <input type="hidden" name="parent_session_id" value="{{ s.session_id }}">
+            <input type="hidden" name="chapter_id" value="{{ s.chapter_id }}">
+            <input type="hidden" name="mode" value="beginning">
+            <button class="btn btn--sm btn--outline" type="submit">Continue in a new session</button>
+          </form>
+          {% else %}
           <a class="btn btn--sm" href="{{ s.session_url }}">Continue</a>
+          {% endif %}
           <a class="btn btn--sm btn--outline" href="{{ s.export_url }}" download>Export</a>
           <details class="pl-confirm">
             <summary class="btn btn--sm btn--outline pl-confirm-summary">Delete</summary>

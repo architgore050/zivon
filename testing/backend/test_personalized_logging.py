@@ -62,6 +62,10 @@ class PersonalizedLoggingCanaryTest(WebAuthSupport):
             f"/v1/personalized/sessions/{session_id}/end",
             headers={"X-CSRF-Token": self.csrf},
         )
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
         self.client.delete(
             f"/v1/personalized/sessions/{session_id}",
             headers={"X-CSRF-Token": self.csrf},
@@ -103,10 +107,16 @@ class PersonalizedLoggingCanaryTest(WebAuthSupport):
             f"/v1/personalized/sessions/{session_id}/end",
             headers={"X-CSRF-Token": self.csrf},
         )
+        self.client.post(
+            f"/v1/personalized/sessions/{session_id}/resume",
+            headers={"X-CSRF-Token": self.csrf},
+        )
         self.client.delete(
             f"/v1/personalized/sessions/{session_id}",
             headers={"X-CSRF-Token": self.csrf},
         )
+        events = {row["event"] for row in self._log_rows()}
+        self.assertIn("personalized.session.resumed", events)
         for row in self._log_rows():
             if row["event"] == "log.store_fallback":
                 continue
