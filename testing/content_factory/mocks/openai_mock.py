@@ -88,6 +88,9 @@ class MockState:
                     "messages": messages,
                     "stream": bool(body.get("stream")),
                     "stream_options": body.get("stream_options"),
+                    "max_tokens": body.get("max_tokens"),
+                    "max_completion_tokens": body.get("max_completion_tokens"),
+                    "reasoning_effort": body.get("reasoning_effort"),
                 }
             )
 

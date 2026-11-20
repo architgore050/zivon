@@ -25,10 +25,15 @@ FACTORY's contracts on top of it:
   e.g. "validation rounds" now names the model's own repair budget, which is
   separate from the transport retry budget).
 
-No completion cap is ever sent (2026-11-04 founder decision): the factory
-sends no max_tokens at all - the server decides how long its answer, thinking
-included, may be within its own context. The wall-clock backstops are
-ZIVON_CALL_DEADLINE_S (per call) and the Job's activeDeadlineSeconds.
+Completion cap (founder decision 2026-11-20): the factory sends the scoped
+`ZIVON_CONTENT_MAX_TOKENS` value (default 131,072) on every model call. This
+replaces the 2026-11-04 no-cap rule for the factory only: the Go gateway
+defaults to 8,192 output tokens when reasoning is disabled, which truncated
+large chapter generations. Thinking effort is a separate, numeric quality
+knob (`ZIVON_REASONING_EFFORT*`, 0=none .. 3=max; default 1=low) chosen per
+task, so effort can be raised without changing the output cap. The
+wall-clock backstops remain ZIVON_CALL_DEADLINE_S (per call) and the Job's
+activeDeadlineSeconds.
 
 Observability: every call prints its start (naming the validation round), a
 heartbeat with REAL streaming progress (`N chunks received` - a thinking
@@ -42,6 +47,7 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any
 
@@ -76,6 +82,28 @@ _CALL_INTENT = {
     "08-fixloop": "fixloop",
     "09-review": "review",
     "10-reviewfix": "reviewfix",
+    "10a-translate": "translate",
+    "10b-transcheck": "translate",
+    "10c-transrepair": "translate",
+    "10d-transrender": "translate",
+}
+
+# Task bucket for the per-task thinking-effort env vars
+# (ZIVON_REASONING_EFFORT_GENERATE, ..._CHECK, ..._REPAIR, ..._REVIEW,
+# ..._TRANSLATE). Assessment stages are generation work. Unknown stages fall
+# back to `generate`; the default is deliberate, never a crash.
+_TASK_BY_STAGE = {
+    "02-generate": "generate",
+    "05-interactive": "generate",
+    "03-check": "check",
+    "04-repair": "repair",
+    "08-fixloop": "repair",
+    "09-review": "review",
+    "10-reviewfix": "review",
+    "10a-translate": "translate",
+    "10b-transcheck": "translate",
+    "10c-transrepair": "translate",
+    "10d-transrender": "translate",
 }
 
 
@@ -109,6 +137,14 @@ class LLMClient:
         # inference server directly. llm_manager appends /chat/completions.
         self.url = cfg.server["base_url"].rstrip("/") + "/chat/completions"
         self._llm_config = LLMConfig.from_mapping(cfg.server)
+        # Numeric effort is resolved per task in config.py; each task gets a
+        # frozen config view. The default base config is the fallback for a
+        # Config built without task overrides (tests, old call sites).
+        self._llm_configs = {
+            task: replace(self._llm_config, reasoning_effort=level)
+            for task, level in (cfg.reasoning_effort_by_task or {}).items()
+        }
+        self._content_max_tokens = cfg.content_max_tokens
 
     # ------------------------------------------------------------------ call
     def call(
@@ -137,6 +173,9 @@ class LLMClient:
             "temperature",
             temperature if temperature is not None else self.cfg.server["temperature"],
         )
+        task = _TASK_BY_STAGE.get(stage_id, "generate")
+        llm_config = self._llm_configs.get(task, self._llm_config)
+        max_tokens = self._content_max_tokens
         stage_dir = self.run.stage_dir(stage_id)
         attempts_dir = stage_dir / "attempts"
         if round_tag:
@@ -157,7 +196,7 @@ class LLMClient:
             round_no: int, transcript: list[dict[str, str]]
         ) -> tuple[str, str | None]:
             attempt_dir = attempts_dir / f"attempt-{round_no:02d}"
-            wire = build_wire_request(self._llm_config, transcript, temperature, None)
+            wire = build_wire_request(llm_config, transcript, temperature, max_tokens)
             self.run.write_json(attempt_dir / "request.json", self._redact(wire))
 
             log_event(
@@ -176,13 +215,17 @@ class LLMClient:
             )
             observer = _StageObserver(stage_id)
             manager = LLMManager(
-                self._llm_config,
+                llm_config,
                 observer=observer,
                 default_headers=correlation_headers(),
             )
             t0 = time.time()
             try:
-                result = manager.complete(transcript, temperature=temperature)
+                result = manager.complete(
+                    transcript,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
             except (
                 TransportError,
                 NonRetryableHTTPError,
@@ -206,7 +249,9 @@ class LLMClient:
                         "error": str(exc)[:400],
                         "last_heartbeat_s": observer.last_elapsed_s,
                         "chunks_received": observer.last_chunks,
-                        "call_deadline_s": self._llm_config.call_deadline_s,
+                        "call_deadline_s": llm_config.call_deadline_s,
+                        "reasoning_effort": llm_config.reasoning_effort,
+                        "max_tokens": max_tokens,
                     },
                 )
                 self.run.append_ledger(
@@ -261,10 +306,12 @@ class LLMClient:
                     "response_chars": len(result.text),
                     # additive streaming evidence (2026-11-07)
                     "finish_reason": result.finish_reason,
-                    "stream": self._llm_config.stream,
+                    "stream": llm_config.stream,
                     "first_token_s": result.first_token_s,
                     "chunks_received": result.chunks_received,
-                    "call_deadline_s": self._llm_config.call_deadline_s,
+                    "call_deadline_s": llm_config.call_deadline_s,
+                    "reasoning_effort": llm_config.reasoning_effort,
+                    "max_tokens": max_tokens,
                 },
             )
             self.run.append_ledger(

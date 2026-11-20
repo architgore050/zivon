@@ -117,6 +117,25 @@ class TestServiceNode(unittest.TestCase):
         served = self.state.served[0]["messages"]
         self.assertEqual(served[1]["content"], parts)
 
+    def test_per_call_reasoning_effort_and_max_tokens_pass_through(self):
+        # The factory resolves effort per task (numeric env -> low/high/max)
+        # and sends it with each call; the node applies it for that call
+        # without changing its own configured fallback.
+        self._fixture("02-generate.json", {"topic": "x", "claims": []})
+        client = self._client()
+        response = client.post(
+            "/v1/chat/completions",
+            json={
+                "messages": MESSAGES,
+                "model": "mock-model",
+                "reasoning_effort": "max",
+                "max_completion_tokens": 1234,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.state.served[0]["reasoning_effort"], "max")
+        self.assertEqual(self.state.served[0]["max_completion_tokens"], 1234)
+
     def test_streaming_completion_emits_sse_chunks(self):
         self._fixture("02-generate.json", {"topic": "x"})
         client = self._client()

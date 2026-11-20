@@ -40,6 +40,15 @@ hub/session Resume action with the cap-exhausted start-new state
 deployment also pending (the challenge demo tunnel is historical). The status block
 and dated log below are preserved as written.
 
+**Model-call policy (founder decision 2026-11-20):** the factory now sends a scoped
+`ZIVON_CONTENT_MAX_TOKENS` completion cap (default 131,072; 0 = no cap) instead of
+relying on the gateway default. The 2026-11-04 no-cap rule is superseded for the factory:
+with `reasoning_effort=none` the gateway capped output at 8,192 tokens, and `minimal`/`low`
+burned ~49k reasoning tokens before truncating. Thinking effort is now a separate numeric
+quality knob (`ZIVON_REASONING_EFFORT*`: 0=none, 1=low default, 2=high, 3=max) resolved per
+task (`_GENERATE`, `_CHECK`, `_REPAIR`, `_REVIEW`, `_TRANSLATE`), so it can be raised without
+changing the output cap. All tasks ship at `1` (low) for the Class 10 campaign.
+
 ## Status 2026-11-15 — startup track
 
 Founder decision Q-0 (2026-11-15): the challenge deadline and its P0/demo ladder are history;

@@ -345,6 +345,16 @@ class TestLLMConfigFromEnv(unittest.TestCase):
         self.assertEqual(cfg.user_agent, "zivon-factory/0.3.19")
         self.assertEqual(cfg.reasoning_effort, "high")
 
+    def test_numeric_reasoning_effort_is_mapped_for_the_node(self):
+        # The node ConfigMap carries the factory's numeric level (0..3).
+        self._set_required()
+        for raw, expected in (("0", "none"), ("1", "low"), ("2", "high"), ("3", "max")):
+            os.environ["ZIVON_REASONING_EFFORT"] = raw
+            self.assertEqual(LLMConfig.from_env().reasoning_effort, expected)
+        os.environ["ZIVON_REASONING_EFFORT"] = "4"
+        with self.assertRaises(LLMConfigError):
+            LLMConfig.from_env()
+
     def test_malformed_extra_headers_fails_loudly(self):
         self._set_required()
         os.environ["ZIVON_EXTRA_HEADERS"] = "not-json"

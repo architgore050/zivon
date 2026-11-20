@@ -107,9 +107,11 @@ def translate(lines: list[str]) -> dict:
 
 Every knob is a constructor argument; `LLMConfig.from_env()` reads the same
 names from the environment (see `docs/content-factory/config-reference.md`
-and `.env.example` for the full table). `max_tokens` is constructor-only by
-design - no environment variable (founder decision 2026-11-04: the factory
-sends no completion cap).
+and `.env.example` for the full table). `max_tokens` stays constructor-only
+inside `llm_manager`; the factory reads its scoped
+`ZIVON_CONTENT_MAX_TOKENS` (2026-11-20 founder decision) and passes it
+per call. The node also accepts a per-call `reasoning_effort`/`max_tokens`
+from its consumer.
 
 ## Isolation rules (enforced by tests)
 

@@ -158,12 +158,20 @@ def build_wire_request(
     }
     if config.json_mode:
         request["response_format"] = {"type": "json_object"}
+    if config.reasoning_effort:
+        # ChatOpenAI sends this as a first-class parameter; mirror it in the
+        # persisted/summary request so the effort used is diagnosable.
+        request["reasoning_effort"] = config.reasoning_effort
     if config.stream:
         request["stream"] = True
         if config.stream_usage:
             request["stream_options"] = {"include_usage": True}
     if max_tokens is not None:
-        request["max_tokens"] = max_tokens
+        # LangChain's ChatOpenAI serializes this knob as
+        # `max_completion_tokens` (OpenAI's current field; `max_tokens` is the
+        # deprecated alias). Mirror the real wire here so the persisted
+        # request artifact is truthful.
+        request["max_completion_tokens"] = max_tokens
     return request
 
 
@@ -219,10 +227,13 @@ class LLMManager:
         messages: list[dict[str, Any]],
         *,
         temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> Iterator[str]:
         """Content deltas only - the thin text view over stream_events(), for
         consumers that want incremental output (the future translator)."""
-        for event in self.stream_events(messages, temperature=temperature):
+        for event in self.stream_events(
+            messages, temperature=temperature, max_tokens=max_tokens
+        ):
             if event.delta is not None:
                 yield event.delta
 
@@ -231,6 +242,7 @@ class LLMManager:
         messages: list[dict[str, Any]],
         *,
         temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> Iterator[StreamEvent]:
         """Typed incremental stream: content deltas plus the terminal
         finish_reason and usage events when the server sends them.
@@ -247,7 +259,7 @@ class LLMManager:
             emitted = False
             for attempt in range(1, self.config.max_attempts + 1):
                 chat = self._build_chat(
-                    temperature, None, streaming=True, http_client=client
+                    temperature, max_tokens, streaming=True, http_client=client
                 )
                 try:
                     for event in self._iter_events(chat, messages, state):

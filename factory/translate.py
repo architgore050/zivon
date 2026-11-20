@@ -1108,10 +1108,11 @@ def translate_single_unit(
     )
     stage_id = STAGE_ID if round_tag_prefix == "init" else "10c-transrepair"
 
-    # The factory NEVER caps the model call — no max_tokens is sent (founder
-    # rule on main; LLMClient.call passes no per-call cap). A truncated JSON
-    # answer is caught by reassembly + the deterministic invariant checks as
-    # the validation backstop, not here.
+    # The factory applies its scoped ZIVON_CONTENT_MAX_TOKENS cap centrally in
+    # LLMClient.call (2026-11-20 founder decision; translation gets the same
+    # cap as every other stage). A truncated JSON answer is caught by
+    # reassembly + the deterministic invariant checks as the validation
+    # backstop, not here.
     translated_payload = llm.call(
         stage_id=stage_id,
         messages=messages,

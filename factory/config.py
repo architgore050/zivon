@@ -32,13 +32,34 @@ Optional environment variables (defaults in parentheses):
     ZIVON_BACKOFF_BASE_S (2.0)
     ZIVON_HEARTBEAT_S (60)   progress-print cadence
     ZIVON_VALIDATION_ROUNDS (5) the model's own repair budget per stage call
+    ZIVON_CONTENT_MAX_TOKENS (131072) completion cap for factory model calls
+                             (thinking + answer); 0 = no cap. This is a
+                             factory-only scoped exception to the 2026-11-04
+                             no-cap decision (founder decision 2026-11-20):
+                             the Go gateway otherwise defaults to 8,192 output
+                             tokens with reasoning disabled, truncating large
+                             chapters. The served model's output limit is
+                             384,000 tokens.
+    ZIVON_REASONING_EFFORT (1) numeric thinking-effort level for all tasks:
+                             0=none, 1=low (default), 2=high, 3=max (maximum).
+                             Per-task overrides (same 0..3 values):
+                             ZIVON_REASONING_EFFORT_GENERATE,
+                             ZIVON_REASONING_EFFORT_CHECK,
+                             ZIVON_REASONING_EFFORT_REPAIR,
+                             ZIVON_REASONING_EFFORT_REVIEW,
+                             ZIVON_REASONING_EFFORT_TRANSLATE.
+                             Effort is a quality knob only: output length is
+                             governed by ZIVON_CONTENT_MAX_TOKENS, so raising
+                             it cannot cause truncation by itself. Legacy
+                             string values (none/low/high/max) are still
+                             accepted for existing local env files.
 """
 
 from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -84,6 +105,19 @@ _ASSESSMENT_STAGE_IDS = [
     "A5-time-priors",
     "A6-publish-export",
 ]
+
+# Numeric thinking-effort levels (founder decision 2026-11-20). The served
+# DeepSeek V4.1 Flash model card lists low/high/max; `none` is accepted by the
+# gateway and is useful when output length, not reasoning, is the constraint.
+# Numeric levels keep effort a pure quality knob: 0=none, 1=low (default),
+# 2=high, 3=max (the maximum). Do not add a level above 3 without a probe.
+_REASONING_EFFORT_LEVELS = ("none", "low", "high", "max")
+_REASONING_EFFORT_TASKS = ("generate", "check", "repair", "review", "translate")
+_DEFAULT_REASONING_EFFORT = "low"
+_DEFAULT_CONTENT_MAX_TOKENS = 131072
+# The served model's output ceiling (GET /v1/models -> limit.output). A larger
+# configured value is a hard error - the gateway would reject it.
+_MAX_MODEL_OUTPUT_TOKENS = 384000
 
 SUPPORTED_TARGET_LOCALES = {
     "hi",
@@ -224,6 +258,11 @@ class Config:
     data: dict[str, Any]
     server: dict[str, Any]
     root: Path = REPO_ROOT
+    # Factory-only completion cap (thinking + answer), 2026-11-20. None = no
+    # cap. llm_manager itself stays constructor-only for max_tokens.
+    content_max_tokens: int | None = _DEFAULT_CONTENT_MAX_TOKENS
+    # Task -> resolved reasoning effort ("none"/"low"/"high"/"max").
+    reasoning_effort_by_task: dict[str, str] = field(default_factory=dict)
 
     # -- section accessors -------------------------------------------------
     @property
@@ -293,7 +332,13 @@ class Config:
             raise ConfigError(f"learner.class_level must be 6..12 (got {class_level})")
         data = dict(self.data)
         data["learner"] = {**data["learner"], "class_level": class_level}
-        return Config(data=data, server=self.server, root=self.root)
+        return Config(
+            data=data,
+            server=self.server,
+            root=self.root,
+            content_max_tokens=self.content_max_tokens,
+            reasoning_effort_by_task=dict(self.reasoning_effort_by_task),
+        )
 
     def with_locales(self, locales: list[str]) -> Config:
         """Derived view enabling translation for the specified target locales."""
@@ -306,7 +351,13 @@ class Config:
             "enabled": True,
             "target_locales": list(locales),
         }
-        return Config(data=data, server=self.server, root=self.root)
+        return Config(
+            data=data,
+            server=self.server,
+            root=self.root,
+            content_max_tokens=self.content_max_tokens,
+            reasoning_effort_by_task=dict(self.reasoning_effort_by_task),
+        )
 
     def learner_class(self) -> int:
         """The run's learner class. Set by --class or by 01-locate's chapter;
@@ -456,8 +507,83 @@ def _load_server_from_env(*, require: bool = True) -> dict[str, Any]:
         "heartbeat_s": heartbeat_s,
         "extra_headers": extra_headers,
         "user_agent": _env_raw("ZIVON_USER_AGENT") or "",
-        "reasoning_effort": _env_raw("ZIVON_REASONING_EFFORT") or None,
+        "reasoning_effort": _env_reasoning_effort(
+            "ZIVON_REASONING_EFFORT", _DEFAULT_REASONING_EFFORT
+        ),
     }
+
+
+def _env_reasoning_effort(name: str, default: str) -> str:
+    """Read a numeric thinking-effort level (0..3) or a legacy string.
+
+    Numeric mapping (founder decision 2026-11-20):
+    0 = none, 1 = low (default), 2 = high, 3 = max (the maximum).
+    """
+    raw = _env_raw(name)
+    if raw is None:
+        return default
+    text = raw.strip().lower()
+    if text in _REASONING_EFFORT_LEVELS:
+        return text  # legacy env files keep working
+    try:
+        level = int(text)
+    except ValueError as exc:
+        raise ConfigError(
+            f"environment variable {name}={raw!r} must be an integer 0..3 "
+            "(0=none, 1=low, 2=high, 3=max) or a legacy string "
+            f"({', '.join(_REASONING_EFFORT_LEVELS)})"
+        ) from exc
+    if not 0 <= level <= len(_REASONING_EFFORT_LEVELS) - 1:
+        raise ConfigError(
+            f"environment variable {name}={level} is out of range; "
+            f"0..{len(_REASONING_EFFORT_LEVELS) - 1} "
+            "{0=none, 1=low, 2=high, 3=max}"
+        )
+    return _REASONING_EFFORT_LEVELS[level]
+
+
+def _load_reasoning_efforts_from_env() -> dict[str, str]:
+    """Resolve the global level and every per-task override (0..3 numeric)."""
+    global_level = _env_reasoning_effort(
+        "ZIVON_REASONING_EFFORT", _DEFAULT_REASONING_EFFORT
+    )
+    return {
+        task: _env_reasoning_effort(
+            f"ZIVON_REASONING_EFFORT_{task.upper()}", global_level
+        )
+        for task in _REASONING_EFFORT_TASKS
+    }
+
+
+def _load_content_max_tokens_from_env() -> int | None:
+    """Factory-only completion cap; 0/unset semantics are explicit.
+
+    Unset uses the documented default (131,072). 0 disables the cap. Values
+    above the served model's output limit are refused loudly rather than
+    silently clamped.
+    """
+    raw = _env_raw("ZIVON_CONTENT_MAX_TOKENS")
+    if raw is None:
+        return _DEFAULT_CONTENT_MAX_TOKENS
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ConfigError(
+            f"environment variable ZIVON_CONTENT_MAX_TOKENS={raw!r} must be "
+            "an integer (0 = no cap)"
+        ) from exc
+    if value < 0:
+        raise ConfigError("ZIVON_CONTENT_MAX_TOKENS must be >= 0 (0 = no cap)")
+    if value == 0:
+        return None
+    if value > _MAX_MODEL_OUTPUT_TOKENS:
+        raise ConfigError(
+            f"ZIVON_CONTENT_MAX_TOKENS={value} exceeds the served model's "
+            f"output limit ({_MAX_MODEL_OUTPUT_TOKENS} tokens)"
+        )
+    if value < 1024:
+        raise ConfigError("ZIVON_CONTENT_MAX_TOKENS must be >= 1024 when capped")
+    return value
 
 
 def _validate_locale_list(locales: list[Any], field_name: str) -> None:
@@ -614,6 +740,8 @@ def load_config(path: Path | None = None, *, require_server: bool = True) -> Con
         data=data,
         server=_load_server_from_env(require=require_server),
         root=cfg_path.parent.resolve() if cfg_path != CONFIG_PATH else REPO_ROOT,
+        content_max_tokens=_load_content_max_tokens_from_env(),
+        reasoning_effort_by_task=_load_reasoning_efforts_from_env(),
     )
 
 
