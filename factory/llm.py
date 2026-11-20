@@ -82,10 +82,6 @@ _CALL_INTENT = {
     "08-fixloop": "fixloop",
     "09-review": "review",
     "10-reviewfix": "reviewfix",
-    "10a-translate": "translate",
-    "10b-transcheck": "translate",
-    "10c-transrepair": "translate",
-    "10d-transrender": "translate",
 }
 
 # Task bucket for the per-task thinking-effort env vars
