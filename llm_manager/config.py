@@ -12,11 +12,12 @@ classic per-read-operation timeout of a non-streaming POST, which kills
 nothing: a non-streaming response sends zero bytes until generation ends.
 That gap is why streaming is the default and why `call_deadline_s` exists.
 
-`max_tokens` deliberately has NO environment variable. The factory never sets
-it: sending no completion cap is a standing founder decision (2026-11-04 -
-Qwen thinks a lot and then gets things right; any cap is a truncation risk).
-The knob exists purely so future consumers (translator, voice tooling) can
-bound output programmatically from code.
+`max_tokens` deliberately has NO environment variable in llm_manager itself.
+The factory owns a scoped `ZIVON_CONTENT_MAX_TOKENS` and passes it per call
+(2026-11-20 founder decision; the earlier 2026-11-04 no-cap rule was
+superseded for the factory because the Go gateway otherwise defaults to 8,192
+output tokens with thinking disabled). The constructor knob remains for
+callers that bound output from code.
 
 This module is standalone: it imports nothing from factory/.
 """
@@ -44,10 +45,11 @@ class LLMConfig:
     api_key: str | None = None
     temperature: float = 0.2
     json_mode: bool = True
-    # Upstream reasoning/thinking effort (2026-11-10 founder decision: run the
-    # pipeline at the HIGHEST available setting - DeepSeek V4.1 Flash via the
-    # OpenCode Go gateway accepts low/medium/high and reports reasoning_tokens).
-    # None = send nothing (server default).
+    # Upstream reasoning/thinking effort. Founder decisions: 2026-11-10 ran
+    # the pipeline at the highest setting; 2026-11-20 made effort a numeric
+    # quality knob (0=none, 1=low default, 2=high, 3=max) resolved per task.
+    # DeepSeek V4.1 Flash via the OpenCode Go gateway reports
+    # reasoning_tokens. None = send nothing (server default).
     reasoning_effort: str | None = None
     # Max INACTIVITY between streamed chunks (read timeout when not streaming).
     # SEMANTIC CHANGE 2026-11-07 - see the module docstring before changing it.
@@ -174,7 +176,7 @@ class LLMConfig:
             api_key=raw("ZIVON_API_KEY"),
             temperature=temperature,
             json_mode=_bool(raw("ZIVON_JSON_MODE"), True, "ZIVON_JSON_MODE"),
-            reasoning_effort=raw("ZIVON_REASONING_EFFORT"),
+            reasoning_effort=_reasoning_effort(raw("ZIVON_REASONING_EFFORT")),
             timeout_s=timeout_s,
             connect_timeout_s=connect_timeout_s,
             call_deadline_s=call_deadline_s,
@@ -245,6 +247,37 @@ def _number(
     if integer and value != int(value):
         raise LLMConfigError(f"environment variable {name}={raw!r} must be an integer")
     return value
+
+
+def _reasoning_effort(raw: str | None) -> str | None:
+    """Numeric thinking effort -> provider level.
+
+    The factory's per-task env uses 0=none, 1=low, 2=high, 3=max (founder
+    decision 2026-11-20). The node reads the same numeric value from its
+    ConfigMap, so parse it here too; legacy strings pass through unchanged.
+    """
+    if raw is None:
+        return None
+    text = raw.strip().lower()
+    if not text:
+        return None
+    levels = ("none", "low", "high", "max")
+    if text in levels:
+        return text
+    try:
+        level = int(text)
+    except ValueError as exc:
+        raise LLMConfigError(
+            "ZIVON_REASONING_EFFORT must be 0..3 "
+            "(0=none, 1=low, 2=high, 3=max) or "
+            f"{'/'.join(levels)}; got {raw!r}"
+        ) from exc
+    if not 0 <= level < len(levels):
+        raise LLMConfigError(
+            "ZIVON_REASONING_EFFORT must be 0..3 "
+            f"(0=none, 1=low, 2=high, 3=max); got {level}"
+        )
+    return levels[level]
 
 
 def _bool(raw: str | None, default: bool, name: str) -> bool:

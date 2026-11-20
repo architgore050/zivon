@@ -40,6 +40,7 @@ import queue
 import threading
 import time
 import uuid
+from dataclasses import replace
 from typing import Any
 
 from fastapi import FastAPI, Response
@@ -100,8 +101,24 @@ class ChatCompletionRequest(BaseModel):
     model: str | None = None  # accepted; a mismatch with the node's model -> 400
     messages: list[_Message] = Field(min_length=1)
     temperature: float | None = None
+    # Accept both OpenAI spellings: LangChain/factory sends
+    # max_completion_tokens; older consumers send max_tokens.
     max_tokens: int | None = None
+    max_completion_tokens: int | None = None
+    # Per-call thinking effort. The factory resolves a numeric level per task
+    # (ZIVON_REASONING_EFFORT_*) and sends it here; the node's configured
+    # ZIVON_REASONING_EFFORT remains the fallback when the body omits it.
+    reasoning_effort: str | None = None
     stream: bool = False
+
+    @property
+    def requested_max_tokens(self) -> int | None:
+        return (
+            self.max_tokens
+            if self.max_tokens is not None
+            else self.max_completion_tokens
+        )
+
     stream_options: dict[str, Any] | None = None
     response_format: dict[str, Any] | None = None  # accepted, ignored (node policy)
 
@@ -145,8 +162,12 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
 
     @app.post("/v1/chat/completions")
     def chat_completions(body: ChatCompletionRequest) -> Response:
-        state.config()  # loud config tripwire on first use (LLMConfigError -> 500)
-        manager = LLMManager(state.config(), observer=_NodeObserver())
+        config = (
+            state.config()
+        )  # loud config tripwire on first use (LLMConfigError -> 500)
+        if body.reasoning_effort:
+            config = replace(config, reasoning_effort=body.reasoning_effort)
+        manager = LLMManager(config, observer=_NodeObserver())
         _log_event("node.call.received", {"stream": body.stream, "attempt": 1})
         if body.model and body.model != manager.config.model:
             # A single-model node serves its configured model - but a request
@@ -186,7 +207,7 @@ def create_app(config: LLMConfig | None = None) -> FastAPI:
             result = manager.complete(
                 messages,
                 temperature=body.temperature,
-                max_tokens=body.max_tokens,
+                max_tokens=body.requested_max_tokens,
             )
         except NonRetryableHTTPError as exc:
             return JSONResponse(
@@ -327,7 +348,11 @@ def _sse_stream(
 
     def feed() -> None:
         try:
-            for event in manager.stream_events(messages, temperature=body.temperature):
+            for event in manager.stream_events(
+                messages,
+                temperature=body.temperature,
+                max_tokens=body.requested_max_tokens,
+            ):
                 if stop.is_set():
                     return  # consumer gone: dropping this generator closes upstream
                 while not stop.is_set():

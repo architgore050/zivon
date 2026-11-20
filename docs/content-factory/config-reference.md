@@ -44,27 +44,31 @@ the cluster, or the server directly on a local host):
 | `ZIVON_HEARTBEAT_S` | no | `60` | In-flight heartbeat cadence (`still waiting on the model (Ns, N chunks received...)`). |
 | `ZIVON_EXTRA_HEADERS` | no | — | Extra HTTP headers on every upstream request, as a JSON object of name → value (2026-11-10, the OpenCode Go gateway needs a stable `x-opencode-session` per conversation for routing/cache affinity). Malformed JSON fails loudly. Node-side only; rendered into the llm-manager ConfigMap from `k8s/infra.env`. |
 | `ZIVON_USER_AGENT` | no | — | Sent as the `User-Agent`. Gateways (Go) ask clients to identify themselves rather than spoof an SDK agent. Node-side only. |
-| `ZIVON_REASONING_EFFORT` | no | — | Upstream thinking effort (`low`/`medium`/`high` on DeepSeek V4.1 Flash via the Go gateway; founder decision 2026-11-10: pipeline runs use the highest available — `high`). Thinking tokens show up in usage (`reasoning_tokens`); more effort = longer calls, not faster ones. Node-side only. |
+| `ZIVON_CONTENT_MAX_TOKENS` | no | `131072` | **Factory-only** completion cap (thinking + answer), sent as `max_tokens` on every factory call. `0` = no cap. Founder decision 2026-11-20: this supersedes the 2026-11-04 no-cap rule for the factory because the Go gateway otherwise defaults to 8,192 output tokens when thinking is disabled, truncating large chapters. Values above the served model's output limit (`384000`) are refused, never clamped. `llm_manager` itself stays constructor-only; only the factory reads this env. |
+| `ZIVON_REASONING_EFFORT` | no | `1` | Numeric thinking-effort level: `0`=none, `1`=low (default), `2`=high, `3`=max (the maximum). Founder decision 2026-11-20: effort is a pure quality knob because output length is governed by `ZIVON_CONTENT_MAX_TOKENS`; raising it cannot cause truncation by itself. Legacy strings (`none`/`low`/`high`/`max`) are accepted. Per-task overrides: `ZIVON_REASONING_EFFORT_GENERATE`, `_CHECK`, `_REPAIR`, `_REVIEW`, `_TRANSLATE` (each also `0..3`; unset inherits this value). The factory sends the resolved level per call; the llm-manager node uses it for that call, falling back to its own configured value. |
 
-**No completion cap (2026-11-04 founder decision, unchanged):** the factory
-sends no `max_tokens` at all. A measured `09-review` call spent 49,750
-completion tokens (mostly thinking) and then answered correctly - Qwen thinks
-a lot and then gets things right, so any cap is a truncation risk. The
-2026-11-08 review split did NOT change this law: the measured thinking bloat
-(24k–130k completion tokens per 09-review pass, one call killed mid-thinking)
-was treated as a TASK-SIZE problem - 09-review is now two smaller calls - not
-as a signal to cap thinking. Passage-level reasoning loops are the server's
-domain: the Strata server's opt-in `reasoning_loop_recovery` guard is the
-right lever there (see the dated entry in
-`skills/prompting-and-agent-design/references/sources-and-evidence.md`).
-`max_tokens` exists in `llm_manager.LLMConfig` as a CONSTRUCTOR-ONLY knob
-with no environment variable, so only code can ever set it (a future
-translator may; the factory never does). The server's own context budget,
-`ZIVON_TIMEOUT_S` (inactivity) and `ZIVON_CALL_DEADLINE_S` (per-call wall
-clock) are the backstops; the run Job itself has no deadline (2026-11-06
-founder decision). `.env.example` at the repo root documents
-the full set. A `server` section in `config.json` is a hard error with a
-migration hint - delete it.
+**Scoped completion cap (2026-11-20 founder decision; supersedes the
+2026-11-04 no-cap rule for the factory):** the factory sends
+`ZIVON_CONTENT_MAX_TOKENS` (default `131072`) as `max_tokens` on every model
+call. The no-cap rule was correct for a thinking model when the server chose
+answer length, but the current Go gateway defaults to **8,192 output tokens**
+when `reasoning_effort=none`; large chapter generations were truncated at
+8,192 (Human Eye, 2026-11-20) while `low`/`minimal` could burn 49k thinking
+tokens and still hit 65,536. The cap covers thinking + answer, so it is set
+generously (the served model's output limit is 384,000). `0` disables it.
+Thinking effort is now independent: `ZIVON_REASONING_EFFORT*` is a numeric
+quality knob (`0`=none, `1`=low, `2`=high, `3`=max) chosen per task, so effort
+can be raised on quality grounds without causing truncation. The
+2026-11-08 review split still stands (09-review is two smaller calls); the cap
+is a provider-default fix, not a return to tight per-stage caps. `max_tokens`
+remains a CONSTRUCTOR-ONLY knob in `llm_manager.LLMConfig`; only the factory
+reads `ZIVON_CONTENT_MAX_TOKENS` and passes it per call. The node applies a
+per-call `reasoning_effort`/`max_tokens` when the factory sends them. The
+server's context, `ZIVON_TIMEOUT_S` (inactivity) and `ZIVON_CALL_DEADLINE_S`
+(per-call wall clock) remain the wall-clock backstops; the run Job itself has
+no deadline (2026-11-06 founder decision). `.env.example` at the repo root
+documents the full set. A `server` section in `config.json` is a hard error
+with a migration hint - delete it.
 
 **In-cluster retry split (why the factory's `ZIVON_MAX_ATTEMPTS` is `1` in
 its ConfigMap):** transport retries belong to the llm-manager node, which
@@ -288,9 +292,10 @@ was incomplete (finish_reason=length)` (4096 too small: a whole-chapter ground
 truth plus qwen's 5–10k THINKING tokens, which count against `max_tokens`),
 then read timeouts once budgets grew. The fix (0.2.8) made the global knobs
 effectively non-binding (`ZIVON_MAX_TOKENS=65536`). The 2026-11-04 founder
-decision goes further: **caps removed entirely** — no `max_tokens` is sent at
-all (`ZIVON_MAX_TOKENS` retired from code and `infra.env` too). The server's
-own context budget (256k dev server) and `ZIVON_TIMEOUT_S` bound the model
-calls; the run itself carries no wall-clock cap (2026-11-06 founder decision:
-a blind timer must not kill a progressing run). Per-stage `temperature` overrides
-remain for the day a stage needs different sampling.
+decision removed caps entirely (`ZIVON_MAX_TOKENS` retired from code and
+`infra.env` too), which held until the 2026-11-20 scoped
+`ZIVON_CONTENT_MAX_TOKENS` fix above. The server's context, the scoped cap,
+`ZIVON_TIMEOUT_S` and `ZIVON_CALL_DEADLINE_S` bound model calls; the run
+itself carries no wall-clock cap (2026-11-06 founder decision: a blind timer
+must not kill a progressing run). Per-stage `temperature` overrides remain for
+the day a stage needs different sampling.

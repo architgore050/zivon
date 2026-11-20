@@ -519,9 +519,14 @@ rounds run in-process via `llm_manager.validation.run_validation_rounds` -
 only the LATEST rejected output stays in full in the retry transcript; older
 ones are trimmed to 1200 chars (their full text is in the attempt artifacts).
 
-No completion cap is ever sent (2026-11-04 founder decision, unchanged):
-`max_tokens` is a constructor-only knob in LLMConfig with NO environment
-variable - the factory never sets it; future consumers may, from code.
+Completion cap and effort (2026-11-20 founder decision): the factory sends
+the scoped `ZIVON_CONTENT_MAX_TOKENS` value (default 131,072; thinking +
+answer) as `max_tokens`, superseding the 2026-11-04 no-cap rule for the
+factory because the Go gateway otherwise defaults to 8,192 output tokens with
+thinking disabled. Thinking effort is a separate numeric quality knob
+(`ZIVON_REASONING_EFFORT*`, 0=none, 1=low, 2=high, 3=max) resolved per task
+and sent per call. `max_tokens` remains constructor-only in
+`llm_manager.LLMConfig`; only the factory reads the env and passes it.
 
 ## Observability (2026-11-04, streaming upgrade 2026-11-07)
 

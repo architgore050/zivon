@@ -28,6 +28,13 @@ _SERVER_VARS = (
     "ZIVON_TIMEOUT_S",
     "ZIVON_MAX_ATTEMPTS",
     "ZIVON_VALIDATION_ROUNDS",
+    "ZIVON_CONTENT_MAX_TOKENS",
+    "ZIVON_REASONING_EFFORT",
+    "ZIVON_REASONING_EFFORT_GENERATE",
+    "ZIVON_REASONING_EFFORT_CHECK",
+    "ZIVON_REASONING_EFFORT_REPAIR",
+    "ZIVON_REASONING_EFFORT_REVIEW",
+    "ZIVON_REASONING_EFFORT_TRANSLATE",
 )
 
 
@@ -134,6 +141,52 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(cfg.server["max_attempts"], 5)
         self.assertEqual(cfg.server["validation_rounds"], 8)
         self.assertEqual(cfg.api_key(), "sekret")
+
+    def test_content_max_tokens_default_scoped_and_no_cap(self):
+        # 2026-11-20 founder decision: the factory sends a scoped completion
+        # cap; 0 explicitly disables it, values above the model output limit
+        # are refused rather than clamped.
+        cfg = load_config(write_config(self.tmp))
+        self.assertEqual(cfg.content_max_tokens, 131072)
+        os.environ["ZIVON_CONTENT_MAX_TOKENS"] = "20000"
+        self.assertEqual(load_config(write_config(self.tmp)).content_max_tokens, 20000)
+        os.environ["ZIVON_CONTENT_MAX_TOKENS"] = "0"
+        self.assertIsNone(load_config(write_config(self.tmp)).content_max_tokens)
+        os.environ["ZIVON_CONTENT_MAX_TOKENS"] = "999"
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp))
+        self.assertIn(">= 1024", str(ctx.exception))
+        os.environ["ZIVON_CONTENT_MAX_TOKENS"] = "400000"
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp))
+        self.assertIn("output limit", str(ctx.exception))
+
+    def test_numeric_reasoning_effort_and_task_overrides(self):
+        # Numeric levels: 0=none, 1=low (default), 2=high, 3=max (maximum).
+        cfg = load_config(write_config(self.tmp))
+        self.assertEqual(cfg.server["reasoning_effort"], "low")
+        self.assertEqual(
+            set(cfg.reasoning_effort_by_task),
+            {"generate", "check", "repair", "review", "translate"},
+        )
+        self.assertTrue(all(v == "low" for v in cfg.reasoning_effort_by_task.values()))
+        os.environ["ZIVON_REASONING_EFFORT"] = "2"
+        os.environ["ZIVON_REASONING_EFFORT_REVIEW"] = "0"
+        os.environ["ZIVON_REASONING_EFFORT_TRANSLATE"] = "3"
+        cfg = load_config(write_config(self.tmp))
+        self.assertEqual(cfg.server["reasoning_effort"], "high")
+        self.assertEqual(cfg.reasoning_effort_by_task["generate"], "high")
+        self.assertEqual(cfg.reasoning_effort_by_task["review"], "none")
+        self.assertEqual(cfg.reasoning_effort_by_task["translate"], "max")
+        # Legacy string values from existing local env files still parse.
+        os.environ["ZIVON_REASONING_EFFORT"] = "max"
+        self.assertEqual(
+            load_config(write_config(self.tmp)).server["reasoning_effort"], "max"
+        )
+        os.environ["ZIVON_REASONING_EFFORT"] = "4"
+        with self.assertRaises(ConfigError) as ctx:
+            load_config(write_config(self.tmp))
+        self.assertIn("0..3", str(ctx.exception))
 
     def test_out_of_range_env_rejected(self):
         os.environ["ZIVON_MAX_ATTEMPTS"] = "0"

@@ -77,6 +77,10 @@ class TestLLMClient(unittest.TestCase):
             "ZIVON_VALIDATION_ROUNDS",
             "ZIVON_STREAM",
             "ZIVON_CALL_DEADLINE_S",
+            "ZIVON_CONTENT_MAX_TOKENS",
+            "ZIVON_REASONING_EFFORT",
+            "ZIVON_REASONING_EFFORT_GENERATE",
+            "ZIVON_REASONING_EFFORT_REVIEW",
         ):
             os.environ.pop(key, None)
 
@@ -148,6 +152,44 @@ class TestLLMClient(unittest.TestCase):
             self.assertIsNotNone(meta["first_token_s"])
             self.assertIn("call_deadline_s", meta)
             self.assertEqual(state.served[0]["stage"], "02-generate")
+        finally:
+            server.shutdown()
+
+    def test_scoped_max_tokens_and_per_task_effort_reach_the_wire(self):
+        # 2026-11-20: the factory sends an explicit completion cap so the Go
+        # gateway cannot default to 8,192, and resolves thinking effort per
+        # task (generate here, review separately). Both are evidence in the
+        # request artifact and meta.
+        (self.fixtures / "09-review.json").write_text(json.dumps(GOOD))
+        server, url, state = self._serve(GOOD)
+        try:
+            os.environ["ZIVON_CONTENT_MAX_TOKENS"] = "20000"
+            os.environ["ZIVON_REASONING_EFFORT"] = "1"
+            os.environ["ZIVON_REASONING_EFFORT_REVIEW"] = "3"
+            cfg = make_cfg(self.tmp, url)
+            run = self._run(cfg)
+            client = LLMClient(cfg, run)
+            self._call(client)
+            self.assertEqual(state.served[0]["max_completion_tokens"], 20000)
+            self.assertEqual(state.served[0]["reasoning_effort"], "low")
+            attempt = run.stage_dir("02-generate") / "attempts" / "attempt-01"
+            request = json.loads((attempt / "request.json").read_text())
+            meta = json.loads((attempt / "meta.json").read_text())
+            self.assertEqual(request["max_completion_tokens"], 20000)
+            self.assertEqual(request["reasoning_effort"], "low")
+            self.assertEqual(meta["max_tokens"], 20000)
+            self.assertEqual(meta["reasoning_effort"], "low")
+            # A review-stage call resolves the per-task override.
+            client.call(
+                "09-review",
+                [
+                    {"role": "system", "content": "[ZIVON STAGE: 09-review] x"},
+                    {"role": "user", "content": "go"},
+                ],
+                SIMPLE_SCHEMA,
+                "test",
+            )
+            self.assertEqual(state.served[-1]["reasoning_effort"], "max")
         finally:
             server.shutdown()
 
