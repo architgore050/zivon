@@ -1,0 +1,33 @@
+{
+  "course_id": "class-10-physics",
+  "topic_slug": "electricity",
+  "locale": "hi-Latn",
+  "default_locale": "en",
+  "locales_available": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "titles_by_locale": {
+    "en": "Electricity: current, resistance, circuits and power",
+    "hi": "विद्युत: धारा, प्रतिरोध, परिपथ और शक्ति",
+    "hi-Latn": "Electricity: current, resistance, circuits aur power"
+  },
+  "translation_status": {
+    "hi": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    },
+    "hi-Latn": {
+      "status": "verified",
+      "fallback_blocks": [],
+      "glossary_version": "1.0.0"
+    }
+  },
+  "narration": {
+    "available": false,
+    "lang": "hi-Latn",
+    "blocks": {}
+  }
+}

@@ -125,8 +125,9 @@ class CampaignRecord(unittest.TestCase):
 
     def test_current_state_is_recorded(self) -> None:
         text = " ".join(self.text.split())
-        self.assertIn("two generated, two pending", text)
+        self.assertIn("three generated, one pending", text)
         self.assertIn("The Human Eye is generated", text)
+        self.assertIn("Electricity is generated", text)
 
     def test_no_placeholders(self) -> None:
         hits = [m.group(0) for m in PLACEHOLDER_RE.finditer(self.text)]
