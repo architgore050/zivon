@@ -49,6 +49,25 @@ quality knob (`ZIVON_REASONING_EFFORT*`: 0=none, 1=low default, 2=high, 3=max) r
 task (`_GENERATE`, `_CHECK`, `_REPAIR`, `_REVIEW`, `_TRANSLATE`), so it can be raised without
 changing the output cap. All tasks ship at `1` (low) for the Class 10 campaign.
 
+## Status 2026-11-21 — F11 hermetic E2E suite rebuilt and green (63 tests)
+
+F11's acceptance-flow suite landed on `feature/w-f11-e2e` after the previous
+session's tree was lost to a sandbox recycle (the salvage commit kept only the
+scaffolding; this PR rebuilds to the same spec). **The suite is exactly 63
+tests: 60 HTTP-layer acceptance flows (FastAPI TestClient over the real app +
+the seeded in-memory SQLite store) + 3 Chromium browser smokes**, and
+`python -m unittest discover -s testing/e2e -t .` exits 0 key-free in the
+sandbox. Hermetic by construction: Prisma STT + the tutor brain are doubled at
+the `app.state.speaking` seam, transactional email uses the dev sink, the F10
+dashboard panels read the seeded store's REAL aggregates through a
+psycopg-shaped SQLite cursor (no fake numbers), grading is server-side, and
+the browser layer boots the real app under uvicorn on 127.0.0.1 — skipping
+honestly with a reason when uvicorn/Playwright/Chromium is absent. The ten
+§17.1 flows are covered at the honest states (guest guards, answer-key
+withholding until commit, idempotent submits, fail-closed 503s, kid-session
+never-grants-staff checks). CI: `testing/e2e` joins the path-guarded Wave-E
+loop in the `tests` job (one list change, no new job).
+
 ## Status 2026-11-15 — startup track
 
 Founder decision Q-0 (2026-11-15): the challenge deadline and its P0/demo ladder are history;

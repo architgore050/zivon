@@ -379,13 +379,14 @@ jobs:
         # contract suite (testing/docs) plus the EX0-EX8 test sets
         # (testing/backend, testing/voice, testing/translation,
         # testing/narration, testing/observability, testing/logging_manager,
-        # testing/evals, testing/skills) under the repo's unittest layout — it runs
+        # testing/evals, testing/skills) and the F11 acceptance-flow suite
+        # (testing/e2e) under the repo's unittest layout — it runs
         # each suite only when its folder exists, so a suite landing mid-wave
         # is covered automatically without another yml edit. Any suite
         # failure fails the job; the guard only skips ABSENT folders.
         run: |
           status=0
-          for d in docs backend voice translation narration observability logging_manager evals skills; do
+          for d in docs backend voice translation narration observability logging_manager evals skills e2e; do
             if [ -d "testing/$d" ]; then
               echo "=== testing/$d ==="
               python -m unittest discover -s "testing/$d" -t . -v || status=1
