@@ -369,25 +369,36 @@ Shipped in this pass:
 | Chapter | Class | Items | Speaking prompts | Question rows | Block tagging |
 |---|---|---|---|---|---|
 | `class-9-describing-motion-around-us` | 9 | 15 | 3 | 45 | complete (42 blocks) |
-| `class-10-light-reflection-and-refraction` | 10 | 15 | 3 | 45 | pending — no published lesson manifest |
+| `class-10-light-reflection-and-refraction` | 10 | 15 | 3 | 45 | pending — lesson published but unregistered (see debt 3) |
+| `class-10-the-human-eye-and-the-colourful-world` | 10 | 18 | 3 | 54 | complete (43 blocks) |
+| `class-10-electricity` | 10 | 18 | 3 | 54 | complete (45 blocks) |
 
 Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
 
-1. **No live generation yet.** The seed banks are curated, grounded content;
-   the live `--generator llm` path is implemented and unit-tested with a fake
-   client but has not been run against a model (Q-10 window is founder/infra).
-2. **No judged or human pedagogical review.** The deterministic gate is the
-   only review; an `EV-ASM` judge card is a later addition.
-3. **Class 10 Light block tagging is pending** because no lesson page exists
-   for that chapter yet. Question tagging is complete. A2 records the debt; it
-   is not a gate pass.
+1. **Live generation ran once (2026-11-21), for two Class 10 chapters.** The Human Eye
+   and Electricity packs were produced with `--generator llm` through `llm_manager` on
+   the authorized build-time route; every item still passed the deterministic gates
+   before export. The seed generator remains the CI default (`generator: "seed"`).
+2. **No judged or human pedagogical review.** The deterministic gate is the only review;
+   an `EV-ASM` judge card is a later addition.
+3. **Class 10 Light block tagging is pending.** The lesson page is published, but the
+   syllabus has not registered it (`lesson_topic_slug` stays `null`): a complete
+   section→concept map is not expressible today because the lesson's sec-08 folds NCERT
+   9.3.6/9.3.7/9.3.8 into one section while the syllabus curates lens formula/magnification
+   and power as two concepts. A lesson re-render with a separate power section (or a
+   recorded syllabus re-curation) unblocks it. Question tagging is complete. The same
+   mechanism — honestly leaving a chapter unregistered rather than publishing a stale
+   pending-lesson label — is why `class-10-magnetic-effects-of-electric-current` has no
+   bank yet: its published lesson omits NCERT 12.4–12.6, so A2 fails with two fatal
+   `concept.orphan` findings until the lesson is regenerated.
 4. **Exam weight is unpopulated** until P3's blueprint lands.
-5. **Only two chapters have banks.** The other six curated Class 9/10 chapters
-   have concepts but no practice/speaking content yet.
-6. **DB import is a manual operator step.** The importer exists and the two
-   tracked packs are imported by it, but nothing runs it automatically after an
-   A6 export yet: an operator runs `scripts/import_assessment_packs.py` (see
-   §11). Wiring it into the publish path is P5/F7's later work.
+5. **Four of the eight curated Class 9/10 chapters have banks** (Class 9 Motion, Class 10
+   Light / Human Eye / Electricity). Magnetic Effects is blocked (debt 3); the remaining
+   chapters have concepts but no practice/speaking content yet.
+6. **DB import is a manual operator step.** The importer exists and the tracked packs are
+   imported by it, but nothing runs it automatically after an A6 export yet: an operator
+   runs `scripts/import_assessment_packs.py` (see §11). Wiring it into the publish path
+   is P5/F7's later work.
 7. **Class 9 chapter-count delta.** FEATURE-MAP's "5 chapters" counted the
    pre-2025 division; the 2025 textbook has four Physics chapters. The manifest
    follows the book.
