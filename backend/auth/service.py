@@ -753,6 +753,11 @@ class AuthService:
             raise APIError(
                 exc.code, status_code=400 if exc.code == "E-AUTH-INVALID" else 503
             ) from exc
+        except BackendConfigError as exc:
+            # GOOGLE_CLIENT_ID/SECRET unset (e.g. creds rotated away mid-flow):
+            # an honest redirect, never a 500 — start() answers 503 for the
+            # same condition, so the callback must not crash past it.
+            raise APIError("E-SERVICE-UNAVAILABLE", status_code=503) from exc
         if not identity.email_verified:
             raise APIError("E-EMAIL-UNVERIFIED", status_code=403)
         if payload.get("intent") == "link":

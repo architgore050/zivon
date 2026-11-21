@@ -545,6 +545,46 @@ class TestGoogleAuth(AuthTestCase):
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()["code"], "E-SERVICE-UNAVAILABLE")
 
+    def test_google_callback_is_an_honest_redirect_when_not_configured(self) -> None:
+        """GOOGLE_CLIENT_ID/SECRET unset mid-flow: 303 error redirect, no 500.
+
+        A state cookie signed before the credentials were removed must not
+        turn the callback into an E-INTERNAL crash; the browser gets the same
+        honest unavailable code the start route answers with, and no account
+        is created or faked.
+        """
+        import dataclasses
+
+        from backend.auth.google import sign_state
+
+        unconfigured = dataclasses.replace(
+            self.cfg, google_client_id=None, google_client_secret=None
+        )
+        app = create_app(unconfigured)
+        client = TestClient(app, base_url="https://testserver")
+        cookie = sign_state(
+            unconfigured,
+            {
+                "state": "pending-state",
+                "verifier": "pending-verifier",
+                "intent": "login",
+                "next": "/app",
+                "exp": 2**31,
+            },
+        )
+        client.cookies.set("zivon_oauth_state", cookie)
+        response = client.get(
+            "/v1/auth/google/callback?code=fake-code&state=pending-state",
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(
+            response.headers["location"], "/login?error=E-SERVICE-UNAVAILABLE"
+        )
+        self.assertEqual(
+            int(app.state.db.fetchone("SELECT COUNT(*) AS cnt FROM users")["cnt"]), 0
+        )
+
 
 class TestCsrfAndPassword(AuthTestCase):
     def test_state_changing_calls_require_the_csrf_header(self) -> None:
