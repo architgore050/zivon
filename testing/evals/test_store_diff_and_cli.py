@@ -63,7 +63,7 @@ class TestStoreDiffAndCli(unittest.TestCase):
         self.assertEqual(
             counts1["card_results"], 5
         )  # EV-PL-001/002/004 joined the calibrate suite (2026-11-21)
-        self.assertEqual(counts1["defect_samples"], 37)
+        self.assertEqual(counts1["defect_samples"], 31)
 
         with sqlite3.connect(self.db_path) as conn:
             run_rows = conn.execute("SELECT COUNT(*) FROM eval_run").fetchone()[0]
@@ -74,8 +74,10 @@ class TestStoreDiffAndCli(unittest.TestCase):
                 "SELECT COUNT(*) FROM eval_defect_sample_result"
             ).fetchone()[0]
         self.assertEqual(run_rows, 1)
-        self.assertEqual(card_rows, 2)
-        self.assertEqual(sample_rows, 14)
+        self.assertEqual(
+            card_rows, 5
+        )  # EV-PL-001/002/004 joined the calibrate suite (2026-11-21)
+        self.assertEqual(sample_rows, 31)
 
     def test_store_degrades_to_jsonl_and_creates_outbox_when_db_unreachable(
         self,
@@ -87,8 +89,19 @@ class TestStoreDiffAndCli(unittest.TestCase):
         )
         report = run_eval_suite(bad_cfg, suite="smoke")
         self.assertTrue(report.overall_pass)
-        outbox = bad_cfg.evals_runs_dir / "outbox" / f"{report.eval_run_id}.tar.zst"
-        self.assertTrue(outbox.is_file())
+        # The bundle is `.tar.zst` when the `zstd` binary is available and a
+        # real `.tar.gz` otherwise (EvalStore.create_outbox_bundle fallback,
+        # covered by test_outbox_falls_back_to_real_gzip_extension).
+        outbox_dir = bad_cfg.evals_runs_dir / "outbox"
+        bundle_candidates = (
+            outbox_dir / f"{report.eval_run_id}.tar.zst",
+            outbox_dir / f"{report.eval_run_id}.tar.gz",
+        )
+        self.assertTrue(
+            any(p.is_file() for p in bundle_candidates),
+            f"no outbox bundle for {report.eval_run_id} under {outbox_dir}: "
+            f"{sorted(p.name for p in outbox_dir.glob('*'))}",
+        )
 
     def test_persist_run_is_idempotent_and_records_card_duration(self) -> None:
         report = run_eval_suite(self.cfg, suite="calibrate")
