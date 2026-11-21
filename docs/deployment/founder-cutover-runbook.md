@@ -18,22 +18,23 @@ app. From then on the machine serves the site over HTTPS automatically,
 including the security certificate (browsers refuse microphone access to
 sites without HTTPS, so this is not optional — the voice tutor needs it).
 
-The ten steps, in order:
+The steps, in order:
 
 | # | Step | Section | Time |
 |---|---|---|---|
 | 1 | Rent a server + have a domain | §a | ~30 min (incl. signup) |
 | 2 | Point the domain at the server (DNS) | §b | ~10 min + waiting |
-| 3 | Fill `.env.prod` (the one config file) | §c | ~30–60 min (credentials) |
+| 3 | Fill `.env.prod` (the one config file — full contract in §c.5) | §c | ~30–60 min (credentials) |
 | 4 | One-time server prep (Docker + firewall) | §d | ~15 min |
 | 5 | Get the code onto the server | §e | ~5 min |
-| 6 | Start the app (validate, then `up -d`) | §f | ~10 min |
-| 7 | Verify: migrations, smoke script, one real phone | §g | ~20 min |
-| 8 | Set up + verify nightly backups | §h | ~30 min |
-| 9 | If something breaks: troubleshooting / rollback | §i | as needed |
-| 10 | Confirm which values are still missing | §j | checklist |
+| 6 | Start the app (validate → `up -d`, migrations run themselves) | §f | ~10 min |
+| 7 | Import the content banks + series + teaching index | §f step 5 | ~15 min |
+| 8 | Verify: smoke script (8 checks), login, one real phone | §g | ~20 min |
+| 9 | Set up + PROVE nightly backups (incl. a restore drill) | §h | ~30 min |
+| 10 | If something breaks: troubleshooting / rollback | §i | as needed |
+| 11 | Confirm founder inputs still missing + the post-cutover checklist | §j, §k | checklists |
 
-Sections §a–§j are ordered; do them in order and do not skip §b (starting the
+Sections §a–§k are ordered; do them in order and do not skip §b (starting the
 server before DNS is ready can burn the certificate issuer's retry limits).
 
 ---
@@ -164,6 +165,93 @@ degrades honestly to a text path (documented behavior, not a failure).
   `POSTGRES_HOST_AUTH_METHOD=trust` — all refused in the deployed mode
   (prototype-deployment.md §4).
 
+### c.5 The full contract — EVERY variable the deployment reads
+
+The template (`.env.prod.example`) lists only what you fill; the deployment
+file (`docker-compose.prod.yml`) actually reads every variable below. This is
+the complete fill-in contract: what each one does, where it comes from, and
+what happens if it is missing or wrong. Everything not marked REQUIRED keeps
+a safe default — you set a variable only when you want to change the default.
+The machine check for the REQUIRED rows is `scripts/validate_prod_compose.py`
+(run in §f step 1).
+
+**Required at boot (the deployment refuses to start without these five):**
+
+| Variable | What it does | Where you get it | If missing / wrong |
+|---|---|---|---|
+| `ZIVON_APP_BASE_URL` | the public origin (`https://…`) — email links, the Google redirect, and Secure cookies are built from it | §c.2 (`https://` + your domain) | compose `up` refuses; validator FAIL names it. Wrong (http or a different host) = validator FAIL; cookies/email links silently break |
+| `ZIVON_EMAIL_BACKEND` | the mail transport: `smtp` or `resend` | §c.2 (your choice) | compose `up` refuses; `dev` is refused by the backend too |
+| `POSTGRES_PASSWORD` | the database password | §c.1 (`token_hex(16)`, letters/digits only) | compose `up` refuses. Characters like `@ : /` break the connection string → validator FAIL |
+| `ZIVON_SESSION_TOKEN_KEY` | signs login session cookies | §c.1 (`token_hex(32)`) | backend boot REFUSES (strict-secrets check); a short one draws a validator warning |
+| `ZIVON_IP_HASH_SALT` | salt for the anonymous abuse counters | §c.1 (`token_hex(32)`) | backend boot REFUSES |
+
+**Required when you use the Caddy edge (`--profile edge`; the default path):**
+
+| Variable | What it does | Where you get it | If missing / wrong |
+|---|---|---|---|
+| `ZIVON_DOMAIN` | the DNS name the TLS certificate is issued for (§b) | §a/§b (your decision) | edge container exits loudly at start; validator FAIL with `--profile edge` |
+| `ZIVON_ACME_EMAIL` | Let's Encrypt expiry notices | §c.2 (your email) | edge exits loudly; validator FAIL |
+
+**Recommended (the app boots without them, degraded):**
+
+| Variable | What it does | Where you get it | If missing / wrong |
+|---|---|---|---|
+| `ZIVON_ADMIN_TOKEN` | the password for the `/v1/admin/*` API (single admin) | §c.1 (`token_hex(32)`) | admin routes answer 503 (fail closed) — the smoke script reports the guard as PASS only because it REFUSES anonymous calls; you just cannot use the admin API |
+| `ZIVON_EMAIL_FROM` | the sender address on outgoing mail | §c.2 | validator WARN; mail carries the code default `Zivon <no-reply@zivon.local>`, which providers may refuse |
+| `ZIVON_SMTP_HOST` / `ZIVON_SMTP_PORT` / `ZIVON_SMTP_USER` / `ZIVON_SMTP_PASSWORD` / `ZIVON_SMTP_STARTTLS` | the SMTP server (only when `ZIVON_EMAIL_BACKEND=smtp`) | §c.2 (your mail provider) | validator FAIL without `ZIVON_SMTP_HOST`; backend boot refuses an incomplete transport. Port default `587`, STARTTLS default on |
+| `ZIVON_RESEND_API_KEY` | the mail API key (only when `ZIVON_EMAIL_BACKEND=resend`) | §c.2 (resend.com) | validator FAIL; backend boot refuses |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | "Sign in with Google" (optional until enabled) | §c.2 (Google Cloud Console) | routes degrade honestly: `/v1/auth/google/start` → 503, the login page hides the Google button; email+password still works |
+| `ZIVON_VOICE_GEMINI_API_KEY` | the tutor brain (Gemini) | §c.3 (Google AI Studio) | voice dock degrades to the text path; everything else works |
+| `GNANI_PRISMA_API_KEY` | speech-to-text (Gnani Prisma) | §c.3 (Gnani dashboard) | the voice turn cannot start (text path); honest degradation, no crash |
+| `GNANI_TIMBRE_API_KEY` | text-to-speech (Gnani Timbre) | §c.3 (Gnani dashboard) | the tutor can think but not speak; text path |
+| `ZIVON_OPENROUTER_API_KEY` + `ZIVON_VOICE_BRAIN_FALLBACK_TRANSPORT` / `ZIVON_VOICE_BRAIN_FALLBACK_MODEL` / `ZIVON_VOICE_BRAIN_FALLBACK_BASE_URL` / `ZIVON_VOICE_BRAIN_FALLBACK_API_KEY` | optional OpenRouter fallback transport for the tutor brain | openrouter.ai → API keys; leave the rest of the `ZIVON_VOICE_BRAIN_FALLBACK_*` defaults | unset = no fallback (the brain just fails its turn when Gemini is down) |
+| `ZIVON_PERSONALIZED_BASE_URL` + `ZIVON_PERSONALIZED_API_KEY` (then flip `ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED` to `true`) | the personalized-teaching model route (DeepSeek via OpenCode) | §c.2-adjacent: your OpenCode account's OpenAI-format base URL + API key | engine stays OFF and the teach route answers 503 `E-PL-MODEL-DOWN` honestly; enabling the engine with an INCOMPLETE route makes boot REFUSE — set both or neither |
+
+**Database naming (defaults are right for the prototype):**
+
+| Variable | What it does | Where you get it | If missing / wrong |
+|---|---|---|---|
+| `POSTGRES_DB` / `POSTGRES_USER` | the database name / user the stack creates | keep the default `zivon` / `zivon` | a rename must happen BEFORE first boot — after the volume exists, the password is the only value that applies on first create (see §i troubleshooting) |
+
+**Voice-loop knobs (non-secret; defaults mirror the cluster — leave them):**
+
+| Variable | What it does | Default (leave unless recording a deviation, like the cluster did — AGENTS.md rule) |
+|---|---|---|
+| `ZIVON_VOICE_PROFILE` | demo vs normal credit posture | `demo` |
+| `ZIVON_VOICE_BRAIN_TRANSPORT` | `gemini-direct` or `openrouter` | `gemini-direct` (an unknown value silently falls back to it) |
+| `ZIVON_VOICE_BRAIN_MODEL` | the tutor brain model (Gate A: `gemma-4-26b-a4b-it`; the recorded demo deviation is `gemini-2.5-flash` with budget 0) | `gemma-4-26b-a4b-it` |
+| `ZIVON_VOICE_BRAIN_THINKING_BUDGET` | thinking-token budget | `0` |
+| `ZIVON_VOICE_BRAIN_FIRST_EVENT_S` / `ZIVON_VOICE_BRAIN_INACTIVITY_S` / `ZIVON_VOICE_BRAIN_TURN_DEADLINE_S` | turn timing | `6` / `4` / `30` |
+| `ZIVON_VOICE_STT_URL` / `ZIVON_VOICE_STT_MODEL` / `ZIVON_VOICE_STT_LANGUAGE` | the Gnani STT endpoint | `wss://api.vachana.ai/stt/v3/stream` / `prisma-v3.0` / `indic-auto` |
+| `ZIVON_VOICE_TTS_URL` / `ZIVON_VOICE_TTS_MODEL` / `ZIVON_VOICE_TTS_LANGUAGE` / `ZIVON_VOICE_TTS_VOICE` / `ZIVON_VOICE_TTS_SAMPLE_RATE` | the Gnani Timbre endpoint (voice "Shivani") | `wss://api.vachana.ai/api/v1/tts` / `timbre-v3.0` / `hi-en` / `Shivani` / `48000` |
+| `ZIVON_VOICE_TTS_TAG_MAX_PER_TURN` / `ZIVON_VOICE_TTS_CHAR_CAP_TURN` / `ZIVON_VOICE_THINKING_SUMMARIES` | TTS caps per turn | `8` / `1200` / `off` |
+| `ZIVON_VOICE_CREDIT_DAILY_TRANCHE` / `ZIVON_VOICE_CREDIT_PER_USER_CAP` / `ZIVON_VOICE_CREDIT_DEMO_TRANCHE` / `ZIVON_VOICE_CREDIT_DEMO_SESSION_CAP` | credit-guard quotas (1 point = 30 s Prisma audio = 300 Timbre chars) | `1000` / `30` / `1000` / `100` |
+
+**Personalized-learning quotas + retention (non-secret; D-PL-01/D-PL-05 defaults — leave them):**
+
+| Variable | Default |
+|---|---|
+| `ZIVON_PERSONALIZED_ENABLED` / `ZIVON_PERSONALIZED_MODEL` | `true` / `deepseek-v4.1-flash` |
+| `ZIVON_PERSONALIZED_TURNS_PER_USER_DAY` / `ZIVON_PERSONALIZED_TURN_CONCURRENCY` | `40` / `2` |
+| `ZIVON_PERSONALIZED_SESSIONS_PER_USER_DAY` / `ZIVON_PERSONALIZED_ARTIFACTS_PER_USER_DAY` | `5` / `12` |
+| `ZIVON_PERSONALIZED_TURNS_GLOBAL_DAY` / `ZIVON_PERSONALIZED_ARTIFACTS_GLOBAL_DAY` | `1500` / `300` |
+| `ZIVON_PERSONALIZED_RETENTION_SESSION_DAYS` / `ZIVON_PERSONALIZED_RETENTION_ARTIFACT_DAYS` / `ZIVON_PERSONALIZED_RETENTION_ARTIFACT_FAILED_DAYS` / `ZIVON_PERSONALIZED_RETENTION_USAGE_DAYS` | `90` / `30` / `7` / `90` |
+
+**Misc (defaults are right):** `ZIVON_LOG_LEVEL` (`INFO`), `ZIVON_BACKEND_RELEASE` (`0.1.0`).
+
+**Backup-script knobs (read by `scripts/backup_db.sh`, not the app):**
+`ZIVON_BACKUP_DIR` (default `~/zivon-backups`), `ZIVON_BACKUP_RETENTION_DAYS`
+(default `14`), `ZIVON_ENV_FILE` (default `.env.prod`). Wrong retention
+(non-number) keeps every dump and logs a WARN — it never deletes.
+
+**Build-time only — do NOT put these in `.env.prod`** (they belong to the
+content factory / cluster model route, `k8s/infra.env` +
+`docs/content-factory/config-reference.md`; this deployment never reads
+them): `ZIVON_BASE_URL`, `ZIVON_MODEL`, `ZIVON_API_KEY`,
+`ZIVON_EXTRA_HEADERS`, `ZIVON_NARRATION_ENABLED`, `ZIVON_LLM_MANAGER_URL`,
+`ZIVON_TIMEOUT_S`. If you paste them here nothing reads them — the
+compose-path model route is the `ZIVON_PERSONALIZED_*` pair above.
+
 Everything else in the template keeps its default — you only fill REQUIRED
 and founder-owned values. The machine-checkable version of this section is
 `scripts/validate_prod_compose.py` (run in §f).
@@ -267,9 +355,21 @@ python3 scripts/validate_prod_compose.py --env .env.prod
 The second one prints a PASS/FAIL report (required values present, the domain
 matching the public URL, the mail settings coherent, the HTTPS posture
 intact). **Do not continue while anything prints FAIL** — the report names
-the exact variable.
+the exact variable. Run it with `--profile none` instead if you chose the
+Cloudflare Tunnel path (§a) — then `ZIVON_DOMAIN`/`ZIVON_ACME_EMAIL` stay
+empty on purpose.
 
-**2. Build and start:**
+**2. Check the TLS config with the real Caddy** (one read-only command; the
+same image the edge runs, validating the same file):
+
+```bash
+docker run --rm --env-file .env.prod \
+  -v "$PWD/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+  caddy:2.10.2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+# expect the last line:  Valid configuration
+```
+
+**3. Build and start:**
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml build        # a few minutes the first time
@@ -279,7 +379,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml --profile edge up
 (`--profile edge` adds Caddy, the TLS edge that terminates HTTPS for the whole
 site. Leave it off only if you chose the Cloudflare Tunnel path — §a.)
 
-**3. What success looks like:**
+**4. What success looks like:**
 
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
@@ -315,19 +415,65 @@ Ctrl-C.
 A failed migration, or any refused boot, leaves the previous containers
 untouched — nothing half-applies (prototype-deployment.md §5/§8).
 
+**5. Import the content banks and series (one-time, after migrations).** The
+database starts empty — the practice/speaking/tests question banks, the
+series rows, and the personalized-teaching search index are imported in three
+commands, each with its own detailed runbook (read it if a command refuses;
+the refusals are deliberate gates):
+
+```bash
+# a. Assessment banks (practice items, speaking prompts, time priors) — the
+#    packs are IN the repo (sources/assessment/packs/). Full runbook:
+#    docs/backend/runbooks/assessment-import.md
+python3 -m venv ~/zivon-tools && ~/zivon-tools/bin/pip install -q -r backend/requirements.txt
+set -a; . ./.env.prod; set +a          # load POSTGRES_* values into the shell
+ZIVON_DB_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}" \
+  ~/zivon-tools/bin/python scripts/import_assessment_packs.py --dry-run
+# expect: "dry run: N pack(s) verified, nothing written" — then the real import:
+ZIVON_DB_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}" \
+  ~/zivon-tools/bin/python scripts/import_assessment_packs.py
+
+# b. Series packs (the six test series) — an E4 pack is NOT in git; it is
+#    generated on the build machine (`python -m factory.exam --class 10
+#    --export-dir runs/exam-exports`) and copied over first:
+#      scp -r <build-machine>:zivon/runs/exam-exports runs/
+#    Full runbook: docs/backend/runbooks/series-import.md
+ZIVON_DB_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}" \
+  ~/zivon-tools/bin/python scripts/import_series_packs.py --packs-dir runs/exam-exports --dry-run
+ZIVON_DB_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}" \
+  ~/zivon-tools/bin/python scripts/import_series_packs.py --packs-dir runs/exam-exports \
+    --db-url "$ZIVON_DB_URL"
+
+# c. Personalized-teaching search index (RAG) — built from the repo, then
+#    copied into the backend container's volume (prototype-deployment.md §5):
+~/zivon-tools/bin/python scripts/build_personalized_index.py   # → runs/personalized-index
+docker compose --env-file .env.prod -f docker-compose.prod.yml \
+  exec core-backend mkdir -p /app/personalized-index
+docker compose --env-file .env.prod -f docker-compose.prod.yml \
+  cp runs/personalized-index/. core-backend:/app/personalized-index/
+```
+
+If no E4 series pack exists yet, step (b) is legitimately skipped — the site
+is live without series rows; import the pack whenever it is generated. A
+missing index (step c) degrades teaching retrieval to the marked lexical
+fallback — also never a crash.
+
 ---
 
 ## §g. Verify the site actually works
 
-**1. Machine checks** (one command — all seven must PASS):
+**1. Machine checks** (one command — all eight must PASS):
 
 ```bash
 scripts/deploy_smoke.sh https://zivon.example.com
 ```
 
 It checks backend health including the database (`/v1/health` with
-`"db": "ok"`), the page chain, a static asset, and the voice route. Every
-line prints PASS or FAIL with the reason.
+`"db": "ok"`), the liveness chain, the static page chain (landing page, the
+catalogue redirect, the Class 10 lesson shell), a real asset, the voice
+WebSocket route, and **that the admin API refuses an anonymous caller**
+(401/503 — a 200 there would mean the admin guard is broken; stop and fix).
+Every line prints PASS or FAIL with the reason.
 
 **2. Log in as a human.** In a normal browser: open
 `https://your-domain/login`, create an account with an email you control (the
@@ -497,6 +643,41 @@ personalized-learning route (`ZIVON_PERSONALIZED_BASE_URL`,
 `ZIVON_PERSONALIZED_API_KEY`, then flip
 `ZIVON_PERSONALIZED_TURN_ENGINE_ENABLED=true`) — the teach route answers an
 honest 503 until then.
+
+---
+
+## §k. Post-cutover checklist — the first day and the first week
+
+Tick every line before you call the site live. Each item names the § that
+produced it — if one fails, that § has the fix.
+
+**Day 0 (cutover day):**
+
+- [ ] `dig +short your-domain` answers the server IP (§b)
+- [ ] Pre-boot validator printed PASS for `.env.prod` (§f step 1)
+- [ ] `caddy validate` printed `Valid configuration` (§f step 2)
+- [ ] `docker compose ... ps`: postgres/core-backend/web Up (healthy), migrate Exited (0), edge Up (§f step 4)
+- [ ] `SELECT version_num FROM alembic_version;` shows `0005_personalized_learning` (§f step 4)
+- [ ] Assessment banks imported (`imported N pack(s): …` line) (§f step 5a)
+- [ ] Series packs imported, or the skip recorded as deliberate (§f step 5b)
+- [ ] Teaching index copied into the volume (§f step 5c)
+- [ ] `scripts/deploy_smoke.sh https://your-domain` — all eight lines PASS (§g step 1)
+- [ ] One signup completed and the verification email actually arrived (§g step 2)
+- [ ] One real phone: lesson opens over HTTPS, mic granted, one spoken doubt answered (§g step 3)
+- [ ] `scripts/backup_db.sh` ran once by hand and printed `PASS backup:` (§h step 1)
+- [ ] The restore drill ran into `zivon_restore_check` and was timed (§h step 4)
+- [ ] A copy of the newest dump exists OFF the server (§h step 3)
+- [ ] The nightly schedule is active (`systemctl list-timers` or `crontab -l`) (§h step 2)
+- [ ] `.env.prod` backed up OUTSIDE the repo (`~/zivon-backups/.env.prod.bak-<date>`) (§i)
+
+**Week 1 (operating cadence):**
+
+- [ ] One backup ran on schedule and the newest `~/zivon-backups/` file is fresh (§h)
+- [ ] One monthly-cadence restore drill scheduled in the calendar (§h step 4)
+- [ ] `curl -sS http://127.0.0.1:18085/readyz` after any host reboot says `db: ok` (§i table)
+- [ ] Certificate visible in the browser padlock; expiry ~90 days out (auto-renews; §i if not)
+- [ ] Gnani/Gemini credit burn sane vs the §c.5 credit-guard defaults
+- [ ] Secrets rotation calendar set (Gemini key 90 d, DB password quarterly, per docs/deployment/secrets.md)
 
 ---
 

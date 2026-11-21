@@ -22,6 +22,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import re
 import secrets
 import sys
 import tempfile
@@ -306,6 +307,37 @@ class TestRealDeploymentFiles(ValidatorTestCase):
         del env["ZIVON_IP_HASH_SALT"]
         code, report = self._run(env, compose=REAL_COMPOSE, caddyfile=REAL_CADDY)
         self.assert_fails_with(code, report, "ZIVON_IP_HASH_SALT is REQUIRED")
+
+
+class TestEnvContractDocumented(unittest.TestCase):
+    """Docs-sync contract: EVERY variable docker-compose.prod.yml interpolates
+    (plus the Caddyfile's {$...} site address/email) is documented in the
+    founder runbook's .env.prod contract section (§c). This is what makes the
+    founder's fill-in sheet complete by construction — adding a variable to
+    the compose file without documenting it fails CI."""
+
+    def test_every_compose_and_caddy_var_is_in_the_runbook_contract(self) -> None:
+        runbook = (
+            REPO_ROOT / "docs" / "deployment" / "founder-cutover-runbook.md"
+        ).read_text(encoding="utf-8")
+        start = runbook.index("## §c.")
+        end = runbook.index("## §d.")
+        contract = runbook[start:end]
+
+        compose_text = REAL_COMPOSE.read_text(encoding="utf-8")
+        vars_referenced = {i.var for i in V.scan_interpolations(compose_text)}
+        caddy_text = REAL_CADDY.read_text(encoding="utf-8")
+        vars_referenced |= set(re.findall(r"\{\$([A-Z_][A-Z0-9_]*)\}", caddy_text))
+        self.assertGreaterEqual(
+            len(vars_referenced), 60, "compose contract unexpectedly shrank"
+        )
+
+        missing = sorted(v for v in vars_referenced if f"`{v}`" not in contract)
+        self.assertEqual(
+            missing,
+            [],
+            "variables the compose file reads but the runbook §c does not document",
+        )
 
 
 class TestEnvFileParsing(ValidatorTestCase):

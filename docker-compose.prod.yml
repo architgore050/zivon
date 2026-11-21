@@ -242,8 +242,9 @@ services:
       # sets the DSN; this path stays safe either way).
       - zivon-runs:/app/runs
       # Personalized-learning RAG index (scripts/build_personalized_index.py
-      # output; populated per the runbook § Migrations & import). A missing
-      # index degrades retrieval to the marked lexical fallback — never a 503.
+      # output; import steps: docs/deployment/prototype-deployment.md §5 and
+      # the founder runbook §f step 5). A missing index degrades retrieval to
+      # the marked lexical fallback — never a 503.
       - zivon-personalized-index:/app/personalized-index
     healthcheck:
       # Liveness only: process alive and serving (no external deps).
