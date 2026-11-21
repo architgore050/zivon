@@ -1,0 +1,402 @@
+{
+  "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+  "prompts": [
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-01",
+          "text": "Light enters through the cornea and the pupil, and the eye lens forms a real, inverted image on the retina."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-02",
+          "text": "Ciliary muscles change the curvature of the eye lens and hence its focal length; this is called accommodation."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-03",
+          "text": "The lens becomes thin and less curved for distant objects, and thicker and more curved for near objects."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-04",
+          "text": "For a normal eye the near point is about 25 cm and the far point is infinity."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-05",
+          "text": "The iris controls the size of the pupil and so regulates the amount of light entering the eye."
+        }
+      ],
+      "language": "en",
+      "model_answer": "Light from an object enters the eye through the cornea and the pupil, and the eye lens forms a real, inverted image on the retina. To see objects at different distances, the eye uses accommodation: the ciliary muscles change the curvature of the lens, so its focal length changes. For a distant object the lens becomes thin and flat; for a near object it becomes thicker and more curved. A normal eye can see clearly from about 25 cm, the near point, up to infinity, the far point. The iris also adjusts the pupil size to control how much light enters.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.1"
+      },
+      "prompt": "In about 45 seconds, explain how light travels through the human eye to form an image, and how the eye focuses on both far and near objects. Use the words accommodation, near point and far point.",
+      "prompt_id": "spk-human-eye-accommodation-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-01",
+          "text": "प्रकाश कॉर्निया और पुतली से होकर नेत्र में प्रवेश करता है और नेत्र-लेंस रेटिना पर वास्तविक तथा उल्टा प्रतिबिंब बनाता है।"
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-02",
+          "text": "सिलियरी मांसपेशियाँ नेत्र-लेंस की वक्रता बदलकर उसकी फोकस दूरी बदलती हैं — इसे समंजन कहते हैं।"
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-03",
+          "text": "दूर की वस्तु के लिए लेंस पतला और कम वक्र तथा पास की वस्तु के लिए मोटा और अधिक वक्र हो जाता है।"
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-04",
+          "text": "स्वस्थ नेत्र का निकट बिंदु लगभग 25 सेमी और दूर बिंदु अनंत होता है।"
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-05",
+          "text": "आइरिस पुतली का आकार बदलकर नेत्र में जाने वाले प्रकाश की मात्रा नियंत्रित करती है।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "किसी वस्तु से आने वाला प्रकाश कॉर्निया और पुतली से होकर नेत्र में प्रवेश करता है, और नेत्र-लेंस रेटिना पर वास्तविक तथा उल्टा प्रतिबिंब बनाता है। अलग-अलग दूरियों पर देखने के लिए नेत्र समंजन का उपयोग करता है: सिलियरी मांसपेशियाँ लेंस की वक्रता बदलती हैं, जिससे उसकी फोकस दूरी बदल जाती है। दूर की वस्तु के लिए लेंस पतला और सपाट होता है; पास की वस्तु के लिए वह मोटा और अधिक वक्र हो जाता है। स्वस्थ नेत्र लगभग 25 सेमी (निकट बिंदु) से अनंत (दूर बिंदु) तक स्पष्ट देख सकता है। आइरिस पुतली का आकार बदलकर प्रकाश की मात्रा भी नियंत्रित करती है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.1"
+      },
+      "prompt": "लगभग 45 सेकंड में समझाइए कि मानव नेत्र में प्रकाश किस प्रकार प्रतिबिंब बनाता है और नेत्र दूर तथा पास की वस्तुओं पर फोकस कैसे करता है। 'समंजन', 'निकट बिंदु' और 'दूर बिंदु' शब्दों का प्रयोग कीजिए।",
+      "prompt_id": "spk-human-eye-accommodation-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-01",
+          "text": "Prakash cornea aur putli se hokar netra mein pravesh karta hai aur netra-lens retina par vastavik tatha ulta pratibimb banata hai."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-02",
+          "text": "Ciliary muscles netra-lens ki vakraata badalkar uski focus doori badalti hain — ise samanjan kehte hain."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-03",
+          "text": "Door ki vastu ke liye lens patla aur kam vakr tatha paas ki vastu ke liye mota aur adhik vakr ho jata hai."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-04",
+          "text": "Swasth netra ka nikat bindu lagbhag 25 cm aur door bindu anant hota hai."
+        },
+        {
+          "idea_id": "spk-human-eye-accommodation-001-idea-05",
+          "text": "Iris putli ka aakar badalkar netra mein jaane wale prakash ki matra niyantrit karti hai."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Kisi vastu se aane wala prakash cornea aur putli se hokar netra mein pravesh karta hai, aur netra-lens retina par vastavik tatha ulta pratibimb banata hai. Alag-alag dooriyon par dekhne ke liye netra samanjan ka upyog karta hai: ciliary muscles lens ki vakraata badalti hain, jisse uski focus doori badal jati hai. Door ki vastu ke liye lens patla aur sapat hota hai; paas ki vastu ke liye woh mota aur adhik vakr ho jata hai. Swasth netra lagbhag 25 cm (nikat bindu) se anant (door bindu) tak spasht dekh sakta hai. Iris putli ka aakar badalkar prakash ki matra bhi niyantrit karti hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.1"
+      },
+      "prompt": "Lagbhag 45 second mein samjhaiye ki manav netra mein prakash kis prakar pratibimb banata hai aur netra door tatha paas ki vastuon par focus kaise karta hai. 'Samanjan', 'nikat bindu' aur 'door bindu' shabdon ka prayog kijiye.",
+      "prompt_id": "spk-human-eye-accommodation-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-01",
+          "text": "Light bends, or refracts, at both faces of the prism, and the beam deviates."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-02",
+          "text": "Different colours bend by different amounts, so white light separates into a spectrum; this is dispersion."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-03",
+          "text": "Red bends least and violet bends most in the prism."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-04",
+          "text": "The spectrum has seven colours: violet, indigo, blue, green, yellow, orange, red (VIBGYOR)."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-05",
+          "text": "Newton used a second identical prism to recombine the colours into white light."
+        }
+      ],
+      "language": "en",
+      "model_answer": "When white light enters the prism, it refracts at the first surface and again at the second surface, so the beam changes direction. The different colours in white light bend by different amounts: red bends the least and violet the most. So the colours spread out and we see a spectrum of seven colours — VIBGYOR. This splitting is called dispersion. Newton showed this by placing a second identical prism upside down: the colours recombined to give white light again, proving that white light is a mixture of colours.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.3"
+      },
+      "prompt": "A narrow beam of white light passes through a glass prism. Explain what happens at the prism and why a band of colours appears. Also mention Newton's experiment that showed white light is a mixture of colours.",
+      "prompt_id": "spk-prism-dispersion-002",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-01",
+          "text": "प्रकाश प्रिज्म के दोनों फलकों पर अपवर्तित होता है और किरण विचलित हो जाती है।"
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-02",
+          "text": "अलग-अलग रंग अलग-अलग मात्रा में मुड़ते हैं, इसलिए सफेद प्रकाश स्पेक्ट्रम में बँट जाता है — इसे विक्षेपण कहते हैं।"
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-03",
+          "text": "प्रिज्म में लाल रंग सबसे कम और बैंगनी सबसे अधिक मुड़ता है।"
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-04",
+          "text": "स्पेक्ट्रम में सात रंग होते हैं: बैंगनी, जामुनी, नीला, हरा, पीला, नारंगी, लाल (VIBGYOR)।"
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-05",
+          "text": "न्यूटन ने दूसरे समान प्रिज्म से रंगों को मिलाकर फिर सफेद प्रकाश प्राप्त किया।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "जब सफेद प्रकाश प्रिज्म में प्रवेश करता है, तो पहले फलक पर और फिर दूसरे फलक पर अपवर्तन होता है, इसलिए किरण की दिशा बदल जाती है। सफेद प्रकाश के अलग-अलग रंग अलग-अलग मात्रा में मुड़ते हैं: लाल सबसे कम और बैंगनी सबसे अधिक। इससे रंग फैलकर सात रंगों का स्पेक्ट्रम दिखाई देता है — VIBGYOR। इस बँटने को विक्षेपण कहते हैं। न्यूटन ने दूसरा समान प्रिज्म उल्टा रखकर दिखाया कि रंग फिर मिलकर सफेद प्रकाश बनाते हैं; इससे सिद्ध हुआ कि सफेद प्रकाश रंगों का मिश्रण है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.3"
+      },
+      "prompt": "एक संकीर्ण सफेद प्रकाश की किरण काँच के प्रिज्म से गुजरती है। समझाइए कि प्रिज्म पर क्या होता है और रंगों की पट्टी क्यों दिखाई देती है। न्यूटन के उस प्रयोग का भी उल्लेख कीजिए जिसने दिखाया कि सफेद प्रकाश रंगों का मिश्रण है।",
+      "prompt_id": "spk-prism-dispersion-002",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-01",
+          "text": "Prakash prism ke dono falakon par apvartit hota hai aur kiran vichalit ho jati hai."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-02",
+          "text": "Alag-alag rang alag-alag matra mein mudte hain, isliye safed prakash spectrum mein bant jata hai — ise vikshepan kehte hain."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-03",
+          "text": "Prism mein laal rang sabse kam aur baingani sabse adhik mudta hai."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-04",
+          "text": "Spectrum mein saat rang hote hain: baingani, jamuni, neela, hara, peela, narangi, laal (VIBGYOR)."
+        },
+        {
+          "idea_id": "spk-prism-dispersion-002-idea-05",
+          "text": "Newton ne doosre samaan prism se rangon ko milakar phir safed prakash prapt kiya."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Jab safed prakash prism mein pravesh karta hai, to pehle falak par aur phir doosre falak par apvartan hota hai, isliye kiran ki disha badal jati hai. Safed prakash ke alag-alag rang alag-alag matra mein mudte hain: laal sabse kam aur baingani sabse adhik. Isse rang phailkar saat rangon ka spectrum dikhai deta hai — VIBGYOR. Is bantne ko vikshepan kehte hain. Newton ne doosra samaan prism ulta rakhkar dikhaya ki rang phir milkar safed prakash banate hain; isse siddh hua ki safed prakash rangon ka mishran hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.3"
+      },
+      "prompt": "Ek sankeern safed prakash ki kiran kaanch ke prism se guzarti hai. Samjhaiye ki prism par kya hota hai aur rangon ki patti kyon dikhai deti hai. Newton ke us prayog ka bhi ullekh kijiye jisne dikhaya ki safed prakash rangon ka mishran hai.",
+      "prompt_id": "spk-prism-dispersion-002",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-scattering-of-light"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-01",
+          "text": "Fine particles in the atmosphere scatter shorter (blue) wavelengths more strongly than longer (red) wavelengths."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-02",
+          "text": "The scattered blue light that reaches our eyes makes the sky look blue."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-03",
+          "text": "Near the horizon sunlight travels a longer path through the atmosphere, so blue light is scattered away and mostly red light reaches us."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-04",
+          "text": "The Tyndall effect is the scattering of light by colloidal or fine suspended particles, which makes the beam's path visible."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-05",
+          "text": "Red is scattered the least, so red is used for danger signals that must be seen from far away."
+        }
+      ],
+      "language": "en",
+      "model_answer": "The air has very fine particles, and these scatter blue light more strongly than red light, because blue has a shorter wavelength. That scattered blue light reaches our eyes from all parts of the sky, so the sky looks blue. At sunrise and sunset the sunlight has to travel a much longer path through the atmosphere; most of the blue is scattered away and mainly red light reaches us, so the Sun and the sky near it look reddish. The Tyndall effect is the scattering of light by fine suspended or colloidal particles, which makes the path of a light beam visible, like sunlight coming through a small hole into a dusty room. Since red is scattered the least, it is used for danger signals that must be seen from far.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.6"
+      },
+      "prompt": "Explain why the clear sky looks blue during the day but the Sun looks reddish near sunrise and sunset. Also say what the Tyndall effect is and give one everyday use of the fact that red light is scattered the least.",
+      "prompt_id": "spk-scattering-blue-sky-003",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-scattering-of-light"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-01",
+          "text": "वायुमंडल के महीन कण छोटी तरंगदैर्घ्य वाले नीले प्रकाश को लंबी तरंगदैर्घ्य वाले लाल प्रकाश से अधिक बिखेरते हैं।"
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-02",
+          "text": "बिखरा हुआ नीला प्रकाश हमारी आँखों तक पहुँचता है, इसलिए आकाश नीला दिखता है।"
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-03",
+          "text": "क्षितिज के पास सूर्य का प्रकाश वायुमंडल में अधिक लंबा रास्ता तय करता है, नीला प्रकाश बिखर जाता है और मुख्यतः लाल प्रकाश हम तक पहुँचता है।"
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-04",
+          "text": "टिंडल प्रभाव कोलॉइडी या महीन निलंबित कणों द्वारा प्रकाश का बिखरना है, जिससे प्रकाश किरण का पथ दिखाई देने लगता है।"
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-05",
+          "text": "लाल प्रकाश सबसे कम बिखरता है, इसलिए दूर से दिखने वाले खतरे के संकेतों के लिए लाल रंग का उपयोग किया जाता है।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "वायु में अत्यंत महीन कण होते हैं, और ये नीले प्रकाश को लाल प्रकाश से अधिक बिखेरते हैं, क्योंकि नीले की तरंगदैर्घ्य छोटी होती है। यह बिखरा हुआ नीला प्रकाश आकाश के सभी भागों से हमारी आँखों तक पहुँचता है, इसलिए आकाश नीला दिखता है। सूर्योदय और सूर्यास्त के समय सूर्य का प्रकाश वायुमंडल में बहुत लंबा रास्ता तय करता है; अधिकांश नीला प्रकाश बिखर जाता है और मुख्यतः लाल प्रकाश हम तक पहुँचता है, इसलिए सूर्य और उसके पास का आकाश लालिमा लिए दिखता है। टिंडल प्रभाव महीन निलंबित या कोलॉइडी कणों द्वारा प्रकाश के बिखरने को कहते हैं, जिससे प्रकाश किरण का पथ दिखाई देने लगता है, जैसे धूल भरे कमरे में छोटे छिद्र से आती सूर्य की किरण। लाल प्रकाश सबसे कम बिखरता है, इसलिए दूर से दिखने वाले खतरे के संकेतों में लाल रंग का उपयोग होता है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.6"
+      },
+      "prompt": "समझाइए कि दिन में साफ आकाश नीला क्यों दिखता है, पर सूर्योदय और सूर्यास्त के समय सूर्य लालिमा लिए क्यों दिखता है। यह भी बताइए कि टिंडल प्रभाव क्या है और इस तथ्य का एक दैनिक उपयोग बताइए कि लाल प्रकाश सबसे कम बिखरता है।",
+      "prompt_id": "spk-scattering-blue-sky-003",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-the-human-eye-and-the-colourful-world-scattering-of-light"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-01",
+          "text": "Vayumandal ke maheen kan chhoti tarangdairghya wale neele prakash ko lambi tarangdairghya wale laal prakash se adhik bikherte hain."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-02",
+          "text": "Bikhra hua neela prakash hamari aankhon tak pahunchta hai, isliye aakash neela dikhta hai."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-03",
+          "text": "Kshitij ke paas Surya ka prakash vayumandal mein adhik lamba raasta tay karta hai, neela prakash bikhar jata hai aur mukhyatah laal prakash hum tak pahunchta hai."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-04",
+          "text": "Tyndall prabhav colloidal ya maheen nilambit kanon dwara prakash ka bikharna hai, jisse prakash kiran ka path dikhai dene lagta hai."
+        },
+        {
+          "idea_id": "spk-scattering-blue-sky-003-idea-05",
+          "text": "Laal prakash sabse kam bikherta hai, isliye door se dikhne wale khatre ke sanketon ke liye laal rang ka upyog kiya jata hai."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Vayu mein atyant maheen kan hote hain, aur ye neele prakash ko laal prakash se adhik bikherte hain, kyonki neele ki tarangdairghya chhoti hoti hai. Yeh bikhra hua neela prakash aakash ke sabhi bhaagon se hamari aankhon tak pahunchta hai, isliye aakash neela dikhta hai. Suryoday aur suryast ke samay Surya ka prakash vayumandal mein bahut lamba raasta tay karta hai; adhikansh neela prakash bikhar jata hai aur mukhyatah laal prakash hum tak pahunchta hai, isliye Surya aur uske paas ka aakash laalima liye dikhta hai. Tyndall prabhav maheen nilambit ya colloidal kanon dwara prakash ke bikhrane ko kehte hain, jisse prakash kiran ka path dikhai dene lagta hai, jaise dhool bhare kamre mein chhote chhidra se aati Surya ki kiran. Laal prakash sabse kam bikherta hai, isliye door se dikhne wale khatre ke sanketon mein laal rang ka upyog hota hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "10.6"
+      },
+      "prompt": "Samjhaiye ki din mein saaf aakash neela kyon dikhta hai, par suryoday aur suryast ke samay Surya laalima liye kyon dikhta hai. Yeh bhi bataiye ki Tyndall prabhav kya hai aur is tathya ka ek dainik upyog bataiye ki laal prakash sabse kam bikherta hai.",
+      "prompt_id": "spk-scattering-blue-sky-003",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 2,
+        "pass_ratio": 0.5,
+        "strong_ratio": 0.75
+      },
+      "version": 1
+    }
+  ],
+  "schema_version": 1
+}

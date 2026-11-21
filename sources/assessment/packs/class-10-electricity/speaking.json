@@ -1,0 +1,384 @@
+{
+  "chapter_id": "class-10-electricity",
+  "prompts": [
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-electric-current-and-potential"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-current-potential-001-idea-01",
+          "text": "Current is the rate of flow of charge, I = Q/t."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-02",
+          "text": "SI unit of current is the ampere (A); 1 A = 1 C/s."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-03",
+          "text": "Conventional current flows from the positive terminal to the negative terminal, opposite to the flow of electrons."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-04",
+          "text": "Potential difference is the work done to move a unit charge between two points, V = W/Q."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-05",
+          "text": "SI unit of potential difference is the volt (V); 1 V = 1 J/C."
+        }
+      ],
+      "language": "en",
+      "model_answer": "Electric current is the rate at which charge flows through a conductor, I equals Q by t, and its SI unit is the ampere — one ampere means one coulomb of charge passing per second. In a circuit, conventional current flows from the positive terminal of the cell to the negative terminal through the outside circuit, which is opposite to the direction of electron flow. The potential difference between two points is the work done to carry a unit charge from one point to the other, V equals W by Q, and its SI unit is the volt, that is, one joule per coulomb.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.1"
+      },
+      "prompt": "In your own words, explain what electric current is and what potential difference between two points means. Include the SI unit of each, the direction in which conventional current flows in a circuit, and how potential difference is defined using work and charge.",
+      "prompt_id": "spk-current-potential-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-electric-current-and-potential"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-current-potential-001-idea-01",
+          "text": "धारा आवेश के प्रवाह की दर है, I = Q/t।"
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-02",
+          "text": "धारा का SI मात्रक ऐम्पियर (A) है; 1 A = 1 C/s।"
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-03",
+          "text": "परंपरागत धारा धन टर्मिनल से ऋण टर्मिनल की ओर बहती है, जो इलेक्ट्रॉनों के प्रवाह के विपरीत है।"
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-04",
+          "text": "विभवांतर दो बिंदुओं के बीच एकांक आवेश को ले जाने में किया गया कार्य है, V = W/Q।"
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-05",
+          "text": "विभवांतर का SI मात्रक वोल्ट (V) है; 1 V = 1 J/C।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "विद्युत धारा वह दर है जिस पर किसी चालक से आवेश प्रवाहित होता है, I बराबर Q बटा t, और इसका SI मात्रक ऐम्पियर है — एक ऐम्पियर का अर्थ है प्रति सेकंड एक कूलॉम आवेश का प्रवाह। परिपथ में परंपरागत धारा सेल के धन टर्मिनल से बाहरी परिपथ से होकर ऋण टर्मिनल की ओर बहती है, जो इलेक्ट्रॉनों के प्रवाह की दिशा के विपरीत है। दो बिंदुओं के बीच विभवांतर वह कार्य है जो एकांक धन आवेश को एक बिंदु से दूसरे बिंदु तक ले जाने में किया जाता है, V बराबर W बटा Q, और इसका SI मात्रक वोल्ट है, अर्थात् एक जूल प्रति कूलॉम।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.1"
+      },
+      "prompt": "अपने शब्दों में समझाइए कि विद्युत धारा क्या है और दो बिंदुओं के बीच विभवांतर का क्या अर्थ है। दोनों के SI मात्रक बताइए, परिपथ में परंपरागत धारा की दिशा बताइए, और यह भी बताइए कि कार्य तथा आवेश की सहायता से विभवांतर को कैसे परिभाषित करते हैं।",
+      "prompt_id": "spk-current-potential-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-electric-current-and-potential"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-current-potential-001-idea-01",
+          "text": "Dhaara aavesh ke pravah ki dar hai, I = Q/t."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-02",
+          "text": "Dhaara ka SI maatrak ampere (A) hai; 1 A = 1 C/s."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-03",
+          "text": "Paramparagat dhaara dhan terminal se rin terminal ki or bahti hai, jo elektron ke pravah ke viprit hai."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-04",
+          "text": "Vibhavantar do binduon ke beech ekank aavesh ko le jaane mein kiya gaya kaarya hai, V = W/Q."
+        },
+        {
+          "idea_id": "spk-current-potential-001-idea-05",
+          "text": "Vibhavantar ka SI maatrak volt (V) hai; 1 V = 1 J/C."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Vidyut dhaara wo dar hai jis par kisi chaalak se aavesh pravahit hota hai, I barabar Q by t, aur iska SI maatrak ampere hai — ek ampere ka arth hai prati second ek coulomb aavesh ka pravah. Paripath mein paramparagat dhaara cell ke dhan terminal se baahari paripath se hokar rin terminal ki or bahti hai, jo elektron ke pravah ki disha ke viprit hai. Do binduon ke beech vibhavantar wo kaarya hai jo ekank dhan aavesh ko ek bindu se doosre bindu tak le jaane mein kiya jaata hai, V barabar W by Q, aur iska SI maatrak volt hai, yaani ek joule prati coulomb.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.1"
+      },
+      "prompt": "Apne shabdon mein samjhaaiye ki vidyut dhaara kya hai aur do binduon ke beech vibhavantar ka kya arth hai. Dono ke SI maatrak bataaiye, paripath mein paramparagat dhaara ki disha bataaiye, aur yeh bhi bataaiye ki kaarya tatha aavesh ki sahayata se vibhavantar ko kaise paribhashit karte hain.",
+      "prompt_id": "spk-current-potential-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-ohms-law",
+        "class-10-electricity-resistance-and-resistivity"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-01",
+          "text": "Ohm's law: at constant temperature, current is directly proportional to potential difference, so V = IR."
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-02",
+          "text": "Resistance R = V/I and its SI unit is the ohm."
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-03",
+          "text": "Resistance is directly proportional to length and inversely proportional to area of cross-section, and depends on the material."
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-04",
+          "text": "R = ρl/A, where ρ (resistivity) is a property of the material."
+        }
+      ],
+      "language": "en",
+      "model_answer": "Ohm's law says that at constant temperature, the current through a metallic conductor is directly proportional to the potential difference across its ends, so V equals I R. Resistance R is V by I and is measured in ohms. The resistance of a wire is directly proportional to its length, inversely proportional to its area of cross-section, and also depends on the material of the wire. Writing these together, R equals rho l by A, where rho is the resistivity, which is a property of the material of the conductor.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.4"
+      },
+      "prompt": "State Ohm's law and write the relation between potential difference, current and resistance, mentioning the unit of resistance. Then explain what the resistance of a wire depends on, and give the formula that connects resistance with resistivity.",
+      "prompt_id": "spk-ohms-law-resistivity-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-ohms-law",
+        "class-10-electricity-resistance-and-resistivity"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-01",
+          "text": "ओम का नियम: स्थिर ताप पर धारा विभवांतर के समानुपाती होती है, इसलिए V = IR।"
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-02",
+          "text": "प्रतिरोध R = V/I और इसका SI मात्रक ओम है।"
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-03",
+          "text": "प्रतिरोध लंबाई के समानुपाती तथा अनुप्रस्थ परिच्छेद के क्षेत्रफल के व्युत्क्रमानुपाती होता है, और पदार्थ पर भी निर्भर करता है।"
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-04",
+          "text": "R = ρl/A, जहाँ ρ (प्रतिरोधकता) पदार्थ का गुण है।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "ओम का नियम कहता है कि स्थिर ताप पर किसी धात्विक चालक में बहने वाली धारा उसके सिरों के विभवांतर के समानुपाती होती है, इसलिए V बराबर I R। प्रतिरोध R, V बटा I होता है और इसका मात्रक ओम है। किसी तार का प्रतिरोध उसकी लंबाई के समानुपाती, उसके अनुप्रस्थ परिच्छेद के क्षेत्रफल के व्युत्क्रमानुपाती होता है, और तार के पदार्थ पर भी निर्भर करता है। इन्हें मिलाकर लिखें तो R बराबर rho l बटा A, जहाँ rho प्रतिरोधकता है, जो चालक के पदार्थ का गुण है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.4"
+      },
+      "prompt": "ओम का नियम लिखिए और विभवांतर, धारा तथा प्रतिरोध के बीच का संबंध बताइए, साथ में प्रतिरोध का मात्रक भी बताइए। फिर समझाइए कि किसी तार का प्रतिरोध किन बातों पर निर्भर करता है, और प्रतिरोध तथा प्रतिरोधकता को जोड़ने वाला सूत्र लिखिए।",
+      "prompt_id": "spk-ohms-law-resistivity-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-ohms-law",
+        "class-10-electricity-resistance-and-resistivity"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-01",
+          "text": "Ohm ka niyam: sthir taap par dhaara vibhavantar ke samanupati hoti hai, isliye V = IR."
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-02",
+          "text": "Pratirodh R = V/I aur iska SI maatrak ohm hai."
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-03",
+          "text": "Pratirodh lambai ke samanupati tatha anuprastha parichhed ke kshetrafal ke vyutkramaanupati hota hai, aur padarth par bhi nirbhar karta hai."
+        },
+        {
+          "idea_id": "spk-ohms-law-resistivity-001-idea-04",
+          "text": "R = ρl/A, jahan ρ (pratirodhakta) padarth ka gun hai."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Ohm ka niyam kehta hai ki sthir taap par kisi dhaatvik chaalak mein bahne wali dhaara uske siron ke vibhavantar ke samanupati hoti hai, isliye V barabar I R. Pratirodh R, V by I hota hai aur iska maatrak ohm hai. Kisi taar ka pratirodh uski lambai ke samanupati, uske anuprastha parichhed ke kshetrafal ke vyutkramaanupati hota hai, aur taar ke padarth par bhi nirbhar karta hai. Inhe milakar likhein to R barabar rho l by A, jahan rho pratirodhakta hai, jo chaalak ke padarth ka gun hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.4"
+      },
+      "prompt": "Ohm ka niyam likhiye aur vibhavantar, dhaara tatha pratirodh ke beech ka sambandh bataaiye, saath mein pratirodh ka maatrak bhi bataaiye. Phir samjhaaiye ki kisi taar ka pratirodh kin baaton par nirbhar karta hai, aur pratirodh tatha pratirodhakta ko jodne wala sutra likhiye.",
+      "prompt_id": "spk-ohms-law-resistivity-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-resistors-in-series-and-parallel",
+        "class-10-electricity-heating-effect-and-power"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-01",
+          "text": "In series, the same current flows through both resistors and R = R1 + R2, which is more than either resistor."
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-02",
+          "text": "In parallel, the potential difference across each resistor is the same and 1/R = 1/R1 + 1/R2, so the total is less than the smallest resistor."
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-03",
+          "text": "Electric power P = VI, which can also be written as I²R (or V²/R)."
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-04",
+          "text": "Heat produced in time t is H = I²Rt."
+        }
+      ],
+      "language": "en",
+      "model_answer": "In a series connection the same current flows through both resistors, and the total resistance is R1 plus R2, which is greater than either resistor. In a parallel connection the potential difference across each resistor is the same, and one by R equals one by R1 plus one by R2, so the total resistance is less than the smallest of the resistors. The electric power is P equals V I, which can also be written as I squared R, and the heat produced in a resistor in time t is I squared R t.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.6"
+      },
+      "prompt": "Two resistors are joined first in series and then in parallel with the same battery. For each case, say which quantity stays the same for both resistors and how the total resistance is calculated. Then give the relation for electric power and for the heat produced in a resistor.",
+      "prompt_id": "spk-series-parallel-power-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-resistors-in-series-and-parallel",
+        "class-10-electricity-heating-effect-and-power"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-01",
+          "text": "श्रेणी में दोनों प्रतिरोधकों से एक ही धारा बहती है और R = R1 + R2, जो किसी भी एक प्रतिरोध से बड़ा होता है।"
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-02",
+          "text": "समानांतर में दोनों प्रतिरोधकों के सिरों का विभवांतर समान होता है और 1/R = 1/R1 + 1/R2, इसलिए कुल प्रतिरोध सबसे छोटे प्रतिरोध से भी कम होता है।"
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-03",
+          "text": "विद्युत शक्ति P = VI, जिसे I²R (या V²/R) के रूप में भी लिख सकते हैं।"
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-04",
+          "text": "समय t में उत्पन्न ऊष्मा H = I²Rt।"
+        }
+      ],
+      "language": "hi",
+      "model_answer": "श्रेणी संयोजन में दोनों प्रतिरोधकों से एक ही धारा बहती है, और कुल प्रतिरोध R1 जमा R2 होता है, जो दोनों में से किसी भी प्रतिरोध से बड़ा है। समानांतर संयोजन में दोनों प्रतिरोधकों के सिरों का विभवांतर समान रहता है, और एक बटा R बराबर एक बटा R1 जमा एक बटा R2, इसलिए कुल प्रतिरोध सबसे छोटे प्रतिरोध से भी कम होता है। विद्युत शक्ति P बराबर V I, जिसे I का वर्ग गुणा R भी लिख सकते हैं, और किसी प्रतिरोधक में समय t में उत्पन्न ऊष्मा I का वर्ग गुणा R गुणा t होती है।",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.6"
+      },
+      "prompt": "दो प्रतिरोधकों को पहले श्रेणी में और फिर समानांतर में एक ही बैटरी से जोड़ा गया है। प्रत्येक स्थिति में बताइए कि कौन-सी राशि दोनों प्रतिरोधकों के लिए समान रहती है और कुल प्रतिरोध कैसे निकाला जाता है। फिर विद्युत शक्ति तथा प्रतिरोधक में उत्पन्न ऊष्मा का संबंध लिखिए।",
+      "prompt_id": "spk-series-parallel-power-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "class_level": 10,
+      "concept_ids": [
+        "class-10-electricity-resistors-in-series-and-parallel",
+        "class-10-electricity-heating-effect-and-power"
+      ],
+      "key_ideas": [
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-01",
+          "text": "Shreni mein dono pratirodhakon se ek hi dhaara bahti hai aur R = R1 + R2, jo kisi bhi ek pratirodh se bada hota hai."
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-02",
+          "text": "Samanantar mein dono pratirodhakon ke siron ka vibhavantar samaan hota hai aur 1/R = 1/R1 + 1/R2, isliye kul pratirodh sabse chhote pratirodh se bhi kam hota hai."
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-03",
+          "text": "Vidyut shakti P = VI, jise I²R (ya V²/R) ke roop mein bhi likh sakte hain."
+        },
+        {
+          "idea_id": "spk-series-parallel-power-001-idea-04",
+          "text": "Samay t mein utpann ushma H = I²Rt."
+        }
+      ],
+      "language": "hi-Latn",
+      "model_answer": "Shreni sanyojan mein dono pratirodhakon se ek hi dhaara bahti hai, aur kul pratirodh R1 jama R2 hota hai, jo dono mein se kisi bhi pratirodh se bada hai. Samanantar sanyojan mein dono pratirodhakon ke siron ka vibhavantar samaan rehta hai, aur ek by R barabar ek by R1 jama ek by R2, isliye kul pratirodh sabse chhote pratirodh se bhi kam hota hai. Vidyut shakti P barabar V I, jise I ka varg guna R bhi likh sakte hain, aur kisi pratirodhak mein samay t mein utpann ushma I ka varg guna R guna t hoti hai.",
+      "model_answer_source": {
+        "book_id": "ncert-science-10",
+        "section": "11.6"
+      },
+      "prompt": "Do pratirodhakon ko pehle shreni mein aur phir samanantar mein ek hi battery se joda gaya hai. Pratyek sthiti mein bataaiye ki kaun-si raashi dono pratirodhakon ke liye samaan rehti hai aur kul pratirodh kaise nikaala jaata hai. Phir vidyut shakti tatha pratirodhak mein utpann ushma ka sambandh likhiye.",
+      "prompt_id": "spk-series-parallel-power-001",
+      "thresholds": {
+        "max_duration_s": 45,
+        "min_key_ideas": 3,
+        "pass_ratio": 0.6,
+        "strong_ratio": 0.85
+      },
+      "version": 1
+    }
+  ],
+  "schema_version": 1
+}

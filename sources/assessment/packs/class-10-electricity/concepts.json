@@ -1,0 +1,453 @@
+{
+  "block_tagging": "complete",
+  "blocks": {
+    "b-01": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-01",
+      "section_id": "sec-01",
+      "type": "text"
+    },
+    "b-02": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-01",
+      "section_id": "sec-01",
+      "type": "diagram"
+    },
+    "b-03": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-01",
+      "section_id": "sec-01",
+      "type": "worked_example"
+    },
+    "b-04": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-01",
+      "section_id": "sec-01",
+      "type": "check"
+    },
+    "b-05": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-01",
+      "section_id": "sec-01",
+      "type": "check"
+    },
+    "b-06": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-02",
+      "section_id": "sec-02",
+      "type": "text"
+    },
+    "b-07": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-02",
+      "section_id": "sec-02",
+      "type": "worked_example"
+    },
+    "b-08": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-02",
+      "section_id": "sec-02",
+      "type": "check"
+    },
+    "b-09": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-03",
+      "section_id": "sec-03",
+      "type": "text"
+    },
+    "b-10": {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "p1_concept_id": "class-10-electricity-sec-03",
+      "section_id": "sec-03",
+      "type": "check"
+    },
+    "b-11": {
+      "concept_id": "class-10-electricity-ohms-law",
+      "p1_concept_id": "class-10-electricity-sec-04",
+      "section_id": "sec-04",
+      "type": "text"
+    },
+    "b-12": {
+      "concept_id": "class-10-electricity-ohms-law",
+      "p1_concept_id": "class-10-electricity-sec-04",
+      "section_id": "sec-04",
+      "type": "simulation"
+    },
+    "b-13": {
+      "concept_id": "class-10-electricity-ohms-law",
+      "p1_concept_id": "class-10-electricity-sec-04",
+      "section_id": "sec-04",
+      "type": "worked_example"
+    },
+    "b-14": {
+      "concept_id": "class-10-electricity-ohms-law",
+      "p1_concept_id": "class-10-electricity-sec-04",
+      "section_id": "sec-04",
+      "type": "worked_example"
+    },
+    "b-15": {
+      "concept_id": "class-10-electricity-ohms-law",
+      "p1_concept_id": "class-10-electricity-sec-04",
+      "section_id": "sec-04",
+      "type": "check"
+    },
+    "b-16": {
+      "concept_id": "class-10-electricity-resistance-and-resistivity",
+      "p1_concept_id": "class-10-electricity-sec-05",
+      "section_id": "sec-05",
+      "type": "text"
+    },
+    "b-17": {
+      "concept_id": "class-10-electricity-resistance-and-resistivity",
+      "p1_concept_id": "class-10-electricity-sec-05",
+      "section_id": "sec-05",
+      "type": "worked_example"
+    },
+    "b-18": {
+      "concept_id": "class-10-electricity-resistance-and-resistivity",
+      "p1_concept_id": "class-10-electricity-sec-05",
+      "section_id": "sec-05",
+      "type": "worked_example"
+    },
+    "b-19": {
+      "concept_id": "class-10-electricity-resistance-and-resistivity",
+      "p1_concept_id": "class-10-electricity-sec-05",
+      "section_id": "sec-05",
+      "type": "check"
+    },
+    "b-20": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-06",
+      "section_id": "sec-06",
+      "type": "text"
+    },
+    "b-21": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-06",
+      "section_id": "sec-06",
+      "type": "diagram"
+    },
+    "b-22": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-06",
+      "section_id": "sec-06",
+      "type": "reveal"
+    },
+    "b-23": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-06",
+      "section_id": "sec-06",
+      "type": "worked_example"
+    },
+    "b-24": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-06",
+      "section_id": "sec-06",
+      "type": "check"
+    },
+    "b-25": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-07",
+      "section_id": "sec-07",
+      "type": "text"
+    },
+    "b-26": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-07",
+      "section_id": "sec-07",
+      "type": "diagram"
+    },
+    "b-27": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-07",
+      "section_id": "sec-07",
+      "type": "reveal"
+    },
+    "b-28": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-07",
+      "section_id": "sec-07",
+      "type": "worked_example"
+    },
+    "b-29": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-07",
+      "section_id": "sec-07",
+      "type": "worked_example"
+    },
+    "b-30": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-07",
+      "section_id": "sec-07",
+      "type": "check"
+    },
+    "b-31": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-08",
+      "section_id": "sec-08",
+      "type": "text"
+    },
+    "b-32": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-08",
+      "section_id": "sec-08",
+      "type": "reveal"
+    },
+    "b-33": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-08",
+      "section_id": "sec-08",
+      "type": "worked_example"
+    },
+    "b-34": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-08",
+      "section_id": "sec-08",
+      "type": "worked_example"
+    },
+    "b-35": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-08",
+      "section_id": "sec-08",
+      "type": "check"
+    },
+    "b-36": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-09",
+      "section_id": "sec-09",
+      "type": "text"
+    },
+    "b-37": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-09",
+      "section_id": "sec-09",
+      "type": "check"
+    },
+    "b-38": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-10",
+      "section_id": "sec-10",
+      "type": "text"
+    },
+    "b-39": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-10",
+      "section_id": "sec-10",
+      "type": "worked_example"
+    },
+    "b-40": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-10",
+      "section_id": "sec-10",
+      "type": "worked_example"
+    },
+    "b-41": {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "p1_concept_id": "class-10-electricity-sec-10",
+      "section_id": "sec-10",
+      "type": "check"
+    },
+    "b-42": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-11",
+      "section_id": "sec-11",
+      "type": "check"
+    },
+    "b-43": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-11",
+      "section_id": "sec-11",
+      "type": "check"
+    },
+    "b-44": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-11",
+      "section_id": "sec-11",
+      "type": "check"
+    },
+    "b-45": {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "p1_concept_id": "class-10-electricity-sec-11",
+      "section_id": "sec-11",
+      "type": "check"
+    }
+  },
+  "chapter_id": "class-10-electricity",
+  "class_level": 10,
+  "concepts": [
+    {
+      "concept_id": "class-10-electricity-electric-current-and-potential",
+      "description": "Charge in motion, the ampere, and potential difference as work per charge (NCERT 11.1-11.3).",
+      "prerequisites": [],
+      "section_refs": [
+        "11.1",
+        "11.2",
+        "11.3"
+      ],
+      "title": "Electric current and potential difference",
+      "title_hi": "विद्युत धारा और विभवांतर"
+    },
+    {
+      "concept_id": "class-10-electricity-ohms-law",
+      "description": "The V-I relationship for a metallic conductor at constant temperature (NCERT 11.4).",
+      "prerequisites": [
+        "class-10-electricity-electric-current-and-potential"
+      ],
+      "section_refs": [
+        "11.4"
+      ],
+      "title": "Ohm's law",
+      "title_hi": "ओम का नियम"
+    },
+    {
+      "concept_id": "class-10-electricity-resistance-and-resistivity",
+      "description": "Resistance, the factors it depends on and the resistivity of materials (NCERT 11.5).",
+      "prerequisites": [
+        "class-10-electricity-ohms-law"
+      ],
+      "section_refs": [
+        "11.5"
+      ],
+      "title": "Resistance and resistivity",
+      "title_hi": "प्रतिरोध और प्रतिरोधकता"
+    },
+    {
+      "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+      "description": "Equivalent resistance for series and parallel combinations and their current/voltage rules (NCERT 11.6-11.6.2).",
+      "prerequisites": [
+        "class-10-electricity-resistance-and-resistivity"
+      ],
+      "section_refs": [
+        "11.6",
+        "11.6.1",
+        "11.6.2"
+      ],
+      "title": "Resistors in series and parallel",
+      "title_hi": "श्रेणी और समांतर में प्रतिरोधक"
+    },
+    {
+      "concept_id": "class-10-electricity-heating-effect-and-power",
+      "description": "Joule's law of heating, electric power and the kilowatt-hour (NCERT 11.7-11.8).",
+      "prerequisites": [
+        "class-10-electricity-resistors-in-series-and-parallel"
+      ],
+      "section_refs": [
+        "11.7",
+        "11.7.1",
+        "11.8"
+      ],
+      "title": "Heating effect of current and electric power",
+      "title_hi": "धारा का तापन प्रभाव और विद्युत शक्ति"
+    }
+  ],
+  "edges": [
+    {
+      "from": "class-10-electricity-electric-current-and-potential",
+      "kind": "prerequisite",
+      "to": "class-10-electricity-ohms-law"
+    },
+    {
+      "from": "class-10-electricity-ohms-law",
+      "kind": "prerequisite",
+      "to": "class-10-electricity-resistance-and-resistivity"
+    },
+    {
+      "from": "class-10-electricity-resistance-and-resistivity",
+      "kind": "prerequisite",
+      "to": "class-10-electricity-resistors-in-series-and-parallel"
+    },
+    {
+      "from": "class-10-electricity-resistors-in-series-and-parallel",
+      "kind": "prerequisite",
+      "to": "class-10-electricity-heating-effect-and-power"
+    }
+  ],
+  "lesson": {
+    "lesson_id": "class-10-electricity",
+    "manifest_path": "frontend/courses/class-10-physics/electricity/manifest.json",
+    "sections": [
+      {
+        "concept_id": "class-10-electricity-electric-current-and-potential",
+        "id": "sec-01",
+        "p1_concept_id": "class-10-electricity-sec-01",
+        "title": "Electric current and electric circuit"
+      },
+      {
+        "concept_id": "class-10-electricity-electric-current-and-potential",
+        "id": "sec-02",
+        "p1_concept_id": "class-10-electricity-sec-02",
+        "title": "Electric potential and potential difference"
+      },
+      {
+        "concept_id": "class-10-electricity-electric-current-and-potential",
+        "id": "sec-03",
+        "p1_concept_id": "class-10-electricity-sec-03",
+        "title": "Circuit diagrams and the symbols we use"
+      },
+      {
+        "concept_id": "class-10-electricity-ohms-law",
+        "id": "sec-04",
+        "p1_concept_id": "class-10-electricity-sec-04",
+        "title": "Ohm's law and resistance"
+      },
+      {
+        "concept_id": "class-10-electricity-resistance-and-resistivity",
+        "id": "sec-05",
+        "p1_concept_id": "class-10-electricity-sec-05",
+        "title": "What decides the resistance of a conductor"
+      },
+      {
+        "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+        "id": "sec-06",
+        "p1_concept_id": "class-10-electricity-sec-06",
+        "title": "Resistors joined in series"
+      },
+      {
+        "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+        "id": "sec-07",
+        "p1_concept_id": "class-10-electricity-sec-07",
+        "title": "Resistors joined in parallel"
+      },
+      {
+        "concept_id": "class-10-electricity-heating-effect-and-power",
+        "id": "sec-08",
+        "p1_concept_id": "class-10-electricity-sec-08",
+        "title": "Heating effect of electric current"
+      },
+      {
+        "concept_id": "class-10-electricity-heating-effect-and-power",
+        "id": "sec-09",
+        "p1_concept_id": "class-10-electricity-sec-09",
+        "title": "Using the heating effect: heaters, bulbs and fuses"
+      },
+      {
+        "concept_id": "class-10-electricity-heating-effect-and-power",
+        "id": "sec-10",
+        "p1_concept_id": "class-10-electricity-sec-10",
+        "title": "Electric power and the kilowatt hour"
+      },
+      {
+        "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+        "id": "sec-11",
+        "p1_concept_id": "class-10-electricity-sec-11",
+        "title": "Practice: mixed problems from the whole chapter"
+      }
+    ],
+    "title": "Electricity"
+  },
+  "schema_version": 1,
+  "section_concept_map": {
+    "sec-01": "class-10-electricity-electric-current-and-potential",
+    "sec-02": "class-10-electricity-electric-current-and-potential",
+    "sec-03": "class-10-electricity-electric-current-and-potential",
+    "sec-04": "class-10-electricity-ohms-law",
+    "sec-05": "class-10-electricity-resistance-and-resistivity",
+    "sec-06": "class-10-electricity-resistors-in-series-and-parallel",
+    "sec-07": "class-10-electricity-resistors-in-series-and-parallel",
+    "sec-08": "class-10-electricity-heating-effect-and-power",
+    "sec-09": "class-10-electricity-heating-effect-and-power",
+    "sec-10": "class-10-electricity-heating-effect-and-power",
+    "sec-11": "class-10-electricity-resistors-in-series-and-parallel"
+  },
+  "stage": "A2-concept-tag"
+}

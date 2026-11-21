@@ -1,0 +1,1896 @@
+{
+  "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+  "questions": [
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-accommodation-001",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 2,
+      "expected_time_ms": 43000,
+      "explanation": "Ciliary muscles change the curvature of the eye lens, which changes its focal length. This ability is called the power of accommodation. The least distance of distinct vision is a fixed distance, not the ability to change focal length.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Students often choose 'least distance of distinct vision' because it also involves focusing, but it is a distance value, not a changing ability.",
+      "options": [
+        "power of accommodation",
+        "persistence of vision",
+        "least distance of distinct vision",
+        "scattering of light"
+      ],
+      "prompt": "The ability of the eye lens to change its focal length to focus objects at different distances is called:",
+      "question_id": "q-eye-accommodation-001-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-accommodation-001",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 2,
+      "expected_time_ms": 56000,
+      "explanation": "सिलियरी मांसपेशियाँ आँख के लेंस की वक्रता बदलती हैं, जिससे उसकी फोकस दूरी बदलती है। इसी क्षमता को समंजन क्षमता कहते हैं। स्पष्ट दृष्टि की न्यूनतम दूरी एक निश्चित दूरी है, बदलने की क्षमता नहीं।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "कई विद्यार्थी 'स्पष्ट दृष्टि की न्यूनतम दूरी' चुन लेते हैं क्योंकि वह भी फोकसिंग से जुड़ी है, पर वह एक दूरी का मान है।",
+      "options": [
+        "समंजन क्षमता",
+        "दृष्टि की स्थायित्व क्षमता",
+        "स्पष्ट दृष्टि की न्यूनतम दूरी",
+        "प्रकाश का प्रकीर्णन"
+      ],
+      "prompt": "आँख के लेंस की अपनी फोकस दूरी बदलकर अलग-अलग दूरियों पर रखी वस्तुओं को फोकस करने की क्षमता को क्या कहते हैं?",
+      "question_id": "q-eye-accommodation-001-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-accommodation-001",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 2,
+      "expected_time_ms": 47000,
+      "explanation": "Ciliary muscles aankh ke lens ki curvature badalti hain, jisse focal length badalti hai. Isi ko power of accommodation kehte hain. Least distance ek fixed doori hai, badalne ki kshamta nahin.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Kai students 'least distance of distinct vision' chun lete hain kyunki woh bhi focusing se juda hai, par woh ek doori ka value hai.",
+      "options": [
+        "Power of accommodation (samnjan kshamta)",
+        "Persistence of vision",
+        "Least distance of distinct vision",
+        "Scattering of light"
+      ],
+      "prompt": "Aankh ke lens ki apni focal length badal kar alag-alag dooriyon par rakhi vastuon ko focus karne ki kshamta ko kya kehte hain?",
+      "question_id": "q-eye-accommodation-001-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-pupil-002",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 40000,
+      "explanation": "The pupil is the opening whose size is adjusted by the iris. A larger pupil admits more light and a smaller pupil admits less. The iris controls the pupil, but the pupil itself is the light-admitting opening.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "The iris is tempting because it is the muscular part that adjusts the pupil, but the question asks about the opening that controls light entry.",
+      "options": [
+        "pupil",
+        "iris",
+        "cornea",
+        "retina"
+      ],
+      "prompt": "The part of the human eye that controls the amount of light entering the eye is the:",
+      "question_id": "q-eye-pupil-002-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-pupil-002",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 52000,
+      "explanation": "पुतली एक छिद्र है जिसका आकार आइरिस द्वारा समायोजित होता है। बड़ी पुतली में अधिक प्रकाश और छोटी पुतली में कम प्रकाश प्रवेश करता है। आइरिस पुतली को नियंत्रित करता है, पर प्रकाश-प्रवेश का छिद्र पुतली ही है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "आइरिस भ्रमित करता है क्योंकि वह पुतली का आकार बदलता है, पर प्रश्न प्रकाश प्रवेश कराने वाले छिद्र के बारे में है।",
+      "options": [
+        "पुतली",
+        "आइरिस",
+        "कॉर्निया",
+        "रेटिना"
+      ],
+      "prompt": "मानव नेत्र का वह भाग जो नेत्र में प्रवेश करने वाले प्रकाश की मात्रा को नियंत्रित करता है, वह है:",
+      "question_id": "q-eye-pupil-002-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-pupil-002",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 43000,
+      "explanation": "Pupil ek chhidra hai jiska aakar iris dwara adjust hota hai. Badi putli mein zyada prakash aur chhoti putli mein kam prakash pravesh karta hai. Iris putli ko control karta hai, par prakash pravesh ka chhidra putli hi hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Iris bharmit karta hai kyunki woh putli ka aakar badalta hai, par sawaal prakash pravesh karane wale chhidra ke baare mein hai.",
+      "options": [
+        "Pupil (putli)",
+        "Iris",
+        "Cornea",
+        "Retina"
+      ],
+      "prompt": "Manav netra ka woh bhaag jo netra mein pravesh karne wale prakash ki matra ko niyantrit karta hai, woh hai:",
+      "question_id": "q-eye-pupil-002-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-least-distance-003",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 3,
+      "expected_time_ms": 41000,
+      "explanation": "A normal eye can clearly see an object placed at about 25 cm or farther. Infinity is the far point of a normal eye, not the least distance of distinct vision.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "'Infinity' is tempting because the normal eye can focus distant objects, but that is the far point, not the nearest clear vision distance.",
+      "options": [
+        "25 cm",
+        "2.5 cm",
+        "25 m",
+        "infinity"
+      ],
+      "prompt": "For a normal adult human eye, the least distance of distinct vision is about:",
+      "question_id": "q-eye-least-distance-003-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-least-distance-003",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 3,
+      "expected_time_ms": 50000,
+      "explanation": "सामान्य आँख लगभग 25 cm या उससे अधिक दूरी पर रखी वस्तु को स्पष्ट देख सकती है। अनंत सामान्य आँख का सुदूर बिंदु है, स्पष्ट दृष्टि की न्यूनतम दूरी नहीं।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "'अनंत' भ्रमित करता है क्योंकि सामान्य आँख दूर की वस्तुओं को फोकस कर सकती है, पर वह सुदूर बिंदु है।",
+      "options": [
+        "25 cm",
+        "2.5 cm",
+        "25 m",
+        "अनंत"
+      ],
+      "prompt": "सामान्य वयस्क मानव नेत्र के लिए स्पष्ट दृष्टि की न्यूनतम दूरी लगभग कितनी होती है?",
+      "question_id": "q-eye-least-distance-003-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-eye-least-distance-003",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+      "difficulty": "easy",
+      "distractor_index": 3,
+      "expected_time_ms": 43000,
+      "explanation": "Samanya aankh lagbhag 25 cm ya usse adhik doori par rakhi vastu ko saaf dekh sakti hai. Anant samanya aankh ka door bindu hai, spasht drishti ki nyoonatam doori nahin.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "'Infinity' bharmit karta hai kyunki samanya aankh door ki vastuon ko focus kar sakti hai, par woh door bindu hai.",
+      "options": [
+        "25 cm",
+        "2.5 cm",
+        "25 m",
+        "Anant (infinity)"
+      ],
+      "prompt": "Samanya vayask manav netra ke liye spasht drishti ki nyoonatam doori lagbhag kitni hoti hai?",
+      "question_id": "q-eye-least-distance-003-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "D",
+        "value": -1.25
+      },
+      "base_item_id": "q-defect-myopia-power-004",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "expected_time_ms": 120000,
+      "explanation": "For myopia, the lens must form the image of a distant object at the far point. So f = -80 cm = -0.80 m. Power P = 1/f = 1/(-0.80 m) = -1.25 D. The negative sign shows that a concave lens is required.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 2,
+      "misconception": "Writing +1.25 D is tempting if the minus sign of the far-point distance is dropped; myopia is corrected by a concave (negative-power) lens.",
+      "prompt": "A myopic person can see clearly only up to 80 cm. What is the power of the corrective lens needed?",
+      "question_id": "q-defect-myopia-power-004-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "D",
+        "value": -1.25
+      },
+      "base_item_id": "q-defect-myopia-power-004",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "expected_time_ms": 141000,
+      "explanation": "निकट दृष्टि दोष में लेंस को दूर की वस्तु का प्रतिबिंब दूर बिंदु पर बनाना होता है। अतः f = -80 cm = -0.80 m। क्षमता P = 1/f = 1/(-0.80 m) = -1.25 D। ऋणात्मक चिह्न बताता है कि अवतल लेंस चाहिए।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 2,
+      "misconception": "दूर बिंदु की दूरी का ऋण चिह्न छोड़ने पर +1.25 D लिखना भ्रमित करता है; निकट दृष्टि दोष में अवतल (ऋणात्मक क्षमता वाला) लेंस लगता है।",
+      "prompt": "एक निकट दृष्टि दोष वाला व्यक्ति केवल 80 cm तक स्पष्ट देख सकता है। आवश्यक सुधारक लेंस की क्षमता (power) क्या होगी?",
+      "question_id": "q-defect-myopia-power-004-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "D",
+        "value": -1.25
+      },
+      "base_item_id": "q-defect-myopia-power-004",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "expected_time_ms": 125000,
+      "explanation": "Myopia mein lens ko door ki vastu ka image far point par banana hota hai. Isliye f = -80 cm = -0.80 m. Power P = 1/f = 1/(-0.80 m) = -1.25 D. Negative sign batata hai ki concave lens chahiye.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 2,
+      "misconception": "Far point ki doori ka minus sign chhodne par +1.25 D likhna bharmit karta hai; myopia mein concave (negative-power) lens lagta hai.",
+      "prompt": "Ek myopic vyakti sirf 80 cm tak saaf dekh sakta hai. Zaroori corrective lens ki power kya hogi?",
+      "question_id": "q-defect-myopia-power-004-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "D",
+        "value": 3.0
+      },
+      "base_item_id": "q-defect-hypermetropia-power-005",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "hard",
+      "expected_time_ms": 181000,
+      "explanation": "Take the book at u = -25 cm and the virtual image at the near point, v = -100 cm. Lens formula: 1/f = 1/v - 1/u = -1/100 + 1/25 = 3/100 cm^-1, so f = 100/3 cm = 0.333 m. Power P = 1/f = +3.0 D. The positive sign shows a convex lens is needed.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 2,
+      "misconception": "Using v = +100 cm gives a wrong sign and a wrong lens type; for hypermetropia the corrected image is virtual and on the same side as the object.",
+      "prompt": "A hypermetropic person has near point 1 m. What power of lens will let them read a book at 25 cm?",
+      "question_id": "q-defect-hypermetropia-power-005-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "D",
+        "value": 3.0
+      },
+      "base_item_id": "q-defect-hypermetropia-power-005",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "hard",
+      "expected_time_ms": 212000,
+      "explanation": "पुस्तक को u = -25 cm पर और आभासी प्रतिबिंब को निकट बिंदु v = -100 cm पर रखें। लेंस सूत्र: 1/f = 1/v - 1/u = -1/100 + 1/25 = 3/100 cm^-1, अतः f = 100/3 cm = 0.333 m। क्षमता P = 1/f = +3.0 D। धनात्मक चिह्न उत्तल लेंस दर्शाता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 2,
+      "misconception": "v = +100 cm लेने से चिह्न और लेंस का प्रकार दोनों गलत हो जाते हैं; दूर दृष्टि सुधार में प्रतिबिंब आभासी और वस्तु की ओर होता है।",
+      "prompt": "एक दूर दृष्टि दोष वाले व्यक्ति का निकट बिंदु 1 m है। 25 cm पर पुस्तक पढ़ने के लिए आवश्यक लेंस की क्षमता क्या होगी?",
+      "question_id": "q-defect-hypermetropia-power-005-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.1,
+        "unit": "D",
+        "value": 3.0
+      },
+      "base_item_id": "q-defect-hypermetropia-power-005",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "hard",
+      "expected_time_ms": 190000,
+      "explanation": "Kitaab ko u = -25 cm par aur virtual image ko near point v = -100 cm par rakhein. Lens formula: 1/f = 1/v - 1/u = -1/100 + 1/25 = 3/100 cm^-1, isliye f = 100/3 cm = 0.333 m. Power P = 1/f = +3.0 D. Positive sign convex lens darshata hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 2,
+      "misconception": "v = +100 cm lene se sign aur lens ka type dono galat ho jaate hain; hypermetropia correction mein image virtual aur object ki taraf hota hai.",
+      "prompt": "Ek hypermetropic vyakti ka near point 1 m hai. 25 cm par kitaab padhne ke liye zaroori lens ki power kya hogi?",
+      "question_id": "q-defect-hypermetropia-power-005-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "D",
+        "value": 2.0
+      },
+      "base_item_id": "q-defect-nearpoint-power-006",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "expected_time_ms": 135000,
+      "explanation": "Object distance u = -25 cm; the lens must make a virtual image at the person's near point, v = -50 cm. 1/f = 1/v - 1/u = -1/50 + 1/25 = 1/50 cm^-1, so f = 50 cm = 0.50 m. Power P = 1/f = +2.0 D.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 2,
+      "misconception": "Some students use the near point 50 cm as the object distance; here the object is at 25 cm and the image is at 50 cm.",
+      "prompt": "A person's near point is 50 cm. Find the power of the reading lens required to read at the normal near point of 25 cm.",
+      "question_id": "q-defect-nearpoint-power-006-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "D",
+        "value": 2.0
+      },
+      "base_item_id": "q-defect-nearpoint-power-006",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "expected_time_ms": 157000,
+      "explanation": "वस्तु की दूरी u = -25 cm; लेंस को व्यक्ति के निकट बिंदु पर आभासी प्रतिबिंब बनाना है, v = -50 cm। 1/f = 1/v - 1/u = -1/50 + 1/25 = 1/50 cm^-1, अतः f = 50 cm = 0.50 m। क्षमता P = 1/f = +2.0 D।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 2,
+      "misconception": "कुछ विद्यार्थी निकट बिंदु 50 cm को ही वस्तु की दूरी मान लेते हैं; यहाँ वस्तु 25 cm पर और प्रतिबिंब 50 cm पर है।",
+      "prompt": "किसी व्यक्ति का निकट बिंदु 50 cm है। सामान्य निकट बिंदु 25 cm पर पढ़ने के लिए आवश्यक लेंस की क्षमता ज्ञात कीजिए।",
+      "question_id": "q-defect-nearpoint-power-006-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "D",
+        "value": 2.0
+      },
+      "base_item_id": "q-defect-nearpoint-power-006",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "expected_time_ms": 141000,
+      "explanation": "Object distance u = -25 cm; lens ko vyakti ke near point par virtual image banana hai, v = -50 cm. 1/f = 1/v - 1/u = -1/50 + 1/25 = 1/50 cm^-1, isliye f = 50 cm = 0.50 m. Power P = 1/f = +2.0 D.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 2,
+      "misconception": "Kuch students near point 50 cm ko hi object distance maan lete hain; yahan object 25 cm par aur image 50 cm par hai.",
+      "prompt": "Kisi vyakti ka near point 50 cm hai. Samanya near point 25 cm par padhne ke liye zaroori lens ki power gyat kijiye.",
+      "question_id": "q-defect-nearpoint-power-006-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "numeric",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-defect-presbyopia-007",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 53000,
+      "explanation": "With ageing, the ciliary muscles become weak and the eye lens becomes less flexible, so the power of accommodation decreases. Elongation of the eyeball is linked with myopia, not presbyopia.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Choosing 'elongation of the eyeball' mixes up presbyopia with myopia; elongation causes myopia.",
+      "options": [
+        "gradual weakening of ciliary muscles and loss of flexibility of the eye lens",
+        "elongation of the eyeball",
+        "excessive curvature of the cornea",
+        "clouding of the cornea"
+      ],
+      "prompt": "Presbyopia is mainly due to:",
+      "question_id": "q-defect-presbyopia-007-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-defect-presbyopia-007",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 72000,
+      "explanation": "आयु बढ़ने के साथ सिलियरी मांसपेशियाँ कमजोर और आँख का लेंस कम लचीला हो जाता है, जिससे समंजन क्षमता घटती है। नेत्रगोलक का लंबा होना निकट दृष्टि दोष से जुड़ा है, प्रेस्बायोपिया से नहीं।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "'नेत्रगोलक का लंबा होना' चुनना प्रेस्बायोपिया को निकट दृष्टि दोष से मिला देता है; लंबा नेत्रगोलक निकट दृष्टि दोष करता है।",
+      "options": [
+        "सिलियरी मांसपेशियों का धीरे-धीरे कमजोर होना और आँख के लेंस का लचीलापन कम होना",
+        "नेत्रगोलक का लंबा हो जाना",
+        "कॉर्निया की अत्यधिक वक्रता",
+        "कॉर्निया का धुंधला होना"
+      ],
+      "prompt": "प्रेस्बायोपिया मुख्यतः किस कारण होता है?",
+      "question_id": "q-defect-presbyopia-007-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-defect-presbyopia-007",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 57000,
+      "explanation": "Umar badhne ke saath ciliary muscles kamzor aur aankh ka lens kam flexible ho jaata hai, jisse accommodation power ghatti hai. Eyeball ka lamba hona myopia se juda hai, presbyopia se nahin.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "'Eyeball ka lamba hona' chunna presbyopia ko myopia se mila deta hai; lamba eyeball myopia karta hai.",
+      "options": [
+        "Ciliary muscles ka dheere-dheere kamzor hona aur aankh ke lens ka lachilapan kam hona",
+        "Eyeball ka lamba ho jaana",
+        "Cornea ki atyadhik curvature",
+        "Cornea ka dhundhla hona"
+      ],
+      "prompt": "Presbyopia mukhyatah kis karan hota hai?",
+      "question_id": "q-defect-presbyopia-007-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-defect-myopia-assert-008",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "hard",
+      "expected_time_ms": 109000,
+      "explanation": "A is true for a typical myope whose near point is normal. R is also true and explains why distant objects look blurred, but R does not explain why a book at 25 cm is seen clearly; a nearer object needs less converging power, so its image can still form on the retina. Hence R is not the explanation of A.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Students often mark 'R explains A' because both statements mention myopia; the reason explains distant blur only, not clear near vision.",
+      "options": [
+        "Both A and R are true and R is the correct explanation of A.",
+        "Both A and R are true but R is not the correct explanation of A.",
+        "A is true but R is false.",
+        "A is false but R is true."
+      ],
+      "prompt": "Assertion: A myopic person may read a book kept at 25 cm clearly, yet cannot see a distant tree clearly.\nReason: In myopia, the image of a distant object is formed in front of the retina.",
+      "question_id": "q-defect-myopia-assert-008-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-defect-myopia-assert-008",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "hard",
+      "expected_time_ms": 140000,
+      "explanation": "A सामान्य निकट बिंदु वाले निकट दृष्टि दोषी के लिए सत्य है। R भी सत्य है और दूर की वस्तु के धुंधलेपन की व्याख्या करता है, पर यह नहीं बताता कि 25 cm की पुस्तक स्पष्ट क्यों दिखती है; नज़दीक की वस्तु को कम अभिसारी क्षमता चाहिए, इसलिए उसका प्रतिबिंब रेटिना पर बन सकता है। अतः R, A की व्याख्या नहीं है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "विद्यार्थी 'R, A की व्याख्या है' चुन लेते हैं क्योंकि दोनों में निकट दृष्टि दोष का ज़िक्र है; कारण केवल दूर के धुंधलेपन को समझाता है।",
+      "options": [
+        "A और R दोनों सत्य हैं और R, A की सही व्याख्या है।",
+        "A और R दोनों सत्य हैं, पर R, A की सही व्याख्या नहीं है।",
+        "A सत्य है पर R असत्य है।",
+        "A असत्य है पर R सत्य है।"
+      ],
+      "prompt": "अभिकथन: निकट दृष्टि दोष वाला व्यक्ति 25 cm पर रखी पुस्तक स्पष्ट पढ़ सकता है, फिर भी दूर का पेड़ स्पष्ट नहीं देख सकता।\nकारण: निकट दृष्टि दोष में दूर की वस्तु का प्रतिबिंब रेटिना के सामने बनता है।",
+      "question_id": "q-defect-myopia-assert-008-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-defect-myopia-assert-008",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+      "difficulty": "hard",
+      "expected_time_ms": 113000,
+      "explanation": "A samanya near point wale myope ke liye satya hai. R bhi satya hai aur door ki vastu ke blur ki vyakhya karta hai, par yah nahin batata ki 25 cm ki kitaab saaf kyun dikhti hai; paas ki vastu ko kam converging power chahiye, isliye uska image retina par ban sakta hai. Isliye R, A ki vyakhya nahin hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Students 'R explains A' chun lete hain kyunki dono mein myopia ka zikr hai; reason sirf door ke blur ko samjhata hai.",
+      "options": [
+        "A aur R dono satya hain aur R, A ki sahi vyakhya hai.",
+        "A aur R dono satya hain, par R, A ki sahi vyakhya nahin hai.",
+        "A satya hai par R asatya hai.",
+        "A asatya hai par R satya hai."
+      ],
+      "prompt": "Assertion: Myopic vyakti 25 cm par rakhi kitaab saaf padh sakta hai, phir bhi door ka ped saaf nahin dekh sakta.\nReason: Myopia mein door ki vastu ka image retina ke saamne banta hai.",
+      "question_id": "q-defect-myopia-assert-008-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-prism-violet-009",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "easy",
+      "distractor_index": 0,
+      "expected_time_ms": 40000,
+      "explanation": "Violet has the shortest wavelength among the visible colours and the highest refractive index in glass, so it deviates the most. Red has the longest wavelength and deviates the least.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Red is tempting because it is the first colour usually named in a spectrum, but in a prism red bends the least, not the most.",
+      "options": [
+        "red",
+        "green",
+        "violet",
+        "yellow"
+      ],
+      "prompt": "When white light passes through a glass prism, which colour bends the most?",
+      "question_id": "q-prism-violet-009-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-prism-violet-009",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "easy",
+      "distractor_index": 0,
+      "expected_time_ms": 49000,
+      "explanation": "दृश्य रंगों में बैंगनी का तरंगदैर्घ्य सबसे कम और काँच में अपवर्तनांक सबसे अधिक होता है, इसलिए वह सबसे अधिक विचलित होता है। लाल का तरंगदैर्घ्य सबसे अधिक है और वह सबसे कम मुड़ता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "लाल भ्रमित करता है क्योंकि स्पेक्ट्रम में उसका नाम पहले आता है, पर प्रिज़्म में लाल सबसे कम मुड़ता है।",
+      "options": [
+        "लाल",
+        "हरा",
+        "बैंगनी",
+        "पीला"
+      ],
+      "prompt": "जब श्वेत प्रकाश काँच के प्रिज़्म से गुजरता है, तो कौन-सा रंग सबसे अधिक मुड़ता है?",
+      "question_id": "q-prism-violet-009-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 2
+      },
+      "base_item_id": "q-prism-violet-009",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "easy",
+      "distractor_index": 0,
+      "expected_time_ms": 42000,
+      "explanation": "Visible colours mein violet ka wavelength sabse kam aur kaanch mein refractive index sabse zyada hota hai, isliye woh sabse zyada deviate karta hai. Red ka wavelength sabse zyada hai aur woh sabse kam mudta hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Red bharmit karta hai kyunki spectrum mein uska naam pehle aata hai, par prism mein red sabse kam mudta hai.",
+      "options": [
+        "Red",
+        "Green",
+        "Violet",
+        "Yellow"
+      ],
+      "prompt": "Jab white light kaanch ke prism se guzarta hai, to kaun-sa rang sabse zyada mudta hai?",
+      "question_id": "q-prism-violet-009-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.3"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-prism-dispersion-cause-010",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "medium",
+      "distractor_index": 3,
+      "expected_time_ms": 56000,
+      "explanation": "Different colours have different speeds and hence different refractive indices in glass. They therefore bend by different amounts and separate. If all colours had the same speed in glass, they would not disperse.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "'All colours travel with the same speed in glass' is tempting because they travel together in vacuum, but in glass their speeds differ.",
+      "options": [
+        "different colours have different refractive indices in glass",
+        "the prism absorbs some colours completely",
+        "the prism adds new colours to white light",
+        "all colours travel with the same speed in glass"
+      ],
+      "prompt": "White light splits into different colours when passed through a glass prism because:",
+      "question_id": "q-prism-dispersion-cause-010-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-prism-dispersion-cause-010",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "medium",
+      "distractor_index": 3,
+      "expected_time_ms": 78000,
+      "explanation": "काँच में अलग-अलग रंगों की चालें और इसलिए अपवर्तनांक अलग-अलग होते हैं। वे अलग-अलग मात्रा में मुड़ते हैं और अलग हो जाते हैं। यदि सभी रंगों की चाल काँच में समान होती, तो वे अलग नहीं होते।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "'काँच में सभी रंग एक ही चाल से चलते हैं' भ्रमित करता है क्योंकि निर्वात में वे साथ चलते हैं, पर काँच में उनकी चालें अलग होती हैं।",
+      "options": [
+        "काँच में अलग-अलग रंगों के अपवर्तनांक अलग-अलग होते हैं",
+        "प्रिज़्म कुछ रंगों को पूरी तरह अवशोषित कर लेता है",
+        "प्रिज़्म श्वेत प्रकाश में नए रंग जोड़ता है",
+        "काँच में सभी रंग एक ही चाल से चलते हैं"
+      ],
+      "prompt": "श्वेत प्रकाश काँच के प्रिज़्म से गुजरने पर अलग-अलग रंगों में क्यों बँट जाता है?",
+      "question_id": "q-prism-dispersion-cause-010-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-prism-dispersion-cause-010",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "medium",
+      "distractor_index": 3,
+      "expected_time_ms": 63000,
+      "explanation": "Kaanch mein alag-alag rangon ki speeds aur isliye refractive index alag-alag hote hain. Ve alag-alag matra mein mudte hain aur alag ho jaate hain. Agar sabhi rangon ki speed kaanch mein same hoti, to ve alag nahin hote.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "'Kaanch mein sabhi rang ek hi speed se chalte hain' bharmit karta hai kyunki vacuum mein ve saath chalte hain, par kaanch mein unki speeds alag hoti hain.",
+      "options": [
+        "Kaanch mein alag-alag rangon ke refractive index alag-alag hote hain",
+        "Prism kuch rangon ko poori tarah absorb kar leta hai",
+        "Prism white light mein naye rang jodta hai",
+        "Kaanch mein sabhi rang ek hi speed se chalte hain"
+      ],
+      "prompt": "White light kaanch ke prism se guzarne par alag-alag rangon mein kyun bat jaata hai?",
+      "question_id": "q-prism-dispersion-cause-010-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-prism-deviation-order-011",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 53000,
+      "explanation": "Refractive index increases from red towards violet in glass, so deviation also increases in that order. Hence red deviates least and violet most.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "The reverse order is tempting if wavelength order is confused with refractive-index order; longer wavelength means smaller refractive index and smaller deviation.",
+      "options": [
+        "red < yellow < green < violet",
+        "violet < green < yellow < red",
+        "green < red < violet < yellow",
+        "yellow < violet < red < green"
+      ],
+      "prompt": "For a glass prism, the correct order of deviation from least to most is:",
+      "question_id": "q-prism-deviation-order-011-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-prism-deviation-order-011",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 65000,
+      "explanation": "काँच में अपवर्तनांक लाल से बैंगनी की ओर बढ़ता है, इसलिए विचलन भी उसी क्रम में बढ़ता है। अतः लाल सबसे कम और बैंगनी सबसे अधिक विचलित होता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "उल्टा क्रम भ्रमित करता है यदि तरंगदैर्घ्य के क्रम को अपवर्तनांक के क्रम से मिला दिया जाए; लंबा तरंगदैर्घ्य अर्थात कम अपवर्तनांक और कम विचलन।",
+      "options": [
+        "लाल < पीला < हरा < बैंगनी",
+        "बैंगनी < हरा < पीला < लाल",
+        "हरा < लाल < बैंगनी < पीला",
+        "पीला < बैंगनी < लाल < हरा"
+      ],
+      "prompt": "काँच के प्रिज़्म के लिए विचलन का सही क्रम (सबसे कम से सबसे अधिक) है:",
+      "question_id": "q-prism-deviation-order-011-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-prism-deviation-order-011",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 56000,
+      "explanation": "Kaanch mein refractive index red se violet ki taraf badhta hai, isliye deviation bhi usi order mein badhta hai. Isliye red sabse kam aur violet sabse zyada deviate karta hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Ulta order bharmit karta hai agar wavelength ke order ko refractive index ke order se mila diya jaye; lamba wavelength matlab kam refractive index aur kam deviation.",
+      "options": [
+        "Red < Yellow < Green < Violet",
+        "Violet < Green < Yellow < Red",
+        "Green < Red < Violet < Yellow",
+        "Yellow < Violet < Red < Green"
+      ],
+      "prompt": "Kaanch ke prism ke liye deviation ka sahi order (sabse kam se sabse zyada) hai:",
+      "question_id": "q-prism-deviation-order-011-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.4"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-twinkle-012",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 44000,
+      "explanation": "The atmosphere has layers of changing refractive index. As starlight passes through them, refraction varies, making the apparent position and the amount of light reaching the eye fluctuate. This is seen as twinkling.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "'Stars actually change brightness' is tempting, but the twinkling is due to Earth's atmosphere, not rapid changes in the stars themselves.",
+      "options": [
+        "starlight is refracted through changing atmospheric layers, so the apparent position and brightness vary",
+        "stars actually change their brightness rapidly",
+        "starlight is scattered only by large dust particles",
+        "stars move very fast across the sky"
+      ],
+      "prompt": "Stars twinkle because:",
+      "question_id": "q-atmos-twinkle-012-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-twinkle-012",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 61000,
+      "explanation": "वायुमंडल की परतों का अपवर्तनांक बदलता रहता है। तारे का प्रकाश इनसे गुजरते समय अलग-अलग अपवर्तित होता है, जिससे आभासी स्थिति और आँख तक पहुँचने वाले प्रकाश की मात्रा बदलती है। यही टिमटिमाना कहलाता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "'तारे वास्तव में चमक बदलते हैं' भ्रमित करता है, पर टिमटिमाना पृथ्वी के वायुमंडल के कारण होता है।",
+      "options": [
+        "तारे का प्रकाश बदलती वायुमंडलीय परतों से अपवर्तित होता है, इसलिए आभासी स्थिति और चमक बदलती रहती है",
+        "तारे वास्तव में अपनी चमक तेज़ी से बदलते हैं",
+        "तारे का प्रकाश केवल बड़े धूल कणों से प्रकीर्णित होता है",
+        "तारे आकाश में बहुत तेज़ी से चलते हैं"
+      ],
+      "prompt": "तारे टिमटिमाते क्यों हैं?",
+      "question_id": "q-atmos-twinkle-012-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-twinkle-012",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "easy",
+      "distractor_index": 1,
+      "expected_time_ms": 49000,
+      "explanation": "Vayumandal ki layers ka refractive index badalta rehta hai. Taare ka prakash inse guzarte samay alag-alag refract hota hai, jisse apparent position aur aankh tak pahunchne wale prakash ki matra badalti hai. Yahi timtimana kehlata hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "'Taare vaastav mein brightness badalte hain' bharmit karta hai, par timtimana Earth ke atmosphere ki wajah se hota hai.",
+      "options": [
+        "Taare ka prakash badalti atmospheric layers se refract hota hai, isliye apparent position aur brightness badalti rehti hai",
+        "Taare vaastav mein apni brightness tezi se badalte hain",
+        "Taare ka prakash sirf bade dust particles se scatter hota hai",
+        "Taare aakash mein bahut tezi se chalte hain"
+      ],
+      "prompt": "Taare timtimaate kyun hain?",
+      "question_id": "q-atmos-twinkle-012-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-sunrise-013",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 57000,
+      "explanation": "Atmospheric refraction bends sunlight coming from below the horizon towards the observer, so the Sun appears before it actually rises above the horizon. Scattering brightens the sky but does not make the Sun's disc visible early.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Scattering is tempting because the sky is already bright before sunrise, but the early visibility of the Sun's disc is due to refraction.",
+      "options": [
+        "sunlight is refracted by the atmosphere and bends towards the observer",
+        "the sky becomes bright due to scattering before sunrise",
+        "the Sun suddenly moves faster near the horizon",
+        "sunlight is reflected from clouds before sunrise"
+      ],
+      "prompt": "The Sun is visible about 2 minutes before actual sunrise because:",
+      "question_id": "q-atmos-sunrise-013-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-sunrise-013",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 84000,
+      "explanation": "वायुमंडलीय अपवर्तन क्षितिज के नीचे से आने वाले सूर्य के प्रकाश को प्रेक्षक की ओर मोड़ देता है, इसलिए सूर्य वास्तव में क्षितिज के ऊपर आने से पहले दिखाई देता है। प्रकीर्णन आकाश को चमकीला करता है, पर सूर्य का बिंब पहले नहीं दिखाता।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "प्रकीर्णन भ्रमित करता है क्योंकि सूर्योदय से पहले आकाश चमकीला होता है, पर सूर्य का बिंब पहले दिखना अपवर्तन से होता है।",
+      "options": [
+        "सूर्य का प्रकाश वायुमंडल द्वारा अपवर्तित होकर प्रेक्षक की ओर मुड़ जाता है",
+        "सूर्योदय से पहले प्रकीर्णन से आकाश चमकीला हो जाता है",
+        "क्षितिज के पास सूर्य अचानक तेज़ी से चलने लगता है",
+        "सूर्योदय से पहले सूर्य का प्रकाश बादलों से परावर्तित होता है"
+      ],
+      "prompt": "सूर्य वास्तविक सूर्योदय से लगभग 2 मिनट पहले दिखाई देता है क्योंकि:",
+      "question_id": "q-atmos-sunrise-013-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-sunrise-013",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "medium",
+      "distractor_index": 1,
+      "expected_time_ms": 63000,
+      "explanation": "Atmospheric refraction horizon ke neeche se aane wale Surya ke prakash ko observer ki taraf mod deta hai, isliye Surya vaastav mein horizon ke upar aane se pehle dikhai deta hai. Scattering aakash ko chamkila karta hai, par Surya ka disc pehle nahin dikhata.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Scattering bharmit karta hai kyunki sunrise se pehle aakash chamkila hota hai, par Surya ka disc pehle dikhna refraction se hota hai.",
+      "options": [
+        "Surya ka prakash vayumandal dwara refract hokar observer ki taraf mud jaata hai",
+        "Sunrise se pehle scattering se aakash chamkila ho jaata hai",
+        "Horizon ke paas Surya achanak tezi se chalne lagta hai",
+        "Sunrise se pehle Surya ka prakash badalon se reflect hota hai"
+      ],
+      "prompt": "Surya vaastavik sunrise se lagbhag 2 minute pehle dikhai deta hai kyunki:",
+      "question_id": "q-atmos-sunrise-013-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-star-position-014",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "hard",
+      "distractor_index": 2,
+      "expected_time_ms": 77000,
+      "explanation": "As starlight enters the atmosphere, it passes from rarer to denser air and bends towards the normal. The observer sees the star in the direction of the refracted ray, which is higher than the actual direction.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Scattering is tempting because it affects starlight, but the shift in apparent position is due to refraction, not scattering.",
+      "options": [
+        "atmospheric refraction bends starlight towards the normal as it enters denser air",
+        "the star physically rises in the sky",
+        "starlight is scattered by air molecules",
+        "the star's light is dispersed into colours"
+      ],
+      "prompt": "A star near the horizon appears higher than its actual position because:",
+      "question_id": "q-atmos-star-position-014-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-star-position-014",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "hard",
+      "distractor_index": 2,
+      "expected_time_ms": 111000,
+      "explanation": "तारे का प्रकाश वायुमंडल में विरल से सघन वायु की ओर जाते समय अभिलंब की ओर मुड़ता है। प्रेक्षक तारे को अपवर्तित किरण की दिशा में देखता है, जो वास्तविक दिशा से ऊँची होती है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "प्रकीर्णन भ्रमित करता है क्योंकि वह तारे के प्रकाश को प्रभावित करता है, पर आभासी स्थिति का ऊँचा दिखना अपवर्तन से होता है।",
+      "options": [
+        "वायुमंडलीय अपवर्तन तारे के प्रकाश को सघन वायु में प्रवेश करते समय अभिलंब की ओर मोड़ता है",
+        "तारा वास्तव में आकाश में ऊपर उठता है",
+        "तारे का प्रकाश वायु के अणुओं से प्रकीर्णित होता है",
+        "तारे का प्रकाश रंगों में विविक्त हो जाता है"
+      ],
+      "prompt": "क्षितिज के पास का तारा अपनी वास्तविक स्थिति से ऊँचा क्यों दिखाई देता है?",
+      "question_id": "q-atmos-star-position-014-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-atmos-star-position-014",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+      "difficulty": "hard",
+      "distractor_index": 2,
+      "expected_time_ms": 85000,
+      "explanation": "Taare ka prakash vayumandal mein rarer se denser air ki taraf jaate samay normal ki taraf mudta hai. Observer taare ko refracted ray ki direction mein dekhta hai, jo vaastavik direction se oonchi hoti hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Scattering bharmit karta hai kyunki woh taare ke prakash ko affect karta hai, par apparent position ka ooncha dikhna refraction se hota hai.",
+      "options": [
+        "Atmospheric refraction taare ke prakash ko denser air mein pravesh karte samay normal ki taraf modta hai",
+        "Tara vaastav mein aakash mein upar uthta hai",
+        "Taare ka prakash air molecules se scatter hota hai",
+        "Taare ka prakash rangon mein disperse ho jaata hai"
+      ],
+      "prompt": "Horizon ke paas ka tara apni vaastavik position se ooncha kyun dikhai deta hai?",
+      "question_id": "q-atmos-star-position-014-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.5"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-blue-sky-015",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "easy",
+      "distractor_index": 3,
+      "expected_time_ms": 45000,
+      "explanation": "Fine particles in the atmosphere scatter shorter wavelengths more strongly. Blue light is scattered more than red, so scattered blue light reaches our eyes from all parts of the sky.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "The reversed statement 'red is scattered more' is tempting, but red is scattered least; that is why the sky is not red at noon.",
+      "options": [
+        "fine air molecules scatter blue light more than red light",
+        "blue light is absorbed by the atmosphere",
+        "the sky reflects the colour of the oceans",
+        "red light is scattered more than blue light"
+      ],
+      "prompt": "The sky appears blue during the day because:",
+      "question_id": "q-scatter-blue-sky-015-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-blue-sky-015",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "easy",
+      "distractor_index": 3,
+      "expected_time_ms": 63000,
+      "explanation": "वायुमंडल के सूक्ष्म कण छोटे तरंगदैर्घ्य को अधिक प्रबलता से प्रकीर्णित करते हैं। नीला प्रकाश लाल से अधिक प्रकीर्णित होता है, इसलिए आकाश के सभी भागों से प्रकीर्णित नीला प्रकाश हमारी आँखों तक पहुँचता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "'लाल प्रकाश अधिक प्रकीर्णित होता है' उल्टा कथन भ्रमित करता है, पर लाल सबसे कम प्रकीर्णित होता है; इसीलिए दोपहर में आकाश लाल नहीं दिखता।",
+      "options": [
+        "वायु के सूक्ष्म अणु लाल की तुलना में नीले प्रकाश को अधिक प्रकीर्णित करते हैं",
+        "नीला प्रकाश वायुमंडल द्वारा अवशोषित हो जाता है",
+        "आकाश महासागरों का रंग परावर्तित करता है",
+        "लाल प्रकाश नीले प्रकाश से अधिक प्रकीर्णित होता है"
+      ],
+      "prompt": "दिन के समय आकाश नीला क्यों दिखाई देता है?",
+      "question_id": "q-scatter-blue-sky-015-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-blue-sky-015",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "easy",
+      "distractor_index": 3,
+      "expected_time_ms": 48000,
+      "explanation": "Vayumandal ke sookshma kano chhote wavelength ko zyada prabalta se scatter karte hain. Blue prakash red se zyada scatter hota hai, isliye aakash ke sabhi bhaagon se scattered blue prakash hamari aankhon tak pahunchta hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "'Red prakash zyada scatter hota hai' ulta kathan bharmit karta hai, par red sabse kam scatter hota hai; isiliye dopahar mein aakash red nahin dikhta.",
+      "options": [
+        "Vayu ke sookshma anu red ki tulna mein blue prakash ko zyada scatter karte hain",
+        "Blue prakash vayumandal dwara absorb ho jaata hai",
+        "Aakash mahasagaron ka rang reflect karta hai",
+        "Red prakash blue prakash se zyada scatter hota hai"
+      ],
+      "prompt": "Din ke samay aakash neela kyun dikhai deta hai?",
+      "question_id": "q-scatter-blue-sky-015-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-red-signal-016",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 55000,
+      "explanation": "Red has the longest wavelength among visible colours, so it is scattered the least by air molecules. It therefore reaches distant observers with less loss and is easily seen as a danger signal.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "'Red has the shortest wavelength' is tempting if the spectrum order is reversed; violet, not red, has the shortest visible wavelength.",
+      "options": [
+        "red light is scattered the least and can travel farther through the atmosphere",
+        "red light is the brightest colour",
+        "red light has the shortest wavelength",
+        "red light is absorbed least by air"
+      ],
+      "prompt": "Red is used for danger signals because:",
+      "question_id": "q-scatter-red-signal-016-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-red-signal-016",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 78000,
+      "explanation": "दृश्य रंगों में लाल का तरंगदैर्घ्य सबसे अधिक होता है, इसलिए वायु के अणुओं द्वारा वह सबसे कम प्रकीर्णित होता है। इसलिए वह दूर के प्रेक्षक तक कम हानि के साथ पहुँचता है और खतरे के संकेत के रूप में आसानी से दिखाई देता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "'लाल का तरंगदैर्घ्य सबसे कम है' भ्रमित करता है यदि स्पेक्ट्रम का क्रम उलट दिया जाए; सबसे कम दृश्य तरंगदैर्घ्य बैंगनी का होता है।",
+      "options": [
+        "लाल प्रकाश सबसे कम प्रकीर्णित होता है और वायुमंडल में अधिक दूर तक जाता है",
+        "लाल प्रकाश सबसे चमकीला रंग है",
+        "लाल प्रकाश का तरंगदैर्घ्य सबसे कम है",
+        "लाल प्रकाश वायु द्वारा सबसे कम अवशोषित होता है"
+      ],
+      "prompt": "खतरे के संकेतों के लिए लाल रंग का उपयोग क्यों किया जाता है?",
+      "question_id": "q-scatter-red-signal-016-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-red-signal-016",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "medium",
+      "distractor_index": 2,
+      "expected_time_ms": 61000,
+      "explanation": "Visible rangon mein red ka wavelength sabse zyada hota hai, isliye air molecules dwara woh sabse kam scatter hota hai. Isliye woh door ke observers tak kam loss ke saath pahunchta hai aur danger signal ke roop mein aasani se dikhai deta hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "'Red ka wavelength sabse kam hai' bharmit karta hai agar spectrum ka order ulta kar diya jaye; sabse kam visible wavelength violet ka hota hai.",
+      "options": [
+        "Red prakash sabse kam scatter hota hai aur vayumandal mein zyada door tak jaata hai",
+        "Red prakash sabse chamkila rang hai",
+        "Red prakash ka wavelength sabse kam hai",
+        "Red prakash vayu dwara sabse kam absorb hota hai"
+      ],
+      "prompt": "Khatre ke signals ke liye red rang ka upyog kyun kiya jaata hai?",
+      "question_id": "q-scatter-red-signal-016-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6.1"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "mcq",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-sunset-assert-017",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "medium",
+      "expected_time_ms": 79000,
+      "explanation": "Near the horizon, sunlight passes through a much longer column of air. Fine particles scatter blue light out of the direct path, so the directly transmitted light is richer in red. This explains the reddish appearance of the Sun.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Students may doubt the assertion because the Sun is not red at noon; the longer atmospheric path at sunrise and sunset is the key.",
+      "options": [
+        "Both A and R are true and R is the correct explanation of A.",
+        "Both A and R are true but R is not the correct explanation of A.",
+        "A is true but R is false.",
+        "A is false but R is true."
+      ],
+      "prompt": "Assertion: The Sun appears reddish at sunrise and sunset.\nReason: Sunlight travels a longer path through the atmosphere, so most blue light is scattered away and red light reaches the eye.",
+      "question_id": "q-scatter-sunset-assert-017-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-sunset-assert-017",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "medium",
+      "expected_time_ms": 107000,
+      "explanation": "क्षितिज के पास सूर्य का प्रकाश वायु के बहुत लंबे स्तंभ से गुजरता है। सूक्ष्म कण नीले प्रकाश को सीधे मार्ग से बाहर प्रकीर्ण कर देते हैं, इसलिए सीधे पहुँचने वाला प्रकाश लाल में अधिक होता है। इसी से सूर्य लालिमा लिए दिखता है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "विद्यार्थी अभिकथन पर संदेह कर सकते हैं क्योंकि दोपहर में सूर्य लाल नहीं होता; सूर्योदय और सूर्यास्त पर लंबा वायुमंडलीय मार्ग मुख्य कारण है।",
+      "options": [
+        "A और R दोनों सत्य हैं और R, A की सही व्याख्या है।",
+        "A और R दोनों सत्य हैं, पर R, A की सही व्याख्या नहीं है।",
+        "A सत्य है पर R असत्य है।",
+        "A असत्य है पर R सत्य है।"
+      ],
+      "prompt": "अभिकथन: सूर्योदय और सूर्यास्त के समय सूर्य लालिमा लिए दिखाई देता है।\nकारण: सूर्य का प्रकाश वायुमंडल में अधिक लंबे मार्ग से गुजरता है, इसलिए अधिकांश नीला प्रकाश प्रकीर्ण हो जाता है और लाल प्रकाश आँख तक पहुँचता है।",
+      "question_id": "q-scatter-sunset-assert-017-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-sunset-assert-017",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "medium",
+      "expected_time_ms": 85000,
+      "explanation": "Horizon ke paas Surya ka prakash vayu ke bahut lambe column se guzarta hai. Sookshma kano blue prakash ko seedhe path se bahar scatter kar dete hain, isliye seedhe pahunchne wala prakash red mein zyada hota hai. Isi se Surya laalima liye dikhta hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Students assertion par sandeh kar sakte hain kyunki dopahar mein Surya red nahin hota; sunrise aur sunset par lamba atmospheric path main karan hai.",
+      "options": [
+        "A aur R dono satya hain aur R, A ki sahi vyakhya hai.",
+        "A aur R dono satya hain, par R, A ki sahi vyakhya nahin hai.",
+        "A satya hai par R asatya hai.",
+        "A asatya hai par R satya hai."
+      ],
+      "prompt": "Assertion: Sunrise aur sunset ke samay Surya laalima liye dikhai deta hai.\nReason: Surya ka prakash vayumandal mein zyada lambe path se guzarta hai, isliye zyadatar blue prakash scatter ho jaata hai aur red prakash aankh tak pahunchta hai.",
+      "question_id": "q-scatter-sunset-assert-017-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-astronaut-018",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "hard",
+      "expected_time_ms": 103000,
+      "explanation": "In space there is essentially no atmosphere, so there are no fine particles or molecules to scatter sunlight into the astronaut's line of sight. Without scattered light reaching the eyes from other directions, the sky looks dark. Thus R correctly explains A.",
+      "generator": "llm-asm-1",
+      "language": "en",
+      "marks": 1,
+      "misconception": "Some students think space is dark only because it is far from the Sun; the key is the absence of an atmosphere to scatter light.",
+      "options": [
+        "Both A and R are true and R is the correct explanation of A.",
+        "Both A and R are true but R is not the correct explanation of A.",
+        "A is true but R is false.",
+        "A is false but R is true."
+      ],
+      "prompt": "Assertion: The sky appears dark to an astronaut in space.\nReason: There is no atmosphere in space to scatter sunlight.",
+      "question_id": "q-scatter-astronaut-018-en",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-astronaut-018",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "hard",
+      "expected_time_ms": 134000,
+      "explanation": "अंतरिक्ष में अनिवार्यतः वायुमंडल नहीं होता, इसलिए सूर्य के प्रकाश को अंतरिक्ष यात्री की दृष्टि की दिशा में प्रकीर्णित करने वाले सूक्ष्म कण या अणु नहीं होते। अन्य दिशाओं से प्रकीर्णित प्रकाश आँख तक न पहुँचने के कारण आकाश काला दिखता है। अतः R, A की सही व्याख्या है।",
+      "generator": "llm-asm-1",
+      "language": "hi",
+      "marks": 1,
+      "misconception": "कुछ विद्यार्थी सोचते हैं कि अंतरिक्ष में केवल सूर्य से दूरी के कारण अंधेरा है; मुख्य कारण प्रकाश को प्रकीर्णित करने वाले वायुमंडल का अभाव है।",
+      "options": [
+        "A और R दोनों सत्य हैं और R, A की सही व्याख्या है।",
+        "A और R दोनों सत्य हैं, पर R, A की सही व्याख्या नहीं है।",
+        "A सत्य है पर R असत्य है।",
+        "A असत्य है पर R सत्य है।"
+      ],
+      "prompt": "अभिकथन: अंतरिक्ष में अंतरिक्ष यात्री को आकाश काला दिखाई देता है।\nकारण: अंतरिक्ष में सूर्य के प्रकाश को प्रकीर्णित करने के लिए वायुमंडल नहीं है।",
+      "question_id": "q-scatter-astronaut-018-hi",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-scatter-astronaut-018",
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "class_level": 10,
+      "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+      "difficulty": "hard",
+      "expected_time_ms": 109000,
+      "explanation": "Space mein essentially atmosphere nahin hota, isliye Surya ke prakash ko astronaut ki line of sight mein scatter karne wale sookshma kano ya molecules nahin hote. Doosri directions se scattered prakash aankh tak na pahunchne ki wajah se aakash kaala dikhta hai. Isliye R, A ki sahi vyakhya hai.",
+      "generator": "llm-asm-1",
+      "language": "hi-Latn",
+      "marks": 1,
+      "misconception": "Kuch students sochte hain ki space mein sirf Surya se doori ki wajah se andhera hai; main karan prakash ko scatter karne wale atmosphere ka abhaav hai.",
+      "options": [
+        "A aur R dono satya hain aur R, A ki sahi vyakhya hai.",
+        "A aur R dono satya hain, par R, A ki sahi vyakhya nahin hai.",
+        "A satya hai par R asatya hai.",
+        "A asatya hai par R satya hai."
+      ],
+      "prompt": "Assertion: Space mein astronaut ko aakash kaala dikhai deta hai.\nReason: Space mein Surya ke prakash ko scatter karne ke liye atmosphere nahin hai.",
+      "question_id": "q-scatter-astronaut-018-hi-Latn",
+      "review_mode": "deterministic",
+      "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+      "source_ref": {
+        "book_id": "ncert-science-10",
+        "example": null,
+        "section": "10.6.2"
+      },
+      "source_type": "generated",
+      "status": "reviewed",
+      "type": "assertion_reason",
+      "version": 1
+    }
+  ],
+  "schema_version": 1
+}

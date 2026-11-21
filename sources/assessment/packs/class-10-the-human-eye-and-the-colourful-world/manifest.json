@@ -1,0 +1,81 @@
+{
+  "assessment_pipeline_version": "1",
+  "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+  "chapter_title": "The Human Eye and the Colourful World",
+  "class_level": 10,
+  "content_hash": "sha256:791b01922ec4991826fd2dcf6d99bc697a66072045bf797af79b0d9aaa16bf56",
+  "counts": {
+    "base_items": 18,
+    "blocks_tagged": 43,
+    "concepts": 5,
+    "question_rows": 54,
+    "speaking_prompts": 3
+  },
+  "coverage": {
+    "block_tagging": "complete",
+    "by_concept": {
+      "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction": 3,
+      "class-10-the-human-eye-and-the-colourful-world-defects-of-vision": 5,
+      "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion": 3,
+      "class-10-the-human-eye-and-the-colourful-world-scattering-of-light": 4,
+      "class-10-the-human-eye-and-the-colourful-world-the-human-eye": 3
+    },
+    "by_difficulty": {
+      "easy": 6,
+      "hard": 4,
+      "medium": 8
+    },
+    "by_language": {
+      "en": 18,
+      "hi": 18,
+      "hi-Latn": 18
+    },
+    "by_type": {
+      "assertion_reason": 3,
+      "mcq": 12,
+      "numeric": 3
+    },
+    "speaking_by_language": {
+      "en": 3,
+      "hi": 3,
+      "hi-Latn": 3
+    }
+  },
+  "files": {
+    "concepts.json": {
+      "bytes": 17151,
+      "sha256": "9c41eb9a1663e420b27ebb568e7002548a431c38c962b08ab6714ec9d83b9ed0"
+    },
+    "questions.json": {
+      "bytes": 98433,
+      "sha256": "0b37558b938a2edb5e1e36c34ea048c01a4c36b8bb4c26b90e13dd3aef5ae5f3"
+    },
+    "speaking.json": {
+      "bytes": 28214,
+      "sha256": "52fbdc95f998bdcc3495ef9d681cf788d142923b085c93d5ecb0305aae0cb25d"
+    },
+    "syllabus.json": {
+      "bytes": 50519,
+      "sha256": "25bb1265377220fe3ee2b9cd128d4300c348f8973bdfb34de387483fd2a89577"
+    },
+    "time-priors.json": {
+      "bytes": 18991,
+      "sha256": "cec4ecb7985a66606d53a9efbad2a6e31943ed2b32b704ad65b6cecb34a5070d"
+    }
+  },
+  "gate": {
+    "error_count": 0,
+    "verdict": "pass",
+    "warning_count": 1
+  },
+  "generated_at": "2026-11-21T06:32:19+00:00",
+  "generator": "llm-asm-1",
+  "languages": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "pack_version": 1,
+  "run_id": "assessment-class-10-the-human-eye-and-the-colourful-world",
+  "subject": "physics"
+}
