@@ -245,6 +245,13 @@ class EvalConfig:
             raise LLMConfigError(
                 f"judge base_url={self.judge_base_url!r} must start with http:// or https://"
             )
+        # Route identity headers (2026-11-21 defect fix): the authorized
+        # OpenCode Go gateway requires the `ZIVON_EXTRA_HEADERS` session header
+        # and `ZIVON_USER_AGENT` on every call; `llm_manager` parses both, so
+        # the judge config must carry them instead of silently dropping them.
+        from llm_manager.config import _headers
+
+        env_map = dict(os.environ)
         return LLMConfig(
             base_url=self.judge_base_url,
             model=self.judge_model,
@@ -263,6 +270,8 @@ class EvalConfig:
             stream_usage=self.stream_usage,
             heartbeat_s=self.heartbeat_s,
             max_tokens=max_tokens,
+            extra_headers=_headers(_clean_env(env_map, "ZIVON_EXTRA_HEADERS")),
+            user_agent=_clean_env(env_map, "ZIVON_USER_AGENT") or "",
         )
 
     def to_factory_server_dict(self) -> dict[str, Any]:

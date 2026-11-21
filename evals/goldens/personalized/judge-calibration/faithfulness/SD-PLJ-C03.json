@@ -1,0 +1,32 @@
+{
+ "sample_id": "SD-PLJ-C03",
+ "target_judge": "faithfulness",
+ "origin_incident": "pl5 judge calibration corpus (synthetic, 2026-11-21)",
+ "defect_class": "Clean golden teaching turn (wrong-then-adapt t-7 worked example)",
+ "planted_mutation": "none — claim exactly matches the cited excerpt",
+ "target_call": null,
+ "inputs": {
+  "teaching_turn": {
+   "turn_id": "t-1",
+   "text": "Full solution: measure both angles from the normal; they are equal; so 30 degrees.",
+   "citations": [
+    {
+     "excerpt_id": "S1",
+     "chunk_id": "ncert-science-10#p0148c001",
+     "source_kind": "ncert",
+     "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+     "locator": "p. 148",
+     "text": "The angle of incidence is equal to the angle of reflection. The image formed by a plane mirror is virtual and erect."
+    }
+   ]
+  }
+ },
+ "expected": {
+  "outcome_type": "negative_clean",
+  "expected_verdict": "pass",
+  "expected_severity": null,
+  "expected_turn_id": "t-1",
+  "expected_message_contains": [],
+  "must_quote": false
+ }
+}
