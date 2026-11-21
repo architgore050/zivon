@@ -1,0 +1,11 @@
+# Synthetic BROKEN Caddyfile fixture: a literal site address instead of the
+# {$ZIVON_DOMAIN} interpolation — the validator must flag the drift (the
+# literal would silently diverge from .env.prod). Used by
+# testing/backend/test_prod_compose_validation.py only.
+{
+	email ops@example.com
+}
+
+zivon.example.com {
+	reverse_proxy web:8080
+}
