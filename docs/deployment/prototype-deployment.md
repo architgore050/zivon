@@ -12,6 +12,7 @@ and every choice here defers to the locked decisions in `docs/deployment/README.
 | Compose file | `docker-compose.prod.yml` (project name `zivon-prod`) |
 | Env template | `.env.prod.example` → copy to `.env.prod` (never committed) |
 | Edge TLS | Caddy (`--profile edge`) **or** Cloudflare Tunnel / a host reverse proxy in front of `127.0.0.1:8080` |
+| Founder runbook | [`founder-cutover-runbook.md`](founder-cutover-runbook.md) — the plain-language, step-by-step cutover checklist (what to rent, DNS, every `.env.prod` value, backups); this doc stays the technical reference |
 | Scope served | Class 9/10 Physics (content complete), the full consumer frontend, auth, practice/speaking/tests, SWOT, personalized learning (`/app/personalized`) |
 | Out of scope here | content-factory Jobs, llm-manager node, admin dashboard, evals CronJobs — build-time/cluster pieces (§ 9) |
 
@@ -170,6 +171,13 @@ here — the values are runtime secrets):
 docker compose --env-file .env.prod -f docker-compose.prod.yml config
 ```
 
+A Docker-free pre-boot validator also exists — `scripts/validate_prod_compose.py
+--env .env.prod` resolves every `${VAR:?…}`/`${VAR:-…}` interpolation against
+the env file, checks value coherence (origin/domain, mail transport,
+DSN-safe DB password) and the structural posture (migrate gate, localhost
+bindings, Caddyfile interpolation), and prints a plain PASS/FAIL report. It
+complements, not replaces, the `config` command above.
+
 Forbidden in `.env.prod` (refused or posture-breaking): `ZIVON_ENV=dev` (the
 compose file hard-sets `prod`; dev would silently fall back to an in-memory
 sqlite DB), `ZIVON_EMAIL_BACKEND=dev`, `ZIVON_SPEAKING_MOCK=1`,
@@ -226,6 +234,12 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d web
 
 ## 6. Smoke tests (run after every deploy)
 
+Checks 1–6 below are packaged as one command — `scripts/deploy_smoke.sh
+https://<domain>` (prints PASS/FAIL per HTTP check: `/v1/health` with db ok,
+the static chain, the catalogue route, an asset, a WS-shaped `/voice/ws`
+answer, and the admin guard refusing an anonymous call) — the human phone
+check stays manual:
+
 ```bash
 # 1. containers green (migrate must be Exited(0); others Up/healthy)
 docker compose --env-file .env.prod -f docker-compose.prod.yml ps
@@ -277,7 +291,13 @@ The DB is the only irreplaceable state (learner accounts, progress, the
 how they were built instead of snapshotting them.
 
 - **Nightly logical backup** (cron on the host) — matches the cluster's
-  base-backup intent (`k8s/infra.env` `BASE_BACKUP_CRON_SCHEDULE`, 21:00 UTC):
+  base-backup intent (`k8s/infra.env` `BASE_BACKUP_CRON_SCHEDULE`, 21:00 UTC).
+  The packaged host-side default is `scripts/backup_db.sh` (pg_dump via the
+  postgres container, gzip, timestamped dumps OUTSIDE the repo in
+  `~/zivon-backups/` by default, retention via `ZIVON_BACKUP_RETENTION_DAYS`,
+  non-zero exit on failure; scheduling snippets and the restore drill are
+  founder-cutover-runbook.md §h). The in-volume variant stays as written
+  below:
   ```bash
   # one-time: create the target dir INSIDE the volume (pg_dump makes the file,
   # not parent dirs — without this the first cron run fails)
