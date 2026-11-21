@@ -12,6 +12,9 @@
 #   6. /assets/app.css     200                   (a real asset resolves)
 #   7. /voice/ws           a WebSocket-shaped answer (101, or the app's
 #                          close/403 semantics) — NOT a plain 404/timeout
+#   8. /v1/admin/summary   the admin API REFUSES an unauthenticated request
+#                          (401 wrong/absent bearer, 503 token unset) — a 200
+#                          or a redirect means the admin guard is broken
 #
 # What it deliberately does NOT prove: a live voice turn (needs the Gnani +
 # Gemini keys and a human on a real phone — runbook §g step 3), email delivery,
@@ -87,6 +90,16 @@ code="$(code_at /voice/ws -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
 case "$code" in
   101|200|400|403|426) pass "/voice/ws HTTP $code (WS route answers)" ;;
   *) fail "/voice/ws: HTTP $code — not a WebSocket-shaped response; /voice/ is not proxied (check docker/nginx.conf is in the web image)" ;;
+esac
+
+# 8. the admin API must refuse an unauthenticated caller (ADR-0026, fail
+#    closed): no token configured -> 503 E-SERVICE-UNAVAILABLE; token set ->
+#    401. Anything 2xx (or a redirect) means the guard is NOT in front of the
+#    admin surface — that is a stop-the-line failure, not a smoke note.
+code="$(code_at /v1/admin/summary)" || code="000"
+case "$code" in
+  401|403|503) pass "/v1/admin/summary HTTP $code (admin guard refuses anonymous)" ;;
+  *) fail "/v1/admin/summary: HTTP $code — the admin API answered without a token (expected 401/503); do not go live (runbook §i)" ;;
 esac
 
 echo "----------------------------------------"

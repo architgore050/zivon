@@ -236,8 +236,9 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d web
 
 Checks 1–6 below are packaged as one command — `scripts/deploy_smoke.sh
 https://<domain>` (prints PASS/FAIL per HTTP check: `/v1/health` with db ok,
-the static chain, the catalogue route, an asset, and a WS-shaped `/voice/ws`
-answer) — the human phone check stays manual:
+the static chain, the catalogue route, an asset, a WS-shaped `/voice/ws`
+answer, and the admin guard refusing an anonymous call) — the human phone
+check stays manual:
 
 ```bash
 # 1. containers green (migrate must be Exited(0); others Up/healthy)

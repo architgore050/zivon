@@ -84,6 +84,19 @@ if ! gzip -t "$TMP_FILE" 2>/dev/null; then
   echo "FAIL backup: gzip integrity check failed on the dump — it is corrupt." >&2
   exit 1
 fi
+# A valid gzip of an EMPTY stream is still a valid gzip — the -s/-t checks above
+# cannot see it. pg_dump ALWAYS opens its plain-SQL output with the
+# "-- PostgreSQL database dump" header (even for an empty database), so the
+# decompressed content must carry that header for this file to count as a
+# backup (e.g. a postgres container that is up but serving nothing). The
+# `|| true` swallows the harmless SIGPIPE of `head` closing the pipe early —
+# pipefail would otherwise turn a good dump's 141 into a false FAIL.
+DUMP_HEAD="$(gzip -dc "$TMP_FILE" 2>/dev/null | head -c 4096 || true)"
+if [[ "$DUMP_HEAD" != *'PostgreSQL database dump'* ]]; then
+  echo "FAIL backup: the dump decompresses to content without the pg_dump header" >&2
+  echo "       (empty stream or not a pg_dump) — refusing to count it as a backup." >&2
+  exit 1
+fi
 
 mv "$TMP_FILE" "$OUT_FILE"
 chmod 600 "$OUT_FILE"
