@@ -13,11 +13,9 @@ from __future__ import annotations
 import json
 import re
 
-from fastapi.testclient import TestClient
-
 from db.uuid7 import uuid7_str
 
-from .support import FRONTEND_DIR, MOTION, PASSWORD, E2EFlow
+from .support import FRONTEND_DIR, MOTION, E2EFlow
 
 LESSON_DIR = (
     FRONTEND_DIR / "courses" / "class-9-physics" / "describing-motion-around-us"
@@ -65,23 +63,8 @@ class GuestLessonToDashboardTests(E2EFlow):
         self.assertIn("Sign in", login.text)
 
     # -- signup through the real web form ------------------------------------
-
-    def signup_via_web(self, email: str, client: TestClient | None = None) -> None:
-        target = client or self.client
-        token = self.guest_form_token("/signup", client=target)
-        response = target.post(
-            "/signup",
-            data={
-                "csrf_token": token,
-                "email": email,
-                "password": PASSWORD,
-                "confirm_password": PASSWORD,
-                "agree": "yes",
-            },
-            follow_redirects=False,
-        )
-        self.assertEqual(response.status_code, 303, response.text)
-        self.assertEqual(response.headers["location"], "/onboarding")
+    # (`signup_via_web` lives on the E2EFlow base: the same real form path
+    # every flow reuses, asserted to land on /onboarding.)
 
     def test_signup_then_onboarding_sets_class_and_language(self) -> None:
         browser = self.guest_client()

@@ -10,6 +10,7 @@ optional series-pack fixtures are imported through the real series importer
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
 import sys
 import tempfile
@@ -18,13 +19,19 @@ import uuid
 import wave
 from io import BytesIO
 from pathlib import Path
-from types import ModuleType
-from typing import Any
+from types import ModuleType, SimpleNamespace
+from typing import Any, Self
 
 from fastapi.testclient import TestClient
 
 from backend import BackendConfig, create_app
 from backend.assessment import fetch_question, select_question_ids
+from backend.speaking import (
+    SpeakingEvaluationError,
+    Transcript,
+    key_ideas,
+    parse_evaluation,
+)
 from db import DatabaseEngine
 from db.uuid7 import uuid7_str
 
@@ -36,6 +43,7 @@ MOTION = "class-9-describing-motion-around-us"
 LIGHT = "class-10-light-reflection-and-refraction"
 FORCES = "class-9-how-forces-affect-motion"
 ELECTRICITY = "class-10-electricity"
+PROMPT_ID = "spk-c9-motion-001"
 PASSWORD = "correct-horse-battery-staple"
 DEV_DEVICE_ID = "0f0e0d0c-0b0a-4009-8007-000605040302"
 
@@ -117,6 +125,50 @@ class E2EFlow(unittest.TestCase):
         return TestClient(self.app, base_url="https://testserver")
 
     # -- account helpers -----------------------------------------------------
+
+    def signup_via_web(self, email: str, client: TestClient | None = None) -> None:
+        """Sign up through the real `/signup` form (no API shortcut)."""
+        target = client or self.client
+        token = self.guest_form_token("/signup", client=target)
+        response = target.post(
+            "/signup",
+            data={
+                "csrf_token": token,
+                "email": email,
+                "password": PASSWORD,
+                "confirm_password": PASSWORD,
+                "agree": "yes",
+            },
+            follow_redirects=False,
+        )
+        self.assertEqual(response.status_code, 303, response.text)
+        self.assertEqual(response.headers["location"], "/onboarding")
+
+    def grant_consent(
+        self,
+        device: str | None = None,
+        *,
+        client: TestClient | None = None,
+        notice_version: str | None = None,
+        action: str = "granted",
+    ) -> dict[str, Any]:
+        """Open (or close) the device-scoped voice consent gate.
+
+        The route defaults the notice version to the config's current one, so
+        an omitted `notice_version` grants consent against the live notice.
+        """
+        payload: dict[str, Any] = {
+            "device_pseudo_id": device or self.device_id,
+            "consent_version": "v1",
+            "guardian_flag": True,
+            "action": action,
+            "source": "overlay",
+        }
+        if notice_version is not None:
+            payload["notice_version"] = notice_version
+        response = (client or self.client).put("/v1/consent", json=payload)
+        self.assertEqual(response.status_code, 200, response.text)
+        return response.json()
 
     def register_api(
         self,
@@ -236,38 +288,173 @@ class E2EFlow(unittest.TestCase):
 
     # -- speaking helpers ----------------------------------------------------
 
+    def attach_speaking_double(self, **overrides: Any) -> SpeakingPipelineDouble:
+        """Mount a pipeline double at the `app.state.speaking` vendor seam.
+
+        The route resolves the pipeline through `pipeline_for(app)`, which
+        returns whatever is mounted on the state, so the STT/brain vendors
+        never load and no credential is read.
+        """
+        double = SpeakingPipelineDouble(**overrides)
+        self.app.state.speaking = double
+        return double
+
+    def post_speaking_attempt(
+        self,
+        *,
+        prompt_id: str = PROMPT_ID,
+        language: str = "en",
+        audio: bytes | None = None,
+        device: str | None = None,
+        csrf: str | None = None,
+        content_type: str = "audio/wav",
+        client: TestClient | None = None,
+    ) -> Any:
+        """One explain-back upload through the real route contract."""
+        target = client or self.client
+        headers = {
+            "Content-Type": content_type,
+            "X-CSRF-Token": csrf or self.csrf,
+            "X-Device-Id": device or self.device_id,
+        }
+        return target.post(
+            "/v1/speaking/attempts",
+            params={"prompt_id": prompt_id, "language": language},
+            content=wav_bytes() if audio is None else audio,
+            headers=headers,
+        )
+
     wav_bytes = staticmethod(lambda seconds=2.0: wav_bytes(seconds))
+
+
+class SpeakingPipelineDouble:
+    """Stands in for Prisma STT + the tutor model at the `app.state.speaking`
+    seam.
+
+    Same shape as the real `SpeakingPipeline` (`available`, `mock_mode`,
+    `settings`, async `transcribe`/`evaluate`), records every call so the
+    consent gate can be proven to run BEFORE any audio moves, and grades
+    through the real rubric parser so the route's band/feedback mapping is
+    the production code path.
+    """
+
+    def __init__(
+        self,
+        *,
+        transcript: str = (
+            "Distance is the whole path and displacement is the net change."
+        ),
+        present: int = 3,
+        available: bool = True,
+        mock: bool = False,
+        fail_evaluation: bool = False,
+    ) -> None:
+        self.settings = SimpleNamespace(
+            credit_stt_seconds_per_point=30, brain_model="test-model"
+        )
+        self.available = available
+        self.mock_mode = mock
+        self.transcript_text = transcript
+        self.present = present
+        self.fail_evaluation = fail_evaluation
+        self.calls: list[tuple[str, Any]] = []
+
+    async def transcribe(self, pcm: bytes, *, language: str) -> Transcript:
+        self.calls.append(("transcribe", len(pcm)))
+        return Transcript(
+            text=self.transcript_text,
+            language=language,
+            duration_ms=round(len(pcm) / 2 / 16000 * 1000),
+            stt_ms=12,
+            mock=self.mock_mode,
+        )
+
+    async def evaluate(self, prompt: dict[str, Any], transcript: str) -> Any:
+        self.calls.append(("evaluate", transcript))
+        if self.fail_evaluation:
+            raise SpeakingEvaluationError("test model down")
+        payload = {
+            "ideas": [
+                {
+                    "idea_id": idea["idea_id"],
+                    "present": index < self.present,
+                    "evidence": (
+                        "distance is the whole path" if index < self.present else ""
+                    ),
+                }
+                for index, idea in enumerate(key_ideas(prompt))
+            ],
+            "feedback": {
+                "what_went_well": "You named distance clearly.",
+                "next_step": "Add why a round trip has zero displacement.",
+            },
+        }
+        return parse_evaluation(
+            json.dumps(payload),
+            prompt=prompt,
+            model=str(self.settings.brain_model),
+            mock=self.mock_mode,
+        )
+
+
+class _DescriptionColumn:
+    """One `cursor.description` column: psycopg-shaped (`.name`) and indexable."""
+
+    def __init__(self, raw: Any) -> None:
+        self._raw = tuple(raw)
+        self.name = str(self._raw[0])
+
+    def __getitem__(self, index: int) -> Any:
+        return self._raw[index]
+
+    def __len__(self) -> int:
+        return len(self._raw)
 
 
 class _SqliteCursor:
     """A psycopg-shaped cursor over the seeded SQLite database's read paths.
 
-    The F10 panels are plain aggregate SELECTs with no bind parameters; this
-    cursor keeps the real dashboard SQL and the real seeded rows — no fake
-    numbers anywhere.
+    `description` carries `.name` (plus index access) and the rows are plain
+    value tuples, so `ProductStore` reads the REAL seeded aggregates through
+    its production SQL — no fake numbers anywhere. The F10 panels are plain
+    aggregate SELECTs; a `%s` placeholder is translated to SQLite's `?` when
+    parameters are passed.
     """
 
     def __init__(self, db: DatabaseEngine) -> None:
         self._db = db
-        self._rows: list[dict[str, Any]] | None = None
+        self._description: tuple[_DescriptionColumn, ...] | None = None
+        self._rows: list[tuple[Any, ...]] = []
 
-    def __enter__(self) -> _SqliteCursor:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *args: object) -> None:
-        self._rows = None
+        self._description = None
+        self._rows = []
 
-    def execute(self, sql: str, params: tuple[Any, ...] = ()) -> None:
-        del params
-        self._rows = self._db.fetchall(sql)
+    def execute(self, sql: str, params: tuple[Any, ...] = ()) -> _SqliteCursor:
+        adapted = sql
+        bound = tuple(params)
+        if bound and "%s" in adapted:
+            adapted = adapted.replace("%s", "?")
+        with self._db.transaction() as tx:
+            cursor = tx.execute(adapted, bound)
+            self._description = tuple(
+                _DescriptionColumn(column) for column in (cursor.description or ())
+            )
+            self._rows = [tuple(row) for row in cursor.fetchall()]
+        return self
 
-    def fetchall(self) -> list[dict[str, Any]]:
-        assert self._rows is not None, "fetchall() before execute()"
-        return self._rows
+    @property
+    def description(self) -> tuple[_DescriptionColumn, ...] | None:
+        return self._description
 
-    def fetchone(self) -> dict[str, Any] | None:
-        rows = self.fetchall()
-        return rows[0] if rows else None
+    def fetchall(self) -> list[tuple[Any, ...]]:
+        return list(self._rows)
+
+    def fetchone(self) -> tuple[Any, ...] | None:
+        return self._rows[0] if self._rows else None
 
     def executemany(self, sql: str, seq: Any) -> None:
         del sql, seq
@@ -318,8 +505,10 @@ __all__ = [
     "MOTION",
     "PACKS_DIR",
     "PASSWORD",
+    "PROMPT_ID",
     "SERIES_FIXTURE_DIR",
     "E2EFlow",
+    "SpeakingPipelineDouble",
     "assessment_importer",
     "load_script",
     "make_config",

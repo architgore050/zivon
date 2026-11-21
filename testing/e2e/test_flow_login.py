@@ -59,6 +59,41 @@ class LoginFlowTests(E2EFlow):
         self.assertEqual(response.status_code, 403)
         self.assertIn("This form expired", response.text)
 
+    # -- the signup -> verification -> login chain ----------------------------
+
+    def test_signup_verification_email_then_login_chain(self) -> None:
+        """Signup queues the verification email in the dev sink; the token
+        verifies; the verified account then logs in from a clean browser."""
+        browser = self.guest_client()
+        email = f"chain-{uuid7_str()}@example.com"
+        self.signup_via_web(email, client=browser)
+        message = self.app.state.auth.email.last("verify")
+        self.assertIsNotNone(message, "the dev sink queued a verification email")
+        assert message is not None
+        self.assertEqual(message.to, email)
+        match = re.search(r"[?&]token=([A-Za-z0-9_\-]+)", message.body or "")
+        self.assertIsNotNone(match, "the verification email carries its token")
+        assert match is not None
+        verified = self.client.post(
+            "/v1/auth/verify-email", json={"token": match.group(1)}
+        )
+        self.assertEqual(verified.status_code, 200, verified.text)
+
+        fresh = self.guest_client()
+        token = self.guest_form_token("/login", client=fresh)
+        login = fresh.post(
+            "/login",
+            data={"csrf_token": token, "email": email, "password": PASSWORD},
+            follow_redirects=False,
+        )
+        self.assertEqual(login.status_code, 303, login.text)
+        self.assertEqual(login.headers["location"], "/app")
+        session = fresh.get("/v1/auth/session").json()
+        self.assertTrue(session["authenticated"])
+        self.assertTrue(
+            bool(session["user"]["email_verified"]), "the verification stuck"
+        )
+
     # -- correct login -------------------------------------------------------
 
     def test_correct_login_reaches_the_dashboard(self) -> None:
