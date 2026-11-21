@@ -1,0 +1,752 @@
+{
+  "formula_version": "tp-v1",
+  "questions": [
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 33
+      },
+      "expected_time_ms": 43000,
+      "question_id": "q-eye-accommodation-001-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 69
+      },
+      "expected_time_ms": 56000,
+      "question_id": "q-eye-accommodation-001-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 40
+      },
+      "expected_time_ms": 47000,
+      "question_id": "q-eye-accommodation-001-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 21
+      },
+      "expected_time_ms": 40000,
+      "question_id": "q-eye-pupil-002-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 48
+      },
+      "expected_time_ms": 52000,
+      "question_id": "q-eye-pupil-002-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 25
+      },
+      "expected_time_ms": 43000,
+      "question_id": "q-eye-pupil-002-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 22
+      },
+      "expected_time_ms": 41000,
+      "question_id": "q-eye-least-distance-003-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 41
+      },
+      "expected_time_ms": 50000,
+      "question_id": "q-eye-least-distance-003-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 24
+      },
+      "expected_time_ms": 43000,
+      "question_id": "q-eye-least-distance-003-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 20
+      },
+      "expected_time_ms": 120000,
+      "question_id": "q-defect-myopia-power-004-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 40
+      },
+      "expected_time_ms": 141000,
+      "question_id": "q-defect-myopia-power-004-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 18
+      },
+      "expected_time_ms": 125000,
+      "question_id": "q-defect-myopia-power-004-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 3,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 21
+      },
+      "expected_time_ms": 181000,
+      "question_id": "q-defect-hypermetropia-power-005-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 3,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 43
+      },
+      "expected_time_ms": 212000,
+      "question_id": "q-defect-hypermetropia-power-005-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 3,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 22
+      },
+      "expected_time_ms": 190000,
+      "question_id": "q-defect-hypermetropia-power-005-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 3,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 26
+      },
+      "expected_time_ms": 135000,
+      "question_id": "q-defect-nearpoint-power-006-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 3,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 42
+      },
+      "expected_time_ms": 157000,
+      "question_id": "q-defect-nearpoint-power-006-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 3,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 23
+      },
+      "expected_time_ms": 141000,
+      "question_id": "q-defect-nearpoint-power-006-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 31
+      },
+      "expected_time_ms": 53000,
+      "question_id": "q-defect-presbyopia-007-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 75
+      },
+      "expected_time_ms": 72000,
+      "question_id": "q-defect-presbyopia-007-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 34
+      },
+      "expected_time_ms": 57000,
+      "question_id": "q-defect-presbyopia-007-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 79
+      },
+      "expected_time_ms": 109000,
+      "question_id": "q-defect-myopia-assert-008-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 125
+      },
+      "expected_time_ms": 140000,
+      "question_id": "q-defect-myopia-assert-008-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 75
+      },
+      "expected_time_ms": 113000,
+      "question_id": "q-defect-myopia-assert-008-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 17
+      },
+      "expected_time_ms": 40000,
+      "question_id": "q-prism-violet-009-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 38
+      },
+      "expected_time_ms": 49000,
+      "question_id": "q-prism-violet-009-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 21
+      },
+      "expected_time_ms": 42000,
+      "question_id": "q-prism-violet-009-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 44
+      },
+      "expected_time_ms": 56000,
+      "question_id": "q-prism-dispersion-cause-010-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 95
+      },
+      "expected_time_ms": 78000,
+      "question_id": "q-prism-dispersion-cause-010-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 56
+      },
+      "expected_time_ms": 63000,
+      "question_id": "q-prism-dispersion-cause-010-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 30
+      },
+      "expected_time_ms": 53000,
+      "question_id": "q-prism-deviation-order-011-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 51
+      },
+      "expected_time_ms": 65000,
+      "question_id": "q-prism-deviation-order-011-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 31
+      },
+      "expected_time_ms": 56000,
+      "question_id": "q-prism-deviation-order-011-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 38
+      },
+      "expected_time_ms": 44000,
+      "question_id": "q-atmos-twinkle-012-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 87
+      },
+      "expected_time_ms": 61000,
+      "question_id": "q-atmos-twinkle-012-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 50
+      },
+      "expected_time_ms": 49000,
+      "question_id": "q-atmos-twinkle-012-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 46
+      },
+      "expected_time_ms": 57000,
+      "question_id": "q-atmos-sunrise-013-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 116
+      },
+      "expected_time_ms": 84000,
+      "question_id": "q-atmos-sunrise-013-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 56
+      },
+      "expected_time_ms": 63000,
+      "question_id": "q-atmos-sunrise-013-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 45
+      },
+      "expected_time_ms": 77000,
+      "question_id": "q-atmos-star-position-014-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 110
+      },
+      "expected_time_ms": 111000,
+      "question_id": "q-atmos-star-position-014-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 57
+      },
+      "expected_time_ms": 85000,
+      "question_id": "q-atmos-star-position-014-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 41
+      },
+      "expected_time_ms": 45000,
+      "question_id": "q-scatter-blue-sky-015-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 99
+      },
+      "expected_time_ms": 63000,
+      "question_id": "q-scatter-blue-sky-015-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 48
+      },
+      "expected_time_ms": 48000,
+      "question_id": "q-scatter-blue-sky-015-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 39
+      },
+      "expected_time_ms": 55000,
+      "question_id": "q-scatter-red-signal-016-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 94
+      },
+      "expected_time_ms": 78000,
+      "question_id": "q-scatter-red-signal-016-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 50
+      },
+      "expected_time_ms": 61000,
+      "question_id": "q-scatter-red-signal-016-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 74
+      },
+      "expected_time_ms": 79000,
+      "question_id": "q-scatter-sunset-assert-017-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 138
+      },
+      "expected_time_ms": 107000,
+      "question_id": "q-scatter-sunset-assert-017-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 80
+      },
+      "expected_time_ms": 85000,
+      "question_id": "q-scatter-sunset-assert-017-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 63
+      },
+      "expected_time_ms": 103000,
+      "question_id": "q-scatter-astronaut-018-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 110
+      },
+      "expected_time_ms": 134000,
+      "question_id": "q-scatter-astronaut-018-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 65
+      },
+      "expected_time_ms": 109000,
+      "question_id": "q-scatter-astronaut-018-hi-Latn"
+    }
+  ],
+  "schema_version": 1,
+  "topics": [
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "expected_time_ms": 84143,
+      "questions": 18,
+      "scope": "chapter",
+      "scope_id": "class-10-the-human-eye-and-the-colourful-world"
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "expected_time_ms": 59333,
+      "questions": 3,
+      "scope": "concept",
+      "scope_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction"
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "expected_time_ms": 129250,
+      "questions": 5,
+      "scope": "concept",
+      "scope_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision"
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "expected_time_ms": 49667,
+      "questions": 3,
+      "scope": "concept",
+      "scope_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion"
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "expected_time_ms": 70500,
+      "questions": 4,
+      "scope": "concept",
+      "scope_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light"
+    },
+    {
+      "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+      "expected_time_ms": 41333,
+      "questions": 3,
+      "scope": "concept",
+      "scope_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+    }
+  ]
+}

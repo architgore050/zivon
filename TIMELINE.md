@@ -817,3 +817,47 @@ note §8).
 - **No live DB import.** Deployment is blocked at cutover and no Postgres exists locally; the importer is proven via the fixture pack dry-run + hermetic tests. The live import against real Postgres is the runbook's cutover step.
 - **No real E4 pack exists yet** (`runs/exam-exports/` is empty): the exam pack is generated in a separate workstream; the importer is ready for it as-is.
 - `test_series`/`test` rows are written as `published` for enabled series from a `ready` pack; per-language test rows appear as separate catalogue cards until F7 grows a language filter (an honest, labelled UI follow-up).
+### 2026-11-21 — C10 assessment banks: Human Eye + Electricity live (Magnetic blocked by its lesson)
+
+**Done**
+- Branch `feature/w-a-c10-assess` off `main` @ `b9480b7`. Live `--generator llm`
+  assessment packs for two Class 10 chapters on the authorized build-time route
+  (DeepSeek V4.1 Flash through `llm_manager`; single A3 + A4 call per chapter,
+  validation/repair rounds bounded):
+  - `class-10-the-human-eye-and-the-colourful-world`: run
+    `assessment-class-10-the-human-eye-and-the-colourful-world`, 408.9 s — 18 items
+    (12 mcq / 3 numeric / 3 assertion-reason; 6 easy / 8 medium / 4 hard), 3 speaking
+    prompts, 54 question rows, content_hash `791b01922ec4…`.
+  - `class-10-electricity`: run `assessment-class-10-electricity`, 308.2 s — 18 items
+    (10 mcq / 5 numeric / 3 assertion-reason; 5 easy / 8 medium / 5 hard), 3 speaking
+    prompts, 54 question rows, content_hash `3598496062e5…`.
+  All EN/HI/Hinglish, concept-tagged, sourced to NCERT sections, with time priors;
+  every A1–A6 deterministic gate passes (`gate verdict pass, error_count 0`).
+- **Block tagging landed for both chapters**: the syllabus registers the two published
+  lessons (`lesson_topic_slug`) and tracked `section → curated concept` maps were
+  authored (`sources/syllabus/chapters/*.concept-map.json`) — 43/43 and 45/45 blocks
+  tagged; `test_lesson_topic_slugs_match_the_published_tree` extended with the two rows.
+- **Packs mirrored byte-for-byte** into `sources/assessment/packs/<chapter_id>/`
+  (six files each). `scripts/import_assessment_packs.py --dry-run` verifies all four
+  tracked packs; a live import into a throwaway `/tmp` SQLite DB imported 198 question
+  rows / 36 speaking rows / 28 topic priors and re-ran idempotently (no repo DB touched;
+  production import stays a cutover-time operator step).
+- Docs synced: `assessment.md` §10 (four-bank table, renumbered debt) and
+  `class-10-campaign.md` §2/§3/§5.4/§7. Assessment suite 130 tests + syllabus tests green
+  key-free.
+
+**Not done / next**
+- **Magnetic Effects has no bank.** Its published lesson omits NCERT 12.4–12.6 (no
+  electric-motor, electromagnetic-induction or generator sections), so A2 correctly fails
+  with two fatal `concept.orphan` findings (`…-electromagnetic-induction`,
+  `…-electric-generator` own no lesson block). No pack was produced and the chapter is
+  deliberately left unregistered in the syllabus: generating one would bypass the orphan
+  gate or publish a false pending-lesson label. Fix is a founder-local lesson
+  regeneration covering 12.4–12.6 (or a recorded syllabus re-curation); the bank is then
+  one `--generator llm` command away.
+- **Light block tagging stays `pending_lesson`**: the page is published, but its sec-08
+  folds NCERT 9.3.6/9.3.7/9.3.8 into one lesson section while the syllabus curates lens
+  formula/magnification and power as two concepts — a complete map is not expressible
+  without a lesson re-render or a recorded re-curation. Question tagging complete.
+- No judged or human pedagogical review of the banks yet (unchanged Q-6 debt); exam
+  weights still wait for P3's blueprint; live DB import remains an operator step.

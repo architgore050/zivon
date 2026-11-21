@@ -1,0 +1,19 @@
+{
+  "chapter_id": "class-10-electricity",
+  "lesson_topic_slug": "electricity",
+  "lesson_manifest": "frontend/courses/class-10-physics/electricity/manifest.json",
+  "section_concept_map": {
+    "sec-01": "class-10-electricity-electric-current-and-potential",
+    "sec-02": "class-10-electricity-electric-current-and-potential",
+    "sec-03": "class-10-electricity-electric-current-and-potential",
+    "sec-04": "class-10-electricity-ohms-law",
+    "sec-05": "class-10-electricity-resistance-and-resistivity",
+    "sec-06": "class-10-electricity-resistors-in-series-and-parallel",
+    "sec-07": "class-10-electricity-resistors-in-series-and-parallel",
+    "sec-08": "class-10-electricity-heating-effect-and-power",
+    "sec-09": "class-10-electricity-heating-effect-and-power",
+    "sec-10": "class-10-electricity-heating-effect-and-power",
+    "sec-11": "class-10-electricity-resistors-in-series-and-parallel"
+  },
+  "notes": "Published manifest has 11 sections (45 blocks). sec-01/02/03 (current and circuit, potential difference, circuit diagrams) are NCERT 11.1-11.3 under electric-current-and-potential; sec-04 is 11.4 Ohm's law; sec-05 is 11.5 resistance/resistivity; sec-06/07 are 11.6.1/11.6.2 series and parallel; sec-08/09/10 are 11.7-11.8 heating effect, its applications and electric power; sec-11 is the mixed-practice section that spans the whole chapter and is mapped to resistors-in-series-and-parallel because its problems are mostly series/parallel combinations with Ohm's law. Every block is mapped by its section id; A2 fails on any unmapped section or orphan concept."
+}
