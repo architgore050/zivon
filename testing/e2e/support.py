@@ -492,7 +492,7 @@ def patch_product_store(db: DatabaseEngine) -> Any:
 
     store = product_store_over(db)
     original = product_module.ProductStore.from_env
-    product_module.ProductStore.from_env = classmethod(lambda cls: store)  # type: ignore[method-assign]
+    product_module.ProductStore.from_env = classmethod(lambda cls: store)  # type: ignore[assignment]
     return original
 
 

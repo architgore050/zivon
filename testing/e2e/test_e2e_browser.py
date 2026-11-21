@@ -141,16 +141,19 @@ class BrowserSmokeTests(unittest.TestCase):
         `errors` carries every console error; the static-asset filter lives
         AT the assertion with its reason, so nothing is silently dropped.
         """
-        from playwright.sync_api import Page
+        from playwright.sync_api import ConsoleMessage, Page
 
         page: Page = self._browser.new_page()
         errors: list[str] = []
-        page.on(
-            "console",
-            lambda m: errors.append(
-                f"{m.text} [{m.location.get('url', '')}]" if m.type == "error" else None
-            ),
-        )
+
+        def on_console(m: ConsoleMessage) -> None:
+            # Typed handler: `Page.on` overloads require a callable returning
+            # None, so build the message unconditionally and append only real
+            # errors — same collected list as before (strs, never None).
+            if m.type == "error":
+                errors.append(f"{m.text} [{m.location.get('url', '')}]")
+
+        page.on("console", on_console)
         page.on("pageerror", lambda e: errors.append(f"pageerror: {e}"))
         return page, [e for e in errors if e]
 
