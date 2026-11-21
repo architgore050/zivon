@@ -1,0 +1,10 @@
+# Synthetic Caddyfile fixture mirroring docker/caddy/Caddyfile's interpolation
+# contract (site address + ACME email both come from env vars). Used by
+# testing/backend/test_prod_compose_validation.py only.
+{
+	email {$ZIVON_ACME_EMAIL}
+}
+
+{$ZIVON_DOMAIN} {
+	reverse_proxy web:8080
+}

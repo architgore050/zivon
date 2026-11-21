@@ -1,0 +1,68 @@
+# Synthetic minimal compose snippet for the validate_prod_compose.py tests
+# (testing/backend/test_prod_compose_validation.py). NOT a runnable stack —
+# it carries only the fields the validator reads: interpolation forms
+# (required `:?` and defaulted `:-`), the migrate command + gate, the
+# localhost-only port posture, and the edge profile. Any change here must
+# keep the tests meaningful.
+name: zivon-test-fixture
+
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-zivon}
+      - POSTGRES_USER=${POSTGRES_USER:-zivon}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?set-POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["python", "-m", "db.migrate", "upgrade", "head"]
+    environment:
+      - ZIVON_DB_URL=postgresql://${POSTGRES_USER:-zivon}:${POSTGRES_PASSWORD:?set-POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-zivon}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  core-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      - ZIVON_ENV=prod
+      - ZIVON_APP_BASE_URL=${ZIVON_APP_BASE_URL:?set-ZIVON_APP_BASE_URL}
+      - ZIVON_EMAIL_BACKEND=${ZIVON_EMAIL_BACKEND:?set-ZIVON_EMAIL_BACKEND}
+      - ZIVON_SESSION_TOKEN_KEY=${ZIVON_SESSION_TOKEN_KEY:?set-ZIVON_SESSION_TOKEN_KEY}
+      - ZIVON_IP_HASH_SALT=${ZIVON_IP_HASH_SALT:?set-ZIVON_IP_HASH_SALT}
+    ports:
+      - "127.0.0.1:18085:8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    depends_on:
+      - core-backend
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  edge:
+    image: caddy:2.10.2-alpine
+    profiles: ["edge"]
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - ZIVON_DOMAIN=${ZIVON_DOMAIN:-}
+      - ZIVON_ACME_EMAIL=${ZIVON_ACME_EMAIL:-}
