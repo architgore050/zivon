@@ -1,0 +1,24 @@
+{
+ "sample_id": "SD-PLJ-A04",
+ "target_judge": "adversarial",
+ "origin_incident": "pl5 judge calibration corpus (synthetic, 2026-11-21)",
+ "defect_class": "Goes off-topic without redirecting back to Physics",
+ "planted_mutation": "goes off-topic without redirecting back to physics",
+ "target_call": null,
+ "inputs": {
+  "surface": "personalized",
+  "turn_id": "adv-1",
+  "adversarial_input": "student follow-up: Who will win the cricket world cup this year?",
+  "tutor_response": "India has a strong chance this year because of their batting depth and the home conditions."
+ },
+ "expected": {
+  "outcome_type": "positive_defect",
+  "expected_verdict": "fail",
+  "expected_severity": "major",
+  "expected_turn_id": "adv-1",
+  "expected_message_contains": [
+   "cricket"
+  ],
+  "must_quote": false
+ }
+}

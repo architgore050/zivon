@@ -10,7 +10,13 @@ golden_inputs:
   topics:
   - evals/goldens/personalized/rag-index
   - evals/goldens/personalized/sessions/class-10-light-weakness
-  seeded_defects: []
+  seeded_defects:
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-F01.json
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-F02.json
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-F03.json
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C01.json
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C02.json
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C03.json
   source_catalog_ref: sources/catalog.json
 deterministic_checks:
 - id: DET-PL02-CITATIONS
@@ -40,15 +46,57 @@ deterministic_checks:
   reuses_factory_rule: backend.personalized.rag:RagIndex.retrieve
   description: With the embedder unavailable, retrieval still returns excerpts via lexical
     scoring and marks the turn lexical_fallback; an empty index is ungrounded with no excerpts.
-llm_judge: null
+llm_judge:
+  enabled_in_suites:
+  - full
+  - calibrate
+  entrypoint: evals.judges.pl_judges:calibrate_pl_faithfulness
+  reuses_prompt_from: backend.personalized.prompts:GROUNDING_LAW (the grounding law the teach prompt is
+    built under; the faithfulness ladder is fixed by docs/specs/personalized-learning/evals.md section 3)
+  severity_ladder:
+    fatal: A teaching claim contradicted by its cited excerpt, or a fabricated page/section reference
+      (a locator the citation does not carry). Must quote both the claim and the excerpt text.
+    major: A factual claim with no citation and no support in the cited excerpts (the excerpts are the
+      universe of the slice).
+    minor: A citation that supports only a weaker version of the claim; a plain-language analogy that
+      illustrates a cited claim is acceptable and never a finding.
+  way_out_rule: "Report unverifiable suspicions as severity='minor' with message starting 'unverified:' — never as fatal or major."
+anchor_examples:
+  - label: "Fatal - Claim contradicted by its citation"
+    input_summary: "Teaching says the angle of incidence is always greater than the angle of reflection; [S1] states the angles are equal."
+    expected_issue:
+      severity: fatal
+      block_id: "t-1"
+      category: "content"
+      message: "Claim states 'always greater than'; cited excerpt [S1] states 'The angle of incidence is equal to the angle of reflection'."
+
+  - label: "Major - Uncited factual claim"
+    input_summary: "Teaching adds 'The focal length of a concave mirror is half its radius of curvature' with no citation and no such excerpt."
+    expected_issue:
+      severity: major
+      block_id: "t-1"
+      category: "content"
+      message: "The focal-length claim has no citation and no support in the cited excerpts."
+
+  - label: "Minor - Weaker version supported"
+    input_summary: "Teaching says 'the angles are always exactly equal for every mirror'; [S1] states it only for a plane mirror."
+    expected_issue:
+      severity: minor
+      block_id: "t-1"
+      category: "content"
+      message: "The citation supports the claim for plane mirrors only - a weaker version of the stated claim."
+
 thresholds:
   deterministic_pass_rate_min: 1.0
   fatal_issues_max: 0
-  major_issues_max: 0
+  major_issues_max: 1
+  recall_fatal_min: 1.0
+  recall_blocking_min: 0.8
+  specificity_clean_min: 1.0
   regression_drop_tolerance: 0.0
 cost_budget:
   smoke_model_calls: 0
-  full_model_calls_per_topic: 0
-  calibration_model_calls_total: 0
-  max_completion_tokens_per_call: 1000
-  call_deadline_s: 60
+  full_model_calls_per_topic: 6
+  calibration_model_calls_total: 6
+  max_completion_tokens_per_call: 2000
+  call_deadline_s: 600

@@ -1,0 +1,34 @@
+{
+ "sample_id": "SD-PLJ-F03",
+ "target_judge": "faithfulness",
+ "origin_incident": "pl5 judge calibration corpus (synthetic, 2026-11-21)",
+ "defect_class": "Uncited factual claim with no support in the cited excerpts",
+ "planted_mutation": "teaching turn: uncited factual claim with no support in the cited excerpts: The angle of incidence is equal to the angle of reflection [S1]. The focal lengt...",
+ "target_call": null,
+ "inputs": {
+  "teaching_turn": {
+   "turn_id": "t-1",
+   "text": "The angle of incidence is equal to the angle of reflection [S1]. The focal length of a concave mirror is half its radius of curvature.",
+   "citations": [
+    {
+     "excerpt_id": "S1",
+     "chunk_id": "ncert-science-10#p0148c001",
+     "source_kind": "ncert",
+     "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+     "locator": "p. 148",
+     "text": "The angle of incidence is equal to the angle of reflection. The image formed by a plane mirror is virtual and erect."
+    }
+   ]
+  }
+ },
+ "expected": {
+  "outcome_type": "positive_defect",
+  "expected_verdict": "fail",
+  "expected_severity": "major",
+  "expected_turn_id": "t-1",
+  "expected_message_contains": [
+   "radius of curvature"
+  ],
+  "must_quote": false
+ }
+}

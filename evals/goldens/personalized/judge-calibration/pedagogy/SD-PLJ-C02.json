@@ -1,0 +1,19 @@
+{
+ "sample_id": "SD-PLJ-C02",
+ "target_judge": "pedagogy",
+ "origin_incident": "pl5 judge calibration corpus (synthetic, 2026-11-21)",
+ "defect_class": "Clean golden transcript (skip-all)",
+ "planted_mutation": "none — recorded clean golden",
+ "target_call": null,
+ "inputs": {
+  "transcript_ref": "evals/goldens/personalized/sessions/class-10-light-weakness/skip-all.json"
+ },
+ "expected": {
+  "outcome_type": "negative_clean",
+  "expected_verdict": "pass",
+  "expected_severity": null,
+  "expected_turn_id": null,
+  "expected_message_contains": [],
+  "must_quote": false
+ }
+}
