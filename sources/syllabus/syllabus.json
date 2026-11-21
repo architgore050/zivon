@@ -2,7 +2,7 @@
   "schema_version": 1,
   "subject": "physics",
   "source_basis": "NCERT textbooks cached under sources/pdfs (Science 2025 Grade 9 edition; Science Class X; Physics Part I/II Class XI and XII, rationalised editions). Chapter numbers and titles were extracted from each chapter PDF's first page on 2026-11-17; concepts are curated from the chapter section headings.",
-  "updated_at": "2026-11-17",
+  "updated_at": "2026-11-21",
   "classes": [
     {
       "class": 9,
@@ -767,7 +767,7 @@
               ]
             }
           ],
-          "lesson_topic_slug": null
+          "lesson_topic_slug": "magnetic-effects-of-electric-current"
         }
       ]
     },

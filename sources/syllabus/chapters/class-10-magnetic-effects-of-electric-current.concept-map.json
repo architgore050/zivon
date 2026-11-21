@@ -1,0 +1,15 @@
+{
+  "chapter_id": "class-10-magnetic-effects-of-electric-current",
+  "lesson_topic_slug": "magnetic-effects-of-electric-current",
+  "lesson_manifest": "frontend/courses/class-10-physics/magnetic-effects-of-electric-current/manifest.json",
+  "section_concept_map": {
+    "sec-01": "class-10-magnetic-effects-of-electric-current-magnetic-field-and-field-lines",
+    "sec-02": "class-10-magnetic-effects-of-electric-current-magnetic-field-and-field-lines",
+    "sec-03": "class-10-magnetic-effects-of-electric-current-magnetic-field-due-to-current",
+    "sec-04": "class-10-magnetic-effects-of-electric-current-magnetic-field-due-to-current",
+    "sec-05": "class-10-magnetic-effects-of-electric-current-magnetic-field-due-to-current",
+    "sec-06": "class-10-magnetic-effects-of-electric-current-force-on-a-conductor-and-motor",
+    "sec-07": "class-10-magnetic-effects-of-electric-current-domestic-electric-circuits"
+  },
+  "notes": "Published manifest currently has 7 sections (42 blocks). sec-01/02 (link between electricity and magnetism, magnetic field and field lines) are NCERT 12.1; sec-03/04/05 (straight conductor, right-hand thumb rule, circular loop and solenoid) are NCERT 12.2-12.2.4; sec-06 (force on a current-carrying conductor) is NCERT 12.3; sec-07 is NCERT 12.7 domestic electric circuits. NCERT 12.4 (electric motor), 12.5 (electromagnetic induction) and 12.6 (electric generator) have NO section in this manifest yet, so the curated concepts electromagnetic-induction and electric-generator are still orphan in A2 terms; the full lesson regeneration is expected to add those sections and this map will be updated to the regenerated manifest's real section ids. Every block is mapped by its section id; A2 fails on any unmapped section or orphan concept."
+}
