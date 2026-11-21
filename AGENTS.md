@@ -332,6 +332,38 @@ block a feature on an arbitrary byte gate.
 - Docs (README, `docs/`) are updated in the same PR as the code or decisions they describe — see the Documentation section.
 - Never commit secrets. Configuration lives in environment variables.
 
+### Local files and destructive cleanup — hard rule (2026-11-21)
+
+**Git-tracked and untracked does not mean disposable and important.** The repo's
+untracked/ignored tree holds first-class work: local `.env` files and secrets,
+`runs/` (pipeline evidence and resumable content), `evals_runs/`, `tmp/` handoff
+and planning notes, generated `frontend/` pages, worktrees, local branches,
+narration audio, logs, and caches. Git cannot recover any of it. Deleting it is
+data loss, not cleanup.
+
+- **Never run `git clean -fdx`, `git clean -fdX`, `git clean -fd`, `git clean
+  -x`, or any broad `rm -rf` on untracked/ignored paths** in this repo, a
+  worktree, or a clone. This applies to every agent, every session, and every
+  "start clean" workflow.
+- **Never delete `.env`, `.env.*`, `k8s/infra.env`, `runs/`, `evals_runs/`,
+  `tmp/`, `sources/` caches, generated `frontend/courses/`, `frontend/audio/`,
+  local worktrees, or local branches** unless the founder explicitly approves
+  that exact deletion in the current session, in writing.
+- A clean checkout does not mean wiping an existing one. Create a fresh
+  worktree/clone instead; leave the original and its ignored files intact.
+- Read-only inspection is allowed: `git status --ignored`, `git clean -ndx`,
+  `du`, `find`. Inspection output is never piped into a delete command.
+- A specific, reproducible generated artifact may be removed only by the
+  workstream that owns it, after confirming it is not the only copy of content,
+  evidence, credentials, or local work — and never as a blanket clean.
+- Local secrets and irreplaceable local state must have a durable copy outside
+  the repo (for example `~/.config/zivon/` with mode `0600`). `.env` in the repo
+  root is the local working file; it is gitignored and must never be the only
+  copy of a credential.
+- **A destructive cleanup is a blocker in review.** The review agent must reject
+  any PR/agent action that proposes or performs one, and the merge agent must
+  not restore a "clean" tree by deleting ignored files.
+
 ---
 
 ## Skills
@@ -455,6 +487,9 @@ Content-creation non-negotiables: interview before drafting (Depth Gate), never 
 - Ignoring latency. A slow tutor feels broken even if the answers are good.
 - Scope changes after a wave/freeze without a recorded decision.
 - Any change that bypasses the PR → CI → review → main flow.
+- Broad cleanup of untracked/ignored files (`git clean -fdx`, `rm -rf` on
+  `runs/`, `tmp/`, `.env`, generated pages) — see the hard rule in "Repo
+  process". Git-tracked vs untracked is not disposable vs important.
 
 ---
 
