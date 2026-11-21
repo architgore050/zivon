@@ -519,7 +519,7 @@ window.ZIVON_COURSES = [
     "class": 10,
     "chapter_number": 12,
     "title": "Magnetic Effects of Electric Current",
-    "generated_at": "2026-11-20T20:31:44Z",
+    "generated_at": "2026-11-21T19:13:40Z",
     "lesson_title": "Magnetic Effects of Electric Current",
     "status": "lesson_only",
     "languages": {
@@ -533,10 +533,10 @@ window.ZIVON_COURSES = [
     },
     "counts": {
       "lesson_blocks": 42,
-      "checks": 19,
-      "worked_examples": 2,
-      "diagrams": 6,
-      "simulations": 1,
+      "checks": 20,
+      "worked_examples": 3,
+      "diagrams": 5,
+      "simulations": 0,
       "reveals": 1,
       "text_blocks": 13
     },
@@ -544,7 +544,7 @@ window.ZIVON_COURSES = [
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-01",
         "section_id": "sec-01",
-        "title": "Electricity and magnetism are linked"
+        "title": "A current-carrying wire behaves like a magnet"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02",
@@ -564,7 +564,7 @@ window.ZIVON_COURSES = [
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05",
         "section_id": "sec-05",
-        "title": "Magnetic field due to a current through a circular loop and a solenoid"
+        "title": "Magnetic field due to a current through a circular loop"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06",
@@ -575,6 +575,11 @@ window.ZIVON_COURSES = [
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07",
         "section_id": "sec-07",
         "title": "Domestic electric circuits"
+      },
+      {
+        "concept_id": "class-10-magnetic-effects-of-electric-current-sec-08",
+        "section_id": "sec-08",
+        "title": "Magnetism in medicine"
       }
     ],
     "pipeline_version": "9",
@@ -586,7 +591,7 @@ window.ZIVON_COURSES = [
     ],
     "titles_by_locale": {
       "en": "Magnetic Effects of Electric Current",
-      "hi": "विद्युत धारा के चुम्बकीय प्रभाव",
+      "hi": "विद्युत धारा के चुंबकीय प्रभाव",
       "hi-Latn": "Electric Current ke Magnetic Effects"
     },
     "translation_status": {
