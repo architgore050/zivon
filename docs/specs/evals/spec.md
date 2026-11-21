@@ -206,6 +206,14 @@ SQLite, `db.schema.ALL_TABLES`) instead of re-implementing any rule, and run
 with `llm_judge: null` like every PL card. The deterministic checker count
 pinned by `testing/evals/test_checkers.py` moved 54 → 72. The key-free
 smoke/regression gate for the stack is `bash scripts/pl-smoke.sh`.
+**W5.5 PL5 judge additions (2026-11-21):** `EV-PL-001` (pedagogy over the 3
+golden transcripts in `full`; its seeded corpus in `calibrate`),
+`EV-PL-002` (faithfulness, `evals.judges.pl_judges:calibrate_pl_faithfulness`)
+and `EV-PL-004` (adversarial turns, `evals.judges.pl_judges:calibrate_pl_adversarial`)
+carry `llm_judge` specs now — all three calibrated on the 17-sample corpus under
+`evals/goldens/personalized/judge-calibration/` (regenerable byte-identically with
+`scripts/gen_pl_judge_corpus.py`); the live `--suite full` run stays the
+founder-local gate per `docs/specs/personalized-learning/evals.md` §10.
 
 ---
 

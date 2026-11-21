@@ -1,0 +1,110 @@
+{
+ "sample_id": "SD-PLJ-P02",
+ "target_judge": "pedagogy",
+ "origin_incident": "pl5 judge calibration corpus (synthetic, 2026-11-21)",
+ "defect_class": "Check not answerable from the taught slice",
+ "planted_mutation": "chk-1 asks about focal length/radius of curvature; the slice teaches only the reflection law",
+ "target_call": null,
+ "inputs": {
+  "transcript": {
+   "schema_version": 1,
+   "chapter_id": "class-10-light-reflection-and-refraction",
+   "mode": "learning",
+   "weakness_text": "synthetic calibration transcript (planted: the armed check is unanswerable from the taught slice)",
+   "turns": [
+    {
+     "client_turn_id": "t-1",
+     "role": "tutor",
+     "kind": "text",
+     "text": "Light bounces off smooth surfaces. The angle of incidence equals the angle of reflection.",
+     "payload": {
+      "schema_version": 1,
+      "stage": "teach",
+      "turn_no": 1,
+      "teaching": {
+       "paragraphs": [
+        "Light bounces off smooth surfaces. The angle of incidence equals the angle of reflection."
+       ],
+       "key_statement": "equal angles about the normal",
+       "worked_example": null
+      },
+      "citations": [
+       {
+        "excerpt_id": "S1",
+        "chunk_id": "ncert-science-10#p0148c001",
+        "source_kind": "ncert",
+        "label": "NCERT Class 10 Science, Ch. 10, p. 148",
+        "locator": "p. 148"
+       }
+      ],
+      "ungrounded": false,
+      "mastery": {
+       "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+       "status": "practising",
+       "evidence": "second_try"
+      },
+      "next_action": "ask_check",
+      "rag_index_version": "911e4eb9dbedd8d1",
+      "prompt_version": "pl-1",
+      "retrieval": "vector",
+      "check": {
+       "check_id": "chk-1",
+       "kind": "mcq",
+       "question": "If the focal length of a concave mirror is 20 cm, what is its radius of curvature?",
+       "options": [
+        {
+         "id": "A",
+         "text": "10 cm"
+        },
+        {
+         "id": "B",
+         "text": "20 cm"
+        },
+        {
+         "id": "C",
+         "text": "40 cm"
+        },
+        {
+         "id": "D",
+         "text": "80 cm"
+        }
+       ],
+       "level": 2,
+       "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+       "source": {
+        "kind": "bank",
+        "item_id": "q-mcq-2"
+       }
+      }
+     }
+    }
+   ],
+   "mastery_summary": [
+    {
+     "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+     "status": "not_yet",
+     "attempts": 0,
+     "first_try_correct": 0,
+     "levels_passed": [],
+     "skipped": false
+    }
+   ],
+   "check_keys": {
+    "chk-1": {
+     "kind": "mcq",
+     "option": "A"
+    }
+   }
+  }
+ },
+ "expected": {
+  "outcome_type": "positive_defect",
+  "expected_verdict": "fail",
+  "expected_severity": "fatal",
+  "expected_turn_id": "t-1",
+  "expected_message_contains": [
+   "focal length"
+  ],
+  "must_quote": true
+ }
+}

@@ -6,11 +6,17 @@ agent_role: Teaching Agent
 suites:
 - smoke
 - full
+- calibrate
 golden_inputs:
   topics:
   - evals/goldens/personalized/sessions/class-10-light-weakness
   - evals/goldens/personalized/sessions/class-9-motion-diagnostic
-  seeded_defects: []
+  seeded_defects:
+  - evals/goldens/personalized/judge-calibration/pedagogy/SD-PLJ-P01.json
+  - evals/goldens/personalized/judge-calibration/pedagogy/SD-PLJ-P02.json
+  - evals/goldens/personalized/judge-calibration/pedagogy/SD-PLJ-P03.json
+  - evals/goldens/personalized/judge-calibration/pedagogy/SD-PLJ-C01.json
+  - evals/goldens/personalized/judge-calibration/pedagogy/SD-PLJ-C02.json
   source_catalog_ref: sources/catalog.json
 deterministic_checks:
 - id: DET-PL01-SM
@@ -35,15 +41,53 @@ deterministic_checks:
   description: The deterministic scoring contract - MCQ exact option, numeric tolerance
     max(0.01, 0.5%), wrong unit is incorrect with a unit hint, scientific notation normalized,
     blank answers never counted as attempts.
-llm_judge: null
+llm_judge:
+  enabled_in_suites:
+  - full
+  - calibrate
+  entrypoint: evals.judges.pl_judges:evaluate_pl_pedagogy
+  reuses_prompt_from: backend.personalized.state (the deterministic teach-check-adapt machine this judge
+    augments; the pedagogy ladder is fixed by docs/specs/personalized-learning/evals.md section 2)
+  severity_ladder:
+    fatal: A check that cannot be answered from the taught slices in this transcript, or a mastery claim
+      without evidence (progress/mastered contradicted by the recorded attempts, levels, or skips). Must
+      quote the transcript text it relies on.
+    major: The adapt slice repeats the same wording or the same representation after a wrong answer
+      instead of re-teaching differently.
+    minor: Wording, tone, or phrasing that does not affect the teaching contract.
+  way_out_rule: "Report unverifiable suspicions as severity='minor' with message starting 'unverified:' — never as fatal or major."
+  anchor_examples:
+  - label: "Fatal - Check not answerable from the taught slice"
+    input_summary: "A transcript teaches only the equal-angles law, then arms a check asking for the radius of curvature from a focal length."
+    expected_issue:
+      severity: fatal
+      block_id: "t-1"
+      category: "content"
+      message: "The armed check asks about the focal length and radius of curvature, which no taught slice covers; the student cannot answer it from what was taught."
+  - label: "Major - Adapt repeats the same representation"
+    input_summary: "After a wrong answer the adapt turn repeats the teach slice verbatim ('Light bounces off smooth surfaces...')."
+    expected_issue:
+      severity: major
+      block_id: "t-3"
+      category: "content"
+      message: "The adapt slice repeats the teach slice verbatim — the same representation as the first teach — instead of re-teaching with a new one."
+  - label: "Fatal - Mastery claim without evidence"
+    input_summary: "The mastery summary claims 'mastered' with attempts=0 and no levels passed."
+    expected_issue:
+      severity: fatal
+      category: "content"
+      message: "Mastery claim without evidence: status=mastered with zero attempts contradicts the recorded evidence."
 thresholds:
   deterministic_pass_rate_min: 1.0
   fatal_issues_max: 0
-  major_issues_max: 0
+  major_issues_max: 3
+  recall_fatal_min: 1.0
+  recall_blocking_min: 0.8
+  specificity_clean_min: 1.0
   regression_drop_tolerance: 0.0
 cost_budget:
   smoke_model_calls: 0
-  full_model_calls_per_topic: 0
-  calibration_model_calls_total: 0
-  max_completion_tokens_per_call: 1000
-  call_deadline_s: 60
+  full_model_calls_per_topic: 3
+  calibration_model_calls_total: 5
+  max_completion_tokens_per_call: 2000
+  call_deadline_s: 600

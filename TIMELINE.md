@@ -966,3 +966,45 @@ note §8).
 - **No live deployment** — unchanged by design: no DNS/TLS/SSH cutover, no real domain, no filled `.env.prod`; everything waits on the founder inputs (runbook §j, names only).
 - The backup script ran against a MOCKED pg (no docker/Postgres in this sandbox); its first real-container run is the founder's §h step 1, as documented.
 - The local smoke run used the dev backend (sqlite) + an edge-sim, NOT the prod compose stack with real Postgres/Caddy TLS — the eight checks' first run against the real edge remains the founder's §g step 1.
+
+
+## 2026-11-21 — PL5 personalized-learning eval judges (EV-PL-001/002/004) + calibration
+
+Branch `feature/w-f-pl5-judges` (resumed from the salvaged WIP at 87115d2).
+
+**Done:**
+- The three PL judges are real, card-bound judges now (`evals/judges/pl_judges.py`):
+  `EV-PL-001` pedagogy (goldens in `full`, seeded corpus in `calibrate`, routed on
+  suite), `EV-PL-002` faithfulness and `EV-PL-004` adversarial turns (seeded corpus
+  in both `full` and `calibrate`, the EV-REV pattern). Every model call routes
+  through `llm_manager` (temperature 0.0); the verdict is recomputed deterministically
+  from the issue list; fatal findings must quote the material (`verify_source_quote`)
+  or are downgraded to `unverified:` minor; unknown turn ids downgrade; budget and
+  length-cut guards fail the card.
+- The salvaged cards were broken (anchor_examples at card root failed the schema) —
+  fixed; `anchor_examples` moved inside `llm_judge`, `calibrate` added to the suites
+  of all three cards.
+- Calibration corpus: 17 samples under `evals/goldens/personalized/judge-calibration/`
+  (pedagogy 3 defects + 2 clean golden refs; faithfulness 3 + 3; adversarial 4 + 2),
+  schema-validated at judge load time (`PL_JUDGE_SAMPLE_SCHEMA` in `evals/models.py`)
+  and byte-identical to `scripts/gen_pl_judge_corpus.py --check`.
+- Key-free gates green: `--suite smoke --mock` 24 pass / 0 fail; `--suite calibrate
+  --mock` 5/5 cards pass (REV-001/002 + PL-001/002/004), 37 mock calls, 100% recall
+  and specificity on the mock judge; the mock fault tests (blind judge fails recall,
+  over-eager judge fails specificity) prove the calibration can fail.
+- Deterministic tests: `testing/evals/test_pl_judges.py` (corpus integrity, suite
+  routing, calibration pass/fail, output gates); the pinned `llm_judge is None` /
+  calibrate-count assertions updated with comments. ruff format + check clean.
+- The judge LLM config now carries the route identity headers (`ZIVON_EXTRA_HEADERS`,
+  `ZIVON_USER_AGENT`) required by the authorized gateway.
+- Full-suite live run (D-PL-07 route, authorized, founder-local): started in this
+  session as run id in `evals_runs/` (see PR evidence; `--suite full`, all 25 cards).
+
+**Not done (honest):**
+- The live `--suite full` judge run was still executing at session cutoff (each of
+  ~40 judge calls has a 600 s deadline); its final `eval_report.json` /
+  `eval_summary.md` must be read from `evals_runs/` and attached to the PR evidence
+  table when it completes. Mock evidence is recorded; live evidence is not fabricated.
+- The founder-local gate items that need the live stack + keys remain: one real
+  teach→check→adapt session end-to-end (PL2 exit item) — this session judged recorded
+  goldens and seeded corpora only.
