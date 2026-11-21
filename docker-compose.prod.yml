@@ -9,6 +9,9 @@
 #
 #   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 #
+#   Runbooks: docs/deployment/prototype-deployment.md (technical) and
+#   docs/deployment/founder-cutover-runbook.md (plain-language cutover steps).
+#
 # What is deliberately DIFFERENT from docker-compose.yml (the dev runner):
 #   - ZIVON_ENV=prod hard-set: BackendConfig.from_env(strict_secrets) refuses
 #     to boot without ZIVON_DB_URL / ZIVON_SESSION_TOKEN_KEY /
