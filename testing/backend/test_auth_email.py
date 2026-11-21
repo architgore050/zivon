@@ -14,8 +14,10 @@ from unittest import mock
 
 from backend.auth.email import (
     DevEmailSink,
+    ResendEmailSender,
     SmtpEmailSender,
     build_email_sender,
+    password_reset_email,
     verification_email,
 )
 from backend.config import BackendConfig, BackendConfigError
@@ -72,6 +74,51 @@ class TestSmtpSender(unittest.TestCase):
         self.assertEqual(captured["sender"], "no-reply@zivon.test")
 
 
+class TestResendSender(unittest.TestCase):
+    """Resend HTTP adapter against a mocked http client (no network)."""
+
+    def test_send_posts_the_bearer_token_and_message_payload(self) -> None:
+        captured: dict[str, Any] = {}
+
+        def fake_post(url: str, **kwargs: Any) -> Any:
+            captured["url"] = url
+            captured.update(kwargs)
+            return mock.Mock(status_code=200)
+
+        sender = ResendEmailSender(
+            api_key="test-resend-key", sender="no-reply@zivon.test", http_post=fake_post
+        )
+        sender.send(
+            password_reset_email(
+                to="kid@example.com",
+                link="https://app.test/reset-password?token=abc",
+                expires_minutes=60,
+            )
+        )
+        self.assertEqual(captured["url"], ResendEmailSender.ENDPOINT)
+        self.assertEqual(captured["headers"]["Authorization"], "Bearer test-resend-key")
+        self.assertEqual(captured["json"]["from"], "no-reply@zivon.test")
+        self.assertEqual(captured["json"]["to"], ["kid@example.com"])
+        self.assertEqual(captured["json"]["subject"], "Reset your Zivon password")
+        self.assertIn("reset-password?token=abc", captured["json"]["text"])
+        self.assertEqual(captured["timeout"], 10.0)
+
+    def test_send_raises_when_resend_rejects_the_message(self) -> None:
+        for status in (401, 429, 500):
+            with (
+                self.subTest(status=status),
+                self.assertRaises(RuntimeError),
+            ):
+                sender = ResendEmailSender(
+                    api_key="test-resend-key",
+                    sender="no-reply@zivon.test",
+                    http_post=mock.Mock(return_value=mock.Mock(status_code=status)),
+                )
+                sender.send(
+                    verification_email(to="kid@example.com", link="l", expires_hours=48)
+                )
+
+
 class TestSenderSelection(unittest.TestCase):
     def test_dev_sink_is_refused_in_cluster_and_prod(self) -> None:
         for env in ("cluster", "prod"):
@@ -102,6 +149,33 @@ class TestSenderSelection(unittest.TestCase):
         )
         with self.assertRaises(BackendConfigError):
             build_email_sender(config)
+
+    def test_smtp_selection_returns_the_smtp_adapter(self) -> None:
+        config = BackendConfig(
+            db_url="sqlite:///:memory:",
+            env="test",
+            email_backend="smtp",
+            smtp_host="smtp.example.com",
+        )
+        sender = build_email_sender(config)
+        self.assertIsInstance(sender, SmtpEmailSender)
+
+    def test_resend_requires_an_api_key(self) -> None:
+        config = BackendConfig(
+            db_url="sqlite:///:memory:", env="test", email_backend="resend"
+        )
+        with self.assertRaises(BackendConfigError):
+            build_email_sender(config)
+
+    def test_resend_selection_returns_the_resend_adapter(self) -> None:
+        config = BackendConfig(
+            db_url="sqlite:///:memory:",
+            env="test",
+            email_backend="resend",
+            resend_api_key="test-resend-key",
+        )
+        sender = build_email_sender(config)
+        self.assertIsInstance(sender, ResendEmailSender)
 
 
 if __name__ == "__main__":
