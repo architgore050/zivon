@@ -1,0 +1,418 @@
+{
+  "class_num": 10,
+  "items": [
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c10-light-001",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "difficulty": "easy",
+      "explanation": "[Synthetic fixture] The law of reflection states the two angles are equal, measured from the normal.",
+      "item_id": "exam-q-c10-light-001",
+      "language": "en",
+      "marks": 1,
+      "options": [
+        "incidence",
+        "refraction",
+        "dispersion",
+        "diffraction"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:mcq:1",
+      "prompt": "[Synthetic fixture] Light falls on a plane mirror. The angle of reflection equals the angle of —",
+      "question_id": "exam-q-c10-light-001-en",
+      "section": null,
+      "series_ids": [
+        "ai_lesson",
+        "loop"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "mcq"
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c10-light-001",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "difficulty": "easy",
+      "explanation": "[Synthetic fixture] The law of reflection states the two angles are equal, measured from the normal.",
+      "item_id": "exam-q-c10-light-001",
+      "language": "hi",
+      "marks": 1,
+      "options": [
+        "आपतन",
+        "अपवर्तन",
+        "विक्षेपण",
+        "व्यतिकरण"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:mcq:1",
+      "prompt": "[Synthetic fixture] Light falls on a plane mirror. The angle of reflection equals the angle of —",
+      "question_id": "exam-q-c10-light-001-hi",
+      "section": null,
+      "series_ids": [
+        "ai_lesson",
+        "loop"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "mcq"
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c10-light-001",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "difficulty": "easy",
+      "explanation": "[Synthetic fixture] The law of reflection states the two angles are equal, measured from the normal.",
+      "item_id": "exam-q-c10-light-001",
+      "language": "hi-Latn",
+      "marks": 1,
+      "options": [
+        "aapatan",
+        "apavartan",
+        "vikshepan",
+        "vyatikaran"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:mcq:1",
+      "prompt": "[Synthetic fixture] Light falls on a plane mirror. The angle of reflection equals the angle of —",
+      "question_id": "exam-q-c10-light-001-hi-Latn",
+      "section": null,
+      "series_ids": [
+        "ai_lesson",
+        "loop"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "mcq"
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c10-light-002",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "difficulty": "medium",
+      "explanation": "[Synthetic fixture] Inside the focal length a concave mirror behaves like a magnifying mirror.",
+      "item_id": "exam-q-c10-light-002",
+      "language": "en",
+      "marks": 1,
+      "options": [
+        "beyond C",
+        "between P and F",
+        "at C",
+        "between F and C"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:mcq:1",
+      "prompt": "[Synthetic fixture] A concave mirror forms a virtual, erect and magnified image when the object is —",
+      "question_id": "exam-q-c10-light-002-en",
+      "section": null,
+      "series_ids": [
+        "board_practice",
+        "pyq_pattern"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "mcq"
+    },
+    {
+      "answer": {
+        "index": 1
+      },
+      "base_item_id": "q-c10-light-002",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "difficulty": "medium",
+      "explanation": "[Synthetic fixture] Inside the focal length a concave mirror behaves like a magnifying mirror.",
+      "item_id": "exam-q-c10-light-002",
+      "language": "hi",
+      "marks": 1,
+      "options": [
+        "C से दूर",
+        "P और F के बीच",
+        "C पर",
+        "F और C के बीच"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:mcq:1",
+      "prompt": "[Synthetic fixture] A concave mirror forms a virtual, erect and magnified image when the object is —",
+      "question_id": "exam-q-c10-light-002-hi",
+      "section": null,
+      "series_ids": [
+        "board_practice",
+        "pyq_pattern"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "mcq"
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "m",
+        "value": 1.0
+      },
+      "base_item_id": "q-c10-light-003",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "difficulty": "medium",
+      "explanation": "[Synthetic fixture] The image is as far behind the mirror as the object is in front, so the separation doubles.",
+      "item_id": "exam-q-c10-light-003",
+      "language": "en",
+      "marks": 1,
+      "pattern_ref": "class-10-light-reflection-and-refraction:numeric:1",
+      "prompt": "[Synthetic fixture] An object is placed 0.5 m from a plane mirror. The distance between the object and its image is — (give the value in metres)",
+      "question_id": "exam-q-c10-light-003-en",
+      "section": null,
+      "series_ids": [
+        "board_practice",
+        "challenge"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "numeric"
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "m",
+        "value": 1.0
+      },
+      "base_item_id": "q-c10-light-003",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "difficulty": "medium",
+      "explanation": "[Synthetic fixture] The image is as far behind the mirror as the object is in front, so the separation doubles.",
+      "item_id": "exam-q-c10-light-003",
+      "language": "hi",
+      "marks": 1,
+      "pattern_ref": "class-10-light-reflection-and-refraction:numeric:1",
+      "prompt": "[Synthetic fixture] कोई वस्तु समतल दर्पण से 0.5 मीटर दूर है। वस्तु और उसके प्रतिबिंब के बीच की दूरी है — (मीटर में मान दें)",
+      "question_id": "exam-q-c10-light-003-hi",
+      "section": null,
+      "series_ids": [
+        "board_practice",
+        "challenge"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "numeric"
+    },
+    {
+      "answer": {
+        "tolerance": 0.05,
+        "unit": "m",
+        "value": 1.0
+      },
+      "base_item_id": "q-c10-light-003",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+      "difficulty": "medium",
+      "explanation": "[Synthetic fixture] The image is as far behind the mirror as the object is in front, so the separation doubles.",
+      "item_id": "exam-q-c10-light-003",
+      "language": "hi-Latn",
+      "marks": 1,
+      "pattern_ref": "class-10-light-reflection-and-refraction:numeric:1",
+      "prompt": "[Synthetic fixture] Vastu samtal darpan se 0.5 meter door hai. Vastu aur uske pratibimb ke beech ki doori hai — (meter mein maan dein)",
+      "question_id": "exam-q-c10-light-003-hi-Latn",
+      "section": null,
+      "series_ids": [
+        "challenge"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "numeric"
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c10-light-004",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "difficulty": "hard",
+      "explanation": "[Synthetic fixture] A normal ray hits the mirror at zero incidence and reverses.",
+      "item_id": "exam-q-c10-light-004",
+      "language": "en",
+      "marks": 1,
+      "options": [
+        "A and R true, R explains A"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:assertion_reason:1",
+      "prompt": "[Synthetic fixture] Assertion: a ray through the centre of curvature of a concave mirror retraces its path. Reason: it is normal to the mirror surface at the point of incidence.",
+      "question_id": "exam-q-c10-light-004-en",
+      "section": null,
+      "series_ids": [
+        "ai_lesson"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "assertion_reason"
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c10-light-004",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "difficulty": "hard",
+      "explanation": "[Synthetic fixture] A normal ray hits the mirror at zero incidence and reverses.",
+      "item_id": "exam-q-c10-light-004",
+      "language": "hi",
+      "marks": 1,
+      "options": [
+        "A और R सत्य, R द्वारा A की व्याख्या"
+      ],
+      "pattern_ref": "class-10-light-reflection-and-refraction:assertion_reason:1",
+      "prompt": "[Synthetic fixture] कथन: अवतल दर्पण की वक्रता केंद्र से गुजरने वाली किरण अपने पथ पर लौटती है। कारण: यह आपतन बिंदु पर दर्पण सतह पर अभिलंबवत होती है।",
+      "question_id": "exam-q-c10-light-004-hi",
+      "section": null,
+      "series_ids": [
+        "ai_lesson"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "assertion_reason"
+    },
+    {
+      "answer": {
+        "index": 0
+      },
+      "base_item_id": "q-c10-light-004",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "class_level": 10,
+      "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+      "difficulty": "hard",
+      "explanation": "[Synthetic fixture] A normal ray hits the mirror at zero incidence and reverses.",
+      "item_id": "exam-q-c10-light-004",
+      "language": "hi-Latn",
+      "marks": 1,
+      "pattern_ref": "class-10-light-reflection-and-refraction:assertion_reason:1",
+      "prompt": "[Synthetic fixture] Kathan: avtal darpan ki vaktta kendra se guzarne wali kiran apne path par lautti hai. Karan: yah aapatan bindu par darpan sat par abhilaMbavati hoti hai.",
+      "question_id": "exam-q-c10-light-004-hi-Latn",
+      "section": null,
+      "series_ids": [
+        "ai_lesson"
+      ],
+      "similarity": {
+        "checked_at": "2026-11-21T06:00:00.000Z",
+        "corpus_size": 0,
+        "max_ngram_overlap": 0.0,
+        "nearest_source_item_id": null,
+        "ngram": 8,
+        "shared_ngram": false,
+        "verdict": "vacuously_clear"
+      },
+      "source_ref": null,
+      "source_type": "generated_blueprint",
+      "type": "assertion_reason"
+    }
+  ],
+  "schema_version": 1
+}

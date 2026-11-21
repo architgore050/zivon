@@ -1,0 +1,59 @@
+{
+  "archetypes": [
+    {
+      "archetype_id": "class-10-light-reflection-and-refraction:mcq:1",
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "marks": 1,
+      "share": 1.0,
+      "type": "mcq",
+      "weighted_count": 16.0
+    }
+  ],
+  "chapters": [
+    {
+      "chapter_id": "class-10-light-reflection-and-refraction",
+      "papers_observed": 1,
+      "share": 1.0,
+      "weighted_marks": 27.0
+    }
+  ],
+  "class_num": 10,
+  "confidence": {
+    "question_map_basis": "authored_estimate",
+    "unverified_papers": 1,
+    "verified_papers": 0
+  },
+  "papers_used": [
+    "cbse-c10-science-2024-main"
+  ],
+  "recency": {
+    "decay": 0.8,
+    "weights": {
+      "cbse-c10-science-2024-main": 1.0
+    }
+  },
+  "schema_version": 1,
+  "section_template": [
+    {
+      "id": "A",
+      "marks_each": 1,
+      "marks_total": 16,
+      "question_count": 16
+    }
+  ],
+  "stage": "E2-blueprint",
+  "subject": "Science",
+  "subject_code": "086",
+  "type_mix": [
+    {
+      "share": 1.0,
+      "type": "mcq",
+      "weighted_marks": 27.0
+    }
+  ],
+  "window": {
+    "end_year": 2024,
+    "start_year": 2020,
+    "years": 5
+  }
+}

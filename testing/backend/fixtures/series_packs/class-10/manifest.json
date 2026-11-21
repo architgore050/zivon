@@ -1,0 +1,102 @@
+{
+  "class_num": 10,
+  "compliance": {
+    "clearance_id": null,
+    "clearance_present": false,
+    "content_mode": "blueprint_only",
+    "exact_pyq_enabled": false,
+    "exact_pyq_status": "disabled:no_verbatim_clearance",
+    "exact_pyq_visible": false,
+    "notice_ids": [
+      "N-01"
+    ],
+    "similarity_policy": {
+      "max_overlap": 0.2,
+      "ngram": 8
+    },
+    "source_corpus_items": 0,
+    "third_party_items": 0,
+    "verbatim_allowed": false,
+    "verbatim_items": 0
+  },
+  "content_hash": "sha256:91565dc260517658af7dc1550048a01e2e3b956f91bbaa00fe89a0dda8d483d7",
+  "content_mode": "blueprint_only",
+  "counts": {
+    "active_series": 5,
+    "base_items": 4,
+    "papers": 1,
+    "question_rows": 11,
+    "series": 6
+  },
+  "coverage": {
+    "by_difficulty": {
+      "easy": 1,
+      "hard": 1,
+      "medium": 2
+    },
+    "by_language": {
+      "en": 4,
+      "hi": 4,
+      "hi-Latn": 3
+    },
+    "by_type": {
+      "assertion_reason": 1,
+      "mcq": 2,
+      "numeric": 1
+    },
+    "chapters": {
+      "class-10-light-reflection-and-refraction": {
+        "ai_lesson": 2,
+        "board_practice": 2,
+        "challenge": 1,
+        "loop": 1,
+        "pyq_pattern": 1
+      }
+    },
+    "series_counts": {
+      "ai_lesson": 2,
+      "board_practice": 2,
+      "challenge": 1,
+      "exact_pyq": 0,
+      "loop": 1,
+      "pyq_pattern": 1
+    }
+  },
+  "exam_pipeline_version": "1",
+  "files": {
+    "blueprint.json": {
+      "bytes": 1151,
+      "sha256": "09ff57c94eb822d09fdd01865bf004a6a410dfec4717486bf9d7217497598211"
+    },
+    "items.json": {
+      "bytes": 14940,
+      "sha256": "05fd56d8c50ca4fd831c813d4209027207ee90e0e4fd5a10d2039dd909b311bf"
+    },
+    "papers.json": {
+      "bytes": 1058,
+      "sha256": "38ce7bd5a79258093d29428a46994740c4507ccfa95c21f19dec774eede49f2c"
+    },
+    "series.json": {
+      "bytes": 8021,
+      "sha256": "73e063e8b79c2700d063c26d83089b554502ce2a1568e26909c40b4d53033940"
+    }
+  },
+  "gate": {
+    "error_count": 0,
+    "rules": [],
+    "verdict": "pass",
+    "warning_count": 0
+  },
+  "generated_at": "2026-11-21T06:00:00.000Z",
+  "notice_version": "1",
+  "pack_version": 1,
+  "publish": {
+    "blockers": [],
+    "reason_codes": [],
+    "status": "ready",
+    "volume": {}
+  },
+  "run_id": "exam-class-10",
+  "subject": "Science",
+  "subject_code": "086"
+}

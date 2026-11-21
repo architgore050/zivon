@@ -1,0 +1,304 @@
+{
+  "class_num": 10,
+  "gate": {},
+  "schema_version": 1,
+  "series": [
+    {
+      "copy": "Chapter tests and mixed practice built from the lesson concepts. Written by Zivon for practice.",
+      "delivered": {
+        "questions": 2,
+        "sets": 1
+      },
+      "disabled_reason": null,
+      "duration_min": null,
+      "enabled": true,
+      "gap": {
+        "questions": 18,
+        "sets": 0
+      },
+      "item_ids": [
+        "exam-q-c10-light-001",
+        "exam-q-c10-light-004"
+      ],
+      "label": "AI lesson tests",
+      "label_key": "series.ai_lesson.label",
+      "language_policy": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "marks_total": null,
+      "minimum": {
+        "mixed_tests": 2,
+        "questions_per_chapter": 20
+      },
+      "notice_id": "N-01",
+      "papers": [],
+      "purpose": "Chapter tests and mixed practice built from the lesson concepts.",
+      "series_id": "ai_lesson",
+      "sets": [
+        {
+          "chapter_id": "class-10-light-reflection-and-refraction",
+          "item_ids": [
+            "exam-q-c10-light-001",
+            "exam-q-c10-light-004"
+          ],
+          "kind": "chapter_test",
+          "set_id": "ai-lesson-class-10-light-reflection-and-refraction-test"
+        }
+      ],
+      "source_policy": "generated",
+      "status": "active"
+    },
+    {
+      "copy": "Built to the CBSE Class 10 Science paper pattern. Close to the paper pattern and built for practice; not an official CBSE paper.",
+      "delivered": {
+        "papers": 1
+      },
+      "disabled_reason": null,
+      "duration_min": 180,
+      "enabled": true,
+      "gap": {
+        "papers": 4
+      },
+      "item_ids": [
+        "exam-q-c10-light-002"
+      ],
+      "label": "Exam-pattern practice",
+      "label_key": "series.pyq_pattern.label",
+      "language_policy": [
+        "en",
+        "hi"
+      ],
+      "marks_total": null,
+      "minimum": {
+        "full_papers": 5
+      },
+      "notice_id": "N-01",
+      "papers": [
+        {
+          "filled_slots": 1,
+          "item_ids": [
+            "exam-q-c10-light-002"
+          ],
+          "marks_total": 2,
+          "paper_id": "pyq-pattern-p01",
+          "sections": [
+            {
+              "chapter_id": "class-10-light-reflection-and-refraction",
+              "item_id": "exam-q-c10-light-002",
+              "marks": 1,
+              "section": "A",
+              "slot_id": "pyq-pattern-p01-a1",
+              "type": "mcq"
+            },
+            {
+              "chapter_id": "class-10-light-reflection-and-refraction",
+              "item_id": null,
+              "marks": 1,
+              "section": "A",
+              "slot_id": "pyq-pattern-p01-a2",
+              "type": "mcq"
+            }
+          ],
+          "total_slots": 2
+        }
+      ],
+      "purpose": "Recurring question shapes mined from the paper design.",
+      "series_id": "pyq_pattern",
+      "sets": [],
+      "source_policy": "generated_blueprint",
+      "status": "active"
+    },
+    {
+      "copy": "",
+      "delivered": {
+        "past_years": 0
+      },
+      "disabled_reason": "no_verbatim_clearance",
+      "duration_min": null,
+      "enabled": false,
+      "gap": {
+        "past_years": 5
+      },
+      "item_ids": [],
+      "label": "Past-year questions (CBSE)",
+      "label_key": "series.exact_pyq.label",
+      "language_policy": [
+        "en",
+        "hi"
+      ],
+      "marks_total": null,
+      "minimum": {
+        "past_years": 5
+      },
+      "notice_id": null,
+      "papers": [],
+      "purpose": "Curated past-year Physics questions with the source shown.",
+      "series_id": "exact_pyq",
+      "sets": [],
+      "source_policy": "verbatim",
+      "status": "disabled"
+    },
+    {
+      "copy": "Full-paper rehearsal close to the CBSE Class 10 Science paper pattern. Built for practice; not an official CBSE paper.",
+      "delivered": {
+        "papers": 1
+      },
+      "disabled_reason": null,
+      "duration_min": 180,
+      "enabled": true,
+      "gap": {
+        "papers": 4
+      },
+      "item_ids": [
+        "exam-q-c10-light-002",
+        "exam-q-c10-light-003"
+      ],
+      "label": "Board practice",
+      "label_key": "series.board_practice.label",
+      "language_policy": [
+        "en",
+        "hi"
+      ],
+      "marks_total": 6,
+      "minimum": {
+        "full_papers": 5
+      },
+      "notice_id": "N-01",
+      "papers": [
+        {
+          "filled_slots": 2,
+          "item_ids": [
+            "exam-q-c10-light-002",
+            "exam-q-c10-light-003"
+          ],
+          "marks_total": 6,
+          "paper_id": "board-practice-p01",
+          "sections": [
+            {
+              "chapter_id": "class-10-light-reflection-and-refraction",
+              "item_id": "exam-q-c10-light-002",
+              "marks": 1,
+              "section": "A",
+              "slot_id": "board-practice-p01-a1",
+              "type": "mcq"
+            },
+            {
+              "chapter_id": "class-10-light-reflection-and-refraction",
+              "item_id": "exam-q-c10-light-003",
+              "marks": 2,
+              "section": "B",
+              "slot_id": "board-practice-p01-b1",
+              "type": "very_short"
+            },
+            {
+              "chapter_id": "class-10-light-reflection-and-refraction",
+              "item_id": null,
+              "marks": 3,
+              "section": "C",
+              "slot_id": "board-practice-p01-c1",
+              "type": "short"
+            }
+          ],
+          "total_slots": 3
+        }
+      ],
+      "purpose": "Full-paper rehearsal close to the CBSE paper pattern.",
+      "series_id": "board_practice",
+      "sets": [],
+      "source_policy": "generated_blueprint",
+      "status": "active"
+    },
+    {
+      "copy": "Harder questions drawn from the same chapter concepts. Written by Zivon for practice.",
+      "delivered": {
+        "questions": 1,
+        "sets": 1
+      },
+      "disabled_reason": null,
+      "duration_min": null,
+      "enabled": true,
+      "gap": {
+        "questions": 99,
+        "sets": 9
+      },
+      "item_ids": [
+        "exam-q-c10-light-003"
+      ],
+      "label": "Challenge sets",
+      "label_key": "series.challenge.label",
+      "language_policy": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "marks_total": null,
+      "minimum": {
+        "questions": 100,
+        "sets": 10
+      },
+      "notice_id": "N-01",
+      "papers": [],
+      "purpose": "Harder questions drawn from the same chapter concepts.",
+      "series_id": "challenge",
+      "sets": [
+        {
+          "chapter_id": "class-10-light-reflection-and-refraction",
+          "item_ids": [
+            "exam-q-c10-light-003"
+          ],
+          "kind": "set",
+          "set_id": "challenge-set-01"
+        }
+      ],
+      "source_policy": "generated",
+      "status": "active"
+    },
+    {
+      "copy": "Drill the question shapes that keep appearing in the paper pattern. Written by Zivon for practice.",
+      "delivered": {
+        "questions": 1,
+        "sets": 1
+      },
+      "disabled_reason": null,
+      "duration_min": null,
+      "enabled": true,
+      "gap": {
+        "questions": 99,
+        "sets": 9
+      },
+      "item_ids": [
+        "exam-q-c10-light-001"
+      ],
+      "label": "Loop drills",
+      "label_key": "series.loop.label",
+      "language_policy": [
+        "en",
+        "hi",
+        "hi-Latn"
+      ],
+      "marks_total": null,
+      "minimum": {
+        "questions": 100,
+        "sets": 10
+      },
+      "notice_id": "N-01",
+      "papers": [],
+      "purpose": "Drill the question shapes that keep appearing across papers.",
+      "series_id": "loop",
+      "sets": [
+        {
+          "chapter_id": "class-10-light-reflection-and-refraction",
+          "item_ids": [
+            "exam-q-c10-light-001"
+          ],
+          "kind": "set",
+          "set_id": "loop-set-01"
+        }
+      ],
+      "source_policy": "generated",
+      "status": "active"
+    }
+  ]
+}

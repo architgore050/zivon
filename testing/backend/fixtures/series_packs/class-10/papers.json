@@ -1,0 +1,40 @@
+{
+  "class_num": 10,
+  "papers": [
+    {
+      "board": "CBSE",
+      "class_num": 10,
+      "duration_min": 180,
+      "file_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "language": "en",
+      "max_marks": 80,
+      "paper_id": "cbse-c10-science-2024-main",
+      "paper_type": "main",
+      "provenance": {
+        "basis": "public_blueprint",
+        "notes": "[Synthetic fixture] metadata-only paper record",
+        "question_map_basis": "authored_estimate",
+        "retrieved_at": "2026-11-21",
+        "source_url": "https://www.cbse.gov.in/cbsenew/question-paper.html",
+        "verified": false
+      },
+      "question_count": 16,
+      "scope": "physics_section",
+      "scope_marks": 27,
+      "sections": [
+        {
+          "id": "A",
+          "marks_each": 1,
+          "question_count": 16
+        }
+      ],
+      "set_code": null,
+      "subject": "Science",
+      "subject_code": "086",
+      "year": 2024
+    }
+  ],
+  "question_count": 16,
+  "schema_version": 1,
+  "source_text_stored": false
+}
