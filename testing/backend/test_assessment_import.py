@@ -73,7 +73,9 @@ class ImportTrackedPacksTests(unittest.TestCase):
     def test_tracked_packs_import_the_expected_rows(self) -> None:
         results = importer.import_packs(self.db, PACKS_DIR)
         self.assertEqual(len(results), len(TRACKED_CHAPTERS))
-        self.assertEqual({result.chapter_id for result in results}, set(TRACKED_CHAPTERS))
+        self.assertEqual(
+            {result.chapter_id for result in results}, set(TRACKED_CHAPTERS)
+        )
         # 15 base items x 3 languages (motion) + 2 x 18 items x 3 languages
         # (the two C10 banks); 3 base prompts + 2 x 3 prompts x 3 languages.
         self.assertEqual(self.count("question_bank"), 198)
@@ -138,8 +140,12 @@ class ImportTrackedPacksTests(unittest.TestCase):
         packs = self.db.fetchall(
             "SELECT chapter_id, content_hash FROM assessment_pack ORDER BY chapter_id"
         )
-        self.assertEqual(len({row["chapter_id"] for row in packs}), len(TRACKED_CHAPTERS))
-        self.assertEqual(len({row["content_hash"] for row in packs}), len(TRACKED_CHAPTERS))
+        self.assertEqual(
+            len({row["chapter_id"] for row in packs}), len(TRACKED_CHAPTERS)
+        )
+        self.assertEqual(
+            len({row["content_hash"] for row in packs}), len(TRACKED_CHAPTERS)
+        )
 
     def test_question_time_prior_matches_the_question_row(self) -> None:
         importer.import_packs(self.db, PACKS_DIR)
