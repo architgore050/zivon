@@ -148,6 +148,24 @@ consuming container; jobs pick values up on next run).
 `POSTGRES_*` values — never set them here (one source of truth for the DB
 password). Validate the interpolated stack before any boot:
 
+### 4.1 Founder-credential-blocked live paths (status 2026-11-21)
+
+Two flows are implemented and tested with mocked seams but cannot be verified
+live until the founder fills the matching values in `.env.prod` (names only
+here — the values are runtime secrets):
+
+- **Live Google OAuth E2E — BLOCKED** on `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+  and `GOOGLE_REDIRECT_URI=<origin>/auth/google/callback`. Until then the routes
+  degrade honestly (`/v1/auth/google/start` → `503 E-SERVICE-UNAVAILABLE`, the web
+  login page hides the Google button) and email+password is the only working
+  sign-in. Mocked-provider tests are green; no live Google sign-in is claimed.
+- **Production email delivery — BLOCKED** on `ZIVON_EMAIL_BACKEND=smtp|resend`
+  plus the matching `ZIVON_SMTP_*` values or `ZIVON_RESEND_API_KEY` (and
+  `ZIVON_EMAIL_FROM`). Until then verification/reset mail would refuse to boot
+  in prod (`dev` sink is refused in `cluster`/`prod`), so these must be set
+  before any real deployment. Adapter + mocked-transport tests are green; no
+  production delivery is verified yet.
+
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml config
 ```
