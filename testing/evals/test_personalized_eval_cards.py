@@ -85,7 +85,7 @@ class CardRegistration(unittest.TestCase):
         # stays deterministic-first, and the judge only ever runs in the
         # full/calibrate suites against its seeded corpus.
         judge = self.cards["EV-PL-004"].llm_judge
-        self.assertIsNotNone(judge)
+        assert judge is not None  # narrow Optional for mypy (repo test convention)
         self.assertEqual(
             judge.entrypoint, "evals.judges.pl_judges:calibrate_pl_adversarial"
         )
