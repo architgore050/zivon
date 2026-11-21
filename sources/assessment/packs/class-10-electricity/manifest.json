@@ -1,0 +1,81 @@
+{
+  "assessment_pipeline_version": "1",
+  "chapter_id": "class-10-electricity",
+  "chapter_title": "Electricity",
+  "class_level": 10,
+  "content_hash": "sha256:3598496062e5e999e04447d081b1ce1eb140907627617028a36fc2b6d5a4fbfa",
+  "counts": {
+    "base_items": 18,
+    "blocks_tagged": 45,
+    "concepts": 5,
+    "question_rows": 54,
+    "speaking_prompts": 3
+  },
+  "coverage": {
+    "block_tagging": "complete",
+    "by_concept": {
+      "class-10-electricity-electric-current-and-potential": 4,
+      "class-10-electricity-heating-effect-and-power": 4,
+      "class-10-electricity-ohms-law": 2,
+      "class-10-electricity-resistance-and-resistivity": 4,
+      "class-10-electricity-resistors-in-series-and-parallel": 4
+    },
+    "by_difficulty": {
+      "easy": 5,
+      "hard": 5,
+      "medium": 8
+    },
+    "by_language": {
+      "en": 18,
+      "hi": 18,
+      "hi-Latn": 18
+    },
+    "by_type": {
+      "assertion_reason": 3,
+      "mcq": 10,
+      "numeric": 5
+    },
+    "speaking_by_language": {
+      "en": 3,
+      "hi": 3,
+      "hi-Latn": 3
+    }
+  },
+  "files": {
+    "concepts.json": {
+      "bytes": 15758,
+      "sha256": "4e339ef87d123c9875c5ab2b751cb9837cbdbe17db86e5bf9b28ddbbbade9a91"
+    },
+    "questions.json": {
+      "bytes": 78471,
+      "sha256": "037a9c4e45db565092b6da23968a44581e9090e5b8ce3610c91019811c46e72e"
+    },
+    "speaking.json": {
+      "bytes": 24203,
+      "sha256": "d8e982d7b9e636d13d7f7da1a0388b2bece4b9fc2a6e016d3793645f593ef2bd"
+    },
+    "syllabus.json": {
+      "bytes": 50519,
+      "sha256": "25bb1265377220fe3ee2b9cd128d4300c348f8973bdfb34de387483fd2a89577"
+    },
+    "time-priors.json": {
+      "bytes": 18783,
+      "sha256": "b65bf4bbba5018d892b6deb3b666ef078f73d0a43740ec09fed17337c92d95c3"
+    }
+  },
+  "gate": {
+    "error_count": 0,
+    "verdict": "pass",
+    "warning_count": 0
+  },
+  "generated_at": "2026-11-21T06:32:19+00:00",
+  "generator": "llm-asm-1",
+  "languages": [
+    "en",
+    "hi",
+    "hi-Latn"
+  ],
+  "pack_version": 1,
+  "run_id": "assessment-class-10-electricity",
+  "subject": "physics"
+}

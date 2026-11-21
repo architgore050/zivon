@@ -1,0 +1,1215 @@
+{
+  "classes": [
+    {
+      "book_ids": [
+        "ncert-science-9"
+      ],
+      "chapters": [
+        {
+          "book_id": "ncert-science-9",
+          "chapter_id": "class-9-describing-motion-around-us",
+          "class": 9,
+          "concepts": [
+            {
+              "concept_id": "class-9-describing-motion-around-us-position-distance-displacement",
+              "description": "Reference point, position on a straight line, total distance travelled and net displacement (NCERT 4.1.1-4.1.2).",
+              "prerequisites": [],
+              "section_refs": [
+                "4.1.1",
+                "4.1.2"
+              ],
+              "title": "Position, distance and displacement",
+              "title_hi": "स्थिति, दूरी और विस्थापन"
+            },
+            {
+              "concept_id": "class-9-describing-motion-around-us-speed-and-velocity",
+              "description": "Average speed from distance, average velocity from displacement, and when their magnitudes differ (NCERT 4.1.3).",
+              "prerequisites": [
+                "class-9-describing-motion-around-us-position-distance-displacement"
+              ],
+              "section_refs": [
+                "4.1.3"
+              ],
+              "title": "Average speed and average velocity",
+              "title_hi": "औसत चाल और औसत वेग"
+            },
+            {
+              "concept_id": "class-9-describing-motion-around-us-acceleration",
+              "description": "Change in velocity over a time interval, its sign and its SI unit (NCERT 4.1.4).",
+              "prerequisites": [
+                "class-9-describing-motion-around-us-speed-and-velocity"
+              ],
+              "section_refs": [
+                "4.1.4"
+              ],
+              "title": "Average acceleration",
+              "title_hi": "औसत त्वरण"
+            },
+            {
+              "concept_id": "class-9-describing-motion-around-us-position-time-graphs",
+              "description": "Reading position against time, and the slope of a position-time line as velocity (NCERT 4.2.1-4.2.2).",
+              "prerequisites": [
+                "class-9-describing-motion-around-us-speed-and-velocity"
+              ],
+              "section_refs": [
+                "4.2.1",
+                "4.2.2"
+              ],
+              "title": "Position-time graphs",
+              "title_hi": "स्थिति-समय ग्राफ"
+            },
+            {
+              "concept_id": "class-9-describing-motion-around-us-velocity-time-graphs",
+              "description": "Slope of a velocity-time graph as acceleration and the area under it as displacement (NCERT 4.2.3).",
+              "prerequisites": [
+                "class-9-describing-motion-around-us-acceleration",
+                "class-9-describing-motion-around-us-position-time-graphs"
+              ],
+              "section_refs": [
+                "4.2.3"
+              ],
+              "title": "Velocity-time graphs",
+              "title_hi": "वेग-समय ग्राफ"
+            },
+            {
+              "concept_id": "class-9-describing-motion-around-us-kinematic-equations",
+              "description": "The three equations for motion with constant acceleration and their use in numerical problems (NCERT 4.3).",
+              "prerequisites": [
+                "class-9-describing-motion-around-us-acceleration",
+                "class-9-describing-motion-around-us-velocity-time-graphs"
+              ],
+              "section_refs": [
+                "4.3"
+              ],
+              "title": "Kinematic equations",
+              "title_hi": "गति के समीकरण"
+            },
+            {
+              "concept_id": "class-9-describing-motion-around-us-uniform-circular-motion",
+              "description": "Motion along a circle at constant speed, and why its velocity keeps changing (NCERT 4.4-4.4.1).",
+              "prerequisites": [
+                "class-9-describing-motion-around-us-speed-and-velocity"
+              ],
+              "section_refs": [
+                "4.4",
+                "4.4.1"
+              ],
+              "title": "Uniform circular motion",
+              "title_hi": "एकसमान वृत्तीय गति"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "describing-motion-around-us",
+          "number": 4,
+          "order": 1,
+          "status": "live",
+          "title": "Describing Motion Around Us",
+          "title_hi": "गति का वर्णन"
+        },
+        {
+          "book_id": "ncert-science-9",
+          "chapter_id": "class-9-how-forces-affect-motion",
+          "class": 9,
+          "concepts": [
+            {
+              "concept_id": "class-9-how-forces-affect-motion-concept-of-force",
+              "description": "What a force does to an object and how its magnitude is measured (NCERT 6.1-6.1.1).",
+              "prerequisites": [],
+              "section_refs": [
+                "6.1",
+                "6.1.1"
+              ],
+              "title": "The concept of force",
+              "title_hi": "बल की अवधारणा"
+            },
+            {
+              "concept_id": "class-9-how-forces-affect-motion-balanced-and-unbalanced-forces",
+              "description": "Net force, balanced forces at rest and unbalanced forces changing motion (NCERT 6.2).",
+              "prerequisites": [
+                "class-9-how-forces-affect-motion-concept-of-force"
+              ],
+              "section_refs": [
+                "6.2"
+              ],
+              "title": "Balanced and unbalanced forces",
+              "title_hi": "संतुलित और असंतुलित बल"
+            },
+            {
+              "concept_id": "class-9-how-forces-affect-motion-friction",
+              "description": "Friction as a force that opposes relative motion and how it affects everyday motion (NCERT 6.3).",
+              "prerequisites": [
+                "class-9-how-forces-affect-motion-balanced-and-unbalanced-forces"
+              ],
+              "section_refs": [
+                "6.3"
+              ],
+              "title": "The force of friction",
+              "title_hi": "घर्षण बल"
+            },
+            {
+              "concept_id": "class-9-how-forces-affect-motion-newtons-first-law",
+              "description": "Inertia, and why a body continues at rest or in uniform motion without a net force (NCERT 6.4).",
+              "prerequisites": [
+                "class-9-how-forces-affect-motion-balanced-and-unbalanced-forces"
+              ],
+              "section_refs": [
+                "6.4"
+              ],
+              "title": "Newton's first law of motion",
+              "title_hi": "न्यूटन का गति का प्रथम नियम"
+            },
+            {
+              "concept_id": "class-9-how-forces-affect-motion-newtons-second-law",
+              "description": "Force as the rate of change of momentum, F = ma and its applications (NCERT 6.5).",
+              "prerequisites": [
+                "class-9-how-forces-affect-motion-newtons-first-law"
+              ],
+              "section_refs": [
+                "6.5"
+              ],
+              "title": "Newton's second law of motion",
+              "title_hi": "न्यूटन का गति का द्वितीय नियम"
+            },
+            {
+              "concept_id": "class-9-how-forces-affect-motion-newtons-third-law",
+              "description": "Action-reaction pairs acting on different bodies (NCERT 6.6).",
+              "prerequisites": [
+                "class-9-how-forces-affect-motion-newtons-second-law"
+              ],
+              "section_refs": [
+                "6.6"
+              ],
+              "title": "Newton's third law of motion",
+              "title_hi": "न्यूटन का गति का तृतीय नियम"
+            },
+            {
+              "concept_id": "class-9-how-forces-affect-motion-forces-on-a-system",
+              "description": "How to treat several bodies as one system and when internal forces cancel (NCERT 6.7).",
+              "prerequisites": [
+                "class-9-how-forces-affect-motion-newtons-second-law",
+                "class-9-how-forces-affect-motion-newtons-third-law"
+              ],
+              "section_refs": [
+                "6.7"
+              ],
+              "title": "Forces acting on a system of objects",
+              "title_hi": "वस्तुओं के निकाय पर बल"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "how-forces-affect-motion",
+          "number": 6,
+          "order": 2,
+          "status": "live",
+          "title": "How Forces Affect Motion",
+          "title_hi": "बल गति को कैसे प्रभावित करते हैं"
+        },
+        {
+          "book_id": "ncert-science-9",
+          "chapter_id": "class-9-work-energy-and-simple-machines",
+          "class": 9,
+          "concepts": [
+            {
+              "concept_id": "class-9-work-energy-and-simple-machines-work-done-by-a-force",
+              "description": "Work as force times displacement, zero work, and positive or negative work (NCERT 7.1-7.1.2).",
+              "prerequisites": [],
+              "section_refs": [
+                "7.1",
+                "7.1.1",
+                "7.1.2"
+              ],
+              "title": "Work done by a force",
+              "title_hi": "बल द्वारा किया गया कार्य"
+            },
+            {
+              "concept_id": "class-9-work-energy-and-simple-machines-work-energy-theorem",
+              "description": "The change in kinetic energy equals the net work done (NCERT 7.2).",
+              "prerequisites": [
+                "class-9-work-energy-and-simple-machines-work-done-by-a-force"
+              ],
+              "section_refs": [
+                "7.2"
+              ],
+              "title": "The work-energy theorem",
+              "title_hi": "कार्य-ऊर्जा प्रमेय"
+            },
+            {
+              "concept_id": "class-9-work-energy-and-simple-machines-forms-of-energy",
+              "description": "Kinetic, potential and other forms of energy met in the chapter (NCERT 7.3).",
+              "prerequisites": [
+                "class-9-work-energy-and-simple-machines-work-energy-theorem"
+              ],
+              "section_refs": [
+                "7.3"
+              ],
+              "title": "Forms of energy",
+              "title_hi": "ऊर्जा के रूप"
+            },
+            {
+              "concept_id": "class-9-work-energy-and-simple-machines-mechanical-energy",
+              "description": "Kinetic and potential energy together, and conservation in free fall (NCERT 7.4-7.4.3).",
+              "prerequisites": [
+                "class-9-work-energy-and-simple-machines-forms-of-energy"
+              ],
+              "section_refs": [
+                "7.4",
+                "7.4.1",
+                "7.4.2",
+                "7.4.3"
+              ],
+              "title": "Mechanical energy and its conservation",
+              "title_hi": "यांत्रिक ऊर्जा और उसका संरक्षण"
+            },
+            {
+              "concept_id": "class-9-work-energy-and-simple-machines-power",
+              "description": "Rate of doing work and the unit watt (NCERT 7.5).",
+              "prerequisites": [
+                "class-9-work-energy-and-simple-machines-work-done-by-a-force"
+              ],
+              "section_refs": [
+                "7.5"
+              ],
+              "title": "Power",
+              "title_hi": "शक्ति"
+            },
+            {
+              "concept_id": "class-9-work-energy-and-simple-machines-simple-machines",
+              "description": "Pulley, inclined plane and lever as force-multiplying arrangements (NCERT 7.6-7.6.3).",
+              "prerequisites": [
+                "class-9-work-energy-and-simple-machines-work-done-by-a-force"
+              ],
+              "section_refs": [
+                "7.6",
+                "7.6.1",
+                "7.6.2",
+                "7.6.3"
+              ],
+              "title": "Simple machines",
+              "title_hi": "सरल मशीनें"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 7,
+          "order": 3,
+          "status": "in_development",
+          "title": "Work, Energy, and Simple Machines",
+          "title_hi": "कार्य, ऊर्जा और सरल मशीनें"
+        },
+        {
+          "book_id": "ncert-science-9",
+          "chapter_id": "class-9-sound-waves-characteristics-and-applications",
+          "class": 9,
+          "concepts": [
+            {
+              "concept_id": "class-9-sound-waves-characteristics-and-applications-production-and-propagation",
+              "description": "Vibrating sources and sound travelling through a medium (NCERT 10.1-10.2.1).",
+              "prerequisites": [],
+              "section_refs": [
+                "10.1",
+                "10.1.1",
+                "10.2",
+                "10.2.1"
+              ],
+              "title": "Production and propagation of sound",
+              "title_hi": "ध्वनि का उत्पादन और संचरण"
+            },
+            {
+              "concept_id": "class-9-sound-waves-characteristics-and-applications-sound-waves",
+              "description": "Compressions and rarefactions, and how a sound wave travels (NCERT 10.3).",
+              "prerequisites": [
+                "class-9-sound-waves-characteristics-and-applications-production-and-propagation"
+              ],
+              "section_refs": [
+                "10.3"
+              ],
+              "title": "Sound waves",
+              "title_hi": "ध्वनि तरंगें"
+            },
+            {
+              "concept_id": "class-9-sound-waves-characteristics-and-applications-energy-of-sound-waves",
+              "description": "Sound carries energy; louder sound means more energy (NCERT 10.4).",
+              "prerequisites": [
+                "class-9-sound-waves-characteristics-and-applications-sound-waves"
+              ],
+              "section_refs": [
+                "10.4"
+              ],
+              "title": "Energy of sound waves",
+              "title_hi": "ध्वनि तरंगों की ऊर्जा"
+            },
+            {
+              "concept_id": "class-9-sound-waves-characteristics-and-applications-sound-wave-graph",
+              "description": "Reading a displacement-distance or displacement-time graph of a wave (NCERT 10.5).",
+              "prerequisites": [
+                "class-9-sound-waves-characteristics-and-applications-sound-waves"
+              ],
+              "section_refs": [
+                "10.5"
+              ],
+              "title": "Graphical representation of a sound wave",
+              "title_hi": "ध्वनि तरंग का ग्राफीय निरूपण"
+            },
+            {
+              "concept_id": "class-9-sound-waves-characteristics-and-applications-characteristics-of-sound",
+              "description": "Wavelength, frequency, time period, amplitude, speed and how the ear perceives them (NCERT 10.6-10.6.4).",
+              "prerequisites": [
+                "class-9-sound-waves-characteristics-and-applications-sound-wave-graph"
+              ],
+              "section_refs": [
+                "10.6",
+                "10.6.1",
+                "10.6.2",
+                "10.6.3",
+                "10.6.4"
+              ],
+              "title": "Characteristics of a sound wave",
+              "title_hi": "ध्वनि तरंग की विशेषताएँ"
+            },
+            {
+              "concept_id": "class-9-sound-waves-characteristics-and-applications-reflection-of-sound",
+              "description": "Echo and reverberation, then ultrasound, infrasound and echolocation (NCERT 10.7-10.8.1).",
+              "prerequisites": [
+                "class-9-sound-waves-characteristics-and-applications-characteristics-of-sound"
+              ],
+              "section_refs": [
+                "10.7",
+                "10.7.1",
+                "10.7.2",
+                "10.8",
+                "10.8.1"
+              ],
+              "title": "Reflection of sound and its applications",
+              "title_hi": "ध्वनि का परावर्तन और उसके अनुप्रयोग"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 10,
+          "order": 4,
+          "status": "in_development",
+          "title": "Sound Waves: Characteristics and Applications",
+          "title_hi": "ध्वनि तरंगें: विशेषताएँ और अनुप्रयोग"
+        }
+      ],
+      "class": 9,
+      "textbook_title": "Science - Textbook for Grade 9 (2025 edition)"
+    },
+    {
+      "book_ids": [
+        "ncert-science-10"
+      ],
+      "chapters": [
+        {
+          "book_id": "ncert-science-10",
+          "chapter_id": "class-10-light-reflection-and-refraction",
+          "class": 10,
+          "concepts": [
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-reflection-of-light",
+              "description": "The two laws of reflection and the image formed by a plane mirror (NCERT 9.1).",
+              "prerequisites": [],
+              "section_refs": [
+                "9.1"
+              ],
+              "title": "Reflection of light",
+              "title_hi": "प्रकाश का परावर्तन"
+            },
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-spherical-mirrors",
+              "description": "Concave and convex mirrors, pole, centre and radius of curvature, principal focus and ray diagrams (NCERT 9.2-9.2.2).",
+              "prerequisites": [
+                "class-10-light-reflection-and-refraction-reflection-of-light"
+              ],
+              "section_refs": [
+                "9.2",
+                "9.2.1",
+                "9.2.2"
+              ],
+              "title": "Spherical mirrors",
+              "title_hi": "गोलीय दर्पण"
+            },
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-mirror-formula-and-magnification",
+              "description": "The New Cartesian sign convention, 1/v + 1/u = 1/f and m = -v/u (NCERT 9.2.3-9.2.4).",
+              "prerequisites": [
+                "class-10-light-reflection-and-refraction-spherical-mirrors"
+              ],
+              "section_refs": [
+                "9.2.3",
+                "9.2.4"
+              ],
+              "title": "Mirror formula and magnification",
+              "title_hi": "दर्पण सूत्र और आवर्धन"
+            },
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-refraction-of-light",
+              "description": "Bending at a transparent boundary, refraction through a glass slab and the refractive index (NCERT 9.3-9.3.2).",
+              "prerequisites": [
+                "class-10-light-reflection-and-refraction-reflection-of-light"
+              ],
+              "section_refs": [
+                "9.3",
+                "9.3.1",
+                "9.3.2"
+              ],
+              "title": "Refraction of light",
+              "title_hi": "प्रकाश का अपवर्तन"
+            },
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-spherical-lenses",
+              "description": "Convex and concave lenses, focal length and image formation by ray diagrams (NCERT 9.3.3-9.3.5).",
+              "prerequisites": [
+                "class-10-light-reflection-and-refraction-refraction-of-light"
+              ],
+              "section_refs": [
+                "9.3.3",
+                "9.3.4",
+                "9.3.5"
+              ],
+              "title": "Spherical lenses",
+              "title_hi": "गोलीय लेंस"
+            },
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-lens-formula-and-magnification",
+              "description": "The sign convention for lenses, 1/v - 1/u = 1/f and m = v/u (NCERT 9.3.6-9.3.7).",
+              "prerequisites": [
+                "class-10-light-reflection-and-refraction-spherical-lenses"
+              ],
+              "section_refs": [
+                "9.3.6",
+                "9.3.7"
+              ],
+              "title": "Lens formula and magnification",
+              "title_hi": "लेंस सूत्र और आवर्धन"
+            },
+            {
+              "concept_id": "class-10-light-reflection-and-refraction-power-of-a-lens",
+              "description": "Power as the reciprocal of focal length, the dioptre, and powers in contact (NCERT 9.3.8).",
+              "prerequisites": [
+                "class-10-light-reflection-and-refraction-lens-formula-and-magnification"
+              ],
+              "section_refs": [
+                "9.3.8"
+              ],
+              "title": "Power of a lens",
+              "title_hi": "लेंस की क्षमता"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 9,
+          "order": 1,
+          "status": "in_development",
+          "title": "Light – Reflection and Refraction",
+          "title_hi": "प्रकाश – परावर्तन और अपवर्तन"
+        },
+        {
+          "book_id": "ncert-science-10",
+          "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+          "class": 10,
+          "concepts": [
+            {
+              "concept_id": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+              "description": "The eye's parts, image formation on the retina and the power of accommodation (NCERT 10.1-10.1.1).",
+              "prerequisites": [],
+              "section_refs": [
+                "10.1",
+                "10.1.1"
+              ],
+              "title": "The human eye",
+              "title_hi": "मानव नेत्र"
+            },
+            {
+              "concept_id": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+              "description": "Myopia, hypermetropia and presbyopia, and the lenses that correct them (NCERT 10.2).",
+              "prerequisites": [
+                "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+              ],
+              "section_refs": [
+                "10.2"
+              ],
+              "title": "Defects of vision and their correction",
+              "title_hi": "दृष्टि दोष और उनका सुधार"
+            },
+            {
+              "concept_id": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+              "description": "Light bending through a triangular prism and white light splitting into a spectrum (NCERT 10.3-10.4).",
+              "prerequisites": [
+                "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+              ],
+              "section_refs": [
+                "10.3",
+                "10.4"
+              ],
+              "title": "Refraction and dispersion by a prism",
+              "title_hi": "प्रिज़्म द्वारा अपवर्तन और विक्षेपण"
+            },
+            {
+              "concept_id": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+              "description": "Twinkling stars, apparent positions of objects and the advance of sunrise (NCERT 10.5).",
+              "prerequisites": [
+                "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion"
+              ],
+              "section_refs": [
+                "10.5"
+              ],
+              "title": "Atmospheric refraction",
+              "title_hi": "वायुमंडलीय अपवर्तन"
+            },
+            {
+              "concept_id": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+              "description": "The Tyndall effect, why the sky is blue and why sunsets are red (NCERT 10.6-10.6.2).",
+              "prerequisites": [
+                "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion"
+              ],
+              "section_refs": [
+                "10.6",
+                "10.6.1",
+                "10.6.2"
+              ],
+              "title": "Scattering of light",
+              "title_hi": "प्रकाश का प्रकीर्णन"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "the-human-eye-and-the-colourful-world",
+          "number": 10,
+          "order": 2,
+          "status": "in_development",
+          "title": "The Human Eye and the Colourful World",
+          "title_hi": "मानव नेत्र और रंगीन संसार"
+        },
+        {
+          "book_id": "ncert-science-10",
+          "chapter_id": "class-10-electricity",
+          "class": 10,
+          "concepts": [
+            {
+              "concept_id": "class-10-electricity-electric-current-and-potential",
+              "description": "Charge in motion, the ampere, and potential difference as work per charge (NCERT 11.1-11.3).",
+              "prerequisites": [],
+              "section_refs": [
+                "11.1",
+                "11.2",
+                "11.3"
+              ],
+              "title": "Electric current and potential difference",
+              "title_hi": "विद्युत धारा और विभवांतर"
+            },
+            {
+              "concept_id": "class-10-electricity-ohms-law",
+              "description": "The V-I relationship for a metallic conductor at constant temperature (NCERT 11.4).",
+              "prerequisites": [
+                "class-10-electricity-electric-current-and-potential"
+              ],
+              "section_refs": [
+                "11.4"
+              ],
+              "title": "Ohm's law",
+              "title_hi": "ओम का नियम"
+            },
+            {
+              "concept_id": "class-10-electricity-resistance-and-resistivity",
+              "description": "Resistance, the factors it depends on and the resistivity of materials (NCERT 11.5).",
+              "prerequisites": [
+                "class-10-electricity-ohms-law"
+              ],
+              "section_refs": [
+                "11.5"
+              ],
+              "title": "Resistance and resistivity",
+              "title_hi": "प्रतिरोध और प्रतिरोधकता"
+            },
+            {
+              "concept_id": "class-10-electricity-resistors-in-series-and-parallel",
+              "description": "Equivalent resistance for series and parallel combinations and their current/voltage rules (NCERT 11.6-11.6.2).",
+              "prerequisites": [
+                "class-10-electricity-resistance-and-resistivity"
+              ],
+              "section_refs": [
+                "11.6",
+                "11.6.1",
+                "11.6.2"
+              ],
+              "title": "Resistors in series and parallel",
+              "title_hi": "श्रेणी और समांतर में प्रतिरोधक"
+            },
+            {
+              "concept_id": "class-10-electricity-heating-effect-and-power",
+              "description": "Joule's law of heating, electric power and the kilowatt-hour (NCERT 11.7-11.8).",
+              "prerequisites": [
+                "class-10-electricity-resistors-in-series-and-parallel"
+              ],
+              "section_refs": [
+                "11.7",
+                "11.7.1",
+                "11.8"
+              ],
+              "title": "Heating effect of current and electric power",
+              "title_hi": "धारा का तापन प्रभाव और विद्युत शक्ति"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "electricity",
+          "number": 11,
+          "order": 3,
+          "status": "in_development",
+          "title": "Electricity",
+          "title_hi": "विद्युत"
+        },
+        {
+          "book_id": "ncert-science-10",
+          "chapter_id": "class-10-magnetic-effects-of-electric-current",
+          "class": 10,
+          "concepts": [
+            {
+              "concept_id": "class-10-magnetic-effects-of-electric-current-magnetic-field-and-field-lines",
+              "description": "Field around a magnet, field lines and the direction of the field (NCERT 12.1).",
+              "prerequisites": [],
+              "section_refs": [
+                "12.1"
+              ],
+              "title": "Magnetic field and field lines",
+              "title_hi": "चुंबकीय क्षेत्र और क्षेत्र रेखाएँ"
+            },
+            {
+              "concept_id": "class-10-magnetic-effects-of-electric-current-magnetic-field-due-to-current",
+              "description": "Field around a straight conductor, circular loop and solenoid, and the right-hand thumb rule (NCERT 12.2-12.2.4).",
+              "prerequisites": [
+                "class-10-magnetic-effects-of-electric-current-magnetic-field-and-field-lines"
+              ],
+              "section_refs": [
+                "12.2",
+                "12.2.1",
+                "12.2.2",
+                "12.2.3",
+                "12.2.4"
+              ],
+              "title": "Magnetic field due to an electric current",
+              "title_hi": "विद्युत धारा के कारण चुंबकीय क्षेत्र"
+            },
+            {
+              "concept_id": "class-10-magnetic-effects-of-electric-current-force-on-a-conductor-and-motor",
+              "description": "Fleming's left-hand rule and how a current-carrying coil turns in a magnetic field (NCERT 12.3-12.4).",
+              "prerequisites": [
+                "class-10-magnetic-effects-of-electric-current-magnetic-field-due-to-current"
+              ],
+              "section_refs": [
+                "12.3",
+                "12.4"
+              ],
+              "title": "Force on a conductor and the electric motor",
+              "title_hi": "चालक पर बल और विद्युत मोटर"
+            },
+            {
+              "concept_id": "class-10-magnetic-effects-of-electric-current-electromagnetic-induction",
+              "description": "A changing magnetic field inducing a current, and Fleming's right-hand rule (NCERT 12.5).",
+              "prerequisites": [
+                "class-10-magnetic-effects-of-electric-current-magnetic-field-due-to-current"
+              ],
+              "section_refs": [
+                "12.5"
+              ],
+              "title": "Electromagnetic induction",
+              "title_hi": "विद्युत चुंबकीय प्रेरण"
+            },
+            {
+              "concept_id": "class-10-magnetic-effects-of-electric-current-electric-generator",
+              "description": "How a rotating coil generates AC, and the difference from a DC generator (NCERT 12.6).",
+              "prerequisites": [
+                "class-10-magnetic-effects-of-electric-current-electromagnetic-induction"
+              ],
+              "section_refs": [
+                "12.6"
+              ],
+              "title": "Electric generator",
+              "title_hi": "विद्युत जनित्र"
+            },
+            {
+              "concept_id": "class-10-magnetic-effects-of-electric-current-domestic-electric-circuits",
+              "description": "Live, neutral and earth wires, fuses and why household appliances are wired in parallel (NCERT 12.7).",
+              "prerequisites": [
+                "class-10-magnetic-effects-of-electric-current-force-on-a-conductor-and-motor"
+              ],
+              "section_refs": [
+                "12.7"
+              ],
+              "title": "Domestic electric circuits",
+              "title_hi": "घरेलू विद्युत परिपथ"
+            }
+          ],
+          "concepts_status": "curated",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 12,
+          "order": 4,
+          "status": "in_development",
+          "title": "Magnetic Effects of Electric Current",
+          "title_hi": "विद्युत धारा के चुंबकीय प्रभाव"
+        }
+      ],
+      "class": 10,
+      "textbook_title": "Science - Textbook for Class X"
+    },
+    {
+      "book_ids": [
+        "ncert-physics-11-part1",
+        "ncert-physics-11-part2"
+      ],
+      "chapters": [
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-units-and-measurement",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "units-and-measurement",
+          "number": 1,
+          "order": 1,
+          "status": "live",
+          "title": "Units and Measurement",
+          "title_hi": "मात्रक और मापन"
+        },
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-motion-in-a-straight-line",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "motion-in-a-straight-line",
+          "number": 2,
+          "order": 2,
+          "status": "live",
+          "title": "Motion in a Straight Line",
+          "title_hi": "सरल रेखा में गति"
+        },
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-motion-in-a-plane",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "motion-in-a-plane",
+          "number": 3,
+          "order": 3,
+          "status": "live",
+          "title": "Motion in a Plane",
+          "title_hi": "समतल में गति"
+        },
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-laws-of-motion",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": "laws-of-motion",
+          "number": 4,
+          "order": 4,
+          "status": "live",
+          "title": "Laws of Motion",
+          "title_hi": "गति के नियम"
+        },
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-work-energy-and-power",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 5,
+          "order": 5,
+          "status": "in_development",
+          "title": "Work, Energy and Power",
+          "title_hi": "कार्य, ऊर्जा और शक्ति"
+        },
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-system-of-particles-and-rotational-motion",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 6,
+          "order": 6,
+          "status": "in_development",
+          "title": "System of Particles and Rotational Motion",
+          "title_hi": "कणों के निकाय और घूर्णन गति"
+        },
+        {
+          "book_id": "ncert-physics-11-part1",
+          "chapter_id": "class-11-gravitation",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 7,
+          "order": 7,
+          "status": "in_development",
+          "title": "Gravitation",
+          "title_hi": "गुरुत्वाकर्षण"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-mechanical-properties-of-solids",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 8,
+          "order": 8,
+          "status": "in_development",
+          "title": "Mechanical Properties of Solids",
+          "title_hi": "ठोसों के यांत्रिक गुण"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-mechanical-properties-of-fluids",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 9,
+          "order": 9,
+          "status": "in_development",
+          "title": "Mechanical Properties of Fluids",
+          "title_hi": "तरलों के यांत्रिक गुण"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-thermal-properties-of-matter",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 10,
+          "order": 10,
+          "status": "in_development",
+          "title": "Thermal Properties of Matter",
+          "title_hi": "पदार्थ के तापीय गुण"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-thermodynamics",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 11,
+          "order": 11,
+          "status": "in_development",
+          "title": "Thermodynamics",
+          "title_hi": "उष्मागतिकी"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-kinetic-theory",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 12,
+          "order": 12,
+          "status": "in_development",
+          "title": "Kinetic Theory",
+          "title_hi": "गतिज सिद्धांत"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-oscillations",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 13,
+          "order": 13,
+          "status": "in_development",
+          "title": "Oscillations",
+          "title_hi": "दोलन"
+        },
+        {
+          "book_id": "ncert-physics-11-part2",
+          "chapter_id": "class-11-waves",
+          "class": 11,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 14,
+          "order": 14,
+          "status": "in_development",
+          "title": "Waves",
+          "title_hi": "तरंगें"
+        }
+      ],
+      "class": 11,
+      "textbook_title": "Physics Part I & II - Textbook for Class XI"
+    },
+    {
+      "book_ids": [
+        "ncert-physics-12-part1",
+        "ncert-physics-12-part2"
+      ],
+      "chapters": [
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-electric-charges-and-fields",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 1,
+          "order": 1,
+          "status": "in_development",
+          "title": "Electric Charges and Fields",
+          "title_hi": "विद्युत आवेश और क्षेत्र"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-electrostatic-potential-and-capacitance",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 2,
+          "order": 2,
+          "status": "in_development",
+          "title": "Electrostatic Potential and Capacitance",
+          "title_hi": "स्थिर विद्युत विभव और धारिता"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-current-electricity",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 3,
+          "order": 3,
+          "status": "in_development",
+          "title": "Current Electricity",
+          "title_hi": "धारा विद्युत"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-moving-charges-and-magnetism",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 4,
+          "order": 4,
+          "status": "in_development",
+          "title": "Moving Charges and Magnetism",
+          "title_hi": "गतिमान आवेश और चुंबकत्व"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-magnetism-and-matter",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 5,
+          "order": 5,
+          "status": "in_development",
+          "title": "Magnetism and Matter",
+          "title_hi": "चुंबकत्व और पदार्थ"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-electromagnetic-induction",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 6,
+          "order": 6,
+          "status": "in_development",
+          "title": "Electromagnetic Induction",
+          "title_hi": "विद्युत चुंबकीय प्रेरण"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-alternating-current",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 7,
+          "order": 7,
+          "status": "in_development",
+          "title": "Alternating Current",
+          "title_hi": "प्रत्यावर्ती धारा"
+        },
+        {
+          "book_id": "ncert-physics-12-part1",
+          "chapter_id": "class-12-electromagnetic-waves",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 8,
+          "order": 8,
+          "status": "in_development",
+          "title": "Electromagnetic Waves",
+          "title_hi": "विद्युत चुंबकीय तरंगें"
+        },
+        {
+          "book_id": "ncert-physics-12-part2",
+          "chapter_id": "class-12-ray-optics-and-optical-instruments",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 9,
+          "order": 9,
+          "status": "in_development",
+          "title": "Ray Optics and Optical Instruments",
+          "title_hi": "किरण प्रकाशिकी और प्रकाशिक यंत्र"
+        },
+        {
+          "book_id": "ncert-physics-12-part2",
+          "chapter_id": "class-12-wave-optics",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 10,
+          "order": 10,
+          "status": "in_development",
+          "title": "Wave Optics",
+          "title_hi": "तरंग प्रकाशिकी"
+        },
+        {
+          "book_id": "ncert-physics-12-part2",
+          "chapter_id": "class-12-dual-nature-of-radiation-and-matter",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 11,
+          "order": 11,
+          "status": "in_development",
+          "title": "Dual Nature of Radiation and Matter",
+          "title_hi": "विकिरण और पदार्थ की द्वैत प्रकृति"
+        },
+        {
+          "book_id": "ncert-physics-12-part2",
+          "chapter_id": "class-12-atoms",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 12,
+          "order": 12,
+          "status": "in_development",
+          "title": "Atoms",
+          "title_hi": "परमाणु"
+        },
+        {
+          "book_id": "ncert-physics-12-part2",
+          "chapter_id": "class-12-nuclei",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 13,
+          "order": 13,
+          "status": "in_development",
+          "title": "Nuclei",
+          "title_hi": "नाभिक"
+        },
+        {
+          "book_id": "ncert-physics-12-part2",
+          "chapter_id": "class-12-semiconductor-electronics-materials-devices-and-simple-circuits",
+          "class": 12,
+          "concepts": [],
+          "concepts_status": "pending_r1_5",
+          "exam_weight": null,
+          "exam_weight_status": "pending_p3_blueprint",
+          "lesson_topic_slug": null,
+          "number": 14,
+          "order": 14,
+          "status": "in_development",
+          "title": "Semiconductor Electronics: Materials, Devices and Simple Circuits",
+          "title_hi": "अर्धचालक इलेक्ट्रॉनिकी: पदार्थ, यंत्र और सरल परिपथ"
+        }
+      ],
+      "class": 12,
+      "textbook_title": "Physics Part I & II - Textbook for Class XII"
+    }
+  ],
+  "schema_version": 1,
+  "source_basis": "NCERT textbooks cached under sources/pdfs (Science 2025 Grade 9 edition; Science Class X; Physics Part I/II Class XI and XII, rationalised editions). Chapter numbers and titles were extracted from each chapter PDF's first page on 2026-11-17; concepts are curated from the chapter section headings.",
+  "subject": "physics",
+  "updated_at": "2026-11-17"
+}

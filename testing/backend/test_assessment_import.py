@@ -26,6 +26,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKS_DIR = REPO_ROOT / "sources" / "assessment" / "packs"
 MOTION = "class-9-describing-motion-around-us"
 LIGHT = "class-10-light-reflection-and-refraction"
+HUMAN_EYE = "class-10-the-human-eye-and-the-colourful-world"
+ELECTRICITY = "class-10-electricity"
+# The tracked packs directory holds every mirrored, gate-passed bank.
+TRACKED_CHAPTERS = (MOTION, LIGHT, HUMAN_EYE, ELECTRICITY)
 
 
 def _load_importer() -> ModuleType:
@@ -68,13 +72,16 @@ class ImportTrackedPacksTests(unittest.TestCase):
 
     def test_tracked_packs_import_the_expected_rows(self) -> None:
         results = importer.import_packs(self.db, PACKS_DIR)
-        self.assertEqual(len(results), 2)
-        self.assertEqual({result.chapter_id for result in results}, {MOTION, LIGHT})
-        # 15 base items x 3 languages per chapter; 3 prompts x 3 languages.
-        self.assertEqual(self.count("question_bank"), 90)
-        self.assertEqual(self.count("speaking_prompt"), 18)
-        self.assertEqual(self.count("topic_time_prior"), 16)
-        self.assertEqual(self.count("assessment_pack"), 2)
+        self.assertEqual(len(results), len(TRACKED_CHAPTERS))
+        self.assertEqual(
+            {result.chapter_id for result in results}, set(TRACKED_CHAPTERS)
+        )
+        # 15 base items x 3 languages (motion) + 2 x 18 items x 3 languages
+        # (the two C10 banks); 3 base prompts + 2 x 3 prompts x 3 languages.
+        self.assertEqual(self.count("question_bank"), 198)
+        self.assertEqual(self.count("speaking_prompt"), 36)
+        self.assertEqual(self.count("topic_time_prior"), 28)
+        self.assertEqual(self.count("assessment_pack"), len(TRACKED_CHAPTERS))
 
         motion = self.db.fetchone(
             "SELECT class_level, language, type, status, marks, expected_time_ms, "
@@ -133,8 +140,12 @@ class ImportTrackedPacksTests(unittest.TestCase):
         packs = self.db.fetchall(
             "SELECT chapter_id, content_hash FROM assessment_pack ORDER BY chapter_id"
         )
-        self.assertEqual(len({row["chapter_id"] for row in packs}), 2)
-        self.assertEqual(len({row["content_hash"] for row in packs}), 2)
+        self.assertEqual(
+            len({row["chapter_id"] for row in packs}), len(TRACKED_CHAPTERS)
+        )
+        self.assertEqual(
+            len({row["content_hash"] for row in packs}), len(TRACKED_CHAPTERS)
+        )
 
     def test_question_time_prior_matches_the_question_row(self) -> None:
         importer.import_packs(self.db, PACKS_DIR)

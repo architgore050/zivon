@@ -44,9 +44,9 @@ them; the assessment and exam pipelines key on the ids):
 | # | chapter_id | NCERT chapter | Curated concepts | Lesson | Assessment bank | Translation | Narration |
 |---|---|---|---|---|---|---|---|
 | 1 | `class-10-light-reflection-and-refraction` | Light – Reflection and Refraction | 7 | **generated** (founder-local, 2026-11-19) `[ASSUMPTION]` | seed bank tracked (15 items + 3 speaking prompts, EN/HI/Hinglish) `[STRONG]` | pending | pending |
-| 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
-| 3 | `class-10-electricity` | Electricity | 5 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
-| 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | none (0 questions) `[STRONG]` | pending | pending |
+| 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21) `[STRONG]` | pending | pending |
+| 3 | `class-10-electricity` | Electricity | 5 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21) `[STRONG]` | pending | pending |
+| 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | none (0 questions) — blocked: the published lesson omits NCERT 12.4–12.6, so A2's orphan rule fails for the induction and generator concepts (§5.4) `[STRONG]` | pending | pending |
 
 State summary: **all four chapters generated.**
 
@@ -68,15 +68,28 @@ State summary: **all four chapters generated.**
   quality grounds without changing the output ceiling. See `TIMELINE.md` (2026-11-20).
 - **Electricity is generated** in a founder-local run on 2026-11-21 (45 blocks, EN/HI/Hinglish, one interactive simulation; `03-check` and `09-review` pass, `10b` pass after one bounded `10c` repair).
 - **Magnetic Effects is generated** in a founder-local run on 2026-11-21 (42 published blocks, one interactive simulation; `03-check` and `09-review` pass, `10b` pass after one bounded `10c` repair).
-- **Assessment:** only Light has a tracked seed bank
-  (`sources/syllabus/chapters/class-10-light-reflection-and-refraction.items.json` +
-  `.speaking.json`); the other three chapters have no items, which is exactly what the
-  exam coverage gate reports as the Class 10 blocker.
-- **Series:** a Class 10 pack built today is `publish: blocked` by the volume/coverage
+- **Assessment:** three chapters now carry tracked banks. Light has its curated seed bank;
+  **The Human Eye and Electricity were generated live on 2026-11-21** (`--generator llm`
+  through `llm_manager`, 18 items + 3 speaking prompts each, EN/HI/Hinglish, deterministic
+  gate pass, mirrored into `sources/assessment/packs/` and verified by the importer
+  dry-run). Both chapters' lessons are registered in the syllabus (`lesson_topic_slug`) with
+  tracked `section → curated concept` maps, so their block tagging is complete (43/43 and
+  45/45 blocks). **Magnetic Effects has no bank yet**: its published lesson carries no
+  sections for NCERT 12.4 (electric motor), 12.5 (electromagnetic induction) or 12.6
+  (electric generator), so A2 fails with two fatal `concept.orphan` findings — the gate
+  doing its job, not a defect. The lesson needs a founder-local regeneration covering
+  12.4–12.6 (or a recorded syllabus re-curation) before the bank can be generated; the
+  syllabus deliberately keeps no `lesson_topic_slug` for this chapter until then, so the
+  A2 gate is not silently bypassed by a stale pending-lesson label.
+- **Series:** a Class 10 pack built today is still `publish: blocked` by the volume/coverage
   gate — correct behaviour, not a defect. The gate unblocks when every chapter's bank
-  exists (§5.4).
+  exists (§5.4), which now waits only on Magnetic Effects.
 - Light's block-level concept tagging is recorded as `pending_lesson` debt in the W3 P2
-  assessment run; a published Light page unblocks it.
+  assessment run; the published Light page exists, but a complete section→concept map is
+  not expressible today because its sec-08 folds NCERT 9.3.6/9.3.7/9.3.8 (lens formula,
+  magnification and power) into one lesson section while the syllabus curates them as two
+  concepts — resolving it needs a lesson re-render with a separate power section or a
+  recorded syllabus re-curation; question tagging is complete.
 
 ## 4. The local-only generation rule
 
@@ -165,9 +178,13 @@ the six published topics (149 under `class-9-physics/`, 474 under `class-11-phys
 speaking prompts, concept tagging and time priors (stages A1–A6). `--generator seed` is
 key-free over tracked curated banks; live generation (`--generator llm`) needs
 `ZIVON_BASE_URL` + `ZIVON_MODEL` and is founder-triggered. The campaign requires a bank
-for **each** of the four chapters (Light's exists; the other three wait on their lesson
-pages for A2 block tagging and on live or curated generation). Contract:
-[`assessment.md`](assessment.md).
+for **each** of the four chapters. Light's seed bank exists; the Human Eye and
+Electricity banks were generated live on 2026-11-21 and are tracked under
+`sources/assessment/packs/`. Magnetic Effects stays blocked until its lesson covers
+NCERT 12.4–12.6: the A2 gate refuses a pack whose curated concepts own no lesson block
+(`concept.orphan`), and deliberately leaving the chapter unregistered in the syllabus
+keeps that refusal visible instead of hiding it behind a stale pending-lesson label.
+Contract: [`assessment.md`](assessment.md).
 
 ### 5.5 Series gate — the Class 10 pack publishes only when coverage is real
 
@@ -216,9 +233,9 @@ catalogue with `missing_locales: []`.
 | Gate → | Lesson (00–10) | Translation (10a–10d) | Narration (12) | Assessment bank | Series pack contribution | Published in snapshot |
 |---|---|---|---|---|---|---|
 | Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ⬜ (pack blocked: coverage) | ✅ |
-| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ✅ |
-| Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ✅ |
-| Magnetic Effects of Electric Current | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⬜ | ⬜ (pack blocked: coverage) | ✅ |
+| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ generated (2026-11-21, 18 items + 3 speaking, live llm run) | ⬜ (pack blocked: coverage) | ✅ |
+| Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ generated (2026-11-21, 18 items + 3 speaking, live llm run) | ⬜ (pack blocked: coverage) | ✅ |
+| Magnetic Effects of Electric Current | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⛔ blocked (§5.4: lesson omits NCERT 12.4–12.6; A2 orphan rule fails) | ⬜ (pack blocked: coverage) | ✅ |
 
 ## 8. Records
 

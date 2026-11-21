@@ -1,0 +1,16 @@
+{
+  "chapter_id": "class-10-the-human-eye-and-the-colourful-world",
+  "lesson_topic_slug": "the-human-eye-and-the-colourful-world",
+  "lesson_manifest": "frontend/courses/class-10-physics/the-human-eye-and-the-colourful-world/manifest.json",
+  "section_concept_map": {
+    "sec-01": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+    "sec-02": "class-10-the-human-eye-and-the-colourful-world-the-human-eye",
+    "sec-03": "class-10-the-human-eye-and-the-colourful-world-defects-of-vision",
+    "sec-04": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+    "sec-05": "class-10-the-human-eye-and-the-colourful-world-prism-refraction-and-dispersion",
+    "sec-06": "class-10-the-human-eye-and-the-colourful-world-atmospheric-refraction",
+    "sec-07": "class-10-the-human-eye-and-the-colourful-world-scattering-of-light",
+    "sec-08": "class-10-the-human-eye-and-the-colourful-world-the-human-eye"
+  },
+  "notes": "Published manifest has 8 sections (43 blocks). sec-01/02 (eye structure, power of accommodation, near/far point) are NCERT 10.1/10.1.1 under the-human-eye; sec-03 is 10.2 defects; sec-04/05 are 10.3/10.4 prism refraction and dispersion/rainbow under the one curated prism concept; sec-06 is 10.5; sec-07 is 10.6 scattering; sec-08 (eye donation) is awareness content attached to the-human-eye. Every block is mapped by its section id; A2 fails on any unmapped section or orphan concept."
+}

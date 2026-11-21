@@ -1,0 +1,752 @@
+{
+  "formula_version": "tp-v1",
+  "questions": [
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 30
+      },
+      "expected_time_ms": 42000,
+      "question_id": "q-current-direction-001-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 59
+      },
+      "expected_time_ms": 54000,
+      "question_id": "q-current-direction-001-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 33
+      },
+      "expected_time_ms": 45000,
+      "question_id": "q-current-direction-001-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 25
+      },
+      "expected_time_ms": 75000,
+      "question_id": "q-charge-calculation-002-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 42
+      },
+      "expected_time_ms": 88000,
+      "question_id": "q-charge-calculation-002-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 24
+      },
+      "expected_time_ms": 78000,
+      "question_id": "q-charge-calculation-002-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 54
+      },
+      "expected_time_ms": 47000,
+      "question_id": "q-potential-definition-003-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 107
+      },
+      "expected_time_ms": 65000,
+      "question_id": "q-potential-definition-003-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 59
+      },
+      "expected_time_ms": 51000,
+      "question_id": "q-potential-definition-003-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 27
+      },
+      "expected_time_ms": 64000,
+      "question_id": "q-work-charge-voltage-004-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 35
+      },
+      "expected_time_ms": 74000,
+      "question_id": "q-work-charge-voltage-004-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 26
+      },
+      "expected_time_ms": 67000,
+      "question_id": "q-work-charge-voltage-004-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 42
+      },
+      "expected_time_ms": 45000,
+      "question_id": "q-ohms-law-graph-005-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 81
+      },
+      "expected_time_ms": 59000,
+      "question_id": "q-ohms-law-graph-005-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 45
+      },
+      "expected_time_ms": 48000,
+      "question_id": "q-ohms-law-graph-005-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 19
+      },
+      "expected_time_ms": 92000,
+      "question_id": "q-resistance-from-vi-006-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 34
+      },
+      "expected_time_ms": 107000,
+      "question_id": "q-resistance-from-vi-006-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 19
+      },
+      "expected_time_ms": 97000,
+      "question_id": "q-resistance-from-vi-006-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 77
+      },
+      "expected_time_ms": 80000,
+      "question_id": "q-length-resistance-ar-007-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 150
+      },
+      "expected_time_ms": 111000,
+      "question_id": "q-length-resistance-ar-007-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 85
+      },
+      "expected_time_ms": 86000,
+      "question_id": "q-length-resistance-ar-007-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 28
+      },
+      "expected_time_ms": 52000,
+      "question_id": "q-resistivity-dependence-008-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 64
+      },
+      "expected_time_ms": 69000,
+      "question_id": "q-resistivity-dependence-008-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 31
+      },
+      "expected_time_ms": 56000,
+      "question_id": "q-resistivity-dependence-008-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 18
+      },
+      "expected_time_ms": 161000,
+      "question_id": "q-stretched-wire-resistance-009-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 44
+      },
+      "expected_time_ms": 192000,
+      "question_id": "q-stretched-wire-resistance-009-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 2,
+        "type": "numeric",
+        "word_count": 21
+      },
+      "expected_time_ms": 170000,
+      "question_id": "q-stretched-wire-resistance-009-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 34
+      },
+      "expected_time_ms": 66000,
+      "question_id": "q-series-current-010-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 45
+      },
+      "expected_time_ms": 77000,
+      "question_id": "q-series-current-010-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 34
+      },
+      "expected_time_ms": 69000,
+      "question_id": "q-series-current-010-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 16
+      },
+      "expected_time_ms": 91000,
+      "question_id": "q-parallel-equivalent-011-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 32
+      },
+      "expected_time_ms": 107000,
+      "question_id": "q-parallel-equivalent-011-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 17
+      },
+      "expected_time_ms": 96000,
+      "question_id": "q-parallel-equivalent-011-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 41
+      },
+      "expected_time_ms": 108000,
+      "question_id": "q-parallel-branch-current-012-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 59
+      },
+      "expected_time_ms": 128000,
+      "question_id": "q-parallel-branch-current-012-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 2,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 43
+      },
+      "expected_time_ms": 114000,
+      "question_id": "q-parallel-branch-current-012-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 66
+      },
+      "expected_time_ms": 104000,
+      "question_id": "q-series-same-current-ar-013-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 124
+      },
+      "expected_time_ms": 139000,
+      "question_id": "q-series-same-current-ar-013-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 68
+      },
+      "expected_time_ms": 110000,
+      "question_id": "q-series-same-current-ar-013-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 33
+      },
+      "expected_time_ms": 66000,
+      "question_id": "q-heating-current-doubled-014-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 62
+      },
+      "expected_time_ms": 82000,
+      "question_id": "q-heating-current-doubled-014-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 35
+      },
+      "expected_time_ms": 69000,
+      "question_id": "q-heating-current-doubled-014-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 19
+      },
+      "expected_time_ms": 92000,
+      "question_id": "q-electric-power-015-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 36
+      },
+      "expected_time_ms": 108000,
+      "question_id": "q-electric-power-015-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "medium",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "numeric",
+        "word_count": 20
+      },
+      "expected_time_ms": 97000,
+      "question_id": "q-electric-power-015-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 22
+      },
+      "expected_time_ms": 41000,
+      "question_id": "q-kwh-conversion-016-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 22
+      },
+      "expected_time_ms": 45000,
+      "question_id": "q-kwh-conversion-016-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 0,
+        "difficulty": "easy",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 21
+      },
+      "expected_time_ms": 42000,
+      "question_id": "q-kwh-conversion-016-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 37
+      },
+      "expected_time_ms": 90000,
+      "question_id": "q-bulb-series-brightness-017-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 61
+      },
+      "expected_time_ms": 110000,
+      "question_id": "q-bulb-series-brightness-017-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "mcq",
+        "word_count": 40
+      },
+      "expected_time_ms": 96000,
+      "question_id": "q-bulb-series-brightness-017-hi-Latn"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "en",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 80
+      },
+      "expected_time_ms": 125000,
+      "question_id": "q-stretched-wire-ar-018-en"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 152
+      },
+      "expected_time_ms": 169000,
+      "question_id": "q-stretched-wire-ar-018-hi"
+    },
+    {
+      "basis": {
+        "computation_steps": 1,
+        "difficulty": "hard",
+        "formula_version": "tp-v1",
+        "language": "hi-Latn",
+        "marks": 1,
+        "type": "assertion_reason",
+        "word_count": 87
+      },
+      "expected_time_ms": 134000,
+      "question_id": "q-stretched-wire-ar-018-hi-Latn"
+    }
+  ],
+  "schema_version": 1,
+  "topics": [
+    {
+      "chapter_id": "class-10-electricity",
+      "expected_time_ms": 84316,
+      "questions": 18,
+      "scope": "chapter",
+      "scope_id": "class-10-electricity"
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "expected_time_ms": 57000,
+      "questions": 4,
+      "scope": "concept",
+      "scope_id": "class-10-electricity-electric-current-and-potential"
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "expected_time_ms": 72250,
+      "questions": 4,
+      "scope": "concept",
+      "scope_id": "class-10-electricity-heating-effect-and-power"
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "expected_time_ms": 68500,
+      "questions": 2,
+      "scope": "concept",
+      "scope_id": "class-10-electricity-ohms-law"
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "expected_time_ms": 115800,
+      "questions": 4,
+      "scope": "concept",
+      "scope_id": "class-10-electricity-resistance-and-resistivity"
+    },
+    {
+      "chapter_id": "class-10-electricity",
+      "expected_time_ms": 92250,
+      "questions": 4,
+      "scope": "concept",
+      "scope_id": "class-10-electricity-resistors-in-series-and-parallel"
+    }
+  ]
+}
