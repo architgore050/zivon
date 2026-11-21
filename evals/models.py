@@ -465,6 +465,63 @@ SEEDED_DEFECT_SCHEMA: dict[str, Any] = {
     },
 }
 
+# Schema for the personalized-learning judge calibration corpus
+# (`evals/goldens/personalized/judge-calibration/**`; docs/specs/personalized-learning/evals.md
+# §10 step 3). Unlike the factory `SEEDED_DEFECT_SCHEMA` (stage enum 03-check/09-review),
+# these samples seed the PL judges (pedagogy / faithfulness / adversarial), so the
+# stage carries the judge name and `inputs` is per-judge. Validated at load time by
+# `evals.judges.pl_judges._load_samples` — a broken corpus fails the judge loudly,
+# never as a fabricated pass.
+PL_JUDGE_SAMPLE_SCHEMA: dict[str, Any] = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "PLJudgeCalibrationSample",
+    "type": "object",
+    "required": [
+        "sample_id",
+        "target_judge",
+        "origin_incident",
+        "defect_class",
+        "planted_mutation",
+        "inputs",
+        "expected",
+    ],
+    "additionalProperties": False,
+    "properties": {
+        "sample_id": {"type": "string", "pattern": "^SD-PLJ-[A-Z0-9]{2,4}$"},
+        "target_judge": {"enum": ["pedagogy", "faithfulness", "adversarial"]},
+        "origin_incident": {"type": "string", "minLength": 5},
+        "defect_class": {"type": "string", "minLength": 3},
+        "planted_mutation": {"type": "string", "minLength": 5},
+        "target_call": {"type": ["string", "null"]},
+        "inputs": {"type": "object"},
+        "expected": {
+            "type": "object",
+            "required": [
+                "outcome_type",
+                "expected_verdict",
+                "expected_severity",
+                "expected_message_contains",
+                "must_quote",
+            ],
+            "additionalProperties": False,
+            "properties": {
+                "outcome_type": {"enum": ["positive_defect", "negative_clean"]},
+                "expected_verdict": {"enum": ["pass", "fail"]},
+                "expected_severity": {
+                    "type": ["string", "null"],
+                    "enum": ["fatal", "major", "minor", None],
+                },
+                "expected_turn_id": {"type": ["string", "null"]},
+                "expected_message_contains": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+                "must_quote": {"type": "boolean"},
+            },
+        },
+    },
+}
+
 KID_SESSION_SCHEMA: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "KidComprehensionSession",

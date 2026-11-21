@@ -79,9 +79,20 @@ class CardRegistration(unittest.TestCase):
                     tuple(chk.id for chk in card.deterministic_checks),
                     expected_ids,
                 )
-                self.assertEqual(card.llm_judge, None)
                 self.assertIn("smoke", card.suites)
                 self.assertEqual(card.cost_budget["smoke_model_calls"], 0)
+        # EV-PL-004 carries the adversarial-turn judge (2026-11-21): smoke
+        # stays deterministic-first, and the judge only ever runs in the
+        # full/calibrate suites against its seeded corpus.
+        judge = self.cards["EV-PL-004"].llm_judge
+        self.assertIsNotNone(judge)
+        self.assertEqual(
+            judge.entrypoint, "evals.judges.pl_judges:calibrate_pl_adversarial"
+        )
+        self.assertEqual(judge.enabled_in_suites, ["full", "calibrate"])
+        self.assertEqual(len(judge.anchor_examples), 3)
+        # EV-PL-005 stays judge-free by contract (§6).
+        self.assertIsNone(self.cards["EV-PL-005"].llm_judge)
 
     def test_pl5_stages_are_in_the_closed_enum(self) -> None:
         self.assertEqual(self.cards["EV-PL-004"].stage, "PL1-preferences")

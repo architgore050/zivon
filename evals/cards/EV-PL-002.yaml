@@ -6,6 +6,7 @@ agent_role: Teaching Agent
 suites:
 - smoke
 - full
+- calibrate
 golden_inputs:
   topics:
   - evals/goldens/personalized/rag-index
@@ -61,7 +62,7 @@ llm_judge:
     minor: A citation that supports only a weaker version of the claim; a plain-language analogy that
       illustrates a cited claim is acceptable and never a finding.
   way_out_rule: "Report unverifiable suspicions as severity='minor' with message starting 'unverified:' — never as fatal or major."
-anchor_examples:
+  anchor_examples:
   - label: "Fatal - Claim contradicted by its citation"
     input_summary: "Teaching says the angle of incidence is always greater than the angle of reflection; [S1] states the angles are equal."
     expected_issue:
@@ -69,15 +70,13 @@ anchor_examples:
       block_id: "t-1"
       category: "content"
       message: "Claim states 'always greater than'; cited excerpt [S1] states 'The angle of incidence is equal to the angle of reflection'."
-
   - label: "Major - Uncited factual claim"
     input_summary: "Teaching adds 'The focal length of a concave mirror is half its radius of curvature' with no citation and no such excerpt."
     expected_issue:
       severity: major
       block_id: "t-1"
       category: "content"
-      message: "The focal-length claim has no citation and no support in the cited excerpts."
-
+      message: "The focal-length claim ('half its radius of curvature') has no citation and no support in the cited excerpts."
   - label: "Minor - Weaker version supported"
     input_summary: "Teaching says 'the angles are always exactly equal for every mirror'; [S1] states it only for a plane mirror."
     expected_issue:
@@ -85,7 +84,6 @@ anchor_examples:
       block_id: "t-1"
       category: "content"
       message: "The citation supports the claim for plane mirrors only - a weaker version of the stated claim."
-
 thresholds:
   deterministic_pass_rate_min: 1.0
   fatal_issues_max: 0

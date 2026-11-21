@@ -60,8 +60,10 @@ class TestStoreDiffAndCli(unittest.TestCase):
         counts2 = store.backfill_db()
         self.assertEqual(counts1, counts2)
         self.assertEqual(counts1["runs"], 1)
-        self.assertEqual(counts1["card_results"], 2)
-        self.assertEqual(counts1["defect_samples"], 14)
+        self.assertEqual(
+            counts1["card_results"], 5
+        )  # EV-PL-001/002/004 joined the calibrate suite (2026-11-21)
+        self.assertEqual(counts1["defect_samples"], 37)
 
         with sqlite3.connect(self.db_path) as conn:
             run_rows = conn.execute("SELECT COUNT(*) FROM eval_run").fetchone()[0]
