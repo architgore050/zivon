@@ -774,3 +774,34 @@ note §8).
   model output here (the evals-vs-tests rule). Key-free smoke + regression
   gate re-run green; the `testing/evals` zstd-outbox failure is a sandbox
   environment gap (no `zstd` binary; base commit fails identically; CI has it).
+
+### 2026-11-21 — W-SC auth/email hardening: mocked-provider coverage + honest blocked markers
+
+**Done**
+- Audit of the two founder-cred-blocked auth paths (ADR-0029): the Google OAuth
+  provider interface (`GoogleTransport` + `GoogleOAuthClient`), the dev/SMTP/Resend
+  email adapters behind `EmailSender`, and the `ZIVON_ENV=prod` + `ZIVON_EMAIL_BACKEND=dev`
+  refusal were all in place; gaps filled, nothing rebuilt.
+- Fixed an honest-error gap: `/v1/auth/google/callback` with a validly signed state
+  cookie while `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are unset crashed as
+  `500 E-INTERNAL`; it now redirects `303 /login?error=E-SERVICE-UNAVAILABLE` (same
+  condition `start` already answered 503). Regression test fails on the base commit.
+- Mocked-provider tests added (no network, key-free): callback-when-unconfigured
+  (`testing/backend/test_auth.py`), the production `HttpxGoogleTransport` error mapping
+  against mocked httpx (`testing/backend/test_auth_google_transport.py`, new module),
+  and the Resend adapter + backend selection against a mocked HTTP client
+  (`testing/backend/test_auth_email.py`). 13 new tests; pre-existing suites untouched.
+- Blocked-status documentation: ADR-0029 gains "Status 2026-11-21 — founder-credential-
+  blocked live paths" (live Google OAuth E2E blocked on `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/
+  `GOOGLE_REDIRECT_URI`; production email delivery blocked on `ZIVON_EMAIL_BACKEND` +
+  `ZIVON_SMTP_*`/`ZIVON_RESEND_API_KEY` — names only, values runtime secrets), and
+  `docs/deployment/prototype-deployment.md` §4.1 records the same two blockers for the
+  compose deployment path. Email+password signup/login stays the working auth path; the
+  dev mail sink stays the local/test transport.
+
+**Not done / next**
+- The live Google OAuth E2E flow stays BLOCKED until the founder supplies the Google
+  credentials; no live sign-in was run or claimed. Mocked-provider tests are green.
+- Production email delivery stays BLOCKED until `ZIVON_EMAIL_BACKEND` + SMTP/Resend
+  credentials are configured; adapters and mocked-transport tests are green, the dev
+  sink remains local/test-only, and no production delivery is claimed.

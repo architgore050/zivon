@@ -110,6 +110,26 @@ Harder / accepted trade-offs:
 Monitor: reset/verify send failures, rate-limit hits on auth families, tombstone count,
 session-table size, and Google callback error codes.
 
+## Status 2026-11-21 — founder-credential-blocked live paths
+
+Two live flows are implemented and tested but cannot be exercised end to end until the
+founder supplies runtime credentials. Both stay honest about it: no fake success, no live
+claim.
+
+- **Live Google OAuth E2E — BLOCKED on founder `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+  (and `GOOGLE_REDIRECT_URI=<origin>/auth/google/callback`).** The provider interface
+  (`GoogleTransport`) is implemented and covered by mocked-provider tests
+  (`testing/backend/test_auth.py`, `testing/backend/test_auth_google_transport.py`); both
+  routes answer honestly when the credentials are unset (`503 E-SERVICE-UNAVAILABLE` on
+  start, `303 /login?error=E-SERVICE-UNAVAILABLE` on callback). Email+password signup and
+  login is the working auth path. No live Google flow has been run and none is claimed.
+- **Production email delivery — BLOCKED on founder `ZIVON_EMAIL_BACKEND` plus the matching
+  SMTP (`ZIVON_SMTP_HOST`/`ZIVON_SMTP_USER`/`ZIVON_SMTP_PASSWORD`) or Resend
+  (`ZIVON_RESEND_API_KEY`) credentials.** The dev sink, SMTP, and Resend adapters exist
+  behind the `EmailSender` interface with mocked-transport tests
+  (`testing/backend/test_auth_email.py`); the dev sink is refused in `cluster`/`prod`.
+  Locally and in tests the dev sink is used; no production delivery is claimed or verified.
+
 ## Revisit trigger (measurable)
 
 - **Any multi-replica backend** → replace the in-memory auth limiter with a shared store.
