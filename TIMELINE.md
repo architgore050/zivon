@@ -861,3 +861,73 @@ note §8).
   without a lesson re-render or a recorded re-curation. Question tagging complete.
 - No judged or human pedagogical review of the banks yet (unchanged Q-6 debt); exam
   weights still wait for P3's blueprint; live DB import remains an operator step.
+
+### 2026-11-21 — DEPLOY-PREP: deployment code complete + founder cutover runbook (no live deployment)
+
+**Done**
+- **Pre-boot compose validator** `scripts/validate_prod_compose.py` — parses
+  `docker-compose.prod.yml` + `docker/caddy/Caddyfile` WITHOUT Docker, resolves
+  every `${VAR:?…}`/`${VAR:-…}` interpolation against a provided env file, FAILs
+  on any required var missing/empty, checks value coherence (https origin,
+  `ZIVON_DOMAIN` = origin host, smtp/resend transport per `ZIVON_EMAIL_BACKEND`
+  mirroring `backend/auth/email.py` boot refusals, DSN-safe
+  `POSTGRES_PASSWORD`, secret-length warnings), refuses the documented
+  forbidden values (`ZIVON_ENV=dev`, `ZIVON_EMAIL_BACKEND=dev`,
+  `ZIVON_SPEAKING_MOCK=1`, `POSTGRES_HOST_AUTH_METHOD=trust`), and asserts the
+  structural posture (migrate runs `python -m db.migrate upgrade head` and
+  gates core-backend on `service_completed_successfully`, non-edge services
+  bind 127.0.0.1 only, Caddyfile interpolates `{$ZIVON_DOMAIN}`/`{$ZIVON_ACME_EMAIL}`).
+  PyYAML when available, stdlib minimal parser otherwise (CI's tests job has no
+  PyYAML — the minimal path is what CI exercises; `--parser` forces either).
+  Validated green with a throwaway dummy env (scratch/, never committed):
+  80 pass / 0 fail on both parsers; negative cases (missing required var,
+  domain mismatch, `dev` email backend, unsafe DB password) all FAIL loudly.
+- **`scripts/backup_db.sh`** — host-side nightly DB backup: pg_dump via the
+  running postgres container (unix-socket trust, the §7 pattern), gzip on the
+  host, dumps land OUTSIDE the repo (`~/zivon-backups/` default, mode 600),
+  gzip-integrity + non-empty verification, retention via
+  `ZIVON_BACKUP_RETENTION_DAYS` (default 14 d), non-zero exit on every failure
+  path (pg_dump failure, empty dump, corrupt gzip, missing env file).
+- **`scripts/deploy_smoke.sh <base-url>`** — the machine-checkable core of
+  prototype-deployment.md §6: `/v1/health` 200 + `"db": "ok"`, `/healthz`, `/`,
+  the `/courses/10/physics` 301, `/class-10-physics/`, `/assets/app.css`, and a
+  WS-shaped `/voice/ws` answer (101/400/403/426 = route answers; plain
+  404/timeout = fail). PASS/FAIL per check, exit 1 on any FAIL. The real-phone
+  voice check stays a documented human step.
+- **`docs/deployment/founder-cutover-runbook.md`** — the plain-language
+  start-to-live checklist: what to rent (VPS specs, registrar/DNS-only note),
+  the A/AAAA record + `dig` wait (Let's Encrypt rate-limit guard), every
+  `.env.prod` value with its source (self-generated `token_hex` values vs the
+  founder-only inputs, names only), one-time host prep (Docker install, ufw
+  22/80/443, unattended-upgrades), clone + pinned SHA, validate → `up -d` with
+  "what success looks like", migrations verification (the compose `migrate`
+  one-shot gate — confirmed, nothing changed), smoke + real-phone checks, the
+  backup schedule (cron + systemd timer) with a THROWAWAY-database restore
+  drill, troubleshooting/rollback table, the §j founder-input checklist
+  (names only), and the honest blocked-status section. No live DNS/TLS/SSH
+  cutover was attempted from the build sandbox.
+- **Docs synced in-PR:** prototype-deployment.md links the runbook (status
+  table) + the validator (§4) + smoke script (§6) + backup script (§7);
+  `.env.prod.example` and `docker-compose.prod.yml` headers point at the
+  founder runbook.
+- **Tests:** `testing/backend/test_prod_compose_validation.py` + fixtures
+  (`testing/backend/fixtures/prod_compose/`) run the validator through a
+  fixture compose snippet (required-missing FAIL, domain-mismatch FAIL,
+  forbidden `dev` backend FAIL, happy path PASS) AND against the real
+  `docker-compose.prod.yml` with an in-memory dummy env on BOTH parser paths
+  (pyyaml exercised when installed, minimal always). No product dependency
+  added (validator is stdlib-first).
+
+**Not done / next**
+- **Zero live deployment** — by design: no DNS/TLS/SSH cutover, no host, no
+  domain. Everything waits on the founder inputs (§j names only):
+  `ZIVON_DOMAIN` / `ZIVON_APP_BASE_URL` / `ZIVON_ACME_EMAIL`, the email
+  choice (`ZIVON_EMAIL_BACKEND=smtp|resend` + matching creds), and optionally
+  Google OAuth (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`GOOGLE_REDIRECT_URI`).
+- Live Google OAuth E2E, production email delivery, and the live voice turn
+  remain BLOCKED on those founder inputs (a founder-local phone check for the
+  voice turn — the build sandbox is region-blocked for Gemini and has no mic).
+- The backup/restore drill and smoke script are proven by construction and
+  negative tests only — they have never run against a real Postgres container
+  or a live origin (no docker in the sandbox); the runbook marks them as
+  founder-executed cutover steps.
