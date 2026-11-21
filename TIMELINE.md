@@ -1072,3 +1072,45 @@ check failed (det score 1.0), the three F-defects were all caught (fatal/blockin
   recorded evidence, and PR #99's live log stays the "before" record.
 - The other live-suite failures (EV-CUR-001, EV-PERF-001, EV-REV-001/002, EV-SYN-001/002,
   EV-VIS-001) are pre-existing non-PL cards — out of scope here, unchanged.
+### 2026-11-21 — Magnetic Effects workstream: lesson regenerated + gated, textbook-rationalisation discovery recorded, bank honestly blocked
+
+**Done** (branch `feature/w-magnetic-fix`, all pushed):
+- Registration verified complete (1256657: syllabus `lesson_topic_slug`, tracked concept
+  map, `test_syllabus` published-tree row; 20 passed).
+- The lesson was regenerated twice, founder-local, both runs 16/16 stages green
+  (`03-check`, `07-perf`, `09-review`, `10a`–`10d` translation, narration stays `null`):
+  attempt 1 (8 sections / 42 blocks, 9614d6e) and attempt 2 (7 sections / 39 blocks,
+  103eea5 — the committed page; it omits `--class` so the supplement search reaches every
+  cached catalog book and recovers the solenoid/electromagnet material of curated
+  subsection 12.2.4).
+- Discovery recorded in `docs/content-factory/class-10-campaign.md` (§2, §3, §5.4, §7)
+  and `docs/content-factory/assessment.md` (§10): the cached `ncert-science-10` book is
+  the rationalised edition — chapter 12 is 13 pages with titled sections 12.1–12.4 only
+  (domestic electric circuits is now 12.4). NCERT removed the old-edition 12.4 electric
+  motor, 12.5 electromagnetic induction and 12.6 electric generator sections the
+  syllabus curates; no cached catalog source carries them at depth.
+- The documented bank command was run: A1 passes, A2 refuses the pack with exactly two
+  fatal `concept.orphan` findings (electromagnetic-induction, electric-generator) — the
+  gate doing its job. Evidence: `runs/assessment/assessment-class-10-magnetic-effects-of-electric-current/`
+  plus `runs/archive/magnetic-attempt1|2/` (run reports, ledgers, gate reports).
+- A third lever was previewed offline and rejected as ineffective: widening the
+  retrieval knobs (top_k 6→12, supplement total 16k→30k chars) still surfaces only
+  exercise/opener fragments for motor/EMI/generator — the grounding law keeps the
+  generator honest, so no further regen spend was authorized.
+- `testing/backend/test_assessment_import.py` re-verified green against the four tracked
+  packs (198 question rows / 36 speaking prompts / 28 topic priors / 4 packs, counts
+  computed by real import into throwaway SQLite).
+
+**Not done** (blocked on a founder decision, not on engineering):
+- No Magnetic Effects assessment bank and no pack mirror: two gated regenerations plus
+  the widened-knob preview prove the cached corpus cannot ground the two stale-edition
+  concepts without inventing content. Honest unblock paths: (a) add a source carrying
+  the topics — the CC-BY Siyavula Grade 11/12 electromagnetism/electrodynamics chapters,
+  via the documented add-a-source path — then regenerate founder-local with
+  `python pipeline.py "Magnetic Effects of Electric Current" --locales hi,hi-Latn`
+  (runtime env exported, `--fresh` if the fingerprint guard asks); or (b) a recorded
+  syllabus re-curation of the stale concepts. The bank command itself is unchanged
+  (`python -m factory.assessment --chapter class-10-magnetic-effects-of-electric-current
+  --class 10 --generator llm --export-dir runs/assessment-exports`).
+- `TRACKED_CHAPTERS` in `testing/backend/test_assessment_import.py` intentionally does
+  NOT gain MAGNETIC: there is no mirrored pack, and the pin must match reality.

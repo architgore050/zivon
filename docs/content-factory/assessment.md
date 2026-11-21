@@ -372,6 +372,7 @@ Shipped in this pass:
 | `class-10-light-reflection-and-refraction` | 10 | 15 | 3 | 45 | pending — lesson published but unregistered (see debt 3) |
 | `class-10-the-human-eye-and-the-colourful-world` | 10 | 18 | 3 | 54 | complete (43 blocks) |
 | `class-10-electricity` | 10 | 18 | 3 | 54 | complete (45 blocks) |
+| `class-10-magnetic-effects-of-electric-current` | 10 | 0 | 0 | 0 | blocked (debt 3: registered and regenerated, two stale-edition concepts own no block) |
 
 Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
 
@@ -386,15 +387,25 @@ Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
    section→concept map is not expressible today because the lesson's sec-08 folds NCERT
    9.3.6/9.3.7/9.3.8 into one section while the syllabus curates lens formula/magnification
    and power as two concepts. A lesson re-render with a separate power section (or a
-   recorded syllabus re-curation) unblocks it. Question tagging is complete. The same
-   mechanism — honestly leaving a chapter unregistered rather than publishing a stale
-   pending-lesson label — is why `class-10-magnetic-effects-of-electric-current` has no
-   bank yet: its published lesson omits NCERT 12.4–12.6, so A2 fails with two fatal
-   `concept.orphan` findings until the lesson is regenerated.
+   recorded syllabus re-curation) unblocks it. Question tagging is complete. Magnetic
+   Effects is registered (`lesson_topic_slug`, tracked concept map) and its lesson was
+   regenerated twice on 2026-11-21 with every pipeline gate green, yet A2 still refuses
+   its pack with two fatal `concept.orphan` findings (`electromagnetic-induction`,
+   `electric-generator`): the cached NCERT Class X textbook is the rationalised edition
+   whose chapter 12 (13 pages, titled sections 12.1–12.4 only) no longer contains the
+   old-edition 12.4 motor / 12.5 electromagnetic induction / 12.6 generator sections the
+   syllabus curates, a class-unfiltered supplement search surfaced only exercise and
+   opener fragments from NCERT Physics XII / OpenStax, and the grounding law correctly
+   stops the generator from building sections the sources do not explain. Unblocking
+   needs a founder decision: a source that carries the topics (the CC-BY Siyavula Grade
+   11/12 electromagnetism/electrodynamics chapters fit the documented add-a-source path)
+   or a recorded syllabus re-curation.
 4. **Exam weight is unpopulated** until P3's blueprint lands.
 5. **Four of the eight curated Class 9/10 chapters have banks** (Class 9 Motion, Class 10
-   Light / Human Eye / Electricity). Magnetic Effects is blocked (debt 3); the remaining
-   chapters have concepts but no practice/speaking content yet.
+   Light / Human Eye / Electricity). Magnetic Effects is registered and fully gated but
+   blocked at A2 (debt 3: its last two curated concepts reference sections the current
+   textbook removed); the remaining chapters have concepts but no practice/speaking
+   content yet.
 6. **DB import is a manual operator step.** The importer exists and the tracked packs are
    imported by it, but nothing runs it automatically after an A6 export yet: an operator
    runs `scripts/import_assessment_packs.py` (see §11). Wiring it into the publish path
