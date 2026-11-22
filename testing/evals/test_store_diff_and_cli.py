@@ -63,7 +63,9 @@ class TestStoreDiffAndCli(unittest.TestCase):
         self.assertEqual(
             counts1["card_results"], 5
         )  # EV-PL-001/002/004 joined the calibrate suite (2026-11-21)
-        self.assertEqual(counts1["defect_samples"], 31)
+        self.assertEqual(
+            counts1["defect_samples"], 32
+        )  # +SD-PLJ-C04 faithfulness regression clean sample (2026-11-22)
 
         with sqlite3.connect(self.db_path) as conn:
             run_rows = conn.execute("SELECT COUNT(*) FROM eval_run").fetchone()[0]
@@ -77,7 +79,9 @@ class TestStoreDiffAndCli(unittest.TestCase):
         self.assertEqual(
             card_rows, 5
         )  # EV-PL-001/002/004 joined the calibrate suite (2026-11-21)
-        self.assertEqual(sample_rows, 31)
+        self.assertEqual(
+            sample_rows, 32
+        )  # +SD-PLJ-C04 faithfulness regression clean sample (2026-11-22)
 
     def test_store_degrades_to_jsonl_and_creates_outbox_when_db_unreachable(
         self,

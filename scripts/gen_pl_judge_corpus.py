@@ -376,11 +376,15 @@ def build_samples() -> dict[str, dict]:
         ),
         (
             "SD-PLJ-C04",
-            "Clean golden teaching turn (worked example applies the cited law — "
-            "the 2026-11-22 live false-positive pattern exposed on C03)",
-            "Worked example: a ray strikes a plane mirror at 45 degrees from the "
-            "normal; both angles are measured from the normal; they are equal; so "
-            "the angle of reflection is 45 degrees.",
+            (
+                "Clean golden teaching turn (worked example applies the cited law — "
+                "the 2026-11-22 live false-positive pattern exposed on C03)"
+            ),
+            (
+                "Worked example: a ray strikes a plane mirror at 45 degrees from the "
+                "normal; both angles are measured from the normal; they are equal; so "
+                "the angle of reflection is 45 degrees."
+            ),
             _expected("negative_clean", "pass", None, "t-1", [], False),
         ),
     )
