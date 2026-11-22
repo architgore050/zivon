@@ -1008,3 +1008,67 @@ Branch `feature/w-f-pl5-judges` (resumed from the salvaged WIP at 87115d2).
 - The founder-local gate items that need the live stack + keys remain: one real
   teach→check→adapt session end-to-end (PL2 exit item) — this session judged recorded
   goldens and seeded corpora only.
+
+
+## 2026-11-22 — PL5 judge EV-PL-002: the live false positive fixed (rubric refinement + regression goldens)
+
+Branch `feature/w-pl5-judge-refine`. Follow-up to the 2026-11-21 PL5 judges PR (#99): its
+live full-suite run (`eval-full-20261121T175501Z-6946e08-441caa`) failed exactly one PL
+card, `EV-PL-002`, on a single judge false positive over a clean sample — no deterministic
+check failed (det score 1.0), the three F-defects were all caught (fatal/blocking recall
+1.0), and clean specificity came out 2/3 (judge score 0.8889).
+
+**Done:**
+- **Root cause identified** (from the preserved live-run evidence): the flagged sample is
+  `SD-PLJ-C03`, the clean wrong-then-adapt **worked-example** turn — "Full solution: measure
+  both angles from the normal; they are equal; so 30 degrees." over the cited excerpt
+  "The angle of incidence is equal to the angle of reflection" (NCERT p. 148). The judge
+  raised two majors: (1) "asserts a specific numerical answer (30 degrees) but no angle
+  value appears anywhere in the cited excerpt"; (2) "S1 supports only that the angles are
+  equal; it does not state the convention that both [are measured from the normal]". The
+  major rung ("a factual claim with no citation and no support in the cited excerpts") read
+  as "any teaching content not printed in the excerpts", which catches a legitimate
+  **application** of a cited law — the derived exercise answer and the measurement
+  convention needed to apply it. No deterministic gate could arbitrate
+  application-vs-new-fact, so the fix is rubric precision.
+- **Rubric refinement** (`evals/cards/EV-PL-002.yaml` severity_ladder +
+  `_FAITHFULNESS_RUBRIC` + the judge task line in `evals/judges/pl_judges.py`): major now
+  requires NEW domain knowledge (a law/definition/property/relationship absent from every
+  excerpt); both prompt surfaces carry the explicit carve-out — inside a worked example or
+  exercise solution, the given values, the results derived by applying the cited law
+  (numbers the excerpt need not print), and the standard application conventions (e.g.
+  measuring angles from the normal) are correct teaching, never major/fatal. The fatal and
+  minor rungs and the F01 (contradiction) / F02 (fabricated locator) / F03 (uncited
+  focal-length claim) detections are unchanged — recall is not traded away.
+- **Regression goldens**: `SD-PLJ-C04` (faithfulness, clean) pins the exact false-positive
+  pattern class — a worked-example turn with a derived numeric answer ("so the angle of
+  reflection is 45 degrees") plus the application convention — added to
+  `scripts/gen_pl_judge_corpus.py` and regenerated (18 samples, `--check` byte-identical);
+  `SD-PLJ-C03` stays in the corpus unchanged. EV-PL-002 card lists C04 and its budget
+  moves 6 → 7 judge calls per full/calibrate run (§9 total 15 → 16).
+- **Tests**: new `WorkedExampleFalsePositiveRegression` in `testing/evals/test_pl_judges.py`
+  (C03/C04 negative_clean + pattern present, both TN in mock calibration, rubric
+  carve-out pinned); count pins updated (17 → 18 corpus samples, EV-PL-002 6 → 7,
+  calibrate-suite defect samples 31 → 32 in `test_store_diff_and_cli.py`).
+- **Key-free evidence** (all green on the final tree): `--suite smoke --mock`
+  `eval-smoke-20261122T053024Z-621d83d-ba1955` — 25 cards, 24 pass / 0 fail / 1 skip,
+  0 model calls; `--suite calibrate --mock`
+  `eval-calibrate-20261122T053059Z-621d83d-bfbffa` — 5/5 cards PASS with 100%
+  fatal/blocking recall and 100% clean specificity on all three PL judges (EV-PL-002 7
+  calls incl. C04 as TN); `testing/evals/` 93 passed + 20 subtests; ruff 0.17.4
+  check/format clean; mypy 2.4.1 over factory docker pipeline.py testing evals: no issues
+  in 317 files. Docs sync: `docs/specs/personalized-learning/evals.md` §1/§3/§9/§10.
+
+**Not done (honest):**
+- **The live re-run of the three PL cards did not happen.** The authorized
+  `deepseek-v4.1-flash` route returned HTTP 429 `GoUsageLimitError` on every attempt
+  (weekly quota exhausted, resets in ~18.5 h; attempts logged in
+  `scripts/live_attempt_evpl002_20261122.log` — no fabricated live numbers). When the
+  quota resets, the evidence run is:
+  `python -m evals run --suite full --card EV-PL-001` (3 calls),
+  `... --card EV-PL-002` (7 calls), `... --card EV-PL-004` (6 calls) against this branch;
+  expected: EV-PL-002 clean specificity back to 1.0 with fatal/blocking recall still 1.0
+  (SD-PLJ-C03/C04 both TN). Until then the mock calibration + regression pins are the
+  recorded evidence, and PR #99's live log stays the "before" record.
+- The other live-suite failures (EV-CUR-001, EV-PERF-001, EV-REV-001/002, EV-SYN-001/002,
+  EV-VIS-001) are pre-existing non-PL cards — out of scope here, unchanged.

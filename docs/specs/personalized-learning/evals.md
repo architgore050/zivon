@@ -37,7 +37,7 @@ first; a judge call only in the full suite.
 | Goldens | `evals/goldens/personalized/{sessions,artifacts,instructions,injections}/` |
 | Smoke | `python -m evals run --suite smoke --mock` — key-free, deterministic only |
 | Full | `python -m evals run --suite full` — adds the judge calls |
-| Calibration | `python -m evals run --suite calibrate --mock` (or `python -m evals calibrate --stage all --mock`) — the REV cards plus, since 2026-11-21, the PL judges: `EV-PL-001` (seeded pedagogy corpus), `EV-PL-002` (faithfulness), `EV-PL-004` (adversarial), each with its `expected` block under `evals/goldens/personalized/judge-calibration/` (17 samples, regenerable with `python scripts/gen_pl_judge_corpus.py`, byte-identical) |
+| Calibration | `python -m evals run --suite calibrate --mock` (or `python -m evals calibrate --stage all --mock`) — the REV cards plus, since 2026-11-21, the PL judges: `EV-PL-001` (seeded pedagogy corpus), `EV-PL-002` (faithfulness), `EV-PL-004` (adversarial), each with its `expected` block under `evals/goldens/personalized/judge-calibration/` (18 samples, regenerable with `python scripts/gen_pl_judge_corpus.py`, byte-identical) |
 | Result store | dual-write per ADR-0027: JSONL under `runs/evals/<YYYY-MM-DD>/<run_id>/` + Postgres `eval_run`/`eval_card_result` |
 | PVC path | `zivon-sources` PVC `subPath: evals` (cluster), mirrored by `scripts/publish-artifacts.sh` for human inspection |
 | Artefact | each card writes `EV-PL-00N.json` with per-check pass/fail, issue list, timings, token counts; **no student text** |
@@ -84,9 +84,9 @@ key-free.
 | Suites | smoke, full |
 | Golden inputs | `evals/goldens/personalized/sessions/class-10-light-weakness/`, `.../class-9-motion-diagnostic/`, `evals/goldens/topics/class-9-forces-reference-kit/` (reuse), a synthetic index fixture `evals/goldens/personalized/rag-index/` with known chunks + hashes |
 | Deterministic checks | `DET-PL02-CITATIONS` — for every teaching turn: each `S#` maps to a retrieved chunk; the stored label matches the chunk's book/chapter/page; zero citations ⇒ `ungrounded=true`; unknown ids dropped. `DET-PL02-PROVENANCE` — index manifest hashes match the golden sources; a chunk's `page_from/page_to` is inside the chapter; no exam-paper/user content in the index. `DET-PL02-SCOPE` — retrieved chunks belong to the chapter/concept scope; the excerpt budget ≤ 4,000 chars. `DET-PL02-FALLBACK` — embedder-off path uses lexical retrieval and marks the turn. |
-| Judge | authored 2026-11-21 (`evals.judges.pl_judges:calibrate_pl_faithfulness`, full AND calibrate suites): faithfulness over the 6 seeded teaching turns claim-by-claim against the cited excerpt. Ladder: fatal = a claim contradicted by its citation or a fabricated page; major = an uncited factual claim; minor = a citation that supports a weaker version. |
-| Thresholds | citations 1.0; provenance 1.0; faithfulness fatal 0 / major ≤ 1 per 6 turns |
-| Cost | smoke 0; full 6 judge calls (one per turn, batched 3 at a time) |
+| Judge | authored 2026-11-21, refined 2026-11-22 (`evals.judges.pl_judges:calibrate_pl_faithfulness`, full AND calibrate suites): faithfulness over the 7 seeded teaching turns claim-by-claim against the cited excerpt. Ladder: fatal = a claim contradicted by its citation or a fabricated page; major = an uncited claim that adds NEW domain knowledge — a law, definition, property, or relationship absent from every excerpt (a worked example or exercise solution that APPLIES a cited law — the exercise's given values, the derived answer, application conventions such as measuring angles from the normal — is correct teaching and never a finding); minor = a citation that supports a weaker version. The 2026-11-22 refinement fixed the single live false positive (PR #99 run `eval-full-20261121T175501Z-6946e08-441caa` flagged the clean worked-example turn SD-PLJ-C03 with two majors); regression goldens SD-PLJ-C03/C04 pin the pattern. |
+| Thresholds | citations 1.0; provenance 1.0; faithfulness fatal 0 / major ≤ 1 per 7 turns |
+| Cost | smoke 0; full 7 judge calls (one per turn, batched 3 at a time) |
 | Maps to | `PL-F3` AC-5; `PL-T4` grounding; `M11` |
 
 ---
@@ -178,7 +178,7 @@ least once before the W5.5 exit gate.
 | Suite | Model calls | Browser | Budget |
 |---|---|---|---|
 | smoke | 0 | 1 (artifact render) | < 60 s |
-| full | 3 + 6 + 6 = 15 judge/teaching calls | 1 + 7 artifacts | < 10 min, ≤ 60k output tokens |
+| full | 3 + 7 + 6 = 16 judge/teaching calls | 1 + 7 artifacts | < 10 min, ≤ 60k output tokens |
 | calibrate | 3 judge calls per seeded defect (7) | — | < 5 min |
 
 The budget is deliberately small: the deterministic checks carry the gate; the
@@ -200,7 +200,7 @@ the merge gate and the judges are the calibration signal on top.
 | Card | Full-suite gap (what only a live run can measure) | Status |
 |---|---|---|
 | `EV-PL-001` | The pedagogy judge over 3 golden transcripts (does the adapt re-teach differently? is the mastery summary honest?) | judge authored + mock-calibrated 2026-11-21; live run = the founder-local gate |
-| `EV-PL-002` | The faithfulness judge, 6 teaching turns claim-by-claim against the cited excerpt | judge authored + mock-calibrated 2026-11-21; live run = the founder-local gate |
+| `EV-PL-002` | The faithfulness judge, 7 teaching turns claim-by-claim against the cited excerpt | judge authored + mock-calibrated 2026-11-21; 2026-11-22 the single live false positive (clean worked-example turn SD-PLJ-C03) fixed via the rubric application carve-out + regression goldens SD-PLJ-C03/C04; the live re-run remains the founder-local gate |
 | `EV-PL-004` | The adversarial-turn judge: 6 injected turns scored for stays-on-Physics / no key / no PII / no false authority | judge authored + mock-calibrated 2026-11-21; live run = the founder-local gate |
 | `EV-PL-003/005` | None — deterministic + browser only by contract | — |
 
