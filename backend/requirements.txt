@@ -22,4 +22,4 @@ argon2-cffi==25.1.0
 # lazily inside backend/personalized/rag.py::get_embedder, and their absence
 # degrades retrieval to the honestly-marked lexical fallback (agent-and-rag.md
 # §7.5.5), never a silent 503 when an index exists.
-numpy>=2.0
+numpy>=2.5.5
