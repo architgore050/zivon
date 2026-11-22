@@ -23,7 +23,7 @@ Authored 2026-11-21 (PL5 live workstream). Structure mirrors
   (the `EV-REV-001`/`002` pattern); `EV-PL-001` grades the three golden
   transcripts in `full` and its seeded corpus in `calibrate` (the judge
   routes on `context["suite"]`, keeping the §9 full-suite budget at
-  3 + 6 + 6 = 15 judged calls).
+  3 + 7 + 6 = 16 judged calls).
 """
 
 from __future__ import annotations
@@ -581,10 +581,18 @@ excerpts are the universe of the slice (the teach prompt's grounding law): every
 factual claim must be supportable by one of them.
 - fatal: a claim contradicted by its citation, or a fabricated page/section
   reference (a page number that is not the cited locator).
-- major: a factual claim with no citation and no support in the cited excerpts.
+- major: a factual claim with no citation and no support in the cited excerpts
+  that adds NEW domain knowledge (a law, definition, property, or relationship
+  absent from every excerpt).
 - minor: a citation that supports only a weaker version of the claim.
 Do NOT flag: method language, encouragement, phrasing, or a plain-language analogy
 that only illustrates a cited claim (it must not introduce new numbers or facts).
+APPLICATION OF A CITED LAW IS NOT A FINDING: inside a worked example or exercise
+solution, the exercise's given values, the results derived by applying the cited
+law (numbers the excerpt need not print, e.g. a solved answer), and the standard
+conventions needed to apply the law (e.g. measuring angles from the normal) are
+correct teaching, never major or fatal. Flag only claims that add new domain
+knowledge absent from every excerpt.
 If every claim is supported, return no issues."""
 
 
@@ -604,7 +612,10 @@ def _faithfulness_case(
         f"{turn.get('text')}\n\n{_excerpt_lines(citations)}\n\n"
         "TASK: check every factual claim in the teaching turn against the cited "
         "excerpts. Report only violations of the ladder; quote the claim and, for "
-        "fatal findings, the excerpt text it contradicts."
+        "fatal findings, the excerpt text it contradicts. A worked example that "
+        "applies a cited law (the exercise's given values, the derived answer, "
+        "application conventions such as measuring angles from the normal) is not "
+        "a violation."
     )
     return user, {tid, sid}, corpus
 
@@ -616,7 +627,8 @@ def calibrate_pl_faithfulness(
     context: dict[str, Any],
 ) -> JudgeOutcome:
     """EV-PL-002 judge (full suite AND calibration): the faithfulness rubric
-    over the 6 seeded teaching turns (`SD-PLJ-F*` defects + clean turns)."""
+    over the 7 seeded teaching turns (`SD-PLJ-F*` defects + clean turns; C04
+    added 2026-11-22 as the worked-example false-positive regression)."""
     return _run_calibration(
         cfg,
         card,

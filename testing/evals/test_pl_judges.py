@@ -18,6 +18,10 @@ Covers:
    trusted), fatal findings must quote the material or are downgraded to
    `unverified:` minor, unknown turn ids are downgraded, duplicates dropped,
    and a mis-targeted corpus sample fails the judge loudly.
+6. The 2026-11-22 worked-example false-positive regression (PR #99 live run
+   `eval-full-20261121T175501Z-6946e08-441caa`): the clean worked-example
+   samples SD-PLJ-C03/C04 stay negative_clean, the mock judge returns no
+   findings on them, and the rubric keeps its application carve-out.
 """
 
 from __future__ import annotations
@@ -50,7 +54,7 @@ class CorpusIntegrity(unittest.TestCase):
         self.cfg = EvalConfig.from_env({})
         self.cards = load_all_cards(self.cfg.cards_dir)
 
-    def test_all_17_samples_validate_against_the_pl_schema(self) -> None:
+    def test_all_18_samples_validate_against_the_pl_schema(self) -> None:
         total = 0
         for card_id in ("EV-PL-001", "EV-PL-002", "EV-PL-004"):
             card = self.cards[card_id]
@@ -64,7 +68,7 @@ class CorpusIntegrity(unittest.TestCase):
                     json.loads(sample), PL_JUDGE_SAMPLE_SCHEMA, Path(rel).name
                 )
                 total += 1
-        self.assertEqual(total, 17)
+        self.assertEqual(total, 18)
 
     def test_corpus_matches_the_generator_byte_for_byte(self) -> None:
         res = subprocess.run(
@@ -121,7 +125,7 @@ class MockCalibration(unittest.TestCase):
     def test_seeded_corpus_calibration_passes_for_all_three_judges(self) -> None:
         for card_id, samples in (
             ("EV-PL-001", 5),
-            ("EV-PL-002", 6),
+            ("EV-PL-002", 7),
             ("EV-PL-004", 6),
         ):
             with self.subTest(card=card_id):
@@ -153,6 +157,71 @@ class MockCalibration(unittest.TestCase):
         full_out = self._run_card("EV-PL-001", "full")
         self.assertEqual(full_out.metrics["scope"], "golden_transcripts")
         self.assertEqual(full_out.defect_samples, [])
+
+
+class WorkedExampleFalsePositiveRegression(unittest.TestCase):
+    """The 2026-11-22 EV-PL-002 false-positive regression pins.
+
+    The live PL5 run (`eval-full-20261121T175501Z-6946e08-441caa`, PR #99
+    evidence) flagged the ONE clean faithfulness sample SD-PLJ-C03 — a
+    worked-example turn applying the cited equal-angles law — with two major
+    findings: the derived numeric answer ('so 30 degrees') and the
+    'measure both angles from the normal' application convention. Root cause:
+    the major rung read as 'any teaching content not printed in the excerpts',
+    which catches legitimate worked-example applications of a cited law. The
+    fix tightens the rubric (application of a cited law is never a finding);
+    these tests pin the fix so it cannot silently regress.
+    """
+
+    def setUp(self) -> None:
+        self.cfg = EvalConfig.from_env({})
+        self.cards = load_all_cards(self.cfg.cards_dir)
+
+    def _faith_samples(self) -> list[dict]:
+        return _load_samples(self.cfg, self.cards["EV-PL-002"], "faithfulness")
+
+    def test_both_worked_example_clean_samples_are_negative_clean(self) -> None:
+        samples = {s["sample_id"]: s for s in self._faith_samples()}
+        self.assertEqual(len(samples), 7)
+        for sid in ("SD-PLJ-C03", "SD-PLJ-C04"):
+            sample = samples[sid]
+            self.assertEqual(sample["expected"]["outcome_type"], "negative_clean")
+            self.assertEqual(sample["expected"]["expected_verdict"], "pass")
+            self.assertIsNone(sample["expected"]["expected_severity"])
+            self.assertEqual(sample["expected"]["expected_message_contains"], [])
+            text = sample["inputs"]["teaching_turn"]["text"].lower()
+            # The exact FP pattern: a derived numeric answer plus an
+            # application convention over the cited equal-angles law.
+            self.assertIn("degrees", text, sid)
+            self.assertIn("normal", text, sid)
+
+    def test_calibration_marks_both_worked_example_samples_tn(self) -> None:
+        card = self.cards["EV-PL-002"]
+        assert card.llm_judge is not None
+        out = run_judge(
+            card.llm_judge.entrypoint,
+            self.cfg,
+            card,
+            JudgeClient.mock(self.cfg),
+            {"suite": "calibrate"},
+        )
+        self.assertEqual(out.verdict, "pass", out.issues)
+        by_id = {s.sample_id: s for s in out.defect_samples}
+        self.assertEqual(by_id["SD-PLJ-C03"].outcome_class, "TN")
+        self.assertEqual(by_id["SD-PLJ-C04"].outcome_class, "TN")
+
+    def test_rubric_keeps_the_application_carve_out(self) -> None:
+        from evals.judges.pl_judges import _FAITHFULNESS_RUBRIC
+
+        card = self.cards["EV-PL-002"]
+        assert card.llm_judge is not None
+        ladder = card.llm_judge.severity_ladder
+        for text in (_FAITHFULNESS_RUBRIC, ladder["major"]):
+            lowered = text.lower()
+            self.assertIn("worked example", lowered)
+            self.assertIn("application", lowered)
+        # The never-flag shields stay on the minor rung too.
+        self.assertIn("never a finding", ladder["minor"].lower())
 
 
 class CalibrationFailsOnBadJudges(unittest.TestCase):
