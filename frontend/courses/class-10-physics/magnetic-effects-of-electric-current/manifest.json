@@ -19,19 +19,19 @@
     "missing": []
   },
   "counts": {
-    "lesson_blocks": 42,
-    "checks": 19,
+    "lesson_blocks": 39,
+    "checks": 24,
     "worked_examples": 2,
-    "diagrams": 6,
-    "simulations": 1,
-    "reveals": 1,
-    "text_blocks": 13
+    "diagrams": 2,
+    "simulations": 0,
+    "reveals": 3,
+    "text_blocks": 8
   },
   "concepts": [
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-01",
       "section_id": "sec-01",
-      "title": "Electricity and magnetism are linked"
+      "title": "A current can act like a magnet"
     },
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02",
@@ -41,33 +41,33 @@
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03",
       "section_id": "sec-03",
-      "title": "Magnetic field due to a current through a straight conductor"
+      "title": "Magnetic field around a straight current-carrying wire"
     },
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04",
       "section_id": "sec-04",
-      "title": "The right-hand thumb rule"
+      "title": "Circular loop, solenoid and electromagnet"
     },
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05",
       "section_id": "sec-05",
-      "title": "Magnetic field due to a current through a circular loop and a solenoid"
+      "title": "Force on a current-carrying conductor in a magnetic field"
     },
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06",
       "section_id": "sec-06",
-      "title": "Force on a current-carrying conductor in a magnetic field"
+      "title": "Domestic electric circuits and safety"
     },
     {
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07",
       "section_id": "sec-07",
-      "title": "Domestic electric circuits"
+      "title": "Magnetism in medicine"
     }
   ],
   "sections": [
     {
       "id": "sec-01",
-      "title": "Electricity and magnetism are linked",
+      "title": "A current can act like a magnet",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-01",
       "block_ids": [
         "b-01",
@@ -90,7 +90,7 @@
     },
     {
       "id": "sec-03",
-      "title": "Magnetic field due to a current through a straight conductor",
+      "title": "Magnetic field around a straight current-carrying wire",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03",
       "block_ids": [
         "b-10",
@@ -103,57 +103,54 @@
     },
     {
       "id": "sec-04",
-      "title": "The right-hand thumb rule",
+      "title": "Circular loop, solenoid and electromagnet",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04",
       "block_ids": [
         "b-16",
         "b-17",
-        "b-18"
+        "b-18",
+        "b-19",
+        "b-20"
       ]
     },
     {
       "id": "sec-05",
-      "title": "Magnetic field due to a current through a circular loop and a solenoid",
+      "title": "Force on a current-carrying conductor in a magnetic field",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05",
       "block_ids": [
-        "b-19",
-        "b-20",
         "b-21",
         "b-22",
         "b-23",
-        "b-24"
-      ]
-    },
-    {
-      "id": "sec-06",
-      "title": "Force on a current-carrying conductor in a magnetic field",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06",
-      "block_ids": [
+        "b-24",
         "b-25",
         "b-26",
         "b-27",
         "b-28",
+        "b-29"
+      ]
+    },
+    {
+      "id": "sec-06",
+      "title": "Domestic electric circuits and safety",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06",
+      "block_ids": [
         "b-30",
         "b-31",
         "b-32",
         "b-33",
-        "b-34"
+        "b-34",
+        "b-35",
+        "b-36",
+        "b-37"
       ]
     },
     {
       "id": "sec-07",
-      "title": "Domestic electric circuits",
+      "title": "Magnetism in medicine",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07",
       "block_ids": [
-        "b-35",
-        "b-36",
-        "b-37",
-        "b-39",
-        "b-40",
-        "b-41",
-        "b-42",
-        "b-43",
-        "b-44"
+        "b-38",
+        "b-39"
       ]
     }
   ],
@@ -174,17 +171,17 @@
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
     },
     "b-04": {
-      "type": "text",
-      "section_id": "sec-02",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
-    },
-    "b-05": {
       "type": "diagram",
       "section_id": "sec-02",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
     },
+    "b-05": {
+      "type": "check",
+      "section_id": "sec-02",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
+    },
     "b-06": {
-      "type": "text",
+      "type": "reveal",
       "section_id": "sec-02",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
     },
@@ -199,7 +196,7 @@
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
     },
     "b-09": {
-      "type": "reveal",
+      "type": "check",
       "section_id": "sec-02",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02"
     },
@@ -209,22 +206,22 @@
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03"
     },
     "b-11": {
-      "type": "diagram",
+      "type": "check",
       "section_id": "sec-03",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03"
     },
     "b-12": {
-      "type": "simulation",
+      "type": "reveal",
       "section_id": "sec-03",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03"
     },
     "b-13": {
-      "type": "text",
+      "type": "worked_example",
       "section_id": "sec-03",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03"
     },
     "b-14": {
-      "type": "check",
+      "type": "diagram",
       "section_id": "sec-03",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03"
     },
@@ -239,37 +236,37 @@
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04"
     },
     "b-17": {
-      "type": "worked_example",
+      "type": "check",
       "section_id": "sec-04",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04"
     },
     "b-18": {
-      "type": "check",
+      "type": "text",
       "section_id": "sec-04",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04"
     },
     "b-19": {
-      "type": "text",
-      "section_id": "sec-05",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04"
     },
     "b-20": {
-      "type": "diagram",
-      "section_id": "sec-05",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
+      "type": "check",
+      "section_id": "sec-04",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04"
     },
     "b-21": {
-      "type": "check",
+      "type": "text",
       "section_id": "sec-05",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-22": {
-      "type": "text",
+      "type": "reveal",
       "section_id": "sec-05",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-23": {
-      "type": "diagram",
+      "type": "worked_example",
       "section_id": "sec-05",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
@@ -279,27 +276,32 @@
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-25": {
-      "type": "text",
-      "section_id": "sec-06",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-26": {
-      "type": "text",
-      "section_id": "sec-06",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-27": {
-      "type": "diagram",
-      "section_id": "sec-06",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-28": {
-      "type": "worked_example",
-      "section_id": "sec-06",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
+    },
+    "b-29": {
+      "type": "check",
+      "section_id": "sec-05",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05"
     },
     "b-30": {
-      "type": "check",
+      "type": "text",
       "section_id": "sec-06",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
     },
@@ -324,16 +326,21 @@
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
     },
     "b-35": {
-      "type": "text",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
     },
     "b-36": {
-      "type": "diagram",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
     },
     "b-37": {
+      "type": "check",
+      "section_id": "sec-06",
+      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06"
+    },
+    "b-38": {
       "type": "text",
       "section_id": "sec-07",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
@@ -342,35 +349,10 @@
       "type": "check",
       "section_id": "sec-07",
       "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
-    },
-    "b-40": {
-      "type": "check",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
-    },
-    "b-41": {
-      "type": "check",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
-    },
-    "b-42": {
-      "type": "check",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
-    },
-    "b-43": {
-      "type": "check",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
-    },
-    "b-44": {
-      "type": "check",
-      "section_id": "sec-07",
-      "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07"
     }
   },
   "pipeline_version": "9",
-  "content_hash": "sha256:c55d5d6a03b3d43a41c0d01c8444d3995b32978d5de6e73bd4d016e7d8cdefcb",
+  "content_hash": "sha256:9995010de8b5f103b29707de7c9af55edac9540e166dcaeb9c5a71ab10af6ecd",
   "chapter": {
     "query": "Magnetic Effects of Electric Current",
     "title": "Magnetic Effects of Electric Current",
@@ -386,16 +368,45 @@
       "id": "ncert-science-10",
       "title": "Science - Textbook for Class X",
       "license": "NCERT (free educational use)"
+    },
+    {
+      "id": "ncert-physics-12-part1",
+      "title": "Physics Part I - Textbook for Class XII",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-curiosity-8",
+      "title": "Curiosity - Textbook of Science for Grade 8",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "openstax-hs-physics",
+      "title": "OpenStax High School Physics",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-curiosity-6",
+      "title": "Curiosity - Textbook of Science for Grade 6",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "ncert-curiosity-7",
+      "title": "Curiosity - Textbook of Science for Grade 7",
+      "license": "see sources catalog"
+    },
+    {
+      "id": "siyavula-physical-sciences-10",
+      "title": "Siyavula / FHSST Physical Sciences Grade 10",
+      "license": "see sources catalog"
     }
   ],
-  "run_id": "magnetic-effects-of-electric-current-c10",
-  "generated_at": "2026-11-20T20:31:44Z",
+  "run_id": "magnetic-effects-of-electric-current",
+  "generated_at": "2026-11-21T19:58:35Z",
   "block_counts": {
-    "text": 13,
-    "check": 19,
-    "diagram": 6,
-    "reveal": 1,
-    "simulation": 1,
+    "text": 8,
+    "check": 24,
+    "diagram": 2,
+    "reveal": 3,
     "worked_example": 2
   },
   "default_locale": "en",
@@ -406,7 +417,7 @@
   ],
   "titles_by_locale": {
     "en": "Magnetic Effects of Electric Current",
-    "hi": "विद्युत धारा के चुम्बकीय प्रभाव",
+    "hi": "विद्युत धारा के चुंबकीय प्रभाव",
     "hi-Latn": "Electric Current ke Magnetic Effects"
   },
   "translation_status": {
@@ -422,8 +433,8 @@
     }
   },
   "i18n_hashes": {
-    "en": "260653c4e0afdf9234944539869b942ce57ffe7e5e293d8d7e492931c4e1f0c0",
-    "hi": "8d7d5a4c8389b54d07ae4150d1081432cc75be60af7ac983143dd1ce360fb4da",
-    "hi-Latn": "d3424ca7c774fe35dc08d96b1f3fe96ea27cbfd2c77b6ac750a9221358c3257a"
+    "en": "b69a4423e81915cf70634cf2d1c34f828e8f550f33a74373b9c9790c75bb4386",
+    "hi": "62d7c9d7b36dcc84c65ff708a466115acdc7e81bb00772133bf59f3ad907002d",
+    "hi-Latn": "7607aefc0bd569b55f8e82cb9b138bfd061b96e41a8f81d3fc2080109b9dd8b6"
   }
 }

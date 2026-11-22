@@ -519,7 +519,7 @@ window.ZIVON_COURSES = [
     "class": 10,
     "chapter_number": 12,
     "title": "Magnetic Effects of Electric Current",
-    "generated_at": "2026-11-20T20:31:44Z",
+    "generated_at": "2026-11-21T19:58:35Z",
     "lesson_title": "Magnetic Effects of Electric Current",
     "status": "lesson_only",
     "languages": {
@@ -532,19 +532,19 @@ window.ZIVON_COURSES = [
       "missing": []
     },
     "counts": {
-      "lesson_blocks": 42,
-      "checks": 19,
+      "lesson_blocks": 39,
+      "checks": 24,
       "worked_examples": 2,
-      "diagrams": 6,
-      "simulations": 1,
-      "reveals": 1,
-      "text_blocks": 13
+      "diagrams": 2,
+      "simulations": 0,
+      "reveals": 3,
+      "text_blocks": 8
     },
     "concepts": [
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-01",
         "section_id": "sec-01",
-        "title": "Electricity and magnetism are linked"
+        "title": "A current can act like a magnet"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-02",
@@ -554,27 +554,27 @@ window.ZIVON_COURSES = [
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-03",
         "section_id": "sec-03",
-        "title": "Magnetic field due to a current through a straight conductor"
+        "title": "Magnetic field around a straight current-carrying wire"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-04",
         "section_id": "sec-04",
-        "title": "The right-hand thumb rule"
+        "title": "Circular loop, solenoid and electromagnet"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-05",
         "section_id": "sec-05",
-        "title": "Magnetic field due to a current through a circular loop and a solenoid"
+        "title": "Force on a current-carrying conductor in a magnetic field"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-06",
         "section_id": "sec-06",
-        "title": "Force on a current-carrying conductor in a magnetic field"
+        "title": "Domestic electric circuits and safety"
       },
       {
         "concept_id": "class-10-magnetic-effects-of-electric-current-sec-07",
         "section_id": "sec-07",
-        "title": "Domestic electric circuits"
+        "title": "Magnetism in medicine"
       }
     ],
     "pipeline_version": "9",
@@ -586,7 +586,7 @@ window.ZIVON_COURSES = [
     ],
     "titles_by_locale": {
       "en": "Magnetic Effects of Electric Current",
-      "hi": "विद्युत धारा के चुम्बकीय प्रभाव",
+      "hi": "विद्युत धारा के चुंबकीय प्रभाव",
       "hi-Latn": "Electric Current ke Magnetic Effects"
     },
     "translation_status": {

@@ -1,0 +1,23 @@
+# Gitleaks configuration — extends the default rule set (useDefault).
+#
+# Rationale (verified 2026-11-22): the default config flags three classes of
+# content in this repo that are NOT secrets:
+#   1. docs/specs/translation/block-contract.md — documentation example of the
+#      translation-memory cache-file naming envelope; the hex string is a
+#      unit-key hash used as a filename, not a credential.
+#   2. Vendored third-party reference docs under skills/**/vendored/** —
+#      e.g. the RFC 6455 sample `Sec-WebSocket-Key` constant.
+#   3. TIMELINE.md — historical ops-log entries quoting gate/probe output
+#      (token counts, run ids); no credentials are ever placed there.
+# Only these paths are allowlisted; every default rule still applies to all
+# other paths, including all source code and CI/workflow files.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "documented examples, vendored RFC refs, historical ops log"
+paths = [
+  '''^docs/specs/translation/block-contract\.md$''',
+  '''^skills/.*/vendored/''',
+  '''^TIMELINE\.md$''',
+]

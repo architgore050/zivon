@@ -122,6 +122,7 @@ class TestShippedSyllabus(SyllabusTestBase):
                 "class-9-how-forces-affect-motion",
                 "class-10-the-human-eye-and-the-colourful-world",
                 "class-10-electricity",
+                "class-10-magnetic-effects-of-electric-current",
                 "class-11-units-and-measurement",
                 "class-11-motion-in-a-straight-line",
                 "class-11-motion-in-a-plane",
