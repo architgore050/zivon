@@ -2,6 +2,6 @@
 # the merge agent folds these into it. fastapi/pydantic are already present
 # there. No torch/pdfplumber/playwright — the brain is remote (ADR-0017), the
 # image stays slim. Final pins land with the core-backend agent's lockfile.
-google-genai>=1.0,<2
+google-genai>=3.6.1,<4
 websockets>=12,<16
 httpx>=0.28.1
