@@ -164,4 +164,51 @@ in PR #102's body.
 6. **D6 — CI pull_request-event anomaly on PR #100** was transient (later
    pushes fired normally); the workflow_dispatch workaround stays documented.
 
+## Addendum 3 — autonomous decisions log (what was decided without asking, and why)
+
+Each entry: the call made, then the reason. Veto any of these and the local
+agent reverses it in a follow-up PR.
+
+1. **TIMELINE conflicts resolved by union, never by picking a side.** Every
+   workstream's dated record is preserved verbatim; merges go sequentially with
+   a rebase + union (script: `scripts/resolve_timeline_union.py`).
+2. **No gate was ever bypassed or softened.** The PR-event CI anomaly was
+   worked around via `workflow_dispatch` (same checks, same SHA) instead of an
+   admin merge; the gitleaks failure was fixed by a documented allowlist of
+   verified non-secrets, not by disabling the scan.
+3. **Gitleaks allowlist scope** (`.gitleaks.toml`): a translation-doc hash
+   example, vendored RFC reference constants, and TIMELINE's historical ops
+   log — each inspected and confirmed non-secret before allowlisting.
+4. **PL5 fix = rubric precision, not threshold lowering.** The `major` rung now
+   requires NEW domain knowledge; a regression golden (`SD-PLJ-C04`) pins the
+   false-positive class; no golden was deleted or weakened; defect recall
+   re-proven at 1.0.
+5. **Magnetic unblock = option (a)** — Siyavula CC BY 3.0, licence verified
+   verbatim on siyavula.com and recorded with attribution; text-only use,
+   paraphrase+cite, never redistributed. Keeps the founder's original syllabus
+   intact (option (b) re-curation was NOT taken).
+6. **Evidence integrity under quota exhaustion:** when the route returned 429,
+   nothing was fabricated — regen/bank/evals stopped at the honest boundary and
+   the exact resumption commands were committed (`scripts/magnetic_founder_local.sh`,
+   PL re-run commands in PR #102's body). Quota resets ~20:15 UTC 2026-11-22.
+7. **Narration left `null`** in all published lessons (no Gnani credit spend
+   was ever authorized; env deliberately unset).
+8. **Import pins are always computed** by real throwaway-SQLite import
+   (198/36/28/4 baseline), never guessed.
+9. **Dependabot policy:** patch/minor auto-merge only when green + mergeable;
+   majors held for the founder (none found); stale PRs re-based three times
+   rather than closed; final scan-merge pass is a standing next action.
+10. **Sandbox-recycle resilience:** six wipes hit this build — the rule that
+    held everything together is granular commits pushed immediately and
+    handoff docs maintained in-repo (`docs/deployment/local-agent-handover.md`)
+    plus `download/` copies.
+
+### Immediate next actions (mechanical, unblocked when the route resets)
+
+1. `bash scripts/magnetic_founder_local.sh` (regen → verify → bank → mirror →
+   printed pin counts) → commit outputs → PR → merge on green.
+2. PL live eval re-run (commands in PR #102 body) → attach run ids to the PR.
+3. Dependabot final scan-merge pass (round-3 rebases were fired 2026-11-22).
+4. Review the decisions above with the founder; reverse any in one PR.
+
 
