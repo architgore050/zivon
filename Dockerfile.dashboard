@@ -35,7 +35,7 @@
 # apply here). The builder never ships, so its layers are not a runtime CVE
 # surface and need no apt freshening. go1.26.11 is deliberately ABOVE the
 # k8s repo's .go-version (1.26.10) — that is the entire point of this stage.
-FROM golang:1.26.11 AS kubectl-builder
+FROM golang:1.27.4 AS kubectl-builder
 
 # kubectl version pinned like every other tool (a floating pin would let an
 # upstream release change the gate under us). Bumped v1.31.2 -> v1.37.2 on
