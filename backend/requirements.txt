@@ -10,7 +10,7 @@ httpx==0.28.1
 sqlalchemy==2.1.9
 alembic==1.20.1
 asyncpg==0.32.0
-psycopg[binary]==3.2.3
+psycopg[binary]==3.3.9
 # Server-rendered consumer shell (`web/`, F0): FastAPI's Jinja2Templates.
 # Same pin the dashboard image installs; the shell must not hand-render HTML.
 jinja2==3.1.6
