@@ -85,3 +85,31 @@ All with placeholders documented in `docs/deployment/founder-cutover-runbook.md`
   `docs/content-factory/assessment.md`.
 - Evals: `docs/specs/personalized-learning/evals.md`, `evals/` cards + judges.
 - E2E: `testing/e2e/` (63 tests, `python -m unittest discover -s testing/e2e -t .`).
+
+## Addendum 2026-11-22 — progress since this file merged
+
+- **Merged:** #101 (this file), #102 — EV-PL-002 judge fixed (root cause: the
+  `major` rung caught legitimate *application of a cited law* in worked
+  examples; rubric now carves out derived results and application conventions;
+  regression golden `SD-PLJ-C04` pins the pattern). Mock calibrate 5/5 cards
+  pass, fatal/blocking recall 1.0, clean specificity 1.0. **Live re-run of the
+  PL cards is pending** — the authorized route returned HTTP 429 (weekly quota,
+  resets ~18.5 h from 2026-11-22 ~06:00 UTC); exact re-run commands are in PR
+  #102's body. Do NOT treat the mock numbers as live evidence.
+- **PR #100 (magnetic):** the `pull_request` event never fired CI for this one
+  PR (zero runs on open, synchronize, and reopen — cause unknown, other PRs
+  fire normally). CI was started manually via `workflow_dispatch` on the head
+  SHA; check-runs attach to the same SHA so branch protection sees them. If a
+  future push to that branch again shows zero check-runs, re-dispatch:
+  `POST /repos/.../actions/workflows/ci.yml/dispatches {"ref":"feature/w-magnetic-fix"}`.
+- **Dependabot:** all 20 open PRs were stale-conflicted (July-era bases);
+  `@dependabot rebase` was requested on each. Triage rule: merge patch/minor
+  bumps once green + mergeable; report majors to the founder. A ready-made
+  scan-and-merge script: `scripts/dependabot_triage.sh` (it also re-kicks CI
+  with an empty commit — remove that part if not needed).
+- **Magnetic unblock (next agent task):** option (a) — register a CC-BY source
+  carrying electromagnetism §12.4–12.6 (e.g. Siyavula Gr11/12, verify the
+  licence on the site and record attribution in the source registry), ingest,
+  regenerate the lesson, then bank → mirror → `TRACKED_CHAPTERS` pins. See
+  `download/magnetic-workstream-handoff.md` for the exact recipe.
+
