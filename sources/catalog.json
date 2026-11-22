@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-01",
+  "updated": "2026-11-22",
   "how_this_file_works": [
     "This catalog is the ONLY place the pipeline learns about source books. docs/content-factory/source-catalog.md mirrors it for humans and a unit test keeps them in sync.",
     "chapter_url_template uses {nn} = zero-padded 2-digit chapter URL index; multi-part books add chapter_url_offset so {nn} is the within-part index (NCERT numbers chapter PDFs per part: Part II Ch. 8 = keph201.pdf). {code} = the book code's {ps} placeholder for prelims.",
@@ -184,6 +184,34 @@
       "manual_url": "https://www.siyavula.com/read/science/grade-10",
       "class_evidence": [],
       "verification": "Site reachable on 2026-11-01; PDF export is behind the reader UI, so place the exported PDF manually. Grades 11 and 12 exist at the same site and can be added as new entries."
+    },
+    {
+      "id": "siyavula-physical-sciences-11",
+      "class": 11,
+      "subject": "physics",
+      "title": "Siyavula / FHSST Physical Sciences Grade 11",
+      "publisher": "Siyavula (FHSST project)",
+      "license": "Creative Commons Attribution 3.0 Unported (CC BY 3.0), originally FHSST (Free High School Science Texts), 'Everything Science' CAPS edition. Free to share and adapt with attribution; embedded videos/simulations from external sources are excluded by the site's own licence note.",
+      "is_ncert": false,
+      "download": "manual",
+      "manual_filename": "siyavula-physical-sciences-11.pdf",
+      "manual_url": "https://www.siyavula.com/read/science/grade-11",
+      "class_evidence": [],
+      "verification": "Licence verified on the siyavula.com Grade 11 reader page on 2026-11-22: 'All Siyavula textbook content made available on this site is released under the terms of a Creative Commons Attribution License' linking https://creativecommons.org/licenses/by/3.0/, and the learner ePub filename carries the CC-BY tag. Direct learner-book PDF https://www.siyavula.com/downloads/books/science/Gr11_PhysicalSciences_Learner_Eng.pdf fetched byte-level on 2026-11-22 (525 pages, 'Everything Science ... WRITTEN BY VOLUNTEERS', CAPS version 1); scripts/fetch_siyavula.py places it. Ch. 10 'Electromagnetism' (magnetic fields, Faraday's law) and ch. 11 'Electric circuits' supplement Class 10 magnetic effects."
+    },
+    {
+      "id": "siyavula-physical-sciences-12",
+      "class": 12,
+      "subject": "physics",
+      "title": "Siyavula / FHSST Physical Sciences Grade 12",
+      "publisher": "Siyavula (FHSST project)",
+      "license": "Creative Commons Attribution 3.0 Unported (CC BY 3.0), originally FHSST (Free High School Science Texts), 'Everything Science' CAPS edition. Free to share and adapt with attribution; embedded videos/simulations from external sources are excluded by the site's own licence note.",
+      "is_ncert": false,
+      "download": "manual",
+      "manual_filename": "siyavula-physical-sciences-12.pdf",
+      "manual_url": "https://www.siyavula.com/read/science/grade-12",
+      "class_evidence": [],
+      "verification": "Licence verified on the siyavula.com Grade 12 reader page on 2026-11-22: 'All Siyavula textbook content made available on this site is released under the terms of a Creative Commons Attribution License' linking https://creativecommons.org/licenses/by/3.0/, and the learner ePub filename carries the CC-BY tag. Direct learner-book PDF https://www.siyavula.com/downloads/books/science/Gr12_PhysicalSciences_Learner_Eng.pdf fetched byte-level on 2026-11-22 (541 pages, 'EVERYTHING SCIENCE ... WRITTEN BY VOLUNTEERS', CAPS version 1); scripts/fetch_siyavula.py places it. Ch. 11 'Electrodynamics' (11.2 electrical machines - generators and motors; 11.3 alternating current) supplements the Class 10 motor/EMI/generator sections removed from the rationalised NCERT Class X textbook."
     }
   ]
 }
