@@ -22,7 +22,7 @@
 # (docs/specs/observability/ — the source of truth, baked into the image so
 # severity/component lookups work; not duplicated inside the package).
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 # Python writes logs immediately (critical inside containers) and skips .pyc files.
 ENV PYTHONUNBUFFERED=1 \
