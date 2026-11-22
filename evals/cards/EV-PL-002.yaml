@@ -58,9 +58,14 @@ llm_judge:
     fatal: A teaching claim contradicted by its cited excerpt, or a fabricated page/section reference
       (a locator the citation does not carry). Must quote both the claim and the excerpt text.
     major: A factual claim with no citation and no support in the cited excerpts (the excerpts are the
-      universe of the slice).
+      universe of the slice) that adds NEW domain knowledge — a law, definition, property, or
+      relationship absent from every excerpt. Application of a cited law is never a finding — inside a
+      worked example or exercise solution, the exercise's given values, the results derived by applying
+      the cited law (numbers the excerpt need not print), and the standard conventions needed to apply
+      it (e.g. angles measured from the normal) are correct teaching, not new facts.
     minor: A citation that supports only a weaker version of the claim; a plain-language analogy that
-      illustrates a cited claim is acceptable and never a finding.
+      illustrates a cited claim is acceptable and never a finding; method language and phrasing are
+      never findings.
   way_out_rule: "Report unverifiable suspicions as severity='minor' with message starting 'unverified:' — never as fatal or major."
   anchor_examples:
   - label: "Fatal - Claim contradicted by its citation"
