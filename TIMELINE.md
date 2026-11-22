@@ -1162,6 +1162,18 @@ as one committed command.
   the PL5 live re-run hit earlier today). No lesson regeneration, no bank generation, no
   translation stages were run against the new sources. No numbers are fabricated.
 
+- **Offline validation over the new sources PASSED (no model, no network).** Both
+  Siyavula books go through the real stage-00 manual-book ingest path
+  (`factory.ingest._index_manual_book`): Grade 11 = 525 pages / 892 chunks, Grade 12 =
+  541 pages / 1111 chunks embedded with the offline MiniLM embedder; the locate stage's
+  exact supplement query shape over those chunks surfaces Grade 11 "10.3 Faraday's law
+  of electromagnetic induction" (score 1.42) and Grade 12 "11.2 Electrical machines —
+  generators and motors / 11.3 Alternating current" (score 1.02); the extracted pages
+  carry motor ×92 / generator ×66 / induction ×23 / commutator ×7. The full-catalog
+  00-ingest warm-up still needs the remaining NCERT chapter downloads (ncert.nic.in
+  dropped ~80% of connections during this session; the pipeline downloads on demand and
+  fails loudly when a needed chapter is absent).
+
 **Not done (founder-local; the committed script performs each step):**
 - Lesson regeneration over the new sources (stages 00–12, `--locales hi,hi-Latn`), the
   concept-map update to the regenerated manifest, the six-concept grounding verification,
