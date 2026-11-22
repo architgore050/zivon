@@ -389,22 +389,33 @@ Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
    and power as two concepts. A lesson re-render with a separate power section (or a
    recorded syllabus re-curation) unblocks it. Question tagging is complete. Magnetic
    Effects is registered (`lesson_topic_slug`, tracked concept map) and its lesson was
-   regenerated twice on 2026-11-21 with every pipeline gate green, yet A2 still refuses
-   its pack with two fatal `concept.orphan` findings (`electromagnetic-induction`,
+   regenerated twice on 2026-11-21 with every pipeline gate green, yet A2 refused its
+   pack with two fatal `concept.orphan` findings (`electromagnetic-induction`,
    `electric-generator`): the cached NCERT Class X textbook is the rationalised edition
    whose chapter 12 (13 pages, titled sections 12.1–12.4 only) no longer contains the
    old-edition 12.4 motor / 12.5 electromagnetic induction / 12.6 generator sections the
-   syllabus curates, a class-unfiltered supplement search surfaced only exercise and
-   opener fragments from NCERT Physics XII / OpenStax, and the grounding law correctly
-   stops the generator from building sections the sources do not explain. Unblocking
-   needs a founder decision: a source that carries the topics (the CC-BY Siyavula Grade
-   11/12 electromagnetism/electrodynamics chapters fit the documented add-a-source path)
-   or a recorded syllabus re-curation.
+   syllabus curates. **The founder unblock path is now registered (2026-11-22):** the
+   Siyavula / FHSST Physical Sciences Grade 11 and Grade 12 learner books are verified
+   CC BY 3.0 on siyavula.com (both reader pages state "All Siyavula textbook content
+   made available on this site is released under the terms of a Creative Commons
+   Attribution License" linking <https://creativecommons.org/licenses/by/3.0/>; the
+   learner ePubs carry the CC-BY tag) and are registered in `sources/catalog.json`
+   (`siyavula-physical-sciences-11/12`: licence, attribution, source URL) with
+   `scripts/fetch_siyavula.py`; their learner PDFs (Grade 11: 525 pp, ch. 10
+   Electromagnetism; Grade 12: 541 pp, ch. 11 Electrodynamics incl. 11.2 electrical
+   machines — generators and motors) were fetched byte-level into `sources/pdfs/`. The
+   lesson regeneration and bank that consume these supplements remain **founder-local**:
+   the workstream sandbox's authorized `deepseek-v4.1-flash` route returned HTTP 429
+   `GoUsageLimitError` (weekly quota) on 2026-11-22, so no generation was run against
+   the new sources. `scripts/magnetic_founder_local.sh` performs the whole chain on the
+   founder's machine (fetch → offline ingest → regen → offline manifest verification →
+   bank → pack mirror → importer dry-run), and `scripts/verify_magnetic_manifest.py`
+   re-checks A2's fatal orphan rule offline before the bank spends anything.
 4. **Exam weight is unpopulated** until P3's blueprint lands.
 5. **Four of the eight curated Class 9/10 chapters have banks** (Class 9 Motion, Class 10
    Light / Human Eye / Electricity). Magnetic Effects is registered and fully gated but
-   blocked at A2 (debt 3: its last two curated concepts reference sections the current
-   textbook removed); the remaining chapters have concepts but no practice/speaking
+   its bank waits on the founder-local regeneration over the newly registered Siyavula
+   sources (debt 3); the remaining chapters have concepts but no practice/speaking
    content yet.
 6. **DB import is a manual operator step.** The importer exists and the tracked packs are
    imported by it, but nothing runs it automatically after an A6 export yet: an operator

@@ -1114,3 +1114,73 @@ check failed (det score 1.0), the three F-defects were all caught (fatal/blockin
   --class 10 --generator llm --export-dir runs/assessment-exports`).
 - `TRACKED_CHAPTERS` in `testing/backend/test_assessment_import.py` intentionally does
   NOT gain MAGNETIC: there is no mirrored pack, and the pin must match reality.
+
+## 2026-11-22 — Magnetic Effects unblock via a CC-BY source: licence verified, sources registered, LLM quota exhausted (founder-local handoff)
+
+Branch `feature/w-magnetic-bank`. Executes the unblock path (a) recorded on 2026-11-21:
+add a legitimately-licensed source carrying the motor / electromagnetic-induction /
+generator topics, then regenerate. The source work is DONE and committed; the
+LLM-dependent work could not run in the workstream sandbox and is handed to the founder
+as one committed command.
+
+**Done:**
+- **Licence gate PASSED with verified terms.** Both Siyavula reader pages (Grade 11
+  <https://www.siyavula.com/read/science/grade-11>, Grade 12
+  <https://www.siyavula.com/read/science/grade-12>) state "All Siyavula textbook content
+  made available on this site is released under the terms of a Creative Commons
+  Attribution License", linking <https://creativecommons.org/licenses/by/3.0/> (CC BY
+  3.0); the learner ePubs carry a `CC-BY` filename tag; the pages' own caveat excludes
+  embedded videos/simulations from external sources. This satisfies the runbook's
+  licensing rule (NCERT + openly-licensed sources only; the corpus policy expects the
+  CC-BY family). Attribution travels in the catalog entries (publisher, licence, source
+  URL); the pipeline paraphrases and cites, never redistributes (`sources/pdfs/` is
+  gitignored).
+- `b0af1e4` — `sources/catalog.json` gains `siyavula-physical-sciences-11` (class 11) and
+  `siyavula-physical-sciences-12` (class 12), manual-download entries with licence +
+  attribution + verification notes; `scripts/fetch_siyavula.py` (idempotent, catalog
+  data-driven, %PDF magic + size sanity) fetches the learner PDFs
+  (`Gr11_PhysicalSciences_Learner_Eng.pdf`, `Gr12_PhysicalSciences_Learner_Eng.pdf`);
+  `docs/content-factory/source-catalog.md` mirrors both rows plus the dated licence
+  verification. Catalog-sync unit test green (4 passed). Both PDFs were fetched
+  byte-level (Grade 11: 525 pp; Grade 12: 541 pp; "Everything Science ... WRITTEN BY
+  VOLUNTEERS" CAPS edition) — Grade 11 ch. 10 Electromagnetism and Grade 12 ch. 11
+  Electrodynamics (11.2 electrical machines — generators and motors; 11.3 alternating
+  current) carry exactly the topics the rationalised NCERT Class X book removed.
+- `7ad0d40` — the founder-local chain, committed: `scripts/magnetic_founder_local.sh`
+  (fetch → offline ingest/locate warm-up → lesson regen with resume semantics
+  (`MAGNETIC_FRESH=1` forces `--fresh`) → offline manifest verification → concept-map
+  checkpoint → assessment bank → pack mirror → importer dry-run + pin counts) and
+  `scripts/verify_magnetic_manifest.py` (A2's fatal checks offline: every section
+  mapped, no orphan concept, motor/EMI/generator keyword coverage over the mapped
+  sections).
+- Docs sync: `docs/content-factory/class-10-campaign.md` (§2 row, §3 assessment bullet,
+  §5.4, §7 tracker), `docs/content-factory/assessment.md` (§10 debts 3/5) — the unblock
+  path is recorded as REGISTERED (source + licence + scripts), no longer open.
+- The LLM route was probed before spending anything: `GET /v1/models` answers, but a
+  minimal chat completion returns **HTTP 429 `GoUsageLimitError` — "OpenCode Go usage
+  limit reached (weekly, resets in 16h 38m)"** (2026-11-22 ~07:45 UTC; same weekly quota
+  the PL5 live re-run hit earlier today). No lesson regeneration, no bank generation, no
+  translation stages were run against the new sources. No numbers are fabricated.
+
+- **Offline validation over the new sources PASSED (no model, no network).** Both
+  Siyavula books go through the real stage-00 manual-book ingest path
+  (`factory.ingest._index_manual_book`): Grade 11 = 525 pages / 892 chunks, Grade 12 =
+  541 pages / 1111 chunks embedded with the offline MiniLM embedder; the locate stage's
+  exact supplement query shape over those chunks surfaces Grade 11 "10.3 Faraday's law
+  of electromagnetic induction" (score 1.42) and Grade 12 "11.2 Electrical machines —
+  generators and motors / 11.3 Alternating current" (score 1.02); the extracted pages
+  carry motor ×92 / generator ×66 / induction ×23 / commutator ×7. The full-catalog
+  00-ingest warm-up still needs the remaining NCERT chapter downloads (ncert.nic.in
+  dropped ~80% of connections during this session; the pipeline downloads on demand and
+  fails loudly when a needed chapter is absent).
+
+**Not done (founder-local; the committed script performs each step):**
+- Lesson regeneration over the new sources (stages 00–12, `--locales hi,hi-Latn`), the
+  concept-map update to the regenerated manifest, the six-concept grounding verification,
+  and the assessment bank (`--generator llm`) + pack mirror + `TRACKED_CHAPTERS` count
+  pins. All of it is `bash scripts/magnetic_founder_local.sh` with the runbook env
+  exported; the script stops loudly at the first failed step and resumes.
+- The offline ingest/embedding warm-up over the two new Siyavula books also could not be
+  completed in-sandbox this session (ncert.nic.in dropped ~80% of chapter downloads
+  during the cache warm-up; retries continue founder-side — the pipeline downloads on
+  demand and fails loudly if a needed chapter is absent).

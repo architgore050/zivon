@@ -46,7 +46,7 @@ them; the assessment and exam pipelines key on the ids):
 | 1 | `class-10-light-reflection-and-refraction` | Light – Reflection and Refraction | 7 | **generated** (founder-local, 2026-11-19) `[ASSUMPTION]` | seed bank tracked (15 items + 3 speaking prompts, EN/HI/Hinglish) `[STRONG]` | pending | pending |
 | 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21) `[STRONG]` | pending | pending |
 | 3 | `class-10-electricity` | Electricity | 5 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21) `[STRONG]` | pending | pending |
-| 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | **generated** (founder-local, 2026-11-21; regenerated the same day, all gates green) `[ASSUMPTION]` | none (0 questions) — blocked: the current NCERT textbook no longer carries NCERT 12.4–12.6 (rationalised edition), so the regenerated lesson cannot ground the induction and generator concepts and A2's orphan rule still fails (§5.4) `[STRONG]` | pending | pending |
+| 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | **generated** (founder-local, 2026-11-21; regenerated the same day, all gates green) `[ASSUMPTION]` | none (0 questions) — unblock registered: CC BY 3.0 Siyavula Gr11/12 sources added (2026-11-22), the regen + bank run founder-local via `scripts/magnetic_founder_local.sh` (the workstream sandbox's LLM quota returned HTTP 429 `GoUsageLimitError`; §5.4) `[STRONG]` | pending | pending |
 
 State summary: **all four chapters generated.**
 
@@ -74,21 +74,27 @@ State summary: **all four chapters generated.**
   gate pass, mirrored into `sources/assessment/packs/` and verified by the importer
   dry-run). Both chapters' lessons are registered in the syllabus (`lesson_topic_slug`) with
   tracked `section → curated concept` maps, so their block tagging is complete (43/43 and
-  45/45 blocks). **Magnetic Effects has no bank yet**, and the blocker is now recorded
-  precisely: its lesson IS registered (`lesson_topic_slug`, tracked concept map) and was
-  regenerated twice on 2026-11-21 with every gate green, but the cached NCERT Class X
-  textbook is the rationalised edition — chapter 12 is 13 pages carrying only titled
-  sections 12.1–12.4 (domestic electric circuits is now 12.4). The old-edition sections
-  the syllabus curates (12.4 electric motor, 12.5 electromagnetic induction, 12.6
-  electric generator) were removed from the book itself, and no cached catalog source
-  carries them at depth: the class-unfiltered supplement search surfaced only exercise
-  and opener fragments from NCERT Physics XII and OpenStax, and the generator correctly
-  built no section on them (the grounding law forbids sections the sources do not
-  explain). A2 therefore still fails with two fatal `concept.orphan` findings
-  (electromagnetic-induction, electric-generator) — the gate doing its job, not a
-  defect. Unblocking needs a founder decision: add a source that carries the topics
-  (e.g. the CC-BY Siyavula Grade 11/12 electromagnetism/electrodynamics chapters, via
-  the documented add-a-source path) or a recorded syllabus re-curation.
+  45/45 blocks). **Magnetic Effects has no bank yet**, and the unblock path is now
+  registered rather than open: its lesson IS registered (`lesson_topic_slug`, tracked
+  concept map) and was regenerated twice on 2026-11-21 with every gate green, but the
+  cached NCERT Class X textbook is the rationalised edition — chapter 12 is 13 pages
+  carrying only titled sections 12.1–12.4 (domestic electric circuits is now 12.4) — so
+  the old-edition sections the syllabus curates (12.4 electric motor, 12.5
+  electromagnetic induction, 12.6 electric generator) had no grounded carrier and A2
+  refused the pack with two fatal `concept.orphan` findings — the gate doing its job, not
+  a defect. On 2026-11-22 the documented add-a-source path was executed: the Siyavula /
+  FHSST Physical Sciences Grade 11 and Grade 12 learner books were **verified CC BY 3.0
+  on siyavula.com** (both reader pages: "All Siyavula textbook content made available on
+  this site is released under the terms of a Creative Commons Attribution License",
+  linking <https://creativecommons.org/licenses/by/3.0/>; the learner ePubs carry the
+  CC-BY tag), registered in `sources/catalog.json` with `scripts/fetch_siyavula.py`, and
+  their learner PDFs fetched byte-level (Grade 11: 525 pp, ch. 10 Electromagnetism;
+  Grade 12: 541 pp, ch. 11 Electrodynamics with 11.2 electrical machines — generators
+  and motors). The regeneration + bank over the new sources is **founder-local**: the
+  workstream sandbox's authorized `deepseek-v4.1-flash` route returned HTTP 429
+  `GoUsageLimitError` (weekly quota) on 2026-11-22, so `scripts/magnetic_founder_local.sh`
+  (committed) performs fetch → ingest → regen → offline manifest verification → bank →
+  pack mirror → importer dry-run in one command on the founder's machine.
 - **Series:** a Class 10 pack built today is still `publish: blocked` by the volume/coverage
   gate — correct behaviour, not a defect. The gate unblocks when every chapter's bank
   exists (§5.4), which now waits only on Magnetic Effects.
@@ -188,11 +194,13 @@ key-free over tracked curated banks; live generation (`--generator llm`) needs
 `ZIVON_BASE_URL` + `ZIVON_MODEL` and is founder-triggered. The campaign requires a bank
 for **each** of the four chapters. Light's seed bank exists; the Human Eye and
 Electricity banks were generated live on 2026-11-21 and are tracked under
-`sources/assessment/packs/`. Magnetic Effects stays blocked (§3 records the full
-discovery): the chapter is registered and its lesson regenerated, but the current NCERT
-textbook no longer contains the motor / electromagnetic-induction / generator content
-its last two curated concepts need, so the A2 gate refuses the pack (`concept.orphan`)
-instead of letting a bank stand on invented sections.
+`sources/assessment/packs/`. Magnetic Effects' unblock is registered (2026-11-22): the
+CC BY 3.0 Siyavula Grade 11/12 physical-sciences books now carry the motor /
+electromagnetic-induction / generator topics the rationalised NCERT textbook removed
+(`sources/catalog.json` + `scripts/fetch_siyavula.py`), and the founder-local run of
+`scripts/magnetic_founder_local.sh` regenerates the lesson over the new sources, then
+runs the bank the same way the Human Eye and Electricity packs were produced (the A2
+orphan rule passes offline first via `scripts/verify_magnetic_manifest.py`).
 Contract: [`assessment.md`](assessment.md).
 
 ### 5.5 Series gate — the Class 10 pack publishes only when coverage is real
@@ -244,7 +252,7 @@ catalogue with `missing_locales: []`.
 | Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ⬜ (pack blocked: coverage) | ✅ |
 | The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ generated (2026-11-21, 18 items + 3 speaking, live llm run) | ⬜ (pack blocked: coverage) | ✅ |
 | Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ generated (2026-11-21, 18 items + 3 speaking, live llm run) | ⬜ (pack blocked: coverage) | ✅ |
-| Magnetic Effects of Electric Current | generated (founder-local, 2026-11-21, regenerated) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⛔ blocked (§5.4: the current textbook no longer carries 12.4–12.6; A2 orphan rule fails) | ⬜ (pack blocked: coverage) | ✅ |
+| Magnetic Effects of Electric Current | generated (founder-local, 2026-11-21, regenerated) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⏳ unblock registered (§5.4: CC BY 3.0 Siyavula sources added 2026-11-22; regen + bank run founder-local via `scripts/magnetic_founder_local.sh` — sandbox LLM quota 429) | ⬜ (pack blocked: coverage) | ✅ |
 
 ## 8. Records
 

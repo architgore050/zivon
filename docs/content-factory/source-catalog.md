@@ -67,12 +67,35 @@ self-corrects them loudly.
 | Book | Where | License | How the pipeline gets it |
 |---|---|---|---|
 | OpenStax *High School Physics* | <https://openstax.org/details/books/high-school-physics> | CC BY 4.0 | Manual: download from the page, place at `sources/pdfs/openstax-hs-physics/openstax-hs-physics.pdf` |
-| Siyavula / FHSST *Physical Sciences Grade 10* (11 and 12 exist too) | <https://www.siyavula.com/read/science/grade-10> | CC BY | Manual: export the PDF from the reader, place at `sources/pdfs/siyavula-physical-sciences-10/siyavula-physical-sciences-10.pdf` |
+| Siyavula / FHSST *Physical Sciences Grade 10* | <https://www.siyavula.com/read/science/grade-10> | CC BY | Manual: export the PDF from the reader, place at `sources/pdfs/siyavula-physical-sciences-10/siyavula-physical-sciences-10.pdf` |
+| Siyavula / FHSST *Physical Sciences Grade 11* | <https://www.siyavula.com/read/science/grade-11> | CC BY 3.0 | `scripts/fetch_siyavula.py` (or manual): learner PDF <https://www.siyavula.com/downloads/books/science/Gr11_PhysicalSciences_Learner_Eng.pdf>, place at `sources/pdfs/siyavula-physical-sciences-11/siyavula-physical-sciences-11.pdf` |
+| Siyavula / FHSST *Physical Sciences Grade 12* | <https://www.siyavula.com/read/science/grade-12> | CC BY 3.0 | `scripts/fetch_siyavula.py` (or manual): learner PDF <https://www.siyavula.com/downloads/books/science/Gr12_PhysicalSciences_Learner_Eng.pdf>, place at `sources/pdfs/siyavula-physical-sciences-12/siyavula-physical-sciences-12.pdf` |
 
-Direct PDF links for both sit behind dynamic download buttons, so the catalog
-marks them `download: manual`; the pipeline stops with exact placement
-instructions if the file is missing. Both are excellent vector-search
-supplements for Classes 10-12.
+Direct PDF links for OpenStax and the Siyavula Grade 10 sit behind dynamic
+download buttons, so the catalog marks them `download: manual`; the pipeline
+stops with exact placement instructions if the file is missing. The Siyavula
+Grades 11 and 12 learner books expose direct PDF links (verified 2026-11-22)
+and `scripts/fetch_siyavula.py` fetches them idempotently; they are still
+`download: manual` entries because ingest treats the whole learner book as one
+cached file (`single_file: True`).
+
+**Siyavula licence verification (2026-11-22):** the Grade 11 and Grade 12
+reader pages both state "All Siyavula textbook content made available on this
+site is released under the terms of a Creative Commons Attribution License",
+linking <https://creativecommons.org/licenses/by/3.0/> (CC BY 3.0); the
+learner ePub filenames carry a `CC-BY` tag. Both learner PDFs were fetched
+byte-level into `sources/pdfs/` on 2026-11-22 (Grade 11: 525 pages; Grade 12:
+541 pages; both are the "Everything Science ... WRITTEN BY VOLUNTEERS" CAPS
+edition). The site's own caveat excludes embedded videos/simulations from
+external sources - the pipeline consumes the PDF text only, paraphrases and
+cites, never reproduces long extracts, and never redistributes the files
+(`sources/pdfs/` is gitignored). Why these two books matter: the rationalised
+NCERT Class X textbook's chapter 12 keeps only sections 12.1-12.4, so the
+magnetic-effects topics the syllabus curates (electric motor, electromagnetic
+induction, generator) need an openly licensed carrier - Grade 11 ch. 10
+"Electromagnetism" (magnetic fields, Faraday's law) and Grade 12 ch. 11
+"Electrodynamics" (11.2 electrical machines - generators and motors; 11.3
+alternating current) carry exactly those topics.
 
 NCERT Exemplar books are a good future addition (also free on ncert.nic.in);
 their book codes still need verification, so they are deliberately absent from
