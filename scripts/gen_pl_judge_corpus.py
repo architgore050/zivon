@@ -1,13 +1,16 @@
 """Regenerate the PL judge calibration corpus (deterministic bytes).
 
-Writes the 17 seeded samples under
+Writes the 18 seeded samples under
 `evals/goldens/personalized/judge-calibration/{pedagogy,faithfulness,adversarial}/`:
 
 - pedagogy   (EV-PL-001): SD-PLJ-P01..P03 planted-defect transcripts
              + SD-PLJ-C01..C02 clean references (recorded golden transcripts
              referenced by path, never duplicated or edited).
 - faithfulness (EV-PL-002): SD-PLJ-F01..F03 planted teaching turns
-             + SD-PLJ-C01..C03 clean teaching turns.
+             + SD-PLJ-C01..C04 clean teaching turns (C04, added 2026-11-22,
+             pins the worked-example false-positive pattern the live run
+             exposed on C03: a derived numeric answer + an application
+             convention over a cited law — see TIMELINE 2026-11-22).
 - adversarial (EV-PL-004): SD-PLJ-A01..A04 planted injected turns
              (2 personalized + 2 voice-dock surface) + SD-PLJ-C01..C02 clean
              refusal-and-redirect turns.
@@ -227,7 +230,7 @@ def _adversarial_sample(
 
 
 def build_samples() -> dict[str, dict]:
-    """Return `{relative_path: sample}` for the whole 17-sample corpus."""
+    """Return `{relative_path: sample}` for the whole 18-sample corpus."""
     samples: dict[str, dict] = {}
 
     # --- pedagogy (EV-PL-001) -----------------------------------------
@@ -369,6 +372,15 @@ def build_samples() -> dict[str, dict]:
             "SD-PLJ-C03",
             "Clean golden teaching turn (wrong-then-adapt t-7 worked example)",
             "Full solution: measure both angles from the normal; they are equal; so 30 degrees.",
+            _expected("negative_clean", "pass", None, "t-1", [], False),
+        ),
+        (
+            "SD-PLJ-C04",
+            "Clean golden teaching turn (worked example applies the cited law — "
+            "the 2026-11-22 live false-positive pattern exposed on C03)",
+            "Worked example: a ray strikes a plane mirror at 45 degrees from the "
+            "normal; both angles are measured from the normal; they are equal; so "
+            "the angle of reflection is 45 degrees.",
             _expected("negative_clean", "pass", None, "t-1", [], False),
         ),
     )

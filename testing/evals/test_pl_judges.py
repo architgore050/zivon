@@ -50,7 +50,7 @@ class CorpusIntegrity(unittest.TestCase):
         self.cfg = EvalConfig.from_env({})
         self.cards = load_all_cards(self.cfg.cards_dir)
 
-    def test_all_17_samples_validate_against_the_pl_schema(self) -> None:
+    def test_all_18_samples_validate_against_the_pl_schema(self) -> None:
         total = 0
         for card_id in ("EV-PL-001", "EV-PL-002", "EV-PL-004"):
             card = self.cards[card_id]
@@ -64,7 +64,7 @@ class CorpusIntegrity(unittest.TestCase):
                     json.loads(sample), PL_JUDGE_SAMPLE_SCHEMA, Path(rel).name
                 )
                 total += 1
-        self.assertEqual(total, 17)
+        self.assertEqual(total, 18)
 
     def test_corpus_matches_the_generator_byte_for_byte(self) -> None:
         res = subprocess.run(
@@ -121,7 +121,7 @@ class MockCalibration(unittest.TestCase):
     def test_seeded_corpus_calibration_passes_for_all_three_judges(self) -> None:
         for card_id, samples in (
             ("EV-PL-001", 5),
-            ("EV-PL-002", 6),
+            ("EV-PL-002", 7),
             ("EV-PL-004", 6),
         ):
             with self.subTest(card=card_id):

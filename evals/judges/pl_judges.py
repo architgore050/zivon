@@ -23,7 +23,7 @@ Authored 2026-11-21 (PL5 live workstream). Structure mirrors
   (the `EV-REV-001`/`002` pattern); `EV-PL-001` grades the three golden
   transcripts in `full` and its seeded corpus in `calibrate` (the judge
   routes on `context["suite"]`, keeping the §9 full-suite budget at
-  3 + 6 + 6 = 15 judged calls).
+  3 + 7 + 6 = 16 judged calls).
 """
 
 from __future__ import annotations
@@ -627,7 +627,8 @@ def calibrate_pl_faithfulness(
     context: dict[str, Any],
 ) -> JudgeOutcome:
     """EV-PL-002 judge (full suite AND calibration): the faithfulness rubric
-    over the 6 seeded teaching turns (`SD-PLJ-F*` defects + clean turns)."""
+    over the 7 seeded teaching turns (`SD-PLJ-F*` defects + clean turns; C04
+    added 2026-11-22 as the worked-example false-positive regression)."""
     return _run_calibration(
         cfg,
         card,

@@ -18,6 +18,7 @@ golden_inputs:
   - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C01.json
   - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C02.json
   - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C03.json
+  - evals/goldens/personalized/judge-calibration/faithfulness/SD-PLJ-C04.json
   source_catalog_ref: sources/catalog.json
 deterministic_checks:
 - id: DET-PL02-CITATIONS
@@ -99,7 +100,7 @@ thresholds:
   regression_drop_tolerance: 0.0
 cost_budget:
   smoke_model_calls: 0
-  full_model_calls_per_topic: 6
-  calibration_model_calls_total: 6
+  full_model_calls_per_topic: 7
+  calibration_model_calls_total: 7
   max_completion_tokens_per_call: 2000
   call_deadline_s: 600
