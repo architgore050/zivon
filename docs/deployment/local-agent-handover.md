@@ -113,3 +113,55 @@ All with placeholders documented in `docs/deployment/founder-cutover-runbook.md`
   regenerate the lesson, then bank → mirror → `TRACKED_CHAPTERS` pins. See
   `download/magnetic-workstream-handoff.md` for the exact recipe.
 
+## Addendum 2 — 2026-11-22 (one-shot session): state + founder decisions queue
+
+Merged this session: #100 (magnetic registration + two gated lesson regens +
+gitleaks allowlist), #102 (EV-PL-002 judge fix), #103, Dependabot #42.
+**Open: PR #104 `feature/w-magnetic-bank`** — Siyavula source registered,
+founder-local one-command script committed, docs synced. CI 13/14; the one
+failure (`test_voice_connect_timeout_retries_without_saying_offline`) is a
+proven runner-timing flake (passes locally in 1.2 s; rerun dispatched).
+Merge #104 when its checks are green.
+
+**Licence gate PASSED:** Siyavula "Everything Science" Gr11/12 is CC BY 3.0
+(verified verbatim on both siyavula.com grade reader pages, 2026-11-22, linking
+creativecommons.org/licenses/by/3.0); registered in `sources/catalog.json` with
+attribution. Offline validation passed: the locate stage surfaces Gr11 §10.3
+Faraday's law (score 1.42) and Gr12 §11.2–11.3 generators/motors (1.02); the
+two orphaned concepts now have a grounded carrier.
+
+**Blocked by route quota (HTTP 429, weekly, resets ~00:23 UTC 2026-11-23):**
+the lesson regen + assessment bank (PL live evals too). When quota resets:
+
+```
+bash scripts/magnetic_founder_local.sh   # fetch → ingest warm-up → regen → verify → bank → mirror → pins
+```
+
+then commit the outputs (lesson + pack mirror + `TRACKED_CHAPTERS` counts
+computed by real import) as the follow-up PR. PL live eval re-run commands are
+in PR #102's body.
+
+### Founder decisions queue (agent implemented a default; veto/change any)
+
+1. **D1 — magnetic unblock via option (a)** Siyavula CC BY 3.0 (implemented;
+   option (b) syllabus re-curation remains available). Regen+bank is one
+   founder-local command until the route quota resets; an agent can also run
+   it next session.
+2. **D2 — gitleaks allowlist scope** (`.gitleaks.toml`): TIMELINE.md is
+   allowlisted as a whole (historical ops log), plus vendored skill refs and
+   the translation-doc hash example. Tighten if you want TIMELINE scoped by
+   content regex instead of path.
+3. **D3 — PL5 live evals pending quota** (mock evidence is green; live
+   "before" numbers exist; re-run after reset — do NOT treat mock as live).
+4. **D4 — Dependabot policy:** merge patch/minor once green; a second rebase
+   round was requested for 19 stragglers (they conflict only with each other
+   on shared manifests). Majors found so far: none. Alternative: close all and
+   switch to grouped weekly updates.
+5. **D5 — unchanged founder-manual items:** Google OAuth creds, email backend,
+   domain/DNS/host+SSH, Postgres, voice-provider key region check, branch
+   protection via GitHub UI, PYQ clearance (DEC-COMP-001), the one live
+   teach-check-adapt session.
+6. **D6 — CI pull_request-event anomaly on PR #100** was transient (later
+   pushes fired normally); the workflow_dispatch workaround stays documented.
+
+
