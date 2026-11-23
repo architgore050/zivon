@@ -32,9 +32,10 @@ rewritten. What does not change:
 Why one class `[STRONG]` from the repo's own evidence: the syllabus manifest curates
 exactly the four Class 10 chapters with concepts (`sources/syllabus/syllabus.json`,
 updated 2026-11-17); the exam pipeline's honest coverage gate already reports the real
-backlog shape — Class 10 has a bank for Light only, the other three chapters have zero
-questions ([`exam.md`](exam.md) §7); and four published Class 11 chapters sit outside
-the prototype's PMF audience. One class done deeply beats four done shallowly.
+backlog shape — Class 10 has banks for Light, The Human Eye, and Electricity, while
+Magnetic Effects still has zero questions ([`exam.md`](exam.md) §7); and four published
+Class 11 chapters sit outside the prototype's PMF audience. One class done deeply beats
+four done shallowly.
 
 ## 2. The four chapters
 
@@ -44,8 +45,8 @@ them; the assessment and exam pipelines key on the ids):
 | # | chapter_id | NCERT chapter | Curated concepts | Lesson | Assessment bank | Translation | Narration |
 |---|---|---|---|---|---|---|---|
 | 1 | `class-10-light-reflection-and-refraction` | Light – Reflection and Refraction | 7 | **generated** (founder-local, 2026-11-19) `[ASSUMPTION]` | seed bank tracked (15 items + 3 speaking prompts, EN/HI/Hinglish) `[STRONG]` | pending | pending |
-| 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21) `[STRONG]` | pending | pending |
-| 3 | `class-10-electricity` | Electricity | 5 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21) `[STRONG]` | pending | pending |
+| 2 | `class-10-the-human-eye-and-the-colourful-world` | The Human Eye and the Colourful World | 5 | **generated** (founder-local, 2026-11-20) `[ASSUMPTION]` | seed bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21; seed-bank file reconstructed from the reviewed export pack on 2026-11-23 so E3 can consume it) `[STRONG]` | pending | pending |
+| 3 | `class-10-electricity` | Electricity | 5 | **generated** (founder-local, 2026-11-21) `[ASSUMPTION]` | seed bank tracked (18 items + 3 speaking prompts, EN/HI/Hinglish; live `--generator llm` run, 2026-11-21; seed-bank file reconstructed from the reviewed export pack on 2026-11-23 so E3 can consume it) `[STRONG]` | pending | pending |
 | 4 | `class-10-magnetic-effects-of-electric-current` | Magnetic Effects of Electric Current | 6 | **generated** (founder-local, 2026-11-21; regenerated the same day, all gates green) `[ASSUMPTION]` | none (0 questions) — unblock registered: CC BY 3.0 Siyavula Gr11/12 sources added (2026-11-22), the regen + bank run founder-local via `scripts/magnetic_founder_local.sh` (the workstream sandbox's LLM quota returned HTTP 429 `GoUsageLimitError`; §5.4) `[STRONG]` | pending | pending |
 
 State summary: **all four chapters generated.**
@@ -68,13 +69,17 @@ State summary: **all four chapters generated.**
   quality grounds without changing the output ceiling. See `TIMELINE.md` (2026-11-20).
 - **Electricity is generated** in a founder-local run on 2026-11-21 (45 blocks, EN/HI/Hinglish, one interactive simulation; `03-check` and `09-review` pass, `10b` pass after one bounded `10c` repair).
 - **Magnetic Effects is generated** in a founder-local run on 2026-11-21 and was regenerated the same day after the syllabus registered it (attempt 1: 8 sections / 42 blocks; attempt 2, the committed page: 7 sections / 39 blocks, `03-check`, `07-perf` and `09-review` pass, `10b` pass, narration stays `null`). Attempt 2 also widened the supplement search to every cached catalog book (its command omits `--class`, so the NCERT Physics XI/XII, OpenStax and Curiosity pages enter the source pack) and recovered the solenoid/electromagnet material of the curated subsection 12.2.4.
-- **Assessment:** three chapters now carry tracked banks. Light has its curated seed bank;
-  **The Human Eye and Electricity were generated live on 2026-11-21** (`--generator llm`
+- **Assessment:** three chapters now carry tracked seed banks. Light has its curated seed
+  bank; **The Human Eye and Electricity were generated live on 2026-11-21** (`--generator llm`
   through `llm_manager`, 18 items + 3 speaking prompts each, EN/HI/Hinglish, deterministic
   gate pass, mirrored into `sources/assessment/packs/` and verified by the importer
-  dry-run). Both chapters' lessons are registered in the syllabus (`lesson_topic_slug`) with
-  tracked `section → curated concept` maps, so their block tagging is complete (43/43 and
-  45/45 blocks). **Magnetic Effects has no bank yet**, and the unblock path is now
+  dry-run). On 2026-11-23 their authored seed-bank files
+  (`sources/syllabus/chapters/<chapter_id>.items.json`) were reconstructed from the reviewed
+  A6 export pack (`questions.json` + `time-priors.json`) and validated by the A3 bank gate,
+  so the E3 series pipeline can consume the same P2 banks. Both chapters' lessons are
+  registered in the syllabus (`lesson_topic_slug`) with tracked `section → curated concept`
+  maps, so their block tagging is complete (43/43 and 45/45 blocks). **Magnetic Effects has
+  no bank yet**, and the unblock path is now
   registered rather than open: its lesson IS registered (`lesson_topic_slug`, tracked
   concept map) and was regenerated twice on 2026-11-21 with every gate green, but the
   cached NCERT Class X textbook is the rationalised edition — chapter 12 is 13 pages
@@ -95,9 +100,11 @@ State summary: **all four chapters generated.**
   `GoUsageLimitError` (weekly quota) on 2026-11-22, so `scripts/magnetic_founder_local.sh`
   (committed) performs fetch → ingest → regen → offline manifest verification → bank →
   pack mirror → importer dry-run in one command on the founder's machine.
-- **Series:** a Class 10 pack built today is still `publish: blocked` by the volume/coverage
-  gate — correct behaviour, not a defect. The gate unblocks when every chapter's bank
-  exists (§5.4), which now waits only on Magnetic Effects.
+- **Series:** a Class 10 pack built on 2026-11-23 is still `publish: blocked` by the
+  volume/coverage gate — correct behaviour, not a defect. It now uses 51 base items / 153
+  question rows from the three tracked banks; the remaining chapter-floor gap is Magnetic
+  Effects only. The gate unblocks when every chapter's bank exists (§5.4), which now waits
+  only on Magnetic Effects.
 - Light's block-level concept tagging is recorded as `pending_lesson` debt in the W3 P2
   assessment run; the published Light page exists, but a complete section→concept map is
   not expressible today because its sec-08 folds NCERT 9.3.6/9.3.7/9.3.8 (lens formula,
@@ -193,8 +200,10 @@ speaking prompts, concept tagging and time priors (stages A1–A6). `--generator
 key-free over tracked curated banks; live generation (`--generator llm`) needs
 `ZIVON_BASE_URL` + `ZIVON_MODEL` and is founder-triggered. The campaign requires a bank
 for **each** of the four chapters. Light's seed bank exists; the Human Eye and
-Electricity banks were generated live on 2026-11-21 and are tracked under
-`sources/assessment/packs/`. Magnetic Effects' unblock is registered (2026-11-22): the
+Electricity banks were generated live on 2026-11-21, are tracked under
+`sources/assessment/packs/`, and now also have authored seed-bank files under
+`sources/syllabus/chapters/` reconstructed from those reviewed export packs. Magnetic
+Effects' unblock is registered (2026-11-22): the
 CC BY 3.0 Siyavula Grade 11/12 physical-sciences books now carry the motor /
 electromagnetic-induction / generator topics the rationalised NCERT textbook removed
 (`sources/catalog.json` + `scripts/fetch_siyavula.py`), and the founder-local run of
@@ -249,9 +258,9 @@ catalogue with `missing_locales: []`.
 
 | Gate → | Lesson (00–10) | Translation (10a–10d) | Narration (12) | Assessment bank | Series pack contribution | Published in snapshot |
 |---|---|---|---|---|---|---|
-| Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ⬜ (pack blocked: coverage) | ✅ |
-| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ generated (2026-11-21, 18 items + 3 speaking, live llm run) | ⬜ (pack blocked: coverage) | ✅ |
-| Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ generated (2026-11-21, 18 items + 3 speaking, live llm run) | ⬜ (pack blocked: coverage) | ✅ |
+| Light – Reflection and Refraction | generated (founder-local) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ blocked (§5.3: tranche spent, single-locale v1) | ✅ seed bank | ✅ contributes (pack still blocked only by Magnetic) | ✅ |
+| The Human Eye and the Colourful World | generated (founder-local, 2026-11-20) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ seed bank tracked (generated 2026-11-21, 18 items + 3 speaking, live llm run; seed file reconstructed 2026-11-23) | ✅ contributes (pack still blocked only by Magnetic) | ✅ |
+| Electricity | generated (founder-local, 2026-11-21) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ✅ seed bank tracked (generated 2026-11-21, 18 items + 3 speaking, live llm run; seed file reconstructed 2026-11-23) | ✅ contributes (pack still blocked only by Magnetic) | ✅ |
 | Magnetic Effects of Electric Current | generated (founder-local, 2026-11-21, regenerated) `[ASSUMPTION]` | ✅ (EN/HI/Hinglish) | ⛔ deferred (narration is English-only and over budget §5.3) | ⏳ unblock registered (§5.4: CC BY 3.0 Siyavula sources added 2026-11-22; regen + bank run founder-local via `scripts/magnetic_founder_local.sh` — sandbox LLM quota 429) | ⬜ (pack blocked: coverage) | ✅ |
 
 ## 8. Records
