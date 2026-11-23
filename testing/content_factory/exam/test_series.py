@@ -287,10 +287,11 @@ class SlotPlanTests(SeriesTestBase):
         self.assertGreater(board["gap"]["filled_slots"], 0)
         self.assertEqual(board["gap"]["full_papers"], 5)
 
-    def test_the_other_class_10_chapters_are_reported_as_bank_gaps(self) -> None:
+    def test_the_remaining_class_10_chapter_is_reported_as_a_bank_gap(self) -> None:
         gaps = self.result["bank_gaps"]
-        self.assertIn("class-10-electricity", gaps)
-        self.assertIn("class-10-the-human-eye-and-the-colourful-world", gaps)
+        self.assertIn("class-10-magnetic-effects-of-electric-current", gaps)
+        self.assertNotIn("class-10-electricity", gaps)
+        self.assertNotIn("class-10-the-human-eye-and-the-colourful-world", gaps)
         self.assertNotIn("class-10-light-reflection-and-refraction", gaps)
 
 

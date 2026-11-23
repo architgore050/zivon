@@ -165,7 +165,7 @@ class ResumeTests(PipelineTestBase):
         cfg = self.cfg()
         run_exam(cfg, [10])
         result = run_exam(cfg, [10], only_stages=["E4-publish"])
-        self.assertEqual(result["runs"][0]["question_rows"], 45)
+        self.assertEqual(result["runs"][0]["question_rows"], 153)
 
     def test_an_unknown_stage_is_refused(self) -> None:
         with self.assertRaises(ExamStageError):

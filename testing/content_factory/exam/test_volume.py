@@ -96,7 +96,7 @@ class RealClass10Tests(RealDataTestBase):
             "the dark series is excluded from the minimum check, not failed",
         )
 
-    def test_the_three_uncharted_chapters_are_the_named_gap(self) -> None:
+    def test_the_remaining_uncharted_chapter_is_the_named_gap(self) -> None:
         _blueprint, _series, pack = self.assembled(10)
         floor = {
             blocker["chapter_id"]
@@ -106,8 +106,6 @@ class RealClass10Tests(RealDataTestBase):
         self.assertEqual(
             floor,
             {
-                "class-10-the-human-eye-and-the-colourful-world",
-                "class-10-electricity",
                 "class-10-magnetic-effects-of-electric-current",
             },
         )
@@ -115,7 +113,10 @@ class RealClass10Tests(RealDataTestBase):
     def test_the_coverage_table_reports_zero_for_uncharted_chapters(self) -> None:
         _, _, pack = self.assembled(10)
         chapters = pack["manifest"]["coverage"]["chapters"]
-        self.assertEqual(len(chapters["class-10-electricity"]), 0)
+        self.assertEqual(len(chapters["class-10-magnetic-effects-of-electric-current"]), 0)
+        self.assertGreater(
+            chapters["class-10-electricity"].get("ai_lesson", 0), 0
+        )
         self.assertGreater(
             chapters["class-10-light-reflection-and-refraction"].get("ai_lesson", 0), 0
         )
