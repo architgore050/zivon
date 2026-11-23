@@ -1,5 +1,13 @@
 # AGENTS.md — Instructions for Coding Agents
 
+## Customer-readiness todo — ready-to-prototype lock-in list (2026-11-23)
+
+Read `docs/deployment/customer-readiness-todo.md` now. Before declaring the prototype
+customer-ready, lock down every item that still has work left: either move it to “ready”
+with the verification that proves it, or record the exact blocker and the command/check
+that will prove it when unblocked. Do not claim customer-ready while the todo still has
+left work without a recorded ready-when/blocker.
+
 You are implementing **Zivon**, a voice-first AI tutor for Indian learners.
 
 **Subject scope (confirmed): academic Physics, Class 9–12.** Not Python, not general chat.
