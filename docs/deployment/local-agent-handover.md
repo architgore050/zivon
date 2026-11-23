@@ -211,4 +211,23 @@ agent reverses it in a follow-up PR.
 3. Dependabot final scan-merge pass (round-3 rebases were fired 2026-11-22).
 4. Review the decisions above with the founder; reverse any in one PR.
 
+## Addendum 4 — 2026-11-23 (local orchestration pass)
+
+- **Dependabot triage completed.** Merged green patch/minor and green majors:
+  #4, #75, #107, #108, #110, #111, #112, #113, #114. Closed with reasons:
+  #40 (Python 3.15 breaks image builds), #70 and #109 (websockets 17 major
+  breaks core-backend/tests and needs a voice websocket migration).
+- **Class 10 seed banks repaired for series assembly.** The Human Eye and
+  Electricity export packs existed, but the E3 pipeline reads
+  `sources/syllabus/chapters/<chapter_id>.items.json`; those seed-bank files
+  were reconstructed from the reviewed export packs and validated by the A3
+  bank gate. Class 10 exam assembly now uses 51 base items / 153 question rows
+  and is blocked only by Magnetic Effects.
+- **Route quota is now monthly, not weekly.** A tiny authorized probe returned
+  HTTP 429 `GoUsageLimitError` with "resets in 17d 1h". Magnetic regen/bank and
+  PL live evals remain blocked until the route resets or Extra Usage is enabled.
+- **Founder manual blockers unchanged:** Google OAuth creds, email backend,
+  domain/DNS/host+SSH, Postgres, voice-provider key region check, branch
+  protection via GitHub UI, PYQ clearance (`DEC-COMP-001`), and the one live
+  teach-check-adapt session.
 

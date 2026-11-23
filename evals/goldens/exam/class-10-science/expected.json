@@ -69,8 +69,6 @@
     },
     "expected_gaps": {
       "chapter_floor": [
-        "class-10-the-human-eye-and-the-colourful-world",
-        "class-10-electricity",
         "class-10-magnetic-effects-of-electric-current"
       ],
       "below_minimum": [

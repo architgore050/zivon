@@ -208,6 +208,13 @@ Numeric items use `{"value", "tolerance", "unit"}` and carry no options.
 Assertion-reason items carry the four standard options. Every source section
 must start with the chapter number; the book must be in `sources/catalog.json`.
 
+Tracked seed banks now exist for Motion, Light, The Human Eye, and Electricity.
+For The Human Eye and Electricity, the authored seed-bank file was reconstructed
+from the reviewed A6 export pack (`questions.json` grouped by `base_item_id`,
+with `computation_steps` taken from `time-priors.json`) and validated by the A3
+bank gate before committing it, so the E3 series pipeline can consume the same
+P2 bank that the DB importer consumes.
+
 ### 4.3 Concept map (`sources/syllabus/chapters/<chapter_id>.concept-map.json`)
 
 ```json
@@ -379,7 +386,9 @@ Debt, labelled (Q-6: the v1 base batch publishes on technical gates alone):
 1. **Live generation ran once (2026-11-21), for two Class 10 chapters.** The Human Eye
    and Electricity packs were produced with `--generator llm` through `llm_manager` on
    the authorized build-time route; every item still passed the deterministic gates
-   before export. The seed generator remains the CI default (`generator: "seed"`).
+   before export. On 2026-11-23 their authored seed-bank files were reconstructed from
+   those reviewed export packs and validated by the A3 bank gate, so E3 series assembly
+   can consume them. The seed generator remains the CI default (`generator: "seed"`).
 2. **No judged or human pedagogical review.** The deterministic gate is the only review;
    an `EV-ASM` judge card is a later addition.
 3. **Class 10 Light block tagging is pending.** The lesson page is published, but the
@@ -449,12 +458,12 @@ Per-question priors from `time-priors.json` are already on
 their own table. `syllabus.json` and `concepts.json` are not imported by this
 script: the catalogue import (P1/P2) owns `syllabus_chapter`/`concept`.
 
-**Tracked packs.** The first two A6 exports are committed under
+**Tracked packs.** Four A6 exports are committed under
 `sources/assessment/packs/<chapter_id>/` (six files each, exactly as A6 wrote
-them). The exporter still writes to `runs/assessment/...`; mirroring a new pack
-into `sources/` is a deliberate, reviewable commit (same pattern as
-`publish-frontend.sh` for generated pages), so the DB import is reproducible
-from the repo alone.
+them): Motion, Light, The Human Eye, and Electricity. The exporter still writes
+to `runs/assessment/...`; mirroring a new pack into `sources/` is a deliberate,
+reviewable commit (same pattern as `publish-frontend.sh` for generated pages),
+so the DB import is reproducible from the repo alone.
 
 **Verification before any write** (all-or-nothing per pack):
 

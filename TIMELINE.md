@@ -1184,3 +1184,43 @@ as one committed command.
   completed in-sandbox this session (ncert.nic.in dropped ~80% of chapter downloads
   during the cache warm-up; retries continue founder-side — the pipeline downloads on
   demand and fails loudly if a needed chapter is absent).
+
+## 2026-11-23 — local orchestration pass: Dependabot, seed banks, quota boundary
+
+**Done:**
+- Dependabot triage pass completed on current `main`:
+  - merged green PRs: #4 requests, #75 sentence-transformers, #107 golang,
+    #108 fastapi, #110 openai, #111/#114 google-genai, #112 numpy, #113
+    langchain-openai;
+  - closed with concrete reasons: #40 Python 3.15-slim breaks factory,
+    core-backend, llm-manager, and dashboard image builds; #70 and #109
+    websockets 17 major upgrades fail core-backend/tests and need a voice
+    websocket API migration before merge.
+- Class 10 assessment seed banks for The Human Eye and Electricity were
+  reconstructed from the reviewed A6 export packs into
+  `sources/syllabus/chapters/<chapter_id>.items.json`, grouped by
+  `base_item_id`, with `computation_steps` taken from `time-priors.json`, and
+  validated by the A3 bank gate. This unblocks E3 series assembly for those two
+  chapters without inventing new question content.
+- Class 10 exam assembly re-run: 7 papers, 51 base items, 6 series, 153
+  question rows, still `publish: blocked` by volume/coverage. The remaining
+  chapter-floor gap is Magnetic Effects only.
+- Docs/tests/goldens updated to the new honest state: exam volume golden,
+  exam tests, assessment/exam docs, campaign tracker, and local-agent handover
+  addendum 4.
+
+**Measured blocker:**
+- The authorized OpenCode Go route is now quota-blocked on a **monthly** limit:
+  `GET /models` returns 200, but a minimal chat completion returns HTTP 429
+  `GoUsageLimitError` with "resets in 17d 1h" (2026-11-23 ~03:30 UTC). Magnetic
+  Effects regeneration/bank and PL5 live judge/real-session evidence remain
+  blocked until the route resets or Extra Usage is enabled. No model call was
+  run for generation or evals after the probe.
+
+**Next mechanical actions when quota resets:**
+1. `bash scripts/magnetic_founder_local.sh` → commit regenerated lesson +
+   concept map + mirrored pack + `TRACKED_CHAPTERS` pins.
+2. Re-run PL5 live evals and one real teach-check-adapt session; attach run ids
+   and timings to a PR.
+3. Re-run `python -m factory.exam --class 10 --fresh --export-dir runs/exam-exports`
+   after Magnetic Effects has a bank; mirror only if the pack becomes publishable.

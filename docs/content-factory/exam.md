@@ -401,9 +401,11 @@ The gate is built and proven in both directions:
   questions, 100 Loop questions, every chapter in every paper at the approved
   minimums;
 - the same gate on the **shipped prototype** fails, and the blockers name the
-  gap: Class 10 has banks for Light only (`class-10-light-reflection-and-refraction`),
-  so the human eye, electricity and magnetic effects chapters have zero
-  questions; Class 12 has no banks at all, so all 14 chapters are empty.
+  gap: Class 10 has banks for Light, The Human Eye, and Electricity
+  (`class-10-light-reflection-and-refraction`,
+  `class-10-the-human-eye-and-the-colourful-world`, `class-10-electricity`),
+  so magnetic effects remains zero-question; Class 12 has no banks at all, so
+  all 14 chapters are empty.
 
 That is the honest state of the content backlog, surfaced as data instead of a
 token sample. A blocked pack is never mirrored; `--require-publishable` turns
@@ -485,7 +487,7 @@ Shipped in this pass:
 
 | Class | Papers | Item banks used | Items | Question rows | Publish |
 |---|---|---|---|---|---|
-| 10 | 7 (5 main + 1 compartment + 1 sample) | 1 of 4 chapters (Light) | 15 | 45 | **blocked** — volume/coverage |
+| 10 | 7 (5 main + 1 compartment + 1 sample) | 3 of 4 chapters (Light, Human Eye, Electricity) | 51 | 153 | **blocked** — volume/coverage; Magnetic Effects bank still missing |
 | 12 | 7 | 0 of 14 chapters | 0 | 0 | **blocked** — volume/coverage |
 
 Debt, labelled:

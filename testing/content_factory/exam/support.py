@@ -6,7 +6,7 @@ Two helpers the tests and the eval checkers both need:
   with a temporary run/export directory, so no test writes under `runs/`;
 - `write_synthetic_banks()` writes P2-shaped item banks for **every** chapter
   of a class. It exists to prove the volume gate passes when the volume is
-  real - the shipped prototype has banks for two chapters, and faking that with
+  real - the shipped prototype has banks for three chapters, and faking that with
   a token sample would defeat the gate. The synthetic content is clearly
   labelled and lives only in a temp directory: it is never published and never
   committed as content.
