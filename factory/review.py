@@ -46,7 +46,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from . import shots
+from . import concept_map_verify, shots, syllabus
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context
@@ -208,6 +208,7 @@ def run(
     render_out: dict[str, Any],
     ground_truth: dict[str, Any],
     round_tag: str | None = None,
+    concept_map: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     topic_dir = Path(render_out["topic_dir"])
 
@@ -333,12 +334,32 @@ def run(
         )
 
     issues = list(facts_report["issues"]) + list(design_report["issues"])
-    rule_issues = [
+    static_issues = [
         {"severity": "fatal", "category": "other", "message": issue}
         for issue in _static_review_findings(topic_dir)
     ]
+    rule_issues = list(static_issues)
+    # Harness guarantee, not reviewer prose: concept coverage is re-derived
+    # every round from the CURRENT blocks + effective map. A missing concept
+    # is a fatal concept_map finding, so the orchestrator routes it through
+    # the bounded 10-reviewfix catcher instead of letting it reach the bank.
+    chapter_id = str((render_out.get("manifest") or {}).get("chapter_id") or "")
+    curated = syllabus.curated_concept_ids(cfg, chapter_id)
+    concept_issues: list[dict[str, Any]] = []
+    if curated:
+        concept_issues = [
+            {"severity": "fatal", "category": "concept_map", "message": problem}
+            for problem in concept_map_verify.concept_coverage_problems(
+                manifest=render_out.get("manifest"),
+                blocks=blocks,
+                concept_map=concept_map,
+                curated_concepts=curated,
+            )
+        ]
+    rule_issues.extend(concept_issues)
     # The verdict rule that used to be prompt prose is now harness code:
-    # fail iff any fatal issue (static or model-found); majors are advisory.
+    # fail iff any fatal issue (static, deterministic concept coverage, or
+    # model-found); majors are advisory.
     has_fatal = any(i["severity"] == "fatal" for i in issues)
     report = {
         "verdict": "fail" if rule_issues or has_fatal else "pass",
@@ -358,11 +379,18 @@ def run(
         ]
         # Static findings are generation defects (missing CSP meta, broken
         # traceability) - they belong in the ledger too, tagged by their call.
-        + [issue_entry(STAGE_ID, "static", round_tag, i) for i in rule_issues],
+        + [issue_entry(STAGE_ID, "static", round_tag, i) for i in static_issues]
+        # Concept-coverage findings are deterministic gate evidence; tag the
+        # call so the ledger can distinguish them from model findings.
+        + [
+            issue_entry(STAGE_ID, "concept_map", round_tag, i)
+            for i in concept_issues
+        ]
     )
     print(
         f"[{STAGE_ID}] facts call: {len(facts_report['issues'])} issue(s); "
         f"design call: {len(design_report['issues'])} issue(s); "
+        f"concept coverage: {len(concept_issues)} finding(s); "
         f"merged verdict={report['verdict']}"
     )
     # Graph v2: a fail verdict is ROUTED to 10-reviewfix by the orchestrator

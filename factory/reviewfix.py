@@ -30,6 +30,7 @@ from typing import Any
 
 from logging_manager import log_event
 
+from . import syllabus
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
@@ -52,9 +53,14 @@ def run(
     blocks: dict[str, Any],
     round_tag: str,
     extra_feedback: list[str] | None = None,
+    concept_map: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """extra_feedback: a previous round's own failure (lint hits / perf
-    regression) that this round must repair FIRST (errors-as-context)."""
+    regression) that this round must repair FIRST (errors-as-context).
+
+    concept_map: the current EFFECTIVE section -> curated-concept map this
+    round (default keep previous; the model may return a corrected
+    `concept_map`, which the orchestrator threads back in)."""
     topic_dir = Path(render_out["topic_dir"])
     site = Path(render_out["site_dir"])
     history_path = run_ctx.stage_dir(STAGE_ID) / "history.json"
@@ -83,6 +89,7 @@ def run(
                     blocks,
                     cfg,
                     extra_feedback=extra_feedback,
+                    concept_map=concept_map,
                 ),
             },
         ],
@@ -201,6 +208,11 @@ def run(
         # next round and 06-render see the corrected specs), and a resume
         # loads them as the page. None when the fix was code-only.
         "page": blocks,
+        # Concept-map sync (optional): a corrected section -> curated-concept
+        # map returned by the fixer. The orchestrator makes it the EFFECTIVE
+        # map for the next round's re-review and persists it on final pass.
+        # None when the fix did not change the map (default keep previous).
+        "concept_map": plan.get("concept_map"),
     }
 
 
@@ -221,6 +233,16 @@ def _system() -> str:
         "- The page must still TEACH: every block spec stays implemented, every "
         "simulation keeps its learning_goal, default_behaviour and controls, and the "
         "drawn behaviour must keep matching the CITED FACTS.\n"
+        "- CONCEPT MAP (fatal `concept_map` findings): the page must teach and map "
+        "every curated syllabus concept. Repair a missing concept by ADDING a section "
+        "and/or blocks that teach it - including the concept's check keywords in the "
+        "section title or block text - and mapping it in `concept_map`. Never drop a "
+        "section, never invent an unknown concept id, never leave a curated concept "
+        "orphaned (no mapped section), never point a section at a concept it does not "
+        "teach. `concept_map` keys are current lesson section ids; values are curated "
+        "concept ids from the list below. Return `concept_map` (full corrected map) "
+        "only when you change the map; omit it to keep the previous map. Never weaken "
+        "the check.\n"
         "- Fix the flagged issues; do not restyle the page or rewrite what was not flagged.\n"
     )
 
@@ -233,6 +255,7 @@ def _user_msg(
     blocks: dict[str, Any],
     cfg: Config,
     extra_feedback: list[str] | None = None,
+    concept_map: dict[str, Any] | None = None,
 ) -> str:
     from .review import _facts_text  # same facts view the reviewer used
 
@@ -259,6 +282,16 @@ def _user_msg(
         "\n\n".join(f"=== {name} ===\n{content}" for name, content in files.items())
         or "(no topic files yet)"
     )
+    chapter_id = str((render_out.get("manifest") or {}).get("chapter_id") or "")
+    curated = syllabus.curated_concept_ids(cfg, chapter_id)
+    concept_map_block = (
+        "\n\nCONCEPT MAP IN EFFECT (section id -> curated concept id; keys must "
+        "match current section ids; every curated concept below must own at "
+        "least one section; no unknown ids):\n"
+        + json.dumps(concept_map or {}, ensure_ascii=False, sort_keys=True)
+        + "\nCurated concept ids for this chapter: "
+        + (", ".join(curated) if curated else "(none found)")
+    )
     return (
         feedback_block
         + "REVIEWER FINDINGS TO FIX:\n"
@@ -281,9 +314,12 @@ def _user_msg(
         + "\n\nPALETTE (exact values from the page stylesheet; use these, "
         "invent nothing):\n"
         + palette_text(cfg)
+        + concept_map_block
         + '\n\nReturn {"analysis": "what each flagged issue was and how your fix '
         'resolves it", "files": {"page.js": "<full new content>", "page.css": '
         '"<full new content>"}}. Omit files you do not change; contents must be '
         "complete replacements. Only for BLOCK-CONTENT findings: add "
-        '"blocks": [<corrected full block objects>].'
+        '"blocks": [<corrected full block objects>]. '
+        'Only for CONCEPT_MAP findings: add "concept_map": <full corrected '
+        'section -> curated-concept map>; omit it to keep the previous map.'
     )
