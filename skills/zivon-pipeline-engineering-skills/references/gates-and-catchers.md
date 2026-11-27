@@ -42,7 +42,7 @@ operator's regenerate button, not the debugger.
 | `03-check` | facts, recomputation, coverage, pedagogical order + the same code rules | `04-repair` | `repair.content_rounds` (default 8), `repair.stall_rounds` (default 3) | full `03-check` |
 | `05-interactive` in-loop lints | JS/CSS hard lints, page.css scope, canvas ownership | the model itself, via `extra_validator` | model validation rounds | same call |
 | `07-perf` | load/FCP/RSS/FPS/console/overflow on the topic and landing pages | `08-fixloop` for a **fixable** topic-page miss | `perf.fix_rounds` (default 6), `repair.stall_rounds` | re-measure |
-| `09-review` | truth (`facts`) + design/rendering/a11y (`design`) + static findings | `10-reviewfix` | `repair.code_rounds` (default 6), `repair.stall_rounds` | full `09-review` |
+| `09-review` | truth (`facts`) + design/rendering/a11y (`design`) + static findings + the deterministic concept-coverage gate (`factory/concept_map_verify.py`, fatal `concept_map`) | `10-reviewfix` | `repair.code_rounds` (default 6), `repair.stall_rounds` | full `09-review` |
 | `10b-transcheck` | 9 deterministic translation rules + 1 reviewer call per locale | `10c-transrepair` | `repair.translation_rounds` (default 6), `repair.stall_rounds` | recheck `10b` |
 | `12-narration` per-block TTS/encode failure | synthesis + encode per block | bounded per-block repair inside `12` | `ZIVON_NARRATION_REPAIR_ROUNDS` (default 2) | per-block retry |
 
@@ -186,9 +186,18 @@ next attempt is more valuable than pre-emptive prohibition prose.
 - **Two calls, by design.** A single giant review call was measured at
   24k-130k tokens per pass and the catcher plateaued. The split gives each call
   only its context:
-  - `09-review-facts`: block specs + cited facts + final files. No doctrine, no
-    example. Checks answer keys, cited-fact contradictions, drawn behaviour,
-    HTML-vs-JS consistency.
+  - `09-review-facts`: block specs + cited facts + final files + the effective
+    concept map and the curated concepts' titles/descriptions (issue 118). No
+    doctrine, no example. Checks answer keys, cited-fact contradictions, drawn
+    behaviour, HTML-vs-JS consistency, and whether a mapped section actually
+    TEACHES the concept it is mapped to.
+  - The deterministic concept-coverage gate (issue 118, 2026-11-27) is harness
+    code re-derived EVERY round from the current blocks + manifest + effective
+    map: sections missing from the map, unknown keys/targets, unmapped blocks,
+    orphan curated concepts (A2's fatal `concept.orphan`), and SECTION-SCOPED
+    keyword coverage for the rationalised-NCERT topics (a keyword under a
+    different section never satisfies the check). Every finding is a FATAL
+    `concept_map` issue; the verdict stays fail-iff-any-fatal.
   - `09-review-design`: compact block inventory + final files + doctrine +
     lesson example + rendered screenshots when the endpoint reads images.
     Checks doctrine, frame, usability/access, and a rendering sweep that
@@ -199,9 +208,23 @@ next attempt is more valuable than pre-emptive prohibition prose.
   `03-check`'s `category` gap in mind (its prompt does not ask for one, so
   cross-run analysis sees `content`).
 - **10's exits:** replacement `page.js` / `page.css`; corrected full block
-  objects under `blocks` (the spec-correction channel); and nothing outside
-  those. A manifest-only correction has no channel today; coordinate with the
-  renderer owner rather than smuggling it through a file rewrite.
+  objects under `blocks` (the spec-correction channel); a corrected
+  `concept_map` (issue 118 - full map, current section ids, no unknown ids,
+  becomes the effective map for the next re-review and is persisted on the
+  final pass); and nothing outside those. A missing concept is repaired with
+  REAL teaching blocks under an existing section plus the corrected map -
+  never by rewording or dropping the concept. A block-mutation round now also
+  REFRESHES the manifest (sections' block groups, block map, counts, content
+  hash) with every explicit `section_id` honored, before the rebuild and
+  re-review; missing rendered hooks or block-rule violations in the fix's own
+  specs cost a round as feedback.
+- **Persistence is ordered (issue 118):** on a passing review the verified map
+  is written (durable run artifact `runs/<run_id>/09-review/concept-map.json`,
+  then the tracked `sources/syllabus/chapters/<chapter_id>.concept-map.json`,
+  keyed by the CANONICAL chapter id) BEFORE 09-review is marked ok. A
+  persistence failure fails the stage with reason_code `map_persistence_failed`
+  (an operational fix, not a review plateau) and a re-trigger resumes the
+  persistence from the saved passing report.
 - **Re-review after a clean round.** Lint-broken or perf-regressed fixes are
   sent back before a re-review; a model review of known-broken code is wasted
   spend.

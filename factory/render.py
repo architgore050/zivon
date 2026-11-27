@@ -405,6 +405,59 @@ def _manifest_block_map(
     return out
 
 
+def refresh_manifest(
+    render_out: dict[str, Any],
+    blocks: dict[str, Any],
+    lesson: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Re-derive manifest v2 from the CURRENT merged draft (issue #118).
+
+    A repair round that appends teaching blocks must leave the manifest
+    naming them: the section -> block groups, the block -> section map, the
+    counts and the content hash are recomputed from the merged specs, with
+    every block's EXPLICIT `section_id` honored (a new block declaring
+    ``section_id=sec-01`` is placed under sec-01, never silently inherited by
+    reader order into the section that happens to be open where it sits).
+    Returns the refreshed manifest dict (the caller persists it to
+    ``manifest.json`` and keeps the in-memory ``render_out["manifest"]`` in
+    sync so the next re-review judges the page the manifest describes).
+
+    `lesson` - the 02-generate lesson (section titles + the content-hash
+    input). When unavailable (partial runs), a minimal lesson is reconstructed
+    from the existing manifest sections: ids and titles stay correct, the
+    hash stays deterministic.
+    """
+    manifest = render_out.get("manifest") or {}
+    chapter_key = str(manifest.get("chapter_id") or "")
+    draft = list(blocks.get("blocks") or [])
+    if not chapter_key:
+        return manifest
+    if lesson is None:
+        lesson = {
+            "sections": [
+                {"id": str(s.get("id")), "title": str(s.get("title") or "")}
+                for s in manifest.get("sections", [])
+                if isinstance(s, dict) and s.get("id")
+            ]
+        }
+    ownership = section_map.resolve_sections(lesson, draft)
+    enriched = section_map.apply_metadata(draft, ownership, chapter_key)
+    refreshed = dict(manifest)
+    refreshed["sections"] = _manifest_sections(lesson, enriched, chapter_key)
+    refreshed["blocks"] = _manifest_block_map(enriched)
+    refreshed["counts"] = _manifest_counts(enriched)
+    refreshed["concepts"] = [
+        {
+            "concept_id": entry["concept_id"],
+            "section_id": entry["id"],
+            "title": entry["title"],
+        }
+        for entry in refreshed["sections"]
+    ]
+    refreshed["content_hash"] = ident.content_hash(chapter_key, lesson, enriched)
+    return refreshed
+
+
 def _manifest_v2(
     *,
     run_ctx: RunContext,

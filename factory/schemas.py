@@ -438,7 +438,37 @@ FIX_PLAN = {
     },
 }
 
-REVIEW_REPORT = CHECK_REPORT  # same shape: verdict + issues
+# REVIEW_REPORT is its OWN schema (issue #118, 2026-11-27): it used to alias
+# CHECK_REPORT, whose `additionalProperties: false` rejects the `concept_map`
+# field every real 09-review report now carries (the EFFECTIVE map the verdict
+# judged; a resume re-derives it from the artifact). Same verdict/issues
+# shape, plus the judged map (absent = no map in effect; {} = explicitly
+# empty). The model-facing 09 sub-calls remain REVIEW_CALL_REPORT (issues
+# only) - this schema describes the merged harness report.
+REVIEW_REPORT = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["verdict", "issues"],
+    "additionalProperties": False,
+    "properties": {
+        "verdict": {"enum": ["pass", "fail"]},
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["severity", "message"],
+                "additionalProperties": False,
+                "properties": {
+                    "block_id": {"type": "string"},
+                    "severity": {"enum": ["fatal", "major", "minor"]},
+                    "category": {"enum": REVIEW_CATEGORIES},
+                    "message": {"type": "string", "minLength": 10},
+                },
+            },
+        },
+        "concept_map": _CONCEPT_MAP_FIELD,
+    },
+}
 
 # 09-review sub-call contract (2026-11-08 split): ISSUES ONLY. The verdict is
 # computed by the harness from severities - the rule that used to be prompt

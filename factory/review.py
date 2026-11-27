@@ -233,6 +233,30 @@ def run(
     spec_text = json.dumps(blocks["blocks"], indent=1, ensure_ascii=False)
     facts_text = _facts_text(ground_truth)
     identity = _identity_header(render_out)
+    # Canonical chapter resolution (issue #118) - computed once, used both for
+    # the facts reviewer's concept context and for the deterministic gate.
+    manifest = render_out.get("manifest") or {}
+    chapter_title = str((manifest.get("chapter") or {}).get("title") or "")
+    ch = syllabus.resolve_chapter(cfg, chapter_title, manifest.get("class"))
+    curated_records = syllabus.curated_concepts(cfg, ch["chapter_id"]) if ch else []
+    curated = [c["concept_id"] for c in curated_records]
+    concept_context = _concept_context_text(concept_map, curated_records)
+    if ch is None:
+        # Distinct degraded states, never conflated (issue #118): an unreadable
+        # syllabus is NOT the same as a chapter the syllabus does not curate.
+        state = syllabus.syllabus_state(cfg)
+        if state != "ok":
+            print(
+                f"[{STAGE_ID}] concept coverage: tracked syllabus is {state} "
+                f"({syllabus.DEFAULT_SYLLABUS_REL}); nothing to verify the map "
+                "against - fix the tracked sources and re-trigger"
+            )
+        else:
+            print(
+                f"[{STAGE_ID}] concept coverage: chapter '{chapter_title}' is not "
+                "in the tracked syllabus; an emitted map is still verified, but "
+                "no curated vocabulary is enforced"
+            )
 
     # Attempt artifacts namespace per call: attempts/facts/attempt-NN,
     # attempts/design/attempt-NN (re-reviews: attempts/round-01-facts/...).
@@ -254,6 +278,7 @@ def run(
                     + facts_text
                     + "\n\nFINAL PAGE FILES:\n"
                     + files_text
+                    + concept_context
                     + "\n\n"
                     + _FACTS_TASK
                 ),
@@ -346,8 +371,7 @@ def run(
     # The checker owns its own gate (nothing to verify without curated
     # vocabulary AND an emitted map); this call site never weakens it - an
     # emitted map is verified even for a chapter the syllabus does not curate.
-    chapter_id = str((render_out.get("manifest") or {}).get("chapter_id") or "")
-    curated = syllabus.curated_concept_ids(cfg, chapter_id)
+    # (Chapter resolution is canonical and hoisted above - issue #118.)
     concept_issues = [
         {"severity": "fatal", "category": "concept_map", "message": problem}
         for problem in concept_map_verify.concept_coverage_problems(
@@ -368,7 +392,10 @@ def run(
         # The EFFECTIVE map this verdict judged (2026-11-25): a resume
         # re-derives it from here (factory.stages._effective_concept_map)
         # instead of restarting the loop from 02-generate's emitted map.
-        "concept_map": concept_map or None,
+        # None = no map in effect; {} = an explicitly empty map (issue #118:
+        # the two are distinct - an empty correction must not resurrect a
+        # stale map on resume).
+        "concept_map": concept_map,
     }
     run_ctx.save_stage_output(STAGE_ID, report)
     if round_tag:
@@ -413,6 +440,51 @@ def _facts_text(ground_truth: dict[str, Any]) -> str:
     for e in ground_truth.get("equations", []):
         lines.append(f"- {e['id']}: {e['expression']} ({e['description']})")
     return "\n".join(lines)
+
+
+def _concept_context_text(
+    concept_map: dict[str, Any] | None,
+    curated_records: list[dict[str, Any]],
+) -> str:
+    """The facts reviewer's concept-map context (issue #118): the curated
+    concepts' titles/descriptions (what the page must TEACH) plus, when a map
+    is in effect, the effective section -> concept mapping - so the reviewer
+    can judge whether the section a concept is mapped to actually teaches it
+    (a remap that satisfies the checker without teaching content is
+    reviewable). Empty only when the chapter has no curated concepts."""
+    if not curated_records:
+        return ""
+    by_id = {c["concept_id"]: c for c in curated_records}
+    if concept_map:
+        lines: list[str] = []
+        for section_id, concept_id in sorted(concept_map.items()):
+            record = by_id.get(str(concept_id))
+            label = f" ({record['title']})" if record else " (unknown curated id)"
+            lines.append(f"- {section_id} -> {concept_id}{label}")
+        map_block = (
+            "SECTION -> CURATED CONCEPT MAP IN EFFECT (deterministic coverage "
+            "is also re-derived by code; your added judgement: check that the "
+            "section a concept is mapped to actually TEACHES the concept below "
+            "- a section that does not teach its mapped concept is a fatal "
+            "issue with category concept_map):\n" + "\n".join(lines)
+        )
+    else:
+        map_block = (
+            "NO CONCEPT MAP IS IN EFFECT YET - the deterministic gate flags "
+            "that separately; your added judgement: check whether the page "
+            "teaches the curated concepts below at all"
+        )
+    descriptions = "\n".join(
+        f"- {c['concept_id']}: {c['title']}"
+        + (f" - {c['description']}" if c["description"] else "")
+        for c in curated_records
+    )
+    return (
+        "\n\n"
+        + map_block
+        + "\n\nCURATED CONCEPTS (titles/descriptions the mapped sections must "
+        "teach):\n" + descriptions
+    )
 
 
 def _identity_header(render_out: dict[str, Any]) -> str:

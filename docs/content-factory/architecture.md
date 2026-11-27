@@ -55,28 +55,52 @@ pipeline producer, wired as a **deterministic 09-review gate with the bounded
 catcher** — no new stage, no whole-pipeline re-run path:
 
 - **02-generate emits it.** The generation prompt lists the chapter's curated
-  concept ids (`factory/syllabus.curated_concept_ids`) and the model returns a
-  top-level `concept_map` {lesson section id → curated concept id} alongside
-  ground_truth/lesson/blocks. The field is additive and optional in `GENERATED`
-  (existing v9 run dirs stay valid — no `PIPELINE_VERSION` bump).
+  concept ids (resolved CANONICALLY by class + full normalized title — issue
+  118: the renderer's 40-char slug key truncates Sound Waves and most
+  class-11/12 chapters, so the tracked syllabus is never looked up by that
+  key) and the model returns a top-level `concept_map` {lesson section id →
+  curated concept id} alongside ground_truth/lesson/blocks. The field is
+  additive and optional in `GENERATED` (existing v9 run dirs stay valid — no
+  `PIPELINE_VERSION` bump); a chapter the syllabus does not cover — or covers
+  with zero concepts — is told the empty map is the correct output.
 - **One deterministic checker.**
   `factory/concept_map_verify.concept_coverage_problems` is the single checker
   for: sections missing from the map, map keys matching no current section,
   map targets unknown to the syllabus, blocks landing on no mapped section,
   orphan curated concepts (A2's fatal `concept.orphan`), and keyword coverage
   for the three rationalised-NCERT topics (electric motor, electromagnetic
-  induction, electric generator). **09-review calls it on EVERY round**,
+  induction, electric generator) — keyword coverage is SECTION-SCOPED (issue
+  118): a keyword carried by a block under a different section never satisfies
+  the check, so a remap without teaching is caught. **09-review calls it on
+  EVERY round**,
   re-deriving coverage from the current blocks + manifest + the effective map,
   and every finding is a FATAL `concept_map` issue; the verdict stays
   harness-computed. No prompt prose enforces any of this.
 - **Failures route through the bounded 10-reviewfix loop, never a pipeline
-  re-run.** The fixer receives the effective map + curated ids and may return
-  a corrected `concept_map` (full map, current section ids, no unknown ids)
-  alongside real teaching blocks: a missing concept is repaired by mapping an
-  existing section and ADDING teaching content under it, never by rewording or
-  dropping the concept. The orchestrator threads the correction into the next
-  round's re-review; `repair.code_rounds`, stall detection,
-  `factory.repair.exhausted` and `REPAIR_EXHAUSTED` are unchanged.
+  re-run.** The fixer receives the effective map + curated ids (with titles
+  and descriptions) and may return a corrected `concept_map` (full map,
+  current section ids, no unknown ids) alongside real teaching blocks: a
+  missing concept is repaired by mapping an existing section and ADDING
+  teaching content under it, never by rewording or dropping the concept. The
+  orchestrator threads the correction into the next round's re-review;
+  `repair.code_rounds`, stall detection, `factory.repair.exhausted` and
+  `REPAIR_EXHAUSTED` are unchanged. A block-mutation round refreshes the
+  manifest (section groups, block map, counts, content hash) with every
+  explicit `section_id` honored before the rebuild and re-review (issue 118),
+  and the facts reviewer now also sees the map + curated concept metadata so a
+  remap without teaching is reviewable judgement, not only a code rule.
+- **Persistence is durable and ordered (issue 118, blocker).** On a passing
+  review the verified map is written (1) as a durable PVC-backed run artifact
+  `runs/<run_id>/09-review/concept-map.json`, then (2) atomically to the
+  tracked `sources/syllabus/chapters/<canonical chapter_id>.concept-map.json`,
+  BOTH before 09-review is marked ok. A write failure fails the stage with
+  `map_persistence_failed` (`PersistenceError` — an operational fix, not a
+  review plateau); a re-trigger resumes the persistence from the saved passing
+  report (`_retry_map_persistence`). In the cluster, `k8s/20` mounts the
+  zivon-sources PVC at `/app/sources/syllabus` (subPath `syllabus`) and seeds
+  it no-clobber from the image's baked syllabus (`seed-syllabus` initContainer,
+  the k8s/30 pattern). An explicit `{}` map is honored as a map (presence, not
+  truthiness) — it never resurrects a stale map on resume.
 - **The effective map, and persistence only on the final passing review.** The
   map in effect is 02-generate's emitted map, upgraded by any 10-reviewfix
   correction. On the FINAL verdict=pass only,

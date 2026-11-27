@@ -287,11 +287,13 @@ def _body_from_blocks(
 
     The draw metadata is resolved in ONE place (06-render) and written into
     manifest v2; a repair round must reproduce the same structure instead of
-    re-deriving it. The draft blocks 08/10 hold are the RAW specs (no
-    `section_id`/`concept_id`), so the manifest's block map is the source of
-    truth here. A block the map does not know (a plan that invented an id)
-    inherits the section that is open where it sits, matching the renderer's
-    reader-order rule so the page stays addressable.
+    re-deriving it. A block's EXPLICIT `section_id` wins (issue #118): a
+    teaching block a fix round appended under a declared section is rendered
+    under THAT section - never silently inherited by reader order into
+    whichever section happens to be open where the id sits. The manifest's
+    block map is the fallback for raw specs that carry no section_id, and a
+    block neither declares nor the map knows inherits the open section (the
+    renderer's reader-order rule) so the page stays addressable.
 
     Returns (body_html, structured). `structured` is False for a pre-P1
     manifest: that page had no wrappers, so a flat body is what 06 emitted.
@@ -311,7 +313,9 @@ def _body_from_blocks(
     by_block: dict[str, str] = {}
     current = section_ids[0]
     for block in blocks["blocks"]:
-        declared = str((block_map.get(str(block["id"])) or {}).get("section_id") or "")
+        declared = str(block.get("section_id") or "") or str(
+            (block_map.get(str(block["id"])) or {}).get("section_id") or ""
+        )
         if declared in section_ids:
             current = declared
         by_block[str(block["id"])] = current
