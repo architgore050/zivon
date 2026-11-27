@@ -58,6 +58,7 @@ from . import (
     render,
     review,
     reviewfix,
+    syllabus,
     transcheck,
     translate,
     transrepair,
@@ -103,6 +104,11 @@ from .llm import LLMClient
 # (numeric-check answer = bare number; diagram CONTENT law; axis-follows-data
 # and graph-content review; in-figure-label legibility). Version-8 pages were
 # titled and slugged by the model's headline - re-trigger with --fresh.
+# (2026-11-25, pipeline-produced section -> curated-concept map): 02-generate
+# now emits GENERATED.concept_map and 09-review verifies it; the write of the
+# tracked sources/syllabus/chapters/<chapter_id>.concept-map.json happens in
+# stages.py on a passing review. The new key is optional - existing v9 run
+# dirs and pages stay valid, so no bump here.
 PIPELINE_VERSION = "9"
 
 STAGE_ORDER = [
@@ -208,6 +214,48 @@ def _blocking_issues(combined: dict[str, Any]) -> list[dict[str, Any]]:
         for i in combined["model_issues"] + combined["rule_issues"]
         if i["severity"] in ("fatal", "major")
     ]
+
+
+def _normalize_concept_map(raw: Any) -> dict[str, str]:
+    """A section -> curated-concept map with string keys/values, None dropped."""
+    if not isinstance(raw, dict):
+        return {}
+    return {str(k): str(v) for k, v in raw.items() if k is not None and v is not None}
+
+
+def _stage_output_json(run_ctx: RunContext, stage_id: str) -> dict[str, Any] | None:
+    """THIS run's saved stage output, or None - deliberately no cross-run
+    fallback (a resume is the same deterministic run dir; copying another
+    run's review/fixer artifact here would thread a foreign map through the
+    loop). Corrupt or non-dict output reads as absent."""
+    path = run_ctx.stage_dir(stage_id) / "output.json"
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _effective_concept_map(run_ctx: RunContext) -> dict[str, str]:
+    """The concept map a (re)started review loop must judge, in the order the
+    events happened: the map the last 10-reviewfix round CORRECTED, else the
+    map the last 09-review report judged, else 02-generate's emitted map -
+    the map analogue of `_preferred_blocks` (a resume never restarts the loop
+    from a stale map; 2026-11-25)."""
+    corrected = _normalize_concept_map(
+        (_stage_output_json(run_ctx, "10-reviewfix") or {}).get("concept_map")
+    )
+    if corrected:
+        return corrected
+    judged = _normalize_concept_map(
+        (_stage_output_json(run_ctx, "09-review") or {}).get("concept_map")
+    )
+    if judged:
+        return judged
+    generated = _stage_output_json(run_ctx, "02-generate") or {}
+    return _normalize_concept_map(generated.get("concept_map"))
 
 
 def _severity_score(issues: list[dict[str, Any]]) -> int:
@@ -696,7 +744,14 @@ def run_pipeline(
             )
             run_ctx.mark_stage("09-review", "running")
             report = review.run(
-                cfg, run_ctx, llm, blocks, render_out, ground_truth, round_tag=round_tag
+                cfg,
+                run_ctx,
+                llm,
+                blocks,
+                render_out,
+                ground_truth,
+                round_tag=round_tag,
+                concept_map=effective_concept_map,
             )
             run_ctx.mark_stage(
                 "09-review",
@@ -719,6 +774,13 @@ def run_pipeline(
                 ground_truth = run_ctx.load_stage_output("02-generate")["ground_truth"]
             if render_out is None:
                 render_out = run_ctx.load_stage_output("06-render")
+            # Effective concept map (section -> curated concept): the map the
+            # last 10-reviewfix round corrected, else the map the last review
+            # judged, else 02-generate's emitted map - so a resume never
+            # restarts the loop from a stale map. A 10-reviewfix `concept_map`
+            # output replaces it for the next round and is persisted on final
+            # pass.
+            effective_concept_map = _effective_concept_map(run_ctx)
             report = run_review_once(None)
             rounds = 0
             max_rounds = cfg.repair["code_rounds"]
@@ -747,9 +809,18 @@ def run_pipeline(
                     blocks,
                     tag,
                     extra_feedback=fix_feedback,
+                    concept_map=effective_concept_map,
                 )
                 fix_feedback = []
                 run_ctx.save_stage_output("10-reviewfix", fix_out)
+                if fix_out.get("concept_map") is not None:
+                    # Concept-map sync (optional): a corrected map from
+                    # 10-reviewfix becomes the EFFECTIVE map for re-review;
+                    # keys must match current section ids; no orphan/unknown;
+                    # recomputed every round; default keep previous.
+                    effective_concept_map = _normalize_concept_map(
+                        fix_out["concept_map"]
+                    )
                 if fix_out.get("page"):
                     # Spec corrections adopted (2026-11-09): the corrected
                     # draft IS the page from here on - the next re-review
@@ -802,6 +873,17 @@ def run_pipeline(
                     f"[10-reviewfix] round {rounds}/{max_rounds}: {corrected}review "
                     f"issue score {prev} -> {now} (best {best}; no-progress streak "
                     f"{stalls}/{stall_limit})"
+                )
+            # 2026-11-25: the section -> curated-concept map has a pipeline
+            # producer now (see the PIPELINE_VERSION note). On a passing final
+            # review, persist the verified map to the tracked
+            # sources/syllabus/chapters/<chapter_id>.concept-map.json.
+            if report["verdict"] == "pass":
+                syllabus.write_tracked_map(
+                    cfg,
+                    run_ctx,
+                    render_out,
+                    concept_map=effective_concept_map,
                 )
             if report["verdict"] == "fail" or fix_feedback:
                 reason = (

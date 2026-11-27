@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import checks
+from . import checks, syllabus
 from .artifacts import RunContext
 from .config import Config
 from .design import design_context, palette_text
@@ -38,6 +38,10 @@ GLOBAL_RULES = (
     "- Write in simple English suited to an Indian school student.\n"
     "- If you are unsure about something, record it in the designated field rather than guessing.\n"
     "- Output exactly ONE JSON object and nothing else. No markdown, no commentary.\n"
+    "- STRICT JSON FORMAT: every string is double-quoted and terminated; every object "
+    "and array is closed; no trailing text, no unterminated strings, no extra commas. "
+    "If your output reaches the limit, close all open strings and objects immediately "
+    "rather than leaving them unterminated.\n"
 )
 
 
@@ -68,6 +72,35 @@ def _pack_text(cfg: Config, source_pack: dict[str, Any]) -> str:
 
 
 # ------------------------------------------------------------ 02-generate
+def _concept_map_block(cfg: Config, chapter: dict[str, Any]) -> str:
+    """The 2026-11-25 concept-map production contract (see `factory/syllabus.py`):
+    the model emits a top-level `concept_map` {sec-NN: curated concept id} keyed
+    by its own lesson section ids. The candidate ids come from the tracked
+    syllabus so the map's values validate against A2's vocabulary by
+    construction."""
+    ch_id = syllabus.located_chapter_id(chapter["title"], chapter["class"])
+    concept_ids = syllabus.curated_concept_ids(cfg, ch_id)
+    if concept_ids:
+        available = ", ".join(concept_ids)
+    else:
+        available = (
+            "(no curated concepts found for this chapter in "
+            f"{syllabus.DEFAULT_SYLLABUS_REL} - emit concept_map as an "
+            "empty object {})"
+        )
+    return (
+        "\n\nCONCEPT MAP (the pipeline produces the tracked section -> curated-"
+        "concept map, see factory/syllabus.py):\n"
+        f"- Curated concept ids available for this chapter: {available}\n"
+        "- Emit a top-level `concept_map` object on your JSON: keys are your "
+        'lesson.sections[].id values ("sec-01", "sec-02", ...), one value per key, '
+        "each value a curated concept id - the concept whose title/description the "
+        "section teaches (do not invent ids, do not map two sections to the same "
+        "concept unless the section genuinely continues the same concept).\n"
+        "- The map must cover EVERY lesson section; it must not be empty."
+    )
+
+
 def run_generate(
     cfg: Config, run_ctx: RunContext, llm: LLMClient, source_pack: dict[str, Any]
 ) -> dict[str, Any]:
@@ -268,7 +301,8 @@ def run_generate(
         '"learning_goal": "...", "controls": [{"id": "speed", "label": "Speed (m/s)", '
         '"min": 0, "max": 20, "step": 1, "initial": 5}], "default_behaviour": "..."}, '
         '"citations": [{"claim_id": "claim-03"}]}]}}'
-        "\n\nBefore you answer: reread the SOURCE MATERIAL against your draft - "
+        + _concept_map_block(cfg, ch)
+        + "\n\nBefore you answer: reread the SOURCE MATERIAL against your draft - "
         "every number, unit and concept in the page must survive that reread, and "
         "every concept and every exercise type from your chapter inventory must "
         "appear in the page. "

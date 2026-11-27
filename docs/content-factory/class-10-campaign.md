@@ -152,9 +152,17 @@ checklist.
 ### 5.1 Lesson gates (the pipeline as-is)
 
 `03-check` (fatal must quote the source), `07-perf` (weak-android budgets),
-`09-review` (code review verdict=pass), `10-reviewfix` (bounded repair) — see
+`09-review` (code review verdict=pass, **including the deterministic
+section → curated-concept coverage gate (2026-11-25)**: coverage is re-derived
+every round by `factory/concept_map_verify.py`, each finding is a fatal
+`concept_map` issue, and a gap is repaired by the bounded `10-reviewfix` loop
+— real teaching blocks plus a corrected map — never a pipeline re-run; the
+verified map is persisted to the tracked
+`sources/syllabus/chapters/<chapter_id>.concept-map.json` only on the final
+passing re-review), `10-reviewfix` (bounded repair) — see
 [`architecture.md`](architecture.md). A gate failure never re-runs the whole pipeline;
-catchers repair bounded blocks only.
+catchers repair bounded blocks only. Offline re-checks after a regeneration
+share the same checker (`scripts/verify_magnetic_manifest.py`).
 
 ### 5.2 Translation gate — live lessons are fully translated
 

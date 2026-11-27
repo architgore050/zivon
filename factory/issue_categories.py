@@ -33,6 +33,7 @@ MODEL_REVIEW_CATEGORIES: tuple[str, ...] = (
     "frame",
     "accessibility",
     "rendering",
+    "concept_map",
     "other",
 )
 

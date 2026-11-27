@@ -339,6 +339,7 @@ REVIEW_CATEGORIES = [
     "frame",
     "accessibility",
     "rendering",
+    "concept_map",
     "other",
 ]
 
@@ -386,6 +387,23 @@ INTERACTIVE = {
     },
 }
 
+# ---- 04-repair: the content catcher. Replacement blocks use the SAME block
+# item schema as BLOCKS; the orchestrator merges them into the current draft
+# by id (a flagged block with no replacement is removed).
+# Concept-map sync through repair (optional): a corrected section -> curated
+# concept map. Keys must match current section ids; values must be curated
+# concept ids; every curated concept must own at least one section. Optional;
+# when absent the previous map is kept (10-reviewfix "default keep previous").
+_CONCEPT_MAP_FIELD = {
+    "type": "object",
+    "additionalProperties": {"type": "string", "minLength": 1},
+    "description": (
+        "Corrected section -> curated-concept map. Keys match current lesson "
+        "section ids; values are curated syllabus concept ids; no orphan "
+        "concept. Optional; omit to keep the previous map."
+    ),
+}
+
 FIX_PLAN = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -412,6 +430,11 @@ FIX_PLAN = {
             "minItems": 1,
             "items": BLOCKS["properties"]["blocks"]["items"],
         },
+        # Concept-map sync (optional; same contract as REPAIR): a corrected
+        # section -> curated-concept map. Keys match current section ids;
+        # values are curated concept ids; no orphan concept; the gate
+        # re-derives coverage each round. Omit to keep the previous map.
+        "concept_map": _CONCEPT_MAP_FIELD,
     },
 }
 
@@ -462,12 +485,19 @@ GENERATED = {
         "ground_truth": _sub(GROUND_TRUTH),
         "lesson": _sub(LESSON),
         "blocks": _sub(BLOCKS),
+        # Additive (2026-11-25, the pipeline-produced section -> curated-concept
+        # map): {lesson section id: curated syllabus concept id}. Optional -
+        # 09-review verifies coverage against the manifest + syllabus; the
+        # tracked sources/syllabus/chapters/<chapter_id>.concept-map.json is
+        # persisted from it on pass.
+        "concept_map": {
+            "type": "object",
+            "additionalProperties": {"type": "string", "minLength": 1},
+        },
     },
 }
 
-# ---- 04-repair: the content catcher. Replacement blocks use the SAME block
-# item schema as BLOCKS; the orchestrator merges them into the current draft
-# by id (a flagged block with no replacement is removed).
+
 REPAIR = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -480,6 +510,7 @@ REPAIR = {
             "minItems": 1,
             "items": BLOCKS["properties"]["blocks"]["items"],
         },
+        "concept_map": _CONCEPT_MAP_FIELD,
     },
 }
 

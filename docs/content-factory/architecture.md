@@ -31,21 +31,67 @@ re-derived). `--fresh` wipes the previous attempt and generates clean.
 |---|---|---|---|---|
 | 00 | ingest | factory/ingest.py | code | per-book chapter index + page text cache (reused across runs) |
 | 01 | locate | factory/locate.py | code (embeddings) | source_pack: NCERT chapter text + supplement chunks with citations |
-| 02 | generate | factory/agents.py | **ONE giant model call** (Curator+Synthesizer+Designer in one); rule checks run inside the retry loop; gets the live design doctrine + palette | {ground_truth, lesson, blocks} in one JSON object (schema `GENERATED`) |
+| 02 | generate | factory/agents.py | **ONE giant model call** (Curator+Synthesizer+Designer in one); rule checks run inside the retry loop; gets the live design doctrine + palette and the chapter's curated concept ids | {ground_truth, lesson, blocks, `concept_map`} in one JSON object (schema `GENERATED`) |
 | 03 | check | factory/agents.py + factory/checks.py | model + code | combined verdict + issues with a fixed severity ladder; blocking (fatal/major) routes to 04 |
 | 04 | repair | factory/agents.py (catcher) | model, progress-aware loop: keeps going while the blocking score improves, stops at `repair.stall_rounds` no-progress rechecks or the `repair.content_rounds` cap | replacement blocks for the flagged issues only (merged by id); recheck per round |
 | 05 | interactive | factory/interactive.py | model, 1 req per simulation; gets the cited claims + equations its physics must obey AND the live design doctrine + examples + palette; lint runs inside the retry loop | page.js / page.css fragments (linted) |
 | 06 | render | factory/render.py | code | staging site + **manifest v2** (`chapter_id`/`lesson_id`, `status`, `languages`, `counts`, `concepts`, `sections` + the block -> section map, `content_hash`) + **renderer hooks** (`data-block-type`, `data-concept-id`, `data-element-id`, `<section class="zn-section">` wrappers) + `catalogue.json`/`courses.js` |
 | 07 | perf | factory/perf.py + testing/content_factory/perf/harness.py | code (Chromium) | budget report; topic miss → routed to 08; landing-page miss = stop (hand-maintained, human fixes) |
 | 08 | fixloop | factory/fixloop.py | model, progress-aware loop (stall detection + `perf.fix_rounds` cap); a fix that breaks lint or touches renderer-owned files costs a round, not the run; sees page specs + previous attempts + the live design doctrine + lesson-page example + palette (fix, don't restyle); must preserve what the page teaches; the post-fix index.html rebuild re-extracts the body and strips the old page shell first (idempotent; a shell-nesting rebuild fails loudly instead of shipping) | fixed topic files + history; rounds=0 (no model call) when 07 passed |
-| 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only | merged verdict report (a fail verdict routes to 10, it does not raise) |
-| 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css) **plus a spec-correction channel: corrected full block objects under `blocks`** (drawn-geometry/caption errors live in the block specs the renderer draws index.html from — the harness merges them by id, re-renders the page body from the merged specs, and threads the corrected draft back through 09-review, 06-render and resume); re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
+| 09 | review | factory/review.py | model + code; **TWO bounded model calls (2026-11-08 split)**: `09-review-facts` (answer keys, cited-fact contradictions, drawn behaviour, HTML-vs-JS value consistency) and `09-review-design` (doctrine, frame law, usability/access, a general rendering sweep that verifies drawn geometry NUMERICALLY against the cited equations; the design call receives rendered screenshots — `factory/shots.py` captures every diagram/simulation at the doctrine frames ~360/~768/~1280 into the run dir only — as vision input with a text-only fallback when the endpoint can't read images); the verdict is computed by the harness from severities, each call outputs issues only; the **deterministic concept-coverage gate (2026-11-25)** re-derives section → curated-concept coverage EVERY round and emits each finding as a FATAL `concept_map` issue (see below) | merged verdict report + the judged `concept_map` (a fail verdict routes to 10, it does not raise) |
+| 10 | reviewfix | factory/reviewfix.py (catcher) | model, progress-aware loop (stall detection + `repair.code_rounds` cap); a fix that breaks lint or regresses perf is returned as the next round's assignment, not raised; sees doctrine + lesson-page example + palette so fixes land on the page's visual language | replacement topic files (page.js/page.css) **plus a spec-correction channel: corrected full block objects under `blocks`** (drawn-geometry/caption errors live in the block specs the renderer draws index.html from — the harness merges them by id, re-renders the page body from the merged specs, and threads the corrected draft back through 09-review, 06-render and resume) **and a `concept_map` correction channel: a corrected section → curated-concept map that becomes the effective map for the next re-review and is persisted on final pass**; re-lint + re-perf + re-review per round (sync to staging only when the round is clean) |
 | 10a | translate | factory/translate.py + factory/tm_store.py | model (Evon v3.3 via `llm_manager`, 1 call per unit per locale when `translation.enabled` or `--locales` is set); per-block disk checkpoints + two-tier Translation Memory (`ADR-0021`, `ADR-0022`) | localized `b-00-meta` + `b-01..b-NN` blocks + per-unit checkpoints under `10a-translate/blocks/<locale>/<unit_id>.json` |
 | 10b | transcheck | factory/transcheck.py | model + code; 9 deterministic rules (`R1`..`R9`) + 1 calibrated Evon v3.3 reviewer call per locale (`TRANSLATION_REVIEW_CALL_REPORT`); passing units promoted to `sources/cache/tm/` | per-locale verdict + issues (`issues_ledger.jsonl`); blocking (`fatal`/`major`) routes to `10c-transrepair` |
 | 10c | transrepair | factory/transrepair.py (catcher) | model, progress-aware per-block loop (`repair.translation_rounds` cap, `repair.stall_rounds` plateau); re-translates ONLY flagged `(locale, unit_id)` items | replacement localized units merged by `unit_id` + recheck per round |
 | 10d | transrender | factory/render.py (`render_localized`) | code | `<locale>/index.html`, `i18n/<locale>.json`, `i18n/en.json`, `i18n.js`, locale hub pages, `CP-TRN-004` manifest metadata, and the refreshed manifest-v2 `languages` coverage (the same block -> section map, so every locale has the English page's section structure) |
 | 11 | link | factory/link.py + factory/catalogue.py | code | copy into frontend/, **prune stale duplicate topic directories for the same course + chapter (or the same run_id)**, preserve the previous read-aloud state (topic + per-locale manifests) across a re-render, write **catalogue v2** (`catalogue.json`: manifest-v2 core + `href` + `localized_hrefs` + `pipeline_version` + the version-guard integrity block) and derive `courses.js` from it (status/languages/counts/concepts/exam_weight, ordered class → chapter number → chapter → title), then smoke-test hrefs, locale routes and i18n bundles |
 | 12 | narration | factory/narration/ (stage.py + select/spoken/timbre/audio/budget/publish) | code + **Gnani Timbre v3.0** (build-time TTS, opt-in via `ZIVON_NARRATION_ENABLED`; never an LLM call) | opus assets under `frontend/audio/{course_id}/` (ST-04 content-hash names), `narration` availability flag in the topic manifest + `narration-manifest.json`, A-15 budget ledger (`runs/narration-budget.json`) + `narration_usage.jsonl` |
+
+### The section → curated concept map is pipeline-produced (2026-11-25)
+
+The tracked `sources/syllabus/chapters/<chapter_id>.concept-map.json`
+(consumed by the assessment bank A2 and by the offline verifier) now has a
+pipeline producer, wired as a **deterministic 09-review gate with the bounded
+catcher** — no new stage, no whole-pipeline re-run path:
+
+- **02-generate emits it.** The generation prompt lists the chapter's curated
+  concept ids (`factory/syllabus.curated_concept_ids`) and the model returns a
+  top-level `concept_map` {lesson section id → curated concept id} alongside
+  ground_truth/lesson/blocks. The field is additive and optional in `GENERATED`
+  (existing v9 run dirs stay valid — no `PIPELINE_VERSION` bump).
+- **One deterministic checker.**
+  `factory/concept_map_verify.concept_coverage_problems` is the single checker
+  for: sections missing from the map, map keys matching no current section,
+  map targets unknown to the syllabus, blocks landing on no mapped section,
+  orphan curated concepts (A2's fatal `concept.orphan`), and keyword coverage
+  for the three rationalised-NCERT topics (electric motor, electromagnetic
+  induction, electric generator). **09-review calls it on EVERY round**,
+  re-deriving coverage from the current blocks + manifest + the effective map,
+  and every finding is a FATAL `concept_map` issue; the verdict stays
+  harness-computed. No prompt prose enforces any of this.
+- **Failures route through the bounded 10-reviewfix loop, never a pipeline
+  re-run.** The fixer receives the effective map + curated ids and may return
+  a corrected `concept_map` (full map, current section ids, no unknown ids)
+  alongside real teaching blocks: a missing concept is repaired by mapping an
+  existing section and ADDING teaching content under it, never by rewording or
+  dropping the concept. The orchestrator threads the correction into the next
+  round's re-review; `repair.code_rounds`, stall detection,
+  `factory.repair.exhausted` and `REPAIR_EXHAUSTED` are unchanged.
+- **The effective map, and persistence only on the final passing review.** The
+  map in effect is 02-generate's emitted map, upgraded by any 10-reviewfix
+  correction. On the FINAL verdict=pass only,
+  `factory/syllabus.write_tracked_map` persists it to the tracked file; a run
+  that never passes persists nothing.
+- **Resume-safe.** A resumed run re-derives the effective map from run
+  artifacts in the order the events happened (the last 10-reviewfix
+  correction, else the map the last 09-review report judged, else 02-generate's
+  emitted map — `_effective_concept_map` in `factory/stages.py`, the map
+  analogue of `_preferred_blocks`), so a resume never restarts the loop from a
+  stale map.
+- **The offline checkpoint shares the checker.**
+  `scripts/verify_magnetic_manifest.py` stays a thin CLI over the same
+  function (exit 1 = findings, 0 = pass, 2 = missing inputs) — no
+  test-specific fork, no weakened copy.
 
 ### The assessment pipeline is a separate entrypoint (2026-11-17, Q-1)
 
@@ -569,8 +615,10 @@ which is what prompting fixes need. Two append-only JSONL files per run:
   severity, category, block, unverified flag). 09-review's issues carry a
   category from a fixed enum (`answer_key`, `fact`, `drawn_behaviour`,
   `inconsistency`, `visual_language`, `frame`, `accessibility`, `rendering`,
-  `other`); 03-check's issues aggregate as `content` until its prompt gains
-  the field.
+  `concept_map`, `other`); 03-check's issues aggregate as `content` until its
+  prompt gains the field. The deterministic concept-coverage findings are
+  tagged with call `concept_map` so cross-run analysis can separate them from
+  model-found issues.
 
 `run_report.json` rolls both up (`model_call_stats`, `issues_found`), and
 `scripts/issue_report.py` aggregates them across runs: per-stage call stats
