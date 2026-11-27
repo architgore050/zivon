@@ -55,15 +55,15 @@ stage.
 |---|---|---|---|---|
 | 00 | `00-ingest` | `factory/ingest.py` | no | per-book chapter index + extracted page text |
 | 01 | `01-locate` | `factory/locate.py` | embeddings only | `source_pack` |
-| 02 | `02-generate` | `factory/agents.py` | **one giant call** | `{ground_truth, lesson, blocks}` |
+| 02 | `02-generate` | `factory/agents.py` | **one giant call** | `{ground_truth, lesson, blocks, concept_map}` |
 | 03 | `03-check` | `factory/agents.py`, `factory/checks.py` | model + code | combined verdict + issues |
 | 04 | `04-repair` | `factory/agents.py` | model | merged page + history |
 | 05 | `05-interactive` | `factory/interactive.py` | one call per simulation | `{block_id: {id, files}}` |
 | 06 | `06-render` | `factory/render.py` | no | staging site + manifest + `courses.js` |
 | 07 | `07-perf` | `factory/perf.py` | no (Chromium) | budget report |
 | 08 | `08-fixloop` | `factory/fixloop.py` | model | fixed topic files + history |
-| 09 | `09-review` | `factory/review.py` | two calls (`facts`, `design`) | merged verdict + issues |
-| 10 | `10-reviewfix` | `factory/reviewfix.py` | model | files + optional corrected blocks |
+| 09 | `09-review` | `factory/review.py` | two calls (`facts`, `design`) + the deterministic concept-coverage gate | merged verdict + issues (+ the judged `concept_map`) |
+| 10 | `10-reviewfix` | `factory/reviewfix.py` | model | files + optional corrected blocks + optional corrected `concept_map` |
 | 10a | `10a-translate` | `factory/translate.py`, `factory/tm_store.py` | per unit per locale | localized units + checkpoints |
 | 10b | `10b-transcheck` | `factory/transcheck.py` | rules + one reviewer call per locale | per-locale verdicts |
 | 10c | `10c-transrepair` | `factory/transrepair.py` | model | replacement units |
@@ -113,9 +113,12 @@ stage.
   (`factory/design.py` reads `docs/frontend/design-doctrine.md` and
   `frontend/assets/zivon.css`); the coverage contract, grounding law, block
   budget, and SHAPE example in `factory/agents.py`.
-- **Output:** one JSON object `{ground_truth, lesson, blocks}` validating
-  against `GENERATED`; `blocks` is the canonical wrapper
-  `{"blocks": [ ... ]}`.
+- **Output:** one JSON object `{ground_truth, lesson, blocks, concept_map}`
+  validating against `GENERATED`; `blocks` is the canonical wrapper
+  `{"blocks": [ ... ]}`. `concept_map` (2026-11-25, optional/additive) is the
+  section → curated-concept map the model emits against the chapter's curated
+  ids (`factory/syllabus.curated_concept_ids`, listed in the prompt); 09-review
+  verifies it and the tracked map is persisted from it on the final pass.
 - **Artifact:** `runs/<run_id>/02-generate/output.json` plus
   `attempts/attempt-NN/{request,response,meta}.json`.
 - **Resume:** normal. `04-repair`'s merged page and `10-reviewfix`'s corrected
@@ -228,7 +231,9 @@ stage.
   and the doctrine + lesson example for the design call only.
 - **Output:** one merged report: `verdict` plus issues with a category from
   the fixed enum (`answer_key`, `fact`, `drawn_behaviour`, `inconsistency`,
-  `visual_language`, `frame`, `accessibility`, `rendering`, `other`).
+  `visual_language`, `frame`, `accessibility`, `rendering`, `concept_map`,
+  `other`), and the judged `concept_map` (the effective map this verdict
+  used; a resume re-derives it via `factory.stages._effective_concept_map`).
 - **Artifact:** `runs/<run_id>/09-review/output.json`; attempts namespaced
   `attempts/facts/attempt-NN/` and `attempts/design/attempt-NN/`, re-reviews as
   `attempts/round-NN-facts/...`.
@@ -239,7 +244,13 @@ stage.
   contradictions, drawn behaviour, HTML-vs-JS consistency) and gets no
   visual-language context. `09-review-design` checks doctrine, frame,
   usability/access, and a numerical rendering sweep, and gets no full facts
-  list. The verdict is computed by the harness: fail iff any fatal.
+  list. The verdict is computed by the harness: fail iff any fatal. The
+  **deterministic concept-coverage gate (2026-11-25)** is harness code, not
+  reviewer prose: on EVERY round `factory/concept_map_verify.concept_coverage_problems`
+  re-derives section → curated-concept coverage from the current blocks +
+  manifest + effective map, and every finding is a FATAL `concept_map` issue
+  (missing sections, unknown keys/targets, unmapped blocks, orphan concepts,
+  topic keyword coverage).
 
 ### `10-reviewfix` - the code/design catcher
 
@@ -250,10 +261,17 @@ stage.
   The harness merges them by id, re-renders the page body from the merged
   specs, and threads the corrected draft through re-review, render, and
   resume. Simulation blocks are excluded from the channel; sim behaviour is
-  page.js draw code owned by the `05`/`10` boundary.
+  page.js draw code owned by the `05`/`10` boundary. Since 2026-11-25 also a
+  **`concept_map` correction channel**: an optional corrected section →
+  curated-concept map (full map, current section ids, no unknown ids) that
+  becomes the effective map for the next re-review and is persisted on the
+  final pass. A missing concept is repaired with REAL teaching content plus
+  the corrected map — never by rewording or dropping the concept.
 - **Artifact:** `runs/<run_id>/10-reviewfix/output.json`; per-round attempts;
   round history.
-- **Resume:** normal; the corrected `page` is preferred over the raw draft.
+- **Resume:** normal; the corrected `page` is preferred over the raw draft,
+  and the effective map is re-derived in event order (last 10-reviewfix
+  correction > last judged map > 02-generate's map).
 - **Owner:** `factory/reviewfix.py`, loop owned by `factory/stages.py`.
 
 ### `10a-translate` - build-time localization

@@ -139,9 +139,9 @@ All schemas live in `factory/schemas.py`. They are JSON Schema Draft-07
 | `GROUND_TRUTH` | `02-generate` | `topic`, `summary`, `claims[]`, `key_terms[]`, `equations[]`, `misconceptions`, `uncertain` |
 | `LESSON` | `02-generate` | `title`, `objectives[]`, `sections[]` (`sec-NN`), `glossary[]` |
 | `BLOCKS` | `02`, `04`, `05`, `06`, `09`, `10` | `{"blocks": [...]}`, 4-45 blocks, each `{id, type, spec, citations}` |
-| `GENERATED` | `02-generate` | `{ground_truth, lesson, blocks}` in one object |
+| `GENERATED` | `02-generate` | `{ground_truth, lesson, blocks, optional concept_map}` in one object |
 | `INTERACTIVE` | `05-interactive` | `{id, files: {filename: content}}` |
-| `FIX_PLAN` | `08-fixloop`, `10-reviewfix` | `analysis`, `files`, optional corrected `blocks` |
+| `FIX_PLAN` | `08-fixloop`, `10-reviewfix` | `analysis`, `files`, optional corrected `blocks`, optional corrected `concept_map` (`10-reviewfix` only) |
 | `REPAIR` | `04-repair` | `analysis`, replacement `blocks[]` |
 | `CHECK_REPORT` / `REVIEW_REPORT` | `03`, `09` | `verdict` (`pass`/`fail`), `issues[]` |
 | `TRANSLATED_*_PAYLOAD` | `10a`, `10b`, `10c` | per-unit translation payloads; do not modify `BLOCKS`/`LESSON` |
