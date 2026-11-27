@@ -1,0 +1,80 @@
+{
+  "sample_id": "SD-CM-003",
+  "stage": "09-review",
+  "origin_incident": "issue #118 follow-up review of PR #117 (2026-11-27)",
+  "defect_class": "wrong-section keyword (remap without teaching)",
+  "planted_mutation": "k-speed is mapped to sec-01 but its check keyword (commutator) appears ONLY in a block under sec-02 - the section-scoped keyword check must flag it (a global text search passed pre-#118)",
+  "target_call": "concept-map gate (deterministic, no model call)",
+  "inputs": {
+    "manifest": {
+      "chapter_id": "class-9-motion",
+      "class": 9,
+      "sections": [
+        {
+          "id": "sec-01",
+          "title": "Describing motion"
+        },
+        {
+          "id": "sec-02",
+          "title": "Speed and velocity"
+        }
+      ],
+      "blocks": {
+        "b-01": {
+          "type": "text",
+          "section_id": "sec-01",
+          "concept_id": "x"
+        },
+        "b-02": {
+          "type": "text",
+          "section_id": "sec-02",
+          "concept_id": "x"
+        }
+      }
+    },
+    "blocks": {
+      "blocks": [
+        {
+          "id": "b-01",
+          "type": "text",
+          "spec": {
+            "paragraphs": [
+              "A body in motion covers distance over time."
+            ]
+          },
+          "section_id": "sec-01",
+          "citations": []
+        },
+        {
+          "id": "b-02",
+          "type": "text",
+          "spec": {
+            "paragraphs": [
+              "Speed is distance over time; a motor uses a commutator to keep spinning."
+            ]
+          },
+          "section_id": "sec-02",
+          "citations": []
+        }
+      ]
+    },
+    "concept_map": {
+      "sec-01": "k-speed",
+      "sec-02": "k-motion"
+    },
+    "curated": [
+      "k-motion",
+      "k-speed"
+    ],
+    "topic_keywords": {
+      "k-speed (motor check)": [
+        "k-speed",
+        [
+          "commutator",
+          "motor"
+        ]
+      ]
+    }
+  },
+  "expected_finding_fragment": "k-speed"
+}
