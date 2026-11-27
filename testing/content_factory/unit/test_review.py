@@ -388,13 +388,35 @@ class TestReviewCalls(unittest.TestCase):
         self.assertFalse((self.run_ctx.dir / "issues_ledger.jsonl").exists())
 
     # ------------------------------------------- deterministic concept gate
+    # Canonical chapter resolution (issue #118): the review seam is
+    # resolve_chapter + curated_concepts (the real resolver), not a flat id
+    # list - a chapter the syllabus resolves carries its concepts with it.
+    CURATED_RECORDS = (
+        {
+            "concept_id": "k1",
+            "title": "Motion basics",
+            "description": "Distance, displacement and speed",
+        },
+    )
+
+    def _curated(self):
+        return (
+            mock.patch(
+                "factory.review.syllabus.resolve_chapter",
+                return_value={"chapter_id": "class-9-motion"},
+            ),
+            mock.patch(
+                "factory.review.syllabus.curated_concepts",
+                return_value=self.CURATED_RECORDS,
+            ),
+        )
+
     def test_concept_coverage_findings_are_fatal_concept_map_issues(self):
         # 2026-11-25: coverage is re-derived by the harness every round from
         # the current blocks + effective map; each finding is a FATAL
         # concept_map issue (routes the verdict to the bounded 10-reviewfix).
-        with mock.patch(
-            "factory.review.syllabus.curated_concept_ids", return_value=["k1"]
-        ):
+        patches = self._curated()
+        with patches[0], patches[1]:
             report = self._review(StubLLM(), concept_map={})
         self.assertEqual(report["verdict"], "fail")
         self.assertTrue(
@@ -405,12 +427,25 @@ class TestReviewCalls(unittest.TestCase):
             report["issues"],
         )
 
+    def test_facts_call_carries_the_effective_map_and_concept_metadata(self):
+        # issue #118: the facts reviewer judges whether a mapped section
+        # actually TEACHES its concept, so the call carries the map plus each
+        # curated concept's title/description - and the pinned task stays LAST.
+        patches = self._curated()
+        with patches[0], patches[1]:
+            stub = StubLLM()
+            self._review(stub, concept_map={"sec-01": "k1"})
+        user = stub.user("facts")
+        self.assertIn("SECTION -> CURATED CONCEPT MAP IN EFFECT", user)
+        self.assertIn("sec-01 -> k1 (Motion basics)", user)
+        self.assertIn("Distance, displacement and speed", user)
+        self.assertTrue(user.endswith(review._FACTS_TASK))
+
     def test_report_records_the_judged_concept_map(self):
         # The report carries the EFFECTIVE map this verdict judged - the
         # resume re-derives it from here (stages._effective_concept_map).
-        with mock.patch(
-            "factory.review.syllabus.curated_concept_ids", return_value=["k1"]
-        ):
+        patches = self._curated()
+        with patches[0], patches[1]:
             report = self._review(StubLLM(), concept_map={"sec-01": "k1"})
         self.assertEqual(report["concept_map"], {"sec-01": "k1"})
         # no map in effect -> the field reads as absent, not as an empty map
@@ -420,17 +455,26 @@ class TestReviewCalls(unittest.TestCase):
     def test_emitted_map_is_verified_even_without_curated_vocabulary(self):
         # The checker owns its gate; the call site never weakens it. An
         # emitted map with invented ids fails even for a chapter the tracked
-        # syllabus does not curate (otherwise the unverified map would be
-        # persisted on pass).
-        with mock.patch("factory.review.syllabus.curated_concept_ids", return_value=[]):
-            report = self._review(
-                StubLLM(), concept_map={"sec-01": "not-a-curated-concept"}
-            )
+        # syllabus does not curate (the Motion fixture is genuinely absent
+        # from sources/syllabus/syllabus.json - no patching here).
+        report = self._review(
+            StubLLM(), concept_map={"sec-01": "not-a-curated-concept"}
+        )
         self.assertEqual(report["verdict"], "fail")
         self.assertTrue(
             any("unknown to the syllabus" in i["message"] for i in report["issues"]),
             report["issues"],
         )
+
+    def test_review_report_validates_against_its_own_schema(self):
+        # issue #118 (minor): REVIEW_REPORT is no longer an alias of
+        # CHECK_REPORT - the judged concept_map must validate.
+        import jsonschema
+
+        from factory.schemas import SCHEMAS
+
+        report = self._review(StubLLM(), concept_map={"sec-01": "k1"})
+        jsonschema.validate(report, SCHEMAS["review_report"])
 
 
 class ReviewFixStubLLM:
