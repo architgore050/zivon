@@ -226,17 +226,23 @@ def resolve_sections(
         block_id = str(block["id"])
         declared = str(block.get("section_id") or "")
         if declared in index_of:
-            target, score = index_of[declared], 1.0
+            # Explicit authoring wins outright (issue #118, 2026-11-27): a
+            # teaching block a repair round APPENDS with a declared section is
+            # rendered and manifested under THAT section - the monotone rule
+            # below exists for DERIVED assignments (prose matching must not
+            # jump back), never to override the author's own declaration.
+            by_block[block_id] = declared
             authored += 1
+            current = max(current, index_of[declared])
+            continue
+        scores = _section_scores(block, section_tokens)
+        target = max(range(len(scores)), key=lambda i: scores[i])
+        score = scores[target]
+        if score < MIN_DERIVED_SCORE:
+            target, score = current, 0.0
         else:
-            scores = _section_scores(block, section_tokens)
-            target = max(range(len(scores)), key=lambda i: scores[i])
-            score = scores[target]
-            if score < MIN_DERIVED_SCORE:
-                target, score = current, 0.0
-            else:
-                derived += 1
-        # A page reads in order: forward only. A block that claims an EARLIER
+            derived += 1
+        # A page reads in order: forward only. A block that matches an EARLIER
         # section stays where the reader already is (clamped, still covered).
         current = max(target, current)
         by_block[block_id] = section_ids[current]

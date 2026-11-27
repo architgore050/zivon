@@ -32,6 +32,7 @@ from logging_manager import log_event
 
 from . import syllabus
 from .artifacts import RunContext
+from .checks import rule_diagram_svg
 from .config import Config
 from .design import design_context, palette_text
 from .fixloop import FIXABLE, _apply_plan, _rebuild_html_if_needed, _specs_text
@@ -130,7 +131,44 @@ def run(
     lint_hits = [*rejected]
     if merged_blocks is not None:
         blocks = merged_blocks
+        # Manifest refresh (issue #118): the merged draft is the page's truth.
+        # The manifest sections/block map/counts/content hash are re-derived
+        # from the merged specs (explicit section_id honored) and persisted to
+        # manifest.json + the in-memory render_out BEFORE the page rebuild, so
+        # the rebuild, the next re-review and the staging sync all judge the
+        # page the manifest actually describes.
+        from .render import refresh_manifest  # local: renderer owns the manifest
+
+        try:
+            lesson = run_ctx.load_stage_output("02-generate")["lesson"]
+        except Exception:  # noqa: BLE001 - partial runs rebuild from the manifest
+            lesson = None
+        refreshed = refresh_manifest(render_out, blocks, lesson)
+        (topic_dir / "manifest.json").write_text(
+            json.dumps(refreshed, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        render_out["manifest"] = refreshed
     _rebuild_html_if_needed(cfg, render_out, topic_dir, blocks)
+    if merged_blocks is not None:
+        # Hook check AFTER the rebuild: every block of the merged draft must be
+        # addressable in the page the rebuild just emitted (id + manifest-v2
+        # hooks); a missing hook means the page and its manifest disagree.
+        html_after = (topic_dir / "index.html").read_text(encoding="utf-8")
+        missing_hooks = [
+            b["id"] for b in blocks["blocks"] if f'id="{b["id"]}"' not in html_after
+        ]
+        if missing_hooks:
+            lint_hits.append(
+                f"the rebuilt page is missing the rendered hook(s) for block(s) "
+                f"{missing_hooks} - the manifest and the page disagree; re-emit "
+                "the body from your corrected specs"
+            )
+        # Deterministic block rules on THIS round's corrections only: a rule
+        # violation in the fix's own specs is the next round's assignment.
+        lint_hits.extend(
+            i["message"] for i in rule_diagram_svg(plan.get("blocks") or [])
+        )
 
     # Files this plan wrote (renderer-owned names were dropped by _apply_plan,
     # same filter as before); used for the history's files_changed.
@@ -287,8 +325,21 @@ def _user_msg(
         "\n\n".join(f"=== {name} ===\n{content}" for name, content in files.items())
         or "(no topic files yet)"
     )
-    chapter_id = str((render_out.get("manifest") or {}).get("chapter_id") or "")
-    curated = syllabus.curated_concept_ids(cfg, chapter_id)
+    manifest = render_out.get("manifest") or {}
+    # Canonical chapter resolution (issue #118): the fixer must see the REAL
+    # curated vocabulary - the renderer's truncated chapter_id can carry none.
+    ch = syllabus.resolve_chapter(
+        cfg,
+        str((manifest.get("chapter") or {}).get("title") or ""),
+        manifest.get("class"),
+    )
+    curated = syllabus.curated_concept_ids(cfg, ch["chapter_id"]) if ch else []
+    concept_records = syllabus.curated_concepts(cfg, ch["chapter_id"]) if ch else []
+    concept_lines = "\n".join(
+        f"- {c['concept_id']}: {c['title']}"
+        + (f" - {c['description']}" if c["description"] else "")
+        for c in concept_records
+    )
     concept_map_block = (
         "\n\nCONCEPT MAP IN EFFECT (section id -> curated concept id; keys must "
         "match current section ids; every curated concept below must own at "
@@ -296,6 +347,14 @@ def _user_msg(
         + json.dumps(concept_map or {}, ensure_ascii=False, sort_keys=True)
         + "\nCurated concept ids for this chapter: "
         + (", ".join(curated) if curated else "(none found)")
+        + (
+            "\nCurated concepts the mapped sections must TEACH (title - "
+            "description; a teaching block you add must genuinely carry this "
+            "material, with the concept's check keywords in its text):\n"
+            + concept_lines
+            if concept_lines
+            else ""
+        )
     )
     return (
         feedback_block

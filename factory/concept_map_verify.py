@@ -25,7 +25,9 @@ Findings (one string per problem, stable ordering):
    `concept.orphan`);
 6. keyword coverage for `topic_keywords`: a curated concept that owns a mapped
    section must have at least one of its keywords in its sections' titles /
-   summaries or in the block text (an orphan concept is reported once as an
+   summaries or in the TEACHING BLOCKS ASSIGNED TO THOSE SECTIONS (section-
+   scoped since issue #118, 2026-11-27 - a keyword under a different section
+   never satisfies this check) (an orphan concept is reported once as an
    orphan, not again for keywords).
 
 `TOPIC_KEYWORDS` (the three rationalised-NCERT Class-X topics - electric motor,
@@ -68,7 +70,7 @@ def concept_coverage_problems(
     blocks: Any,
     concept_map: dict[str, Any] | None,
     curated_concepts: Any,
-    topic_keywords: dict[str, tuple[str, tuple[str, ...]]] = TOPIC_KEYWORDS,
+    topic_keywords: dict[str, tuple[str, tuple[str, ...]]] | None = None,
 ) -> list[str]:
     """Deterministic concept-map coverage findings (no model call).
 
@@ -81,7 +83,11 @@ def concept_coverage_problems(
     `concept_map` - section id -> curated concept id (the EFFECTIVE map).
     `curated_concepts` - the curated concept-id vocabulary (iterable).
     `topic_keywords` - concept id -> keywords; `{}` disables keyword checks.
+        None (default) reads the module-level `TOPIC_KEYWORDS` at call time
+        (patchable - a default argument would bind it at import time).
     """
+    if topic_keywords is None:
+        topic_keywords = TOPIC_KEYWORDS
     manifest = manifest if isinstance(manifest, dict) else {}
     mapping = {
         str(k): str(v)
@@ -162,27 +168,38 @@ def concept_coverage_problems(
             + str(orphans)
         )
 
-    # 6. keyword coverage for the named curated topics
-    block_text = " ".join(_json_lower(b) for b in all_blocks)
+    # 6. keyword coverage for the named curated topics - SECTION-SCOPED
+    # (issue #118, 2026-11-27): the keyword hay is the mapped sections'
+    # titles/summaries plus ONLY the text of blocks ASSIGNED to those
+    # sections. A keyword carried by a block under a DIFFERENT section used
+    # to satisfy the check globally, so a motor keyword under sec-02 could
+    # certify a motor concept mapped to sec-01 without sec-01 teaching it.
     for concept_id, keywords in (topic_keywords or {}).values():
         if concept_id in orphans:
             continue  # already reported as an orphan; keywords can't fire either
         if concept_id not in known or concept_id not in mapped_values:
             continue  # not a curated concept for this chapter / not mapped
         secs = [s for s in sections if mapping.get(str(s["id"])) == concept_id]
+        mapped_section_ids = {str(s["id"]) for s in secs}
+        section_block_text = " ".join(
+            _json_lower(b)
+            for b in all_blocks
+            if assigned.get(_bid(b)) in mapped_section_ids
+        )
         hay = (
             " ".join(
                 f"{s.get('title') or ''} {s.get('summary') or ''}" for s in secs
             ).lower()
             + " "
-            + block_text
+            + section_block_text
         )
         hit = [k for k in keywords if k.lower() in hay]
         if not hit:
             problems.append(
                 f"concept {concept_id} is mapped but none of the keywords "
                 f"{keywords} appear in its sections' titles/summaries or the "
-                "block text - the lesson may still not carry the topic"
+                "teaching blocks under those sections - the mapped section "
+                "may not carry the topic"
             )
 
     return problems

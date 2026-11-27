@@ -41,6 +41,13 @@ class SourceError(StageError):
     """A source PDF could not be fetched, parsed, or did not match the catalog."""
 
 
+class PersistenceError(StageError):
+    """A durable persistence step failed (tracked sources or run artifacts -
+    issue #118). Distinct from a review plateau: the fix is operational (the
+    tracked-sources mount / volume), so the failure carries its own reason
+    code and a resume retries the persistence from the saved passing report."""
+
+
 class MissingArtifactError(FactoryError):
     """A stage needs an upstream stage output that no run has.
 

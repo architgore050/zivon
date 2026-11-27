@@ -49,6 +49,45 @@ quality knob (`ZIVON_REASONING_EFFORT*`: 0=none, 1=low default, 2=high, 3=max) r
 task (`_GENERATE`, `_CHECK`, `_REPAIR`, `_REVIEW`, `_TRANSLATE`), so it can be raised without
 changing the output cap. All tasks ship at `1` (low) for the Class 10 campaign.
 
+## Status 2026-11-27 — concept-map gate hardening follow-up (issue #118)
+
+PR #117 shipped the pipeline-produced section → curated-concept map
+(deterministic 09-review gate, bounded 10-reviewfix routing, persistence on
+final pass). The post-merge review (issue #118) found one blocker and five
+majors; the follow-up branch fixes the code items:
+
+- **Durable persistence (blocker):** the verified map is written (durable run
+  artifact `runs/<run_id>/09-review/concept-map.json`, then the tracked file,
+  both atomic) BEFORE `09-review` is marked ok; failures fail the stage with
+  `map_persistence_failed` (`PersistenceError`) and a re-trigger retries from
+  the saved passing report. `k8s/20` mounts the zivon-sources PVC at
+  `/app/sources/syllabus` (subPath `syllabus`) and seeds it no-clobber from
+  the image (`seed-syllabus` initContainer, the k8s/30 pattern).
+- **Canonical chapter resolution:** the syllabus is resolved by class + FULL
+  normalized title (or a recorded `aliases` list) — never the renderer's
+  truncated 40-char slug key — so Sound Waves and the long class-11/12
+  chapters see their curated vocabulary; missing vs corrupt vs zero-concept
+  syllabus states are distinct and printed loudly.
+- **Section-scoped keyword coverage + reviewer context:** keyword checks only
+  count blocks under the mapped sections (a remap without teaching is caught);
+  the facts reviewer receives the effective map plus curated concept
+  titles/descriptions. Fixer-appended blocks honor their explicit
+  `section_id`, and a block-mutation round refreshes the manifest before
+  re-review/staging sync.
+- **Eval coverage:** `EV-REV-002` gains `DET-REV02-CONCEPT-MAP-GATE` (4/4
+  seeded `SD-CM-001..004` defects, empty-map fails, clean map passes, facts
+  context asserted — `0` model calls, runs in smoke). `REVIEW_REPORT` is its
+  own schema (the judged `concept_map` validates).
+
+**Founder-local (the local agent owns these; the cloud agent cannot run
+models):** `python3 -m evals run --card EV-REV-002 --suite full
+--fail-on-regression`, `python3 -m evals run --suite full --fail-on-regression`
+and `python3 -m evals calibrate --stage all` on the real configured route with
+evidence saved under `evals_runs/`; then the Magnetic Effects regeneration with
+`--fresh` (missing concepts repaired by bounded `10-reviewfix`, never a
+pipeline re-run), `scripts/verify_magnetic_manifest.py` exiting 0 on the
+regenerated lesson, and `python3 -m factory.exam --class 10`.
+
 ## Status 2026-11-21 — F11 hermetic E2E suite rebuilt and green (63 tests)
 
 F11's acceptance-flow suite landed on `feature/w-f11-e2e` after the previous

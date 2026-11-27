@@ -120,7 +120,7 @@ Every eval card follows two non-negotiable rules from [`skills/prompting-and-age
 | `EV-VIS-001` | `05-interactive`, `06-render` | Visual Builder renderability, kit scope, a11y & computed sims | `visual_checks.py` (`lint_js/css/html`, `lint_page_css_scope`, static DOM/a11y probe) + `perf_harness.py` Chromium load for `EV-PERF-001` | `code_design_judge.py` (`2` calls: reuses `09-review-facts` Step 3 + `09-review-design`, run once on the clean golden `SD-REV-006`) | Yes (det. + DOM) | Yes |
 | `EV-PERF-001` | `07-perf`, `08-fixloop` | Performance Engineer weak-Android budget & fixloop preservation | `perf_harness.py` (`weak-android.json`: RSS, FPS, load, FCP, `overflow_px <= 2`, `interactive_s <= 3.0`, interaction input <= 200 ms, no interaction-path long task > 200 ms; `load_pass` vs Q-4 `pass`; soft byte report per Q-4; pedagogy diff guard) | `0` calls (or `1` call if `08-fixloop` modified `page.js` to audit physics preservation) | Yes (`mid-laptop`) | Yes (`weak-android`) |
 | `EV-REV-001` | `03-check` | Comprehension & Fact Reviewer calibration (seeded defects + clean goldens) | `curator_checks.py` + `synthesizer_checks.py` on seeded corpus | Runs `factory.agents.run_check` on `8` calibration samples (`8` calls) | No (mocked schema only) | Yes |
-| `EV-REV-002` | `09-review` (`facts`, `design`, `static`, `lint`) | Code Reviewer security, consistency & rendering calibration | `lint.py` + `_static_review_findings` on `5` security/scope defect samples (`0` calls) | Runs `factory.review.run` on `6` truth/rendering samples (`12` calls) | Yes (det. security defects) | Yes |
+| `EV-REV-002` | `09-review` (`facts`, `design`, `static`, `lint`, concept-map gate) | Code Reviewer security, consistency, rendering & concept-coverage calibration | `lint.py` + `_static_review_findings` on `5` security/scope defect samples + `concept_coverage_problems` on `4` concept-map defect samples (`0` calls) | Runs `factory.review.run` on `6` truth/rendering samples (`12` calls) | Yes (det. security + concept-map defects) | Yes |
 | `EV-E2E-001` | `00-ingest` → `11-link` | End-to-end page quality, catcher convergence & human edit rate | Full artifact + manifest + ledger audit + `git diff` human edit counter | Aggregates stage judges (`0` extra calls when stage cards run) | Yes (golden artifacts) | Yes |
 | `EV-KID-001` | Post-`11-link` (Gate B) | Kid-comprehension sessions & defect promotion loop | Schema & completeness check on recorded `eval_kid_session` rows (`0` calls) | `0` calls (human-in-the-loop Gate B observations) | Yes (schema check) | Yes |
 | `EV-VIS-002` (P4) | `05-interactive`, `06-render` | Visual Builder accessibility (hook assertions land with P1) | `a11y_checks.py` (WCAG subset: names/roles/live regions/keyboard; optional axe-core) | `0` calls | Yes (det. only) | Yes |
@@ -349,6 +349,7 @@ founder-local gate per `docs/specs/personalized-learning/evals.md` §10.
 - **Stage**: `09-review` (`factory/lint.py` + `factory/review.py::_static_review_findings` + `09-review-facts` + `09-review-design`).
 - **Golden Inputs**:
   - `5` deterministic security/scope defect bundles (`SD-SEC-001..005`).
+  - `4` deterministic concept-map defect bundles (`SD-CM-001..004`, issue 118) in `evals/goldens/defects/09-review/`.
   - `6` model-reviewer calibration bundles (`SD-REV-001..006`) in `evals/goldens/defects/09-review/`.
 - **Part A — Deterministic Security & Scope Calibration (`0` model calls, runs in Smoke & Full)**:
   - `SD-SEC-001`: `eval("1+1")` and `new Function(...)` in `page.js` → caught by `lint_js` (`LintError`).
@@ -356,6 +357,12 @@ founder-local gate per `docs/specs/personalized-learning/evals.md` §10.
   - `SD-SEC-003`: Inline `<script>` in `index.html` and `onload=` in `<svg>` → caught by `lint_html` (`html.parser` scan) and `rule_diagram_svg`.
   - `SD-SEC-004`: Missing `Content-Security-Policy` meta tag, missing `lang="en"`, or empty `manifest.json` `sources` → caught by `_static_review_findings` as `fatal`.
   - `SD-SEC-005`: Unscoped `.zn-lang-bar` selector or `.zn-sim-b-04 canvas { width: 100% }` in `page.css` → caught by `lint_page_css_scope`.
+- **Part A2 — Deterministic Concept-Coverage Gate (`0` model calls, runs in Smoke & Full; issue 118, 2026-11-27)** — `DET-REV02-CONCEPT-MAP-GATE` reuses `factory.concept_map_verify.concept_coverage_problems` (the same checker the 09-review gate runs every round; no test-specific fork):
+  - `SD-CM-001`: orphan curated concept (a concept no section is mapped to — A2's fatal `concept.orphan`) → caught by the orphan finding.
+  - `SD-CM-002`: map target unknown to the syllabus (invented concept id) → caught by the unknown-target finding.
+  - `SD-CM-003`: wrong-section keyword / remap without teaching (the concept's check keyword appears only under a DIFFERENT section than the one the concept is mapped to) → caught by the SECTION-SCOPED keyword finding (a global text search passed before issue 118).
+  - `SD-CM-004`: map-only correction without teaching content (every section mapped, no section carries the check keyword) → caught by the scoped keyword finding.
+  - End to end on the rendered golden topic (stubbed calls): an empty map fails the verdict with fatal `concept_map` issues; the facts call carries the effective map plus the curated concepts' titles/descriptions; a clean map re-derives no findings and passes.
 - **Part B — Model Reviewer Calibration (`09-review-facts` + `09-review-design`, `2` calls per sample = `12` calls in Full)**:
 
 | Sample ID | Planted Defect / Condition | Target Reviewer Call | Expected Reviewer Output |
@@ -369,6 +376,7 @@ founder-local gate per `docs/specs/personalized-learning/evals.md` §10.
 
 - **Pass Thresholds**:
   - Part A (Security & Scope): `100%` catch rate (`5/5`).
+  - Part A2 (Concept-Coverage Gate): `100%` catch rate (`4/4` seeded `SD-CM` defects; issue 118).
   - Part B (Fatal Recall): `1.00` (`3/3` of `SD-REV-001..003` flagged `fatal` with `verdict="fail"`).
   - Part B (Major Recall): `>= 1.00` (`2/2` of `SD-REV-004..005` flagged `major` or `fatal` with matching `category`).
   - Part B (Clean Golden Specificity): `1.00` (`SD-REV-006` returns `verdict="pass"` with `0` fatals).

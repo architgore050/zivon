@@ -27,6 +27,17 @@
 # straight onto the site the frontend Deployment serves (k8s/30, k8s/40).
 # sources/ (PDF + text cache) lives on the zivon-sources PVC (k8s/13): fetched
 # textbooks survive across runs, so NCERT is downloaded once, not every run.
+# sources/syllabus is ALSO on that PVC (subPath syllabus) since issue #118:
+# the 09-review concept-map gate persists the verified section -> curated-
+# concept map to sources/syllabus/chapters/<chapter_id>.concept-map.json, and
+# with readOnlyRootFilesystem: true an unmounted path cannot be written (the
+# tracked write would fail the stage with map_persistence_failed on every
+# cluster run). The seed initContainer (same no-clobber pattern as the
+# frontend shell seed, k8s/30) copies the image's baked tracked syllabus into
+# the empty subPath ONCE; the pipeline extends it at runtime, and the export
+# bridge back to the repo stays the documented reviewable commit (kubectl cp
+# runs/ -c factory -> commit the map file; the durable artifact
+# runs/<run_id>/09-review/concept-map.json is the ready-to-commit copy).
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -60,6 +71,32 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
+      initContainers:
+        - name: seed-syllabus
+          # issue #118: seed the empty syllabus subPath with the image's baked
+          # tracked syllabus (no-clobber, same pattern as k8s/30 seed-shell) so
+          # the concept-map gate can READ the curated vocabulary and WRITE the
+          # verified map on the PVC - an unmounted sources/syllabus sits on the
+          # read-only root fs and every cluster run would fail persistence.
+          image: zivon-factory:0.3.22
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "cp -rn /app/sources/syllabus/* /target/"]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000      # seed as the writer uid (same rule as k8s/30)
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true   # writes go only to the PVC mount below
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: sources
+              mountPath: /target
+              subPath: syllabus
       containers:
         - name: factory
           image: zivon-factory:0.3.22
@@ -98,6 +135,12 @@ spec:
             - name: sources
               mountPath: /app/sources/cache
               subPath: cache
+            - name: sources
+              mountPath: /app/sources/syllabus
+              subPath: syllabus   # issue #118: the verified concept map is
+                                  # written HERE (seeded from the image by the
+                                  # initContainer above; export = kubectl cp +
+                                  # a reviewable commit)
             - name: hf-cache
               mountPath: /app/.cache/huggingface
             - name: tmp

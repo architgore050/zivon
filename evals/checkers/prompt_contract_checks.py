@@ -607,6 +607,236 @@ def check_09_review_prompt_contract(
     return issues
 
 
+def check_09_review_concept_map_gate(
+    cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
+) -> list[IssueRecord]:
+    """`DET-REV02-CONCEPT-MAP-GATE` (issue #118): the deterministic 09-review
+    concept-coverage gate, exercised end to end with ZERO model calls.
+
+    Part 1 - the seeded defect corpus `SD-CM-001..004` (orphan, unknown map
+    target, wrong-section keyword / remap-without-teaching, map-only
+    correction without teaching) must EACH be caught by the shared checker
+    `factory.concept_map_verify.concept_coverage_problems` (the same function
+    the gate runs in-pipeline; no test-specific fork).
+
+    Part 2 - `factory.review.run` on the rendered golden topic with a patched
+    canonical chapter seam: an empty map fails the verdict with fatal
+    `concept_map` issues, the facts call carries the effective map plus the
+    curated concepts' titles/descriptions, and a clean map re-derives no
+    concept findings (the verdict returns to pass).
+    """
+    check_id = "DET-REV02-CONCEPT-MAP-GATE"
+    issues: list[IssueRecord] = []
+    from factory.concept_map_verify import concept_coverage_problems
+
+    # ---- part 1: the seeded corpus (deterministic catch rate 4/4) ----------
+    sec_dir = cfg.goldens_dir / "defects" / "09-review"
+    caught = 0
+    for i in range(1, 5):
+        sample_id = f"SD-CM-{i:03d}"
+        spath = sec_dir / f"{sample_id}.json"
+        if not spath.exists():
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id=check_id,
+                    category="other",
+                    message=f"missing concept-map defect sample {sample_id}",
+                )
+            )
+            continue
+        sample = json.loads(spath.read_text(encoding="utf-8"))
+        inputs = sample["inputs"]
+        problems = concept_coverage_problems(
+            manifest=inputs.get("manifest"),
+            blocks=inputs.get("blocks"),
+            concept_map=inputs.get("concept_map"),
+            curated_concepts=inputs.get("curated"),
+            topic_keywords=inputs.get("topic_keywords") or {},
+        )
+        fragment = (sample.get("expected") or {}).get("expected_finding_fragment") or ""
+        if fragment and any(fragment in p for p in problems):
+            caught += 1
+        else:
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id=check_id,
+                    category="concept_map",
+                    message=(
+                        f"{sample_id} ({sample.get('defect_class')}) was not "
+                        f"caught by the deterministic concept-coverage gate "
+                        f"(expected fragment {fragment!r}; got {problems})"
+                    ),
+                )
+            )
+    if caught < 4:
+        issues.append(
+            IssueRecord(
+                severity="fatal",
+                check_id=check_id,
+                category="concept_map",
+                message=(
+                    f"concept-map seeded-defect catch rate {caught}/4 < 1.00 "
+                    "(the gate must catch every seeded defect)"
+                ),
+            )
+        )
+
+    # ---- part 2: the gate end to end on the rendered golden ----------------
+    with tempfile.TemporaryDirectory(prefix="zivon-eval-rev02-cm-") as td:
+        tmp = Path(td)
+        fcfg = _make_factory_cfg(cfg.repo_root, tmp)
+        run_ctx = RunContext(tmp / "runs", "eval-rev02-cm")
+        pack = _make_fixture_pack(cfg.repo_root)
+        lesson = _load_fixture(cfg.repo_root, "lesson.json")
+        blocks = _load_fixture(cfg.repo_root, "blocks.json")
+        inter = {"b-06": _load_fixture(cfg.repo_root, "05-interactive.json")}
+        gt = _load_fixture(cfg.repo_root, "gt.json")
+        render_out = render_run(fcfg, run_ctx, "Motion", pack, lesson, blocks, inter)
+
+        curated_records = [
+            {
+                "concept_id": "k-motion",
+                "title": "Describing motion",
+                "description": "Distance, displacement and speed of a moving body",
+            }
+        ]
+
+        def _patched():
+            return (
+                mock.patch(
+                    "factory.review.syllabus.resolve_chapter",
+                    return_value={"chapter_id": "class-9-motion"},
+                ),
+                mock.patch(
+                    "factory.review.syllabus.curated_concepts",
+                    return_value=curated_records,
+                ),
+            )
+
+        # an empty effective map must fail the verdict with fatal findings
+        p1, p2 = _patched()
+        with p1, p2:
+            stub = _CaptureLLM({"issues": []})
+            report = review.run(
+                fcfg,
+                run_ctx,
+                cast(LLMClient, stub),
+                blocks,
+                render_out,
+                gt,
+                concept_map={},
+            )
+        if report["verdict"] != "fail":
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id=check_id,
+                    category="concept_map",
+                    message=(
+                        "the concept-coverage gate did not fail the verdict on "
+                        "an empty map"
+                    ),
+                )
+            )
+        if not any(
+            i["severity"] == "fatal" and i["category"] == "concept_map"
+            for i in report["issues"]
+        ):
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id=check_id,
+                    category="concept_map",
+                    message="no fatal concept_map issue on an empty map",
+                )
+            )
+        facts_call = next((c for c in stub.calls if "facts" in c["round_tag"]), None)
+        facts_user = (
+            message_text(
+                next(
+                    m["content"] for m in facts_call["messages"] if m["role"] == "user"
+                )
+            )
+            if facts_call
+            else ""
+        )
+        _require_substrings(
+            facts_user,
+            [
+                "NO CONCEPT MAP IS IN EFFECT YET",
+                "CURATED CONCEPTS",
+                "k-motion",
+                "Describing motion",
+                "Distance, displacement and speed",
+            ],
+            check_id,
+            "09-review-facts concept-map context (empty map)",
+            issues,
+        )
+        sections = [s["id"] for s in render_out["manifest"]["sections"]]
+        clean_map = {sid: "k-motion" for sid in sections}
+        p1, p2 = _patched()
+        with p1, p2:
+            clean_stub = _CaptureLLM({"issues": []})
+            report = review.run(
+                fcfg,
+                run_ctx,
+                cast(LLMClient, clean_stub),
+                blocks,
+                render_out,
+                gt,
+                concept_map=clean_map,
+            )
+        clean_facts = next(
+            (c for c in clean_stub.calls if "facts" in c["round_tag"]), None
+        )
+        _require_substrings(
+            message_text(
+                next(
+                    m["content"] for m in clean_facts["messages"] if m["role"] == "user"
+                )
+            )
+            if clean_facts
+            else "",
+            [
+                "SECTION -> CURATED CONCEPT MAP IN EFFECT",
+                "-> k-motion (Describing motion)",
+            ],
+            check_id,
+            "09-review-facts concept-map context (clean map)",
+            issues,
+        )
+        if any(i["category"] == "concept_map" for i in report["issues"]):
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id=check_id,
+                    category="concept_map",
+                    message=(
+                        "the clean map re-derived concept_map findings: "
+                        + "; ".join(
+                            i["message"]
+                            for i in report["issues"]
+                            if i["category"] == "concept_map"
+                        )
+                    ),
+                )
+            )
+        if report["verdict"] != "pass":
+            issues.append(
+                IssueRecord(
+                    severity="fatal",
+                    check_id=check_id,
+                    category="concept_map",
+                    message="a clean map on the clean golden did not pass",
+                )
+            )
+
+    return issues
+
+
 def check_e2e_published_courses_and_edit_rate(
     cfg: EvalConfig, card: EvalCard, context: dict[str, Any]
 ) -> list[IssueRecord]:

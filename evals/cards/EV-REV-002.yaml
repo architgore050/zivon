@@ -11,6 +11,10 @@ golden_inputs:
   topics:
   - evals/goldens/topics/class-11-motion-in-a-straight-line
   seeded_defects:
+  - evals/goldens/defects/09-review/SD-CM-001.json
+  - evals/goldens/defects/09-review/SD-CM-002.json
+  - evals/goldens/defects/09-review/SD-CM-003.json
+  - evals/goldens/defects/09-review/SD-CM-004.json
   - evals/goldens/defects/09-review/SD-SEC-001.json
   - evals/goldens/defects/09-review/SD-SEC-002.json
   - evals/goldens/defects/09-review/SD-SEC-003.json
@@ -36,6 +40,14 @@ deterministic_checks:
   reuses_factory_rule: factory.review:run
   description: Verifies 09-review two-call split (facts vs design context isolation), identity header,
     5-step bounded procedures, general rendering sweep, and honest framing.
+- id: DET-REV02-CONCEPT-MAP-GATE
+  entrypoint: evals.checkers.prompt_contract_checks:check_09_review_concept_map_gate
+  severity_on_fail: fatal
+  reuses_factory_rule: factory.concept_map_verify:concept_coverage_problems
+  description: Deterministic concept-coverage gate end to end (issue 118, 2026-11-27) with a 4/4
+    catch rate on the seeded orphan/unknown/wrong-section/map-only defects (SD-CM-001..004), fatal
+    concept_map findings on an empty map, the facts call carrying the effective map plus curated
+    concept titles/descriptions, and a clean map passing. Zero model calls.
 llm_judge:
   enabled_in_suites:
   - full
