@@ -654,7 +654,9 @@ def check_09_review_concept_map_gate(
             curated_concepts=inputs.get("curated"),
             topic_keywords=inputs.get("topic_keywords") or {},
         )
-        fragment = sample.get("expected_finding_fragment") or ""
+        fragment = (sample.get("expected") or {}).get(
+            "expected_finding_fragment"
+        ) or ""
         if fragment and any(fragment in p for p in problems):
             caught += 1
         else:

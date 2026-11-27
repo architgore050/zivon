@@ -419,7 +419,7 @@ SEEDED_DEFECT_SCHEMA: dict[str, Any] = {
     "properties": {
         "sample_id": {
             "type": "string",
-            "pattern": "^SD-(CHK|SEC|REV)-[0-9]{3}$",
+            "pattern": "^SD-(CHK|CM|SEC|REV)-[0-9]{3}$",
         },
         "stage": {"enum": ["03-check", "09-review"]},
         "origin_incident": {"type": "string", "minLength": 5},
@@ -456,6 +456,9 @@ SEEDED_DEFECT_SCHEMA: dict[str, Any] = {
                 "expected_category": {"type": ["string", "null"]},
                 "expected_block_id": {"type": ["string", "null"]},
                 "must_quote_source": {"type": "boolean"},
+                # Deterministic-corpus expectation (issue 118): the fragment
+                # the shared checker's finding must contain (no model call).
+                "expected_finding_fragment": {"type": ["string", "null"]},
                 "expected_quote_substrings": {
                     "type": "array",
                     "items": {"type": "string"},
@@ -564,7 +567,7 @@ KID_SESSION_SCHEMA: dict[str, Any] = {
         },
         "promoted_defect_id": {
             "type": ["string", "null"],
-            "pattern": "^SD-(CHK|SEC|REV)-[0-9]{3}$",
+            "pattern": "^SD-(CHK|CM|SEC|REV)-[0-9]{3}$",
         },
         "notes": {"type": "string"},
         "recorded_at": {"type": "string"},

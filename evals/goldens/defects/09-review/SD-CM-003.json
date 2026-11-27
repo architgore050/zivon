@@ -4,7 +4,7 @@
   "origin_incident": "issue #118 follow-up review of PR #117 (2026-11-27)",
   "defect_class": "wrong-section keyword (remap without teaching)",
   "planted_mutation": "k-speed is mapped to sec-01 but its check keyword (commutator) appears ONLY in a block under sec-02 - the section-scoped keyword check must flag it (a global text search passed pre-#118)",
-  "target_call": "concept-map gate (deterministic, no model call)",
+  "target_call": "deterministic",
   "inputs": {
     "manifest": {
       "chapter_id": "class-9-motion",
@@ -76,5 +76,12 @@
       ]
     }
   },
-  "expected_finding_fragment": "k-speed"
+  "expected": {
+    "outcome_type": "positive_defect",
+    "expected_verdict": "fail",
+    "expected_severity": "fatal",
+    "expected_category": "concept_map",
+    "must_quote_source": false,
+    "expected_finding_fragment": "k-speed"
+  }
 }

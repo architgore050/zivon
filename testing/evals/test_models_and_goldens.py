@@ -105,7 +105,9 @@ class TestEvalConfigAndModels(unittest.TestCase):
             self.assertTrue((t_dir / "artifact_ref.json").is_file())
 
         defect_files = sorted((cfg.goldens_dir / "defects").rglob("SD-*.json"))
-        self.assertEqual(len(defect_files), 19)
+        # 19 was the count before the four concept-map defect bundles
+        # (SD-CM-001..004, issue 118, 2026-11-27) joined the corpus.
+        self.assertEqual(len(defect_files), 23)
         for df in defect_files:
             sample = json.loads(df.read_text(encoding="utf-8"))
             validate_schema(sample, SEEDED_DEFECT_SCHEMA, df.name)

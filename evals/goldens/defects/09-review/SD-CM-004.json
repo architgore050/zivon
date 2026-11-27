@@ -4,7 +4,7 @@
   "origin_incident": "issue #118 follow-up review of PR #117 (2026-11-27)",
   "defect_class": "map-only correction without teaching content",
   "planted_mutation": "both sections are mapped, but no section carries the check keyword (the teaching content was reworded away, never added) - the section-scoped keyword check must flag k-speed",
-  "target_call": "concept-map gate (deterministic, no model call)",
+  "target_call": "deterministic",
   "inputs": {
     "manifest": {
       "chapter_id": "class-9-motion",
@@ -76,5 +76,12 @@
       ]
     }
   },
-  "expected_finding_fragment": "keywords"
+  "expected": {
+    "outcome_type": "positive_defect",
+    "expected_verdict": "fail",
+    "expected_severity": "fatal",
+    "expected_category": "concept_map",
+    "must_quote_source": false,
+    "expected_finding_fragment": "keywords"
+  }
 }

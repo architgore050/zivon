@@ -37,9 +37,11 @@ class TestDeterministicCheckers(unittest.TestCase):
         # (W5.5 PL3), both 2026-11-18, then 54 before the six EV-PL-004
         # (NORMALIZE/PII/KEY/INJECT/PARITY/SAVE-PRIVACY) and twelve EV-PL-005
         # (QUOTA/RATE/CSRF/IDOR/ARTIFACT-REF/DELETE/EXPORT/LOGS/HEADERS/
-        # NO-PAYWALL/NEXT/SECRETS) security checkers (W5.5 PL5, 2026-11-19).
-        # The count is pinned so a checker silently disappearing fails here.
-        self.assertEqual(total_executed, 72)
+        # NO-PAYWALL/NEXT/SECRETS) security checkers (W5.5 PL5, 2026-11-19),
+        # then 73 before the concept-map gate checker DET-REV02-CONCEPT-MAP-GATE
+        # (issue 118, 2026-11-27). The count is pinned so a checker silently
+        # disappearing fails here.
+        self.assertEqual(total_executed, 73)
 
     def test_seeded_security_defects_sd_sec_001_to_005_all_caught(self) -> None:
         ctx: dict[str, Any] = {}
