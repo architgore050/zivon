@@ -343,19 +343,20 @@ def run(
     # every round from the CURRENT blocks + effective map. A missing concept
     # is a fatal concept_map finding, so the orchestrator routes it through
     # the bounded 10-reviewfix catcher instead of letting it reach the bank.
+    # The checker owns its own gate (nothing to verify without curated
+    # vocabulary AND an emitted map); this call site never weakens it - an
+    # emitted map is verified even for a chapter the syllabus does not curate.
     chapter_id = str((render_out.get("manifest") or {}).get("chapter_id") or "")
     curated = syllabus.curated_concept_ids(cfg, chapter_id)
-    concept_issues: list[dict[str, Any]] = []
-    if curated:
-        concept_issues = [
-            {"severity": "fatal", "category": "concept_map", "message": problem}
-            for problem in concept_map_verify.concept_coverage_problems(
-                manifest=render_out.get("manifest"),
-                blocks=blocks,
-                concept_map=concept_map,
-                curated_concepts=curated,
-            )
-        ]
+    concept_issues = [
+        {"severity": "fatal", "category": "concept_map", "message": problem}
+        for problem in concept_map_verify.concept_coverage_problems(
+            manifest=render_out.get("manifest"),
+            blocks=blocks,
+            concept_map=concept_map,
+            curated_concepts=curated,
+        )
+    ]
     rule_issues.extend(concept_issues)
     # The verdict rule that used to be prompt prose is now harness code:
     # fail iff any fatal issue (static, deterministic concept coverage, or
@@ -364,6 +365,10 @@ def run(
     report = {
         "verdict": "fail" if rule_issues or has_fatal else "pass",
         "issues": rule_issues + issues,
+        # The EFFECTIVE map this verdict judged (2026-11-25): a resume
+        # re-derives it from here (factory.stages._effective_concept_map)
+        # instead of restarting the loop from 02-generate's emitted map.
+        "concept_map": concept_map or None,
     }
     run_ctx.save_stage_output(STAGE_ID, report)
     if round_tag:
@@ -382,10 +387,7 @@ def run(
         + [issue_entry(STAGE_ID, "static", round_tag, i) for i in static_issues]
         # Concept-coverage findings are deterministic gate evidence; tag the
         # call so the ledger can distinguish them from model findings.
-        + [
-            issue_entry(STAGE_ID, "concept_map", round_tag, i)
-            for i in concept_issues
-        ]
+        + [issue_entry(STAGE_ID, "concept_map", round_tag, i) for i in concept_issues],
     )
     print(
         f"[{STAGE_ID}] facts call: {len(facts_report['issues'])} issue(s); "

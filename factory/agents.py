@@ -83,14 +83,16 @@ def _concept_map_block(cfg: Config, chapter: dict[str, Any]) -> str:
     if concept_ids:
         available = ", ".join(concept_ids)
     else:
-        available = ("(no curated concepts found for this chapter in "
-                     f"{syllabus.DEFAULT_SYLLABUS_REL} - emit concept_map as an "
-                     "empty object {})")
+        available = (
+            "(no curated concepts found for this chapter in "
+            f"{syllabus.DEFAULT_SYLLABUS_REL} - emit concept_map as an "
+            "empty object {})"
+        )
     return (
         "\n\nCONCEPT MAP (the pipeline produces the tracked section -> curated-"
         "concept map, see factory/syllabus.py):\n"
         f"- Curated concept ids available for this chapter: {available}\n"
-        '- Emit a top-level `concept_map` object on your JSON: keys are your '
+        "- Emit a top-level `concept_map` object on your JSON: keys are your "
         'lesson.sections[].id values ("sec-01", "sec-02", ...), one value per key, '
         "each value a curated concept id - the concept whose title/description the "
         "section teaches (do not invent ids, do not map two sections to the same "

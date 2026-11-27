@@ -27,7 +27,7 @@ DEFAULT_SYLLABUS_REL = Path("sources/syllabus/syllabus.json")
 
 
 def _syllabus_path(cfg: Config) -> Path:
-    return cfg.repo_path(DEFAULT_SYLLABUS_REL)
+    return cfg.repo_path(str(DEFAULT_SYLLABUS_REL))
 
 
 def load_syllabus(cfg: Config) -> dict[str, Any] | None:
@@ -105,7 +105,6 @@ def write_concept_map(
 def write_tracked_map(
     cfg: Config,
     run_ctx: Any,
-    source_pack: dict[str, Any] | None,
     render_out: dict[str, Any],
     concept_map: dict[str, Any] | None = None,
 ) -> Path | None:
@@ -135,8 +134,7 @@ def write_tracked_map(
     map_data = {str(k): str(v) for k, v in (map_data or {}).items() if v is not None}
     if not map_data:
         print(
-            "[09-review] no concept_map in effect; tracked concept "
-            "map left untouched"
+            "[09-review] no concept_map in effect; tracked concept map left untouched"
         )
         return None
     frontend_rel = str(Path(cfg.paths["frontend"]))
@@ -170,9 +168,9 @@ def write_tracked_map(
 
 __all__ = [
     "curated_concept_ids",
-    "located_chapter_id",
     "load_chapter",
     "load_syllabus",
+    "located_chapter_id",
     "tracked_map_path",
     "write_concept_map",
     "write_tracked_map",

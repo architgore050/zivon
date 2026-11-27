@@ -223,14 +223,39 @@ def _normalize_concept_map(raw: Any) -> dict[str, str]:
     return {str(k): str(v) for k, v in raw.items() if k is not None and v is not None}
 
 
-def _effective_concept_map(run_ctx: RunContext) -> dict[str, str]:
-    """The concept map in effect before any 10-reviewfix correction: the
-    02-generate stage's emitted `concept_map`; empty when absent."""
+def _stage_output_json(run_ctx: RunContext, stage_id: str) -> dict[str, Any] | None:
+    """THIS run's saved stage output, or None - deliberately no cross-run
+    fallback (a resume is the same deterministic run dir; copying another
+    run's review/fixer artifact here would thread a foreign map through the
+    loop). Corrupt or non-dict output reads as absent."""
+    path = run_ctx.stage_dir(stage_id) / "output.json"
+    if not path.is_file():
+        return None
     try:
-        gen = run_ctx.load_stage_output("02-generate")
-    except Exception:  # noqa: BLE001 - partial runs have no 02-generate
-        gen = None
-    return _normalize_concept_map((gen or {}).get("concept_map"))
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _effective_concept_map(run_ctx: RunContext) -> dict[str, str]:
+    """The concept map a (re)started review loop must judge, in the order the
+    events happened: the map the last 10-reviewfix round CORRECTED, else the
+    map the last 09-review report judged, else 02-generate's emitted map -
+    the map analogue of `_preferred_blocks` (a resume never restarts the loop
+    from a stale map; 2026-11-25)."""
+    corrected = _normalize_concept_map(
+        (_stage_output_json(run_ctx, "10-reviewfix") or {}).get("concept_map")
+    )
+    if corrected:
+        return corrected
+    judged = _normalize_concept_map(
+        (_stage_output_json(run_ctx, "09-review") or {}).get("concept_map")
+    )
+    if judged:
+        return judged
+    generated = _stage_output_json(run_ctx, "02-generate") or {}
+    return _normalize_concept_map(generated.get("concept_map"))
 
 
 def _severity_score(issues: list[dict[str, Any]]) -> int:
@@ -749,9 +774,12 @@ def run_pipeline(
                 ground_truth = run_ctx.load_stage_output("02-generate")["ground_truth"]
             if render_out is None:
                 render_out = run_ctx.load_stage_output("06-render")
-            # Effective concept map (section -> curated concept): starts from
-            # 02-generate's emitted map; a 10-reviewfix `concept_map` output
-            # replaces it for the next round and is persisted on final pass.
+            # Effective concept map (section -> curated concept): the map the
+            # last 10-reviewfix round corrected, else the map the last review
+            # judged, else 02-generate's emitted map - so a resume never
+            # restarts the loop from a stale map. A 10-reviewfix `concept_map`
+            # output replaces it for the next round and is persisted on final
+            # pass.
             effective_concept_map = _effective_concept_map(run_ctx)
             report = run_review_once(None)
             rounds = 0
@@ -854,7 +882,6 @@ def run_pipeline(
                 syllabus.write_tracked_map(
                     cfg,
                     run_ctx,
-                    source_pack,
                     render_out,
                     concept_map=effective_concept_map,
                 )

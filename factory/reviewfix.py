@@ -233,16 +233,21 @@ def _system() -> str:
         "- The page must still TEACH: every block spec stays implemented, every "
         "simulation keeps its learning_goal, default_behaviour and controls, and the "
         "drawn behaviour must keep matching the CITED FACTS.\n"
-        "- CONCEPT MAP (fatal `concept_map` findings): the page must teach and map "
-        "every curated syllabus concept. Repair a missing concept by ADDING a section "
-        "and/or blocks that teach it - including the concept's check keywords in the "
-        "section title or block text - and mapping it in `concept_map`. Never drop a "
-        "section, never invent an unknown concept id, never leave a curated concept "
-        "orphaned (no mapped section), never point a section at a concept it does not "
-        "teach. `concept_map` keys are current lesson section ids; values are curated "
-        "concept ids from the list below. Return `concept_map` (full corrected map) "
-        "only when you change the map; omit it to keep the previous map. Never weaken "
-        "the check.\n"
+        "- CONCEPT MAP (fatal `concept_map` findings): every section must be "
+        "mapped in `concept_map` and every curated syllabus concept must own a "
+        "section that actually TEACHES it. Sections are renderer-owned: you "
+        "cannot add or remove them, so repair a missing or orphaned concept by "
+        "pointing an EXISTING section at it in `concept_map` and adding or "
+        "extending real teaching blocks under that section (new block ids are "
+        "appended to the draft) - include the concept's check keywords from "
+        "the finding in the block text. A rewording, or dropping the concept "
+        "or its blocks, is not a repair. Never drop a section, never invent an "
+        "unknown concept id, never leave a curated concept orphaned (no mapped "
+        "section), never point a section at a concept it does not teach. "
+        "`concept_map` keys are current lesson section ids; values are curated "
+        "concept ids from the list below. Return `concept_map` (full corrected "
+        "map) only when you change the map; omit it to keep the previous map. "
+        "Never weaken the check.\n"
         "- Fix the flagged issues; do not restyle the page or rewrite what was not flagged.\n"
     )
 
@@ -321,5 +326,5 @@ def _user_msg(
         "complete replacements. Only for BLOCK-CONTENT findings: add "
         '"blocks": [<corrected full block objects>]. '
         'Only for CONCEPT_MAP findings: add "concept_map": <full corrected '
-        'section -> curated-concept map>; omit it to keep the previous map.'
+        "section -> curated-concept map>; omit it to keep the previous map."
     )

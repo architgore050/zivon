@@ -5,8 +5,10 @@ One shared checker, no test-specific fork, no weakening. The same
 
 - **09-review** (`factory/review.py::run`) on EVERY round, re-deriving findings
   from the CURRENT (possibly 10-reviewfix-corrected) blocks, the rendered
-  `render_out["manifest"]`, the EFFECTIVE concept map (latest 10-reviewfix
-  `concept_map` if present, else the 02-generate map), and the curated
+  `render_out["manifest"]`, the EFFECTIVE concept map (the map the last
+  10-reviewfix round corrected, else the map the last 09-review report judged,
+  else the 02-generate map - re-derived from run artifacts on resume; see
+  `factory.stages._effective_concept_map`), and the curated
   `factory.syllabus.curated_concept_ids`. Every finding is emitted as a FATAL
   `concept_map` issue; verdict=fail routes to the bounded 10-reviewfix catcher.
 - **`scripts/verify_magnetic_manifest.py`**, the offline checkpoint, which
@@ -97,7 +99,9 @@ def concept_coverage_problems(
         return []
 
     sections = [
-        s for s in (manifest.get("sections") or []) if isinstance(s, dict) and s.get("id")
+        s
+        for s in (manifest.get("sections") or [])
+        if isinstance(s, dict) and s.get("id")
     ]
     section_ids = [str(s["id"]) for s in sections]
     section_id_set = set(section_ids)
@@ -123,7 +127,8 @@ def concept_coverage_problems(
     unmapped = sorted(section_id_set - set(mapping))
     if unmapped:
         problems.append(
-            "sections missing from concept map: " + str(unmapped)
+            "sections missing from concept map: "
+            + str(unmapped)
             + " - add them to section_concept_map"
         )
 
@@ -142,7 +147,9 @@ def concept_coverage_problems(
         problems.append("map targets unknown to the syllabus: " + str(unknown))
 
     # 4. blocks landing on no mapped section
-    untagged = sum(1 for b in all_blocks if mapping.get(assigned.get(_bid(b)) or "") is None)
+    untagged = sum(
+        1 for b in all_blocks if mapping.get(assigned.get(_bid(b)) or "") is None
+    )
     if untagged:
         problems.append(f"{untagged} blocks land on no mapped section")
 
@@ -156,10 +163,8 @@ def concept_coverage_problems(
         )
 
     # 6. keyword coverage for the named curated topics
-    block_text = " ".join(
-        _json_lower(b) for b in all_blocks
-    )
-    for label, (concept_id, keywords) in (topic_keywords or {}).items():
+    block_text = " ".join(_json_lower(b) for b in all_blocks)
+    for concept_id, keywords in (topic_keywords or {}).values():
         if concept_id in orphans:
             continue  # already reported as an orphan; keywords can't fire either
         if concept_id not in known or concept_id not in mapped_values:
