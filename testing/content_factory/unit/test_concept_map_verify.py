@@ -32,8 +32,13 @@ def manifest(sections=("sec-01",), blocks=None):
 def blocks_for(sections=("sec-01",)):
     return {
         "blocks": [
-            {"id": "b-01", "type": "text", "spec": {"paragraphs": ["hello world"]},
-             "section_id": sections[0], "citations": []}
+            {
+                "id": "b-01",
+                "type": "text",
+                "spec": {"paragraphs": ["hello world"]},
+                "section_id": sections[0],
+                "citations": [],
+            }
         ]
     }
 
@@ -41,7 +46,11 @@ def blocks_for(sections=("sec-01",)):
 class ConceptCoverageProblems(unittest.TestCase):
     def test_pass_clean_map(self) -> None:
         m = manifest(sections=("sec-01", "sec-02"))
-        m["blocks"]["b-02"] = {"type": "text", "section_id": "sec-02", "concept_id": "x"}
+        m["blocks"]["b-02"] = {
+            "type": "text",
+            "section_id": "sec-02",
+            "concept_id": "x",
+        }
         blocks = {
             "blocks": [
                 {"id": "b-01", "type": "text", "spec": {}, "section_id": "sec-01"},
@@ -57,14 +66,9 @@ class ConceptCoverageProblems(unittest.TestCase):
         problems = concept_coverage_problems(
             manifest(sections=("sec-01", "sec-02")),
             blocks_for(),
-            {"sec-01": "k1", "sec-02": "k2"},
+            {"sec-01": "k1"},
             KNOWN,
             topic_keywords={},
-        )
-        # sec-02 not in a fully clean map -> missing key
-        m = manifest(sections=("sec-01", "sec-02"))
-        problems = concept_coverage_problems(
-            m, blocks_for(), {"sec-01": "k1"}, KNOWN, topic_keywords={}
         )
         self.assertTrue(any("sec-02" in p for p in problems), problems)
         self.assertTrue(
@@ -79,9 +83,7 @@ class ConceptCoverageProblems(unittest.TestCase):
             KNOWN,
             topic_keywords={},
         )
-        self.assertTrue(
-            any("unknown to the syllabus" in p for p in problems), problems
-        )
+        self.assertTrue(any("unknown to the syllabus" in p for p in problems), problems)
 
     def test_orphan_concept_is_flagged(self) -> None:
         problems = concept_coverage_problems(
@@ -104,7 +106,7 @@ class ConceptCoverageProblems(unittest.TestCase):
         )
         self.assertTrue(any("sec-99" in p for p in problems), problems)
 
-    def test_block_on_unmapped_section_is_flagged(self) -> None:
+    def test_fully_mapped_blocks_are_not_untagged(self) -> None:
         m = manifest(sections=("sec-01", "sec-02"))
         blocks = {
             "blocks": [
@@ -115,11 +117,9 @@ class ConceptCoverageProblems(unittest.TestCase):
         problems = concept_coverage_problems(
             m, blocks, {"sec-01": "k1", "sec-02": "k2"}, KNOWN, topic_keywords={}
         )
-        # map sec-02 only indirectly check: make sec-02 unmapped
-        problems = concept_coverage_problems(
-            m, blocks, {"sec-01": "k1", "sec-02": "k2"}, KNOWN + [], topic_keywords={}
+        self.assertFalse(
+            any("blocks land on no mapped section" in p for p in problems), problems
         )
-        self.assertEqual(problems, [])  # both mapped: clean
 
     def test_blocks_landing_on_no_mapped_section_is_flagged(self) -> None:
         m = manifest(sections=("sec-01", "sec-02"))
@@ -129,27 +129,20 @@ class ConceptCoverageProblems(unittest.TestCase):
                 {"id": "b-02", "type": "text", "spec": {}, "section_id": "sec-02"},
             ]
         }
-        # sec-02 has no concept mapping; a block lands on it
+        # sec-02 has no map key: its block lands on no MAPPED section
         problems = concept_coverage_problems(
-            m, blocks, {"sec-01": "k1", "sec-02": "k2"}, KNOWN + [], topic_keywords={}
+            m, blocks, {"sec-01": "k1"}, KNOWN, topic_keywords={}
         )
-        self.assertEqual(problems, [])  # baseline clean
-        # drop k2 ownership: sec-02 unmapped -> block on it has no mapped section
-        problems = concept_coverage_problems(
-            m, blocks, {"sec-01": "k1", "sec-02": "k1"}, KNOWN + [], topic_keywords={}
+        self.assertTrue(
+            any("blocks land on no mapped section" in p for p in problems), problems
         )
-        self.assertTrue(any("orphan" in p for p in problems), problems)
 
     def test_no_keyword_is_flagged_for_named_topic(self) -> None:
         known = ["k1", MOTOR]
         m = manifest()
         blocks = blocks_for()
-        problems = concept_coverage_problems(
-            m, blocks, {"sec-01": MOTOR}, known
-        )
-        self.assertTrue(
-            any("none of the keywords" in p for p in problems), problems
-        )
+        problems = concept_coverage_problems(m, blocks, {"sec-01": MOTOR}, known)
+        self.assertTrue(any("none of the keywords" in p for p in problems), problems)
         self.assertTrue(any("motor" in p for p in problems), problems)
 
     def test_keyword_present_passes_named_topic(self) -> None:
@@ -171,15 +164,14 @@ class ConceptCoverageProblems(unittest.TestCase):
     def test_topic_keywords_importable_and_unchanged(self) -> None:
         self.assertIn("electromagnetic-induction", " ".join(TOPIC_KEYWORDS))
         self.assertTrue(
-            any(
-                v[0] == MOTOR and "commutator" in v[1]
-                for v in TOPIC_KEYWORDS.values()
-            )
+            any(v[0] == MOTOR and "commutator" in v[1] for v in TOPIC_KEYWORDS.values())
         )
 
     def test_no_curated_vocabulary_and_no_map_is_not_a_failure(self) -> None:
         self.assertEqual(
-            concept_coverage_problems(manifest(), blocks_for(), {}, [], topic_keywords={}),
+            concept_coverage_problems(
+                manifest(), blocks_for(), {}, [], topic_keywords={}
+            ),
             [],
         )
 

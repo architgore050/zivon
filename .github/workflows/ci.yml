@@ -371,7 +371,7 @@ jobs:
         run: python -m unittest discover -s testing/content_factory/exam -t . -v
       - name: Content factory integration test (real orchestrator vs mock inference server + real headless Chromium)
         # first run downloads the all-MiniLM-L6-v2 embedder (~90 MB) from HuggingFace
-        run: python -m unittest testing.content_factory.integration.test_end_to_end -v
+        run: python -m unittest testing.content_factory.integration.test_end_to_end testing.content_factory.integration.test_concept_map_review_fix -v
       - name: Frontend shell + behaviour tests (headless Chromium)
         run: python -m unittest discover -s testing/frontend -t . -v
       - name: Path-guarded docs + Wave-E suites (each runs once its folder lands)

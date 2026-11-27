@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -99,9 +100,7 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
             REPO_ROOT / "tmp" / "concept-map-test" / f"tracked-{id(self)}.json"
         )
         self.tracked_out.parent.mkdir(parents=True, exist_ok=True)
-        self.addCleanup(
-            lambda: self.tracked_out.unlink(missing_ok=True)
-        )
+        self.addCleanup(lambda: self.tracked_out.unlink(missing_ok=True))
 
     def _run(self, llm: MockLLM, run_id: str | None = None) -> dict[str, Any]:
         with (
@@ -146,7 +145,7 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
             }
         )
 
-        result = self._run(llm)
+        self._run(llm)
 
         # a concept_map fatal routed to 10-reviewfix once, then re-review passed
         self.assertIn("10-reviewfix", llm.calls)
@@ -171,8 +170,10 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
         tracked = json.loads(self.tracked_out.read_text())
         self.assertEqual(tracked["section_concept_map"], corrected)
         self.assertTrue(
-            json.loads((self.run_ctx.dir / "status.json").read_text())
-            ["stages"]["09-review"]["state"] == "ok"
+            json.loads((self.run_ctx.dir / "status.json").read_text())["stages"][
+                "09-review"
+            ]["state"]
+            == "ok"
         )
 
     def test_initial_round_emits_fatal_concept_map_before_any_fix(self) -> None:
@@ -189,15 +190,11 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
             }
         )
         self._run(llm)
-        round1 = json.loads(
-            (self.run_ctx.stage_dir("09-review") / "report-round-01.json").read_text()
-        ) if (self.run_ctx.stage_dir("09-review") / "report-round-01.json").exists() \
-            else json.loads(
-                (self.run_ctx.stage_dir("09-review") / "output.json").read_text()
-            )
         # the persisted final output is a pass; evidence of first-round fail is
         # in issues_ledger; assert a concept_map fatal was recorded
-        ledger = (self.run_ctx.dir / "issues_ledger.jsonl").read_text().strip().splitlines()
+        ledger = (
+            (self.run_ctx.dir / "issues_ledger.jsonl").read_text().strip().splitlines()
+        )
         rows = [json.loads(line) for line in ledger]
         self.assertTrue(
             any(
@@ -220,14 +217,16 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
             }
         )
         events: list[tuple[str, dict[str, Any], dict[str, Any]]] = []
-        with mock.patch(
-            "factory.stages.log_event",
-            side_effect=lambda name, fields=None, **kw: events.append(
-                (name, fields or {}, kw)
+        with (
+            mock.patch(
+                "factory.stages.log_event",
+                side_effect=lambda name, fields=None, **kw: events.append(
+                    (name, fields or {}, kw)
+                ),
             ),
+            self.assertRaises(StageError),
         ):
-            with self.assertRaises(StageError):
-                self._run(llm)
+            self._run(llm)
         exhausted = [e for e in events if e[0] == "factory.repair.exhausted"]
         self.assertTrue(exhausted, events)
         # closed error class REPAIR_EXHAUSTED (factory.repair.exhausted)
@@ -245,7 +244,6 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
     def test_stall_limit_and_round_cap_are_bounded(self) -> None:
         _seed(self.tmp, self.run_ctx, self.cfg, concept_map={})
         llm = MockLLM({"analysis": "noop no concept map fix", "files": {}})
-        rounds_seen = [c for c in llm.calls if c == "10-reviewfix"]
         with self.assertRaises(StageError):
             self._run(llm)
         # bounded: at most repair.code_rounds 10-reviewfix rounds, never a
@@ -253,6 +251,80 @@ class ConceptMapReviewFixIntegration(unittest.TestCase):
         n = len([c for c in llm.calls if c == "10-reviewfix"])
         self.assertLessEqual(n, self.cfg.repair["code_rounds"])
         self.assertGreaterEqual(n, 1)
+
+    # ------------------------------------------------------- resume threading
+    def test_resume_judges_the_reviewfix_correction_without_a_new_fix_round(
+        self,
+    ) -> None:
+        # Attempt 1: the fixer never corrects the map -> bounded loop exhausts.
+        seeded = _seed(self.tmp, self.run_ctx, self.cfg, concept_map={})
+        sections = seeded["sections"]
+        corrected = {sid: "k1" for sid in sections}
+        with self.assertRaises(StageError):
+            self._run(MockLLM({"analysis": "noop", "files": {}}))
+        # The dead attempt's LAST fixer round had returned the corrected map
+        # (the artifact on disk) but the process died before the re-review:
+        # replay exactly that artifact state.
+        fix_dir = self.run_ctx.stage_dir("10-reviewfix")
+        fix_out = json.loads((fix_dir / "output.json").read_text())
+        fix_out["concept_map"] = corrected
+        (fix_dir / "output.json").write_text(json.dumps(fix_out))
+        # Attempt 2 (resume, same deterministic run dir): the first re-review
+        # judges the corrected map and PASSES - no new fixer round is spent,
+        # and the map is persisted from the resumed pass.
+        llm2 = MockLLM({"analysis": "noop", "files": {}})
+        self._run(llm2)
+        self.assertNotIn("10-reviewfix", llm2.calls, llm2.calls)
+        tracked = json.loads(self.tracked_out.read_text())
+        self.assertEqual(tracked["section_concept_map"], corrected)
+
+
+class EffectiveConceptMapResume(unittest.TestCase):
+    """`factory.stages._effective_concept_map` re-derives the map a resumed
+    review loop must judge from run artifacts, in the order the events
+    happened (fixer correction > last judged map > 02-generate's map)."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.cfg, _ = make_cfg(self.tmp)
+        self.cfg = dataclasses.replace(self.cfg, root=REPO_ROOT)
+        self.run_ctx = RunContext(
+            self.cfg.repo_path(self.cfg.paths["runs"]), "t-eff-map"
+        )
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def _seed(self, **stage_outputs: Any) -> None:
+        for stage_id, output in stage_outputs.items():
+            self.run_ctx.save_stage_output(stage_id, output)
+
+    def test_fixer_correction_wins_over_stale_sources(self) -> None:
+        self._seed(
+            **{
+                "02-generate": {"concept_map": {"sec-01": "m1"}},
+                "09-review": {"concept_map": {"sec-01": "m2"}},
+                "10-reviewfix": {"concept_map": {"sec-01": "m3"}},
+            }
+        )
+        self.assertEqual(stages._effective_concept_map(self.run_ctx), {"sec-01": "m3"})
+
+    def test_last_judged_report_map_is_the_second_source(self) -> None:
+        # the fixer's LAST round kept the previous map (concept_map: None)
+        self._seed(
+            **{
+                "02-generate": {"concept_map": {"sec-01": "m1"}},
+                "09-review": {"concept_map": {"sec-01": "m2"}},
+                "10-reviewfix": {"concept_map": None},
+            }
+        )
+        self.assertEqual(stages._effective_concept_map(self.run_ctx), {"sec-01": "m2"})
+
+    def test_falls_back_to_the_generated_map(self) -> None:
+        self._seed(**{"02-generate": {"concept_map": {"sec-01": "m1"}}})
+        self.assertEqual(stages._effective_concept_map(self.run_ctx), {"sec-01": "m1"})
+
+    def test_missing_artifacts_yield_an_empty_map(self) -> None:
+        self._seed(**{"02-generate": {"blocks": {"blocks": []}}})
+        self.assertEqual(stages._effective_concept_map(self.run_ctx), {})
 
 
 if __name__ == "__main__":

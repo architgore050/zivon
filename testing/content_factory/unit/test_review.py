@@ -129,7 +129,9 @@ class TestReviewCalls(unittest.TestCase):
         _patcher.start()
         self.addCleanup(_patcher.stop)
 
-    def _review(self, stub: StubLLM) -> dict[str, Any]:
+    def _review(
+        self, stub: StubLLM, concept_map: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         return review.run(
             self.cfg,
             self.run_ctx,
@@ -137,6 +139,7 @@ class TestReviewCalls(unittest.TestCase):
             self.blocks,
             self.render_out,
             load("gt.json"),
+            concept_map=concept_map,
         )
 
     # ------------------------------------------------------ the context split
@@ -383,6 +386,51 @@ class TestReviewCalls(unittest.TestCase):
         stub = StubLLM()
         self._review(stub)
         self.assertFalse((self.run_ctx.dir / "issues_ledger.jsonl").exists())
+
+    # ------------------------------------------- deterministic concept gate
+    def test_concept_coverage_findings_are_fatal_concept_map_issues(self):
+        # 2026-11-25: coverage is re-derived by the harness every round from
+        # the current blocks + effective map; each finding is a FATAL
+        # concept_map issue (routes the verdict to the bounded 10-reviewfix).
+        with mock.patch(
+            "factory.review.syllabus.curated_concept_ids", return_value=["k1"]
+        ):
+            report = self._review(StubLLM(), concept_map={})
+        self.assertEqual(report["verdict"], "fail")
+        self.assertTrue(
+            any(
+                i["severity"] == "fatal" and i["category"] == "concept_map"
+                for i in report["issues"]
+            ),
+            report["issues"],
+        )
+
+    def test_report_records_the_judged_concept_map(self):
+        # The report carries the EFFECTIVE map this verdict judged - the
+        # resume re-derives it from here (stages._effective_concept_map).
+        with mock.patch(
+            "factory.review.syllabus.curated_concept_ids", return_value=["k1"]
+        ):
+            report = self._review(StubLLM(), concept_map={"sec-01": "k1"})
+        self.assertEqual(report["concept_map"], {"sec-01": "k1"})
+        # no map in effect -> the field reads as absent, not as an empty map
+        report = self._review(StubLLM())
+        self.assertIsNone(report["concept_map"])
+
+    def test_emitted_map_is_verified_even_without_curated_vocabulary(self):
+        # The checker owns its gate; the call site never weakens it. An
+        # emitted map with invented ids fails even for a chapter the tracked
+        # syllabus does not curate (otherwise the unverified map would be
+        # persisted on pass).
+        with mock.patch("factory.review.syllabus.curated_concept_ids", return_value=[]):
+            report = self._review(
+                StubLLM(), concept_map={"sec-01": "not-a-curated-concept"}
+            )
+        self.assertEqual(report["verdict"], "fail")
+        self.assertTrue(
+            any("unknown to the syllabus" in i["message"] for i in report["issues"]),
+            report["issues"],
+        )
 
 
 class ReviewFixStubLLM:
