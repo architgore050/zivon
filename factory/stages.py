@@ -70,6 +70,7 @@ from .errors import (
     ConfigError,
     FactoryError,
     MissingArtifactError,
+    PersistenceError,
     StageError,
 )
 from .llm import LLMClient
@@ -200,6 +201,8 @@ def _reason_code_for(exc: FactoryError) -> str:
         return "config_mismatch"
     if isinstance(exc, BudgetError):
         return "budget_unfixable" if not exc.fixable else "budget_fixable"
+    if isinstance(exc, PersistenceError):
+        return "map_persistence_failed"
     if isinstance(exc, StageError):
         return "catcher_exhausted"
     return type(exc).__name__
@@ -243,19 +246,104 @@ def _effective_concept_map(run_ctx: RunContext) -> dict[str, str]:
     events happened: the map the last 10-reviewfix round CORRECTED, else the
     map the last 09-review report judged, else 02-generate's emitted map -
     the map analogue of `_preferred_blocks` (a resume never restarts the loop
-    from a stale map; 2026-11-25)."""
-    corrected = _normalize_concept_map(
-        (_stage_output_json(run_ctx, "10-reviewfix") or {}).get("concept_map")
+    from a stale map; 2026-11-25). An EXPLICIT empty map is honored (issue
+    #118): presence of the field - not truthiness - decides, so a fixer
+    correction of `{}` or an explicitly empty judged map is never discarded
+    in favour of a stale one."""
+    corrected_raw = (_stage_output_json(run_ctx, "10-reviewfix") or {}).get(
+        "concept_map"
     )
-    if corrected:
-        return corrected
-    judged = _normalize_concept_map(
-        (_stage_output_json(run_ctx, "09-review") or {}).get("concept_map")
-    )
-    if judged:
-        return judged
+    if corrected_raw is not None:
+        return _normalize_concept_map(corrected_raw)
+    judged_raw = (_stage_output_json(run_ctx, "09-review") or {}).get("concept_map")
+    if judged_raw is not None:
+        return _normalize_concept_map(judged_raw)
     generated = _stage_output_json(run_ctx, "02-generate") or {}
     return _normalize_concept_map(generated.get("concept_map"))
+
+
+def _persist_verified_map(
+    cfg: Config,
+    run_ctx: RunContext,
+    render_out: dict[str, Any],
+    concept_map: dict[str, Any] | None,
+) -> None:
+    """Durably persist the verified map (issue #118, blocker): the PVC-backed
+    run artifact FIRST (the export/commit source; survives pod death), then
+    the tracked-sources write (atomic). Both happen BEFORE 09-review is
+    marked ok - the stage must never read ok with no map persisted behind it,
+    and a failed write raises StageError so the run fails loudly and a
+    re-trigger resumes the persistence from the saved passing report."""
+    payload = syllabus.tracked_map_payload_for_run(
+        cfg, run_ctx, render_out, concept_map
+    )
+    if payload is None:
+        return  # nothing to persist (no resolvable chapter / no map in effect)
+    try:
+        syllabus.write_run_artifact(run_ctx, payload)
+    except OSError as exc:
+        raise PersistenceError(
+            "09-review",
+            f"durable concept-map artifact write failed ({exc}); the run "
+            "artifacts volume must be writable (k8s/20 bridge)",
+            artifacts_dir=str(run_ctx.stage_dir("09-review")),
+        ) from exc
+    syllabus.write_tracked_map(cfg, run_ctx, render_out, concept_map=concept_map)
+
+
+def _retry_map_persistence(cfg: Config, run_ctx: RunContext) -> None:
+    """Resume path (issue #118): re-persist the verified map from the saved
+    PASSING report when the tracked file is missing or stale. A cluster run
+    that persisted the durable artifact but lost the tracked write (readonly
+    rootfs, removed mount) recovers here instead of resuming without a map."""
+    report = _stage_output_json(run_ctx, "09-review") or {}
+    if report.get("verdict") != "pass" or report.get("concept_map") is None:
+        return
+    concept_map = _normalize_concept_map(report["concept_map"])
+    if not concept_map:
+        return  # an explicitly empty map was judged: nothing to persist
+    render_out = _stage_output_json(run_ctx, "06-render")
+    if render_out is None:
+        print(
+            "[09-review] resume: passing report carries a concept map but no "
+            "06-render artifact exists; persistence not retried"
+        )
+        return
+    try:
+        payload = syllabus.tracked_map_payload_for_run(
+            cfg, run_ctx, render_out, concept_map
+        )
+    except Exception as exc:
+        raise StageError(
+            "09-review",
+            f"resume map persistence could not rebuild the payload ({exc})",
+            artifacts_dir=str(run_ctx.stage_dir("09-review")),
+        ) from exc
+    if payload is None:
+        return
+    try:
+        artifact = syllabus.concept_map_artifact_path(run_ctx)
+        if not artifact.exists():
+            syllabus.write_run_artifact(run_ctx, payload)
+        path = syllabus.tracked_map_path(cfg, payload["chapter_id"])
+        current = (
+            json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+        )
+        if current != payload:
+            syllabus.write_tracked_map(
+                cfg, run_ctx, render_out, concept_map=concept_map
+            )
+            print(
+                "[09-review] resume: re-persisted the verified concept map from "
+                "the saved passing report"
+            )
+    except OSError as exc:
+        raise PersistenceError(
+            "09-review",
+            f"resume concept-map persistence failed ({exc}); fix the "
+            "tracked-sources mount (k8s/20 bridge) and re-trigger",
+            artifacts_dir=str(run_ctx.stage_dir("09-review")),
+        ) from exc
 
 
 def _severity_score(issues: list[dict[str, Any]]) -> int:
@@ -753,6 +841,25 @@ def run_pipeline(
                 round_tag=round_tag,
                 concept_map=effective_concept_map,
             )
+            if report["verdict"] == "pass":
+                # issue #118 ordering: the verified map is persisted (durable
+                # run artifact + tracked sources, both atomic) BEFORE the stage
+                # is marked ok - a persistence failure fails the stage loudly
+                # (reason_code map_persistence_failed) and a re-trigger resumes
+                # the persistence from this saved passing report.
+                try:
+                    _persist_verified_map(
+                        cfg, run_ctx, render_out, effective_concept_map
+                    )
+                except StageError:
+                    run_ctx.mark_stage(
+                        "09-review",
+                        "failed",
+                        detail="verified concept map persistence failed",
+                        reason_code="map_persistence_failed",
+                        error_class=ErrorClass.GATE_FAIL,
+                    )
+                    raise
             run_ctx.mark_stage(
                 "09-review",
                 "ok" if report["verdict"] == "pass" else "failed",
@@ -765,6 +872,10 @@ def run_pipeline(
             return report
 
         gate_active = wanted("09-review") or wanted("10-reviewfix")
+        if gate_active and resumed("09-review"):
+            # issue #118: a resumed PASSING review retries the tracked-map
+            # persistence from its saved report (missing/stale tracked file).
+            _retry_map_persistence(cfg, run_ctx)
         if gate_active and not resumed("09-review"):
             if blocks is None:
                 generated = run_ctx.load_stage_output("02-generate")
@@ -875,16 +986,10 @@ def run_pipeline(
                     f"{stalls}/{stall_limit})"
                 )
             # 2026-11-25: the section -> curated-concept map has a pipeline
-            # producer now (see the PIPELINE_VERSION note). On a passing final
-            # review, persist the verified map to the tracked
-            # sources/syllabus/chapters/<chapter_id>.concept-map.json.
-            if report["verdict"] == "pass":
-                syllabus.write_tracked_map(
-                    cfg,
-                    run_ctx,
-                    render_out,
-                    concept_map=effective_concept_map,
-                )
+            # producer now (see the PIPELINE_VERSION note). Persistence moved
+            # INTO run_review_once (issue #118): the verified map is written
+            # (durable artifact + tracked sources) BEFORE the stage is marked
+            # ok, so a passing review can never resume without its map.
             if report["verdict"] == "fail" or fix_feedback:
                 reason = (
                     f"progress plateaued: {stalls} consecutive re-review(s) with "

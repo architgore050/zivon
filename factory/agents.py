@@ -76,17 +76,32 @@ def _concept_map_block(cfg: Config, chapter: dict[str, Any]) -> str:
     """The 2026-11-25 concept-map production contract (see `factory/syllabus.py`):
     the model emits a top-level `concept_map` {sec-NN: curated concept id} keyed
     by its own lesson section ids. The candidate ids come from the tracked
-    syllabus so the map's values validate against A2's vocabulary by
-    construction."""
-    ch_id = syllabus.located_chapter_id(chapter["title"], chapter["class"])
-    concept_ids = syllabus.curated_concept_ids(cfg, ch_id)
-    if concept_ids:
-        available = ", ".join(concept_ids)
+    syllabus via CANONICAL chapter resolution (issue #118: never the renderer's
+    truncated key), so the map's values validate against A2's vocabulary by
+    construction. The contract is branched (issue #118): a chapter the tracked
+    syllabus does not cover - or covers with zero curated concepts - is told
+    the empty map is VALID; only a curated chapter owes a full map."""
+    ch = syllabus.resolve_chapter(
+        cfg, str(chapter.get("title") or ""), chapter.get("class")
+    )
+    if ch and ch.get("concepts"):
+        available = ", ".join(syllabus.curated_concept_ids(cfg, ch["chapter_id"]))
+        contract = "- The map must cover EVERY lesson section; it must not be empty."
     else:
-        available = (
-            "(no curated concepts found for this chapter in "
-            f"{syllabus.DEFAULT_SYLLABUS_REL} - emit concept_map as an "
-            "empty object {})"
+        if ch:
+            reason = (
+                "the tracked syllabus registers this chapter with ZERO curated "
+                f"concepts ({ch['chapter_id']})"
+            )
+        else:
+            reason = (
+                "this chapter is not registered in the tracked syllabus "
+                f"({syllabus.DEFAULT_SYLLABUS_REL})"
+            )
+        available = f"(no curated concept ids for this chapter: {reason})"
+        contract = (
+            "- Emit `concept_map` as an empty object {}; an empty map is the "
+            "CORRECT output here - do not invent concept ids."
         )
     return (
         "\n\nCONCEPT MAP (the pipeline produces the tracked section -> curated-"
@@ -96,8 +111,7 @@ def _concept_map_block(cfg: Config, chapter: dict[str, Any]) -> str:
         'lesson.sections[].id values ("sec-01", "sec-02", ...), one value per key, '
         "each value a curated concept id - the concept whose title/description the "
         "section teaches (do not invent ids, do not map two sections to the same "
-        "concept unless the section genuinely continues the same concept).\n"
-        "- The map must cover EVERY lesson section; it must not be empty."
+        "concept unless the section genuinely continues the same concept).\n" + contract
     )
 
 

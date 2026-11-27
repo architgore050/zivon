@@ -52,9 +52,18 @@ from logging_manager import ErrorClass, log_event
 from .errors import MissingArtifactError
 
 
-def slugify(text: str, max_len: int = 40) -> str:
+def slugify(text: str, max_len: int | None = 40) -> str:
+    """Lowercase hyphenated slug. `max_len` caps the length (the renderer's
+    40-char topic-slug contract); `None` leaves the slug UNCAPPED - the
+    canonical syllabus form (2026-11-27): several curated chapter ids
+    (`class-9-sound-waves-characteristics-and-applications`,
+    `class-11-system-of-particles-and-rotational-motion`, ...) exceed 40
+    characters and must never be truncated or the curated chapter can no
+    longer be resolved from its title."""
     slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
-    return slug[:max_len].rstrip("-") or "topic"
+    if max_len is not None:
+        slug = slug[:max_len].rstrip("-")
+    return slug or "topic"
 
 
 def wipe_run(runs_dir: Path, run_id: str) -> bool:
